@@ -392,3 +392,7 @@ temp
 # Gradle build reports
 src/Core/AndroidNative/build/reports/
 
+
+# MAUI C++ port artifacts (regenerable / too large for GitHub)
+graphify-out/
+docs-maui-src/

@@ -1,0 +1,3452 @@
+{
+ "unit": 1,
+ "namespaces": [
+  "Microsoft.Maui",
+  "Microsoft.Maui.Controls",
+  "Microsoft.Maui.Platform",
+  "Microsoft.Maui.Platform.MauiStepper"
+ ],
+ "count": 430,
+ "items": [
+  {
+   "alias": "Microsoft.Maui.Platform.AccessibilityDelegateCompatWrapper",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/AccessibilityDelegateCompatWrapper.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ActivityIndicatorExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ActivityIndicatorExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ActivityResultCallbackRegistry",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ActivityResultCallbackRegistry.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.AlignmentExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/AlignmentExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ApplicationExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ApplicationExtensions (Microsoft.Maui.Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.AspectExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/AspectExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.AttributedStringExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/AttributedStringExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.BorderDrawable",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/BorderDrawable.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.BorderExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/BorderExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ButtonExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ButtonExtensions (Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.CalendarDatePickerExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/CalendarDatePickerExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.CharacterSpacingExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/CharacterSpacingExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.CheckBoxExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/CheckBoxExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.CollectionViewExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/CollectionViewExtensions (Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ColorConverter",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ColorConverter (Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ColorExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ColorExtensions (Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ContainerView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ContainerView (Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ContainerViewController",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ContainerViewController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ContentPanel",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ContentPanel.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ContentView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ContentView (Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ContentViewGroup",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ContentViewGroup.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ContextExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ContextExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ControlExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ControlExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.CoreGraphicsExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/CoreGraphicsExtensions (Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.Culture",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/Culture.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.DPExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/DPExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.DateExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/DateExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.DatePickerExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/DatePickerExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.DrawableExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/DrawableExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.EditTextExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/EditTextExtensions (Microsoft.Maui.Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.EditorExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/EditorExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ElementExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ElementExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.EnergySaverListenerManager",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/EnergySaverListenerManager.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.EntryExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/EntryExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.FlowDirectionExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/FlowDirectionExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.FlyoutViewExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/FlyoutViewExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.FontExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/FontExtensions (Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.GraphicsExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/GraphicsExtensions (Microsoft.Maui.Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.GraphicsViewExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/GraphicsViewExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.IAndroidStepperHandler",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/IAndroidStepperHandler.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.IEnergySaverListener",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/IEnergySaverListener.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.IEnergySaverListenerManager",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/IEnergySaverListenerManager.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.IToolbarContainer",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/IToolbarContainer.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ImageButtonExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ImageButtonExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ImageExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ImageExtensions (Microsoft.Maui.Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ImageSourcePartExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ImageSourcePartExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ImageSourcePartLoader",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ImageSourcePartLoader.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ImageViewExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ImageViewExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ImeActionExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ImeActionExtensions (Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.KeyboardAutoManagerScroll",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/KeyboardAutoManagerScroll.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.KeyboardExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/KeyboardExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.LabelExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/LabelExtensions (Microsoft.Maui.Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.LayerExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/LayerExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.LayoutCanvasExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/LayoutCanvasExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.LayoutChangedEventArgs",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/LayoutChangedEventArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.LayoutPanel",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/LayoutPanel.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.LayoutPanelExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/LayoutPanelExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.LayoutView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/LayoutView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.LayoutViewExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/LayoutViewExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.LayoutViewGroup",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/LayoutViewGroup.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.LayoutViewGroupExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/LayoutViewGroupExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.LocalizedDigitsKeyListener",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/LocalizedDigitsKeyListener.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiAccessibilityDelegateCompat",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiAccessibilityDelegateCompat.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiActivityIndicator",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiActivityIndicator.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiAppCompatEditText",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiAppCompatEditText.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiAutoSuggestBox",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiAutoSuggestBox.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiBoxView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiBoxView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiButton",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiButton.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiButtonAutomationPeer",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiButtonAutomationPeer.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiCALayer",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiCALayer.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiCancelButton",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiCancelButton.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiCheckBox",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiCheckBox.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiClipperView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiClipperView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiDatePicker",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiDatePicker.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiDateTimePicker",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiDateTimePicker.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiFlyoutView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiFlyoutView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiHorizontalScrollView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiHorizontalScrollView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiHybridWebView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiHybridWebView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiHybridWebViewClient",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiHybridWebViewClient.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiImageButton",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiImageButton.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiImageSource",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiImageSource.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiImageView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiImageView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiLabel",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiLabel.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiMaterialButton",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiMaterialButton.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiNavigationView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiNavigationView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiPageControl",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiPageControl.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiPanel",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiPanel.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiPasswordTextBox",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiPasswordTextBox.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiPicker",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiPicker.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiPickerBase",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiPickerBase.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiRefreshLayout",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiRefreshLayout.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiRefreshView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiRefreshView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiSearchBar",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiSearchBar.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiSearchView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiSearchView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiShapeView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiShapeView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiShapeableImageView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiShapeableImageView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiSlider",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiSlider.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiStepper",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiStepper.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiSwipeRefreshLayout",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiSwipeRefreshLayout.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiSwipeView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiSwipeView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiTVFlyoutView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiTVFlyoutView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiTextBox",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiTextBox.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiTextField",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiTextField.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiTextView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiTextView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiTimePicker",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiTimePicker.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiToolbar",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiToolbar.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiWKWebView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiWKWebView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiWebChromeClient",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiWebChromeClient.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiWebView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiWebView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiWebViewClient",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiWebViewClient.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiWebViewNavigationDelegate",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiWebViewNavigationDelegate.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiWebViewUIDelegate",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiWebViewUIDelegate.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MeasureSpecExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MeasureSpecExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MenuExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MenuExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.NavigationRootManager",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/NavigationRootManager.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.NavigationStackExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/NavigationStackExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.NavigationViewExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/NavigationViewExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.NavigationViewFragment",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/NavigationViewFragment.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.NoCaretField",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/NoCaretField.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.PageViewController",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/PageViewController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.PickerExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/PickerExtensions (Microsoft.Maui.Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.PlatformTouchGraphicsView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/PlatformTouchGraphicsView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.PrimitiveExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/PrimitiveExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ProgressBarExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ProgressBarExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.RadioButtonExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/RadioButtonExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ReturnTypeExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ReturnTypeExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.RootNavigationView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/RootNavigationView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.RootPanel",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/RootPanel.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ScrollViewExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ScrollViewExtensions (Microsoft.Maui.Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ScrollViewerExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ScrollViewerExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.SearchBarExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/SearchBarExtensions (Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.SearchViewExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/SearchViewExtensions (Microsoft.Maui.Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.SemanticExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/SemanticExtensions (Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ShapeExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ShapeExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ShapeViewExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ShapeViewExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ShapesExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ShapesExtensions (Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.SizeExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/SizeExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.SliderExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/SliderExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.StackNavigationManager",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/StackNavigationManager.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.StepperExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/StepperExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.StepperHandlerHolder",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/StepperHandlerHolder.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.StepperHandlerManager",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/StepperHandlerManager.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.StrokeExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/StrokeExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.SwipeViewExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/SwipeViewExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.SwitchExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/SwitchExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.TextAlignmentExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/TextAlignmentExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.TextAlignmentToHorizontalAlignmentConverter",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/TextAlignmentToHorizontalAlignmentConverter.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.TextBlockExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/TextBlockExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.TextBoxExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/TextBoxExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.TextElementExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/TextElementExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.TextFieldExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/TextFieldExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.TextInputExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/TextInputExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.TextViewExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/TextViewExtensions (Microsoft.Maui.Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ThemeExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ThemeExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.TimeExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/TimeExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.TimePickerExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/TimePickerExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ToolbarExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ToolbarExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.TransformationExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/TransformationExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.UIApplicationExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/UIApplicationExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.UIEdgeInsetsExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/UIEdgeInsetsExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.UIPageControlExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/UIPageControlExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.UIWindowExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/UIWindowExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.UnitExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/UnitExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.ViewGroupExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/ViewGroupExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.WebViewExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/WebViewExtensions (Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.WindowExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/WindowExtensions (Platform).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.WindowRootView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/WindowRootView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.WindowsPlatformMessageEventArgs",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/WindowsPlatformMessageEventArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.WindowsPlatformWindowSubclassedEventArgs",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/WindowsPlatformWindowSubclassedEventArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.WrapperView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Platform",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/WrapperView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.AndExpandLayoutManager",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/AndExpandLayoutManager.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.BackgroundingEventArgs",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/BackgroundingEventArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.BrushTypeConverter.GradientBrushParser",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/GradientBrushParser.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.CloseRequestedEventArgs",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/CloseRequestedEventArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.CollectionSynchronizationCallback",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/CollectionSynchronizationCallback.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.Configuration<TPlatform, TElement>",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/Configuration{TPlatform, TElement}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ControlsColorExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ControlsColorExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.DefinitionCollection<T>",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/DefinitionCollection{T}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.Device.Styles",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/Styles.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.DisplayDensityChangedEventArgs",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/DisplayDensityChangedEventArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.FlowDirectionConverter",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/FlowDirectionConverter.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.FlyoutBase",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/FlyoutBase.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.FontExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/FontExtensions (Controls).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.GraphicsView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/GraphicsView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.GridExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/GridExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.GridLengthTypeConverter",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/GridLengthTypeConverter (Controls).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.HandlerChangingEventArgs",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/HandlerChangingEventArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.HandlerProperties",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/HandlerProperties.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.HorizontalStackLayout",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/HorizontalStackLayout.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.HybridWebViewRawMessageReceivedEventArgs",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/HybridWebViewRawMessageReceivedEventArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IAnimatable",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IAnimatable.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IAppIndexingProvider",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IAppIndexingProvider.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IAppLinkEntry",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IAppLinkEntry.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IAppLinks",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IAppLinks.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IAppearanceObserver",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IAppearanceObserver.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IApplicationController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IApplicationController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IBindableLayout",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IBindableLayout.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IBorderElement",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IBorderElement.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IButtonController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IButtonController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ICellController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ICellController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IConfigElement<T>",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IConfigElement{T}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IConfigPlatform",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IConfigPlatform.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IDecorableTextElement",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IDecorableTextElement.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IDefinition",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IDefinition.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IEditorController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IEditorController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IElementExtensions",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IElementExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IEntryCellController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IEntryCellController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IEntryController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IEntryController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IExtendedTypeConverter",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IExtendedTypeConverter.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IFlyoutBehaviorObserver",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IFlyoutBehaviorObserver.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IFlyoutPageController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IFlyoutPageController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IGestureRecognizer",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IGestureRecognizer.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IGestureRecognizers",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IGestureRecognizers.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IGridController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IGridController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IImageController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IImageController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IImageElement",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IImageElement.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IItemViewController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IItemViewController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IItemsView<T>",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IItemsView{T}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ILayout",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ILayout (Controls).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ILayoutController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ILayoutController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ILayoutManagerFactory",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ILayoutManagerFactory.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IListProxy",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IListProxy.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IListViewController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IListViewController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IMenuItemController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IMenuItemController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IMultiPageController<T>",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IMultiPageController{T}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IMultiValueConverter",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IMultiValueConverter.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.INavigationPageController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/INavigationPageController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IPaddingElement",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IPaddingElement.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IPageContainer<T>",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IPageContainer{T}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IPageController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IPageController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IPanGestureController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IPanGestureController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IPinchGestureController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IPinchGestureController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IPlatformElementConfiguration<TPlatform, TElement>",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IPlatformElementConfiguration{TPlatform, TElement}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IQueryAttributable",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IQueryAttributable.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IRegisterable",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IRegisterable.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IScrollViewController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IScrollViewController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ISearchBarController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ISearchBarController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ISearchHandlerController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ISearchHandlerController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IShellAppearanceElement",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IShellAppearanceElement.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IShellContentController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IShellContentController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IShellContentInsetObserver",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IShellContentInsetObserver.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IShellController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IShellController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IShellItemController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IShellItemController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IShellSectionController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IShellSectionController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ISliderController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ISliderController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ISwipeGestureController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ISwipeGestureController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ISwipeItem",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ISwipeItem (Controls).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ISwipeViewController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ISwipeViewController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ITableModel",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ITableModel.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ITableViewController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ITableViewController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ITemplatedItemsList<TItem>",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ITemplatedItemsList{TItem}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ITemplatedItemsListScrollToRequestedEventArgs",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ITemplatedItemsListScrollToRequestedEventArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ITemplatedItemsView<TItem>",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ITemplatedItemsView{TItem}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IValueConverter",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IValueConverter.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IViewContainer<T>",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IViewContainer{T}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IViewController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IViewController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IVisual",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IVisual.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IWebViewController",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IWebViewController.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.IWindowCreator",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/IWindowCreator.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.KnownColor",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/KnownColor.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.LayoutConstraint",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/LayoutConstraint.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.LayoutDirectionExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/LayoutDirectionExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.MenuBar",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/MenuBar.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.MenuBarItem",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/MenuBarItem.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.MenuFlyout",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/MenuFlyout.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.MenuFlyoutSubItem",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/MenuFlyoutSubItem.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.MultiPage<T>",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/MultiPage{T}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.NavigatedFromEventArgs",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/NavigatedFromEventArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.NavigatedToEventArgs",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/NavigatedToEventArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.NavigatingFromEventArgs",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/NavigatingFromEventArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.NavigationType",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/NavigationType.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.NullEffect",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/NullEffect.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.OnIdiom<T>",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/OnIdiom{T}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.OnPlatform<T>",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/OnPlatform{T}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.OpenRequestedEventArgs",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/OpenRequestedEventArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ParentChangingEventArgs",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ParentChangingEventArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.PlatformConfigurationRegistry<TElement>",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/PlatformConfigurationRegistry{TElement}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.PlatformEffect<TContainer, TControl>",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/PlatformEffect{TContainer, TControl}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.PlatformWebViewProcessTerminatedEventArgs",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/PlatformWebViewProcessTerminatedEventArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.PointCollection",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/PointCollection.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.PropertyChangingEventHandler",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/PropertyChangingEventHandler.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.Resource",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/Resource (Controls).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ResourceDictionary.RDSourceTypeConverter",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/RDSourceTypeConverter.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.SemanticProperties",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/SemanticProperties.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.Shadow",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/Shadow.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ShellNavigationQueryParameters",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ShellNavigationQueryParameters.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ShellTemplatedViewManager",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ShellTemplatedViewManager.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.StackBase",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/StackBase.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.StackLayoutManager",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/StackLayoutManager (Controls).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.TextAlignmentConverter",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/TextAlignmentConverter.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.ToolTipProperties",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/ToolTipProperties.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.Toolbar",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/Toolbar.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.TouchEventArgs",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/TouchEventArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.VerticalStackLayout",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/VerticalStackLayout.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.VisibilityExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/VisibilityExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.VisualElement.FocusRequestArgs",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/FocusRequestArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.VisualElement.VisibilityConverter",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/VisibilityConverter.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.VisualMarker.DefaultVisual",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/DefaultVisual.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.VisualStateManager.CommonStates",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/CommonStates.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.WebViewProcessTerminatedEventArgs",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/WebViewProcessTerminatedEventArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Controls.Window",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui.Controls",
+   "note_path": "vault/API Reference/Microsoft.Maui.Controls/Window.md"
+  },
+  {
+   "alias": "Microsoft.Maui.ActivationState",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/ActivationState.md"
+  },
+  {
+   "alias": "Microsoft.Maui.CommandMapper",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/CommandMapper.md"
+  },
+  {
+   "alias": "Microsoft.Maui.CommandMapper<TVirtualView, TViewHandler>",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/CommandMapper{TVirtualView, TViewHandler}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.CommandMapper<TVirtualView>",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/CommandMapper{TVirtualView}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.CommandMapperExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/CommandMapperExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Crc64",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/Crc64.md"
+  },
+  {
+   "alias": "Microsoft.Maui.CustomKeyboard",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/CustomKeyboard.md"
+  },
+  {
+   "alias": "Microsoft.Maui.DisplayDensityRequest",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/DisplayDensityRequest.md"
+  },
+  {
+   "alias": "Microsoft.Maui.ElementHandlerExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/ElementHandlerExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.EmbeddedFontLoader",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/EmbeddedFontLoader.md"
+  },
+  {
+   "alias": "Microsoft.Maui.FileImageSourceService",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/FileImageSourceService.md"
+  },
+  {
+   "alias": "Microsoft.Maui.FileSystemEmbeddedFontLoader",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/FileSystemEmbeddedFontLoader.md"
+  },
+  {
+   "alias": "Microsoft.Maui.FilterMode",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/FilterMode.md"
+  },
+  {
+   "alias": "Microsoft.Maui.FocusRequest",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/FocusRequest.md"
+  },
+  {
+   "alias": "Microsoft.Maui.FontImageSourceService",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/FontImageSourceService.md"
+  },
+  {
+   "alias": "Microsoft.Maui.FontManager",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/FontManager.md"
+  },
+  {
+   "alias": "Microsoft.Maui.FontRegistrar",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/FontRegistrar.md"
+  },
+  {
+   "alias": "Microsoft.Maui.FontSlant",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/FontSlant.md"
+  },
+  {
+   "alias": "Microsoft.Maui.FontWeight",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/FontWeight (Maui).md"
+  },
+  {
+   "alias": "Microsoft.Maui.HandlerDisconnectPolicy",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/HandlerDisconnectPolicy.md"
+  },
+  {
+   "alias": "Microsoft.Maui.HybridWebViewInvokeJavaScriptRequest",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/HybridWebViewInvokeJavaScriptRequest.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IActivationState",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IActivationState.md"
+  },
+  {
+   "alias": "Microsoft.Maui.ICommandMapper",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/ICommandMapper.md"
+  },
+  {
+   "alias": "Microsoft.Maui.ICommandMapper<TVirtualView, TViewHandler>",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/ICommandMapper{TVirtualView, TViewHandler}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.ICrossPlatformLayout",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/ICrossPlatformLayout.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IElement",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IElement.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IFileImageSource",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IFileImageSource.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IFlyout",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IFlyout.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IFontImageSource",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IFontImageSource.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IHybridWebView",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IHybridWebView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IImageLoaderCallback",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IImageLoaderCallback.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IImageSource",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IImageSource.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IImageSourcePartEvents",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IImageSourcePartEvents.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IImageSourceService",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IImageSourceService.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IImageSourceService<T>",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IImageSourceService{T}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IImageSourceServiceProvider",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IImageSourceServiceProvider.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IImageSourceServiceResult",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IImageSourceServiceResult.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IImageSourceServiceResult<T>",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IImageSourceServiceResult{T}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IInitializationAwareWebView",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IInitializationAwareWebView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IItemDelegate<T>",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IItemDelegate{T}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.ILayoutHandler",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/ILayoutHandler.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IMauiContext",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IMauiContext.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IMauiFactory",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IMauiFactory.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IMauiHandlersFactory",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IMauiHandlersFactory.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IMenuBarElement",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IMenuBarElement.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IMenuElement",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IMenuElement.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IPersistedState",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IPersistedState.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IPickerExtension",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IPickerExtension.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IPlatformViewHandler",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IPlatformViewHandler.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IPropertyMapper",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IPropertyMapper.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IPropertyMapper<TVirtualView, TViewHandler>",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IPropertyMapper{TVirtualView, TViewHandler}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IPropertyMapperView",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IPropertyMapperView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IReplaceableView",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IReplaceableView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IScrollView",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IScrollView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IStreamImageSource",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IStreamImageSource.md"
+  },
+  {
+   "alias": "Microsoft.Maui.ISwipeItemMenuItem",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/ISwipeItemMenuItem.md"
+  },
+  {
+   "alias": "Microsoft.Maui.ITextInputExtensions",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/ITextInputExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IToolbarElement",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IToolbarElement.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IUriImageSource",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IUriImageSource.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IVisualDiagnosticsOverlay",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IVisualDiagnosticsOverlay.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IVisualTreeElement",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IVisualTreeElement.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IWebRequestInterceptingWebView",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IWebRequestInterceptingWebView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IWebViewDelegate",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IWebViewDelegate.md"
+  },
+  {
+   "alias": "Microsoft.Maui.IWindowOverlay",
+   "kind": "interface",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/IWindowOverlay.md"
+  },
+  {
+   "alias": "Microsoft.Maui.ImageSourceExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/ImageSourceExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.ImageSourceService",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/ImageSourceService.md"
+  },
+  {
+   "alias": "Microsoft.Maui.ImageSourceServiceLoadResult",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/ImageSourceServiceLoadResult.md"
+  },
+  {
+   "alias": "Microsoft.Maui.ImageSourceServiceProviderExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/ImageSourceServiceProviderExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.ImageSourceServiceResult",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/ImageSourceServiceResult.md"
+  },
+  {
+   "alias": "Microsoft.Maui.ItemDelegateList<T>",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/ItemDelegateList{T}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.LockableObservableListWrapper",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/LockableObservableListWrapper.md"
+  },
+  {
+   "alias": "Microsoft.Maui.MauiAppCompatActivity",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/MauiAppCompatActivity.md"
+  },
+  {
+   "alias": "Microsoft.Maui.MauiApplication.ActivityLifecycleCallbacks",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/ActivityLifecycleCallbacks.md"
+  },
+  {
+   "alias": "Microsoft.Maui.MauiContext",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/MauiContext.md"
+  },
+  {
+   "alias": "Microsoft.Maui.MauiDrawable",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/MauiDrawable (Maui).md"
+  },
+  {
+   "alias": "Microsoft.Maui.MauiIndicatorViewExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/MauiIndicatorViewExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.MauiUISceneDelegate",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/MauiUISceneDelegate.md"
+  },
+  {
+   "alias": "Microsoft.Maui.MauiViewGroup",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/MauiViewGroup.md"
+  },
+  {
+   "alias": "Microsoft.Maui.MauiWinUIWindow",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/MauiWinUIWindow.md"
+  },
+  {
+   "alias": "Microsoft.Maui.MissingMapperAttribute",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/MissingMapperAttribute.md"
+  },
+  {
+   "alias": "Microsoft.Maui.NaviPage",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/NaviPage.md"
+  },
+  {
+   "alias": "Microsoft.Maui.NavigationRequest",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/NavigationRequest.md"
+  },
+  {
+   "alias": "Microsoft.Maui.PathAspect",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/PathAspect.md"
+  },
+  {
+   "alias": "Microsoft.Maui.PersistedState",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/PersistedState.md"
+  },
+  {
+   "alias": "Microsoft.Maui.PlatformAppCompatTextView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/PlatformAppCompatTextView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.PlatformContentViewGroup",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/PlatformContentViewGroup.md"
+  },
+  {
+   "alias": "Microsoft.Maui.PlatformViewGroup",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/PlatformViewGroup.md"
+  },
+  {
+   "alias": "Microsoft.Maui.PlatformWrapperView",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/PlatformWrapperView.md"
+  },
+  {
+   "alias": "Microsoft.Maui.PortHandlerAttribute",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/PortHandlerAttribute.md"
+  },
+  {
+   "alias": "Microsoft.Maui.PropertyMapper",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/PropertyMapper.md"
+  },
+  {
+   "alias": "Microsoft.Maui.PropertyMapper<TVirtualView, TViewHandler>",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/PropertyMapper{TVirtualView, TViewHandler}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.PropertyMapper<TVirtualView>",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/PropertyMapper{TVirtualView}.md"
+  },
+  {
+   "alias": "Microsoft.Maui.PropertyMapperExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/PropertyMapperExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Resource",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/Resource (Maui).md"
+  },
+  {
+   "alias": "Microsoft.Maui.ScrollToRequest",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/ScrollToRequest.md"
+  },
+  {
+   "alias": "Microsoft.Maui.SemanticExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/SemanticExtensions (Maui).md"
+  },
+  {
+   "alias": "Microsoft.Maui.SemanticHeadingLevel",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/SemanticHeadingLevel.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Semantics",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/Semantics.md"
+  },
+  {
+   "alias": "Microsoft.Maui.StreamImageSourceService",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/StreamImageSourceService.md"
+  },
+  {
+   "alias": "Microsoft.Maui.SwipeTransitionMode",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/SwipeTransitionMode.md"
+  },
+  {
+   "alias": "Microsoft.Maui.SwipeViewCloseRequest",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/SwipeViewCloseRequest.md"
+  },
+  {
+   "alias": "Microsoft.Maui.SwipeViewOpenRequest",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/SwipeViewOpenRequest.md"
+  },
+  {
+   "alias": "Microsoft.Maui.SwipeViewSwipeChanging",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/SwipeViewSwipeChanging.md"
+  },
+  {
+   "alias": "Microsoft.Maui.SwipeViewSwipeEnded",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/SwipeViewSwipeEnded.md"
+  },
+  {
+   "alias": "Microsoft.Maui.SwipeViewSwipeStarted",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/SwipeViewSwipeStarted.md"
+  },
+  {
+   "alias": "Microsoft.Maui.ToolTip",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/ToolTip.md"
+  },
+  {
+   "alias": "Microsoft.Maui.UriImageSourceService",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/UriImageSourceService.md"
+  },
+  {
+   "alias": "Microsoft.Maui.ViewExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/ViewExtensions (Maui).md"
+  },
+  {
+   "alias": "Microsoft.Maui.Visibility",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/Visibility.md"
+  },
+  {
+   "alias": "Microsoft.Maui.VisualTreeElementExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/VisualTreeElementExtensions.md"
+  },
+  {
+   "alias": "Microsoft.Maui.WebProcessTerminatedEventArgs",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/WebProcessTerminatedEventArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.WindowExtensions",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/WindowExtensions (Maui).md"
+  },
+  {
+   "alias": "Microsoft.Maui.WindowOverlay",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/WindowOverlay.md"
+  },
+  {
+   "alias": "Microsoft.Maui.WindowOverlayTappedEventArgs",
+   "kind": "class",
+   "signature": "",
+   "declaring_type": "",
+   "namespace": "Microsoft.Maui",
+   "note_path": "vault/API Reference/Microsoft.Maui/WindowOverlayTappedEventArgs.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiStepper.ButtonBackground",
+   "kind": "property",
+   "signature": "Microsoft.UI.Xaml.Media.Brush ButtonBackground { get; set; }",
+   "declaring_type": "MauiStepper",
+   "namespace": "Microsoft.Maui.Platform.MauiStepper",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiStepper/MauiStepper.ButtonBackground.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiStepper.ButtonBackgroundColor",
+   "kind": "property",
+   "signature": "Microsoft.Maui.Graphics.Color ButtonBackgroundColor { get; set; }",
+   "declaring_type": "MauiStepper",
+   "namespace": "Microsoft.Maui.Platform.MauiStepper",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiStepper/MauiStepper.ButtonBackgroundColor.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiStepper.Increment",
+   "kind": "property",
+   "signature": "double Increment { get; set; }",
+   "declaring_type": "MauiStepper",
+   "namespace": "Microsoft.Maui.Platform.MauiStepper",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiStepper/MauiStepper.Increment.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiStepper.MauiStepper",
+   "kind": "constructor",
+   "signature": "void MauiStepper(Android.Content.Context! context) / void MauiStepper()",
+   "declaring_type": "MauiStepper",
+   "namespace": "Microsoft.Maui.Platform.MauiStepper",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiStepper/MauiStepper.MauiStepper.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiStepper.Maximum",
+   "kind": "property",
+   "signature": "double Maximum { get; set; }",
+   "declaring_type": "MauiStepper",
+   "namespace": "Microsoft.Maui.Platform.MauiStepper",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiStepper/MauiStepper.Maximum.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiStepper.Measure",
+   "kind": "method",
+   "signature": "Tizen.UIExtensions.Common.Size Measure(double availableWidth, double availableHeight)",
+   "declaring_type": "MauiStepper",
+   "namespace": "Microsoft.Maui.Platform.MauiStepper",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiStepper/MauiStepper.Measure.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiStepper.Minimum",
+   "kind": "property",
+   "signature": "double Minimum { get; set; }",
+   "declaring_type": "MauiStepper",
+   "namespace": "Microsoft.Maui.Platform.MauiStepper",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiStepper/MauiStepper.Minimum.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiStepper.OnApplyTemplate",
+   "kind": "method",
+   "signature": "void override OnApplyTemplate()",
+   "declaring_type": "MauiStepper",
+   "namespace": "Microsoft.Maui.Platform.MauiStepper",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiStepper/MauiStepper.OnApplyTemplate.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiStepper.OnEnabled",
+   "kind": "method",
+   "signature": "void override OnEnabled(bool enabled)",
+   "declaring_type": "MauiStepper",
+   "namespace": "Microsoft.Maui.Platform.MauiStepper",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiStepper/MauiStepper.OnEnabled.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiStepper.UpdateIncrement",
+   "kind": "method",
+   "signature": "void UpdateIncrement(Microsoft.Maui.IStepper! stepper)",
+   "declaring_type": "MauiStepper",
+   "namespace": "Microsoft.Maui.Platform.MauiStepper",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiStepper/MauiStepper.UpdateIncrement.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiStepper.UpdateMaximum",
+   "kind": "method",
+   "signature": "void UpdateMaximum(Microsoft.Maui.IStepper! stepper)",
+   "declaring_type": "MauiStepper",
+   "namespace": "Microsoft.Maui.Platform.MauiStepper",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiStepper/MauiStepper.UpdateMaximum.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiStepper.UpdateMinimum",
+   "kind": "method",
+   "signature": "void UpdateMinimum(Microsoft.Maui.IStepper! stepper)",
+   "declaring_type": "MauiStepper",
+   "namespace": "Microsoft.Maui.Platform.MauiStepper",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiStepper/MauiStepper.UpdateMinimum.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiStepper.UpdateValue",
+   "kind": "method",
+   "signature": "void UpdateValue(Microsoft.Maui.IStepper! stepper)",
+   "declaring_type": "MauiStepper",
+   "namespace": "Microsoft.Maui.Platform.MauiStepper",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiStepper/MauiStepper.UpdateValue.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiStepper.Value",
+   "kind": "property",
+   "signature": "double Value { get; set; }",
+   "declaring_type": "MauiStepper",
+   "namespace": "Microsoft.Maui.Platform.MauiStepper",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiStepper/MauiStepper.Value.md"
+  },
+  {
+   "alias": "Microsoft.Maui.Platform.MauiStepper.ValueChanged",
+   "kind": "event",
+   "signature": "System.EventHandler? ValueChanged",
+   "declaring_type": "MauiStepper",
+   "namespace": "Microsoft.Maui.Platform.MauiStepper",
+   "note_path": "vault/API Reference/Microsoft.Maui.Platform/MauiStepper/MauiStepper.ValueChanged.md"
+  }
+ ]
+}
