@@ -1,0 +1,54 @@
+---
+title: "IButtonController"
+tags:
+  - api
+  - kind/interface
+  - ns/Microsoft-Maui-Controls
+aliases:
+  - "Microsoft.Maui.Controls.IButtonController"
+namespace: "Microsoft.Maui.Controls"
+kind: interface
+platforms:
+  - All platforms (.NET)
+  - Android
+  - iOS
+  - Mac Catalyst
+  - Windows
+  - Tizen
+  - .NET Standard
+assemblies:
+  - Controls
+---
+
+# IButtonController
+
+> [!abstract] Interface in `Microsoft.Maui.Controls`
+> Full name: `Microsoft.Maui.Controls.IButtonController`
+
+Defines internal control operations for button press and release behavior.
+
+## Platforms
+
+| Platform | Available |
+|---|---|
+| All platforms (.NET) | ✅ |
+| Android | ✅ |
+| iOS | ✅ |
+| Mac Catalyst | ✅ |
+| Windows | ✅ |
+| Tizen | ✅ |
+| .NET Standard | ✅ |
+
+
+## Methods
+
+| Name | Summary |
+|---|---|
+| [[IButtonController.SendClicked\|SendClicked]] |  |
+| [[IButtonController.SendPressed\|SendPressed]] |  |
+| [[IButtonController.SendReleased\|SendReleased]] |  |
+
+## See also
+
+- [[_Microsoft.Maui.Controls|Microsoft.Maui.Controls namespace]]
+- [Online API docs](https://learn.microsoft.com/dotnet/api/microsoft.maui.controls.ibuttoncontroller)

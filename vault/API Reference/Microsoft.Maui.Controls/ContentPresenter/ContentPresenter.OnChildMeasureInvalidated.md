@@ -1,0 +1,29 @@
+---
+title: "ContentPresenter.OnChildMeasureInvalidated"
+tags:
+  - api
+  - member/method
+  - ns/Microsoft-Maui-Controls
+aliases:
+  - "Microsoft.Maui.Controls.ContentPresenter.OnChildMeasureInvalidated"
+declaring_type: "ContentPresenter"
+member_kind: method
+---
+
+# ContentPresenter.OnChildMeasureInvalidated
+
+> [!abstract] Method of [[ContentPresenter|ContentPresenter]]
+> Namespace: `Microsoft.Maui.Controls`
+
+Called when the measurement of a child element is invalidated.
+
+## Signature
+
+```csharp
+void override OnChildMeasureInvalidated()
+```
+
+## See also
+
+- Declaring type: [[ContentPresenter|ContentPresenter]]
+- [[_Microsoft.Maui.Controls|Microsoft.Maui.Controls namespace]]

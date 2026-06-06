@@ -1,0 +1,29 @@
+---
+title: "Brush.LightGoldenrodYellow"
+tags:
+  - api
+  - member/property
+  - ns/Microsoft-Maui-Controls
+aliases:
+  - "Microsoft.Maui.Controls.Brush.LightGoldenrodYellow"
+declaring_type: "Brush"
+member_kind: property
+---
+
+# Brush.LightGoldenrodYellow
+
+> [!abstract] Property of [[Brush|Brush]]
+> Namespace: `Microsoft.Maui.Controls`
+
+Gets a `SolidColorBrush` of the system-defined color `LightGoldenrodYellow`.
+
+## Signature
+
+```csharp
+static Microsoft.Maui.Controls.SolidColorBrush LightGoldenrodYellow { get; }
+```
+
+## See also
+
+- Declaring type: [[Brush|Brush]]
+- [[_Microsoft.Maui.Controls|Microsoft.Maui.Controls namespace]]

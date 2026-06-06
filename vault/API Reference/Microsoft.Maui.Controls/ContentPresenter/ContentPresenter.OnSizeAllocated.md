@@ -1,0 +1,29 @@
+---
+title: "ContentPresenter.OnSizeAllocated"
+tags:
+  - api
+  - member/method
+  - ns/Microsoft-Maui-Controls
+aliases:
+  - "Microsoft.Maui.Controls.ContentPresenter.OnSizeAllocated"
+declaring_type: "ContentPresenter"
+member_kind: method
+---
+
+# ContentPresenter.OnSizeAllocated
+
+> [!abstract] Method of [[ContentPresenter|ContentPresenter]]
+> Namespace: `Microsoft.Maui.Controls`
+
+Called when the presenter is allocated a new size.
+
+## Signature
+
+```csharp
+void override OnSizeAllocated(double width, double height)
+```
+
+## See also
+
+- Declaring type: [[ContentPresenter|ContentPresenter]]
+- [[_Microsoft.Maui.Controls|Microsoft.Maui.Controls namespace]]

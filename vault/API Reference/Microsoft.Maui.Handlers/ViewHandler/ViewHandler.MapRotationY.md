@@ -1,0 +1,36 @@
+---
+title: "ViewHandler.MapRotationY"
+tags:
+  - api
+  - member/method
+  - ns/Microsoft-Maui-Handlers
+aliases:
+  - "Microsoft.Maui.Handlers.ViewHandler.MapRotationY"
+declaring_type: "ViewHandler"
+member_kind: method
+---
+
+# ViewHandler.MapRotationY
+
+> [!abstract] Method of [[ViewHandler|ViewHandler]]
+> Namespace: `Microsoft.Maui.Handlers`
+
+Maps a view's abstract `RotationY` property to the platform-specific implementations.
+
+## Signature
+
+```csharp
+void static MapRotationY(Microsoft.Maui.IViewHandler! handler, Microsoft.Maui.IView! view)
+```
+
+## Parameters
+
+| Parameter | Description |
+|---|---|
+| `handler` | The associated handler. |
+| `view` | The associated `IView` instance. |
+
+## See also
+
+- Declaring type: [[ViewHandler|ViewHandler]]
+- [[_Microsoft.Maui.Handlers|Microsoft.Maui.Handlers namespace]]

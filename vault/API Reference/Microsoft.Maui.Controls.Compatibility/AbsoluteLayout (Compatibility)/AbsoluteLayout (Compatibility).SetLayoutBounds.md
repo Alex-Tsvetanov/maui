@@ -1,0 +1,29 @@
+---
+title: "AbsoluteLayout (Compatibility).SetLayoutBounds"
+tags:
+  - api
+  - member/method
+  - ns/Microsoft-Maui-Controls-Compatibility
+aliases:
+  - "Microsoft.Maui.Controls.Compatibility.AbsoluteLayout.SetLayoutBounds"
+declaring_type: "AbsoluteLayout (Compatibility)"
+member_kind: method
+---
+
+# AbsoluteLayout (Compatibility).SetLayoutBounds
+
+> [!abstract] Method of [[AbsoluteLayout (Compatibility)|AbsoluteLayout (Compatibility)]]
+> Namespace: `Microsoft.Maui.Controls.Compatibility`
+
+Sets the layout bounds attached property value for the specified bindable object.
+
+## Signature
+
+```csharp
+void static SetLayoutBounds(Microsoft.Maui.Controls.BindableObject bindable, Microsoft.Maui.Graphics.Rect bounds)
+```
+
+## See also
+
+- Declaring type: [[AbsoluteLayout (Compatibility)|AbsoluteLayout (Compatibility)]]
+- [[_Microsoft.Maui.Controls.Compatibility|Microsoft.Maui.Controls.Compatibility namespace]]

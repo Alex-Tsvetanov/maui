@@ -1,0 +1,736 @@
+---
+title: "Conceptual Documentation"
+tags:
+  - conceptual
+  - moc
+---
+
+# .NET MAUI Documentation
+
+> [!abstract] Conceptual guides
+> Mirrors the structure of the official .NET MAUI documentation.
+
+Source: [learn.microsoft.com/dotnet/maui](https://learn.microsoft.com/en-us/dotnet/maui/?view=net-maui-10.0)
+
+- **.NET MAUI**
+  - [[what-is-maui|What is .NET Multi-platform App UI?]]
+  - [[supported-platforms|Supported platforms]]
+  - **Get started**
+    - [[installation|Installation]]
+    - **Build your first app**
+    - [[resources|Learning resources]]
+    - **Android**
+      - **Emulator**
+        - [[emulator|Overview]]
+        - [[hardware-acceleration|How to enable hardware acceleration]]
+        - [[device-manager|Manage and create virtual devices]]
+        - [[device-properties|Edit virtual devices]]
+        - [[debug-on-emulator|Debug on a virtual device]]
+        - [[mac-with-windows-vm|Connect to an emulator from a Windows VM]]
+        - [[troubleshooting|Troubleshoot common problems]]
+      - **Devices**
+        - [[setup|How to set up a physical device]]
+    - **iOS**
+      - [[cli|Build an iOS app with .NET CLI]]
+      - [[pair-to-mac|Pair to Mac]]
+      - [[remote-simulator|Remote iOS simulator for Windows]]
+    - **macOS**
+      - [[cli|Build a Mac Catalyst app with .NET CLI]]
+    - **Windows**
+      - [[setup|How to set up Windows for debugging]]
+  - **Migrate from Xamarin**
+    - [[migration|Overview]]
+    - **Xamarin native projects**
+      - [[native-projects|Upgrade Xamarin native projects]]
+      - **Android projects**
+        - [[android-projects|Android project migration]]
+        - [[android-binding-projects|Android binding project migration]]
+      - **Apple projects**
+        - [[apple-projects|Apple project migration]]
+        - [[ios-binding-projects|iOS binding project migration]]
+      - [[native-essentials|Xamarin.Essentials migration]]
+    - **Xamarin.Forms projects**
+      - [[upgrade-assistant|Upgrade with the .NET Upgrade Assistant]]
+      - **Upgrade manually to a multi-project app**
+        - [[multi-project-overview|Overview]]
+        - [[multi-project-to-multi-project-with-template|Upgrade manually to a multi-project app with the project template]]
+        - [[multi-project-to-multi-project|Upgrade manually to a multi-project app]]
+      - [[multi-project-to-single-project|Upgrade manually to a single project app]]
+      - [[uwp-projects|UWP project migration]]
+      - [[layouts|Layout behavior changes]]
+      - [[custom-renderers|Reuse custom renderers]]
+      - [[renderer-to-handler|Migrate custom renderers]]
+      - [[effects|Reuse effects]]
+      - [[skiasharp|Reuse SkiaSharp code]]
+      - [[app-properties|Migrate app properties data]]
+      - [[secure-storage|Migrate secure storage data]]
+      - [[version-tracking|Migrate version tracking data]]
+      - [[push-notifications|Migrate push notification code]]
+  - **Tutorials**
+    - [[notes-app|Create a .NET MAUI app]]
+    - [[notes-mvvm|Upgrade an app with MVVM principles]]
+  - **XAML**
+    - [[xaml|Overview]]
+    - **Fundamentals**
+      - [[get-started|Get started]]
+      - [[essential-syntax|Essential syntax]]
+      - [[markup-extensions|Markup extensions]]
+      - [[data-binding-basics|Data binding basics]]
+      - [[mvvm|Data binding and MVVM]]
+    - [[xamlc|Compilation]]
+    - [[class-modifiers|Class modifiers]]
+    - [[field-modifiers|Field modifiers]]
+    - [[generics|Generics]]
+    - **Markup extensions**
+      - [[consume|Consume markup extensions]]
+      - [[create|Create markup extensions]]
+    - **Namespaces**
+      - [[namespaces|Overview]]
+      - [[custom-namespace-schemas|Custom namespace schemas]]
+      - [[custom-prefix|Custom namespace prefixes]]
+    - [[pass-arguments|Pass arguments]]
+    - [[runtime-load|Runtime loading]]
+    - **Tooling**
+      - [[hot-reload|XAML Hot Reload]]
+  - **Fundamentals**
+    - [[accessibility|Accessibility]]
+    - [[app-lifecycle|App lifecycle]]
+    - [[behaviors|Behaviors]]
+    - **Data binding**
+      - [[data-binding|Overview]]
+      - [[basic-bindings|Basic bindings]]
+      - [[binding-mode|Binding mode]]
+      - [[string-formatting|String formatting]]
+      - [[binding-path|Binding path]]
+      - [[converters|Binding value converters]]
+      - [[relative-bindings|Relative bindings]]
+      - [[binding-fallbacks|Binding fallbacks]]
+      - [[multibinding|Multi-bindings]]
+      - [[commanding|Commanding]]
+      - [[compiled-bindings|Compiled bindings]]
+    - [[dependency-injection|Dependency injection]]
+    - **Gestures**
+      - [[drag-and-drop|Drag and drop]]
+      - [[long-press|Long press]]
+      - [[pan|Pan]]
+      - [[pinch|Pinch]]
+      - [[pointer|Pointer]]
+      - [[swipe|Swipe]]
+      - [[tap|Tap]]
+    - [[localization|Localization]]
+    - **Properties**
+      - [[bindable-properties|Bindable properties]]
+      - [[attached-properties|Attached properties]]
+    - [[messagingcenter|Publish and subscribe to messages]]
+    - [[resource-dictionaries|Resource dictionaries]]
+    - **Shell**
+      - [[shell|Overview]]
+      - [[create|Create a Shell app]]
+      - [[flyout|Flyout]]
+      - [[tabs|Tabs]]
+      - [[pages|Pages]]
+      - [[navigation|Navigation]]
+      - [[search|Search]]
+      - [[lifecycle|Lifecycle]]
+    - [[single-project|Single project]]
+    - **Templates**
+      - [[controltemplate|Control templates]]
+      - [[datatemplate|Data templates]]
+    - [[triggers|Triggers]]
+  - **User interface**
+    - **Animation**
+      - [[basic|Basic animation]]
+      - [[easing|Easing functions]]
+      - [[custom|Custom animation]]
+    - **Brushes**
+      - [[brushes|Overview]]
+      - [[solidcolor|Solid colors]]
+      - **Gradients**
+        - [[gradient|Overview]]
+        - [[lineargradient|Linear gradients]]
+        - [[radialgradient|Radial gradients]]
+    - **Controls**
+      - [[controls|Overview]]
+      - [[align-position|Align and position controls]]
+      - [[device-independent-units|Device-independent units]]
+      - **Handlers**
+        - [[handlers|Overview]]
+        - [[create|Create custom controls]]
+        - [[customize|Customize controls]]
+      - **Layouts**
+        - [[layouts|Overview]]
+        - [[absolutelayout|AbsoluteLayout]]
+        - [[bindablelayout|BindableLayout]]
+        - [[flexlayout|FlexLayout]]
+        - [[grid|Grid]]
+        - [[horizontalstacklayout|HorizontalStackLayout]]
+        - [[stacklayout|StackLayout]]
+        - [[verticalstacklayout|VerticalStackLayout]]
+        - [[custom|Custom layouts]]
+      - **Pages**
+        - [[contentpage|ContentPage]]
+        - [[flyoutpage|FlyoutPage]]
+        - [[navigationpage|NavigationPage]]
+        - [[tabbedpage|TabbedPage]]
+      - **Views**
+        - [[activityindicator|ActivityIndicator]]
+        - [[blazorwebview|BlazorWebView]]
+        - [[border|Border]]
+        - [[boxview|BoxView]]
+        - [[button|Button]]
+        - **CarouselView**
+          - [[carouselview|Overview]]
+          - [[populate-data|Data]]
+          - [[layout|Layout]]
+          - [[interaction|Interaction]]
+          - [[emptyview|EmptyView]]
+          - [[scrolling|Scrolling]]
+        - [[checkbox|CheckBox]]
+        - **CollectionView**
+          - [[collectionview|Overview]]
+          - [[populate-data|Data]]
+          - [[layout|Layout]]
+          - [[selection|Selection]]
+          - [[emptyview|EmptyView]]
+          - [[scrolling|Scrolling]]
+          - [[grouping|Grouping]]
+        - [[contentview|ContentView]]
+        - [[datepicker|DatePicker]]
+        - [[editor|Editor]]
+        - [[entry|Entry]]
+        - [[frame|Frame]]
+        - [[graphicsview|GraphicsView]]
+        - [[hybridwebview|HybridWebView]]
+        - [[image|Image]]
+        - [[imagebutton|ImageButton]]
+        - [[indicatorview|IndicatorView]]
+        - [[label|Label]]
+        - [[listview|ListView]]
+        - [[map|Map]]
+        - [[picker|Picker]]
+        - [[progressbar|ProgressBar]]
+        - [[radiobutton|RadioButton]]
+        - [[refreshview|RefreshView]]
+        - [[scrollview|ScrollView]]
+        - [[searchbar|SearchBar]]
+        - **Shapes**
+          - [[shapes|Overview]]
+          - [[ellipse|Ellipse]]
+          - [[fillrules|Fill rules]]
+          - [[geometries|Geometries]]
+          - [[line|Line]]
+          - **Paths**
+            - [[path|Path]]
+            - [[path-markup-syntax|Path markup syntax]]
+            - [[path-transforms|Path transforms]]
+          - [[polygon|Polygon]]
+          - [[polyline|Polyline]]
+          - [[rectangle|Rectangle]]
+        - [[slider|Slider]]
+        - [[stepper|Stepper]]
+        - [[swipeview|SwipeView]]
+        - [[switch|Switch]]
+        - [[tableview|TableView]]
+        - [[timepicker|TimePicker]]
+        - [[titlebar|TitleBar]]
+        - [[twopaneview|TwoPaneView]]
+        - [[webview|WebView]]
+      - [[window|Window]]
+    - **C# markup**
+    - [[pop-ups|Display pop-ups]]
+    - [[toolbaritem|Display toolbar items]]
+    - [[tooltips|Display tooltips]]
+    - [[fonts|Fonts]]
+    - **Graphics**
+      - [[graphics|Overview]]
+      - [[blendmodes|Blend modes]]
+      - [[colors|Colors]]
+      - [[draw|Draw graphical objects]]
+      - [[images|Images]]
+      - [[paint|Paint graphical objects]]
+      - [[transforms|Transforms]]
+      - [[windingmodes|Winding modes]]
+    - **Images**
+      - [[app-icons|App icons]]
+      - [[images|Images]]
+      - [[splashscreen|Splash screen]]
+    - **Menus**
+      - [[context-menu|Display a context menu]]
+      - [[menu-bar|Display a menu bar]]
+      - [[menuitem|Display menu items]]
+      - [[keyboard-accelerators|Keyboard accelerators]]
+    - [[safe-area|Safe area layout]]
+    - [[shadow|Shadows]]
+    - **Styles**
+      - [[xaml|Style apps using XAML]]
+      - [[css|Style apps using CSS]]
+    - **Theming**
+      - [[theming|Theme an app]]
+      - [[system-theme-changes|Respond to system theme changes]]
+      - [[material-design|Material 3]]
+    - **Tooling**
+      - [[live-visual-tree|Inspect the visual tree]]
+    - [[visual-states|Visual states]]
+  - **Hybrid apps**
+    - [[hybrid-apps|Overview]]
+    - **Blazor hybrid apps**
+      - **Overview**
+      - **Tutorials**
+        - **Build a .NET MAUI Blazor hybrid app**
+        - **Build a .NET MAUI Blazor hybrid app with a Blazor web app**
+      - **Routing and navigation**
+      - **Static files**
+      - **Browser developer tools**
+      - **Reuse Razor components**
+      - **Class libraries**
+      - **Root component parameters**
+      - **Security and identity**
+        - **Overview**
+        - **Security considerations**
+        - **.NET MAUI with Blazor Web App and Identity sample**
+      - **Publish**
+      - **Troubleshoot**
+    - **Controls**
+      - [[blazorwebview|BlazorWebView]]
+      - [[hybridwebview|HybridWebView]]
+  - **Platforms**
+    - **Android**
+      - [[app-links|App links]]
+      - [[manifest|App manifest]]
+      - [[asset-packs|Asset packs]]
+      - **Bind Java libraries**
+        - **Overview**
+        - **Bind a Java library**
+        - **Bind a Java library from Maven**
+        - **Customize bindings**
+          - **Overview**
+          - **Customize namespaces**
+          - **Java bindings metadata**
+          - **Create enumerations**
+        - **MSBuild reference**
+          - **MSBuild bindings project properties**
+          - **MSBuild bindings project items**
+        - **Advanced concepts**
+          - **AndroidMavenLibrary reference**
+          - **Java dependency verification**
+          - **Resolve java dependencies**
+          - **Distribute bindings libraries**
+          - **Native library interop**
+        - **Troubleshoot bindings**
+      - **Build apps**
+        - **Build process**
+        - **Build targets**
+        - **Build properties**
+        - **Build items**
+      - **Fundamentals**
+        - **Layout code behind**
+      - **Internals**
+        - [[java-interop|Java and managed code interoperability]]
+      - [[linking|Linking]]
+      - **Message reference**
+        - **Overview**
+        - **ADBxxxx: ADB tooling**
+          - **Overview**
+          - **ADB0000**
+          - **ADB0010**
+          - **ADB0020**
+          - **ADB0030**
+          - **ADB0040**
+          - **ADB0050**
+          - **ADB0060**
+        - **ANDXXxxxx: Generic Android tooling**
+          - **Overview**
+          - **ANDAS0000**
+          - **ANDJS0000**
+          - **ANDKT0000**
+          - **ANDZA0000**
+        - **APTxxxx: AAPT tooling**
+          - **Overview**
+          - **APT0000**
+          - **APT0001**
+          - **APT2264**
+          - **APT2265**
+        - **JAVAxxxx: Java tool**
+          - **Overview**
+          - **JAVA0000**
+        - **JAVACxxxx: Java compiler**
+          - **Overview**
+          - **JAVAC0000**
+        - **XA0xxx: Environment issue or missing tooling**
+          - **Overview**
+          - **XA0000**
+          - **XA0001**
+          - **XA0002**
+          - **XA0003**
+          - **XA0004**
+          - **XA0030**
+          - **XA0031**
+          - **XA0032**
+          - **XA0033**
+          - **XA0034**
+          - **XA0035**
+          - **XA0036**
+          - **XA0101**
+          - **XA0102**
+          - **XA0103**
+          - **XA0105**
+          - **XA0107**
+          - **XA0108**
+          - **XA0109**
+          - **XA0111**
+          - **XA0112**
+          - **XA0113**
+          - **XA0115**
+          - **XA0116**
+          - **XA0117**
+          - **XA0118**
+          - **XA0119**
+          - **XA0121**
+          - **XA0122**
+          - **XA0125**
+          - **XA0126**
+          - **XA0127**
+          - **XA0128**
+          - **XA0129**
+          - **XA0130**
+          - **XA0131**
+          - **XA0132**
+          - **XA0133**
+          - **XA0134**
+          - **XA0135**
+          - **XA0136**
+          - **XA0137**
+          - **XA0138**
+          - **XA0139**
+          - **XA0140**
+          - **XA141**
+          - **XA142**
+        - **XA1xxx: Project related**
+          - **Overview**
+          - **XA1000**
+          - **XA1001**
+          - **XA1002**
+          - **XA1003**
+          - **XA1004**
+          - **XA1005**
+          - **XA1006**
+          - **XA1007**
+          - **XA1008**
+          - **XA1009**
+          - **XA1010**
+          - **XA1011**
+          - **XA1023**
+          - **XA1024**
+          - **XA1025**
+          - **XA1027**
+          - **XA1028**
+          - **XA1029**
+          - **XA1031**
+          - **XA1032**
+          - **XA1033**
+          - **XA1035**
+          - **XA1036**
+          - **XA1037**
+          - **XA1038**
+        - **XA2xxx: Linker**
+          - **Overview**
+          - **XA2000**
+          - **XA2001**
+          - **XA2002**
+        - **XA3xxx: Unmanaged code compilation**
+        - **XA4xxx: Code generation**
+          - **Overview**
+          - **XA4214**
+          - **XA4215**
+          - **XA4216**
+          - **XA4218**
+          - **XA4231**
+          - **XA4232**
+          - **XA4234**
+          - **XA4235**
+          - **XA4236**
+          - **XA4237**
+          - **XA4239**
+          - **XA4241**
+          - **XA4242**
+          - **XA4243**
+          - **XA4244**
+          - **XA4245**
+          - **XA4246**
+          - **XA4247**
+          - **XA4248**
+          - **XA4249**
+          - **XA4301**
+          - **XA4302**
+          - **XA4303**
+          - **XA4304**
+          - **XA4305**
+          - **XA4306**
+          - **XA4307**
+          - **XA4308**
+          - **XA4309**
+          - **XA4310**
+          - **XA4312**
+          - **XA4313**
+          - **XA4314**
+          - **XA4315**
+        - **XA5xxx: GCC and toolchain**
+          - **Overview**
+          - **XA5205**
+          - **XA5207**
+          - **XA5300**
+          - **XA5301**
+          - **XA5302**
+        - **XA6xxx: Internal tools**
+        - **XAccc7xxx: Unhandled MSBuild exceptions**
+        - **XA8xxx: Linker step errors**
+          - **Overview**
+          - **XA8000/IL8000**
+    - **iOS**
+      - **App fundamentals**
+        - **Images & icons**
+          - **Overview**
+          - **Alternate app icons**
+        - **User notifications**
+      - [[apple-account-management|Apple account management]]
+      - [[privacy-manifest|Apple privacy manifest]]
+      - **Build apps**
+        - **Build targets**
+        - **Build properties**
+        - **Build items**
+      - **Code signing and provisioning**
+        - [[capabilities|Capabilities]]
+        - [[entitlements|Entitlements]]
+      - **Creating Bindings with Objective Sharpie**
+        - [[objective-sharpie|Overview]]
+        - [[get-started|Getting started]]
+        - [[tools|Tools and commands]]
+        - **Features**
+          - [[platform|Overview]]
+          - [[api-definition-structs-enums|ApiDefinition.cs and StructsAndEnums.cs]]
+          - [[native-frameworks|Native frameworks]]
+          - [[verify|Verify attributes]]
+        - [[examples|Examples]]
+      - [[info-plist|Information property list]]
+      - [[linking|Linking]]
+      - [[interpreter|Mono interpreter]]
+      - **Set up device for development**
+        - [[device-provisioning|Overview]]
+        - [[automatic-provisioning|Automatic provisioning]]
+        - [[manual-provisioning|Manual provisioning]]
+      - [[universal-links|Universal links]]
+      - [[xcsync|Syncing with Xcode]]
+      - **Advanced concepts**
+        - **Exception marshaling**
+    - **Mac Catalyst**
+      - **Code signing and provisioning**
+        - [[capabilities|Capabilities]]
+        - [[entitlements|Entitlements]]
+      - [[info-plist|Information property list]]
+      - [[linking|Linking]]
+      - [[interpreter|Mono interpreter]]
+      - [[user-interface-idiom|Specify the UI idiom]]
+      - [[system-special-folders|System special folders]]
+      - [[universal-links|Universal links]]
+      - [[xcsync|Syncing with Xcode]]
+    - [[configure-multi-targeting|Configure multi-targeting]]
+    - [[customize-ui-appearance|Customize UI appearance]]
+    - [[invoke-platform-code|Invoke platform code]]
+    - [[local-notifications|Local notifications]]
+    - [[native-embedding|Native embedding]]
+  - **Platform features**
+    - [[platform-integration|Overview]]
+    - **Application model**
+      - [[app-actions|App actions]]
+      - [[app-information|App information]]
+      - [[open-browser|Browser]]
+      - [[launcher|Launcher]]
+      - [[main-thread|Main thread]]
+      - [[maps|Map]]
+      - [[permissions|Permissions]]
+      - [[version-tracking|Version tracking]]
+    - **Communication**
+      - [[contacts|Contacts]]
+      - [[email|Email]]
+      - [[networking|Networking]]
+      - [[phone-dialer|Phone dialer]]
+      - [[sms|SMS (messaging)]]
+      - [[authentication|Web authenticator]]
+    - **Device features**
+      - [[battery|Battery]]
+      - [[display|Device display]]
+      - [[information|Device information]]
+      - [[sensors|Device sensors]]
+      - [[flashlight|Flashlight]]
+      - [[geocoding|Geocoding]]
+      - [[geolocation|Geolocation]]
+      - [[haptic-feedback|Haptic feedback]]
+      - [[vibrate|Vibration]]
+    - **Media**
+      - [[picker|Photos and videos]]
+      - [[screenshot|Screenshot]]
+      - [[text-to-speech|Text-to-speech]]
+      - [[unit-converters|Unit converters]]
+    - **Platform-specifics**
+      - **Android**
+        - [[platform-specifics|Overview]]
+        - [[entry-ime-options|Entry input method editor options]]
+        - [[listview-fast-scrolling|ListView fast scrolling]]
+        - [[soft-keyboard-input-mode|Soft keyboard input mode]]
+        - [[swipeview-swipetransitionmode|SwipeView swipe transition mode]]
+        - [[tabbedpage-page-swiping|TabbedPage page swiping]]
+        - [[tabbedpage-transition-animations|TabbedPage page transition animations]]
+        - [[tabbedpage-toolbar-placement|TabbedPage toolbar placement]]
+        - [[webview-mixed-content|WebView mixed content]]
+        - [[webview-zoom-controls|WebView zoom]]
+      - **iOS**
+        - [[platform-specifics|Overview]]
+        - [[cell-background-color|Cell background color]]
+        - [[datepicker-selection|DatePicker item selection]]
+        - [[page-popover|Display a modal page as a popover]]
+        - [[entry-cursor-color|Entry cursor color]]
+        - [[entry-font-size|Entry font size]]
+        - [[flyoutpage-shadow|FlyoutPage shadow]]
+        - [[page-large-title|Large page titles]]
+        - [[listview-group-header-style|ListView group header style]]
+        - [[listview-row-animations|ListView row animations]]
+        - [[listview-separator-style|ListView separator style]]
+        - [[page-presentation-style|Modal page presentation style]]
+        - [[navigation-bar-translucent|NavigationPage bar translucency]]
+        - [[page-home-indicator|Page home indicator visibility]]
+        - [[page-status-bar-visibility|Page status bar visibility]]
+        - [[picker-selection|Picker item selection]]
+        - [[page-safe-area-layout|Safe area layout guide]]
+        - [[scrollview-content-touches|ScrollView content touches]]
+        - [[searchbar-style|SearchBar style]]
+        - [[application-pan-gesture|Simultaneous pan gesture recognition]]
+        - [[slider-thumb|Slider thumb tap]]
+        - [[swipeview-swipetransitionmode|SwipeView swipe transition mode]]
+        - [[tabbedpage-translucent-tabbar|TabbedPage translucent tabbar]]
+        - [[timepicker-selection|TimePicker item selection]]
+      - **Windows**
+        - [[platform-specifics|Overview]]
+        - [[default-image-directory|Default image directory]]
+        - [[inputview-reading-order|InputView reading order]]
+        - [[listview-selectionmode|ListView SelectionMode]]
+        - [[refreshview-pulldirection|RefreshView pull direction]]
+        - [[searchbar-spell-check|SearchBar spell check]]
+        - [[visualelement-access-keys|VisualElement access keys]]
+    - **Sharing**
+      - [[clipboard|Clipboard]]
+      - [[share|Share files and text]]
+    - **Storage**
+      - [[file-picker|File picker]]
+      - [[file-system-helpers|File system helpers]]
+      - [[preferences|Preferences]]
+      - [[secure-storage|Secure storage]]
+    - [[platform-helpers|Platform helpers]]
+  - **Data & cloud services**
+    - **AI**
+      - **ChatGPT**
+      - **DALL-E**
+    - **Authentication**
+      - [[authentication|Authenticate users with MSAL.NET]]
+      - **Microsoft Authentication Library**
+      - **Prepare tenant**
+      - **Create a Shell app**
+      - **Sign in and sign out**
+      - **Role-based access control**
+    - **Azure Mobile Apps**
+      - **Overview**
+      - **Authentication**
+      - **Offline sync**
+    - **Graph SDK**
+    - [[database-sqlite|Local databases]]
+    - [[push-notifications|Push notifications]]
+    - **Web services**
+      - [[rest|Consume a REST-based web service]]
+      - [[aspire-integration|.NET MAUI integration with Aspire]]
+      - [[local-web-services|Connect to local web services]]
+  - **Artificial intelligence**
+  - **Deployment & testing**
+    - [[deployment|Overview]]
+    - [[performance|Improve app performance]]
+    - [[runtimes-compilation|Runtimes and compilation]]
+    - **iOS**
+      - [[hot-restart|Hot restart]]
+      - [[wireless-deployment|Wireless deployment]]
+    - [[nativeaot|Native AOT]]
+    - [[visual-studio-properties|Project configuration]]
+    - **Publish**
+      - **Android**
+        - [[deployment|Overview]]
+        - [[publish-google-play|Publish for Google Play distribution]]
+        - [[publish-ad-hoc|Publish for ad-hoc distribution]]
+        - [[publish-cli|Publish using the command line]]
+      - **iOS**
+        - [[deployment|Overview]]
+        - [[publish-app-store|Publish for app store distribution]]
+        - [[publish-in-house|Publish for in-house distribution]]
+        - [[publish-ad-hoc|Publish for ad-hoc distribution]]
+        - [[publish-cli|Publish using the command line]]
+      - **Mac Catalyst**
+        - [[deployment|Overview]]
+        - [[publish-unsigned|Publish an unsigned app]]
+        - [[publish-app-store|Publish for app store distribution]]
+        - [[publish-outside-app-store|Publish outside the app store]]
+        - [[publish-ad-hoc|Publish for ad-hoc distribution]]
+      - **Windows**
+        - [[overview|Overview]]
+        - [[publish-cli|Publish a packaged app with the .NET CLI]]
+        - [[publish-unpackaged-cli|Publish an unpackaged app with the .NET CLI]]
+        - [[publish-visual-studio-folder|Publish with Visual Studio to a folder]]
+    - [[trimming|Trimming]]
+    - [[unit-testing|Unit testing]]
+    - [[ui-testing|UI testing with Appium]]
+  - **Developer tools**
+    - [[developer-tools|Overview]]
+    - **.NET MAUI CLI**
+      - [[cli|Overview]]
+      - [[environment-diagnostics|Environment diagnostics]]
+      - [[android-management|Android SDK & emulator management]]
+      - [[apple-management|Apple platform management]]
+      - [[device-management|Device management]]
+      - [[profile|App profiling]]
+    - **DevFlow**
+      - [[devflow|Overview]]
+      - [[visual-tree-screenshots|Visual tree inspection and screenshots]]
+      - [[element-interaction|Element interaction and automation]]
+      - [[blazor-cdp|Blazor WebView debugging]]
+      - [[mcp-server|MCP server for AI agents]]
+      - [[storage|File storage access]]
+      - [[mcp-tools|MCP tools reference]]
+      - [[agent-api|Agent HTTP API reference]]
+      - [[agent-client|AgentClient API reference]]
+      - [[network-profiling|Network monitoring and profiling]]
+      - [[broker|Broker architecture]]
+      - **Platform setup**
+        - [[setup-android|Android]]
+        - [[setup-apple|Apple platforms]]
+        - [[setup-windows|Windows]]
+    - **Platform backends**
+      - [[platform-backends|Overview]]
+      - [[macos|macOS AppKit]]
+      - [[linux-gtk4|Linux GTK4]]
+      - [[windows-wpf|Windows WPF]]
+  - **Enterprise application patterns**
+    - **Overview**
+    - **Preface**
+    - **Introduction**
+    - **Model-View-ViewModel pattern**
+    - **Dependency injection**
+    - **Communicating between components**
+    - **Navigation**
+    - **Validation**
+    - **Configuration management**
+    - **Containerized microservices**
+    - **Accessing remote data**
+    - **Authentication and authorization**
+    - **MVVM community toolkit features**
+    - **Unit testing**
+  - [[troubleshooting|Troubleshooting]]
+
+## See also
+
+- [[Home]]
+- [[_API Reference]]

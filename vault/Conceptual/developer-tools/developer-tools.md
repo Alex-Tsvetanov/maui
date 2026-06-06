@@ -1,0 +1,91 @@
+---
+title: ".NET MAUI developer tools overview"
+description: "Learn about developer tools for improving your productivity using .NET MAUI, including the .NET MAUI CLI and DevFlow toolkit."
+tags:
+  - conceptual
+  - area/developer-tools
+ms_date: "05/08/2026"
+source: "https://learn.microsoft.com/dotnet/maui/developer-tools?view=net-maui-10.0"
+---
+
+# .NET MAUI developer tools overview
+
+The .NET MAUI command line (CLI) tool and DevFlow toolkit enhance your development experience with automation, device management, in-app debugging, AI-assisted workflows, and much more. They are well suited for use with GitHub Copilot and AI assisted coding agents.
+
+> [!IMPORTANT]
+> The .NET MAUI developer tools described in this section are experimental and will change between releases.
+
+## .NET MAUI CLI
+
+The .NET MAUI CLI is a command-line tool for environment setup, device management, Android SDK and JDK and emulator management, and app automation. Install it as a .NET global tool:
+
+```dotnetcli
+dotnet tool install -g Microsoft.Maui.Cli --prerelease
+```
+
+Key capabilities include:
+
+- **`maui doctor`** &ndash; Diagnose and repair your .NET MAUI development environment.
+- **Device listing** &ndash; Enumerate connected physical devices and running emulators/simulators.
+- **Android SDK management** &ndash; Install and manage Android SDKs, JDKs, and emulator images.
+- **App profiling** &ndash; Capture performance traces with `maui profile startup` (full startup trace) or `maui profile manual` (on-demand trace at any point in the app lifecycle).
+- **DevFlow integration** &ndash; Launch and coordinate DevFlow sessions from the command line.
+
+For more information, see [[cli|.NET MAUI CLI overview]].
+
+## DevFlow
+
+DevFlow is a comprehensive testing, automation, and debugging toolkit for .NET MAUI apps. It consists of three components: an in-app agent that runs inside your app, a CLI that provides 50+ commands for interacting with the agent, and an MCP server that enables AI integration.
+
+Key capabilities include:
+
+- **Visual tree inspection** &ndash; Browse and query the live UI element hierarchy.
+- **Screenshots** &ndash; Capture screenshots of your running app.
+- **Element interaction** &ndash; Tap, swipe, type, and interact with UI elements programmatically.
+- **Blazor WebView debugging** &ndash; Inspect and automate Blazor WebView content via CDP.
+- **Network monitoring** &ndash; Observe HTTP traffic from your app.
+- **Performance profiling** &ndash; Measure rendering and startup performance.
+
+For more information, see [[devflow|DevFlow overview]].
+
+## Platform backends
+
+Experimental .NET MAUI backends for **macOS** (AppKit), **Linux** (GTK4), and **Windows** (WPF) enable running your .NET MAUI apps on platforms beyond the standard iOS, Android, Mac Catalyst, and WinUI targets.
+
+Key capabilities include:
+
+- **`dotnet new` templates** &ndash; Scaffold a new project for each platform with a single command.
+- **Native rendering** &ndash; Each backend maps MAUI controls to real native widgets on the target platform.
+- **Essentials** &ndash; Platform-specific implementations of MAUI Essentials services.
+
+For more information, see [[platform-backends|Platform backends overview]].
+
+## Packages
+
+The following table lists the packages available from the dotnet/maui-labs repository:
+
+| Package | Description |
+|---|---|
+| `Microsoft.Maui.Cli` | CLI global tool (`maui`) |
+| `Microsoft.Maui.ProfilingHelper` | Profiling helper and marker for .NET MAUI apps |
+| `Microsoft.Maui.DevFlow.Agent` | In-app agent for .NET MAUI automation |
+| `Microsoft.Maui.DevFlow.Agent.Core` | Platform-agnostic agent core |
+| `Microsoft.Maui.DevFlow.Agent.Gtk` | GTK/Linux agent |
+| `Microsoft.Maui.DevFlow.Blazor` | Blazor WebView CDP bridge |
+| `Microsoft.Maui.DevFlow.Blazor.Gtk` | WebKitGTK CDP bridge |
+| `Microsoft.Maui.DevFlow.Driver` | Platform driver library |
+| `Microsoft.Maui.DevFlow.Logging` | Buffered JSONL file logger |
+| `Microsoft.Maui.Platforms.MacOS` | macOS AppKit backend |
+| `Microsoft.Maui.Platforms.MacOS.Templates` | `dotnet new` template for macOS (`maui-macos`) |
+| `Microsoft.Maui.Platforms.Linux.Gtk4` | Linux GTK4 backend |
+| `Microsoft.Maui.Platforms.Linux.Gtk4.Templates` | `dotnet new` template for Linux (`maui-linux-gtk4`) |
+| `Microsoft.Maui.Platforms.Windows.WPF` | Windows WPF backend |
+| `Microsoft.Maui.Platforms.Windows.WPF.Templates` | `dotnet new` template for WPF (`maui-wpf`) |
+
+## Source code
+
+The source code for these tools is available in the [dotnet/maui-labs](https://github.com/dotnet/maui-labs) repository on GitHub.
+
+## Support and feedback
+
+These experimental tools are community-supported. To report issues or request features, file an issue in the [dotnet/maui-labs issue tracker](https://github.com/dotnet/maui-labs/issues).

@@ -1,0 +1,29 @@
+---
+title: "ListView (Controls).SelectedItemProperty"
+tags:
+  - api
+  - member/field
+  - ns/Microsoft-Maui-Controls
+aliases:
+  - "Microsoft.Maui.Controls.ListView.SelectedItemProperty"
+declaring_type: "ListView (Controls)"
+member_kind: field
+---
+
+# ListView (Controls).SelectedItemProperty
+
+> [!abstract] Field of [[ListView (Controls)|ListView (Controls)]]
+> Namespace: `Microsoft.Maui.Controls`
+
+Bindable property for `SelectedItem`.
+
+## Signature
+
+```csharp
+Microsoft.Maui.Controls.BindableProperty static readonly SelectedItemProperty
+```
+
+## See also
+
+- Declaring type: [[ListView (Controls)|ListView (Controls)]]
+- [[_Microsoft.Maui.Controls|Microsoft.Maui.Controls namespace]]

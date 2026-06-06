@@ -1,0 +1,29 @@
+---
+title: "SearchHandler.FontFamily"
+tags:
+  - api
+  - member/property
+  - ns/Microsoft-Maui-Controls
+aliases:
+  - "Microsoft.Maui.Controls.SearchHandler.FontFamily"
+declaring_type: "SearchHandler"
+member_kind: property
+---
+
+# SearchHandler.FontFamily
+
+> [!abstract] Property of [[SearchHandler|SearchHandler]]
+> Namespace: `Microsoft.Maui.Controls`
+
+Gets or sets the font family for the search text. This is a bindable property.
+
+## Signature
+
+```csharp
+string FontFamily { get; set; }
+```
+
+## See also
+
+- Declaring type: [[SearchHandler|SearchHandler]]
+- [[_Microsoft.Maui.Controls|Microsoft.Maui.Controls namespace]]

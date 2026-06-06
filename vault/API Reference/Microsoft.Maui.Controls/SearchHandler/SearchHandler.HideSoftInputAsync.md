@@ -1,0 +1,29 @@
+---
+title: "SearchHandler.HideSoftInputAsync"
+tags:
+  - api
+  - member/method
+  - ns/Microsoft-Maui-Controls
+aliases:
+  - "Microsoft.Maui.Controls.SearchHandler.HideSoftInputAsync"
+declaring_type: "SearchHandler"
+member_kind: method
+---
+
+# SearchHandler.HideSoftInputAsync
+
+> [!abstract] Method of [[SearchHandler|SearchHandler]]
+> Namespace: `Microsoft.Maui.Controls`
+
+Hides the on-screen soft keyboard for the search handler.
+
+## Signature
+
+```csharp
+void HideSoftInputAsync()
+```
+
+## See also
+
+- Declaring type: [[SearchHandler|SearchHandler]]
+- [[_Microsoft.Maui.Controls|Microsoft.Maui.Controls namespace]]

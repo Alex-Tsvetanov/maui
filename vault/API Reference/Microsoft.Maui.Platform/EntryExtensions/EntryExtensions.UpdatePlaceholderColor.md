@@ -1,0 +1,30 @@
+---
+title: "EntryExtensions.UpdatePlaceholderColor"
+tags:
+  - api
+  - member/method
+  - ns/Microsoft-Maui-Platform
+aliases:
+  - "Microsoft.Maui.Platform.EntryExtensions.UpdatePlaceholderColor"
+declaring_type: "EntryExtensions"
+member_kind: method
+---
+
+# EntryExtensions.UpdatePlaceholderColor
+
+> [!abstract] Method of [[EntryExtensions|EntryExtensions]]
+> Namespace: `Microsoft.Maui.Platform`
+
+Updates the placeholder color of the native entry from the specified cross-platform control.
+
+## Signatures
+
+```csharp
+void static UpdatePlaceholderColor(this Tizen.UIExtensions.NUI.Entry! platformEntry, Microsoft.Maui.Graphics.Color! color)
+void static UpdatePlaceholderColor(this Tizen.UIExtensions.NUI.Entry! platformEntry, Microsoft.Maui.ITextInput! entry)
+```
+
+## See also
+
+- Declaring type: [[EntryExtensions|EntryExtensions]]
+- [[_Microsoft.Maui.Platform|Microsoft.Maui.Platform namespace]]

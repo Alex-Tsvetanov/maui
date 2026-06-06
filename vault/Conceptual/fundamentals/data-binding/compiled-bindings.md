@@ -1,0 +1,367 @@
+---
+title: "Compiled bindings"
+description: "Compiled bindings can be used to improve data binding performance in .NET MAUI applications."
+tags:
+  - conceptual
+  - area/fundamentals
+ms_date: "03/24/2026"
+source: "https://learn.microsoft.com/dotnet/maui/fundamentals/data-binding/compiled-bindings?view=net-maui-10.0"
+---
+
+# Compiled bindings
+
+[![Browse sample.](~/media/code-sample.png) Browse the sample](/samples/dotnet/maui-samples/fundamentals-databinding)
+
+.NET Multi-platform App UI (.NET MAUI) data bindings have two main issues:
+
+1. There's no compile-time validation of binding expressions. Instead, bindings are resolved at runtime. Therefore, any invalid bindings aren't detected until runtime when the application doesn't behave as expected or error messages appear.
+1. They aren't cost efficient. Bindings are resolved at runtime using general-purpose object inspection (reflection), and the overhead of doing this varies from platform to platform.
+
+Compiled bindings improve data binding performance in .NET MAUI applications by resolving binding expressions at compile-time rather than runtime. In addition, this compile-time validation of binding expressions enables a better developer troubleshooting experience because invalid bindings are reported as build errors.
+
+
+> [!IMPORTANT]
+> Compiled bindings are required instead of string-based bindings in NativeAOT apps, and in apps with full trimming enabled. For more information, see [[trimming|Trim a .NET MAUI app]] and [[nativeaot|Native AOT deployment]].
+
+
+## Compiled bindings in XAML
+
+To use compiled bindings in XAML, set an `x:DataType` attribute on a [[VisualElement (Controls)|VisualElement]] to the type of the object that the [[VisualElement (Controls)|VisualElement]] and its children will bind to. It's recommended to set the `x:DataType` attribute at the same level in the view hierarchy as the [[BindableObject.BindingContext|BindingContext]] is set. However, this attribute can be re-defined at any location in a view hierarchy.
+
+> [!IMPORTANT]
+> Compiled bindings require the use of XAML compilation, which is enabled by default in .NET MAUI. If you've disabled XAML compilation, you'll need to enable it. For more information, see [[xamlc|XAML Compilation]].
+
+To use compiled bindings in XAML, the `x:DataType` attribute must be set to a string literal, or a type using the `x:Type` markup extension. At XAML compile time, any invalid binding expressions will be reported as build errors. However, the XAML compiler will only report a build error for the first invalid binding expression that it encounters. Any valid binding expressions that are defined on the [[VisualElement (Controls)|VisualElement]] or its children will be compiled, regardless of whether the [[BindableObject.BindingContext|BindingContext]] is set in XAML or code. Compiling a binding expression generates compiled code that will get a value from a property on the *source*, and set it on the property on the *target* that's specified in the markup. In addition, depending on the binding expression, the generated code may observe changes in the value of the *source* property and refresh the *target* property, and may push changes from the *target* back to the *source*.
+
+
+> [!IMPORTANT]
+> Compiled bindings are disabled for any XAML binding expressions that define the `Source` property. This is because the `Source` property is always set using the `x:Reference` markup extension, which can't be resolved at compile time.
+>
+> In addition, compiled bindings in XAML are currently unsupported on multi-bindings.
+
+By default, .NET MAUI doesn't produce build warnings for XAML bindings that don't use compiled bindings. However, you can opt into compiled bindings warnings being produced by setting the `$(MauiStrictXamlCompilation)` build property to `true` in your app's project file (*.csproj):
+
+```xml
+<MauiStrictXamlCompilation>true</MauiStrictXamlCompilation>
+```
+
+
+
+By default, .NET MAUI produces build warnings for XAML bindings that don't use compiled bindings.
+
+
+For more information about XAML compiled bindings warnings, see [XAML compiled bindings warnings](#xaml-compiled-bindings-warnings).
+
+### Use compiled bindings in XAML
+
+The following example demonstrates using compiled bindings between .NET MAUI views and viewmodel properties:
+
+```xaml
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:DataBindingDemos"
+             x:Class="DataBindingDemos.CompiledColorSelectorPage"
+             x:DataType="local:HslColorViewModel"
+             Title="Compiled Color Selector">
+    <ContentPage.BindingContext>
+        <local:HslColorViewModel Color="Sienna" />
+    </ContentPage.BindingContext>
+    ...
+    <StackLayout>
+        <BoxView Color="{Binding Color}"
+                 ... />
+        <StackLayout Margin="10, 0">
+            <Label Text="{Binding Name}" />
+            <Slider Value="{Binding Hue}" />
+            <Label Text="{Binding Hue, StringFormat='Hue = {0:F2}'}" />
+            <Slider Value="{Binding Saturation}" />
+            <Label Text="{Binding Saturation, StringFormat='Saturation = {0:F2}'}" />
+            <Slider Value="{Binding Luminosity}" />
+            <Label Text="{Binding Luminosity, StringFormat='Luminosity = {0:F2}'}" />
+        </StackLayout>
+    </StackLayout>    
+</ContentPage>
+```
+
+The [[ContentPage|ContentPage]] instantiates the `HslColorViewModel` and initializes the `Color` property within property element tags for the [[BindableObject.BindingContext|BindingContext]] property. The [[ContentPage|ContentPage]] also defines the `x:DataType` attribute as the viewmodel type, indicating that any binding expressions in the [[ContentPage|ContentPage]] view hierarchy will be compiled. This can be verified by changing any of the binding expressions to bind to a non-existent viewmodel property, which will result in a build error. While this example sets the `x:DataType` attribute to a string literal, it can also be set to a type with the `x:Type` markup extension. For more information about the `x:Type` markup extension, see [[consume#xtype-markup-extension|x:Type Markup Extension]].
+
+> [!IMPORTANT]
+> The `x:DataType` attribute can be re-defined at any point in a view hierarchy.
+
+The [[BoxView (Controls)|BoxView]], [[Label (Controls)|Label]] elements, and [[Slider (Controls)|Slider]] views inherit the binding context from the [[ContentPage|ContentPage]]. These views are all binding targets that reference source properties in the viewmodel. For the `BoxView.Color` property, and the `Label.Text` property, the data bindings are `OneWay` – the properties in the view are set from the properties in the viewmodel. However, the `Slider.Value` property uses a `TwoWay` binding. This allows each [[Slider (Controls)|Slider]] to be set from the viewmodel, and also for the viewmodel to be set from each [[Slider (Controls)|Slider]].
+
+When the example is first run, the [[BoxView (Controls)|BoxView]], [[Label (Controls)|Label]] elements, and [[Slider (Controls)|Slider]] elements are all set from the viewmodel based on the initial `Color` property set when the viewmodel was instantiated. As the sliders are manipulated, the [[BoxView (Controls)|BoxView]] and [[Label (Controls)|Label]] elements are updated accordingly:
+
+![](media/compiled-bindings/compiledcolorselector.png)
+
+For more information about this color selector, see [[binding-mode#viewmodels-and-property-change-notifications|ViewModels and property-change notifications]].
+
+### Use compiled bindings in XAML in a DataTemplate
+
+Bindings in a [[DataTemplate|DataTemplate]] are interpreted in the context of the object being templated. Therefore, when using compiled bindings in a [[DataTemplate|DataTemplate]], the [[DataTemplate|DataTemplate]] needs to declare the type of its data object using the `x:DataType` attribute. Failure to do this could result in the [[DataTemplate|DataTemplate]] inheriting an incorrect `x:DataType` from its parent scope:
+
+```xaml
+<ContentPage ...
+             x:DataType="local:AnimalsPageViewModel">
+    <!-- Binding to AnimalsPageViewModel.Animals -->
+    <CollectionView ItemsSource="{Binding Animals}">
+        <CollectionView.ItemTemplate>
+            <DataTemplate>
+                <!-- incorrect: compiler thinks you want to bind to AnimalsPageViewModel.Name -->  
+                <Label Text="{Binding Name}" />
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+</ContentPage>
+```
+
+The following example demonstrates correctly setting the `x:DataType` on a [[DataTemplate|DataTemplate]]:
+
+```xaml
+<ContentPage ...
+             x:DataType="local:AnimalsPageViewModel">
+    <!-- Binding to AnimalsPageViewModel.Animals -->
+    <CollectionView ItemsSource="{Binding Animals}">
+        <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="local:Animal">
+                <!-- correct: compiler knows you want to bind to Animal.Name -->
+                <Label Text="{Binding Name}" />
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+</ContentPage>
+```
+
+While this example sets the `x:DataType` attribute to a string literal, it can also be set to a type with the `x:Type` markup extension. For more information about the `x:Type` markup extension, see [[consume#xtype-markup-extension|x:Type Markup Extension]].
+
+### Compile bindings that specify a generic type
+
+Generic types can be specified with the `x:DataType` attribute by specifying the generic constraint as a prefixed string argument in parentheses:
+
+```xaml
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:MyMauiApp"
+             x:Class="MyMauiApp.MyPage"
+             x:DataType="local:MyViewModel(x:Boolean)">
+    ...
+</ContentPage>
+```
+
+Multiple type arguments can be specified as prefixed string arguments, delimited by a comma:
+
+```xaml
+<DataTemplate x:DataType="local:MyType(local:MyObject,x:Boolean)">
+    ...
+</DataTemplate>
+```
+
+For more information about generics in XAML, see [[generics|Generics]].
+
+
+### Compile bindings that define the `Source` property
+
+Prior to .NET MAUI 9, the XAML compiler would skip compilation of bindings that define the `Source` property instead of the [[BindableObject.BindingContext|BindingContext]]. From .NET MAUI 9, these bindings can be compiled to take advantage of better runtime performance. However, this optimization isn't enabled by default to avoid breaking existing app code. To enable this optimization, set the `$(MauiEnableXamlCBindingWithSourceCompilation)` build property to `true` in your app's project file:
+
+```xml
+<MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
+```
+
+Then, ensure that all your bindings are annotated with the correct `x:DataType` and that they don't inherit incorrect data types from their parent scope:
+
+```xaml
+<HorizontalStackLayout BindingContext="{x:Reference slider}" x:DataType="Slider">
+    <Label Text="{Binding Value}" />
+    <Label Text="{Binding Text, Source={x:Reference entry}, x:DataType=Entry}" />
+</HorizontalStackLayout>
+```
+
+> [!NOTE]
+> In cases where there's a binding with a `Source`, but it inherits the `x:DataType` from the parent, there can be a mismatch between the `x:DataType` and the type of the `Source`. In this scenario, a warning will be generated and a fallback to a reflection-based binding that resolves the binding path at runtime will occur.
+
+
+### Combine compiled bindings with classic bindings in XAML
+
+Binding expressions are only compiled for the view hierarchy that the `x:DataType` attribute is defined on. Conversely, any views in a hierarchy on which the `x:DataType` attribute is not defined will use classic bindings. It's therefore possible to combine compiled bindings and classic bindings on a page. For example, in the previous section the views within the [[DataTemplate|DataTemplate]] use compiled bindings, while the [[BoxView (Controls)|BoxView]] that's set to the color selected in the [[ListView (Controls)|ListView]] does not.
+
+Careful structuring of `x:DataType` attributes can therefore lead to a page using compiled and classic bindings. Alternatively, the `x:DataType` attribute can be re-defined at any point in a view hierarchy to `null` using the `x:Null` markup extension. Doing this indicates that any binding expressions within the view hierarchy will use classic bindings. The following example demonstrates this approach:
+
+```xaml
+<StackLayout x:DataType="local:HslColorViewModel">
+    <StackLayout.BindingContext>
+        <local:HslColorViewModel Color="Sienna" />
+    </StackLayout.BindingContext>
+    <BoxView Color="{Binding Color}"
+             VerticalOptions="Fill" />
+    <StackLayout x:DataType="{x:Null}"
+                 Margin="10, 0">
+        <Label Text="{Binding Name}" />
+        <Slider Value="{Binding Hue}" />
+        <Label Text="{Binding Hue, StringFormat='Hue = {0:F2}'}" />
+        <Slider Value="{Binding Saturation}" />
+        <Label Text="{Binding Saturation, StringFormat='Saturation = {0:F2}'}" />
+        <Slider Value="{Binding Luminosity}" />
+        <Label Text="{Binding Luminosity, StringFormat='Luminosity = {0:F2}'}" />
+    </StackLayout>
+</StackLayout>   
+```
+
+The root [[StackLayout (Controls)|StackLayout]] sets the `x:DataType` attribute to be the `HslColorViewModel` type, indicating that any binding expression in the root [[StackLayout (Controls)|StackLayout]] view hierarchy will be compiled. However, the inner [[StackLayout (Controls)|StackLayout]] redefines the `x:DataType` attribute to `null` with the `x:Null` markup expression. Therefore, the binding expressions within the inner [[StackLayout (Controls)|StackLayout]] use classic bindings. Only the [[BoxView (Controls)|BoxView]], within the root [[StackLayout (Controls)|StackLayout]] view hierarchy, uses compiled bindings.
+
+For more information about the `x:Null` markup expression, see [[consume#xnull-markup-extension|x:Null Markup Extension]].
+
+### XAML compiled bindings warnings
+
+The following table lists the compiler warnings for compiled bindings, and how to resolve them:
+
+
+| Code | Message | Fix |
+| ---- | ------- | --- |
+| `XC0022` | Binding could be compiled to improve runtime performance if `x:DataType` is specified. | Add `x:DataType` to your XAML to specify the type of the current [[BindableObject.BindingContext|BindingContext]]. It's best practice to add `x:DataType` to all elements where the binding context changes. |
+| `XC0023` | Binding could be compiled to improve runtime performance if `x:DataType` is not explicitly `null`. | Replace `x:DataType="{x:Null}"` with the right type.  |
+
+
+
+| Code | Message |
+| ---- | ------- |
+| `XC0022` | Binding could be compiled to improve runtime performance if `x:DataType` is specified. <br><br>To fix this warning, add `x:DataType` to your XAML to specify the type of the current [[BindableObject.BindingContext|BindingContext]]. It's best practice to add `x:DataType` to all elements where the binding context changes. |
+| `XC0023` | Binding could be compiled to improve runtime performance if `x:DataType` is not explicitly `null`. <br><br>To fix this warning, replace `x:DataType="{x:Null}"` with the right type. |
+| `XC0024` | Binding might be compiled incorrectly since the `x:DataType` annotation comes from an outer scope. Make sure you annotate all `DataTemplate` XAML elements with the correct `x:DataType`. <br><br>To fix this warning, ensure that all `DataTemplate` elements are annotated with the correct `x:DataType`. |
+| `XC0025` | Binding was not compiled because it has an explicitly set `Source` property and compilation of bindings with `Source` is not enabled. Consider enabling this optimization by setting the `<MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>` in your project file and make sure the correct `x:DataType` is specified for this binding. <br><br>To fix this warning, enable the `$(MauiEnableXamlCBindingWithSourceCompilation)` build property in your project file, and annotate all your bindings with the appropriate `x:DataType`. |
+
+
+To ensure these warnings aren't ignored, consider changing specific warnings to build errors with the `$(WarningsAsErrors)` build property:
+
+```xml
+<WarningsAsErrors>$(WarningsAsErrors);XC0022;XC0023</WarningsAsErrors>
+```
+
+To ignore these warnings, use the `$(NoWarn)` build property with specific warning codes:
+
+```xml
+<NoWarn>$(NoWarn);XC0022;XC0023</NoWarn>
+```
+
+
+> [!IMPORTANT]
+> `XC0022` and `XC0023` warnings will always be suppressed unless the `$(MauiStrictXamlCompilation)` build property is set to `true`.
+
+
+If you set the `$(TreatWarningsAsErrors)` build property to `true` in your app's project file, but you want to ignore certain XAML compiler warnings, use either the `$(NoWarn)` build property to silence these warnings or the `$(WarningsNotAsErrors)` build property to reduce the severity of some specific codes.
+
+
+By default, .NET MAUI produces build warnings for XAML bindings that don't use compiled bindings. You can opt into compiled bindings warnings being treated as errors by setting the `$(MauiStrictXamlCompilation)` and `$(TreatWarningsAsErrors)` build properties to `true` in your app's project file (*.csproj):
+
+```xml
+<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+<MauiStrictXamlCompilation>true</MauiStrictXamlCompilation>
+```
+
+> [!NOTE]
+> By default, the `$(MauiStrictXamlCompilation)` build property is `false` unless you are publishing your app using full trimming or NativeAOT.
+
+
+
+## Compiled bindings in code
+
+Bindings written in code typically use string paths that are resolved at runtime with reflection. However, the `SetBinding%2A` extension method also has an overload that defines bindings using a `Func` argument instead of a string path:
+
+```csharp
+MyLabel.SetBinding(Label.TextProperty, static (Entry entry) => entry.Text);
+```
+
+Not all methods can be used to define a compiled binding. The expression must be a simple property access expression. The following examples show valid and invalid binding expressions:
+
+```csharp
+// Valid: Property access
+static (PersonViewModel vm) => vm.Name;
+static (PersonViewModel vm) => vm.Address?.Street;
+
+// Valid: Array and indexer access
+static (PersonViewModel vm) => vm.PhoneNumbers[0];
+static (PersonViewModel vm) => vm.Config["Font"];
+
+// Valid: Casts
+static (Label label) => (label.BindingContext as PersonViewModel).Name;
+static (Label label) => ((PersonViewModel)label.BindingContext).Name;
+
+// Invalid: Method calls
+static (PersonViewModel vm) => vm.GetAddress();
+static (PersonViewModel vm) => vm.Address?.ToString();
+
+// Invalid: Complex expressions
+static (PersonViewModel vm) => vm.Address?.Street + " " + vm.Address?.City;
+static (PersonViewModel vm) => $"Name: {vm.Name}";
+```
+
+> [!WARNING]
+> A CS0272 compiler error will occur if the set accessor for a property or indexer is inaccessible. If this occurs, increase the accessibility of the accessor.
+
+In addition, the `BindingBase.Create%2A` method sets the binding directly on the object with a `Func`, and returns the binding object instance:
+
+```csharp
+myEntry.SetBinding(Entry.TextProperty, new MultiBinding
+{
+    Bindings = new Collection<BindingBase>
+    {
+        Binding.Create(static (Entry entry) => entry.FontFamily, source: RelativeBindingSource.Self),
+        Binding.Create(static (Entry entry) => entry.FontSize, source: RelativeBindingSource.Self),
+        Binding.Create(static (Entry entry) => entry.FontAttributes, source: RelativeBindingSource.Self),
+    },
+    Converter = new StringConcatenationConverter()
+});
+```
+
+These compiled binding approaches provide the following benefits:
+
+- Improved data binding performance by resolving binding expressions at compile-time rather than runtime.
+- A better developer troubleshooting experience because invalid bindings are reported as build errors.
+- Intellisense while editing.
+
+
+## Performance
+
+Compiled bindings improve data binding performance, with the performance benefit varying:
+
+- A compiled binding that uses property-change notification (i.e. a `OneWay`, `OneWayToSource`, or `TwoWay` binding) is resolved approximately 8 times quicker than a classic binding.
+- A compiled binding that doesn't use property-change notification (i.e. a `OneTime` binding) is resolved approximately 20 times quicker than a classic binding.
+- Setting the [[BindableObject.BindingContext|BindingContext]] on a compiled binding that uses property change notification (i.e. a `OneWay`, `OneWayToSource`, or `TwoWay` binding) is approximately 5 times quicker than setting the [[BindableObject.BindingContext|BindingContext]] on a classic binding.
+- Setting the [[BindableObject.BindingContext|BindingContext]] on a compiled binding that doesn't use property change notification (i.e. a `OneTime` binding) is approximately 7 times quicker than setting the [[BindableObject.BindingContext|BindingContext]] on a classic binding.
+
+These performance differences can be magnified on mobile devices, dependent upon the platform being used, the version of the operating system being used, and the device on which the application is running.
+
+## Common mistakes
+
+### Avoid x:DataType="x:Object"
+
+A common mistake when migrating from Xamarin.Forms, or when trying to suppress a compiler warning quickly, is to set `x:DataType="x:Object"` on an element:
+
+```xml
+<!-- Anti-pattern: silently disables compiled bindings -->
+<StackLayout x:DataType="x:Object">
+    <Label Text="{Binding Name}" />
+</StackLayout>
+
+<!-- Correct: set x:DataType to the actual binding context type -->
+<StackLayout x:DataType="viewmodels:PersonViewModel">
+    <Label Text="{Binding Name}" />
+</StackLayout>
+```
+
+> [!WARNING]
+> Setting `x:DataType="x:Object"` silently disables compiled bindings for that element and all its descendants, reverting to reflection-based binding resolution (8–20× slower). It also disables compile-time type safety, so binding errors that would be caught at build time as XC0022 warnings become silent runtime failures instead. Fix the underlying type mismatch rather than using `x:Object` as an escape hatch.
+
+### Treat XC0022 and XC0025 as errors in CI
+
+Rather than silencing XC0022 and XC0025 warnings, treat them as errors in your CI pipeline to catch misconfigured compiled bindings before they reach production:
+
+```xml
+<WarningsAsErrors>$(WarningsAsErrors);XC0022;XC0023;XC0025</WarningsAsErrors>
+```
+
+| Warning | Root cause | Recommended fix |
+|---------|-----------|-----------------|
+| `XC0022` | A binding path was not found on the declared `x:DataType`, or no `x:DataType` is set. | Check property name spelling; verify the property is `public` on the declared type; add `x:DataType` where `BindingContext` changes. |
+| `XC0025` | A binding with an explicit `Source` property was not compiled. | Enable `$(MauiEnableXamlCBindingWithSourceCompilation)` in your project file and ensure the correct `x:DataType` is set for the binding. |
+
+Silencing these warnings with `$(NoWarn)` or `x:DataType="x:Object"` hides binding configuration bugs and removes the performance benefits of compiled bindings.
