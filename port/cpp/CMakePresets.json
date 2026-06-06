@@ -1,0 +1,81 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 28, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "headless",
+      "displayName": "Headless (in-memory backend, M0-M5)",
+      "description": "Device-free backend; mirrors MAUI's *.Standard.cs. Fully unit-testable.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/headless",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": {
+        "MAUI_BACKEND": "headless",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_STANDARD": "23",
+        "CMAKE_CXX_STANDARD_REQUIRED": "ON",
+        "CMAKE_CXX_EXTENSIONS": "OFF",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "tidy",
+      "inherits": "headless",
+      "displayName": "clang-tidy guardrails",
+      "description": "Headless build that runs clang-tidy over the library sources.",
+      "binaryDir": "${sourceDir}/build/tidy",
+      "cacheVariables": { "ENABLE_CLANG_TIDY": "ON" }
+    },
+    {
+      "name": "asan-ubsan",
+      "inherits": "headless",
+      "displayName": "ASan + UBSan",
+      "description": "AddressSanitizer + UndefinedBehaviorSanitizer (default checked build).",
+      "binaryDir": "${sourceDir}/build/asan-ubsan",
+      "cacheVariables": { "ENABLE_ASAN_UBSAN": "ON" }
+    },
+    {
+      "name": "tsan",
+      "inherits": "headless",
+      "displayName": "ThreadSanitizer",
+      "description": "Dedicated data-race lane (separate from ASan).",
+      "binaryDir": "${sourceDir}/build/tsan",
+      "cacheVariables": { "ENABLE_TSAN": "ON" }
+    },
+    {
+      "name": "msan",
+      "inherits": "headless",
+      "displayName": "MemorySanitizer (Clang/Linux only)",
+      "description": "Uninitialized-read lane. Requires Clang + instrumented libc++; NOT supported on AppleClang/macOS.",
+      "binaryDir": "${sourceDir}/build/msan",
+      "cacheVariables": { "ENABLE_MSAN": "ON" }
+    }
+  ],
+  "buildPresets": [
+    { "name": "headless", "configurePreset": "headless" },
+    { "name": "tidy", "configurePreset": "tidy" },
+    { "name": "asan-ubsan", "configurePreset": "asan-ubsan" },
+    { "name": "tsan", "configurePreset": "tsan" },
+    { "name": "msan", "configurePreset": "msan" }
+  ],
+  "testPresets": [
+    {
+      "name": "headless",
+      "configurePreset": "headless",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+    },
+    {
+      "name": "asan-ubsan",
+      "configurePreset": "asan-ubsan",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+    },
+    {
+      "name": "tsan",
+      "configurePreset": "tsan",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+    }
+  ]
+}

@@ -11,6 +11,10 @@
 - **Standard:** C++23 (`-std=c++23` / `/std:c++23`). Features we lean on: `std::expected`,
   `std::optional`, `std::variant`, `std::span`, ranges, `<format>`/`std::print`, deducing `this`,
   `if consteval`, `std::move_only_function`, coroutines.
+  - *Toolchain gap:* the libc++ shipping with AppleClang 21 (libc++ 210106) does **not** expose
+    `std::move_only_function` (not in `<functional>`, no `__cpp_lib_move_only_function`, absent even
+    under `-fexperimental-library`). The port provides `maui::core::move_only_function` as a drop-in
+    until libc++ ships it; swap back then.
 - **Compilers (min):** Clang 18+ (incl. AppleClang for Obj-C++ `.mm`), GCC 14+, MSVC 19.40+ (VS 2022 17.10+).
 - **Modules:** prefer **headers** for now (cross-compiler module tooling is still uneven). Revisit named
   modules once the core stabilizes. Do not block bring-up on modules.
@@ -21,8 +25,9 @@
 | Concern | Choice | Notes |
 |---|---|---|
 | Build system | **CMake ≥ 3.28** + **Ninja**, with `CMakePresets.json` | one preset per backend (`headless`, `apple`, `windows`, `android`, `linux`). |
-| Test framework | **Catch2 v3** (via `ctest`) | port the C# unit tests (NUnit/xUnit) into Catch2 `TEST_CASE`s. GoogleTest is an acceptable alt. |
-| Dependency mgmt | **vcpkg** (manifest mode, `vcpkg.json`) | keep deps minimal: Catch2, and `fmt` only if `<format>` gaps appear. |
+| Test framework | **GoogleTest + GMock** (via `ctest`) | port the C# unit tests (NUnit/xUnit) into GoogleTest `TEST`/`TEST_P` cases; GMock covers the handler / native-view seam at M1+. (Catch2 was the original default; superseded.) |
+| Benchmarks | **Google Benchmark** | migrate the C# BenchmarkDotNet benchmarks (`src/**/tests/*.Benchmarks`). |
+| Dependency mgmt | **vcpkg** (manifest mode, `vcpkg.json`) | keep deps minimal: `gtest`, `benchmark`; `fmt` only if `<format>` gaps appear. |
 | Formatting/lint | clang-format + clang-tidy | a `.clang-format` mirroring this profile's style. |
 | Headless CI | build the `headless` preset, run `ctest` | M0–M5 are fully testable with **no device**. |
 
@@ -50,13 +55,24 @@ port/cpp/
       windows/           C++/WinRT (WinUI 3)
       android/           JNI/NDK
       linux/             GTK4 (community extension; beyond MAUI scope)
-  tests/                 Catch2 ports of src/**/tests
+  tests/                 GoogleTest ports of src/**/tests
+  benchmarks/            Google Benchmark ports of src/**/tests/*.Benchmarks
   samples/               tiny host apps for the runtime proof (M2/M4)
 ```
 
 Mirror MAUI's **cross-platform vs platform split** as: a core `.cpp` per component + a per-backend
 `.cpp`/`.mm` under `src/platform/<backend>/`, selected by the build. This is the C++ analog of C#
 `partial class Foo` + `Foo.Android.cs`.
+
+**File organization (one primary type per header + matching `.cpp`).** Declarations go in the header,
+definitions in the `.cpp` — `color.hpp`/`color.cpp` is the model. Keep only what must be inline
+(templates, `constexpr`, trivial friend operators) in the header. **No** "re-export" shim headers that
+merely `#include` a bigger one, and **no** dumping several unrelated types into one header. A tightly
+coupled *cluster* may share a header where splitting would hurt cohesion (e.g. `event` + its
+`disconnectable` base + `scoped_connection`). Interdependent value families (point/size, rect) achieve
+one-type-per-header via **forward declarations** in each header, with the cross-type conversions and
+mixed operators defined in the `.cpp`s. Internal-only helpers live under `src/<layer>/detail/`, never in
+the public `include/` tree. This keeps incremental rebuilds fast (editing one `.cpp` recompiles only it).
 
 ## 4. Backend strategy — all platforms
 
@@ -168,19 +184,30 @@ tests stay cross-referenceable.
 
 ## 10. Where to start (concrete first steps on macOS)
 
-1. Scaffold `port/cpp/` (CMake + presets + vcpkg + Catch2), `headless` preset building an empty lib + a
+1. Scaffold `port/cpp/` (CMake + presets + vcpkg + GoogleTest), `headless` preset building an empty lib + a
    green smoke test.
 2. **M0 — Graphics:** port `maui::graphics` primitives (`color`, `point_f`, `size_f`, `rect_f`,
-   geometry) from `src/Graphics/src/Graphics`; port `src/Graphics/tests` into Catch2. Green = M0.
+   geometry) from `src/Graphics/src/Graphics`; port `src/Graphics/tests` into GoogleTest. Green = M0.
 3. **M1 — Core:** property system (§7) + event/dispatcher + the `i_view`/`i_element` contracts +
    `view_handler` base + handler registry (§6). Unit-test the property precedence against the ported
    BindableProperty tests.
 4. **M2 — Button, headless then macOS:** follow the handler recipe in `../CLAUDE.md`. Headless backend
    first (testable), then the macOS `.mm` backend; prove a tap in a tiny `samples/` AppKit app.
 
-## 11. Open decisions to confirm as we go
+## 11. Decisions locked at M1 (2026-06-06)
 
-- View-owns-handler vs handler-owns-view (recommend **view owns handler**) — lock at M1.
-- `property<T>` ergonomics (member object vs `get_/set_` free pair) — recommend **member object**.
-- Interfaces as `concept` vs `i_*` abstract class per contract — decide per type (runtime polymorphism ⇒ class).
-- Named modules vs headers — headers now; revisit post-M5.
+Confirmed with the maintainer before building the Core layer. These are now binding for the port:
+
+- **View owns handler.** The virtual view holds `shared_ptr<i_view_handler>`; the handler holds a
+  `weak_ptr<i_view>` back-reference. The native view lives in the handler (pimpl) and is released in
+  the handler's destructor (`disconnect`). Mirrors MAUI's `IElement.Handler` and the §8 element tree;
+  deterministic teardown when the view is dropped.
+- **`property<T>` is a member object** — `btn.text.set(...)`, `btn.text.get()`, `btn.text.changed`.
+  Owners are non-copyable, heap-only (already mandated by §8); each property is wired with a
+  back-pointer to its owner in the owner's constructor. Backed by a `bindable_property` (§7).
+- **Contracts: per-type rule** — *runtime polymorphism ⇒ `i_*` abstract class; compile-time-only shape
+  ⇒ `concept`.* So `i_element` / `i_view` / `i_layout` / `i_view_handler` are abstract classes (the
+  handler seam is runtime-polymorphic); `concept`s are used only to constrain genuine generics (e.g.
+  the `view_handler<Derived, Virtual, Platform>` CRTP parameters). No `concept` mirrors of the classes.
+- **Headers, not named modules** (revisit post-M5). Portable and low-risk; vcpkg ships headers and
+  cross-compiler module tooling is still uneven. Do not block bring-up on modules.

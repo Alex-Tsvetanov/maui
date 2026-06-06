@@ -135,7 +135,7 @@ emitting any code.** Operating rules that override/extend the generic workflow a
   property registrars, a type-keyed service registry. **Defer XAML (layer 6)** behind the code-first API.
 - **Tooling commands** (once `port/cpp/` is scaffolded): configure with a CMake preset
   (`cmake --preset headless`), build with Ninja, test with `ctest --preset headless`. Port C# tests
-  (`src/**/tests`) into Catch2 `TEST_CASE`s — they remain the behavioral oracle.
+  (`src/**/tests`) into GoogleTest `TEST`/`TEST_P` cases — they remain the behavioral oracle.
 - **Property system & handler infra:** implement per the sketches in `PROFILE.md §7` (bindable_property
   with value precedence) and `§5` (CRTP `view_handler` + non-generic `i_view_handler`). Verify property
   precedence against the ported `src/Controls/tests/Core.UnitTests` BindableProperty/Binding tests.

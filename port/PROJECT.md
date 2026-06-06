@@ -127,5 +127,5 @@ The target language is **C++23**, with an **idiomatic `snake_case`** public API.
      binding cycles, pimpl-owned native views (`§8`).
   2. **No reflection** — handler discovery, DI, and XAML become **explicit registration / codegen**
      (`§6`); XAML (layer 6) is deferred behind the code-first API.
-- **Tooling:** CMake + Ninja, Catch2 v3 via `ctest`, vcpkg. The C# unit tests in `src/**/tests` are
-  ported into Catch2 and remain the behavioral oracle.
+- **Tooling:** CMake + Ninja, GoogleTest + GMock via `ctest`, Google Benchmark, vcpkg. The C# unit
+  tests in `src/**/tests` are ported into GoogleTest and remain the behavioral oracle.

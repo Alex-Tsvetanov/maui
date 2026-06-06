@@ -1,0 +1,2 @@
+# CMake build trees (one per preset: headless, asan-ubsan, tsan, tidy, msan) + vcpkg_installed.
+/build/
