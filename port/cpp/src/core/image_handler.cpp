@@ -11,15 +11,17 @@
 
 namespace maui::core
 {
-    // Keyed on i_image; this minimal cut maps only aspect (Source / IsAnimationPlaying / IsOpaque are the
-    // deferred async-source subsystem). Chained onto the shared view_mapper so the generic IView properties
-    // (Visibility/Opacity/IsEnabled/AutomationId) map first (keys() walks the chain first).
+    // Keyed on i_image; this cut maps aspect + source (IsAnimationPlaying / IsOpaque remain deferred).
+    // Chained onto the shared view_mapper so the generic IView properties (Visibility/Opacity/IsEnabled/
+    // AutomationId) map first (keys() walks the chain first). The "aspect"/"source" keys match the image
+    // control's bindable-property names.
     property_mapper<i_image, image_handler>& image_handler::mapper()
     {
         static property_mapper<i_image, image_handler> table{
             view_mapper(),
             {
                 {"aspect", &image_handler::map_aspect},
+                {"source", &image_handler::map_source},
             },
         };
         return table;

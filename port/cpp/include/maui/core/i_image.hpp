@@ -2,14 +2,15 @@
 // maui::core::i_image  <=  Microsoft.Maui.IImage
 //
 // The virtual-view contract for an image view. Ported from src/Core/src/Core/IImage.cs
-// (IImage : IView, IImageSourcePart). This is a MINIMAL cut: only aspect() (the scaling mode) is modeled.
+// (IImage : IView, IImageSourcePart). This cut models aspect() (the scaling mode) and source() (the
+// IImageSourcePart.Source — a FIRST CUT loading file sources synchronously).
 //
-// OUT OF SCOPE this cut (the whole async image SOURCE subsystem is deferred — file/URI/stream loaders,
-// IImageSource / IImageSourceHandler, caching): IImageSourcePart.Source / IsAnimationPlaying /
-// UpdateIsLoading, and IImage.IsOpaque. Documented here, not stubbed — the image control ships
-// aspect-only.
+// OUT OF SCOPE this cut (deferred, documented not stubbed): IsAnimationPlaying / UpdateIsLoading and
+// IImage.IsOpaque; and within the source subsystem, the non-file sources (uri/stream/font) plus async
+// loading + cancellation + caching.
 
 #include "maui/core/aspect.hpp"
+#include "maui/core/i_image_source.hpp"
 #include "maui/core/i_view.hpp"
 
 namespace maui::core
@@ -18,5 +19,9 @@ namespace maui::core
     {
     public:
         [[nodiscard]] virtual maui::core::aspect aspect() const = 0;
+
+        // The image's source (C# IImageSourcePart.Source). A raw borrow: the concrete control owns the
+        // source (a shared_ptr) for its lifetime; null means "no source". Synchronous file load this cut.
+        [[nodiscard]] virtual maui::core::i_image_source* source() const = 0;
     };
 } // namespace maui::core

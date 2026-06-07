@@ -1,20 +1,24 @@
 #pragma once
-// maui::core::image_handler  <=  Microsoft.Maui.Handlers.ImageHandler (minimal: aspect only)
+// maui::core::image_handler  <=  Microsoft.Maui.Handlers.ImageHandler (aspect + file source)
 //
-// The handler for an image view — a MINIMAL cut that maps ONLY the scaling mode (aspect) onto a native
-// NSImageView. No image bytes are loaded this cut (the async source subsystem is deferred); the view
-// simply exists and the aspect enum maps to AppKit's imageScaling (+ imageAlignment). Ported from
-// ImageHandler.cs (cross-platform) + ImageHandler.iOS.cs (the UIImageView ContentMode recipe, translated
-// to AppKit's NSImageView).
+// The handler for an image view: it maps the scaling mode (aspect) onto a native NSImageView, and — this
+// cut — loads a FILE source synchronously into that view. Ported from ImageHandler.cs (cross-platform) +
+// ImageHandler.iOS.cs (the UIImageView ContentMode recipe, translated to AppKit's NSImageView) +
+// ImageSourceExtensions.cs (the file load, [[NSImage alloc] initWithContentsOfFile:] for AppKit).
+//
+// FIRST CUT of map_source: the file is loaded SYNCHRONOUSLY (C# does an async fire-and-forget via
+// SourceLoader). The async loader + cancellation, the service-provider/IImageSourceService seam, the
+// non-file source kinds (uri/stream/font), and image caching are all DEFERRED.
 //
 // Partial-class split (PROFILE §5): the mapper TABLE + ctor are cross-platform (image_handler.cpp); the
-// platform recipe — create / map_aspect / measure — is per backend under
+// platform recipe — create / map_aspect / map_source / measure — is per backend under
 // src/platform/<backend>/image_handler.{cpp,mm}. Only one backend is linked.
 //
 // image_platform is a single cross-platform struct: `native` holds the real backend view (an NSImageView*
-// on Apple, retained in the .mm; unused headless), `image_aspect` mirrors the mapped scaling mode for the
-// headless tests. It derives view_platform_base (the shared ViewMapper face) so the generic IView
-// properties (Visibility/Opacity/IsEnabled/AutomationId) map onto the NSImageView too.
+// on Apple, retained in the .mm; unused headless), `image_aspect` mirrors the mapped scaling mode and
+// `source_file`/`source_loaded` mirror the resolved file source for the headless tests (the Apple build
+// loads into `native` instead). It derives view_platform_base (the shared ViewMapper face) so the generic
+// IView properties (Visibility/Opacity/IsEnabled/AutomationId) map onto the NSImageView too.
 
 #include <memory>
 #include <string>
@@ -44,6 +48,11 @@ namespace maui::core
         void* native = nullptr;
         // Headless mirror of the mapped aspect (the Apple build writes to `native` instead).
         aspect image_aspect = aspect::aspect_fit;
+        // Headless mirror of the resolved file source: the last non-empty file path mapped, and whether a
+        // source is currently loaded. map_source clears these when the source is null/empty (the Apple
+        // build sets the real NSImageView.image instead). See src/platform/headless/image_handler.cpp.
+        std::string source_file;
+        bool source_loaded = false;
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSImageView (defined in
@@ -69,7 +78,10 @@ namespace maui::core
                                                             double height_constraint) const override;
         void platform_arrange(const maui::graphics::rect& frame) override;
 
-        // Property map function (platform recipe).
+        // Property map functions (platform recipe).
         static void map_aspect(image_handler& handler, i_image& view);
+        // Synchronous file load: resolves view.source() and pushes the loaded image to the native view
+        // (headless mirrors the resolved path). Null/empty source clears the image. See the .mm/.cpp twins.
+        static void map_source(image_handler& handler, i_image& view);
     };
 } // namespace maui::core

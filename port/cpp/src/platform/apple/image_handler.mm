@@ -1,10 +1,10 @@
-// image_handler — Apple (AppKit / macOS) platform recipe (minimal: aspect only). The real-native twin of
+// image_handler — Apple (AppKit / macOS) platform recipe (aspect + file source). The real-native twin of
 // the headless partial: the managed platform view is an NSImageView (held, retained, in
-// image_platform::native), and the cross-platform aspect maps to the view's imageScaling (+ imageAlignment).
-// No image bytes are loaded this cut — the view simply exists and the scaling enum maps. Compiled as
-// Objective-C++ with ARC only for the `apple` backend.
+// image_platform::native); the cross-platform aspect maps to the view's imageScaling (+ imageAlignment),
+// and a file source loads SYNCHRONOUSLY into the view's image. Compiled as Objective-C++ with ARC only for
+// the `apple` backend.
 //
-// Translated from ImageHandler.iOS.cs + AspectExtensions.cs (UIKit's UIViewContentMode):
+// aspect — translated from ImageHandler.iOS.cs + AspectExtensions.cs (UIKit's UIViewContentMode):
 //   AspectFit  → ScaleAspectFit   → NSImageScaleProportionallyUpOrDown
 //   AspectFill → ScaleAspectFill   → NSImageScaleProportionallyUpOrDown + centered  [*]
 //   Fill       → ScaleToFill       → NSImageScaleAxesIndependently
@@ -13,6 +13,13 @@
 //     up-scaled image the way UIView ScaleAspectFill does); proportional + centered is the closest
 //     built-in approximation. This imperfect mapping is noted rather than worked around (a clipping
 //     container would be a larger change, out of scope for this minimal cut).
+//
+// source — translated from ImageHandler.iOS.cs MapSource + ImageSourceExtensions.cs GetPlatformImage
+// (UIImage.FromBundle(name) ?? UIImage.FromFile(file)). FIRST CUT: a file source loads SYNCHRONOUSLY via
+// [[NSImage alloc] initWithContentsOfFile:] (AppKit's NSImage has no FromBundle split — the file path is
+// loaded directly). A null/empty source clears imageView.image. DEFERRED: C#'s async fire-and-forget
+// loader + cancellation, the IImageSourceService/service-provider seam, the non-file source kinds
+// (uri/stream/font), and caching.
 
 #import <AppKit/AppKit.h>
 
@@ -22,6 +29,7 @@
 
 #include "maui/core/aspect.hpp"
 #include "maui/core/i_image.hpp"
+#include "maui/core/i_image_source.hpp"
 #include "maui/core/image_handler.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
@@ -47,6 +55,20 @@ namespace
                 return NSImageScaleNone;
         }
         return NSImageScaleProportionallyUpOrDown;
+    }
+
+    // Synchronous file load: AppKit's [[NSImage alloc] initWithContentsOfFile:] (returns nil if the file is
+    // missing or not a decodable image). The C# original tries FromBundle first; AppKit has no equivalent
+    // path split, so the file path is loaded directly.
+    NSImage* load_image_from_file(std::string_view path)
+    {
+        const std::string file(path);
+        NSString* const ns_path = [NSString stringWithUTF8String:file.c_str()];
+        if (ns_path == nil)
+        {
+            return nil;
+        }
+        return [[NSImage alloc] initWithContentsOfFile:ns_path];
     }
 } // namespace
 
@@ -104,6 +126,34 @@ namespace maui::core
         // Keep the image centered for every mode (NSImageView's own default), so Center and the
         // aspect-* approximations sit in the middle of the view rather than a corner.
         image_view.imageAlignment = NSImageAlignCenter;
+    }
+
+    // Synchronous file load (see the file header). A null/empty source clears the image; otherwise the file
+    // source's path is loaded via NSImage. Only i_file_image_source is handled this cut (the other source
+    // kinds are deferred — they also clear, rather than guess). A failed load (nil) leaves the image cleared.
+    void image_handler::map_source(image_handler& handler, i_image& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr || platform->native == nullptr)
+        {
+            return;
+        }
+        NSImageView* const image_view = as_image_view(platform->native);
+
+        const i_image_source* const src = view.source();
+        if (src == nullptr || src->is_empty())
+        {
+            image_view.image = nil;
+            return;
+        }
+
+        if (const auto* file_src = dynamic_cast<const i_file_image_source*>(src))
+        {
+            image_view.image = load_image_from_file(file_src->file()); // nil on a failed load (clears it)
+            return;
+        }
+
+        image_view.image = nil; // deferred source kind: clear rather than guess
     }
 
     maui::graphics::size image_handler::get_desired_size(double /*width_constraint*/,

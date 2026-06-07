@@ -213,6 +213,7 @@ add_library(maui_controls STATIC
   src/controls/label.cpp
   src/controls/entry.cpp
   src/controls/image.cpp
+  src/controls/file_image_source.cpp
   src/controls/vertical_stack_layout.cpp
   src/controls/horizontal_stack_layout.cpp
   src/controls/grid.cpp
