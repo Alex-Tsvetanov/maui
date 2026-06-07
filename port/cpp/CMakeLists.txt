@@ -145,7 +145,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/image_handler.mm
     src/platform/apple/image_source_services.mm
     src/platform/apple/layout_handler.mm
-    src/platform/apple/content_page_handler.mm)
+    src/platform/apple/content_page_handler.mm
+    src/platform/apple/navigation_page_handler.mm)
   set_source_files_properties(${MAUI_CORE_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
   set(MAUI_CORE_PLATFORM_SOURCES
@@ -155,7 +156,8 @@ else()
     src/platform/headless/image_handler.cpp
     src/platform/headless/image_source_services.cpp
     src/platform/headless/layout_handler.cpp
-    src/platform/headless/content_page_handler.cpp)
+    src/platform/headless/content_page_handler.cpp
+    src/platform/headless/navigation_page_handler.cpp)
 endif()
 
 add_library(maui_core STATIC
@@ -179,6 +181,7 @@ add_library(maui_core STATIC
   src/core/uri_bytes.cpp
   src/core/layout_handler.cpp
   src/core/content_page_handler.cpp
+  src/core/navigation_page_handler.cpp
   src/core/grid_length.cpp
   ${MAUI_CORE_PLATFORM_SOURCES}
 )
@@ -234,6 +237,7 @@ add_library(maui_controls STATIC
   src/controls/horizontal_stack_layout.cpp
   src/controls/grid.cpp
   src/controls/content_page.cpp
+  src/controls/navigation_page.cpp
 )
 target_include_directories(maui_controls PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # Controls depend on Core (handlers, contracts, the property system); the layout controls additionally
@@ -255,7 +259,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/image_apple_tests.mm
     tests/controls/layout_apple_tests.mm
     tests/controls/grid_apple_tests.mm
-    tests/controls/content_page_apple_tests.mm)
+    tests/controls/content_page_apple_tests.mm
+    tests/controls/navigation_page_apple_tests.mm)
   set_source_files_properties(
     tests/controls/button_apple_tests.mm
     tests/controls/label_apple_tests.mm
@@ -265,6 +270,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/layout_apple_tests.mm
     tests/controls/grid_apple_tests.mm
     tests/controls/content_page_apple_tests.mm
+    tests/controls/navigation_page_apple_tests.mm
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
   add_executable(maui_controls_tests
@@ -275,7 +281,8 @@ else()
     tests/controls/image_tests.cpp
     tests/controls/layout_tests.cpp
     tests/controls/grid_tests.cpp
-    tests/controls/content_page_tests.cpp)
+    tests/controls/content_page_tests.cpp
+    tests/controls/navigation_page_tests.cpp)
 endif()
 target_include_directories(maui_controls_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for tests/layouts/*.hpp
 target_link_libraries(maui_controls_tests PRIVATE
