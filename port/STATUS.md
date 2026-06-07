@@ -9,21 +9,21 @@
 ```bash
 export VCPKG_ROOT="$HOME/vcpkg"          # registry clone; brew's vcpkg binary alone lacks the toolchain file
 cmake --preset headless && cmake --build --preset headless
-ctest --preset headless                  # all ported tests (graphics + core + controls: 186 cases, green)
+ctest --preset headless                  # all ported tests (graphics + core + controls: 214 cases, green)
 ./build/headless/maui_graphics_benchmarks --benchmark_min_time=0.02s   # Google Benchmark (not a ctest test)
 ```
 
 **macOS / AppKit backend** (real NSViews; Obj-C++ `.mm` + ARC):
 
 ```bash
-cmake --preset apple && cmake --build --preset apple && ctest --preset apple   # 179 cases incl. real NSButton tap
+cmake --preset apple && cmake --build --preset apple && ctest --preset apple   # 207 cases incl. real NSButton tap
 ./build/apple/maui_button_sample                                                # sample window (Ctrl-C / close to quit)
 ```
 
 **Resume:** continue to the next ⬜ milestone below, following `CLAUDE.md`. **M1 (Core) and M2 (button,
 the Rosetta Stone) are COMPLETE** — the virtual-view ⇄ handler ⇄ native seam is proven end-to-end on
-**both** the headless backend (186 tests) and the **macOS AppKit backend** (real `NSButton`, 179 tests
-incl. a native tap via `performClick:`). **Next: M3 — layout (`stack_layout`/`grid`) measure/arrange.**
+**both** the headless backend (214 tests) and the **macOS AppKit backend** (real `NSButton`, 207 tests
+incl. a native tap via `performClick:`). **M3 (layout) IN PROGRESS: M3a (stack managers) done; M3b (Grid) next.**
 The `PROFILE.md §11` decisions are **locked** (view owns handler; `property<T>` member object;
 per-type `concept`-vs-`i_*` rule; headers not modules). M1 build order — all done: `event`,
 `dispatcher`, `setter_specificity`(+list), `bindable_property<T>` / `bindable_object` / `property<T>`
@@ -49,6 +49,13 @@ are now bindable + mapped (headless mirrors every property; AppKit maps font / t
 / stroke (layer border), with character_spacing + padding documented as AppKit TODOs needing an attributed
 title / custom cell). **Deferred to M3/M4:** the shared **ViewMapper** for the generic IView properties
 (needs a common platform-view base + the visual-element property set) and image source.
+**M3a (done):** the layout foundation — `dimension`, `i_container` / `i_layout` / `i_stack_layout`,
+`i_layout_manager` contracts — and a new `maui_layouts` library: `layout_manager` (ResolveConstraints)
++ `stack_layout_manager` (MeasureSpacing) bases + `vertical_stack_layout_manager` /
+`horizontal_stack_layout_manager`. Pure cross-platform measure/arrange (no native); 28 GTest cases
+ported from C#'s Stack*LayoutManagerTests (spacing / padding / min-max / collapsed-vs-hidden / fill).
+**Next: M3b — Grid** (`grid_length` Auto/Star/Absolute, row/column definitions + spans, the grid layout
+manager + GridLayoutManagerTests). The layout *controls* + native container panel land at M4.
 
 ## Tooling — format, lint, sanitizers (run from `port/cpp/`)
 
@@ -64,8 +71,8 @@ title / custom cell). **Deferred to M3/M4:** the shared **ViewMapper** for the g
   invoking the keg's clang-tidy directly it needs the AppleClang sysroot, e.g.
   `clang-tidy --extra-arg=-isysroot --extra-arg="$(xcrun --show-sdk-path)" -p build/headless <file>`.
 - **Sanitizers** (`Sanitizers.md`) — target-level via the `maui_sanitizers` interface lib, one lane each:
-  - `cmake --preset asan-ubsan && cmake --build --preset asan-ubsan && ctest --preset asan-ubsan` — ASan+UBSan (default checked build; **186/186 green**)
-  - `cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan` — ThreadSanitizer (**186/186 green**)
+  - `cmake --preset asan-ubsan && cmake --build --preset asan-ubsan && ctest --preset asan-ubsan` — ASan+UBSan (default checked build; **214/214 green**)
+  - `cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan` — ThreadSanitizer (**214/214 green**)
   - `msan` preset is for **Linux/Clang CI only** — `-fsanitize=memory` is unsupported on AppleClang/macOS.
 
 ## Milestones (see `PROJECT.md §5`)
@@ -75,7 +82,7 @@ title / custom cell). **Deferred to M3/M4:** the shared **ViewMapper** for the g
 | M0 | Graphics primitives compile + pass ported tests | ✅ |
 | M1 | Core contracts + property/handler infra + dispatcher, unit-tested | ✅ |
 | M2 | `button` end-to-end (headless → macOS), tap works in sample app | ✅ |
-| M3 | Layout measure/arrange (`stack_layout`, `grid`) pass layout tests | ⬜ |
+| M3 | Layout measure/arrange (`stack_layout`, `grid`) pass layout tests | 🚧 |
 | M4 | Control set v1 (label, entry, image, layouts, page) on macOS | ⬜ |
 | M5 | `bindable_object`/`bindable_property`, binding, style, lifecycle | ⬜ |
 | M6 | Second platform (iOS) behind the same handlers | ⬜ |
@@ -105,5 +112,8 @@ title / custom cell). **Deferred to M3/M4:** the shared **ViewMapper** for the g
 | `button` control | controls | ✅ | ✅* | ✅ | headless + macOS | The Rosetta Stone's virtual view. **Full own surface bindable + mapped**: Text + the i_text_style appearance (text_color/font/character_spacing) + Padding + the i_button_stroke border (stroke_color/thickness/corner_radius); clicked/pressed/released events + optional command; IsEnabled gating (ButtonElement order: command→event; release always clears IsPressed). Self-registers its handler (MAUI_REGISTER_HANDLER). 14 headless GTest cases (seam both directions + every property). *characterization |
 | `button_handler` AppKit backend (`.mm`) + `maui_button_sample` | platform/apple | ✅ | ✅* | ✅ | macOS | Real `NSButton` via Obj-C++/ARC: Text→`title`; font→`NSFont`; text_color→`contentTintColor`; stroke→layer border; target-action trampoline → `send_clicked`; RAII NSButton release. (character_spacing/padding are documented AppKit TODOs.) 7 GTest cases drive a real NSButton (`performClick:` → `clicked`; appearance; disabled suppressed; disconnect; registry-resolved). Sample app = a live NSWindow round-tripping a tap. Translated from ButtonHandler.iOS.cs (no AppKit oracle in mainline MAUI; macOS there is Mac Catalyst/UIKit). *characterization |
 | handler self-registration (`default_handler_registry`/`handler_registrar`/`MAUI_REGISTER_HANDLER`) | core | ✅ | ✅* | ✅ | headless + macOS | Opt-in §6 self-registration over the explicit primitive; macro-free registrar + macro sugar; noexcept registrar (load-time). OBJECT-library tree-shaking caveat documented. clang-tidy `^MAUI_` allow-listed. *characterization |
+
+| layout foundation (`dimension`, `i_container`/`i_layout`/`i_stack_layout`, `i_layout_manager`) | core/layouts | ✅ | — | ✅ | headless + macOS | `ILayout : IView + IContainer + IPadding` (M3 subset; ClipsToBounds / ISafeAreaView / ICrossPlatformLayout deferred to M4). `dimension` = Unset(NaN)/Minimum(0)/Maximum(inf) + is_explicit_set |
+| stack layout managers (`layout_manager`/`stack_layout_manager` + vertical/horizontal) | layouts | ✅ | ✅* | ✅ | headless + macOS | New `maui_layouts` lib — pure cross-platform measure/arrange (ResolveConstraints, MeasureSpacing, stacking). 28 GTest cases via mock view/stack (spacing / padding / min-max / collapsed-vs-hidden / fill / child-constraint). The layout *controls* + native panel are M4. *ported from C# Stack*LayoutManagerTests (the oracle) |
 
 _(extend this table as components are added)_

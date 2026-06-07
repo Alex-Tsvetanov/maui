@@ -213,3 +213,34 @@ if(MAUI_BACKEND STREQUAL "apple")
   set_source_files_properties(src/samples/button_sample.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
   target_link_libraries(maui_button_sample PRIVATE maui_controls maui_sanitizers)
 endif()
+
+# ======================================================================
+# Layouts  (maui::layouts  <=  Microsoft.Maui.Layouts : cross-platform measure/arrange algorithms)
+# ======================================================================
+# Pure, device-free layout algorithms over the Core layout contracts; backend-agnostic (no platform
+# partials — the native layout panel that hosts the arranged children arrives with the controls at M4).
+add_library(maui_layouts STATIC
+  src/layouts/layout_manager.cpp
+  src/layouts/stack_layout_manager.cpp
+  src/layouts/vertical_stack_layout_manager.cpp
+  src/layouts/horizontal_stack_layout_manager.cpp
+)
+target_include_directories(maui_layouts PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(maui_layouts PUBLIC maui_core PRIVATE maui_sanitizers)
+if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+  set_target_properties(maui_layouts PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+endif()
+
+# ---- Layout tests (GoogleTest). The mocks reuse maui::controls::view<>, so link maui_controls. ----
+add_executable(maui_layout_tests
+  tests/layouts/vertical_stack_layout_manager_tests.cpp
+  tests/layouts/horizontal_stack_layout_manager_tests.cpp
+)
+target_include_directories(maui_layout_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for tests/layouts/*.hpp
+target_link_libraries(maui_layout_tests PRIVATE
+  maui_layouts
+  maui_controls
+  maui_sanitizers
+  GTest::gmock_main
+)
+gtest_discover_tests(maui_layout_tests)
