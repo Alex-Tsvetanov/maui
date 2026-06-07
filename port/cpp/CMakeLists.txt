@@ -126,15 +126,19 @@ target_link_libraries(maui_graphics_benchmarks PRIVATE
 # ======================================================================
 # Layer 1 - Core  (maui::core  <=  Microsoft.Maui : property/handler infra, events, dispatcher)
 # ======================================================================
-# Header-only for now (event<>, scoped_connection). Becomes a STATIC lib once the first compiled
-# source lands (dispatcher / bindable_object at the next M1 slices).
-add_library(maui_core INTERFACE)
-target_include_directories(maui_core INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(maui_core INTERFACE maui_sanitizers)
+add_library(maui_core STATIC
+  src/core/manual_dispatcher.cpp
+)
+target_include_directories(maui_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(maui_core PRIVATE maui_sanitizers)
+if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+  set_target_properties(maui_core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+endif()
 
 # ---- Core tests (GoogleTest, discovered into ctest) ----
 add_executable(maui_core_tests
   tests/core/event_tests.cpp
+  tests/core/dispatcher_tests.cpp
 )
 target_link_libraries(maui_core_tests PRIVATE
   maui_core

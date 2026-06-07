@@ -24,23 +24,7 @@ namespace maui::core
     // usable "no connection" sentinel.
     using connection_token = std::uint64_t;
 
-    // Non-template base so a scoped_connection can disconnect without naming the event's Args...
-    class disconnectable
-    {
-    public:
-        virtual ~disconnectable() = default;
-        virtual bool disconnect(connection_token token) = 0;
-
-    protected:
-        disconnectable() = default;
-        disconnectable(const disconnectable &) = default;
-        disconnectable(disconnectable &&) = default;
-        disconnectable &operator=(const disconnectable &) = default;
-        disconnectable &operator=(disconnectable &&) = default;
-    };
-
-    template <class... Args>
-    class event : public disconnectable
+    template <class... Args> class event
     {
     public:
         // Args are delivered by const reference, so every handler sees the same args object with no
@@ -55,7 +39,7 @@ namespace maui::core
         event(event &&) = delete;
         event &operator=(const event &) = delete;
         event &operator=(event &&) = delete;
-        ~event() override = default;
+        ~event() = default;
 
         // Register a handler, invoked in connection order on every later raise(). Returns a token
         // for disconnect(); the return is never 0.
@@ -67,7 +51,7 @@ namespace maui::core
         }
 
         // Remove the handler registered under this token. Returns true iff one was removed.
-        bool disconnect(connection_token token) override
+        bool disconnect(connection_token token)
         {
             auto const it = std::ranges::find(slots_, token, &slot::id);
             if (it == slots_.end())
@@ -116,32 +100,29 @@ namespace maui::core
         connection_token last_token_ = 0;
     };
 
-    // RAII subscription: disconnects from its event on destruction (or reset()/move-assign).
+    // RAII subscription: disconnects from its event on destruction (or reset()/move-assignment).
     // Move-only. The event (publisher) must outlive the scoped_connection, or be reset() first.
+    // The disconnect is type-erased into a move_only_function, so this needs no knowledge of Args...
+    // and no virtual base on event (which would be a template-virtual portability hazard).
     class scoped_connection
     {
     public:
         scoped_connection() = default;
-        scoped_connection(disconnectable &source, connection_token token) : source_(&source), token_(token)
+        template <class... Args>
+        scoped_connection(event<Args...> &source, connection_token token)
+            : disconnect_([&source, token] { source.disconnect(token); })
         {
         }
 
         scoped_connection(const scoped_connection &) = delete;
         scoped_connection &operator=(const scoped_connection &) = delete;
-        scoped_connection(scoped_connection &&other) noexcept : source_(other.source_), token_(other.token_)
-        {
-            other.source_ = nullptr;
-            other.token_ = 0;
-        }
+        scoped_connection(scoped_connection &&) noexcept = default; // move_only_function null-after-move
         scoped_connection &operator=(scoped_connection &&other) noexcept
         {
             if (this != &other)
             {
                 reset();
-                source_ = other.source_;
-                token_ = other.token_;
-                other.source_ = nullptr;
-                other.token_ = 0;
+                disconnect_ = std::move(other.disconnect_);
             }
             return *this;
         }
@@ -153,27 +134,26 @@ namespace maui::core
         // Disconnect now (idempotent).
         void reset()
         {
-            if (source_ != nullptr)
+            if (disconnect_)
             {
-                source_->disconnect(token_);
-                source_ = nullptr;
-                token_ = 0;
+                disconnect_();
+                disconnect_ = nullptr;
             }
         }
         [[nodiscard]] bool connected() const
         {
-            return source_ != nullptr;
+            return static_cast<bool>(disconnect_);
         }
 
     private:
-        disconnectable *source_ = nullptr;
-        connection_token token_ = 0;
+        move_only_function<void()> disconnect_;
     };
 
     // Convenience: connect and wrap the token in a scoped_connection in one step.
     template <class... Args>
-    [[nodiscard]] scoped_connection connect_scoped(event<Args...> &source, typename event<Args...>::handler_type handler)
+    [[nodiscard]] scoped_connection connect_scoped(event<Args...> &source,
+                                                   typename event<Args...>::handler_type handler)
     {
-        return {source, source.connect(std::move(handler))};
+        return scoped_connection(source, source.connect(std::move(handler)));
     }
-}
+} // namespace maui::core

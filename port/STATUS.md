@@ -15,8 +15,8 @@ ctest --preset headless                  # all ported graphics tests (81 cases, 
 
 **Resume:** continue to the next ⬜ milestone below, following `CLAUDE.md`. **In progress: M1 (Core).**
 The `PROFILE.md §11` decisions are **locked** (view owns handler; `property<T>` member object;
-per-type `concept`-vs-`i_*` rule; headers not modules). Build order: `event` → `dispatcher` →
-`bindable_object`/`bindable_property` (value precedence, verified against the ported
+per-type `concept`-vs-`i_*` rule; headers not modules). Build order — done: `event`, `dispatcher`.
+**Next: `bindable_object`/`bindable_property`** (value precedence, verified against the ported
 `Core.UnitTests`) → `property<T>` → `i_element`/`i_view`/`i_text` contracts → `view_handler` +
 `i_view_handler` + handler/service registry.
 
@@ -61,7 +61,7 @@ per-type `concept`-vs-`i_*` rule; headers not modules). Build order: `event` →
 | `path_builder` (SVG parser) | graphics | ✅ | ✅* | ✅ | headless | M/L/H/V/C/S/Q/T/A/Z abs+rel; *characterization tests. Faithful to PathBuilder.cs (incl. its dead implicit-after-M branch) |
 | benchmarks (color, path) | graphics | — | — | ✅ | headless | BenchmarkDotNet → Google Benchmark; `maui_graphics_benchmarks` builds + runs |
 | `event<>` + `scoped_connection` | core | ✅ | ✅* | ✅ | headless | 16 GTest cases; multicast with snapshot-on-raise (mirrors .NET `X?.Invoke`) + token/RAII teardown (the WeakEventManager role per §8). Uses port-provided `move_only_function` (libc++ lacks `std`'s). *characterization — infra, no C# oracle |
-| `dispatcher` | core | ⬜ | ⬜ | ⬜ | — | headless scheduler; next up |
+| `i_dispatcher` + `manual_dispatcher` | core | ✅ | ✅* | ✅ | headless | 11 GTest cases; mirrors `IDispatcher`/`IDispatcherTimer` (dispatch / dispatch_delayed / timer + is_dispatch_required). Headless impl is a deterministic **virtual-clock** pump (`run_pending`/`advance`) — no wall-clock/threads. *characterization (C# Standard impl just throws) |
 | `bindable_object`/`bindable_property` | core | ⬜ | ⬜ | ⬜ | — | value precedence; verify vs Core.UnitTests |
 | `i_element`/`i_view`/`i_text` | core | ⬜ | ⬜ | ⬜ | — | virtual-view contracts |
 | `view_handler` base + handler registry | core | ⬜ | ⬜ | ⬜ | — | CRTP + `i_view_handler` |
