@@ -9,10 +9,13 @@
 #include <vector>
 
 #include "maui/core/button_handler.hpp"
+#include "maui/core/font.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_button.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_text.hpp"
+#include "maui/core/thickness.hpp"
+#include "maui/graphics/color.hpp"
 #include <gtest/gtest.h>
 
 namespace
@@ -173,6 +176,37 @@ namespace
         EXPECT_EQ(control.handler(), nullptr);
         EXPECT_EQ(handler->platform_view(), nullptr); // disconnected + torn down
         EXPECT_EQ(handler->virtual_view(), nullptr);
+    }
+
+    TEST(button_seam, appearance_properties_map_to_platform)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+
+        control.set_text_color(maui::graphics::color(1.0F, 0.0F, 0.0F));
+        EXPECT_EQ(platform->text_color, maui::graphics::color(1.0F, 0.0F, 0.0F));
+
+        control.set_font(maui::core::font::of_size("Arial", 18));
+        EXPECT_EQ(platform->text_font.family(), "Arial");
+        EXPECT_EQ(platform->text_font.size(), 18.0);
+
+        control.set_character_spacing(2.5);
+        EXPECT_EQ(platform->character_spacing, 2.5);
+
+        control.set_padding(maui::core::thickness(4));
+        EXPECT_EQ(platform->padding, maui::core::thickness(4));
+
+        control.set_stroke_color(maui::graphics::color(0.0F, 1.0F, 0.0F));
+        EXPECT_EQ(platform->stroke_color, maui::graphics::color(0.0F, 1.0F, 0.0F));
+
+        control.set_stroke_thickness(3.0);
+        EXPECT_EQ(platform->stroke_thickness, 3.0);
+
+        control.set_corner_radius(8);
+        EXPECT_EQ(platform->corner_radius, 8);
     }
 
     TEST(button_seam, handler_resolved_from_default_registry)

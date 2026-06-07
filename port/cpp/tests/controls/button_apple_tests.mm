@@ -8,6 +8,7 @@
 
 #include "maui/controls/button.hpp"
 #include "maui/core/button_handler.hpp"
+#include "maui/core/font.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include <gtest/gtest.h>
@@ -91,6 +92,24 @@ namespace
         control.set_handler(nullptr);
         EXPECT_EQ(handler->platform_view(), nullptr);
         EXPECT_EQ(handler->virtual_view(), nullptr);
+    }
+
+    TEST_F(apple_button_seam, appearance_maps_to_nsbutton)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        NSButton* const view = native_button(handler);
+
+        control.set_font(maui::core::font::of_size("Helvetica", 18));
+        EXPECT_EQ(view.font.pointSize, 18.0);
+
+        control.set_stroke_thickness(3.0);
+        EXPECT_TRUE(view.wantsLayer);
+        EXPECT_EQ(view.layer.borderWidth, 3.0);
+
+        control.set_corner_radius(7);
+        EXPECT_EQ(view.layer.cornerRadius, 7.0);
     }
 
     TEST_F(apple_button_seam, handler_resolved_from_default_registry)

@@ -63,6 +63,62 @@ namespace maui::core
         }
     }
 
+    void button_handler::map_text_color(button_handler& handler, i_text_button& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->text_color = view.text_color();
+        }
+    }
+
+    void button_handler::map_font(button_handler& handler, i_text_button& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->text_font = view.font();
+        }
+    }
+
+    void button_handler::map_character_spacing(button_handler& handler, i_text_button& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->character_spacing = view.character_spacing();
+        }
+    }
+
+    void button_handler::map_padding(button_handler& handler, i_button& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->padding = view.padding();
+        }
+    }
+
+    void button_handler::map_stroke_color(button_handler& handler, i_button& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->stroke_color = view.stroke_color();
+        }
+    }
+
+    void button_handler::map_stroke_thickness(button_handler& handler, i_button& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->stroke_thickness = view.stroke_thickness();
+        }
+    }
+
+    void button_handler::map_corner_radius(button_handler& handler, i_button& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->corner_radius = view.corner_radius();
+        }
+    }
+
     maui::graphics::size button_handler::get_desired_size(double /*width_constraint*/,
                                                           double /*height_constraint*/) const
     {

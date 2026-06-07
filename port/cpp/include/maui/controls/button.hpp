@@ -11,9 +11,10 @@
 // handler (update_value), which re-runs the mapper (virtual→native). The reverse direction is the
 // send_* methods: the handler calls them on a native tap and the control raises its public events.
 //
-// M2 first cut: Text is the live bindable property (mapped to the native title). text_color / font /
-// character_spacing / padding / stroke are present (to satisfy the i_text / i_button surface) with
-// plain defaults; they become bindable + mapped in later M2/M4 cuts (documented in STATUS).
+// All of the button's own surface is bindable + mapped: Text, the i_text_style appearance (TextColor,
+// Font, CharacterSpacing), Padding, and the i_button_stroke border (StrokeColor, StrokeThickness,
+// CornerRadius). The generic IView properties (Visibility/Opacity/transforms/…) gain their shared
+// ViewMapper at M3/M4 with the visual-element + layout work.
 
 #include <string>
 #include <string_view>
@@ -36,8 +37,15 @@ namespace maui::controls
     class button : public view<maui::core::i_text_button>
     {
     public:
-        // The shared descriptor for the Text bindable property (Button.TextProperty).
+        // Shared bindable-property descriptors (one instance per type, like Button.*Property).
         static const maui::core::bindable_property<std::string>& text_property();
+        static const maui::core::bindable_property<maui::graphics::color>& text_color_property();
+        static const maui::core::bindable_property<maui::core::font>& font_property();
+        static const maui::core::bindable_property<double>& character_spacing_property();
+        static const maui::core::bindable_property<maui::core::thickness>& padding_property();
+        static const maui::core::bindable_property<maui::graphics::color>& stroke_color_property();
+        static const maui::core::bindable_property<double>& stroke_thickness_property();
+        static const maui::core::bindable_property<int>& corner_radius_property();
 
         // ---- i_text / i_text_style getters (read by the handler's mapper) ----
         [[nodiscard]] std::string_view text() const override
@@ -46,39 +54,67 @@ namespace maui::controls
         }
         [[nodiscard]] maui::graphics::color text_color() const override
         {
-            return text_color_;
+            return text_color_.get();
         }
         [[nodiscard]] maui::core::font font() const override
         {
-            return font_;
+            return font_.get();
         }
         [[nodiscard]] double character_spacing() const override
         {
-            return character_spacing_;
+            return character_spacing_.get();
         }
 
-        // ---- public setters (drive the handler via on_property_changed) ----
+        // ---- i_padding / i_button_stroke getters ----
+        [[nodiscard]] maui::core::thickness padding() const override
+        {
+            return padding_.get();
+        }
+        [[nodiscard]] maui::graphics::color stroke_color() const override
+        {
+            return stroke_color_.get();
+        }
+        [[nodiscard]] double stroke_thickness() const override
+        {
+            return stroke_thickness_.get();
+        }
+        [[nodiscard]] int corner_radius() const override
+        {
+            return corner_radius_.get();
+        }
+
+        // ---- public setters (each drives the handler via on_property_changed → update_value) ----
         void set_text(std::string value)
         {
             text_.set(std::move(value));
         }
-
-        // ---- i_padding / i_button_stroke (defaults for the M2 cut) ----
-        [[nodiscard]] maui::core::thickness padding() const override
+        void set_text_color(maui::graphics::color value)
         {
-            return padding_;
+            text_color_.set(value);
         }
-        [[nodiscard]] maui::graphics::color stroke_color() const override
+        void set_font(maui::core::font value)
         {
-            return stroke_color_;
+            font_.set(std::move(value));
         }
-        [[nodiscard]] double stroke_thickness() const override
+        void set_character_spacing(double value)
         {
-            return stroke_thickness_;
+            character_spacing_.set(value);
         }
-        [[nodiscard]] int corner_radius() const override
+        void set_padding(maui::core::thickness value)
         {
-            return corner_radius_;
+            padding_.set(value);
+        }
+        void set_stroke_color(maui::graphics::color value)
+        {
+            stroke_color_.set(value);
+        }
+        void set_stroke_thickness(double value)
+        {
+            stroke_thickness_.set(value);
+        }
+        void set_corner_radius(int value)
+        {
+            corner_radius_.set(value);
         }
 
         // ---- i_button inbound channel (called by the handler on native touch events) ----
@@ -124,13 +160,13 @@ namespace maui::controls
 
     private:
         maui::core::property<std::string> text_{*this, text_property()};
-        maui::graphics::color text_color_;
-        maui::core::font font_;
-        double character_spacing_ = 0;
-        maui::core::thickness padding_;
-        maui::graphics::color stroke_color_;
-        double stroke_thickness_ = 0;
-        int corner_radius_ = 0;
+        maui::core::property<maui::graphics::color> text_color_{*this, text_color_property()};
+        maui::core::property<maui::core::font> font_{*this, font_property()};
+        maui::core::property<double> character_spacing_{*this, character_spacing_property()};
+        maui::core::property<maui::core::thickness> padding_{*this, padding_property()};
+        maui::core::property<maui::graphics::color> stroke_color_{*this, stroke_color_property()};
+        maui::core::property<double> stroke_thickness_{*this, stroke_thickness_property()};
+        maui::core::property<int> corner_radius_{*this, corner_radius_property()};
         bool is_pressed_ = false;
     };
 } // namespace maui::controls

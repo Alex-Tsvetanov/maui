@@ -9,20 +9,20 @@
 ```bash
 export VCPKG_ROOT="$HOME/vcpkg"          # registry clone; brew's vcpkg binary alone lacks the toolchain file
 cmake --preset headless && cmake --build --preset headless
-ctest --preset headless                  # all ported tests (graphics + core + controls: 183 cases, green)
+ctest --preset headless                  # all ported tests (graphics + core + controls: 186 cases, green)
 ./build/headless/maui_graphics_benchmarks --benchmark_min_time=0.02s   # Google Benchmark (not a ctest test)
 ```
 
 **macOS / AppKit backend** (real NSViews; Obj-C++ `.mm` + ARC):
 
 ```bash
-cmake --preset apple && cmake --build --preset apple && ctest --preset apple   # 176 cases incl. real NSButton tap
+cmake --preset apple && cmake --build --preset apple && ctest --preset apple   # 179 cases incl. real NSButton tap
 ./build/apple/maui_button_sample                                                # sample window (Ctrl-C / close to quit)
 ```
 
 **Resume:** continue to the next ⬜ milestone below, following `CLAUDE.md`. **M1 (Core) and M2 (button,
 the Rosetta Stone) are COMPLETE** — the virtual-view ⇄ handler ⇄ native seam is proven end-to-end on
-**both** the headless backend (183 tests) and the **macOS AppKit backend** (real `NSButton`, 176 tests
+**both** the headless backend (186 tests) and the **macOS AppKit backend** (real `NSButton`, 179 tests
 incl. a native tap via `performClick:`). **Next: M3 — layout (`stack_layout`/`grid`) measure/arrange.**
 The `PROFILE.md §11` decisions are **locked** (view owns handler; `property<T>` member object;
 per-type `concept`-vs-`i_*` rule; headers not modules). M1 build order — all done: `event`,
@@ -42,8 +42,13 @@ real `NSButton` (Text→`title`; a target-action trampoline routes the click to 
 `button_platform` gained a backend-defined destructor (RAII for the retained NSButton), CMake grew an
 `apple` preset (OBJCXX + `-fobjc-arc` + `-framework Cocoa`), the seam is verified by `button_apple_tests.mm`
 (real `NSButton performClick:` → `clicked`), and `maui_button_sample` is a runnable macOS window hosting
-the control. **Deferred to M3+:** the PROFILE §6 `MAUI_REGISTER_HANDLER` self-registration macro, and the
-rest of the button surface (text_color/font/stroke/padding mapping, ViewMapper).
+the control. **M2 backfill (done):** opt-in self-registration — `default_handler_registry()`,
+`handler_registrar<view,handler>`, and the `MAUI_REGISTER_HANDLER` sugar (button self-registers in
+button.cpp); and the **full button surface** — text_color / font / character_spacing / padding / stroke
+are now bindable + mapped (headless mirrors every property; AppKit maps font / text_color (contentTintColor)
+/ stroke (layer border), with character_spacing + padding documented as AppKit TODOs needing an attributed
+title / custom cell). **Deferred to M3/M4:** the shared **ViewMapper** for the generic IView properties
+(needs a common platform-view base + the visual-element property set) and image source.
 
 ## Tooling — format, lint, sanitizers (run from `port/cpp/`)
 
@@ -59,8 +64,8 @@ rest of the button surface (text_color/font/stroke/padding mapping, ViewMapper).
   invoking the keg's clang-tidy directly it needs the AppleClang sysroot, e.g.
   `clang-tidy --extra-arg=-isysroot --extra-arg="$(xcrun --show-sdk-path)" -p build/headless <file>`.
 - **Sanitizers** (`Sanitizers.md`) — target-level via the `maui_sanitizers` interface lib, one lane each:
-  - `cmake --preset asan-ubsan && cmake --build --preset asan-ubsan && ctest --preset asan-ubsan` — ASan+UBSan (default checked build; **183/183 green**)
-  - `cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan` — ThreadSanitizer (**183/183 green**)
+  - `cmake --preset asan-ubsan && cmake --build --preset asan-ubsan && ctest --preset asan-ubsan` — ASan+UBSan (default checked build; **186/186 green**)
+  - `cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan` — ThreadSanitizer (**186/186 green**)
   - `msan` preset is for **Linux/Clang CI only** — `-fsanitize=memory` is unsupported on AppleClang/macOS.
 
 ## Milestones (see `PROJECT.md §5`)
@@ -97,7 +102,8 @@ rest of the button surface (text_color/font/stroke/padding mapping, ViewMapper).
 | `i_button`/`i_padding`/`i_button_stroke`/`i_text_button` | core | ✅ | ✅* | ✅ | headless | Button virtual-view contracts (IButton : IView, IPadding, IButtonStroke; ITextButton adds IText). `IButton.Pressed/Released/Clicked()` → `send_pressed/send_released/send_clicked()` (renamed: C++ can't share a name between the method and the control's event). *characterization |
 | `view<ViewInterface>` (minimal control base) | controls | ✅ | ✅* | ✅ | headless | bindable_object + i_view impl + handler ownership/wiring + measure/arrange seam. Templated on the control's view-interface to avoid the i_view diamond (no virtual inheritance). **M2 subset** — full VisualElement property set / real layout deferred to M3/M4. *characterization |
 | `button_handler` (+ headless partial) | core/handlers | ✅ | ✅* | ✅ | headless | CRTP `view_handler<button_handler, i_button, button_platform>`; cross-platform mapper tables (Text live; text_color/font/stroke/padding deferred) + per-backend platform recipe (create/connect/disconnect/map_text). `button_platform` is a single cross-platform struct (native slot + headless mirror + event callbacks). *characterization |
-| `button` control | controls | ✅ | ✅* | ✅ | headless + macOS | The Rosetta Stone's virtual view. Text (bindable, mapped), clicked/pressed/released events + optional command, IsEnabled gating (ButtonElement order: command→event; release always clears IsPressed). 12 GTest cases (headless seam, both directions). *characterization |
-| `button_handler` AppKit backend (`.mm`) + `maui_button_sample` | platform/apple | ✅ | ✅* | ✅ | macOS | Real `NSButton` via Obj-C++/ARC: Text→`title`; target-action trampoline → `send_clicked`; RAII NSButton release. 5 GTest cases drive a real NSButton (`performClick:` → `clicked`; disabled suppressed; disconnect). Sample app = a live NSWindow round-tripping a tap. Translated from ButtonHandler.iOS.cs (no AppKit oracle in mainline MAUI; macOS there is Mac Catalyst/UIKit). *characterization |
+| `button` control | controls | ✅ | ✅* | ✅ | headless + macOS | The Rosetta Stone's virtual view. **Full own surface bindable + mapped**: Text + the i_text_style appearance (text_color/font/character_spacing) + Padding + the i_button_stroke border (stroke_color/thickness/corner_radius); clicked/pressed/released events + optional command; IsEnabled gating (ButtonElement order: command→event; release always clears IsPressed). Self-registers its handler (MAUI_REGISTER_HANDLER). 14 headless GTest cases (seam both directions + every property). *characterization |
+| `button_handler` AppKit backend (`.mm`) + `maui_button_sample` | platform/apple | ✅ | ✅* | ✅ | macOS | Real `NSButton` via Obj-C++/ARC: Text→`title`; font→`NSFont`; text_color→`contentTintColor`; stroke→layer border; target-action trampoline → `send_clicked`; RAII NSButton release. (character_spacing/padding are documented AppKit TODOs.) 7 GTest cases drive a real NSButton (`performClick:` → `clicked`; appearance; disabled suppressed; disconnect; registry-resolved). Sample app = a live NSWindow round-tripping a tap. Translated from ButtonHandler.iOS.cs (no AppKit oracle in mainline MAUI; macOS there is Mac Catalyst/UIKit). *characterization |
+| handler self-registration (`default_handler_registry`/`handler_registrar`/`MAUI_REGISTER_HANDLER`) | core | ✅ | ✅* | ✅ | headless + macOS | Opt-in §6 self-registration over the explicit primitive; macro-free registrar + macro sugar; noexcept registrar (load-time). OBJECT-library tree-shaking caveat documented. clang-tidy `^MAUI_` allow-listed. *characterization |
 
 _(extend this table as components are added)_

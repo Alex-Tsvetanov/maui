@@ -24,7 +24,9 @@
 #include "maui/core/i_text_button.hpp"
 #include "maui/core/move_only_function.hpp"
 #include "maui/core/property_mapper.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/core/view_handler.hpp"
+#include "maui/graphics/color.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -43,8 +45,17 @@ namespace maui::core
         button_platform& operator=(button_platform&&) = delete;
 
         void* native = nullptr;
+        // Headless mirror of every mapped property (the Apple build pushes to `native` instead; these
+        // let the headless tests observe that each mapper ran with the right value).
         std::string title;
         bool enabled = true;
+        maui::graphics::color text_color;
+        font text_font;
+        double character_spacing = 0;
+        thickness padding;
+        maui::graphics::color stroke_color;
+        double stroke_thickness = 0;
+        int corner_radius = 0;
         move_only_function<void()> on_click;
         move_only_function<void()> on_press;
         move_only_function<void()> on_release;
@@ -73,8 +84,16 @@ namespace maui::core
                                                             double height_constraint) const override;
         void platform_arrange(const maui::graphics::rect& frame) override;
 
-        // Property map function (platform recipe): pushes the virtual view's text onto the platform
-        // view. Keyed by i_text_button (C#'s TextButtonMapper<ITextButton>; ButtonHandler.MapText).
+        // Property map functions (platform recipe), each pushing one virtual-view property onto the
+        // platform view. Text/appearance are keyed by i_text_button (C#'s TextButtonMapper<ITextButton>);
+        // padding + stroke are keyed by i_button (the button's own mapper).
         static void map_text(button_handler& handler, i_text_button& view);
+        static void map_text_color(button_handler& handler, i_text_button& view);
+        static void map_font(button_handler& handler, i_text_button& view);
+        static void map_character_spacing(button_handler& handler, i_text_button& view);
+        static void map_padding(button_handler& handler, i_button& view);
+        static void map_stroke_color(button_handler& handler, i_button& view);
+        static void map_stroke_thickness(button_handler& handler, i_button& view);
+        static void map_corner_radius(button_handler& handler, i_button& view);
     };
 } // namespace maui::core

@@ -11,22 +11,32 @@
 
 namespace maui::core
 {
-    // Text-bearing properties, keyed by i_text (C# TextButtonMapper<ITextButton>). M2 first cut maps
-    // Text; text_color / font / character_spacing are deferred (documented in STATUS).
+    // Text + text appearance, keyed by i_text_button (C# TextButtonMapper<ITextButton>).
     property_mapper<i_text_button, button_handler>& button_handler::text_mapper()
     {
         static property_mapper<i_text_button, button_handler> table{
             {"text", &button_handler::map_text},
+            {"text_color", &button_handler::map_text_color},
+            {"font", &button_handler::map_font},
+            {"character_spacing", &button_handler::map_character_spacing},
         };
         return table;
     }
 
-    // The button's own mapper, chained onto the text mapper (C# ButtonHandler.Mapper chains
-    // TextButtonMapper / ImageButtonMapper / ViewMapper). Padding/stroke/background + the view mapper
-    // are deferred to later M2/M3 cuts.
+    // The button's own mapper (padding + the i_button_stroke border), chained onto the text mapper —
+    // mirroring C# ButtonHandler.Mapper chaining TextButtonMapper. ImageButtonMapper + the shared
+    // ViewMapper (the generic IView properties) are deferred to M3/M4.
     property_mapper<i_button, button_handler>& button_handler::mapper()
     {
-        static property_mapper<i_button, button_handler> table{text_mapper()};
+        static property_mapper<i_button, button_handler> table{
+            text_mapper(),
+            {
+                {"padding", &button_handler::map_padding},
+                {"stroke_color", &button_handler::map_stroke_color},
+                {"stroke_thickness", &button_handler::map_stroke_thickness},
+                {"corner_radius", &button_handler::map_corner_radius},
+            },
+        };
         return table;
     }
 

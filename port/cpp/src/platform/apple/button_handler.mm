@@ -50,6 +50,26 @@ namespace
     {
         return (__bridge NSButton*)native;
     }
+
+    NSColor* to_ns_color(const maui::graphics::color& value)
+    {
+        return [NSColor colorWithSRGBRed:value.red green:value.green blue:value.blue alpha:value.alpha];
+    }
+
+    NSFont* to_ns_font(const maui::core::font& value)
+    {
+        const double size = value.size() > 0 ? value.size() : static_cast<double>(NSFont.systemFontSize);
+        if (!value.family().empty())
+        {
+            NSString* const name = [NSString stringWithUTF8String:value.family().c_str()];
+            NSFont* const named = name != nil ? [NSFont fontWithName:name size:size] : nil;
+            if (named != nil)
+            {
+                return named;
+            }
+        }
+        return [NSFont systemFontOfSize:size];
+    }
 } // namespace
 
 namespace maui::core
@@ -103,6 +123,72 @@ namespace maui::core
         // stringWithUTF8String: is _Nullable (nil on invalid UTF-8); setTitle: wants non-null.
         NSString* const raw = [NSString stringWithUTF8String:text.c_str()];
         as_button(platform->native).title = raw != nil ? raw : @"";
+    }
+
+    void button_handler::map_text_color(button_handler& handler, i_text_button& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform != nullptr)
+        {
+            as_button(platform->native).contentTintColor = to_ns_color(view.text_color());
+        }
+    }
+
+    void button_handler::map_font(button_handler& handler, i_text_button& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform != nullptr)
+        {
+            as_button(platform->native).font = to_ns_font(view.font());
+        }
+    }
+
+    void button_handler::map_character_spacing(button_handler& /*handler*/, i_text_button& /*view*/)
+    {
+        // TODO: AppKit needs an attributed title (NSKernAttributeName) for per-character spacing — a
+        // larger change (it also overrides title color/font). Deferred; the headless backend maps it.
+    }
+
+    void button_handler::map_padding(button_handler& /*handler*/, i_button& /*view*/)
+    {
+        // TODO: NSButton has no direct padding; it needs a custom NSButtonCell / content insets. The
+        // headless backend maps it. Deferred for AppKit.
+    }
+
+    void button_handler::map_stroke_color(button_handler& handler, i_button& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        NSButton* const button = as_button(platform->native);
+        button.wantsLayer = YES;
+        button.layer.borderColor = to_ns_color(view.stroke_color()).CGColor;
+    }
+
+    void button_handler::map_stroke_thickness(button_handler& handler, i_button& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        NSButton* const button = as_button(platform->native);
+        button.wantsLayer = YES;
+        button.layer.borderWidth = view.stroke_thickness();
+    }
+
+    void button_handler::map_corner_radius(button_handler& handler, i_button& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        NSButton* const button = as_button(platform->native);
+        button.wantsLayer = YES;
+        button.layer.cornerRadius = static_cast<CGFloat>(view.corner_radius());
     }
 
     maui::graphics::size button_handler::get_desired_size(double /*width_constraint*/,
