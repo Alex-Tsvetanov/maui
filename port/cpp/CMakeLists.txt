@@ -133,7 +133,9 @@ add_library(maui_core STATIC
   src/core/font.cpp
 )
 target_include_directories(maui_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(maui_core PRIVATE maui_sanitizers)
+# Layer 1 depends on layer 0: core contracts expose graphics value types (color in i_text_style,
+# rect/size in i_view). PUBLIC so consumers of maui_core link maui_graphics transitively.
+target_link_libraries(maui_core PUBLIC maui_graphics PRIVATE maui_sanitizers)
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
@@ -145,6 +147,7 @@ add_executable(maui_core_tests
   tests/core/specificity_tests.cpp
   tests/core/bindable_tests.cpp
   tests/core/primitives_tests.cpp
+  tests/core/contracts_tests.cpp
 )
 target_link_libraries(maui_core_tests PRIVATE
   maui_core
