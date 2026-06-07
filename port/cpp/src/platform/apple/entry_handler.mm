@@ -19,11 +19,13 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include "apple_conversions.hpp"
 #include "maui/core/entry_handler.hpp"
 #include "maui/core/i_entry.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -46,7 +48,10 @@
     {
         if (auto* view = self.handler->virtual_view())
         {
-            view->send_text_changed(std::string(old_value.UTF8String), std::string(new_value.UTF8String));
+            // UTF8String is _Nullable; guard before binding to the std::string_view parameters.
+            const char* const old_utf8 = old_value.UTF8String;
+            const char* const new_utf8 = new_value.UTF8String;
+            view->send_text_changed(old_utf8 != nullptr ? old_utf8 : "", new_utf8 != nullptr ? new_utf8 : "");
         }
     }
 }
@@ -105,6 +110,29 @@ namespace maui::core
         }
     }
 
+    // The generic-IView property pushes (the shared view_mapper calls these via view_platform_base).
+    void entry_platform::update_visibility(maui::core::visibility value)
+    {
+        as_field(native).hidden = value != maui::core::visibility::visible;
+    }
+
+    void entry_platform::update_opacity(double value)
+    {
+        as_field(native).alphaValue = value;
+    }
+
+    void entry_platform::update_is_enabled(bool value)
+    {
+        [as_field(native) setEnabled:static_cast<BOOL>(value)];
+    }
+
+    void entry_platform::update_automation_id(std::string_view value)
+    {
+        const std::string id(value);
+        NSString* const raw = [NSString stringWithUTF8String:id.c_str()];
+        as_field(native).accessibilityIdentifier = raw != nil ? raw : @"";
+    }
+
     std::unique_ptr<entry_platform> entry_handler::create_platform_view()
     {
         auto platform = std::make_unique<entry_platform>();
@@ -149,7 +177,7 @@ namespace maui::core
         NSTextField* const field = as_field(platform->native);
         field.stringValue = value != nil ? value : @"";
         // Keep the delegate's previous-value tracker in sync with programmatic text changes.
-        if (auto* delegate = (MauiEntryDelegate*)objc_getAssociatedObject(field, &k_delegate_key))
+        if (auto* const delegate = (MauiEntryDelegate*)objc_getAssociatedObject(field, &k_delegate_key))
         {
             delegate.previousText = field.stringValue;
         }
@@ -243,7 +271,8 @@ namespace maui::core
         }
         NSTextField* const field = as_field(platform->native);
         NSString* const current = field.stringValue != nil ? field.stringValue : @"";
-        if (static_cast<int>(current.length) > max_length)
+        // max_length is >= 0 here (guarded above), so compare in the unsigned domain to match NSUInteger.
+        if (current.length > static_cast<NSUInteger>(max_length))
         {
             field.stringValue = [current substringToIndex:static_cast<NSUInteger>(max_length)];
         }

@@ -18,6 +18,7 @@
 
 #include <any>
 #include <memory>
+#include <string_view>
 #include <vector>
 
 #include "maui/core/command_mapper.hpp"
@@ -25,6 +26,8 @@
 #include "maui/core/i_layout_handler.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/view_handler.hpp"
+#include "maui/core/view_platform_base.hpp"
+#include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -40,10 +43,12 @@ namespace maui::core
         i_view* view = nullptr;
     };
 
-    struct layout_platform
+    // Derives view_platform_base so the shared view_mapper can push the generic IView properties onto it
+    // (headless keeps the base mirrors; Apple overrides update_* to push to the NSView panel).
+    struct layout_platform : view_platform_base
     {
         layout_platform() = default;
-        ~layout_platform(); // backend-defined: releases the retained native panel on Apple
+        ~layout_platform() override; // backend-defined: releases the retained native panel on Apple
         layout_platform(const layout_platform&) = delete;
         layout_platform(layout_platform&&) = delete;
         layout_platform& operator=(const layout_platform&) = delete;
@@ -54,6 +59,15 @@ namespace maui::core
         // (the Apple build ALSO adds/removes the matching real NSView subviews). children.size() is the
         // hosted child count the headless tests observe as the panel tracks the control's children.
         std::vector<i_view*> children;
+
+#ifdef MAUI_PLATFORM_APPLE
+        // Apple backend: push the generic IView properties to the NSView panel (defined in
+        // src/platform/apple/layout_handler.mm). is_enabled is intentionally NOT overridden — a plain
+        // NSView container has no enabled state (unlike NSControl), so it keeps the base mirror.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+#endif
     };
 
     class layout_handler : public view_handler<layout_handler, i_layout, layout_platform>, public i_layout_handler

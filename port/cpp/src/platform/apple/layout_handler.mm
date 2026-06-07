@@ -10,12 +10,15 @@
 #include <algorithm>
 #include <cstddef>
 #include <memory>
+#include <string>
+#include <string_view>
 #include <vector>
 
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/layout_handler.hpp"
+#include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -49,6 +52,25 @@ namespace maui::core
             CFRelease(native); // balances the __bridge_retained in create_platform_view
             native = nullptr;
         }
+    }
+
+    // The generic-IView property pushes (the shared view_mapper calls these via view_platform_base). The
+    // panel is a plain NSView; is_enabled has no NSView equivalent, so it is left to the base mirror.
+    void layout_platform::update_visibility(maui::core::visibility value)
+    {
+        as_panel(native).hidden = value != maui::core::visibility::visible;
+    }
+
+    void layout_platform::update_opacity(double value)
+    {
+        as_panel(native).alphaValue = value;
+    }
+
+    void layout_platform::update_automation_id(std::string_view value)
+    {
+        const std::string id(value);
+        NSString* const raw = [NSString stringWithUTF8String:id.c_str()];
+        as_panel(native).accessibilityIdentifier = raw != nil ? raw : @"";
     }
 
     std::unique_ptr<layout_platform> layout_handler::create_platform_view()
@@ -96,10 +118,10 @@ namespace maui::core
             return;
         }
         NSView* const panel = as_panel(platform->native);
-        for (NSView* const subview in [panel.subviews copy])
-        {
-            [subview removeFromSuperview];
-        }
+        // Snapshot the subviews (removeFromSuperview mutates the live array) and tear them down without an
+        // Obj-C fast-enumeration loop (which clang-tidy's init-variables check misreads as uninitialized).
+        NSArray<NSView*>* const snapshot = [panel.subviews copy];
+        [snapshot makeObjectsPerformSelector:@selector(removeFromSuperview)];
         platform->children.clear();
     }
 
@@ -150,8 +172,9 @@ namespace maui::core
         {
             return;
         }
-        // Swap the existing subview at `index` for the new child's, in place.
-        if (index >= 0 && index < static_cast<int>(panel.subviews.count))
+        // Swap the existing subview at `index` for the new child's, in place. index >= 0 is checked first,
+        // so the bound compares in the unsigned domain (matching NSUInteger count).
+        if (index >= 0 && static_cast<NSUInteger>(index) < panel.subviews.count)
         {
             [panel.subviews[static_cast<NSUInteger>(index)] removeFromSuperview];
             [panel addSubview:subview

@@ -22,9 +22,10 @@ cmake --preset apple && cmake --build --preset apple && ctest --preset apple   #
 
 **Resume:** continue to the next ⬜ milestone below, following `CLAUDE.md`. **M1 (Core) and M2 (button,
 the Rosetta Stone) are COMPLETE** — the virtual-view ⇄ handler ⇄ native seam is proven end-to-end on
-**both** the headless backend (238 tests) and the **macOS AppKit backend** (real `NSButton`, 228 tests
-incl. a native tap via `performClick:`). **M3 (layout) is COMPLETE. M4 (control set v1) IN PROGRESS —
-`label` done (headless + macOS NSTextField); next: more controls + the layout controls + ViewMapper.**
+**both** the headless backend (282 tests) and the **macOS AppKit backend** (real `NSButton`, 246 tests
+incl. a native tap via `performClick:`). **M3 (layout) is COMPLETE. M4 (control set v1) — `label`, the
+shared ViewMapper, `entry`, minimal `image`, and the stack layout controls are DONE (headless + macOS);
+next: `grid` control + `page`.**
 The `PROFILE.md §11` decisions are **locked** (view owns handler; `property<T>` member object;
 per-type `concept`-vs-`i_*` rule; headers not modules). M1 build order — all done: `event`,
 `dispatcher`, `setter_specificity`(+list), `bindable_property<T>` / `bindable_object` / `property<T>`
@@ -92,8 +93,29 @@ handlers, chain `maui::core::view_mapper()` into each handler's `mapper()` (sing
 the `property_mapper(view_mapper(), {entries})` ctor like `label_handler`; multi-sub-mapper handlers use
 `set_chained({&other_mapper(), &view_mapper()})` like `button_handler`), and make each platform-view struct
 derive `maui::core::view_platform_base`.**
-**Still next: M4b** — more controls (entry / image) + the layout controls (`vertical_stack_layout` /
-`grid`) + the native container panel.
+**M4b — layout controls (Unit 1, done):** `i_layout_handler` (the add / remove / clear / insert / update /
+update_z_index child seam), a templated `layout<LayoutInterface>` control base (owns the non-owning child
+list + i_container / i_padding, lazily builds its M3 `i_layout_manager` from `create_layout_manager()`, and
+overrides measure/arrange to delegate to the manager — a layout computes its own geometry — while arrange
+also sizes the host panel), and `vertical_stack_layout` / `horizontal_stack_layout` (+ bindable Spacing).
+The `layout_handler` hosts a native container (a plain `NSView` panel on macOS; a headless child-count
+mirror) and syncs subviews via the command seam. `view_handler` now derives `i_view_handler` *virtually*
+(so `layout_handler` is both a `view_handler` and an `i_layout_handler` with a single `i_view_handler`
+subobject), and `i_view_handler` gained `native_view()` (the real native view a panel hosts). `maui_layouts`
+is linked into `maui_controls`. The grid *control* is deferred (the grid *manager* already exists).
+**M4b — entry + minimal image (Unit 3, done):** `entry` — the first inbound-text + first editable native
+control: `i_text_input` / `i_entry`, bindable text / placeholder / is_password / is_read_only / max_length
++ appearance / alignment, `completed` + `text_changed(old, new)` events, over an editable `NSTextField`
+(an `NSSecureTextField` cell swap for password) with an `NSTextFieldDelegate` trampoline
+(controlTextDidChange → send_text_changed, controlTextDidEndEditing → send_completed). `image` (minimal) —
+an `aspect` enum + `i_image` (aspect only) mapped to `NSImageView.imageScaling`. The full async image
+*source* subsystem (loaders / caching) is deferred.
+**M4b — coordinator integration (done):** the three units merged onto cpp-port-kit; Units 1 & 3's platform
+structs retrofitted onto `view_platform_base` + chained `view_mapper()` (layout overrides 3 `update_*` — a
+plain NSView panel has no enabled state, so is_enabled keeps the base mirror; entry / image, being
+NSControls, override all 4). Full gate green: **282 headless / 246 apple** GTest, clang-tidy 0 findings
+(including the Obj-C++ `.mm` files), ASan/UBSan + TSan clean.
+**Still next: M4** — the `grid` control (wrapping the existing grid manager) and `page`.
 
 ## Tooling — format, lint, sanitizers (run from `port/cpp/`)
 
@@ -109,8 +131,8 @@ derive `maui::core::view_platform_base`.**
   invoking the keg's clang-tidy directly it needs the AppleClang sysroot, e.g.
   `clang-tidy --extra-arg=-isysroot --extra-arg="$(xcrun --show-sdk-path)" -p build/headless <file>`.
 - **Sanitizers** (`Sanitizers.md`) — target-level via the `maui_sanitizers` interface lib, one lane each:
-  - `cmake --preset asan-ubsan && cmake --build --preset asan-ubsan && ctest --preset asan-ubsan` — ASan+UBSan (default checked build; **238/238 green**)
-  - `cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan` — ThreadSanitizer (**238/238 green**)
+  - `cmake --preset asan-ubsan && cmake --build --preset asan-ubsan && ctest --preset asan-ubsan` — ASan+UBSan (default checked build; **282/282 green**)
+  - `cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan` — ThreadSanitizer (**282/282 green**)
   - `msan` preset is for **Linux/Clang CI only** — `-fsanitize=memory` is unsupported on AppleClang/macOS.
 
 ## Milestones (see `PROJECT.md §5`)
@@ -156,5 +178,8 @@ derive `maui::core::view_platform_base`.**
 | layout foundation (`dimension`, `i_container`/`i_layout`/`i_stack_layout`, `i_layout_manager`) | core/layouts | ✅ | — | ✅ | headless + macOS | `ILayout : IView + IContainer + IPadding` (M3 subset; ClipsToBounds / ISafeAreaView / ICrossPlatformLayout deferred to M4). `dimension` = Unset(NaN)/Minimum(0)/Maximum(inf) + is_explicit_set |
 | stack layout managers (`layout_manager`/`stack_layout_manager` + vertical/horizontal) | layouts | ✅ | ✅* | ✅ | headless + macOS | New `maui_layouts` lib — pure cross-platform measure/arrange (ResolveConstraints, MeasureSpacing, stacking). 28 GTest cases via mock view/stack (spacing / padding / min-max / collapsed-vs-hidden / fill / child-constraint). The layout *controls* + native panel are M4. *ported from C# Stack*LayoutManagerTests (the oracle) |
 | Grid (`grid_length`/`grid_unit_type`, `i_grid_*` contracts, `grid_layout_manager`) | core + layouts | ✅ | ✅* | ✅ | headless + macOS | The full row/column algorithm: Absolute/Auto/Star sizing, row+column spans, spacing, padding, min/max, two-pass measure + arrange-time star expansion (pimpl grid_structure cached measure→arrange, like C# GridStructure). 19 GTest cases (representative subset of the large GridLayoutManagerTests). *ported from the C# oracle |
+| layout controls (`i_layout_handler`, `layout<>` base, `vertical_stack_layout`/`horizontal_stack_layout`, `layout_handler`) | controls + core/handlers | ✅ | ✅* | ✅ | headless + macOS | M4b Unit 1 — wrap the M3 stack managers in controls + a native host panel. `layout<LayoutInterface>` owns the non-owning child list (i_container) + bindable padding, lazily builds its manager via `create_layout_manager()`, and overrides measure/arrange to delegate to the manager (a layout computes its own geometry); arrange also sizes the panel. `layout_handler` (i_layout_handler add/remove/clear/insert/update/update_z_index) hosts a plain NSView panel (headless: child-count mirror). `view_handler` derives `i_view_handler` *virtually* (layout_handler = view_handler + i_layout_handler); `i_view_handler::native_view()` exposes the hosted native view. Retrofitted onto `view_mapper()` (is_enabled keeps the base mirror — NSView has no enabled state). maui_layouts linked into maui_controls. Grid *control* deferred. 14 headless + 4 apple GTest cases; self-registers. *characterization |
+| `entry` control (`i_text_input`/`i_entry`, `entry_handler`) | controls + core/handlers | ✅ | ✅* | ✅ | headless + macOS | M4b Unit 3 — first inbound-text + first editable native control. Bindable text/placeholder/is_password/is_read_only/max_length (UTF-8-byte truncation in set_text) + i_text_style appearance + alignment; `completed` + `text_changed(old,new)` events. Editable NSTextField (NSSecureTextField cell swap for password, preserving font/color) + an NSTextFieldDelegate trampoline (controlTextDidChange→send_text_changed, controlTextDidEndEditing→send_completed). Chains `view_mapper()`. AppKit defers character_spacing/vertical alignment/placeholder_color (headless mirrors them). 13 headless + 7 apple GTest cases; self-registers. *characterization |
+| `image` control (`aspect`/`i_image`, `image_handler`; aspect only) | controls + core/handlers | ✅ | ✅* | ✅ | headless + macOS | M4b Unit 3 (minimal) — maps ONLY the scaling mode: `aspect` (aspect_fit/aspect_fill/fill/center) → NSImageView.imageScaling (+ centered). No image bytes loaded — the async image *source* subsystem (IImageSource/loaders/caching) is deferred. Chains `view_mapper()`. 5 headless + 2 apple GTest cases; self-registers. *characterization |
 
 _(extend this table as components are added)_

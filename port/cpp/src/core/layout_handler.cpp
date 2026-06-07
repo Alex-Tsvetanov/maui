@@ -9,6 +9,7 @@
 #include "maui/core/i_layout.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/view_handler.hpp"
+#include "maui/core/view_mapper.hpp"
 
 namespace maui::core
 {
@@ -18,7 +19,10 @@ namespace maui::core
     // empty table so the recipe (and chaining onto the future ViewMapper) is in place.
     property_mapper<i_layout, layout_handler>& layout_handler::mapper()
     {
-        static property_mapper<i_layout, layout_handler> table{};
+        // The layout has no own visual properties yet (it hosts children + computes its own geometry), so
+        // it chains the shared view_mapper alone — the generic IView properties (Visibility/Opacity/
+        // IsEnabled/AutomationId) map through to the panel. ILayout.Background/ClipsToBounds are deferred.
+        static property_mapper<i_layout, layout_handler> table{view_mapper()};
         return table;
     }
 

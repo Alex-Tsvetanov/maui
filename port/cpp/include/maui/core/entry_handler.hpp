@@ -19,12 +19,14 @@
 // the move_only_function hooks are the inbound channel the platform partial wires up (the headless test
 // invokes them directly to simulate a native edit / end-of-edit).
 //
-// NOTE: entry_platform deliberately does NOT derive any shared view-platform base — that retrofit (the
-// ViewMapper base) is the coordinator's, applied after this unit lands.
+// entry_platform derives view_platform_base (the shared ViewMapper face) so the generic IView properties
+// (Visibility/Opacity/IsEnabled/AutomationId) map onto the field too (Apple overrides update_*; headless
+// keeps the base mirrors).
 
 #include <limits>
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/font.hpp"
@@ -33,16 +35,18 @@
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/view_handler.hpp"
+#include "maui/core/view_platform_base.hpp"
+#include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
 namespace maui::core
 {
-    struct entry_platform
+    struct entry_platform : view_platform_base
     {
         entry_platform() = default;
-        ~entry_platform(); // backend-defined: releases the retained native field on Apple
+        ~entry_platform() override; // backend-defined: releases the retained native field on Apple
         entry_platform(const entry_platform&) = delete;
         entry_platform(entry_platform&&) = delete;
         entry_platform& operator=(const entry_platform&) = delete;
@@ -68,6 +72,15 @@ namespace maui::core
         // Inbound channel hooks (wired by the platform partial; headless tests invoke them directly).
         move_only_function<void(const std::string& old_value, const std::string& new_value)> on_text_changed;
         move_only_function<void()> on_completed;
+
+#ifdef MAUI_PLATFORM_APPLE
+        // Apple backend: push the generic IView properties to the NSTextField (defined in
+        // src/platform/apple/entry_handler.mm). Omitted on headless, which keeps the base mirrors.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+#endif
     };
 
     class entry_handler : public view_handler<entry_handler, i_entry, entry_platform>

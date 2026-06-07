@@ -17,10 +17,13 @@
 #import <AppKit/AppKit.h>
 
 #include <memory>
+#include <string>
+#include <string_view>
 
 #include "maui/core/aspect.hpp"
 #include "maui/core/i_image.hpp"
 #include "maui/core/image_handler.hpp"
+#include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -56,6 +59,29 @@ namespace maui::core
             CFRelease(native); // balances the __bridge_retained in create_platform_view
             native = nullptr;
         }
+    }
+
+    // The generic-IView property pushes (the shared view_mapper calls these via view_platform_base).
+    void image_platform::update_visibility(maui::core::visibility value)
+    {
+        as_image_view(native).hidden = value != maui::core::visibility::visible;
+    }
+
+    void image_platform::update_opacity(double value)
+    {
+        as_image_view(native).alphaValue = value;
+    }
+
+    void image_platform::update_is_enabled(bool value)
+    {
+        [as_image_view(native) setEnabled:static_cast<BOOL>(value)];
+    }
+
+    void image_platform::update_automation_id(std::string_view value)
+    {
+        const std::string id(value);
+        NSString* const raw = [NSString stringWithUTF8String:id.c_str()];
+        as_image_view(native).accessibilityIdentifier = raw != nil ? raw : @"";
     }
 
     std::unique_ptr<image_platform> image_handler::create_platform_view()

@@ -13,25 +13,29 @@
 //
 // image_platform is a single cross-platform struct: `native` holds the real backend view (an NSImageView*
 // on Apple, retained in the .mm; unused headless), `image_aspect` mirrors the mapped scaling mode for the
-// headless tests. NOTE: it deliberately does NOT derive any shared view-platform base — that retrofit
-// (the ViewMapper base) is the coordinator's, applied after this unit lands.
+// headless tests. It derives view_platform_base (the shared ViewMapper face) so the generic IView
+// properties (Visibility/Opacity/IsEnabled/AutomationId) map onto the NSImageView too.
 
 #include <memory>
+#include <string>
+#include <string_view>
 
 #include "maui/core/aspect.hpp"
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/i_image.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/view_handler.hpp"
+#include "maui/core/view_platform_base.hpp"
+#include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
 namespace maui::core
 {
-    struct image_platform
+    struct image_platform : view_platform_base
     {
         image_platform() = default;
-        ~image_platform(); // backend-defined: releases the retained native image view on Apple
+        ~image_platform() override; // backend-defined: releases the retained native image view on Apple
         image_platform(const image_platform&) = delete;
         image_platform(image_platform&&) = delete;
         image_platform& operator=(const image_platform&) = delete;
@@ -40,6 +44,15 @@ namespace maui::core
         void* native = nullptr;
         // Headless mirror of the mapped aspect (the Apple build writes to `native` instead).
         aspect image_aspect = aspect::aspect_fit;
+
+#ifdef MAUI_PLATFORM_APPLE
+        // Apple backend: push the generic IView properties to the NSImageView (defined in
+        // src/platform/apple/image_handler.mm). Omitted on headless, which keeps the base mirrors.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+#endif
     };
 
     class image_handler : public view_handler<image_handler, i_image, image_platform>
