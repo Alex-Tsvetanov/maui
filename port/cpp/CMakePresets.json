@@ -49,6 +49,14 @@
       "description": "Uninitialized-read lane. Requires Clang + instrumented libc++; NOT supported on AppleClang/macOS.",
       "binaryDir": "${sourceDir}/build/msan",
       "cacheVariables": { "ENABLE_MSAN": "ON" }
+    },
+    {
+      "name": "apple",
+      "inherits": "headless",
+      "displayName": "Apple (AppKit / macOS, Obj-C++)",
+      "description": "macOS backend; mirrors MAUI's per-platform partials with real NSViews (.mm + ARC).",
+      "binaryDir": "${sourceDir}/build/apple",
+      "cacheVariables": { "MAUI_BACKEND": "apple" }
     }
   ],
   "buildPresets": [
@@ -56,12 +64,19 @@
     { "name": "tidy", "configurePreset": "tidy" },
     { "name": "asan-ubsan", "configurePreset": "asan-ubsan" },
     { "name": "tsan", "configurePreset": "tsan" },
-    { "name": "msan", "configurePreset": "msan" }
+    { "name": "msan", "configurePreset": "msan" },
+    { "name": "apple", "configurePreset": "apple" }
   ],
   "testPresets": [
     {
       "name": "headless",
       "configurePreset": "headless",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+    },
+    {
+      "name": "apple",
+      "configurePreset": "apple",
       "output": { "outputOnFailure": true },
       "execution": { "noTestsAction": "error", "stopOnFailure": false }
     },

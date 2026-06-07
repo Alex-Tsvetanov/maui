@@ -13,8 +13,17 @@ ctest --preset headless                  # all ported tests (graphics + core + c
 ./build/headless/maui_graphics_benchmarks --benchmark_min_time=0.02s   # Google Benchmark (not a ctest test)
 ```
 
-**Resume:** continue to the next milestone below, following `CLAUDE.md`. **M1 (Core) is COMPLETE; M2
-(button) is IN PROGRESS — the headless vertical slice (M2a) is done; the macOS AppKit backend (M2b) is next.**
+**macOS / AppKit backend** (real NSViews; Obj-C++ `.mm` + ARC):
+
+```bash
+cmake --preset apple && cmake --build --preset apple && ctest --preset apple   # 176 cases incl. real NSButton tap
+./build/apple/maui_button_sample                                                # sample window (Ctrl-C / close to quit)
+```
+
+**Resume:** continue to the next ⬜ milestone below, following `CLAUDE.md`. **M1 (Core) and M2 (button,
+the Rosetta Stone) are COMPLETE** — the virtual-view ⇄ handler ⇄ native seam is proven end-to-end on
+**both** the headless backend (183 tests) and the **macOS AppKit backend** (real `NSButton`, 176 tests
+incl. a native tap via `performClick:`). **Next: M3 — layout (`stack_layout`/`grid`) measure/arrange.**
 The `PROFILE.md §11` decisions are **locked** (view owns handler; `property<T>` member object;
 per-type `concept`-vs-`i_*` rule; headers not modules). M1 build order — all done: `event`,
 `dispatcher`, `setter_specificity`(+list), `bindable_property<T>` / `bindable_object` / `property<T>`
@@ -28,8 +37,13 @@ proving the seam both directions on headless (Text virtual→native via the mapp
 via `send_*`). **M2 API decision (locked):** virtual-view interfaces stay bare-noun getters and concrete
 controls expose **method accessors** (`button.text()`/`set_text()`), each backed by a private
 `property<T>` value engine (a property change → `view::on_property_changed` → `handler->update_value`).
-**Next: M2b** — the macOS AppKit (Obj-C++ `.mm`) `button_handler` over a real `NSButton` + target-action,
-a minimal sample app proving a tap, and the PROFILE §6 `MAUI_REGISTER_HANDLER` self-registration macro.
+**M2b (done):** the macOS AppKit backend — `src/platform/apple/button_handler.mm` (Obj-C++/ARC) drives a
+real `NSButton` (Text→`title`; a target-action trampoline routes the click to `send_clicked()`), the
+`button_platform` gained a backend-defined destructor (RAII for the retained NSButton), CMake grew an
+`apple` preset (OBJCXX + `-fobjc-arc` + `-framework Cocoa`), the seam is verified by `button_apple_tests.mm`
+(real `NSButton performClick:` → `clicked`), and `maui_button_sample` is a runnable macOS window hosting
+the control. **Deferred to M3+:** the PROFILE §6 `MAUI_REGISTER_HANDLER` self-registration macro, and the
+rest of the button surface (text_color/font/stroke/padding mapping, ViewMapper).
 
 ## Tooling — format, lint, sanitizers (run from `port/cpp/`)
 
@@ -55,7 +69,7 @@ a minimal sample app proving a tap, and the PROFILE §6 `MAUI_REGISTER_HANDLER` 
 |---|---|---|
 | M0 | Graphics primitives compile + pass ported tests | ✅ |
 | M1 | Core contracts + property/handler infra + dispatcher, unit-tested | ✅ |
-| M2 | `button` end-to-end (headless → macOS), tap works in sample app | 🚧 |
+| M2 | `button` end-to-end (headless → macOS), tap works in sample app | ✅ |
 | M3 | Layout measure/arrange (`stack_layout`, `grid`) pass layout tests | ⬜ |
 | M4 | Control set v1 (label, entry, image, layouts, page) on macOS | ⬜ |
 | M5 | `bindable_object`/`bindable_property`, binding, style, lifecycle | ⬜ |
@@ -83,6 +97,7 @@ a minimal sample app proving a tap, and the PROFILE §6 `MAUI_REGISTER_HANDLER` 
 | `i_button`/`i_padding`/`i_button_stroke`/`i_text_button` | core | ✅ | ✅* | ✅ | headless | Button virtual-view contracts (IButton : IView, IPadding, IButtonStroke; ITextButton adds IText). `IButton.Pressed/Released/Clicked()` → `send_pressed/send_released/send_clicked()` (renamed: C++ can't share a name between the method and the control's event). *characterization |
 | `view<ViewInterface>` (minimal control base) | controls | ✅ | ✅* | ✅ | headless | bindable_object + i_view impl + handler ownership/wiring + measure/arrange seam. Templated on the control's view-interface to avoid the i_view diamond (no virtual inheritance). **M2 subset** — full VisualElement property set / real layout deferred to M3/M4. *characterization |
 | `button_handler` (+ headless partial) | core/handlers | ✅ | ✅* | ✅ | headless | CRTP `view_handler<button_handler, i_button, button_platform>`; cross-platform mapper tables (Text live; text_color/font/stroke/padding deferred) + per-backend platform recipe (create/connect/disconnect/map_text). `button_platform` is a single cross-platform struct (native slot + headless mirror + event callbacks). *characterization |
-| `button` control | controls | ✅ | ✅* | ✅ | headless→macOS | The Rosetta Stone's virtual view. Text (bindable, mapped), clicked/pressed/released events + optional command, IsEnabled gating (ButtonElement order: command→event; release always clears IsPressed). 12 GTest cases: control behavior + the headless seam end-to-end (both directions). macOS native verified in M2b. *characterization |
+| `button` control | controls | ✅ | ✅* | ✅ | headless + macOS | The Rosetta Stone's virtual view. Text (bindable, mapped), clicked/pressed/released events + optional command, IsEnabled gating (ButtonElement order: command→event; release always clears IsPressed). 12 GTest cases (headless seam, both directions). *characterization |
+| `button_handler` AppKit backend (`.mm`) + `maui_button_sample` | platform/apple | ✅ | ✅* | ✅ | macOS | Real `NSButton` via Obj-C++/ARC: Text→`title`; target-action trampoline → `send_clicked`; RAII NSButton release. 5 GTest cases drive a real NSButton (`performClick:` → `clicked`; disabled suppressed; disconnect). Sample app = a live NSWindow round-tripping a tap. Translated from ButtonHandler.iOS.cs (no AppKit oracle in mainline MAUI; macOS there is Mac Catalyst/UIKit). *characterization |
 
 _(extend this table as components are added)_

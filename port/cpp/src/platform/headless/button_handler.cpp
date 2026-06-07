@@ -15,6 +15,9 @@
 
 namespace maui::core
 {
+    // Headless has no native view in the `native` slot, so destruction is trivial.
+    button_platform::~button_platform() = default;
+
     std::unique_ptr<button_platform> button_handler::create_platform_view()
     {
         return std::make_unique<button_platform>();

@@ -129,7 +129,11 @@ target_link_libraries(maui_graphics_benchmarks PRIVATE
 # Platform partials: exactly one backend's set is compiled (PROFILE §5's partial-class split). The
 # headless backend is the deterministic unit-test target; `apple` swaps in the AppKit .mm twin.
 if(MAUI_BACKEND STREQUAL "apple")
+  enable_language(OBJCXX)
+  set(CMAKE_OBJCXX_STANDARD 23)
+  set(CMAKE_OBJCXX_STANDARD_REQUIRED ON)
   set(MAUI_CORE_PLATFORM_SOURCES src/platform/apple/button_handler.mm)
+  set_source_files_properties(src/platform/apple/button_handler.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
   set(MAUI_CORE_PLATFORM_SOURCES src/platform/headless/button_handler.cpp)
 endif()
@@ -149,6 +153,10 @@ target_include_directories(maui_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # Layer 1 depends on layer 0: core contracts expose graphics value types (color in i_text_style,
 # rect/size in i_view). PUBLIC so consumers of maui_core link maui_graphics transitively.
 target_link_libraries(maui_core PUBLIC maui_graphics PRIVATE maui_sanitizers)
+# The Apple backend's .mm partials use AppKit/Foundation; Cocoa is PUBLIC so test/app consumers link it.
+if(MAUI_BACKEND STREQUAL "apple")
+  target_link_libraries(maui_core PUBLIC "-framework Cocoa")
+endif()
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
@@ -184,13 +192,24 @@ if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
 endif()
 
 # ---- Controls tests (GoogleTest, discovered into ctest) ----
-# The button control + the headless handler seam (control -> handler -> platform -> back) live here.
-add_executable(maui_controls_tests
-  tests/controls/button_tests.cpp
-)
+# The button control + the handler seam (control -> handler -> platform -> back). The seam test is
+# backend-specific: headless drives the fake platform; apple drives a real NSButton via performClick.
+if(MAUI_BACKEND STREQUAL "apple")
+  add_executable(maui_controls_tests tests/controls/button_apple_tests.mm)
+  set_source_files_properties(tests/controls/button_apple_tests.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+else()
+  add_executable(maui_controls_tests tests/controls/button_tests.cpp)
+endif()
 target_link_libraries(maui_controls_tests PRIVATE
   maui_controls
   maui_sanitizers
   GTest::gmock_main
 )
 gtest_discover_tests(maui_controls_tests)
+
+# ---- Sample app (macOS only): a real NSWindow hosting the cross-platform button ----
+if(MAUI_BACKEND STREQUAL "apple")
+  add_executable(maui_button_sample src/samples/button_sample.mm)
+  set_source_files_properties(src/samples/button_sample.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+  target_link_libraries(maui_button_sample PRIVATE maui_controls maui_sanitizers)
+endif()

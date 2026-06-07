@@ -32,6 +32,16 @@ namespace maui::core
 {
     struct button_platform
     {
+        button_platform() = default;
+        // Destruction releases `native` and is therefore backend-defined (the headless build defaults
+        // it; the Apple build CFReleases the retained NSButton). Non-copyable/non-movable: it is owned
+        // solely by the handler's unique_ptr and never copied or moved.
+        ~button_platform();
+        button_platform(const button_platform&) = delete;
+        button_platform(button_platform&&) = delete;
+        button_platform& operator=(const button_platform&) = delete;
+        button_platform& operator=(button_platform&&) = delete;
+
         void* native = nullptr;
         std::string title;
         bool enabled = true;
