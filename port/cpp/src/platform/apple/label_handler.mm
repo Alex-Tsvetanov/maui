@@ -10,6 +10,7 @@
 
 #include "apple_conversions.hpp"
 #include "apple_view_ops.hpp"
+#include "apple_visual_ops.hpp"
 #include "maui/core/i_label.hpp"
 #include "maui/core/label_handler.hpp"
 #include "maui/core/text_alignment.hpp"
@@ -154,5 +155,26 @@ namespace maui::core
     void label_platform::update_flow_direction(maui::core::flow_direction value)
     {
         maui::platform::apple::apply_flow_direction(native, value);
+    }
+
+    // Background / shadow / clip pushed to the native view's layer via the shared apple_visual_ops helpers
+    // (M4d ViewMapper visuals). `native` is this struct's NSView handle.
+    void label_platform::update_background(const maui::graphics::paint* value)
+    {
+        maui::platform::apple::apply_background(native, value);
+    }
+
+    void label_platform::update_shadow(const maui::core::i_shadow* value)
+    {
+        maui::platform::apple::apply_shadow(native, value);
+    }
+
+    void label_platform::update_clip(const maui::graphics::i_shape* value)
+    {
+        // The clip mask is sized to the view's current bounds (WrapperView.SetClip uses the view frame).
+        const NSRect bounds = ((__bridge NSView*)native).bounds;
+        maui::platform::apple::apply_clip(
+            native, value,
+            maui::graphics::rect{bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height});
     }
 } // namespace maui::core

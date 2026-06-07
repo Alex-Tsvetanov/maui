@@ -22,12 +22,12 @@ cmake --preset apple && cmake --build --preset apple && ctest --preset apple   #
 
 **Resume:** continue to the next ⬜ milestone below, following `CLAUDE.md`. **M1 (Core) and M2 (button,
 the Rosetta Stone) are COMPLETE** — the virtual-view ⇄ handler ⇄ native seam is proven end-to-end on
-**both** the headless backend (326 tests) and the **macOS AppKit backend** (real `NSButton`, 264 tests
-incl. a native tap via `performClick:`). **M3 (layout) is COMPLETE. M4 (control set v1) is essentially
-DONE (headless + macOS): `label`, `entry`, `image` (aspect + file source), the stack + `grid` layout
-controls, a minimal `content_page`, and the shared ViewMapper (generic IView props incl. the render
-transform + FlowDirection). Remaining: navigation `page` types, the type-heavy ViewMapper props
-(background/shadow/clip), and async image sources.**
+**both** the headless backend (354 tests) and the **macOS AppKit backend** (real `NSButton`, 281 tests
+incl. a native tap via `performClick:`). **M3 (layout) is COMPLETE. M4 (control set v1) is DONE
+(headless + macOS): `label`, `entry`, `image` (aspect + file source + async uri/stream sources), the
+stack + `grid` layout controls, `content_page` + a `navigation_page` push/pop stack, and the shared
+ViewMapper — the full generic IView surface (Visibility/Opacity/IsEnabled/AutomationId + the render
+transform + FlowDirection + Background/Shadow/Clip). Next: M5 (data binding + styles + lifecycle).**
 The `PROFILE.md §11` decisions are **locked** (view owns handler; `property<T>` member object;
 per-type `concept`-vs-`i_*` rule; headers not modules). M1 build order — all done: `event`,
 `dispatcher`, `setter_specificity`(+list), `bindable_property<T>` / `bindable_object` / `property<T>`
@@ -163,6 +163,18 @@ transform / flow_direction wiring was retrofitted onto all six platform structs*
 image / layout / content_page each override `update_transform` / `update_flow_direction` to call the
 apple_view_ops helpers; grid reuses layout_handler). Full gate green: **326 headless / 264 apple** GTest,
 clang-tidy 0 findings (including the Obj-C++ `.mm` files), ASan/UBSan + TSan clean.
+**M4d — ViewMapper visuals: Background + Shadow + Clip (Unit V, done):** stood up the visual-layer value
+types that `i_view` only forward-declared, and mapped them. New `maui::graphics::paint` + `solid_paint`
+(one color), `maui::core::i_shadow` + `shadow` (radius / opacity / paint / offset), `maui::graphics::i_shape`
++ `rectangle` / `round_rectangle` / `ellipse` (`path_for_bounds` built from the existing `path_f`
+append_* helpers). `view_platform_base` gained non-owning background / shadow / clip mirrors +
+`update_background` / `update_shadow` / `update_clip`; `view_mapper()` added the three keys; `view<>` makes
+`background()` / `shadow()` / `clip()` bindable (`property<shared_ptr<>>` + non-template descriptors). Shared
+AppKit helpers in `src/platform/apple/apple_visual_ops.hpp`: `apply_background` (solid → `layer.backgroundColor`),
+`apply_shadow` (`layer.shadow{Color,Opacity,Radius/2,Offset}`), `apply_clip` (`shape->path_for_bounds` → a
+`path_f`→`CGPath` walk → a `CAShapeLayer` mask). Self-contained + headless-complete; the apple per-control
+overrides are the coordinator's retrofit. 8 headless + 8 apple GTest cases. Gradients / per-corner clip /
+Width/Height/Semantics/InputTransparent deferred.
 **M4d — async image sources (Unit I, done):** the image-source subsystem grew uri + stream sources, an
 async loader with cancellation, an in-memory cache, and the service-registry seam. New contracts
 `i_uri_image_source` (uri + caching_enabled) / `i_stream_image_source` (a bytes provider —
@@ -211,8 +223,16 @@ attached container hosts the current page; the navigation_page also fires the RO
 send_appearing() itself (standing in for the absent window lifecycle). **Deferred:** the navigation bar /
 back button / title bar, push/pop animations, the modal stack, InsertPageBefore/RemovePage, and Shell.
 15 headless + 5 apple GTest cases; self-registers (MAUI_REGISTER_HANDLER). *characterization.
-**Still next: M4/M5** — the type-heavy ViewMapper props (background / shadow / clip); async image sources;
-the navigation chrome (bar / back button / Shell); then M5 (binding / styles / lifecycle).
+**M4d — coordinator integration (done):** the three units merged onto cpp-port-kit; **Unit V's apple
+Background / Shadow / Clip wiring was retrofitted onto all six platform structs** (button / label / entry /
+image / layout / content_page each override `update_background` / `update_shadow` / `update_clip` → the
+apple_visual_ops helpers; the clip mask is sized to the NSView bounds; grid reuses layout_handler). Full
+gate green: **354 headless / 281 apple** GTest, clang-tidy 0 (incl. the `.mm` files + the gated tests via
+the `tidy` preset), ASan/UBSan + TSan clean (Unit I's async loader runs single-threaded on the dispatcher,
+so TSan stays clean). **M4 (control set v1) is COMPLETE.**
+**Still next: M5** — data binding (paths + BindingContext + value converters), styles / setters / triggers,
+and the element lifecycle; plus the documented M4 deferrals (gradient paints, per-corner clip, navigation
+chrome, image disk-cache + a production HTTP stack).
 
 ## Tooling — format, lint, sanitizers (run from `port/cpp/`)
 
@@ -228,8 +248,8 @@ the navigation chrome (bar / back button / Shell); then M5 (binding / styles / l
   invoking the keg's clang-tidy directly it needs the AppleClang sysroot, e.g.
   `clang-tidy --extra-arg=-isysroot --extra-arg="$(xcrun --show-sdk-path)" -p build/headless <file>`.
 - **Sanitizers** (`Sanitizers.md`) — target-level via the `maui_sanitizers` interface lib, one lane each:
-  - `cmake --preset asan-ubsan && cmake --build --preset asan-ubsan && ctest --preset asan-ubsan` — ASan+UBSan (default checked build; **282/282 green**)
-  - `cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan` — ThreadSanitizer (**282/282 green**)
+  - `cmake --preset asan-ubsan && cmake --build --preset asan-ubsan && ctest --preset asan-ubsan` — ASan+UBSan (default checked build; **354/354 green**)
+  - `cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan` — ThreadSanitizer (**354/354 green**)
   - `msan` preset is for **Linux/Clang CI only** — `-fsanitize=memory` is unsupported on AppleClang/macOS.
 
 ## Milestones (see `PROJECT.md §5`)
@@ -277,6 +297,7 @@ the navigation chrome (bar / back button / Shell); then M5 (binding / styles / l
 | image file source (`i_image_source`/`i_file_image_source`, `file_image_source`, `image.source`) | core + controls + handlers | ✅ | ✅* | ✅ | headless + macOS | M4c Unit D — `image` gained a real bindable `source` (`property<shared_ptr<i_image_source>>`). `i_image_source`/`i_file_image_source` contracts + concrete `file_image_source` + `image_source::from_file(path)`. `image_handler::map_source` loads the file **synchronously** (`[[NSImage alloc] initWithContentsOfFile:]`; headless mirrors path + loaded flag; empty/null/failed → clears). Async loading + cancellation, the IImageSourceService/service-provider seam, uri/stream/font sources + caching deferred. 6 headless + 4 apple GTest cases. *characterization |
 | async image sources (`i_uri_image_source`/`i_stream_image_source`, `uri/stream_image_source`, `i_image_source_service`/`image_source_service_registry`, `image_source_loader`, `cancellation_token`) | core + controls + handlers | ✅ | ✅* | ✅ | headless + macOS | M4d Unit I — uri + stream sources, an async loader with cancellation, an in-memory uri cache, and the service-registry seam. `i_uri_image_source` (uri + caching_enabled) / `i_stream_image_source` (a bytes provider `image_bytes get_bytes(token)`, simplifying C#'s `Task<Stream>`); concrete `uri_image_source`/`stream_image_source` + `from_uri`/`from_stream`. `i_image_source_service` (async `load(source, token, on_result)`); `image_source_service_registry` (mirrors handler_registry; `register_service<Source,Service>()` keyed by source interface, `resolve` via dynamic_cast probe) + a default registry; `image_source_result` (native handle + RAII disposer + headless kind/detail mirror); per-source `file/uri/stream_image_source_service` (cross-platform decl + `{headless,apple}` partials sharing one `decode_image_bytes`). `image_source_loader` (ports ImageSourcePartLoader + ImageSourceServiceResultManager): `begin_load` cancels the prior token + disposes the prior result; `update_source` resolves the service / uri cached fast-path (`map<uri,bytes>`, no expiry), marshals the apply onto the dispatcher (headless `manual_dispatcher`; apple inline), does the source-identity recheck (`!token.is_cancelled() && source==current_source_`), `complete_load`. `image_handler` OWNS the loader (`source_loader()`); `map_source` keeps the SYNC file fast-path + routes uri/stream async (routing cross-platform; 3 per-backend primitives touch NSImageView / mirror). Still chains `view_mapper()`; `image_platform` derives `view_platform_base` (+ `source_kind` mirror). THREADING: loader state touched only on the dispatcher thread; services load synchronously (no worker) so the sole cross-thread element is the atomic cancellation flag → TSan-clean; UAF-safe teardown via a loader liveness weak_ptr; ABA-safe via token cancellation. Disk caching/CacheValidity, font sources, the full DI provider, resolution reload, and a production HTTP stack deferred (apple uri = `file://` + sync `http(s)` NSData; headless = stream + `file://`, no network). 6 headless + 3 apple GTest cases (extend the existing image test files). *characterization |
 | page lifecycle + `navigation_page` (`navigation_request`/`i_stack_navigation`, `navigation_page`, `navigation_page_handler`; `content_page` Appearing/Disappearing) | core + controls + core/handlers | ✅ | ✅* | ✅ | headless + macOS | M4d Unit N — a push/pop page stack. `content_page` gained the page lifecycle (Page.cs SendAppearing/SendDisappearing + `appearing`/`disappearing` events, idempotent via `has_appeared_`). `navigation_request` (new stack + animated) + `i_stack_navigation` (request_navigation/navigation_finished, IStackNavigation.cs). `navigation_page : view<i_view> + i_stack_navigation` owns a NON-owning `vector<content_page*>` (caller owns the pages) with push/pop/pop_to_root + current_page/root_page/navigation_stack; push/pop/pop_to_root mutate the stack then fire Disappearing(prev)+Appearing(new) BOTH before notifying the handler, per NavigationPage.cs MauiNavigationImpl ORDER (C#'s async semaphore/TaskCompletionSource/overlap queue collapsed to a synchronous single transition). Drive is a `"request_navigation"` COMMAND (payload = `navigation_request`); `navigation_page_handler` hosts a plain NSView container and swaps the current page's `native_view()` subview (headless mirrors the hosted page); `navigation_page_platform` derives `view_platform_base`, handler chains `view_mapper()`. `set_handler` re-issues the request after wiring (C# OnHandlerChangedCore) so the attached container hosts the current page; the navigation_page fires the ROOT's initial send_appearing() itself (absent window lifecycle). Nav bar/back button/title bar, push/pop animation, modal stack, InsertPageBefore/RemovePage, Shell deferred. 15 headless + 5 apple GTest cases; self-registers. *characterization |
+| ViewMapper visuals: Background/Shadow/Clip (`paint`/`solid_paint`, `i_shadow`/`shadow`, `i_shape`/`rectangle`/`round_rectangle`/`ellipse`; `apple_visual_ops.hpp`) | graphics + core + controls + platform/apple | ✅ | ✅* | ✅ | headless + macOS | M4d Unit V — stands up the visual-layer value types `i_view` only forward-declared. `paint` + `solid_paint` (one color); `i_shadow` + `shadow` (radius/opacity/paint/offset; defaults 10/1/black/0); `i_shape` + `rectangle`/`round_rectangle`/`ellipse` (`path_for_bounds` via the existing `path_f` append_* helpers). `view_platform_base` gained background/shadow/clip mirrors + `update_background`/`update_shadow`/`update_clip`; `view_mapper()` keys background/shadow/clip; `view<>` makes them bindable (`property<shared_ptr<>>` + non-template descriptors). AppKit helpers `apply_background` (layer.backgroundColor) / `apply_shadow` (layer.shadow*) / `apply_clip` (path_f→CGPath→CAShapeLayer mask) in `apple_visual_ops.hpp`. **Retrofitted (M4d integration) onto all six platform structs** (button/label/entry/image/layout/content_page override `update_*`→the helpers; clip sized to NSView bounds; grid reuses layout_handler) so the visuals reach the native layer. Gradients/per-corner clip/Width/Height/Semantics deferred. 8 headless + 9 apple GTest cases. *characterization |
 
 | layout foundation (`dimension`, `i_container`/`i_layout`/`i_stack_layout`, `i_layout_manager`) | core/layouts | ✅ | — | ✅ | headless + macOS | `ILayout : IView + IContainer + IPadding` (M3 subset; ClipsToBounds / ISafeAreaView / ICrossPlatformLayout deferred to M4). `dimension` = Unset(NaN)/Minimum(0)/Maximum(inf) + is_explicit_set |
 | stack layout managers (`layout_manager`/`stack_layout_manager` + vertical/horizontal) | layouts | ✅ | ✅* | ✅ | headless + macOS | New `maui_layouts` lib — pure cross-platform measure/arrange (ResolveConstraints, MeasureSpacing, stacking). 28 GTest cases via mock view/stack (spacing / padding / min-max / collapsed-vs-hidden / fill / child-constraint). The layout *controls* + native panel are M4. *ported from C# Stack*LayoutManagerTests (the oracle) |

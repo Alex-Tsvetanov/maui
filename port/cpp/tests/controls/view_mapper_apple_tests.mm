@@ -136,6 +136,28 @@ namespace
         EXPECT_DOUBLE_EQ(view.layer.transform.m11, 2.0); // uniform scale lands on the layer
     }
 
+    // End-to-end: a Background change on the control reaches the NSButton's backing layer through the
+    // per-control update_background override (the M4d retrofit wiring), not just the helper in isolation.
+    TEST_F(apple_view_mapper, control_background_reaches_the_layer)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        NSButton* const view = native_button(handler);
+
+        control.set_background(
+            std::make_shared<maui::graphics::solid_paint>(maui::graphics::color{0.25F, 0.5F, 0.75F, 1.0F}));
+
+        EXPECT_TRUE(view.wantsLayer);
+        CGColorRef bg = view.layer.backgroundColor;
+        ASSERT_NE(bg, nullptr); // the solid paint reached the layer through the retrofit override
+        NSColor* const srgb = [[NSColor colorWithCGColor:bg] colorUsingColorSpace:NSColorSpace.sRGBColorSpace];
+        ASSERT_NE(srgb, nil);
+        EXPECT_NEAR(srgb.redComponent, 0.25, 1e-4);
+        EXPECT_NEAR(srgb.greenComponent, 0.5, 1e-4);
+        EXPECT_NEAR(srgb.blueComponent, 0.75, 1e-4);
+    }
+
     TEST_F(apple_view_mapper, label_generic_properties_push_to_nstextfield)
     {
         label control;

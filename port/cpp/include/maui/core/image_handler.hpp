@@ -70,6 +70,9 @@ namespace maui::core
         void update_automation_id(std::string_view value) override;
         void update_transform(const maui::core::transform_spec& value) override;
         void update_flow_direction(maui::core::flow_direction value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        void update_shadow(const maui::core::i_shadow* value) override;
+        void update_clip(const maui::graphics::i_shape* value) override;
 #endif
     };
 
