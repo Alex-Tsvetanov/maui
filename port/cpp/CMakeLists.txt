@@ -131,6 +131,9 @@ add_library(maui_core STATIC
   src/core/bindable_object.cpp
   src/core/thickness.cpp
   src/core/font.cpp
+  src/core/property_mapper.cpp
+  src/core/command_mapper.cpp
+  src/core/handler_registry.cpp
 )
 target_include_directories(maui_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # Layer 1 depends on layer 0: core contracts expose graphics value types (color in i_text_style,
@@ -148,6 +151,7 @@ add_executable(maui_core_tests
   tests/core/bindable_tests.cpp
   tests/core/primitives_tests.cpp
   tests/core/contracts_tests.cpp
+  tests/core/handler_tests.cpp
 )
 target_link_libraries(maui_core_tests PRIVATE
   maui_core

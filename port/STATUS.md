@@ -9,16 +9,20 @@
 ```bash
 export VCPKG_ROOT="$HOME/vcpkg"          # registry clone; brew's vcpkg binary alone lacks the toolchain file
 cmake --preset headless && cmake --build --preset headless
-ctest --preset headless                  # all ported graphics tests (81 cases, green)
+ctest --preset headless                  # all ported tests (graphics + core: 171 cases, green)
 ./build/headless/maui_graphics_benchmarks --benchmark_min_time=0.02s   # Google Benchmark (not a ctest test)
 ```
 
-**Resume:** continue to the next ⬜ milestone below, following `CLAUDE.md`. **In progress: M1 (Core).**
+**Resume:** continue to the next ⬜ milestone below, following `CLAUDE.md`. **M1 (Core) is COMPLETE.**
 The `PROFILE.md §11` decisions are **locked** (view owns handler; `property<T>` member object;
-per-type `concept`-vs-`i_*` rule; headers not modules). Build order — done: `event`, `dispatcher`, `setter_specificity`(+list), `bindable_property<T>` /
-`bindable_object` / `property<T>` (fully typed, no `std::any`), primitives (`thickness`/`font`/enums),
-contracts (`i_element` / `i_transform` / `i_view` / `i_text_style` / `i_text`). **Next:
-`view_handler` + `i_view_handler` + handler/service registry** — the last M1 slice (#22).
+per-type `concept`-vs-`i_*` rule; headers not modules). M1 build order — all done: `event`,
+`dispatcher`, `setter_specificity`(+list), `bindable_property<T>` / `bindable_object` / `property<T>`
+(fully typed, no `std::any`), primitives (`thickness`/`font`/enums), contracts (`i_element` /
+`i_transform` / `i_view` / `i_text_style` / `i_text`), and the handler seam (`type_tag`,
+`property_mapper`/`command_mapper`, `i_element_handler`/`i_view_handler`, CRTP `view_handler`,
+`handler_registry`/`service_registry`). **Next: M2 — `button` end-to-end (headless → macOS), the
+Rosetta Stone**: the PROFILE §6 `MAUI_REGISTER_HANDLER` self-registration macro (over a CMake OBJECT
+library), the first concrete control + virtual-view (`i_button`/`button`), and the first native backend.
 
 ## Tooling — format, lint, sanitizers (run from `port/cpp/`)
 
@@ -29,11 +33,13 @@ contracts (`i_element` / `i_transform` / `i_view` / `i_text_style` / `i_text`). 
   `/opt/homebrew/opt/llvm/bin`). Off by default; lint the library sources with the `tidy` preset —
   advisory, findings don't fail the build: `cmake --preset tidy && cmake --build --preset tidy`.
   **The M0 sources (`color`, `path_builder`, `path_f`) are clang-tidy-clean — 0 findings.** When
+  The M1 core sources **and headers** (events/dispatcher/bindable/primitives/contracts + the handler
+  seam) are likewise clang-tidy-clean — verified with a full-header pass (`--header-filter`). When
   invoking the keg's clang-tidy directly it needs the AppleClang sysroot, e.g.
   `clang-tidy --extra-arg=-isysroot --extra-arg="$(xcrun --show-sdk-path)" -p build/headless <file>`.
 - **Sanitizers** (`Sanitizers.md`) — target-level via the `maui_sanitizers` interface lib, one lane each:
-  - `cmake --preset asan-ubsan && cmake --build --preset asan-ubsan && ctest --preset asan-ubsan` — ASan+UBSan (default checked build; **81/81 green**)
-  - `cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan` — ThreadSanitizer (**81/81 green**)
+  - `cmake --preset asan-ubsan && cmake --build --preset asan-ubsan && ctest --preset asan-ubsan` — ASan+UBSan (default checked build; **171/171 green**)
+  - `cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan` — ThreadSanitizer (**171/171 green**)
   - `msan` preset is for **Linux/Clang CI only** — `-fsanitize=memory` is unsupported on AppleClang/macOS.
 
 ## Milestones (see `PROJECT.md §5`)
@@ -41,7 +47,7 @@ contracts (`i_element` / `i_transform` / `i_view` / `i_text_style` / `i_text`). 
 | Milestone | Description | Status |
 |---|---|---|
 | M0 | Graphics primitives compile + pass ported tests | ✅ |
-| M1 | Core contracts + property/handler infra + dispatcher, unit-tested | ⬜ |
+| M1 | Core contracts + property/handler infra + dispatcher, unit-tested | ✅ |
 | M2 | `button` end-to-end (headless → macOS), tap works in sample app | ⬜ |
 | M3 | Layout measure/arrange (`stack_layout`, `grid`) pass layout tests | ⬜ |
 | M4 | Control set v1 (label, entry, image, layouts, page) on macOS | ⬜ |
@@ -66,7 +72,7 @@ contracts (`i_element` / `i_transform` / `i_view` / `i_text_style` / `i_text`). 
 | `bindable_property<T>` + `bindable_object` + `property<T>` | core | ✅ | ✅* | ✅ | headless | **fully-typed** value layer, **no `std::any`** (per §7): each `property<T>` member owns a `setter_specificity_list<T>` and the value precedence; `bindable_object` is just the notification base; `bindable_property<T>` is the typed shared descriptor. Change-notification (changing→changed, real-change-only), coerce/validate, lazy+cached default-creator, handler override, zero-copy `get()→const T&`, per-instance `.changed`. 15 cases derived from `Core.UnitTests`. *characterization |
 | primitives: `visibility`/`flow_direction`/`layout_alignment`/`thickness`/`font` | core | ✅ | ✅* | ✅ | headless | Core value types/enums the view contracts depend on; 26 GTest cases. *characterization |
 | `i_element`/`i_transform`/`i_view`/`i_text_style`/`i_text` | core | ✅ | ✅* | ✅ | headless | virtual-view contracts (abstract `i_*` classes, §11 per-type rule). Full `IView` surface; heavy sub-objects (paint/semantics/shadow/clip) + the typed view-handler accessor forward-declared/deferred to M3/M4/#22. 5 GTest cases (mock conformance). *characterization |
-| `view_handler` base + handler registry | core | ⬜ | ⬜ | ⬜ | — | CRTP + `i_view_handler` |
+| handler seam: `i_element_handler`/`i_view_handler`, `property_mapper`/`command_mapper`, CRTP `view_handler`, `type_tag`, `handler_registry`/`service_registry`, `i_maui_context` | core | ✅ | ✅* | ✅ | headless | 17 GTest cases (mock handler over a fake platform view: connect creates+connects+maps, update_value/invoke, disconnect; mapper chaining/override; type_tag identity; registries). No-reflection **explicit registration** (PROFILE §6); platform view = `void*` and command args = `std::any` (boundary-confined erasure only). M1 simplifications noted in headers: no merged-mapper cache, no CanInvokeMappers gate, reciprocal `view.Handler=this` deferred to M2 hosting. *characterization |
 | `button` (handler slice) | controls/handlers | ⬜ | ⬜ | ⬜ | headless→macOS | the Rosetta Stone (M2) |
 
 _(extend this table as components are added)_
