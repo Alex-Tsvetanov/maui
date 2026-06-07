@@ -91,6 +91,13 @@ namespace maui::core
             add_all(entries);
         }
 
+        // Chain onto another mapper with no own entries (e.g. a handler whose properties all come from
+        // a chained text/view mapper).
+        explicit property_mapper(property_mapper_base& chained)
+        {
+            set_chained({&chained});
+        }
+
         // C# Add / this[key] = action.
         void add(std::string key, typed_action action)
         {

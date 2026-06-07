@@ -126,6 +126,14 @@ target_link_libraries(maui_graphics_benchmarks PRIVATE
 # ======================================================================
 # Layer 1 - Core  (maui::core  <=  Microsoft.Maui : property/handler infra, events, dispatcher)
 # ======================================================================
+# Platform partials: exactly one backend's set is compiled (PROFILE §5's partial-class split). The
+# headless backend is the deterministic unit-test target; `apple` swaps in the AppKit .mm twin.
+if(MAUI_BACKEND STREQUAL "apple")
+  set(MAUI_CORE_PLATFORM_SOURCES src/platform/apple/button_handler.mm)
+else()
+  set(MAUI_CORE_PLATFORM_SOURCES src/platform/headless/button_handler.cpp)
+endif()
+
 add_library(maui_core STATIC
   src/core/manual_dispatcher.cpp
   src/core/bindable_object.cpp
@@ -134,6 +142,8 @@ add_library(maui_core STATIC
   src/core/property_mapper.cpp
   src/core/command_mapper.cpp
   src/core/handler_registry.cpp
+  src/core/button_handler.cpp
+  ${MAUI_CORE_PLATFORM_SOURCES}
 )
 target_include_directories(maui_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # Layer 1 depends on layer 0: core contracts expose graphics value types (color in i_text_style,
@@ -159,3 +169,28 @@ target_link_libraries(maui_core_tests PRIVATE
   GTest::gmock_main
 )
 gtest_discover_tests(maui_core_tests)
+
+# ======================================================================
+# Layer 2 - Controls  (maui::controls  <=  Microsoft.Maui.Controls : the developer-facing controls)
+# ======================================================================
+add_library(maui_controls STATIC
+  src/controls/button.cpp
+)
+target_include_directories(maui_controls PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# Controls depend on Core (handlers, contracts, the property system).
+target_link_libraries(maui_controls PUBLIC maui_core PRIVATE maui_sanitizers)
+if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+  set_target_properties(maui_controls PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+endif()
+
+# ---- Controls tests (GoogleTest, discovered into ctest) ----
+# The button control + the headless handler seam (control -> handler -> platform -> back) live here.
+add_executable(maui_controls_tests
+  tests/controls/button_tests.cpp
+)
+target_link_libraries(maui_controls_tests PRIVATE
+  maui_controls
+  maui_sanitizers
+  GTest::gmock_main
+)
+gtest_discover_tests(maui_controls_tests)

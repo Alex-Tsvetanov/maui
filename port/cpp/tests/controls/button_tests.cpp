@@ -1,0 +1,174 @@
+// Tests for the button control (maui::controls::button) and the headless handler seam — the M2 Rosetta
+// Stone, end to end on the headless backend: control -> handler -> platform (virtual→native Text) and
+// platform -> handler -> control (native tap → clicked). The Apple backend (.mm) is the real-native
+// twin verified separately; here the headless button_platform lets the seam be unit-tested.
+#include "maui/controls/button.hpp"
+
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "maui/core/button_handler.hpp"
+#include "maui/core/i_button.hpp"
+#include "maui/core/i_text.hpp"
+#include <gtest/gtest.h>
+
+namespace
+{
+    using maui::controls::button;
+    using maui::core::button_handler;
+    using maui::core::i_button;
+    using maui::core::i_text;
+
+    // ---- the control in isolation (no handler) ----
+
+    TEST(button, text_defaults_empty_and_is_settable)
+    {
+        button control;
+        EXPECT_EQ(control.text(), "");
+        control.set_text("Hello");
+        EXPECT_EQ(control.text(), "Hello");
+    }
+
+    TEST(button, send_clicked_raises_clicked_event)
+    {
+        button control;
+        int clicks = 0;
+        control.clicked.connect([&clicks] { ++clicks; });
+        control.send_clicked();
+        EXPECT_EQ(clicks, 1);
+    }
+
+    TEST(button, clicked_runs_command_before_event)
+    {
+        button control;
+        std::vector<int> order;
+        control.command = [&order] { order.push_back(1); };
+        control.clicked.connect([&order] { order.push_back(2); });
+        control.send_clicked();
+        EXPECT_EQ(order, (std::vector<int>{1, 2}));
+    }
+
+    TEST(button, disabled_button_suppresses_click)
+    {
+        button control;
+        control.set_is_enabled(false);
+        int clicks = 0;
+        bool command_ran = false;
+        control.clicked.connect([&clicks] { ++clicks; });
+        control.command = [&command_ran] { command_ran = true; };
+        control.send_clicked();
+        EXPECT_EQ(clicks, 0);
+        EXPECT_FALSE(command_ran);
+    }
+
+    TEST(button, pressed_then_released_tracks_is_pressed)
+    {
+        button control;
+        int presses = 0;
+        int releases = 0;
+        control.pressed.connect([&presses] { ++presses; });
+        control.released.connect([&releases] { ++releases; });
+
+        control.send_pressed();
+        EXPECT_TRUE(control.is_pressed());
+        EXPECT_EQ(presses, 1);
+
+        control.send_released();
+        EXPECT_FALSE(control.is_pressed());
+        EXPECT_EQ(releases, 1);
+    }
+
+    TEST(button, disabled_release_still_clears_is_pressed)
+    {
+        button control;
+        control.send_pressed();
+        EXPECT_TRUE(control.is_pressed());
+        control.set_is_enabled(false);
+        control.send_released(); // Released clears IsPressed even when disabled (ButtonElement)
+        EXPECT_FALSE(control.is_pressed());
+    }
+
+    TEST(button, usable_through_interface_references)
+    {
+        button control;
+        control.set_text("Tap");
+        i_text& as_text = control;
+        i_button& as_button = control;
+        EXPECT_EQ(as_text.text(), "Tap");
+        int clicks = 0;
+        control.clicked.connect([&clicks] { ++clicks; });
+        as_button.send_clicked();
+        EXPECT_EQ(clicks, 1);
+    }
+
+    // ---- the handler seam (control <-> handler <-> headless platform) ----
+
+    TEST(button_seam, attaching_handler_creates_platform_and_maps_initial_text)
+    {
+        button control;
+        control.set_text("Start");
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        ASSERT_NE(handler->platform_view(), nullptr);
+        EXPECT_EQ(handler->virtual_view(), &control);
+        EXPECT_EQ(handler->typed_platform_view()->title, "Start"); // mapper ran on connect
+    }
+
+    TEST(button_seam, setting_text_updates_the_platform_view)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        control.set_text("Changed"); // -> on_property_changed -> handler.update_value("text") -> map_text
+        EXPECT_EQ(handler->typed_platform_view()->title, "Changed");
+    }
+
+    TEST(button_seam, native_click_flows_back_to_clicked_event)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        int clicks = 0;
+        control.clicked.connect([&clicks] { ++clicks; });
+        // Simulate the native control firing its tap action.
+        handler->typed_platform_view()->on_click();
+        EXPECT_EQ(clicks, 1);
+    }
+
+    TEST(button_seam, native_press_and_release_flow_back)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        int presses = 0;
+        int releases = 0;
+        control.pressed.connect([&presses] { ++presses; });
+        control.released.connect([&releases] { ++releases; });
+
+        handler->typed_platform_view()->on_press();
+        EXPECT_TRUE(control.is_pressed());
+        EXPECT_EQ(presses, 1);
+
+        handler->typed_platform_view()->on_release();
+        EXPECT_FALSE(control.is_pressed());
+        EXPECT_EQ(releases, 1);
+    }
+
+    TEST(button_seam, clearing_handler_disconnects)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        ASSERT_NE(handler->platform_view(), nullptr);
+
+        control.set_handler(nullptr);
+        EXPECT_EQ(control.handler(), nullptr);
+        EXPECT_EQ(handler->platform_view(), nullptr); // disconnected + torn down
+        EXPECT_EQ(handler->virtual_view(), nullptr);
+    }
+} // namespace

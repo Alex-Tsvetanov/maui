@@ -13,8 +13,9 @@
 //
 // Derived must provide:
 //   std::unique_ptr<Platform> create_platform_view();                       // C# OnCreatePlatformView
-// and override i_view_handler::get_desired_size / platform_arrange. Derived MAY shadow these optional
-// hooks (declare them PUBLIC so the base can call them through the CRTP self-reference):
+// and override i_view_handler::get_desired_size / platform_arrange. Derived MAY also declare any of
+// these optional hooks (public; the base detects each with `if constexpr (requires …)` and calls it
+// only if present, so there are no base defaults to shadow):
 //   void on_connect_handler(Platform&);  void on_disconnect_handler(Platform&);  // C# OnConnect/Disconnect
 //   void on_setup_container();           void on_remove_container();
 //
@@ -86,7 +87,10 @@ namespace maui::core
 
             if (first_setup && platform_view_)
             {
-                derived().on_connect_handler(*platform_view_);
+                if constexpr (requires(Derived& d, Platform& pv) { d.on_connect_handler(pv); })
+                {
+                    derived().on_connect_handler(*platform_view_);
+                }
             }
 
             if (property_mapper_ != nullptr && virtual_view_ != nullptr)
@@ -122,7 +126,10 @@ namespace maui::core
             if (platform_view_ && virtual_view_ != nullptr)
             {
                 const std::unique_ptr<Platform> old = std::move(platform_view_);
-                derived().on_disconnect_handler(*old);
+                if constexpr (requires(Derived& d, Platform& pv) { d.on_disconnect_handler(pv); })
+                {
+                    derived().on_disconnect_handler(*old);
+                }
                 virtual_view_ = nullptr;
             }
             state_ = handler_state::disconnected;
@@ -157,11 +164,17 @@ namespace maui::core
             has_container_ = value;
             if (value)
             {
-                derived().on_setup_container();
+                if constexpr (requires(Derived& d) { d.on_setup_container(); })
+                {
+                    derived().on_setup_container();
+                }
             }
             else
             {
-                derived().on_remove_container();
+                if constexpr (requires(Derived& d) { d.on_remove_container(); })
+                {
+                    derived().on_remove_container();
+                }
             }
         }
         [[nodiscard]] void* container_view() const override
@@ -188,21 +201,9 @@ namespace maui::core
         }
 
     protected:
-        // Default optional hooks (headless: no native connect/teardown, no container). Derived may
-        // shadow any of these with a PUBLIC method of the same name.
-        void on_connect_handler(Platform& /*platform_view*/)
-        {
-        }
-        void on_disconnect_handler(Platform& /*platform_view*/)
-        {
-        }
-        void on_setup_container()
-        {
-        }
-        void on_remove_container()
-        {
-        }
-
+        // The optional platform hooks are *detected* on Derived via the requires-clauses above (so there
+        // are no base defaults to shadow): a handler simply declares any of on_connect_handler /
+        // on_disconnect_handler / on_setup_container / on_remove_container (public) that it needs.
         void set_container_view(void* container)
         {
             container_view_ = container;
