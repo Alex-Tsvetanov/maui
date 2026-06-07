@@ -8,7 +8,9 @@
 # openmp, zircon. Kept bugprone / clang-analyzer / concurrency / cppcoreguidelines / misc /
 # modernize / performance / portability / readability, minus a few checks that fight deliberate
 # design choices (public data members on value types, short coordinate names like x/y/r/g/b,
-# graphics magic numbers, recursion in the recursive-descent SVG parser) and the unchecked-container
+# graphics magic numbers, recursion in the recursive-descent SVG parser, and template-virtual-member
+# instantiation — the CRTP/template view<ViewInterface> base intentionally has inline virtual overrides;
+# the vtable odr-uses them all, so they ARE instantiated on our toolchain) and the unchecked-container
 # access check (per project decision: ASan/UBSan + tests cover bounds in hot paths).
 Checks: >
   -*,
@@ -32,7 +34,8 @@ Checks: >
   -readability-function-cognitive-complexity,
   -readability-identifier-length,
   -readability-magic-numbers,
-  -portability-avoid-pragma-once
+  -portability-avoid-pragma-once,
+  -portability-template-virtual-member-function
 WarningsAsErrors: ''
 # Gate the .cpp main files (the implementation). Flip to 'maui/graphics/.*' for a full header pass.
 HeaderFilterRegex: ''

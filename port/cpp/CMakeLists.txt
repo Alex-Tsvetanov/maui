@@ -132,10 +132,14 @@ if(MAUI_BACKEND STREQUAL "apple")
   enable_language(OBJCXX)
   set(CMAKE_OBJCXX_STANDARD 23)
   set(CMAKE_OBJCXX_STANDARD_REQUIRED ON)
-  set(MAUI_CORE_PLATFORM_SOURCES src/platform/apple/button_handler.mm)
-  set_source_files_properties(src/platform/apple/button_handler.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+  set(MAUI_CORE_PLATFORM_SOURCES
+    src/platform/apple/button_handler.mm
+    src/platform/apple/label_handler.mm)
+  set_source_files_properties(${MAUI_CORE_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
-  set(MAUI_CORE_PLATFORM_SOURCES src/platform/headless/button_handler.cpp)
+  set(MAUI_CORE_PLATFORM_SOURCES
+    src/platform/headless/button_handler.cpp
+    src/platform/headless/label_handler.cpp)
 endif()
 
 add_library(maui_core STATIC
@@ -147,6 +151,7 @@ add_library(maui_core STATIC
   src/core/command_mapper.cpp
   src/core/handler_registry.cpp
   src/core/button_handler.cpp
+  src/core/label_handler.cpp
   src/core/grid_length.cpp
   ${MAUI_CORE_PLATFORM_SOURCES}
 )
@@ -184,6 +189,7 @@ gtest_discover_tests(maui_core_tests)
 # ======================================================================
 add_library(maui_controls STATIC
   src/controls/button.cpp
+  src/controls/label.cpp
 )
 target_include_directories(maui_controls PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # Controls depend on Core (handlers, contracts, the property system).
@@ -196,10 +202,15 @@ endif()
 # The button control + the handler seam (control -> handler -> platform -> back). The seam test is
 # backend-specific: headless drives the fake platform; apple drives a real NSButton via performClick.
 if(MAUI_BACKEND STREQUAL "apple")
-  add_executable(maui_controls_tests tests/controls/button_apple_tests.mm)
-  set_source_files_properties(tests/controls/button_apple_tests.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+  add_executable(maui_controls_tests
+    tests/controls/button_apple_tests.mm
+    tests/controls/label_apple_tests.mm)
+  set_source_files_properties(tests/controls/button_apple_tests.mm tests/controls/label_apple_tests.mm
+    PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
-  add_executable(maui_controls_tests tests/controls/button_tests.cpp)
+  add_executable(maui_controls_tests
+    tests/controls/button_tests.cpp
+    tests/controls/label_tests.cpp)
 endif()
 target_link_libraries(maui_controls_tests PRIVATE
   maui_controls

@@ -15,6 +15,7 @@
 #include <memory>
 #include <string>
 
+#include "apple_conversions.hpp"
 #include "maui/core/button_handler.hpp"
 #include "maui/core/i_button.hpp"
 #include "maui/core/i_text_button.hpp"
@@ -51,25 +52,8 @@ namespace
         return (__bridge NSButton*)native;
     }
 
-    NSColor* to_ns_color(const maui::graphics::color& value)
-    {
-        return [NSColor colorWithSRGBRed:value.red green:value.green blue:value.blue alpha:value.alpha];
-    }
-
-    NSFont* to_ns_font(const maui::core::font& value)
-    {
-        const double size = value.size() > 0 ? value.size() : static_cast<double>(NSFont.systemFontSize);
-        if (!value.family().empty())
-        {
-            NSString* const name = [NSString stringWithUTF8String:value.family().c_str()];
-            NSFont* const named = name != nil ? [NSFont fontWithName:name size:size] : nil;
-            if (named != nil)
-            {
-                return named;
-            }
-        }
-        return [NSFont systemFontOfSize:size];
-    }
+    using maui::platform::apple::to_ns_color;
+    using maui::platform::apple::to_ns_font;
 } // namespace
 
 namespace maui::core
