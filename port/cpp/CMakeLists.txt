@@ -136,14 +136,16 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/button_handler.mm
     src/platform/apple/label_handler.mm
     src/platform/apple/entry_handler.mm
-    src/platform/apple/image_handler.mm)
+    src/platform/apple/image_handler.mm
+    src/platform/apple/layout_handler.mm)
   set_source_files_properties(${MAUI_CORE_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
   set(MAUI_CORE_PLATFORM_SOURCES
     src/platform/headless/button_handler.cpp
     src/platform/headless/label_handler.cpp
     src/platform/headless/entry_handler.cpp
-    src/platform/headless/image_handler.cpp)
+    src/platform/headless/image_handler.cpp
+    src/platform/headless/layout_handler.cpp)
 endif()
 
 add_library(maui_core STATIC
@@ -160,6 +162,7 @@ add_library(maui_core STATIC
   src/core/label_handler.cpp
   src/core/entry_handler.cpp
   src/core/image_handler.cpp
+  src/core/layout_handler.cpp
   src/core/grid_length.cpp
   ${MAUI_CORE_PLATFORM_SOURCES}
 )
@@ -205,10 +208,13 @@ add_library(maui_controls STATIC
   src/controls/label.cpp
   src/controls/entry.cpp
   src/controls/image.cpp
+  src/controls/vertical_stack_layout.cpp
+  src/controls/horizontal_stack_layout.cpp
 )
 target_include_directories(maui_controls PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-# Controls depend on Core (handlers, contracts, the property system).
-target_link_libraries(maui_controls PUBLIC maui_core PRIVATE maui_sanitizers)
+# Controls depend on Core (handlers, contracts, the property system); the layout controls additionally
+# use the maui_layouts measure/arrange managers (their create_layout_manager() instantiates them).
+target_link_libraries(maui_controls PUBLIC maui_core maui_layouts PRIVATE maui_sanitizers)
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_controls PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
@@ -222,13 +228,15 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/label_apple_tests.mm
     tests/controls/view_mapper_apple_tests.mm
     tests/controls/entry_apple_tests.mm
-    tests/controls/image_apple_tests.mm)
+    tests/controls/image_apple_tests.mm
+    tests/controls/layout_apple_tests.mm)
   set_source_files_properties(
     tests/controls/button_apple_tests.mm
     tests/controls/label_apple_tests.mm
     tests/controls/view_mapper_apple_tests.mm
     tests/controls/entry_apple_tests.mm
     tests/controls/image_apple_tests.mm
+    tests/controls/layout_apple_tests.mm
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
   add_executable(maui_controls_tests
@@ -236,8 +244,10 @@ else()
     tests/controls/label_tests.cpp
     tests/controls/view_mapper_tests.cpp
     tests/controls/entry_tests.cpp
-    tests/controls/image_tests.cpp)
+    tests/controls/image_tests.cpp
+    tests/controls/layout_tests.cpp)
 endif()
+target_include_directories(maui_controls_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for tests/layouts/*.hpp
 target_link_libraries(maui_controls_tests PRIVATE
   maui_controls
   maui_sanitizers
@@ -270,7 +280,8 @@ if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_layouts PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
 
-# ---- Layout tests (GoogleTest). The mocks reuse maui::controls::view<>, so link maui_controls. ----
+# ---- Layout tests (GoogleTest). The mocks reuse maui::controls::view<>, so link maui_controls (which
+# now also pulls in maui_layouts transitively — listing it explicitly would duplicate the lib). ----
 add_executable(maui_layout_tests
   tests/layouts/vertical_stack_layout_manager_tests.cpp
   tests/layouts/horizontal_stack_layout_manager_tests.cpp
@@ -278,7 +289,6 @@ add_executable(maui_layout_tests
 )
 target_include_directories(maui_layout_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for tests/layouts/*.hpp
 target_link_libraries(maui_layout_tests PRIVATE
-  maui_layouts
   maui_controls
   maui_sanitizers
   GTest::gmock_main

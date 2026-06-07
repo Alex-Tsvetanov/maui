@@ -28,6 +28,13 @@ namespace maui::core
         // (then those maps are no-ops). The CRTP view_handler resolves this with `if constexpr`.
         [[nodiscard]] virtual view_platform_base* platform_base() const = 0;
 
+        // The actual NATIVE platform view (C# IElementHandler.PlatformView's documented meaning / the
+        // result of ToPlatform): an NSView* on Apple, null on the headless backend (no native tree).
+        // Distinct from platform_view(), which returns the managed pimpl that *owns* the native handle.
+        // A layout panel reads this to host an arbitrary child as a subview without knowing its concrete
+        // handler/platform type. (view_handler returns the pimpl's `native` member when it has one.)
+        [[nodiscard]] virtual void* native_view() const = 0;
+
         // C#'s `new IView? VirtualView`: a covariant narrowing of i_element_handler::virtual_view()
         // (i_view derives i_element). Concrete CRTP handlers narrow it further to their Virtual type.
         [[nodiscard]] i_view* virtual_view() const override = 0;

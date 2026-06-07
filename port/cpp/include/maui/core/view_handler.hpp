@@ -53,7 +53,11 @@ namespace maui::core
         reconnecting,
     };
 
-    template <class Derived, class Virtual, class Platform> class view_handler : public i_view_handler
+    // i_view_handler is a *virtual* base so a handler can also implement an i_view_handler-derived
+    // mixin (e.g. i_layout_handler) without acquiring two i_view_handler subobjects — the layout
+    // handler is `view_handler<…> + i_layout_handler`, and both reach i_view_handler. Leaf handlers
+    // (button/label) pay only the (negligible) virtual-base cost; behavior is unchanged.
+    template <class Derived, class Virtual, class Platform> class view_handler : public virtual i_view_handler
     {
         static_assert(std::is_base_of_v<i_view, Virtual>, "Virtual must derive maui::core::i_view");
 
@@ -139,6 +143,20 @@ namespace maui::core
         [[nodiscard]] void* platform_view() const override
         {
             return platform_view_.get();
+        }
+        // The native handle the pimpl owns (e.g. button_platform::native, an NSView* on Apple). Platform
+        // structs expose it as a `void* native` member by convention; the requires-clause returns it when
+        // present and null otherwise (the headless mirror has no real native), so this stays generic.
+        [[nodiscard]] void* native_view() const override
+        {
+            if constexpr (requires(const Platform& p) { p.native; })
+            {
+                return platform_view_ ? platform_view_->native : nullptr;
+            }
+            else
+            {
+                return nullptr;
+            }
         }
         // Covariant narrowing all the way to Virtual (overrides i_view_handler's i_view* override,
         // which overrides i_element_handler's i_element* — a covariance chain).
