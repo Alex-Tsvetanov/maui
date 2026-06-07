@@ -117,6 +117,12 @@ with **explicit registration**:
 
 - **Handler registry:** `register_handler<button, button_handler>()` in hosting startup; resolve by a
   stable per-type tag (`maui::core::type_tag` — a `constexpr` id, not RTTI-dependent).
+  - *Decided (2026-06): explicit primitive now, opt-in self-registration later.* `register_handler`
+    is the predictable, tree-shakeable primitive (#22). A `MAUI_REGISTER_HANDLER(view, handler)` macro
+    (a static registrar that calls `register_handler`) may be offered at M2 for "non-explicit"
+    convenience — but **self-registration requires the handlers to live in a CMake OBJECT library**
+    (or `--whole-archive`), otherwise the static library linker drops the unreferenced TU and the
+    registrar never runs. Reflection-style auto-discovery is impossible in C++; this is the closest.
 - **Property registration:** each `bindable_property` is declared statically on its owner type at load
   time (a `static` registrar), not discovered.
 - **XAML:** deferred (layer 6). When tackled, parse markup to a builder that calls the same explicit
