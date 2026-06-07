@@ -1,0 +1,11 @@
+CompileFlags:
+  Add: 
+    - -xc++
+    - -Wall
+    - -Wextra
+    - -Wpedantic
+    - -Werror
+    - -std=c++23
+    - -I/Users/Alex.Tsvetanov/Documents/GitHub/maui/port/cpp/include
+  Remove: [-W*]
+  Compiler: clang++
