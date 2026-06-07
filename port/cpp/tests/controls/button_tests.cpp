@@ -9,7 +9,9 @@
 #include <vector>
 
 #include "maui/core/button_handler.hpp"
+#include "maui/core/handler_registry.hpp"
 #include "maui/core/i_button.hpp"
+#include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_text.hpp"
 #include <gtest/gtest.h>
 
@@ -18,6 +20,7 @@ namespace
     using maui::controls::button;
     using maui::core::button_handler;
     using maui::core::i_button;
+    using maui::core::i_element_handler;
     using maui::core::i_text;
 
     // ---- the control in isolation (no handler) ----
@@ -170,5 +173,19 @@ namespace
         EXPECT_EQ(control.handler(), nullptr);
         EXPECT_EQ(handler->platform_view(), nullptr); // disconnected + torn down
         EXPECT_EQ(handler->virtual_view(), nullptr);
+    }
+
+    TEST(button_seam, handler_resolved_from_default_registry)
+    {
+        // button -> button_handler is self-registered in button.cpp (MAUI_REGISTER_HANDLER).
+        std::shared_ptr<i_element_handler> handler = maui::core::default_handler_registry().create_handler<button>();
+        ASSERT_NE(handler, nullptr);
+        auto* resolved = dynamic_cast<button_handler*>(handler.get());
+        ASSERT_NE(resolved, nullptr);
+
+        button control;
+        control.set_text("Registered");
+        control.set_handler(handler);
+        EXPECT_EQ(resolved->typed_platform_view()->title, "Registered");
     }
 } // namespace

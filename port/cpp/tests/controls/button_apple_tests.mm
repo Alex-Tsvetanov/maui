@@ -8,12 +8,15 @@
 
 #include "maui/controls/button.hpp"
 #include "maui/core/button_handler.hpp"
+#include "maui/core/handler_registry.hpp"
+#include "maui/core/i_element_handler.hpp"
 #include <gtest/gtest.h>
 
 namespace
 {
     using maui::controls::button;
     using maui::core::button_handler;
+    using maui::core::i_element_handler;
 
     NSButton* native_button(const std::shared_ptr<button_handler>& handler)
     {
@@ -88,5 +91,20 @@ namespace
         control.set_handler(nullptr);
         EXPECT_EQ(handler->platform_view(), nullptr);
         EXPECT_EQ(handler->virtual_view(), nullptr);
+    }
+
+    TEST_F(apple_button_seam, handler_resolved_from_default_registry)
+    {
+        // button -> button_handler is self-registered in button.cpp (MAUI_REGISTER_HANDLER).
+        std::shared_ptr<i_element_handler> handler = maui::core::default_handler_registry().create_handler<button>();
+        ASSERT_NE(handler, nullptr);
+        auto* resolved = dynamic_cast<button_handler*>(handler.get());
+        ASSERT_NE(resolved, nullptr);
+
+        button control;
+        control.set_text("Registered");
+        control.set_handler(handler);
+        NSButton* const button_view = (__bridge NSButton*)resolved->typed_platform_view()->native;
+        EXPECT_EQ(std::string(button_view.title.UTF8String), "Registered");
     }
 } // namespace

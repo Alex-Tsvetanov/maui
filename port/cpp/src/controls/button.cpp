@@ -6,6 +6,8 @@
 #include <string>
 
 #include "maui/core/bindable_property.hpp"
+#include "maui/core/button_handler.hpp"
+#include "maui/core/handler_registry.hpp"
 
 namespace maui::controls
 {
@@ -15,3 +17,7 @@ namespace maui::controls
         return descriptor;
     }
 } // namespace maui::controls
+
+// Self-register the default handler for button (opt-in, PROFILE §6). This TU is always linked (button's
+// out-of-line members above are referenced by every user of the control), so the registrar runs.
+MAUI_REGISTER_HANDLER(maui::controls::button, maui::core::button_handler)

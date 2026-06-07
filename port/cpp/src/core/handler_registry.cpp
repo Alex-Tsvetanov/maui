@@ -24,4 +24,10 @@ namespace maui::core
     {
         return factories_.contains(view_type);
     }
+
+    handler_registry& default_handler_registry()
+    {
+        static handler_registry registry;
+        return registry;
+    }
 } // namespace maui::core

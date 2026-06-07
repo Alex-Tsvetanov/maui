@@ -41,3 +41,7 @@ User: ''
 CheckOptions:
   - key: readability-redundant-member-init.IgnoreBaseInCopyConstructors
     value: 'true'
+  # The framework's own MAUI_* macros (e.g. MAUI_REGISTER_HANDLER) are a deliberate, unavoidable
+  # mechanism — self-registration needs a uniquely-named TU-scope static, which only a macro can spell.
+  - key: cppcoreguidelines-macro-usage.AllowedRegexp
+    value: '^MAUI_'

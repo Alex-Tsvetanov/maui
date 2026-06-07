@@ -503,6 +503,14 @@ namespace
         EXPECT_EQ(registry.create_handler<fake_control>(), nullptr);
     }
 
+    TEST(handler_registry_test, self_registration_populates_default_registry)
+    {
+        // fake_control -> test_handler is self-registered at file scope (MAUI_REGISTER_HANDLER, below).
+        auto created = maui::core::default_handler_registry().create_handler<fake_control>();
+        ASSERT_NE(created, nullptr);
+        EXPECT_NE(dynamic_cast<test_handler*>(created.get()), nullptr);
+    }
+
     struct fake_service
     {
         int value = 42;
@@ -528,3 +536,6 @@ namespace
         EXPECT_THROW((void)registry.get_required_service<other_service>(), std::runtime_error);
     }
 } // namespace
+
+// Opt-in self-registration (exercised above). Anonymous-namespace types are visible here in-TU.
+MAUI_REGISTER_HANDLER(fake_control, test_handler)
