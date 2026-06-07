@@ -134,12 +134,16 @@ if(MAUI_BACKEND STREQUAL "apple")
   set(CMAKE_OBJCXX_STANDARD_REQUIRED ON)
   set(MAUI_CORE_PLATFORM_SOURCES
     src/platform/apple/button_handler.mm
-    src/platform/apple/label_handler.mm)
+    src/platform/apple/label_handler.mm
+    src/platform/apple/entry_handler.mm
+    src/platform/apple/image_handler.mm)
   set_source_files_properties(${MAUI_CORE_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
   set(MAUI_CORE_PLATFORM_SOURCES
     src/platform/headless/button_handler.cpp
-    src/platform/headless/label_handler.cpp)
+    src/platform/headless/label_handler.cpp
+    src/platform/headless/entry_handler.cpp
+    src/platform/headless/image_handler.cpp)
 endif()
 
 add_library(maui_core STATIC
@@ -154,6 +158,8 @@ add_library(maui_core STATIC
   src/core/view_mapper.cpp
   src/core/button_handler.cpp
   src/core/label_handler.cpp
+  src/core/entry_handler.cpp
+  src/core/image_handler.cpp
   src/core/grid_length.cpp
   ${MAUI_CORE_PLATFORM_SOURCES}
 )
@@ -197,6 +203,8 @@ add_library(maui_controls STATIC
   src/controls/view.cpp
   src/controls/button.cpp
   src/controls/label.cpp
+  src/controls/entry.cpp
+  src/controls/image.cpp
 )
 target_include_directories(maui_controls PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # Controls depend on Core (handlers, contracts, the property system).
@@ -212,17 +220,23 @@ if(MAUI_BACKEND STREQUAL "apple")
   add_executable(maui_controls_tests
     tests/controls/button_apple_tests.mm
     tests/controls/label_apple_tests.mm
-    tests/controls/view_mapper_apple_tests.mm)
+    tests/controls/view_mapper_apple_tests.mm
+    tests/controls/entry_apple_tests.mm
+    tests/controls/image_apple_tests.mm)
   set_source_files_properties(
     tests/controls/button_apple_tests.mm
     tests/controls/label_apple_tests.mm
     tests/controls/view_mapper_apple_tests.mm
+    tests/controls/entry_apple_tests.mm
+    tests/controls/image_apple_tests.mm
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
   add_executable(maui_controls_tests
     tests/controls/button_tests.cpp
     tests/controls/label_tests.cpp
-    tests/controls/view_mapper_tests.cpp)
+    tests/controls/view_mapper_tests.cpp
+    tests/controls/entry_tests.cpp
+    tests/controls/image_tests.cpp)
 endif()
 target_link_libraries(maui_controls_tests PRIVATE
   maui_controls
