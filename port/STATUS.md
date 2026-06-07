@@ -9,21 +9,22 @@
 ```bash
 export VCPKG_ROOT="$HOME/vcpkg"          # registry clone; brew's vcpkg binary alone lacks the toolchain file
 cmake --preset headless && cmake --build --preset headless
-ctest --preset headless                  # all ported tests (graphics + core + controls: 214 cases, green)
+ctest --preset headless                  # all ported tests (graphics + core + controls: 233 cases, green)
 ./build/headless/maui_graphics_benchmarks --benchmark_min_time=0.02s   # Google Benchmark (not a ctest test)
 ```
 
 **macOS / AppKit backend** (real NSViews; Obj-C++ `.mm` + ARC):
 
 ```bash
-cmake --preset apple && cmake --build --preset apple && ctest --preset apple   # 207 cases incl. real NSButton tap
+cmake --preset apple && cmake --build --preset apple && ctest --preset apple   # 226 cases incl. real NSButton tap
 ./build/apple/maui_button_sample                                                # sample window (Ctrl-C / close to quit)
 ```
 
 **Resume:** continue to the next ⬜ milestone below, following `CLAUDE.md`. **M1 (Core) and M2 (button,
 the Rosetta Stone) are COMPLETE** — the virtual-view ⇄ handler ⇄ native seam is proven end-to-end on
-**both** the headless backend (214 tests) and the **macOS AppKit backend** (real `NSButton`, 207 tests
-incl. a native tap via `performClick:`). **M3 (layout) IN PROGRESS: M3a (stack managers) done; M3b (Grid) next.**
+**both** the headless backend (233 tests) and the **macOS AppKit backend** (real `NSButton`, 226 tests
+incl. a native tap via `performClick:`). **M3 (layout) is COMPLETE — the stack + grid managers pass the
+ported layout tests. Next: M4 — control set v1 (label/entry/image/layouts/page) + native layout panel.**
 The `PROFILE.md §11` decisions are **locked** (view owns handler; `property<T>` member object;
 per-type `concept`-vs-`i_*` rule; headers not modules). M1 build order — all done: `event`,
 `dispatcher`, `setter_specificity`(+list), `bindable_property<T>` / `bindable_object` / `property<T>`
@@ -54,8 +55,12 @@ title / custom cell). **Deferred to M3/M4:** the shared **ViewMapper** for the g
 + `stack_layout_manager` (MeasureSpacing) bases + `vertical_stack_layout_manager` /
 `horizontal_stack_layout_manager`. Pure cross-platform measure/arrange (no native); 28 GTest cases
 ported from C#'s Stack*LayoutManagerTests (spacing / padding / min-max / collapsed-vs-hidden / fill).
-**Next: M3b — Grid** (`grid_length` Auto/Star/Absolute, row/column definitions + spans, the grid layout
-manager + GridLayoutManagerTests). The layout *controls* + native container panel land at M4.
+**M3b (done): Grid** — `grid_length` / `grid_unit_type`, the row/column definition contracts, `i_grid_layout`
+(definitions + spacing + Row/Column/Span attached-property queries), and `grid_layout_manager`: Absolute /
+Auto / Star sizing, row+column spans, spacing, padding, min/max, two-pass measure, and arrange-time star
+expansion (pimpl grid_structure cached between measure/arrange, exactly as C#'s GridStructure). 19 GTest
+cases ported from GridLayoutManagerTests (a representative subset of a very large suite). **Next: M4** — the
+layout *controls* (`vertical_stack_layout` / `grid` etc.) + the native container panel + the shared ViewMapper.
 
 ## Tooling — format, lint, sanitizers (run from `port/cpp/`)
 
@@ -71,8 +76,8 @@ manager + GridLayoutManagerTests). The layout *controls* + native container pane
   invoking the keg's clang-tidy directly it needs the AppleClang sysroot, e.g.
   `clang-tidy --extra-arg=-isysroot --extra-arg="$(xcrun --show-sdk-path)" -p build/headless <file>`.
 - **Sanitizers** (`Sanitizers.md`) — target-level via the `maui_sanitizers` interface lib, one lane each:
-  - `cmake --preset asan-ubsan && cmake --build --preset asan-ubsan && ctest --preset asan-ubsan` — ASan+UBSan (default checked build; **214/214 green**)
-  - `cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan` — ThreadSanitizer (**214/214 green**)
+  - `cmake --preset asan-ubsan && cmake --build --preset asan-ubsan && ctest --preset asan-ubsan` — ASan+UBSan (default checked build; **233/233 green**)
+  - `cmake --preset tsan && cmake --build --preset tsan && ctest --preset tsan` — ThreadSanitizer (**233/233 green**)
   - `msan` preset is for **Linux/Clang CI only** — `-fsanitize=memory` is unsupported on AppleClang/macOS.
 
 ## Milestones (see `PROJECT.md §5`)
@@ -82,7 +87,7 @@ manager + GridLayoutManagerTests). The layout *controls* + native container pane
 | M0 | Graphics primitives compile + pass ported tests | ✅ |
 | M1 | Core contracts + property/handler infra + dispatcher, unit-tested | ✅ |
 | M2 | `button` end-to-end (headless → macOS), tap works in sample app | ✅ |
-| M3 | Layout measure/arrange (`stack_layout`, `grid`) pass layout tests | 🚧 |
+| M3 | Layout measure/arrange (`stack_layout`, `grid`) pass layout tests | ✅ |
 | M4 | Control set v1 (label, entry, image, layouts, page) on macOS | ⬜ |
 | M5 | `bindable_object`/`bindable_property`, binding, style, lifecycle | ⬜ |
 | M6 | Second platform (iOS) behind the same handlers | ⬜ |
@@ -115,5 +120,6 @@ manager + GridLayoutManagerTests). The layout *controls* + native container pane
 
 | layout foundation (`dimension`, `i_container`/`i_layout`/`i_stack_layout`, `i_layout_manager`) | core/layouts | ✅ | — | ✅ | headless + macOS | `ILayout : IView + IContainer + IPadding` (M3 subset; ClipsToBounds / ISafeAreaView / ICrossPlatformLayout deferred to M4). `dimension` = Unset(NaN)/Minimum(0)/Maximum(inf) + is_explicit_set |
 | stack layout managers (`layout_manager`/`stack_layout_manager` + vertical/horizontal) | layouts | ✅ | ✅* | ✅ | headless + macOS | New `maui_layouts` lib — pure cross-platform measure/arrange (ResolveConstraints, MeasureSpacing, stacking). 28 GTest cases via mock view/stack (spacing / padding / min-max / collapsed-vs-hidden / fill / child-constraint). The layout *controls* + native panel are M4. *ported from C# Stack*LayoutManagerTests (the oracle) |
+| Grid (`grid_length`/`grid_unit_type`, `i_grid_*` contracts, `grid_layout_manager`) | core + layouts | ✅ | ✅* | ✅ | headless + macOS | The full row/column algorithm: Absolute/Auto/Star sizing, row+column spans, spacing, padding, min/max, two-pass measure + arrange-time star expansion (pimpl grid_structure cached measure→arrange, like C# GridStructure). 19 GTest cases (representative subset of the large GridLayoutManagerTests). *ported from the C# oracle |
 
 _(extend this table as components are added)_

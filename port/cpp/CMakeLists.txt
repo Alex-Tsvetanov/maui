@@ -147,6 +147,7 @@ add_library(maui_core STATIC
   src/core/command_mapper.cpp
   src/core/handler_registry.cpp
   src/core/button_handler.cpp
+  src/core/grid_length.cpp
   ${MAUI_CORE_PLATFORM_SOURCES}
 )
 target_include_directories(maui_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -224,6 +225,7 @@ add_library(maui_layouts STATIC
   src/layouts/stack_layout_manager.cpp
   src/layouts/vertical_stack_layout_manager.cpp
   src/layouts/horizontal_stack_layout_manager.cpp
+  src/layouts/grid_layout_manager.cpp
 )
 target_include_directories(maui_layouts PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(maui_layouts PUBLIC maui_core PRIVATE maui_sanitizers)
@@ -235,6 +237,7 @@ endif()
 add_executable(maui_layout_tests
   tests/layouts/vertical_stack_layout_manager_tests.cpp
   tests/layouts/horizontal_stack_layout_manager_tests.cpp
+  tests/layouts/grid_layout_manager_tests.cpp
 )
 target_include_directories(maui_layout_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for tests/layouts/*.hpp
 target_link_libraries(maui_layout_tests PRIVATE
