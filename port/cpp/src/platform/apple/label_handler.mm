@@ -6,11 +6,13 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include "apple_conversions.hpp"
 #include "maui/core/i_label.hpp"
 #include "maui/core/label_handler.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -47,6 +49,29 @@ namespace maui::core
             CFRelease(native);
             native = nullptr;
         }
+    }
+
+    // The generic-IView property pushes (the shared view_mapper calls these via view_platform_base).
+    void label_platform::update_visibility(maui::core::visibility value)
+    {
+        as_label(native).hidden = value != maui::core::visibility::visible;
+    }
+
+    void label_platform::update_opacity(double value)
+    {
+        as_label(native).alphaValue = value;
+    }
+
+    void label_platform::update_is_enabled(bool value)
+    {
+        [as_label(native) setEnabled:static_cast<BOOL>(value)];
+    }
+
+    void label_platform::update_automation_id(std::string_view value)
+    {
+        const std::string id(value);
+        NSString* const raw = [NSString stringWithUTF8String:id.c_str()];
+        as_label(native).accessibilityIdentifier = raw != nil ? raw : @"";
     }
 
     std::unique_ptr<label_platform> label_handler::create_platform_view()

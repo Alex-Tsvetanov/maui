@@ -35,6 +35,7 @@
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/property_mapper.hpp"
+#include "maui/core/view_platform_base.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -180,6 +181,21 @@ namespace maui::core
         [[nodiscard]] void* container_view() const override
         {
             return container_view_;
+        }
+
+        // The platform view's view_platform_base face for the shared view_mapper. NON-BREAKING: a
+        // handler whose Platform does NOT derive view_platform_base still compiles — it just returns
+        // null and the generic-IView maps become no-ops for that handler.
+        [[nodiscard]] view_platform_base* platform_base() const override
+        {
+            if constexpr (std::is_base_of_v<view_platform_base, Platform>)
+            {
+                return platform_view_.get();
+            }
+            else
+            {
+                return nullptr;
+            }
         }
 
         // get_desired_size / platform_arrange stay pure here — Derived overrides them (mirrors C#'s

@@ -8,6 +8,7 @@
 #include "maui/core/i_text_button.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/view_handler.hpp"
+#include "maui/core/view_mapper.hpp"
 
 namespace maui::core
 {
@@ -23,20 +24,25 @@ namespace maui::core
         return table;
     }
 
-    // The button's own mapper (padding + the i_button_stroke border), chained onto the text mapper —
-    // mirroring C# ButtonHandler.Mapper chaining TextButtonMapper. ImageButtonMapper + the shared
-    // ViewMapper (the generic IView properties) are deferred to M3/M4.
+    // The button's own mapper (padding + the i_button_stroke border), chained onto BOTH the shared
+    // view_mapper (the generic IView properties) and the text mapper — mirroring C# ButtonHandler.Mapper
+    // chaining TextButtonMapper, which ultimately chains ViewHandler.ViewMapper. The chain is ordered so
+    // the generic IView keys run first (keys() walks the chain in reverse), then the text keys, then the
+    // button's own keys; no keys collide across the three mappers. ImageButtonMapper is still deferred.
     property_mapper<i_button, button_handler>& button_handler::mapper()
     {
-        static property_mapper<i_button, button_handler> table{
-            text_mapper(),
-            {
+        static property_mapper<i_button, button_handler> table = [] {
+            property_mapper<i_button, button_handler> mapped{
                 {"padding", &button_handler::map_padding},
                 {"stroke_color", &button_handler::map_stroke_color},
                 {"stroke_thickness", &button_handler::map_stroke_thickness},
                 {"corner_radius", &button_handler::map_corner_radius},
-            },
-        };
+            };
+            // Reverse-order iteration in keys() means the LAST chained mapper's keys come first, so
+            // listing text_mapper then view_mapper yields: view (generic IView) keys, then text keys.
+            mapped.set_chained({&text_mapper(), &view_mapper()});
+            return mapped;
+        }();
         return table;
     }
 

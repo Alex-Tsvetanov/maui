@@ -7,20 +7,26 @@
 #include "maui/core/i_label.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/view_handler.hpp"
+#include "maui/core/view_mapper.hpp"
 
 namespace maui::core
 {
-    // Keyed on i_label, which exposes Text + the i_text_style appearance + i_text_alignment directly,
-    // so no chained text mapper is needed (cf. button). M4 first cut maps the visible NSTextField
-    // properties; character_spacing / line_height / vertical alignment / padding / decorations are
-    // present on the control but their native mapping is deferred (documented in STATUS).
+    // Keyed on i_label, which exposes Text + the i_text_style appearance + i_text_alignment directly, so
+    // no chained text mapper is needed (cf. button). Chained onto the shared view_mapper so the generic
+    // IView properties (Visibility/Opacity/IsEnabled/AutomationId) map first (keys() walks the chain
+    // first). M4 first cut maps the visible NSTextField properties; character_spacing / line_height /
+    // vertical alignment / padding / decorations are present on the control but their native mapping is
+    // deferred (documented in STATUS).
     property_mapper<i_label, label_handler>& label_handler::mapper()
     {
         static property_mapper<i_label, label_handler> table{
-            {"text", &label_handler::map_text},
-            {"text_color", &label_handler::map_text_color},
-            {"font", &label_handler::map_font},
-            {"horizontal_text_alignment", &label_handler::map_horizontal_text_alignment},
+            view_mapper(),
+            {
+                {"text", &label_handler::map_text},
+                {"text_color", &label_handler::map_text_color},
+                {"font", &label_handler::map_font},
+                {"horizontal_text_alignment", &label_handler::map_horizontal_text_alignment},
+            },
         };
         return table;
     }

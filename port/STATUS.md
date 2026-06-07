@@ -9,14 +9,14 @@
 ```bash
 export VCPKG_ROOT="$HOME/vcpkg"          # registry clone; brew's vcpkg binary alone lacks the toolchain file
 cmake --preset headless && cmake --build --preset headless
-ctest --preset headless                  # all ported tests (graphics + core + controls: 238 cases, green)
+ctest --preset headless                  # all ported tests (graphics + core + controls: 247 cases, green)
 ./build/headless/maui_graphics_benchmarks --benchmark_min_time=0.02s   # Google Benchmark (not a ctest test)
 ```
 
 **macOS / AppKit backend** (real NSViews; Obj-C++ `.mm` + ARC):
 
 ```bash
-cmake --preset apple && cmake --build --preset apple && ctest --preset apple   # 228 cases incl. real NSButton tap
+cmake --preset apple && cmake --build --preset apple && ctest --preset apple   # 230 cases incl. real NSButton tap
 ./build/apple/maui_button_sample                                                # sample window (Ctrl-C / close to quit)
 ```
 
@@ -67,8 +67,33 @@ keyed on i_label — no chaining) with a headless mirror and a real macOS NSText
 Apple `.mm`s now share `apple_conversions.hpp` (maui color/font → NSColor/NSFont). Also disabled clang-tidy
 `portability-template-virtual-member-function` — it flagged the deliberate inline virtual overrides on the
 `view<ViewInterface>` template base (latent since M2a; the vtable odr-uses them all on our toolchain).
-**Next: M4b** — more controls (entry / image) + the layout controls (`vertical_stack_layout` / `grid`)
-+ the native container panel + the shared ViewMapper.
+**M4b — shared ViewMapper (Unit 2, done):** the generic-IView property mapper every handler chains.
+New `view_platform_base` (a non-template base for the platform-view structs: headless mirrors
+`hidden`/`alpha`/`enabled`/`automation_id` + virtual `update_visibility`/`update_opacity`/
+`update_is_enabled`/`update_automation_id`, backend-overridable) and `view_mapper()` — a
+`property_mapper<i_view, i_view_handler>` with keys `"visibility"`/`"opacity"`/`"is_enabled"`/
+`"automation_id"`. `i_view_handler` gained `view_platform_base* platform_base()`; the CRTP `view_handler`
+implements it NON-BREAKINGLY (`if constexpr (is_base_of<view_platform_base, Platform>)` → ptr else null,
+so handlers whose platform view doesn't derive the base still compile and the maps no-op). The four
+`view<ViewInterface>` properties are now BINDABLE (private `property<T>` bound to NON-template free-function
+descriptors `is_enabled_property()`/`opacity_property()`/`visibility_property()`/`automation_id_property()`
+in the new `src/controls/view.cpp` — one descriptor per property across all instantiations; opacity clamps
+to [0,1] like VisualElement). `button_platform`/`label_platform` now derive `view_platform_base` and the
+handlers chain `view_mapper()` (button: `set_chained({&text_mapper(), &view_mapper()})` so generic-IView
+keys run first; label: the `property_mapper(view_mapper(), {...})` ctor). AppKit `.mm`s override the four
+`update_*` on the real `NSButton`/`NSTextField` (`hidden`/`alphaValue`/`setEnabled:`/
+`accessibilityIdentifier`). 9 headless + 2 apple GTest cases (`view_mapper_tests.cpp` /
+`view_mapper_apple_tests.mm`). **Deferred (note for coordinator):** the wider ViewMapper set —
+Width/Height/Background/transforms/Clip/Shadow/FlowDirection/Semantics/InputTransparent — and C#'s
+`IsConnectingHandler()` default-skip optimization. The `MAUI_PLATFORM_APPLE` compile definition (PUBLIC,
+apple build only) guards the platform structs' `update_*` override declarations so the headless build keeps
+the base mirrors (one backend per build → no ODR mismatch). **Coordinator: to retrofit Units 1 & 3's new
+handlers, chain `maui::core::view_mapper()` into each handler's `mapper()` (single-sub-mapper handlers use
+the `property_mapper(view_mapper(), {entries})` ctor like `label_handler`; multi-sub-mapper handlers use
+`set_chained({&other_mapper(), &view_mapper()})` like `button_handler`), and make each platform-view struct
+derive `maui::core::view_platform_base`.**
+**Still next: M4b** — more controls (entry / image) + the layout controls (`vertical_stack_layout` /
+`grid`) + the native container panel.
 
 ## Tooling — format, lint, sanitizers (run from `port/cpp/`)
 
@@ -125,7 +150,8 @@ Apple `.mm`s now share `apple_conversions.hpp` (maui color/font → NSColor/NSFo
 | `button` control | controls | ✅ | ✅* | ✅ | headless + macOS | The Rosetta Stone's virtual view. **Full own surface bindable + mapped**: Text + the i_text_style appearance (text_color/font/character_spacing) + Padding + the i_button_stroke border (stroke_color/thickness/corner_radius); clicked/pressed/released events + optional command; IsEnabled gating (ButtonElement order: command→event; release always clears IsPressed). Self-registers its handler (MAUI_REGISTER_HANDLER). 14 headless GTest cases (seam both directions + every property). *characterization |
 | `button_handler` AppKit backend (`.mm`) + `maui_button_sample` | platform/apple | ✅ | ✅* | ✅ | macOS | Real `NSButton` via Obj-C++/ARC: Text→`title`; font→`NSFont`; text_color→`contentTintColor`; stroke→layer border; target-action trampoline → `send_clicked`; RAII NSButton release. (character_spacing/padding are documented AppKit TODOs.) 7 GTest cases drive a real NSButton (`performClick:` → `clicked`; appearance; disabled suppressed; disconnect; registry-resolved). Sample app = a live NSWindow round-tripping a tap. Translated from ButtonHandler.iOS.cs (no AppKit oracle in mainline MAUI; macOS there is Mac Catalyst/UIKit). *characterization |
 | handler self-registration (`default_handler_registry`/`handler_registrar`/`MAUI_REGISTER_HANDLER`) | core | ✅ | ✅* | ✅ | headless + macOS | Opt-in §6 self-registration over the explicit primitive; macro-free registrar + macro sugar; noexcept registrar (load-time). OBJECT-library tree-shaking caveat documented. clang-tidy `^MAUI_` allow-listed. *characterization |
-| `label` control (`i_label`/`i_text_alignment`/`text_alignment`/`text_decorations`, `label_handler`) | controls + core/handlers | ✅ | ✅* | ✅ | headless + macOS | Second control (display-only) — proves the recipe generalizes. Bindable text/text_color/font/char_spacing/padding/alignments/decorations/line_height; mapper keyed on i_label (no chaining). Headless mirror + real macOS NSTextField (text/textColor/font/alignment). Shared `apple_conversions.hpp` (color/font→AppKit). 5 headless + 2 apple GTest cases; self-registers. *characterization |
+| `label` control (`i_label`/`i_text_alignment`/`text_alignment`/`text_decorations`, `label_handler`) | controls + core/handlers | ✅ | ✅* | ✅ | headless + macOS | Second control (display-only) — proves the recipe generalizes. Bindable text/text_color/font/char_spacing/padding/alignments/decorations/line_height; mapper keyed on i_label, now chained onto `view_mapper()` (M4b). Headless mirror + real macOS NSTextField (text/textColor/font/alignment). Shared `apple_conversions.hpp` (color/font→AppKit). 5 headless + 2 apple GTest cases; self-registers. *characterization |
+| shared ViewMapper (`view_platform_base`, `view_mapper`; `view<>` IsEnabled/Opacity/Visibility/AutomationId bindable) | core/handlers + controls | ✅ | ✅* | ✅ | headless + macOS | M4b Unit 2 — the generic-IView property mapper every handler chains. `view_platform_base` (non-template platform-view base: headless mirrors hidden/alpha/enabled/automation_id + backend-overridable update_*); `view_mapper()` = `property_mapper<i_view, i_view_handler>` keyed visibility/opacity/is_enabled/automation_id. `i_view_handler::platform_base()` + CRTP `view_handler` non-breaking `if constexpr` impl. The four `view<>` props bindable via NON-template descriptor free-fns in `src/controls/view.cpp` (opacity clamped [0,1]). button/label platform structs derive the base + chain `view_mapper()`; AppKit pushes to NSButton/NSTextField (hidden/alphaValue/setEnabled:/accessibilityIdentifier). Wider ViewMapper set (Width/Height/Background/transforms/Clip/Shadow/FlowDirection) + IsConnectingHandler skip deferred. 9 headless + 2 apple GTest cases. *characterization |
 
 | layout foundation (`dimension`, `i_container`/`i_layout`/`i_stack_layout`, `i_layout_manager`) | core/layouts | ✅ | — | ✅ | headless + macOS | `ILayout : IView + IContainer + IPadding` (M3 subset; ClipsToBounds / ISafeAreaView / ICrossPlatformLayout deferred to M4). `dimension` = Unset(NaN)/Minimum(0)/Maximum(inf) + is_explicit_set |
 | stack layout managers (`layout_manager`/`stack_layout_manager` + vertical/horizontal) | layouts | ✅ | ✅* | ✅ | headless + macOS | New `maui_layouts` lib — pure cross-platform measure/arrange (ResolveConstraints, MeasureSpacing, stacking). 28 GTest cases via mock view/stack (spacing / padding / min-max / collapsed-vs-hidden / fill / child-constraint). The layout *controls* + native panel are M4. *ported from C# Stack*LayoutManagerTests (the oracle) |

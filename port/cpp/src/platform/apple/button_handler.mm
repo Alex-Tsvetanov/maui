@@ -14,11 +14,13 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include "apple_conversions.hpp"
 #include "maui/core/button_handler.hpp"
 #include "maui/core/i_button.hpp"
 #include "maui/core/i_text_button.hpp"
+#include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -65,6 +67,29 @@ namespace maui::core
             CFRelease(native); // balances the __bridge_retained in create_platform_view
             native = nullptr;
         }
+    }
+
+    // The generic-IView property pushes (the shared view_mapper calls these via view_platform_base).
+    void button_platform::update_visibility(maui::core::visibility value)
+    {
+        as_button(native).hidden = value != maui::core::visibility::visible;
+    }
+
+    void button_platform::update_opacity(double value)
+    {
+        as_button(native).alphaValue = value;
+    }
+
+    void button_platform::update_is_enabled(bool value)
+    {
+        [as_button(native) setEnabled:static_cast<BOOL>(value)];
+    }
+
+    void button_platform::update_automation_id(std::string_view value)
+    {
+        const std::string id(value);
+        NSString* const raw = [NSString stringWithUTF8String:id.c_str()];
+        as_button(native).accessibilityIdentifier = raw != nil ? raw : @"";
     }
 
     std::unique_ptr<button_platform> button_handler::create_platform_view()

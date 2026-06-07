@@ -150,6 +150,8 @@ add_library(maui_core STATIC
   src/core/property_mapper.cpp
   src/core/command_mapper.cpp
   src/core/handler_registry.cpp
+  src/core/view_platform_base.cpp
+  src/core/view_mapper.cpp
   src/core/button_handler.cpp
   src/core/label_handler.cpp
   src/core/grid_length.cpp
@@ -160,8 +162,12 @@ target_include_directories(maui_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # rect/size in i_view). PUBLIC so consumers of maui_core link maui_graphics transitively.
 target_link_libraries(maui_core PUBLIC maui_graphics PRIVATE maui_sanitizers)
 # The Apple backend's .mm partials use AppKit/Foundation; Cocoa is PUBLIC so test/app consumers link it.
+# MAUI_PLATFORM_APPLE is PUBLIC so every TU in the apple build (controls, tests) sees the same platform
+# struct definitions (with the view_platform_base update_* overrides) — keeping the class ODR-consistent
+# across the build (only one backend is ever compiled/linked together).
 if(MAUI_BACKEND STREQUAL "apple")
   target_link_libraries(maui_core PUBLIC "-framework Cocoa")
+  target_compile_definitions(maui_core PUBLIC MAUI_PLATFORM_APPLE)
 endif()
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
@@ -188,6 +194,7 @@ gtest_discover_tests(maui_core_tests)
 # Layer 2 - Controls  (maui::controls  <=  Microsoft.Maui.Controls : the developer-facing controls)
 # ======================================================================
 add_library(maui_controls STATIC
+  src/controls/view.cpp
   src/controls/button.cpp
   src/controls/label.cpp
 )
@@ -204,13 +211,18 @@ endif()
 if(MAUI_BACKEND STREQUAL "apple")
   add_executable(maui_controls_tests
     tests/controls/button_apple_tests.mm
-    tests/controls/label_apple_tests.mm)
-  set_source_files_properties(tests/controls/button_apple_tests.mm tests/controls/label_apple_tests.mm
+    tests/controls/label_apple_tests.mm
+    tests/controls/view_mapper_apple_tests.mm)
+  set_source_files_properties(
+    tests/controls/button_apple_tests.mm
+    tests/controls/label_apple_tests.mm
+    tests/controls/view_mapper_apple_tests.mm
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
   add_executable(maui_controls_tests
     tests/controls/button_tests.cpp
-    tests/controls/label_tests.cpp)
+    tests/controls/label_tests.cpp
+    tests/controls/view_mapper_tests.cpp)
 endif()
 target_link_libraries(maui_controls_tests PRIVATE
   maui_controls

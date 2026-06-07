@@ -10,6 +10,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/font.hpp"
@@ -17,27 +18,42 @@
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/view_handler.hpp"
+#include "maui/core/view_platform_base.hpp"
+#include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
 namespace maui::core
 {
-    struct label_platform
+    // Derives view_platform_base so the shared view_mapper can push the generic IView properties onto
+    // it (headless keeps the base mirrors; Apple overrides update_* to push to the NSTextField).
+    struct label_platform : view_platform_base
     {
         label_platform() = default;
-        ~label_platform(); // backend-defined: releases the retained native label on Apple
+        ~label_platform() override; // backend-defined: releases the retained native label on Apple
         label_platform(const label_platform&) = delete;
         label_platform(label_platform&&) = delete;
         label_platform& operator=(const label_platform&) = delete;
         label_platform& operator=(label_platform&&) = delete;
 
         void* native = nullptr;
-        // Headless mirror of the mapped properties (the Apple build writes to `native` instead).
+        // Headless mirror of the mapped properties (the Apple build writes to `native` instead). The
+        // generic IView mirrors (hidden/alpha/enabled/automation_id) come from view_platform_base.
         std::string text;
         maui::graphics::color text_color;
         font text_font;
         text_alignment horizontal_alignment = text_alignment::start;
+
+#ifdef MAUI_PLATFORM_APPLE
+        // Apple backend: push the generic IView properties to the NSTextField (defined in
+        // src/platform/apple/label_handler.mm). Omitted on headless, which keeps the base mirrors; the
+        // class layout is identical and a build only ever sees one backend, so there is no ODR mismatch.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+#endif
     };
 
     class label_handler : public view_handler<label_handler, i_label, label_platform>

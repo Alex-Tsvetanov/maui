@@ -22,11 +22,13 @@
 #include <utility>
 
 #include "maui/core/bindable_object.hpp"
+#include "maui/core/bindable_property.hpp"
 #include "maui/core/flow_direction.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/layout_alignment.hpp"
+#include "maui/core/property.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
@@ -34,6 +36,17 @@
 
 namespace maui::controls
 {
+    // The shared bindable-property descriptors for the four generic IView properties (VisualElement's
+    // IsEnabled / Opacity / IsVisible(Visibility) + Element's AutomationId). They are NON-template free
+    // functions — one descriptor per property, shared across EVERY view<ViewInterface> instantiation —
+    // because the descriptor identity must match the view_mapper's keys regardless of the concrete
+    // control type. (A static data member of the template would mint a distinct descriptor per
+    // ViewInterface.) Defined out-of-line in src/controls/view.cpp. Names match the view_mapper keys.
+    const maui::core::bindable_property<bool>& is_enabled_property();
+    const maui::core::bindable_property<double>& opacity_property();
+    const maui::core::bindable_property<maui::core::visibility>& visibility_property();
+    const maui::core::bindable_property<std::string>& automation_id_property();
+
     template <class ViewInterface> class view : public maui::core::bindable_object, public ViewInterface
     {
         static_assert(std::is_base_of_v<maui::core::i_view, ViewInterface>,
@@ -115,7 +128,11 @@ namespace maui::controls
         // ---- i_view ----
         [[nodiscard]] std::string_view automation_id() const override
         {
-            return automation_id_;
+            return automation_id_.get();
+        }
+        void set_automation_id(std::string value)
+        {
+            automation_id_.set(std::move(value));
         }
         [[nodiscard]] maui::core::flow_direction flow_direction() const override
         {
@@ -147,19 +164,27 @@ namespace maui::controls
         }
         [[nodiscard]] maui::core::visibility visibility() const override
         {
-            return visibility_;
+            return visibility_.get();
+        }
+        void set_visibility(maui::core::visibility value)
+        {
+            visibility_.set(value);
         }
         [[nodiscard]] double opacity() const override
         {
-            return opacity_;
+            return opacity_.get();
+        }
+        void set_opacity(double value)
+        {
+            opacity_.set(value);
         }
         [[nodiscard]] bool is_enabled() const override
         {
-            return is_enabled_;
+            return is_enabled_.get();
         }
         void set_is_enabled(bool value)
         {
-            is_enabled_ = value;
+            is_enabled_.set(value);
         }
         [[nodiscard]] bool is_focused() const override
         {
@@ -275,10 +300,14 @@ namespace maui::controls
         std::weak_ptr<maui::core::i_element> parent_;
         maui::graphics::rect frame_;
         maui::graphics::size desired_size_;
-        std::string automation_id_;
-        double opacity_ = 1.0;
-        maui::core::visibility visibility_ = maui::core::visibility::visible;
-        bool is_enabled_ = true;
+        // The four generic IView properties are bindable (their change flows through
+        // on_property_changed → handler->update_value → the chained view_mapper). Each references a
+        // single shared descriptor (the non-template *_property() free functions above) so the
+        // descriptor — and thus the property name the mapper keys on — is the same for every control.
+        maui::core::property<bool> is_enabled_{*this, is_enabled_property()};
+        maui::core::property<double> opacity_{*this, opacity_property()};
+        maui::core::property<maui::core::visibility> visibility_{*this, visibility_property()};
+        maui::core::property<std::string> automation_id_{*this, automation_id_property()};
         bool is_focused_ = false;
     };
 } // namespace maui::controls
