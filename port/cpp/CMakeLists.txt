@@ -212,6 +212,7 @@ add_library(maui_controls STATIC
   src/controls/image.cpp
   src/controls/vertical_stack_layout.cpp
   src/controls/horizontal_stack_layout.cpp
+  src/controls/grid.cpp
 )
 target_include_directories(maui_controls PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # Controls depend on Core (handlers, contracts, the property system); the layout controls additionally
@@ -231,7 +232,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/view_mapper_apple_tests.mm
     tests/controls/entry_apple_tests.mm
     tests/controls/image_apple_tests.mm
-    tests/controls/layout_apple_tests.mm)
+    tests/controls/layout_apple_tests.mm
+    tests/controls/grid_apple_tests.mm)
   set_source_files_properties(
     tests/controls/button_apple_tests.mm
     tests/controls/label_apple_tests.mm
@@ -239,6 +241,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/entry_apple_tests.mm
     tests/controls/image_apple_tests.mm
     tests/controls/layout_apple_tests.mm
+    tests/controls/grid_apple_tests.mm
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
   add_executable(maui_controls_tests
@@ -247,7 +250,8 @@ else()
     tests/controls/view_mapper_tests.cpp
     tests/controls/entry_tests.cpp
     tests/controls/image_tests.cpp
-    tests/controls/layout_tests.cpp)
+    tests/controls/layout_tests.cpp
+    tests/controls/grid_tests.cpp)
 endif()
 target_include_directories(maui_controls_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for tests/layouts/*.hpp
 target_link_libraries(maui_controls_tests PRIVATE
