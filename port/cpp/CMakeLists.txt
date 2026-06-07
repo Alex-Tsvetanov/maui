@@ -129,6 +129,8 @@ target_link_libraries(maui_graphics_benchmarks PRIVATE
 add_library(maui_core STATIC
   src/core/manual_dispatcher.cpp
   src/core/bindable_object.cpp
+  src/core/thickness.cpp
+  src/core/font.cpp
 )
 target_include_directories(maui_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(maui_core PRIVATE maui_sanitizers)
@@ -142,6 +144,7 @@ add_executable(maui_core_tests
   tests/core/dispatcher_tests.cpp
   tests/core/specificity_tests.cpp
   tests/core/bindable_tests.cpp
+  tests/core/primitives_tests.cpp
 )
 target_link_libraries(maui_core_tests PRIVATE
   maui_core
