@@ -49,36 +49,18 @@ namespace maui::graphics
         path_f &insert_curve_to(const point_f &control1, const point_f &control2, const point_f &point, int index);
 
         // ---- accessors ----
-        int sub_path_count() const
-        {
-            return sub_path_count_;
-        }
+        int sub_path_count() const;
         bool closed() const;
         point_f first_point() const;
         point_f last_point() const;
         int last_point_index() const;
-        int count() const
-        {
-            return static_cast<int>(points_.size());
-        }
-        int operation_count() const
-        {
-            return static_cast<int>(operations_.size());
-        }
+        int count() const;
+        int operation_count() const;
         int segment_count_excluding_open_and_close() const;
         point_f operator[](int index) const; // default-constructed point_f if out of range
-        const std::vector<point_f> &points() const
-        {
-            return points_;
-        }
-        const std::vector<path_operation> &segment_types() const
-        {
-            return operations_;
-        }
-        path_operation get_segment_type(int index) const
-        {
-            return operations_[index];
-        }
+        const std::vector<point_f> &points() const;
+        const std::vector<path_operation> &segment_types() const;
+        path_operation get_segment_type(int index) const;
         bool is_sub_path_closed(int sub_path_index) const;
 
         void set_point(int index, float x, float y);
@@ -138,17 +120,9 @@ namespace maui::graphics
 
         // ---- lifetime (headless: no native resource) ----
         void invalidate();
-        void dispose()
-        {
-        }
-        void *platform_path() const
-        {
-            return platform_path_;
-        }
-        void set_platform_path(void *p)
-        {
-            platform_path_ = p;
-        }
+        void dispose();
+        void *platform_path() const;
+        void set_platform_path(void *p);
 
     private:
         std::vector<point_f> points_;
@@ -167,13 +141,7 @@ namespace maui::graphics
         static float clamp_corner_radius(float cr, float w, float h);
     };
 
-    inline bool operator==(const path_f &a, const path_f &b)
-    {
-        return a.equals(b);
-    }
-    inline bool operator!=(const path_f &a, const path_f &b)
-    {
-        return !a.equals(b);
-    }
+    bool operator==(const path_f &a, const path_f &b);
+    bool operator!=(const path_f &a, const path_f &b);
 
 } // namespace maui::graphics

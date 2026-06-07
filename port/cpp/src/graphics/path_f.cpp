@@ -415,6 +415,30 @@ namespace maui::graphics
     }
 
     // ---- accessors ----
+    int path_f::sub_path_count() const
+    {
+        return sub_path_count_;
+    }
+    int path_f::count() const
+    {
+        return static_cast<int>(points_.size());
+    }
+    int path_f::operation_count() const
+    {
+        return static_cast<int>(operations_.size());
+    }
+    const std::vector<point_f> &path_f::points() const
+    {
+        return points_;
+    }
+    const std::vector<path_operation> &path_f::segment_types() const
+    {
+        return operations_;
+    }
+    path_operation path_f::get_segment_type(int index) const
+    {
+        return operations_[index];
+    }
     point_f path_f::first_point() const
     {
         return points_.empty() ? point_f{} : points_.front();
@@ -1182,6 +1206,26 @@ namespace maui::graphics
     void path_f::invalidate()
     {
         cached_bounds_.reset();
+    }
+    void path_f::dispose()
+    {
+    }
+    void *path_f::platform_path() const
+    {
+        return platform_path_;
+    }
+    void path_f::set_platform_path(void *p)
+    {
+        platform_path_ = p;
+    }
+
+    bool operator==(const path_f &a, const path_f &b)
+    {
+        return a.equals(b);
+    }
+    bool operator!=(const path_f &a, const path_f &b)
+    {
+        return !a.equals(b);
     }
 
     // ---- SVG elliptical arc (PathArcExtensions.cs) ----
