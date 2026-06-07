@@ -139,6 +139,7 @@ endif()
 add_executable(maui_core_tests
   tests/core/event_tests.cpp
   tests/core/dispatcher_tests.cpp
+  tests/core/specificity_tests.cpp
 )
 target_link_libraries(maui_core_tests PRIVATE
   maui_core
