@@ -122,28 +122,47 @@ with **explicit registration**:
 - **XAML:** deferred (layer 6). When tackled, parse markup to a builder that calls the same explicit
   factories — or generate C++ from XAML at build time. Never assume runtime type discovery.
 
-## 7. Property system sketch (`maui::core`)
+## 7. Property system (`maui::core`) — implemented, **no type erasure in the core**
+
+C#'s `BindableObject` stores every value as `System.Object` in one per-object dictionary (it has no
+choice — reflection-driven XAML/styles need a uniform store, and GC makes boxing cheap). A C++ rewrite
+should **not** copy that: a central store forces type erasure (`std::any` ⇒ no compile-time safety,
+heap-per-value, RTTI). Instead the value lives, strongly typed, in each property's own member. (Decided
+with the maintainer; see §11.)
 
 ```cpp
-template <class T>
-class bindable_property {            // one per (owner, name)
-public:
-  const T& get() const;
-  void set(T value);                 // applies at "manual" precedence
-  event<bindable_object*, property_changed_args> changed;
-  // internal: value-precedence stack { default, style, binding, manual }
+// Packed-uint64 precedence key; integer order IS the precedence. constexpr value type.
+class setter_specificity { /* default < binding < dynamic-resource < manual < trigger < vsm < handler */ };
+template <class T> class setter_specificity_list { /* sorted typed store, highest specificity wins */ };
+
+// Shared, static, *typed* descriptor (the C# `XxxProperty` field). No std::any.
+template <class T> class bindable_property {
+  bindable_property(std::string name, T default_value = {}, options /*typed callbacks*/ = {});
+  // options: property_changed/changing, coerce_value, validate_value, default_value_creator (all typed)
 };
 
-class bindable_object {              // base of every Element
-  // type-erased store of property values keyed by property id
-  // get_value/set_value(prop_id, any) with coercion + change notification
-public:
-  event<bindable_object*, std::string_view> property_changed;
+// Per-instance member: owns the typed value store + the value precedence + a typed change event.
+template <class T> class property {
+  property(bindable_object& owner, const bindable_property<T>& descriptor);
+  const T& get() const;                              // zero-copy; falls back to the descriptor default
+  void set(T value, setter_specificity = manual);    // precedence + notification, all typed
+  void clear(setter_specificity = manual);
+  event<T, T> changed;                               // (old, new), delivered by const ref
+};
+
+class bindable_object {                              // base of every element — notification surface only
+  event<std::string_view> property_changed, property_changing;   // INotifyPropertyChanged, keyed by name
+protected: virtual void on_property_changed(std::string_view);   // property<T> routes through this (friend)
 };
 ```
-Match MAUI's **value precedence** exactly (default < style/dynamic-resource < binding < explicit set) —
-this is verified by `src/Controls/tests/Core.UnitTests` (BindableProperty / Binding tests). Port those
-tests first.
+
+Storage is lazy (an unset property is just the shared descriptor default, no per-instance allocation).
+Value precedence matches MAUI exactly (default < style/dynamic-resource < binding < manual < trigger <
+vsm; handler values overridden by any other set; below-current-specificity sets kept silently for
+un-apply), verified against `src/Controls/tests/Core.UnitTests` (`SetterSpecificityListTests` +
+BindableProperty/value-path tests). **Type erasure is allowed only at boundaries that inherently need
+it** — XAML/style set-by-name (parsing a string → `T`, M5/M6), via a per-property adapter — never in the
+hot path.
 
 ## 8. Memory & ownership doctrine (C++-specific, mandatory)
 

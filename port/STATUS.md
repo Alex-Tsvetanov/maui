@@ -15,9 +15,9 @@ ctest --preset headless                  # all ported graphics tests (81 cases, 
 
 **Resume:** continue to the next ⬜ milestone below, following `CLAUDE.md`. **In progress: M1 (Core).**
 The `PROFILE.md §11` decisions are **locked** (view owns handler; `property<T>` member object;
-per-type `concept`-vs-`i_*` rule; headers not modules). Build order — done: `event`, `dispatcher`, `setter_specificity`(+list), `bindable_object`/
-`bindable_property`. **Next: `property<T>`** (member-object wrapper over `bindable_property`) →
-`i_element`/`i_view`/`i_text` contracts → `view_handler` + `i_view_handler` + handler/service registry.
+per-type `concept`-vs-`i_*` rule; headers not modules). Build order — done: `event`, `dispatcher`, `setter_specificity`(+list), `bindable_property<T>` /
+`bindable_object` / `property<T>` (fully typed, no `std::any`). **Next: `i_element`/`i_view`/`i_text`
+contracts** → `view_handler` + `i_view_handler` + handler/service registry.
 
 ## Tooling — format, lint, sanitizers (run from `port/cpp/`)
 
@@ -62,7 +62,7 @@ per-type `concept`-vs-`i_*` rule; headers not modules). Build order — done: `e
 | `event<>` + `scoped_connection` | core | ✅ | ✅* | ✅ | headless | 16 GTest cases; multicast with snapshot-on-raise (mirrors .NET `X?.Invoke`) + token/RAII teardown (the WeakEventManager role per §8). Uses port-provided `move_only_function` (libc++ lacks `std`'s). *characterization — infra, no C# oracle |
 | `i_dispatcher` + `manual_dispatcher` | core | ✅ | ✅* | ✅ | headless | 11 GTest cases; mirrors `IDispatcher`/`IDispatcherTimer` (dispatch / dispatch_delayed / timer + is_dispatch_required). Headless impl is a deterministic **virtual-clock** pump (`run_pending`/`advance`) — no wall-clock/threads. *characterization (C# Standard impl just throws) |
 | `setter_specificity` (+ `setter_specificity_list`) | core | ✅ | ✅* | ✅ | headless | packed-uint64 precedence key + per-property value store; 14 GTest cases incl. a port of `SetterSpecificityListTests`. *characterization |
-| `bindable_object`/`bindable_property` | core | ✅ | ✅* | ✅ | headless | type-erased value store (`std::any`) with `SetterSpecificity` precedence; change-notification (changing→changed, fires only on real change), coerce/validate/default-creator, handler override, re-entrant delayed setters; typed `get_value<T>`/`set_value<T>`. 14 cases derived from `Core.UnitTests` (BindableProperty + value path). property<T> member-object wrapper is next. *characterization |
+| `bindable_property<T>` + `bindable_object` + `property<T>` | core | ✅ | ✅* | ✅ | headless | **fully-typed** value layer, **no `std::any`** (per §7): each `property<T>` member owns a `setter_specificity_list<T>` and the value precedence; `bindable_object` is just the notification base; `bindable_property<T>` is the typed shared descriptor. Change-notification (changing→changed, real-change-only), coerce/validate, lazy+cached default-creator, handler override, zero-copy `get()→const T&`, per-instance `.changed`. 15 cases derived from `Core.UnitTests`. *characterization |
 | `i_element`/`i_view`/`i_text` | core | ⬜ | ⬜ | ⬜ | — | virtual-view contracts |
 | `view_handler` base + handler registry | core | ⬜ | ⬜ | ⬜ | — | CRTP + `i_view_handler` |
 | `button` (handler slice) | controls/handlers | ⬜ | ⬜ | ⬜ | headless→macOS | the Rosetta Stone (M2) |

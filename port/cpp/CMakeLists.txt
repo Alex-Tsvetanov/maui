@@ -128,7 +128,6 @@ target_link_libraries(maui_graphics_benchmarks PRIVATE
 # ======================================================================
 add_library(maui_core STATIC
   src/core/manual_dispatcher.cpp
-  src/core/bindable_property.cpp
   src/core/bindable_object.cpp
 )
 target_include_directories(maui_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

@@ -27,6 +27,10 @@ namespace maui::core
         {
             return entries_.size();
         }
+        [[nodiscard]] bool empty() const
+        {
+            return entries_.empty();
+        }
 
         // Value stored at exactly this specificity, or a default-constructed T if none.
         [[nodiscard]] T get(setter_specificity key) const
@@ -64,6 +68,11 @@ namespace maui::core
         [[nodiscard]] T value() const
         {
             return entries_.empty() ? T{} : entries_.back().value;
+        }
+        // Reference to the highest-specificity value. Precondition: !empty(). Valid until the next mutation.
+        [[nodiscard]] const T &value_ref() const
+        {
+            return entries_.back().value;
         }
         [[nodiscard]] std::pair<setter_specificity, T> specificity_and_value() const
         {
