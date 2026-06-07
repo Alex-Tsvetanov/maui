@@ -19,6 +19,14 @@ namespace
     using maui::core::aspect;
     using maui::core::image_handler;
 
+    // -[NSString UTF8String] is nullable-annotated; convert through this guard so the std::string
+    // construction never receives a null pointer (the values under test are always non-null).
+    std::string to_std_string(NSString* value)
+    {
+        const char* const utf8 = value.UTF8String;
+        return utf8 != nullptr ? std::string(utf8) : std::string();
+    }
+
     NSImageView* native_image_view(const std::shared_ptr<image_handler>& handler)
     {
         return (__bridge NSImageView*)handler->typed_platform_view()->native;
@@ -53,7 +61,7 @@ namespace
         {
             return {};
         }
-        return std::string(path.UTF8String);
+        return to_std_string(path);
     }
 
     void remove_file(const std::string& path)
@@ -64,8 +72,9 @@ namespace
         }
     }
 
-    struct apple_image_seam : ::testing::Test
+    class apple_image_seam : public ::testing::Test
     {
+    protected:
         void SetUp() override
         {
             [NSApplication sharedApplication];

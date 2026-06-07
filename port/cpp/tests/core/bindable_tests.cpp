@@ -25,7 +25,7 @@ namespace
     template <class T> struct test_view : bindable_object
     {
         property<T> value;
-        explicit test_view(const bindable_property<T> &descriptor) : value(*this, descriptor)
+        explicit test_view(const bindable_property<T>& descriptor) : value(*this, descriptor)
         {
         }
     };
@@ -33,14 +33,14 @@ namespace
     TEST(bindable, default_value_when_unset)
     {
         const bindable_property<std::string> prop("Text", "default");
-        test_view<std::string> view(prop);
+        test_view<std::string> const view(prop);
         EXPECT_EQ(view.value.get(), "default");
     }
 
     TEST(bindable, value_type_default_is_zero_initialized)
     {
         const bindable_property<int> prop("Count"); // default int{} == 0
-        test_view<int> view(prop);
+        test_view<int> const view(prop);
         EXPECT_EQ(view.value.get(), 0);
     }
 
@@ -106,14 +106,14 @@ namespace
         const bindable_property<std::string> prop(
             "Foo", "Foo",
             {.property_changed =
-                 [&](bindable_object &, const std::string &old_value, const std::string &new_value) {
+                 [&](bindable_object&, const std::string& old_value, const std::string& new_value) {
                      EXPECT_TRUE(changing_fired);
                      changed_fired = true;
                      seen_old = old_value;
                      seen_new = new_value;
                  },
              .property_changing =
-                 [&](bindable_object &, const std::string &, const std::string &) {
+                 [&](bindable_object&, const std::string&, const std::string&) {
                      EXPECT_FALSE(changed_fired);
                      changing_fired = true;
                  }});
@@ -140,7 +140,7 @@ namespace
     TEST(bindable, coerce_is_applied_on_set)
     {
         const bindable_property<int> prop(
-            "Count", 0, {.coerce_value = [](bindable_object &, int value) { return std::clamp(value, 0, 10); }});
+            "Count", 0, {.coerce_value = [](bindable_object&, int value) { return std::clamp(value, 0, 10); }});
         test_view<int> view(prop);
         view.value.set(50);
         EXPECT_EQ(view.value.get(), 10);
@@ -149,7 +149,7 @@ namespace
     TEST(bindable, validate_rejects_invalid_value)
     {
         const bindable_property<int> prop("Count", 5,
-                                          {.validate_value = [](bindable_object &, int value) { return value >= 0; }});
+                                          {.validate_value = [](bindable_object&, int value) { return value >= 0; }});
         test_view<int> view(prop);
         view.value.set(-1); // rejected
         EXPECT_EQ(view.value.get(), 5);
@@ -160,11 +160,11 @@ namespace
     TEST(bindable, default_value_creator_runs_once_and_caches)
     {
         int creations = 0;
-        const bindable_property<std::string> prop("Text", "", {.default_value_creator = [&](const bindable_object &) {
+        const bindable_property<std::string> prop("Text", "", {.default_value_creator = [&](const bindable_object&) {
                                                       ++creations;
                                                       return std::string("created");
                                                   }});
-        test_view<std::string> view(prop);
+        test_view<std::string> const view(prop);
         EXPECT_EQ(view.value.get(), "created");
         EXPECT_EQ(view.value.get(), "created");
         EXPECT_EQ(creations, 1);

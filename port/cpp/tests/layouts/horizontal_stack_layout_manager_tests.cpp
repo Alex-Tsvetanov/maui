@@ -1,7 +1,9 @@
 // Ported from src/Core/tests/UnitTests/Layouts/HorizontalStackLayoutManagerTests.cs — the behavioral
 // oracle for horizontal stacking (the width/height mirror image of the vertical manager).
+#include "maui/core/dimension.hpp"
 #include "maui/layouts/horizontal_stack_layout_manager.hpp"
 
+#include <array>
 #include <limits>
 
 #include "maui/core/thickness.hpp"
@@ -32,8 +34,12 @@ namespace
             double expected_width;
         };
         for (const auto& test :
-             {spacing_case{0, 100, 0, 0}, spacing_case{1, 100, 0, 100}, spacing_case{1, 100, 13, 100},
-              spacing_case{2, 100, 13, 213}, spacing_case{3, 100, 13, 326}, spacing_case{3, 100, -13, 274}})
+             {spacing_case{.view_count = 0, .view_width = 100, .spacing = 0, .expected_width = 0},
+              spacing_case{.view_count = 1, .view_width = 100, .spacing = 0, .expected_width = 100},
+              spacing_case{.view_count = 1, .view_width = 100, .spacing = 13, .expected_width = 100},
+              spacing_case{.view_count = 2, .view_width = 100, .spacing = 13, .expected_width = 213},
+              spacing_case{.view_count = 3, .view_width = 100, .spacing = 13, .expected_width = 326},
+              spacing_case{.view_count = 3, .view_width = 100, .spacing = -13, .expected_width = 274}})
         {
             stack_fixture fixture;
             fixture.build_stack(test.view_count, test.view_width, 100);
@@ -84,8 +90,10 @@ namespace
             double stack_width;
             double expected;
         };
-        for (const auto& test : {width_case{150, 100, 100}, width_case{150, 200, 200},
-                                 width_case{1250, maui::core::dimension::unset, 1250}})
+        for (const auto& test :
+             {width_case{.view_width = 150, .stack_width = 100, .expected = 100},
+              width_case{.view_width = 150, .stack_width = 200, .expected = 200},
+              width_case{.view_width = 1250, .stack_width = maui::core::dimension::unset, .expected = 1250}})
         {
             stack_fixture fixture;
             fixture.add_view({test.view_width, 100});
@@ -168,7 +176,10 @@ namespace
             double view_size;
             double expected;
         };
-        const clamp_case max_cases[] = {{50, 100, 50}, {100, 100, 100}, {100, 50, 50}, {0, 50, 0}};
+        const auto max_cases = std::to_array<clamp_case>({{.limit = 50, .view_size = 100, .expected = 50},
+                                                          {.limit = 100, .view_size = 100, .expected = 100},
+                                                          {.limit = 100, .view_size = 50, .expected = 50},
+                                                          {.limit = 0, .view_size = 50, .expected = 0}});
         for (const auto& test : max_cases)
         {
             stack_fixture h;
@@ -181,7 +192,9 @@ namespace
             w.stack.max_width_value = test.limit;
             EXPECT_EQ(horizontal_stack_layout_manager(w.stack).measure(inf, inf).width, test.expected);
         }
-        const clamp_case min_cases[] = {{50, 10, 50}, {100, 100, 100}, {10, 50, 50}};
+        const auto min_cases = std::to_array<clamp_case>({{.limit = 50, .view_size = 10, .expected = 50},
+                                                          {.limit = 100, .view_size = 100, .expected = 100},
+                                                          {.limit = 10, .view_size = 50, .expected = 50}});
         for (const auto& test : min_cases)
         {
             stack_fixture h;
@@ -214,10 +227,12 @@ namespace
         struct padding_case
         {
             thickness padding;
-            double expected_height_constraint;
+            double expected_height_constraint{};
         };
-        for (const auto& test : {padding_case{thickness(0), 100}, padding_case{thickness(10), 80},
-                                 padding_case{thickness(10, 0, 10, 0), 100}, padding_case{thickness(0, 7, 0, 14), 79}})
+        for (const auto& test : {padding_case{.padding = thickness(0), .expected_height_constraint = 100},
+                                 padding_case{.padding = thickness(10), .expected_height_constraint = 80},
+                                 padding_case{.padding = thickness(10, 0, 10, 0), .expected_height_constraint = 100},
+                                 padding_case{.padding = thickness(0, 7, 0, 14), .expected_height_constraint = 79}})
         {
             stack_fixture fixture;
             auto& child = fixture.add_view({50, 50});
@@ -241,7 +256,7 @@ namespace
             stack_fixture fixture;
             fixture.build_stack(3, view_width, view_height);
             fixture.stack.spacing_value = spacing;
-            static_cast<maui::layouts::testing::mock_view&>(fixture.stack.at(collapsed_index)).visibility_value =
+            dynamic_cast<maui::layouts::testing::mock_view&>(fixture.stack.at(collapsed_index)).visibility_value =
                 visibility::collapsed;
 
             horizontal_stack_layout_manager manager(fixture.stack);
@@ -257,7 +272,7 @@ namespace
         fixture.stack.spacing_value = 10;
         for (int n = 0; n < 3; ++n)
         {
-            static_cast<maui::layouts::testing::mock_view&>(fixture.stack.at(n)).visibility_value =
+            dynamic_cast<maui::layouts::testing::mock_view&>(fixture.stack.at(n)).visibility_value =
                 visibility::collapsed;
         }
 

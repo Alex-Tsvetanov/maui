@@ -3,6 +3,7 @@
 // implementable, usable polymorphically through the interface references, and that the M1-deferred
 // heavy sub-objects (background/semantics/clip/shadow) are null. Inside the mock, the getters whose
 // name matches their return type (visibility, flow_direction, font) must qualify the type.
+#include "maui/core/flow_direction.hpp"
 #include "maui/core/i_element.hpp"
 #include "maui/core/i_text.hpp"
 #include "maui/core/i_view.hpp"
@@ -14,11 +15,14 @@
 #include <string_view>
 
 #include "maui/core/font.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/core/thickness.hpp"
+#include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 #include <gtest/gtest.h>
+#include <utility>
 
 namespace
 {
@@ -246,8 +250,8 @@ namespace
 
     TEST(contracts, usable_through_i_view_reference)
     {
-        mock_text_view view;
-        i_view& iview = view;
+        mock_text_view const view;
+        i_view const& iview = view;
         EXPECT_EQ(iview.visibility(), visibility::visible);
         EXPECT_EQ(iview.opacity(), 1.0);
         EXPECT_TRUE(iview.is_enabled());
@@ -284,8 +288,8 @@ namespace
 
     TEST(contracts, deferred_heavy_subobjects_are_null)
     {
-        mock_text_view view;
-        i_view& iview = view;
+        mock_text_view const view;
+        i_view const& iview = view;
         EXPECT_EQ(iview.background(), nullptr);
         EXPECT_EQ(iview.semantics(), nullptr);
         EXPECT_EQ(iview.clip(), nullptr);
@@ -294,8 +298,8 @@ namespace
 
     TEST(contracts, usable_through_i_text_reference)
     {
-        mock_text_view view;
-        i_text& itext = view;
+        mock_text_view const view;
+        i_text const& itext = view;
         EXPECT_EQ(itext.text(), "hello");
         EXPECT_EQ(itext.font().family(), "Arial");
         EXPECT_EQ(itext.font().weight(), font_weight::regular);

@@ -1,11 +1,12 @@
 // Parsing cases ported from src/Graphics/tests/Graphics.Tests/RectTypeConverterTests.cs
 // (converters delegate to T::TryParse). Plus characterization of the rect API from Rect.cs/RectF.cs.
-#include "graphics_test_support.hpp"
 
 #include "maui/graphics/point_f.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/rect_f.hpp"
 #include "maui/graphics/size_f.hpp"
+#include <array>
+#include <gtest/gtest.h>
 
 using maui::graphics::point_f;
 using maui::graphics::rect;
@@ -16,50 +17,50 @@ namespace
 {
     struct rcase
     {
-        const char *from;
+        const char* from;
         bool ok;
         double x, y, w, h;
     };
-    constexpr rcase k_cases[] = {
-        {"1,2,3,4", true, 1, 2, 3, 4},
-        {"1.1,2.0,3,4.4", true, 1.1, 2.0, 3, 4.4},
-        {"0,0, 0, 0", true, 0, 0, 0, 0},
-        {"0, 0, 0, 0", true, 0, 0, 0, 0},
-        {"0,  0, 0, 0", true, 0, 0, 0, 0},
-        {"1,2, 0, 0", true, 1, 2, 0, 0},
-        {"1, 2, 0, 0", true, 1, 2, 0, 0},
-        {"1,  2, 0, 0", true, 1, 2, 0, 0},
-        {"0.0,0.0, 0, 0", true, 0, 0, 0, 0},
-        {"0.0, 0.0, 0, 0", true, 0, 0, 0, 0},
-        {"0.0,  0.0, 0, 0", true, 0, 0, 0, 0},
-        {"1.1,2.1, 0, 0", true, 1.1, 2.1, 0, 0},
-        {"1.1, 2.1, 0, 0", true, 1.1, 2.1, 0, 0},
-        {"1.1,  2.1, 0, 0", true, 1.1, 2.1, 0, 0},
-        {"0,-0, 0, 0", true, 0, 0, 0, 0},
-        {"-0, 0, 0, 0", true, 0, 0, 0, 0},
-        {"-0,  -0, 0, 0", true, 0, 0, 0, 0},
-        {"-1,2, 0, 0", true, -1, 2, 0, 0},
-        {"1, -2, 0, 0", true, 1, -2, 0, 0},
-        {"-1,  -2, 0, 0", true, -1, -2, 0, 0},
-        {"-0.0,0.0, 0, 0", true, 0, 0, 0, 0},
-        {"0.0, -0.0, 0, 0", true, 0, 0, 0, 0},
-        {"-0.0,  -0.0, 0, 0", true, 0, 0, 0, 0},
-        {"-1.1,2.1, 0, 0", true, -1.1, 2.1, 0, 0},
-        {"1.1, -2.1, 0, 0", true, 1.1, -2.1, 0, 0},
-        {"-1.1,  -2.1, 0, 0", true, -1.1, -2.1, 0, 0},
-        {".1,0, 0, 0", true, 0.1, 0, 0, 0},
-        {"-.1, 1, 0, 0", true, -0.1, 1, 0, 0},
-        {"1, \t 1, 0, 0", true, 1, 1, 0, 0},
-        {"0", false, 0, 0, 0, 0},
-        {",1, 0, 0", false, 0, 0, 0, 0},
-        {"1,, 0, 0", false, 0, 0, 0, 0},
-        {"", false, 0, 0, 0, 0},
-    };
+    constexpr auto k_cases = std::to_array<rcase>({
+        {.from = "1,2,3,4", .ok = true, .x = 1, .y = 2, .w = 3, .h = 4},
+        {.from = "1.1,2.0,3,4.4", .ok = true, .x = 1.1, .y = 2.0, .w = 3, .h = 4.4},
+        {.from = "0,0, 0, 0", .ok = true, .x = 0, .y = 0, .w = 0, .h = 0},
+        {.from = "0, 0, 0, 0", .ok = true, .x = 0, .y = 0, .w = 0, .h = 0},
+        {.from = "0,  0, 0, 0", .ok = true, .x = 0, .y = 0, .w = 0, .h = 0},
+        {.from = "1,2, 0, 0", .ok = true, .x = 1, .y = 2, .w = 0, .h = 0},
+        {.from = "1, 2, 0, 0", .ok = true, .x = 1, .y = 2, .w = 0, .h = 0},
+        {.from = "1,  2, 0, 0", .ok = true, .x = 1, .y = 2, .w = 0, .h = 0},
+        {.from = "0.0,0.0, 0, 0", .ok = true, .x = 0, .y = 0, .w = 0, .h = 0},
+        {.from = "0.0, 0.0, 0, 0", .ok = true, .x = 0, .y = 0, .w = 0, .h = 0},
+        {.from = "0.0,  0.0, 0, 0", .ok = true, .x = 0, .y = 0, .w = 0, .h = 0},
+        {.from = "1.1,2.1, 0, 0", .ok = true, .x = 1.1, .y = 2.1, .w = 0, .h = 0},
+        {.from = "1.1, 2.1, 0, 0", .ok = true, .x = 1.1, .y = 2.1, .w = 0, .h = 0},
+        {.from = "1.1,  2.1, 0, 0", .ok = true, .x = 1.1, .y = 2.1, .w = 0, .h = 0},
+        {.from = "0,-0, 0, 0", .ok = true, .x = 0, .y = 0, .w = 0, .h = 0},
+        {.from = "-0, 0, 0, 0", .ok = true, .x = 0, .y = 0, .w = 0, .h = 0},
+        {.from = "-0,  -0, 0, 0", .ok = true, .x = 0, .y = 0, .w = 0, .h = 0},
+        {.from = "-1,2, 0, 0", .ok = true, .x = -1, .y = 2, .w = 0, .h = 0},
+        {.from = "1, -2, 0, 0", .ok = true, .x = 1, .y = -2, .w = 0, .h = 0},
+        {.from = "-1,  -2, 0, 0", .ok = true, .x = -1, .y = -2, .w = 0, .h = 0},
+        {.from = "-0.0,0.0, 0, 0", .ok = true, .x = 0, .y = 0, .w = 0, .h = 0},
+        {.from = "0.0, -0.0, 0, 0", .ok = true, .x = 0, .y = 0, .w = 0, .h = 0},
+        {.from = "-0.0,  -0.0, 0, 0", .ok = true, .x = 0, .y = 0, .w = 0, .h = 0},
+        {.from = "-1.1,2.1, 0, 0", .ok = true, .x = -1.1, .y = 2.1, .w = 0, .h = 0},
+        {.from = "1.1, -2.1, 0, 0", .ok = true, .x = 1.1, .y = -2.1, .w = 0, .h = 0},
+        {.from = "-1.1,  -2.1, 0, 0", .ok = true, .x = -1.1, .y = -2.1, .w = 0, .h = 0},
+        {.from = ".1,0, 0, 0", .ok = true, .x = 0.1, .y = 0, .w = 0, .h = 0},
+        {.from = "-.1, 1, 0, 0", .ok = true, .x = -0.1, .y = 1, .w = 0, .h = 0},
+        {.from = "1, \t 1, 0, 0", .ok = true, .x = 1, .y = 1, .w = 0, .h = 0},
+        {.from = "0", .ok = false, .x = 0, .y = 0, .w = 0, .h = 0},
+        {.from = ",1, 0, 0", .ok = false, .x = 0, .y = 0, .w = 0, .h = 0},
+        {.from = "1,, 0, 0", .ok = false, .x = 0, .y = 0, .w = 0, .h = 0},
+        {.from = "", .ok = false, .x = 0, .y = 0, .w = 0, .h = 0},
+    });
 } // namespace
 
 TEST(rect_converter_tests, rect_from_string)
 {
-    for (const auto &c : k_cases)
+    for (const auto& c : k_cases)
     {
         rect out;
         EXPECT_EQ(c.ok, rect::try_parse(c.from, out)) << "'" << c.from << "'";
@@ -72,7 +73,7 @@ TEST(rect_converter_tests, rect_from_string)
 
 TEST(rect_converter_tests, rect_f_from_string)
 {
-    for (const auto &c : k_cases)
+    for (const auto& c : k_cases)
     {
         rect_f out;
         EXPECT_EQ(c.ok, rect_f::try_parse(c.from, out)) << "'" << c.from << "'";
@@ -94,7 +95,7 @@ TEST(rect_api, edges_and_geometry)
     EXPECT_FLOAT_EQ(6, r.bottom()); // y + height
     EXPECT_EQ(size_f(3, 4), r.size());
     EXPECT_EQ(point_f(1, 2), r.location());
-    EXPECT_EQ(point_f(2.5f, 4), r.center()); // (x+w/2, y+h/2)
+    EXPECT_EQ(point_f(2.5F, 4), r.center()); // (x+w/2, y+h/2)
     EXPECT_FALSE(r.is_empty());
     EXPECT_TRUE(rect_f(0, 0, 0, 5).is_empty()); // width <= 0
 
@@ -137,18 +138,18 @@ TEST(rect_api, inflate_offset_round)
 {
     EXPECT_EQ(rect_f(3, 2, 14, 16), rect_f(5, 5, 10, 10).inflate(2, 3)); // x-=w, y-=h, w+=2w, h+=2h
     EXPECT_EQ(rect_f(7, 8, 10, 10), rect_f(5, 5, 10, 10).offset(2, 3));
-    EXPECT_EQ(rect_f(0, 2, 2, 4), rect_f(0.5f, 1.5f, 2.5f, 3.5f).round()); // ties-to-even: .5->even
+    EXPECT_EQ(rect_f(0, 2, 2, 4), rect_f(0.5F, 1.5F, 2.5F, 3.5F).round()); // ties-to-even: .5->even
 }
 
 TEST(rect_api, cross_precision_casts)
 {
-    rect_f rf(1.5f, 2.5f, 3.5f, 4.5f);
+    rect_f rf(1.5F, 2.5F, 3.5F, 4.5F);
     rect rd = rf; // implicit widening
     EXPECT_DOUBLE_EQ(1.5, rd.x);
     EXPECT_DOUBLE_EQ(4.5, rd.height);
 
     rect back_src(1.5, 2.5, 3.5, 4.5);
     rect_f back = back_src; // implicit narrowing
-    EXPECT_FLOAT_EQ(1.5f, back.x);
-    EXPECT_FLOAT_EQ(4.5f, back.height);
+    EXPECT_FLOAT_EQ(1.5F, back.x);
+    EXPECT_FLOAT_EQ(4.5F, back.height);
 }

@@ -70,7 +70,8 @@ namespace
     TEST(image_seam, handler_resolved_from_default_registry)
     {
         // image -> image_handler is self-registered in image.cpp (MAUI_REGISTER_HANDLER).
-        std::shared_ptr<i_element_handler> handler = maui::core::default_handler_registry().create_handler<image>();
+        std::shared_ptr<i_element_handler> const handler =
+            maui::core::default_handler_registry().create_handler<image>();
         ASSERT_NE(handler, nullptr);
         auto* resolved = dynamic_cast<image_handler*>(handler.get());
         ASSERT_NE(resolved, nullptr);

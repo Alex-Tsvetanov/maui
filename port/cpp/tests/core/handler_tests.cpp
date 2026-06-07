@@ -4,29 +4,31 @@
 // platform view and runs the mapper; update_value re-runs one mapper; invoke runs the command mapper;
 // disconnect tears down. Plus direct tests of mapper chaining/override, type_tag identity, and the
 // registries.
+#include "maui/core/flow_direction.hpp"
 #include "maui/core/handler_registry.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/core/service_registry.hpp"
 #include "maui/core/type_tag.hpp"
 #include "maui/core/view_handler.hpp"
 
-#include <algorithm>
 #include <any>
 #include <limits>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "maui/core/command_mapper.hpp"
-#include "maui/core/font.hpp"
 #include "maui/core/i_element.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/thickness.hpp"
-#include "maui/graphics/color.hpp"
+#include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 #include <gtest/gtest.h>
@@ -258,7 +260,7 @@ namespace
         static property_mapper<i_view, test_handler>& property_map();
         static command_mapper<i_view, test_handler>& command_map();
 
-        std::unique_ptr<fake_platform> create_platform_view()
+        static std::unique_ptr<fake_platform> create_platform_view()
         {
             return std::make_unique<fake_platform>();
         }
@@ -437,7 +439,7 @@ namespace
         property_mapper<i_view, test_handler> base_map{
             {"a", [](test_handler& handler, i_view& /*view*/) { ++handler.connects; }},
         };
-        property_mapper<i_view, test_handler> derived_map{
+        property_mapper<i_view, test_handler> const derived_map{
             base_map,
             {{"b", [](test_handler& handler, i_view& /*view*/) { ++handler.disconnects; }}},
         };
@@ -458,7 +460,7 @@ namespace
         property_mapper<i_view, test_handler> base_map{
             {"a", [](test_handler& handler, i_view& /*view*/) { ++handler.connects; }},
         };
-        property_mapper<i_view, test_handler> derived_map{
+        property_mapper<i_view, test_handler> const derived_map{
             base_map,
             {{"a", [](test_handler& handler, i_view& /*view*/) { ++handler.pings; }}},
         };
@@ -492,7 +494,7 @@ namespace
         maui::core::register_handler<fake_control, test_handler>(registry);
         EXPECT_TRUE(registry.is_registered(type_tag::of<fake_control>()));
 
-        std::unique_ptr<i_element_handler> created = registry.create_handler<fake_control>();
+        std::unique_ptr<i_element_handler> const created = registry.create_handler<fake_control>();
         ASSERT_NE(created, nullptr);
         EXPECT_NE(dynamic_cast<test_handler*>(created.get()), nullptr);
     }

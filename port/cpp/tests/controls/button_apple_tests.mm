@@ -5,6 +5,7 @@
 #import <AppKit/AppKit.h>
 
 #include <memory>
+#include <string>
 
 #include "maui/controls/button.hpp"
 #include "maui/core/button_handler.hpp"
@@ -19,14 +20,23 @@ namespace
     using maui::core::button_handler;
     using maui::core::i_element_handler;
 
+    // -[NSString UTF8String] is nullable-annotated; convert through this guard so the std::string
+    // construction never receives a null pointer (the values under test are always non-null).
+    std::string to_std_string(NSString* value)
+    {
+        const char* const utf8 = value.UTF8String;
+        return utf8 != nullptr ? std::string(utf8) : std::string();
+    }
+
     NSButton* native_button(const std::shared_ptr<button_handler>& handler)
     {
         return (__bridge NSButton*)handler->typed_platform_view()->native;
     }
 
     // NSButton creation needs the shared application object (no run loop required).
-    struct apple_button_seam : ::testing::Test
+    class apple_button_seam : public ::testing::Test
     {
+    protected:
         void SetUp() override
         {
             [NSApplication sharedApplication];
@@ -41,7 +51,7 @@ namespace
         control.set_handler(handler);
 
         ASSERT_NE(handler->platform_view(), nullptr);
-        EXPECT_EQ(std::string(native_button(handler).title.UTF8String), "Start");
+        EXPECT_EQ(to_std_string(native_button(handler).title), "Start");
     }
 
     TEST_F(apple_button_seam, setting_text_updates_nsbutton_title)
@@ -51,7 +61,7 @@ namespace
         control.set_handler(handler);
 
         control.set_text("Changed");
-        EXPECT_EQ(std::string(native_button(handler).title.UTF8String), "Changed");
+        EXPECT_EQ(to_std_string(native_button(handler).title), "Changed");
     }
 
     TEST_F(apple_button_seam, native_click_flows_back_to_clicked_event)
@@ -115,7 +125,8 @@ namespace
     TEST_F(apple_button_seam, handler_resolved_from_default_registry)
     {
         // button -> button_handler is self-registered in button.cpp (MAUI_REGISTER_HANDLER).
-        std::shared_ptr<i_element_handler> handler = maui::core::default_handler_registry().create_handler<button>();
+        std::shared_ptr<i_element_handler> const handler =
+            maui::core::default_handler_registry().create_handler<button>();
         ASSERT_NE(handler, nullptr);
         auto* resolved = dynamic_cast<button_handler*>(handler.get());
         ASSERT_NE(resolved, nullptr);
@@ -123,7 +134,7 @@ namespace
         button control;
         control.set_text("Registered");
         control.set_handler(handler);
-        NSButton* const button_view = (__bridge NSButton*)resolved->typed_platform_view()->native;
-        EXPECT_EQ(std::string(button_view.title.UTF8String), "Registered");
+        auto const button_view = (__bridge NSButton*)resolved->typed_platform_view()->native;
+        EXPECT_EQ(to_std_string(button_view.title), "Registered");
     }
 } // namespace

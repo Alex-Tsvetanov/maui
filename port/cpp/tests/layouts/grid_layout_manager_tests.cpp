@@ -7,7 +7,6 @@
 
 #include "maui/core/grid_length.hpp"
 #include "maui/core/grid_unit_type.hpp"
-#include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 #include "tests/layouts/layout_test_helpers.hpp"
@@ -17,12 +16,10 @@ namespace
 {
     using maui::core::grid_length;
     using maui::core::grid_unit_type;
-    using maui::core::visibility;
     using maui::graphics::rect;
     using maui::graphics::size;
     using maui::layouts::grid_layout_manager;
     using maui::layouts::testing::grid_fixture;
-    using maui::layouts::testing::mock_view;
 
     constexpr double inf = std::numeric_limits<double>::infinity();
 

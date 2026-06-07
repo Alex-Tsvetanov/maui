@@ -38,7 +38,7 @@ namespace
     // ---- setter_specificity_list<T> ----
     TEST(specificity_list, no_values)
     {
-        setter_specificity_list<std::string> list;
+        setter_specificity_list<std::string> const list;
         auto const pair = list.specificity_and_value();
         EXPECT_EQ(pair.second, std::string{});
         EXPECT_EQ(pair.first, setter_specificity{});

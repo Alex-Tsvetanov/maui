@@ -41,6 +41,14 @@ namespace
     using maui::platform::apple::apply_flow_direction;
     using maui::platform::apple::apply_transform;
 
+    // -[NSString UTF8String] is nullable-annotated; convert through this guard so the std::string
+    // construction never receives a null pointer (the values under test are always non-null).
+    std::string to_std_string(NSString* value)
+    {
+        const char* const utf8 = value.UTF8String;
+        return utf8 != nullptr ? std::string(utf8) : std::string();
+    }
+
     NSButton* native_button(const std::shared_ptr<button_handler>& handler)
     {
         return (__bridge NSButton*)handler->typed_platform_view()->native;
@@ -66,8 +74,9 @@ namespace
         return (__bridge NSView*)handler->typed_platform_view()->native;
     }
 
-    struct apple_view_mapper : ::testing::Test
+    class apple_view_mapper : public ::testing::Test
     {
+    protected:
         void SetUp() override
         {
             [NSApplication sharedApplication];
@@ -95,7 +104,7 @@ namespace
         EXPECT_TRUE(view.enabled);
 
         control.set_automation_id("submit_button");
-        EXPECT_EQ(std::string(view.accessibilityIdentifier.UTF8String), "submit_button");
+        EXPECT_EQ(to_std_string(view.accessibilityIdentifier), "submit_button");
     }
 
     // End-to-end: a render-transform change on the control reaches the NSButton's backing layer through
@@ -128,7 +137,7 @@ namespace
         EXPECT_FALSE(view.enabled);
 
         control.set_automation_id("caption");
-        EXPECT_EQ(std::string(view.accessibilityIdentifier.UTF8String), "caption");
+        EXPECT_EQ(to_std_string(view.accessibilityIdentifier), "caption");
     }
 
     TEST_F(apple_view_mapper, entry_generic_properties_push_to_nstextfield)
@@ -148,7 +157,7 @@ namespace
         EXPECT_FALSE(view.enabled);
 
         control.set_automation_id("email_entry");
-        EXPECT_EQ(std::string(view.accessibilityIdentifier.UTF8String), "email_entry");
+        EXPECT_EQ(to_std_string(view.accessibilityIdentifier), "email_entry");
     }
 
     TEST_F(apple_view_mapper, image_generic_properties_push_to_nsimageview)
@@ -168,7 +177,7 @@ namespace
         EXPECT_FALSE(view.enabled);
 
         control.set_automation_id("avatar");
-        EXPECT_EQ(std::string(view.accessibilityIdentifier.UTF8String), "avatar");
+        EXPECT_EQ(to_std_string(view.accessibilityIdentifier), "avatar");
     }
 
     // The layout panel is a plain NSView — it has no native enabled state, so is_enabled is not asserted
@@ -187,7 +196,7 @@ namespace
         EXPECT_EQ(view.alphaValue, 0.4);
 
         control.set_automation_id("form_stack");
-        EXPECT_EQ(std::string(view.accessibilityIdentifier.UTF8String), "form_stack");
+        EXPECT_EQ(to_std_string(view.accessibilityIdentifier), "form_stack");
     }
 
     // ---- the shared apple_view_ops helpers (the coordinator's per-control retrofit calls these) ----

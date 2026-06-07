@@ -78,7 +78,8 @@ namespace
 
     TEST(label_seam, handler_resolved_from_default_registry)
     {
-        std::shared_ptr<i_element_handler> handler = maui::core::default_handler_registry().create_handler<label>();
+        std::shared_ptr<i_element_handler> const handler =
+            maui::core::default_handler_registry().create_handler<label>();
         ASSERT_NE(handler, nullptr);
         auto* resolved = dynamic_cast<label_handler*>(handler.get());
         ASSERT_NE(resolved, nullptr);

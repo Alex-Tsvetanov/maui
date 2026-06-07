@@ -17,13 +17,22 @@ namespace
     using maui::core::label_handler;
     using maui::core::text_alignment;
 
+    // -[NSString UTF8String] is nullable-annotated; convert through this guard so the std::string
+    // construction never receives a null pointer (the values under test are always non-null).
+    std::string to_std_string(NSString* value)
+    {
+        const char* const utf8 = value.UTF8String;
+        return utf8 != nullptr ? std::string(utf8) : std::string();
+    }
+
     NSTextField* native_label(const std::shared_ptr<label_handler>& handler)
     {
         return (__bridge NSTextField*)handler->typed_platform_view()->native;
     }
 
-    struct apple_label_seam : ::testing::Test
+    class apple_label_seam : public ::testing::Test
     {
+    protected:
         void SetUp() override
         {
             [NSApplication sharedApplication];
@@ -38,7 +47,7 @@ namespace
         control.set_handler(handler);
 
         ASSERT_NE(handler->platform_view(), nullptr);
-        EXPECT_EQ(std::string(native_label(handler).stringValue.UTF8String), "Start");
+        EXPECT_EQ(to_std_string(native_label(handler).stringValue), "Start");
     }
 
     TEST_F(apple_label_seam, maps_font_and_alignment)

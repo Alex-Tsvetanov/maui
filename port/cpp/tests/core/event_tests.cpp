@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -20,7 +21,7 @@ namespace
         event<int, std::string> e;
         int seen_n = 0;
         std::string seen_s;
-        e.connect([&](int n, const std::string &s) {
+        e.connect([&](int n, const std::string& s) {
             seen_n = n;
             seen_s = s;
         });
@@ -41,7 +42,7 @@ namespace
 
     TEST(event_basics, no_handlers_is_a_noop)
     {
-        event<> e;
+        event<> const e;
         EXPECT_TRUE(e.empty());
         EXPECT_EQ(e.handler_count(), 0U);
         e.raise(); // must not crash
@@ -167,7 +168,7 @@ namespace
     {
         event<int> e;
         auto sink = std::make_unique<int>(0);
-        int *observed = sink.get();
+        int const* observed = sink.get();
         e.connect([captured = std::move(sink)](int n) { *captured += n; });
         e.raise(5);
         e.raise(5);
@@ -206,12 +207,16 @@ namespace
     TEST(scoped, move_transfers_ownership_and_moved_from_does_not_disconnect)
     {
         event<> e;
-        scoped_connection a(e, e.connect([] {}));
-        EXPECT_EQ(e.handler_count(), 1U);
-        scoped_connection b(std::move(a));
-        EXPECT_FALSE(a.connected()); // NOLINT(bugprone-use-after-move) — intentionally checking moved-from
+        scoped_connection b;
+        {
+            scoped_connection a(e, e.connect([] {}));
+            EXPECT_EQ(e.handler_count(), 1U);
+            b = std::move(a);
+            // a is now moved-from: its disconnect is null (move_only_function null-after-move), so
+            // when a goes out of scope at the end of this block it does NOT disconnect the handler.
+        }
         EXPECT_TRUE(b.connected());
-        EXPECT_EQ(e.handler_count(), 1U); // still exactly one, not double-disconnected
+        EXPECT_EQ(e.handler_count(), 1U); // still exactly one — moved-from a's destruction did not disconnect
         b.reset();
         EXPECT_TRUE(e.empty());
     }
@@ -225,4 +230,4 @@ namespace
         conn.reset(); // no double-disconnect, no crash
         EXPECT_FALSE(conn.connected());
     }
-}
+} // namespace

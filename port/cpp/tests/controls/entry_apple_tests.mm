@@ -19,13 +19,22 @@ namespace
     using maui::core::entry_handler;
     using maui::core::text_alignment;
 
+    // -[NSString UTF8String] is nullable-annotated; convert through this guard so the std::string
+    // construction never receives a null pointer (the values under test are always non-null).
+    std::string to_std_string(NSString* value)
+    {
+        const char* const utf8 = value.UTF8String;
+        return utf8 != nullptr ? std::string(utf8) : std::string();
+    }
+
     NSTextField* native_field(const std::shared_ptr<entry_handler>& handler)
     {
         return (__bridge NSTextField*)handler->typed_platform_view()->native;
     }
 
-    struct apple_entry_seam : ::testing::Test
+    class apple_entry_seam : public ::testing::Test
     {
+    protected:
         void SetUp() override
         {
             [NSApplication sharedApplication];
@@ -41,10 +50,10 @@ namespace
         control.set_handler(handler);
 
         ASSERT_NE(handler->platform_view(), nullptr);
-        EXPECT_EQ(std::string(native_field(handler).stringValue.UTF8String), "Start");
+        EXPECT_EQ(to_std_string(native_field(handler).stringValue), "Start");
         NSString* const placeholder = native_field(handler).placeholderString;
         ASSERT_NE(placeholder, nil);
-        EXPECT_EQ(std::string(placeholder.UTF8String), "Hint");
+        EXPECT_EQ(to_std_string(placeholder), "Hint");
     }
 
     TEST_F(apple_entry_seam, field_is_editable_by_default_and_read_only_toggles_it)
@@ -83,7 +92,7 @@ namespace
         // Toggling to a secure cell must not drop the already-applied font or the text.
         control.set_is_password(true);
         EXPECT_EQ(native_field(handler).font.pointSize, 18.0);
-        EXPECT_EQ(std::string(native_field(handler).stringValue.UTF8String), "secret");
+        EXPECT_EQ(to_std_string(native_field(handler).stringValue), "secret");
     }
 
     TEST_F(apple_entry_seam, maps_font_and_alignment)

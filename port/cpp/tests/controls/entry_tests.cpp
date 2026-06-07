@@ -210,7 +210,8 @@ namespace
     TEST(entry_seam, handler_resolved_from_default_registry)
     {
         // entry -> entry_handler is self-registered in entry.cpp (MAUI_REGISTER_HANDLER).
-        std::shared_ptr<i_element_handler> handler = maui::core::default_handler_registry().create_handler<entry>();
+        std::shared_ptr<i_element_handler> const handler =
+            maui::core::default_handler_registry().create_handler<entry>();
         ASSERT_NE(handler, nullptr);
         auto* resolved = dynamic_cast<entry_handler*>(handler.get());
         ASSERT_NE(resolved, nullptr);

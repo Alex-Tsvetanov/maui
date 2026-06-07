@@ -111,6 +111,10 @@ target_link_libraries(maui_graphics_tests PRIVATE
   GTest::gmock_main   # transitively pulls gmock + gtest + main(); single chain avoids duplicate-lib warnings
 )
 gtest_discover_tests(maui_graphics_tests)
+# Lint the test TUs too (kept clean: 0 findings). Same guard as the library targets above.
+if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+  set_target_properties(maui_graphics_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+endif()
 
 # ---- Graphics benchmarks (Google Benchmark; not a ctest test, run manually) ----
 add_executable(maui_graphics_benchmarks
@@ -203,6 +207,9 @@ target_link_libraries(maui_core_tests PRIVATE
   GTest::gmock_main
 )
 gtest_discover_tests(maui_core_tests)
+if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+  set_target_properties(maui_core_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+endif()
 
 # ======================================================================
 # Layer 2 - Controls  (maui::controls  <=  Microsoft.Maui.Controls : the developer-facing controls)
@@ -268,6 +275,12 @@ target_link_libraries(maui_controls_tests PRIVATE
   GTest::gmock_main
 )
 gtest_discover_tests(maui_controls_tests)
+# The controls tests are .cpp on headless and .mm (OBJCXX) on apple; lint whichever language is built.
+if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+  set_target_properties(maui_controls_tests PROPERTIES
+    CXX_CLANG_TIDY "${CLANG_TIDY_EXE}"
+    OBJCXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+endif()
 
 # ---- Sample app (macOS only): a real NSWindow hosting the cross-platform button ----
 if(MAUI_BACKEND STREQUAL "apple")
@@ -308,3 +321,6 @@ target_link_libraries(maui_layout_tests PRIVATE
   GTest::gmock_main
 )
 gtest_discover_tests(maui_layout_tests)
+if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+  set_target_properties(maui_layout_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+endif()

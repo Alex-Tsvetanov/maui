@@ -1,10 +1,11 @@
 // path_f has NO C# unit tests (only a benchmark), so these are CHARACTERIZATION tests: expected
 // values derived by reading src/Graphics/src/Graphics/PathF.cs. They pin the ported behavior.
-#include "graphics_test_support.hpp"
 
 #include "maui/graphics/path_f.hpp"
+#include "maui/graphics/path_operation.hpp"
 #include "maui/graphics/point_f.hpp"
 #include "maui/graphics/rect_f.hpp"
+#include <gtest/gtest.h>
 
 using maui::graphics::path_f;
 using maui::graphics::path_operation;
@@ -138,10 +139,10 @@ TEST(path_tests, append_circle_and_ellipse)
 TEST(path_tests, append_rounded_rectangle)
 {
     path_f p;
-    p.append_rounded_rectangle(rect_f(0, 0, 10, 10), 2.0f);
+    p.append_rounded_rectangle(rect_f(0, 0, 10, 10), 2.0F);
     // move, curve, line, curve, line, curve, line, curve, close
     EXPECT_EQ(9, p.operation_count());
-    EXPECT_EQ(1 + 4 * 3 + 3, p.count()); // move + 4 cubics + 3 lines
+    EXPECT_EQ(1 + (4 * 3) + 3, p.count()); // move + 4 cubics + 3 lines
     EXPECT_TRUE(p.closed());
 }
 
@@ -161,10 +162,10 @@ TEST(path_tests, bounds_circle_approx)
     path_f c;
     c.append_circle(point_f(0, 0), 5);
     rect_f b = c.bounds();
-    EXPECT_NEAR(-5.0f, b.x, 0.02f);
-    EXPECT_NEAR(-5.0f, b.y, 0.02f);
-    EXPECT_NEAR(10.0f, b.width, 0.02f);
-    EXPECT_NEAR(10.0f, b.height, 0.02f);
+    EXPECT_NEAR(-5.0F, b.x, 0.02F);
+    EXPECT_NEAR(-5.0F, b.y, 0.02F);
+    EXPECT_NEAR(10.0F, b.width, 0.02F);
+    EXPECT_NEAR(10.0F, b.height, 0.02F);
 }
 
 TEST(path_tests, equals)
@@ -185,9 +186,9 @@ TEST(path_tests, equals)
     EXPECT_FALSE(a.equals(d));
 
     path_f e;
-    e.move_to(0, 0).line_to(10.0001f, 10);
-    EXPECT_TRUE(a.equals(e, 0.001f)); // within epsilon
-    EXPECT_FALSE(a.equals(e, 0.00001f));
+    e.move_to(0, 0).line_to(10.0001F, 10);
+    EXPECT_TRUE(a.equals(e, 0.001F)); // within epsilon
+    EXPECT_FALSE(a.equals(e, 0.00001F));
 }
 
 TEST(path_tests, reverse)
@@ -209,7 +210,7 @@ TEST(path_tests, separate)
     path_f p;
     p.move_to(0, 0).line_to(1, 1).move_to(5, 5).line_to(6, 6);
     auto parts = p.separate();
-    ASSERT_EQ(2u, parts.size());
+    ASSERT_EQ(2U, parts.size());
     EXPECT_EQ(point_f(0, 0), parts[0].first_point());
     EXPECT_EQ(2, parts[0].count());
     EXPECT_EQ(point_f(5, 5), parts[1].first_point());
@@ -221,8 +222,8 @@ TEST(path_tests, rotate)
     path_f p;
     p.move_to(1, 0);
     path_f r = p.rotate(90, point_f(0, 0)); // (1,0) rotated 90deg about origin -> (0,1)
-    EXPECT_NEAR(0.0f, r.first_point().x, 1e-4f);
-    EXPECT_NEAR(1.0f, r.first_point().y, 1e-4f);
+    EXPECT_NEAR(0.0F, r.first_point().x, 1e-4F);
+    EXPECT_NEAR(1.0F, r.first_point().y, 1e-4F);
 }
 
 TEST(path_tests, get_flattened_path)
@@ -237,8 +238,8 @@ TEST(path_tests, get_flattened_path)
     }
     // Lands ~near the curve end point (10,0). The forward-difference flattening accumulates
     // rounding and doesn't return exactly to the endpoint — this matches the C# algorithm.
-    EXPECT_NEAR(10.0f, flat.last_point().x, 0.1f);
-    EXPECT_NEAR(0.0f, flat.last_point().y, 0.1f);
+    EXPECT_NEAR(10.0F, flat.last_point().x, 0.1F);
+    EXPECT_NEAR(0.0F, flat.last_point().y, 0.1F);
 }
 
 TEST(path_tests, set_point_and_segment_points)
@@ -249,10 +250,10 @@ TEST(path_tests, set_point_and_segment_points)
     EXPECT_EQ(point_f(5, 5), p[1]);
 
     auto seg0 = p.get_points_for_segment(0);
-    ASSERT_EQ(1u, seg0.size());
+    ASSERT_EQ(1U, seg0.size());
     EXPECT_EQ(point_f(0, 0), seg0[0]);
     auto seg2 = p.get_points_for_segment(2); // quad -> 2 points
-    ASSERT_EQ(2u, seg2.size());
+    ASSERT_EQ(2U, seg2.size());
     EXPECT_EQ(point_f(2, 2), seg2[0]);
     EXPECT_EQ(point_f(3, 3), seg2[1]);
 }

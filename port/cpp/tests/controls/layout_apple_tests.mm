@@ -25,8 +25,9 @@ namespace
         return (__bridge NSView*)handler->typed_platform_view()->native;
     }
 
-    struct apple_layout_seam : ::testing::Test
+    class apple_layout_seam : public ::testing::Test
     {
+    protected:
         void SetUp() override
         {
             [NSApplication sharedApplication];
@@ -55,7 +56,7 @@ namespace
         label child;
         auto child_handler = std::make_shared<label_handler>();
         child.set_handler(child_handler);
-        NSView* const child_native = (__bridge NSView*)child_handler->native_view();
+        auto const child_native = (__bridge NSView*)child_handler->native_view();
         ASSERT_NE(child_native, nil);
 
         stack.add(child); // -> handler->invoke("add", …) -> map_add -> add() -> addSubview:

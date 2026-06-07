@@ -263,7 +263,7 @@ namespace
     TEST(layout_seam, handler_resolved_from_default_registry)
     {
         // vertical_stack_layout -> layout_handler is self-registered (MAUI_REGISTER_HANDLER).
-        std::shared_ptr<i_element_handler> handler =
+        std::shared_ptr<i_element_handler> const handler =
             maui::core::default_handler_registry().create_handler<vertical_stack_layout>();
         ASSERT_NE(handler, nullptr);
         auto* resolved = dynamic_cast<layout_handler*>(handler.get());

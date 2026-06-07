@@ -212,7 +212,8 @@ namespace
     TEST(button_seam, handler_resolved_from_default_registry)
     {
         // button -> button_handler is self-registered in button.cpp (MAUI_REGISTER_HANDLER).
-        std::shared_ptr<i_element_handler> handler = maui::core::default_handler_registry().create_handler<button>();
+        std::shared_ptr<i_element_handler> const handler =
+            maui::core::default_handler_registry().create_handler<button>();
         ASSERT_NE(handler, nullptr);
         auto* resolved = dynamic_cast<button_handler*>(handler.get());
         ASSERT_NE(resolved, nullptr);

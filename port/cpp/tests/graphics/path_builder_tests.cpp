@@ -1,10 +1,11 @@
 // Characterization tests for the SVG path parser, derived from PathBuilder.cs behavior.
 // (No C# unit tests exist for PathBuilder.)
-#include "graphics_test_support.hpp"
 
 #include "maui/graphics/path_builder.hpp"
 #include "maui/graphics/path_f.hpp"
+#include "maui/graphics/path_operation.hpp"
 #include "maui/graphics/point_f.hpp"
+#include <gtest/gtest.h>
 
 using maui::graphics::path_builder;
 using maui::graphics::path_f;
@@ -98,15 +99,15 @@ TEST(path_builder_tests, arc)
         }
     }
     EXPECT_TRUE(has_quad);
-    EXPECT_NEAR(10.0f, p.last_point().x, 0.5f);
-    EXPECT_NEAR(0.0f, p.last_point().y, 0.5f);
+    EXPECT_NEAR(10.0F, p.last_point().x, 0.5F);
+    EXPECT_NEAR(0.0F, p.last_point().y, 0.5F);
 }
 
 TEST(path_builder_tests, parse_float)
 {
-    EXPECT_FLOAT_EQ(5.96f, path_builder::parse_float("5.96"));
-    EXPECT_FLOAT_EQ(5.96f, path_builder::parse_float("5.96.88")); // Illustrator malformed
-    EXPECT_FLOAT_EQ(-3.5f, path_builder::parse_float("-3.5"));
-    EXPECT_FLOAT_EQ(100.0f, path_builder::parse_float("1e2"));
-    EXPECT_FLOAT_EQ(12.0f, path_builder::parse_float("12"));
+    EXPECT_FLOAT_EQ(5.96F, path_builder::parse_float("5.96"));
+    EXPECT_FLOAT_EQ(5.96F, path_builder::parse_float("5.96.88")); // Illustrator malformed
+    EXPECT_FLOAT_EQ(-3.5F, path_builder::parse_float("-3.5"));
+    EXPECT_FLOAT_EQ(100.0F, path_builder::parse_float("1e2"));
+    EXPECT_FLOAT_EQ(12.0F, path_builder::parse_float("12"));
 }

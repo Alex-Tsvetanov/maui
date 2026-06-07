@@ -1,12 +1,13 @@
 // Parsing cases ported from src/Graphics/tests/Graphics.Tests/{Point,Size}TypeConverterTests.cs.
 // (The converters delegate to T::TryParse, so we exercise try_parse directly.)
 // Plus a small characterization block for the cross-type API the C# oracle doesn't test.
-#include "graphics_test_support.hpp"
 
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/point_f.hpp"
 #include "maui/graphics/size.hpp"
 #include "maui/graphics/size_f.hpp"
+#include <array>
+#include <gtest/gtest.h>
 
 using maui::graphics::point;
 using maui::graphics::point_f;
@@ -18,49 +19,49 @@ namespace
     // One table drives all four types: {input, expectedSuccess, x/width, y/height}.
     struct parse_case
     {
-        const char *from;
+        const char* from;
         bool ok;
         double a;
         double b;
     };
-    constexpr parse_case k_cases[] = {
-        {"0,0", true, 0, 0},
-        {"0, 0", true, 0, 0},
-        {"0,  0", true, 0, 0},
-        {"1,2", true, 1, 2},
-        {"1, 2", true, 1, 2},
-        {"1,  2", true, 1, 2},
-        {"0.0,0.0", true, 0, 0},
-        {"0.0, 0.0", true, 0, 0},
-        {"0.0,  0.0", true, 0, 0},
-        {"1.1,2.1", true, 1.1, 2.1},
-        {"1.1, 2.1", true, 1.1, 2.1},
-        {"1.1,  2.1", true, 1.1, 2.1},
-        {"0,-0", true, 0, 0},
-        {"-0, 0", true, 0, 0},
-        {"-0,  -0", true, 0, 0},
-        {"-1,2", true, -1, 2},
-        {"1, -2", true, 1, -2},
-        {"-1,  -2", true, -1, -2},
-        {"-0.0,0.0", true, 0, 0},
-        {"0.0, -0.0", true, 0, 0},
-        {"-0.0,  -0.0", true, 0, 0},
-        {"-1.1,2.1", true, -1.1, 2.1},
-        {"1.1, -2.1", true, 1.1, -2.1},
-        {"-1.1,  -2.1", true, -1.1, -2.1},
-        {".1,0", true, 0.1, 0},
-        {"-.1, 1", true, -0.1, 1},
-        {"1, \t 1", true, 1, 1},
-        {"0", false, 0, 0},
-        {",1", false, 0, 0},
-        {"1,", false, 0, 0},
-        {"", false, 0, 0},
-    };
+    constexpr auto k_cases = std::to_array<parse_case>({
+        {.from = "0,0", .ok = true, .a = 0, .b = 0},
+        {.from = "0, 0", .ok = true, .a = 0, .b = 0},
+        {.from = "0,  0", .ok = true, .a = 0, .b = 0},
+        {.from = "1,2", .ok = true, .a = 1, .b = 2},
+        {.from = "1, 2", .ok = true, .a = 1, .b = 2},
+        {.from = "1,  2", .ok = true, .a = 1, .b = 2},
+        {.from = "0.0,0.0", .ok = true, .a = 0, .b = 0},
+        {.from = "0.0, 0.0", .ok = true, .a = 0, .b = 0},
+        {.from = "0.0,  0.0", .ok = true, .a = 0, .b = 0},
+        {.from = "1.1,2.1", .ok = true, .a = 1.1, .b = 2.1},
+        {.from = "1.1, 2.1", .ok = true, .a = 1.1, .b = 2.1},
+        {.from = "1.1,  2.1", .ok = true, .a = 1.1, .b = 2.1},
+        {.from = "0,-0", .ok = true, .a = 0, .b = 0},
+        {.from = "-0, 0", .ok = true, .a = 0, .b = 0},
+        {.from = "-0,  -0", .ok = true, .a = 0, .b = 0},
+        {.from = "-1,2", .ok = true, .a = -1, .b = 2},
+        {.from = "1, -2", .ok = true, .a = 1, .b = -2},
+        {.from = "-1,  -2", .ok = true, .a = -1, .b = -2},
+        {.from = "-0.0,0.0", .ok = true, .a = 0, .b = 0},
+        {.from = "0.0, -0.0", .ok = true, .a = 0, .b = 0},
+        {.from = "-0.0,  -0.0", .ok = true, .a = 0, .b = 0},
+        {.from = "-1.1,2.1", .ok = true, .a = -1.1, .b = 2.1},
+        {.from = "1.1, -2.1", .ok = true, .a = 1.1, .b = -2.1},
+        {.from = "-1.1,  -2.1", .ok = true, .a = -1.1, .b = -2.1},
+        {.from = ".1,0", .ok = true, .a = 0.1, .b = 0},
+        {.from = "-.1, 1", .ok = true, .a = -0.1, .b = 1},
+        {.from = "1, \t 1", .ok = true, .a = 1, .b = 1},
+        {.from = "0", .ok = false, .a = 0, .b = 0},
+        {.from = ",1", .ok = false, .a = 0, .b = 0},
+        {.from = "1,", .ok = false, .a = 0, .b = 0},
+        {.from = "", .ok = false, .a = 0, .b = 0},
+    });
 } // namespace
 
 TEST(point_converter_tests, point_from_string)
 {
-    for (const auto &c : k_cases)
+    for (const auto& c : k_cases)
     {
         point out;
         EXPECT_EQ(c.ok, point::try_parse(c.from, out)) << "'" << c.from << "'";
@@ -73,7 +74,7 @@ TEST(point_converter_tests, point_from_string)
 
 TEST(point_converter_tests, point_f_from_string)
 {
-    for (const auto &c : k_cases)
+    for (const auto& c : k_cases)
     {
         point_f out;
         EXPECT_EQ(c.ok, point_f::try_parse(c.from, out)) << "'" << c.from << "'";
@@ -86,7 +87,7 @@ TEST(point_converter_tests, point_f_from_string)
 
 TEST(size_converter_tests, size_from_string)
 {
-    for (const auto &c : k_cases)
+    for (const auto& c : k_cases)
     {
         size out;
         EXPECT_EQ(c.ok, size::try_parse(c.from, out)) << "'" << c.from << "'";
@@ -99,7 +100,7 @@ TEST(size_converter_tests, size_from_string)
 
 TEST(size_converter_tests, size_f_from_string)
 {
-    for (const auto &c : k_cases)
+    for (const auto& c : k_cases)
     {
         size_f out;
         EXPECT_EQ(c.ok, size_f::try_parse(c.from, out)) << "'" << c.from << "'";
@@ -118,10 +119,10 @@ TEST(point_size_api, point_f_basics)
     EXPECT_TRUE(point_f(0, 0).is_empty());
     EXPECT_FALSE(point_f(1, 0).is_empty());
     EXPECT_EQ(point_f(3, 5), point_f(1, 2).offset(2, 3));
-    EXPECT_FLOAT_EQ(5.0f, point_f(0, 0).distance(point_f(3, 4)));
-    EXPECT_TRUE(point_f(1.0f, 2.0f).equals(point_f(1.001f, 2.0f), 0.01f));
-    EXPECT_FALSE(point_f(1.0f, 2.0f).equals(point_f(1.1f, 2.0f), 0.01f));
-    EXPECT_EQ(point_f(2, 4), point_f(2.5f, 3.5f).round()); // MathF.Round ties-to-even: 2.5->2, 3.5->4
+    EXPECT_FLOAT_EQ(5.0F, point_f(0, 0).distance(point_f(3, 4)));
+    EXPECT_TRUE(point_f(1.0F, 2.0F).equals(point_f(1.001F, 2.0F), 0.01F));
+    EXPECT_FALSE(point_f(1.0F, 2.0F).equals(point_f(1.1F, 2.0F), 0.01F));
+    EXPECT_EQ(point_f(2, 4), point_f(2.5F, 3.5F).round()); // MathF.Round ties-to-even: 2.5->2, 3.5->4
 }
 
 TEST(point_size_api, point_basics)
@@ -133,15 +134,15 @@ TEST(point_size_api, point_basics)
 
 TEST(point_size_api, cross_precision_casts)
 {
-    point_f pf(1.5f, 2.5f);
+    point_f pf(1.5F, 2.5F);
     point p = pf; // implicit widening
     EXPECT_DOUBLE_EQ(1.5, p.x);
     EXPECT_DOUBLE_EQ(2.5, p.y);
 
     point pd(1.5, 2.5);
     point_f back = pd; // implicit narrowing (matches C#)
-    EXPECT_FLOAT_EQ(1.5f, back.x);
-    EXPECT_FLOAT_EQ(2.5f, back.y);
+    EXPECT_FLOAT_EQ(1.5F, back.x);
+    EXPECT_FLOAT_EQ(2.5F, back.y);
 }
 
 TEST(point_size_api, point_size_conversions_and_operators)
@@ -154,9 +155,9 @@ TEST(point_size_api, point_size_conversions_and_operators)
 
     // size_f arithmetic + size_f <-> size
     EXPECT_EQ(size_f(4, 6), size_f(1, 2) + size_f(3, 4));
-    EXPECT_EQ(size_f(2, 4), size_f(1, 2) * 2.0f);
+    EXPECT_EQ(size_f(2, 4), size_f(1, 2) * 2.0F);
     EXPECT_TRUE(size_f(0, 0).is_zero());
-    size widened = size_f(1.5f, 2.5f); // implicit
+    size widened = size_f(1.5F, 2.5F); // implicit
     EXPECT_DOUBLE_EQ(1.5, widened.width);
 
     // double family
