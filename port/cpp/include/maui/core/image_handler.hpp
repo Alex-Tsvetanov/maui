@@ -1,14 +1,17 @@
 #pragma once
-// maui::core::image_handler  <=  Microsoft.Maui.Handlers.ImageHandler (aspect + file source)
+// maui::core::image_handler  <=  Microsoft.Maui.Handlers.ImageHandler (aspect + sources)
 //
-// The handler for an image view: it maps the scaling mode (aspect) onto a native NSImageView, and — this
-// cut — loads a FILE source synchronously into that view. Ported from ImageHandler.cs (cross-platform) +
-// ImageHandler.iOS.cs (the UIImageView ContentMode recipe, translated to AppKit's NSImageView) +
-// ImageSourceExtensions.cs (the file load, [[NSImage alloc] initWithContentsOfFile:] for AppKit).
+// The handler for an image view: it maps the scaling mode (aspect) onto a native NSImageView and loads the
+// image source into that view. Ported from ImageHandler.cs (cross-platform) + ImageHandler.iOS.cs (the
+// UIImageView ContentMode recipe, translated to AppKit's NSImageView) + ImageSourceExtensions.cs.
 //
-// FIRST CUT of map_source: the file is loaded SYNCHRONOUSLY (C# does an async fire-and-forget via
-// SourceLoader). The async loader + cancellation, the service-provider/IImageSourceService seam, the
-// non-file source kinds (uri/stream/font), and image caching are all DEFERRED.
+// map_source: a FILE source loads SYNCHRONOUSLY (a local file is cheap — [[NSImage alloc]
+// initWithContentsOfFile:] / a headless path mirror, kept from the first cut). Any OTHER source (uri /
+// stream) routes through the handler-owned image_source_loader (ASYNC: resolve the service, load, apply
+// only if still the current source — the source-identity recheck — then complete). This mirrors C#'s
+// MapSource being a fire-and-forget async load via the SourceLoader, with the file fast-path as the
+// only synchronous shortcut. DEFERRED: font image sources, disk caching + CacheValidity, resolution
+// reload, the full DI service-provider (see image_source_loader.hpp).
 //
 // Partial-class split (PROFILE §5): the mapper TABLE + ctor are cross-platform (image_handler.cpp); the
 // platform recipe — create / map_aspect / map_source / measure — is per backend under
@@ -16,9 +19,10 @@
 //
 // image_platform is a single cross-platform struct: `native` holds the real backend view (an NSImageView*
 // on Apple, retained in the .mm; unused headless), `image_aspect` mirrors the mapped scaling mode and
-// `source_file`/`source_loaded` mirror the resolved file source for the headless tests (the Apple build
-// loads into `native` instead). It derives view_platform_base (the shared ViewMapper face) so the generic
-// IView properties (Visibility/Opacity/IsEnabled/AutomationId) map onto the NSImageView too.
+// `source_kind`/`source_file`/`source_loaded` mirror the resolved source for the headless tests
+// (source_kind is "file"/"uri"/"stream"; source_file is the path/uri/"<bytes:N>"; the Apple build loads
+// into `native` instead). It derives view_platform_base (the shared ViewMapper face) so the generic IView
+// properties (Visibility/Opacity/IsEnabled/AutomationId) map onto the NSImageView too.
 
 #include <memory>
 #include <string>
@@ -27,6 +31,7 @@
 #include "maui/core/aspect.hpp"
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/i_image.hpp"
+#include "maui/core/image_source_loader.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/view_handler.hpp"
 #include "maui/core/view_platform_base.hpp"
@@ -48,9 +53,11 @@ namespace maui::core
         void* native = nullptr;
         // Headless mirror of the mapped aspect (the Apple build writes to `native` instead).
         aspect image_aspect = aspect::aspect_fit;
-        // Headless mirror of the resolved file source: the last non-empty file path mapped, and whether a
-        // source is currently loaded. map_source clears these when the source is null/empty (the Apple
-        // build sets the real NSImageView.image instead). See src/platform/headless/image_handler.cpp.
+        // Headless mirror of the resolved source: the kind ("file"/"uri"/"stream"), the resolved
+        // path/uri/"<bytes:N>", and whether a source is currently loaded. map_source (file fast-path) and
+        // the async loader's apply set these; a null/empty source clears them (the Apple build sets the
+        // real NSImageView.image instead). See src/platform/headless/image_handler.cpp.
+        std::string source_kind;
         std::string source_file;
         bool source_loaded = false;
 
@@ -82,8 +89,26 @@ namespace maui::core
 
         // Property map functions (platform recipe).
         static void map_aspect(image_handler& handler, i_image& view);
-        // Synchronous file load: resolves view.source() and pushes the loaded image to the native view
-        // (headless mirrors the resolved path). Null/empty source clears the image. See the .mm/.cpp twins.
+        // Load view.source() into the native view. A FILE source loads synchronously (file fast-path,
+        // headless mirrors the path); any other source routes through source_loader() async (apply only
+        // if still current). A null/empty source clears the image. See the .mm/.cpp twins.
         static void map_source(image_handler& handler, i_image& view);
+
+        // The handler-owned async image-source loader (C#'s SourceLoader). Tests inject a dispatcher here
+        // (and pump it) to drive the async load deterministically; the apple recipe leaves it inline.
+        [[nodiscard]] image_source_loader& source_loader()
+        {
+            return source_loader_;
+        }
+
+    private:
+        // Per-backend source primitives map_source dispatches to (the routing — file fast-path vs the
+        // async loader — lives once in the cross-platform map_source; only these touch the native view /
+        // headless mirror). Defined in src/platform/<backend>/image_handler.{cpp,mm}.
+        static void load_file_source_sync(image_platform& platform, const i_file_image_source& file_src);
+        static void apply_loaded_result(image_platform& platform, const image_source_result& result);
+        static void clear_source_native(image_platform& platform);
+
+        image_source_loader source_loader_;
     };
 } // namespace maui::core

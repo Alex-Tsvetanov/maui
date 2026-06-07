@@ -1,4 +1,4 @@
-// image_handler — headless platform recipe. Mirrors the mapped aspect (and the resolved file source) into
+// image_handler — headless platform recipe. Mirrors the mapped aspect (and the resolved source) into
 // image_platform so tests can observe them. The Apple twin is src/platform/apple/image_handler.mm.
 
 #include "maui/core/image_handler.hpp"
@@ -8,6 +8,7 @@
 
 #include "maui/core/i_image.hpp"
 #include "maui/core/i_image_source.hpp"
+#include "maui/core/image_source_result.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -35,36 +36,36 @@ namespace maui::core
         }
     }
 
-    // Synchronous file load (headless mirror). C#'s MapSource fires an async loader; this cut resolves the
-    // source on the calling thread. A null or empty source clears the image (source_loaded=false); a file
-    // source with a non-empty path records that path and marks it loaded. The non-file source kinds
-    // (uri/stream/font) + async/caching are deferred — only i_file_image_source is handled.
-    void image_handler::map_source(image_handler& handler, i_image& view)
+    // ---- per-backend source primitives (the cross-platform map_source in image_handler.cpp routes here) ----
+
+    // File fast-path (headless mirror): no native handle, so record kind="file" + the path, marked loaded.
+    void image_handler::load_file_source_sync(image_platform& platform, const i_file_image_source& file_src)
     {
-        auto* platform = handler.typed_platform_view();
-        if (platform == nullptr)
+        platform.source_kind = "file";
+        platform.source_file = std::string(file_src.file());
+        platform.source_loaded = true;
+    }
+
+    // The async loader's apply (headless mirror): copy the result's kind + detail into the mirror. A
+    // !loaded() result (empty/failed) clears it, mirroring SetImageSource(null).
+    void image_handler::apply_loaded_result(image_platform& platform, const image_source_result& result)
+    {
+        if (!result.loaded())
         {
+            clear_source_native(platform);
             return;
         }
+        platform.source_kind = result.kind();
+        platform.source_file = result.detail();
+        platform.source_loaded = true;
+    }
 
-        const i_image_source* const src = view.source();
-        if (src == nullptr || src->is_empty())
-        {
-            platform->source_file.clear();
-            platform->source_loaded = false;
-            return;
-        }
-
-        if (const auto* file_src = dynamic_cast<const i_file_image_source*>(src))
-        {
-            platform->source_file = std::string(file_src->file());
-            platform->source_loaded = true;
-            return;
-        }
-
-        // A non-empty source we don't know how to load (deferred source kind): clear rather than guess.
-        platform->source_file.clear();
-        platform->source_loaded = false;
+    // Clear the loaded image (headless mirror).
+    void image_handler::clear_source_native(image_platform& platform)
+    {
+        platform.source_kind.clear();
+        platform.source_file.clear();
+        platform.source_loaded = false;
     }
 
     maui::graphics::size image_handler::get_desired_size(double /*width_constraint*/,

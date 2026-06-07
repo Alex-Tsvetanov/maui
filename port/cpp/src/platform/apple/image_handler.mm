@@ -15,11 +15,13 @@
 //     container would be a larger change, out of scope for this minimal cut).
 //
 // source — translated from ImageHandler.iOS.cs MapSource + ImageSourceExtensions.cs GetPlatformImage
-// (UIImage.FromBundle(name) ?? UIImage.FromFile(file)). FIRST CUT: a file source loads SYNCHRONOUSLY via
+// (UIImage.FromBundle(name) ?? UIImage.FromFile(file)). A FILE source loads SYNCHRONOUSLY via
 // [[NSImage alloc] initWithContentsOfFile:] (AppKit's NSImage has no FromBundle split — the file path is
-// loaded directly). A null/empty source clears imageView.image. DEFERRED: C#'s async fire-and-forget
-// loader + cancellation, the IImageSourceService/service-provider seam, the non-file source kinds
-// (uri/stream/font), and caching.
+// loaded directly); a uri/stream source routes through the handler-owned image_source_loader, whose apply
+// sets imageView.image from the decoded NSImage in the result (the loader's services produce it — see
+// src/platform/apple/image_source_services.mm). A null/empty source clears imageView.image. The
+// cross-platform routing lives in image_handler.cpp::map_source; only the three primitives below touch the
+// NSImageView. DEFERRED: font image sources, disk caching, resolution reload, the full DI service-provider.
 
 #import <AppKit/AppKit.h>
 
@@ -32,6 +34,7 @@
 #include "maui/core/i_image.hpp"
 #include "maui/core/i_image_source.hpp"
 #include "maui/core/image_handler.hpp"
+#include "maui/core/image_source_result.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
@@ -129,32 +132,37 @@ namespace maui::core
         image_view.imageAlignment = NSImageAlignCenter;
     }
 
-    // Synchronous file load (see the file header). A null/empty source clears the image; otherwise the file
-    // source's path is loaded via NSImage. Only i_file_image_source is handled this cut (the other source
-    // kinds are deferred — they also clear, rather than guess). A failed load (nil) leaves the image cleared.
-    void image_handler::map_source(image_handler& handler, i_image& view)
+    // ---- per-backend source primitives (the cross-platform map_source in image_handler.cpp routes here) ----
+
+    // File fast-path: load the path via NSImage straight into the view (nil on a failed load → cleared).
+    void image_handler::load_file_source_sync(image_platform& platform, const i_file_image_source& file_src)
     {
-        auto* platform = handler.typed_platform_view();
-        if (platform == nullptr || platform->native == nullptr)
+        if (platform.native == nullptr)
         {
             return;
         }
-        NSImageView* const image_view = as_image_view(platform->native);
+        as_image_view(platform.native).image = load_image_from_file(file_src.file());
+    }
 
-        const i_image_source* const src = view.source();
-        if (src == nullptr || src->is_empty())
+    // The async loader's apply: set the view to the decoded NSImage the result carries (the result retains
+    // it; the NSImageView takes its own retain). A !loaded() result clears the view.
+    void image_handler::apply_loaded_result(image_platform& platform, const image_source_result& result)
+    {
+        if (platform.native == nullptr)
         {
-            image_view.image = nil;
             return;
         }
+        as_image_view(platform.native).image = result.loaded() ? (__bridge NSImage*)result.image() : nil;
+    }
 
-        if (const auto* file_src = dynamic_cast<const i_file_image_source*>(src))
+    // Clear the loaded image.
+    void image_handler::clear_source_native(image_platform& platform)
+    {
+        if (platform.native == nullptr)
         {
-            image_view.image = load_image_from_file(file_src->file()); // nil on a failed load (clears it)
             return;
         }
-
-        image_view.image = nil; // deferred source kind: clear rather than guess
+        as_image_view(platform.native).image = nil;
     }
 
     maui::graphics::size image_handler::get_desired_size(double /*width_constraint*/,

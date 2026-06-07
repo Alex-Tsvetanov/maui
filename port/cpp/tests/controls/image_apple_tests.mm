@@ -1,14 +1,18 @@
 // Apple (AppKit) backend tests for the image seam — the cross-platform aspect maps to a real NSImageView's
-// imageScaling, and a file source loads SYNCHRONOUSLY into the view's image. Compiled as Objective-C++ with
-// ARC for the `apple` backend.
+// imageScaling; a FILE source loads synchronously into the view's image; and uri/stream sources load
+// through the handler-owned image_source_loader (here inline — no dispatcher injected — since the file://
+// read + in-memory PNG decode are fast and synchronous). Compiled as Objective-C++ with ARC for `apple`.
 #import <AppKit/AppKit.h>
 
+#include <cstddef>
 #include <memory>
 #include <string>
 
 #include "maui/controls/file_image_source.hpp"
 #include "maui/controls/image.hpp"
 #include "maui/core/aspect.hpp"
+#include "maui/core/cancellation_token.hpp"
+#include "maui/core/i_stream_image_source.hpp"
 #include "maui/core/image_handler.hpp"
 #include <gtest/gtest.h>
 
@@ -17,6 +21,8 @@ namespace
     using maui::controls::image;
     using maui::controls::image_source;
     using maui::core::aspect;
+    using maui::core::cancellation_token;
+    using maui::core::image_bytes;
     using maui::core::image_handler;
 
     // -[NSString UTF8String] is nullable-annotated; convert through this guard so the std::string
@@ -70,6 +76,29 @@ namespace
         {
             [[NSFileManager defaultManager] removeItemAtPath:@(path.c_str()) error:nil];
         }
+    }
+
+    // Builds a tiny 2x2 PNG in memory (no file) and returns its encoded bytes — the payload a stream
+    // source yields. Empty on failure.
+    image_bytes make_png_bytes()
+    {
+        NSBitmapImageRep* const rep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:nullptr
+                                                                              pixelsWide:2
+                                                                              pixelsHigh:2
+                                                                           bitsPerSample:8
+                                                                         samplesPerPixel:4
+                                                                                hasAlpha:YES
+                                                                                isPlanar:NO
+                                                                          colorSpaceName:NSDeviceRGBColorSpace
+                                                                             bytesPerRow:0
+                                                                            bitsPerPixel:0];
+        NSData* const png = rep != nil ? [rep representationUsingType:NSBitmapImageFileTypePNG properties:@{}] : nil;
+        if (png == nil)
+        {
+            return {};
+        }
+        const auto* const raw = static_cast<const std::byte*>(png.bytes);
+        return image_bytes(raw, raw + png.length);
     }
 
     class apple_image_seam : public ::testing::Test
@@ -180,5 +209,58 @@ namespace
 
         control.set_source(image_source::from_file("/tmp/does-not-exist-maui-image-test.png"));
         EXPECT_EQ(view.image, nil); // a failed load clears rather than crashes
+    }
+
+    // ---- uri + stream sources via the async loader (inline: no dispatcher injected) ----
+
+    TEST_F(apple_image_seam, uri_file_source_loads_into_native_image)
+    {
+        const std::string path = write_temp_png();
+        ASSERT_FALSE(path.empty());
+
+        image control;
+        auto handler = std::make_shared<image_handler>();
+        control.set_handler(handler);
+        NSImageView* const view = native_image_view(handler);
+        ASSERT_EQ(view.image, nil);
+
+        // A file:// uri routes through the loader; the apply runs inline (no dispatcher set), reading the
+        // bytes off disk and decoding them to an NSImage.
+        control.set_source(image_source::from_uri("file://" + path));
+        EXPECT_NE(view.image, nil);
+        EXPECT_GT(view.image.size.width, 0.0);
+        EXPECT_GT(view.image.size.height, 0.0);
+
+        remove_file(path);
+    }
+
+    TEST_F(apple_image_seam, stream_source_from_memory_loads_into_native_image)
+    {
+        const image_bytes png = make_png_bytes();
+        ASSERT_FALSE(png.empty());
+
+        image control;
+        auto handler = std::make_shared<image_handler>();
+        control.set_handler(handler);
+        NSImageView* const view = native_image_view(handler);
+        ASSERT_EQ(view.image, nil);
+
+        // The stream provider yields the in-memory PNG bytes; the loader's apply (inline) decodes them.
+        control.set_source(image_source::from_stream([png](const cancellation_token&) { return png; }));
+        EXPECT_NE(view.image, nil);
+        EXPECT_GT(view.image.size.width, 0.0);
+        EXPECT_GT(view.image.size.height, 0.0);
+    }
+
+    TEST_F(apple_image_seam, empty_stream_source_leaves_native_image_nil)
+    {
+        image control;
+        auto handler = std::make_shared<image_handler>();
+        control.set_handler(handler);
+        NSImageView* const view = native_image_view(handler);
+
+        // A provider that yields no bytes decodes to nothing → the view stays cleared.
+        control.set_source(image_source::from_stream([](const cancellation_token&) { return image_bytes{}; }));
+        EXPECT_EQ(view.image, nil);
     }
 } // namespace

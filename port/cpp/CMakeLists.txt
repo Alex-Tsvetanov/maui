@@ -143,6 +143,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/label_handler.mm
     src/platform/apple/entry_handler.mm
     src/platform/apple/image_handler.mm
+    src/platform/apple/image_source_services.mm
     src/platform/apple/layout_handler.mm
     src/platform/apple/content_page_handler.mm)
   set_source_files_properties(${MAUI_CORE_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
@@ -152,6 +153,7 @@ else()
     src/platform/headless/label_handler.cpp
     src/platform/headless/entry_handler.cpp
     src/platform/headless/image_handler.cpp
+    src/platform/headless/image_source_services.cpp
     src/platform/headless/layout_handler.cpp
     src/platform/headless/content_page_handler.cpp)
 endif()
@@ -171,6 +173,10 @@ add_library(maui_core STATIC
   src/core/label_handler.cpp
   src/core/entry_handler.cpp
   src/core/image_handler.cpp
+  src/core/image_source_loader.cpp
+  src/core/image_source_service_registry.cpp
+  src/core/image_source_services.cpp
+  src/core/uri_bytes.cpp
   src/core/layout_handler.cpp
   src/core/content_page_handler.cpp
   src/core/grid_length.cpp

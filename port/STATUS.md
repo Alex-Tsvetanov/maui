@@ -163,8 +163,39 @@ transform / flow_direction wiring was retrofitted onto all six platform structs*
 image / layout / content_page each override `update_transform` / `update_flow_direction` to call the
 apple_view_ops helpers; grid reuses layout_handler). Full gate green: **326 headless / 264 apple** GTest,
 clang-tidy 0 findings (including the Obj-C++ `.mm` files), ASan/UBSan + TSan clean.
+**M4d — async image sources (Unit I, done):** the image-source subsystem grew uri + stream sources, an
+async loader with cancellation, an in-memory cache, and the service-registry seam. New contracts
+`i_uri_image_source` (uri + caching_enabled) / `i_stream_image_source` (a bytes provider —
+`image_bytes get_bytes(token)`, simplifying C#'s `Task<Stream>`); concrete `uri_image_source` /
+`stream_image_source` + `image_source::from_uri` / `from_stream` factories. The service seam:
+`i_image_source_service` (async `load(source, token, on_result)`), an `image_source_service_registry`
+(mirrors handler_registry — `register_service<Source, Service>()` keyed by the source interface, `resolve`
+via a dynamic_cast probe walk) with a process-wide default + `register_default_image_source_services`, an
+`image_source_result` (the native image handle + RAII disposer + a headless kind/detail mirror), and per-
+source `file/uri/stream_image_source_service` (cross-platform decl + `{headless,apple}` partials sharing one
+`decode_image_bytes` primitive). The `cancellation_token` is a `shared_ptr<atomic<bool>>` flag
+(is_cancelled/cancel). The `image_source_loader` (ports ImageSourcePartLoader + ImageSourceServiceResultManager):
+`begin_load()` disposes the prior result + cancels the prior token + mints a fresh one; `update_source()`
+resolves the service / handles the uri cached fast-path (`std::map<uri,bytes>`, no expiry), loads, marshals
+the apply onto the dispatcher (headless `manual_dispatcher` pumped in tests; apple inline when no dispatcher),
+does the **source-identity recheck** (`!token.is_cancelled() && source == current_source_`), then
+`complete_load`. `image_handler` now OWNS a loader (`source_loader()`): `map_source` keeps the SYNC file fast-
+path and routes uri/stream through the loader async; the cross-platform routing lives once in
+image_handler.cpp, the three per-backend primitives (`load_file_source_sync` / `apply_loaded_result` /
+`clear_source_native`) touch the native NSImageView / headless mirror. `image_platform` gained a
+`source_kind` mirror; still derives `view_platform_base`, mapper still chains `view_mapper()`. THREADING: the
+loader's mutable state is touched only on the dispatcher (UI) thread; this cut's services load synchronously
+(no worker), so the only cross-thread element is the atomic cancellation flag → TSan-clean. UAF-safe teardown
+via a loader liveness weak_ptr the queued apply checks; ABA-safe because token cancellation gates the apply
+independent of pointer identity. CMake: +4 cross-platform core `.cpp` (loader / registry / services-glue /
+uri_bytes) + a per-backend `image_source_services.{cpp,mm}` (apple `.mm` `-fobjc-arc`). 6 new headless +
+3 new apple GTest cases (extend image_tests.cpp / image_apple_tests.mm — no test-list churn). DEFERRED: disk
+caching + CacheValidity expiry, font image sources, the full DI service-provider, resolution-dependent reload,
+a production HTTP stack (apple uri does `file://` + a synchronous `http(s)` NSData fetch; headless never hits
+the network — stream sources + `file://` only). **326 → 331 headless / 264 → 267 apple**, clang-tidy 0 findings
+(incl. the `.mm` files + the gated tests, no suppressions).
 **Still next: M4/M5** — navigation `page` types; the type-heavy ViewMapper props (background / shadow / clip);
-async image sources; then M5 (binding / styles / lifecycle).
+then M5 (binding / styles / lifecycle).
 
 ## Tooling — format, lint, sanitizers (run from `port/cpp/`)
 
@@ -227,6 +258,7 @@ async image sources; then M5 (binding / styles / lifecycle).
 | `grid` control (`row_definition`/`column_definition`, Grid.Row/Column/Span attached props) | controls | ✅ | ✅* | ✅ | headless + macOS | M4c Unit B — `grid : layout<i_grid_layout>` over the existing `grid_layout_manager`. Concrete row/column definitions (default Star) + RowDefinitions/ColumnDefinitions; bindable row/column spacing; the Grid.Row/Column/RowSpan/ColumnSpan attached props stored per-child in a pointer-keyed `cell_info` map (C# validation: row/col ≥ 0, span ≥ 1). Reuses `layout_handler` (a grid is an i_layout) → inherits the native NSView panel + chained `view_mapper()`. 22 headless + 4 apple GTest cases; self-registers. *characterization |
 | `content_page` (`i_content_view`, `content_page`, `content_page_handler`) | controls + core/handlers | ✅ | ✅* | ✅ | headless + macOS | M4c Unit C — a minimal page hosting a single Content. `i_content_view` (content + i_padding); `content_page : view<i_content_view>` (non-owning Content + bindable Title/Padding; measure/arrange port C# MeasureContent/ArrangeContent — content sized within padding). `content_page_handler` hosts the content's native view as a subview of a plain NSView (headless mirror). Chains `view_mapper()`; derives `view_platform_base`. Navigation/toolbar/safe-area/dialogs/templates deferred. 11 headless + 4 apple GTest cases; self-registers. *characterization |
 | image file source (`i_image_source`/`i_file_image_source`, `file_image_source`, `image.source`) | core + controls + handlers | ✅ | ✅* | ✅ | headless + macOS | M4c Unit D — `image` gained a real bindable `source` (`property<shared_ptr<i_image_source>>`). `i_image_source`/`i_file_image_source` contracts + concrete `file_image_source` + `image_source::from_file(path)`. `image_handler::map_source` loads the file **synchronously** (`[[NSImage alloc] initWithContentsOfFile:]`; headless mirrors path + loaded flag; empty/null/failed → clears). Async loading + cancellation, the IImageSourceService/service-provider seam, uri/stream/font sources + caching deferred. 6 headless + 4 apple GTest cases. *characterization |
+| async image sources (`i_uri_image_source`/`i_stream_image_source`, `uri/stream_image_source`, `i_image_source_service`/`image_source_service_registry`, `image_source_loader`, `cancellation_token`) | core + controls + handlers | ✅ | ✅* | ✅ | headless + macOS | M4d Unit I — uri + stream sources, an async loader with cancellation, an in-memory uri cache, and the service-registry seam. `i_uri_image_source` (uri + caching_enabled) / `i_stream_image_source` (a bytes provider `image_bytes get_bytes(token)`, simplifying C#'s `Task<Stream>`); concrete `uri_image_source`/`stream_image_source` + `from_uri`/`from_stream`. `i_image_source_service` (async `load(source, token, on_result)`); `image_source_service_registry` (mirrors handler_registry; `register_service<Source,Service>()` keyed by source interface, `resolve` via dynamic_cast probe) + a default registry; `image_source_result` (native handle + RAII disposer + headless kind/detail mirror); per-source `file/uri/stream_image_source_service` (cross-platform decl + `{headless,apple}` partials sharing one `decode_image_bytes`). `image_source_loader` (ports ImageSourcePartLoader + ImageSourceServiceResultManager): `begin_load` cancels the prior token + disposes the prior result; `update_source` resolves the service / uri cached fast-path (`map<uri,bytes>`, no expiry), marshals the apply onto the dispatcher (headless `manual_dispatcher`; apple inline), does the source-identity recheck (`!token.is_cancelled() && source==current_source_`), `complete_load`. `image_handler` OWNS the loader (`source_loader()`); `map_source` keeps the SYNC file fast-path + routes uri/stream async (routing cross-platform; 3 per-backend primitives touch NSImageView / mirror). Still chains `view_mapper()`; `image_platform` derives `view_platform_base` (+ `source_kind` mirror). THREADING: loader state touched only on the dispatcher thread; services load synchronously (no worker) so the sole cross-thread element is the atomic cancellation flag → TSan-clean; UAF-safe teardown via a loader liveness weak_ptr; ABA-safe via token cancellation. Disk caching/CacheValidity, font sources, the full DI provider, resolution reload, and a production HTTP stack deferred (apple uri = `file://` + sync `http(s)` NSData; headless = stream + `file://`, no network). 6 headless + 3 apple GTest cases (extend the existing image test files). *characterization |
 
 | layout foundation (`dimension`, `i_container`/`i_layout`/`i_stack_layout`, `i_layout_manager`) | core/layouts | ✅ | — | ✅ | headless + macOS | `ILayout : IView + IContainer + IPadding` (M3 subset; ClipsToBounds / ISafeAreaView / ICrossPlatformLayout deferred to M4). `dimension` = Unset(NaN)/Minimum(0)/Maximum(inf) + is_explicit_set |
 | stack layout managers (`layout_manager`/`stack_layout_manager` + vertical/horizontal) | layouts | ✅ | ✅* | ✅ | headless + macOS | New `maui_layouts` lib — pure cross-platform measure/arrange (ResolveConstraints, MeasureSpacing, stacking). 28 GTest cases via mock view/stack (spacing / padding / min-max / collapsed-vs-hidden / fill / child-constraint). The layout *controls* + native panel are M4. *ported from C# Stack*LayoutManagerTests (the oracle) |
