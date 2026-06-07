@@ -8,6 +8,7 @@
 #include <string>
 #include <string_view>
 
+#include "maui/core/flow_direction.hpp"
 #include "maui/core/visibility.hpp"
 
 namespace maui::core
@@ -34,5 +35,15 @@ namespace maui::core
     void view_platform_base::update_automation_id(std::string_view value)
     {
         automation_id = std::string(value);
+    }
+
+    void view_platform_base::update_transform(const transform_spec& value)
+    {
+        transform = value;
+    }
+
+    void view_platform_base::update_flow_direction(maui::core::flow_direction value)
+    {
+        flow_direction = value;
     }
 } // namespace maui::core

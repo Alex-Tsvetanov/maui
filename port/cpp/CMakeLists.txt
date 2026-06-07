@@ -171,11 +171,13 @@ target_include_directories(maui_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # rect/size in i_view). PUBLIC so consumers of maui_core link maui_graphics transitively.
 target_link_libraries(maui_core PUBLIC maui_graphics PRIVATE maui_sanitizers)
 # The Apple backend's .mm partials use AppKit/Foundation; Cocoa is PUBLIC so test/app consumers link it.
+# QuartzCore (PUBLIC) supplies the CATransform3D* C functions apple_view_ops.hpp's apply_transform uses
+# to build the render transform (Cocoa does not transitively link those symbols).
 # MAUI_PLATFORM_APPLE is PUBLIC so every TU in the apple build (controls, tests) sees the same platform
 # struct definitions (with the view_platform_base update_* overrides) — keeping the class ODR-consistent
 # across the build (only one backend is ever compiled/linked together).
 if(MAUI_BACKEND STREQUAL "apple")
-  target_link_libraries(maui_core PUBLIC "-framework Cocoa")
+  target_link_libraries(maui_core PUBLIC "-framework Cocoa" "-framework QuartzCore")
   target_compile_definitions(maui_core PUBLIC MAUI_PLATFORM_APPLE)
 endif()
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)

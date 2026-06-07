@@ -12,6 +12,7 @@
 
 #include "maui/core/button_handler.hpp"
 #include "maui/core/entry_handler.hpp"
+#include "maui/core/flow_direction.hpp"
 #include "maui/core/image_handler.hpp"
 #include "maui/core/label_handler.hpp"
 #include "maui/core/layout_handler.hpp"
@@ -28,6 +29,7 @@ namespace
     using maui::controls::vertical_stack_layout;
     using maui::core::button_handler;
     using maui::core::entry_handler;
+    using maui::core::flow_direction;
     using maui::core::image_handler;
     using maui::core::label_handler;
     using maui::core::layout_handler;
@@ -151,6 +153,130 @@ namespace
         EXPECT_EQ(base->alpha, 0.5);
         EXPECT_FALSE(base->enabled);
         EXPECT_EQ(base->automation_id, "preset");
+    }
+
+    // ---- button: the render transform (nine ITransform scalars) + flow direction ----
+
+    TEST(view_mapper_transform, identity_defaults_map_on_connect)
+    {
+        // VisualElement transform defaults: translations/rotations 0, scales 1, anchors 0.5; FlowDirection
+        // MatchParent. The shared map_transform pushes the whole identity spec when the mapper runs.
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        view_platform_base* base = handler->platform_base();
+        ASSERT_NE(base, nullptr);
+
+        EXPECT_EQ(base->transform.translation_x, 0.0);
+        EXPECT_EQ(base->transform.translation_y, 0.0);
+        EXPECT_EQ(base->transform.scale, 1.0);
+        EXPECT_EQ(base->transform.scale_x, 1.0);
+        EXPECT_EQ(base->transform.scale_y, 1.0);
+        EXPECT_EQ(base->transform.rotation, 0.0);
+        EXPECT_EQ(base->transform.rotation_x, 0.0);
+        EXPECT_EQ(base->transform.rotation_y, 0.0);
+        EXPECT_EQ(base->transform.anchor_x, 0.5);
+        EXPECT_EQ(base->transform.anchor_y, 0.5);
+        EXPECT_EQ(base->flow_direction, flow_direction::match_parent);
+    }
+
+    TEST(view_mapper_transform, each_setter_rebuilds_the_whole_spec)
+    {
+        // Any single scalar change re-pushes the FULL transform_spec (map_transform reads all nine off the
+        // view), matching TransformationExtensions which rebuilds the CATransform3D from every scalar — so
+        // a later setter must preserve the values set earlier.
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        view_platform_base* base = handler->platform_base();
+        ASSERT_NE(base, nullptr);
+
+        control.set_translation_x(10.0);
+        EXPECT_EQ(base->transform.translation_x, 10.0);
+
+        control.set_translation_y(20.0);
+        EXPECT_EQ(base->transform.translation_x, 10.0); // preserved across the next change
+        EXPECT_EQ(base->transform.translation_y, 20.0);
+
+        control.set_scale(2.0);
+        control.set_scale_x(3.0);
+        control.set_scale_y(4.0);
+        control.set_rotation(45.0);
+        control.set_rotation_x(15.0);
+        control.set_rotation_y(30.0);
+        control.set_anchor_x(0.0);
+        control.set_anchor_y(1.0);
+
+        // After all setters, the mirror reflects the full accumulated spec.
+        EXPECT_EQ(base->transform.translation_x, 10.0);
+        EXPECT_EQ(base->transform.translation_y, 20.0);
+        EXPECT_EQ(base->transform.scale, 2.0);
+        EXPECT_EQ(base->transform.scale_x, 3.0);
+        EXPECT_EQ(base->transform.scale_y, 4.0);
+        EXPECT_EQ(base->transform.rotation, 45.0);
+        EXPECT_EQ(base->transform.rotation_x, 15.0);
+        EXPECT_EQ(base->transform.rotation_y, 30.0);
+        EXPECT_EQ(base->transform.anchor_x, 0.0);
+        EXPECT_EQ(base->transform.anchor_y, 1.0);
+    }
+
+    TEST(view_mapper_transform, setting_flow_direction_maps_to_mirror)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        view_platform_base* base = handler->platform_base();
+        ASSERT_NE(base, nullptr);
+
+        control.set_flow_direction(flow_direction::right_to_left);
+        EXPECT_EQ(base->flow_direction, flow_direction::right_to_left);
+
+        control.set_flow_direction(flow_direction::left_to_right);
+        EXPECT_EQ(base->flow_direction, flow_direction::left_to_right);
+    }
+
+    TEST(view_mapper_transform, initial_transform_values_map_on_attach)
+    {
+        // Values set BEFORE the handler attaches are pushed (as the whole spec + flow direction) when the
+        // mapper runs on connect.
+        button control;
+        control.set_translation_x(5.0);
+        control.set_scale_x(2.5);
+        control.set_rotation(90.0);
+        control.set_anchor_y(0.25);
+        control.set_flow_direction(flow_direction::right_to_left);
+
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        view_platform_base* base = handler->platform_base();
+        ASSERT_NE(base, nullptr);
+
+        EXPECT_EQ(base->transform.translation_x, 5.0);
+        EXPECT_EQ(base->transform.scale_x, 2.5);
+        EXPECT_EQ(base->transform.rotation, 90.0);
+        EXPECT_EQ(base->transform.anchor_y, 0.25);
+        // Untouched scalars keep their identity defaults even though one sibling was set.
+        EXPECT_EQ(base->transform.translation_y, 0.0);
+        EXPECT_EQ(base->transform.scale, 1.0);
+        EXPECT_EQ(base->transform.anchor_x, 0.5);
+        EXPECT_EQ(base->flow_direction, flow_direction::right_to_left);
+    }
+
+    // The transform/flow-direction retrofit also reaches a display-only control (label), proving the
+    // shared mapper generalizes beyond button.
+    TEST(view_mapper_transform, transform_reaches_label_platform)
+    {
+        label control;
+        auto handler = std::make_shared<label_handler>();
+        control.set_handler(handler);
+        view_platform_base* base = handler->platform_base();
+        ASSERT_NE(base, nullptr);
+
+        control.set_scale(3.0);
+        EXPECT_EQ(base->transform.scale, 3.0);
+
+        control.set_flow_direction(flow_direction::right_to_left);
+        EXPECT_EQ(base->flow_direction, flow_direction::right_to_left);
     }
 
     // ---- label: the same generic properties reach its platform base (recipe generalizes) ----

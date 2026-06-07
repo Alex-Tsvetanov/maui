@@ -115,6 +115,35 @@ structs retrofitted onto `view_platform_base` + chained `view_mapper()` (layout 
 plain NSView panel has no enabled state, so is_enabled keeps the base mirror; entry / image, being
 NSControls, override all 4). Full gate green: **282 headless / 246 apple** GTest, clang-tidy 0 findings
 (including the Obj-C++ `.mm` files), ASan/UBSan + TSan clean.
+**M4c — ViewMapper widening: transforms + FlowDirection (Unit A, done; headless-complete):** the shared
+`view_mapper()` grew the render transform and FlowDirection. `view_platform_base` gained a POD
+`transform_spec` (the ten ITransform scalars — translation_x/y, scale, scale_x/y, rotation, rotation_x/y,
+anchor_x/y; identity defaults) + a `transform` mirror and a `flow_direction` mirror, plus backend-
+overridable `update_transform(const transform_spec&)` / `update_flow_direction(flow_direction)` (headless
+bodies store the mirrors). `view_mapper()` added ten transform keys — all routing to ONE shared
+`map_transform` that reads all ten scalars off the i_view and pushes the whole `transform_spec` (so any
+single change rebuilds the entire transform, matching TransformationExtensions.UpdateTransformation) —
+plus `"flow_direction"` → `map_flow_direction`. The `view<>` transform getters + `flow_direction()` are
+now BINDABLE (private `property<double>` / `property<flow_direction>` over NEW non-template descriptor
+free-fns in `view.cpp`: translation/rotation default 0, scale 1, anchor 0.5, flow_direction MatchParent)
+with public setters (`set_translation_x` … `set_flow_direction`); property names match the mapper keys
+exactly. Shared AppKit helpers in the new header `src/platform/apple/apple_view_ops.hpp`:
+`maui::platform::apple::apply_transform(void* native, const maui::core::transform_spec&)` (faithful port
+of TransformationExtensions — wantsLayer, anchorPoint, the CATransform3D build with the m34 perspective
+for out-of-plane rotation; the anchor-offset term reads the NSView layer bounds, the AppKit analog of
+view.Frame) and `apply_flow_direction(void* native, maui::core::flow_direction)`
+(NSView.userInterfaceLayoutDirection; MatchParent → the app-wide default). These are provided for the
+coordinator's per-control retrofit — NOT wired into any control here. CMake gained `-framework QuartzCore`
+on the apple `maui_core` link (CATransform3D C symbols; Cocoa doesn't pull them). 5 new headless
+(`view_mapper_tests.cpp`: identity defaults, single-setter-rebuilds-whole-spec, flow_direction, initial-
+values-on-attach, label-generalization) + 5 new apple (`view_mapper_apple_tests.mm`: apply_transform
+scale/anchor/perspective/identity + apply_flow_direction) GTest cases. Full gate green: **287 headless /
+251 apple**, clang-tidy 0 findings on the changed `.cpp`/headers (headless + apple DBs). **Out of scope
+(deferred):** Background (needs paint), Shadow (needs i_shadow), Clip (needs i_shape), Width/Height
+(layout-driven), Semantics, InputTransparent; and C#'s `IsConnectingHandler()` default-skip. **Coordinator:
+to retrofit each control, override `update_transform`/`update_flow_direction` on its platform struct to
+call `apply_transform(native, value)` / `apply_flow_direction(native, value)` from apple_view_ops.hpp
+(no view_mapper change needed — chaining `view_mapper()` is already done for every control).**
 **Still next: M4** — the `grid` control (wrapping the existing grid manager) and `page`.
 
 ## Tooling — format, lint, sanitizers (run from `port/cpp/`)
@@ -174,6 +203,7 @@ NSControls, override all 4). Full gate green: **282 headless / 246 apple** GTest
 | handler self-registration (`default_handler_registry`/`handler_registrar`/`MAUI_REGISTER_HANDLER`) | core | ✅ | ✅* | ✅ | headless + macOS | Opt-in §6 self-registration over the explicit primitive; macro-free registrar + macro sugar; noexcept registrar (load-time). OBJECT-library tree-shaking caveat documented. clang-tidy `^MAUI_` allow-listed. *characterization |
 | `label` control (`i_label`/`i_text_alignment`/`text_alignment`/`text_decorations`, `label_handler`) | controls + core/handlers | ✅ | ✅* | ✅ | headless + macOS | Second control (display-only) — proves the recipe generalizes. Bindable text/text_color/font/char_spacing/padding/alignments/decorations/line_height; mapper keyed on i_label, now chained onto `view_mapper()` (M4b). Headless mirror + real macOS NSTextField (text/textColor/font/alignment). Shared `apple_conversions.hpp` (color/font→AppKit). 5 headless + 2 apple GTest cases; self-registers. *characterization |
 | shared ViewMapper (`view_platform_base`, `view_mapper`; `view<>` IsEnabled/Opacity/Visibility/AutomationId bindable) | core/handlers + controls | ✅ | ✅* | ✅ | headless + macOS | M4b Unit 2 — the generic-IView property mapper every handler chains. `view_platform_base` (non-template platform-view base: headless mirrors hidden/alpha/enabled/automation_id + backend-overridable update_*); `view_mapper()` = `property_mapper<i_view, i_view_handler>` keyed visibility/opacity/is_enabled/automation_id. `i_view_handler::platform_base()` + CRTP `view_handler` non-breaking `if constexpr` impl. The four `view<>` props bindable via NON-template descriptor free-fns in `src/controls/view.cpp` (opacity clamped [0,1]). button/label platform structs derive the base + chain `view_mapper()`; AppKit pushes to NSButton/NSTextField (hidden/alphaValue/setEnabled:/accessibilityIdentifier). Wider ViewMapper set (Width/Height/Background/transforms/Clip/Shadow/FlowDirection) + IsConnectingHandler skip deferred. 9 headless + 2 apple GTest cases. *characterization |
+| ViewMapper transforms + FlowDirection (`transform_spec`, `map_transform`/`map_flow_direction`; `view<>` transform + flow_direction bindable; `apple_view_ops.hpp`) | core/handlers + controls + platform/apple | ✅ | ✅* | ✅ | headless + macOS | M4c Unit A — widens `view_mapper()` with the render transform + FlowDirection. `view_platform_base` gained a POD `transform_spec` (ten ITransform scalars, identity defaults) + `transform`/`flow_direction` mirrors + `update_transform`/`update_flow_direction`. Ten transform keys all route to ONE `map_transform` (reads all ten off i_view → pushes the whole spec, so any change rebuilds the full transform, per TransformationExtensions) + `flow_direction`→`map_flow_direction`. The ten `view<>` transform getters + `flow_direction()` now bindable (NON-template descriptor free-fns in `view.cpp`) with public setters; names match the mapper keys. Shared AppKit helpers `apply_transform`/`apply_flow_direction` in the new `src/platform/apple/apple_view_ops.hpp` (faithful TransformationExtensions CATransform3D build incl. m34 perspective; NSView.userInterfaceLayoutDirection) — provided for the coordinator's per-control retrofit, NOT wired into any control. CMake +`-framework QuartzCore` (apple `maui_core`). Background/Shadow/Clip/Width/Height/Semantics/InputTransparent deferred (need new value types or are layout-driven). 5 headless + 5 apple GTest cases. *characterization |
 
 | layout foundation (`dimension`, `i_container`/`i_layout`/`i_stack_layout`, `i_layout_manager`) | core/layouts | ✅ | — | ✅ | headless + macOS | `ILayout : IView + IContainer + IPadding` (M3 subset; ClipsToBounds / ISafeAreaView / ICrossPlatformLayout deferred to M4). `dimension` = Unset(NaN)/Minimum(0)/Maximum(inf) + is_explicit_set |
 | stack layout managers (`layout_manager`/`stack_layout_manager` + vertical/horizontal) | layouts | ✅ | ✅* | ✅ | headless + macOS | New `maui_layouts` lib — pure cross-platform measure/arrange (ResolveConstraints, MeasureSpacing, stacking). 28 GTest cases via mock view/stack (spacing / padding / min-max / collapsed-vs-hidden / fill / child-constraint). The layout *controls* + native panel are M4. *ported from C# Stack*LayoutManagerTests (the oracle) |

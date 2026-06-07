@@ -47,6 +47,22 @@ namespace maui::controls
     const maui::core::bindable_property<maui::core::visibility>& visibility_property();
     const maui::core::bindable_property<std::string>& automation_id_property();
 
+    // The render-transform descriptors (VisualElement's transform set) + FlowDirection — likewise
+    // NON-template shared free-function descriptors, one per property, names matching the view_mapper
+    // keys. Defaults are the identity transform: translations/rotations 0, scales 1, anchors 0.5
+    // (VisualElement.cs). FlowDirection defaults to MatchParent (FlowDirection.cs).
+    const maui::core::bindable_property<double>& translation_x_property();
+    const maui::core::bindable_property<double>& translation_y_property();
+    const maui::core::bindable_property<double>& scale_property();
+    const maui::core::bindable_property<double>& scale_x_property();
+    const maui::core::bindable_property<double>& scale_y_property();
+    const maui::core::bindable_property<double>& rotation_property();
+    const maui::core::bindable_property<double>& rotation_x_property();
+    const maui::core::bindable_property<double>& rotation_y_property();
+    const maui::core::bindable_property<double>& anchor_x_property();
+    const maui::core::bindable_property<double>& anchor_y_property();
+    const maui::core::bindable_property<maui::core::flow_direction>& flow_direction_property();
+
     template <class ViewInterface> class view : public maui::core::bindable_object, public ViewInterface
     {
         static_assert(std::is_base_of_v<maui::core::i_view, ViewInterface>,
@@ -83,46 +99,87 @@ namespace maui::controls
             return parent_.lock();
         }
 
-        // ---- i_transform (identity defaults for M2; real transforms in M4) ----
+        // ---- i_transform (bindable; each change flows through the chained view_mapper's map_transform,
+        // which rebuilds the whole render transform from all nine scalars) ----
         [[nodiscard]] double translation_x() const override
         {
-            return 0;
+            return translation_x_.get();
+        }
+        void set_translation_x(double value)
+        {
+            translation_x_.set(value);
         }
         [[nodiscard]] double translation_y() const override
         {
-            return 0;
+            return translation_y_.get();
+        }
+        void set_translation_y(double value)
+        {
+            translation_y_.set(value);
         }
         [[nodiscard]] double scale() const override
         {
-            return 1;
+            return scale_.get();
+        }
+        void set_scale(double value)
+        {
+            scale_.set(value);
         }
         [[nodiscard]] double scale_x() const override
         {
-            return 1;
+            return scale_x_.get();
+        }
+        void set_scale_x(double value)
+        {
+            scale_x_.set(value);
         }
         [[nodiscard]] double scale_y() const override
         {
-            return 1;
+            return scale_y_.get();
+        }
+        void set_scale_y(double value)
+        {
+            scale_y_.set(value);
         }
         [[nodiscard]] double rotation() const override
         {
-            return 0;
+            return rotation_.get();
+        }
+        void set_rotation(double value)
+        {
+            rotation_.set(value);
         }
         [[nodiscard]] double rotation_x() const override
         {
-            return 0;
+            return rotation_x_.get();
+        }
+        void set_rotation_x(double value)
+        {
+            rotation_x_.set(value);
         }
         [[nodiscard]] double rotation_y() const override
         {
-            return 0;
+            return rotation_y_.get();
+        }
+        void set_rotation_y(double value)
+        {
+            rotation_y_.set(value);
         }
         [[nodiscard]] double anchor_x() const override
         {
-            return 0.5;
+            return anchor_x_.get();
+        }
+        void set_anchor_x(double value)
+        {
+            anchor_x_.set(value);
         }
         [[nodiscard]] double anchor_y() const override
         {
-            return 0.5;
+            return anchor_y_.get();
+        }
+        void set_anchor_y(double value)
+        {
+            anchor_y_.set(value);
         }
 
         // ---- i_view ----
@@ -136,7 +193,11 @@ namespace maui::controls
         }
         [[nodiscard]] maui::core::flow_direction flow_direction() const override
         {
-            return maui::core::flow_direction::match_parent;
+            return flow_direction_.get();
+        }
+        void set_flow_direction(maui::core::flow_direction value)
+        {
+            flow_direction_.set(value);
         }
         [[nodiscard]] maui::core::layout_alignment horizontal_layout_alignment() const override
         {
@@ -308,6 +369,19 @@ namespace maui::controls
         maui::core::property<double> opacity_{*this, opacity_property()};
         maui::core::property<maui::core::visibility> visibility_{*this, visibility_property()};
         maui::core::property<std::string> automation_id_{*this, automation_id_property()};
+        // The render-transform scalars + flow direction (each change re-runs the chained view_mapper's
+        // map_transform / map_flow_direction). Shared NON-template descriptors, like the four above.
+        maui::core::property<double> translation_x_{*this, translation_x_property()};
+        maui::core::property<double> translation_y_{*this, translation_y_property()};
+        maui::core::property<double> scale_{*this, scale_property()};
+        maui::core::property<double> scale_x_{*this, scale_x_property()};
+        maui::core::property<double> scale_y_{*this, scale_y_property()};
+        maui::core::property<double> rotation_{*this, rotation_property()};
+        maui::core::property<double> rotation_x_{*this, rotation_x_property()};
+        maui::core::property<double> rotation_y_{*this, rotation_y_property()};
+        maui::core::property<double> anchor_x_{*this, anchor_x_property()};
+        maui::core::property<double> anchor_y_{*this, anchor_y_property()};
+        maui::core::property<maui::core::flow_direction> flow_direction_{*this, flow_direction_property()};
         bool is_focused_ = false;
     };
 } // namespace maui::controls

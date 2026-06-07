@@ -2,10 +2,12 @@
 // Opacity / IsEnabled / AutomationId) pushed to a real NSView via view_platform_base overrides. Run only
 // for MAUI_BACKEND=apple. Compiled as Objective-C++ with ARC.
 #import <AppKit/AppKit.h>
+#import <QuartzCore/QuartzCore.h>
 
 #include <memory>
 #include <string>
 
+#include "../../src/platform/apple/apple_view_ops.hpp"
 #include "maui/controls/button.hpp"
 #include "maui/controls/entry.hpp"
 #include "maui/controls/image.hpp"
@@ -13,9 +15,11 @@
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/button_handler.hpp"
 #include "maui/core/entry_handler.hpp"
+#include "maui/core/flow_direction.hpp"
 #include "maui/core/image_handler.hpp"
 #include "maui/core/label_handler.hpp"
 #include "maui/core/layout_handler.hpp"
+#include "maui/core/view_platform_base.hpp"
 #include "maui/core/visibility.hpp"
 #include <gtest/gtest.h>
 
@@ -28,10 +32,14 @@ namespace
     using maui::controls::vertical_stack_layout;
     using maui::core::button_handler;
     using maui::core::entry_handler;
+    using maui::core::flow_direction;
     using maui::core::image_handler;
     using maui::core::label_handler;
     using maui::core::layout_handler;
+    using maui::core::transform_spec;
     using maui::core::visibility;
+    using maui::platform::apple::apply_flow_direction;
+    using maui::platform::apple::apply_transform;
 
     NSButton* native_button(const std::shared_ptr<button_handler>& handler)
     {
@@ -167,5 +175,75 @@ namespace
 
         control.set_automation_id("form_stack");
         EXPECT_EQ(std::string(view.accessibilityIdentifier.UTF8String), "form_stack");
+    }
+
+    // ---- the shared apple_view_ops helpers (the coordinator's per-control retrofit calls these) ----
+
+    // A pure uniform/per-axis scale (identity anchor, no translation/rotation) lands on the layer's
+    // transform diagonal: m11 = scale_x * scale, m22 = scale_y * scale, m33 = scale.
+    TEST_F(apple_view_mapper, apply_transform_scale_lands_on_layer)
+    {
+        NSView* const view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 100, 40)];
+        view.wantsLayer = YES;
+        void* const native = (__bridge void*)view;
+
+        apply_transform(native, transform_spec{.scale = 2.0, .scale_x = 3.0, .scale_y = 4.0});
+
+        const CATransform3D transform = view.layer.transform;
+        EXPECT_DOUBLE_EQ(transform.m11, 6.0); // scale_x * scale
+        EXPECT_DOUBLE_EQ(transform.m22, 8.0); // scale_y * scale
+        EXPECT_DOUBLE_EQ(transform.m33, 2.0); // z = scale
+        EXPECT_DOUBLE_EQ(view.layer.anchorPoint.x, 0.5);
+        EXPECT_DOUBLE_EQ(view.layer.anchorPoint.y, 0.5);
+    }
+
+    // The anchor point is always pushed to the layer (even at the default 0.5/0.5).
+    TEST_F(apple_view_mapper, apply_transform_sets_anchor_point)
+    {
+        NSView* const view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 100, 40)];
+        view.wantsLayer = YES;
+        void* const native = (__bridge void*)view;
+
+        apply_transform(native, transform_spec{.anchor_x = 0.0, .anchor_y = 1.0});
+
+        EXPECT_DOUBLE_EQ(view.layer.anchorPoint.x, 0.0);
+        EXPECT_DOUBLE_EQ(view.layer.anchorPoint.y, 1.0);
+    }
+
+    // An out-of-plane rotation engages the perspective term m34; a plain in-plane (z) rotation does not.
+    // (Like the C# original, m34 is set before the rotation is composed, so the final value is the
+    // -1/400 perspective folded through the rotation — what matters is that it is engaged vs. absent.)
+    TEST_F(apple_view_mapper, apply_transform_perspective_only_for_out_of_plane_rotation)
+    {
+        NSView* const flat = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 100, 40)];
+        flat.wantsLayer = YES;
+        apply_transform((__bridge void*)flat, transform_spec{.rotation = 30.0});
+        EXPECT_DOUBLE_EQ(flat.layer.transform.m34, 0.0);
+
+        NSView* const tilted = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 100, 40)];
+        tilted.wantsLayer = YES;
+        apply_transform((__bridge void*)tilted, transform_spec{.rotation_x = 30.0});
+        EXPECT_NE(tilted.layer.transform.m34, 0.0);
+    }
+
+    // The identity spec leaves the layer transform at identity.
+    TEST_F(apple_view_mapper, apply_transform_identity_is_identity)
+    {
+        NSView* const view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 100, 40)];
+        view.wantsLayer = YES;
+        apply_transform((__bridge void*)view, transform_spec{});
+        EXPECT_TRUE(CATransform3DIsIdentity(view.layer.transform));
+    }
+
+    TEST_F(apple_view_mapper, apply_flow_direction_sets_layout_direction)
+    {
+        NSView* const view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 100, 40)];
+        void* const native = (__bridge void*)view;
+
+        apply_flow_direction(native, flow_direction::right_to_left);
+        EXPECT_EQ(view.userInterfaceLayoutDirection, NSUserInterfaceLayoutDirectionRightToLeft);
+
+        apply_flow_direction(native, flow_direction::left_to_right);
+        EXPECT_EQ(view.userInterfaceLayoutDirection, NSUserInterfaceLayoutDirectionLeftToRight);
     }
 } // namespace

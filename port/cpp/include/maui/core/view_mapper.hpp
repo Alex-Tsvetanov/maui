@@ -7,15 +7,19 @@
 // generic IView properties map before — and in the chained position ahead of — the control-specific
 // ones, exactly as C#'s ButtonHandler.Mapper chains ViewHandler.ViewMapper.
 //
-// This M4b cut maps EXACTLY four properties — Visibility, Opacity, IsEnabled, AutomationId. Each map_*
-// reaches the platform view's view_platform_base face via i_view_handler::platform_base() (null when
-// the handler's platform view does not derive view_platform_base — then the map is a no-op) and calls
-// the matching update_*. The wider ViewMapper set (Width/Height/Background/transforms/Clip/Shadow/
-// FlowDirection/…) is deferred (see STATUS.md). C#'s IsConnectingHandler() default-skip optimization is
-// not ported here (it is a perf gate, behavior-preserving to omit for this subset).
+// This M4c cut maps the four fundamental IView properties — Visibility, Opacity, IsEnabled,
+// AutomationId — PLUS the render transform (the ten ITransform scalars: translation_x/translation_y/
+// scale/scale_x/scale_y/rotation/rotation_x/rotation_y/anchor_x/anchor_y — ten keys, all routing to one
+// map_transform that rebuilds the whole spec) and FlowDirection. Each map_* reaches the platform view's
+// view_platform_base face via i_view_handler::platform_base() (null when the handler's platform view
+// does not derive view_platform_base — then the map is a no-op) and calls the matching update_*. The
+// remaining ViewMapper set (Width/Height/Background/Clip/Shadow/Semantics/…) is still deferred — those
+// need value types not yet ported or are layout-driven (see STATUS.md). C#'s IsConnectingHandler()
+// default-skip optimization is not ported here (a perf gate, behavior-preserving to omit).
 //
-// The key strings ("visibility"/"opacity"/"is_enabled"/"automation_id") MUST match the bindable
-// property names the control raises (see controls/view.cpp) so update_value() finds the right map.
+// The key strings ("visibility"/"opacity"/"is_enabled"/"automation_id"/the ten transform names/
+// "flow_direction") MUST match the bindable property names the control raises (see controls/view.cpp)
+// so update_value() finds the right map.
 
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
