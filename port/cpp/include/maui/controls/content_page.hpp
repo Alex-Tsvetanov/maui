@@ -1,0 +1,104 @@
+#pragma once
+// maui::controls::content_page  <=  Microsoft.Maui.Controls.ContentPage
+//
+// A page that hosts a single child view (its Content) within a Padding, plus a Title. The minimal
+// content-hosting control: it owns no visual of its own — it measures/arranges the one content child
+// inside the padding and lets its handler host that child on a native panel. Ported from ContentPage.cs
+// (+ Page.cs for Title/Padding); behavior derived from LayoutExtensions.MeasureContent/ArrangeContent.
+//
+// Same API shape as the other controls: bare-noun interface getters (content()/padding()) + method
+// accessors, each backed by a private property<T> whose change flows through view::on_property_changed
+// to the handler — EXCEPT the content child, which is a NON-OWNING raw pointer (the caller owns the
+// content's lifetime, PROFILE §8) rather than a property<T>. Setting it notifies the handler through the
+// "set_content" command (mirroring how the layout control routes child changes through its command
+// mapper), so the native host re-parents the content's subview.
+//
+// Title lives on the control only (Page.Title in C#); the i_content_view contract does not carry it
+// (kept minimal — a page title is not part of the cross-platform content-hosting surface).
+
+#include <string>
+#include <string_view>
+#include <utility>
+
+#include "maui/controls/view.hpp"
+#include "maui/core/bindable_property.hpp"
+#include "maui/core/i_content_view.hpp"
+#include "maui/core/i_view.hpp"
+#include "maui/core/property.hpp"
+#include "maui/core/thickness.hpp"
+#include "maui/graphics/rect.hpp"
+#include "maui/graphics/size.hpp"
+
+namespace maui::controls
+{
+    class content_page : public view<maui::core::i_content_view>
+    {
+    public:
+        // Shared bindable-property descriptors (one instance per type, like ContentPage/Page.*Property).
+        static const maui::core::bindable_property<maui::core::thickness>& padding_property();
+        static const maui::core::bindable_property<std::string>& title_property();
+
+        // ---- i_content_view (Content is a non-owning child pointer; the caller owns its lifetime) ----
+        [[nodiscard]] maui::core::i_view* content() const override
+        {
+            return content_;
+        }
+        // Set (or replace) the content child. Notifies the handler so the native host re-parents it.
+        void set_content(maui::core::i_view& value)
+        {
+            set_content(&value);
+        }
+        void set_content(maui::core::i_view* value)
+        {
+            if (content_ == value)
+            {
+                return;
+            }
+            content_ = value;
+            notify_content_changed();
+        }
+
+        // ---- i_padding ----
+        [[nodiscard]] maui::core::thickness padding() const override
+        {
+            return padding_.get();
+        }
+        void set_padding(maui::core::thickness value)
+        {
+            padding_.set(value);
+        }
+
+        // ---- Title (control-only; Page.Title) ----
+        [[nodiscard]] std::string_view title() const
+        {
+            return title_.get();
+        }
+        void set_title(std::string value)
+        {
+            title_.set(std::move(value));
+        }
+
+        // ---- layout pass: the content view computes its OWN geometry by measuring/arranging the single
+        // content within the padding (C# LayoutExtensions.MeasureContent / ArrangeContent), unlike a leaf
+        // control which delegates measure/arrange to its handler. arrange additionally sizes the native
+        // host panel to its bounds (C# ContentPage.ArrangeOverride/CrossPlatformArrange: Frame = bounds;
+        // Handler.PlatformArrange) before placing the content.
+        maui::graphics::size measure(double width_constraint, double height_constraint) override;
+        maui::graphics::size arrange(const maui::graphics::rect& bounds) override;
+
+    private:
+        // Tell the handler (if attached) to re-host the new content on the native panel. The handler
+        // reads the current content from the virtual view, so the bare command carries no payload.
+        void notify_content_changed()
+        {
+            if (const auto& element_handler = handler())
+            {
+                element_handler->invoke("set_content");
+            }
+        }
+
+        maui::core::i_view* content_ = nullptr; // NON-owning: the caller owns the content's lifetime
+        maui::core::property<maui::core::thickness> padding_{*this, padding_property()};
+        maui::core::property<std::string> title_{*this, title_property()};
+    };
+} // namespace maui::controls
