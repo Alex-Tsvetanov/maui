@@ -13,11 +13,25 @@
 #include "maui/core/button_handler.hpp"
 #include "maui/core/entry_handler.hpp"
 #include "maui/core/flow_direction.hpp"
+#include "maui/core/i_shadow.hpp"
 #include "maui/core/image_handler.hpp"
 #include "maui/core/label_handler.hpp"
 #include "maui/core/layout_handler.hpp"
+#include "maui/core/shadow.hpp"
 #include "maui/core/view_platform_base.hpp"
 #include "maui/core/visibility.hpp"
+#include "maui/graphics/color.hpp"
+#include "maui/graphics/colors.hpp"
+#include "maui/graphics/i_shape.hpp"
+#include "maui/graphics/paint.hpp"
+#include "maui/graphics/path_f.hpp"
+#include "maui/graphics/point.hpp"
+#include "maui/graphics/rect.hpp"
+#include "maui/graphics/rect_f.hpp"
+#include "maui/graphics/shapes/ellipse.hpp"
+#include "maui/graphics/shapes/rectangle.hpp"
+#include "maui/graphics/shapes/round_rectangle.hpp"
+#include "maui/graphics/solid_paint.hpp"
 #include <gtest/gtest.h>
 
 namespace
@@ -277,6 +291,201 @@ namespace
 
         control.set_flow_direction(flow_direction::right_to_left);
         EXPECT_EQ(base->flow_direction, flow_direction::right_to_left);
+    }
+
+    // ---- button: the visual-layer properties (Background paint / Shadow / Clip shape) ----
+
+    TEST(view_mapper_visual, visual_layer_defaults_are_null)
+    {
+        // VisualElement defaults: no background, no shadow, no clip → the mirrors hold null borrows.
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        view_platform_base* base = handler->platform_base();
+        ASSERT_NE(base, nullptr);
+
+        EXPECT_EQ(base->background, nullptr);
+        EXPECT_EQ(base->shadow, nullptr);
+        EXPECT_EQ(base->clip, nullptr);
+        // The control's i_view getters agree (no object owned yet).
+        EXPECT_EQ(control.background(), nullptr);
+        EXPECT_EQ(control.shadow(), nullptr);
+        EXPECT_EQ(control.clip(), nullptr);
+    }
+
+    TEST(view_mapper_visual, setting_solid_paint_background_maps_to_mirror)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        view_platform_base* base = handler->platform_base();
+        ASSERT_NE(base, nullptr);
+
+        auto paint = std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::red);
+        control.set_background(paint);
+        // The mirror borrows the exact object the control owns (i_view returns the same .get()).
+        EXPECT_EQ(base->background, paint.get());
+        EXPECT_EQ(base->background, control.background());
+        // ... and it carries the right color (red is opaque → not transparent).
+        ASSERT_NE(base->background, nullptr);
+        EXPECT_EQ(base->background->background_color(), maui::graphics::colors::red);
+        EXPECT_FALSE(base->background->is_transparent());
+
+        // A semi-transparent solid paint reports transparency (alpha < 1).
+        control.set_background(
+            std::make_shared<maui::graphics::solid_paint>(maui::graphics::color{0.0F, 0.0F, 1.0F, 0.5F}));
+        ASSERT_NE(base->background, nullptr);
+        EXPECT_TRUE(base->background->is_transparent());
+
+        // Clearing it (null) maps a null mirror.
+        control.set_background(nullptr);
+        EXPECT_EQ(base->background, nullptr);
+    }
+
+    TEST(view_mapper_visual, setting_shadow_maps_to_mirror_with_defaults)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        view_platform_base* base = handler->platform_base();
+        ASSERT_NE(base, nullptr);
+
+        auto sh = std::make_shared<maui::core::shadow>();
+        control.set_shadow(sh);
+        EXPECT_EQ(base->shadow, sh.get());
+        EXPECT_EQ(base->shadow, control.shadow());
+        ASSERT_NE(base->shadow, nullptr);
+        // Shadow.cs defaults: radius 10, opacity 1, black paint, zero offset.
+        EXPECT_EQ(base->shadow->radius(), 10.0);
+        EXPECT_EQ(base->shadow->opacity(), 1.0);
+        EXPECT_EQ(base->shadow->offset(), maui::graphics::point(0, 0));
+        ASSERT_NE(base->shadow->paint(), nullptr);
+        EXPECT_EQ(base->shadow->paint()->background_color(), maui::graphics::colors::black);
+
+        // A customized shadow (distinct instance) flows the same way and carries its own values.
+        auto sh2 = std::make_shared<maui::core::shadow>();
+        sh2->set_radius(4.0);
+        sh2->set_opacity(0.5);
+        sh2->set_offset(maui::graphics::point(3, 6));
+        control.set_shadow(sh2);
+        EXPECT_EQ(base->shadow, sh2.get());
+        ASSERT_NE(base->shadow, nullptr);
+        EXPECT_EQ(base->shadow->radius(), 4.0);
+        EXPECT_EQ(base->shadow->opacity(), 0.5);
+        EXPECT_EQ(base->shadow->offset(), maui::graphics::point(3, 6));
+
+        control.set_shadow(nullptr);
+        EXPECT_EQ(base->shadow, nullptr);
+    }
+
+    TEST(view_mapper_visual, setting_rectangle_clip_maps_to_mirror)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        view_platform_base* base = handler->platform_base();
+        ASSERT_NE(base, nullptr);
+
+        auto clip = std::make_shared<maui::graphics::shapes::rectangle>();
+        control.set_clip(clip);
+        EXPECT_EQ(base->clip, clip.get());
+        EXPECT_EQ(base->clip, control.clip());
+        ASSERT_NE(base->clip, nullptr);
+        // The clip produces a closed rectangle path fitted to the given bounds: move + 3 lines + close
+        // (5 operations); straight edges flatten to exact bounds.
+        const maui::graphics::path_f path = base->clip->path_for_bounds(maui::graphics::rect(0, 0, 50, 20));
+        EXPECT_EQ(path.operation_count(), 5);
+        EXPECT_TRUE(path.closed());
+        const maui::graphics::rect_f bounds = path.get_bounds_by_flattening();
+        EXPECT_FLOAT_EQ(bounds.width, 50.0F);
+        EXPECT_FLOAT_EQ(bounds.height, 20.0F);
+
+        control.set_clip(nullptr);
+        EXPECT_EQ(base->clip, nullptr);
+    }
+
+    TEST(view_mapper_visual, setting_round_rectangle_clip_maps_to_mirror)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        view_platform_base* base = handler->platform_base();
+        ASSERT_NE(base, nullptr);
+
+        auto clip = std::make_shared<maui::graphics::shapes::round_rectangle>(8.0);
+        control.set_clip(clip);
+        EXPECT_EQ(base->clip, clip.get());
+        ASSERT_NE(base->clip, nullptr);
+        // append_rounded_rectangle (uniform radius): move + 4 cubics + 3 lines + close (9 operations); a
+        // closed path. Its flattened bounds overshoot slightly for the corner Béziers, so the structure +
+        // a near-bounds check (small tolerance, as the graphics path tests do for curves) is asserted.
+        const maui::graphics::path_f path = base->clip->path_for_bounds(maui::graphics::rect(0, 0, 60, 40));
+        EXPECT_EQ(path.operation_count(), 9);
+        EXPECT_TRUE(path.closed());
+        const maui::graphics::rect_f bounds = path.get_bounds_by_flattening();
+        EXPECT_NEAR(bounds.width, 60.0F, 0.2F);
+        EXPECT_NEAR(bounds.height, 40.0F, 0.2F);
+    }
+
+    TEST(view_mapper_visual, setting_ellipse_clip_maps_to_mirror)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        view_platform_base* base = handler->platform_base();
+        ASSERT_NE(base, nullptr);
+
+        auto clip = std::make_shared<maui::graphics::shapes::ellipse>();
+        control.set_clip(clip);
+        EXPECT_EQ(base->clip, clip.get());
+        ASSERT_NE(base->clip, nullptr);
+        // append_ellipse: move + 4 cubics + close (6 operations); a closed path. The flattened bounds
+        // overshoot slightly for the Bézier arcs, so a small tolerance is used (as the graphics tests do).
+        const maui::graphics::path_f path = base->clip->path_for_bounds(maui::graphics::rect(0, 0, 30, 30));
+        EXPECT_EQ(path.operation_count(), 6);
+        EXPECT_TRUE(path.closed());
+        const maui::graphics::rect_f bounds = path.get_bounds_by_flattening();
+        EXPECT_NEAR(bounds.width, 30.0F, 0.2F);
+        EXPECT_NEAR(bounds.height, 30.0F, 0.2F);
+    }
+
+    TEST(view_mapper_visual, initial_visual_values_map_on_attach)
+    {
+        // Values set BEFORE the handler attaches must be pushed when the mapper runs on connect.
+        button control;
+        auto paint = std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::green);
+        auto sh = std::make_shared<maui::core::shadow>();
+        auto clip = std::make_shared<maui::graphics::shapes::rectangle>();
+        control.set_background(paint);
+        control.set_shadow(sh);
+        control.set_clip(clip);
+
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        view_platform_base* base = handler->platform_base();
+        ASSERT_NE(base, nullptr);
+        EXPECT_EQ(base->background, paint.get());
+        EXPECT_EQ(base->shadow, sh.get());
+        EXPECT_EQ(base->clip, clip.get());
+    }
+
+    // The visual-layer retrofit also reaches a display-only control (label), proving the shared mapper
+    // generalizes beyond button.
+    TEST(view_mapper_visual, visual_layer_reaches_label_platform)
+    {
+        label control;
+        auto handler = std::make_shared<label_handler>();
+        control.set_handler(handler);
+        view_platform_base* base = handler->platform_base();
+        ASSERT_NE(base, nullptr);
+
+        auto paint = std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::blue);
+        control.set_background(paint);
+        EXPECT_EQ(base->background, paint.get());
+
+        auto clip = std::make_shared<maui::graphics::shapes::ellipse>();
+        control.set_clip(clip);
+        EXPECT_EQ(base->clip, clip.get());
     }
 
     // ---- label: the same generic properties reach its platform base (recipe generalizes) ----

@@ -1,6 +1,7 @@
-// view_mapper — the shared generic-IView property mapper (ViewHandler.ViewMapper). Maps the four
-// fundamental IView properties through i_view_handler::platform_base() onto the platform view's
-// view_platform_base face. See view_mapper.hpp.
+// view_mapper — the shared generic-IView property mapper (ViewHandler.ViewMapper). Maps the fundamental
+// IView properties (incl. the render transform, FlowDirection, and the visual-layer Background / Shadow /
+// Clip) through i_view_handler::platform_base() onto the platform view's view_platform_base face. See
+// view_mapper.hpp.
 
 #include "maui/core/view_mapper.hpp"
 
@@ -77,6 +78,34 @@ namespace maui::core
                 base->update_flow_direction(view.flow_direction());
             }
         }
+
+        // The three visual-layer maps mirror ViewHandler.MapBackground / MapShadow / MapClip. Each reads
+        // the borrow off the view (the control owns the object) and pushes it to the platform base, which
+        // on a real backend applies it to the native layer (PaintExtensions / ShadowExtensions /
+        // WrapperView.SetClip). A null borrow clears the property.
+        void map_background(i_view_handler& handler, i_view& view)
+        {
+            if (auto* base = handler.platform_base())
+            {
+                base->update_background(view.background());
+            }
+        }
+
+        void map_shadow(i_view_handler& handler, i_view& view)
+        {
+            if (auto* base = handler.platform_base())
+            {
+                base->update_shadow(view.shadow());
+            }
+        }
+
+        void map_clip(i_view_handler& handler, i_view& view)
+        {
+            if (auto* base = handler.platform_base())
+            {
+                base->update_clip(view.clip());
+            }
+        }
     } // namespace
 
     property_mapper<i_view, i_view_handler>& view_mapper()
@@ -98,6 +127,10 @@ namespace maui::core
             {"anchor_x", &map_transform},
             {"anchor_y", &map_transform},
             {"flow_direction", &map_flow_direction},
+            // The visual-layer properties (keys match the controls/view.cpp descriptor names).
+            {"background", &map_background},
+            {"shadow", &map_shadow},
+            {"clip", &map_clip},
         };
         return table;
     }

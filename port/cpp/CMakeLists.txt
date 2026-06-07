@@ -85,6 +85,8 @@ add_library(maui_graphics STATIC
   src/graphics/rect_f.cpp
   src/graphics/path_f.cpp
   src/graphics/path_builder.cpp
+  src/graphics/solid_paint.cpp
+  src/graphics/shapes/round_rectangle.cpp
 )
 target_include_directories(maui_graphics PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(maui_graphics PRIVATE maui_sanitizers)
@@ -164,6 +166,7 @@ add_library(maui_core STATIC
   src/core/handler_registry.cpp
   src/core/view_platform_base.cpp
   src/core/view_mapper.cpp
+  src/core/shadow.cpp
   src/core/button_handler.cpp
   src/core/label_handler.cpp
   src/core/entry_handler.cpp

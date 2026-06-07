@@ -10,11 +10,11 @@
 //
 // The base bodies just store the headless mirrors below (so the deterministic headless tests can
 // observe each map_* ran with the right value); a real backend's platform struct overrides each
-// update_* to push to its native view (see src/platform/apple/*_handler.mm). This M4c cut maps the
-// four fundamental IView properties (Visibility, Opacity, IsEnabled, AutomationId) PLUS the render
-// transform (the ten ITransform scalars, rebuilt as a whole — see TransformationExtensions.cs) and
-// FlowDirection; Width/Height/Background/Clip/Shadow are still deferred (they need new value types or
-// are layout-driven — see STATUS.md).
+// update_* to push to its native view (see src/platform/apple/*_handler.mm). This cut maps the four
+// fundamental IView properties (Visibility, Opacity, IsEnabled, AutomationId), the render transform (the
+// ten ITransform scalars, rebuilt as a whole — see TransformationExtensions.cs), FlowDirection, AND the
+// three visual-layer properties that need new value types: Background (paint), Shadow (i_shadow), Clip
+// (i_shape). Width/Height are still deferred (layout-driven — see STATUS.md).
 //
 // Ownership (PROFILE §8): instances are owned solely by a handler's unique_ptr<Platform> and are never
 // copied or moved — hence the deleted copy/move (mirroring the existing *_platform structs). The dtor
@@ -26,8 +26,19 @@
 #include "maui/core/flow_direction.hpp"
 #include "maui/core/visibility.hpp"
 
+// The visual-layer value types are referenced only as pointers here, so forward declarations suffice
+// (the full definitions are included where the .cpp / backends need them). paint and i_shape live in
+// maui::graphics; i_shadow lives in maui::core (declared below).
+namespace maui::graphics
+{
+    class paint;
+    class i_shape;
+} // namespace maui::graphics
+
 namespace maui::core
 {
+    class i_shadow;
+
     // The ten ITransform scalars as a single POD (the render transform is rebuilt as a whole from all
     // of them — see TransformationExtensions.UpdateTransformation — so the mapper passes one bundle, not
     // a value per scalar). Defaults are the identity transform (VisualElement's transform defaults):
@@ -66,6 +77,12 @@ namespace maui::core
         std::string automation_id;
         transform_spec transform{};
         maui::core::flow_direction flow_direction = maui::core::flow_direction::match_parent;
+        // The three visual-layer mirrors are NON-OWNING borrows of objects the control owns (PROFILE §8):
+        // the control holds the shared_ptr, i_view returns a raw borrow, and these record that borrow so
+        // the headless tests can observe the map ran. null = unset (no background / shadow / clip).
+        const maui::graphics::paint* background = nullptr;
+        const maui::core::i_shadow* shadow = nullptr;
+        const maui::graphics::i_shape* clip = nullptr;
 
         // The default (headless) bodies write the mirrors above; backends override to push to the
         // native view. Defined out-of-line in view_platform_base.cpp.
@@ -77,5 +94,11 @@ namespace maui::core
         // TransformationExtensions which rebuilds the CATransform3D from all ten scalars).
         virtual void update_transform(const transform_spec& value);
         virtual void update_flow_direction(maui::core::flow_direction value);
+        // The three visual-layer setters (ViewHandler.MapBackground / MapShadow / MapClip → the iOS
+        // PaintExtensions / ShadowExtensions / WrapperView.SetClip). Each takes a NON-owning borrow (the
+        // control owns the object); the headless bodies just record the pointer. null clears the property.
+        virtual void update_background(const maui::graphics::paint* value);
+        virtual void update_shadow(const maui::core::i_shadow* value);
+        virtual void update_clip(const maui::graphics::i_shape* value);
     };
 } // namespace maui::core

@@ -46,4 +46,19 @@ namespace maui::core
     {
         flow_direction = value;
     }
+
+    void view_platform_base::update_background(const maui::graphics::paint* value)
+    {
+        background = value;
+    }
+
+    void view_platform_base::update_shadow(const maui::core::i_shadow* value)
+    {
+        shadow = value;
+    }
+
+    void view_platform_base::update_clip(const maui::graphics::i_shape* value)
+    {
+        clip = value;
+    }
 } // namespace maui::core

@@ -14,12 +14,16 @@
 #include "maui/controls/view.hpp"
 
 #include <algorithm>
+#include <memory>
 #include <string>
 
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/flow_direction.hpp"
+#include "maui/core/i_shadow.hpp"
 #include "maui/core/visibility.hpp"
+#include "maui/graphics/i_shape.hpp"
+#include "maui/graphics/paint.hpp"
 
 namespace maui::controls
 {
@@ -119,6 +123,26 @@ namespace maui::controls
     {
         static const maui::core::bindable_property<maui::core::flow_direction> descriptor{
             "flow_direction", maui::core::flow_direction::match_parent};
+        return descriptor;
+    }
+
+    // ---- visual layer (VisualElement Background / Shadow / Clip; defaults null). The key strings match
+    // the view_mapper entries (background / shadow / clip) so on_property_changed routes to the right map.
+    const maui::core::bindable_property<std::shared_ptr<maui::graphics::paint>>& background_property()
+    {
+        static const maui::core::bindable_property<std::shared_ptr<maui::graphics::paint>> descriptor{"background"};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<std::shared_ptr<maui::core::i_shadow>>& shadow_property()
+    {
+        static const maui::core::bindable_property<std::shared_ptr<maui::core::i_shadow>> descriptor{"shadow"};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<std::shared_ptr<maui::graphics::i_shape>>& clip_property()
+    {
+        static const maui::core::bindable_property<std::shared_ptr<maui::graphics::i_shape>> descriptor{"clip"};
         return descriptor;
     }
 } // namespace maui::controls

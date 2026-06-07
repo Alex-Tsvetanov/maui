@@ -25,12 +25,15 @@
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/flow_direction.hpp"
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/i_shadow.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/layout_alignment.hpp"
 #include "maui/core/property.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
+#include "maui/graphics/i_shape.hpp"
+#include "maui/graphics/paint.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -62,6 +65,15 @@ namespace maui::controls
     const maui::core::bindable_property<double>& anchor_x_property();
     const maui::core::bindable_property<double>& anchor_y_property();
     const maui::core::bindable_property<maui::core::flow_direction>& flow_direction_property();
+
+    // The three visual-layer descriptors (VisualElement's Background / Shadow / Clip). The control OWNS
+    // each object via a property<shared_ptr<...>> (so a set flows through the same value engine +
+    // on_property_changed → handler->update_value → the chained view_mapper as every other property);
+    // i_view returns the raw .get() borrow. NON-template shared free-function descriptors, one per
+    // property, names matching the view_mapper keys. Defaults are null (unset). Defined in view.cpp.
+    const maui::core::bindable_property<std::shared_ptr<maui::graphics::paint>>& background_property();
+    const maui::core::bindable_property<std::shared_ptr<maui::core::i_shadow>>& shadow_property();
+    const maui::core::bindable_property<std::shared_ptr<maui::graphics::i_shape>>& clip_property();
 
     template <class ViewInterface> class view : public maui::core::bindable_object, public ViewInterface
     {
@@ -211,17 +223,35 @@ namespace maui::controls
         {
             return nullptr;
         }
+        // The three visual-layer properties are bindable (each change flows through on_property_changed →
+        // handler->update_value → the chained view_mapper's map_clip / map_shadow / map_background). The
+        // control owns the object (property<shared_ptr<...>>); i_view hands back the raw .get() borrow.
         [[nodiscard]] maui::graphics::i_shape* clip() const override
         {
-            return nullptr;
+            return clip_.get().get();
+        }
+        // The control takes ownership of the clip shape. Passing a distinct instance fires the change.
+        void set_clip(std::shared_ptr<maui::graphics::i_shape> value)
+        {
+            clip_.set(std::move(value));
         }
         [[nodiscard]] maui::core::i_shadow* shadow() const override
         {
-            return nullptr;
+            return shadow_.get().get();
+        }
+        // The control takes ownership of the shadow. Passing a distinct instance fires the change.
+        void set_shadow(std::shared_ptr<maui::core::i_shadow> value)
+        {
+            shadow_.set(std::move(value));
         }
         [[nodiscard]] maui::graphics::paint* background() const override
         {
-            return nullptr;
+            return background_.get().get();
+        }
+        // The control takes ownership of the background paint. Passing a distinct instance fires the change.
+        void set_background(std::shared_ptr<maui::graphics::paint> value)
+        {
+            background_.set(std::move(value));
         }
         [[nodiscard]] maui::core::visibility visibility() const override
         {
@@ -382,6 +412,11 @@ namespace maui::controls
         maui::core::property<double> anchor_x_{*this, anchor_x_property()};
         maui::core::property<double> anchor_y_{*this, anchor_y_property()};
         maui::core::property<maui::core::flow_direction> flow_direction_{*this, flow_direction_property()};
+        // The visual-layer properties (Background / Shadow / Clip). The control owns each object; a set
+        // re-runs the chained view_mapper's map_background / map_shadow / map_clip. Shared descriptors.
+        maui::core::property<std::shared_ptr<maui::graphics::paint>> background_{*this, background_property()};
+        maui::core::property<std::shared_ptr<maui::core::i_shadow>> shadow_{*this, shadow_property()};
+        maui::core::property<std::shared_ptr<maui::graphics::i_shape>> clip_{*this, clip_property()};
         bool is_focused_ = false;
     };
 } // namespace maui::controls
