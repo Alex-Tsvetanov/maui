@@ -14,6 +14,7 @@
 #include <string_view>
 #include <vector>
 
+#include "apple_view_ops.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
@@ -212,5 +213,17 @@ namespace maui::core
             return;
         }
         [as_panel(platform->native) setFrame:NSMakeRect(frame.x, frame.y, frame.width, frame.height)];
+    }
+
+    // Render transform + flow direction pushed to the native view via the shared apple_view_ops helpers
+    // (M4c: the generic-IView ViewMapper widening). `native` is this struct's NSView handle.
+    void layout_platform::update_transform(const maui::core::transform_spec& value)
+    {
+        maui::platform::apple::apply_transform(native, value);
+    }
+
+    void layout_platform::update_flow_direction(maui::core::flow_direction value)
+    {
+        maui::platform::apple::apply_flow_direction(native, value);
     }
 } // namespace maui::core

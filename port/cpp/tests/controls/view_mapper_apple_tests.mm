@@ -98,6 +98,19 @@ namespace
         EXPECT_EQ(std::string(view.accessibilityIdentifier.UTF8String), "submit_button");
     }
 
+    // End-to-end: a render-transform change on the control reaches the NSButton's backing layer through
+    // the per-control update_transform override (the M4c retrofit wiring), not just the helper in isolation.
+    TEST_F(apple_view_mapper, control_transform_reaches_the_layer)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        NSButton* const view = native_button(handler);
+        control.set_scale(2.0);
+        EXPECT_TRUE(view.wantsLayer);
+        EXPECT_DOUBLE_EQ(view.layer.transform.m11, 2.0); // uniform scale lands on the layer
+    }
+
     TEST_F(apple_view_mapper, label_generic_properties_push_to_nstextfield)
     {
         label control;

@@ -22,6 +22,7 @@
 #include <string_view>
 
 #include "apple_conversions.hpp"
+#include "apple_view_ops.hpp"
 #include "maui/core/entry_handler.hpp"
 #include "maui/core/i_entry.hpp"
 #include "maui/core/text_alignment.hpp"
@@ -337,5 +338,17 @@ namespace maui::core
             return;
         }
         [as_field(platform->native) setFrame:NSMakeRect(frame.x, frame.y, frame.width, frame.height)];
+    }
+
+    // Render transform + flow direction pushed to the native view via the shared apple_view_ops helpers
+    // (M4c: the generic-IView ViewMapper widening). `native` is this struct's NSView handle.
+    void entry_platform::update_transform(const maui::core::transform_spec& value)
+    {
+        maui::platform::apple::apply_transform(native, value);
+    }
+
+    void entry_platform::update_flow_direction(maui::core::flow_direction value)
+    {
+        maui::platform::apple::apply_flow_direction(native, value);
     }
 } // namespace maui::core
