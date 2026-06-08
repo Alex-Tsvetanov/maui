@@ -27,7 +27,8 @@ incl. a native tap via `performClick:`). **M3 (layout) is COMPLETE. M4 (control 
 (headless + macOS): `label`, `entry`, `image` (aspect + file source + async uri/stream sources), the
 stack + `grid` layout controls, `content_page` + a `navigation_page` push/pop stack, and the shared
 ViewMapper — the full generic IView surface (Visibility/Opacity/IsEnabled/AutomationId + the render
-transform + FlowDirection + Background/Shadow/Clip). Next: M5 (data binding + styles + lifecycle).**
+transform + FlowDirection + Background/Shadow/Clip). **M5 (binding / styles / lifecycle) IN PROGRESS** —
+M5a data binding done (typed accessor bindings); next M5b styles, M5c lifecycle.**
 The `PROFILE.md §11` decisions are **locked** (view owns handler; `property<T>` member object;
 per-type `concept`-vs-`i_*` rule; headers not modules). M1 build order — all done: `event`,
 `dispatcher`, `setter_specificity`(+list), `bindable_property<T>` / `bindable_object` / `property<T>`
@@ -261,7 +262,7 @@ chrome, image disk-cache + a production HTTP stack).
 | M2 | `button` end-to-end (headless → macOS), tap works in sample app | ✅ |
 | M3 | Layout measure/arrange (`stack_layout`, `grid`) pass layout tests | ✅ |
 | M4 | Control set v1 (label, entry, image, layouts, content page) on macOS | ✅ |
-| M5 | `bindable_object`/`bindable_property`, binding, style, lifecycle | ⬜ |
+| M5 | `bindable_object`/`bindable_property`, binding, style, lifecycle | 🚧 |
 | M6 | Second platform (iOS) behind the same handlers | ⬜ |
 | M7 | XAML and/or Essentials (as prioritized) | ⬜ |
 
@@ -331,5 +332,7 @@ milestone that needs them; none blocks M5.
 | layout controls (`i_layout_handler`, `layout<>` base, `vertical_stack_layout`/`horizontal_stack_layout`, `layout_handler`) | controls + core/handlers | ✅ | ✅* | ✅ | headless + macOS | M4b Unit 1 — wrap the M3 stack managers in controls + a native host panel. `layout<LayoutInterface>` owns the non-owning child list (i_container) + bindable padding, lazily builds its manager via `create_layout_manager()`, and overrides measure/arrange to delegate to the manager (a layout computes its own geometry); arrange also sizes the panel. `layout_handler` (i_layout_handler add/remove/clear/insert/update/update_z_index) hosts a plain NSView panel (headless: child-count mirror). `view_handler` derives `i_view_handler` *virtually* (layout_handler = view_handler + i_layout_handler); `i_view_handler::native_view()` exposes the hosted native view. Retrofitted onto `view_mapper()` (is_enabled keeps the base mirror — NSView has no enabled state). maui_layouts linked into maui_controls. Grid *control* deferred. 14 headless + 4 apple GTest cases; self-registers. *characterization |
 | `entry` control (`i_text_input`/`i_entry`, `entry_handler`) | controls + core/handlers | ✅ | ✅* | ✅ | headless + macOS | M4b Unit 3 — first inbound-text + first editable native control. Bindable text/placeholder/is_password/is_read_only/max_length (UTF-8-byte truncation in set_text) + i_text_style appearance + alignment; `completed` + `text_changed(old,new)` events. Editable NSTextField (NSSecureTextField cell swap for password, preserving font/color) + an NSTextFieldDelegate trampoline (controlTextDidChange→send_text_changed, controlTextDidEndEditing→send_completed). Chains `view_mapper()`. AppKit defers character_spacing/vertical alignment/placeholder_color (headless mirrors them). 13 headless + 7 apple GTest cases; self-registers. *characterization |
 | `image` control (`aspect`/`i_image`, `image_handler`; aspect only) | controls + core/handlers | ✅ | ✅* | ✅ | headless + macOS | M4b Unit 3 (minimal) — maps ONLY the scaling mode: `aspect` (aspect_fit/aspect_fill/fill/center) → NSImageView.imageScaling (+ centered). No image bytes loaded — the async image *source* subsystem (IImageSource/loaders/caching) is deferred. Chains `view_mapper()`. 5 headless + 2 apple GTest cases; self-registers. *characterization |
+
+| data binding (`binding_mode`, `bind()` + `binding_handle`; `bindable_property` default_binding_mode) | core | ✅ | ✅* | ✅ | headless | M5a — **typed accessor bindings** (reflection-free, the PROFILE §6 / code-first substitute for C#'s string-path + INotifyPropertyChanged). `bind(property<T>& target, property<U>& source, mode, convert, convert_back)` observes the source via the existing `property<T>.changed` and pushes at `setter_specificity::from_binding` (so a manual set still wins + clears restore the bound value); modes one_way/two_way (re-entrancy-guarded, no feedback loop)/one_time/one_way_to_source; `default_mode` resolves to the target's `default_binding_mode` (+ two_way→one_way_to_source on a read-only target); RAII `binding_handle` tears the subscriptions down. 8 GTest cases (every mode + converter + the precedence interaction + teardown). **BindingContext + tree inheritance folded into M5c** (shares the element-tree propagation). String paths / registered-accessor table / StringFormat / FallbackValue / MultiBinding / compiled bindings deferred to M7. *characterization |
 
 _(extend this table as components are added)_

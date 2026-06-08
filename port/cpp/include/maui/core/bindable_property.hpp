@@ -18,6 +18,8 @@
 #include <string_view>
 #include <utility>
 
+#include "maui/core/binding_mode.hpp"
+
 namespace maui::core
 {
     class bindable_object;
@@ -34,6 +36,10 @@ namespace maui::core
             std::function<bool(bindable_object&, const T&)> validate_value;
             std::function<T(const bindable_object&)> default_value_creator;
             bool is_read_only = false;
+            // The mode a binding uses when it specifies binding_mode::default_mode (C#
+            // BindableProperty.DefaultBindingMode). Most properties are OneWay; user-editable control
+            // properties (e.g. entry/slider value) override this to TwoWay.
+            binding_mode default_binding_mode = binding_mode::one_way;
         };
 
         // `name` is borrowed, not owned — it must outlive the property. In practice it is always a
@@ -61,6 +67,10 @@ namespace maui::core
         [[nodiscard]] bool is_read_only() const
         {
             return options_.is_read_only;
+        }
+        [[nodiscard]] binding_mode default_binding_mode() const
+        {
+            return options_.default_binding_mode;
         }
         [[nodiscard]] bool has_default_value_creator() const
         {

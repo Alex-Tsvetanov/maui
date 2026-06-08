@@ -212,6 +212,7 @@ add_executable(maui_core_tests
   tests/core/primitives_tests.cpp
   tests/core/contracts_tests.cpp
   tests/core/handler_tests.cpp
+  tests/core/binding_tests.cpp
 )
 target_link_libraries(maui_core_tests PRIVATE
   maui_core

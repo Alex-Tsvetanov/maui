@@ -29,22 +29,33 @@ namespace maui::core
     template <class T> class property
     {
     public:
-        property(bindable_object &owner, const bindable_property<T> &descriptor)
+        property(bindable_object& owner, const bindable_property<T>& descriptor)
             : owner_(&owner), descriptor_(&descriptor)
         {
         }
-        property(const property &) = delete;
-        property(property &&) = delete;
-        property &operator=(const property &) = delete;
-        property &operator=(property &&) = delete;
+        property(const property&) = delete;
+        property(property&&) = delete;
+        property& operator=(const property&) = delete;
+        property& operator=(property&&) = delete;
         ~property() = default;
 
         // Effective (highest-specificity) value; falls back to the shared descriptor default. The
         // reference is valid until the next set()/clear().
-        [[nodiscard]] const T &get() const
+        [[nodiscard]] const T& get() const
         {
             ensure_default_materialized();
             return values_.empty() ? descriptor_->default_value() : values_.value_ref();
+        }
+
+        // The descriptor's default binding mode + read-only flag — read by bind() to resolve
+        // binding_mode::default_mode and to downgrade two_way on a read-only target (mirrors C#).
+        [[nodiscard]] binding_mode default_binding_mode() const
+        {
+            return descriptor_->default_binding_mode();
+        }
+        [[nodiscard]] bool is_read_only() const
+        {
+            return descriptor_->is_read_only();
         }
 
         void set(T value)
@@ -53,7 +64,7 @@ namespace maui::core
         }
         void set(T value, setter_specificity specificity)
         {
-            const auto &callbacks = descriptor_->callbacks();
+            const auto& callbacks = descriptor_->callbacks();
             if (callbacks.validate_value && !callbacks.validate_value(*owner_, value))
             {
                 return; // invalid value, ignored (C# logs a warning)
@@ -112,7 +123,7 @@ namespace maui::core
         }
         void clear(setter_specificity specificity)
         {
-            const auto &callbacks = descriptor_->callbacks();
+            const auto& callbacks = descriptor_->callbacks();
             T const original = values_.empty() ? descriptor_->default_value() : values_.value_ref();
             if (!values_.empty() && values_.specificity() == setter_specificity::from_handler)
             {
@@ -169,8 +180,8 @@ namespace maui::core
             return values_.value_ref();
         }
 
-        bindable_object *owner_;
-        const bindable_property<T> *descriptor_;
+        bindable_object* owner_;
+        const bindable_property<T>* descriptor_;
         mutable setter_specificity_list<T> values_; // mutable: a creator materializes lazily from get()
     };
 } // namespace maui::core
