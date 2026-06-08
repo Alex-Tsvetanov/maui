@@ -21,10 +21,12 @@
 // (through i_layout) and are implemented here.
 
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <type_traits>
 #include <vector>
 
+#include "maui/controls/element.hpp"
 #include "maui/controls/view.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/dimension.hpp"
@@ -58,21 +60,28 @@ namespace maui::controls
         void add(maui::core::i_view& child) override
         {
             children_.push_back(&child);
+            attach_child(child);
             notify_handler("add", static_cast<int>(children_.size()) - 1, child);
         }
         void insert(int index, maui::core::i_view& child) override
         {
             children_.insert(children_.begin() + index, &child);
+            attach_child(child);
             notify_handler("insert", index, child);
         }
         void remove_at(int index) override
         {
             maui::core::i_view& removed = *children_[static_cast<std::size_t>(index)];
             children_.erase(children_.begin() + index);
+            detach_child(removed);
             notify_handler("remove", index, removed);
         }
         void clear() override
         {
+            for (auto* child : children_)
+            {
+                detach_child(*child);
+            }
             children_.clear();
             notify_handler("clear", 0, nullptr);
         }
@@ -158,7 +167,37 @@ namespace maui::controls
         // Each concrete layout returns its M3 manager (e.g. vertical_stack_layout_manager) over *this.
         [[nodiscard]] virtual std::unique_ptr<maui::layouts::i_layout_manager> create_layout_manager() = 0;
 
+        // Each child is a logical child, so BindingContext + Window inherit down to it. children_ are the
+        // i_view contract; cross-cast to the element base every control shares.
+        void for_each_logical_child(const std::function<void(element&)>& visit) const override
+        {
+            for (auto* child : children_)
+            {
+                if (auto* child_element = dynamic_cast<element*>(child))
+                {
+                    visit(*child_element);
+                }
+            }
+        }
+
     private:
+        // Attach / detach a child from this layout's logical tree (so it inherits / loses BindingContext +
+        // Window). The cast bridges the i_view child pointer to the shared element base.
+        void attach_child(maui::core::i_view& child)
+        {
+            if (auto* child_element = dynamic_cast<element*>(&child))
+            {
+                this->attach_logical_child(*child_element);
+            }
+        }
+        void detach_child(maui::core::i_view& child)
+        {
+            if (auto* child_element = dynamic_cast<element*>(&child))
+            {
+                this->detach_logical_child(*child_element);
+            }
+        }
+
         [[nodiscard]] maui::layouts::i_layout_manager& ensure_manager()
         {
             if (!manager_)

@@ -44,4 +44,27 @@ namespace maui::core
             it->second.clear(specificity);
         }
     }
+
+    void bindable_object::on_binding_context_changed()
+    {
+        binding_context_changed.raise();
+    }
+
+    void bindable_object::set_binding_context_raw(binding_context_box context, bool is_explicit)
+    {
+        if (is_explicit)
+        {
+            binding_context_explicit_ = true;
+        }
+        else if (binding_context_explicit_)
+        {
+            return; // an inherited context never overrides an explicitly-set one
+        }
+        if (binding_context_.value == context.value)
+        {
+            return; // ReferenceEquals short-circuit (same shared object => no change)
+        }
+        binding_context_ = std::move(context);
+        on_binding_context_changed();
+    }
 } // namespace maui::core

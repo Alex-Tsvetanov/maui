@@ -24,10 +24,12 @@
 // in SendAppearing (only appear once attached to a window) is dropped at this layer — there is no window
 // lifecycle yet, so the navigation host (or the test) drives appearing/disappearing directly.
 
+#include <functional>
 #include <string>
 #include <string_view>
 #include <utility>
 
+#include "maui/controls/element.hpp"
 #include "maui/controls/view.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/event.hpp"
@@ -98,7 +100,17 @@ namespace maui::controls
             {
                 return;
             }
+            // Detach the old content / attach the new one from this page's logical tree, so the content
+            // inherits (or loses) this page's BindingContext + Window (Element.OnChildRemoved/OnChildAdded).
+            if (auto* old_child = dynamic_cast<element*>(content_))
+            {
+                detach_logical_child(*old_child);
+            }
             content_ = value;
+            if (auto* new_child = dynamic_cast<element*>(content_))
+            {
+                attach_logical_child(*new_child);
+            }
             notify_content_changed();
         }
 
@@ -129,6 +141,17 @@ namespace maui::controls
         // Handler.PlatformArrange) before placing the content.
         maui::graphics::size measure(double width_constraint, double height_constraint) override;
         maui::graphics::size arrange(const maui::graphics::rect& bounds) override;
+
+    protected:
+        // The single content child is this page's one logical child, so BindingContext + Window inherit
+        // down to it. content_ is the i_view contract; cross-cast to the element base every control shares.
+        void for_each_logical_child(const std::function<void(element&)>& visit) const override
+        {
+            if (auto* child = dynamic_cast<element*>(content_))
+            {
+                visit(*child);
+            }
+        }
 
     private:
         // Tell the handler (if attached) to re-host the new content on the native panel. The handler

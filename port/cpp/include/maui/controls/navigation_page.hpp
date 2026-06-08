@@ -24,10 +24,12 @@
 // (or on the first push onto an empty stack) — standing in for the window — so a subsequent push then
 // correctly fires send_disappearing() on the now-hidden root. Documented deviation.
 
+#include <functional>
 #include <memory>
 #include <vector>
 
 #include "maui/controls/content_page.hpp"
+#include "maui/controls/element.hpp"
 #include "maui/controls/view.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_stack_navigation.hpp"
@@ -86,6 +88,17 @@ namespace maui::controls
         // ---- i_stack_navigation (the handler reports the realized native stack back here) ----
         void request_navigation(const maui::core::navigation_request& request) override;
         void navigation_finished(const std::vector<maui::core::i_view*>& stack) override;
+
+    protected:
+        // Every page in the stack is a logical child, so BindingContext + Window inherit down to them.
+        // content_page is-a element, so visiting needs no cast.
+        void for_each_logical_child(const std::function<void(element&)>& visit) const override
+        {
+            for (content_page* const page : stack_)
+            {
+                visit(*page);
+            }
+        }
 
     private:
         // Make `root` the initial current page + appear it (stands in for the window). Used by the

@@ -27,8 +27,10 @@ incl. a native tap via `performClick:`). **M3 (layout) is COMPLETE. M4 (control 
 (headless + macOS): `label`, `entry`, `image` (aspect + file source + async uri/stream sources), the
 stack + `grid` layout controls, `content_page` + a `navigation_page` push/pop stack, and the shared
 ViewMapper — the full generic IView surface (Visibility/Opacity/IsEnabled/AutomationId + the render
-transform + FlowDirection + Background/Shadow/Clip). **M5 (binding / styles / lifecycle) IN PROGRESS** —
-M5a data binding done (typed accessor bindings); M5b styles/setters/triggers/VSM done; next M5c lifecycle.**
+transform + FlowDirection + Background/Shadow/Clip). **M5 (binding / styles / lifecycle) COMPLETE (cross-platform)**
+— M5a data binding (typed accessor), M5b styles/setters/triggers/VSM, and M5c Application/Window/element
+lifecycle + typed inherited BindingContext are all done; only the native NSWindow `window_handler` is a
+deferred tail (the lifecycle itself is proven on both backends).**
 The `PROFILE.md §11` decisions are **locked** (view owns handler; `property<T>` member object;
 per-type `concept`-vs-`i_*` rule; headers not modules). M1 build order — all done: `event`,
 `dispatcher`, `setter_specificity`(+list), `bindable_property<T>` / `bindable_object` / `property<T>`
@@ -231,10 +233,10 @@ apple_visual_ops helpers; the clip mask is sized to the NSView bounds; grid reus
 gate green: **354 headless / 281 apple** GTest, clang-tidy 0 (incl. the `.mm` files + the gated tests via
 the `tidy` preset), ASan/UBSan + TSan clean (Unit I's async loader runs single-threaded on the dispatcher,
 so TSan stays clean). **M4 (control set v1) is COMPLETE.**
-**Still next: M5c** — Application / Window / the element lifecycle (Loaded/Unloaded + Window propagation) +
-BindingContext + element-tree inheritance; plus the documented M4 deferrals (gradient paints, per-corner
-clip, navigation chrome, image disk-cache + a production HTTP stack). M5a (binding) + M5b (styles / setters
-/ triggers / VSM) are done.
+**Still next: M6** (second platform — iOS, behind the same handlers) or the deferred tails — the native
+NSWindow `window_handler` (M5c), plus the M4 deferrals (gradient paints, per-corner clip, navigation
+chrome, image disk-cache + a production HTTP stack). M5a (binding) + M5b (styles/setters/triggers/VSM) +
+M5c (Application/Window/lifecycle + typed inherited BindingContext) are all done and gated on both backends.
 
 ## Tooling — format, lint, sanitizers (run from `port/cpp/`)
 
@@ -263,7 +265,7 @@ clip, navigation chrome, image disk-cache + a production HTTP stack). M5a (bindi
 | M2 | `button` end-to-end (headless → macOS), tap works in sample app | ✅ |
 | M3 | Layout measure/arrange (`stack_layout`, `grid`) pass layout tests | ✅ |
 | M4 | Control set v1 (label, entry, image, layouts, content page) on macOS | ✅ |
-| M5 | `bindable_object`/`bindable_property`, binding, style, lifecycle | 🚧 (M5a binding ✅, M5b styles/triggers/VSM ✅, M5c lifecycle ⬜) |
+| M5 | `bindable_object`/`bindable_property`, binding, style, lifecycle | ✅ (M5a binding, M5b styles/triggers/VSM, M5c Application/Window/lifecycle + inherited BindingContext; native NSWindow host deferred) |
 | M6 | Second platform (iOS) behind the same handlers | ⬜ |
 | M7 | XAML and/or Essentials (as prioritized) | ⬜ |
 
@@ -293,6 +295,11 @@ milestone that needs them; none blocks M5.
 - Implicit styles + `ResourceDictionary` lookup + style classes + `BasedOn`-by-resource-key + `DynamicResource` (only a directly-assigned `based_on` style object is supported, applied at the lowered `as_base_style` specificity); `Style.ApplyToDerivedTypes` / `CanCascade` / `Behaviors` / triggers-in-a-Style.
 - The VSM #18103/#34363 nuance — implicit-style VSM **downgraded** below a manual value + the system-state `WithFullVsmPriority` promotion (and the constant it needs) — only manifests when `VisualStateGroups` is assigned via an implicit style; a directly-driven `visual_state_manager` applies every state at the one `visual_state_setter` specificity (above manual). Also deferred: the attached-property `VisualStateGroupsProperty` storage on `view<>`, `StateTriggers`, the `is_enabled → Disabled/Normal` auto-drive, Clone + duplicate-name validation.
 - Triggers: `Setter.TargetName` (re-targeting another element), `EnterActions`/`ExitActions`, `MultiTrigger`, per-trigger index ordering (all triggers share `setter_specificity::trigger`), and the BindingContext-sourced `data_trigger` (lands with BindingContext in M5c). `property_trigger<T>` watches a concrete `property<T>` directly (the typed substitute for `GetValue(Property)`).
+
+**Application / Window / lifecycle (M5c):**
+- The native **`window_handler` over `NSWindow`** (the apple host: create an NSWindow, set its contentView to the root page's `native_view()`, map `NSWindowDidBecomeMain`/`WillClose` → the window lifecycle) + a headless mirror — the cross-platform Window/Application lifecycle is done and proven on both backends, but it is not yet hosted in a real native window.
+- `Page.SendAppearing`'s internal "only appear once attached to a window" guard: the **window now DRIVES** `content_page::send_appearing()` on activate (and `send_disappearing()` on deactivate), which achieves the windowed-appearing end result; the navigation_page retains its self-drive for the no-window case (the M4d deviation), so a hard guard inside `send_appearing()` stays deferred (it would regress the nav self-drive).
+- Multi-window orchestration, `Resumed`/`Stopped`/`Backgrounding`/`Created` ordering subtleties, modal windows, persisted state, window geometry/chrome (X/Y/Width/Height/TitleBar), themes; the `i_window`/`i_application` Core contracts (the port's `window`/`application` are concrete-only so far); a runnable `maui_app_sample` NSWindow. BindingContext string/relative paths + `bind_to_context` convenience remain deferred to M7 (typed inheritance is done).
 
 **Layout (M3):** `ClipsToBounds` / `ISafeAreaView` / `ICrossPlatformLayout` on `i_layout`; `z_index` ordering inside the managers.
 
@@ -342,5 +349,7 @@ milestone that needs them; none blocks M5.
 | data binding (`binding_mode`, `bind()` + `binding_handle`; `bindable_property` default_binding_mode) | core | ✅ | ✅* | ✅ | headless | M5a — **typed accessor bindings** (reflection-free, the PROFILE §6 / code-first substitute for C#'s string-path + INotifyPropertyChanged). `bind(property<T>& target, property<U>& source, mode, convert, convert_back)` observes the source via the existing `property<T>.changed` and pushes at `setter_specificity::from_binding` (so a manual set still wins + clears restore the bound value); modes one_way/two_way (re-entrancy-guarded, no feedback loop)/one_time/one_way_to_source; `default_mode` resolves to the target's `default_binding_mode` (+ two_way→one_way_to_source on a read-only target); RAII `binding_handle` tears the subscriptions down. 8 GTest cases (every mode + converter + the precedence interaction + teardown). **BindingContext + tree inheritance folded into M5c** (shares the element-tree propagation). String paths / registered-accessor table / StringFormat / FallbackValue / MultiBinding / compiled bindings deferred to M7. *characterization |
 
 | styles / setters / triggers / VSM (`setter`, `style`, `property_trigger<T>` + `trigger_handle`, `visual_state`/`visual_state_group`/`visual_state_manager`) | controls | ✅ | ✅* | ✅ | headless | M5b — apply/un-apply bundles of property values through the **existing** value-precedence ladder (`property<T>::set/clear(value, specificity)`). Foundation: each `property<T>` **self-registers** an erased `{apply(any, specificity), clear(specificity)}` handle with its `bindable_object` (keyed by descriptor name) so `setter::of(descriptor, value)` reaches a typed slot via `apply_setter`/`clear_setter` — value boxed at the boundary, **storage stays typed**. `style` = target type-tag + `vector<setter>` (+ a directly-assigned `based_on` applied at `setter_specificity::as_base_style`); `view<>` gains `set_style`/`style()` (apply at `style_local`, un-apply the previous). `property_trigger<T>` watches a `property<T>` via `.changed`, applies setters at `setter_specificity::trigger` (above a manual value) while it equals the target, RAII `trigger_handle` tears down + un-applies. `visual_state_manager::go_to_state` swaps the outgoing/incoming state setters at `visual_state_setter`. 15 GTest cases (style precedence ladder + replace + based_on; trigger apply/override/restore/teardown; VSM swap/idempotent/unknown/manual-interaction). Ported `SetterSpecificity.AsBaseStyle`. Implicit styles / ResourceDictionary / DynamicResource / the VSM implicit-style downgrade + system-state promotion / EventTrigger / MultiTrigger / StateTriggers deferred (see backlog). *characterization |
+
+| Application / Window / element lifecycle + inherited BindingContext (`controls::element`, `window`, `application`; `bindable_object` BindingContext) | controls | ✅ | ✅* | ✅ | headless | M5c — a non-template `controls::element` re-roots `view<>` (mirroring C#'s BindableObject → Element → VisualElement), carrying the shared tree lifecycle: `for_each_logical_child` (containers — `content_page`/`layout<>`/`navigation_page` — override it), **typed inherited BindingContext** (held on `bindable_object` as `shared_ptr<void>` + a `type_tag` so `binding_context<X>()` is checked; an explicit set blocks inheritance; `on_binding_context_changed` propagates down), and the **Window back-ref + Loaded/Unloaded** (`set_containing_window` flows the window down the subtree, firing Loaded top-down / Unloaded bottom-up). `window` hosts one root page + the IWindow lifecycle (`send_created`/`activated`/`deactivated`/`destroying`); activating it Loads the page subtree + drives `content_page` Appearing (the windowed-appearing the M4d deviation lacked). `application` owns the windows + the one-time `started` hook (`open_window` starts+creates+activates). 13 GTest cases (BindingContext inherit/override/through-layout/typed-null; window activate/deactivate Loaded-Unloaded + subtree propagation; application open/close/start + context inheritance app→window→page). Native NSWindow `window_handler`, modal/multi-window, and string-path bindings deferred (see backlog). *characterization |
 
 _(extend this table as components are added)_

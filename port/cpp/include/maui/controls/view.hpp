@@ -21,6 +21,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "maui/controls/element.hpp"
 #include "maui/controls/style.hpp"
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/bindable_property.hpp"
@@ -77,7 +78,7 @@ namespace maui::controls
     const maui::core::bindable_property<std::shared_ptr<maui::core::i_shadow>>& shadow_property();
     const maui::core::bindable_property<std::shared_ptr<maui::graphics::i_shape>>& clip_property();
 
-    template <class ViewInterface> class view : public maui::core::bindable_object, public ViewInterface
+    template <class ViewInterface> class view : public maui::controls::element, public ViewInterface
     {
         static_assert(std::is_base_of_v<maui::core::i_view, ViewInterface>,
                       "ViewInterface must derive maui::core::i_view");

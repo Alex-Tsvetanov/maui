@@ -38,6 +38,7 @@ namespace maui::controls
     void navigation_page::push_initial(content_page& root)
     {
         stack_.push_back(&root);
+        attach_logical_child(root); // the page inherits this nav page's BindingContext + Window
         // The window's role at this layer: make the root visible. A later push then fires the root's
         // send_disappearing() correctly (it is now in the appeared state).
         root.send_appearing();
@@ -61,6 +62,7 @@ namespace maui::controls
         content_page* const previous = current_page();
         // C# PushPage(root): the new page becomes the top-most (and CurrentPage).
         stack_.push_back(&page);
+        attach_logical_child(page); // inherit this nav page's BindingContext + Window
 
         // C# OnPushAsync firePostNavigatingEvents: FireDisappearing(previous) + FireAppearing(new), both
         // fired BEFORE RequestNavigation.
@@ -87,6 +89,7 @@ namespace maui::controls
         // C# OnPopAsync processStackChanges: FireDisappearing(current) THEN remove + set CurrentPage=new.
         current->send_disappearing();
         stack_.pop_back();
+        detach_logical_child(*current); // the popped page leaves the tree (loses Window + inherited context)
         // C# OnPopAsync firePostNavigatingEvents: FireAppearing(new) — still before RequestNavigation.
         new_current->send_appearing();
 
@@ -108,6 +111,10 @@ namespace maui::controls
         // C# OnPopToRootAsync processStackChanges: FireDisappearing(previous) THEN remove every page above
         // the root + set CurrentPage=root.
         previous->send_disappearing();
+        for (auto it = stack_.begin() + 1; it != stack_.end(); ++it)
+        {
+            detach_logical_child(**it); // each popped page leaves the tree
+        }
         stack_.erase(stack_.begin() + 1, stack_.end());
         // C# firePostNavigatingEvents: FireAppearing(root) — still before RequestNavigation.
         root->send_appearing();

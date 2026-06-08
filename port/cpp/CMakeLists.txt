@@ -228,6 +228,7 @@ endif()
 # Layer 2 - Controls  (maui::controls  <=  Microsoft.Maui.Controls : the developer-facing controls)
 # ======================================================================
 add_library(maui_controls STATIC
+  src/controls/element.cpp
   src/controls/view.cpp
   src/controls/button.cpp
   src/controls/label.cpp
@@ -241,6 +242,8 @@ add_library(maui_controls STATIC
   src/controls/navigation_page.cpp
   src/controls/style.cpp
   src/controls/visual_state_manager.cpp
+  src/controls/window.cpp
+  src/controls/application.cpp
 )
 target_include_directories(maui_controls PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # Controls depend on Core (handlers, contracts, the property system); the layout controls additionally
@@ -266,7 +269,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/navigation_page_apple_tests.mm
     tests/controls/style_tests.cpp   # backend-agnostic; compiled as C++ within the apple test exe
     tests/controls/trigger_tests.cpp
-    tests/controls/visual_state_manager_tests.cpp)
+    tests/controls/visual_state_manager_tests.cpp
+    tests/controls/lifecycle_tests.cpp)
   set_source_files_properties(
     tests/controls/button_apple_tests.mm
     tests/controls/label_apple_tests.mm
@@ -291,7 +295,8 @@ else()
     tests/controls/navigation_page_tests.cpp
     tests/controls/style_tests.cpp
     tests/controls/trigger_tests.cpp
-    tests/controls/visual_state_manager_tests.cpp)
+    tests/controls/visual_state_manager_tests.cpp
+    tests/controls/lifecycle_tests.cpp)
 endif()
 target_include_directories(maui_controls_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for tests/layouts/*.hpp
 target_link_libraries(maui_controls_tests PRIVATE
