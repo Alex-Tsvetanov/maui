@@ -265,6 +265,32 @@ chrome, image disk-cache + a production HTTP stack).
 | M6 | Second platform (iOS) behind the same handlers | ⬜ |
 | M7 | XAML and/or Essentials (as prioritized) | ⬜ |
 
+## Deferred backlog (revisit later — each was a documented "first cut", never a silent gap)
+
+Consolidated from the per-component Notes above. Pick these off opportunistically or alongside the
+milestone that needs them; none blocks M5.
+
+**ViewMapper / visuals (M4b–M4d):**
+- Gradient paints — `linear_gradient_paint` / `radial_gradient_paint` + gradient stops (only `solid_paint` shipped) → `CAGradientLayer`.
+- Per-corner clip radii — `round_rectangle` is a single uniform corner radius today; add the 4-corner `corner_radius`.
+- Layout-driven ViewMapper props — Width/Height/MinimumWidth/Height/MaximumWidth/Height (these flow from the layout pass, not a direct push).
+- `Semantics` (accessibility), `InputTransparent`, `ToolTip`, `ContextFlyout`, native `ZIndex` ordering; C#'s `IsConnectingHandler()` default-skip optimization.
+
+**Image (M4c–M4d):**
+- Disk cache + `CacheValidity` expiry (only an in-memory uri cache today); a production HTTP stack (currently a synchronous `NSURLSession`/`NSData` fetch); the full DI service-provider (we use a flat typed registry).
+- `font_image_source`; resolution-dependent reload (@2x/@3x + screen-DPI); `IsAnimationPlaying` / `IsOpaque` / `IsLoading`.
+
+**Navigation (M4d):**
+- Navigation bar / back button / title bar; push/pop animations; the modal stack (`PushModalAsync`); `InsertPageBefore` / `RemovePage`; Shell; the window-hierarchy guard in `SendAppearing` (needs the Window/Application lifecycle — an M5 item).
+
+**Text controls (M2–M4):**
+- AppKit `character_spacing` (needs an attributed string / `NSKernAttributeName`), `vertical_text_alignment` (custom field editor), `placeholder_color` (attributed placeholder) — headless mirrors them all.
+- `button` padding on AppKit (custom `NSButtonCell` / content insets); `entry` ReturnType / ClearButtonVisibility / cursor+selection / keyboard / prediction.
+
+**Layout (M3):** `ClipsToBounds` / `ISafeAreaView` / `ICrossPlatformLayout` on `i_layout`; `z_index` ordering inside the managers.
+
+**Graphics (M0):** `System.Numerics` interop — `Vector2`/`Vector4`/`Matrix3x2` casts + `Transform`/`TransformBy` on point/rect/`path_f` (needs a maui linalg type).
+
 ## Components
 
 | Component | Layer | Contract✓ | Tests ported | Impl | Platform(s) | Notes |
