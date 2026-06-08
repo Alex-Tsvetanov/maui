@@ -28,7 +28,7 @@ incl. a native tap via `performClick:`). **M3 (layout) is COMPLETE. M4 (control 
 stack + `grid` layout controls, `content_page` + a `navigation_page` push/pop stack, and the shared
 ViewMapper — the full generic IView surface (Visibility/Opacity/IsEnabled/AutomationId + the render
 transform + FlowDirection + Background/Shadow/Clip). **M5 (binding / styles / lifecycle) IN PROGRESS** —
-M5a data binding done (typed accessor bindings); next M5b styles, M5c lifecycle.**
+M5a data binding done (typed accessor bindings); M5b styles/setters/triggers/VSM done; next M5c lifecycle.**
 The `PROFILE.md §11` decisions are **locked** (view owns handler; `property<T>` member object;
 per-type `concept`-vs-`i_*` rule; headers not modules). M1 build order — all done: `event`,
 `dispatcher`, `setter_specificity`(+list), `bindable_property<T>` / `bindable_object` / `property<T>`
@@ -231,9 +231,10 @@ apple_visual_ops helpers; the clip mask is sized to the NSView bounds; grid reus
 gate green: **354 headless / 281 apple** GTest, clang-tidy 0 (incl. the `.mm` files + the gated tests via
 the `tidy` preset), ASan/UBSan + TSan clean (Unit I's async loader runs single-threaded on the dispatcher,
 so TSan stays clean). **M4 (control set v1) is COMPLETE.**
-**Still next: M5** — data binding (paths + BindingContext + value converters), styles / setters / triggers,
-and the element lifecycle; plus the documented M4 deferrals (gradient paints, per-corner clip, navigation
-chrome, image disk-cache + a production HTTP stack).
+**Still next: M5c** — Application / Window / the element lifecycle (Loaded/Unloaded + Window propagation) +
+BindingContext + element-tree inheritance; plus the documented M4 deferrals (gradient paints, per-corner
+clip, navigation chrome, image disk-cache + a production HTTP stack). M5a (binding) + M5b (styles / setters
+/ triggers / VSM) are done.
 
 ## Tooling — format, lint, sanitizers (run from `port/cpp/`)
 
@@ -262,7 +263,7 @@ chrome, image disk-cache + a production HTTP stack).
 | M2 | `button` end-to-end (headless → macOS), tap works in sample app | ✅ |
 | M3 | Layout measure/arrange (`stack_layout`, `grid`) pass layout tests | ✅ |
 | M4 | Control set v1 (label, entry, image, layouts, content page) on macOS | ✅ |
-| M5 | `bindable_object`/`bindable_property`, binding, style, lifecycle | 🚧 |
+| M5 | `bindable_object`/`bindable_property`, binding, style, lifecycle | 🚧 (M5a binding ✅, M5b styles/triggers/VSM ✅, M5c lifecycle ⬜) |
 | M6 | Second platform (iOS) behind the same handlers | ⬜ |
 | M7 | XAML and/or Essentials (as prioritized) | ⬜ |
 
@@ -287,6 +288,11 @@ milestone that needs them; none blocks M5.
 **Text controls (M2–M4):**
 - AppKit `character_spacing` (needs an attributed string / `NSKernAttributeName`), `vertical_text_alignment` (custom field editor), `placeholder_color` (attributed placeholder) — headless mirrors them all.
 - `button` padding on AppKit (custom `NSButtonCell` / content insets); `entry` ReturnType / ClearButtonVisibility / cursor+selection / keyboard / prediction.
+
+**Styles / triggers / VSM (M5b):**
+- Implicit styles + `ResourceDictionary` lookup + style classes + `BasedOn`-by-resource-key + `DynamicResource` (only a directly-assigned `based_on` style object is supported, applied at the lowered `as_base_style` specificity); `Style.ApplyToDerivedTypes` / `CanCascade` / `Behaviors` / triggers-in-a-Style.
+- The VSM #18103/#34363 nuance — implicit-style VSM **downgraded** below a manual value + the system-state `WithFullVsmPriority` promotion (and the constant it needs) — only manifests when `VisualStateGroups` is assigned via an implicit style; a directly-driven `visual_state_manager` applies every state at the one `visual_state_setter` specificity (above manual). Also deferred: the attached-property `VisualStateGroupsProperty` storage on `view<>`, `StateTriggers`, the `is_enabled → Disabled/Normal` auto-drive, Clone + duplicate-name validation.
+- Triggers: `Setter.TargetName` (re-targeting another element), `EnterActions`/`ExitActions`, `MultiTrigger`, per-trigger index ordering (all triggers share `setter_specificity::trigger`), and the BindingContext-sourced `data_trigger` (lands with BindingContext in M5c). `property_trigger<T>` watches a concrete `property<T>` directly (the typed substitute for `GetValue(Property)`).
 
 **Layout (M3):** `ClipsToBounds` / `ISafeAreaView` / `ICrossPlatformLayout` on `i_layout`; `z_index` ordering inside the managers.
 
@@ -334,5 +340,7 @@ milestone that needs them; none blocks M5.
 | `image` control (`aspect`/`i_image`, `image_handler`; aspect only) | controls + core/handlers | ✅ | ✅* | ✅ | headless + macOS | M4b Unit 3 (minimal) — maps ONLY the scaling mode: `aspect` (aspect_fit/aspect_fill/fill/center) → NSImageView.imageScaling (+ centered). No image bytes loaded — the async image *source* subsystem (IImageSource/loaders/caching) is deferred. Chains `view_mapper()`. 5 headless + 2 apple GTest cases; self-registers. *characterization |
 
 | data binding (`binding_mode`, `bind()` + `binding_handle`; `bindable_property` default_binding_mode) | core | ✅ | ✅* | ✅ | headless | M5a — **typed accessor bindings** (reflection-free, the PROFILE §6 / code-first substitute for C#'s string-path + INotifyPropertyChanged). `bind(property<T>& target, property<U>& source, mode, convert, convert_back)` observes the source via the existing `property<T>.changed` and pushes at `setter_specificity::from_binding` (so a manual set still wins + clears restore the bound value); modes one_way/two_way (re-entrancy-guarded, no feedback loop)/one_time/one_way_to_source; `default_mode` resolves to the target's `default_binding_mode` (+ two_way→one_way_to_source on a read-only target); RAII `binding_handle` tears the subscriptions down. 8 GTest cases (every mode + converter + the precedence interaction + teardown). **BindingContext + tree inheritance folded into M5c** (shares the element-tree propagation). String paths / registered-accessor table / StringFormat / FallbackValue / MultiBinding / compiled bindings deferred to M7. *characterization |
+
+| styles / setters / triggers / VSM (`setter`, `style`, `property_trigger<T>` + `trigger_handle`, `visual_state`/`visual_state_group`/`visual_state_manager`) | controls | ✅ | ✅* | ✅ | headless | M5b — apply/un-apply bundles of property values through the **existing** value-precedence ladder (`property<T>::set/clear(value, specificity)`). Foundation: each `property<T>` **self-registers** an erased `{apply(any, specificity), clear(specificity)}` handle with its `bindable_object` (keyed by descriptor name) so `setter::of(descriptor, value)` reaches a typed slot via `apply_setter`/`clear_setter` — value boxed at the boundary, **storage stays typed**. `style` = target type-tag + `vector<setter>` (+ a directly-assigned `based_on` applied at `setter_specificity::as_base_style`); `view<>` gains `set_style`/`style()` (apply at `style_local`, un-apply the previous). `property_trigger<T>` watches a `property<T>` via `.changed`, applies setters at `setter_specificity::trigger` (above a manual value) while it equals the target, RAII `trigger_handle` tears down + un-applies. `visual_state_manager::go_to_state` swaps the outgoing/incoming state setters at `visual_state_setter`. 15 GTest cases (style precedence ladder + replace + based_on; trigger apply/override/restore/teardown; VSM swap/idempotent/unknown/manual-interaction). Ported `SetterSpecificity.AsBaseStyle`. Implicit styles / ResourceDictionary / DynamicResource / the VSM implicit-style downgrade + system-state promotion / EventTrigger / MultiTrigger / StateTriggers deferred (see backlog). *characterization |
 
 _(extend this table as components are added)_

@@ -16,6 +16,7 @@
 // Usage: declare a `static const bindable_property<T> xxx_property{...}`, then a member
 // `property<T> xxx{*this, xxx_property};`.
 
+#include <any>
 #include <utility>
 
 #include "maui/core/bindable_object.hpp"
@@ -32,12 +33,25 @@ namespace maui::core
         property(bindable_object& owner, const bindable_property<T>& descriptor)
             : owner_(&owner), descriptor_(&descriptor)
         {
+            // Self-register a typed-erased handle so a style/trigger/VSM setter can reach this typed slot by
+            // the descriptor name (bindable_object::apply_setter / clear_setter). `this` is stable (property
+            // is non-copyable/non-movable) and is unregistered in the destructor.
+            owner_->register_property(descriptor_->name(),
+                                      bindable_object::property_handle{
+                                          .apply =
+                                              [this](const std::any& value, setter_specificity specificity) {
+                                                  set(std::any_cast<const T&>(value), specificity);
+                                              },
+                                          .clear = [this](setter_specificity specificity) { clear(specificity); }});
         }
         property(const property&) = delete;
         property(property&&) = delete;
         property& operator=(const property&) = delete;
         property& operator=(property&&) = delete;
-        ~property() = default;
+        ~property()
+        {
+            owner_->unregister_property(descriptor_->name());
+        }
 
         // Effective (highest-specificity) value; falls back to the shared descriptor default. The
         // reference is valid until the next set()/clear().

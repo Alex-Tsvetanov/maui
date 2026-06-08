@@ -21,6 +21,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "maui/controls/style.hpp"
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/flow_direction.hpp"
@@ -30,6 +31,7 @@
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/layout_alignment.hpp"
 #include "maui/core/property.hpp"
+#include "maui/core/setter_specificity.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/i_shape.hpp"
@@ -373,6 +375,31 @@ namespace maui::controls
             is_focused_ = false;
         }
 
+        // ---- style (VisualElement.Style / IStyleElement) ----
+        // Setting a style applies its setters at the local-style specificity; replacing or clearing one
+        // un-applies the previous style first (so its setter values are removed before the new ones land).
+        // The type is qualified (maui::controls::style) because the accessor below is also named `style`.
+        void set_style(std::shared_ptr<maui::controls::style> value)
+        {
+            if (style_ == value)
+            {
+                return;
+            }
+            if (style_)
+            {
+                style_->unapply(*this, maui::core::setter_specificity::style_local);
+            }
+            style_ = std::move(value);
+            if (style_)
+            {
+                style_->apply(*this, maui::core::setter_specificity::style_local);
+            }
+        }
+        [[nodiscard]] const std::shared_ptr<maui::controls::style>& style() const
+        {
+            return style_;
+        }
+
     protected:
         view() = default;
 
@@ -418,5 +445,8 @@ namespace maui::controls
         maui::core::property<std::shared_ptr<maui::core::i_shadow>> shadow_{*this, shadow_property()};
         maui::core::property<std::shared_ptr<maui::graphics::i_shape>> clip_{*this, clip_property()};
         bool is_focused_ = false;
+        // The applied style (VisualElement.Style). Held by shared_ptr so one style can be shared across
+        // many controls; setting/replacing it routes through set_style (apply/unapply at style_local).
+        std::shared_ptr<maui::controls::style> style_;
     };
 } // namespace maui::controls

@@ -12,9 +12,9 @@
 // constexpr inline). That keeps the comparison a single integer compare (the C# "fastest comparison
 // possible" intent) and makes the named constants constant-initialized — no static-init-order fiasco.
 //
-// M1 scope: the named specificities + comparison + is_default/is_handler. The style/VSM/CSS
-// manipulation helpers (CopyStyle, AsBaseStyle, WithFullVsmPriority, StyleInfo, trigger_index) are
-// deferred to the styles/VSM milestone (M5); the full bit layout is preserved so they slot in later.
+// M1 scope: the named specificities + comparison + is_default/is_handler. M5b adds as_base_style (the
+// BasedOn precedence lowering). The remaining manipulation helpers (CopyStyle, WithFullVsmPriority,
+// StyleInfo, trigger_index) stay deferred; the full bit layout is preserved so they slot in later.
 
 #include <compare>
 #include <cstdint>
@@ -81,12 +81,36 @@ namespace maui::core
             return value_ == k_handler_value;
         }
 
-        constexpr bool operator==(const setter_specificity &) const = default;
-        constexpr std::strong_ordering operator<=>(const setter_specificity &) const = default;
+        // Lower this specificity by one style level for a BasedOn (inherited) style — so a derived style's
+        // own setters outrank the setters it inherits (Style.ApplyCore passes specificity.AsBaseStyle() to
+        // the based-on style). Already-base specificities (<= StyleBasedOn) are returned unchanged, and the
+        // result is clamped to StyleBasedOn so base styles stay above implicit styles but below local ones.
+        // Direct port of SetterSpecificity.AsBaseStyle.
+        [[nodiscard]] constexpr setter_specificity as_base_style() const
+        {
+            auto const current_style = static_cast<std::uint16_t>((value_ >> 44) & 0xFFFULL);
+            if (current_style <= k_style_based_on)
+            {
+                return *this;
+            }
+            std::uint64_t new_value = value_ - (1ULL << 44);
+            auto const style_value = static_cast<std::uint16_t>((new_value >> 44) & 0xFFFULL);
+            if (style_value < k_style_based_on)
+            {
+                new_value = (new_value & 0xFFF000FFFFFFFFFFULL) | (static_cast<std::uint64_t>(k_style_based_on) << 44);
+            }
+            return setter_specificity{new_value};
+        }
+
+        constexpr bool operator==(const setter_specificity&) const = default;
+        constexpr std::strong_ordering operator<=>(const setter_specificity&) const = default;
 
         // Named specificities (the C# SetterSpecificity static readonly fields). Defined below.
         static const setter_specificity default_value;
-        static const setter_specificity visual_state_setter;
+        static const setter_specificity style_implicit;      // an implicit (TargetType-keyed) style setter
+        static const setter_specificity style_based_on;      // a BasedOn (inherited) style setter
+        static const setter_specificity style_local;         // an explicit (inline) style setter
+        static const setter_specificity visual_state_setter; // a VSM state setter (above a manual value)
         static const setter_specificity from_binding;
         static const setter_specificity manual_value_setter;
         static const setter_specificity trigger;
@@ -94,11 +118,19 @@ namespace maui::core
         static const setter_specificity from_handler;
 
     private:
+        // Build directly from a packed value (the C# private SetterSpecificity(ulong) — used by
+        // as_base_style to assemble a lowered specificity). Distinct arity from the public ctors.
+        explicit constexpr setter_specificity(std::uint64_t raw) noexcept : value_(raw)
+        {
+        }
+
         static constexpr std::uint8_t k_extras_vsm = 0x01;
         static constexpr std::uint8_t k_extras_handler = 0xFF;
         static constexpr std::uint64_t k_handler_value = 0xFFFFFFFFFFFFFFFFULL;
         static constexpr std::uint16_t k_style_none = 0xFFF;
+        static constexpr std::uint16_t k_style_implicit = 0x080; // SetterSpecificity.StyleImplicit
         static constexpr std::uint16_t k_style_based_on = 0x0C0; // SetterSpecificity.StyleBasedOn
+        static constexpr std::uint16_t k_style_local = 0x100;    // SetterSpecificity.StyleLocal
         static constexpr std::uint16_t k_manual_trigger_baseline = 2;
 
         std::uint64_t value_ = 0;
@@ -106,6 +138,14 @@ namespace maui::core
 
     // constexpr ctor + constant args => these are constant-initialized (compile-time, no SIOF).
     inline const setter_specificity setter_specificity::default_value{};
+    inline const setter_specificity setter_specificity::style_implicit{k_style_implicit, 0, 0, 0};
+    inline const setter_specificity setter_specificity::style_based_on{k_style_based_on, 0, 0, 0};
+    inline const setter_specificity setter_specificity::style_local{k_style_local, 0, 0, 0};
+    // A VSM state setter: with no style supplied (style 0), the ctor keeps the high vsm bit, so VSM states
+    // sit ABOVE a manual value (the precedence specificity_tests pins: manual < trigger < visual_state <
+    // handler). The #18103/#34363 *downgrade* of implicit-style VSM below manual + the system-state
+    // WithFullVsmPriority promotion only arise when VisualStateGroups is assigned via an implicit style;
+    // that path (and the constant it needs) is deferred with implicit styles (STATUS.md).
     inline const setter_specificity setter_specificity::visual_state_setter{k_extras_vsm, 0, 0, 0, 0, 0, 0, 0};
     inline const setter_specificity setter_specificity::from_binding{0, 0, 0, 1, 0, 0, 0, 0};
     inline const setter_specificity setter_specificity::manual_value_setter{0, 1, 0, 0, 0, 0, 0, 0};
