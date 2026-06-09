@@ -4,6 +4,8 @@
 #include "maui/core/image_source_services.hpp"
 
 #include "maui/core/file_image_source_service.hpp"
+#include "maui/core/font_image_source_service.hpp"
+#include "maui/core/i_font_image_source.hpp"
 #include "maui/core/i_image_source.hpp" // i_file_image_source
 #include "maui/core/i_stream_image_source.hpp"
 #include "maui/core/i_uri_image_source.hpp"
@@ -18,5 +20,6 @@ namespace maui::core
         registry.register_service<i_file_image_source, file_image_source_service>();
         registry.register_service<i_uri_image_source, uri_image_source_service>();
         registry.register_service<i_stream_image_source, stream_image_source_service>();
+        registry.register_service<i_font_image_source, font_image_source_service>();
     }
 } // namespace maui::core

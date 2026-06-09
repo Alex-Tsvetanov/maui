@@ -133,6 +133,33 @@ namespace maui::core
         image_view.imageAlignment = NSImageAlignCenter;
     }
 
+    // IsOpaque → the backing layer's `opaque` hint (the rendering optimization C# IsOpaque expresses). The
+    // view is given a layer so the flag has somewhere to live.
+    void image_handler::map_is_opaque(image_handler& handler, i_image& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        NSImageView* const image_view = as_image_view(platform->native);
+        image_view.wantsLayer = YES;
+        image_view.layer.opaque = static_cast<BOOL>(view.is_opaque());
+    }
+
+    // IsAnimationPlaying → NSImageView.animates (the AppKit analog of UIImageView's start/stopAnimating).
+    // DEVIATION: the multi-frame GIF decode (UIImageView.AnimationImages) is not ported — only an animated
+    // NSImage already set on the view would animate; the flag itself is faithful + mapped.
+    void image_handler::map_is_animation_playing(image_handler& handler, i_image& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        as_image_view(platform->native).animates = static_cast<BOOL>(view.is_animation_playing());
+    }
+
     // ---- per-backend source primitives (the cross-platform map_source in image_handler.cpp routes here) ----
 
     // File fast-path: load the path via NSImage straight into the view (nil on a failed load → cleared).

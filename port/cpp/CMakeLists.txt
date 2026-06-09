@@ -271,6 +271,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/view_mapper_apple_tests.mm
     tests/controls/entry_apple_tests.mm
     tests/controls/image_apple_tests.mm
+    tests/controls/font_image_source_apple_tests.mm
     tests/controls/layout_apple_tests.mm
     tests/controls/grid_apple_tests.mm
     tests/controls/content_page_apple_tests.mm
@@ -279,12 +280,17 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
     tests/controls/lifecycle_tests.cpp)
+  # tests/core/image_source_tests.cpp + font_image_source_tests.cpp are HEADLESS-ONLY: they assert on the
+  # headless image_source_result mirror + the headless "any non-empty bytes => loaded" decode (raw test
+  # bytes are not decodable NSImages on apple). The apple backend's native rasterize is covered by
+  # tests/controls/font_image_source_apple_tests.mm instead.
   set_source_files_properties(
     tests/controls/button_apple_tests.mm
     tests/controls/label_apple_tests.mm
     tests/controls/view_mapper_apple_tests.mm
     tests/controls/entry_apple_tests.mm
     tests/controls/image_apple_tests.mm
+    tests/controls/font_image_source_apple_tests.mm
     tests/controls/layout_apple_tests.mm
     tests/controls/grid_apple_tests.mm
     tests/controls/content_page_apple_tests.mm
@@ -304,7 +310,9 @@ else()
     tests/controls/style_tests.cpp
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
-    tests/controls/lifecycle_tests.cpp)
+    tests/controls/lifecycle_tests.cpp
+    tests/core/image_source_tests.cpp     # loader cache TTL + the typed service-provider
+    tests/core/font_image_source_tests.cpp)
 endif()
 target_include_directories(maui_controls_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for tests/layouts/*.hpp
 target_link_libraries(maui_controls_tests PRIVATE

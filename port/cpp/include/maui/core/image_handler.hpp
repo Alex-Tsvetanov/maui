@@ -53,13 +53,18 @@ namespace maui::core
         void* native = nullptr;
         // Headless mirror of the mapped aspect (the Apple build writes to `native` instead).
         aspect image_aspect = aspect::aspect_fit;
-        // Headless mirror of the resolved source: the kind ("file"/"uri"/"stream"), the resolved
-        // path/uri/"<bytes:N>", and whether a source is currently loaded. map_source (file fast-path) and
-        // the async loader's apply set these; a null/empty source clears them (the Apple build sets the
+        // Headless mirror of the resolved source: the kind ("file"/"uri"/"stream"/"font"), the resolved
+        // path/uri/"<bytes:N>"/glyph, and whether a source is currently loaded. map_source (file fast-path)
+        // and the async loader's apply set these; a null/empty source clears them (the Apple build sets the
         // real NSImageView.image instead). See src/platform/headless/image_handler.cpp.
         std::string source_kind;
         std::string source_file;
         bool source_loaded = false;
+        // Headless mirrors of IsOpaque / IsAnimationPlaying (Apple pushes these to the NSImageView's layer /
+        // animation state instead). is_animation_playing's native multi-frame animation is a documented
+        // deviation — only the flag is stored.
+        bool opaque = false;
+        bool animation_playing = false;
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSImageView (defined in
@@ -93,9 +98,15 @@ namespace maui::core
         // Property map functions (platform recipe).
         static void map_aspect(image_handler& handler, i_image& view);
         // Load view.source() into the native view. A FILE source loads synchronously (file fast-path,
-        // headless mirrors the path); any other source routes through source_loader() async (apply only
-        // if still current). A null/empty source clears the image. See the .mm/.cpp twins.
+        // headless mirrors the path); any other source (uri/stream/font) routes through source_loader()
+        // async (apply only if still current). A null/empty source clears the image. The loader pushes the
+        // in-flight loading state back via view.update_is_loading. See the .mm/.cpp twins.
         static void map_source(image_handler& handler, i_image& view);
+        // IsOpaque → the native view's opacity hint (Apple: layer.opaque); headless mirrors the flag.
+        static void map_is_opaque(image_handler& handler, i_image& view);
+        // IsAnimationPlaying → start/stop the native animation (Apple: NSImageView animates / stops);
+        // headless mirrors the flag. The multi-frame GIF decode is a documented deviation.
+        static void map_is_animation_playing(image_handler& handler, i_image& view);
 
         // The handler-owned async image-source loader (C#'s SourceLoader). Tests inject a dispatcher here
         // (and pump it) to drive the async load deterministically; the apple recipe leaves it inline.

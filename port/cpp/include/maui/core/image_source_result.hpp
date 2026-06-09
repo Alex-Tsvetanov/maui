@@ -32,9 +32,12 @@ namespace maui::core
         image_source_result() = default;
 
         // A loaded native image + its disposer (apple), or just the mirror fields (headless: image == null).
-        image_source_result(void* image, disposer dispose, std::string kind, std::string detail)
+        // resolution_dependent mirrors C# IImageSourceServiceResult.IsResolutionDependent — true for a result
+        // whose pixels depend on the display density (the font service sets it; file/uri/stream leave false).
+        image_source_result(void* image, disposer dispose, std::string kind, std::string detail,
+                            bool resolution_dependent = false)
             : image_(image), dispose_(std::move(dispose)), kind_(std::move(kind)), detail_(std::move(detail)),
-              loaded_(true)
+              loaded_(true), resolution_dependent_(resolution_dependent)
         {
         }
 
@@ -42,10 +45,12 @@ namespace maui::core
         image_source_result& operator=(const image_source_result&) = delete;
         image_source_result(image_source_result&& other) noexcept
             : image_(other.image_), dispose_(std::move(other.dispose_)), kind_(std::move(other.kind_)),
-              detail_(std::move(other.detail_)), loaded_(other.loaded_)
+              detail_(std::move(other.detail_)), loaded_(other.loaded_),
+              resolution_dependent_(other.resolution_dependent_)
         {
             other.image_ = nullptr;
             other.loaded_ = false;
+            other.resolution_dependent_ = false;
         }
         image_source_result& operator=(image_source_result&& other) noexcept
         {
@@ -57,8 +62,10 @@ namespace maui::core
                 kind_ = std::move(other.kind_);
                 detail_ = std::move(other.detail_);
                 loaded_ = other.loaded_;
+                resolution_dependent_ = other.resolution_dependent_;
                 other.image_ = nullptr;
                 other.loaded_ = false;
+                other.resolution_dependent_ = false;
             }
             return *this;
         }
@@ -83,6 +90,12 @@ namespace maui::core
         {
             return detail_;
         }
+        // True when the loaded image's pixels depend on the display density (C# IsResolutionDependent).
+        // The loader records this on complete so a later density change can trigger a reload (RequiresReload).
+        [[nodiscard]] bool is_resolution_dependent() const noexcept
+        {
+            return resolution_dependent_;
+        }
 
     private:
         // Release the native handle once (idempotent — clears the disposer after firing).
@@ -95,6 +108,7 @@ namespace maui::core
             }
             image_ = nullptr;
             loaded_ = false;
+            resolution_dependent_ = false;
         }
 
         void* image_ = nullptr;
@@ -102,5 +116,6 @@ namespace maui::core
         std::string kind_;
         std::string detail_;
         bool loaded_ = false;
+        bool resolution_dependent_ = false;
     };
 } // namespace maui::core

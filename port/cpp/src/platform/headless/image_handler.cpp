@@ -36,6 +36,23 @@ namespace maui::core
         }
     }
 
+    // IsOpaque / IsAnimationPlaying (headless mirrors). The Apple twin pushes these to the NSImageView.
+    void image_handler::map_is_opaque(image_handler& handler, i_image& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->opaque = view.is_opaque();
+        }
+    }
+
+    void image_handler::map_is_animation_playing(image_handler& handler, i_image& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->animation_playing = view.is_animation_playing();
+        }
+    }
+
     // ---- per-backend source primitives (the cross-platform map_source in image_handler.cpp routes here) ----
 
     // File fast-path (headless mirror): no native handle, so record kind="file" + the path, marked loaded.

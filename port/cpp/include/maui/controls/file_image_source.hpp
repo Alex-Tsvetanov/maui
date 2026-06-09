@@ -13,15 +13,19 @@
 // shared source. Ownership: the image control owns the returned shared_ptr; i_image::source() hands back
 // a raw borrow.
 
+#include <chrono>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <utility>
 
+#include "maui/controls/uri_image_source.hpp" // uri_image_source::default_cache_validity
 #include "maui/core/cancellation_token.hpp"
+#include "maui/core/font.hpp" // from_font signature
 #include "maui/core/i_image_source.hpp"
 #include "maui/core/i_stream_image_source.hpp" // image_bytes (the stream-provider return type)
 #include "maui/core/move_only_function.hpp"
+#include "maui/graphics/color.hpp" // from_font signature
 
 namespace maui::controls
 {
@@ -56,10 +60,17 @@ namespace maui::controls
 
         // Synchronous-loadable file source.
         [[nodiscard]] static std::shared_ptr<maui::core::i_image_source> from_file(std::string path);
-        // URI source (async load via the loader). caching_enabled defaults to true (C# default).
-        [[nodiscard]] static std::shared_ptr<maui::core::i_image_source> from_uri(std::string uri,
-                                                                                  bool caching_enabled = true);
+        // URI source (async load via the loader). caching_enabled defaults to true and cache_validity to
+        // one day, matching C# UriImageSource's CachingEnabled / CacheValidity property defaults.
+        [[nodiscard]] static std::shared_ptr<maui::core::i_image_source> from_uri(
+            std::string uri, bool caching_enabled = true,
+            std::chrono::milliseconds cache_validity = uri_image_source::default_cache_validity);
         // Stream (bytes-provider) source (async load via the loader).
         [[nodiscard]] static std::shared_ptr<maui::core::i_image_source> from_stream(stream_provider provider);
+        // Font glyph source (async rasterize via the loader). The glyph is drawn from `font` (family + size
+        // + auto-scaling) and tinted `color`. Mirrors building a FontImageSource { Glyph, Font, Color }.
+        [[nodiscard]] static std::shared_ptr<maui::core::i_image_source> from_font(std::string glyph,
+                                                                                   maui::core::font font,
+                                                                                   maui::graphics::color color);
     };
 } // namespace maui::controls

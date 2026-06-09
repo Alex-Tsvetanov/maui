@@ -15,6 +15,7 @@
 #include "maui/core/aspect.hpp"
 #include "maui/core/cancellation_token.hpp"
 #include "maui/core/file_image_source_service.hpp"
+#include "maui/core/font.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_image.hpp"
@@ -26,6 +27,7 @@
 #include "maui/core/manual_dispatcher.hpp"
 #include "maui/core/stream_image_source_service.hpp"
 #include "maui/core/uri_image_source_service.hpp"
+#include "maui/graphics/color.hpp"
 #include <gtest/gtest.h>
 
 namespace
@@ -315,5 +317,126 @@ namespace
         disp.run_pending();
         EXPECT_TRUE(platform->source_loaded);
         EXPECT_EQ(platform->source_kind, "uri");
+    }
+
+    // ---- IsOpaque / IsAnimationPlaying (bindable + mapped) ----
+
+    TEST(image, is_opaque_defaults_false_and_maps)
+    {
+        image control;
+        EXPECT_FALSE(control.is_opaque());
+
+        auto handler = std::make_shared<image_handler>();
+        control.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+
+        control.set_is_opaque(true);
+        EXPECT_TRUE(control.is_opaque());
+        EXPECT_TRUE(platform->opaque);
+    }
+
+    TEST(image, is_animation_playing_defaults_false_and_maps)
+    {
+        image control;
+        EXPECT_FALSE(control.is_animation_playing());
+
+        auto handler = std::make_shared<image_handler>();
+        control.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+
+        control.set_is_animation_playing(true);
+        EXPECT_TRUE(control.is_animation_playing());
+        EXPECT_TRUE(platform->animation_playing);
+    }
+
+    // ---- IsLoading (read-only state pushed by the loader via UpdateIsLoading) ----
+
+    TEST(image, is_loading_defaults_false)
+    {
+        image control;
+        EXPECT_FALSE(control.is_loading());
+    }
+
+    // A synchronous file load never leaves IsLoading stuck true (it completes immediately).
+    TEST(image_seam, file_source_leaves_is_loading_false)
+    {
+        image control;
+        auto handler = std::make_shared<image_handler>();
+        control.set_handler(handler);
+
+        control.set_source(image_source::from_file("/tmp/loading.png"));
+        EXPECT_FALSE(control.is_loading());
+    }
+
+    // An async (stream) load is "loading" while the apply is pending on the dispatcher, then false once
+    // pumped (the loader's gated completion calls UpdateIsLoading(false)).
+    TEST(image_seam, async_load_toggles_is_loading)
+    {
+        image control;
+        auto handler = std::make_shared<image_handler>();
+        manual_dispatcher disp;
+        control.set_handler(handler);
+        handler->source_loader().set_dispatcher(disp);
+
+        control.set_source(make_stream_source(4));
+        EXPECT_TRUE(control.is_loading()); // load started, apply marshalled but not yet run
+
+        disp.run_pending();
+        EXPECT_FALSE(control.is_loading()); // gated completion cleared it
+    }
+
+    // A null/empty source clears IsLoading (C# UpdateIsLoading(false) when Source is null).
+    TEST(image_seam, empty_source_keeps_is_loading_false)
+    {
+        image control;
+        auto handler = std::make_shared<image_handler>();
+        control.set_handler(handler);
+
+        control.set_source(image_source::from_file(""));
+        EXPECT_FALSE(control.is_loading());
+    }
+
+    // ---- resolution-dependent reload (ImageSourceServiceResultManager.RequiresReload) ----
+
+    // A font source loads a RESOLUTION-DEPENDENT result; with the scale captured at load, RequiresReload is
+    // true only when the display density changes.
+    TEST(image_seam, resolution_dependent_source_requires_reload_on_density_change)
+    {
+        image control;
+        auto handler = std::make_shared<image_handler>();
+        manual_dispatcher disp;
+        control.set_handler(handler);
+        auto& loader = handler->source_loader();
+        loader.set_dispatcher(disp);
+        loader.set_scale(2.0F); // the density at load time (e.g. @2x)
+
+        control.set_source(image_source::from_font("A", maui::core::font::of_size("F", 30),
+                                                   maui::graphics::color::from_rgb(255, 0, 0)));
+        disp.run_pending();
+
+        EXPECT_TRUE(loader.is_resolution_dependent());
+        EXPECT_FLOAT_EQ(loader.current_resolution(), 2.0F);
+        EXPECT_FALSE(loader.requires_reload(2.0F)); // same density -> no reload
+        EXPECT_TRUE(loader.requires_reload(3.0F));  // density changed (@3x) -> reload
+    }
+
+    // A non-resolution-dependent source (file/uri/stream) never requires a reload.
+    TEST(image_seam, non_resolution_dependent_source_never_requires_reload)
+    {
+        image control;
+        auto handler = std::make_shared<image_handler>();
+        manual_dispatcher disp;
+        control.set_handler(handler);
+        auto& loader = handler->source_loader();
+        loader.set_dispatcher(disp);
+        loader.set_scale(2.0F);
+
+        control.set_source(make_stream_source(4));
+        disp.run_pending();
+
+        EXPECT_FALSE(loader.is_resolution_dependent());
+        EXPECT_FALSE(loader.requires_reload(3.0F)); // not resolution-dependent -> never reloads
     }
 } // namespace

@@ -5,6 +5,7 @@
 // shared decode primitive (mirrors the per-backend partial-class split, PROFILE §5).
 
 #include "maui/core/file_image_source_service.hpp"
+#include "maui/core/font_image_source_service.hpp"
 #include "maui/core/stream_image_source_service.hpp"
 #include "maui/core/uri_image_source_service.hpp"
 
@@ -12,6 +13,7 @@
 #include <utility>
 
 #include "maui/core/cancellation_token.hpp"
+#include "maui/core/i_font_image_source.hpp"
 #include "maui/core/i_image_source.hpp"
 #include "maui/core/i_stream_image_source.hpp"
 #include "maui/core/i_uri_image_source.hpp"
@@ -70,5 +72,21 @@ namespace maui::core
         }
         const image_bytes bytes = stream_src->get_bytes(token);
         on_result(decode_image_bytes(bytes, "stream", "<bytes:" + std::to_string(bytes.size()) + ">"));
+    }
+
+    void font_image_source_service::load(i_image_source& source, const cancellation_token& /*token*/,
+                                         completion on_result)
+    {
+        const auto* font_src = dynamic_cast<const i_font_image_source*>(&source);
+        if (font_src == nullptr || font_src->is_empty())
+        {
+            on_result(image_source_result{}); // not a font source / empty glyph → nothing rendered
+            return;
+        }
+        // No native rasterization headless: mirror kind="font" + the glyph, marked loaded (the apple twin
+        // draws the glyph into an NSImage). A non-empty glyph always "renders" in the mirror. Font results
+        // are RESOLUTION-DEPENDENT (the rasterized glyph depends on display density — C# passes true).
+        on_result(image_source_result{nullptr, nullptr, "font", std::string(font_src->glyph()),
+                                      /*resolution_dependent*/ true});
     }
 } // namespace maui::core
