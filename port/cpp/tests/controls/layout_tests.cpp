@@ -275,4 +275,95 @@ namespace
         stack.add(child);
         EXPECT_EQ(resolved->typed_platform_view()->children.size(), 1U);
     }
+
+    // ---- ClipsToBounds (Layout.IsClippedToBounds → the panel's clip flag) ----
+
+    TEST(layout_clips_to_bounds, defaults_false_and_maps_on_connect)
+    {
+        vertical_stack_layout stack;
+        EXPECT_FALSE(stack.clips_to_bounds());
+
+        auto handler = std::make_shared<layout_handler>();
+        stack.set_handler(handler);
+        // The mapper runs on connect; the panel mirror reflects the (false) default.
+        EXPECT_FALSE(handler->typed_platform_view()->clips_to_bounds);
+    }
+
+    TEST(layout_clips_to_bounds, set_pushes_to_panel)
+    {
+        vertical_stack_layout stack;
+        auto handler = std::make_shared<layout_handler>();
+        stack.set_handler(handler);
+
+        stack.set_clips_to_bounds(true);
+        EXPECT_TRUE(stack.clips_to_bounds());
+        EXPECT_TRUE(handler->typed_platform_view()->clips_to_bounds); // map_clips_to_bounds ran
+
+        stack.set_clips_to_bounds(false);
+        EXPECT_FALSE(handler->typed_platform_view()->clips_to_bounds);
+    }
+
+    // ---- z-index: the panel's subview order follows the children's z-index ----
+
+    TEST(layout_z_order, added_children_stack_by_z_index)
+    {
+        vertical_stack_layout stack;
+        auto handler = std::make_shared<layout_handler>();
+        stack.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+
+        mock_view high;
+        high.set_z_index(10);
+        mock_view low;
+        low.set_z_index(0);
+
+        stack.add(high); // added first, but higher z -> goes on top (last in subview order)
+        stack.add(low);
+
+        ASSERT_EQ(platform->children.size(), 2U);
+        EXPECT_EQ(platform->children[0], &low);  // lower z first
+        EXPECT_EQ(platform->children[1], &high); // higher z on top
+    }
+
+    TEST(layout_z_order, runtime_z_index_change_restacks_child)
+    {
+        vertical_stack_layout stack;
+        auto handler = std::make_shared<layout_handler>();
+        stack.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+
+        mock_view first;
+        mock_view second;
+        stack.add(first); // both default z 0 -> add order preserved
+        stack.add(second);
+        ASSERT_EQ(platform->children.size(), 2U);
+        EXPECT_EQ(platform->children[0], &first);
+        EXPECT_EQ(platform->children[1], &second);
+
+        // Raise `first`'s z-index: it should re-stack above `second` (the change routes through the parent
+        // layout's handler update_z_index, mirroring ViewHandler.MapZIndex).
+        first.set_z_index(5);
+        EXPECT_EQ(platform->children[0], &second);
+        EXPECT_EQ(platform->children[1], &first);
+    }
+
+    TEST(layout_z_order, equal_z_index_keeps_add_order)
+    {
+        vertical_stack_layout stack;
+        auto handler = std::make_shared<layout_handler>();
+        stack.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+
+        mock_view a;
+        mock_view b;
+        mock_view c;
+        stack.add(a);
+        stack.add(b);
+        stack.add(c);
+
+        ASSERT_EQ(platform->children.size(), 3U);
+        EXPECT_EQ(platform->children[0], &a);
+        EXPECT_EQ(platform->children[1], &b);
+        EXPECT_EQ(platform->children[2], &c);
+    }
 } // namespace

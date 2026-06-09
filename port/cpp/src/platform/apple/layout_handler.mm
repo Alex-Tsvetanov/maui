@@ -18,9 +18,11 @@
 #include "apple_view_ops.hpp"
 #include "apple_visual_ops.hpp"
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/i_layout.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/layout_handler.hpp"
+#include "maui/core/layout_z_order.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
@@ -43,6 +45,29 @@ namespace
             return nil;
         }
         return (__bridge NSView*)handler->native_view();
+    }
+
+    // Place `subview` at `target_index` in `panel`'s subview list (the AppKit analog of UIKit's
+    // InsertSubview:atIndex:). AppKit has no insert-at-index — subview order is set by relative positioning,
+    // so position the view below the subview currently at target_index (or above the last for an
+    // end/overflow index). A negative or zero index drops it to the bottom (NSWindowBelow the first).
+    void place_subview_at(NSView* panel, NSView* subview, NSInteger target_index)
+    {
+        const NSInteger count = static_cast<NSInteger>(panel.subviews.count);
+        if (target_index <= 0 || count == 0)
+        {
+            [panel addSubview:subview positioned:NSWindowBelow relativeTo:panel.subviews.firstObject];
+        }
+        else if (target_index >= count)
+        {
+            [panel addSubview:subview positioned:NSWindowAbove relativeTo:panel.subviews.lastObject];
+        }
+        else
+        {
+            [panel addSubview:subview
+                   positioned:NSWindowBelow
+                   relativeTo:panel.subviews[static_cast<NSUInteger>(target_index)]];
+        }
     }
 } // namespace
 
@@ -84,6 +109,8 @@ namespace maui::core
         return platform;
     }
 
+    // C# LayoutHandler.Add inserts the subview at GetLayoutHandlerIndex (the child's z-ordered position),
+    // so the panel stays front-to-back by z-index. The child is already in the layout's logical list.
     void layout_handler::add(i_view& child)
     {
         auto* platform = typed_platform_view();
@@ -93,8 +120,11 @@ namespace maui::core
         }
         if (NSView* const subview = native_child(child))
         {
-            [as_panel(platform->native) addSubview:subview];
-            platform->children.push_back(&child);
+            const int target = virtual_view() != nullptr ? get_layout_handler_index(*virtual_view(), child) : -1;
+            place_subview_at(as_panel(platform->native), subview, static_cast<NSInteger>(target));
+            auto& children = platform->children;
+            const auto position = std::min(static_cast<std::size_t>(std::max(target, 0)), children.size());
+            children.insert(children.begin() + static_cast<std::ptrdiff_t>(position), &child);
         }
     }
 
@@ -128,7 +158,9 @@ namespace maui::core
         platform->children.clear();
     }
 
-    void layout_handler::insert(int index, i_view& child)
+    // C# LayoutHandler.Insert also positions the subview at GetLayoutHandlerIndex (the z-ordered slot), not
+    // the logical `index` — the panel's subview order is z-index-driven. The child is in the logical list.
+    void layout_handler::insert(int /*index*/, i_view& child)
     {
         auto* platform = typed_platform_view();
         if (platform == nullptr || platform->native == nullptr)
@@ -141,24 +173,10 @@ namespace maui::core
         {
             return;
         }
-        // AppKit has no insert-at-index; positioning within the subview list is by relative ordering.
-        const NSInteger count = static_cast<NSInteger>(panel.subviews.count);
-        if (index <= 0 || count == 0)
-        {
-            [panel addSubview:subview positioned:NSWindowBelow relativeTo:panel.subviews.firstObject];
-        }
-        else if (index >= count)
-        {
-            [panel addSubview:subview positioned:NSWindowAbove relativeTo:panel.subviews.lastObject];
-        }
-        else
-        {
-            [panel addSubview:subview
-                   positioned:NSWindowBelow
-                   relativeTo:panel.subviews[static_cast<NSUInteger>(index)]];
-        }
+        const int target = virtual_view() != nullptr ? get_layout_handler_index(*virtual_view(), child) : -1;
+        place_subview_at(panel, subview, static_cast<NSInteger>(target));
         auto& children = platform->children;
-        const auto position = std::min(static_cast<std::size_t>(std::max(index, 0)), children.size());
+        const auto position = std::min(static_cast<std::size_t>(std::max(target, 0)), children.size());
         children.insert(children.begin() + static_cast<std::ptrdiff_t>(position), &child);
     }
 
@@ -193,10 +211,43 @@ namespace maui::core
         }
     }
 
-    void layout_handler::update_z_index(i_view& /*child*/)
+    // C# LayoutHandler.EnsureZIndexOrder: if `child`'s subview is not already at its z-ordered index, move
+    // it there (remove + reinsert at the target). The children mirror is re-synced to match.
+    void layout_handler::update_z_index(i_view& child)
     {
-        // Re-ordering to honor z-index is deferred (the M3 managers do not yet read z_index); the panel's
-        // subview order follows the logical child order maintained by add/insert.
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->native == nullptr || virtual_view() == nullptr)
+        {
+            return;
+        }
+        NSView* const panel = as_panel(platform->native);
+        if (panel.subviews.count == 0)
+        {
+            return;
+        }
+        NSView* const subview = native_child(child);
+        if (subview == nil)
+        {
+            return;
+        }
+        const NSUInteger current_index = [panel.subviews indexOfObject:subview];
+        if (current_index == NSNotFound)
+        {
+            return;
+        }
+        // A found index is a real subview position, so it fits in the signed NSInteger used for target.
+        const auto current = static_cast<NSInteger>(current_index);
+        const auto target = static_cast<NSInteger>(get_layout_handler_index(*virtual_view(), child));
+        if (target < 0 || current == target)
+        {
+            return; // not found, or already at its z-ordered slot
+        }
+        [subview removeFromSuperview];
+        place_subview_at(panel, subview, target);
+        auto& children = platform->children;
+        std::erase(children, &child);
+        const auto position = std::min(static_cast<std::size_t>(std::max<NSInteger>(target, 0)), children.size());
+        children.insert(children.begin() + static_cast<std::ptrdiff_t>(position), &child);
     }
 
     maui::graphics::size layout_handler::get_desired_size(double /*width_constraint*/,
@@ -261,5 +312,15 @@ namespace maui::core
     void layout_platform::update_input_transparent(bool value)
     {
         maui::platform::apple::apply_input_transparent((__bridge NSView*)native, value);
+    }
+
+    // ILayout.ClipsToBounds → the panel layer's masksToBounds (C# iOS sets PlatformView.ClipsToBounds,
+    // which maps to CALayer.masksToBounds). A layer-backed NSView is required, so request one first.
+    void layout_platform::update_clips_to_bounds(bool value)
+    {
+        clips_to_bounds = value; // keep the mirror in sync with the base
+        NSView* const panel = as_panel(native);
+        panel.wantsLayer = YES;
+        panel.layer.masksToBounds = value ? YES : NO;
     }
 } // namespace maui::core

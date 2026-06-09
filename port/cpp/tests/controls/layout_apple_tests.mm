@@ -104,4 +104,50 @@ namespace
         stack.clear();
         EXPECT_EQ(native_panel(handler).subviews.count, 0U);
     }
+
+    TEST_F(apple_layout_seam, clips_to_bounds_sets_layer_masks_to_bounds)
+    {
+        vertical_stack_layout stack;
+        auto handler = std::make_shared<layout_handler>();
+        stack.set_handler(handler);
+
+        stack.set_clips_to_bounds(true); // -> map_clips_to_bounds -> layer.masksToBounds = YES
+        EXPECT_TRUE(native_panel(handler).layer.masksToBounds);
+
+        stack.set_clips_to_bounds(false);
+        EXPECT_FALSE(native_panel(handler).layer.masksToBounds);
+    }
+
+    TEST_F(apple_layout_seam, subviews_stack_by_z_index)
+    {
+        vertical_stack_layout stack;
+        auto handler = std::make_shared<layout_handler>();
+        stack.set_handler(handler);
+
+        label high;
+        auto high_handler = std::make_shared<label_handler>();
+        high.set_handler(high_handler);
+        high.set_z_index(10);
+        auto const high_native = (__bridge NSView*)high_handler->native_view();
+
+        label low;
+        auto low_handler = std::make_shared<label_handler>();
+        low.set_handler(low_handler);
+        low.set_z_index(0);
+        auto const low_native = (__bridge NSView*)low_handler->native_view();
+
+        stack.add(high); // higher z added first, but should end up on top (last subview)
+        stack.add(low);
+
+        NSArray<NSView*>* const subviews = native_panel(handler).subviews;
+        ASSERT_EQ(subviews.count, 2U);
+        EXPECT_EQ(subviews[0], low_native);  // lower z at the bottom
+        EXPECT_EQ(subviews[1], high_native); // higher z on top
+
+        // A runtime z-index change re-stacks the subview (routes through the parent layout's handler).
+        low.set_z_index(20);
+        NSArray<NSView*>* const reordered = native_panel(handler).subviews;
+        EXPECT_EQ(reordered[0], high_native);
+        EXPECT_EQ(reordered[1], low_native);
+    }
 } // namespace

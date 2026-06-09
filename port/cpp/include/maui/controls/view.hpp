@@ -15,7 +15,6 @@
 // interface-specific members.
 
 #include <any>
-#include <limits>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -28,8 +27,10 @@
 #include "maui/controls/visual_state_manager.hpp"
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/bindable_property.hpp"
+#include "maui/core/dimension.hpp"
 #include "maui/core/flow_direction.hpp"
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/i_layout.hpp"
 #include "maui/core/i_shadow.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
@@ -86,6 +87,23 @@ namespace maui::controls
     // Shared NON-template descriptors, names matching the view_mapper keys.
     const maui::core::bindable_property<std::shared_ptr<maui::core::semantics>>& semantics_property();
     const maui::core::bindable_property<bool>& input_transparent_property();
+
+    // The six size-request descriptors (VisualElement.WidthRequest / HeightRequest / MinimumWidthRequest /
+    // MinimumHeightRequest / MaximumWidthRequest / MaximumHeightRequest). NON-template shared free-function
+    // descriptors; defaults -1 (width/height/minimums = "size to content") and +inf (maximums = no cap),
+    // matching VisualElement.cs. The names are the IView keys (width/height/minimum_*/maximum_*) so a
+    // request change re-runs the matching mapper. i_view::width()/... derive their values from these
+    // requests (NOT from the arranged frame), so the layout managers read the developer's request.
+    const maui::core::bindable_property<double>& width_request_property();
+    const maui::core::bindable_property<double>& height_request_property();
+    const maui::core::bindable_property<double>& minimum_width_request_property();
+    const maui::core::bindable_property<double>& minimum_height_request_property();
+    const maui::core::bindable_property<double>& maximum_width_request_property();
+    const maui::core::bindable_property<double>& maximum_height_request_property();
+
+    // The front-to-back ordering within a layout (VisualElement.ZIndex). NON-template shared descriptor;
+    // default 0. A change re-stacks the element among its siblings (see view<>::on_property_changed).
+    const maui::core::bindable_property<int>& z_index_property();
 
     template <class ViewInterface> class view : public maui::controls::element, public ViewInterface
     {
@@ -321,29 +339,85 @@ namespace maui::controls
         {
             frame_ = value;
         }
+        // i_view::width()/height()/minimum_*/maximum_* derive from the SIZE REQUESTS (not the arranged
+        // frame, which stays in frame_) — mirroring VisualElement's explicit IView.Width/... mapping so the
+        // layout managers read the developer's request. Width/Height: unset OR an explicit -1 → Unset(NaN)
+        // ("size to content"); otherwise EnsurePositive(request). Minimum*: unset → Unset(NaN) (no minimum);
+        // else EnsurePositive(request). Maximum*: always EnsurePositive(request) (default +inf = no cap).
         [[nodiscard]] double width() const override
         {
-            return frame_.width;
+            return resolve_request(width_request_, false);
         }
         [[nodiscard]] double minimum_width() const override
         {
-            return 0;
+            return resolve_minimum_request(minimum_width_request_);
         }
         [[nodiscard]] double maximum_width() const override
         {
-            return std::numeric_limits<double>::infinity();
+            return ensure_positive(maximum_width_request_.get());
         }
         [[nodiscard]] double height() const override
         {
-            return frame_.height;
+            return resolve_request(height_request_, false);
         }
         [[nodiscard]] double minimum_height() const override
         {
-            return 0;
+            return resolve_minimum_request(minimum_height_request_);
         }
         [[nodiscard]] double maximum_height() const override
         {
-            return std::numeric_limits<double>::infinity();
+            return ensure_positive(maximum_height_request_.get());
+        }
+        // The developer-facing size requests (VisualElement.WidthRequest / HeightRequest / Minimum* /
+        // Maximum*). Setting one re-runs the matching mapper (through on_property_changed) and changes the
+        // size the next layout pass resolves; it does NOT immediately change the arranged frame.
+        [[nodiscard]] double width_request() const
+        {
+            return width_request_.get();
+        }
+        void set_width_request(double value)
+        {
+            width_request_.set(value);
+        }
+        [[nodiscard]] double height_request() const
+        {
+            return height_request_.get();
+        }
+        void set_height_request(double value)
+        {
+            height_request_.set(value);
+        }
+        [[nodiscard]] double minimum_width_request() const
+        {
+            return minimum_width_request_.get();
+        }
+        void set_minimum_width_request(double value)
+        {
+            minimum_width_request_.set(value);
+        }
+        [[nodiscard]] double minimum_height_request() const
+        {
+            return minimum_height_request_.get();
+        }
+        void set_minimum_height_request(double value)
+        {
+            minimum_height_request_.set(value);
+        }
+        [[nodiscard]] double maximum_width_request() const
+        {
+            return maximum_width_request_.get();
+        }
+        void set_maximum_width_request(double value)
+        {
+            maximum_width_request_.set(value);
+        }
+        [[nodiscard]] double maximum_height_request() const
+        {
+            return maximum_height_request_.get();
+        }
+        void set_maximum_height_request(double value)
+        {
+            maximum_height_request_.set(value);
         }
         [[nodiscard]] maui::core::thickness margin() const override
         {
@@ -355,7 +429,13 @@ namespace maui::controls
         }
         [[nodiscard]] int z_index() const override
         {
-            return 0;
+            return z_index_.get();
+        }
+        // The front-to-back order within the parent layout (VisualElement.ZIndex). Setting it re-stacks
+        // this element among its siblings (on_property_changed routes the change to the parent layout).
+        void set_z_index(int value)
+        {
+            z_index_.set(value);
         }
         // The measure/arrange seam delegates to the view handler (C# IViewHandler.GetDesiredSize /
         // PlatformArrange), the cross-platform layout calling into the platform view.
@@ -368,16 +448,20 @@ namespace maui::controls
             }
             return {bounds.width, bounds.height};
         }
+        // The leaf-control measure seam (C# View.MeasureOverride → the handler's GetDesiredSizeFromHandler):
+        // ask the handler for the content size, then resolve it against this view's OWN size requests so the
+        // reported desired size honors WidthRequest/Minimum*/Maximum* — the per-child clamp the layout
+        // managers rely on (ViewHandlerExtensions.ResolveConstraints). With no handler the desired size is
+        // zero, still resolved against the requests so an explicit Width/Height request is reported.
         maui::graphics::size measure(double width_constraint, double height_constraint) override
         {
+            maui::graphics::size content{};
             if (auto* view_handler = dynamic_cast<maui::core::i_view_handler*>(handler_.get()))
             {
-                desired_size_ = view_handler->get_desired_size(width_constraint, height_constraint);
+                content = view_handler->get_desired_size(width_constraint, height_constraint);
             }
-            else
-            {
-                desired_size_ = {};
-            }
+            desired_size_ = {resolve_size_request(content.width, width(), minimum_width(), maximum_width()),
+                             resolve_size_request(content.height, height(), minimum_height(), maximum_height())};
             return desired_size_;
         }
         void invalidate_measure() override
@@ -484,6 +568,25 @@ namespace maui::controls
             {
                 change_visual_state();
             }
+            if (name == "z_index")
+            {
+                update_z_order();
+            }
+        }
+
+        // VisualElement.ZIndexProperty change → ViewHandler.MapZIndex: a z-index change re-stacks this view
+        // among its siblings by asking the PARENT layout's handler to reorder it (C# walks
+        // `view.Parent is ILayout` and invokes the layout handler's UpdateZIndex command with this view).
+        // The logical parent (set when the layout attached this as a child) is the IElement parent here.
+        void update_z_order()
+        {
+            if (auto* parent_layout = dynamic_cast<maui::core::i_layout*>(this->logical_parent()))
+            {
+                if (const auto& parent_handler = parent_layout->handler())
+                {
+                    parent_handler->invoke("update_z_index", static_cast<maui::core::i_view*>(this));
+                }
+            }
         }
 
         // The resource chain changed: if the LOCAL style resolves its base from a resource key, re-apply it
@@ -514,6 +617,51 @@ namespace maui::controls
                 }
                 return nullptr;
             };
+        }
+
+        // VisualElement.EnsurePositive: a negative request clamps to 0 (used by every IView size getter).
+        [[nodiscard]] static double ensure_positive(double value)
+        {
+            return value < 0 ? 0.0 : value;
+        }
+        // IView.Width / IView.Height (is_minimum=false) and IView.MinimumWidth / IView.MinimumHeight
+        // (is_minimum=true): an UNSET request → Unset(NaN); for Width/Height an explicit -1 is also Unset
+        // ("size to content"); otherwise EnsurePositive(request). Mirrors VisualElement's IView mapping.
+        [[nodiscard]] static double resolve_request(const maui::core::property<double>& request, bool is_minimum)
+        {
+            if (!request.is_set())
+            {
+                return maui::core::dimension::unset;
+            }
+            const double value = request.get();
+            if (!is_minimum && value == -1.0)
+            {
+                return maui::core::dimension::unset;
+            }
+            return ensure_positive(value);
+        }
+        [[nodiscard]] static double resolve_minimum_request(const maui::core::property<double>& request)
+        {
+            return resolve_request(request, true);
+        }
+        // C# ViewHandlerExtensions.ResolveConstraints(measured, exact, min, max): the per-child size
+        // resolution run in the leaf-control measure (above) — exact (if set) overrides measured, then max
+        // caps and min (resolved to 0 when unset) floors. Kept inline here so view<> does not depend on the
+        // layouts library; maui::layouts::layout_manager::resolve_size_request is the identical sibling the
+        // managers use.
+        [[nodiscard]] static double resolve_size_request(double measured, double exact, double min, double max)
+        {
+            double resolved = maui::core::dimension::is_explicit_set(exact) ? exact : measured;
+            min = maui::core::dimension::resolve_minimum(min);
+            if (resolved > max)
+            {
+                resolved = max;
+            }
+            if (resolved < min)
+            {
+                resolved = min;
+            }
+            return resolved;
         }
 
         std::shared_ptr<maui::core::i_element_handler> handler_;
@@ -550,6 +698,18 @@ namespace maui::controls
         // map_semantics / map_input_transparent). Shared descriptors, like the visual-layer props.
         maui::core::property<std::shared_ptr<maui::core::semantics>> semantics_{*this, semantics_property()};
         maui::core::property<bool> input_transparent_{*this, input_transparent_property()};
+        // The six size requests (VisualElement.WidthRequest / HeightRequest / Minimum* / Maximum*). Each
+        // change re-runs the matching mapper (its key is the IView name) and feeds i_view::width()/...,
+        // which the layout managers read; the arranged frame stays in frame_. Shared descriptors.
+        maui::core::property<double> width_request_{*this, width_request_property()};
+        maui::core::property<double> height_request_{*this, height_request_property()};
+        maui::core::property<double> minimum_width_request_{*this, minimum_width_request_property()};
+        maui::core::property<double> minimum_height_request_{*this, minimum_height_request_property()};
+        maui::core::property<double> maximum_width_request_{*this, maximum_width_request_property()};
+        maui::core::property<double> maximum_height_request_{*this, maximum_height_request_property()};
+        // The z-order within the parent layout (VisualElement.ZIndex). A change routes to the parent
+        // layout's handler so the native panel re-stacks this child (see on_property_changed).
+        maui::core::property<int> z_index_{*this, z_index_property()};
         bool is_focused_ = false;
         // The applied style (VisualElement.Style). Held by shared_ptr so one style can be shared across
         // many controls; setting/replacing it routes through set_style (apply/unapply at style_local).

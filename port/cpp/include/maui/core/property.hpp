@@ -61,6 +61,15 @@ namespace maui::core
             return values_.empty() ? descriptor_->default_value() : values_.value_ref();
         }
 
+        // Whether a value has been explicitly set at any specificity (the analog of C#'s
+        // BindableObject.IsSet(BindableProperty)): true once set() has stored a value, false while the
+        // property still reads the shared descriptor default. A lazily-materialized default-value-creator
+        // value is NOT treated as "set" (mirroring C#), so this does not materialize the default.
+        [[nodiscard]] bool is_set() const
+        {
+            return !values_.empty();
+        }
+
         // The descriptor's default binding mode + read-only flag — read by bind() to resolve
         // binding_mode::default_mode and to downgrade two_way on a read-only target (mirrors C#).
         [[nodiscard]] binding_mode default_binding_mode() const

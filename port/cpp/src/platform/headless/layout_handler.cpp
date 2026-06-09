@@ -10,24 +10,49 @@
 #include <vector>
 
 #include "maui/core/i_view.hpp"
+#include "maui/core/layout_z_order.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+
+namespace
+{
+    // Insert `child` into the subview mirror at `index` (clamped to [0, size]) — the headless analog of
+    // InsertSubview. A negative index (e.g. an unfound view) appends, matching the Apple fallback.
+    void insert_at(std::vector<maui::core::i_view*>& children, int index, maui::core::i_view& child)
+    {
+        const auto position = std::min(static_cast<std::size_t>(std::max(index, 0)), children.size());
+        children.insert(children.begin() + static_cast<std::ptrdiff_t>(position), &child);
+    }
+} // namespace
 
 namespace maui::core
 {
     layout_platform::~layout_platform() = default;
+
+    // Headless: record the ClipsToBounds mirror (the Apple twin pushes layer.masksToBounds).
+    void layout_platform::update_clips_to_bounds(bool value)
+    {
+        clips_to_bounds = value;
+    }
 
     std::unique_ptr<layout_platform> layout_handler::create_platform_view()
     {
         return std::make_unique<layout_platform>();
     }
 
+    // C# LayoutHandler.Add inserts at GetLayoutHandlerIndex (the child's z-ordered position), not the end —
+    // so the subview mirror stays front-to-back by z-index. The child is already in the layout's logical
+    // list when this runs (the control appends before invoking "add").
     void layout_handler::add(i_view& child)
     {
-        if (auto* platform = typed_platform_view())
+        auto* platform = typed_platform_view();
+        if (platform == nullptr)
         {
-            platform->children.push_back(&child);
+            return;
         }
+        const int target = virtual_view() != nullptr ? get_layout_handler_index(*virtual_view(), child)
+                                                     : static_cast<int>(platform->children.size());
+        insert_at(platform->children, target, child);
     }
 
     void layout_handler::remove(i_view& child)
@@ -46,6 +71,9 @@ namespace maui::core
         }
     }
 
+    // C# LayoutHandler.Insert also places the subview at GetLayoutHandlerIndex (the z-ordered position),
+    // not the logical `index` — the panel's subview order is z-index-driven, so the logical insert position
+    // is irrelevant to the native stacking. The child is already in the logical list when this runs.
     void layout_handler::insert(int index, i_view& child)
     {
         auto* platform = typed_platform_view();
@@ -53,9 +81,8 @@ namespace maui::core
         {
             return;
         }
-        auto& children = platform->children;
-        const auto position = std::min(static_cast<std::size_t>(std::max(index, 0)), children.size());
-        children.insert(children.begin() + static_cast<std::ptrdiff_t>(position), &child);
+        const int target = virtual_view() != nullptr ? get_layout_handler_index(*virtual_view(), child) : index;
+        insert_at(platform->children, target, child);
     }
 
     void layout_handler::update(int index, i_view& child)
@@ -72,10 +99,28 @@ namespace maui::core
         }
     }
 
-    void layout_handler::update_z_index(i_view& /*child*/)
+    // C# LayoutHandler.EnsureZIndexOrder: move `child`'s subview to its z-ordered position. Re-order only
+    // (no count change). The headless mirror reproduces it on the child list so the z-order is observable.
+    void layout_handler::update_z_index(i_view& child)
     {
-        // Re-order only (no count change). The headless mirror keeps the logical child order the control
-        // maintains; honoring z_index ordering is deferred (the M3 managers do not yet read z_index).
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || virtual_view() == nullptr)
+        {
+            return;
+        }
+        auto& children = platform->children;
+        const auto current = std::ranges::find(children, &child);
+        if (current == children.end())
+        {
+            return; // not hosted (currentIndex == -1)
+        }
+        const int target = get_layout_handler_index(*virtual_view(), child);
+        if (target < 0)
+        {
+            return;
+        }
+        children.erase(current);
+        insert_at(children, target, child);
     }
 
     maui::graphics::size layout_handler::get_desired_size(double /*width_constraint*/,

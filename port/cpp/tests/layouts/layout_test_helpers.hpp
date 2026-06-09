@@ -106,10 +106,14 @@ namespace maui::layouts::testing
             return -1;
         }
 
-        // i_padding / i_stack_layout
+        // i_padding / i_layout / i_stack_layout
         [[nodiscard]] maui::core::thickness padding() const override
         {
             return padding_value;
+        }
+        [[nodiscard]] bool clips_to_bounds() const override
+        {
+            return clips_to_bounds_value;
         }
         [[nodiscard]] double spacing() const override
         {
@@ -144,6 +148,7 @@ namespace maui::layouts::testing
 
         std::vector<maui::core::i_view*> children;
         maui::core::thickness padding_value;
+        bool clips_to_bounds_value = false;
         double spacing_value = 0;
         double width_value = maui::core::dimension::unset;
         double height_value = maui::core::dimension::unset;
@@ -265,10 +270,14 @@ namespace maui::layouts::testing
             return -1;
         }
 
-        // i_padding
+        // i_padding / i_layout
         [[nodiscard]] maui::core::thickness padding() const override
         {
             return padding_value;
+        }
+        [[nodiscard]] bool clips_to_bounds() const override
+        {
+            return clips_to_bounds_value;
         }
 
         // i_grid_layout
@@ -344,6 +353,7 @@ namespace maui::layouts::testing
         std::vector<mock_grid_row_definition> rows;
         std::vector<mock_grid_column_definition> columns;
         maui::core::thickness padding_value;
+        bool clips_to_bounds_value = false;
         double row_spacing_value = 0;
         double column_spacing_value = 0;
         double width_value = maui::core::dimension::unset;

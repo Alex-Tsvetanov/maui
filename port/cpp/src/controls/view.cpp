@@ -14,6 +14,7 @@
 #include "maui/controls/view.hpp"
 
 #include <algorithm>
+#include <limits>
 #include <memory>
 #include <string>
 
@@ -159,6 +160,62 @@ namespace maui::controls
     const maui::core::bindable_property<bool>& input_transparent_property()
     {
         static const maui::core::bindable_property<bool> descriptor{"input_transparent", false};
+        return descriptor;
+    }
+
+    // ---- size requests (VisualElement.WidthRequest / HeightRequest / Minimum* / Maximum*) ----
+    // Defaults match VisualElement.cs exactly: WidthRequest/HeightRequest/MinimumWidthRequest/
+    // MinimumHeightRequest default to -1 (the "size to content" sentinel); MaximumWidthRequest/
+    // MaximumHeightRequest default to +inf (no maximum). The names match the view_mapper keys (width/
+    // height/minimum_width/minimum_height/maximum_width/maximum_height) so a request change re-runs the
+    // matching map (C#'s OnRequestChanged invokes UpdateValue for each of IView.Width/Height/Minimum*/
+    // Maximum*). These hold the developer's REQUEST — i_view::width()/... derive the IView values from
+    // them (see view.hpp), leaving the arranged frame in frame_.
+    const maui::core::bindable_property<double>& width_request_property()
+    {
+        static const maui::core::bindable_property<double> descriptor{"width", -1.0};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<double>& height_request_property()
+    {
+        static const maui::core::bindable_property<double> descriptor{"height", -1.0};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<double>& minimum_width_request_property()
+    {
+        static const maui::core::bindable_property<double> descriptor{"minimum_width", -1.0};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<double>& minimum_height_request_property()
+    {
+        static const maui::core::bindable_property<double> descriptor{"minimum_height", -1.0};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<double>& maximum_width_request_property()
+    {
+        static const maui::core::bindable_property<double> descriptor{"maximum_width",
+                                                                      std::numeric_limits<double>::infinity()};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<double>& maximum_height_request_property()
+    {
+        static const maui::core::bindable_property<double> descriptor{"maximum_height",
+                                                                      std::numeric_limits<double>::infinity()};
+        return descriptor;
+    }
+
+    // The front-to-back ordering within a layout (VisualElement.ZIndex, default 0). A change re-orders the
+    // element among its siblings: the layout managers arrange in z-index order and the layout panel
+    // re-stacks its subviews (view<>::on_property_changed routes a z_index change to the parent layout's
+    // handler update_z_index, mirroring ViewHandler.MapZIndex). The name is the key view<> raises.
+    const maui::core::bindable_property<int>& z_index_property()
+    {
+        static const maui::core::bindable_property<int> descriptor{"z_index", 0};
         return descriptor;
     }
 } // namespace maui::controls

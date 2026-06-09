@@ -59,6 +59,14 @@ namespace maui::core
         // (the Apple build ALSO adds/removes the matching real NSView subviews). children.size() is the
         // hosted child count the headless tests observe as the panel tracks the control's children.
         std::vector<i_view*> children;
+        // Headless mirror of ILayout.ClipsToBounds (Apple overrides update_clips_to_bounds to push to the
+        // panel's layer.masksToBounds). Lets the headless tests observe the map ran with the right value.
+        bool clips_to_bounds = false;
+
+        // ILayout.ClipsToBounds → the native panel's clip flag (Apple: layer.masksToBounds). Layout-specific
+        // (not a view_platform_base property), so it lives here; the default body records the mirror and the
+        // Apple override pushes to the layer. Defined in the per-backend layout_handler.{cpp,mm}.
+        virtual void update_clips_to_bounds(bool value);
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSView panel (defined in
@@ -77,6 +85,9 @@ namespace maui::core
         // (mirrors MAUI's LayoutView.HitTest dropping an InputTransparent layout from hit-testing).
         void update_semantics(const maui::core::semantics* value) override;
         void update_input_transparent(bool value) override;
+        // update_clips_to_bounds is declared once above (it is NEW on layout_platform, not a
+        // view_platform_base override); the Apple body lives in layout_handler.mm, the headless body in
+        // layout_handler.cpp — selected by the backend build, like the other update_* definitions.
 #endif
     };
 
@@ -93,6 +104,11 @@ namespace maui::core
         [[nodiscard]] maui::graphics::size get_desired_size(double width_constraint,
                                                             double height_constraint) const override;
         void platform_arrange(const maui::graphics::rect& frame) override;
+
+        // ---- property map functions (the layout's own properties; chained after the shared view_mapper) ----
+        // ILayout.ClipsToBounds → push to the panel's clip flag (C# LayoutHandler chains ViewMapper, where
+        // MapClipsToBounds → PlatformView.ClipsToBounds; the port pushes via layout_platform).
+        static void map_clips_to_bounds(layout_handler& handler, i_layout& layout);
 
         // ---- i_layout_handler (the child-management seam; defined per backend) ----
         void add(i_view& child) override;

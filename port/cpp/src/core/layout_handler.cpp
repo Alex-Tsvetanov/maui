@@ -13,17 +13,30 @@
 
 namespace maui::core
 {
-    // The layout's own property mapper. M4 first cut: the layout hosts children and computes its own
-    // geometry, so there are no own visual properties to push yet (C#'s ILayout.Background /
-    // ClipsToBounds + the shared ViewMapper arrive with the ViewMapper retrofit). Kept as an explicit
-    // empty table so the recipe (and chaining onto the future ViewMapper) is in place.
+    // The layout's own property mapper, chained after the shared view_mapper (C# LayoutHandler.Mapper =
+    // new(ViewHandler.ViewMapper) { [ClipsToBounds] = MapClipsToBounds }). The generic IView properties
+    // (Visibility/Opacity/IsEnabled/AutomationId/...) map through the chained view_mapper; the layout's own
+    // ClipsToBounds maps here to the panel's clip flag.
     property_mapper<i_layout, layout_handler>& layout_handler::mapper()
     {
-        // The layout has no own visual properties yet (it hosts children + computes its own geometry), so
-        // it chains the shared view_mapper alone — the generic IView properties (Visibility/Opacity/
-        // IsEnabled/AutomationId) map through to the panel. ILayout.Background/ClipsToBounds are deferred.
-        static property_mapper<i_layout, layout_handler> table{view_mapper()};
+        static property_mapper<i_layout, layout_handler> table = [] {
+            property_mapper<i_layout, layout_handler> mapped{
+                {"clips_to_bounds", &layout_handler::map_clips_to_bounds},
+            };
+            mapped.set_chained({&view_mapper()});
+            return mapped;
+        }();
         return table;
+    }
+
+    // ILayout.ClipsToBounds → the panel's clip flag (C# LayoutHandler chains ViewMapper whose
+    // MapClipsToBounds sets PlatformView.ClipsToBounds; the port routes through layout_platform).
+    void layout_handler::map_clips_to_bounds(layout_handler& handler, i_layout& layout)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->update_clips_to_bounds(layout.clips_to_bounds());
+        }
     }
 
     // The child-management commands (C# LayoutHandler.CommandMapper): each forwards a layout_handler_update
@@ -87,10 +100,17 @@ namespace maui::core
         }
     }
 
+    // C# MapUpdateZIndex casts `arg is IView`, so the z-index command carries the bare child view (what
+    // VisualElement.MapZIndex passes). The port accepts BOTH: a raw i_view* (from view<>'s z-index change)
+    // and a layout_handler_update (the uniform layout-command payload), so either dispatch path works.
     void layout_handler::map_update_z_index(layout_handler& handler, i_layout& /*layout*/, const std::any& args)
     {
-        if (const auto* update = std::any_cast<layout_handler_update>(&args);
-            update != nullptr && update->view != nullptr)
+        if (const auto* view = std::any_cast<i_view*>(&args); view != nullptr && *view != nullptr)
+        {
+            handler.update_z_index(**view);
+        }
+        else if (const auto* update = std::any_cast<layout_handler_update>(&args);
+                 update != nullptr && update->view != nullptr)
         {
             handler.update_z_index(*update->view);
         }

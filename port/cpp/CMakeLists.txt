@@ -190,6 +190,7 @@ add_library(maui_core STATIC
   src/core/image_source_services.cpp
   src/core/uri_bytes.cpp
   src/core/layout_handler.cpp
+  src/core/layout_z_order.cpp
   src/core/content_page_handler.cpp
   src/core/navigation_page_handler.cpp
   src/core/window_handler.cpp
@@ -241,6 +242,7 @@ endif()
 add_library(maui_controls STATIC
   src/controls/element.cpp
   src/controls/view.cpp
+  src/controls/layout.cpp
   src/controls/button.cpp
   src/controls/label.cpp
   src/controls/entry.cpp
@@ -289,6 +291,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/dynamic_resource_tests.cpp
     tests/controls/implicit_style_tests.cpp
     tests/controls/advanced_trigger_tests.cpp
+    tests/controls/size_request_tests.cpp # backend-agnostic; the VisualElement size-request surface
     tests/controls/lifecycle_tests.cpp)
   # tests/core/image_source_tests.cpp + font_image_source_tests.cpp are HEADLESS-ONLY: they assert on the
   # headless image_source_result mirror + the headless "any non-empty bytes => loaded" decode (raw test
@@ -325,6 +328,7 @@ else()
     tests/controls/dynamic_resource_tests.cpp
     tests/controls/implicit_style_tests.cpp
     tests/controls/advanced_trigger_tests.cpp
+    tests/controls/size_request_tests.cpp # the VisualElement size-request surface (view<> IView mapping)
     tests/controls/lifecycle_tests.cpp
     tests/core/image_source_tests.cpp     # loader cache TTL + the typed service-provider
     tests/core/font_image_source_tests.cpp)
@@ -386,6 +390,8 @@ add_executable(maui_layout_tests
   tests/layouts/vertical_stack_layout_manager_tests.cpp
   tests/layouts/horizontal_stack_layout_manager_tests.cpp
   tests/layouts/grid_layout_manager_tests.cpp
+  tests/layouts/constraint_tests.cpp
+  tests/layouts/z_index_tests.cpp
 )
 target_include_directories(maui_layout_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for tests/layouts/*.hpp
 target_link_libraries(maui_layout_tests PRIVATE

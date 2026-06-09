@@ -29,7 +29,6 @@
 #include "maui/controls/element.hpp"
 #include "maui/controls/view.hpp"
 #include "maui/core/bindable_property.hpp"
-#include "maui/core/dimension.hpp"
 #include "maui/core/i_layout.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
@@ -42,6 +41,12 @@
 
 namespace maui::controls
 {
+    // The shared bindable descriptor for Layout.IsClippedToBounds (ILayout.ClipsToBounds). NON-template
+    // free-function descriptor — one descriptor shared across every layout<LayoutInterface>, so the
+    // mapper key ("clips_to_bounds") is identical for every layout control — defined out-of-line in
+    // src/controls/layout.cpp. Default false (Layout.IsClippedToBoundsProperty).
+    const maui::core::bindable_property<bool>& clips_to_bounds_property();
+
     template <class LayoutInterface> class layout : public view<LayoutInterface>
     {
         static_assert(std::is_base_of_v<maui::core::i_layout, LayoutInterface>,
@@ -107,36 +112,25 @@ namespace maui::controls
             padding_.set(value);
         }
 
+        // ---- i_layout: ClipsToBounds (Layout.IsClippedToBounds) ----
+        // Whether the layout clips its children to its bounds. Bindable; a change re-runs the layout
+        // handler's clips_to_bounds map (Apple: layer.masksToBounds). The arranged frame stays in frame_.
+        [[nodiscard]] bool clips_to_bounds() const override
+        {
+            return clips_to_bounds_.get();
+        }
+        void set_clips_to_bounds(bool value)
+        {
+            clips_to_bounds_.set(value);
+        }
+
         // ---- layout size requests (C# IView.Width/Height/Minimum*/Maximum*) ----
-        // The layout manager's resolve_constraints reads these as the *explicit request* (not the laid-out
-        // frame): unset width/height means "size to content", and no min/max means [0, +inf]. view<>'s
-        // base returns the frame-derived width/height (an M2/M3 simplification), so layouts override these
-        // to the request semantics the M3 managers were written against. The full bindable WidthRequest/
-        // HeightRequest surface is part of the deferred VisualElement/ViewMapper work.
-        [[nodiscard]] double width() const override
-        {
-            return maui::core::dimension::unset;
-        }
-        [[nodiscard]] double height() const override
-        {
-            return maui::core::dimension::unset;
-        }
-        [[nodiscard]] double minimum_width() const override
-        {
-            return maui::core::dimension::minimum;
-        }
-        [[nodiscard]] double minimum_height() const override
-        {
-            return maui::core::dimension::minimum;
-        }
-        [[nodiscard]] double maximum_width() const override
-        {
-            return maui::core::dimension::maximum;
-        }
-        [[nodiscard]] double maximum_height() const override
-        {
-            return maui::core::dimension::maximum;
-        }
+        // No override needed: view<>'s base now derives these from the bindable WidthRequest/HeightRequest/
+        // Minimum*/Maximum* requests (VisualElement's IView mapping) — an unset width/height reads Unset
+        // ("size to content"), an unset minimum reads Unset (a no-op floor), and the maximum defaults to
+        // +inf. That is exactly the request semantics the M3 managers' resolve_constraints expects, and it
+        // lets a layout honor an explicit size request like any other view. The arranged frame stays in
+        // frame_; measure/arrange below delegate to the layout's own manager (a layout sizes itself).
 
         // ---- layout pass: the layout computes its OWN geometry via its manager (unlike a leaf control,
         // which delegates measure/arrange to its handler). arrange additionally sizes the native host
@@ -223,6 +217,8 @@ namespace maui::controls
 
         std::vector<maui::core::i_view*> children_; // NON-owning: the caller owns the child lifetimes
         maui::core::property<maui::core::thickness> padding_;
+        // Layout.IsClippedToBounds (default false). A change re-runs the handler's clips_to_bounds map.
+        maui::core::property<bool> clips_to_bounds_{*this, clips_to_bounds_property()};
         std::unique_ptr<maui::layouts::i_layout_manager> manager_;
     };
 } // namespace maui::controls

@@ -30,6 +30,14 @@ namespace maui::layouts
                                                         double min = maui::core::dimension::minimum,
                                                         double max = maui::core::dimension::maximum);
 
+        // C# ViewHandlerExtensions.ResolveConstraints(measured, exact, min, max) — the PER-CHILD size
+        // resolution that runs in a view's handler-measure (GetDesiredSizeFromHandler): pick the exact
+        // length if explicitly set (else the measured one), then clamp into [resolve_minimum(min), max]
+        // with max winning over exact and min winning over both. Unlike the layout-level resolve_constraints
+        // above, there is NO external-constraint cap — this resolves a single child against its OWN
+        // Width/Minimum*/Maximum* requests. Used by view<>::measure (the leaf-control measure seam).
+        [[nodiscard]] static double resolve_size_request(double measured, double exact, double min, double max);
+
     private:
         maui::core::i_layout* layout_;
     };
