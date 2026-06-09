@@ -52,6 +52,22 @@ namespace maui::core
         }
     }
 
+    void label_handler::map_vertical_text_alignment(label_handler& handler, i_label& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->vertical_alignment = view.vertical_text_alignment();
+        }
+    }
+
+    void label_handler::map_character_spacing(label_handler& handler, i_label& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->character_spacing = view.character_spacing();
+        }
+    }
+
     maui::graphics::size label_handler::get_desired_size(double /*width_constraint*/,
                                                          double /*height_constraint*/) const
     {

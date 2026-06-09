@@ -9,12 +9,14 @@
 #include <utility>
 #include <vector>
 
+#include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/entry_handler.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_entry.hpp"
 #include "maui/core/i_text.hpp"
+#include "maui/core/return_type.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/color.hpp"
 #include <gtest/gtest.h>
@@ -22,10 +24,12 @@
 namespace
 {
     using maui::controls::entry;
+    using maui::core::clear_button_visibility;
     using maui::core::entry_handler;
     using maui::core::i_element_handler;
     using maui::core::i_entry;
     using maui::core::i_text;
+    using maui::core::return_type;
     using maui::core::text_alignment;
 
     // ---- the control in isolation ----
@@ -59,6 +63,50 @@ namespace
         EXPECT_EQ(control.text(), "abcdef"); // default max_length is int.MaxValue (no cap)
         control.set_max_length(2);
         EXPECT_EQ(control.text(), "ab");
+    }
+
+    TEST(entry, return_type_and_clear_button_defaults_and_settable)
+    {
+        entry control;
+        // C# defaults: ReturnType.Default, ClearButtonVisibility.Never.
+        EXPECT_EQ(control.return_type(), return_type::default_);
+        EXPECT_EQ(control.clear_button_visibility(), clear_button_visibility::never);
+
+        control.set_return_type(return_type::next);
+        control.set_clear_button_visibility(clear_button_visibility::while_editing);
+        EXPECT_EQ(control.return_type(), return_type::next);
+        EXPECT_EQ(control.clear_button_visibility(), clear_button_visibility::while_editing);
+    }
+
+    TEST(entry, prediction_and_spellcheck_default_true_and_settable)
+    {
+        entry control;
+        // C# InputView defaults: both true.
+        EXPECT_TRUE(control.is_text_prediction_enabled());
+        EXPECT_TRUE(control.is_spell_check_enabled());
+
+        control.set_is_text_prediction_enabled(false);
+        control.set_is_spell_check_enabled(false);
+        EXPECT_FALSE(control.is_text_prediction_enabled());
+        EXPECT_FALSE(control.is_spell_check_enabled());
+    }
+
+    TEST(entry, cursor_and_selection_default_zero_and_clamp_floor)
+    {
+        entry control;
+        EXPECT_EQ(control.cursor_position(), 0);
+        EXPECT_EQ(control.selection_length(), 0);
+
+        control.set_cursor_position(3);
+        control.set_selection_length(2);
+        EXPECT_EQ(control.cursor_position(), 3);
+        EXPECT_EQ(control.selection_length(), 2);
+
+        // C# validateValue rejects negatives; the control clamps the floor to 0.
+        control.set_cursor_position(-5);
+        control.set_selection_length(-1);
+        EXPECT_EQ(control.cursor_position(), 0);
+        EXPECT_EQ(control.selection_length(), 0);
     }
 
     TEST(entry, send_completed_raises_completed_when_enabled)
@@ -157,6 +205,24 @@ namespace
 
         control.set_horizontal_text_alignment(text_alignment::center);
         EXPECT_EQ(platform->horizontal_alignment, text_alignment::center);
+
+        control.set_return_type(return_type::go);
+        EXPECT_EQ(platform->entry_return_type, return_type::go);
+
+        control.set_clear_button_visibility(clear_button_visibility::while_editing);
+        EXPECT_EQ(platform->clear_button, clear_button_visibility::while_editing);
+
+        control.set_is_text_prediction_enabled(false);
+        EXPECT_FALSE(platform->is_text_prediction_enabled);
+
+        control.set_is_spell_check_enabled(false);
+        EXPECT_FALSE(platform->is_spell_check_enabled);
+
+        control.set_cursor_position(4);
+        EXPECT_EQ(platform->cursor_position, 4);
+
+        control.set_selection_length(2);
+        EXPECT_EQ(platform->selection_length, 2);
     }
 
     TEST(entry_seam, simulated_native_edit_fires_text_changed)

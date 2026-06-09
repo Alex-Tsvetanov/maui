@@ -9,6 +9,7 @@
 #include <string_view>
 
 #include "apple_conversions.hpp"
+#include "apple_text_ops.hpp"
 #include "apple_view_ops.hpp"
 #include "apple_visual_ops.hpp"
 #include "maui/core/i_label.hpp"
@@ -17,6 +18,42 @@
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+
+// A label-style NSTextFieldCell that honors a maui vertical text alignment. AppKit's NSTextField has no
+// vertical alignment (MauiLabel.VerticalAlignment is custom on iOS), so this cell offsets the title rect
+// within the cell bounds: Start = top, Center = middle, End = bottom — the AppKit analog of
+// TextAlignmentExtensions.ToPlatformVertical (Start->Top / Center->Center / End->Bottom).
+@interface MauiLabelCell : NSTextFieldCell
+@property(nonatomic) maui::core::text_alignment verticalAlignment;
+@end
+
+@implementation MauiLabelCell
+- (NSRect)titleRectForBounds:(NSRect)bounds
+{
+    NSRect rect = [super titleRectForBounds:bounds];
+    const CGFloat full = bounds.size.height;
+    const CGFloat text_height = rect.size.height;
+    switch (self.verticalAlignment)
+    {
+        case maui::core::text_alignment::center:
+        case maui::core::text_alignment::justify:
+            rect.origin.y = bounds.origin.y + ((full - text_height) / 2);
+            break;
+        case maui::core::text_alignment::end:
+            rect.origin.y = bounds.origin.y + (full - text_height);
+            break;
+        case maui::core::text_alignment::start:
+            rect.origin.y = bounds.origin.y;
+            break;
+    }
+    return rect;
+}
+
+- (void)drawInteriorWithFrame:(NSRect)frame inView:(NSView*)controlView
+{
+    [super drawInteriorWithFrame:[self titleRectForBounds:frame] inView:controlView];
+}
+@end
 
 namespace
 {
@@ -39,6 +76,25 @@ namespace
                 return NSTextAlignmentLeft;
         }
         return NSTextAlignmentLeft;
+    }
+
+    // Rebuild the label's attributed string from its current plain text with the given kerning, mirroring
+    // LabelExtensions.UpdateCharacterSpacing (AttributedText.WithCharacterSpacing). When spacing == 0 the
+    // attributed value is reset to the plain string so the un-kerned text path is used. Re-applies the
+    // alignment afterward (NSTextField resets paragraph alignment when the attributed value is replaced).
+    void refresh_label_text_formatting(NSTextField* field, const maui::core::i_label& view)
+    {
+        const double spacing = view.character_spacing();
+        NSAttributedString* const attributed = maui::platform::apple::kern_attributed(field.stringValue, spacing, nil);
+        if (attributed != nil)
+        {
+            field.attributedStringValue = attributed;
+        }
+        else
+        {
+            field.attributedStringValue = [[NSAttributedString alloc] initWithString:field.stringValue];
+        }
+        field.alignment = to_ns_text_alignment(view.horizontal_text_alignment());
     }
 } // namespace
 
@@ -80,6 +136,17 @@ namespace maui::core
     {
         auto platform = std::make_unique<label_platform>();
         NSTextField* const field = [NSTextField labelWithString:@""]; // non-editable, borderless label style
+        // Swap in the vertical-alignment-aware cell, copying the label cell's style so the borderless,
+        // non-editable, transparent-background label appearance is preserved (map_vertical_text_alignment
+        // then drives its alignment).
+        MauiLabelCell* const cell = [[MauiLabelCell alloc] initTextCell:@""];
+        cell.editable = NO;
+        cell.selectable = NO;
+        cell.bordered = NO;
+        cell.bezeled = NO;
+        cell.drawsBackground = NO;
+        cell.verticalAlignment = maui::core::text_alignment::start;
+        field.cell = cell;
         platform->native = (__bridge_retained void*)field;
         return platform;
     }
@@ -93,7 +160,10 @@ namespace maui::core
         }
         const std::string text(view.text());
         NSString* const value = [NSString stringWithUTF8String:text.c_str()];
-        as_label(platform->native).stringValue = value != nil ? value : @"";
+        NSTextField* const field = as_label(platform->native);
+        field.stringValue = value != nil ? value : @"";
+        // Any text update re-applies the attributed formatting (C# MapText -> MapFormatting).
+        refresh_label_text_formatting(field, view);
     }
 
     void label_handler::map_text_color(label_handler& handler, i_label& view)
@@ -120,6 +190,30 @@ namespace maui::core
         if (platform != nullptr)
         {
             as_label(platform->native).alignment = to_ns_text_alignment(view.horizontal_text_alignment());
+        }
+    }
+
+    void label_handler::map_vertical_text_alignment(label_handler& handler, i_label& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        NSTextField* const field = as_label(platform->native);
+        if ([field.cell isKindOfClass:[MauiLabelCell class]])
+        {
+            ((MauiLabelCell*)field.cell).verticalAlignment = view.vertical_text_alignment();
+            [field setNeedsDisplay:YES];
+        }
+    }
+
+    void label_handler::map_character_spacing(label_handler& handler, i_label& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform != nullptr)
+        {
+            refresh_label_text_formatting(as_label(platform->native), view);
         }
     }
 

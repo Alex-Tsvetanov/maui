@@ -140,6 +140,54 @@ namespace maui::core
         }
     }
 
+    void entry_handler::map_is_text_prediction_enabled(entry_handler& handler, i_entry& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->is_text_prediction_enabled = view.is_text_prediction_enabled();
+        }
+    }
+
+    void entry_handler::map_is_spell_check_enabled(entry_handler& handler, i_entry& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->is_spell_check_enabled = view.is_spell_check_enabled();
+        }
+    }
+
+    void entry_handler::map_return_type(entry_handler& handler, i_entry& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->entry_return_type = view.return_type();
+        }
+    }
+
+    void entry_handler::map_clear_button_visibility(entry_handler& handler, i_entry& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->clear_button = view.clear_button_visibility();
+        }
+    }
+
+    void entry_handler::map_cursor_position(entry_handler& handler, i_entry& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->cursor_position = view.cursor_position();
+        }
+    }
+
+    void entry_handler::map_selection_length(entry_handler& handler, i_entry& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->selection_length = view.selection_length();
+        }
+    }
+
     maui::graphics::size entry_handler::get_desired_size(double width_constraint, double /*height_constraint*/) const
     {
         // Headless placeholder metric (no real text layout): a single-line field ~150pt wide by default,

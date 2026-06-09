@@ -28,11 +28,13 @@
 #include <string>
 #include <string_view>
 
+#include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/i_entry.hpp"
 #include "maui/core/move_only_function.hpp"
 #include "maui/core/property_mapper.hpp"
+#include "maui/core/return_type.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/view_handler.hpp"
 #include "maui/core/view_platform_base.hpp"
@@ -65,6 +67,12 @@ namespace maui::core
         double character_spacing = 0;
         text_alignment horizontal_alignment = text_alignment::start;
         text_alignment vertical_alignment = text_alignment::center;
+        bool is_text_prediction_enabled = true; // C# InputView default
+        bool is_spell_check_enabled = true;     // C# InputView default
+        int cursor_position = 0;
+        int selection_length = 0;
+        return_type entry_return_type = return_type::default_;
+        clear_button_visibility clear_button = clear_button_visibility::never;
 
         // The last text the entry is known to hold, so an inbound edit can report the *old* value.
         std::string last_known_text;
@@ -118,5 +126,11 @@ namespace maui::core
         static void map_character_spacing(entry_handler& handler, i_entry& view);
         static void map_horizontal_text_alignment(entry_handler& handler, i_entry& view);
         static void map_vertical_text_alignment(entry_handler& handler, i_entry& view);
+        static void map_is_text_prediction_enabled(entry_handler& handler, i_entry& view);
+        static void map_is_spell_check_enabled(entry_handler& handler, i_entry& view);
+        static void map_return_type(entry_handler& handler, i_entry& view);
+        static void map_clear_button_visibility(entry_handler& handler, i_entry& view);
+        static void map_cursor_position(entry_handler& handler, i_entry& view);
+        static void map_selection_length(entry_handler& handler, i_entry& view);
     };
 } // namespace maui::core

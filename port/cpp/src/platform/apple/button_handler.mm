@@ -17,11 +17,13 @@
 #include <string_view>
 
 #include "apple_conversions.hpp"
+#include "apple_text_ops.hpp"
 #include "apple_view_ops.hpp"
 #include "apple_visual_ops.hpp"
 #include "maui/core/button_handler.hpp"
 #include "maui/core/i_button.hpp"
 #include "maui/core/i_text_button.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
@@ -43,6 +45,34 @@
             view->send_clicked();
         }
     }
+}
+@end
+
+// AppKit has no NSButton.contentEdgeInsets (the UIButton mechanism C#'s UpdatePadding uses), so a custom
+// cell carries the maui padding and reserves it around the content. It grows the cell's reported size by
+// the padding (so fittingSize / sizeToFit account for it, mirroring how ContentEdgeInsets enlarges a
+// UIButton) and insets the interior drawing rect by the same amount. The insets are public so the seam
+// test can read back what map_padding pushed (the observable-native-state convention the other handlers
+// follow).
+@interface MauiButtonCell : NSButtonCell
+@property(nonatomic) NSEdgeInsets contentInsets;
+@end
+
+@implementation MauiButtonCell
+- (NSSize)cellSizeForBounds:(NSRect)rect
+{
+    NSSize size = [super cellSizeForBounds:rect];
+    size.width += self.contentInsets.left + self.contentInsets.right;
+    size.height += self.contentInsets.top + self.contentInsets.bottom;
+    return size;
+}
+
+- (NSRect)drawingRectForBounds:(NSRect)rect
+{
+    const NSRect base = [super drawingRectForBounds:rect];
+    return NSMakeRect(base.origin.x + self.contentInsets.left, base.origin.y + self.contentInsets.top,
+                      base.size.width - (self.contentInsets.left + self.contentInsets.right),
+                      base.size.height - (self.contentInsets.top + self.contentInsets.bottom));
 }
 @end
 
@@ -98,6 +128,11 @@ namespace maui::core
     {
         auto platform = std::make_unique<button_platform>();
         NSButton* const button = [[NSButton alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)];
+        // Install the padding-aware cell, copying the default cell's appearance so the bezel/title style
+        // is preserved (map_padding then drives its insets).
+        MauiButtonCell* const cell = [[MauiButtonCell alloc] initTextCell:@""];
+        cell.bezelStyle = NSBezelStyleRounded;
+        button.cell = cell;
         [button setButtonType:NSButtonTypeMomentaryPushIn];
         [button setBezelStyle:NSBezelStyleRounded];
         platform->native = (__bridge_retained void*)button; // the void* slot owns one reference
@@ -123,6 +158,32 @@ namespace maui::core
         objc_setAssociatedObject(button, &k_target_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
 
+    namespace
+    {
+        // Rebuild the NSButton's attributed title from its current plain title, mirroring
+        // ButtonExtensions.UpdateCharacterSpacing (TitleLabel.AttributedText + WithCharacterSpacing +
+        // WithTextColor). Kerning needs an attributed title, and a kerned title must carry its color
+        // explicitly (the plain contentTintColor does not apply to attributed text), so when spacing != 0
+        // the title is rebuilt attributed WITH the text color. When spacing == 0 the attributed title is
+        // cleared so the plain `title` (colored by map_text_color's contentTintColor) is shown — matching
+        // C#, where WithCharacterSpacing returns null at spacing 0 and no attributed title is set.
+        void refresh_button_title_formatting(NSButton* button, const i_text_button& view)
+        {
+            const double spacing = view.character_spacing();
+            if (spacing == 0)
+            {
+                // Drop any prior attributed title so the plain `title` shows (with contentTintColor).
+                [button setAttributedTitle:[[NSAttributedString alloc] initWithString:button.title]];
+                return;
+            }
+            NSColor* const foreground = to_ns_color(view.text_color());
+            NSAttributedString* const attributed =
+                maui::platform::apple::kern_attributed(button.title, spacing, foreground);
+            [button setAttributedTitle:attributed != nil ? attributed
+                                                         : [[NSAttributedString alloc] initWithString:button.title]];
+        }
+    } // namespace
+
     void button_handler::map_text(button_handler& handler, i_text_button& view)
     {
         auto* platform = handler.typed_platform_view();
@@ -133,7 +194,10 @@ namespace maui::core
         const std::string text(view.text());
         // stringWithUTF8String: is _Nullable (nil on invalid UTF-8); setTitle: wants non-null.
         NSString* const raw = [NSString stringWithUTF8String:text.c_str()];
-        as_button(platform->native).title = raw != nil ? raw : @"";
+        NSButton* const button = as_button(platform->native);
+        button.title = raw != nil ? raw : @"";
+        // Any text update re-applies the attributed formatting (C# MapText -> MapFormatting).
+        refresh_button_title_formatting(button, view);
     }
 
     void button_handler::map_text_color(button_handler& handler, i_text_button& view)
@@ -141,7 +205,11 @@ namespace maui::core
         auto* platform = handler.typed_platform_view();
         if (platform != nullptr)
         {
-            as_button(platform->native).contentTintColor = to_ns_color(view.text_color());
+            NSButton* const button = as_button(platform->native);
+            button.contentTintColor = to_ns_color(view.text_color());
+            // A kerned (attributed) title carries its own color, so re-apply it (C# MapTextColor's
+            // UpdateTextColor sets the plain title color; the attributed title is rebuilt to match).
+            refresh_button_title_formatting(button, view);
         }
     }
 
@@ -154,16 +222,33 @@ namespace maui::core
         }
     }
 
-    void button_handler::map_character_spacing(button_handler& /*handler*/, i_text_button& /*view*/)
+    void button_handler::map_character_spacing(button_handler& handler, i_text_button& view)
     {
-        // TODO: AppKit needs an attributed title (NSKernAttributeName) for per-character spacing — a
-        // larger change (it also overrides title color/font). Deferred; the headless backend maps it.
+        auto* platform = handler.typed_platform_view();
+        if (platform != nullptr)
+        {
+            // Rebuild the attributed title with the new kerning (ButtonExtensions.UpdateCharacterSpacing).
+            refresh_button_title_formatting(as_button(platform->native), view);
+        }
     }
 
-    void button_handler::map_padding(button_handler& /*handler*/, i_button& /*view*/)
+    void button_handler::map_padding(button_handler& handler, i_button& view)
     {
-        // TODO: NSButton has no direct padding; it needs a custom NSButtonCell / content insets. The
-        // headless backend maps it. Deferred for AppKit.
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        NSButton* const button = as_button(platform->native);
+        // The custom cell reserves the padding around the content (the AppKit analog of UIButton's
+        // ContentEdgeInsets; UpdatePadding pushes button.Padding straight onto the insets).
+        if (auto* const cell = [button.cell isKindOfClass:[MauiButtonCell class]] ? (MauiButtonCell*)button.cell : nil)
+        {
+            const maui::core::thickness padding = view.padding();
+            cell.contentInsets = NSEdgeInsetsMake(padding.top, padding.left, padding.bottom, padding.right);
+            [button setNeedsDisplay:YES];
+            [button invalidateIntrinsicContentSize];
+        }
     }
 
     void button_handler::map_stroke_color(button_handler& handler, i_button& view)

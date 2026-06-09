@@ -44,6 +44,8 @@ namespace maui::core
         maui::graphics::color text_color;
         font text_font;
         text_alignment horizontal_alignment = text_alignment::start;
+        text_alignment vertical_alignment = text_alignment::start; // C# Label default Start
+        double character_spacing = 0;
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSTextField (defined in
@@ -80,5 +82,7 @@ namespace maui::core
         static void map_text_color(label_handler& handler, i_label& view);
         static void map_font(label_handler& handler, i_label& view);
         static void map_horizontal_text_alignment(label_handler& handler, i_label& view);
+        static void map_vertical_text_alignment(label_handler& handler, i_label& view);
+        static void map_character_spacing(label_handler& handler, i_label& view);
     };
 } // namespace maui::core

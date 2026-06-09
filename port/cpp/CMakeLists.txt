@@ -315,6 +315,11 @@ else()
     tests/core/font_image_source_tests.cpp)
 endif()
 target_include_directories(maui_controls_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for tests/layouts/*.hpp
+# The apple .mm tests share the backend's text/visual op headers (apple_text_ops.hpp etc.), which live
+# beside the handler .mm sources; put that dir on the include path for the apple test exe only.
+if(MAUI_BACKEND STREQUAL "apple")
+  target_include_directories(maui_controls_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/apple)
+endif()
 target_link_libraries(maui_controls_tests PRIVATE
   maui_controls
   maui_sanitizers

@@ -74,6 +74,12 @@ namespace
 
         control.set_horizontal_text_alignment(text_alignment::center);
         EXPECT_EQ(platform->horizontal_alignment, text_alignment::center);
+
+        control.set_vertical_text_alignment(text_alignment::end);
+        EXPECT_EQ(platform->vertical_alignment, text_alignment::end);
+
+        control.set_character_spacing(3.0);
+        EXPECT_EQ(platform->character_spacing, 3.0);
     }
 
     TEST(label_seam, handler_resolved_from_default_registry)

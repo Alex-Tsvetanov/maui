@@ -22,14 +22,70 @@
 #include <string_view>
 
 #include "apple_conversions.hpp"
+#include "apple_text_ops.hpp"
 #include "apple_view_ops.hpp"
 #include "apple_visual_ops.hpp"
+#include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/entry_handler.hpp"
 #include "maui/core/i_entry.hpp"
+#include "maui/core/return_type.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+
+// Two cells for the editable field — a plain and a secure variant — both honoring a maui vertical text
+// alignment by offsetting the text rect within the cell bounds (NSTextField has no vertical alignment;
+// MauiLabel.VerticalAlignment is custom on iOS). map_is_password swaps between them (preserving
+// alignment) and map_vertical_text_alignment sets it on whichever is current. A macro keeps the two cell
+// bodies identical without multiple inheritance (Obj-C has none) — the offset logic is shared.
+#define MAUI_ENTRY_VERTICAL_ALIGNMENT_BODY                                                                             \
+    -(NSRect)maui_offsetRect : (NSRect)rect inBounds : (NSRect)bounds                                                  \
+    {                                                                                                                  \
+        const CGFloat full = bounds.size.height;                                                                       \
+        const CGFloat text_height = rect.size.height;                                                                  \
+        switch (self.verticalAlignment)                                                                                \
+        {                                                                                                              \
+            case maui::core::text_alignment::center:                                                                   \
+            case maui::core::text_alignment::justify:                                                                  \
+                rect.origin.y = bounds.origin.y + ((full - text_height) / 2);                                          \
+                break;                                                                                                 \
+            case maui::core::text_alignment::end:                                                                      \
+                rect.origin.y = bounds.origin.y + (full - text_height);                                                \
+                break;                                                                                                 \
+            case maui::core::text_alignment::start:                                                                    \
+                break;                                                                                                 \
+        }                                                                                                              \
+        return rect;                                                                                                   \
+    }                                                                                                                  \
+    -(NSRect)titleRectForBounds : (NSRect)bounds                                                                       \
+    {                                                                                                                  \
+        return [self maui_offsetRect:[super titleRectForBounds:bounds] inBounds:bounds];                               \
+    }                                                                                                                  \
+    -(NSRect)drawingRectForBounds : (NSRect)bounds                                                                     \
+    {                                                                                                                  \
+        return [self maui_offsetRect:[super drawingRectForBounds:bounds] inBounds:bounds];                             \
+    }
+
+@interface MauiEntryTextFieldCell : NSTextFieldCell
+@property(nonatomic) maui::core::text_alignment verticalAlignment;
+- (NSRect)maui_offsetRect:(NSRect)rect inBounds:(NSRect)bounds;
+@end
+
+@implementation MauiEntryTextFieldCell
+MAUI_ENTRY_VERTICAL_ALIGNMENT_BODY
+@end
+
+@interface MauiEntrySecureTextFieldCell : NSSecureTextFieldCell
+@property(nonatomic) maui::core::text_alignment verticalAlignment;
+- (NSRect)maui_offsetRect:(NSRect)rect inBounds:(NSRect)bounds;
+@end
+
+@implementation MauiEntrySecureTextFieldCell
+MAUI_ENTRY_VERTICAL_ALIGNMENT_BODY
+@end
+
+#undef MAUI_ENTRY_VERTICAL_ALIGNMENT_BODY
 
 // Obj-C trampoline: forwards the NSTextField's editing notifications to the C++ handler's virtual view.
 // Tracks the previous string so an edit can report the *old* value (the C# proxy keeps a WeakReference
@@ -55,6 +111,37 @@
             const char* const new_utf8 = new_value.UTF8String;
             view->send_text_changed(old_utf8 != nullptr ? old_utf8 : "", new_utf8 != nullptr ? new_utf8 : "");
         }
+    }
+}
+
+// AppKit posts NSTextViewDidChangeSelectionNotification from the field editor; the handler subscribes to
+// it (in on_connect_handler) and routes here so the user moving the caret writes CursorPosition /
+// SelectionLength back onto the virtual view — mirroring EntryHandler.iOS's OnSelectionChanged.
+- (void)mauiSelectionChanged:(NSNotification*)notification
+{
+    (void)notification;
+    if (self.handler == nullptr)
+    {
+        return;
+    }
+    auto* const view = self.handler->virtual_view();
+    NSText* const editor = (self.handler->typed_platform_view() != nullptr)
+                               ? ((__bridge NSTextField*)self.handler->typed_platform_view()->native).currentEditor
+                               : nil;
+    if (view == nullptr || editor == nil)
+    {
+        return;
+    }
+    const NSRange selection = editor.selectedRange;
+    const auto cursor = static_cast<int>(selection.location);
+    const auto length = static_cast<int>(selection.length);
+    if (view->cursor_position() != cursor)
+    {
+        view->set_cursor_position(cursor);
+    }
+    if (view->selection_length() != length)
+    {
+        view->set_selection_length(length);
     }
 }
 
@@ -99,6 +186,79 @@ namespace
 
     using maui::platform::apple::to_ns_color;
     using maui::platform::apple::to_ns_font;
+
+    // Move the field editor's caret/selection to (cursor_position, selection_length), clamped to the
+    // current text length — the AppKit analog of TextFieldExtensions.UpdateCursorSelection. Shared by
+    // map_cursor_position / map_selection_length (which both re-establish the whole range from the pair).
+    void apply_editor_selection(NSText* editor, int cursor_position, int selection_length)
+    {
+        const NSUInteger length = editor.string.length;
+        const auto requested_start = static_cast<NSUInteger>(cursor_position < 0 ? 0 : cursor_position);
+        const NSUInteger location = requested_start <= length ? requested_start : length;
+        const auto requested_span = static_cast<NSUInteger>(selection_length < 0 ? 0 : selection_length);
+        const NSUInteger span = (location + requested_span <= length) ? requested_span : (length - location);
+        editor.selectedRange = NSMakeRange(location, span);
+    }
+
+    // Set the editable field's vertical alignment on whichever custom cell is current (plain or secure).
+    void set_field_vertical_alignment(NSTextField* field, maui::core::text_alignment value)
+    {
+        if ([field.cell isKindOfClass:[MauiEntryTextFieldCell class]])
+        {
+            ((MauiEntryTextFieldCell*)field.cell).verticalAlignment = value;
+        }
+        else if ([field.cell isKindOfClass:[MauiEntrySecureTextFieldCell class]])
+        {
+            ((MauiEntrySecureTextFieldCell*)field.cell).verticalAlignment = value;
+        }
+    }
+
+    // Rebuild the field's attributed text from the current plain stringValue, applying kerning when
+    // character_spacing != 0 (TextFieldExtensions.UpdateCharacterSpacing's text branch). At spacing 0 the
+    // value is reset to the plain string so any prior kerning is removed (C#'s WithCharacterSpacing
+    // un-sets a previously-applied KerningAdjustment); setting stringValue keeps the readable getter as
+    // the source of truth.
+    void refresh_entry_text_formatting(NSTextField* field, const maui::core::i_entry& view)
+    {
+        const double spacing = view.character_spacing();
+        NSString* const plain = field.stringValue != nil ? field.stringValue : @"";
+        if (spacing == 0)
+        {
+            field.stringValue = plain; // drop any prior kerned attributedStringValue
+            return;
+        }
+        NSAttributedString* const attributed = maui::platform::apple::kern_attributed(plain, spacing, nil);
+        if (attributed != nil)
+        {
+            field.attributedStringValue = attributed;
+        }
+    }
+
+    // Rebuild the placeholder from the entry's placeholder text + (optional) color + kerning, mirroring
+    // TextFieldExtensions.UpdatePlaceholder. With neither an explicit color nor kerning the plain
+    // placeholderString is used (so its getter stays readable — the system draws it in its default muted
+    // color); a non-default color or any kerning switches to the attributed placeholder that carries them.
+    //
+    // C# distinguishes "no placeholder color" via a nullable Color (null => plain). The port models color
+    // as a non-null value defaulting to opaque black, so it treats the default-black value as "unset" (the
+    // same way map_text_color applies the default black via the plain color path): only a placeholder_color
+    // the developer changed away from the default takes the attributed-foreground branch.
+    void refresh_entry_placeholder(NSTextField* field, const maui::core::i_entry& view)
+    {
+        const std::string placeholder(view.placeholder());
+        NSString* const text = [NSString stringWithUTF8String:placeholder.c_str()];
+        const maui::graphics::color color = view.placeholder_color();
+        const bool explicit_color = color != maui::graphics::color{}; // != the default (opaque black)
+        NSColor* const foreground = explicit_color ? to_ns_color(color) : nil;
+        const double spacing = view.character_spacing();
+        if (foreground == nil && spacing == 0)
+        {
+            field.placeholderString = text != nil ? text : @"";
+            return;
+        }
+        NSAttributedString* const attributed = maui::platform::apple::placeholder_attributed(text, foreground, spacing);
+        field.placeholderAttributedString = attributed;
+    }
 } // namespace
 
 namespace maui::core
@@ -139,11 +299,15 @@ namespace maui::core
     {
         auto platform = std::make_unique<entry_platform>();
         NSTextField* const field = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)];
-        field.editable = YES;
-        field.selectable = YES;
-        field.bezeled = YES;
-        field.bezelStyle = NSTextFieldRoundedBezel;
-        field.drawsBackground = YES;
+        // Install the plain vertical-alignment-aware cell (map_is_password swaps to the secure variant).
+        MauiEntryTextFieldCell* const cell = [[MauiEntryTextFieldCell alloc] initTextCell:@""];
+        cell.editable = YES;
+        cell.selectable = YES;
+        cell.bezeled = YES;
+        cell.bezelStyle = NSTextFieldRoundedBezel;
+        cell.drawsBackground = YES;
+        cell.verticalAlignment = maui::core::text_alignment::center; // C# Entry default
+        field.cell = cell;
         platform->native = (__bridge_retained void*)field; // the void* slot owns one reference
         return platform;
     }
@@ -157,11 +321,23 @@ namespace maui::core
         field.delegate = delegate; // NSTextField holds delegate weakly...
         // ...so keep it alive for the field's lifetime via an associated object.
         objc_setAssociatedObject(field, &k_delegate_key, delegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        // The field editor (an NSTextView) posts selection changes; route them to the delegate so the
+        // user moving the caret writes CursorPosition / SelectionLength back (EntryHandler OnSelectionChanged).
+        [[NSNotificationCenter defaultCenter] addObserver:delegate
+                                                 selector:@selector(mauiSelectionChanged:)
+                                                     name:NSTextViewDidChangeSelectionNotification
+                                                   object:nil];
     }
 
     void entry_handler::on_disconnect_handler(entry_platform& platform)
     {
         NSTextField* const field = as_field(platform.native);
+        if (auto* const delegate = (MauiEntryDelegate*)objc_getAssociatedObject(field, &k_delegate_key))
+        {
+            [[NSNotificationCenter defaultCenter] removeObserver:delegate
+                                                            name:NSTextViewDidChangeSelectionNotification
+                                                          object:nil];
+        }
         field.delegate = nil;
         objc_setAssociatedObject(field, &k_delegate_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
@@ -178,6 +354,8 @@ namespace maui::core
         NSString* const value = [NSString stringWithUTF8String:text.c_str()];
         NSTextField* const field = as_field(platform->native);
         field.stringValue = value != nil ? value : @"";
+        // Any text update re-applies the attributed formatting (C# MapText -> MapFormatting).
+        refresh_entry_text_formatting(field, view);
         // Keep the delegate's previous-value tracker in sync with programmatic text changes.
         if (auto* const delegate = (MauiEntryDelegate*)objc_getAssociatedObject(field, &k_delegate_key))
         {
@@ -187,23 +365,22 @@ namespace maui::core
 
     void entry_handler::map_placeholder(entry_handler& handler, i_entry& view)
     {
-        auto* platform = handler.typed_platform_view();
-        if (platform == nullptr)
+        if (auto* platform = handler.typed_platform_view())
         {
-            return;
+            refresh_entry_placeholder(as_field(platform->native), view);
         }
-        const std::string placeholder(view.placeholder());
-        NSString* const value = [NSString stringWithUTF8String:placeholder.c_str()];
-        as_field(platform->native).placeholderString = value != nil ? value : @"";
     }
 
-    void entry_handler::map_placeholder_color(entry_handler& /*handler*/, i_entry& /*view*/)
+    void entry_handler::map_placeholder_color(entry_handler& handler, i_entry& view)
     {
-        // TODO: AppKit colors a placeholder only via an attributed placeholderAttributedString, and
-        // setting that nulls out the plain `placeholderString` getter (they are separate backing stores).
-        // Coloring the placeholder therefore conflicts with keeping `placeholderString` as the readable
-        // source of truth; an attributed-placeholder path is deferred (cf. the deferred character_spacing
-        // kerning). The headless backend mirrors placeholder_color.
+        // The placeholder foreground color requires an attributed placeholder (placeholderAttributedString);
+        // refresh_entry_placeholder builds it with the color + kerning, keeping the plain placeholderString
+        // path when neither is set. Ports TextFieldExtensions.UpdatePlaceholder (which MapPlaceholderColor
+        // also routes through).
+        if (auto* platform = handler.typed_platform_view())
+        {
+            refresh_entry_placeholder(as_field(platform->native), view);
+        }
     }
 
     void entry_handler::map_is_password(entry_handler& handler, i_entry& view)
@@ -220,31 +397,40 @@ namespace maui::core
         {
             return;
         }
-        // AppKit has no SecureTextEntry toggle; swap the cell between secure and plain, preserving state.
-        // Swapping the cell resets cell-backed appearance (notably the font), so capture and re-apply it
-        // afterwards — otherwise toggling is_password at runtime (after map_font ran) would drop the font.
+        // AppKit has no SecureTextEntry toggle; swap the cell between the secure and plain custom variants,
+        // preserving state. Swapping the cell resets cell-backed appearance (notably the font + the
+        // vertical alignment), so capture and re-apply it afterwards — otherwise toggling is_password at
+        // runtime (after map_font / map_vertical_text_alignment ran) would drop them.
         NSString* const current = field.stringValue != nil ? field.stringValue : @"";
-        NSString* const placeholder = field.placeholderString;
         NSFont* const font = field.font;
         NSColor* const text_color = field.textColor;
-        NSTextFieldCell* const replacement =
-            secure ? [[NSSecureTextFieldCell alloc] initTextCell:@""] : [[NSTextFieldCell alloc] initTextCell:@""];
+        const maui::core::text_alignment vertical = view.vertical_text_alignment();
+        // A lone `if` (not a clone-shaped ternary) picks the cell class — the secure and plain cells are
+        // genuinely different classes, but a conditional-operator over two `[X class]` sends trips
+        // bugprone-branch-clone (it can't distinguish the receivers).
+        Class cell_class = [MauiEntryTextFieldCell class];
+        if (secure)
+        {
+            cell_class = [MauiEntrySecureTextFieldCell class];
+        }
+        NSTextFieldCell* const replacement = [[cell_class alloc] initTextCell:@""];
         replacement.editable = field.editable;
         replacement.selectable = field.selectable;
         replacement.bezeled = field.bezeled;
         replacement.bezelStyle = field.bezelStyle;
+        replacement.drawsBackground = YES;
         replacement.alignment = field.alignment;
         field.cell = replacement;
+        set_field_vertical_alignment(field, vertical);
         field.stringValue = current;
-        if (placeholder != nil)
-        {
-            field.placeholderString = placeholder;
-        }
         if (font != nil)
         {
             field.font = font;
         }
         field.textColor = text_color;
+        // Re-apply the attributed text + placeholder formatting onto the fresh cell.
+        refresh_entry_text_formatting(field, view);
+        refresh_entry_placeholder(field, view);
     }
 
     void entry_handler::map_is_read_only(entry_handler& handler, i_entry& view)
@@ -298,10 +484,20 @@ namespace maui::core
         }
     }
 
-    void entry_handler::map_character_spacing(entry_handler& /*handler*/, i_entry& /*view*/)
+    void entry_handler::map_character_spacing(entry_handler& handler, i_entry& view)
     {
-        // TODO: AppKit needs an attributed string (NSKernAttributeName) for per-character spacing — a
-        // larger change (it overrides the plain stringValue path). Deferred; the headless backend maps it.
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        NSTextField* const field = as_field(platform->native);
+        // Apply kerning to both the text and the placeholder (TextFieldExtensions.UpdateCharacterSpacing),
+        // then re-apply the horizontal alignment — rebuilding the attributed value can drop the paragraph
+        // alignment (C# MapFormatting re-runs UpdateHorizontalTextAlignment for exactly this reason).
+        refresh_entry_text_formatting(field, view);
+        refresh_entry_placeholder(field, view);
+        field.alignment = to_ns_text_alignment(view.horizontal_text_alignment());
     }
 
     void entry_handler::map_horizontal_text_alignment(entry_handler& handler, i_entry& view)
@@ -313,10 +509,102 @@ namespace maui::core
         }
     }
 
-    void entry_handler::map_vertical_text_alignment(entry_handler& /*handler*/, i_entry& /*view*/)
+    void entry_handler::map_vertical_text_alignment(entry_handler& handler, i_entry& view)
     {
-        // TODO: NSTextField has no vertical text alignment without a custom field editor / cell. Deferred;
-        // the headless backend mirrors it.
+        auto* platform = handler.typed_platform_view();
+        if (platform != nullptr)
+        {
+            NSTextField* const field = as_field(platform->native);
+            set_field_vertical_alignment(field, view.vertical_text_alignment());
+            [field setNeedsDisplay:YES];
+        }
+    }
+
+    void entry_handler::map_is_text_prediction_enabled(entry_handler& handler, i_entry& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        // The field editor (an NSTextView, available only while editing) carries autocorrection; when it
+        // is attached, toggle its automaticTextReplacement (the AppKit analog of UITextField's
+        // AutocorrectionType). The mirror records the value either way (so it is observable when no editor
+        // exists — e.g. before first responder).
+        platform->is_text_prediction_enabled = view.is_text_prediction_enabled();
+        if (NSText* const editor = as_field(platform->native).currentEditor; [editor isKindOfClass:[NSTextView class]])
+        {
+            ((NSTextView*)editor).automaticTextReplacementEnabled = view.is_text_prediction_enabled() ? YES : NO;
+        }
+    }
+
+    void entry_handler::map_is_spell_check_enabled(entry_handler& handler, i_entry& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        // Spell checking likewise lives on the field editor (continuousSpellCheckingEnabled); apply it when
+        // editing, and always record the mirror (UpdateIsSpellCheckEnabled's SpellCheckingType analog).
+        platform->is_spell_check_enabled = view.is_spell_check_enabled();
+        if (NSText* const editor = as_field(platform->native).currentEditor; [editor isKindOfClass:[NSTextView class]])
+        {
+            ((NSTextView*)editor).continuousSpellCheckingEnabled = view.is_spell_check_enabled() ? YES : NO;
+        }
+    }
+
+    void entry_handler::map_return_type(entry_handler& handler, i_entry& view)
+    {
+        // macOS uses a hardware keyboard with no software return-key styling (the iOS ReturnKeyType has no
+        // AppKit equivalent), so this records the mirror for observability; the value carries no native
+        // effect on desktop (documented in STATUS). Completed still fires on Return via the field delegate.
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->entry_return_type = view.return_type();
+        }
+    }
+
+    void entry_handler::map_clear_button_visibility(entry_handler& handler, i_entry& view)
+    {
+        // A plain NSTextField has no built-in clear button (that is an NSSearchField affordance), so this
+        // records the mirror; wiring a real clear button would mean hosting an NSSearchField-style overlay
+        // (deferred, documented in STATUS). The headless backend mirrors it too.
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->clear_button = view.clear_button_visibility();
+        }
+    }
+
+    void entry_handler::map_cursor_position(entry_handler& handler, i_entry& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        platform->cursor_position = view.cursor_position();
+        // When the field is being edited, move the field editor's caret/selection to match (the AppKit
+        // analog of TextFieldExtensions.UpdateCursorPosition). Outside editing there is no field editor,
+        // so the mirror alone records the intent.
+        if (NSText* const editor = as_field(platform->native).currentEditor; [editor isKindOfClass:[NSTextView class]])
+        {
+            apply_editor_selection(editor, view.cursor_position(), view.selection_length());
+        }
+    }
+
+    void entry_handler::map_selection_length(entry_handler& handler, i_entry& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        platform->selection_length = view.selection_length();
+        if (NSText* const editor = as_field(platform->native).currentEditor; [editor isKindOfClass:[NSTextView class]])
+        {
+            apply_editor_selection(editor, view.cursor_position(), view.selection_length());
+        }
     }
 
     maui::graphics::size entry_handler::get_desired_size(double /*width_constraint*/,

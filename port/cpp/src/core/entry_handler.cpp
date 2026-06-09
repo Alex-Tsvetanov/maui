@@ -15,7 +15,8 @@ namespace maui::core
     // i_text_alignment directly. Chained onto the shared view_mapper so the generic IView properties
     // (Visibility/Opacity/IsEnabled/AutomationId) map first (keys() walks the chain first). Mirrors
     // EntryHandler.Mapper (text/placeholder/is_password/is_read_only/max_length/alignment/text_color/font/
-    // character_spacing); ReturnType / ClearButtonVisibility / keyboard / prediction are out of scope.
+    // character_spacing/return_type/clear_button_visibility/prediction/spellcheck/cursor/selection); the
+    // Keyboard subsystem stays out of scope.
     property_mapper<i_entry, entry_handler>& entry_handler::mapper()
     {
         static property_mapper<i_entry, entry_handler> table{
@@ -32,6 +33,12 @@ namespace maui::core
                 {"character_spacing", &entry_handler::map_character_spacing},
                 {"horizontal_text_alignment", &entry_handler::map_horizontal_text_alignment},
                 {"vertical_text_alignment", &entry_handler::map_vertical_text_alignment},
+                {"is_text_prediction_enabled", &entry_handler::map_is_text_prediction_enabled},
+                {"is_spell_check_enabled", &entry_handler::map_is_spell_check_enabled},
+                {"return_type", &entry_handler::map_return_type},
+                {"clear_button_visibility", &entry_handler::map_clear_button_visibility},
+                {"cursor_position", &entry_handler::map_cursor_position},
+                {"selection_length", &entry_handler::map_selection_length},
             },
         };
         return table;

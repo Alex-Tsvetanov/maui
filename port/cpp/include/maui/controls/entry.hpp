@@ -18,8 +18,13 @@
 // applies it in the control so the headless backend matches): if max_length >= 0 and the value is longer,
 // it is cut to max_length characters before being stored.
 //
-// Deferred (OUT OF SCOPE this cut, documented not stubbed): ReturnType / ReturnCommand /
-// ClearButtonVisibility, the cursor/selection pair, Keyboard, and prediction/spellcheck.
+// cursor_position / selection_length: bindable, default 0, never negative (C#'s validateValue >= 0). The
+// public setters clamp the floor to 0; set_cursor_position / set_selection_length are also the inbound
+// channel the handler calls when the user moves the native cursor (i_text_input's mutable pair) — which
+// re-pushes through the property store so the mapper keeps the native field in sync (idempotent: a set to
+// the current value is a no-op in property<T>).
+//
+// Deferred (OUT OF SCOPE this cut, documented not stubbed): ReturnCommand, Keyboard.
 
 #include <cstddef>
 #include <string>
@@ -28,10 +33,12 @@
 
 #include "maui/controls/view.hpp"
 #include "maui/core/bindable_property.hpp"
+#include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/event.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/i_entry.hpp"
 #include "maui/core/property.hpp"
+#include "maui/core/return_type.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/color.hpp"
 
@@ -47,6 +54,13 @@ namespace maui::controls
         static const maui::core::bindable_property<bool>& is_password_property();
         static const maui::core::bindable_property<bool>& is_read_only_property();
         static const maui::core::bindable_property<int>& max_length_property();
+        static const maui::core::bindable_property<bool>& is_text_prediction_enabled_property();
+        static const maui::core::bindable_property<bool>& is_spell_check_enabled_property();
+        static const maui::core::bindable_property<int>& cursor_position_property();
+        static const maui::core::bindable_property<int>& selection_length_property();
+        static const maui::core::bindable_property<maui::core::return_type>& return_type_property();
+        static const maui::core::bindable_property<maui::core::clear_button_visibility>&
+        clear_button_visibility_property();
         static const maui::core::bindable_property<maui::graphics::color>& text_color_property();
         static const maui::core::bindable_property<maui::core::font>& font_property();
         static const maui::core::bindable_property<double>& character_spacing_property();
@@ -88,6 +102,22 @@ namespace maui::controls
         {
             return max_length_.get();
         }
+        [[nodiscard]] bool is_text_prediction_enabled() const override
+        {
+            return is_text_prediction_enabled_.get();
+        }
+        [[nodiscard]] bool is_spell_check_enabled() const override
+        {
+            return is_spell_check_enabled_.get();
+        }
+        [[nodiscard]] int cursor_position() const override
+        {
+            return cursor_position_.get();
+        }
+        [[nodiscard]] int selection_length() const override
+        {
+            return selection_length_.get();
+        }
 
         // ---- i_text_alignment ----
         [[nodiscard]] maui::core::text_alignment horizontal_text_alignment() const override
@@ -103,6 +133,25 @@ namespace maui::controls
         [[nodiscard]] bool is_password() const override
         {
             return is_password_.get();
+        }
+        [[nodiscard]] maui::core::return_type return_type() const override
+        {
+            return return_type_.get();
+        }
+        [[nodiscard]] maui::core::clear_button_visibility clear_button_visibility() const override
+        {
+            return clear_button_visibility_.get();
+        }
+
+        // ---- i_text_input mutable cursor/selection (inbound: the handler writes the native position
+        // back). Clamp the floor to 0 to mirror C#'s validateValue (>= 0). ----
+        void set_cursor_position(int value) override
+        {
+            cursor_position_.set(value < 0 ? 0 : value);
+        }
+        void set_selection_length(int value) override
+        {
+            selection_length_.set(value < 0 ? 0 : value);
         }
 
         // ---- public setters (drive the handler via on_property_changed → update_value) ----
@@ -164,6 +213,22 @@ namespace maui::controls
         {
             vertical_text_alignment_.set(value);
         }
+        void set_is_text_prediction_enabled(bool value)
+        {
+            is_text_prediction_enabled_.set(value);
+        }
+        void set_is_spell_check_enabled(bool value)
+        {
+            is_spell_check_enabled_.set(value);
+        }
+        void set_return_type(maui::core::return_type value)
+        {
+            return_type_.set(value);
+        }
+        void set_clear_button_visibility(maui::core::clear_button_visibility value)
+        {
+            clear_button_visibility_.set(value);
+        }
 
         // ---- i_entry inbound channel (called by the handler on native edits) ----
         void send_completed() override
@@ -190,6 +255,13 @@ namespace maui::controls
         maui::core::property<bool> is_password_{*this, is_password_property()};
         maui::core::property<bool> is_read_only_{*this, is_read_only_property()};
         maui::core::property<int> max_length_{*this, max_length_property()};
+        maui::core::property<bool> is_text_prediction_enabled_{*this, is_text_prediction_enabled_property()};
+        maui::core::property<bool> is_spell_check_enabled_{*this, is_spell_check_enabled_property()};
+        maui::core::property<int> cursor_position_{*this, cursor_position_property()};
+        maui::core::property<int> selection_length_{*this, selection_length_property()};
+        maui::core::property<maui::core::return_type> return_type_{*this, return_type_property()};
+        maui::core::property<maui::core::clear_button_visibility> clear_button_visibility_{
+            *this, clear_button_visibility_property()};
         maui::core::property<maui::graphics::color> text_color_{*this, text_color_property()};
         maui::core::property<maui::core::font> font_{*this, font_property()};
         maui::core::property<double> character_spacing_{*this, character_spacing_property()};

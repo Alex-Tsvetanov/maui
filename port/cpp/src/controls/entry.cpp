@@ -1,7 +1,8 @@
 // maui::controls::entry — out-of-line definitions: the shared bindable-property descriptors (one instance
 // per type, like Entry.*Property / InputView.*Property) and the default-handler self-registration. See
 // entry.hpp. Defaults mirror InputView/Entry: empty text/placeholder, IsPassword/IsReadOnly false,
-// MaxLength = int.MaxValue (no cap), start/center alignment.
+// MaxLength = int.MaxValue (no cap), start/center alignment, IsTextPredictionEnabled/IsSpellCheckEnabled
+// true, CursorPosition/SelectionLength 0, ReturnType.Default, ClearButtonVisibility.Never.
 
 #include "maui/controls/entry.hpp"
 
@@ -9,9 +10,11 @@
 #include <string>
 
 #include "maui/core/bindable_property.hpp"
+#include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/entry_handler.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/handler_registry.hpp"
+#include "maui/core/return_type.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/color.hpp"
 
@@ -51,6 +54,47 @@ namespace maui::controls
     {
         // C# default is int.MaxValue (no effective cap).
         static const maui::core::bindable_property<int> descriptor{"max_length", std::numeric_limits<int>::max()};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<bool>& entry::is_text_prediction_enabled_property()
+    {
+        // C# InputView default: true.
+        static const maui::core::bindable_property<bool> descriptor{"is_text_prediction_enabled", true};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<bool>& entry::is_spell_check_enabled_property()
+    {
+        // C# InputView default: true.
+        static const maui::core::bindable_property<bool> descriptor{"is_spell_check_enabled", true};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<int>& entry::cursor_position_property()
+    {
+        // C# InputView default: 0 (validated >= 0; the control's setters clamp the floor).
+        static const maui::core::bindable_property<int> descriptor{"cursor_position", 0};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<int>& entry::selection_length_property()
+    {
+        static const maui::core::bindable_property<int> descriptor{"selection_length", 0};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<maui::core::return_type>& entry::return_type_property()
+    {
+        static const maui::core::bindable_property<maui::core::return_type> descriptor{
+            "return_type", maui::core::return_type::default_};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<maui::core::clear_button_visibility>& entry::clear_button_visibility_property()
+    {
+        static const maui::core::bindable_property<maui::core::clear_button_visibility> descriptor{
+            "clear_button_visibility", maui::core::clear_button_visibility::never};
         return descriptor;
     }
 

@@ -7,11 +7,14 @@
 #include <memory>
 #include <string>
 
+#include "apple_text_ops.hpp"
 #include "maui/controls/button.hpp"
 #include "maui/core/button_handler.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/thickness.hpp"
+#include "maui/graphics/color.hpp"
 #include <gtest/gtest.h>
 
 namespace
@@ -19,6 +22,7 @@ namespace
     using maui::controls::button;
     using maui::core::button_handler;
     using maui::core::i_element_handler;
+    using maui::platform::apple::kerning_of;
 
     // -[NSString UTF8String] is nullable-annotated; convert through this guard so the std::string
     // construction never receives a null pointer (the values under test are always non-null).
@@ -120,6 +124,82 @@ namespace
 
         control.set_corner_radius(7);
         EXPECT_EQ(view.layer.cornerRadius, 7.0);
+    }
+
+    // Ports ButtonHandlerTests.iOS CharacterSpacingInitializesCorrectly: the kerning on the (now
+    // attributed) title equals the cross-platform CharacterSpacing.
+    TEST_F(apple_button_seam, character_spacing_kerns_the_attributed_title)
+    {
+        button control;
+        control.set_text("Test");
+        control.set_character_spacing(4);
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        NSButton* const view = native_button(handler);
+        EXPECT_EQ(kerning_of(view.attributedTitle), 4.0);
+        EXPECT_EQ(to_std_string(view.attributedTitle.string), "Test");
+    }
+
+    // Ports ButtonHandlerTests.iOS CharacterSpacingAndTextColorInitializesCorrectly: the kerned title
+    // carries both the spacing and the explicit text color.
+    TEST_F(apple_button_seam, character_spacing_with_text_color_sets_both_on_the_title)
+    {
+        button control;
+        control.set_text("Test");
+        control.set_character_spacing(4);
+        control.set_text_color(maui::graphics::color(1.0F, 0.0F, 0.5F)); // hot-pink-ish
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        NSButton* const view = native_button(handler);
+        EXPECT_EQ(kerning_of(view.attributedTitle), 4.0);
+        NSColor* const fg = [view.attributedTitle attribute:NSForegroundColorAttributeName
+                                                    atIndex:0
+                                             effectiveRange:nullptr];
+        ASSERT_NE(fg, nil);
+        NSColor* const srgb = [fg colorUsingColorSpace:NSColorSpace.sRGBColorSpace];
+        EXPECT_NEAR(srgb.redComponent, 1.0, 0.01);
+        EXPECT_NEAR(srgb.blueComponent, 0.5, 0.01);
+    }
+
+    // Spacing back to 0 reverts to a plain (un-kerned) title.
+    TEST_F(apple_button_seam, clearing_character_spacing_reverts_to_plain_title)
+    {
+        button control;
+        control.set_text("Test");
+        control.set_character_spacing(4);
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        EXPECT_EQ(kerning_of(native_button(handler).attributedTitle), 4.0);
+
+        control.set_character_spacing(0);
+        EXPECT_EQ(kerning_of(native_button(handler).attributedTitle), 0.0);
+    }
+
+    // Ports ButtonHandlerTests Padding: the maui padding reaches the custom cell's content insets and
+    // enlarges the cell's measured size by the padding (the custom cell's cellSizeForBounds: override).
+    TEST_F(apple_button_seam, padding_maps_to_cell_insets_and_grows_cell_size)
+    {
+        button control;
+        control.set_text("Test");
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        NSButton* const view = native_button(handler);
+        const NSSize unpadded = [(NSCell*)view.cell cellSize];
+
+        control.set_padding(maui::core::thickness(5, 10, 15, 20));
+        ASSERT_TRUE([view.cell respondsToSelector:@selector(contentInsets)]);
+        const NSEdgeInsets insets = [(id)view.cell contentInsets];
+        EXPECT_EQ(insets.left, 5.0);
+        EXPECT_EQ(insets.top, 10.0);
+        EXPECT_EQ(insets.right, 15.0);
+        EXPECT_EQ(insets.bottom, 20.0);
+
+        // The cell reserves left+right (20) horizontally and top+bottom (30) vertically.
+        const NSSize padded = [(NSCell*)view.cell cellSize];
+        EXPECT_NEAR(padded.width - unpadded.width, 20.0, 0.5);
+        EXPECT_NEAR(padded.height - unpadded.height, 30.0, 0.5);
     }
 
     TEST_F(apple_button_seam, handler_resolved_from_default_registry)
