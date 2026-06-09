@@ -189,6 +189,8 @@ add_library(maui_core STATIC
   src/core/image_source_service_registry.cpp
   src/core/image_source_services.cpp
   src/core/uri_bytes.cpp
+  src/core/uri_image_disk_cache.cpp
+  src/core/crc64.cpp
   src/core/layout_handler.cpp
   src/core/layout_z_order.cpp
   src/core/content_page_handler.cpp
@@ -225,6 +227,7 @@ add_executable(maui_core_tests
   tests/core/contracts_tests.cpp
   tests/core/handler_tests.cpp
   tests/core/binding_tests.cpp
+  tests/core/crc64_tests.cpp
 )
 target_link_libraries(maui_core_tests PRIVATE
   maui_core

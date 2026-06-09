@@ -8,6 +8,7 @@
 
 #include "maui/core/i_image.hpp"
 #include "maui/core/i_image_source.hpp"
+#include "maui/core/image_source_loader.hpp" // configure_loader parameter type
 #include "maui/core/image_source_result.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
@@ -26,6 +27,13 @@ namespace maui::core
     std::unique_ptr<image_platform> image_handler::create_platform_view()
     {
         return std::make_unique<image_platform>();
+    }
+
+    // Headless: leave the loader on its defaults — the synchronous read_uri_bytes fetch (file:// + local
+    // paths) and the disk layer off (in-memory cache only). Tests inject a dispatcher / disk dir / uri
+    // fetch directly via the loader's seams when they need to exercise the async or on-disk paths.
+    void image_handler::configure_loader(image_source_loader& /*loader*/)
+    {
     }
 
     void image_handler::map_aspect(image_handler& handler, i_image& view)

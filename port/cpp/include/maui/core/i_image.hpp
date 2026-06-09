@@ -8,9 +8,8 @@
 // is_opaque, is_animation_playing, and update_is_loading (the handler pushes the loader's loading state
 // onto the view — C#'s IsLoading is a read-only property set through this).
 //
-// DEVIATION: GIF animation detection (IsAnimationPlaying's native interplay — UIImageView.AnimationImages)
-// is NOT implemented; the property is faithful (settable + mapped) but the native backend only stores the
-// flag (no multi-frame decode). Documented on image_handler / image.hpp.
+// IsAnimationPlaying drives native multi-frame (GIF) playback: on apple it maps to NSImageView.animates,
+// which cycles an animated NSImage's frames natively (see image_handler.mm); headless mirrors the flag.
 
 #include "maui/core/aspect.hpp"
 #include "maui/core/i_image_source.hpp"

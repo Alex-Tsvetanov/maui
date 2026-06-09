@@ -16,8 +16,9 @@
 // read-only bindable set through IImageSourcePart.UpdateIsLoading). is_loading() reads it; there is no
 // public setter — the load lifecycle owns it. The write fires a property change so an observer can react.
 //
-// DEVIATION: the native GIF multi-frame animation behind IsAnimationPlaying is not implemented (see
-// i_image.hpp / image_handler.hpp). Async loading + caching + font sources are now supported.
+// IsAnimationPlaying drives native multi-frame (GIF) playback on apple (NSImageView.animates); async
+// loading + an in-memory + on-disk uri cache + an async NSURLSession fetch + font sources are all supported
+// (see image_handler.hpp / image_source_loader.hpp).
 
 #include <memory>
 #include <utility>

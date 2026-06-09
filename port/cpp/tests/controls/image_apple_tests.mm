@@ -4,7 +4,9 @@
 // read + in-memory PNG decode are fast and synchronous). Compiled as Objective-C++ with ARC for `apple`.
 #import <AppKit/AppKit.h>
 
+#include <array>
 #include <cstddef>
+#include <cstring>
 #include <memory>
 #include <string>
 
@@ -225,8 +227,9 @@ namespace
         ASSERT_EQ(view.image, nil);
 
         // A file:// uri routes through the loader; the apply runs inline (no dispatcher set), reading the
-        // bytes off disk and decoding them to an NSImage.
-        control.set_source(image_source::from_uri("file://" + path));
+        // bytes off disk and decoding them to an NSImage. Caching is disabled so the test does not persist
+        // into the handler's real NSCachesDirectory disk cache (configure_loader wires it in production).
+        control.set_source(image_source::from_uri("file://" + path, /*caching*/ false));
         EXPECT_NE(view.image, nil);
         EXPECT_GT(view.image.size.width, 0.0);
         EXPECT_GT(view.image.size.height, 0.0);
@@ -262,5 +265,125 @@ namespace
         // A provider that yields no bytes decodes to nothing → the view stays cleared.
         control.set_source(image_source::from_stream([](const cancellation_token&) { return image_bytes{}; }));
         EXPECT_EQ(view.image, nil);
+    }
+
+    // ---- native GIF playback (IsAnimationPlaying → NSImageView.animates over a multi-frame NSImage) ----
+
+    // Encodes a 2-frame animated GIF in memory (two 2x2 frames) and returns its bytes. NSBitmapImageRep's
+    // GIF encoder packs the frames; the per-frame property gives them a delay so AppKit treats the decoded
+    // NSImage as animatable. Empty on failure.
+    image_bytes make_animated_gif_bytes()
+    {
+        const auto make_frame = [](CGFloat r, CGFloat g, CGFloat b) -> NSBitmapImageRep* {
+            NSBitmapImageRep* const rep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:nullptr
+                                                                                  pixelsWide:2
+                                                                                  pixelsHigh:2
+                                                                               bitsPerSample:8
+                                                                             samplesPerPixel:4
+                                                                                    hasAlpha:YES
+                                                                                    isPlanar:NO
+                                                                              colorSpaceName:NSDeviceRGBColorSpace
+                                                                                 bytesPerRow:0
+                                                                                bitsPerPixel:0];
+            if (rep == nil)
+            {
+                return nil;
+            }
+            // Fill the 2x2 frame with a solid color so the two frames differ.
+            for (NSInteger y = 0; y < 2; ++y)
+            {
+                for (NSInteger x = 0; x < 2; ++x)
+                {
+                    std::array<NSUInteger, 4> px = {static_cast<NSUInteger>(r * 255), static_cast<NSUInteger>(g * 255),
+                                                    static_cast<NSUInteger>(b * 255), 255};
+                    [rep setPixel:px.data() atX:x y:y];
+                }
+            }
+            return rep;
+        };
+
+        NSBitmapImageRep* const f0 = make_frame(1, 0, 0);
+        NSBitmapImageRep* const f1 = make_frame(0, 1, 0);
+        if (f0 == nil || f1 == nil)
+        {
+            return {};
+        }
+        // A per-frame GIF delay marks the frames as timed (so the decoded NSImage is animatable).
+        NSDictionary* const props = @{NSImageCurrentFrameDuration : @0.1, NSImageLoopCount : @0};
+        NSData* const gif = [NSBitmapImageRep representationOfImageRepsInArray:@[ f0, f1 ]
+                                                                     usingType:NSBitmapImageFileTypeGIF
+                                                                    properties:props];
+        if (gif == nil || gif.length == 0)
+        {
+            return {};
+        }
+        image_bytes bytes(static_cast<std::size_t>(gif.length));
+        std::memcpy(bytes.data(), gif.bytes, static_cast<std::size_t>(gif.length));
+        return bytes;
+    }
+
+    TEST_F(apple_image_seam, animated_gif_decodes_to_multiple_frames)
+    {
+        const image_bytes gif = make_animated_gif_bytes();
+        ASSERT_FALSE(gif.empty());
+
+        image control;
+        auto handler = std::make_shared<image_handler>();
+        control.set_handler(handler);
+        NSImageView* const view = native_image_view(handler);
+
+        control.set_source(image_source::from_stream([gif](const cancellation_token&) { return gif; }));
+        ASSERT_NE(view.image, nil);
+
+        // The decoded NSImage holds >1 frame (the GIF bitmap rep reports NSImageFrameCount > 1) — i.e. a
+        // real multi-frame image the native animator can cycle, not a single still.
+        NSBitmapImageRep* const rep = static_cast<NSBitmapImageRep*>(view.image.representations.firstObject);
+        ASSERT_TRUE([rep isKindOfClass:[NSBitmapImageRep class]]);
+        NSNumber* const frame_count = [rep valueForProperty:NSImageFrameCount];
+        EXPECT_GT(frame_count.integerValue, 1) << "the animated GIF should decode to multiple frames";
+    }
+
+    TEST_F(apple_image_seam, is_animation_playing_starts_and_stops_native_animation)
+    {
+        const image_bytes gif = make_animated_gif_bytes();
+        ASSERT_FALSE(gif.empty());
+
+        image control;
+        auto handler = std::make_shared<image_handler>();
+        control.set_handler(handler);
+        NSImageView* const view = native_image_view(handler);
+
+        // Default: not playing → animates is NO.
+        EXPECT_FALSE(view.animates);
+
+        // Load the animated GIF, then start playing: NSImageView.animates flips on (StartAnimating analog),
+        // and AppKit cycles the multi-frame NSImage natively.
+        control.set_source(image_source::from_stream([gif](const cancellation_token&) { return gif; }));
+        ASSERT_NE(view.image, nil);
+
+        control.set_is_animation_playing(true);
+        EXPECT_TRUE(view.animates);
+
+        // Stop: animates flips off (StopAnimating analog), freezing on the current frame.
+        control.set_is_animation_playing(false);
+        EXPECT_FALSE(view.animates);
+    }
+
+    TEST_F(apple_image_seam, animation_flag_set_before_load_plays_once_the_image_arrives)
+    {
+        const image_bytes gif = make_animated_gif_bytes();
+        ASSERT_FALSE(gif.empty());
+
+        image control;
+        auto handler = std::make_shared<image_handler>();
+        control.set_handler(handler);
+        NSImageView* const view = native_image_view(handler);
+
+        // IsAnimationPlaying set BEFORE a source exists: the loader re-applies the flag after the image is
+        // decoded (map_source → map_is_animation_playing), so a freshly-loaded animated image plays.
+        control.set_is_animation_playing(true);
+        control.set_source(image_source::from_stream([gif](const cancellation_token&) { return gif; }));
+        ASSERT_NE(view.image, nil);
+        EXPECT_TRUE(view.animates);
     }
 } // namespace

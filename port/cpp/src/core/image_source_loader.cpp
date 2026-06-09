@@ -7,6 +7,7 @@
 #include <atomic>
 #include <chrono>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 
@@ -20,6 +21,7 @@
 #include "maui/core/image_source_service_registry.hpp"
 #include "maui/core/image_source_services.hpp"
 #include "maui/core/uri_bytes.hpp"
+#include "maui/core/uri_image_disk_cache.hpp"
 
 namespace maui::core
 {
@@ -74,17 +76,23 @@ namespace maui::core
     }
 
     void image_source_loader::deliver(i_image_source* source, cancellation_token token, image_source_result result,
-                                      apply_callback apply, loading_callback on_loading)
+                                      apply_callback apply, loading_callback on_loading, dispatch_prologue prologue)
     {
-        // The closure that runs the source-identity recheck, then applies + completes. Captured by the
-        // dispatcher (or run inline). A weak liveness token guards against the loader being destroyed
-        // before a queued apply runs (UAF-safe teardown).
+        // The closure that runs the (ungated) prologue, then the source-identity recheck, then applies +
+        // completes. Captured by the dispatcher (or run inline). A weak liveness token guards against the
+        // loader being destroyed before a queued apply runs (UAF-safe teardown).
         std::weak_ptr<int> const life = life_;
         auto run = [this, life, source, token = std::move(token), result = std::move(result), apply = std::move(apply),
-                    on_loading = std::move(on_loading)]() mutable {
+                    on_loading = std::move(on_loading), prologue = std::move(prologue)]() mutable {
             if (life.expired())
             {
                 return; // the loader was destroyed before this apply ran
+            }
+            // The cache-write prologue runs UNGATED on the dispatcher thread (C# caches even a superseded
+            // download), and before the recheck so a later same-uri load sees the populated cache.
+            if (prologue)
+            {
+                prologue();
             }
             // Source-identity recheck (ImageSourcePartExtensions.UpdateSourceAsync):
             //   applied = !token.IsCancellationRequested && imageSource == image.Source
@@ -139,37 +147,13 @@ namespace maui::core
             on_loading(true);
         }
 
-        // URI sources take the loader's cached fast-path: fetch (or reuse cached) bytes, then decode with
-        // the shared per-backend primitive. The in-memory cache keys on the uri and EXPIRES entries older
-        // than the source's CacheValidity (read against the injected clock) — an expired entry is a miss and
-        // is re-fetched + re-stamped (mirrors UriImageSource's CacheValidity governing the cached image's
-        // lifetime). The uri_image_source_service stays registered for resolution/DI; its standalone load is
-        // the non-cached equivalent of this path.
+        // URI sources take the loader's cached fast-path (two cache layers + the possibly-async fetch). The
+        // uri_image_source_service stays registered for resolution/DI; its standalone load is the non-cached
+        // equivalent of this path.
         if (auto* uri_src = dynamic_cast<i_uri_image_source*>(source))
         {
-            const std::string uri(uri_src->uri());
-            const bool caching = uri_src->caching_enabled();
-            const std::chrono::milliseconds validity = uri_src->cache_validity();
-            const std::chrono::steady_clock::time_point at = now();
-
-            image_bytes bytes;
-            const auto cached = caching ? uri_cache_.find(uri) : uri_cache_.end();
-            const bool fresh = cached != uri_cache_.end() && (at - cached->second.cached_at) < validity;
-            if (fresh)
-            {
-                bytes = cached->second.bytes; // a still-valid cached entry: reuse without re-fetching
-            }
-            else
-            {
-                bytes = read_uri_bytes(uri);
-                if (caching && !bytes.empty())
-                {
-                    // Insert or refresh (an expired entry is overwritten with the new bytes + timestamp).
-                    uri_cache_[uri] = cache_entry{.bytes = bytes, .cached_at = at};
-                }
-            }
-
-            deliver(source, token, decode_image_bytes(bytes, "uri", uri), std::move(apply), std::move(on_loading));
+            update_uri_source(source, token, std::string(uri_src->uri()), uri_src->caching_enabled(),
+                              uri_src->cache_validity(), std::move(apply), std::move(on_loading));
             return;
         }
 
@@ -189,5 +173,94 @@ namespace maui::core
                        on_loading = std::move(on_loading)](image_source_result result) mutable {
                           deliver(captured_source, token, std::move(result), std::move(apply), std::move(on_loading));
                       });
+    }
+
+    void image_source_loader::update_uri_source(i_image_source* source, const cancellation_token& token,
+                                                const std::string& uri, bool caching,
+                                                std::chrono::milliseconds validity, apply_callback apply,
+                                                loading_callback on_loading)
+    {
+        const std::chrono::steady_clock::time_point at = now();
+
+        // Layer 1 — in-memory cache: a still-valid entry is reused without re-reading disk or the network
+        // (UriImageSource's CacheValidity governing the cached image's lifetime, applied via the clock seam).
+        if (caching)
+        {
+            const auto cached = uri_cache_.find(uri);
+            if (cached != uri_cache_.end() && (at - cached->second.cached_at) < validity)
+            {
+                deliver(source, token, decode_image_bytes(cached->second.bytes, "uri", uri), std::move(apply),
+                        std::move(on_loading));
+                return;
+            }
+
+            // Layer 2 — on-disk cache: a fresh persisted entry short-circuits the fetch (C#'s
+            // `if (CachingEnabled && IsImageCached) GetCachedImage`). It also repopulates the in-memory layer,
+            // PRESERVING the disk entry's original timestamp so the in-memory copy expires on the same
+            // schedule (measuring age from the original fetch, not this read).
+            if (std::optional<uri_image_disk_cache::hit> disk = disk_cache_.read(uri, at, validity))
+            {
+                image_source_result decoded = decode_image_bytes(disk->bytes, "uri", uri);
+                uri_cache_[uri] = cache_entry{.bytes = std::move(disk->bytes), .cached_at = disk->cached_at};
+                deliver(source, token, std::move(decoded), std::move(apply), std::move(on_loading));
+                return;
+            }
+        }
+
+        // Miss → fetch. The fetch seam may run on a background queue (apple NSURLSession) or synchronously
+        // (the default read_uri_bytes). Its byte sink hops back through deliver_fetched_uri_bytes, which —
+        // guarded by the loader's liveness token — runs on the dispatcher thread, so the cache writes there
+        // never race the fetch's thread (the only cross-thread bits are the cancellation atomic in the fetch
+        // + the dispatcher hand-off in deliver). The uri/token are captured via a shared/refcount copy (cheap,
+        // noexcept) so the type-erased sink holds nothing whose copy could throw.
+        std::weak_ptr<int> const life = life_;
+        auto uri_ref = std::make_shared<const std::string>(uri);
+        auto sink = [this, life, source, token, uri_ref, caching, apply = std::move(apply),
+                     on_loading = std::move(on_loading)](const image_bytes& bytes) mutable {
+            if (life.expired())
+            {
+                return; // the loader was destroyed before the fetch completed
+            }
+            deliver_fetched_uri_bytes(source, token, *uri_ref, caching, bytes, std::move(apply), std::move(on_loading));
+        };
+
+        if (uri_fetch_)
+        {
+            uri_fetch_(uri, token, std::move(sink)); // injected async fetch (apple http)
+        }
+        else
+        {
+            sink(read_uri_bytes(uri)); // default synchronous fetch (file:// + local paths)
+        }
+    }
+
+    void image_source_loader::deliver_fetched_uri_bytes(i_image_source* source, const cancellation_token& token,
+                                                        const std::string& uri, bool caching, const image_bytes& bytes,
+                                                        apply_callback apply, loading_callback on_loading)
+    {
+        // This may run on the fetch's background thread (apple NSURLSession) — so it touches NO loader member
+        // state: the decode (bytes → native image) is pure/thread-safe work, and the cache write is deferred
+        // into the dispatcher PROLOGUE below, which runs on the dispatcher thread. `now()` reads only the
+        // injected clock (steady_clock in production; tests use the synchronous fetch, so no race).
+        const std::chrono::steady_clock::time_point at = now();
+        const bool cacheable = caching && !bytes.empty();
+
+        // The cache-write prologue: persist + memo the fetched bytes on the dispatcher thread, UNGATED (C#
+        // caches even a download that is later superseded). The bytes + uri are shared (refcount copies are
+        // cheap + noexcept) so the type-erased prologue holds nothing whose copy could throw. A no-op when not
+        // cacheable; both the disk write + the in-memory insert read the shared buffer.
+        dispatch_prologue populate;
+        if (cacheable)
+        {
+            auto shared_bytes = std::make_shared<const image_bytes>(bytes);
+            auto uri_ref = std::make_shared<const std::string>(uri);
+            populate = [this, uri_ref, at, shared_bytes]() {
+                disk_cache_.write(*uri_ref, *shared_bytes, at); // C# CacheImage; no-op if the disk layer is off
+                uri_cache_[*uri_ref] = cache_entry{.bytes = *shared_bytes, .cached_at = at};
+            };
+        }
+
+        deliver(source, token, decode_image_bytes(bytes, "uri", uri), std::move(apply), std::move(on_loading),
+                std::move(populate));
     }
 } // namespace maui::core

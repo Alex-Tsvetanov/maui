@@ -17,29 +17,38 @@
 //
 // THREADING (PROFILE §8): the load's *apply* is always marshalled through the dispatcher, so it runs on
 // the dispatcher thread (the headless manual_dispatcher in tests — pump it to observe the apply). A
-// service that loads synchronously (file/stream-from-bytes, this cut) still routes its apply through the
-// dispatcher. If no dispatcher is set, the apply runs INLINE (synchronously) — used by the apple tests,
-// whose `file://` + in-memory-PNG decodes are fast and synchronous (no real background queue → TSan-clean;
-// a production HTTP fetch would move the byte fetch to a background queue and marshal the apply back here).
+// service that loads synchronously (file/stream-from-bytes) still routes its apply through the dispatcher.
+// If no dispatcher is set, the apply runs INLINE (synchronously) — used by the apple file:// + in-memory-PNG
+// tests, whose decodes are fast and synchronous. A real HTTP fetch (uri fast-path) runs on a BACKGROUND
+// queue via the injected uri-fetch seam (set_uri_fetch); its completion calls back into the loader, which
+// marshals the decode+apply onto the dispatcher. The ONLY cross-thread elements are the cancellation atomic
+// (read in the fetch) + the dispatcher hand-off; ALL loader-member mutation (the in-memory cache, the disk
+// write) happens inside the dispatched closure on the dispatcher thread, keeping the loader TSan-clean.
 //
-// CACHE: an in-memory map keyed by uri holds the fetched bytes plus the (virtual) time they were cached
-// (uri_cache_), so a repeat load of the same cached uri skips the re-fetch — UNLESS the entry is older than
-// the source's CacheValidity (i_uri_image_source::cache_validity()), in which case it is a MISS and the
-// bytes are re-fetched. The "current time" comes from an INJECTED CLOCK SEAM (set_clock) so headless tests
-// advance it deterministically; it defaults to std::chrono::steady_clock — testable logic never reads
-// wall-clock directly. DEFERRED: a true on-disk cache (C# writes to FileSystem.CacheDirectory). Resolution-
-// dependent reload (RequiresReload) is handled by the handler via a separate scale seam. See uri_bytes.hpp
-// / i_uri_image_source.hpp.
+// CACHE (two layers, both keyed by uri, both gated by the source's CacheValidity via the injected clock):
+//   * in-memory (uri_cache_): a repeat load of the same uri reuses the bytes without re-fetching, until the
+//     entry is older than i_uri_image_source::cache_validity().
+//   * on-disk (disk_cache_, uri_image_disk_cache): persists fetched bytes under the configured cache
+//     directory (C# UriImageSourceService DownloadAndCacheImageAsync → FileSystem.CacheDirectory). A disk
+//     hit short-circuits the fetch and repopulates the in-memory layer. The directory is injected
+//     (set_disk_cache_directory); empty = the disk layer is off (in-memory only, the headless default
+//     unless a test points it at a temp dir).
+// The "current time" comes from an INJECTED CLOCK SEAM (set_clock) so headless tests advance it
+// deterministically; it defaults to std::chrono::steady_clock — testable logic never reads wall-clock
+// directly. Resolution-dependent reload (RequiresReload) is handled by the handler via a separate scale
+// seam. See uri_bytes.hpp / uri_image_disk_cache.hpp / i_uri_image_source.hpp.
 
 #include <chrono>
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include "maui/core/cancellation_token.hpp"
 #include "maui/core/i_stream_image_source.hpp" // image_bytes (uri cache value)
 #include "maui/core/image_source_result.hpp"
 #include "maui/core/move_only_function.hpp"
+#include "maui/core/uri_image_disk_cache.hpp"
 
 namespace maui::core
 {
@@ -61,6 +70,16 @@ namespace maui::core
         // Pushed the in-flight loading state (C# IImageSourcePart.UpdateIsLoading): true when a load begins,
         // false on complete (gated by the source-identity recheck, like the apply). Optional.
         using loading_callback = move_only_function<void(bool)>;
+
+        // The async byte sink a uri fetch reports its result to (the fetched bytes, or empty on failure).
+        // MAY be invoked on a background thread — it only forwards into the loader's dispatcher hand-off.
+        using uri_bytes_sink = move_only_function<void(image_bytes)>;
+
+        // The injected uri-fetch seam: fetch the bytes for `uri` (honoring `token` for cancellation) and
+        // report them to `sink`. The default fetch is synchronous (read_uri_bytes — file:// + local paths,
+        // empty for http); the apple backend installs an ASYNC NSURLSession dataTask whose completion calls
+        // sink off the URLSession queue. C# UriImageSourceService.DownloadImageAsync (the network half).
+        using uri_fetch = move_only_function<void(std::string uri, cancellation_token token, uri_bytes_sink sink)>;
 
         image_source_loader() = default;
         image_source_loader(const image_source_loader&) = delete;
@@ -92,6 +111,25 @@ namespace maui::core
         void set_scale(float scale)
         {
             scale_ = scale;
+        }
+        // The base directory for the on-disk uri cache (C# FileSystem.CacheDirectory root). Apple points
+        // this at NSCachesDirectory; tests at a unique temp dir; empty leaves the disk layer off.
+        void set_disk_cache_directory(std::string base_directory)
+        {
+            disk_cache_.set_directory(std::move(base_directory));
+        }
+        // Inject the async uri-fetch seam (the apple NSURLSession dataTask). Unset = the synchronous
+        // read_uri_bytes default (file:// + local paths). The fetch runs OFF the dispatcher thread; the
+        // loader marshals the decode+apply back. See uri_fetch.
+        void set_uri_fetch(uri_fetch fetch)
+        {
+            uri_fetch_ = std::move(fetch);
+        }
+        // Test/inspection: the path the bytes for `uri` are cached at on disk (empty if the disk layer is
+        // off). Lets a test assert the disk file exists after a fetch / read it on a cache hit.
+        [[nodiscard]] std::string disk_cache_path(std::string_view uri) const
+        {
+            return disk_cache_.path_for(uri);
         }
 
         // ImageSourceServiceResultManager.BeginLoad: dispose the previous result, cancel the previous
@@ -138,11 +176,30 @@ namespace maui::core
     private:
         // Resolve the registry (lazily populating the default one with the built-in services).
         [[nodiscard]] image_source_service_registry& registry();
+        // An ungated action run on the dispatcher thread BEFORE the identity recheck (the uri caches' write
+        // step — populated regardless of whether the result is still current, matching C#'s
+        // DownloadAndCacheImageAsync caching before UpdateSourceAsync's `applied` check). Runs on the
+        // dispatcher thread, so it may safely touch the loader's cache members.
+        using dispatch_prologue = move_only_function<void()>;
+
         // Marshal the apply+complete for a delivered result onto the dispatcher (or run it inline when no
-        // dispatcher is set). Runs only if the load is still current (token live + source unchanged); the
-        // gated completion also fires on_loading(false) (the C# finally clause).
+        // dispatcher is set). `prologue` (if set) runs first, UNGATED, on the dispatcher thread; then the
+        // apply+complete run only if the load is still current (token live + source unchanged); the gated
+        // completion also fires on_loading(false) (the C# finally clause).
         void deliver(i_image_source* source, cancellation_token token, image_source_result result, apply_callback apply,
-                     loading_callback on_loading = {});
+                     loading_callback on_loading = {}, dispatch_prologue prologue = {});
+        // The uri fast-path (ports UriImageSourceService DownloadAndCacheImageAsync + GetImageAsync): check
+        // the in-memory then on-disk cache (both gated by `validity` via the clock); on a hit, deliver the
+        // decoded bytes synchronously. On a miss, kick the (possibly async) uri fetch; its completion
+        // marshals back through deliver_fetched_uri_bytes, which writes both cache layers + decodes + applies.
+        void update_uri_source(i_image_source* source, const cancellation_token& token, const std::string& uri,
+                               bool caching, std::chrono::milliseconds validity, apply_callback apply,
+                               loading_callback on_loading);
+        // The fetch completion (runs on the dispatcher thread via deliver's hand-off): populate the caches
+        // with `bytes` (when caching + non-empty), then decode + deliver. Keeps all cache mutation on-thread.
+        void deliver_fetched_uri_bytes(i_image_source* source, const cancellation_token& token, const std::string& uri,
+                                       bool caching, const image_bytes& bytes, apply_callback apply,
+                                       loading_callback on_loading);
         // Current time from the injected clock (steady_clock by default).
         [[nodiscard]] std::chrono::steady_clock::time_point now() const;
 
@@ -156,6 +213,8 @@ namespace maui::core
         i_dispatcher* dispatcher_ = nullptr;
         image_source_service_registry* registry_ = nullptr;
         clock now_;                                    // injected clock; empty => steady_clock::now (see now())
+        uri_fetch uri_fetch_;                          // injected async fetch; empty => synchronous read_uri_bytes
+        uri_image_disk_cache disk_cache_;              // persistent uri byte cache (off until a directory is set)
         cancellation_token token_;                     // the current load's token (cancelled when superseded)
         image_source_result current_result_;           // the applied result (disposed on the next begin_load)
         i_image_source* current_source_ = nullptr;     // identity-recheck target (the last source requested)

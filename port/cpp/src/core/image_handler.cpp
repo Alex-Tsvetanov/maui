@@ -43,6 +43,9 @@ namespace maui::core
 
     image_handler::image_handler() : view_handler(&mapper(), &command_mapper())
     {
+        // Per-backend loader wiring (apple: NSURLSession async fetch + NSCachesDirectory disk cache;
+        // headless: a no-op, leaving the synchronous-read_uri_bytes defaults).
+        configure_loader(source_loader_);
     }
 
     // Cross-platform source routing (ImageHandler.MapSource): the file fast-path is synchronous; every
@@ -88,10 +91,17 @@ namespace maui::core
 
         // Async path (uri / stream / font): hand the source to the loader; the apply runs only if this
         // source is still current when the result arrives (the loader's identity recheck). The apply closure
-        // captures the platform view; the loader's liveness token guards against the handler being torn down
-        // first. on_loading toggles the view's IsLoading (true at start, false on the gated completion).
+        // captures the platform view + the handler/view (by pointer — the loader is a handler member, so the
+        // liveness token guarding the marshalled apply also guarantees the handler/view outlive it). After
+        // the image is applied, the animation state is re-pushed so a freshly-loaded ANIMATED image starts
+        // cycling if IsAnimationPlaying is already set (C# SetImageSource → UpdateValue(IsAnimationPlaying)).
+        image_handler* const handler_ptr = &handler;
         handler.source_loader_.update_source(
-            src, [platform](const image_source_result& result) { apply_loaded_result(*platform, result); },
+            src,
+            [platform, handler_ptr, view_ptr](const image_source_result& result) {
+                apply_loaded_result(*platform, result);
+                map_is_animation_playing(*handler_ptr, *view_ptr);
+            },
             std::move(on_loading));
     }
 } // namespace maui::core

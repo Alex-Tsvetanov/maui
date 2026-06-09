@@ -6,12 +6,13 @@
 // UIImageView ContentMode recipe, translated to AppKit's NSImageView) + ImageSourceExtensions.cs.
 //
 // map_source: a FILE source loads SYNCHRONOUSLY (a local file is cheap — [[NSImage alloc]
-// initWithContentsOfFile:] / a headless path mirror, kept from the first cut). Any OTHER source (uri /
-// stream) routes through the handler-owned image_source_loader (ASYNC: resolve the service, load, apply
-// only if still the current source — the source-identity recheck — then complete). This mirrors C#'s
-// MapSource being a fire-and-forget async load via the SourceLoader, with the file fast-path as the
-// only synchronous shortcut. DEFERRED: font image sources, disk caching + CacheValidity, resolution
-// reload, the full DI service-provider (see image_source_loader.hpp).
+// initWithContentsOfFile:] / a headless path mirror). Any OTHER source (uri / stream / font) routes through
+// the handler-owned image_source_loader (ASYNC: resolve the service, load, apply only if still the current
+// source — the source-identity recheck — then complete). This mirrors C#'s MapSource being a fire-and-forget
+// async load via the SourceLoader, with the file fast-path as the only synchronous shortcut. The uri path
+// is backed by the loader's two-layer cache (in-memory TTL + on-disk, both gated by CacheValidity) and, on
+// apple, a real NSURLSession async fetch — see configure_loader + image_source_loader.hpp. DEFERRED: the
+// full DI service-provider (the loader resolves against the built-in registry instead).
 //
 // Partial-class split (PROFILE §5): the mapper TABLE + ctor are cross-platform (image_handler.cpp); the
 // platform recipe — create / map_aspect / map_source / measure — is per backend under
@@ -61,8 +62,7 @@ namespace maui::core
         std::string source_file;
         bool source_loaded = false;
         // Headless mirrors of IsOpaque / IsAnimationPlaying (Apple pushes these to the NSImageView's layer /
-        // animation state instead). is_animation_playing's native multi-frame animation is a documented
-        // deviation — only the flag is stored.
+        // animation state instead — on apple IsAnimationPlaying drives native GIF frame cycling).
         bool opaque = false;
         bool animation_playing = false;
 
@@ -108,8 +108,9 @@ namespace maui::core
         static void map_source(image_handler& handler, i_image& view);
         // IsOpaque → the native view's opacity hint (Apple: layer.opaque); headless mirrors the flag.
         static void map_is_opaque(image_handler& handler, i_image& view);
-        // IsAnimationPlaying → start/stop the native animation (Apple: NSImageView animates / stops);
-        // headless mirrors the flag. The multi-frame GIF decode is a documented deviation.
+        // IsAnimationPlaying → start/stop native multi-frame (GIF) playback (Apple: NSImageView.animates
+        // cycles an animated NSImage's frames; stops on the current frame when false); headless mirrors the
+        // flag. Re-applied after a source load so a freshly-decoded animated image starts playing.
         static void map_is_animation_playing(image_handler& handler, i_image& view);
 
         // The handler-owned async image-source loader (C#'s SourceLoader). Tests inject a dispatcher here
@@ -126,6 +127,10 @@ namespace maui::core
         static void load_file_source_sync(image_platform& platform, const i_file_image_source& file_src);
         static void apply_loaded_result(image_platform& platform, const image_source_result& result);
         static void clear_source_native(image_platform& platform);
+        // Per-backend loader wiring, called once from the constructor: apple installs the NSURLSession async
+        // uri fetch + the NSCachesDirectory disk-cache directory; headless leaves the loader on its defaults
+        // (synchronous read_uri_bytes, disk layer off). Defined in src/platform/<backend>/image_handler.*.
+        static void configure_loader(image_source_loader& loader);
 
         image_source_loader source_loader_;
     };

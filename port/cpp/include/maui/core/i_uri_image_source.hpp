@@ -7,14 +7,15 @@
 //
 // SIMPLIFICATIONS vs C#:
 //   * Uri is modeled as a std::string_view (a UTF-8 URI string) rather than a parsed System.Uri value
-//     type. The async uri service treats a `file://` URI as a local path and reads the bytes; a
-//     production HTTP(S) stack is deferred (the apple service uses NSURL/NSData, headless tests use
-//     `file://` + stream sources and never hit the network).
-//   * CacheValidity (C#'s TimeSpan expiry) is modeled as a std::chrono::milliseconds. The loader's
-//     in-memory cache now honors it (an entry older than cache_validity() is treated as a miss and
-//     re-fetched); see image_source_loader.hpp for the TTL + injected-clock seam. A true on-DISK cache
-//     (C#'s UriImageSourceService.iOS DownloadAndCacheImageAsync writing to FileSystem.CacheDirectory)
-//     is still deferred — the cache lives in-process this cut.
+//     type. A `file://` URI loads via the cross-platform local reader; an http(s) URI is fetched ASYNC by
+//     the apple backend's NSURLSession dataTask (image_source_services.mm) — the loader's uri-fetch seam.
+//     The headless backend uses `file://` + the injectable fetch (tests stage bytes) and never hits a real
+//     network.
+//   * CacheValidity (C#'s TimeSpan expiry) is modeled as a std::chrono::milliseconds, honored by BOTH cache
+//     layers via the loader's injected-clock seam: the in-memory cache AND the on-disk cache treat an entry
+//     older than cache_validity() as a miss + re-fetch. The on-disk layer (uri_image_disk_cache) ports C#
+//     UriImageSourceService.iOS DownloadAndCacheImageAsync (FileSystem.CacheDirectory). See
+//     image_source_loader.hpp for the cache layering + the clock seam.
 
 #include <chrono>
 #include <string_view>
