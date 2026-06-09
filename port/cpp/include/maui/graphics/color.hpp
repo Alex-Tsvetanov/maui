@@ -7,9 +7,12 @@
 // type; here it is a value type. Equality compares the truncated ARGB int
 // (to_int), exactly matching C# Color.Equals.
 //
-// Deliberate M0 deviations (recorded in port/STATUS.md):
-//  - System.Numerics interop omitted: no Vector4 ctor / implicit operator
-//    (no System.Numerics in C++). TODO: revisit with a maui linalg type.
+// System.Numerics interop: the maui::graphics::vector4 stand-in mirrors C#'s Color(Vector4) ctor +
+// `implicit operator Color(Vector4)` (RGBA = X/Y/Z/W, each clamped to [0,1]). to_vector4() is the
+// reverse (RGBA, unclamped — the stored components are already in range); C# has no such member, so
+// it is a port convenience kept consistent with the ctor's field mapping.
+//
+// Deliberate M0 deviation (recorded in port/STATUS.md):
 //  - C# byte/int CONSTRUCTORS are exposed only as the from_rgb / from_rgba
 //    factories: the integer ctors would be ambiguous with the float ctors under
 //    C++'s implicit numeric conversions (C# forbids implicit float->int, C++ does not).
@@ -21,6 +24,7 @@
 
 namespace maui::graphics
 {
+    struct vector4;
 
     class color
     {
@@ -34,6 +38,7 @@ namespace maui::graphics
         explicit color(float gray);
         color(float r, float g, float b);
         color(float r, float g, float b, float a);
+        color(const vector4& v); // implicit Vector4 -> Color (RGBA, clamped); matches C#
 
         // ---- factories: INTEGER components are 0-255 (divided by 255) ----
         static color from_rgb(int r, int g, int b);
@@ -86,13 +91,14 @@ namespace maui::graphics
 
         // ---- parse (hex, rgb()/rgba(), hsl()/hsla(), hsv()/hsva(), named) ----
         static color parse(std::string_view value);
-        static bool try_parse(std::string_view value, color &out);
+        static bool try_parse(std::string_view value, color& out);
 
         // ---- conversions ----
         int to_int() const; // 0xAARRGGBB (truncated bytes)
         std::uint32_t to_uint() const;
-        void to_rgb(std::uint8_t &r, std::uint8_t &g, std::uint8_t &b) const;
-        void to_rgba(std::uint8_t &r, std::uint8_t &g, std::uint8_t &b, std::uint8_t &a) const;
+        void to_rgb(std::uint8_t& r, std::uint8_t& g, std::uint8_t& b) const;
+        void to_rgba(std::uint8_t& r, std::uint8_t& g, std::uint8_t& b, std::uint8_t& a) const;
+        vector4 to_vector4() const; // RGBA -> Vector4 (port convenience; see header note)
 
         // ---- hex out ----
         std::string to_hex() const; // #rrggbb
@@ -100,7 +106,7 @@ namespace maui::graphics
         std::string to_rgba_hex(bool include_alpha = false) const;
 
         // ---- HSL accessors / modifiers ----
-        void to_hsl(float &h, float &s, float &l) const;
+        void to_hsl(float& h, float& s, float& l) const;
         float get_hue() const;
         float get_saturation() const;
         float get_luminosity() const;
@@ -116,11 +122,11 @@ namespace maui::graphics
 
         std::string to_string() const;
 
-        friend bool operator==(const color &a, const color &b)
+        friend bool operator==(const color& a, const color& b)
         {
             return a.to_int() == b.to_int();
         }
-        friend bool operator!=(const color &a, const color &b)
+        friend bool operator!=(const color& a, const color& b)
         {
             return !(a == b);
         }
@@ -134,7 +140,7 @@ namespace maui::graphics
 // std::hash kept consistent with operator== (both derive from the ARGB int).
 template <> struct std::hash<maui::graphics::color>
 {
-    std::size_t operator()(const maui::graphics::color &c) const noexcept
+    std::size_t operator()(const maui::graphics::color& c) const noexcept
     {
         return std::hash<std::uint32_t>{}(c.to_uint());
     }

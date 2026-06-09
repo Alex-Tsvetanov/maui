@@ -77,12 +77,14 @@ endif()
 # ======================================================================
 add_library(maui_graphics STATIC
   src/graphics/color.cpp
+  src/graphics/corner_radius.cpp
   src/graphics/point.cpp
   src/graphics/point_f.cpp
   src/graphics/size.cpp
   src/graphics/size_f.cpp
   src/graphics/rect.cpp
   src/graphics/rect_f.cpp
+  src/graphics/vector2.cpp
   src/graphics/path_f.cpp
   src/graphics/path_builder.cpp
   src/graphics/solid_paint.cpp
@@ -106,6 +108,8 @@ add_executable(maui_graphics_tests
   tests/graphics/rect_tests.cpp
   tests/graphics/path_tests.cpp
   tests/graphics/path_builder_tests.cpp
+  tests/graphics/numerics_tests.cpp
+  tests/graphics/round_rectangle_tests.cpp
 )
 target_link_libraries(maui_graphics_tests PRIVATE
   maui_graphics

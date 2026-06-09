@@ -9,9 +9,11 @@
 #include <utility>
 #include <vector>
 
+#include "maui/graphics/matrix3x2.hpp"
 #include "maui/graphics/path_operation.hpp"
 #include "maui/graphics/point_f.hpp"
 #include "maui/graphics/rect_f.hpp"
+#include "maui/graphics/vector2.hpp"
 
 namespace maui::graphics
 {
@@ -34,7 +36,7 @@ namespace maui::graphics
         }
 
         // GeometryUtil.RotatePoint(center, point, angle)
-        point_f rotate_point(const point_f &center, const point_f &p, float angle)
+        point_f rotate_point(const point_f& center, const point_f& p, float angle)
         {
             double const r = degrees_to_radians(angle);
             float const x =
@@ -74,12 +76,12 @@ namespace maui::graphics
         {
             return {v.x * s, v.y * s};
         }
-        vec2 as_vec(const std::vector<point_f> &pts, int i)
+        vec2 as_vec(const std::vector<point_f>& pts, int i)
         {
             return {pts[i].x, pts[i].y};
         }
 
-        vec2 de_casteljau(const std::vector<point_f> &c, int index, float t)
+        vec2 de_casteljau(const std::vector<point_f>& c, int index, float t)
         {
             float const s = 1.0F - t;
             vec2 v0 = s * as_vec(c, index) + t * as_vec(c, index + 1);
@@ -90,8 +92,8 @@ namespace maui::graphics
             return s * v0 + t * v1;
         }
 
-        void flatten_cubic_segment(int index, double flatness, const std::vector<point_f> &curve,
-                                   std::vector<point_f> &out)
+        void flatten_cubic_segment(int index, double flatness, const std::vector<point_f>& curve,
+                                   std::vector<point_f>& out)
         {
             std::array<vec2, 4> vectors{};
             double r_curve = 0;
@@ -210,7 +212,7 @@ namespace maui::graphics
     {
         move_to(x, y);
     }
-    path_f::path_f(const point_f &pt)
+    path_f::path_f(const point_f& pt)
     {
         move_to(pt.x, pt.y);
     }
@@ -237,11 +239,11 @@ namespace maui::graphics
     }
 
     // ---- building ----
-    path_f &path_f::move_to(float x, float y)
+    path_f& path_f::move_to(float x, float y)
     {
         return move_to(point_f(x, y));
     }
-    path_f &path_f::move_to(const point_f &point)
+    path_f& path_f::move_to(const point_f& point)
     {
         sub_path_count_++;
         sub_paths_closed_.push_back(false);
@@ -282,11 +284,11 @@ namespace maui::graphics
         invalidate();
     }
 
-    path_f &path_f::line_to(float x, float y)
+    path_f& path_f::line_to(float x, float y)
     {
         return line_to(point_f(x, y));
     }
-    path_f &path_f::line_to(const point_f &point)
+    path_f& path_f::line_to(const point_f& point)
     {
         if (points_.empty())
         {
@@ -304,7 +306,7 @@ namespace maui::graphics
         return *this;
     }
 
-    path_f &path_f::insert_line_to(const point_f &point, int index)
+    path_f& path_f::insert_line_to(const point_f& point, int index)
     {
         if (index == 0)
         {
@@ -324,11 +326,11 @@ namespace maui::graphics
         return *this;
     }
 
-    path_f &path_f::add_arc(float x1, float y1, float x2, float y2, float start_angle, float end_angle, bool clockwise)
+    path_f& path_f::add_arc(float x1, float y1, float x2, float y2, float start_angle, float end_angle, bool clockwise)
     {
         return add_arc(point_f(x1, y1), point_f(x2, y2), start_angle, end_angle, clockwise);
     }
-    path_f &path_f::add_arc(const point_f &top_left, const point_f &bottom_right, float start_angle, float end_angle,
+    path_f& path_f::add_arc(const point_f& top_left, const point_f& bottom_right, float start_angle, float end_angle,
                             bool clockwise)
     {
         if (count() == 0 || operation_count() == 0 || get_segment_type(operation_count() - 1) == path_operation::close)
@@ -346,11 +348,11 @@ namespace maui::graphics
         return *this;
     }
 
-    path_f &path_f::quad_to(float cx, float cy, float x, float y)
+    path_f& path_f::quad_to(float cx, float cy, float x, float y)
     {
         return quad_to(point_f(cx, cy), point_f(x, y));
     }
-    path_f &path_f::quad_to(const point_f &control_point, const point_f &point)
+    path_f& path_f::quad_to(const point_f& control_point, const point_f& point)
     {
         points_.push_back(control_point);
         points_.push_back(point);
@@ -358,7 +360,7 @@ namespace maui::graphics
         invalidate();
         return *this;
     }
-    path_f &path_f::insert_quad_to(const point_f &control_point, const point_f &point, int index)
+    path_f& path_f::insert_quad_to(const point_f& control_point, const point_f& point, int index)
     {
         if (index == 0)
         {
@@ -379,11 +381,11 @@ namespace maui::graphics
         return *this;
     }
 
-    path_f &path_f::curve_to(float c1x, float c1y, float c2x, float c2y, float x, float y)
+    path_f& path_f::curve_to(float c1x, float c1y, float c2x, float c2y, float x, float y)
     {
         return curve_to(point_f(c1x, c1y), point_f(c2x, c2y), point_f(x, y));
     }
-    path_f &path_f::curve_to(const point_f &control1, const point_f &control2, const point_f &point)
+    path_f& path_f::curve_to(const point_f& control1, const point_f& control2, const point_f& point)
     {
         points_.push_back(control1);
         points_.push_back(control2);
@@ -392,7 +394,7 @@ namespace maui::graphics
         invalidate();
         return *this;
     }
-    path_f &path_f::insert_curve_to(const point_f &control1, const point_f &control2, const point_f &point, int index)
+    path_f& path_f::insert_curve_to(const point_f& control1, const point_f& control2, const point_f& point, int index)
     {
         if (index == 0)
         {
@@ -427,11 +429,11 @@ namespace maui::graphics
     {
         return static_cast<int>(operations_.size());
     }
-    const std::vector<point_f> &path_f::points() const
+    const std::vector<point_f>& path_f::points() const
     {
         return points_;
     }
-    const std::vector<path_operation> &path_f::segment_types() const
+    const std::vector<path_operation>& path_f::segment_types() const
     {
         return operations_;
     }
@@ -488,7 +490,7 @@ namespace maui::graphics
         points_[index] = point_f(x, y);
         invalidate();
     }
-    void path_f::set_point(int index, const point_f &point)
+    void path_f::set_point(int index, const point_f& point)
     {
         points_[index] = point;
         invalidate();
@@ -742,7 +744,7 @@ namespace maui::graphics
     }
     void path_f::move(float x, float y)
     {
-        for (auto &p : points_)
+        for (auto& p : points_)
         {
             p = p.offset(x, y);
         }
@@ -755,11 +757,19 @@ namespace maui::graphics
     }
 
     // ---- transforms ----
-    point_f path_f::get_rotated_point(int point_index, const point_f &pivot, float angle) const
+    point_f path_f::get_rotated_point(int point_index, const point_f& pivot, float angle) const
     {
         return rotate_point(pivot, points_[point_index], angle);
     }
-    path_f path_f::rotate(float angle_as_degrees, const point_f &pivot) const
+    void path_f::transform(const matrix3x2& transform)
+    {
+        for (auto& p : points_)
+        {
+            p = point_f(vector2::transform(static_cast<vector2>(p), transform));
+        }
+        invalidate();
+    }
+    path_f path_f::rotate(float angle_as_degrees, const point_f& pivot) const
     {
         path_f path;
         int index = 0;
@@ -814,7 +824,7 @@ namespace maui::graphics
         cr = std::min(cr, w / 2);
         return cr;
     }
-    void path_f::append_ellipse(const rect_f &rect)
+    void path_f::append_ellipse(const rect_f& rect)
     {
         append_ellipse(rect.x, rect.y, rect.width, rect.height);
     }
@@ -835,7 +845,7 @@ namespace maui::graphics
         curve_to(point_f(mid_x - off_x, max_y), point_f(min_x, mid_y + off_y), point_f(min_x, mid_y));
         close();
     }
-    void path_f::append_circle(const point_f &center, float r)
+    void path_f::append_circle(const point_f& center, float r)
     {
         append_circle(center.x, center.y, r);
     }
@@ -855,7 +865,7 @@ namespace maui::graphics
         curve_to(point_f(mid_x - off, max_y), point_f(min_x, mid_y + off), point_f(min_x, mid_y));
         close();
     }
-    void path_f::append_rectangle(const rect_f &rect, bool include_last)
+    void path_f::append_rectangle(const rect_f& rect, bool include_last)
     {
         append_rectangle(rect.x, rect.y, rect.width, rect.height, include_last);
     }
@@ -875,7 +885,7 @@ namespace maui::graphics
         }
         close();
     }
-    void path_f::append_rounded_rectangle(const rect_f &rect, float corner_radius, bool include_last)
+    void path_f::append_rounded_rectangle(const rect_f& rect, float corner_radius, bool include_last)
     {
         append_rounded_rectangle(rect.x, rect.y, rect.width, rect.height, corner_radius, include_last);
     }
@@ -902,7 +912,7 @@ namespace maui::graphics
         }
         close();
     }
-    void path_f::append_rounded_rectangle(const rect_f &rect, float tl, float tr, float bl, float br, bool include_last)
+    void path_f::append_rounded_rectangle(const rect_f& rect, float tl, float tr, float bl, float br, bool include_last)
     {
         append_rounded_rectangle(rect.x, rect.y, rect.width, rect.height, tl, tr, bl, br, include_last);
     }
@@ -935,7 +945,7 @@ namespace maui::graphics
         }
         close();
     }
-    void path_f::append_rounded_rectangle(const rect_f &rect, float x_corner_radius, float y_corner_radius)
+    void path_f::append_rounded_rectangle(const rect_f& rect, float x_corner_radius, float y_corner_radius)
     {
         float const xr = std::min(x_corner_radius, rect.width / 2);
         float const yr = std::min(y_corner_radius, rect.height / 2);
@@ -960,7 +970,7 @@ namespace maui::graphics
     std::vector<path_f> path_f::separate() const
     {
         std::vector<path_f> paths;
-        path_f *current = nullptr;
+        path_f* current = nullptr;
         int i = 0;
         int a = 0;
         int c = 0;
@@ -1081,7 +1091,7 @@ namespace maui::graphics
                     point_f const cp2(end.x + (2.0F * (qcp.x - end.x) / 3.0F), end.y + (2.0F * (qcp.y - end.y) / 3.0F));
                     curve_points = {start, cp1, cp2, end};
                     flatten_cubic_segment(0, flatness, curve_points, flattened_points);
-                    for (auto &p : flattened_points)
+                    for (auto& p : flattened_points)
                     {
                         flattened.line_to(p);
                     }
@@ -1091,7 +1101,7 @@ namespace maui::graphics
                 case path_operation::cubic: {
                     flattened_points.clear();
                     flatten_cubic_segment(point_index - 1, flatness, points_, flattened_points);
-                    for (auto &p : flattened_points)
+                    for (auto& p : flattened_points)
                     {
                         flattened.line_to(p);
                     }
@@ -1106,7 +1116,7 @@ namespace maui::graphics
                     bool const cw = get_arc_clockwise(arc_cw_index++);
                     arc_flattener const af(tl.x, tl.y, br.x - tl.x, br.y - tl.y, sa, ea, cw);
                     path_f const arc_path = af.create_flattened_path(flatness).get_flattened_path();
-                    for (const auto &p : arc_path.points())
+                    for (const auto& p : arc_path.points())
                     {
                         flattened.line_to(p);
                     }
@@ -1162,7 +1172,7 @@ namespace maui::graphics
     }
 
     // ---- equality ----
-    bool path_f::equals(const path_f &other, float epsilon) const
+    bool path_f::equals(const path_f& other, float epsilon) const
     {
         if (operation_count() != other.operation_count())
         {
@@ -1198,7 +1208,7 @@ namespace maui::graphics
         }
         return true;
     }
-    bool path_f::equals(const path_f &other) const
+    bool path_f::equals(const path_f& other) const
     {
         return equals(other, k_epsilon);
     }
@@ -1210,20 +1220,20 @@ namespace maui::graphics
     void path_f::dispose()
     {
     }
-    void *path_f::platform_path() const
+    void* path_f::platform_path() const
     {
         return platform_path_;
     }
-    void path_f::set_platform_path(void *p)
+    void path_f::set_platform_path(void* p)
     {
         platform_path_ = p;
     }
 
-    bool operator==(const path_f &a, const path_f &b)
+    bool operator==(const path_f& a, const path_f& b)
     {
         return a.equals(b);
     }
-    bool operator!=(const path_f &a, const path_f &b)
+    bool operator!=(const path_f& a, const path_f& b)
     {
         return !a.equals(b);
     }

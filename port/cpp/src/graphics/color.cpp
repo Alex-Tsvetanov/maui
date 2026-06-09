@@ -2,6 +2,7 @@
 #include "maui/graphics/color.hpp"
 
 #include "maui/graphics/colors.hpp" // MAUI_GRAPHICS_NAMED_COLORS (the parse table)
+#include "maui/graphics/vector4.hpp"
 
 #include <algorithm>
 #include <array>
@@ -220,22 +221,22 @@ namespace maui::graphics
                                         static_cast<float>(b) / 255.0F, static_cast<float>(a) / 255.0F};
         }
 
-        bool try_parse_double(std::string_view s, double &out)
+        bool try_parse_double(std::string_view s, double& out)
         {
             s = trim(s);
             if (s.empty())
             {
                 return false;
             }
-            const char *begin = s.data();
+            const char* begin = s.data();
             // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic) -- std::from_chars takes a pointer range
-            const char *end = begin + s.size();
+            const char* end = begin + s.size();
             auto [ptr, ec] = std::from_chars(begin, end, out, std::chars_format::general);
             return ec == std::errc{} && ptr == end; // entire token must be consumed
         }
 
         // ColorUtils.TryParseColorValue: optional trailing '%', clamp to [0,maxValue], normalize to 0-1.
-        bool try_parse_color_value(std::string_view elem, int max_value, bool accept_percent, double &out)
+        bool try_parse_color_value(std::string_view elem, int max_value, bool accept_percent, double& out)
         {
             elem = trim(elem);
             if (!elem.empty() && elem.back() == '%' && accept_percent)
@@ -252,7 +253,7 @@ namespace maui::graphics
             return false;
         }
 
-        bool try_parse_opacity(std::string_view elem, double &out)
+        bool try_parse_opacity(std::string_view elem, double& out)
         {
             double v = 0;
             if (try_parse_double(elem, v))
@@ -263,8 +264,8 @@ namespace maui::graphics
             return false;
         }
 
-        bool four_ranges(std::string_view v, std::string_view &q0, std::string_view &q1, std::string_view &q2,
-                         std::string_view &q3)
+        bool four_ranges(std::string_view v, std::string_view& q0, std::string_view& q1, std::string_view& q2,
+                         std::string_view& q3)
         {
             const auto op = v.find('(');
             const auto cp = v.rfind(')');
@@ -297,7 +298,7 @@ namespace maui::graphics
             return !q3.contains(','); // a trailing comma means too many ranges
         }
 
-        bool three_ranges(std::string_view v, std::string_view &t0, std::string_view &t1, std::string_view &t2)
+        bool three_ranges(std::string_view v, std::string_view& t0, std::string_view& t1, std::string_view& t2)
         {
             const auto op = v.find('(');
             const auto cp = v.rfind(')');
@@ -402,7 +403,7 @@ namespace maui::graphics
             }
         }
 
-        const std::unordered_map<std::string_view, std::uint32_t> &named_color_table()
+        const std::unordered_map<std::string_view, std::uint32_t>& named_color_table()
         {
             // NOLINTNEXTLINE(cppcoreguidelines-macro-usage) — X-macro is the idiomatic single-source table.
 #define MAUI_GRAPHICS_ENTRY(name, str, argb) {str, argb},
@@ -421,7 +422,7 @@ namespace maui::graphics
             {
                 lowered.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(c))));
             }
-            const auto &table = named_color_table();
+            const auto& table = named_color_table();
             const auto it = table.find(lowered);
             if (it == table.end())
             {
@@ -430,7 +431,7 @@ namespace maui::graphics
             return color::from_uint(it->second);
         }
 
-        bool color_utils_try_parse(std::string_view value, float &red, float &green, float &blue, float &alpha)
+        bool color_utils_try_parse(std::string_view value, float& red, float& green, float& blue, float& alpha)
         {
             red = green = blue = alpha = 0.0F;
             value = trim(value);
@@ -625,6 +626,9 @@ namespace maui::graphics
         : red(clamp01(r)), green(clamp01(g)), blue(clamp01(b)), alpha(clamp01(a))
     {
     }
+    color::color(const vector4& v) : color(v.x, v.y, v.z, v.w) // RGBA, clamped by the 4-float ctor
+    {
+    }
 
     // ---- integer factories (0-255) ----
     color color::from_rgb(int r, int g, int b)
@@ -693,7 +697,7 @@ namespace maui::graphics
     }
 
     // ---- parse ----
-    bool color::try_parse(std::string_view value, color &out)
+    bool color::try_parse(std::string_view value, color& out)
     {
         float r = 0;
         float g = 0;
@@ -722,17 +726,21 @@ namespace maui::graphics
     }
 
     // ---- conversions ----
-    void color::to_rgba(std::uint8_t &r, std::uint8_t &g, std::uint8_t &b, std::uint8_t &a) const
+    void color::to_rgba(std::uint8_t& r, std::uint8_t& g, std::uint8_t& b, std::uint8_t& a) const
     {
         a = static_cast<std::uint8_t>(alpha * 255.0F);
         r = static_cast<std::uint8_t>(red * 255.0F);
         g = static_cast<std::uint8_t>(green * 255.0F);
         b = static_cast<std::uint8_t>(blue * 255.0F);
     }
-    void color::to_rgb(std::uint8_t &r, std::uint8_t &g, std::uint8_t &b) const
+    void color::to_rgb(std::uint8_t& r, std::uint8_t& g, std::uint8_t& b) const
     {
         std::uint8_t a = 0;
         to_rgba(r, g, b, a);
+    }
+    vector4 color::to_vector4() const
+    {
+        return {red, green, blue, alpha};
     }
     int color::to_int() const
     {
@@ -773,7 +781,7 @@ namespace maui::graphics
     }
 
     // ---- HSL accessors / modifiers ----
-    void color::to_hsl(float &h, float &s, float &l) const
+    void color::to_hsl(float& h, float& s, float& l) const
     {
         const float r = red;
         const float g = green;
