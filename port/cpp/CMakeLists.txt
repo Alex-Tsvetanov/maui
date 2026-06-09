@@ -88,6 +88,9 @@ add_library(maui_graphics STATIC
   src/graphics/path_f.cpp
   src/graphics/path_builder.cpp
   src/graphics/solid_paint.cpp
+  src/graphics/gradient_paint.cpp
+  src/graphics/linear_gradient_paint.cpp
+  src/graphics/radial_gradient_paint.cpp
   src/graphics/shapes/round_rectangle.cpp
 )
 target_include_directories(maui_graphics PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -110,6 +113,7 @@ add_executable(maui_graphics_tests
   tests/graphics/path_builder_tests.cpp
   tests/graphics/numerics_tests.cpp
   tests/graphics/round_rectangle_tests.cpp
+  tests/graphics/gradient_paint_tests.cpp
 )
 target_link_libraries(maui_graphics_tests PRIVATE
   maui_graphics

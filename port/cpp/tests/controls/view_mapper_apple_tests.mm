@@ -26,9 +26,12 @@
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
+#include "maui/graphics/gradient_stop.hpp"
 #include "maui/graphics/i_shape.hpp"
+#include "maui/graphics/linear_gradient_paint.hpp"
 #include "maui/graphics/paint.hpp"
 #include "maui/graphics/point.hpp"
+#include "maui/graphics/radial_gradient_paint.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/shapes/ellipse.hpp"
 #include "maui/graphics/shapes/rectangle.hpp"
@@ -434,5 +437,228 @@ namespace
 
         apply_clip((__bridge void*)view, nullptr, maui::graphics::rect(0, 0, 50, 20));
         EXPECT_EQ(view.layer.mask, nil);
+    }
+
+    // ---- gradient backgrounds (apply_background with linear/radial gradient paints) ----
+
+    using maui::graphics::gradient_stop;
+    using maui::graphics::linear_gradient_paint;
+    using maui::graphics::radial_gradient_paint;
+
+    // Count the gradient sublayers apply_background installed (tagged by name) on a view's layer.
+    int gradient_layer_count(NSView* view)
+    {
+        int count = 0;
+        NSArray<CALayer*>* const sublayers = view.layer.sublayers;
+        for (NSUInteger i = 0; i < sublayers.count; i++)
+        {
+            if ([sublayers[i].name isEqualToString:@"maui.background.gradient"])
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    // Locate the CAGradientLayer apply_background installs as a sublayer (tagged by name).
+    CAGradientLayer* find_gradient_layer(NSView* view)
+    {
+        NSArray<CALayer*>* const sublayers = view.layer.sublayers;
+        for (NSUInteger i = 0; i < sublayers.count; i++)
+        {
+            CALayer* const sub = sublayers[i];
+            if ([sub isKindOfClass:[CAGradientLayer class]] && [sub.name isEqualToString:@"maui.background.gradient"])
+            {
+                return static_cast<CAGradientLayer*>(sub);
+            }
+        }
+        return nil;
+    }
+
+    // sRGB component readback of a CGColor in a gradient layer's colors[] (the layer stores CGColorRefs).
+    NSColor* srgb_of(id cg_color)
+    {
+        NSColor* const c = [NSColor colorWithCGColor:(__bridge CGColorRef)cg_color];
+        return [c colorUsingColorSpace:NSColorSpace.sRGBColorSpace];
+    }
+
+    // A linear gradient installs an axial CAGradientLayer carrying the start/end points, the stop colors,
+    // and the stop offsets as locations; the layer is sized to the view bounds.
+    TEST_F(apple_view_mapper, apply_background_linear_gradient_installs_axial_layer)
+    {
+        NSView* const view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 100, 40)];
+        view.wantsLayer = YES;
+        const linear_gradient_paint paint{
+            std::vector<gradient_stop>{gradient_stop(0.0F, maui::graphics::color{1.0F, 0.0F, 0.0F, 1.0F}),
+                                       gradient_stop(1.0F, maui::graphics::color{0.0F, 0.0F, 1.0F, 1.0F})},
+            maui::graphics::point(0, 0), maui::graphics::point(1, 1)};
+        apply_background((__bridge void*)view, &paint);
+
+        CAGradientLayer* const gradient = find_gradient_layer(view);
+        ASSERT_NE(gradient, nil);
+        EXPECT_TRUE([gradient.type isEqualToString:kCAGradientLayerAxial]);
+        EXPECT_DOUBLE_EQ(gradient.startPoint.x, 0.0);
+        EXPECT_DOUBLE_EQ(gradient.startPoint.y, 0.0);
+        EXPECT_DOUBLE_EQ(gradient.endPoint.x, 1.0);
+        EXPECT_DOUBLE_EQ(gradient.endPoint.y, 1.0);
+        // sized to the backing layer bounds
+        EXPECT_DOUBLE_EQ(gradient.frame.size.width, 100.0);
+        EXPECT_DOUBLE_EQ(gradient.frame.size.height, 40.0);
+
+        ASSERT_EQ(gradient.colors.count, 2U);
+        NSColor* const first = srgb_of(gradient.colors[0]);
+        NSColor* const last = srgb_of(gradient.colors[1]);
+        EXPECT_NEAR(first.redComponent, 1.0, 1e-4);
+        EXPECT_NEAR(first.blueComponent, 0.0, 1e-4);
+        EXPECT_NEAR(last.redComponent, 0.0, 1e-4);
+        EXPECT_NEAR(last.blueComponent, 1.0, 1e-4);
+
+        ASSERT_EQ(gradient.locations.count, 2U);
+        EXPECT_FLOAT_EQ(gradient.locations[0].floatValue, 0.0F);
+        EXPECT_FLOAT_EQ(gradient.locations[1].floatValue, 1.0F);
+
+        // the base layer color is cleared while a gradient is active
+        EXPECT_EQ(view.layer.backgroundColor, nullptr);
+    }
+
+    // A radial gradient installs a radial CAGradientLayer with the center as startPoint, the computed
+    // endPoint, and cornerRadius == radius.
+    TEST_F(apple_view_mapper, apply_background_radial_gradient_installs_radial_layer)
+    {
+        NSView* const view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 80, 60)];
+        view.wantsLayer = YES;
+        const radial_gradient_paint paint{
+            std::vector<gradient_stop>{gradient_stop(0.0F, maui::graphics::color{0.0F, 1.0F, 0.0F, 1.0F}),
+                                       gradient_stop(1.0F, maui::graphics::color{0.0F, 0.0F, 0.0F, 1.0F})},
+            maui::graphics::point(0.5, 0.5), 0.5};
+        apply_background((__bridge void*)view, &paint);
+
+        CAGradientLayer* const gradient = find_gradient_layer(view);
+        ASSERT_NE(gradient, nil);
+        EXPECT_TRUE([gradient.type isEqualToString:kCAGradientLayerRadial]);
+        EXPECT_DOUBLE_EQ(gradient.startPoint.x, 0.5);
+        EXPECT_DOUBLE_EQ(gradient.startPoint.y, 0.5);
+        // GetRadialGradientPaintEndPoint(center 0.5, radius 0.5) -> (1.0, 1.0), clamped to [0,1].
+        EXPECT_DOUBLE_EQ(gradient.endPoint.x, 1.0);
+        EXPECT_DOUBLE_EQ(gradient.endPoint.y, 1.0);
+        EXPECT_DOUBLE_EQ(gradient.cornerRadius, 0.5);
+        ASSERT_EQ(gradient.colors.count, 2U);
+    }
+
+    // A transparent stop borrows its neighbor's color at alpha 0 (PaintExtensions GetCAGradientLayerColors).
+    TEST_F(apple_view_mapper, apply_background_transparent_stop_borrows_neighbor_color)
+    {
+        NSView* const view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 100, 40)];
+        view.wantsLayer = YES;
+        const linear_gradient_paint paint{
+            std::vector<gradient_stop>{gradient_stop(0.0F, maui::graphics::color{1.0F, 0.0F, 0.0F, 1.0F}),
+                                       gradient_stop(1.0F, maui::graphics::colors::transparent)}};
+        apply_background((__bridge void*)view, &paint);
+
+        CAGradientLayer* const gradient = find_gradient_layer(view);
+        ASSERT_NE(gradient, nil);
+        ASSERT_EQ(gradient.colors.count, 2U);
+        // The transparent (index 1) stop borrows the red (index 0) hue at alpha 0.
+        NSColor* const borrowed = srgb_of(gradient.colors[1]);
+        EXPECT_NEAR(borrowed.redComponent, 1.0, 1e-4);
+        EXPECT_NEAR(borrowed.alphaComponent, 0.0, 1e-4);
+    }
+
+    // A single transparent stop must not read a non-existent neighbor (C# would index out of range; the
+    // C++ port keeps the stop's own transparent color). Regression guard for the one-stop borrow path.
+    TEST_F(apple_view_mapper, apply_background_single_transparent_stop_is_safe)
+    {
+        NSView* const view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 100, 40)];
+        view.wantsLayer = YES;
+        const linear_gradient_paint paint{
+            std::vector<gradient_stop>{gradient_stop(0.0F, maui::graphics::colors::transparent)}};
+        apply_background((__bridge void*)view, &paint); // must not crash / read OOB
+
+        CAGradientLayer* const gradient = find_gradient_layer(view);
+        ASSERT_NE(gradient, nil);
+        ASSERT_EQ(gradient.colors.count, 1U);
+        NSColor* const only = srgb_of(gradient.colors[0]);
+        EXPECT_NEAR(only.alphaComponent, 0.0, 1e-4); // the stop's own transparent color
+    }
+
+    // With more than one stop where all offsets are zero, locations spread evenly (1/count steps).
+    TEST_F(apple_view_mapper, apply_background_locations_even_spread_when_all_offsets_zero)
+    {
+        NSView* const view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 100, 40)];
+        view.wantsLayer = YES;
+        const linear_gradient_paint paint{
+            std::vector<gradient_stop>{gradient_stop(0.0F, maui::graphics::color{1.0F, 0.0F, 0.0F, 1.0F}),
+                                       gradient_stop(0.0F, maui::graphics::color{0.0F, 0.0F, 1.0F, 1.0F})}};
+        apply_background((__bridge void*)view, &paint);
+
+        CAGradientLayer* const gradient = find_gradient_layer(view);
+        ASSERT_NE(gradient, nil);
+        ASSERT_EQ(gradient.locations.count, 2U);
+        // step = 1/2 = 0.5; index 0 -> 0.0, index 1 -> 0.5.
+        EXPECT_FLOAT_EQ(gradient.locations[0].floatValue, 0.0F);
+        EXPECT_FLOAT_EQ(gradient.locations[1].floatValue, 0.5F);
+    }
+
+    // Re-applying a gradient replaces the prior one (no stale duplicate sublayers).
+    TEST_F(apple_view_mapper, apply_background_gradient_replaces_previous_gradient)
+    {
+        NSView* const view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 100, 40)];
+        view.wantsLayer = YES;
+        const linear_gradient_paint first{maui::graphics::point(0, 0), maui::graphics::point(1, 0)};
+        apply_background((__bridge void*)view, &first);
+        const radial_gradient_paint second;
+        apply_background((__bridge void*)view, &second);
+
+        EXPECT_EQ(gradient_layer_count(view), 1); // replaced, not stacked
+        EXPECT_TRUE([find_gradient_layer(view).type isEqualToString:kCAGradientLayerRadial]);
+    }
+
+    // Switching from a gradient to a solid paint removes the gradient sublayer and sets the base color.
+    TEST_F(apple_view_mapper, apply_background_solid_after_gradient_clears_gradient)
+    {
+        NSView* const view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 100, 40)];
+        view.wantsLayer = YES;
+        const linear_gradient_paint gradient;
+        apply_background((__bridge void*)view, &gradient);
+        ASSERT_NE(find_gradient_layer(view), nil);
+
+        const maui::graphics::solid_paint solid{maui::graphics::colors::red};
+        apply_background((__bridge void*)view, &solid);
+        EXPECT_EQ(find_gradient_layer(view), nil);      // gradient sublayer removed
+        ASSERT_NE(view.layer.backgroundColor, nullptr); // solid color set on the base layer
+    }
+
+    // A null paint after a gradient removes the gradient sublayer and clears the base color.
+    TEST_F(apple_view_mapper, apply_background_null_after_gradient_clears_everything)
+    {
+        NSView* const view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 100, 40)];
+        view.wantsLayer = YES;
+        const radial_gradient_paint gradient;
+        apply_background((__bridge void*)view, &gradient);
+        ASSERT_NE(find_gradient_layer(view), nil);
+
+        apply_background((__bridge void*)view, nullptr);
+        EXPECT_EQ(find_gradient_layer(view), nil);
+        EXPECT_EQ(view.layer.backgroundColor, nullptr);
+    }
+
+    // End-to-end through a control: a gradient set on the control reaches the NSButton's backing layer as a
+    // CAGradientLayer (the existing update_background retrofit calls apply_background; gradients now flow).
+    TEST_F(apple_view_mapper, control_gradient_background_reaches_the_layer)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        NSButton* const view = native_button(handler);
+
+        control.set_background(std::make_shared<linear_gradient_paint>(
+            std::vector<gradient_stop>{gradient_stop(0.0F, maui::graphics::color{1.0F, 0.0F, 0.0F, 1.0F}),
+                                       gradient_stop(1.0F, maui::graphics::color{0.0F, 0.0F, 1.0F, 1.0F})},
+            maui::graphics::point(0, 0), maui::graphics::point(1, 1)));
+
+        EXPECT_TRUE(view.wantsLayer);
+        CAGradientLayer* const gradient = find_gradient_layer(view);
+        ASSERT_NE(gradient, nil); // the gradient reached the layer through the retrofit override
+        EXPECT_EQ(gradient.colors.count, 2U);
     }
 } // namespace
