@@ -154,7 +154,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/image_source_services.mm
     src/platform/apple/layout_handler.mm
     src/platform/apple/content_page_handler.mm
-    src/platform/apple/navigation_page_handler.mm)
+    src/platform/apple/navigation_page_handler.mm
+    src/platform/apple/window_handler.mm)
   set_source_files_properties(${MAUI_CORE_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
   set(MAUI_CORE_PLATFORM_SOURCES
@@ -165,7 +166,8 @@ else()
     src/platform/headless/image_source_services.cpp
     src/platform/headless/layout_handler.cpp
     src/platform/headless/content_page_handler.cpp
-    src/platform/headless/navigation_page_handler.cpp)
+    src/platform/headless/navigation_page_handler.cpp
+    src/platform/headless/window_handler.cpp)
 endif()
 
 add_library(maui_core STATIC
@@ -190,6 +192,7 @@ add_library(maui_core STATIC
   src/core/layout_handler.cpp
   src/core/content_page_handler.cpp
   src/core/navigation_page_handler.cpp
+  src/core/window_handler.cpp
   src/core/grid_length.cpp
   ${MAUI_CORE_PLATFORM_SOURCES}
 )
@@ -276,6 +279,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/grid_apple_tests.mm
     tests/controls/content_page_apple_tests.mm
     tests/controls/navigation_page_apple_tests.mm
+    tests/controls/window_apple_tests.mm
     tests/controls/style_tests.cpp   # backend-agnostic; compiled as C++ within the apple test exe
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
@@ -295,6 +299,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/grid_apple_tests.mm
     tests/controls/content_page_apple_tests.mm
     tests/controls/navigation_page_apple_tests.mm
+    tests/controls/window_apple_tests.mm
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
   add_executable(maui_controls_tests
@@ -333,11 +338,18 @@ if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     OBJCXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
 
-# ---- Sample app (macOS only): a real NSWindow hosting the cross-platform button ----
+# ---- Sample apps (macOS only) ----
 if(MAUI_BACKEND STREQUAL "apple")
+  # A real NSWindow hosting the cross-platform button (the M2 seam).
   add_executable(maui_button_sample src/samples/button_sample.mm)
   set_source_files_properties(src/samples/button_sample.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
   target_link_libraries(maui_button_sample PRIVATE maui_controls maui_sanitizers)
+
+  # The full Application → Window → ContentPage → Button slice, opened via app.open_window (the M5c
+  # native NSWindow host: window_handler sets the NSWindow contentView to the page's native view).
+  add_executable(maui_app_sample src/samples/maui_app_sample.mm)
+  set_source_files_properties(src/samples/maui_app_sample.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+  target_link_libraries(maui_app_sample PRIVATE maui_controls maui_sanitizers)
 endif()
 
 # ======================================================================
