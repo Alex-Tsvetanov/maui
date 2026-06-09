@@ -6,6 +6,7 @@
 // whose handler owns a real NSView host (its native_view()), so the container hosts that. Compiled as
 // Objective-C++ with ARC for the `apple` backend.
 #import <AppKit/AppKit.h>
+#import <QuartzCore/QuartzCore.h>
 
 #include <memory>
 #include <string>
@@ -14,6 +15,7 @@
 #include "maui/controls/navigation_page.hpp"
 #include "maui/core/content_page_handler.hpp"
 #include "maui/core/navigation_page_handler.hpp"
+#include "maui/graphics/color.hpp"
 #include "maui/graphics/rect.hpp"
 #include <gtest/gtest.h>
 
@@ -311,5 +313,77 @@ namespace
         EXPECT_EQ(page_frame.origin.y, 0.0);
         EXPECT_EQ(page_frame.size.width, 200.0);
         EXPECT_EQ(page_frame.size.height, 76.0);
+    }
+
+    // ---- bar styling: BarBackgroundColor paints the bar's layer; BarTextColor colors the title; a TitleView
+    // is hosted in the bar instead of the label (C# NavigationPage Bar*Color / TitleView). ----
+
+    TEST_F(apple_navigation_page_seam, bar_background_color_paints_the_bar_layer)
+    {
+        content_page root;
+        attach_page(root);
+        auto handler = std::make_shared<navigation_page_handler>();
+        navigation_page nav(root);
+        nav.set_handler(handler);
+
+        // Unset by default -> the bar keeps its system default (no layer background color).
+        NSView* const bar = native_bar(handler);
+        EXPECT_EQ(bar.layer.backgroundColor, nullptr);
+
+        nav.set_bar_background_color(maui::graphics::color::from_rgb(10, 20, 30));
+        CGColorRef painted_cg = bar.layer.backgroundColor; // capture once (re-reads are nullable)
+        ASSERT_NE(painted_cg, nullptr);
+        // The painted CGColor matches the requested color. Read it back through an sRGB NSColor (named
+        // component accessors, no raw CGColorGetComponents pointer indexing).
+        NSColor* const painted =
+            [[NSColor colorWithCGColor:painted_cg] colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
+        ASSERT_NE(painted, nil);
+        EXPECT_NEAR(painted.redComponent, 10.0 / 255.0, 0.01);
+        EXPECT_NEAR(painted.greenComponent, 20.0 / 255.0, 0.01);
+        EXPECT_NEAR(painted.blueComponent, 30.0 / 255.0, 0.01);
+    }
+
+    TEST_F(apple_navigation_page_seam, bar_text_color_colors_the_title)
+    {
+        content_page root;
+        attach_page(root);
+        root.set_title("Root");
+        auto handler = std::make_shared<navigation_page_handler>();
+        navigation_page nav(root);
+        nav.set_handler(handler);
+
+        nav.set_bar_text_color(maui::graphics::color::from_rgb(200, 0, 0));
+        NSColor* const text_color = native_title(handler).textColor;
+        ASSERT_NE(text_color, nil);
+        NSColor* const srgb = [text_color colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
+        EXPECT_NEAR(srgb.redComponent, 200.0 / 255.0, 0.01);
+        EXPECT_NEAR(srgb.greenComponent, 0.0, 0.01);
+        EXPECT_NEAR(srgb.blueComponent, 0.0, 0.01);
+    }
+
+    TEST_F(apple_navigation_page_seam, title_view_is_hosted_in_the_bar_instead_of_the_label)
+    {
+        content_page root;
+        attach_page(root);
+        root.set_title("Root");
+        content_page title_page; // a stand-in view; its native NSView is hosted in the bar
+        NSView* const title_native = attach_page(title_page);
+        auto handler = std::make_shared<navigation_page_handler>();
+        navigation_page nav(root);
+        nav.set_handler(handler);
+
+        NSTextField* const label = native_title(handler);
+        NSView* const bar = native_bar(handler);
+        EXPECT_FALSE(label.hidden); // the label shows when there is no title view
+
+        nav.set_title_view(&title_page); // host the title view in the bar
+        EXPECT_TRUE(label.hidden);       // the label is hidden in favor of the title view
+        EXPECT_EQ(title_native.superview, bar);
+        EXPECT_EQ(handler->typed_platform_view()->hosted_title_view, &title_page);
+
+        nav.set_title_view(nullptr); // clearing removes the title view + shows the label again
+        EXPECT_FALSE(label.hidden);
+        EXPECT_EQ(title_native.superview, nil);
+        EXPECT_EQ(handler->typed_platform_view()->hosted_title_view, nullptr);
     }
 } // namespace

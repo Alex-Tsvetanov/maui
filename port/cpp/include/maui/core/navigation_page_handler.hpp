@@ -29,6 +29,7 @@
 
 #include <any>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -38,6 +39,7 @@
 #include "maui/core/view_handler.hpp"
 #include "maui/core/view_platform_base.hpp"
 #include "maui/core/visibility.hpp"
+#include "maui/graphics/color.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -66,16 +68,24 @@ namespace maui::core
         // populated from these). bar_title = the current page's Title; back_button_visible = depth > 1.
         std::string bar_title;
         bool back_button_visible = false;
+        // Bar styling mirrors (C# BarBackgroundColor / BarTextColor / TitleView). The colors are nullopt when
+        // the developer never set them (the Apple bar then keeps its system default); when set, the Apple bar
+        // is painted with them. hosted_title_view = the view shown in the bar instead of the title label
+        // (null = the title label). All headless-observable so the seam is testable without a real bar.
+        std::optional<maui::graphics::color> bar_background_color;
+        std::optional<maui::graphics::color> bar_text_color;
+        i_view* hosted_title_view = nullptr;
         // The last navigation request's animated flag (headless-observable; the Apple twin cross-fades the
         // content swap when true). Mirrors NavigationRequest.Animated for the realized transition.
         bool last_animated = false;
 
 #ifdef MAUI_PLATFORM_APPLE
-        void* bar = nullptr;           // the custom bar NSView (subview of the container)
-        void* title_field = nullptr;   // the bar's NSTextField (title)
-        void* back_button = nullptr;   // the bar's back NSButton
-        void* back_target = nullptr;   // the back button's retained target-action trampoline
-        void* modal_overlay = nullptr; // the presented modal's wrapper NSView overlaying the container
+        void* bar = nullptr;             // the custom bar NSView (subview of the container)
+        void* title_field = nullptr;     // the bar's NSTextField (title)
+        void* back_button = nullptr;     // the bar's back NSButton
+        void* back_target = nullptr;     // the back button's retained target-action trampoline
+        void* modal_overlay = nullptr;   // the presented modal's wrapper NSView overlaying the container
+        void* title_view_host = nullptr; // the hosted TitleView's native NSView (retained while in the bar)
 
         // Apple backend: push the generic IView properties to the NSView container (defined in
         // src/platform/apple/navigation_page_handler.mm). is_enabled is intentionally NOT overridden — a
@@ -119,6 +129,14 @@ namespace maui::core
         // Overlay (or clear) the top modal's native view on top of the whole container. `top_modal` is the
         // modal request's last page (top-most modal), or null to clear the overlay.
         void host_modal(i_view* top_modal, bool animated);
+
+#ifdef MAUI_PLATFORM_APPLE
+        // Host (or clear) the bar's TitleView (C# NavigationPage.TitleView): when set, hide the title label
+        // and add the title view's native NSView to the bar; when null, remove the previously-hosted title
+        // view and show the label again. Apple-only (the headless platform mirrors the pointer in
+        // host_current). Static-free member so it can be called from host_current; takes the platform slot.
+        static void host_title_view(navigation_page_platform& platform, i_view* title_view);
+#endif
 
         // The "request_navigation" COMMAND (C# MapRequestNavigation / Handler.Invoke(RequestNavigation)):
         // read the request's top-most page, re-host it, update the bar, and report completion. Payload =

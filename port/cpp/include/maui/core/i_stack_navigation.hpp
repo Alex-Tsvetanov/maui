@@ -25,10 +25,12 @@
 // derives i_view via its view<> base, so it just additionally derives this contract — no separate
 // combined interface is needed at this layer.
 
+#include <optional>
 #include <string_view>
 #include <vector>
 
 #include "maui/core/navigation_request.hpp"
+#include "maui/graphics/color.hpp"
 
 namespace maui::core
 {
@@ -54,6 +56,18 @@ namespace maui::core
         // Whether the bar shows a back button — C# IToolbar.BackButtonVisible, driven by
         // NavigationPageController.StackDepth > 1 (back is shown only above the root page).
         [[nodiscard]] virtual bool navigation_back_button_visible() const = 0;
+
+        // ---- bar styling (C# NavigationPage BarBackgroundColor / BarTextColor / TitleView) ----
+        // The bar's background color (C# IBarElement.BarBackgroundColor). nullopt when unset — the handler
+        // then leaves the bar's system default color (matching C#'s default(Color) = null). When set, the
+        // handler paints the custom bar with it.
+        [[nodiscard]] virtual std::optional<maui::graphics::color> navigation_bar_background_color() const = 0;
+        // The bar's text (title) color (C# IBarElement.BarTextColor). nullopt when unset (system default).
+        [[nodiscard]] virtual std::optional<maui::graphics::color> navigation_bar_text_color() const = 0;
+        // A view to show in the bar INSTEAD of the title label (C# NavigationPage.TitleView, an attached
+        // property the toolbar surfaces). Non-owning; null when none — the bar then shows the title label.
+        // The handler hosts this view's native view in the bar.
+        [[nodiscard]] virtual i_view* navigation_bar_title_view() const = 0;
 
         // The bar's back button (and a hardware back press) routes here — C# NavigationPage.
         // OnBackButtonPressed: pop the current page when above the root and report handled (true), else

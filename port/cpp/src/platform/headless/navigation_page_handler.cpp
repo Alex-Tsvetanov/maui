@@ -40,11 +40,14 @@ namespace maui::core
         platform->hosted_page = top;
         platform->last_animated = animated;
         // Refresh the bar chrome from the view's navigation state (the Apple build populates a real
-        // NSTextField + back NSButton from these).
+        // NSTextField + back NSButton from these, paints the bar background, and hosts the title view).
         if (auto* navigation = dynamic_cast<i_stack_navigation*>(&view))
         {
             platform->bar_title = std::string(navigation->navigation_bar_title());
             platform->back_button_visible = navigation->navigation_back_button_visible();
+            platform->bar_background_color = navigation->navigation_bar_background_color();
+            platform->bar_text_color = navigation->navigation_bar_text_color();
+            platform->hosted_title_view = navigation->navigation_bar_title_view();
         }
     }
 

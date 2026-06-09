@@ -6,6 +6,7 @@
 
 #include "maui/controls/window.hpp"
 #include "maui/core/app_theme.hpp"
+#include "maui/core/i_window.hpp"
 
 namespace maui::controls
 {
@@ -35,6 +36,25 @@ namespace maui::controls
         value.send_destroying();                 // Deactivates (page Disappears + Unloads) then destroys
         value.set_resume_hook(nullptr, nullptr); // drop the back-reference to this app
         windows_.erase(it);
+    }
+
+    // The i_application overrides: the cross-platform i_window& face down-casts to the concrete window this
+    // application manages (every window opened here is a maui::controls::window), then routes to the concrete
+    // overload. A non-window i_window (none exist at this layer) is ignored.
+    void application::open_window(maui::core::i_window& value)
+    {
+        if (auto* concrete = dynamic_cast<window*>(&value))
+        {
+            open_window(*concrete);
+        }
+    }
+
+    void application::close_window(maui::core::i_window& value)
+    {
+        if (auto* concrete = dynamic_cast<window*>(&value))
+        {
+            close_window(*concrete);
+        }
     }
 
     void application::send_start()

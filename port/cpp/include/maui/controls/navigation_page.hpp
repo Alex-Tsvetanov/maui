@@ -20,15 +20,27 @@
 //     the handler overlays the modal's native view (popping restores the underlying page).
 //   - STACK EDITS: insert_page_before / remove_page (INavigation) port MauiNavigationImpl.
 //     OnInsertPageBefore / OnRemovePage (incl. removing the current page routes through pop()).
-//   - Shell, BarBackground/BarTextColor styling, TitleView, hardware-back Page.SendBackButtonPressed,
-//     and overlapping-navigation queueing remain DEFERRED (documented in PROJECT/STATUS).
+//   - BAR STYLING: bar_background_color / bar_text_color (bindable, C# IBarElement.BarBackgroundColor /
+//     BarTextColor) + title_view (non-owning i_view*, C# NavigationPage.TitleView) reach the handler's bar
+//     via the i_stack_navigation chrome getters (read in host_current, like the title/back-button state);
+//     a change without a push/pop re-issues the navigation request so the bar refreshes.
+//   - NAVIGATION EVENTS: pushed / popped / popped_to_root + navigating / navigated fire in C#'s order
+//     around push/pop/pop_to_root (NavigationPage.cs Pushed/Popped/PoppedToRoot + SendNavigating/
+//     SendNavigated): navigating BEFORE the stack mutation; pushed/popped/popped_to_root + navigated AFTER
+//     RequestNavigation (see ORDER below).
+//   - Shell, BarBackground (Brush), hardware-back Page.SendBackButtonPressed, and overlapping-navigation
+//     queueing remain DEFERRED (documented in PROJECT/STATUS).
 //
 // ORDER (NavigationPage.cs MauiNavigationImpl.OnPushAsync/OnPopAsync/OnPopToRootAsync via
-// SendHandlerUpdateAsync): mutate the stack + set the new current page, then fire FireDisappearing(prev)
-// + FireAppearing(new) — BOTH before RequestNavigation — then RequestNavigation(stack); the handler does
-// the native transition and (here synchronously) calls navigation_finished. We collapse C#'s async
-// machinery (semaphore / TaskCompletionSource / overlapping-request queue) to a synchronous single
-// transition: there is no overlap to guard, and the AppKit NSView swap completes inline.
+// SendHandlerUpdateAsync): SendNavigating (BEFORE the stack mutation, on the page navigating away), then
+// mutate the stack + set the new current page, then fire FireDisappearing(prev) + FireAppearing(new) —
+// BOTH before RequestNavigation — then RequestNavigation(stack); the handler does the native transition and
+// (here synchronously) calls navigation_finished; finally SendNavigated + the Pushed/Popped/PoppedToRoot
+// event fire (AFTER the transition). We collapse C#'s async machinery (semaphore / TaskCompletionSource /
+// overlapping-request queue) to a synchronous single transition: there is no overlap to guard, and the
+// AppKit NSView swap completes inline. The port surfaces navigating/navigated as navigation_page events
+// carrying the relevant page (Page-level NavigatingFrom/NavigatedTo/NavigatedFrom plumbing on content_page
+// is not modeled at this layer — the events fire at C#'s SendNavigating/SendNavigated call points).
 //
 // MODAL ORDER (NavigationModel.PushModal/PopModal): push_modal — previousVisible.SendDisappearing() then
 // modal.SendAppearing(); pop_modal — modal.SendDisappearing() then newVisible.SendAppearing(). The
@@ -44,16 +56,21 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string_view>
 #include <vector>
 
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/element.hpp"
 #include "maui/controls/view.hpp"
+#include "maui/core/bindable_property.hpp"
+#include "maui/core/event.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_stack_navigation.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/navigation_request.hpp"
+#include "maui/core/property.hpp"
+#include "maui/graphics/color.hpp"
 
 namespace maui::controls
 {
@@ -94,6 +111,30 @@ namespace maui::controls
         {
             return modal_stack_;
         }
+
+        // Shared bindable-property descriptors for the bar styling (one instance per type, like
+        // NavigationPage.Bar*Property). Defaults to an unset (default-constructed) color; "set vs unset" is
+        // tracked separately so the handler can leave the system default when unset (C# default(Color) = null).
+        static const maui::core::bindable_property<maui::graphics::color>& bar_background_color_property();
+        static const maui::core::bindable_property<maui::graphics::color>& bar_text_color_property();
+
+        // ---- navigation events (C# NavigationPage Pushed / Popped / PoppedToRoot + the Navigating/
+        // Navigated seam) ----
+        // C# NavigationPage.Pushed — fired AFTER a successful push, with the pushed page (NavigationEventArgs).
+        maui::core::event<content_page*> pushed;
+        // C# NavigationPage.Popped — fired AFTER a successful pop, with the popped page.
+        maui::core::event<content_page*> popped;
+        // C# NavigationPage.PoppedToRoot — fired AFTER pop_to_root, with the root page now current and the
+        // list of popped pages (PoppedToRootEventArgs.PoppedPages — the pages that were above the root, in
+        // stack order bottom→top).
+        maui::core::event<content_page*, std::vector<content_page*>> popped_to_root;
+        // The C# SendNavigating seam (Page.SendNavigatingFrom): fired BEFORE the stack mutation, carrying the
+        // page being navigated away from (the previous current page). At this layer it is a navigation_page
+        // event (content_page has no NavigatingFrom plumbing) — see the header note.
+        maui::core::event<content_page*> navigating;
+        // The C# SendNavigated seam (Page.SendNavigatedFrom/To): fired AFTER the transition, carrying the
+        // previous page navigated away from. The new current page is current_page().
+        maui::core::event<content_page*> navigated;
 
         // C# NavigationPage.PushAsync (MauiNavigationImpl.OnPushAsync): push `page` onto the stack and
         // make it current. Pushing a page already on the stack is a no-op (C#: InternalChildren.Contains).
@@ -150,6 +191,38 @@ namespace maui::controls
         // button without knowing this concrete type.
         bool send_back_button_pressed() override;
 
+        // ---- bar styling (C# NavigationPage.BarBackgroundColor / BarTextColor / TitleView) ----
+        // The bar's background color (C# BarBackgroundColor). The getter returns the property value (the
+        // default-constructed color when unset); navigation_bar_background_color() returns nullopt when
+        // unset so the handler keeps the system default.
+        [[nodiscard]] maui::graphics::color bar_background_color() const
+        {
+            return bar_background_color_.get();
+        }
+        void set_bar_background_color(maui::graphics::color value)
+        {
+            bar_background_color_set_ = true;
+            bar_background_color_.set(value); // routes through on_property_changed → refresh the bar
+        }
+        // The bar's text/title color (C# BarTextColor).
+        [[nodiscard]] maui::graphics::color bar_text_color() const
+        {
+            return bar_text_color_.get();
+        }
+        void set_bar_text_color(maui::graphics::color value)
+        {
+            bar_text_color_set_ = true;
+            bar_text_color_.set(value);
+        }
+        // A view shown in the bar INSTEAD of the title label (C# NavigationPage.TitleView). NON-owning — the
+        // caller owns its lifetime (PROFILE §8); null clears it (the title label returns). Setting it
+        // re-issues the navigation request so the handler hosts (or clears) the title view in the bar.
+        [[nodiscard]] maui::core::i_view* title_view() const
+        {
+            return title_view_;
+        }
+        void set_title_view(maui::core::i_view* value);
+
         // ---- i_stack_navigation chrome getters (the handler reads these to build the bar) ----
         [[nodiscard]] std::string_view navigation_bar_title() const override
         {
@@ -158,6 +231,20 @@ namespace maui::controls
         [[nodiscard]] bool navigation_back_button_visible() const override
         {
             return back_button_visible();
+        }
+        // The bar styling the handler applies: nullopt when the developer never set the color (so the bar
+        // keeps its system default — C# null), else the set color.
+        [[nodiscard]] std::optional<maui::graphics::color> navigation_bar_background_color() const override
+        {
+            return bar_background_color_set_ ? std::optional{bar_background_color_.get()} : std::nullopt;
+        }
+        [[nodiscard]] std::optional<maui::graphics::color> navigation_bar_text_color() const override
+        {
+            return bar_text_color_set_ ? std::optional{bar_text_color_.get()} : std::nullopt;
+        }
+        [[nodiscard]] maui::core::i_view* navigation_bar_title_view() const override
+        {
+            return title_view_;
         }
 
         // ---- i_element (override to host the current page once a handler attaches) ----
@@ -186,6 +273,12 @@ namespace maui::controls
             }
         }
 
+        // A bar-color change (bar_background_color / bar_text_color) has no PROPERTY map on the navigation
+        // handler (the bar is driven by the navigation COMMAND that reads the chrome state, like the title /
+        // back button), so after the base routes the change, re-issue the navigation request so host_current
+        // re-reads + re-applies the bar styling. Other properties fall through to the view<> base only.
+        void on_property_changed(std::string_view name) override;
+
     private:
         // Make `root` the initial current page + appear it (stands in for the window). Used by the
         // root-ctor and by the first push onto an empty stack.
@@ -212,5 +305,13 @@ namespace maui::controls
 
         std::vector<content_page*> stack_;       // NON-owning: the caller owns the pages' lifetime
         std::vector<content_page*> modal_stack_; // NON-owning: the modal overlay stack
+        // Bar styling (C# BarBackgroundColor / BarTextColor / TitleView). The colors are bindable; the *_set_
+        // flags track "was the developer color ever set" so the handler leaves the system default when unset
+        // (C# default(Color) = null). title_view is NON-owning (the caller owns it).
+        maui::core::property<maui::graphics::color> bar_background_color_{*this, bar_background_color_property()};
+        maui::core::property<maui::graphics::color> bar_text_color_{*this, bar_text_color_property()};
+        maui::core::i_view* title_view_ = nullptr;
+        bool bar_background_color_set_ = false;
+        bool bar_text_color_set_ = false;
     };
 } // namespace maui::controls

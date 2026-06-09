@@ -12,19 +12,37 @@
 
 #include <algorithm>
 #include <memory>
+#include <string_view>
 #include <utility>
 #include <vector>
 
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/view.hpp"
+#include "maui/core/bindable_property.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/navigation_page_handler.hpp"
 #include "maui/core/navigation_request.hpp"
+#include "maui/graphics/color.hpp"
 
 namespace maui::controls
 {
+    // Shared bindable-property descriptors for the bar styling (C# NavigationPage.BarBackgroundColorProperty /
+    // BarTextColorProperty). One instance per type; the default is an unset (default-constructed) color — the
+    // navigation_page's *_set_ flag distinguishes "never set" so the handler keeps the system default.
+    const maui::core::bindable_property<maui::graphics::color>& navigation_page::bar_background_color_property()
+    {
+        static const maui::core::bindable_property<maui::graphics::color> descriptor{"bar_background_color"};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<maui::graphics::color>& navigation_page::bar_text_color_property()
+    {
+        static const maui::core::bindable_property<maui::graphics::color> descriptor{"bar_text_color"};
+        return descriptor;
+    }
+
     std::vector<maui::core::i_view*> navigation_page::as_views(const std::vector<content_page*>& pages)
     {
         std::vector<maui::core::i_view*> views;
@@ -71,19 +89,26 @@ namespace maui::controls
         {
             return;
         }
-        if (stack_.empty())
+
+        // C# PushAsync → OnPushAsync fires events even for the first page (unlike the NavigationPage(root)
+        // ctor, which calls PushPage directly with no events — that path is push_initial). previousPage =
+        // CurrentPage (null for an empty stack); SendNavigating with a null page is a no-op in C#.
+        content_page* const previous = current_page();
+
+        // C# OnPushAsync processStackChanges: SendNavigating(navType, previousPage) is fired FIRST, before
+        // the stack is modified (so event ordering is consistent across platforms).
+        if (previous != nullptr)
         {
-            push_initial(page);
-            return;
+            navigating.raise(previous);
         }
 
-        content_page* const previous = current_page();
         // C# PushPage(root): the new page becomes the top-most (and CurrentPage).
         stack_.push_back(&page);
         attach_logical_child(page); // inherit this nav page's BindingContext + Window
 
         // C# OnPushAsync firePostNavigatingEvents: FireDisappearing(previous) + FireAppearing(new), both
-        // fired BEFORE RequestNavigation.
+        // fired BEFORE RequestNavigation. (On the first page the navigation_page stands in for the window and
+        // appears the new page; there is no previous to disappear.)
         if (previous != nullptr)
         {
             previous->send_disappearing();
@@ -91,6 +116,11 @@ namespace maui::controls
         page.send_appearing();
 
         notify_request_navigation(animated);
+
+        // C# OnPushAsync fireNavigatedEvents: SendNavigated(previousPage) then Pushed.Invoke(root) — AFTER
+        // the transition.
+        navigated.raise(previous);
+        pushed.raise(&page);
     }
 
     content_page* navigation_page::pop(bool animated)
@@ -104,7 +134,9 @@ namespace maui::controls
         content_page* const current = current_page();
         content_page* const new_current = stack_[stack_.size() - 2];
 
-        // C# OnPopAsync processStackChanges: FireDisappearing(current) THEN remove + set CurrentPage=new.
+        // C# OnPopAsync processStackChanges: SendNavigating(Pop, currentPage) FIRST, then
+        // FireDisappearing(current), remove, set CurrentPage=new.
+        navigating.raise(current);
         current->send_disappearing();
         stack_.pop_back();
         detach_logical_child(*current); // the popped page leaves the tree (loses Window + inherited context)
@@ -112,6 +144,10 @@ namespace maui::controls
         new_current->send_appearing();
 
         notify_request_navigation(animated);
+
+        // C# OnPopAsync fireNavigatedEvents: SendNavigated(currentPage) then Popped.Invoke(currentPage).
+        navigated.raise(current);
+        popped.raise(current);
         return current;
     }
 
@@ -126,8 +162,14 @@ namespace maui::controls
         content_page* const previous = current_page();
         content_page* const root = root_page();
 
-        // C# OnPopToRootAsync processStackChanges: FireDisappearing(previous) THEN remove every page above
-        // the root + set CurrentPage=root.
+        // C# OnPopToRootAsync builds pagesToRemove = every page above the root, in stack order (bottom→top):
+        // it pops from the top inserting each at index 0, so the result is stack_[1 .. end). Collect it
+        // before erasing, for the PoppedToRoot event arg.
+        const std::vector<content_page*> popped_pages(stack_.begin() + 1, stack_.end());
+
+        // C# OnPopToRootAsync processStackChanges: SendNavigating(PopToRoot, previous) FIRST, then
+        // FireDisappearing(previous), remove every page above the root, set CurrentPage=root.
+        navigating.raise(previous);
         previous->send_disappearing();
         for (auto it = stack_.begin() + 1; it != stack_.end(); ++it)
         {
@@ -138,6 +180,11 @@ namespace maui::controls
         root->send_appearing();
 
         notify_request_navigation(animated);
+
+        // C# OnPopToRootAsync fireNavigatedEvents: SendNavigated(previous) then PoppedToRoot.Invoke(newPage,
+        // pagesToRemove) — newPage is the root now current.
+        navigated.raise(previous);
+        popped_to_root.raise(root, popped_pages);
     }
 
     void navigation_page::push_modal(content_page& page, bool animated)
@@ -249,6 +296,35 @@ namespace maui::controls
             return true;
         }
         return false;
+    }
+
+    void navigation_page::set_title_view(maui::core::i_view* value)
+    {
+        // C# NavigationPage.SetTitleView (the attached TitleView): swap the bar's title view. NON-owning; a
+        // null clears it (the title label returns). Re-issue the navigation request so host_current re-reads
+        // the chrome and hosts (or clears) the title view in the bar. A no-op when unchanged.
+        if (title_view_ == value)
+        {
+            return;
+        }
+        title_view_ = value;
+        if (!stack_.empty())
+        {
+            notify_request_navigation(false); // refresh the bar; the visible page is unchanged (unanimated)
+        }
+    }
+
+    void navigation_page::on_property_changed(std::string_view name)
+    {
+        // Route the change through the view<> base first (generic IView property maps + visual state).
+        view<maui::core::i_view>::on_property_changed(name);
+        // The bar colors have no property map on the navigation handler (the bar is driven by the navigation
+        // COMMAND, which reads the chrome state). Re-issue the navigation request so host_current re-applies
+        // the bar styling. Only do so when there is a stack to host (else there is no bar content yet).
+        if ((name == "bar_background_color" || name == "bar_text_color") && !stack_.empty())
+        {
+            notify_request_navigation(false);
+        }
     }
 
     void navigation_page::notify_request_navigation(bool animated)

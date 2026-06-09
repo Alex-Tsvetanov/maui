@@ -8,6 +8,7 @@
 #include "maui/controls/navigation_page.hpp"
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -16,6 +17,7 @@
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/navigation_page_handler.hpp"
+#include "maui/graphics/color.hpp"
 #include <gtest/gtest.h>
 
 namespace
@@ -643,5 +645,202 @@ namespace
 
         nav.pop_modal(); // the overlay clears
         EXPECT_EQ(platform->hosted_modal, nullptr);
+    }
+
+    // ---- navigation events: Pushed / Popped / PoppedToRoot + the Navigating/Navigated seam, in C#'s order
+    // (NavigationPage.cs MauiNavigationImpl: SendNavigating BEFORE the stack mutation; SendNavigated + the
+    // Pushed/Popped/PoppedToRoot event AFTER RequestNavigation). The port surfaces navigating/navigated as
+    // navigation_page events carrying the relevant page. ----
+
+    TEST(navigation_page_events, push_fires_pushed_with_the_pushed_page)
+    {
+        // C# NavigationUnitTest.TestPushEvent: PushAsync fires Pushed.
+        content_page root;
+        content_page second;
+        navigation_page nav(root);
+
+        content_page* pushed_page = nullptr;
+        int count = 0;
+        nav.pushed.connect([&](content_page* page) {
+            pushed_page = page;
+            ++count;
+        });
+
+        nav.push(second);
+        EXPECT_EQ(count, 1);
+        EXPECT_EQ(pushed_page, &second);
+    }
+
+    TEST(navigation_page_events, push_fires_navigating_before_navigated_and_pushed_after)
+    {
+        // C# OnPushAsync order: SendNavigating (before the stack change + before Disappearing/Appearing),
+        // then the transition, then SendNavigated + Pushed.
+        content_page root;
+        content_page second;
+        navigation_page nav(root);
+
+        std::vector<std::string> transcript;
+        nav.navigating.connect([&transcript](content_page*) { transcript.emplace_back("navigating"); });
+        nav.navigated.connect([&transcript](content_page*) { transcript.emplace_back("navigated"); });
+        nav.pushed.connect([&transcript](content_page*) { transcript.emplace_back("pushed"); });
+        // Trace the lifecycle too so the relative order (navigating < disappearing/appearing < navigated <
+        // pushed) is visible.
+        root.disappearing.connect([&transcript] { transcript.emplace_back("root:disappearing"); });
+        second.appearing.connect([&transcript] { transcript.emplace_back("second:appearing"); });
+
+        nav.push(second);
+
+        EXPECT_EQ(transcript, (std::vector<std::string>{"navigating", "root:disappearing", "second:appearing",
+                                                        "navigated", "pushed"}));
+    }
+
+    TEST(navigation_page_events, pop_fires_popped_and_navigated_after_navigating)
+    {
+        // C# OnPopAsync: SendNavigating(current) first, then the transition, then SendNavigated + Popped.
+        content_page root;
+        content_page second;
+        navigation_page nav(root);
+        nav.push(second);
+
+        std::vector<std::string> transcript;
+        content_page* popped_page = nullptr;
+        nav.navigating.connect([&transcript](content_page*) { transcript.emplace_back("navigating"); });
+        nav.navigated.connect([&transcript](content_page*) { transcript.emplace_back("navigated"); });
+        nav.popped.connect([&](content_page* page) {
+            transcript.emplace_back("popped");
+            popped_page = page;
+        });
+
+        content_page* const result = nav.pop();
+
+        EXPECT_EQ(result, &second);
+        EXPECT_EQ(popped_page, &second); // C# Popped carries the popped page
+        EXPECT_EQ(transcript, (std::vector<std::string>{"navigating", "navigated", "popped"}));
+    }
+
+    TEST(navigation_page_events, popped_to_root_carries_the_root_and_the_popped_pages)
+    {
+        // C# NavigationUnitTest.TestPopToRootEventArgs: PoppedToRoot fires with the root now current and the
+        // pages that were above it (child1, child2), in stack order.
+        content_page root;
+        content_page child1;
+        content_page child2;
+        navigation_page nav(root);
+        nav.push(child1);
+        nav.push(child2);
+
+        content_page* root_arg = nullptr;
+        std::vector<content_page*> popped_pages;
+        int count = 0;
+        nav.popped_to_root.connect([&](content_page* now_root, const std::vector<content_page*>& removed) {
+            root_arg = now_root;
+            popped_pages = removed;
+            ++count;
+        });
+
+        nav.pop_to_root();
+
+        EXPECT_EQ(count, 1);
+        EXPECT_EQ(root_arg, &root);
+        ASSERT_EQ(popped_pages.size(), 2U);
+        EXPECT_EQ(popped_pages[0], &child1); // stack order: bottom (root+1) first
+        EXPECT_EQ(popped_pages[1], &child2);
+    }
+
+    TEST(navigation_page_events, first_push_onto_empty_stack_fires_pushed_with_null_previous)
+    {
+        // C# PushAsync onto an empty NavigationPage: previousPage is null (SendNavigating no-ops), Pushed
+        // fires with the new page, navigated fires with a null previous. (Distinct from the NavigationPage
+        // (root) ctor, which calls PushPage directly and fires nothing.)
+        content_page first;
+        navigation_page nav; // empty
+
+        std::vector<std::string> transcript;
+        content_page* navigated_prev = &first; // sentinel; expect it set to null
+        bool navigated_fired = false;
+        nav.navigating.connect([&transcript](content_page*) { transcript.emplace_back("navigating"); });
+        nav.navigated.connect([&](content_page* prev) {
+            transcript.emplace_back("navigated");
+            navigated_prev = prev;
+            navigated_fired = true;
+        });
+        nav.pushed.connect([&transcript](content_page*) { transcript.emplace_back("pushed"); });
+
+        nav.push(first);
+
+        // No navigating (no previous page); navigated then pushed fire.
+        EXPECT_EQ(transcript, (std::vector<std::string>{"navigated", "pushed"}));
+        EXPECT_TRUE(navigated_fired);
+        EXPECT_EQ(navigated_prev, nullptr);
+    }
+
+    // ---- bar styling: BarBackgroundColor / BarTextColor / TitleView reach the handler's bar via the chrome
+    // getters (read in host_current). The headless platform mirrors them; the Apple twin paints a real bar. ----
+
+    TEST(navigation_page_bar_style, bar_colors_default_to_unset)
+    {
+        navigation_page nav;
+        EXPECT_FALSE(nav.navigation_bar_background_color().has_value()); // C# default(Color) == null
+        EXPECT_FALSE(nav.navigation_bar_text_color().has_value());
+        EXPECT_EQ(nav.title_view(), nullptr);
+    }
+
+    TEST(navigation_page_bar_style, setting_bar_colors_marks_them_set)
+    {
+        navigation_page nav;
+        const maui::graphics::color background = maui::graphics::color::from_rgb(10, 20, 30);
+        const maui::graphics::color text = maui::graphics::color::from_rgb(200, 210, 220);
+
+        nav.set_bar_background_color(background);
+        nav.set_bar_text_color(text);
+
+        // Compare whole optionals (avoids an unchecked .value() after the has_value() guard).
+        EXPECT_EQ(nav.navigation_bar_background_color(), std::optional{background});
+        EXPECT_EQ(nav.navigation_bar_text_color(), std::optional{text});
+        EXPECT_EQ(nav.bar_background_color(), background); // the bindable getter returns the value too
+        EXPECT_EQ(nav.bar_text_color(), text);
+    }
+
+    TEST(navigation_page_bar_style, headless_platform_mirrors_the_bar_colors)
+    {
+        content_page root;
+        root.set_title("Root");
+        auto handler = std::make_shared<navigation_page_handler>();
+        navigation_page nav(root);
+        nav.set_handler(handler);
+
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+        // Unset until the developer assigns a color.
+        EXPECT_FALSE(platform->bar_background_color.has_value());
+
+        const maui::graphics::color background = maui::graphics::color::from_rgb(5, 6, 7);
+        nav.set_bar_background_color(background); // -> on_property_changed -> re-issue request -> host_current
+        EXPECT_EQ(platform->bar_background_color, std::optional{background});
+
+        const maui::graphics::color text = maui::graphics::color::from_rgb(8, 9, 10);
+        nav.set_bar_text_color(text);
+        EXPECT_EQ(platform->bar_text_color, std::optional{text});
+    }
+
+    TEST(navigation_page_bar_style, title_view_reaches_the_headless_platform)
+    {
+        content_page root;
+        root.set_title("Root");
+        content_page title; // a stand-in view shown in the bar instead of the title label
+        auto handler = std::make_shared<navigation_page_handler>();
+        navigation_page nav(root);
+        nav.set_handler(handler);
+
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+        EXPECT_EQ(platform->hosted_title_view, nullptr);
+
+        nav.set_title_view(&title); // -> re-issue request -> host_current mirrors the title view
+        EXPECT_EQ(nav.title_view(), &title);
+        EXPECT_EQ(platform->hosted_title_view, &title);
+
+        nav.set_title_view(nullptr); // clearing returns to the title label
+        EXPECT_EQ(platform->hosted_title_view, nullptr);
     }
 } // namespace

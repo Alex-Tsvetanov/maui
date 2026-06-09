@@ -11,8 +11,12 @@
 #include "maui/core/app_theme.hpp"
 #include "maui/core/content_page_handler.hpp"
 #include "maui/core/handler_registry.hpp"
+#include "maui/core/i_application.hpp"
+#include "maui/core/i_window.hpp"
 #include "maui/core/window_handler.hpp"
 #include "maui/graphics/rect.hpp"
+
+#include <vector>
 
 #include <cmath>
 #include <memory>
@@ -412,5 +416,71 @@ namespace
         app.set_user_app_theme(maui::core::app_theme::light); // a real change -> fires again
         EXPECT_EQ(changed, 2);
         EXPECT_EQ(observed, maui::core::app_theme::light);
+    }
+
+    // ---- i_application: the cross-platform Core contract (Microsoft.Maui.IApplication) an application
+    // satisfies, used through the i_application/i_window faces (like a window through i_window). ----
+
+    TEST(i_application_contract, windows_exposes_the_open_windows_as_i_window)
+    {
+        maui::controls::application app;
+        maui::controls::window win;
+        app.open_window(win);
+
+        const maui::core::i_application& as_app = app; // reachable through the Core contract
+        const std::vector<maui::core::i_window*> open = as_app.windows();
+        ASSERT_EQ(open.size(), 1U);
+        EXPECT_EQ(open.front(), static_cast<maui::core::i_window*>(&win));
+        // The concrete face still works (the existing API is preserved).
+        EXPECT_EQ(app.windows_typed().size(), 1U);
+        EXPECT_EQ(app.main_window(), &win);
+    }
+
+    TEST(i_application_contract, open_and_close_through_the_i_window_face)
+    {
+        maui::controls::application app;
+        maui::controls::content_page page;
+        maui::controls::window win;
+        win.set_content(page);
+
+        maui::core::i_application& as_app = app;
+        maui::core::i_window& as_window = win;
+        as_app.open_window(as_window); // the i_application override down-casts to the concrete window
+        EXPECT_TRUE(page.has_appeared());
+        EXPECT_EQ(as_app.windows().size(), 1U);
+
+        as_app.close_window(as_window);
+        EXPECT_FALSE(page.has_appeared());
+        EXPECT_TRUE(as_app.windows().empty());
+    }
+
+    TEST(i_application_contract, theme_changed_fires_requested_theme_changed_on_a_real_platform_change)
+    {
+        // C# IApplication.ThemeChanged() re-reads the OS theme into PlatformAppTheme. The port pushes the OS
+        // theme via set_platform_app_theme first; theme_changed() then re-triggers (already covered by
+        // set_platform_app_theme, so theme_changed() on top of an unchanged platform theme is a no-op).
+        maui::controls::application app;
+        int changed = 0;
+        app.requested_theme_changed.connect([&](maui::core::app_theme) { ++changed; });
+
+        app.set_platform_app_theme(maui::core::app_theme::dark); // a real change -> fires once
+        EXPECT_EQ(changed, 1);
+
+        maui::core::i_application& as_app = app;
+        as_app.theme_changed(); // re-notify with no change -> guarded, no extra fire
+        EXPECT_EQ(changed, 1);
+        EXPECT_EQ(as_app.user_app_theme(), maui::core::app_theme::unspecified);
+    }
+
+    TEST(i_application_contract, base_create_window_returns_null_and_it_is_a_rootless_element)
+    {
+        maui::controls::application app;
+        maui::core::i_application& as_app = app;
+        EXPECT_EQ(as_app.create_window(), nullptr); // the base app manages no window of its own
+        // An application is an i_element root: no handler, no parent (the windows are its children).
+        EXPECT_EQ(as_app.handler(), nullptr);
+        EXPECT_EQ(as_app.parent(), nullptr);
+        as_app.set_handler(nullptr); // no-op, stays null
+        EXPECT_EQ(as_app.handler(), nullptr);
     }
 } // namespace

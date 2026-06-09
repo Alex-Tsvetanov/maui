@@ -26,9 +26,11 @@
 #import <objc/runtime.h>
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 
+#include "apple_conversions.hpp"
 #include "apple_view_ops.hpp"
 #include "maui/core/i_stack_navigation.hpp"
 #include "maui/core/i_view.hpp"
@@ -121,7 +123,13 @@ namespace maui::core
     navigation_page_platform::~navigation_page_platform()
     {
         // Release every retained AppKit handle (each balances a __bridge_retained in create_platform_view /
-        // host_modal). The bar's subviews are owned by the bar; the back trampoline is held via its own slot.
+        // host_modal / host_title_view). The bar's subviews are owned by the bar; the back trampoline + the
+        // hosted title view are held via their own slots.
+        if (title_view_host != nullptr)
+        {
+            CFRelease(title_view_host);
+            title_view_host = nullptr;
+        }
         if (modal_overlay != nullptr)
         {
             CFRelease(modal_overlay);
@@ -258,19 +266,72 @@ namespace maui::core
             }
         }
 
-        // Refresh the bar from the view's navigation chrome state (title + back-button visibility).
+        // Refresh the bar from the view's navigation chrome state (title + back-button visibility + the bar
+        // styling: background color, title color, and a TitleView shown instead of the label).
         if (auto* navigation = dynamic_cast<i_stack_navigation*>(&view))
         {
             const std::string title_text(navigation->navigation_bar_title());
             NSString* const raw = [NSString stringWithUTF8String:title_text.c_str()];
-            as_text_field(platform->title_field).stringValue = raw != nil ? raw : @"";
+            NSTextField* const title_field = as_text_field(platform->title_field);
+            title_field.stringValue = raw != nil ? raw : @"";
 
             const bool back_visible = navigation->navigation_back_button_visible();
             as_button(platform->back_button).hidden = !static_cast<BOOL>(back_visible);
 
+            // ---- bar styling ----
+            // Background color (C# BarBackgroundColor): paint the bar's layer when set; leave the system
+            // default (clear the layer color) when unset.
+            const std::optional<maui::graphics::color> background = navigation->navigation_bar_background_color();
+            bar.wantsLayer = YES;
+            bar.layer.backgroundColor =
+                background.has_value() ? maui::platform::apple::to_ns_color(*background).CGColor : nil;
+
+            // Title (text) color (C# BarTextColor): set the label's textColor when set; AppKit's default
+            // label color otherwise.
+            const std::optional<maui::graphics::color> text_color = navigation->navigation_bar_text_color();
+            title_field.textColor = text_color.has_value() ? maui::platform::apple::to_ns_color(*text_color) : nil;
+
+            // TitleView (C# NavigationPage.TitleView): host the view's native subview in the bar instead of
+            // the title label. When a title view is set, hide the label + add the title view; when cleared,
+            // remove the previously-hosted title view + show the label again.
+            i_view* const title_view = navigation->navigation_bar_title_view();
+            host_title_view(*platform, title_view);
+
             // Mirror the chrome onto the platform too (so apple tests can read it like the headless ones).
             platform->bar_title = title_text;
             platform->back_button_visible = back_visible;
+            platform->bar_background_color = background;
+            platform->bar_text_color = text_color;
+            platform->hosted_title_view = title_view;
+        }
+    }
+
+    void navigation_page_handler::host_title_view(navigation_page_platform& platform, i_view* title_view)
+    {
+        NSView* const bar = as_view(platform.bar);
+        NSTextField* const title_field = as_text_field(platform.title_field);
+
+        // Remove any previously-hosted title view's native subview from the bar (a change or a clear).
+        if (platform.title_view_host != nullptr)
+        {
+            [as_view(platform.title_view_host) removeFromSuperview];
+            CFRelease(platform.title_view_host);
+            platform.title_view_host = nullptr;
+        }
+
+        if (title_view == nullptr)
+        {
+            title_field.hidden = NO; // no title view -> the label shows again
+            return;
+        }
+
+        // Host the title view's native NSView in the bar (above the label, which we hide).
+        title_field.hidden = YES;
+        if (NSView* const subview = native_child(*title_view))
+        {
+            [subview removeFromSuperview];
+            [bar addSubview:subview];
+            platform.title_view_host = (__bridge_retained void*)subview; // own a reference while hosted
         }
     }
 
@@ -344,9 +405,15 @@ namespace maui::core
         NSView* const bar = as_view(platform->bar);
         [bar setFrame:NSMakeRect(0, content_height, frame.width, k_bar_height)];
         // Lay the bar's title + back button: back on the left, title filling the rest.
+        const double title_width = frame.width > 80 ? frame.width - 80 : 0;
         as_button(platform->back_button).frame = NSMakeRect(0, 0, 80, k_bar_height);
-        as_text_field(platform->title_field).frame =
-            NSMakeRect(80, 0, frame.width > 80 ? frame.width - 80 : 0, k_bar_height);
+        const NSRect title_frame = NSMakeRect(80, 0, title_width, k_bar_height);
+        as_text_field(platform->title_field).frame = title_frame;
+        // A hosted TitleView (if any) occupies the same area as the title label.
+        if (platform->title_view_host != nullptr)
+        {
+            [as_view(platform->title_view_host) setFrame:title_frame];
+        }
 
         // The current page fills the content area below the bar (origin 0,0 in the container's space).
         if (platform->hosted_page != nullptr)
