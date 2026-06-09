@@ -22,6 +22,7 @@ namespace maui::controls
     public:
         horizontal_stack_layout() : layout(padding_property())
         {
+            this->set_style_target_type<horizontal_stack_layout>(); // implicit / class style match
         }
 
         // Shared bindable-property descriptors (one instance per type, like HorizontalStackLayout.*Property).

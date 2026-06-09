@@ -106,4 +106,57 @@ namespace
         vsm.go_to_state(target, common_states::normal);
         EXPECT_EQ(target.text(), "manual"); // Disabled un-applied, Normal sets nothing -> manual restored
     }
+
+    // ---- M5d: the implicit-style VSM downgrade + system-state promotion (#18103 / #34363) ----
+    // When the VSGroups arrive via an implicit style (mark_from_implicit_style), a CUSTOM state's setters
+    // sit BELOW a manual value, but a SYSTEM-driven state (Disabled/…) is promoted back ABOVE it.
+
+    TEST(visual_state_manager, implicit_style_custom_state_is_outranked_by_a_manual_value)
+    {
+        button target;
+        // A custom (non-system) state "Highlight" in a group, sourced from an implicit style.
+        visual_state highlight{"Highlight"};
+        highlight.add(setter::of(button::text_property(), std::string("H")));
+        visual_state_group group{"CommonStates"};
+        group.add(std::move(highlight));
+        visual_state_manager vsm;
+        vsm.add_group(std::move(group));
+        vsm.mark_from_implicit_style(); // downgraded VSM specificity
+
+        target.set_text("manual"); // a manual set
+        vsm.go_to_state(target, "Highlight");
+        EXPECT_EQ(target.text(), "manual"); // implicit-style custom-state VSM sits BELOW manual (#18103)
+    }
+
+    TEST(visual_state_manager, implicit_style_system_state_outranks_a_manual_value)
+    {
+        button target;
+        visual_state disabled{std::string{common_states::disabled}};
+        disabled.add(setter::of(button::text_property(), std::string("D")));
+        visual_state_group group{"CommonStates"};
+        group.add(std::move(disabled));
+        visual_state_manager vsm;
+        vsm.add_group(std::move(group));
+        vsm.mark_from_implicit_style();
+
+        target.set_text("manual");
+        vsm.go_to_state(target, common_states::disabled);
+        EXPECT_EQ(target.text(), "D"); // a system-driven state is promoted ABOVE manual (#34363)
+    }
+
+    TEST(visual_state_manager, directly_driven_custom_state_still_outranks_a_manual_value)
+    {
+        button target;
+        // WITHOUT mark_from_implicit_style, even a custom state uses the full VSM specificity (> manual).
+        visual_state highlight{"Highlight"};
+        highlight.add(setter::of(button::text_property(), std::string("H")));
+        visual_state_group group{"CommonStates"};
+        group.add(std::move(highlight));
+        visual_state_manager vsm;
+        vsm.add_group(std::move(group));
+
+        target.set_text("manual");
+        vsm.go_to_state(target, "Highlight");
+        EXPECT_EQ(target.text(), "H"); // directly-driven VSM is above manual regardless of state name
+    }
 } // namespace

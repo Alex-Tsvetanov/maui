@@ -47,6 +47,12 @@ namespace maui::controls
     class entry : public view<maui::core::i_entry>
     {
     public:
+        // Declare the style TargetType so an implicit / class style targeting `entry` matches this control.
+        entry()
+        {
+            this->set_style_target_type<entry>();
+        }
+
         // Shared bindable-property descriptors (one instance per type, like Entry.*Property).
         static const maui::core::bindable_property<std::string>& text_property();
         static const maui::core::bindable_property<std::string>& placeholder_property();

@@ -45,6 +45,12 @@ namespace maui::controls
     class content_page : public view<maui::core::i_content_view>
     {
     public:
+        // Declare the style TargetType so an implicit / class style targeting `content_page` matches it.
+        content_page()
+        {
+            this->set_style_target_type<content_page>();
+        }
+
         // Shared bindable-property descriptors (one instance per type, like ContentPage/Page.*Property).
         static const maui::core::bindable_property<maui::core::thickness>& padding_property();
         static const maui::core::bindable_property<std::string>& title_property();

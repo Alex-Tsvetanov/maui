@@ -25,6 +25,14 @@ namespace maui::controls
     class label : public view<maui::core::i_label>
     {
     public:
+        // Declare the style TargetType so an implicit (TargetType-keyed) style or a class style targeting
+        // `label` matches this control (VisualElement's implicit-style resolution). The inline property
+        // member initializers still run under this user-declared constructor.
+        label()
+        {
+            this->set_style_target_type<label>();
+        }
+
         // Shared bindable-property descriptors (one instance per type, like Label.*Property).
         static const maui::core::bindable_property<std::string>& text_property();
         static const maui::core::bindable_property<maui::graphics::color>& text_color_property();

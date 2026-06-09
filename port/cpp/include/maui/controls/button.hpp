@@ -37,6 +37,14 @@ namespace maui::controls
     class button : public view<maui::core::i_text_button>
     {
     public:
+        // Declare the style TargetType so an implicit (TargetType-keyed) style or a class style targeting
+        // `button` matches this control (VisualElement's implicit-style resolution). The inline property
+        // member initializers still run under this user-declared constructor.
+        button()
+        {
+            this->set_style_target_type<button>();
+        }
+
         // Shared bindable-property descriptors (one instance per type, like Button.*Property).
         static const maui::core::bindable_property<std::string>& text_property();
         static const maui::core::bindable_property<maui::graphics::color>& text_color_property();

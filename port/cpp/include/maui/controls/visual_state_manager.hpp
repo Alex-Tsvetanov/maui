@@ -7,15 +7,16 @@
 // owning the named state, un-applies the outgoing state's setters and applies the incoming state's, at
 // the VSM specificity. Ported from VisualStateManager.cs (the GoToState core + IsSystemDrivenState).
 //
-// Specificity: state setters apply at setter_specificity::visual_state_setter, which sits ABOVE a manual
-// value (manual < trigger < visual_state < handler). The #18103/#34363 nuance — implicit-style VSM
-// downgraded below manual, then promoted back for system-driven states (Disabled/Focused/…) via
-// WithFullVsmPriority — only arises when VisualStateGroups is assigned through an implicit style; for a
-// directly-driven manager every state shares the one VSM specificity. common_states carries the
-// framework state names so that nuance can slot in later without renaming.
+// Specificity: by default state setters apply at setter_specificity::visual_state_setter, which sits
+// ABOVE a manual value (manual < trigger < visual_state < handler) — the specificity a DIRECTLY-driven
+// manager uses. When the VSGroups arrived through an IMPLICIT style (from_implicit_style), the base
+// specificity is downgraded to visual_state_setter_system (BELOW a manual value, #18103); system-driven
+// states (Disabled/Focused/Unfocused/Selected/PointerOver/Pressed) are then promoted back ABOVE manual
+// via with_full_vsm_priority (#34363), while Normal + custom states keep the downgrade. The manager is
+// told which case it is via mark_from_implicit_style() (merged_style sets it when it assigns the groups).
 //
-// Scope (M5b): the groups/states/setters data model + go_to_state. The attached-property storage on the
-// element (VisualStateGroupsProperty), the implicit-style downgrade + system-state promotion,
+// Scope (M5d): the groups/states/setters data model + go_to_state + the implicit-style downgrade and
+// system-state promotion. The attached-property storage on the element (VisualStateGroupsProperty),
 // StateTriggers, the is_enabled→Disabled auto-drive, and Clone/duplicate-name validation are deferred
 // (STATUS.md). The manager is created and driven explicitly.
 
@@ -41,6 +42,12 @@ namespace maui::controls
         static constexpr std::string_view pointer_over = "PointerOver";
         static constexpr std::string_view pressed = "Pressed";
     };
+
+    // Whether `name` is a state the MAUI framework drives automatically (VisualStateManager
+    // .IsSystemDrivenState): Disabled / Focused / Unfocused / Selected / PointerOver / Pressed. Only these
+    // promote an implicit-style VSM setter back to full priority, so a custom developer-defined state can't
+    // unexpectedly override a manually-set value (#34363).
+    [[nodiscard]] bool is_system_driven_state(std::string_view name);
 
     // One named state: the setters applied while the owning group is in this state.
     class visual_state
@@ -119,10 +126,29 @@ namespace maui::controls
         // Transition `target` to the state named `name`: find the group containing it, un-apply the
         // outgoing state's setters and apply the incoming state's, at the VSM specificity. Returns true if
         // the transition happened (or the target is already in that state), false if no group owns `name`.
-        // Mirrors VisualStateManager.GoToState.
+        // Mirrors VisualStateManager.GoToState. System-driven states get full VSM priority; custom states
+        // (and Normal) keep the base specificity (downgraded if from_implicit_style).
         bool go_to_state(maui::core::bindable_object& target, std::string_view name);
 
+        // Mark these groups as having arrived through an implicit style (VSGroupList set at StyleImplicit) —
+        // so their base specificity is the downgraded visual_state_setter_system. merged_style calls this
+        // when it assigns the groups; a directly-driven manager leaves it false (full visual_state_setter).
+        void mark_from_implicit_style()
+        {
+            from_implicit_style_ = true;
+        }
+        [[nodiscard]] bool from_implicit_style() const
+        {
+            return from_implicit_style_;
+        }
+
     private:
+        // The base specificity for a state's setters: the downgraded system specificity when the groups came
+        // from an implicit style, else the full VSM specificity. is_system_driven_state then decides whether
+        // to promote it (only meaningful in the downgraded case — with_full_vsm_priority no-ops otherwise).
+        [[nodiscard]] maui::core::setter_specificity base_specificity() const;
+
         std::vector<visual_state_group> groups_;
+        bool from_implicit_style_ = false;
     };
 } // namespace maui::controls

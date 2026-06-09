@@ -1,19 +1,26 @@
 #pragma once
-// maui::controls::property_trigger<T>  <=  Microsoft.Maui.Controls.Trigger (+ PropertyCondition)
+// maui::controls::property_trigger<T> / multi_trigger / data_trigger<…>
+//   <=  Microsoft.Maui.Controls.Trigger / MultiTrigger / DataTrigger (+ PropertyCondition / BindingCondition)
 //
-// A trigger watches one typed property and applies a bundle of setters while that property equals a
-// target value, un-applying them when it stops matching — the code-first, reflection-free analog of a
-// XAML <Trigger Property="…" Value="…">. C#'s Trigger reads bindable.GetValue(Property) and observes
-// PropertyChanged by name; the typed port instead watches a concrete property<T> through its `.changed`
-// event and compares with operator==, pushing the setters at setter_specificity::trigger. That sits one
-// rung ABOVE a manual set (ManualTriggerBaseline), so an active trigger overrides a manually-set value
-// and cleanly restores it when the trigger deactivates — exactly the C# precedence.
+// A trigger watches a condition and applies a bundle of setters while it holds, un-applying them when it
+// stops — the code-first, reflection-free analog of XAML triggers. C#'s triggers read GetValue(Property)
+// and observe PropertyChanged by name and reflect over a Binding path; the typed port watches a concrete
+// property<T> (or the typed BindingContext) through `.changed` / binding_context_changed and compares with
+// operator==, pushing setters at setter_specificity::trigger — one rung ABOVE a manual set, so an active
+// trigger overrides a manually-set value and cleanly restores it on deactivation (the C# precedence).
 //
-// Setters apply to the `target` passed to attach(); in the common case the watched property is one of
-// the target's own properties. Setter.TargetName (re-targeting a different element), EnterActions/
-// ExitActions, MultiTrigger, per-trigger index ordering, and a BindingContext-sourced DataTrigger are
-// deferred (STATUS.md) — DataTrigger in particular lands with BindingContext in M5c.
+//   - property_trigger<T> (Trigger): one property == value condition, with EnterActions / ExitActions and
+//     Setter.TargetName support (via the setter's retarget).
+//   - multi_trigger (MultiTrigger): several conditions (each a typed property == value); setters apply only
+//     while ALL hold (the MultiCondition aggregate).
+//   - data_trigger<Context, Value> (DataTrigger): the condition reads the target's typed BindingContext via
+//     an accessor and compares to a value; re-evaluated when BindingContext changes.
+//
+// Each trigger is attached to a target (which owns the watched property / the binding context) and returns
+// a trigger_handle that tears it down (unsubscribe + un-apply) when dropped — the M5b RAII contract.
 
+#include <functional>
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -26,6 +33,10 @@
 
 namespace maui::controls
 {
+    // A TriggerAction (TriggerAction<T>): a callback invoked with the target when the condition enters /
+    // exits. The reflection-free analog of the abstract C# TriggerAction.Invoke(sender).
+    using trigger_action = std::function<void(maui::core::bindable_object&)>;
+
     // RAII teardown for an attached trigger: dropping it unsubscribes from the watched property and
     // un-applies the trigger's setters (a safe no-op if the trigger is not currently active, since
     // clearing an unset specificity does nothing). Move-only — mirrors binding_handle.
@@ -33,9 +44,15 @@ namespace maui::controls
     {
     public:
         trigger_handle() = default;
-        trigger_handle(maui::core::scoped_connection connection, maui::core::move_only_function<void()> unapply)
-            : connection_(std::move(connection)), unapply_(std::move(unapply))
+        trigger_handle(std::vector<maui::core::scoped_connection> connections,
+                       maui::core::move_only_function<void()> unapply)
+            : connections_(std::move(connections)), unapply_(std::move(unapply))
         {
+        }
+        trigger_handle(maui::core::scoped_connection connection, maui::core::move_only_function<void()> unapply)
+            : unapply_(std::move(unapply))
+        {
+            connections_.push_back(std::move(connection));
         }
         trigger_handle(const trigger_handle&) = delete;
         trigger_handle& operator=(const trigger_handle&) = delete;
@@ -49,7 +66,7 @@ namespace maui::controls
         // Tear the trigger down now (idempotent): unsubscribe + un-apply the setters.
         void reset()
         {
-            connection_.reset();
+            connections_.clear();
             if (unapply_)
             {
                 auto unapply = std::move(unapply_);
@@ -63,8 +80,67 @@ namespace maui::controls
         }
 
     private:
-        maui::core::scoped_connection connection_;
+        std::vector<maui::core::scoped_connection> connections_;
         maui::core::move_only_function<void()> unapply_;
+    };
+
+    // The shared apply/unapply core of every trigger (TriggerBase.OnConditionChanged): fire EnterActions +
+    // apply the setters when the (aggregate) condition becomes true; un-apply + fire ExitActions when false.
+    // Holds the setters + actions; subclasses/holders supply the condition wiring in attach().
+    class trigger_body
+    {
+    public:
+        void add_setter(setter value)
+        {
+            setters_.push_back(std::move(value));
+        }
+        void add_enter_action(trigger_action action)
+        {
+            enter_actions_.push_back(std::move(action));
+        }
+        void add_exit_action(trigger_action action)
+        {
+            exit_actions_.push_back(std::move(action));
+        }
+
+        // Drive the body to `active`: a no-op if unchanged. On true: EnterActions then setters (the C#
+        // order); on false: setters un-applied then ExitActions.
+        void set_active(maui::core::bindable_object& target, bool active)
+        {
+            if (active == active_)
+            {
+                return;
+            }
+            active_ = active;
+            if (active)
+            {
+                for (const trigger_action& action : enter_actions_)
+                {
+                    action(target);
+                }
+                for (const setter& value : setters_)
+                {
+                    value.apply(target, maui::core::setter_specificity::trigger);
+                }
+            }
+            else
+            {
+                for (const setter& value : setters_)
+                {
+                    value.unapply(target, maui::core::setter_specificity::trigger);
+                }
+                for (const trigger_action& action : exit_actions_)
+                {
+                    action(target);
+                }
+            }
+        }
+
+    private:
+        std::vector<setter> setters_;
+        std::vector<trigger_action> enter_actions_;
+        std::vector<trigger_action> exit_actions_;
+        bool active_ = false;
     };
 
     template <class T> class property_trigger
@@ -77,7 +153,18 @@ namespace maui::controls
         // Add a setter applied while the trigger is active (fluent).
         property_trigger& add(setter value)
         {
-            setters_.push_back(std::move(value));
+            body_.add_setter(std::move(value));
+            return *this;
+        }
+        // Add an EnterAction (fired when the condition becomes true) / ExitAction (when it becomes false).
+        property_trigger& add_enter_action(trigger_action action)
+        {
+            body_.add_enter_action(std::move(action));
+            return *this;
+        }
+        property_trigger& add_exit_action(trigger_action action)
+        {
+            body_.add_exit_action(std::move(action));
             return *this;
         }
 
@@ -87,38 +174,167 @@ namespace maui::controls
         // outlive the handle.
         [[nodiscard]] trigger_handle attach(maui::core::bindable_object& target)
         {
-            set_active(target, watched_->get() == value_);
+            body_.set_active(target, watched_->get() == value_);
             auto connection =
                 maui::core::connect_scoped(watched_->changed, [this, &target](const T& /*old*/, const T& new_value) {
-                    set_active(target, new_value == value_);
+                    body_.set_active(target, new_value == value_);
                 });
-            return trigger_handle{std::move(connection), [this, &target] { set_active(target, false); }};
+            return trigger_handle{std::move(connection), [this, &target] { body_.set_active(target, false); }};
         }
 
     private:
-        void set_active(maui::core::bindable_object& target, bool active)
-        {
-            if (active == active_)
-            {
-                return;
-            }
-            active_ = active;
-            for (const auto& value : setters_)
-            {
-                if (active)
-                {
-                    value.apply(target, maui::core::setter_specificity::trigger);
-                }
-                else
-                {
-                    value.unapply(target, maui::core::setter_specificity::trigger);
-                }
-            }
-        }
-
         maui::core::property<T>* watched_;
         T value_;
-        std::vector<setter> setters_;
-        bool active_ = false;
+        trigger_body body_;
+    };
+
+    // A type-erased condition for multi_trigger: knows how to read its current truth on a target and to
+    // subscribe to its source so a change re-evaluates the aggregate. Each concrete condition is a typed
+    // property == value test (PropertyCondition); BindingCondition (a binding-context test) could be added
+    // the same way if a multi-trigger needs it.
+    class i_trigger_condition
+    {
+    public:
+        virtual ~i_trigger_condition() = default;
+        [[nodiscard]] virtual bool is_satisfied() const = 0;
+        // Subscribe so `on_changed` runs whenever this condition's truth might change.
+        [[nodiscard]] virtual maui::core::scoped_connection observe(std::function<void()> on_changed) = 0;
+
+    protected:
+        i_trigger_condition() = default;
+        i_trigger_condition(const i_trigger_condition&) = default;
+        i_trigger_condition(i_trigger_condition&&) = default;
+        i_trigger_condition& operator=(const i_trigger_condition&) = default;
+        i_trigger_condition& operator=(i_trigger_condition&&) = default;
+    };
+
+    // A property == value condition over a typed property<T> (PropertyCondition).
+    template <class T> class property_condition : public i_trigger_condition
+    {
+    public:
+        property_condition(maui::core::property<T>& watched, T value) : watched_(&watched), value_(std::move(value))
+        {
+        }
+        [[nodiscard]] bool is_satisfied() const override
+        {
+            return watched_->get() == value_;
+        }
+        [[nodiscard]] maui::core::scoped_connection observe(std::function<void()> on_changed) override
+        {
+            return maui::core::connect_scoped(
+                watched_->changed, [on_changed = std::move(on_changed)](const T&, const T&) { on_changed(); });
+        }
+
+    private:
+        maui::core::property<T>* watched_;
+        T value_;
+    };
+
+    // MultiTrigger: applies its setters only while EVERY condition is satisfied (the MultiCondition
+    // aggregate). Conditions are added typed; the trigger erases them behind i_trigger_condition.
+    class multi_trigger
+    {
+    public:
+        // Add a (typed) property == value condition (fluent).
+        template <class T> multi_trigger& add_condition(maui::core::property<T>& watched, T value)
+        {
+            conditions_.push_back(std::make_unique<property_condition<T>>(watched, std::move(value)));
+            return *this;
+        }
+        multi_trigger& add(setter value)
+        {
+            body_.add_setter(std::move(value));
+            return *this;
+        }
+        multi_trigger& add_enter_action(trigger_action action)
+        {
+            body_.add_enter_action(std::move(action));
+            return *this;
+        }
+        multi_trigger& add_exit_action(trigger_action action)
+        {
+            body_.add_exit_action(std::move(action));
+            return *this;
+        }
+
+        // Attach to `target`: apply the setters now if all conditions hold, then re-evaluate the aggregate on
+        // every condition change. The handle tears it down when dropped.
+        [[nodiscard]] trigger_handle attach(maui::core::bindable_object& target)
+        {
+            body_.set_active(target, all_satisfied());
+            std::vector<maui::core::scoped_connection> connections;
+            connections.reserve(conditions_.size());
+            for (const std::unique_ptr<i_trigger_condition>& condition : conditions_)
+            {
+                connections.push_back(
+                    condition->observe([this, &target] { body_.set_active(target, all_satisfied()); }));
+            }
+            return trigger_handle{std::move(connections), [this, &target] { body_.set_active(target, false); }};
+        }
+
+    private:
+        [[nodiscard]] bool all_satisfied() const
+        {
+            for (const std::unique_ptr<i_trigger_condition>& condition : conditions_)
+            {
+                if (!condition->is_satisfied())
+                {
+                    return false;
+                }
+            }
+            return true; // vacuously true with no conditions (matches MultiCondition's newState = true)
+        }
+
+        std::vector<std::unique_ptr<i_trigger_condition>> conditions_;
+        trigger_body body_;
+    };
+
+    // DataTrigger: the condition reads the target's typed BindingContext (as Context) via `accessor` and
+    // compares the result to `value`. Re-evaluated when the target's binding context changes (the typed
+    // analog of C#'s BindingCondition over a Binding path). A null/mismatched-type context never matches.
+    template <class Context, class Value> class data_trigger
+    {
+    public:
+        data_trigger(std::function<Value(const Context&)> accessor, Value value)
+            : accessor_(std::move(accessor)), value_(std::move(value))
+        {
+        }
+
+        data_trigger& add(setter value)
+        {
+            body_.add_setter(std::move(value));
+            return *this;
+        }
+        data_trigger& add_enter_action(trigger_action action)
+        {
+            body_.add_enter_action(std::move(action));
+            return *this;
+        }
+        data_trigger& add_exit_action(trigger_action action)
+        {
+            body_.add_exit_action(std::move(action));
+            return *this;
+        }
+
+        // Attach to `target`: evaluate against the current BindingContext now, then re-evaluate whenever the
+        // context changes (binding_context_changed). The handle tears it down when dropped.
+        [[nodiscard]] trigger_handle attach(maui::core::bindable_object& target)
+        {
+            body_.set_active(target, matches(target));
+            auto connection = maui::core::connect_scoped(
+                target.binding_context_changed, [this, &target] { body_.set_active(target, matches(target)); });
+            return trigger_handle{std::move(connection), [this, &target] { body_.set_active(target, false); }};
+        }
+
+    private:
+        [[nodiscard]] bool matches(maui::core::bindable_object& target) const
+        {
+            const std::shared_ptr<Context> context = target.binding_context<Context>();
+            return context != nullptr && accessor_(*context) == value_;
+        }
+
+        std::function<Value(const Context&)> accessor_;
+        Value value_;
+        trigger_body body_;
     };
 } // namespace maui::controls

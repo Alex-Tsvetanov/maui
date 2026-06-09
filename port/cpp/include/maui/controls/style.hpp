@@ -8,13 +8,22 @@
 // specificity, so the derived style's own setters win — mirroring Style.ApplyCore / SetterSpecificity
 // .AsBaseStyle. Ported from Style.cs (the IStyle.Apply/UnApply core).
 //
-// Scope (M5b): target_type + setters + a directly-assigned based_on. Implicit styles, ResourceDictionary
-// lookup, style classes, BasedOn-by-resource-key, DynamicResource, and Behaviors/Triggers attached to a
-// Style are deferred (STATUS.md). The target_type is carried (for the future implicit-style match) but
-// not yet enforced against the target — applying is by typed descriptor, already type-correct at the
-// call site (setter::of).
+// BasedOn can be supplied two ways (Style.BasedOn vs Style.BaseResourceKey): a directly-assigned based_on
+// style, OR a base_resource_key resolved from the target's resource chain. apply()/unapply() take an
+// optional resolver (a key → shared_ptr<style> lookup, supplied by merged_style when a style is attached
+// to an element) so a key-based base style is resolved at apply time. style_class (Style.Class) selects
+// the style when a control's style_class names it; an implicit style omits the class and is keyed by
+// target_type (resource_dictionary::add(style)).
+//
+// Scope (M5d): target_type + setters + based_on (direct or by-key) + style_class. Behaviors/Triggers
+// attached to a Style, ApplyToDerivedTypes / CanCascade, and the duplicate-key warning are deferred
+// (STATUS.md). The target_type is carried for the implicit-style match (merged_style); applying is by
+// typed descriptor, already type-correct at the call site (setter::of).
 
+#include <functional>
 #include <memory>
+#include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -28,6 +37,11 @@ namespace maui::controls
     class style
     {
     public:
+        // A based-on-by-key resolver: maps a resource key to the style registered under it (or null when
+        // unresolved). merged_style supplies one bound to the target element's resource chain; the bare
+        // apply()/unapply() use a null resolver (only a directly-assigned based_on is honored then).
+        using resource_resolver = std::function<std::shared_ptr<style>(std::string_view key)>;
+
         explicit style(maui::core::type_tag target_type) : target_type_(target_type)
         {
         }
@@ -51,27 +65,66 @@ namespace maui::controls
         }
 
         // The style this one inherits from; its setters apply at a lowered (base-style) specificity so the
-        // derived style's own setters take precedence.
+        // derived style's own setters take precedence. Setting a direct based_on clears base_resource_key
+        // (Style.BasedOn's setter nulls BaseResourceKey), and vice versa — the two are mutually exclusive.
         void set_based_on(std::shared_ptr<style> value)
         {
             based_on_ = std::move(value);
+            if (based_on_)
+            {
+                base_resource_key_.clear();
+            }
         }
         [[nodiscard]] const std::shared_ptr<style>& based_on() const
         {
             return based_on_;
         }
 
+        // The resource key of the base style (Style.BaseResourceKey). Resolved from the target's resource
+        // chain at apply time via the resolver. Setting a non-empty key clears the direct based_on.
+        void set_base_resource_key(std::string value)
+        {
+            base_resource_key_ = std::move(value);
+            if (!base_resource_key_.empty())
+            {
+                based_on_ = nullptr;
+            }
+        }
+        [[nodiscard]] std::string_view base_resource_key() const
+        {
+            return base_resource_key_;
+        }
+
+        // The style class this style belongs to (Style.Class). Empty for an implicit / locally-assigned
+        // style; non-empty styles are selected by a control whose style_class names this class.
+        void set_style_class(std::string value)
+        {
+            style_class_ = std::move(value);
+        }
+        [[nodiscard]] std::string_view style_class() const
+        {
+            return style_class_;
+        }
+
         // Apply / un-apply every setter at `specificity` (defaulting to the explicit/local-style level).
-        // based_on (if any) is applied first at the lowered base-style specificity (so derived setters win)
-        // and un-applied last, mirroring Style.ApplyCore/UnApplyCore.
+        // based_on (direct, or resolved via `resolve` from base_resource_key) is applied first at the
+        // lowered base-style specificity (so derived setters win) and un-applied last — Style.ApplyCore /
+        // UnApplyCore. `resolve` may be null (then only a direct based_on is honored).
         void apply(maui::core::bindable_object& target,
-                   maui::core::setter_specificity specificity = maui::core::setter_specificity::style_local) const;
+                   maui::core::setter_specificity specificity = maui::core::setter_specificity::style_local,
+                   const resource_resolver& resolve = nullptr) const;
         void unapply(maui::core::bindable_object& target,
-                     maui::core::setter_specificity specificity = maui::core::setter_specificity::style_local) const;
+                     maui::core::setter_specificity specificity = maui::core::setter_specificity::style_local,
+                     const resource_resolver& resolve = nullptr) const;
 
     private:
+        // The effective based-on style: the direct based_on, or base_resource_key resolved via `resolve`.
+        [[nodiscard]] std::shared_ptr<style> effective_based_on(const resource_resolver& resolve) const;
+
         maui::core::type_tag target_type_;
         std::vector<setter> setters_;
         std::shared_ptr<style> based_on_;
+        std::string base_resource_key_;
+        std::string style_class_;
     };
 } // namespace maui::controls

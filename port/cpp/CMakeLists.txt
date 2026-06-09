@@ -252,6 +252,8 @@ add_library(maui_controls STATIC
   src/controls/content_page.cpp
   src/controls/navigation_page.cpp
   src/controls/style.cpp
+  src/controls/resource_dictionary.cpp
+  src/controls/merged_style.cpp
   src/controls/visual_state_manager.cpp
   src/controls/window.cpp
   src/controls/application.cpp
@@ -283,6 +285,10 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/style_tests.cpp   # backend-agnostic; compiled as C++ within the apple test exe
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
+    tests/controls/resource_dictionary_tests.cpp
+    tests/controls/dynamic_resource_tests.cpp
+    tests/controls/implicit_style_tests.cpp
+    tests/controls/advanced_trigger_tests.cpp
     tests/controls/lifecycle_tests.cpp)
   # tests/core/image_source_tests.cpp + font_image_source_tests.cpp are HEADLESS-ONLY: they assert on the
   # headless image_source_result mirror + the headless "any non-empty bytes => loaded" decode (raw test
@@ -315,6 +321,10 @@ else()
     tests/controls/style_tests.cpp
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
+    tests/controls/resource_dictionary_tests.cpp
+    tests/controls/dynamic_resource_tests.cpp
+    tests/controls/implicit_style_tests.cpp
+    tests/controls/advanced_trigger_tests.cpp
     tests/controls/lifecycle_tests.cpp
     tests/core/image_source_tests.cpp     # loader cache TTL + the typed service-provider
     tests/core/font_image_source_tests.cpp)

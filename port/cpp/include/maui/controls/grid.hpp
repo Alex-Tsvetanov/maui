@@ -47,6 +47,7 @@ namespace maui::controls
     public:
         grid() : layout(padding_property())
         {
+            this->set_style_target_type<grid>(); // implicit / class style match
         }
 
         // The Grid.Row/Column/RowSpan/ColumnSpan attached values for one child (C#'s GridInfo). Defaults

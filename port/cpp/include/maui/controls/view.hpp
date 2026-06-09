@@ -14,12 +14,14 @@
 // ViewInterface (which derives i_view) and supplies the i_view method bodies; the control supplies the
 // interface-specific members.
 
+#include <any>
 #include <limits>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 #include "maui/controls/element.hpp"
 #include "maui/controls/style.hpp"
@@ -376,9 +378,11 @@ namespace maui::controls
             is_focused_ = false;
         }
 
+        // --- styles/resources (M5d) ---------------------------------------------------------------------
         // ---- style (VisualElement.Style / IStyleElement) ----
         // Setting a style applies its setters at the local-style specificity; replacing or clearing one
-        // un-applies the previous style first (so its setter values are removed before the new ones land).
+        // un-applies the previous style first (so its setter values are removed before the new ones land). A
+        // base_resource_key on the style resolves against this element's resource chain (resource_resolver).
         // The type is qualified (maui::controls::style) because the accessor below is also named `style`.
         void set_style(std::shared_ptr<maui::controls::style> value)
         {
@@ -386,20 +390,37 @@ namespace maui::controls
             {
                 return;
             }
+            const auto resolve = make_resource_resolver();
             if (style_)
             {
-                style_->unapply(*this, maui::core::setter_specificity::style_local);
+                style_->unapply(*this, maui::core::setter_specificity::style_local, resolve);
             }
             style_ = std::move(value);
             if (style_)
             {
-                style_->apply(*this, maui::core::setter_specificity::style_local);
+                style_->apply(*this, maui::core::setter_specificity::style_local, resolve);
             }
         }
         [[nodiscard]] const std::shared_ptr<maui::controls::style>& style() const
         {
             return style_;
         }
+
+        // The style classes this control selects (VisualElement.StyleClass): a control picks up the class
+        // styles registered under each name in its resource chain (layered implicit < class < local). Setting
+        // it re-resolves the merged style. set_dynamic_resource(name, key) (inherited from element) binds a
+        // property to a resource key; the implicit style is resolved automatically when the control enters a
+        // resource scope.
+        void set_style_class(std::vector<std::string> classes)
+        {
+            style_class_ = classes;
+            this->set_merged_style_classes(std::move(classes));
+        }
+        [[nodiscard]] const std::vector<std::string>& style_class() const
+        {
+            return style_class_;
+        }
+        // --- end styles/resources (M5d) -----------------------------------------------------------------
 
     protected:
         view() = default;
@@ -413,6 +434,36 @@ namespace maui::controls
             {
                 handler_->update_value(name);
             }
+        }
+
+        // The resource chain changed: if the LOCAL style resolves its base from a resource key, re-apply it
+        // so the (newly-resolvable or changed) base style takes effect — the typed analog of C#'s
+        // _basedOnResourceProperty DynamicResource on the style. A style without a base_resource_key is
+        // chain-independent, so it is left untouched (no churn).
+        void on_resource_chain_changed() override
+        {
+            if (style_ && !style_->base_resource_key().empty())
+            {
+                const auto resolve = make_resource_resolver();
+                style_->unapply(*this, maui::core::setter_specificity::style_local, resolve);
+                style_->apply(*this, maui::core::setter_specificity::style_local, resolve);
+            }
+        }
+
+        // A based-on-by-key resolver bound to this element's resource chain — handed to style::apply/unapply
+        // so a style's base_resource_key resolves from this element's resources (Style.GetBasedOnResource).
+        [[nodiscard]] maui::controls::style::resource_resolver make_resource_resolver()
+        {
+            return [this](std::string_view key) -> std::shared_ptr<maui::controls::style> {
+                if (const std::any* value = this->try_get_resource(key))
+                {
+                    if (const auto* found = std::any_cast<std::shared_ptr<maui::controls::style>>(value))
+                    {
+                        return *found;
+                    }
+                }
+                return nullptr;
+            };
         }
 
         std::shared_ptr<maui::core::i_element_handler> handler_;
@@ -449,5 +500,6 @@ namespace maui::controls
         // The applied style (VisualElement.Style). Held by shared_ptr so one style can be shared across
         // many controls; setting/replacing it routes through set_style (apply/unapply at style_local).
         std::shared_ptr<maui::controls::style> style_;
+        std::vector<std::string> style_class_; // the selected style classes (VisualElement.StyleClass)
     };
 } // namespace maui::controls

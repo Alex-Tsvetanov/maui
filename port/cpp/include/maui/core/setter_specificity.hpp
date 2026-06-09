@@ -12,9 +12,10 @@
 // constexpr inline). That keeps the comparison a single integer compare (the C# "fastest comparison
 // possible" intent) and makes the named constants constant-initialized — no static-init-order fiasco.
 //
-// M1 scope: the named specificities + comparison + is_default/is_handler. M5b adds as_base_style (the
-// BasedOn precedence lowering). The remaining manipulation helpers (CopyStyle, WithFullVsmPriority,
-// StyleInfo, trigger_index) stay deferred; the full bit layout is preserved so they slot in later.
+// M1 scope: the named specificities + comparison + is_default/is_handler. M5b added as_base_style (the
+// BasedOn precedence lowering); M5d adds with_full_vsm_priority (the implicit-style VSM promotion for
+// system-driven states) + the visual_state_setter_system constant. CopyStyle / StyleInfo / trigger_index
+// stay deferred; the full bit layout is preserved so they slot in later.
 
 #include <compare>
 #include <cstdint>
@@ -102,15 +103,38 @@ namespace maui::core
             return setter_specificity{new_value};
         }
 
+        // Promote an implicit-style VSM value back to full VSM priority (SetterSpecificity
+        // .WithFullVsmPriority): a no-op unless this is an implicit-VSM value, in which case the implicit-VSM
+        // bit is cleared and the full-VSM bit is set — lifting the value back ABOVE a manual one. The
+        // visual_state_manager calls this for system-driven states (Disabled/Focused/…) when the VSGroups
+        // came from an implicit style; custom states keep the downgrade (dotnet/maui#18103 / #34363).
+        [[nodiscard]] constexpr setter_specificity with_full_vsm_priority() const
+        {
+            if ((value_ & k_implicit_vsm_mask) == 0)
+            {
+                return *this; // not an implicit-VSM value — nothing to promote
+            }
+            return setter_specificity{(value_ & ~k_implicit_vsm_mask) | k_vsm_mask};
+        }
+
         constexpr bool operator==(const setter_specificity&) const = default;
         constexpr std::strong_ordering operator<=>(const setter_specificity&) const = default;
 
         // Named specificities (the C# SetterSpecificity static readonly fields). Defined below.
         static const setter_specificity default_value;
-        static const setter_specificity style_implicit;      // an implicit (TargetType-keyed) style setter
-        static const setter_specificity style_based_on;      // a BasedOn (inherited) style setter
-        static const setter_specificity style_local;         // an explicit (inline) style setter
+        static const setter_specificity style_implicit; // an implicit (TargetType-keyed) style setter
+        static const setter_specificity style_based_on; // a BasedOn (inherited) style setter
+        static const setter_specificity style_local;    // an explicit (inline) style setter
+        // A class-style setter (a Style selected via StyleClass): StyleLocal with the CSS class byte set to 1
+        // (MergedStyle applies class styles at `new SetterSpecificity(StyleLocal, 0, 1, 0)`), so it outranks
+        // the local style (class 0) for the same property — CSS-like.
+        static const setter_specificity style_class;
         static const setter_specificity visual_state_setter; // a VSM state setter (above a manual value)
+        // A VSM state setter whose VSGroups arrived via an implicit style: DOWNGRADED below a manual value
+        // (the #18103 fix — built with style == StyleImplicit so the ctor sets the implicit-VSM bit and
+        // clears the high VSM bit). visual_state_manager promotes it back with with_full_vsm_priority() for
+        // system-driven states; custom states keep this downgraded specificity.
+        static const setter_specificity visual_state_setter_system;
         static const setter_specificity from_binding;
         static const setter_specificity manual_value_setter;
         static const setter_specificity trigger;
@@ -127,6 +151,11 @@ namespace maui::core
         static constexpr std::uint8_t k_extras_vsm = 0x01;
         static constexpr std::uint8_t k_extras_handler = 0xFF;
         static constexpr std::uint64_t k_handler_value = 0xFFFFFFFFFFFFFFFFULL;
+        // The full-VSM and implicit-VSM single-bit masks (SetterSpecificity.VsmMask / ImplicitVsmMask):
+        // full VSM sits at bit 56 (above manual); implicit VSM at bit 26 (below manual). with_full_vsm_-
+        // priority moves a value from the latter to the former.
+        static constexpr std::uint64_t k_vsm_mask = 0x0100000000000000ULL;
+        static constexpr std::uint64_t k_implicit_vsm_mask = 0x0000000004000000ULL;
         static constexpr std::uint16_t k_style_none = 0xFFF;
         static constexpr std::uint16_t k_style_implicit = 0x080; // SetterSpecificity.StyleImplicit
         static constexpr std::uint16_t k_style_based_on = 0x0C0; // SetterSpecificity.StyleBasedOn
@@ -141,12 +170,16 @@ namespace maui::core
     inline const setter_specificity setter_specificity::style_implicit{k_style_implicit, 0, 0, 0};
     inline const setter_specificity setter_specificity::style_based_on{k_style_based_on, 0, 0, 0};
     inline const setter_specificity setter_specificity::style_local{k_style_local, 0, 0, 0};
+    inline const setter_specificity setter_specificity::style_class{k_style_local, 0, 1, 0};
     // A VSM state setter: with no style supplied (style 0), the ctor keeps the high vsm bit, so VSM states
     // sit ABOVE a manual value (the precedence specificity_tests pins: manual < trigger < visual_state <
-    // handler). The #18103/#34363 *downgrade* of implicit-style VSM below manual + the system-state
-    // WithFullVsmPriority promotion only arise when VisualStateGroups is assigned via an implicit style;
-    // that path (and the constant it needs) is deferred with implicit styles (STATUS.md).
+    // handler). This is the specificity a DIRECTLY-driven visual_state_manager uses.
     inline const setter_specificity setter_specificity::visual_state_setter{k_extras_vsm, 0, 0, 0, 0, 0, 0, 0};
+    // The implicit-style-sourced VSM specificity (#18103/#34363): VSM extras with style == StyleImplicit, so
+    // the ctor sets the implicit-VSM bit (bit 26) and clears the high VSM bit — landing BELOW a manual
+    // value. This is the C# `vsgSpecificity.CopyStyle(1, 0, 0, 0)` for a VSGroupList set at StyleImplicit.
+    inline const setter_specificity setter_specificity::visual_state_setter_system{k_extras_vsm,     0, 0, 0,
+                                                                                   k_style_implicit, 0, 0, 0};
     inline const setter_specificity setter_specificity::from_binding{0, 0, 0, 1, 0, 0, 0, 0};
     inline const setter_specificity setter_specificity::manual_value_setter{0, 1, 0, 0, 0, 0, 0, 0};
     inline const setter_specificity setter_specificity::trigger{0, k_manual_trigger_baseline, 0, 0, 0, 0, 0, 0};

@@ -60,11 +60,15 @@ namespace maui::controls
     class navigation_page : public view<maui::core::i_view>, public maui::core::i_stack_navigation
     {
     public:
-        navigation_page() = default;
+        navigation_page()
+        {
+            this->set_style_target_type<navigation_page>(); // implicit / class style match
+        }
         // Construct with a root page already pushed (C# NavigationPage(Page root) → PushPage(root)). The
         // root is made the initial current page and appears (the window's role, stood in for here).
         explicit navigation_page(content_page& root)
         {
+            this->set_style_target_type<navigation_page>();
             push_initial(root);
         }
 

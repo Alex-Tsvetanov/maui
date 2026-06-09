@@ -34,6 +34,12 @@ namespace maui::controls
     class image : public view<maui::core::i_image>
     {
     public:
+        // Declare the style TargetType so an implicit / class style targeting `image` matches this control.
+        image()
+        {
+            this->set_style_target_type<image>();
+        }
+
         // Shared bindable-property descriptors (one instance per type, like Image.AspectProperty/.SourceProperty).
         static const maui::core::bindable_property<maui::core::aspect>& aspect_property();
         static const maui::core::bindable_property<std::shared_ptr<maui::core::i_image_source>>& source_property();
