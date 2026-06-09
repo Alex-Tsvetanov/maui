@@ -9,6 +9,7 @@
 #include <string_view>
 
 #include "apple_conversions.hpp"
+#include "apple_semantics_ops.hpp"
 #include "apple_text_ops.hpp"
 #include "apple_view_ops.hpp"
 #include "apple_visual_ops.hpp"
@@ -270,5 +271,17 @@ namespace maui::core
         maui::platform::apple::apply_clip(
             native, value,
             maui::graphics::rect{bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height});
+    }
+
+    // Accessibility metadata + the input-transparent flag pushed to the native view via the shared
+    // apple_semantics_ops helpers (M5d native a11y / hit-test). `native` is this struct's NSView handle.
+    void label_platform::update_semantics(const maui::core::semantics* value)
+    {
+        maui::platform::apple::apply_semantics((__bridge NSView*)native, value);
+    }
+
+    void label_platform::update_input_transparent(bool value)
+    {
+        maui::platform::apple::apply_input_transparent((__bridge NSView*)native, value);
     }
 } // namespace maui::core

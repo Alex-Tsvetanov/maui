@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 
+#include "../../src/platform/apple/apple_semantics_ops.hpp"
 #include "../../src/platform/apple/apple_view_ops.hpp"
 #include "../../src/platform/apple/apple_visual_ops.hpp"
 #include "maui/controls/button.hpp"
@@ -21,6 +22,7 @@
 #include "maui/core/image_handler.hpp"
 #include "maui/core/label_handler.hpp"
 #include "maui/core/layout_handler.hpp"
+#include "maui/core/semantics.hpp"
 #include "maui/core/shadow.hpp"
 #include "maui/core/view_platform_base.hpp"
 #include "maui/core/visibility.hpp"
@@ -660,5 +662,179 @@ namespace
         CAGradientLayer* const gradient = find_gradient_layer(view);
         ASSERT_NE(gradient, nil); // the gradient reached the layer through the retrofit override
         EXPECT_EQ(gradient.colors.count, 2U);
+    }
+
+    // ---- Semantics + InputTransparent native push (M5d): SemanticExtensions.UpdateSemantics +
+    // ----  ViewExtensions.UpdateInputTransparent on AppKit, via the per-control update_* overrides ----
+
+    using maui::core::semantic_heading_level;
+    using maui::core::semantics;
+    using maui::platform::apple::apply_input_transparent;
+    using maui::platform::apple::apply_semantics;
+
+    // A non-heading Semantics set on the control reaches the NSButton's accessibility properties:
+    // Description -> accessibilityLabel, Hint -> accessibilityHelp, and the view becomes an a11y element.
+    TEST_F(apple_view_mapper, button_semantics_push_to_nsbutton)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        NSButton* const view = native_button(handler);
+
+        auto sem = std::make_shared<semantics>();
+        sem->set_description("Submit");
+        sem->set_hint("Submits the form");
+        control.set_semantics(sem);
+
+        EXPECT_EQ(to_std_string(view.accessibilityLabel), "Submit");
+        EXPECT_EQ(to_std_string(view.accessibilityHelp), "Submits the form");
+        EXPECT_TRUE(view.isAccessibilityElement); // marked an element because a label/hint is present
+        // Not a heading -> the heading role is not applied.
+        EXPECT_FALSE([view.accessibilityRole isEqualToString:NSAccessibilityHeadingRole]);
+    }
+
+    // IsHeading sets the AppKit heading role + role description (the analog of UIAccessibilityTrait.Header).
+    TEST_F(apple_view_mapper, button_heading_semantics_sets_heading_role)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        NSButton* const view = native_button(handler);
+
+        auto sem = std::make_shared<semantics>();
+        sem->set_description("Section title");
+        sem->set_heading_level(semantic_heading_level::level1);
+        control.set_semantics(sem);
+
+        EXPECT_TRUE([view.accessibilityRole isEqualToString:NSAccessibilityHeadingRole]);
+        EXPECT_GT(view.accessibilityRoleDescription.length, 0U);
+    }
+
+    // When a view stops being a heading, the heading role is cleared (mirrors C# removing the Header trait
+    // only when it was present). Driven through the helper directly so the same NSView toggles heading.
+    TEST_F(apple_view_mapper, heading_role_clears_when_no_longer_heading)
+    {
+        NSButton* const view = [[NSButton alloc] initWithFrame:NSMakeRect(0, 0, 80, 30)];
+
+        semantics heading;
+        heading.set_heading_level(semantic_heading_level::level2);
+        apply_semantics(view, &heading);
+        ASSERT_TRUE([view.accessibilityRole isEqualToString:NSAccessibilityHeadingRole]);
+
+        semantics plain; // no heading level
+        apply_semantics(view, &plain);
+        EXPECT_FALSE([view.accessibilityRole isEqualToString:NSAccessibilityHeadingRole]);
+    }
+
+    // A null Semantics is a no-op: it leaves the previously-pushed accessibility properties untouched
+    // (iOS UpdateSemantics returns early on a null Semantics — it does not clear the label/hint).
+    TEST_F(apple_view_mapper, semantics_null_leaves_accessibility_untouched)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        NSButton* const view = native_button(handler);
+
+        auto sem = std::make_shared<semantics>();
+        sem->set_description("Keep me");
+        control.set_semantics(sem);
+        ASSERT_EQ(to_std_string(view.accessibilityLabel), "Keep me");
+
+        control.set_semantics(nullptr); // maps update_semantics(nullptr) -> no-op
+        EXPECT_EQ(to_std_string(view.accessibilityLabel), "Keep me");
+    }
+
+    // InputTransparent = true excludes the NSButton from hit-testing (its own -hitTest: returns nil, the
+    // AppKit analog of UserInteractionEnabled = false); = false restores normal hit-testing.
+    TEST_F(apple_view_mapper, input_transparent_gates_hit_test)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        NSButton* const view = native_button(handler);
+        [view setFrame:NSMakeRect(0, 0, 100, 40)];
+        const NSPoint inside = NSMakePoint(50, 20);
+
+        // Opaque by default: the view hit-tests to itself.
+        EXPECT_EQ([view hitTest:inside], view);
+
+        control.set_input_transparent(true);
+        EXPECT_EQ([view hitTest:inside], nil); // input-transparent: passes the hit through
+
+        control.set_input_transparent(false);
+        EXPECT_EQ([view hitTest:inside], view); // restored
+    }
+
+    // The recipe generalizes: Semantics + InputTransparent reach each control's native view through its
+    // own update_* overrides (label / entry / image / layout panel).
+    TEST_F(apple_view_mapper, semantics_and_input_transparent_generalize_across_controls)
+    {
+        // label (NSTextField)
+        {
+            label control;
+            auto handler = std::make_shared<label_handler>();
+            control.set_handler(handler);
+            NSTextField* const view = native_label(handler);
+            auto sem = std::make_shared<semantics>();
+            sem->set_description("Caption");
+            sem->set_hint("Describes the image");
+            control.set_semantics(sem);
+            [view setFrame:NSMakeRect(0, 0, 60, 20)];
+            EXPECT_EQ(to_std_string(view.accessibilityLabel), "Caption");
+            EXPECT_EQ(to_std_string(view.accessibilityHelp), "Describes the image");
+            control.set_input_transparent(true);
+            EXPECT_EQ([view hitTest:NSMakePoint(30, 10)], nil);
+        }
+        // entry (editable NSTextField) — semantics independent of read-only/editable
+        {
+            entry control;
+            auto handler = std::make_shared<entry_handler>();
+            control.set_handler(handler);
+            NSTextField* const view = native_entry(handler);
+            auto sem = std::make_shared<semantics>();
+            sem->set_description("Email");
+            control.set_semantics(sem);
+            EXPECT_EQ(to_std_string(view.accessibilityLabel), "Email");
+            EXPECT_TRUE(view.editable); // untouched by input_transparent (read-only is a separate map)
+            control.set_input_transparent(true);
+            [view setFrame:NSMakeRect(0, 0, 120, 22)];
+            EXPECT_EQ([view hitTest:NSMakePoint(60, 11)], nil);
+        }
+        // image (NSImageView)
+        {
+            image control;
+            auto handler = std::make_shared<image_handler>();
+            control.set_handler(handler);
+            NSImageView* const view = native_image(handler);
+            auto sem = std::make_shared<semantics>();
+            sem->set_description("Avatar");
+            control.set_semantics(sem);
+            EXPECT_EQ(to_std_string(view.accessibilityLabel), "Avatar");
+        }
+        // layout panel (plain NSView) — the LayoutView.HitTest analog
+        {
+            vertical_stack_layout control;
+            auto handler = std::make_shared<layout_handler>();
+            control.set_handler(handler);
+            NSView* const view = native_panel(handler);
+            auto sem = std::make_shared<semantics>();
+            sem->set_description("Form");
+            control.set_semantics(sem);
+            EXPECT_EQ(to_std_string(view.accessibilityLabel), "Form");
+            [view setFrame:NSMakeRect(0, 0, 200, 100)];
+            control.set_input_transparent(true);
+            EXPECT_EQ([view hitTest:NSMakePoint(100, 50)], nil);
+        }
+    }
+
+    // Defensive: the helpers are null-safe (a handler-less control / detached path never crashes).
+    TEST_F(apple_view_mapper, semantics_helpers_are_null_safe)
+    {
+        const semantics sem;
+        apply_semantics(nil, &sem);         // null view -> no-op
+        apply_input_transparent(nil, true); // null view -> no-op
+        NSButton* const view = [[NSButton alloc] initWithFrame:NSMakeRect(0, 0, 10, 10)];
+        apply_semantics(view, nullptr); // null semantics -> no-op (label left at AppKit default)
+        SUCCEED();
     }
 } // namespace

@@ -67,6 +67,11 @@ namespace maui::core
         void update_background(const maui::graphics::paint* value) override;
         void update_shadow(const maui::core::i_shadow* value) override;
         void update_clip(const maui::graphics::i_shape* value) override;
+        // Accessibility metadata + the input-transparent flag pushed to the page's NSView (M5d native
+        // a11y / hit-test): semantics → accessibilityLabel/Help/heading role, input_transparent →
+        // -hitTest: gate.
+        void update_semantics(const maui::core::semantics* value) override;
+        void update_input_transparent(bool value) override;
 #endif
     };
 

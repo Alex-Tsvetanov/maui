@@ -11,6 +11,7 @@
 #include "maui/controls/label.hpp"
 #include "maui/core/content_page_handler.hpp"
 #include "maui/core/label_handler.hpp"
+#include "maui/core/semantics.hpp"
 #include "maui/graphics/rect.hpp"
 #include <gtest/gtest.h>
 
@@ -109,5 +110,30 @@ namespace
         EXPECT_EQ(frame.origin.y, 10.0);
         EXPECT_EQ(frame.size.width, 200.0);
         EXPECT_EQ(frame.size.height, 120.0);
+    }
+
+    // M5d native a11y / hit-test: Semantics + InputTransparent reach the page's host NSView through the
+    // content_page_platform update_semantics / update_input_transparent overrides.
+    TEST_F(apple_content_page_seam, semantics_and_input_transparent_reach_the_host)
+    {
+        content_page page;
+        auto handler = std::make_shared<content_page_handler>();
+        page.set_handler(handler);
+        NSView* const host = native_host(handler);
+        [host setFrame:NSMakeRect(0, 0, 300, 200)];
+
+        auto sem = std::make_shared<maui::core::semantics>();
+        sem->set_description("Settings page");
+        sem->set_hint("Adjusts preferences");
+        page.set_semantics(sem);
+        const char* const label = host.accessibilityLabel.UTF8String;
+        const char* const help = host.accessibilityHelp.UTF8String;
+        EXPECT_STREQ(label != nullptr ? label : "", "Settings page");
+        EXPECT_STREQ(help != nullptr ? help : "", "Adjusts preferences");
+
+        page.set_input_transparent(true);
+        EXPECT_EQ([host hitTest:NSMakePoint(150, 100)], nil); // dropped from hit-testing
+        page.set_input_transparent(false);
+        EXPECT_EQ([host hitTest:NSMakePoint(150, 100)], host); // restored
     }
 } // namespace

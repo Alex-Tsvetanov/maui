@@ -14,6 +14,7 @@
 #include <string_view>
 #include <vector>
 
+#include "apple_semantics_ops.hpp"
 #include "apple_view_ops.hpp"
 #include "apple_visual_ops.hpp"
 #include "maui/core/i_element_handler.hpp"
@@ -247,5 +248,18 @@ namespace maui::core
         maui::platform::apple::apply_clip(
             native, value,
             maui::graphics::rect{bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height});
+    }
+
+    // Accessibility metadata + the input-transparent flag pushed to the native panel via the shared
+    // apple_semantics_ops helpers (M5d native a11y / hit-test). `native` is this struct's NSView handle;
+    // the -hitTest: gate drops the panel from hit-testing when transparent (MAUI LayoutView.HitTest).
+    void layout_platform::update_semantics(const maui::core::semantics* value)
+    {
+        maui::platform::apple::apply_semantics((__bridge NSView*)native, value);
+    }
+
+    void layout_platform::update_input_transparent(bool value)
+    {
+        maui::platform::apple::apply_input_transparent((__bridge NSView*)native, value);
     }
 } // namespace maui::core
