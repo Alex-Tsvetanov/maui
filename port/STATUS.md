@@ -9,34 +9,39 @@
 ```bash
 export VCPKG_ROOT="$HOME/vcpkg"          # registry clone; brew's vcpkg binary alone lacks the toolchain file
 cmake --preset headless && cmake --build --preset headless
-ctest --preset headless                  # all ported tests (graphics + core + controls: 562 cases, green)
+ctest --preset headless                  # all ported tests (graphics + core + controls: 616 cases, green)
 ./build/headless/maui_graphics_benchmarks --benchmark_min_time=0.02s   # Google Benchmark (not a ctest test)
 ```
 
 **macOS / AppKit backend** (real NSViews; Obj-C++ `.mm` + ARC):
 
 ```bash
-cmake --preset apple && cmake --build --preset apple && ctest --preset apple   # 482 cases incl. real NSButton tap + NSWindow host
+cmake --preset apple && cmake --build --preset apple && ctest --preset apple   # 531 cases incl. real NSButton tap + NSWindow host
 ./build/apple/maui_button_sample                                                # button sample window (Ctrl-C / close to quit)
 ./build/apple/maui_app_sample                                                   # full app→window→page→button sample (M5d)
 ```
 
-**Resume:** continue to the next ⬜ milestone below, following `CLAUDE.md`. **M0–M5 are COMPLETE** on
-**both** the headless backend (**562 tests**) and the **macOS AppKit backend** (**482 tests**, real
-`NSButton`/`NSTextField`/`NSWindow`), clang-tidy 0 + ASan/UBSan + TSan clean. The virtual-view ⇄ handler ⇄
-native seam (M1/M2), layout (M3), the v1 control set + shared ViewMapper (M4), and binding/styles/lifecycle
-(M5: typed-accessor data binding, styles/setters/triggers/VSM, Application/Window/lifecycle + typed
-inherited BindingContext) are all done. **M5d (the deferred-backlog sweep) is COMPLETE** — 7 parallel
-worktree agents + a coordinator unit closed nearly the entire backlog: per-corner clip radii +
-System.Numerics interop, gradient paints (+ apple `CAGradientLayer`), AppKit text polish + full entry
-editing, image disk-cache/CacheValidity + `font_image_source` + a typed DI service-provider, the native
-NSWindow `window_handler` + window/app extras (geometry/themes/resume-sleep) + `maui_app_sample`,
-navigation chrome + animations + modal stack, the styles/resources subsystem (ResourceDictionary + implicit
-styles + DynamicResource + advanced triggers + the VSM #18103/#34363 nuance), and Semantics/InputTransparent
-ViewMapper props + the VSM `is_enabled`→Disabled auto-drive, plus the layout-engine refinements (size
-requests on `view<>`, z-index ordering, ClipsToBounds). Only a short tail remains (see the Deferred
-backlog) — chiefly Shell, on-disk image cache + production HTTP, native accessibility push, and XAML
-(M7). **Next: M6 (second platform, iOS) behind the same handlers.**
+**Resume:** continue to the next ⬜ milestone below, following `CLAUDE.md`. **M0–M5 are COMPLETE — including
+the M5d backlog sweep AND the M5e tail batch** — on **both** the headless backend (**616 tests**) and the
+**macOS AppKit backend** (**531 tests**, real `NSButton`/`NSTextField`/`NSWindow`), clang-tidy 0 +
+ASan/UBSan + TSan clean. The virtual-view ⇄ handler ⇄ native seam (M1/M2), layout (M3), the v1 control set +
+shared ViewMapper (M4), and binding/styles/lifecycle (M5: typed-accessor data binding,
+styles/setters/triggers/VSM, Application/Window/lifecycle + typed inherited BindingContext) are all done.
+**M5d** (7 parallel worktree agents + a coordinator) closed: per-corner clip radii + System.Numerics
+interop, gradient paints (+ apple `CAGradientLayer`), AppKit text polish + full entry editing, image
+disk-cache/CacheValidity + `font_image_source` + a typed DI service-provider, the native NSWindow
+`window_handler` + window/app extras (geometry/themes/resume-sleep) + `maui_app_sample`, navigation chrome +
+animations + modal stack, the styles/resources subsystem (ResourceDictionary + implicit styles +
+DynamicResource + advanced triggers + the VSM #18103/#34363 nuance), and Semantics/InputTransparent
+ViewMapper props + the VSM `is_enabled`→Disabled auto-drive. **M5e** (4 parallel worktree agents) closed the
+remaining tail: the layout-engine refinements (size requests on `view<>` honored by the managers, z-index
+native subview ordering, ClipsToBounds), the NATIVE apple accessibility + hit-test push
+(`apple_semantics_ops.hpp`), image production hardening (on-disk uri cache + CRC-64, a real async
+`NSURLSession` fetch through the dispatcher, native GIF playback), and the `i_application` Core contract +
+navigation bar styling (`bar_background_color`/`bar_text_color`/`title_view`) + the
+`pushed`/`popped`/`popped_to_root`/`navigating`/`navigated` events. What remains is intentionally-deferred
+markup-era / out-of-scope work (see the Deferred backlog): Shell, XAML (M7), and small documented
+deviations. **Next: M6 (second platform, iOS) behind the same handlers.**
 The `PROFILE.md §11` decisions are **locked** (view owns handler; `property<T>` member object;
 per-type `concept`-vs-`i_*` rule; headers not modules). M1 build order — all done: `event`,
 `dispatcher`, `setter_specificity`(+list), `bindable_property<T>` / `bindable_object` / `property<T>`
@@ -239,11 +244,9 @@ apple_visual_ops helpers; the clip mask is sized to the NSView bounds; grid reus
 gate green: **354 headless / 281 apple** GTest, clang-tidy 0 (incl. the `.mm` files + the gated tests via
 the `tidy` preset), ASan/UBSan + TSan clean (Unit I's async loader runs single-threaded on the dispatcher,
 so TSan stays clean). **M4 (control set v1) is COMPLETE.**
-**Still next: M6** (second platform — iOS, behind the same handlers) or the deferred tails — the native
-NSWindow `window_handler` (M5c), plus the M4 deferrals (per-corner clip, navigation
-chrome, image disk-cache + a production HTTP stack). **Gradient paints (M4 backlog) are now done** (headless +
-AppKit `CAGradientLayer`). M5a (binding) + M5b (styles/setters/triggers/VSM) +
-M5c (Application/Window/lifecycle + typed inherited BindingContext) are all done and gated on both backends.
+**Still next: M6** (second platform — iOS, behind the same handlers). Every M4/M5 deferral and tail has been
+closed by the M5d sweep + the M5e tail batch (see the resume header + the Deferred backlog for the few
+intentionally-deferred markup-era items).
 
 ## Tooling — format, lint, sanitizers (run from `port/cpp/`)
 
@@ -274,6 +277,7 @@ M5c (Application/Window/lifecycle + typed inherited BindingContext) are all done
 | M4 | Control set v1 (label, entry, image, layouts, content page) on macOS | ✅ |
 | M5 | `bindable_object`/`bindable_property`, binding, style, lifecycle | ✅ (M5a binding, M5b styles/triggers/VSM, M5c Application/Window/lifecycle + inherited BindingContext) |
 | M5d | Deferred-backlog sweep (gradients, text, image+DI, NSWindow host, navigation chrome/modal, styles/resources, ViewMapper a11y props) | ✅ (7 parallel worktree agents + coordinator) |
+| M5e | Tail batch (layout-engine size-requests/z-index/ClipsToBounds, native apple a11y + hit-test, image disk-cache + async HTTP + GIF, i_application + nav bar styling/events) | ✅ (4 parallel worktree agents) |
 | M6 | Second platform (iOS) behind the same handlers | ⬜ |
 | M7 | XAML and/or Essentials (as prioritized) | ⬜ |
 
@@ -297,9 +301,9 @@ What remains:
 - ✅ **DONE:** `ClipsToBounds` — `i_layout.clips_to_bounds()` + bindable `Layout.IsClippedToBounds` on `layout<>` (shared `clips_to_bounds_property()` descriptor, default false) + a `layout_handler` mapper entry (`map_clips_to_bounds`, chained after `view_mapper`) → `layout_platform::update_clips_to_bounds` (headless mirror; Apple `layer.masksToBounds`).
 - Still deferred: `ISafeAreaView` / `ICrossPlatformLayout` on `i_layout`.
 
-**Accessibility / hit-testing (M5d unit H):** the NATIVE apple push for `Semantics` (`NSView.accessibilityLabel`/`accessibilityHelp`) + `InputTransparent` (hit-test override) — both are **headless-mirror-only** today (the apple platform structs keep the base mirror; the cross-platform mapping + headless verification are done).
+**Accessibility / hit-testing — ✅ DONE (tail unit Y):** the native apple push is in — `apple_semantics_ops.hpp`'s `apply_semantics` (Description → `accessibilityLabel`, Hint → `accessibilityHelp`, `is_heading` → the heading role; ports the iOS `SemanticExtensions.UpdateSemantics` intent) + `apply_input_transparent` (a per-class `-hitTest:` gate — the AppKit analog of `UserInteractionEnabled = false` / MAUI's `LayoutView.HitTest`, since AppKit containers don't recurse subview hit-tests), overridden on all 6 apple platform structs.
 
-**Image:** on-disk cache + a production HTTP stack (the cache is in-memory + a `CacheValidity` TTL via an injected clock seam; the fetch is a synchronous `NSURLSession`/`NSData`); native GIF multi-frame animation behind `IsAnimationPlaying` (the flag is mapped, the native playback is not); no `IFontManager` (the font value → `NSFont` directly); the typed DI service-provider resolves by source instance (a `dynamic_cast`), not `System.Type` (a no-reflection consequence — PROFILE §6).
+**Image — ✅ mostly DONE (tail unit IM):** on-disk uri cache (`uri_image_disk_cache` + a faithful CRC-64-Jones `crc64`, layered under the in-memory TTL cache, both honoring `CacheValidity` via the injected clock seam — ports `UriImageSourceService.DownloadAndCacheImageAsync`/`GetCachedFileName`); a real **async `NSURLSession` dataTask** fetch marshalled back through the dispatcher (weak-liveness + cancellation + source-identity recheck preserved; TSan-clean); native GIF multi-frame playback via `NSImageView.animates` driven by `IsAnimationPlaying`. Still deferred: no `IFontManager` (the font value → `NSFont` directly); the typed DI service-provider resolves by source instance (a `dynamic_cast`), not `System.Type` (a no-reflection consequence — PROFILE §6); disk TTL uses the per-process steady-clock seam (cross-process stamps detected via negative-age → miss) rather than wall-clock mtime.
 
 **Navigation (M4d) — bar / animation / modal / stack-edits DONE (M4d follow-up):**
 - ✅ Navigation bar (custom AppKit NSView + NSTextField title + back NSButton chevron above the content),
@@ -333,7 +337,8 @@ prediction/spellcheck apply only while a field editor is attached (first-respond
 
 **Application / Window / lifecycle:**
 - ✅ **DONE (M5d):** the native **`window_handler` over `NSWindow`** (a lightweight `i_element_handler`: creates the NSWindow, sets its contentView to the root page's `native_view()`, maps `NSWindowDidBecomeMain`/`WillClose` → `send_activated`/`send_destroying`) + a headless mirror + a runnable `maui_app_sample`; window geometry (X/Y/Width/Height + `frame_changed`), application themes (UserAppTheme/PlatformAppTheme/RequestedTheme), window resume/sleep (`Resumed`/`Stopped`/`Backgrounding`); the `i_window` Core contract.
-- Still deferred: the `i_application` Core contract (`application` is concrete-only; `window` got `i_window`); multi-window orchestration subtleties + `IPersistedState` (`Backgrounding` is a bare notification); `windowDidResignMain`→`send_deactivated` is intentionally omitted (it would wrongly Disappear the page — the port only Disappears on Destroying); window chrome / TitleBar / display-density. The `Page.SendAppearing` hard window-guard stays soft (the window DRIVES appearing; the navigation_page self-drives the no-window case).
+- ✅ **DONE (tail unit MISC):** the `i_application` Core contract — `application` now implements it (like `window : i_window`); plus the navigation bar styling (`bar_background_color`/`bar_text_color` bindable + `title_view`, applied on the AppKit bar via the `i_stack_navigation` chrome getters) and the `pushed`/`popped`/`popped_to_root`/`navigating`/`navigated` events in C#'s order.
+- Still deferred: multi-window orchestration subtleties + `IPersistedState` (`Backgrounding` is a bare notification); `windowDidResignMain`→`send_deactivated` is intentionally omitted (it would wrongly Disappear the page — the port only Disappears on Destroying); window chrome / TitleBar / display-density; `BarBackground` (Brush). The `Page.SendAppearing` hard window-guard stays soft (the window DRIVES appearing; the navigation_page self-drives the no-window case). `navigating`/`navigated` are navigation_page events carrying the page (content_page has no NavigatingFrom/NavigatedTo plumbing at this layer).
 
 **Data binding (M5a) → M7 (XAML):** nested string paths (`"Customer.Name"`) + the registered-accessor table, `StringFormat`, `FallbackValue`/`TargetNullValue`, `MultiBinding`, compiled-binding source-gen, relative/ancestor sources, the `bind_to_context` convenience. The typed-accessor `bind()` + typed inherited `BindingContext` are done; these markup-era features land with XAML.
 

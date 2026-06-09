@@ -99,8 +99,8 @@ namespace
         {
             return {};
         }
-        const auto* const raw = static_cast<const std::byte*>(png.bytes);
-        return image_bytes(raw, raw + png.length);
+        const std::span<const std::byte> raw{static_cast<const std::byte*>(png.bytes), png.length};
+        return {raw.begin(), raw.end()};
     }
 
     class apple_image_seam : public ::testing::Test
@@ -249,7 +249,10 @@ namespace
         ASSERT_EQ(view.image, nil);
 
         // The stream provider yields the in-memory PNG bytes; the loader's apply (inline) decodes them.
-        control.set_source(image_source::from_stream([png](const cancellation_token&) { return png; }));
+        // Init-capture (drops the source's const) + mutable + move: the vector move-ctor is noexcept, so
+        // this one-shot provider cannot throw (the test triggers exactly one load).
+        control.set_source(image_source::from_stream(
+            [bytes = png](const cancellation_token&) mutable noexcept { return std::move(bytes); }));
         EXPECT_NE(view.image, nil);
         EXPECT_GT(view.image.size.width, 0.0);
         EXPECT_GT(view.image.size.height, 0.0);
@@ -332,7 +335,9 @@ namespace
         control.set_handler(handler);
         NSImageView* const view = native_image_view(handler);
 
-        control.set_source(image_source::from_stream([gif](const cancellation_token&) { return gif; }));
+        // Init-capture + mutable + move: a noexcept one-shot provider (each test triggers one load).
+        control.set_source(image_source::from_stream(
+            [bytes = gif](const cancellation_token&) mutable noexcept { return std::move(bytes); }));
         ASSERT_NE(view.image, nil);
 
         // The decoded NSImage holds >1 frame (the GIF bitmap rep reports NSImageFrameCount > 1) — i.e. a
@@ -358,7 +363,9 @@ namespace
 
         // Load the animated GIF, then start playing: NSImageView.animates flips on (StartAnimating analog),
         // and AppKit cycles the multi-frame NSImage natively.
-        control.set_source(image_source::from_stream([gif](const cancellation_token&) { return gif; }));
+        // Init-capture + mutable + move: a noexcept one-shot provider (each test triggers one load).
+        control.set_source(image_source::from_stream(
+            [bytes = gif](const cancellation_token&) mutable noexcept { return std::move(bytes); }));
         ASSERT_NE(view.image, nil);
 
         control.set_is_animation_playing(true);
@@ -382,7 +389,9 @@ namespace
         // IsAnimationPlaying set BEFORE a source exists: the loader re-applies the flag after the image is
         // decoded (map_source → map_is_animation_playing), so a freshly-loaded animated image plays.
         control.set_is_animation_playing(true);
-        control.set_source(image_source::from_stream([gif](const cancellation_token&) { return gif; }));
+        // Init-capture + mutable + move: a noexcept one-shot provider (each test triggers one load).
+        control.set_source(image_source::from_stream(
+            [bytes = gif](const cancellation_token&) mutable noexcept { return std::move(bytes); }));
         ASSERT_NE(view.image, nil);
         EXPECT_TRUE(view.animates);
     }
