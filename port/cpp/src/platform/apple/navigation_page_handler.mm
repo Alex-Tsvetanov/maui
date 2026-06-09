@@ -1,19 +1,36 @@
-// navigation_page_handler — Apple (AppKit / macOS) platform recipe: a plain NSView container that hosts
-// the navigation stack's current (top-most) page as its single subview, swapping that subview on each
-// push/pop. The real-native twin of the headless partial. AppKit has NO UINavigationController (iOS's
-// host) — translated to a plain NSView container that swaps the current page's native view with NO
-// animation: host_current clears the container's subviews and re-parents the new top page's native view
-// (mirroring iOS's SetViewControllers, minus the navigation chrome). The cross-platform handler reports
-// completion (IStackNavigation.NavigationFinished) synchronously after this returns. Compiled as
-// Objective-C++ with ARC for the `apple` backend.
+// navigation_page_handler — Apple (AppKit / macOS) platform recipe: an NSView CONTAINER that stacks a
+// CUSTOM navigation BAR (an NSView with an NSTextField title + a back NSButton) above a CONTENT area, and
+// hosts the navigation stack's current (top-most) page as the content area's single subview, swapping it
+// on each push/pop. A SEPARATE modal OVERLAY (an NSView covering the whole container) presents the top
+// modal. The real-native twin of the headless partial.
+//
+// AppKit has NO UINavigationController (iOS's host, which supplies the bar + push/pop transitions), so:
+//   - the bar is built here (host_current's update_bar reads the view's chrome state — title +
+//     back-button visibility — and populates the NSTextField / NSButton). The back NSButton's
+//     target-action routes to i_stack_navigation::send_back_button_pressed() (→ pop()).
+//   - the content swap is a plain re-parent (remove the old content subview, add the new), CROSS-FADED via
+//     a CoreAnimation CATransition on the content area's layer when the request is animated, instant
+//     otherwise (mirroring iOS's animated SetViewControllers). The transition is synchronous as far as the
+//     view tree is concerned — the cross-platform handler reports IStackNavigation.NavigationFinished
+//     inline after host_current returns (the CATransition animates the layer asynchronously without
+//     blocking; the final view-tree state is correct synchronously).
+//   - a modal is overlaid (not a child NSWindow) — the simpler-faithful choice so the modal participates
+//     in the same view tree (and the headless mirror is observable). host_modal adds the modal's native
+//     view as a full-container overlay (fading it in when animated), removing it when the modal stack
+//     empties (popping restores the underlying content, which was never removed).
+//
+// Compiled as Objective-C++ with ARC for the `apple` backend.
 
 #import <AppKit/AppKit.h>
+#import <QuartzCore/QuartzCore.h>
+#import <objc/runtime.h>
 
 #include <memory>
 #include <string>
 #include <string_view>
 
 #include "apple_view_ops.hpp"
+#include "maui/core/i_stack_navigation.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/navigation_page_handler.hpp"
@@ -21,11 +38,53 @@
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
+// Obj-C trampoline: forwards the back NSButton's target-action to the navigation view (the handler's
+// virtual view, reached as i_stack_navigation). Mirrors button_handler.mm's MauiButtonTarget.
+@interface MauiNavBackTarget : NSObject
+@property(nonatomic) maui::core::navigation_page_handler* handler;
+- (void)onBack:(id)sender;
+@end
+
+@implementation MauiNavBackTarget
+- (void)onBack:(id)sender
+{
+    (void)sender;
+    if (self.handler != nullptr)
+    {
+        // The virtual view is the navigation_page; reach its back-button hook via i_stack_navigation so
+        // this core trampoline does not depend on the controls layer.
+        if (auto* navigation = dynamic_cast<maui::core::i_stack_navigation*>(self.handler->virtual_view()))
+        {
+            navigation->send_back_button_pressed();
+        }
+    }
+}
+@end
+
 namespace
 {
+    constexpr double k_bar_height = 44.0; // the custom navigation bar's height (points)
+
+    // Typed views of the platform's retained void* slots (routing casts through helpers, like
+    // content_page_handler.mm's as_host, keeps direct casts out of variable initializers).
     NSView* as_container(void* native)
     {
         return (__bridge NSView*)native;
+    }
+
+    NSView* as_view(void* handle)
+    {
+        return (__bridge NSView*)handle;
+    }
+
+    NSTextField* as_text_field(void* handle)
+    {
+        return (__bridge NSTextField*)handle;
+    }
+
+    NSButton* as_button(void* handle)
+    {
+        return (__bridge NSButton*)handle;
     }
 
     // The page's native NSView, via its view-handler's native_view() (nil if the page is unattached or
@@ -40,15 +99,57 @@ namespace
         }
         return (__bridge NSView*)handler->native_view();
     }
+
+    // Run a short CoreAnimation cross-fade on `view`'s layer (a fire-and-forget CATransition; the view
+    // tree is mutated synchronously by the caller, only the layer animates).
+    void cross_fade(NSView* view)
+    {
+        if (view == nil)
+        {
+            return;
+        }
+        view.wantsLayer = YES;
+        CATransition* const transition = [CATransition animation];
+        transition.type = kCATransitionFade;
+        transition.duration = 0.25;
+        [view.layer addAnimation:transition forKey:@"maui_nav_crossfade"];
+    }
 } // namespace
 
 namespace maui::core
 {
     navigation_page_platform::~navigation_page_platform()
     {
+        // Release every retained AppKit handle (each balances a __bridge_retained in create_platform_view /
+        // host_modal). The bar's subviews are owned by the bar; the back trampoline is held via its own slot.
+        if (modal_overlay != nullptr)
+        {
+            CFRelease(modal_overlay);
+            modal_overlay = nullptr;
+        }
+        if (back_target != nullptr)
+        {
+            CFRelease(back_target);
+            back_target = nullptr;
+        }
+        if (back_button != nullptr)
+        {
+            CFRelease(back_button);
+            back_button = nullptr;
+        }
+        if (title_field != nullptr)
+        {
+            CFRelease(title_field);
+            title_field = nullptr;
+        }
+        if (bar != nullptr)
+        {
+            CFRelease(bar);
+            bar = nullptr;
+        }
         if (native != nullptr)
         {
-            CFRelease(native); // balances the __bridge_retained in create_platform_view
+            CFRelease(native);
             native = nullptr;
         }
     }
@@ -76,11 +177,45 @@ namespace maui::core
     {
         auto platform = std::make_unique<navigation_page_platform>();
         NSView* const container = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)];
-        platform->native = (__bridge_retained void*)container; // the void* slot owns one reference
+
+        // The custom navigation bar (an NSView pinned to the top) holding the title + back button.
+        NSView* const bar = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 0, k_bar_height)];
+        NSTextField* const title = [NSTextField labelWithString:@""]; // non-editable, borderless label
+        title.alignment = NSTextAlignmentCenter;
+        NSButton* const back = [[NSButton alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)];
+        [back setButtonType:NSButtonTypeMomentaryPushIn];
+        [back setBezelStyle:NSBezelStyleRounded];
+        // The back affordance is the system back-chevron template image (the AppKit analog of iOS's back
+        // button), so there is no user-facing string literal to localize.
+        back.image = [NSImage imageNamed:NSImageNameGoBackTemplate];
+        back.imagePosition = NSImageOnly;
+        back.hidden = YES; // hidden at the root (depth 1); update_bar reveals it when depth > 1
+
+        [bar addSubview:back];
+        [bar addSubview:title];
+        [container addSubview:bar];
+
+        platform->native = (__bridge_retained void*)container; // each void* slot owns one reference
+        platform->bar = (__bridge_retained void*)bar;
+        platform->title_field = (__bridge_retained void*)title;
+        platform->back_button = (__bridge_retained void*)back;
         return platform;
     }
 
-    void navigation_page_handler::host_current(i_view* top)
+    void navigation_page_handler::on_connect_handler(navigation_page_platform& platform)
+    {
+        // Wire the back button's action to the trampoline here (create_platform_view is static, so `this`
+        // is only available now). NSButton holds its target weakly → keep the trampoline alive in the
+        // platform's back_target slot, like button_handler.mm.
+        NSButton* const back = as_button(platform.back_button);
+        MauiNavBackTarget* const target = [[MauiNavBackTarget alloc] init];
+        target.handler = this;
+        back.target = target;
+        back.action = @selector(onBack:);
+        platform.back_target = (__bridge_retained void*)target;
+    }
+
+    void navigation_page_handler::host_current(i_view* top, i_view& view, bool animated)
     {
         auto* platform = typed_platform_view();
         if (platform == nullptr || platform->native == nullptr)
@@ -88,22 +223,101 @@ namespace maui::core
             return;
         }
         NSView* const container = as_container(platform->native);
+        NSView* const bar = as_view(platform->bar);
+        // A presented modal overlay must survive a content swap (navigating the underlying stack while a
+        // modal covers it) — preserve it alongside the bar.
+        NSView* const overlay = platform->modal_overlay != nullptr ? as_view(platform->modal_overlay) : nil;
 
-        // Swap the current page: clear the old subview(s), then add the new top page's native view. Snapshot
-        // the subviews (removeFromSuperview mutates the live array) and tear them down without an Obj-C
-        // fast-enumeration loop (which clang-tidy's init-variables check misreads as uninitialized).
+        // Swap the current page's CONTENT subview (everything except the bar + the modal overlay). Snapshot
+        // the container's subviews (removeFromSuperview mutates the live array) and remove the content
+        // without an Obj-C fast-enumeration loop (which clang-tidy's init-variables check misreads as
+        // uninitialized).
         NSArray<NSView*>* const snapshot = [container.subviews copy];
-        [snapshot makeObjectsPerformSelector:@selector(removeFromSuperview)];
+        for (NSUInteger i = 0; i < snapshot.count; ++i)
+        {
+            NSView* const existing = snapshot[i];
+            if (existing != bar && existing != overlay)
+            {
+                [existing removeFromSuperview];
+            }
+        }
 
         platform->hosted_page = top;
-        if (top == nullptr)
+        platform->last_animated = animated;
+        if (top != nullptr)
+        {
+            if (NSView* const subview = native_child(*top))
+            {
+                [subview removeFromSuperview];
+                // Add below the bar so the bar stays on top (positionedBelow nil = bottom of the order).
+                [container addSubview:subview positioned:NSWindowBelow relativeTo:bar];
+                if (animated)
+                {
+                    cross_fade(subview);
+                }
+            }
+        }
+
+        // Refresh the bar from the view's navigation chrome state (title + back-button visibility).
+        if (auto* navigation = dynamic_cast<i_stack_navigation*>(&view))
+        {
+            const std::string title_text(navigation->navigation_bar_title());
+            NSString* const raw = [NSString stringWithUTF8String:title_text.c_str()];
+            as_text_field(platform->title_field).stringValue = raw != nil ? raw : @"";
+
+            const bool back_visible = navigation->navigation_back_button_visible();
+            as_button(platform->back_button).hidden = !static_cast<BOOL>(back_visible);
+
+            // Mirror the chrome onto the platform too (so apple tests can read it like the headless ones).
+            platform->bar_title = title_text;
+            platform->back_button_visible = back_visible;
+        }
+    }
+
+    void navigation_page_handler::host_modal(i_view* top_modal, bool animated)
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->native == nullptr)
         {
             return;
         }
-        if (NSView* const subview = native_child(*top))
+        NSView* const container = as_container(platform->native);
+        platform->last_animated = animated;
+
+        // Tear down any existing overlay first (clearing or replacing the presented modal). Detach the
+        // overlay's subviews too (the dismissed modal page's native view) so the page is freed from the
+        // live tree — C# PopModal removes the modal's content, not just the host.
+        if (platform->modal_overlay != nullptr)
+        {
+            NSView* const old_overlay = as_view(platform->modal_overlay);
+            NSArray<NSView*>* const snapshot = [old_overlay.subviews copy];
+            [snapshot makeObjectsPerformSelector:@selector(removeFromSuperview)];
+            [old_overlay removeFromSuperview];
+            CFRelease(platform->modal_overlay);
+            platform->modal_overlay = nullptr;
+        }
+
+        platform->hosted_modal = top_modal;
+        if (top_modal == nullptr)
+        {
+            return; // the modal stack emptied — the underlying content (never removed) is revealed
+        }
+
+        // Build an overlay NSView filling the container and host the modal's native view inside it. The
+        // overlay sits ABOVE the bar + content (added last = top of the z-order), so the modal covers
+        // everything (the AppKit analog of a presented modal page).
+        NSView* const overlay = [[NSView alloc] initWithFrame:container.bounds];
+        if (NSView* const subview = native_child(*top_modal))
         {
             [subview removeFromSuperview];
-            [container addSubview:subview];
+            [subview setFrame:overlay.bounds];
+            [overlay addSubview:subview];
+        }
+        [container addSubview:overlay];
+        platform->modal_overlay = (__bridge_retained void*)overlay;
+        if (animated)
+        {
+            cross_fade(overlay);
         }
     }
 
@@ -123,12 +337,36 @@ namespace maui::core
         }
         NSView* const container = as_container(platform->native);
         [container setFrame:NSMakeRect(frame.x, frame.y, frame.width, frame.height)];
-        // The current page fills the container (origin at 0,0 in the container's coordinate space).
+
+        // AppKit's default NSView coordinate space is bottom-left origin: the bar pins to the TOP (y =
+        // height - bar_height) and the content fills the remaining area below it.
+        const double content_height = frame.height > k_bar_height ? frame.height - k_bar_height : 0.0;
+        NSView* const bar = as_view(platform->bar);
+        [bar setFrame:NSMakeRect(0, content_height, frame.width, k_bar_height)];
+        // Lay the bar's title + back button: back on the left, title filling the rest.
+        as_button(platform->back_button).frame = NSMakeRect(0, 0, 80, k_bar_height);
+        as_text_field(platform->title_field).frame =
+            NSMakeRect(80, 0, frame.width > 80 ? frame.width - 80 : 0, k_bar_height);
+
+        // The current page fills the content area below the bar (origin 0,0 in the container's space).
         if (platform->hosted_page != nullptr)
         {
             if (NSView* const subview = native_child(*platform->hosted_page))
             {
-                [subview setFrame:NSMakeRect(0, 0, frame.width, frame.height)];
+                [subview setFrame:NSMakeRect(0, 0, frame.width, content_height)];
+            }
+        }
+        // The modal overlay (if presented) fills the WHOLE container, covering the bar + content.
+        if (platform->modal_overlay != nullptr)
+        {
+            NSView* const overlay = as_view(platform->modal_overlay);
+            [overlay setFrame:NSMakeRect(0, 0, frame.width, frame.height)];
+            if (platform->hosted_modal != nullptr)
+            {
+                if (NSView* const subview = native_child(*platform->hosted_modal))
+                {
+                    [subview setFrame:NSMakeRect(0, 0, frame.width, frame.height)];
+                }
             }
         }
     }

@@ -282,4 +282,366 @@ namespace
         nav.push(root);
         EXPECT_EQ(resolved->typed_platform_view()->hosted_page, &root);
     }
+
+    // ---- navigation chrome: the bar title tracks the current page; back is enabled when stack > 1 ----
+    // C# IToolbar: the bar shows CurrentPage.Title (NavigationPageToolbar) and BackButtonVisible is driven
+    // by NavigationPageController.StackDepth > 1 (NavigationPage.OnBackButtonPressed). Here the chrome state
+    // is read off the navigation_page (bar_title / back_button_visible) and mirrored onto the headless
+    // platform when the "request_navigation" command runs (the Apple twin builds a real NSView bar).
+
+    TEST(navigation_page_chrome, bar_title_tracks_the_current_page)
+    {
+        content_page root;
+        root.set_title("Root");
+        content_page second;
+        second.set_title("Second");
+
+        navigation_page nav(root);
+        EXPECT_EQ(nav.bar_title(), "Root");
+
+        nav.push(second);
+        EXPECT_EQ(nav.bar_title(), "Second");
+
+        nav.pop();
+        EXPECT_EQ(nav.bar_title(), "Root");
+    }
+
+    TEST(navigation_page_chrome, bar_title_is_empty_for_an_empty_stack)
+    {
+        navigation_page nav;
+        EXPECT_EQ(nav.bar_title(), "");
+    }
+
+    TEST(navigation_page_chrome, back_button_visible_only_when_stack_deeper_than_one)
+    {
+        content_page root;
+        content_page second;
+        navigation_page nav(root);
+        EXPECT_FALSE(nav.back_button_visible()); // single page -> no back
+
+        nav.push(second);
+        EXPECT_TRUE(nav.back_button_visible()); // depth 2 -> back
+
+        nav.pop();
+        EXPECT_FALSE(nav.back_button_visible()); // back at the root
+    }
+
+    TEST(navigation_page_chrome, send_back_button_pressed_pops_when_deeper_than_root)
+    {
+        content_page root;
+        content_page second;
+        navigation_page nav(root);
+        nav.push(second);
+
+        // C# OnBackButtonPressed: StackDepth > 1 -> SafePop() and report handled (true).
+        EXPECT_TRUE(nav.send_back_button_pressed());
+        EXPECT_EQ(nav.current_page(), &root);
+        EXPECT_EQ(nav.navigation_stack().size(), 1U);
+
+        // At the root the back button does nothing and reports unhandled (false).
+        EXPECT_FALSE(nav.send_back_button_pressed());
+        EXPECT_EQ(nav.current_page(), &root);
+    }
+
+    TEST(navigation_page_chrome, headless_platform_mirrors_the_bar_state)
+    {
+        content_page root;
+        root.set_title("Root");
+        content_page second;
+        second.set_title("Second");
+        auto handler = std::make_shared<navigation_page_handler>();
+        navigation_page nav(root);
+        nav.set_handler(handler);
+
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+        EXPECT_EQ(platform->bar_title, "Root");
+        EXPECT_FALSE(platform->back_button_visible);
+
+        nav.push(second);
+        EXPECT_EQ(platform->bar_title, "Second");
+        EXPECT_TRUE(platform->back_button_visible);
+
+        nav.pop();
+        EXPECT_EQ(platform->bar_title, "Root");
+        EXPECT_FALSE(platform->back_button_visible);
+    }
+
+    // ---- push/pop animation flag: the request carries `animated` (synchronous transition either way) ----
+    // C# PushAsync(page)/PopAsync()/PopToRootAsync() default animated=true; the overloads thread it into the
+    // NavigationRequest. The headless transition is synchronous regardless; the apple twin cross-fades when
+    // animated. The headless platform mirrors the last request's animated flag so the seam is observable.
+
+    TEST(navigation_page_animation, push_defaults_to_animated_request)
+    {
+        content_page root;
+        content_page second;
+        auto handler = std::make_shared<navigation_page_handler>();
+        navigation_page nav(root);
+        nav.set_handler(handler);
+
+        nav.push(second); // default animated == true
+        EXPECT_TRUE(handler->typed_platform_view()->last_animated);
+    }
+
+    TEST(navigation_page_animation, push_can_request_no_animation)
+    {
+        content_page root;
+        content_page second;
+        auto handler = std::make_shared<navigation_page_handler>();
+        navigation_page nav(root);
+        nav.set_handler(handler);
+
+        nav.push(second, false);
+        EXPECT_FALSE(handler->typed_platform_view()->last_animated);
+        EXPECT_EQ(nav.current_page(), &second);
+    }
+
+    TEST(navigation_page_animation, pop_threads_the_animation_flag)
+    {
+        content_page root;
+        content_page second;
+        auto handler = std::make_shared<navigation_page_handler>();
+        navigation_page nav(root);
+        nav.set_handler(handler);
+        nav.push(second, false);
+
+        nav.pop(false);
+        EXPECT_FALSE(handler->typed_platform_view()->last_animated);
+        EXPECT_EQ(nav.current_page(), &root);
+    }
+
+    // ---- insert_page_before / remove_page (INavigation; MauiNavigationImpl.OnInsertPageBefore/OnRemovePage) ----
+
+    TEST(navigation_page_stack_edit, insert_page_before_inserts_at_the_position)
+    {
+        content_page root;
+        content_page b;
+        content_page inserted;
+        navigation_page nav(root);
+        nav.push(b);
+
+        nav.insert_page_before(inserted, b); // inserted goes just before b
+        ASSERT_EQ(nav.navigation_stack().size(), 3U);
+        EXPECT_EQ(nav.navigation_stack()[0], &root);
+        EXPECT_EQ(nav.navigation_stack()[1], &inserted);
+        EXPECT_EQ(nav.navigation_stack()[2], &b);
+        // Inserting an off-screen page does not change the current page or fire its lifecycle.
+        EXPECT_EQ(nav.current_page(), &b);
+        EXPECT_FALSE(inserted.has_appeared());
+    }
+
+    TEST(navigation_page_stack_edit, insert_before_root_updates_root_page)
+    {
+        content_page root;
+        content_page b;
+        content_page new_root;
+        navigation_page nav(root);
+        nav.push(b);
+
+        nav.insert_page_before(new_root, root); // index 0 -> RootPage becomes new_root (C# OnInsertPageBefore)
+        EXPECT_EQ(nav.root_page(), &new_root);
+        EXPECT_EQ(nav.navigation_stack()[0], &new_root);
+        EXPECT_EQ(nav.navigation_stack()[1], &root);
+    }
+
+    TEST(navigation_page_stack_edit, insert_duplicate_or_unknown_before_is_a_noop)
+    {
+        content_page root;
+        content_page b;
+        content_page x; // not on the stack
+        navigation_page nav(root);
+        nav.push(b);
+
+        nav.insert_page_before(b, root); // page already on the stack -> ignored (C# throws; we no-op)
+        EXPECT_EQ(nav.navigation_stack().size(), 2U);
+        nav.insert_page_before(x, x); // `before` not on the stack -> ignored
+        EXPECT_EQ(nav.navigation_stack().size(), 2U);
+    }
+
+    TEST(navigation_page_stack_edit, remove_inner_page_fires_no_lifecycle)
+    {
+        // C# NavigationPageLifecycleTests.RemoveInnerPage: removing a non-current, non-root page changes
+        // neither the current page nor fires Appearing/Disappearing.
+        content_page root;
+        content_page middle;
+        content_page top;
+        navigation_page nav(root);
+        nav.push(middle);
+        nav.push(top);
+
+        std::vector<std::string> transcript;
+        trace_lifecycle(root, "root", transcript);
+        trace_lifecycle(middle, "middle", transcript);
+        trace_lifecycle(top, "top", transcript);
+
+        nav.remove_page(middle);
+        EXPECT_EQ(nav.navigation_stack().size(), 2U);
+        EXPECT_EQ(nav.navigation_stack()[0], &root);
+        EXPECT_EQ(nav.navigation_stack()[1], &top);
+        EXPECT_EQ(nav.current_page(), &top);
+        EXPECT_TRUE(transcript.empty());
+    }
+
+    TEST(navigation_page_stack_edit, remove_current_page_pops_it)
+    {
+        // C# OnRemovePage: removing the CurrentPage routes through PopAsync (the revealed page appears).
+        content_page root;
+        content_page top;
+        navigation_page nav(root);
+        nav.push(top);
+
+        std::vector<std::string> transcript;
+        trace_lifecycle(root, "root", transcript);
+        trace_lifecycle(top, "top", transcript);
+
+        nav.remove_page(top); // == pop()
+        EXPECT_EQ(nav.navigation_stack().size(), 1U);
+        EXPECT_EQ(nav.current_page(), &root);
+        EXPECT_EQ(transcript, (std::vector<std::string>{"top:disappearing", "root:appearing"}));
+    }
+
+    TEST(navigation_page_stack_edit, remove_root_when_it_is_also_current_is_a_noop)
+    {
+        // C# OnRemovePage throws InvalidOperationException; we defensively no-op the single-page case.
+        content_page root;
+        navigation_page nav(root);
+        nav.remove_page(root);
+        EXPECT_EQ(nav.navigation_stack().size(), 1U);
+        EXPECT_EQ(nav.current_page(), &root);
+    }
+
+    TEST(navigation_page_stack_edit, remove_unknown_page_is_a_noop)
+    {
+        content_page root;
+        content_page b;
+        content_page x;
+        navigation_page nav(root);
+        nav.push(b);
+        nav.remove_page(x); // not on the stack
+        EXPECT_EQ(nav.navigation_stack().size(), 2U);
+    }
+
+    // ---- modal stack: a SEPARATE stack overlaying the page stack (NavigationModel.PushModal/PopModal) ----
+
+    TEST(navigation_modal, push_modal_disappears_underlying_then_appears_modal)
+    {
+        content_page root;
+        content_page modal;
+        navigation_page nav(root); // root appears here
+
+        std::vector<std::string> transcript;
+        trace_lifecycle(root, "root", transcript);
+        trace_lifecycle(modal, "modal", transcript);
+
+        nav.push_modal(modal);
+
+        // C# NavigationModel.PushModal: previousPage.SendDisappearing() then page.SendAppearing().
+        EXPECT_EQ(transcript, (std::vector<std::string>{"root:disappearing", "modal:appearing"}));
+        EXPECT_EQ(nav.modal_stack().size(), 1U);
+        EXPECT_EQ(nav.modal_stack().back(), &modal);
+        EXPECT_TRUE(modal.has_appeared());
+        EXPECT_FALSE(root.has_appeared());
+        // The navigation stack is untouched by a modal push.
+        EXPECT_EQ(nav.navigation_stack().size(), 1U);
+        EXPECT_EQ(nav.current_page(), &root);
+    }
+
+    TEST(navigation_modal, pop_modal_disappears_modal_then_reappears_underlying)
+    {
+        // C# PageLifeCycleTests.PopModalPage: poppedPage appears 1/disappears 1; firstPage appears twice.
+        content_page root;
+        content_page modal;
+        navigation_page nav(root);
+        nav.push_modal(modal);
+
+        std::vector<std::string> transcript;
+        trace_lifecycle(root, "root", transcript);
+        trace_lifecycle(modal, "modal", transcript);
+
+        content_page* const popped = nav.pop_modal();
+
+        EXPECT_EQ(popped, &modal);
+        // C# PopModal: previousPage(modal).SendDisappearing() then CurrentPage(root).SendAppearing().
+        EXPECT_EQ(transcript, (std::vector<std::string>{"modal:disappearing", "root:appearing"}));
+        EXPECT_TRUE(nav.modal_stack().empty());
+        EXPECT_TRUE(root.has_appeared());
+        EXPECT_FALSE(modal.has_appeared());
+    }
+
+    TEST(navigation_modal, second_modal_covers_the_first)
+    {
+        // C# PageLifeCycleTests.PushSecondModalPage: first disappears once, second appears once.
+        content_page root;
+        content_page first_modal;
+        content_page second_modal;
+        navigation_page nav(root);
+        nav.push_modal(first_modal);
+
+        std::vector<std::string> transcript;
+        trace_lifecycle(first_modal, "first", transcript);
+        trace_lifecycle(second_modal, "second", transcript);
+
+        nav.push_modal(second_modal); // previous == the first modal (the current visible page)
+
+        EXPECT_EQ(transcript, (std::vector<std::string>{"first:disappearing", "second:appearing"}));
+        EXPECT_EQ(nav.modal_stack().size(), 2U);
+        EXPECT_EQ(nav.modal_stack().back(), &second_modal);
+    }
+
+    TEST(navigation_modal, pop_to_an_underlying_modal)
+    {
+        // C# PageLifeCycleTests.PopToAModalPage: pop the top modal -> it disappears, the first modal reappears.
+        content_page root;
+        content_page first_modal;
+        content_page second_modal;
+        navigation_page nav(root);
+        nav.push_modal(first_modal);
+        nav.push_modal(second_modal);
+
+        std::vector<std::string> transcript;
+        trace_lifecycle(first_modal, "first", transcript);
+        trace_lifecycle(second_modal, "second", transcript);
+
+        content_page* const popped = nav.pop_modal();
+
+        EXPECT_EQ(popped, &second_modal);
+        EXPECT_EQ(transcript, (std::vector<std::string>{"second:disappearing", "first:appearing"}));
+        EXPECT_EQ(nav.modal_stack().size(), 1U);
+        EXPECT_EQ(nav.modal_stack().back(), &first_modal);
+    }
+
+    TEST(navigation_modal, pop_modal_on_empty_stack_is_a_noop_returning_null)
+    {
+        content_page root;
+        navigation_page nav(root);
+
+        std::vector<std::string> transcript;
+        trace_lifecycle(root, "root", transcript);
+
+        EXPECT_EQ(nav.pop_modal(), nullptr); // C# throws; we return null (documented deviation)
+        EXPECT_TRUE(nav.modal_stack().empty());
+        EXPECT_TRUE(transcript.empty());
+    }
+
+    TEST(navigation_modal_seam, headless_platform_mirrors_the_hosted_modal)
+    {
+        content_page root;
+        content_page modal;
+        auto handler = std::make_shared<navigation_page_handler>();
+        navigation_page nav(root);
+        nav.set_handler(handler);
+
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+        EXPECT_EQ(platform->hosted_modal, nullptr);
+
+        nav.push_modal(modal); // -> request_modal_navigation -> overlay the modal
+        EXPECT_EQ(platform->hosted_modal, &modal);
+        // The underlying page is still hosted (the modal overlays it, it is not swapped out).
+        EXPECT_EQ(platform->hosted_page, &root);
+
+        nav.pop_modal(); // the overlay clears
+        EXPECT_EQ(platform->hosted_modal, nullptr);
+    }
 } // namespace
