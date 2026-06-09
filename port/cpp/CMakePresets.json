@@ -57,6 +57,23 @@
       "description": "macOS backend; mirrors MAUI's per-platform partials with real NSViews (.mm + ARC).",
       "binaryDir": "${sourceDir}/build/apple",
       "cacheVariables": { "MAUI_BACKEND": "apple" }
+    },
+    {
+      "name": "ios",
+      "inherits": "headless",
+      "displayName": "iOS (UIKit / simulator, Obj-C++)",
+      "description": "iOS backend cross-compiled for the arm64 simulator; ctest runs the test binaries on a booted simulator via tools/ios-sim-run.sh (CMAKE_CROSSCOMPILING_EMULATOR).",
+      "binaryDir": "${sourceDir}/build/ios",
+      "cacheVariables": {
+        "MAUI_BACKEND": "ios",
+        "CMAKE_SYSTEM_NAME": "iOS",
+        "CMAKE_OSX_SYSROOT": "iphonesimulator",
+        "CMAKE_OSX_ARCHITECTURES": "arm64",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "26.0",
+        "VCPKG_TARGET_TRIPLET": "arm64-ios-simulator",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/cmake/triplets",
+        "CMAKE_CROSSCOMPILING_EMULATOR": "${sourceDir}/tools/ios-sim-run.sh"
+      }
     }
   ],
   "buildPresets": [
@@ -65,7 +82,8 @@
     { "name": "asan-ubsan", "configurePreset": "asan-ubsan" },
     { "name": "tsan", "configurePreset": "tsan" },
     { "name": "msan", "configurePreset": "msan" },
-    { "name": "apple", "configurePreset": "apple" }
+    { "name": "apple", "configurePreset": "apple" },
+    { "name": "ios", "configurePreset": "ios" }
   ],
   "testPresets": [
     {
@@ -77,6 +95,12 @@
     {
       "name": "apple",
       "configurePreset": "apple",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+    },
+    {
+      "name": "ios",
+      "configurePreset": "ios",
       "output": { "outputOnFailure": true },
       "execution": { "noTestsAction": "error", "stopOnFailure": false }
     },

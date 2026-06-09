@@ -8,9 +8,9 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# ---- Backend selection (headless first; macOS/iOS/Windows/Android/Linux later) ----
-set(MAUI_BACKEND "headless" CACHE STRING "Native backend: headless|apple|windows|android|linux")
-set_property(CACHE MAUI_BACKEND PROPERTY STRINGS headless apple windows android linux)
+# ---- Backend selection (headless first; macOS/iOS done, Windows/Android/Linux later) ----
+set(MAUI_BACKEND "headless" CACHE STRING "Native backend: headless|apple|ios|windows|android|linux")
+set_property(CACHE MAUI_BACKEND PROPERTY STRINGS headless apple ios windows android linux)
 message(STATUS "MAUI_BACKEND = ${MAUI_BACKEND}")
 
 # ---- Warnings (PROFILE.md §1: treat as errors in CI once green) ----
@@ -22,6 +22,18 @@ enable_testing()
 find_package(GTest CONFIG REQUIRED)
 find_package(benchmark CONFIG REQUIRED)
 include(GoogleTest)
+
+# gtest discovery, backend-aware: the ios preset cross-compiles, so the test binaries cannot run on
+# the build host — discovery is deferred to ctest time (PRE_TEST) and runs through the simulator
+# runner (CMAKE_CROSSCOMPILING_EMULATOR = tools/ios-sim-run.sh), whose boot-and-spawn round trip
+# needs far more than the default 5s discovery timeout. Other backends keep the stock behavior.
+function(maui_discover_tests target)
+  if(MAUI_BACKEND STREQUAL "ios")
+    gtest_discover_tests(${target} DISCOVERY_MODE PRE_TEST DISCOVERY_TIMEOUT 180)
+  else()
+    gtest_discover_tests(${target})
+  endif()
+endfunction()
 
 # ---- Sanitizers (Sanitizers.md): target-level flags via an interface library, never global. ----
 # Enable one personality at a time via the asan-ubsan / tsan / msan presets. ASan+UBSan and TSan
@@ -120,7 +132,7 @@ target_link_libraries(maui_graphics_tests PRIVATE
   maui_sanitizers
   GTest::gmock_main   # transitively pulls gmock + gtest + main(); single chain avoids duplicate-lib warnings
 )
-gtest_discover_tests(maui_graphics_tests)
+maui_discover_tests(maui_graphics_tests)
 # Lint the test TUs too (kept clean: 0 findings). Same guard as the library targets above.
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_graphics_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
@@ -157,6 +169,28 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/navigation_page_handler.mm
     src/platform/apple/window_handler.mm)
   set_source_files_properties(${MAUI_CORE_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+elseif(MAUI_BACKEND STREQUAL "ios")
+  enable_language(OBJCXX)
+  set(CMAKE_OBJCXX_STANDARD 23)
+  set(CMAKE_OBJCXX_STANDARD_REQUIRED ON)
+  # CMake defaults executables to .app bundles on Apple embedded platforms; the test executables are
+  # plain console binaries run via `simctl spawn` (tools/ios-sim-run.sh), not installable apps.
+  set(CMAKE_MACOSX_BUNDLE OFF)
+  # M6 scaffold: only the button has a real UIKit partial so far. Every other control deliberately
+  # KEEPS its headless partial (pure C++, compiles for iOS unchanged), so the whole library + the
+  # full controls test suite still link and run on the simulator; each M6 fan-out unit swaps one
+  # headless partial here for its UIKit .mm twin (and the matching *_tests.cpp for *_ios_tests.mm).
+  set(MAUI_CORE_PLATFORM_SOURCES
+    src/platform/ios/button_handler.mm
+    src/platform/headless/label_handler.cpp
+    src/platform/headless/entry_handler.cpp
+    src/platform/headless/image_handler.cpp
+    src/platform/headless/image_source_services.cpp
+    src/platform/headless/layout_handler.cpp
+    src/platform/headless/content_page_handler.cpp
+    src/platform/headless/navigation_page_handler.cpp
+    src/platform/headless/window_handler.cpp)
+  set_source_files_properties(src/platform/ios/button_handler.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
   set(MAUI_CORE_PLATFORM_SOURCES
     src/platform/headless/button_handler.cpp
@@ -213,6 +247,17 @@ if(MAUI_BACKEND STREQUAL "apple")
   target_link_libraries(maui_core PUBLIC "-framework Cocoa" "-framework QuartzCore")
   target_compile_definitions(maui_core PUBLIC MAUI_PLATFORM_APPLE)
 endif()
+# The iOS twin of the apple block: UIKit instead of Cocoa (QuartzCore again for the layer C functions),
+# plus Foundation/CoreFoundation/libobjc explicitly — unlike macOS's Cocoa umbrella, iOS's UIKit does
+# not re-export them, and the ARC'd .mm code calls straight into all three (NSString/NSAttributedString,
+# CFRelease for the retained native slot, objc_retain/objc_msgSend/objc_setAssociatedObject).
+# MAUI_PLATFORM_IOS (PUBLIC, sibling of MAUI_PLATFORM_APPLE) selects the ios update_* override blocks
+# in the shared platform structs (button_handler.hpp) for every TU of the build.
+if(MAUI_BACKEND STREQUAL "ios")
+  target_link_libraries(maui_core PUBLIC
+    "-framework UIKit" "-framework QuartzCore" "-framework Foundation" "-framework CoreFoundation" objc)
+  target_compile_definitions(maui_core PUBLIC MAUI_PLATFORM_IOS)
+endif()
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
@@ -234,7 +279,7 @@ target_link_libraries(maui_core_tests PRIVATE
   maui_sanitizers
   GTest::gmock_main
 )
-gtest_discover_tests(maui_core_tests)
+maui_discover_tests(maui_core_tests)
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_core_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
@@ -313,6 +358,36 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/navigation_page_apple_tests.mm
     tests/controls/window_apple_tests.mm
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+elseif(MAUI_BACKEND STREQUAL "ios")
+  # The headless suite, with the two files that observe the headless BUTTON mirrors swapped out:
+  # button_tests.cpp + view_mapper_tests.cpp assert on button_platform's in-memory mirrors, which the
+  # real UIKit button partial doesn't write — button_ios_tests.mm drives the genuine UIButton instead
+  # (text/events/appearance/padding + the generic-IView pushes). Every other control still compiles
+  # its headless partial on ios (see MAUI_CORE_PLATFORM_SOURCES above), so its headless tests remain
+  # the right oracle; the M6 fan-out swaps each pair (partial + tests) together. view_mapper coverage
+  # for label/entry rides along in their headless suites' mapper cases; a view_mapper_ios_tests.mm
+  # arrives with the fan-out.
+  add_executable(maui_controls_tests
+    tests/controls/button_ios_tests.mm
+    tests/controls/label_tests.cpp
+    tests/controls/entry_tests.cpp
+    tests/controls/image_tests.cpp
+    tests/controls/layout_tests.cpp
+    tests/controls/grid_tests.cpp
+    tests/controls/content_page_tests.cpp
+    tests/controls/navigation_page_tests.cpp
+    tests/controls/style_tests.cpp
+    tests/controls/trigger_tests.cpp
+    tests/controls/visual_state_manager_tests.cpp
+    tests/controls/resource_dictionary_tests.cpp
+    tests/controls/dynamic_resource_tests.cpp
+    tests/controls/implicit_style_tests.cpp
+    tests/controls/advanced_trigger_tests.cpp
+    tests/controls/size_request_tests.cpp # backend-agnostic (compares against the handler's own size)
+    tests/controls/lifecycle_tests.cpp
+    tests/core/image_source_tests.cpp     # headless image partials are compiled on ios (see above)
+    tests/core/font_image_source_tests.cpp)
+  set_source_files_properties(tests/controls/button_ios_tests.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
   add_executable(maui_controls_tests
     tests/controls/button_tests.cpp
@@ -342,12 +417,17 @@ target_include_directories(maui_controls_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DI
 if(MAUI_BACKEND STREQUAL "apple")
   target_include_directories(maui_controls_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/apple)
 endif()
+# Same convention for the ios .mm tests (ios_text_ops.hpp / ios_conversions.hpp live beside the
+# UIKit handler sources).
+if(MAUI_BACKEND STREQUAL "ios")
+  target_include_directories(maui_controls_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/ios)
+endif()
 target_link_libraries(maui_controls_tests PRIVATE
   maui_controls
   maui_sanitizers
   GTest::gmock_main
 )
-gtest_discover_tests(maui_controls_tests)
+maui_discover_tests(maui_controls_tests)
 # The controls tests are .cpp on headless and .mm (OBJCXX) on apple; lint whichever language is built.
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_controls_tests PROPERTIES
@@ -402,7 +482,7 @@ target_link_libraries(maui_layout_tests PRIVATE
   maui_sanitizers
   GTest::gmock_main
 )
-gtest_discover_tests(maui_layout_tests)
+maui_discover_tests(maui_layout_tests)
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_layout_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()

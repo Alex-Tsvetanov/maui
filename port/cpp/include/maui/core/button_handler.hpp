@@ -13,8 +13,9 @@
 //
 // button_platform is the managed platform view. It is a single cross-platform struct (so the CRTP
 // Platform type stays complete everywhere — no incomplete-type pimpl dance): the `native` slot holds
-// the real backend view (an NSButton* on Apple, retained in the .mm; unused headless), `title` is the
-// headless text mirror, and the callbacks are the inbound event hooks the platform partial wires up.
+// the real backend view (an NSButton* on Apple / a UIButton* on iOS, retained in the .mm; unused
+// headless), `title` is the headless text mirror, and the callbacks are the inbound event hooks the
+// platform partial wires up.
 
 #include <memory>
 #include <string>
@@ -42,8 +43,8 @@ namespace maui::core
     {
         button_platform() = default;
         // Destruction releases `native` and is therefore backend-defined (the headless build defaults
-        // it; the Apple build CFReleases the retained NSButton). Non-copyable/non-movable: it is owned
-        // solely by the handler's unique_ptr and never copied or moved.
+        // it; the Apple/iOS builds CFRelease the retained NSButton/UIButton). Non-copyable/non-movable:
+        // it is owned solely by the handler's unique_ptr and never copied or moved.
         ~button_platform() override;
         button_platform(const button_platform&) = delete;
         button_platform(button_platform&&) = delete;
@@ -84,6 +85,18 @@ namespace maui::core
         // hit-test): semantics → accessibilityLabel/Help/heading role, input_transparent → -hitTest: gate.
         void update_semantics(const maui::core::semantics* value) override;
         void update_input_transparent(bool value) override;
+#endif
+
+#ifdef MAUI_PLATFORM_IOS
+        // iOS backend (M6 scaffold): push the four fundamental IView properties to the UIButton
+        // (defined in src/platform/ios/button_handler.mm). The remaining generic-IView pushes —
+        // transform / flow_direction / background / shadow / clip / semantics / input_transparent —
+        // deliberately keep the view_platform_base mirrors for now; the M6 fan-out units port the
+        // shared ios view/visual/semantics op helpers and override them here (see port/STATUS.md).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
 #endif
     };
 

@@ -1,0 +1,363 @@
+// iOS (UIKit) backend tests for the button seam — the real-native half of the M6 Rosetta Stone, run
+// only for MAUI_BACKEND=ios (executed ON the iOS simulator via tools/ios-sim-run.sh, the preset's
+// CMAKE_CROSSCOMPILING_EMULATOR). Drives a genuine UIButton: Text maps to the Normal-state title, and
+// the native touch events flow back through the handler's target-action proxy to the control's
+// clicked/pressed/released events. Compiled as Objective-C++ with ARC.
+//
+// NATIVE EVENT INJECTION (send_control_event below): -[UIControl sendActionsForControlEvents:] hands
+// each registered (target, action) pair to +[UIApplication sharedApplication] for delivery — and a
+// plain spawned simulator process has NO UIApplication (UIKit 26 throws NSInternalInconsistency from
+// [[UIApplication alloc] init] outside UIApplicationMain, and UIApplicationMain itself traps without
+// an app bundle; both verified on-simulator). The helper therefore replicates the documented dispatch
+// walk UIControl performs (allTargets × actionsForTarget:forControlEvent: → invoke), exercising the
+// REAL registration the handler made on the REAL UIButton; the only hop skipped is UIApplication's
+// final [target performSelector:action] relay. The apple twin keeps NSButton's full -performClick:
+// because AppKit's NSApplication is creatable in any process — an AppKit/UIKit platform difference,
+// not a port one.
+#import <UIKit/UIKit.h>
+
+#include <memory>
+#include <string>
+
+#include "ios_text_ops.hpp"
+#include "maui/controls/button.hpp"
+#include "maui/core/button_handler.hpp"
+#include "maui/core/font.hpp"
+#include "maui/core/handler_registry.hpp"
+#include "maui/core/i_element_handler.hpp"
+#include "maui/core/thickness.hpp"
+#include "maui/core/visibility.hpp"
+#include "maui/graphics/color.hpp"
+#include <gtest/gtest.h>
+
+namespace
+{
+    using maui::controls::button;
+    using maui::core::button_handler;
+    using maui::core::i_element_handler;
+    using maui::platform::ios::kerning_of;
+
+    // -[NSString UTF8String] is nullable-annotated; convert through this guard so the std::string
+    // construction never receives a null pointer (the values under test are always non-null).
+    std::string to_std_string(NSString* value)
+    {
+        const char* const utf8 = value.UTF8String;
+        return utf8 != nullptr ? std::string(utf8) : std::string();
+    }
+
+    UIButton* native_button(const std::shared_ptr<button_handler>& handler)
+    {
+        return (__bridge UIButton*)handler->typed_platform_view()->native;
+    }
+
+    // Replicates -[UIControl sendActionsForControlEvents:]'s dispatch-table walk for one event (see
+    // the header comment): every (target, action) pair registered for `event` is invoked with the
+    // control as sender, exactly as UIApplication's sendAction:to:from:forEvent: would (NSInvocation
+    // spells the dynamic send without the objc_msgSend function-pointer cast).
+    void send_control_event(UIControl* control, UIControlEvents event)
+    {
+        NSArray* const targets = control.allTargets.allObjects;
+        for (NSUInteger t = 0; t < targets.count; ++t)
+        {
+            id const target = targets[t];
+            NSArray<NSString*>* const actions = [control actionsForTarget:target forControlEvent:event];
+            for (NSUInteger a = 0; a < actions.count; ++a)
+            {
+                SEL const action = NSSelectorFromString(actions[a]);
+                NSMethodSignature* const signature = [target methodSignatureForSelector:action];
+                ASSERT_NE(signature, nil);
+                NSInvocation* const invocation = [NSInvocation invocationWithMethodSignature:signature];
+                invocation.selector = action;
+                id sender = control;
+                [invocation setArgument:&sender atIndex:2]; // 0 = self, 1 = _cmd, 2 = the sender
+                [invocation invokeWithTarget:target];
+            }
+        }
+    }
+
+    TEST(ios_button_seam, attaching_handler_creates_uibutton_and_maps_text)
+    {
+        button control;
+        control.set_text("Start");
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        ASSERT_NE(handler->platform_view(), nullptr);
+        EXPECT_EQ(to_std_string(native_button(handler).currentTitle), "Start");
+    }
+
+    TEST(ios_button_seam, setting_text_updates_uibutton_title)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        control.set_text("Changed");
+        EXPECT_EQ(to_std_string(native_button(handler).currentTitle), "Changed");
+    }
+
+    TEST(ios_button_seam, native_touch_up_inside_flows_back_to_clicked_event)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        int clicks = 0;
+        int releases = 0;
+        control.clicked.connect([&clicks] { ++clicks; });
+        control.released.connect([&releases] { ++releases; });
+
+        send_control_event(native_button(handler), UIControlEventTouchUpInside); // simulate a real tap
+
+        // ButtonEventProxy.OnButtonTouchUpInside: Released, then Clicked.
+        EXPECT_EQ(clicks, 1);
+        EXPECT_EQ(releases, 1);
+    }
+
+    TEST(ios_button_seam, touch_down_presses_and_touch_cancel_releases)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        int pressed = 0;
+        int released = 0;
+        int clicks = 0;
+        control.pressed.connect([&pressed] { ++pressed; });
+        control.released.connect([&released] { ++released; });
+        control.clicked.connect([&clicks] { ++clicks; });
+        UIButton* const view = native_button(handler);
+
+        send_control_event(view, UIControlEventTouchDown); // finger down
+        EXPECT_EQ(pressed, 1);
+        EXPECT_TRUE(control.is_pressed());
+
+        send_control_event(view, UIControlEventTouchCancel); // gesture cancelled
+        EXPECT_EQ(released, 1);
+        EXPECT_FALSE(control.is_pressed());
+        EXPECT_EQ(clicks, 0); // a cancelled touch never clicks
+    }
+
+    TEST(ios_button_seam, touch_up_outside_releases_without_click)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        int released = 0;
+        int clicks = 0;
+        control.released.connect([&released] { ++released; });
+        control.clicked.connect([&clicks] { ++clicks; });
+
+        send_control_event(native_button(handler), UIControlEventTouchUpOutside); // slid off, let go
+
+        EXPECT_EQ(released, 1);
+        EXPECT_EQ(clicks, 0);
+    }
+
+    TEST(ios_button_seam, disabled_button_click_is_suppressed)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        control.set_is_enabled(false);
+
+        // The disabled state reaches the native control (a real disabled UIButton receives no
+        // touches at all)...
+        EXPECT_FALSE(native_button(handler).enabled);
+
+        // ...and the control's own IsEnabled gate suppresses Clicked even if an event does arrive.
+        int clicks = 0;
+        control.clicked.connect([&clicks] { ++clicks; });
+        send_control_event(native_button(handler), UIControlEventTouchUpInside);
+        EXPECT_EQ(clicks, 0);
+    }
+
+    TEST(ios_button_seam, clearing_handler_disconnects)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        ASSERT_NE(handler->platform_view(), nullptr);
+
+        control.set_handler(nullptr);
+        EXPECT_EQ(handler->platform_view(), nullptr);
+        EXPECT_EQ(handler->virtual_view(), nullptr);
+    }
+
+    TEST(ios_button_seam, appearance_maps_to_uibutton)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        UIButton* const view = native_button(handler);
+
+        control.set_font(maui::core::font::of_size("Helvetica", 18));
+        EXPECT_EQ(view.titleLabel.font.pointSize, 18.0);
+
+        control.set_text_color(maui::graphics::color(1.0F, 0.0F, 0.5F));
+        UIColor* const title_color = [view titleColorForState:UIControlStateNormal];
+        CGFloat red = 0;
+        CGFloat green = 0;
+        CGFloat blue = 0;
+        CGFloat alpha = 0;
+        ASSERT_TRUE([title_color getRed:&red green:&green blue:&blue alpha:&alpha]);
+        EXPECT_NEAR(red, 1.0, 0.01);
+        EXPECT_NEAR(blue, 0.5, 0.01);
+
+        control.set_stroke_thickness(3.0);
+        EXPECT_EQ(view.layer.borderWidth, 3.0);
+
+        control.set_corner_radius(7);
+        EXPECT_EQ(view.layer.cornerRadius, 7.0);
+    }
+
+    // Ports ButtonHandlerTests.iOS CharacterSpacingInitializesCorrectly: the kerning on the (now
+    // attributed) Normal-state title equals the cross-platform CharacterSpacing.
+    TEST(ios_button_seam, character_spacing_kerns_the_attributed_title)
+    {
+        button control;
+        control.set_text("Test");
+        control.set_character_spacing(4);
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        NSAttributedString* const title = [native_button(handler) attributedTitleForState:UIControlStateNormal];
+        EXPECT_EQ(kerning_of(title), 4.0);
+        EXPECT_EQ(to_std_string(title.string), "Test");
+    }
+
+    // Ports ButtonHandlerTests.iOS CharacterSpacingAndTextColorInitializesCorrectly: the kerned title
+    // carries both the spacing and the explicit text color.
+    TEST(ios_button_seam, character_spacing_with_text_color_sets_both_on_the_title)
+    {
+        button control;
+        control.set_text("Test");
+        control.set_character_spacing(4);
+        control.set_text_color(maui::graphics::color(1.0F, 0.0F, 0.5F)); // hot-pink-ish
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        NSAttributedString* const title = [native_button(handler) attributedTitleForState:UIControlStateNormal];
+        EXPECT_EQ(kerning_of(title), 4.0);
+        UIColor* const fg = [title attribute:NSForegroundColorAttributeName atIndex:0 effectiveRange:nullptr];
+        ASSERT_NE(fg, nil);
+        CGFloat red = 0;
+        CGFloat green = 0;
+        CGFloat blue = 0;
+        CGFloat alpha = 0;
+        ASSERT_TRUE([fg getRed:&red green:&green blue:&blue alpha:&alpha]);
+        EXPECT_NEAR(red, 1.0, 0.01);
+        EXPECT_NEAR(blue, 0.5, 0.01);
+    }
+
+    // Re-kerning while an attributed title is already installed rebuilds it from the plain title
+    // storage — the text survives, only the spacing changes.
+    TEST(ios_button_seam, changing_character_spacing_rekerns_and_preserves_the_title)
+    {
+        button control;
+        control.set_text("Test");
+        control.set_character_spacing(4);
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        control.set_character_spacing(2);
+        NSAttributedString* const title = [native_button(handler) attributedTitleForState:UIControlStateNormal];
+        EXPECT_EQ(kerning_of(title), 2.0);
+        EXPECT_EQ(to_std_string(title.string), "Test");
+    }
+
+    // Spacing back to 0 resets the attributed title (SetAttributedTitle(null)) so the plain,
+    // setTitleColor:-colored title shows again.
+    TEST(ios_button_seam, clearing_character_spacing_reverts_to_plain_title)
+    {
+        button control;
+        control.set_text("Test");
+        control.set_character_spacing(4);
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        EXPECT_EQ(kerning_of([native_button(handler) attributedTitleForState:UIControlStateNormal]), 4.0);
+
+        control.set_character_spacing(0);
+        EXPECT_EQ([native_button(handler) attributedTitleForState:UIControlStateNormal], nil);
+        EXPECT_EQ(to_std_string(native_button(handler).currentTitle), "Test");
+    }
+
+    // Ports the UpdatePadding recipe: the cross-platform Padding lands on ContentEdgeInsets (top/bottom
+    // of exactly 0 become AlmostZero; the border width is folded into every side at map time).
+    TEST(ios_button_seam, padding_maps_to_content_edge_insets)
+    {
+        button control;
+        control.set_text("Test");
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        UIButton* const view = native_button(handler);
+
+        // ContentEdgeInsets is deprecated on iOS 15+ but functional (and what C# itself drives);
+        // reading it back here mirrors the C# device test under the same suppression.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        // The connect-time map of the default (all-zero) padding: 0 top/bottom became AlmostZero.
+        const UIEdgeInsets defaults = view.contentEdgeInsets;
+        EXPECT_NEAR(defaults.top, 0.00001, 1e-9);
+        EXPECT_NEAR(defaults.bottom, 0.00001, 1e-9);
+        EXPECT_EQ(defaults.left, 0.0);
+        EXPECT_EQ(defaults.right, 0.0);
+
+        control.set_padding(maui::core::thickness(5, 10, 15, 20)); // left, top, right, bottom
+        const UIEdgeInsets insets = view.contentEdgeInsets;
+        EXPECT_EQ(insets.top, 10.0);
+        EXPECT_EQ(insets.left, 5.0);
+        EXPECT_EQ(insets.bottom, 20.0);
+        EXPECT_EQ(insets.right, 15.0);
+
+        // The border width is added to every side when padding is (re)mapped, int-truncated as in C#.
+        // (The padding value must actually CHANGE — an equal set is a property-system no-op, exactly
+        // like C#'s SetValue, so it would not re-run the mapper.)
+        control.set_stroke_thickness(2.0);
+        control.set_padding(maui::core::thickness(6, 11, 16, 21));
+        const UIEdgeInsets bordered = view.contentEdgeInsets;
+        EXPECT_EQ(bordered.top, 13.0);
+        EXPECT_EQ(bordered.left, 8.0);
+        EXPECT_EQ(bordered.bottom, 23.0);
+        EXPECT_EQ(bordered.right, 18.0);
+#pragma clang diagnostic pop
+    }
+
+    // The generic-IView pushes (the shared view_mapper through button_platform's ios update_*
+    // overrides): visibility / opacity / automation_id reach the real UIButton.
+    TEST(ios_button_seam, generic_iview_properties_reach_the_uibutton)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        UIButton* const view = native_button(handler);
+
+        control.set_visibility(maui::core::visibility::hidden);
+        EXPECT_TRUE(view.hidden);
+        control.set_visibility(maui::core::visibility::visible);
+        EXPECT_FALSE(view.hidden);
+
+        control.set_opacity(0.5);
+        EXPECT_EQ(view.alpha, 0.5);
+
+        control.set_automation_id("submit_button");
+        EXPECT_EQ(to_std_string(view.accessibilityIdentifier), "submit_button");
+    }
+
+    TEST(ios_button_seam, handler_resolved_from_default_registry)
+    {
+        // button -> button_handler is self-registered in button.cpp (MAUI_REGISTER_HANDLER).
+        std::shared_ptr<i_element_handler> const handler =
+            maui::core::default_handler_registry().create_handler<button>();
+        ASSERT_NE(handler, nullptr);
+        auto* resolved = dynamic_cast<button_handler*>(handler.get());
+        ASSERT_NE(resolved, nullptr);
+
+        button control;
+        control.set_text("Registered");
+        control.set_handler(handler);
+        auto const button_view = (__bridge UIButton*)resolved->typed_platform_view()->native;
+        EXPECT_EQ(to_std_string(button_view.currentTitle), "Registered");
+    }
+} // namespace
