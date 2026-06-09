@@ -17,6 +17,7 @@
 #include "maui/core/image_handler.hpp"
 #include "maui/core/label_handler.hpp"
 #include "maui/core/layout_handler.hpp"
+#include "maui/core/semantics.hpp"
 #include "maui/core/shadow.hpp"
 #include "maui/core/view_platform_base.hpp"
 #include "maui/core/visibility.hpp"
@@ -486,6 +487,57 @@ namespace
         auto clip = std::make_shared<maui::graphics::shapes::ellipse>();
         control.set_clip(clip);
         EXPECT_EQ(base->clip, clip.get());
+    }
+
+    // ---- button: Semantics + InputTransparent (M5d) reach the platform base ----
+
+    TEST(view_mapper_a11y, semantics_and_input_transparent_default_then_map)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        view_platform_base* base = handler->platform_base();
+        ASSERT_NE(base, nullptr);
+
+        // Defaults: no semantics object, not input-transparent.
+        EXPECT_EQ(base->semantics, nullptr);
+        EXPECT_FALSE(base->input_transparent);
+
+        auto sem = std::make_shared<maui::core::semantics>();
+        sem->set_description("Submit");
+        sem->set_hint("Submits the form");
+        sem->set_heading_level(maui::core::semantic_heading_level::level1);
+        control.set_semantics(sem);
+        // The mirror borrows the exact object the control owns (i_view returns the same .get()).
+        EXPECT_EQ(base->semantics, sem.get());
+        EXPECT_EQ(base->semantics, control.semantics());
+        ASSERT_NE(base->semantics, nullptr);
+        EXPECT_EQ(base->semantics->description(), "Submit");
+        EXPECT_EQ(base->semantics->hint(), "Submits the form");
+        EXPECT_TRUE(base->semantics->is_heading());
+
+        control.set_input_transparent(true);
+        EXPECT_TRUE(base->input_transparent);
+        EXPECT_TRUE(control.input_transparent());
+
+        control.set_semantics(nullptr); // clearing maps a null mirror
+        EXPECT_EQ(base->semantics, nullptr);
+    }
+
+    TEST(view_mapper_a11y, initial_semantics_and_input_transparent_map_on_attach)
+    {
+        button control;
+        auto sem = std::make_shared<maui::core::semantics>();
+        sem->set_description("Avatar");
+        control.set_semantics(sem);
+        control.set_input_transparent(true);
+
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        view_platform_base* base = handler->platform_base();
+        ASSERT_NE(base, nullptr);
+        EXPECT_EQ(base->semantics, sem.get());
+        EXPECT_TRUE(base->input_transparent);
     }
 
     // ---- label: the same generic properties reach its platform base (recipe generalizes) ----

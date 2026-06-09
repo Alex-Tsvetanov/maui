@@ -25,6 +25,7 @@
 
 #include "maui/controls/element.hpp"
 #include "maui/controls/style.hpp"
+#include "maui/controls/visual_state_manager.hpp"
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/flow_direction.hpp"
@@ -34,6 +35,7 @@
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/layout_alignment.hpp"
 #include "maui/core/property.hpp"
+#include "maui/core/semantics.hpp"
 #include "maui/core/setter_specificity.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
@@ -79,6 +81,11 @@ namespace maui::controls
     const maui::core::bindable_property<std::shared_ptr<maui::graphics::paint>>& background_property();
     const maui::core::bindable_property<std::shared_ptr<maui::core::i_shadow>>& shadow_property();
     const maui::core::bindable_property<std::shared_ptr<maui::graphics::i_shape>>& clip_property();
+
+    // Accessibility metadata (Semantics — the control owns the object) + InputTransparent (a bindable bool).
+    // Shared NON-template descriptors, names matching the view_mapper keys.
+    const maui::core::bindable_property<std::shared_ptr<maui::core::semantics>>& semantics_property();
+    const maui::core::bindable_property<bool>& input_transparent_property();
 
     template <class ViewInterface> class view : public maui::controls::element, public ViewInterface
     {
@@ -224,9 +231,16 @@ namespace maui::controls
         {
             return maui::core::layout_alignment::fill;
         }
+        // Accessibility metadata (bindable; the control owns the semantics object). i_view hands back the
+        // raw borrow; the chained view_mapper's map_semantics pushes it to the platform base.
         [[nodiscard]] maui::core::semantics* semantics() const override
         {
-            return nullptr;
+            return semantics_.get().get();
+        }
+        // The control takes ownership of the semantics object. Passing a distinct instance fires the change.
+        void set_semantics(std::shared_ptr<maui::core::semantics> value)
+        {
+            semantics_.set(std::move(value));
         }
         // The three visual-layer properties are bindable (each change flows through on_property_changed →
         // handler->update_value → the chained view_mapper's map_clip / map_shadow / map_background). The
@@ -290,9 +304,14 @@ namespace maui::controls
         {
             is_focused_ = value;
         }
+        // InputTransparent (bindable; flows through the chained view_mapper's map_input_transparent).
         [[nodiscard]] bool input_transparent() const override
         {
-            return false;
+            return input_transparent_.get();
+        }
+        void set_input_transparent(bool value)
+        {
+            input_transparent_.set(value);
         }
         [[nodiscard]] maui::graphics::rect frame() const override
         {
@@ -371,11 +390,13 @@ namespace maui::controls
         bool focus() override
         {
             is_focused_ = true;
+            change_visual_state(); // VisualElement.Focus → ChangeVisualState (Focused)
             return true;
         }
         void unfocus() override
         {
             is_focused_ = false;
+            change_visual_state();
         }
 
         // --- styles/resources (M5d) ---------------------------------------------------------------------
@@ -422,17 +443,46 @@ namespace maui::controls
         }
         // --- end styles/resources (M5d) -----------------------------------------------------------------
 
+        // ---- Visual States (VisualStateManager.VisualStateGroups + VisualElement.ChangeVisualState) ----
+        // The control's visual-state manager (configure groups/states on it, then change_visual_state()
+        // drives the common states). Held by value — an empty manager makes change_visual_state() a no-op,
+        // so this is free until a developer adds groups.
+        [[nodiscard]] maui::controls::visual_state_manager& visual_states()
+        {
+            return visual_states_;
+        }
+        [[nodiscard]] const maui::controls::visual_state_manager& visual_states() const
+        {
+            return visual_states_;
+        }
+        // VisualElement.ChangeVisualState: go to Disabled when !IsEnabled, else Focused when focused, else
+        // Normal. Driven automatically on an IsEnabled change (and on focus/unfocus); also call it once
+        // after configuring the groups to apply the initial state. A no-op when no matching group exists.
+        void change_visual_state()
+        {
+            using common = maui::controls::common_states;
+            const std::string_view target =
+                !is_enabled_.get() ? common::disabled : (is_focused_ ? common::focused : common::normal);
+            visual_states_.go_to_state(*this, target);
+        }
+
     protected:
         view() = default;
 
         // The virtual→native seam: any bindable property change notifies the handler, which re-runs
         // that property's mapper. Mirrors MAUI, where a BindableProperty change calls Handler.UpdateValue.
+        // An IsEnabled change additionally drives the visual state (VisualElement.OnIsEnabledPropertyChanged
+        // → ChangeVisualState), so a configured Disabled/Normal state applies automatically.
         void on_property_changed(std::string_view name) override
         {
             maui::core::bindable_object::on_property_changed(name);
             if (handler_)
             {
                 handler_->update_value(name);
+            }
+            if (name == "is_enabled")
+            {
+                change_visual_state();
             }
         }
 
@@ -496,10 +546,15 @@ namespace maui::controls
         maui::core::property<std::shared_ptr<maui::graphics::paint>> background_{*this, background_property()};
         maui::core::property<std::shared_ptr<maui::core::i_shadow>> shadow_{*this, shadow_property()};
         maui::core::property<std::shared_ptr<maui::graphics::i_shape>> clip_{*this, clip_property()};
+        // Accessibility metadata + the input-transparent flag (each re-runs the chained view_mapper's
+        // map_semantics / map_input_transparent). Shared descriptors, like the visual-layer props.
+        maui::core::property<std::shared_ptr<maui::core::semantics>> semantics_{*this, semantics_property()};
+        maui::core::property<bool> input_transparent_{*this, input_transparent_property()};
         bool is_focused_ = false;
         // The applied style (VisualElement.Style). Held by shared_ptr so one style can be shared across
         // many controls; setting/replacing it routes through set_style (apply/unapply at style_local).
         std::shared_ptr<maui::controls::style> style_;
-        std::vector<std::string> style_class_; // the selected style classes (VisualElement.StyleClass)
+        std::vector<std::string> style_class_;               // the selected style classes (VisualElement.StyleClass)
+        maui::controls::visual_state_manager visual_states_; // VisualStateManager.VisualStateGroups host
     };
 } // namespace maui::controls

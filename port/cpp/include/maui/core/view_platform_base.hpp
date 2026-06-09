@@ -38,6 +38,7 @@ namespace maui::graphics
 namespace maui::core
 {
     class i_shadow;
+    class semantics;
 
     // The ten ITransform scalars as a single POD (the render transform is rebuilt as a whole from all
     // of them — see TransformationExtensions.UpdateTransformation — so the mapper passes one bundle, not
@@ -83,6 +84,11 @@ namespace maui::core
         const maui::graphics::paint* background = nullptr;
         const maui::core::i_shadow* shadow = nullptr;
         const maui::graphics::i_shape* clip = nullptr;
+        // Accessibility metadata (a NON-owning borrow of the control's semantics object; null = unset) +
+        // the input-transparent flag. Headless mirrors both; the native accessibility / hit-test push is
+        // deferred (see STATUS.md), so the apple structs keep the base mirror for these two.
+        const maui::core::semantics* semantics = nullptr;
+        bool input_transparent = false;
 
         // The default (headless) bodies write the mirrors above; backends override to push to the
         // native view. Defined out-of-line in view_platform_base.cpp.
@@ -100,5 +106,10 @@ namespace maui::core
         virtual void update_background(const maui::graphics::paint* value);
         virtual void update_shadow(const maui::core::i_shadow* value);
         virtual void update_clip(const maui::graphics::i_shape* value);
+        // Semantics (ViewHandler.MapSemantics → the native accessibility properties) + InputTransparent
+        // (ViewHandler.MapInputTransparent). The headless bodies record the mirrors; the apple structs do
+        // not override these yet (native a11y / hit-testing deferred), so they keep the base mirror.
+        virtual void update_semantics(const maui::core::semantics* value);
+        virtual void update_input_transparent(bool value);
     };
 } // namespace maui::core

@@ -159,4 +159,28 @@ namespace
         vsm.go_to_state(target, "Highlight");
         EXPECT_EQ(target.text(), "H"); // directly-driven VSM is above manual regardless of state name
     }
+
+    // ---- M5d (unit H): view<> auto-drives Disabled/Normal from is_enabled (VisualElement.ChangeVisualState) ----
+    TEST(visual_state_manager, view_auto_drives_disabled_and_normal_on_is_enabled_change)
+    {
+        button target;
+        // Configure the control's OWN visual-state manager (visual_states()) with Normal + Disabled.
+        visual_state normal{std::string{common_states::normal}};
+        normal.add(setter::of(button::text_property(), std::string("N")));
+        visual_state disabled{std::string{common_states::disabled}};
+        disabled.add(setter::of(button::text_property(), std::string("D")));
+        visual_state_group group{"CommonStates"};
+        group.add(std::move(normal));
+        group.add(std::move(disabled));
+        target.visual_states().add_group(std::move(group));
+
+        target.change_visual_state(); // initial: enabled -> Normal
+        EXPECT_EQ(target.text(), "N");
+
+        target.set_is_enabled(false); // an is_enabled change auto-drives the VSM -> Disabled
+        EXPECT_EQ(target.text(), "D");
+
+        target.set_is_enabled(true); // -> Normal
+        EXPECT_EQ(target.text(), "N");
+    }
 } // namespace

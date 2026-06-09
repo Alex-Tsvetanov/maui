@@ -106,6 +106,25 @@ namespace maui::core
                 base->update_clip(view.clip());
             }
         }
+
+        // ViewHandler.MapSemantics / MapInputTransparent: push the accessibility metadata (a non-owning
+        // borrow the control owns) + the input-transparent flag to the platform base. Headless records the
+        // mirror; the native accessibility / hit-test push is deferred (apple keeps the base mirror).
+        void map_semantics(i_view_handler& handler, i_view& view)
+        {
+            if (auto* base = handler.platform_base())
+            {
+                base->update_semantics(view.semantics());
+            }
+        }
+
+        void map_input_transparent(i_view_handler& handler, i_view& view)
+        {
+            if (auto* base = handler.platform_base())
+            {
+                base->update_input_transparent(view.input_transparent());
+            }
+        }
     } // namespace
 
     property_mapper<i_view, i_view_handler>& view_mapper()
@@ -131,6 +150,8 @@ namespace maui::core
             {"background", &map_background},
             {"shadow", &map_shadow},
             {"clip", &map_clip},
+            {"semantics", &map_semantics},
+            {"input_transparent", &map_input_transparent},
         };
         return table;
     }

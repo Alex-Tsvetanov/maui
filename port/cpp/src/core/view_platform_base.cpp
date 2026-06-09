@@ -61,4 +61,14 @@ namespace maui::core
     {
         clip = value;
     }
+
+    void view_platform_base::update_semantics(const maui::core::semantics* value)
+    {
+        semantics = value;
+    }
+
+    void view_platform_base::update_input_transparent(bool value)
+    {
+        input_transparent = value;
+    }
 } // namespace maui::core

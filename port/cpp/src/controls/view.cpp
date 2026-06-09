@@ -21,6 +21,7 @@
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/flow_direction.hpp"
 #include "maui/core/i_shadow.hpp"
+#include "maui/core/semantics.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/i_shape.hpp"
 #include "maui/graphics/paint.hpp"
@@ -143,6 +144,21 @@ namespace maui::controls
     const maui::core::bindable_property<std::shared_ptr<maui::graphics::i_shape>>& clip_property()
     {
         static const maui::core::bindable_property<std::shared_ptr<maui::graphics::i_shape>> descriptor{"clip"};
+        return descriptor;
+    }
+
+    // Accessibility metadata (the control owns the semantics object via a property<shared_ptr<...>>, like
+    // the visual-layer props) + the input-transparent flag (IView.InputTransparent, default false). Names
+    // match the view_mapper keys.
+    const maui::core::bindable_property<std::shared_ptr<maui::core::semantics>>& semantics_property()
+    {
+        static const maui::core::bindable_property<std::shared_ptr<maui::core::semantics>> descriptor{"semantics"};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<bool>& input_transparent_property()
+    {
+        static const maui::core::bindable_property<bool> descriptor{"input_transparent", false};
         return descriptor;
     }
 } // namespace maui::controls
