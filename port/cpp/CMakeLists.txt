@@ -522,6 +522,7 @@ add_library(maui_xaml STATIC
   src/xaml/xaml_standard_types.cpp
   src/xaml/xaml_node.cpp
   src/xaml/xaml_parser.cpp
+  src/xaml/i_markup_extension.cpp
 )
 target_include_directories(maui_xaml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # pugixml stays an implementation detail of the parser .cpp (never in public headers) — PRIVATE.
