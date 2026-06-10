@@ -95,9 +95,12 @@ namespace maui::platform::android
     };
 
     // The process-wide cache instance (the backend's handlers and the test host share it).
+    // Heap-allocated and never destroyed ON PURPOSE: a static OBJECT's destructor would run at
+    // process exit and DeleteGlobalRef every pinned jclass — the VM-shutdown race the class
+    // comment rules out. The one-time allocation is the leak the doctrine documents.
     [[nodiscard]] inline jni_cache& default_jni_cache()
     {
-        static jni_cache cache;
+        static jni_cache& cache = *new jni_cache();
         return cache;
     }
 } // namespace maui::platform::android

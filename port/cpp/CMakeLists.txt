@@ -390,6 +390,9 @@ if(MAUI_BACKEND STREQUAL "android")
     tests/platform/android_widget_tests.cpp)
   target_include_directories(maui_android_widget_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/android)
   target_link_libraries(maui_android_widget_tests PRIVATE GTest::gtest maui_sanitizers)
+  if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+    set_target_properties(maui_android_widget_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+  endif()
   add_test(NAME android_testhost_widget_suite
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tools/android-testhost-run.sh
             $<TARGET_FILE:maui_android_widget_tests>

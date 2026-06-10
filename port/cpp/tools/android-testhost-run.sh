@@ -58,8 +58,10 @@ dex_file="${dex_dir}/classes.dex"
 if [[ ! -f "${dex_file}" || "${bootstrap_java}" -nt "${dex_file}" ]]; then
   mkdir -p "${dex_dir}/classes"
   "${javac_bin}" --release 17 -classpath "${android_jar}" -d "${dex_dir}/classes" "${bootstrap_java}" >&2
+  # Every emitted .class, not just Bootstrap.class — a future lambda/inner class in the bootstrap
+  # would otherwise silently miss the dex and NoClassDefFoundError on the device.
   "${d8_bin}" --release --lib "${android_jar}" --min-api 34 --output "${dex_dir}" \
-    "${dex_dir}/classes/dev/mauicpp/testhost/Bootstrap.class" >&2
+    "${dex_dir}/classes/dev/mauicpp/testhost/"*.class >&2
   [[ -f "${dex_file}" ]] || maui_die "d8 produced no classes.dex in ${dex_dir}"
 fi
 
