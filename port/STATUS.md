@@ -310,8 +310,8 @@ intentionally-deferred markup-era items).
 | M5 | `bindable_object`/`bindable_property`, binding, style, lifecycle | ✅ (M5a binding, M5b styles/triggers/VSM, M5c Application/Window/lifecycle + inherited BindingContext) |
 | M5d | Deferred-backlog sweep (gradients, text, image+DI, NSWindow host, navigation chrome/modal, styles/resources, ViewMapper a11y props) | ✅ (7 parallel worktree agents + coordinator) |
 | M5e | Tail batch (layout-engine size-requests/z-index/ClipsToBounds, native apple a11y + hit-test, image disk-cache + async HTTP + GIF, i_application + nav bar styling/events) | ✅ (4 parallel worktree agents) |
-| M6 | Second platform (iOS) behind the same handlers | ⬜ |
-| M7 | XAML and/or Essentials (as prioritized) | 🚧 (wave 1: `maui_xaml` node tree + pugixml parser done; registries concurrent; visitors/hydration = wave 2) |
+| M6 | Second platform (iOS) behind the same handlers | ✅ (scaffold + 4 fan-out units: ALL 9 controls have real UIKit partials; the full suite — 538 cases — runs ON the iOS simulator via the `ios` preset's `simctl` ctest runner; `ios_app_sample` UIApplicationMain target) |
+| M7 | XAML and/or Essentials (as prioritized) | 🚧 (wave 1 ✅: `maui_xaml` registries + pugixml parser/node tree + converters + the `i_markup_extension` seam, 131 headless tests; wave 2 — visitors/loader (U3) + markup extensions (U5) — was cut off by a session limit MID-WORK: partial uncommitted code preserved in `.claude/worktrees/agent-a9c91013d1bcdc446` (U3: hydration_context/name_scope/visitors) + `agent-a4377f797717614d6` (U5: markup_extensions/runtime_environment/static_registry); U6 (end-to-end integration) not started) |
 
 ## Deferred backlog (revisit later — each was a documented "first cut", never a silent gap)
 
