@@ -368,6 +368,37 @@ if(MAUI_BACKEND STREQUAL "apple" OR MAUI_BACKEND STREQUAL "ios")
   endif()
 endif()
 
+# ---- Android JNI seam + the app_process widget TEST HOST (M-android milestone 3) ----
+if(MAUI_BACKEND STREQUAL "android")
+  # The seam's pure transcoders (jni_string.hpp's UTF-8 ⇄ UTF-16) run as ordinary on-emulator gtest
+  # cases in the regular suite — no Java VM needed; the jstring/widget round trip is covered by the
+  # test host below. The seam headers live beside the future android handler sources
+  # (src/platform/android), mirroring how the apple/ios test exes reach their op headers.
+  target_sources(maui_core_tests PRIVATE tests/platform/jni_string_tests.cpp)
+  target_include_directories(maui_core_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/android)
+
+  # The PROVEN test-host decision that gates the android fan-out (the full rationale is in
+  # tools/android-testhost-run.sh's header): gtest cases drive REAL android.widget views inside an
+  # app_process-spawned ART runtime — no APK, no gradle. The suite is a SHARED library
+  # (System.load()ed by testhost/Bootstrap.java, which hands a themed Context + argv across JNI to
+  # test_host.cpp's gtest main); per-control android units add their widget-test TUs here.
+  # Registered as ONE ctest test through the host-side script — deliberately NOT wrapped by the
+  # cross-compiling emulator (the script owns the device round trip), hence plain add_test instead
+  # of maui_discover_tests.
+  add_library(maui_android_widget_tests SHARED
+    src/platform/android/testhost/test_host.cpp
+    tests/platform/android_widget_tests.cpp)
+  target_include_directories(maui_android_widget_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/android)
+  target_link_libraries(maui_android_widget_tests PRIVATE GTest::gtest maui_sanitizers)
+  add_test(NAME android_testhost_widget_suite
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tools/android-testhost-run.sh
+            $<TARGET_FILE:maui_android_widget_tests>
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/android/testhost/Bootstrap.java)
+  # The first run may create the AVD + cold-boot the emulator inside the test (exactly like the
+  # PRE_TEST gtest discovery above) and compiles/dexes the bootstrap — same generous ceiling.
+  set_tests_properties(android_testhost_widget_suite PROPERTIES TIMEOUT 600)
+endif()
+
 # ======================================================================
 # Layer 2 - Controls  (maui::controls  <=  Microsoft.Maui.Controls : the developer-facing controls)
 # ======================================================================
