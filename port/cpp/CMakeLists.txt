@@ -87,6 +87,22 @@ endif()
 # ======================================================================
 # Layer 0 - Graphics  (maui::graphics  <=  Microsoft.Maui.Graphics)
 # ======================================================================
+# ---- BEGIN apple_shared (canvas core F1): the CoreGraphics canvas, ONE .mm for BOTH Apple
+# backends (mirrors C#'s Platforms/MaciOS folder inside the Graphics assembly). OBJCXX must be
+# enabled before the maui_graphics target adds the .mm (the later per-backend blocks re-enable it,
+# which is a no-op). ----
+if(MAUI_BACKEND STREQUAL "apple" OR MAUI_BACKEND STREQUAL "ios")
+  enable_language(OBJCXX)
+  set(CMAKE_OBJCXX_STANDARD 23)
+  set(CMAKE_OBJCXX_STANDARD_REQUIRED ON)
+  set(MAUI_GRAPHICS_PLATFORM_SOURCES
+    src/platform/apple_shared/coregraphics_canvas.mm)
+  set_source_files_properties(${MAUI_GRAPHICS_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+else()
+  set(MAUI_GRAPHICS_PLATFORM_SOURCES "")
+endif()
+# ---- END apple_shared ----
+
 add_library(maui_graphics STATIC
   src/graphics/color.cpp
   src/graphics/corner_radius.cpp
@@ -97,6 +113,7 @@ add_library(maui_graphics STATIC
   src/graphics/rect.cpp
   src/graphics/rect_f.cpp
   src/graphics/vector2.cpp
+  src/graphics/matrix3x2.cpp
   src/graphics/path_f.cpp
   src/graphics/path_builder.cpp
   src/graphics/solid_paint.cpp
@@ -104,17 +121,46 @@ add_library(maui_graphics STATIC
   src/graphics/linear_gradient_paint.cpp
   src/graphics/radial_gradient_paint.cpp
   src/graphics/shapes/round_rectangle.cpp
+  src/graphics/font.cpp
+  src/graphics/canvas_state.cpp
+  src/graphics/recording_canvas.cpp
+  src/graphics/text/text_attributes.cpp
+  src/graphics/text/attributed_text_run.cpp
+  src/graphics/text/attributed_text.cpp
+  ${MAUI_GRAPHICS_PLATFORM_SOURCES}
 )
 target_include_directories(maui_graphics PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(maui_graphics PRIVATE maui_sanitizers)
+# ---- BEGIN apple_shared link/include: the CoreGraphics canvas needs CoreGraphics + CoreText +
+# Foundation (PUBLIC: the .mm tests and any backend consumer reach CGContext/CTLine through it);
+# its header lives beside the .mm, so consumers inside this build use the source-dir include. ----
+if(MAUI_BACKEND STREQUAL "apple" OR MAUI_BACKEND STREQUAL "ios")
+  target_link_libraries(maui_graphics PUBLIC
+    "-framework CoreGraphics" "-framework CoreText" "-framework Foundation")
+  target_include_directories(maui_graphics PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/apple_shared)
+endif()
+# ---- END apple_shared link/include ----
 
 # clang-tidy runs on the port's own sources (its headers are reached transitively); tests and
-# benchmarks are excluded to keep the lint focused on the implementation.
+# benchmarks are excluded to keep the lint focused on the implementation. The graphics library is
+# .cpp-only on headless and gains the apple_shared .mm on apple/ios — lint both languages.
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
-  set_target_properties(maui_graphics PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+  set_target_properties(maui_graphics PROPERTIES
+    CXX_CLANG_TIDY "${CLANG_TIDY_EXE}"
+    OBJCXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
 
 # ---- Graphics tests (GoogleTest, discovered into ctest) ----
+# ---- BEGIN apple_shared test sources: the CGBitmapContext pixel-readback tests for the shared
+# CoreGraphics canvas run on BOTH Apple backends (.mm, ARC); headless skips them. ----
+if(MAUI_BACKEND STREQUAL "apple" OR MAUI_BACKEND STREQUAL "ios")
+  set(MAUI_GRAPHICS_PLATFORM_TEST_SOURCES
+    tests/graphics/coregraphics_canvas_tests.mm)
+  set_source_files_properties(${MAUI_GRAPHICS_PLATFORM_TEST_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+else()
+  set(MAUI_GRAPHICS_PLATFORM_TEST_SOURCES "")
+endif()
+# ---- END apple_shared test sources ----
 add_executable(maui_graphics_tests
   tests/graphics/smoke_test.cpp
   tests/graphics/color_tests.cpp
@@ -126,7 +172,15 @@ add_executable(maui_graphics_tests
   tests/graphics/numerics_tests.cpp
   tests/graphics/round_rectangle_tests.cpp
   tests/graphics/gradient_paint_tests.cpp
+  tests/graphics/canvas_tests.cpp
+  tests/graphics/attributed_text_tests.cpp
+  ${MAUI_GRAPHICS_PLATFORM_TEST_SOURCES}
 )
+# The apple_shared canvas header lives beside its .mm (src/platform/apple_shared), same convention
+# as the apple/ios control tests including their backend op headers.
+if(MAUI_BACKEND STREQUAL "apple" OR MAUI_BACKEND STREQUAL "ios")
+  target_include_directories(maui_graphics_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/apple_shared)
+endif()
 target_link_libraries(maui_graphics_tests PRIVATE
   maui_graphics
   maui_sanitizers
@@ -135,7 +189,9 @@ target_link_libraries(maui_graphics_tests PRIVATE
 maui_discover_tests(maui_graphics_tests)
 # Lint the test TUs too (kept clean: 0 findings). Same guard as the library targets above.
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
-  set_target_properties(maui_graphics_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+  set_target_properties(maui_graphics_tests PROPERTIES
+    CXX_CLANG_TIDY "${CLANG_TIDY_EXE}"
+    OBJCXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
 
 # ---- Graphics benchmarks (Google Benchmark; not a ctest test, run manually) ----

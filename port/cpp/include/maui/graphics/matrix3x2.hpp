@@ -10,10 +10,11 @@
 //     | m31  m32 |   (m31/m32 = translation)
 //
 // A row vector (x, y, 1) is transformed as (x, y, 1) * M (see vector2::transform). The port supplies
-// only the surface the ported call sites use: the field ctor, identity(), and multiply (matching
-// Matrix3x2.operator*). CreateTranslation/Scale/Rotation factories are intentionally omitted — no
-// transform path in the graphics layer needs them (callers build matrices via the field ctor); add
-// them only when a real call site does. Not a general linear-algebra library.
+// only the surface the ported call sites use: the field ctor, identity(), multiply (matching
+// Matrix3x2.operator*), the CreateTranslation/Scale/Rotation factories (real call sites since the
+// canvas core: AbstractCanvas.Rotate/Scale/Translate track the state transform through them), and
+// the Matrix3x2Extensions members CanvasState needs (GetDeterminant / DeconstructScales /
+// GetLengthScale). Not a general linear-algebra library. Out-of-line definitions: matrix3x2.cpp.
 
 namespace maui::graphics
 {
@@ -37,7 +38,24 @@ namespace maui::graphics
         {
             return {1, 0, 0, 1, 0, 0};
         }
+
+        // System.Numerics.Matrix3x2.CreateTranslation(x, y).
+        [[nodiscard]] static matrix3x2 create_translation(float x, float y);
+        // System.Numerics.Matrix3x2.CreateScale(sx, sy).
+        [[nodiscard]] static matrix3x2 create_scale(float sx, float sy);
+        // System.Numerics.Matrix3x2.CreateRotation(radians).
+        [[nodiscard]] static matrix3x2 create_rotation(float radians);
+
+        // System.Numerics.Matrix3x2.GetDeterminant() — m11*m22 - m21*m12.
+        [[nodiscard]] float get_determinant() const;
     };
+
+    // Microsoft.Maui.Graphics.Matrix3x2Extensions.DeconstructScales — the uniform scale
+    // (sqrt|det|) plus the per-axis scales (row lengths; scale_y negated for a mirrored matrix).
+    void deconstruct_scales(const matrix3x2& value, float& scale, float& scale_x, float& scale_y);
+
+    // Microsoft.Maui.Graphics.Matrix3x2Extensions.GetLengthScale — sqrt(|determinant|).
+    [[nodiscard]] float get_length_scale(const matrix3x2& matrix);
 
     // System.Numerics.Matrix3x2.operator* (left * right), row-major affine composition.
     [[nodiscard]] constexpr matrix3x2 operator*(const matrix3x2& a, const matrix3x2& b)
