@@ -332,61 +332,61 @@ namespace
         EXPECT_FALSE(load_via(service, source).loaded());
     }
 
-    // ---- the loader seam on ios (control → headless handler mirror, REAL decodable bytes) ----
+    // ---- the loader seam on ios (control → the REAL UIImageView, decodable bytes) ----
 
     TEST(ios_image_sources, stream_source_loads_through_loader_with_dispatcher)
     {
         const image_bytes png = make_png_bytes();
         ASSERT_FALSE(png.empty());
-        const std::string expected_detail = "<bytes:" + std::to_string(png.size()) + ">";
 
         image control;
         auto handler = std::make_shared<image_handler>();
         manual_dispatcher dispatcher;
         control.set_handler(handler);
         handler->source_loader().set_dispatcher(dispatcher);
-        auto* platform = handler->typed_platform_view();
-        ASSERT_NE(platform, nullptr);
+        auto* const view = (__bridge UIImageView*)handler->typed_platform_view()->native;
+        ASSERT_NE(view, nil);
 
         // Init-capture + mutable + move: a noexcept one-shot provider (the test triggers one load).
         control.set_source(image_source::from_stream(
             [bytes = png](const cancellation_token&) mutable noexcept { return std::move(bytes); }));
-        EXPECT_FALSE(platform->source_loaded); // marshalled — nothing applied until pumped
+        EXPECT_EQ(view.image, nil); // marshalled — nothing applied until pumped
         EXPECT_TRUE(control.is_loading());
 
         dispatcher.run_pending();
-        EXPECT_TRUE(platform->source_loaded);
-        EXPECT_EQ(platform->source_kind, "stream");
-        EXPECT_EQ(platform->source_file, expected_detail);
+        EXPECT_NE(view.image, nil);         // the real PNG decode applied through the dispatcher hand-off
         EXPECT_FALSE(control.is_loading()); // the gated completion cleared it
     }
 
     TEST(ios_image_sources, superseded_stream_load_is_dropped_by_the_identity_recheck)
     {
+        // The real ios image_handler.mm applies a genuine UIImage (no headless mirror), so the
+        // superseded-load outcome is observed on the UIImageView: the PNG (single frame) must lose to
+        // the animated GIF (multi-frame -> animationImages), proving only the SECOND source applied.
         const image_bytes png = make_png_bytes();
         const image_bytes gif = make_animated_gif_bytes();
         ASSERT_FALSE(png.empty());
         ASSERT_FALSE(gif.empty());
-        const std::string expected_detail = "<bytes:" + std::to_string(gif.size()) + ">";
 
         image control;
         auto handler = std::make_shared<image_handler>();
         manual_dispatcher dispatcher;
         control.set_handler(handler);
         handler->source_loader().set_dispatcher(dispatcher);
-        auto* platform = handler->typed_platform_view();
-        ASSERT_NE(platform, nullptr);
+        auto* const view = (__bridge UIImageView*)handler->typed_platform_view()->native;
+        ASSERT_NE(view, nil);
 
         // Both sources queue before the pump; the first load is cancelled + superseded by the second.
         control.set_source(image_source::from_stream(
             [bytes = png](const cancellation_token&) mutable noexcept { return std::move(bytes); }));
         control.set_source(image_source::from_stream(
             [bytes = gif](const cancellation_token&) mutable noexcept { return std::move(bytes); }));
-        EXPECT_FALSE(platform->source_loaded);
+        EXPECT_EQ(view.image, nil);
 
         dispatcher.run_pending();
-        EXPECT_TRUE(platform->source_loaded);
-        EXPECT_EQ(platform->source_file, expected_detail); // only the second source applied
+        ASSERT_NE(view.image, nil);
+        ASSERT_NE(view.animationImages, nil); // the GIF (not the superseded PNG) is what applied
+        EXPECT_GT(view.animationImages.count, 1U);
     }
 
     TEST(ios_image_sources, uri_file_source_loads_and_serves_repeats_from_the_memory_cache)
@@ -398,20 +398,19 @@ namespace
         image control;
         auto handler = std::make_shared<image_handler>();
         control.set_handler(handler); // no dispatcher: the loader's apply runs inline
-        auto* platform = handler->typed_platform_view();
-        ASSERT_NE(platform, nullptr);
+        auto* const view = (__bridge UIImageView*)handler->typed_platform_view()->native;
+        ASSERT_NE(view, nil);
 
         control.set_source(image_source::from_uri(uri));
-        EXPECT_TRUE(platform->source_loaded);
-        EXPECT_EQ(platform->source_kind, "uri");
-        EXPECT_EQ(platform->source_file, uri);
+        EXPECT_NE(view.image, nil); // the real decode applied to the UIImageView
 
         // Delete the file, then load the SAME uri again: the in-memory cache still has the bytes
         // (CacheValidity defaults to one day), so the decode still succeeds.
         remove_file(path);
-        control.set_source(image_source::from_uri(uri));
-        EXPECT_TRUE(platform->source_loaded);
-        EXPECT_EQ(platform->source_kind, "uri");
+        control.set_source(image_source::from_file(path)); // a miss clears: a fresh file source on the gone path
+        EXPECT_EQ(view.image, nil);
+        control.set_source(image_source::from_uri(uri)); // ... but the uri re-serves from the memory cache
+        EXPECT_NE(view.image, nil);
     }
 
     // The on-disk uri cache round-trip under the simulator's writable temp dir: a fetched payload
@@ -429,11 +428,11 @@ namespace
             auto handler = std::make_shared<image_handler>();
             control.set_handler(handler);
             handler->source_loader().set_disk_cache_directory(cache_base);
-            auto* platform = handler->typed_platform_view();
-            ASSERT_NE(platform, nullptr);
+            auto* const view = (__bridge UIImageView*)handler->typed_platform_view()->native;
+            ASSERT_NE(view, nil);
 
             control.set_source(image_source::from_uri(uri));
-            ASSERT_TRUE(platform->source_loaded);
+            ASSERT_NE(view.image, nil);
 
             const std::string cached = handler->source_loader().disk_cache_path(uri);
             ASSERT_FALSE(cached.empty());
@@ -447,12 +446,11 @@ namespace
         auto handler = std::make_shared<image_handler>();
         control.set_handler(handler);
         handler->source_loader().set_disk_cache_directory(cache_base);
-        auto* platform = handler->typed_platform_view();
-        ASSERT_NE(platform, nullptr);
+        auto* const view = (__bridge UIImageView*)handler->typed_platform_view()->native;
+        ASSERT_NE(view, nil);
 
         control.set_source(image_source::from_uri(uri));
-        EXPECT_TRUE(platform->source_loaded);
-        EXPECT_EQ(platform->source_kind, "uri");
+        EXPECT_NE(view.image, nil); // served from the on-disk cache, decoded for real
 
         std::error_code ec;
         std::filesystem::remove_all(cache_base, ec); // best-effort cleanup; never fails the test
