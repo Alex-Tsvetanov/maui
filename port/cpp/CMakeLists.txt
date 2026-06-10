@@ -685,3 +685,134 @@ if(NOT MAUI_BACKEND STREQUAL "ios")
     set_target_properties(maui_hosting_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
   endif()
 endif()
+
+# ======================================================================
+# Layer 7 - Essentials  (maui::devices[::sensors]  <=  Microsoft.Maui.Devices[.Sensors])
+# ======================================================================
+# --- maui_essentials: devices+sensors (W1-16) ---
+# Device info/display, battery, the actuators (flashlight/vibration/haptics), the six sensors and
+# geolocation/geocoding, each split C#-style: a cross-platform facade + shared logic
+# (src/essentials/, detail bases under src/essentials/detail/) and one platform partial per
+# backend (src/platform/<backend>/essentials_<feature>.{cpp,mm}). Feasibility follows the C#
+# filename-suffix oracle, documented in include/maui/essentials/feature_not_supported.hpp; the
+# headless partials are controllable fakes (essentials_fakes.hpp) that unconfigured mirror the
+# *.netstandard.*.cs behavior.
+set(MAUI_ESSENTIALS_FEATURES
+  device_info
+  device_display
+  battery
+  flashlight
+  vibration
+  haptic_feedback
+  accelerometer
+  gyroscope
+  magnetometer
+  compass
+  barometer
+  orientation_sensor
+  geolocation
+  geocoding)
+
+set(MAUI_ESSENTIALS_PLATFORM_SOURCES "")
+if(MAUI_BACKEND STREQUAL "apple")
+  foreach(feature IN LISTS MAUI_ESSENTIALS_FEATURES)
+    list(APPEND MAUI_ESSENTIALS_PLATFORM_SOURCES src/platform/apple/essentials_${feature}.mm)
+  endforeach()
+  set_source_files_properties(${MAUI_ESSENTIALS_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+elseif(MAUI_BACKEND STREQUAL "ios")
+  foreach(feature IN LISTS MAUI_ESSENTIALS_FEATURES)
+    list(APPEND MAUI_ESSENTIALS_PLATFORM_SOURCES src/platform/ios/essentials_${feature}.mm)
+  endforeach()
+  set_source_files_properties(${MAUI_ESSENTIALS_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+else()
+  foreach(feature IN LISTS MAUI_ESSENTIALS_FEATURES)
+    list(APPEND MAUI_ESSENTIALS_PLATFORM_SOURCES src/platform/headless/essentials_${feature}.cpp)
+  endforeach()
+endif()
+
+add_library(maui_essentials STATIC
+  src/essentials/device_info.cpp
+  src/essentials/device_display.cpp
+  src/essentials/battery.cpp
+  src/essentials/flashlight.cpp
+  src/essentials/vibration.cpp
+  src/essentials/haptic_feedback.cpp
+  src/essentials/accelerometer.cpp
+  src/essentials/gyroscope.cpp
+  src/essentials/magnetometer.cpp
+  src/essentials/compass.cpp
+  src/essentials/barometer.cpp
+  src/essentials/orientation_sensor.cpp
+  src/essentials/geolocation.cpp
+  src/essentials/geocoding.cpp
+  src/essentials/location.cpp
+  ${MAUI_ESSENTIALS_PLATFORM_SOURCES}
+)
+target_include_directories(maui_essentials PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# The internal detail bases (src/essentials/detail/) + the headless fakes header are included via
+# repo-root-relative paths ("src/..."), like the tests do - PRIVATE root include dir.
+target_include_directories(maui_essentials PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+# Essentials sits on core (event/move_only_function/cancellation_token) which carries graphics
+# (vector3/quaternion for the sensor readings) transitively.
+target_link_libraries(maui_essentials PUBLIC maui_core PRIVATE maui_sanitizers)
+# The macOS partials reach beyond Cocoa (already PUBLIC on maui_core): IOKit (battery power
+# sources + the keep-screen-on power assertion), SystemConfiguration (SCDynamicStoreCopyComputerName)
+# and CoreLocation (geolocation/geocoding).
+if(MAUI_BACKEND STREQUAL "apple")
+  target_link_libraries(maui_essentials PUBLIC
+    "-framework IOKit" "-framework SystemConfiguration" "-framework CoreLocation")
+endif()
+# The iOS partials add CoreMotion (sensors), CoreLocation (compass/geolocation/geocoding),
+# AVFoundation (flashlight torch) and AudioToolbox (vibration) on top of maui_core's UIKit set.
+if(MAUI_BACKEND STREQUAL "ios")
+  target_link_libraries(maui_essentials PUBLIC
+    "-framework CoreMotion" "-framework CoreLocation" "-framework AVFoundation" "-framework AudioToolbox")
+endif()
+if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+  set_target_properties(maui_essentials PROPERTIES
+    CXX_CLANG_TIDY "${CLANG_TIDY_EXE}"
+    OBJCXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+endif()
+
+# ---- Essentials tests (GoogleTest, discovered into ctest) ----
+# The backend-agnostic value-type + shake-queue suites run everywhere. Headless adds the full API
+# coverage through the fakes (the netstandard mirrors + the configured surface); apple/ios swap in
+# the on-device .mm suite (real device_info/display/battery reads, actuator support matrix, sensor
+# lifecycle - the simulator delivers no sensor data, so readings stay headless-tested).
+if(MAUI_BACKEND STREQUAL "apple")
+  add_executable(maui_essentials_tests
+    tests/essentials/types_tests.cpp
+    tests/essentials/accelerometer_queue_tests.cpp
+    tests/essentials/essentials_apple_tests.mm)
+  set_source_files_properties(tests/essentials/essentials_apple_tests.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+elseif(MAUI_BACKEND STREQUAL "ios")
+  add_executable(maui_essentials_tests
+    tests/essentials/types_tests.cpp
+    tests/essentials/accelerometer_queue_tests.cpp
+    tests/essentials/essentials_ios_tests.mm)
+  set_source_files_properties(tests/essentials/essentials_ios_tests.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+else()
+  add_executable(maui_essentials_tests
+    tests/essentials/types_tests.cpp
+    tests/essentials/accelerometer_queue_tests.cpp
+    tests/essentials/device_info_tests.cpp
+    tests/essentials/device_display_tests.cpp
+    tests/essentials/battery_tests.cpp
+    tests/essentials/actuators_tests.cpp
+    tests/essentials/sensors_tests.cpp
+    tests/essentials/geolocation_tests.cpp
+    tests/essentials/geocoding_tests.cpp)
+endif()
+target_include_directories(maui_essentials_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for src/... detail headers
+target_link_libraries(maui_essentials_tests PRIVATE
+  maui_essentials
+  maui_sanitizers
+  GTest::gmock_main
+)
+maui_discover_tests(maui_essentials_tests)
+if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+  set_target_properties(maui_essentials_tests PROPERTIES
+    CXX_CLANG_TIDY "${CLANG_TIDY_EXE}"
+    OBJCXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+endif()
+# --- end maui_essentials: devices+sensors (W1-16) ---
