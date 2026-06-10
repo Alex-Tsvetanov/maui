@@ -224,6 +224,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/entry_handler.mm
     src/platform/apple/switch_handler.mm
     src/platform/apple/check_box_handler.mm
+    src/platform/apple/slider_handler.mm
     src/platform/apple/image_handler.mm
     src/platform/apple/image_source_services.mm
     src/platform/apple/layout_handler.mm
@@ -250,6 +251,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     src/platform/ios/entry_handler.mm
     src/platform/ios/switch_handler.mm
     src/platform/ios/check_box_handler.mm
+    src/platform/ios/slider_handler.mm
     src/platform/ios/image_handler.mm
     src/platform/ios/image_source_services.mm
     src/platform/ios/layout_handler.mm
@@ -271,6 +273,7 @@ else()
     src/platform/headless/entry_handler.cpp
     src/platform/headless/switch_handler.cpp
     src/platform/headless/check_box_handler.cpp
+    src/platform/headless/slider_handler.cpp
     src/platform/headless/image_handler.cpp
     src/platform/headless/image_source_services.cpp
     src/platform/headless/layout_handler.cpp
@@ -295,6 +298,7 @@ add_library(maui_core STATIC
   src/core/entry_handler.cpp
   src/core/switch_handler.cpp
   src/core/check_box_handler.cpp
+  src/core/slider_handler.cpp
   src/core/image_handler.cpp
   src/core/image_source_loader.cpp
   src/core/image_source_service_registry.cpp
@@ -448,6 +452,7 @@ add_library(maui_controls STATIC
   src/controls/entry.cpp
   src/controls/toggle_switch.cpp
   src/controls/check_box.cpp
+  src/controls/slider.cpp
   src/controls/image.cpp
   src/controls/file_image_source.cpp
   src/controls/vertical_stack_layout.cpp
@@ -482,6 +487,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/entry_apple_tests.mm
     tests/controls/toggle_switch_apple_tests.mm
     tests/controls/check_box_apple_tests.mm
+    tests/controls/slider_apple_tests.mm
     tests/controls/image_apple_tests.mm
     tests/controls/font_image_source_apple_tests.mm
     tests/controls/layout_apple_tests.mm
@@ -513,6 +519,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/entry_apple_tests.mm
     tests/controls/toggle_switch_apple_tests.mm
     tests/controls/check_box_apple_tests.mm
+    tests/controls/slider_apple_tests.mm
     tests/controls/image_apple_tests.mm
     tests/controls/font_image_source_apple_tests.mm
     tests/controls/layout_apple_tests.mm
@@ -539,6 +546,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/entry_ios_tests.mm
     tests/controls/toggle_switch_ios_tests.mm
     tests/controls/check_box_ios_tests.mm
+    tests/controls/slider_ios_tests.mm
     tests/controls/image_ios_tests.mm
     tests/controls/font_image_source_ios_tests.mm
     tests/controls/image_sources_ios_tests.mm
@@ -570,6 +578,7 @@ else()
     tests/controls/entry_tests.cpp
     tests/controls/toggle_switch_tests.cpp
     tests/controls/check_box_tests.cpp
+    tests/controls/slider_tests.cpp
     tests/controls/image_tests.cpp
     tests/controls/layout_tests.cpp
     tests/controls/grid_tests.cpp
