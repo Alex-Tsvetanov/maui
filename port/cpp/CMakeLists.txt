@@ -682,6 +682,8 @@ add_library(maui_xaml STATIC
   src/xaml/xaml_runtime_environment.cpp
   src/xaml/xaml_static_registry.cpp
   src/xaml/xaml_visitors.cpp
+  src/xaml/xaml_binding_applier.cpp
+  src/xaml/xaml_loader.cpp
 )
 target_include_directories(maui_xaml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # pugixml stays an implementation detail of the parser .cpp (never in public headers) — PRIVATE.
@@ -702,6 +704,7 @@ if(NOT MAUI_BACKEND STREQUAL "ios")
     tests/xaml/name_scope_tests.cpp
     tests/xaml/markup_extension_tests.cpp
     tests/xaml/visitor_tests.cpp
+    tests/xaml/loader_tests.cpp
   )
   target_link_libraries(maui_xaml_tests PRIVATE
     maui_xaml

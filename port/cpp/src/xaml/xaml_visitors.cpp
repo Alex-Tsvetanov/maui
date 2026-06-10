@@ -29,6 +29,7 @@
 #include "maui/xaml/i_markup_extension.hpp"
 #include "maui/xaml/markup_extensions.hpp"
 #include "maui/xaml/name_scope.hpp"
+#include "maui/xaml/xaml_binding_applier.hpp"
 #include "maui/xaml/xaml_converter_registry.hpp"
 #include "maui/xaml/xaml_node.hpp"
 #include "maui/xaml/xaml_parse_exception.hpp"
@@ -287,15 +288,14 @@ namespace maui::xaml
                 return;
             }
 
-            // TrySetBinding — the binding applier hook is the M7 loader's seam (xaml_binding_applier
-            // .hpp); until the runtime-binding unit registers one, {Binding} is a loud load failure.
-            if (std::any_cast<binding_request>(&value) != nullptr)
+            // TrySetBinding — routed through the loader's replaceable hook (xaml_binding_applier
+            // .hpp): the rejecting default makes {Binding} a loud load failure until the
+            // runtime-binding unit registers the real SetBinding port.
+            if (const auto* request = std::any_cast<binding_request>(&value))
             {
-                throw xaml_parse_exception(
-                    std::format("Cannot set a {{Binding}} on \"{}\": no binding applier is registered (the "
-                                "runtime-binding unit provides one; STATUS.md M7 deferrals)",
-                                local_name),
-                    line_number, line_position);
+                current_xaml_binding_applier()(*env.properties, target, target_type, local_name, *request,
+                                               line_number, line_position);
+                return;
             }
 
             // AppThemeBinding.Apply.
@@ -944,8 +944,11 @@ namespace maui::xaml
             const std::string& namespace_uri = node.type().namespace_uri();
 
             // IsXaml2009LanguagePrimitive: the x namespace types stay a loader concern (the design
-            // note in xaml_type_registry.hpp) — created through the built-in converters.
-            if (namespace_uri == x2009_uri)
+            // note in xaml_type_registry.hpp) — created through the built-in converters. The x2006
+            // spelling is accepted too: C# reaches <x:String> & co. under the 2006 xmlns through
+            // GetElementType's known-namespace table (mscorlib System types) + the single-ValueNode
+            // ConvertTo branch — the same net value as the 2009 primitive route.
+            if (namespace_uri == x2009_uri || namespace_uri == x2006_uri)
             {
                 if (name == "String")
                 {
