@@ -25,7 +25,7 @@ cmake --preset apple && cmake --build --preset apple && ctest --preset apple   #
 
 ```bash
 cmake --preset ios && cmake --build --preset ios   # cross-compile for the arm64 iphonesimulator (vcpkg overlay triplet arm64-ios-simulator)
-ctest --preset ios                                 # 590 cases run ON a booted simulator via tools/ios-sim-run.sh (tip: -j 8 ≈ 1 min; serial ≈ 8 min)
+ctest --preset ios                                 # 558 cases run ON a booted simulator via tools/ios-sim-run.sh (tip: -j 8 ≈ 1 min; serial ≈ 8 min)
 ```
 
 Needs Xcode with an iOS-simulator SDK + at least one available iPhone simulator (the runner boots the
@@ -55,10 +55,23 @@ markup-era / out-of-scope work (see the Deferred backlog): Shell, XAML (M7), and
 deviations. **M6 (second platform, iOS) is UNDERWAY behind the same handlers: the scaffold is DONE** —
 the `ios` preset cross-compiles the whole library + test tree for the arm64 iOS simulator
 (`MAUI_BACKEND=ios`, vcpkg overlay triplet, `MAUI_PLATFORM_IOS`), `ctest --preset ios` runs all
-**590** tests ON a booted simulator through `tools/ios-sim-run.sh`, and the button's UIKit partial
+**558** tests ON a booted simulator through `tools/ios-sim-run.sh`, and the button's UIKit partial
 (`src/platform/ios/button_handler.mm`, ported 1:1 from `ButtonHandler.iOS.cs` + `ButtonExtensions`)
-proves the seam both directions on a real `UIButton` (15 on-simulator seam cases). Every other
-control still compiles its HEADLESS partial on ios — **next: the M6 per-control fan-out**, swapping
+proves the seam both directions on a real `UIButton` (15 on-simulator seam cases). **M6 fan-out —
+image sources (DONE):** `src/platform/ios/image_source_services.mm` is the UIImage twin of the apple
+services; every decode runs through ImageIO/`CGImageSource` (UIKit has no auto-animating multi-frame
+image): file loads probe the `@2x`/`@3x` sibling for the screen scale (`GetScaledFile` →
+`ios_image_ops.hpp`, pure + unit-tested) and decode at the loaded scale; stream/uri bytes decode via
+`decode_image_bytes` (single frame keeps the EXIF orientation; an animated GIF expands per the
+delay-GCD into `animatedImageWithImages:duration:` — the `ImageAnimationHelper.cs` port); the font
+glyph rasterizes through `UIGraphicsImageRenderer` (resolution-dependent, `AlwaysOriginal`); the
+SHARED loader keeps the async/cache plumbing (disk round-trip proven on-simulator). The headless
+decode-mirror test files (`image_tests.cpp`, `image_source_tests.cpp`, `font_image_source_tests.cpp`)
+are swapped for `tests/controls/image_sources_ios_tests.mm` (13 cases, real PNG/GIF fixtures generated
+in-process); the ios `image_handler.mm` (UIImageView + start/stopAnimating + the NSURLSession
+`configure_loader` wiring) stays with its own fan-out unit — the handoff is documented in the services
+.mm header. Every other
+control still compiles its HEADLESS partial on ios — **next: the rest of the M6 per-control fan-out**, swapping
 each headless partial (+ its tests) for the UIKit twin behind the unchanged cross-platform handlers
 (see the M6 row in the table for what each unit inherits / still owes).
 The `PROFILE.md §11` decisions are **locked** (view owns handler; `property<T>` member object;

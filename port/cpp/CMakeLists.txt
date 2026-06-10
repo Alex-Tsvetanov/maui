@@ -182,15 +182,18 @@ elseif(MAUI_BACKEND STREQUAL "ios")
   # headless partial here for its UIKit .mm twin (and the matching *_tests.cpp for *_ios_tests.mm).
   set(MAUI_CORE_PLATFORM_SOURCES
     src/platform/ios/button_handler.mm
+    src/platform/ios/image_source_services.mm
     src/platform/headless/label_handler.cpp
     src/platform/headless/entry_handler.cpp
     src/platform/headless/image_handler.cpp
-    src/platform/headless/image_source_services.cpp
     src/platform/headless/layout_handler.cpp
     src/platform/headless/content_page_handler.cpp
     src/platform/headless/navigation_page_handler.cpp
     src/platform/headless/window_handler.cpp)
-  set_source_files_properties(src/platform/ios/button_handler.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+  set_source_files_properties(
+    src/platform/ios/button_handler.mm
+    src/platform/ios/image_source_services.mm
+    PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
   set(MAUI_CORE_PLATFORM_SOURCES
     src/platform/headless/button_handler.cpp
@@ -254,8 +257,11 @@ endif()
 # MAUI_PLATFORM_IOS (PUBLIC, sibling of MAUI_PLATFORM_APPLE) selects the ios update_* override blocks
 # in the shared platform structs (button_handler.hpp) for every TU of the build.
 if(MAUI_BACKEND STREQUAL "ios")
+  # ImageIO + CoreGraphics: the image services decode through CGImageSource (UIKit does not re-export
+  # either); PUBLIC so the .mm tests (which also encode fixtures via CGImageDestination) link them too.
   target_link_libraries(maui_core PUBLIC
-    "-framework UIKit" "-framework QuartzCore" "-framework Foundation" "-framework CoreFoundation" objc)
+    "-framework UIKit" "-framework QuartzCore" "-framework Foundation" "-framework CoreFoundation"
+    "-framework ImageIO" "-framework CoreGraphics" objc)
   target_compile_definitions(maui_core PUBLIC MAUI_PLATFORM_IOS)
 endif()
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
@@ -359,19 +365,24 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/window_apple_tests.mm
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 elseif(MAUI_BACKEND STREQUAL "ios")
-  # The headless suite, with the two files that observe the headless BUTTON mirrors swapped out:
-  # button_tests.cpp + view_mapper_tests.cpp assert on button_platform's in-memory mirrors, which the
-  # real UIKit button partial doesn't write — button_ios_tests.mm drives the genuine UIButton instead
-  # (text/events/appearance/padding + the generic-IView pushes). Every other control still compiles
-  # its headless partial on ios (see MAUI_CORE_PLATFORM_SOURCES above), so its headless tests remain
-  # the right oracle; the M6 fan-out swaps each pair (partial + tests) together. view_mapper coverage
-  # for label/entry rides along in their headless suites' mapper cases; a view_mapper_ios_tests.mm
-  # arrives with the fan-out.
+  # The headless suite, with the files that observe headless MIRRORS the ios partials no longer write
+  # swapped out: button_tests.cpp + view_mapper_tests.cpp assert on button_platform's in-memory mirrors,
+  # which the real UIKit button partial doesn't write — button_ios_tests.mm drives the genuine UIButton
+  # instead (text/events/appearance/padding + the generic-IView pushes). Likewise image_tests.cpp +
+  # tests/core/image_source_tests.cpp + font_image_source_tests.cpp assert the HEADLESS decode ("any
+  # non-empty bytes => loaded" + the mirror kind/detail), which the ios image_source_services.mm
+  # replaces with the real UIImage/ImageIO decode — image_sources_ios_tests.mm covers the services +
+  # the loader seam on-simulator with genuinely decodable PNG/GIF fixtures instead (the image HANDLER
+  # stays headless until its own fan-out unit lands image_handler.mm + image_ios_tests.mm). Every other
+  # control still compiles its headless partial on ios (see MAUI_CORE_PLATFORM_SOURCES above), so its
+  # headless tests remain the right oracle; the M6 fan-out swaps each pair (partial + tests) together.
+  # view_mapper coverage for label/entry rides along in their headless suites' mapper cases; a
+  # view_mapper_ios_tests.mm arrives with the fan-out.
   add_executable(maui_controls_tests
     tests/controls/button_ios_tests.mm
+    tests/controls/image_sources_ios_tests.mm
     tests/controls/label_tests.cpp
     tests/controls/entry_tests.cpp
-    tests/controls/image_tests.cpp
     tests/controls/layout_tests.cpp
     tests/controls/grid_tests.cpp
     tests/controls/content_page_tests.cpp
@@ -384,10 +395,11 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/implicit_style_tests.cpp
     tests/controls/advanced_trigger_tests.cpp
     tests/controls/size_request_tests.cpp # backend-agnostic (compares against the handler's own size)
-    tests/controls/lifecycle_tests.cpp
-    tests/core/image_source_tests.cpp     # headless image partials are compiled on ios (see above)
-    tests/core/font_image_source_tests.cpp)
-  set_source_files_properties(tests/controls/button_ios_tests.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+    tests/controls/lifecycle_tests.cpp)
+  set_source_files_properties(
+    tests/controls/button_ios_tests.mm
+    tests/controls/image_sources_ios_tests.mm
+    PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
   add_executable(maui_controls_tests
     tests/controls/button_tests.cpp
