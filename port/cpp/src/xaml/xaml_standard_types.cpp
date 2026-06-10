@@ -224,9 +224,10 @@ namespace maui::xaml
         }
 
         // Layout.cs [ContentProperty(nameof(Children))]: a child element appends to the i_container.
+        // Registered under "Children" so the <Layout.Children> property-element spelling routes here.
         template <class TLayout> void register_layout_children(xaml_property_registry& properties)
         {
-            properties.register_add_child<TLayout>([](TLayout& parent, maui::core::bindable_object& child) {
+            properties.register_add_child<TLayout>("Children", [](TLayout& parent, maui::core::bindable_object& child) {
                 auto* view = dynamic_cast<maui::core::i_view*>(&child);
                 if (view == nullptr)
                 {
@@ -359,7 +360,7 @@ namespace maui::xaml
         properties.register_bindable_property<controls::content_page>("Padding",
                                                                       controls::content_page::padding_property());
         properties.register_add_child<controls::content_page>(
-            [](controls::content_page& page, maui::core::bindable_object& child) {
+            "Content", [](controls::content_page& page, maui::core::bindable_object& child) {
                 auto* view = dynamic_cast<maui::core::i_view*>(&child);
                 if (view == nullptr)
                 {
@@ -401,7 +402,8 @@ namespace maui::xaml
         properties.register_bindable_property<controls::window>("Height", controls::window_height_property());
         // C# Window.Page accepts a Page; the port has no shared page base yet, so the registration
         // exposes the existing window::set_content(element&) seam (every loadable root is an element).
-        properties.register_add_child<controls::window>([](controls::window& host, maui::core::bindable_object& child) {
+        properties.register_add_child<controls::window>(
+            "Page", [](controls::window& host, maui::core::bindable_object& child) {
             auto* page = dynamic_cast<controls::element*>(&child);
             if (page == nullptr)
             {

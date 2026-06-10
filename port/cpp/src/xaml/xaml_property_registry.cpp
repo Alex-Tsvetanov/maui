@@ -28,6 +28,11 @@ namespace maui::xaml
         types_[type].add_child = std::move(add);
     }
 
+    void xaml_property_registry::set_child_property_name(maui::core::type_tag type, std::string xaml_name)
+    {
+        types_[type].child_property = std::move(xaml_name);
+    }
+
     const xaml_property_registry::property_entry* xaml_property_registry::find(maui::core::type_tag type,
                                                                                std::string_view xaml_name) const
     {
@@ -75,6 +80,12 @@ namespace maui::xaml
     {
         const auto it = types_.find(parent_type);
         return it != types_.end() && it->second.add_child && it->second.add_child(parent, child);
+    }
+
+    bool xaml_property_registry::is_child_property(maui::core::type_tag type, std::string_view xaml_name) const
+    {
+        const auto it = types_.find(type);
+        return it != types_.end() && !it->second.child_property.empty() && it->second.child_property == xaml_name;
     }
 
     xaml_property_registry& default_xaml_property_registry()

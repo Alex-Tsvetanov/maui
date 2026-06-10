@@ -21,6 +21,7 @@
 #include "maui/controls/dynamic_resource.hpp"
 #include "maui/core/app_theme.hpp"
 #include "maui/controls/element.hpp"
+#include "maui/controls/resource_dictionary.hpp"
 #include "maui/core/binding_mode.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/xaml/i_markup_extension.hpp"
@@ -172,6 +173,21 @@ namespace maui::xaml
                 {
                     throw xaml_parse_exception("you must specify a key in {StaticResource}");
                 }
+                // The load-time chain: the node ancestors' own dictionaries, nearest first (C#'s
+                // ParentObjects walk in TryGetResource — each parent contributes only its own
+                // Resources, merged dictionaries included via resource_dictionary::try_get).
+                for (const maui::controls::resource_dictionary* dictionary : services.parent_resources)
+                {
+                    if (dictionary == nullptr)
+                    {
+                        continue;
+                    }
+                    if (const std::any* value = dictionary->try_get(*key_))
+                    {
+                        return *value;
+                    }
+                }
+                // The live chain (post-load callers / tests wiring real parents).
                 if (services.resource_scope != nullptr)
                 {
                     if (const std::any* value = services.resource_scope->try_get_resource(*key_))

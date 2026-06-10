@@ -25,6 +25,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace maui::core
 {
@@ -35,6 +36,7 @@ namespace maui::controls
 {
     class application;
     class element;
+    class resource_dictionary;
 } // namespace maui::controls
 
 namespace maui::xaml
@@ -52,6 +54,12 @@ namespace maui::xaml
         // The element whose parent chain resolves {StaticResource}/{DynamicResource} lookups (the
         // closest enclosing element when the target itself is not an element — e.g. a setter).
         maui::controls::element* resource_scope = nullptr;
+        // IProvideParentValues.ParentObjects, reduced to its consumed shape: the resource
+        // dictionaries of the XAML-NODE ancestors (nearest first, created-only — C#'s
+        // IsResourcesCreated pre-check). During a load the LIVE parent links are not wired yet
+        // (ApplyProperties parents bottom-up), so {StaticResource} walks these before falling back
+        // to resource_scope's live chain. NON-owning READ-ONLY borrows.
+        std::vector<const maui::controls::resource_dictionary*> parent_resources;
         // IXamlTypeResolver: the element-name table {x:Type} resolves against. Null = the loader did
         // not thread a registry through; the extension falls back to default_xaml_type_registry().
         const xaml_type_registry* type_registry = nullptr;

@@ -38,6 +38,7 @@
 #include <vector>
 
 #include "maui/core/bindable_object.hpp"
+#include "maui/core/event.hpp"
 #include "maui/core/type_tag.hpp"
 #include "maui/xaml/i_markup_extension.hpp"
 #include "maui/xaml/xaml_converter_registry.hpp"
@@ -46,6 +47,11 @@
 #include "maui/xaml/xaml_parse_exception.hpp"
 #include "maui/xaml/xaml_property_registry.hpp"
 #include "maui/xaml/xaml_type_registry.hpp"
+
+namespace maui::controls
+{
+    class application; // the Application.Current stand-in a load runs under (non-owning)
+} // namespace maui::controls
 
 namespace maui::xaml
 {
@@ -108,6 +114,13 @@ namespace maui::xaml
         // ---- ParentContext (templates — carried, unused until they land) ----
         hydration_context* parent_context = nullptr;
 
+        // ---- the Application.Current stand-in (port-specific; non-owning) ----
+        // C#'s visitors reach Application.Current statically ({StaticResource} app-level fallback,
+        // AppThemeBinding's RequestedTheme + RequestedThemeChanged); the port has no process-wide
+        // singleton, so the loader threads the application it loads under (null = none). MUST outlive
+        // the loaded tree when set — theme re-apply subscriptions hold its event.
+        maui::controls::application* application = nullptr;
+
         // ---- ownership accumulators (port-specific; moved into the load result) ----
         [[nodiscard]] xaml_object_graph& graph()
         {
@@ -121,6 +134,13 @@ namespace maui::xaml
         [[nodiscard]] std::vector<std::shared_ptr<void>>& kept_alive()
         {
             return keep_alive_;
+        }
+        // Event subscriptions the load wires for the tree's lifetime ({AppThemeBinding}'s
+        // RequestedThemeChanged re-apply — the role of C#'s binding objects owned by their targets).
+        // Moved into the load result with the graph; declared after it so they disconnect first.
+        [[nodiscard]] std::vector<maui::core::scoped_connection>& subscriptions()
+        {
+            return subscriptions_;
         }
 
         // ---- the explicit registries (port-specific; non-owning) ----
@@ -152,5 +172,6 @@ namespace maui::xaml
         maui::core::bindable_object* root_element_ = nullptr;
         xaml_object_graph graph_;
         std::vector<std::shared_ptr<void>> keep_alive_;
+        std::vector<maui::core::scoped_connection> subscriptions_; // after graph_: disconnect before teardown
     };
 } // namespace maui::xaml

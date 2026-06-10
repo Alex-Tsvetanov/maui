@@ -152,6 +152,17 @@ namespace maui::xaml
                 });
         }
 
+        // The named variant: also record the CLR collection-property name the sink stands in for
+        // (Layout "Children", ContentPage "Content", Window "Page"), so the loader can route the
+        // property-element spelling — <StackLayout.Children><Label/></…> — through the same sink.
+        // C# reaches those through GetRuntimeProperties + the IEnumerable Add() walk
+        // (ApplyPropertiesVisitor.TryAddToProperty); the reflection-free port names them explicitly.
+        template <class TParent, class F> void register_add_child(std::string property_name, F add)
+        {
+            register_add_child<TParent>(std::move(add));
+            set_child_property_name(maui::core::type_tag::of<TParent>(), std::move(property_name));
+        }
+
         // ---- lookup / application (all throw-free; see the error strategy above) -------------------
 
         // The property registered for (type, xaml_name), or nullptr. The pointer stays valid across
@@ -179,18 +190,25 @@ namespace maui::xaml
         [[nodiscard]] bool try_add_child(maui::core::type_tag parent_type, maui::core::bindable_object& parent,
                                          maui::core::bindable_object& child) const;
 
+        // Whether `xaml_name` is the registered child-sink property name of `type` (the
+        // <Type.Children> / <Type.Content> property-element spelling — see the named
+        // register_add_child overload).
+        [[nodiscard]] bool is_child_property(maui::core::type_tag type, std::string_view xaml_name) const;
+
     private:
         struct per_type
         {
             std::unordered_map<std::string, property_entry> properties;
             std::string content_property; // empty = none ([ContentProperty] absent)
             add_child_fn add_child;       // null = not a child container
+            std::string child_property;   // the sink's CLR property name; empty = collection-items only
         };
 
         // The non-template insertion paths the registration templates lower onto (defined in the .cpp).
         void add_property(maui::core::type_tag type, std::string xaml_name, property_entry entry);
         void set_content_property(maui::core::type_tag type, std::string xaml_name);
         void set_add_child(maui::core::type_tag type, add_child_fn add);
+        void set_child_property_name(maui::core::type_tag type, std::string xaml_name);
 
         std::unordered_map<maui::core::type_tag, per_type> types_;
     };
