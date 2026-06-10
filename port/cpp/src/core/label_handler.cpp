@@ -14,9 +14,10 @@ namespace maui::core
     // Keyed on i_label, which exposes Text + the i_text_style appearance + i_text_alignment directly, so
     // no chained text mapper is needed (cf. button). Chained onto the shared view_mapper so the generic
     // IView properties (Visibility/Opacity/IsEnabled/AutomationId) map first (keys() walks the chain
-    // first). Maps the visible NSTextField properties plus character_spacing (NSKernAttributeName) and
-    // vertical_text_alignment (custom cell); line_height / padding / decorations remain present on the
-    // control with their native mapping deferred (documented in STATUS).
+    // first). Maps the visible native text properties plus character_spacing (the kerning attribute),
+    // vertical_text_alignment (custom cell on AppKit / MauiLabel draw-rect on UIKit) and text_decorations
+    // (underline/strikethrough on the attributed text — LabelHandler.Mapper's TextDecorations entry);
+    // line_height / padding remain present on the control with their native mapping deferred (STATUS).
     property_mapper<i_label, label_handler>& label_handler::mapper()
     {
         static property_mapper<i_label, label_handler> table{
@@ -28,6 +29,7 @@ namespace maui::core
                 {"horizontal_text_alignment", &label_handler::map_horizontal_text_alignment},
                 {"vertical_text_alignment", &label_handler::map_vertical_text_alignment},
                 {"character_spacing", &label_handler::map_character_spacing},
+                {"text_decorations", &label_handler::map_text_decorations},
             },
         };
         return table;

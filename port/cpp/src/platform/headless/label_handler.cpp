@@ -68,6 +68,14 @@ namespace maui::core
         }
     }
 
+    void label_handler::map_text_decorations(label_handler& handler, i_label& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->decorations = view.text_decorations();
+        }
+    }
+
     maui::graphics::size label_handler::get_desired_size(double /*width_constraint*/,
                                                          double /*height_constraint*/) const
     {

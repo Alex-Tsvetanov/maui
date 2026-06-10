@@ -16,10 +16,17 @@
 //     is nil (C#: AttributedPlaceholder = null when Placeholder == null); otherwise it always returns an
 //     attributed placeholder (the color may be absent — the system default — but the plain-text branch
 //     `new NSAttributedString(placeholder)` is still attributed).
+//   - with_decorations  <-  AttributedStringExtensions.WithDecorations (+ UpdateDecoration): a mutable
+//     copy with StrikethroughStyle / UnderlineStyle each ADDED (single style) when its flag is set and
+//     REMOVED when clear; nil for an empty input (the same attributed keys exist on AppKit).
 //   - kerning_of  <-  the device-test helper AssertionExtensions.GetCharacterSpacing: reads the
 //     KerningAdjustment double off an attributed string (0 when absent / empty), used by the .mm tests.
 
 #import <AppKit/AppKit.h>
+
+#include <utility>
+
+#include "maui/core/text_decorations.hpp"
 
 namespace maui::platform::apple
 {
@@ -84,5 +91,41 @@ namespace maui::platform::apple
             [attributed addAttribute:NSKernAttributeName value:[NSNumber numberWithDouble:spacing] range:range];
         }
         return attributed;
+    }
+
+    // AttributedStringExtensions.UpdateDecoration: a zero flag REMOVES the style attribute, a set flag
+    // ADDS it as NSUnderlineStyleSingle (both strikethrough and underline carry the same single-style
+    // value in C#).
+    inline void update_decoration(NSMutableAttributedString* attributed, NSAttributedStringKey key, NSRange range,
+                                  bool enabled)
+    {
+        if (!enabled)
+        {
+            [attributed removeAttribute:key range:range];
+        }
+        else
+        {
+            [attributed addAttribute:key value:[NSNumber numberWithInteger:NSUnderlineStyleSingle] range:range];
+        }
+    }
+
+    // AttributedStringExtensions.WithDecorations: apply/remove the strikethrough + underline styles on a
+    // mutable copy (nil for an empty input, matching the C# null return).
+    inline NSAttributedString* with_decorations(NSAttributedString* attributed,
+                                                maui::core::text_decorations decorations)
+    {
+        if (attributed == nil || attributed.length == 0)
+        {
+            return nil;
+        }
+        NSMutableAttributedString* const mutable_copy =
+            [[NSMutableAttributedString alloc] initWithAttributedString:attributed];
+        const NSRange range = NSMakeRange(0, mutable_copy.length);
+        const auto flags = std::to_underlying(decorations);
+        update_decoration(mutable_copy, NSStrikethroughStyleAttributeName, range,
+                          (flags & std::to_underlying(maui::core::text_decorations::strikethrough)) != 0);
+        update_decoration(mutable_copy, NSUnderlineStyleAttributeName, range,
+                          (flags & std::to_underlying(maui::core::text_decorations::underline)) != 0);
+        return mutable_copy;
     }
 } // namespace maui::platform::apple

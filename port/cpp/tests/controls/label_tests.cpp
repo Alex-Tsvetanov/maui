@@ -11,6 +11,7 @@
 #include "maui/core/i_text.hpp"
 #include "maui/core/label_handler.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/text_decorations.hpp"
 #include "maui/graphics/color.hpp"
 #include <gtest/gtest.h>
 
@@ -80,6 +81,12 @@ namespace
 
         control.set_character_spacing(3.0);
         EXPECT_EQ(platform->character_spacing, 3.0);
+
+        control.set_text_decorations(maui::core::text_decorations::underline);
+        EXPECT_EQ(platform->decorations, maui::core::text_decorations::underline);
+
+        control.set_text_decorations(maui::core::text_decorations::none);
+        EXPECT_EQ(platform->decorations, maui::core::text_decorations::none);
     }
 
     TEST(label_seam, handler_resolved_from_default_registry)

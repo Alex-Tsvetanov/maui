@@ -17,6 +17,7 @@
 #include "maui/core/i_label.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/text_decorations.hpp"
 #include "maui/core/view_handler.hpp"
 #include "maui/core/view_platform_base.hpp"
 #include "maui/core/visibility.hpp"
@@ -46,6 +47,7 @@ namespace maui::core
         text_alignment horizontal_alignment = text_alignment::start;
         text_alignment vertical_alignment = text_alignment::start; // C# Label default Start
         double character_spacing = 0;
+        maui::core::text_decorations decorations = maui::core::text_decorations::none;
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSTextField (defined in
@@ -64,6 +66,18 @@ namespace maui::core
         // hit-test): semantics → accessibilityLabel/Help/heading role, input_transparent → -hitTest: gate.
         void update_semantics(const maui::core::semantics* value) override;
         void update_input_transparent(bool value) override;
+#endif
+
+#ifdef MAUI_PLATFORM_IOS
+        // iOS backend (M6 fan-out): push the four fundamental IView properties to the UILabel (defined
+        // in src/platform/ios/label_handler.mm). The remaining generic-IView pushes — transform /
+        // flow_direction / background / shadow / clip / semantics / input_transparent — keep the
+        // view_platform_base mirrors until the shared ios view/visual/semantics op helpers land (the
+        // coordinator's retrofit; see port/STATUS.md).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
 #endif
     };
 
@@ -88,5 +102,8 @@ namespace maui::core
         static void map_horizontal_text_alignment(label_handler& handler, i_label& view);
         static void map_vertical_text_alignment(label_handler& handler, i_label& view);
         static void map_character_spacing(label_handler& handler, i_label& view);
+        // LabelHandler.MapTextDecorations → LabelExtensions.UpdateTextDecorations (underline /
+        // strikethrough on the attributed text; headless mirrors the flags).
+        static void map_text_decorations(label_handler& handler, i_label& view);
     };
 } // namespace maui::core

@@ -99,6 +99,17 @@ namespace maui::core
         void update_semantics(const maui::core::semantics* value) override;
         void update_input_transparent(bool value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_IOS
+        // iOS backend (M6 fan-out): push the four fundamental IView properties to the UITextField
+        // (defined in src/platform/ios/entry_handler.mm). The remaining generic-IView pushes keep the
+        // view_platform_base mirrors until the shared ios view/visual/semantics op helpers land (the
+        // coordinator's retrofit; see port/STATUS.md).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+#endif
     };
 
     class entry_handler : public view_handler<entry_handler, i_entry, entry_platform>

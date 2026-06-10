@@ -79,22 +79,24 @@ namespace
         return NSTextAlignmentLeft;
     }
 
-    // Rebuild the label's attributed string from its current plain text with the given kerning, mirroring
-    // LabelExtensions.UpdateCharacterSpacing (AttributedText.WithCharacterSpacing). When spacing == 0 the
-    // attributed value is reset to the plain string so the un-kerned text path is used. Re-applies the
-    // alignment afterward (NSTextField resets paragraph alignment when the attributed value is replaced).
+    // Rebuild the label's attributed string from its current plain text with the given kerning +
+    // decorations, mirroring the LabelHandler.MapFormatting pipeline (UpdateTextDecorations →
+    // UpdateCharacterSpacing; LineHeight stays deferred). When spacing == 0 the attributed value falls
+    // back to the plain string (the un-kerned path) before the decorations pass — which adds/removes the
+    // underline/strikethrough styles (LabelExtensions.UpdateTextDecorations / WithDecorations).
+    // Re-applies the alignment afterward (NSTextField resets paragraph alignment when the attributed
+    // value is replaced).
     void refresh_label_text_formatting(NSTextField* field, const maui::core::i_label& view)
     {
         const double spacing = view.character_spacing();
-        NSAttributedString* const attributed = maui::platform::apple::kern_attributed(field.stringValue, spacing, nil);
-        if (attributed != nil)
+        NSAttributedString* attributed = maui::platform::apple::kern_attributed(field.stringValue, spacing, nil);
+        if (attributed == nil)
         {
-            field.attributedStringValue = attributed;
+            attributed = [[NSAttributedString alloc] initWithString:field.stringValue];
         }
-        else
-        {
-            field.attributedStringValue = [[NSAttributedString alloc] initWithString:field.stringValue];
-        }
+        NSAttributedString* const decorated =
+            maui::platform::apple::with_decorations(attributed, view.text_decorations());
+        field.attributedStringValue = decorated != nil ? decorated : attributed;
         field.alignment = to_ns_text_alignment(view.horizontal_text_alignment());
     }
 } // namespace
@@ -214,6 +216,17 @@ namespace maui::core
         auto* platform = handler.typed_platform_view();
         if (platform != nullptr)
         {
+            refresh_label_text_formatting(as_label(platform->native), view);
+        }
+    }
+
+    void label_handler::map_text_decorations(label_handler& handler, i_label& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform != nullptr)
+        {
+            // LabelExtensions.UpdateTextDecorations — the refresh applies WithDecorations (and keeps the
+            // kerning + alignment in place, as the C# MapFormatting ordering guarantees).
             refresh_label_text_formatting(as_label(platform->native), view);
         }
     }

@@ -10,6 +10,7 @@
 #include "maui/core/font.hpp"
 #include "maui/core/label_handler.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/text_decorations.hpp"
 #include <gtest/gtest.h>
 
 namespace
@@ -109,5 +110,32 @@ namespace
 
         control.set_vertical_text_alignment(text_alignment::end);
         EXPECT_EQ((int)[(id)view.cell verticalAlignment], (int)text_alignment::end);
+    }
+
+    // text_decorations land on (and clear from) the attributed string — the AppKit face of
+    // LabelExtensions.UpdateTextDecorations (M6 fan-out: ported alongside the UIKit twin).
+    TEST_F(apple_label_seam, text_decorations_set_and_clear_the_styles)
+    {
+        label control;
+        control.set_text("Decorated");
+        auto handler = std::make_shared<label_handler>();
+        control.set_handler(handler);
+        NSTextField* const view = native_label(handler);
+
+        const auto style_attribute = [](NSAttributedString* attributed, NSAttributedStringKey key) -> NSInteger {
+            if (attributed == nil || attributed.length == 0)
+            {
+                return 0;
+            }
+            NSNumber* const value = [attributed attribute:key atIndex:0 effectiveRange:nullptr];
+            return value != nil ? value.integerValue : 0;
+        };
+
+        control.set_text_decorations(maui::core::text_decorations::underline);
+        EXPECT_EQ(style_attribute(view.attributedStringValue, NSUnderlineStyleAttributeName), NSUnderlineStyleSingle);
+        EXPECT_EQ(style_attribute(view.attributedStringValue, NSStrikethroughStyleAttributeName), 0);
+
+        control.set_text_decorations(maui::core::text_decorations::none);
+        EXPECT_EQ(style_attribute(view.attributedStringValue, NSUnderlineStyleAttributeName), 0);
     }
 } // namespace
