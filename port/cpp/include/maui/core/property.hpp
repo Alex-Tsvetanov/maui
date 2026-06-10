@@ -17,13 +17,17 @@
 // `property<T> xxx{*this, xxx_property};`.
 
 #include <any>
+#include <memory>
+#include <type_traits>
 #include <utility>
 
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/bindable_property.hpp"
+#include "maui/core/boxed_value.hpp"
 #include "maui/core/event.hpp"
 #include "maui/core/setter_specificity.hpp"
 #include "maui/core/setter_specificity_list.hpp"
+#include "maui/core/type_tag.hpp"
 
 namespace maui::core
 {
@@ -36,13 +40,31 @@ namespace maui::core
             // Self-register a typed-erased handle so a style/trigger/VSM setter can reach this typed slot by
             // the descriptor name (bindable_object::apply_setter / clear_setter). `this` is stable (property
             // is non-copyable/non-movable) and is unregistered in the destructor.
-            owner_->register_property(descriptor_->name(),
-                                      bindable_object::property_handle{
-                                          .apply =
-                                              [this](const std::any& value, setter_specificity specificity) {
-                                                  set(std::any_cast<const T&>(value), specificity);
-                                              },
-                                          .clear = [this](setter_specificity specificity) { clear(specificity); }});
+            owner_->register_property(
+                descriptor_->name(),
+                bindable_object::property_handle{
+                    .apply =
+                        [this](const std::any& value, setter_specificity specificity) {
+                            set(std::any_cast<const T&>(value), specificity);
+                        },
+                    .clear = [this](setter_specificity specificity) { clear(specificity); },
+                    // --- runtime bindings (W1-02): the name->getter / converting-setter channel ---
+                    .get = [this]() -> std::any { return box_value<T>(get()); },
+                    .get_object = [this]() -> std::shared_ptr<bindable_object> { return object_form(get()); },
+                    .try_apply =
+                        [this](const std::any& value, setter_specificity specificity) {
+                            if (auto unboxed = try_unbox<T>(value))
+                            {
+                                set(std::move(*unboxed), specificity);
+                                return true;
+                            }
+                            return false;
+                        },
+                    .get_default = [this]() -> std::any { return box_value<T>(default_for_owner()); },
+                    .demote_to_binding = [this] { demote_to_binding_specificity(); },
+                    .type = type_tag::of<T>(),
+                    .default_binding_mode = descriptor.default_binding_mode(),
+                    .is_read_only = descriptor.is_read_only()});
         }
         property(const property&) = delete;
         property(property&&) = delete;
@@ -182,6 +204,52 @@ namespace maui::core
         event<T, T> changed;
 
     private:
+        // --- runtime bindings (W1-02) helpers ---
+        // The value as a walkable bindable_object node: only a shared_ptr<U> with U deriving
+        // bindable_object has one (the engine's chain hop); every other T answers null.
+        [[nodiscard]] static std::shared_ptr<bindable_object> object_form(const T& value)
+        {
+            if constexpr (detail::is_shared_ptr<T>::value)
+            {
+                using element_t = typename T::element_type;
+                if constexpr (std::is_base_of_v<bindable_object, element_t>)
+                {
+                    return value;
+                }
+            }
+            (void)value;
+            return nullptr;
+        }
+        // The default a failed binding resolution falls back to (C# BindableProperty.GetDefaultValue:
+        // the default-value creator wins over the static default when present).
+        [[nodiscard]] T default_for_owner() const
+        {
+            if (descriptor_->has_default_value_creator())
+            {
+                return descriptor_->create_default(*owner_);
+            }
+            return descriptor_->default_value();
+        }
+        // BindableObject.SetBinding's silent demote: move the top value down to from_binding (no
+        // change events fire — the effective value is unchanged) so the binding's first apply at
+        // from_binding (or above) replaces it instead of being outranked by an older manual set.
+        void demote_to_binding_specificity()
+        {
+            if (values_.empty())
+            {
+                return;
+            }
+            const setter_specificity top = values_.specificity();
+            if (!(setter_specificity::from_binding < top))
+            {
+                return;
+            }
+            T value = values_.value_ref();
+            values_.remove(top);
+            values_.set(setter_specificity::from_binding, std::move(value));
+        }
+        // --- end runtime bindings (W1-02) helpers ---
+
         void ensure_default_materialized() const
         {
             if (values_.empty() && descriptor_->has_default_value_creator())

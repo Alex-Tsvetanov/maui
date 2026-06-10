@@ -15,9 +15,11 @@
 #include <memory>
 #include <optional>
 #include <string_view>
+#include <type_traits> // --- runtime bindings (W1-02): is_base_of_v in set_binding_context ---
 #include <unordered_map>
 #include <utility>
 
+#include "maui/core/binding_mode.hpp" // --- runtime bindings (W1-02): property_handle metadata ---
 #include "maui/core/event.hpp"
 #include "maui/core/move_only_function.hpp"
 #include "maui/core/setter_specificity.hpp"
@@ -59,13 +61,32 @@ namespace maui::core
         {
             std::shared_ptr<void> value;
             std::optional<type_tag> type;
+            // --- runtime bindings (W1-02): the context viewed as a binding SOURCE ---
+            // `boxed` carries the shared_ptr<X> as a std::any (the engine's self-path leaf value; an
+            // empty any = no context), and `object` the context as a walkable bindable_object node
+            // (null when X doesn't derive bindable_object). Both are captured by set_binding_context
+            // (the only place the static type X is known) and ride along through inheritance.
+            std::any boxed;
+            std::shared_ptr<bindable_object> object;
+            // --- end runtime bindings (W1-02) ---
         };
 
         template <class X> void set_binding_context(std::shared_ptr<X> value)
         {
-            set_binding_context_raw(
-                binding_context_box{std::static_pointer_cast<void>(std::move(value)), type_tag::of<X>()},
-                /*is_explicit=*/true);
+            binding_context_box box;
+            box.value = std::static_pointer_cast<void>(value);
+            box.type = type_tag::of<X>();
+            // --- runtime bindings (W1-02): capture the engine-facing source forms ---
+            if (value)
+            {
+                box.boxed = value;
+            }
+            if constexpr (std::is_base_of_v<bindable_object, X>)
+            {
+                box.object = value;
+            }
+            // --- end runtime bindings (W1-02) ---
+            set_binding_context_raw(std::move(box), /*is_explicit=*/true);
         }
         // The context as X, or nullptr if unset or stored as a different type (the type_tag guards the cast).
         template <class X> [[nodiscard]] std::shared_ptr<X> binding_context() const
@@ -108,6 +129,17 @@ namespace maui::core
         {
             move_only_function<void(const std::any&, setter_specificity)> apply;
             move_only_function<void(setter_specificity)> clear;
+            // --- runtime bindings (W1-02): the name->getter/converting-setter channel one typed slot
+            // exposes to the string-path binding engine (each populated by property<T>'s constructor).
+            move_only_function<std::any()> get;                                      // current value, boxed
+            move_only_function<std::shared_ptr<bindable_object>()> get_object;       // value as a walkable node
+            move_only_function<bool(const std::any&, setter_specificity)> try_apply; // converting set
+            move_only_function<std::any()> get_default;                              // descriptor default, boxed
+            move_only_function<void()> demote_to_binding; // silent SetBinding demote (BindableObject.SetBinding)
+            type_tag type = type_tag::of<void>();         // type_tag::of<T> (the converter targetType analog)
+            binding_mode default_binding_mode = binding_mode::one_way;
+            bool is_read_only = false;
+            // --- end runtime bindings (W1-02) ---
         };
         // property<T> (a friend) registers/unregisters its handle on construction/destruction.
         void register_property(std::string_view name, property_handle handle);
@@ -123,5 +155,50 @@ namespace maui::core
         bool binding_context_explicit_ = false;
 
         template <class U> friend class property;
+
+        // --- runtime bindings (W1-02) -------------------------------------------------------------
+        // The name->GETTER channel (the mirror of apply_setter) plus the converting setter the
+        // string-path binding engine drives. The boxed representation is std::any (boxed_value.hpp):
+        // an EMPTY any is a null value; nullopt from the optional-returning getters means "no property
+        // registered under `name`" (C#'s reflection-miss -> "property not found" binding failure).
+        // "binding_context" is a recognized name (C#'s BindableObject.BindingContextProperty): it
+        // reads the context box's source forms, so paths like "binding_context.title" resolve.
+    public:
+        [[nodiscard]] bool has_property(std::string_view name) const;
+        // The property's current value, boxed (materializes a default-value creator, like C# GetValue).
+        [[nodiscard]] std::optional<std::any> try_get_value(std::string_view name) const;
+        // The value as a walkable bindable_object node (property<shared_ptr<U>> where U derives
+        // bindable_object), or null (value null, not an object, or no such property).
+        [[nodiscard]] std::shared_ptr<bindable_object> try_get_object(std::string_view name) const;
+        // Converting name->setter (BindingExpressionHelper.TryConvert + SetValueCore): unboxes through
+        // the boxed_value lattice, then set()s at `specificity`. false = unknown property or value not
+        // convertible (the binding-failure path — apply_setter stays the exact-typed style channel).
+        bool try_set_value(std::string_view name, const std::any& value, setter_specificity specificity);
+        // Descriptor metadata by name (GetRealizedMode / read-only checks / the default-value fallback
+        // a failed resolution applies). type is type_tag::of<T> — the converter targetType analog.
+        [[nodiscard]] std::optional<binding_mode> property_default_binding_mode(std::string_view name) const;
+        [[nodiscard]] std::optional<bool> property_is_read_only(std::string_view name) const;
+        [[nodiscard]] std::optional<std::any> property_default_value(std::string_view name) const;
+        [[nodiscard]] std::optional<type_tag> property_type(std::string_view name) const;
+        // BindableObject.SetBinding's silent demote: a value sitting above FromBinding is moved down to
+        // FromBinding (no change notification — the value itself is unchanged) so an incoming binding's
+        // first apply replaces it instead of being outranked.
+        void demote_value_to_binding(std::string_view name);
+        // Set the binding context from a pre-built box (the engine's typed-erased entry — a context
+        // BINDING and multi_binding's proxy use it; equivalent to an explicit set_binding_context).
+        void set_binding_context_box(binding_context_box box)
+        {
+            set_binding_context_raw(std::move(box), /*is_explicit=*/true);
+        }
+        // Weak liveness token (PROFILE §8): lets a binding expression check that a non-shared_ptr-owned
+        // source node (e.g. an ancestor element) is still alive before touching it or its events.
+        [[nodiscard]] std::weak_ptr<void> weak_token() const
+        {
+            return liveness_;
+        }
+
+    private:
+        std::shared_ptr<void> liveness_ = std::make_shared<char>(0);
+        // --- end runtime bindings (W1-02) ---------------------------------------------------------
     };
 } // namespace maui::core

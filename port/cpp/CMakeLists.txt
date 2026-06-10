@@ -294,6 +294,8 @@ endif()
 add_library(maui_core STATIC
   src/core/manual_dispatcher.cpp
   src/core/bindable_object.cpp
+  src/core/property_path.cpp
+  src/core/binding_expression.cpp
   src/core/thickness.cpp
   src/core/font.cpp
   src/core/property_mapper.cpp
@@ -370,6 +372,7 @@ add_executable(maui_core_tests
   tests/core/contracts_tests.cpp
   tests/core/handler_tests.cpp
   tests/core/binding_tests.cpp
+  tests/core/property_path_tests.cpp
   tests/core/crc64_tests.cpp
 )
 target_link_libraries(maui_core_tests PRIVATE
