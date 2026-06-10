@@ -404,6 +404,18 @@ namespace
         EXPECT_TRUE(weak_label.expired() || label0.use_count() == 1);
     }
 
+    TEST(xaml_loader, load_rejects_a_non_control_root_loudly)
+    {
+        // A root that hydrates to a non-control payload (C# Create would return the
+        // ResourceDictionary object; the port's control-typed result defers that loudly).
+        EXPECT_EQ(parse_error_message([&] {
+                      (void)xaml_loader::load(
+                          R"xml(<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"/>)xml");
+                  }),
+                  "Loading a non-control root element (ResourceDictionary) is not supported by the port yet "
+                  "(STATUS.md M7 deferrals)");
+    }
+
     TEST(xaml_loader, load_unknown_root_type_throws)
     {
         EXPECT_EQ(parse_error_message([&] {

@@ -5,6 +5,7 @@
 #include "maui/xaml/xaml_loader.hpp"
 
 #include <any>
+#include <format>
 #include <memory>
 #include <string_view>
 #include <utility>
@@ -15,6 +16,7 @@
 #include "maui/xaml/markup_extensions.hpp"
 #include "maui/xaml/xaml_converter_registry.hpp"
 #include "maui/xaml/xaml_node.hpp"
+#include "maui/xaml/xaml_parse_exception.hpp"
 #include "maui/xaml/xaml_parser.hpp"
 #include "maui/xaml/xaml_property_registry.hpp"
 #include "maui/xaml/xaml_standard_types.hpp"
@@ -95,6 +97,19 @@ namespace maui::xaml
         create_values_visitor create{context};
         create.visit(static_cast<element_node&>(*root), nullptr);
         const std::any* created = context.try_get_value(*root);
+        if (created != nullptr && std::any_cast<std::shared_ptr<maui::core::bindable_object>>(created) == nullptr)
+        {
+            // The root hydrated to a NON-CONTROL payload — a <ResourceDictionary> or an x:String/…
+            // language primitive. C# Create returns that object; the port's result is control-typed,
+            // so this is a loud deferral rather than a silently empty result (the handler knob still
+            // collects it).
+            context.handle(xaml_parse_exception(
+                std::format("Loading a non-control root element ({}) is not supported by the port yet "
+                            "(STATUS.md M7 deferrals)",
+                            root->type().name()),
+                root->line_number(), root->line_position()));
+            return make_result(*root, context);
+        }
         const auto* owner =
             created != nullptr ? std::any_cast<std::shared_ptr<maui::core::bindable_object>>(created) : nullptr;
         if (owner == nullptr)
