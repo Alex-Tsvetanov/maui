@@ -548,7 +548,9 @@ namespace maui::controls
         // VisualElement.ChangeVisualState: go to Disabled when !IsEnabled, else Focused when focused, else
         // Normal. Driven automatically on an IsEnabled change (and on focus/unfocus); also call it once
         // after configuring the groups to apply the initial state. A no-op when no matching group exists.
-        void change_visual_state()
+        // Virtual, like C#'s `protected internal virtual ChangeVisualState` — stateful controls extend it
+        // with their own states (Switch's On/Off, CheckBox's IsChecked).
+        virtual void change_visual_state()
         {
             using common = maui::controls::common_states;
             const std::string_view target =
