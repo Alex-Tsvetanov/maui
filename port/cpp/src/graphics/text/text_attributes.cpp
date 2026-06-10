@@ -6,6 +6,8 @@
 
 #include "maui/graphics/text/text_attributes.hpp"
 
+#include "maui/detail/charconv_compat.hpp"
+
 #include <cctype>
 #include <charconv>
 #include <cstddef>
@@ -152,14 +154,15 @@ namespace maui::graphics::text
     float text_attributes::get_float_attribute(text_attribute type, float default_value) const
     {
         // C# float.TryParse (invariant): std::from_chars is locale-independent; the whole token
-        // must be consumed (the same convention as the XAML converters).
+        // must be consumed (the same convention as the XAML converters). Routed through the
+        // charconv_compat shim — NDK r27's libc++ 18 lacks the floating-point overload.
         const auto value = get_attribute(type);
         if (value.has_value())
         {
             const char* const first = value->data();
             const char* const last = std::next(first, static_cast<std::ptrdiff_t>(value->size()));
             float parsed = 0;
-            const auto [ptr, ec] = std::from_chars(first, last, parsed, std::chars_format::general);
+            const auto [ptr, ec] = maui::detail::from_chars_general(first, last, parsed);
             if (ec == std::errc{} && ptr == last)
             {
                 return parsed;
