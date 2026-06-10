@@ -507,19 +507,25 @@ endif()
 # ======================================================================
 # Layer 6 - XAML  (maui::xaml  <=  Microsoft.Maui.Controls.Xaml : the M7 runtime loader)
 # ======================================================================
-# The reflection-free pieces the M7 XAML loader builds on (PROFILE §6: explicit registration replaces
-# XamlParser.GetElementType / Activator.CreateInstance / the property + [ContentProperty] reflection /
-# TypeConverter discovery), plus the string -> value converter functions. Pure cross-platform C++ over
-# the controls layer — no platform partials — so the library builds identically on every backend.
+# Wave 1 of the M7 runtime loader (PROFILE §6: explicit registration replaces XamlParser.GetElementType
+# / Activator.CreateInstance / the property + [ContentProperty] reflection / TypeConverter discovery):
+# the type/property/converter registries + the string -> value converter functions + the XML parser +
+# XAML node tree (xaml_node, xaml_parser over pugixml). Pure cross-platform C++ over the controls
+# layer — no platform partials — so the library builds identically on every backend.
+find_package(pugixml CONFIG REQUIRED)
+
 add_library(maui_xaml STATIC
   src/xaml/xaml_converters.cpp
   src/xaml/xaml_type_registry.cpp
   src/xaml/xaml_property_registry.cpp
   src/xaml/xaml_converter_registry.cpp
   src/xaml/xaml_standard_types.cpp
+  src/xaml/xaml_node.cpp
+  src/xaml/xaml_parser.cpp
 )
 target_include_directories(maui_xaml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(maui_xaml PUBLIC maui_controls PRIVATE maui_sanitizers)
+# pugixml stays an implementation detail of the parser .cpp (never in public headers) — PRIVATE.
+target_link_libraries(maui_xaml PUBLIC maui_controls PRIVATE pugixml::pugixml maui_sanitizers)
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_xaml PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
@@ -531,6 +537,7 @@ if(NOT MAUI_BACKEND STREQUAL "ios")
   add_executable(maui_xaml_tests
     tests/xaml/converter_tests.cpp
     tests/xaml/registry_tests.cpp
+    tests/xaml/parser_tests.cpp
   )
   target_link_libraries(maui_xaml_tests PRIVATE
     maui_xaml

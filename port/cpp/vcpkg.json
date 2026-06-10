@@ -4,6 +4,7 @@
   "description": "C++23 port of .NET MAUI (manifest mode, PROFILE.md §2).",
   "dependencies": [
     "gtest",
-    "benchmark"
+    "benchmark",
+    "pugixml"
   ]
 }
