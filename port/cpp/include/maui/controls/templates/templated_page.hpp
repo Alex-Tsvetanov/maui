@@ -36,6 +36,21 @@ namespace maui::controls
         {
             this->set_style_target_type<templated_page>();
         }
+        // Deterministic teardown (PROFILE §8) — same rationale as templated_view: detach the template
+        // subtree so externally-owned children drop their subscriptions into this dying parent.
+        ~templated_page() override
+        {
+            set_control_template(nullptr);
+            while (!internal_children_.empty())
+            {
+                // Qualified on purpose: in a destructor the dispatch is at this class level anyway.
+                templated_page::remove_at(static_cast<int>(internal_children_.size()) - 1);
+            }
+        }
+        templated_page(const templated_page&) = delete;
+        templated_page(templated_page&&) = delete;
+        templated_page& operator=(const templated_page&) = delete;
+        templated_page& operator=(templated_page&&) = delete;
 
         // Shared bindable-property descriptors (TemplatedPage.ControlTemplateProperty — its change
         // callback IS the template application — and the Padding store, from the Page base in C#).

@@ -45,7 +45,9 @@ namespace maui::controls
         virtual void set_template_root(element* value) = 0;
 
         // C# IContentView.Content for the ContentPresenter pull (see header comment). Null here.
-        [[nodiscard]] virtual element* templated_content() const
+        // Returned SHARED: the presenter co-owns what it presents (the C# GC reference), so content
+        // outliving or predeceasing its presenter cannot dangle.
+        [[nodiscard]] virtual std::shared_ptr<element> templated_content() const
         {
             return nullptr;
         }

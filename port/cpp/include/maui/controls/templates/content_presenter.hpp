@@ -8,9 +8,10 @@
 // drops) the templated parent's templated_content(); later Content changes on the templated parent
 // are pushed by template_utilities::on_content_changed (the binding's change propagation in C#).
 //
-// The presented content is held NON-owning (element*) — it is the developer's content, owned outside
-// the template scope (the templated control / the developer, PROFILE §8), unlike the template-minted
-// internal children a templated control owns.
+// The presented content is CO-OWNED (shared_ptr): in C# the presenter's Content property is a GC
+// reference keeping the content alive while presented — the shared_ptr is the faithful translation
+// (PROFILE §8), and it makes templated-parent teardown safe when the developer's owning reference is
+// dropped first. No cycle: content never owns its presenter.
 //
 // SetChildInheritedBindingContext is a no-op (the C# comment: "we never want to use the standard
 // inheritance mechanism, we will get this set by our parent") — the presented content's BindingContext
@@ -44,19 +45,19 @@ namespace maui::controls
         // by set_content + the pull binding — see header comment).
         static const maui::core::bindable_property<maui::core::thickness>& padding_property();
 
-        // ---- Content (ContentPresenter.Content; NON-owning — see header comment) ----
+        // ---- Content (ContentPresenter.Content; co-owned — see header comment) ----
         [[nodiscard]] maui::core::i_view* content() const override
         {
-            return dynamic_cast<maui::core::i_view*>(content_);
+            return dynamic_cast<maui::core::i_view*>(content_.get());
         }
         [[nodiscard]] element* content_element() const
         {
-            return content_;
+            return content_.get();
         }
         // The OnContentChanged transition: detach the old content from the logical tree, attach the
         // new one (window/resources flow through the presenter; the BindingContext does NOT — the
         // templated control pushes it into the content directly).
-        void set_content(element* value);
+        void set_content(std::shared_ptr<element> value);
 
         // ContentPresenter.Clear — Content = null (called by the template-replacement BFS).
         void clear()
@@ -96,7 +97,7 @@ namespace maui::controls
         }
 
     private:
-        element* content_ = nullptr; // NON-owning: the developer/templated control owns the content
+        std::shared_ptr<element> content_; // co-owned while presented (see header comment)
         maui::core::property<maui::core::thickness> padding_{*this, padding_property()};
     };
 } // namespace maui::controls

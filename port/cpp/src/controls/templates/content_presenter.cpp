@@ -3,6 +3,8 @@
 // logical re-parenting).
 #include "maui/controls/templates/content_presenter.hpp"
 
+#include <memory>
+#include <utility>
 #include <vector>
 
 #include "maui/controls/templates/i_control_templated.hpp"
@@ -40,7 +42,7 @@ namespace maui::controls
         return descriptor;
     }
 
-    void content_presenter::set_content(element* value)
+    void content_presenter::set_content(std::shared_ptr<element> value)
     {
         // ContentPresenter.OnContentChanged: detach the old, attach the new. C#'s ParentOverride
         // redirection (newView.ParentOverride = templated parent) collapses into the push model —
@@ -54,7 +56,7 @@ namespace maui::controls
         {
             detach_logical_child(*content_);
         }
-        content_ = value;
+        content_ = std::move(value);
         if (content_ != nullptr)
         {
             attach_logical_child(*content_);

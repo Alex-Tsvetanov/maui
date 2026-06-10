@@ -75,9 +75,9 @@ namespace
             content_ = std::move(value);
             template_utilities::on_content_changed(*this, content_);
         }
-        [[nodiscard]] element* templated_content() const override
+        [[nodiscard]] std::shared_ptr<element> templated_content() const override
         {
-            return content_.get();
+            return content_;
         }
 
     protected:
@@ -467,6 +467,26 @@ namespace
         templated.add_logical_child(child);
         templated.add_logical_child(child);
         EXPECT_EQ(templated.internal_children().size(), 1U);
+    }
+
+    TEST(control_template, externally_owned_template_child_survives_the_templated_parent)
+    {
+        // Deterministic-teardown pin (PROFILE §8): destroying the templated parent detaches its
+        // template subtree, so a child kept alive by an external owner re-resolves its template
+        // binding to "out of scope" (value cleared, subscriptions dropped) instead of keeping a
+        // dangling connection into the destroyed parent. ASan validates the no-dangling claim.
+        std::shared_ptr<element> root_keepalive;
+        std::shared_ptr<label> label_keepalive;
+        {
+            test_view sut;
+            auto* root = dynamic_cast<content_control*>(sut.internal_children()[0].get());
+            ASSERT_NE(root, nullptr);
+            root_keepalive = sut.internal_children()[0];
+            label_keepalive = root->label_child();
+            sut.set_name("Bar");
+            EXPECT_EQ(label_keepalive->text(), "Bar");
+        }
+        EXPECT_EQ(label_keepalive->text(), ""); // detached at parent teardown -> binding un-applied
     }
 
     // ---- the BindingContext suppression (TemplatedView.SetChildInheritedBindingContext) ----

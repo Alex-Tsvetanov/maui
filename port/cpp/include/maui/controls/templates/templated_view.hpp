@@ -46,6 +46,23 @@ namespace maui::controls
         {
             this->set_style_target_type<templated_view>();
         }
+        // Deterministic teardown (PROFILE §8): drop the template — the un-apply pipeline clears the
+        // presenters and DETACHES every internal child, so a child kept alive by an external owner
+        // re-resolves its template bindings to "out of scope" and drops its subscriptions into this
+        // (dying) templated parent instead of dangling. Then detach any manually-added remainder.
+        ~templated_view() override
+        {
+            set_control_template(nullptr);
+            while (!internal_children_.empty())
+            {
+                // Qualified on purpose: in a destructor the dispatch is at this class level anyway.
+                templated_view::remove_at(static_cast<int>(internal_children_.size()) - 1);
+            }
+        }
+        templated_view(const templated_view&) = delete;
+        templated_view(templated_view&&) = delete;
+        templated_view& operator=(const templated_view&) = delete;
+        templated_view& operator=(templated_view&&) = delete;
 
         // Shared bindable-property descriptors (TemplatedView.ControlTemplateProperty — its change
         // callback IS the template application — and the Padding store).
