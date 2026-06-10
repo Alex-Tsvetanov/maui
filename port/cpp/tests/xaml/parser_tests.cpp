@@ -8,6 +8,8 @@
 // and the MarkupExpressionParser.cs tokenization primitives.
 #include "maui/xaml/xaml_parser.hpp"
 
+#include "maui/xaml/xaml_parse_exception.hpp"
+
 #include <memory>
 #include <optional>
 #include <stdexcept>

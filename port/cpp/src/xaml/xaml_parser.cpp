@@ -581,24 +581,8 @@ namespace maui::xaml
         };
     } // namespace
 
-    // ---- xaml_parse_exception (XamlParseException.FormatMessage) ----
-    namespace
-    {
-        [[nodiscard]] std::string format_parse_message(const std::string& message, int line_number, int line_position)
-        {
-            if (line_number < 0 || line_position < 0)
-            {
-                return message;
-            }
-            return std::format("Position {}:{}. {}", line_number, line_position, message);
-        }
-    } // namespace
-
-    xaml_parse_exception::xaml_parse_exception(const std::string& message, int line_number, int line_position)
-        : std::runtime_error(format_parse_message(message, line_number, line_position)), unformatted_message_(message),
-          line_number_(line_number), line_position_(line_position)
-    {
-    }
+    // xaml_parse_exception (XamlParseException.FormatMessage) is fully inline in
+    // xaml_parse_exception.hpp — shared with the registries since the wave-2 unification.
 
     // ---- type_arguments_parser (TypeArgumentsParser.cs) ----
     namespace

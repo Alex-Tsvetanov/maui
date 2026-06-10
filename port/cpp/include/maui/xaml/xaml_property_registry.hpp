@@ -70,6 +70,11 @@ namespace maui::xaml
         {
             setter set;                      // apply the boxed value to the target
             maui::core::type_tag value_type; // the T the std::any must hold; names the converter implicitly
+            // The backing bindable_property descriptor's name (the apply_setter / set_dynamic_resource
+            // routing key); empty for a non-bindable registration. The M7 loader's DynamicResource
+            // path needs it — C# TrySetDynamicResource requires the BindableProperty the reflection
+            // lookup produced, and element::set_dynamic_resource keys on the descriptor name.
+            std::string_view bindable_name;
         };
 
         // ---- registration ------------------------------------------------------------------------
@@ -94,7 +99,8 @@ namespace maui::xaml
                                                            maui::core::setter_specificity::manual_value_setter);
                                        return true;
                                    },
-                               .value_type = maui::core::type_tag::of<T>()});
+                               .value_type = maui::core::type_tag::of<T>(),
+                               .bindable_name = property_name});
         }
 
         // Register a NON-bindable member as an explicit typed lambda calling the control's typed API.

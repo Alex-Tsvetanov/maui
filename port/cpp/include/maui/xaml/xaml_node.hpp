@@ -15,10 +15,10 @@
 // C# `node.Parent = parentNode` visitor in XamlLoader.Visit), which breaks the cycle.
 //
 // Wave-1 scope notes (M7): ValueNode.Value is `object` in C# (visitors later replace it with
-// converted instances); here it is a std::string — the hydration-era object payload arrives with the
-// wave-2 visitors. ElementNode.NameScopeRef (INameScope) and IsOnPlatformDefaultValue (SourceGen)
-// are deferred the same way. // TODO: verify against src/Controls/src/Xaml/XamlNode.cs when porting
-// the wave-2 visitors.
+// converted instances); here it is a std::string — the wave-2 hydration_context carries the object
+// payloads in its node→value map instead of widening the node (verified against XamlNode.cs).
+// ElementNode.NameScopeRef arrived with the wave-2 visitors (element_node::scope_ref below; the
+// name_scope_ref indirection is name_scope.hpp's). IsOnPlatformDefaultValue (SourceGen-only) stays out.
 
 #include <functional>
 #include <map>
@@ -130,6 +130,7 @@ namespace maui::xaml
     class root_node;
     class list_node;
     class i_xaml_node;
+    class name_scope_ref; // the shared scope handle (name_scope.hpp) — ElementNode.NameScopeRef
 
     // ---- tree_visiting_mode  <=  Microsoft.Maui.Controls.Xaml.TreeVisitingMode ----
     enum class tree_visiting_mode
@@ -431,6 +432,19 @@ namespace maui::xaml
             return namespace_uri_;
         }
 
+        // ElementNode.NameScopeRef — assigned by the wave-2 namescoping visitor; null until then.
+        // Nodes of one scope SHARE the ref object, so replacing ref->scope retargets them all (the
+        // C# two-level indirection). NOTE: like C# Clone, clone() does NOT copy it — a cloned
+        // subtree is re-namescoped by its own pipeline run.
+        [[nodiscard]] const std::shared_ptr<name_scope_ref>& scope_ref() const
+        {
+            return scope_ref_;
+        }
+        void set_scope_ref(std::shared_ptr<name_scope_ref> value)
+        {
+            scope_ref_ = std::move(value);
+        }
+
         void accept(i_xaml_node_visitor& visitor, i_xaml_node* parent_node) override;
         [[nodiscard]] std::shared_ptr<i_xaml_node> clone() const override;
 
@@ -454,6 +468,7 @@ namespace maui::xaml
         std::vector<std::shared_ptr<i_xaml_node>> collection_items_;
         xml_type xml_type_;
         std::string namespace_uri_;
+        std::shared_ptr<name_scope_ref> scope_ref_; // shared_ptr tolerates the incomplete type here
     };
 
     // ---- root_node  <=  Microsoft.Maui.Controls.Xaml.RootNode ----

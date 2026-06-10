@@ -33,11 +33,14 @@ namespace maui::core
 
 namespace maui::controls
 {
+    class application;
     class element;
 } // namespace maui::controls
 
 namespace maui::xaml
 {
+    class xaml_type_registry;
+
     // The services a ProvideValue call can consume (C# IServiceProvider + IProvideValueTarget +
     // the resource-lookup chain). All pointers are NON-owning borrows valid only during the call.
     struct xaml_service_provider
@@ -49,6 +52,13 @@ namespace maui::xaml
         // The element whose parent chain resolves {StaticResource}/{DynamicResource} lookups (the
         // closest enclosing element when the target itself is not an element — e.g. a setter).
         maui::controls::element* resource_scope = nullptr;
+        // IXamlTypeResolver: the element-name table {x:Type} resolves against. Null = the loader did
+        // not thread a registry through; the extension falls back to default_xaml_type_registry().
+        const xaml_type_registry* type_registry = nullptr;
+        // Application.Current's stand-in for {StaticResource}'s application-level fallback
+        // (StaticResourceExtension.TryGetApplicationLevelResource). The port has no process-wide
+        // Application singleton, so the loader passes the app it loads under (null = no fallback).
+        maui::controls::application* application = nullptr;
     };
 
     class i_markup_extension

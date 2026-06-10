@@ -9,7 +9,6 @@
 // type registries) is the concurrent M7 registries unit; visitors/hydration are wave 2.
 //
 // Also here, as in the C# file set:
-//   - xaml_parse_exception          <=  Microsoft.Maui.Controls.Xaml.XamlParseException
 //   - type_arguments_parser         <=  Microsoft.Maui.Controls.Xaml.TypeArgumentsParser
 //   - the markup-extension STRING TOKENIZATION primitives (match_markup / get_next_piece /
 //     parse_markup_name)            <=  Microsoft.Maui.Controls.Xaml.MarkupExpressionParser
@@ -19,47 +18,18 @@
 
 #include <cstddef>
 #include <optional>
-#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
 
 #include "maui/xaml/xaml_node.hpp"
+// xaml_parse_exception (<= XamlParseException) lives in its own header — the parser constructs it
+// WITH line info ("Position {line}:{position}. {message}"); the registries construct message-only.
+#include "maui/xaml/xaml_parse_exception.hpp"
 
 namespace maui::xaml
 {
-    // ---- xaml_parse_exception  <=  Microsoft.Maui.Controls.Xaml.XamlParseException ----
-    // what() is the C#-formatted message: "Position {line}:{position}. {message}" when line info is
-    // present, the bare message otherwise. Line/position are 1-based; -1 = no info.
-    class xaml_parse_exception : public std::runtime_error
-    {
-    public:
-        explicit xaml_parse_exception(const std::string& message, int line_number = -1, int line_position = -1);
-
-        [[nodiscard]] const std::string& unformatted_message() const
-        {
-            return unformatted_message_;
-        }
-        [[nodiscard]] int line_number() const
-        {
-            return line_number_;
-        }
-        [[nodiscard]] int line_position() const
-        {
-            return line_position_;
-        }
-        [[nodiscard]] bool has_line_info() const
-        {
-            return line_number_ >= 0 && line_position_ >= 0;
-        }
-
-    private:
-        std::string unformatted_message_;
-        int line_number_;
-        int line_position_;
-    };
-
     // ---- parse_options ----
     // The DeviceInfo.Platform seam for XamlParser.PrefixesToIgnore: an xmlns declaration carrying a
     // `targetPlatform=` clause makes its prefix ignorable when the platform does NOT match.
