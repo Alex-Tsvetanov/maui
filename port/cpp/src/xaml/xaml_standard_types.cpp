@@ -47,6 +47,7 @@
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/visibility.hpp"
+#include "maui/detail/charconv_compat.hpp" // FP from_chars (general) with the libc++ < 20 fallback
 #include "maui/xaml/xaml_converter_registry.hpp"
 #include "maui/xaml/xaml_parse_exception.hpp"
 #include "maui/xaml/xaml_property_registry.hpp"
@@ -103,7 +104,7 @@ namespace maui::xaml
             const char* begin = token.data();
             // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic) — from_chars needs [first,last)
             const char* end = begin + token.size();
-            const auto [ptr, ec] = std::from_chars(begin, end, out, std::chars_format::general);
+            const auto [ptr, ec] = maui::detail::from_chars_general(begin, end, out);
             return ec == std::errc{} && ptr == end;
         }
         [[nodiscard]] bool parse_whole_token(std::string_view token, int& out)

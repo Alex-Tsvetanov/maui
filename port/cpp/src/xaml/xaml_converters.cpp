@@ -34,6 +34,7 @@
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
+#include "maui/detail/charconv_compat.hpp" // FP from_chars (general) with the libc++ < 20 fallback
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/corner_radius.hpp"
 #include "maui/graphics/point.hpp"
@@ -68,7 +69,7 @@ namespace maui::xaml
             }
             const char* first = s.data();
             const char* last = std::next(first, static_cast<std::ptrdiff_t>(s.size()));
-            const auto [ptr, ec] = std::from_chars(first, last, out, std::chars_format::general);
+            const auto [ptr, ec] = maui::detail::from_chars_general(first, last, out);
             return ec == std::errc{} && ptr == last;
         }
 

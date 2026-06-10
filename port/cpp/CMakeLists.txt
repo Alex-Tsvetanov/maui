@@ -30,6 +30,10 @@ include(GoogleTest)
 function(maui_discover_tests target)
   if(MAUI_BACKEND STREQUAL "ios")
     gtest_discover_tests(${target} DISCOVERY_MODE PRE_TEST DISCOVERY_TIMEOUT 180)
+  elseif(MAUI_BACKEND STREQUAL "android")
+    # The android runner (tools/android-emu-run.sh) may have to CREATE the maui-test AVD and cold-boot
+    # the emulator inside the first discovery call, so its timeout dwarfs even the ios one.
+    gtest_discover_tests(${target} DISCOVERY_MODE PRE_TEST DISCOVERY_TIMEOUT 600)
   else()
     gtest_discover_tests(${target})
   endif()
@@ -254,6 +258,9 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     ${MAUI_IOS_MM_SOURCES})
   set_source_files_properties(${MAUI_IOS_MM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
+  # headless AND android (M-android scaffold): the android preset compiles these pure-C++ headless
+  # partials unchanged and runs them on the emulator — exactly how the ios bring-up started before its
+  # per-control .mm fan-out. The JNI fan-out (src/platform/android/) swaps them out control by control.
   set(MAUI_CORE_PLATFORM_SOURCES
     src/platform/headless/button_handler.cpp
     src/platform/headless/label_handler.cpp

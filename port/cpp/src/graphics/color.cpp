@@ -1,7 +1,8 @@
 // maui::graphics::color  <=  Microsoft.Maui.Graphics.Color  (+ ColorUtils.cs, Colors.cs)
 #include "maui/graphics/color.hpp"
 
-#include "maui/graphics/colors.hpp" // MAUI_GRAPHICS_NAMED_COLORS (the parse table)
+#include "maui/detail/charconv_compat.hpp" // FP from_chars (general) with the libc++ < 20 fallback
+#include "maui/graphics/colors.hpp"        // MAUI_GRAPHICS_NAMED_COLORS (the parse table)
 #include "maui/graphics/vector4.hpp"
 
 #include <algorithm>
@@ -231,7 +232,7 @@ namespace maui::graphics
             const char* begin = s.data();
             // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic) -- std::from_chars takes a pointer range
             const char* end = begin + s.size();
-            auto [ptr, ec] = std::from_chars(begin, end, out, std::chars_format::general);
+            auto [ptr, ec] = maui::detail::from_chars_general(begin, end, out);
             return ec == std::errc{} && ptr == end; // entire token must be consumed
         }
 

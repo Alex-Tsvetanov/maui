@@ -74,6 +74,25 @@
         "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/cmake/triplets",
         "CMAKE_CROSSCOMPILING_EMULATOR": "${sourceDir}/tools/ios-sim-run.sh"
       }
+    },
+    {
+      "name": "android",
+      "inherits": "headless",
+      "displayName": "Android (NDK / emulator, arm64-v8a)",
+      "description": "Android backend cross-compiled with the in-SDK NDK 27.2 (LTS); ctest runs the test binaries on a headless emulator (dedicated maui-test AVD) via tools/android-emu-run.sh (CMAKE_CROSSCOMPILING_EMULATOR). ANDROID_NDK_HOME points vcpkg's android toolchain at the same NDK for the dependency builds (gtest/benchmark/pugixml under arm64-android).",
+      "binaryDir": "${sourceDir}/build/android",
+      "environment": {
+        "ANDROID_NDK_HOME": "/opt/homebrew/share/android-commandlinetools/ndk/27.2.12479018"
+      },
+      "cacheVariables": {
+        "MAUI_BACKEND": "android",
+        "VCPKG_TARGET_TRIPLET": "arm64-android",
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "$env{ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake",
+        "ANDROID_ABI": "arm64-v8a",
+        "ANDROID_PLATFORM": "android-34",
+        "ANDROID_STL": "c++_static",
+        "CMAKE_CROSSCOMPILING_EMULATOR": "${sourceDir}/tools/android-emu-run.sh"
+      }
     }
   ],
   "buildPresets": [
@@ -83,7 +102,8 @@
     { "name": "tsan", "configurePreset": "tsan" },
     { "name": "msan", "configurePreset": "msan" },
     { "name": "apple", "configurePreset": "apple" },
-    { "name": "ios", "configurePreset": "ios" }
+    { "name": "ios", "configurePreset": "ios" },
+    { "name": "android", "configurePreset": "android" }
   ],
   "testPresets": [
     {
@@ -101,6 +121,12 @@
     {
       "name": "ios",
       "configurePreset": "ios",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+    },
+    {
+      "name": "android",
+      "configurePreset": "android",
       "output": { "outputOnFailure": true },
       "execution": { "noTestsAction": "error", "stopOnFailure": false }
     },
