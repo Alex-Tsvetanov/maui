@@ -5,13 +5,19 @@
 
 #include <any>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
 
+#include "maui/controls/bindings/binding.hpp" // runtime bindings (W1-02): the string-path overload
+#include "maui/controls/bindings/binding_base.hpp"
+#include "maui/controls/bindings/binding_diagnostics.hpp"
 #include "maui/controls/resource_dictionary.hpp"
+#include "maui/controls/templates/template_binding.hpp" // dtor: template_bindings_ teardown (W1-09)
 #include "maui/core/bindable_object.hpp"
+#include "maui/core/binding_mode.hpp"
 #include "maui/core/event.hpp"
 #include "maui/core/setter_specificity.hpp"
 
@@ -19,12 +25,113 @@ namespace maui::controls
 {
     void element::on_binding_context_changed()
     {
+        // runtime bindings (W1-02): re-apply this element's own bindings against the new context
+        // FIRST (C# BindingContextPropertyChanged → ApplyBindings before OnBindingContextChanged).
+        reapply_bindings(/*from_binding_context_changed=*/true);
         maui::core::bindable_object::on_binding_context_changed(); // raise binding_context_changed
         const auto& context = raw_binding_context();
         // --- templates (W1-09): route through the overridable SetChildInheritedBindingContext seam ---
         for_each_logical_child(
             [this, &context](element& child) { set_child_inherited_binding_context(child, context); });
     }
+
+    // --- runtime bindings (W1-02) -------------------------------------------------------------
+
+    element::~element()
+    {
+        // Deterministic teardown (§8): unapply every binding so source-side subscriptions disconnect
+        // while the sources are still reachable (the C# weak-proxy GC sweep, made explicit). Defined
+        // here (not in element_templates.cpp) with template_binding complete via the include above.
+        for (auto& [name, bound] : bindings_)
+        {
+            bound.binding->unapply();
+        }
+    }
+
+    void element::set_binding(std::string property_name, std::shared_ptr<binding_base> binding)
+    {
+        if (!binding)
+        {
+            throw std::invalid_argument("element::set_binding: binding is null");
+        }
+        // BindableObject.SetBinding: a OneWay binding on a read-only property is refused (logged).
+        if (property_is_read_only(property_name).value_or(false) &&
+            binding->mode() == maui::core::binding_mode::one_way)
+        {
+            send_binding_failure("element::set_binding: cannot set a OneWay binding on read-only property '" +
+                                 property_name + "'");
+            return;
+        }
+        // The realized mode picks the apply specificity: TwoWay applies at from_handler (the
+        // dotnet/maui#16849 rule — a later manual set removes it, a binding update reinstates it),
+        // everything else at from_binding.
+        maui::core::binding_mode realized = binding->mode();
+        if (realized == maui::core::binding_mode::default_mode)
+        {
+            realized = property_default_binding_mode(property_name).value_or(maui::core::binding_mode::one_way);
+        }
+        if (realized == maui::core::binding_mode::two_way && property_is_read_only(property_name).value_or(false))
+        {
+            realized = maui::core::binding_mode::one_way_to_source;
+        }
+        const maui::core::setter_specificity specificity = realized == maui::core::binding_mode::two_way
+                                                               ? maui::core::setter_specificity::from_handler
+                                                               : maui::core::setter_specificity::from_binding;
+
+        // A value above from_binding is silently demoted so the binding's first apply replaces it.
+        demote_value_to_binding(property_name);
+
+        if (auto it = bindings_.find(property_name); it != bindings_.end())
+        {
+            it->second.binding->unapply();
+        }
+        bound_property& bound = bindings_[property_name];
+        bound.binding = std::move(binding);
+        bound.specificity = specificity;
+        bound.binding->apply(raw_binding_context(), *this, property_name, /*from_binding_context_changed=*/false,
+                             specificity);
+    }
+
+    void element::set_binding(std::string property_name, std::string path, maui::core::binding_mode mode)
+    {
+        set_binding(std::move(property_name), std::make_shared<class binding>(std::move(path), mode));
+    }
+
+    void element::remove_binding(std::string_view property_name)
+    {
+        if (auto it = bindings_.find(std::string{property_name}); it != bindings_.end())
+        {
+            it->second.binding->unapply();
+            bindings_.erase(it);
+        }
+    }
+
+    std::shared_ptr<binding_base> element::binding_for(std::string_view property_name) const
+    {
+        if (auto it = bindings_.find(std::string{property_name}); it != bindings_.end())
+        {
+            return it->second.binding;
+        }
+        return nullptr;
+    }
+
+    void element::reapply_bindings(bool from_binding_context_changed)
+    {
+        // Snapshot (C# copies the property contexts): an apply may mutate the binding map.
+        std::vector<std::pair<std::string, bound_property>> entries;
+        entries.reserve(bindings_.size());
+        for (const auto& [name, bound] : bindings_)
+        {
+            entries.emplace_back(name, bound);
+        }
+        for (const auto& [name, bound] : entries)
+        {
+            bound.binding->unapply(from_binding_context_changed);
+            bound.binding->apply(raw_binding_context(), *this, name, from_binding_context_changed, bound.specificity);
+        }
+    }
+
+    // --- end runtime bindings (W1-02) -----------------------------------------------------------
 
     void element::set_containing_window(window* value)
     {
@@ -188,14 +295,22 @@ namespace maui::controls
         // Now that the child is in our subtree, its resource chain includes ours: re-resolve its (and its
         // descendants') DynamicResources + implicit styles against the extended chain.
         child.reapply_resources_from_chain();
+        child.parent_set.raise(); // runtime bindings (W1-02): Element.ParentSet — ancestry re-resolution
     }
 
     void element::detach_logical_child(element& child)
     {
         child.set_containing_window(nullptr);
         child.logical_parent_ = nullptr;
-        // The child's last inherited BindingContext is kept (C# leaves it until reparented/reset), but its
-        // resource chain shrank to itself — re-resolve so an implicit style from the old parent un-applies.
+        // The child's resource chain shrank to itself — re-resolve so an implicit style from the old
+        // parent un-applies.
         child.reapply_resources_from_chain();
+        // runtime bindings (W1-02), corrected against Element.cs SetParent(null): detaching CLEARS the
+        // child's INHERITED binding context (`SetInheritedBindingContext(this, null)`) — an explicitly
+        // set context survives via the set_inherited_binding_context guard. The relative-source
+        // ancestor tests (RelativeSourceBindingTests.cs) pin this: a detached subtree loses the
+        // contexts it inherited from the old ancestors.
+        child.set_inherited_binding_context(maui::core::bindable_object::binding_context_box{});
+        child.parent_set.raise(); // runtime bindings (W1-02): Element.ParentSet — ancestry re-resolution
     }
 } // namespace maui::controls

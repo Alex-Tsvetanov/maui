@@ -12,8 +12,8 @@
 
 namespace maui::controls
 {
-    element::element() = default;  // out-of-line: template_bindings_ needs the complete type here
-    element::~element() = default; // (both for the ctor's unwind path and the dtor itself)
+    element::element() = default; // out-of-line: template_bindings_ needs the complete type here
+    // (the destructor lives in element.cpp — it also unapplies the runtime bindings, W1-02)
 
     element* element::find_templated_parent() const
     {

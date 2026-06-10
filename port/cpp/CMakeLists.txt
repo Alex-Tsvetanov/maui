@@ -448,6 +448,11 @@ endif()
 
 add_library(maui_controls STATIC
   src/controls/element.cpp
+  src/controls/bindings/binding_diagnostics.cpp
+  src/controls/bindings/binding_base.cpp
+  src/controls/bindings/binding.cpp
+  src/controls/bindings/multi_binding.cpp
+  src/controls/bindings/relative_binding_source.cpp
   src/controls/view.cpp
   src/controls/gestures/gesture_recognizers.cpp
   src/controls/gestures/gesture_recognizer_collection.cpp
@@ -527,7 +532,10 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/size_request_tests.cpp # backend-agnostic; the VisualElement size-request surface
     tests/controls/lifecycle_tests.cpp
     tests/controls/data_template_tests.cpp    # backend-agnostic (W1-09 templates)
-    tests/controls/control_template_tests.cpp)
+    tests/controls/control_template_tests.cpp
+    tests/controls/binding_engine_tests.cpp # backend-agnostic; the W1-02 string-path binding engine
+    tests/controls/multi_binding_tests.cpp
+    tests/controls/relative_source_binding_tests.cpp)
   # tests/core/image_source_tests.cpp + font_image_source_tests.cpp are HEADLESS-ONLY: they assert on the
   # headless image_source_result mirror + the headless "any non-empty bytes => loaded" decode (raw test
   # bytes are not decodable NSImages on apple). The apple backend's native rasterize is covered by
@@ -594,7 +602,10 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/size_request_tests.cpp # backend-agnostic (compares against the handler's own size)
     tests/controls/lifecycle_tests.cpp
     tests/controls/data_template_tests.cpp    # backend-agnostic (W1-09 templates)
-    tests/controls/control_template_tests.cpp)
+    tests/controls/control_template_tests.cpp
+    tests/controls/binding_engine_tests.cpp # backend-agnostic; the W1-02 string-path binding engine
+    tests/controls/multi_binding_tests.cpp
+    tests/controls/relative_source_binding_tests.cpp)
   set_source_files_properties(${MAUI_IOS_TEST_MM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
   add_executable(maui_controls_tests
@@ -625,6 +636,9 @@ else()
     tests/controls/lifecycle_tests.cpp
     tests/controls/data_template_tests.cpp    # backend-agnostic (W1-09 templates)
     tests/controls/control_template_tests.cpp
+    tests/controls/binding_engine_tests.cpp # backend-agnostic; the W1-02 string-path binding engine
+    tests/controls/multi_binding_tests.cpp
+    tests/controls/relative_source_binding_tests.cpp
     tests/controls/window_handler_tests.cpp # the window_handler seam over the headless mirror
     tests/core/image_source_tests.cpp     # loader cache TTL + the typed service-provider
     tests/core/font_image_source_tests.cpp)

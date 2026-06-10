@@ -40,7 +40,8 @@
 
 namespace maui::controls
 {
-    class window; // forward — the host; element only holds a non-owning back-ref
+    class window;       // forward — the host; element only holds a non-owning back-ref
+    class binding_base; // forward — runtime bindings (W1-02); element only stores shared_ptrs
     // --- templates (W1-09): forward declarations for the template-scope members below ---
     class template_binding;   // the templated-parent binding an element can carry (templates/)
     class template_utilities; // the ControlTemplate application machinery (friend — walks children)
@@ -173,7 +174,8 @@ namespace maui::controls
         // template_binding type live in src/controls/templates/element_templates.cpp; the destructor is
         // out-of-line for the same reason (the vector member of the forward-declared type).
     public:
-        ~element() override; // = default, defined where template_binding is complete
+        ~element() override; // out-of-line in element.cpp: unapplies the runtime bindings (W1-02)
+                             // and needs template_binding complete for template_bindings_'s teardown
 
         // Element.IsTemplateRoot — set by element_template::create_content on the created root.
         [[nodiscard]] bool is_template_root() const
@@ -219,5 +221,47 @@ namespace maui::controls
 
         friend class template_utilities; // walks logical children for the ControlTemplate machinery
         // --- end templates (W1-09) ----------------------------------------------------------------------
+
+        // --- runtime bindings (W1-02) -------------------------------------------------------------
+        // BindableObject.SetBinding/RemoveBinding + ApplyBindings, hosted on element (binding_base is
+        // a controls-layer type). One binding per property name (C#'s per-specificity binding
+        // LAYERING — style-sourced bindings — is not ported; styles use the setter channel instead).
+    public:
+        // Raised after this element's logical parent changes (Element.ParentSet) — relative-source
+        // ancestor bindings re-resolve on it.
+        maui::core::event<> parent_set;
+
+        // Assign `binding` to the property named `property_name` and apply it now against the current
+        // binding context (re-applied automatically when the context changes). A realized-TwoWay
+        // binding applies its values at from_handler specificity, others at from_binding — and any
+        // value currently above from_binding is silently demoted so the first apply replaces it
+        // (BindableObject.SetBinding, incl. the dotnet/maui#16849 two-way rules).
+        void set_binding(std::string property_name, std::shared_ptr<binding_base> binding);
+        // Convenience (the C# string-path SetBinding extension): create + set a path binding.
+        void set_binding(std::string property_name, std::string path,
+                         maui::core::binding_mode mode = maui::core::binding_mode::default_mode);
+        // Unapply + drop the binding on `property_name` (BindableObject.RemoveBinding). The last
+        // value the binding applied is kept, like C#.
+        void remove_binding(std::string_view property_name);
+        [[nodiscard]] std::shared_ptr<binding_base> binding_for(std::string_view property_name) const;
+
+        // Bindings are torn down (unapplied) by the destructor (declared in the templates block
+        // above — one declaration, defined in element.cpp) so source subscriptions never dangle (§8).
+        element(const element&) = delete;
+        element(element&&) = delete;
+        element& operator=(const element&) = delete;
+        element& operator=(element&&) = delete;
+
+    private:
+        // BindableObject.ApplyBindings: unapply + re-apply every binding against the (new) context.
+        void reapply_bindings(bool from_binding_context_changed);
+
+        struct bound_property
+        {
+            std::shared_ptr<binding_base> binding;
+            maui::core::setter_specificity specificity;
+        };
+        std::unordered_map<std::string, bound_property> bindings_;
+        // --- end runtime bindings (W1-02) ---------------------------------------------------------
     };
 } // namespace maui::controls

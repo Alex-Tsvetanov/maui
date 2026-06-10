@@ -114,78 +114,102 @@ namespace maui::core
 
     [[nodiscard]] inline std::optional<std::string> boxed_to_string(const std::any& value);
 
+    // Opt-in custom boxing: a value type that carries its own boxed payload (e.g. multi_binding's
+    // proxy slots, which must absorb and yield ANY boxed value) implements to_boxed()/from_boxed()
+    // and bypasses the lattice entirely.
+    template <class T>
+    concept custom_boxed = requires(const T& value, const std::any& boxed) {
+        { value.to_boxed() } -> std::convertible_to<std::any>;
+        { T::from_boxed(boxed) } -> std::convertible_to<T>;
+    };
+
     // Box a typed value into the engine's representation: a null shared_ptr boxes as the EMPTY any
     // (the engine's null), everything else as a copy of the value itself.
     template <class T> [[nodiscard]] std::any box_value(const T& value)
     {
-        if constexpr (detail::is_shared_ptr<T>::value)
+        if constexpr (custom_boxed<T>)
         {
-            if (!value)
-            {
-                return {};
-            }
+            return value.to_boxed();
         }
-        return std::any{value};
+        else
+        {
+            if constexpr (detail::is_shared_ptr<T>::value)
+            {
+                if (!value)
+                {
+                    return {};
+                }
+            }
+            return std::any{value};
+        }
     }
 
     // Unbox toward T through the conversion lattice documented above. nullopt = not convertible (the
     // C# TryConvert == false path).
     template <class T> [[nodiscard]] std::optional<T> try_unbox(const std::any& value)
     {
-        if (!value.has_value())
+        if constexpr (custom_boxed<T>)
         {
-            // null: only a nullable T can absorb it.
-            if constexpr (detail::is_shared_ptr<T>::value)
-            {
-                return T{};
-            }
-            else
-            {
-                return std::nullopt;
-            }
+            return T::from_boxed(value);
         }
-        if (const T* exact = std::any_cast<T>(&value))
+        else
         {
-            return *exact;
-        }
-        // shared_ptr<T> unwrap (a value-like source boxed by reference — e.g. a string binding context).
-        if constexpr (std::copy_constructible<T>)
-        {
-            if (const auto* shared = std::any_cast<std::shared_ptr<T>>(&value))
+            if (!value.has_value())
             {
-                if (*shared)
+                // null: only a nullable T can absorb it. std::string counts as nullable — it stands in
+                // for C#'s (reference-type) string, whose null the port renders as the empty string.
+                if constexpr (detail::is_shared_ptr<T>::value || std::is_same_v<T, std::string>)
                 {
-                    return **shared;
+                    return T{};
                 }
-                return std::nullopt;
-            }
-        }
-        if constexpr (std::is_arithmetic_v<T> && !std::is_same_v<T, bool>)
-        {
-            if (auto numeric = detail::unbox_arithmetic<T>(value))
-            {
-                return numeric;
-            }
-            if (const auto* text = std::any_cast<std::string>(&value))
-            {
-                return detail::parse_arithmetic<T>(*text);
-            }
-            if (const auto* shared_text = std::any_cast<std::shared_ptr<std::string>>(&value))
-            {
-                if (*shared_text)
+                else
                 {
-                    return detail::parse_arithmetic<T>(**shared_text);
+                    return std::nullopt;
                 }
             }
-        }
-        if constexpr (std::is_same_v<T, std::string>)
-        {
-            if (auto text = boxed_to_string(value))
+            if (const T* exact = std::any_cast<T>(&value))
             {
-                return text;
+                return *exact;
             }
+            // shared_ptr<T> unwrap (a value-like source boxed by reference — e.g. a string binding context).
+            if constexpr (std::copy_constructible<T>)
+            {
+                if (const auto* shared = std::any_cast<std::shared_ptr<T>>(&value))
+                {
+                    if (*shared)
+                    {
+                        return **shared;
+                    }
+                    return std::nullopt;
+                }
+            }
+            if constexpr (std::is_arithmetic_v<T> && !std::is_same_v<T, bool>)
+            {
+                if (auto numeric = detail::unbox_arithmetic<T>(value))
+                {
+                    return numeric;
+                }
+                if (const auto* text = std::any_cast<std::string>(&value))
+                {
+                    return detail::parse_arithmetic<T>(*text);
+                }
+                if (const auto* shared_text = std::any_cast<std::shared_ptr<std::string>>(&value))
+                {
+                    if (*shared_text)
+                    {
+                        return detail::parse_arithmetic<T>(**shared_text);
+                    }
+                }
+            }
+            if constexpr (std::is_same_v<T, std::string>)
+            {
+                if (auto text = boxed_to_string(value))
+                {
+                    return text;
+                }
+            }
+            return std::nullopt;
         }
-        return std::nullopt;
     }
 
     // The value rendered as text (for StringFormat and number->string conversion): strings pass

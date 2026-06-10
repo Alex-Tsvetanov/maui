@@ -121,7 +121,11 @@ namespace
 
     TEST(boxed_value, null_only_unboxes_to_nullable)
     {
-        EXPECT_EQ(try_unbox<std::string>(std::any{}), std::nullopt);
+        // C#: null is assignable to reference/nullable types only. std::string stands in for the
+        // (reference-type) C# string, so it absorbs null as "" — but a value type like int fails.
+        EXPECT_EQ(try_unbox<std::string>(std::any{}), std::string{});
+        EXPECT_EQ(try_unbox<int>(std::any{}), std::nullopt);
+        EXPECT_EQ(try_unbox<double>(std::any{}), std::nullopt);
         const auto null_ptr = try_unbox<std::shared_ptr<std::string>>(std::any{});
         ASSERT_TRUE(null_ptr.has_value());
         EXPECT_EQ(*null_ptr, nullptr);

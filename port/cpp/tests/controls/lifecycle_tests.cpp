@@ -76,10 +76,11 @@ namespace
         EXPECT_EQ(leaf.binding_context<person>(), context);  // layout -> leaf (two levels deep)
     }
 
-    TEST(binding_context, detaching_a_child_clears_its_inherited_window_but_keeps_context)
+    TEST(binding_context, detaching_a_child_clears_its_inherited_context)
     {
-        // Removing a child from its parent stops further inheritance; the already-inherited context value
-        // remains until something replaces it (matching C#, where SetInheritedBindingContext is one-way).
+        // Element.SetParent(null) calls SetInheritedBindingContext(this, null): removing a child
+        // CLEARS its inherited context (an explicitly-set one survives the guard). Corrected in W1-02
+        // from an earlier mischaracterization — RelativeSourceBindingTests.cs pins this behavior.
         maui::controls::content_page page;
         maui::controls::button child;
         page.set_content(child);
@@ -87,9 +88,10 @@ namespace
         page.set_binding_context(context);
         EXPECT_EQ(child.binding_context<person>(), context);
 
-        page.set_content(nullptr); // detach
+        page.set_content(nullptr);                           // detach
+        EXPECT_EQ(child.binding_context<person>(), nullptr); // inherited context cleared on detach
         page.set_binding_context(std::make_shared<person>(person{.name = "new"}));
-        EXPECT_EQ(child.binding_context<person>(), context); // no longer a child -> not re-propagated
+        EXPECT_EQ(child.binding_context<person>(), nullptr); // no longer a child -> not re-propagated
     }
 
     TEST(binding_context, typed_getter_returns_null_for_a_mismatched_type)
