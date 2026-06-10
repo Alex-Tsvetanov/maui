@@ -167,7 +167,10 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/layout_handler.mm
     src/platform/apple/content_page_handler.mm
     src/platform/apple/navigation_page_handler.mm
-    src/platform/apple/window_handler.mm)
+    src/platform/apple/window_handler.mm
+    # (M-L hosting-app-builder) the GCD main-queue dispatcher, SHARED with the ios backend (one .mm —
+    # GCD is identical on both; the analog of a single Dispatcher.MaciOS.cs partial).
+    src/platform/apple_shared/gcd_dispatcher.mm)
   set_source_files_properties(${MAUI_CORE_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 elseif(MAUI_BACKEND STREQUAL "ios")
   enable_language(OBJCXX)
@@ -188,7 +191,9 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     src/platform/ios/layout_handler.mm
     src/platform/ios/content_page_handler.mm
     src/platform/ios/navigation_page_handler.mm
-    src/platform/ios/window_handler.mm)
+    src/platform/ios/window_handler.mm
+    # (M-L hosting-app-builder) the GCD dispatcher .mm shared with the apple backend (see above).
+    src/platform/apple_shared/gcd_dispatcher.mm)
   set(MAUI_CORE_PLATFORM_SOURCES
     ${MAUI_IOS_MM_SOURCES})
   set_source_files_properties(${MAUI_IOS_MM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
@@ -288,6 +293,16 @@ target_link_libraries(maui_core_tests PRIVATE
 maui_discover_tests(maui_core_tests)
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_core_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+endif()
+# (M-L hosting-app-builder) the GCD dispatcher seam on a pumped main run loop. ONE .mm shared by the
+# apple + ios presets — the dispatcher under test (src/platform/apple_shared/gcd_dispatcher.mm) is
+# shared the same way, and the test pumps CFRunLoop (Foundation), identical on AppKit/UIKit.
+if(MAUI_BACKEND STREQUAL "apple" OR MAUI_BACKEND STREQUAL "ios")
+  target_sources(maui_core_tests PRIVATE tests/core/gcd_dispatcher_tests.mm)
+  set_source_files_properties(tests/core/gcd_dispatcher_tests.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+  if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+    set_target_properties(maui_core_tests PROPERTIES OBJCXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+  endif()
 endif()
 
 # ======================================================================
@@ -449,17 +464,19 @@ if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
 endif()
 
 # ---- Sample apps (macOS only) ----
+# (M-L hosting-app-builder) Both samples now boot through maui_app_builder (maui_hosting, defined
+# below — CMake resolves link targets at generate time, so the forward reference is fine).
 if(MAUI_BACKEND STREQUAL "apple")
   # A real NSWindow hosting the cross-platform button (the M2 seam).
   add_executable(maui_button_sample src/samples/button_sample.mm)
   set_source_files_properties(src/samples/button_sample.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
-  target_link_libraries(maui_button_sample PRIVATE maui_controls maui_sanitizers)
+  target_link_libraries(maui_button_sample PRIVATE maui_hosting maui_sanitizers)
 
   # The full Application → Window → ContentPage → Button slice, opened via app.open_window (the M5c
   # native NSWindow host: window_handler sets the NSWindow contentView to the page's native view).
   add_executable(maui_app_sample src/samples/maui_app_sample.mm)
   set_source_files_properties(src/samples/maui_app_sample.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
-  target_link_libraries(maui_app_sample PRIVATE maui_controls maui_sanitizers)
+  target_link_libraries(maui_app_sample PRIVATE maui_hosting maui_sanitizers)
 endif()
 
 # ---- Sample app (iOS only): maui_app_sample's UIKit twin, a real UIApplicationMain app ----
@@ -471,7 +488,8 @@ endif()
 if(MAUI_BACKEND STREQUAL "ios")
   add_executable(maui_ios_app_sample src/samples/ios_app_sample.mm)
   set_source_files_properties(src/samples/ios_app_sample.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
-  target_link_libraries(maui_ios_app_sample PRIVATE maui_controls maui_sanitizers)
+  # (M-L hosting-app-builder) builder boot — link maui_hosting (defined below; resolved at generate).
+  target_link_libraries(maui_ios_app_sample PRIVATE maui_hosting maui_sanitizers)
   set_target_properties(maui_ios_app_sample PROPERTIES
     MACOSX_BUNDLE TRUE
     MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/src/samples/ios_app_sample_info.plist.in"
@@ -563,5 +581,51 @@ if(NOT MAUI_BACKEND STREQUAL "ios")
   maui_discover_tests(maui_xaml_tests)
   if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     set_target_properties(maui_xaml_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+  endif()
+endif()
+
+# ======================================================================
+# Layer 8 - Hosting  (maui::hosting  <=  Microsoft.Maui.Hosting : MauiAppBuilder/MauiApp + lifecycle)
+# ======================================================================
+# (M-L hosting-app-builder) The builder boot: maui_app_builder (UseMauiApp<TApp> / ConfigureMauiHandlers
+# / ConfigureLifecycleEvents / the platform-dispatcher default) -> maui_app (owns the registries, the
+# dispatcher, the lifecycle registry, and the minted application). Pure cross-platform C++ over the
+# controls layer — the only backend split (which dispatcher build() mints) rides the MAUI_PLATFORM_*
+# compile definitions maui_core already exports. The .NET host machinery (IHostApplicationBuilder /
+# Configuration / Logging) is documented out of scope in maui_app_builder.hpp.
+add_library(maui_hosting STATIC
+  src/hosting/maui_app_builder.cpp
+  src/hosting/maui_app.cpp
+  src/hosting/maui_context.cpp
+  src/hosting/maui_handlers_collection.cpp
+  src/hosting/maui_controls_handlers.cpp
+  src/hosting/lifecycle_event_service.cpp
+  src/hosting/apple_lifecycle.cpp
+  src/hosting/ios_lifecycle.cpp
+)
+target_include_directories(maui_hosting PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# Hosting mints the controls::application and seeds the controls handler table — PUBLIC so consumers
+# (samples, tests) reach the controls/core surface transitively.
+target_link_libraries(maui_hosting PUBLIC maui_controls PRIVATE maui_sanitizers)
+if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+  set_target_properties(maui_hosting PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+endif()
+
+# ---- Hosting tests (GoogleTest). Backend-agnostic pure C++; wired like maui_xaml_tests — built on
+# headless + apple but SKIPPED on ios (no device-specific coverage; the GCD dispatcher's on-simulator
+# coverage lives in maui_core_tests' gcd_dispatcher_tests.mm instead). ----
+if(NOT MAUI_BACKEND STREQUAL "ios")
+  add_executable(maui_hosting_tests
+    tests/hosting/app_builder_tests.cpp
+    tests/hosting/lifecycle_events_tests.cpp
+  )
+  target_link_libraries(maui_hosting_tests PRIVATE
+    maui_hosting
+    maui_sanitizers
+    GTest::gmock_main
+  )
+  maui_discover_tests(maui_hosting_tests)
+  if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+    set_target_properties(maui_hosting_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
   endif()
 endif()

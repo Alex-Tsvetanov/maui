@@ -29,10 +29,15 @@ namespace maui::core
         {
             static_assert(std::is_base_of_v<i_element_handler, Handler>,
                           "Handler must derive maui::core::i_element_handler");
-            factories_[type_tag::of<View>()] = [] {
-                return std::unique_ptr<i_element_handler>(std::make_unique<Handler>());
-            };
+            register_factory(type_tag::of<View>(),
+                             [] { return std::unique_ptr<i_element_handler>(std::make_unique<Handler>()); });
         }
+
+        // Register (or replace) the factory for view_type directly — the type-erased primitive the typed
+        // register_handler<View, Handler>() routes through, and the channel the hosting facade
+        // (maui::hosting::i_maui_handlers_collection — the C# AddHandler<TType>(implementationFactory)
+        // overload) layers its registrations over.
+        void register_factory(type_tag view_type, factory create);
 
         template <class View> [[nodiscard]] std::unique_ptr<i_element_handler> create_handler() const
         {

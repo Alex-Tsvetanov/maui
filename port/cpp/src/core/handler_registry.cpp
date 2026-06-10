@@ -4,12 +4,18 @@
 #include "maui/core/handler_registry.hpp"
 
 #include <memory>
+#include <utility>
 
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/type_tag.hpp"
 
 namespace maui::core
 {
+    void handler_registry::register_factory(type_tag view_type, factory create)
+    {
+        factories_[view_type] = std::move(create);
+    }
+
     std::unique_ptr<i_element_handler> handler_registry::create_handler(type_tag view_type) const
     {
         const auto found = factories_.find(view_type);
