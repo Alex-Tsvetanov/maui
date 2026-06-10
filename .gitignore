@@ -396,3 +396,6 @@ src/Core/AndroidNative/build/reports/
 # MAUI C++ port artifacts (regenerable / too large for GitHub)
 graphify-out/
 docs-maui-src/
+
+# Claude Code agent worktrees (local orchestration state, never committed)
+.claude/worktrees/
