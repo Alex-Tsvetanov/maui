@@ -61,6 +61,16 @@ namespace maui::core
         // released in the destructor. Defined in window_handler.mm.
         void* notification_trampoline = nullptr;
 #endif
+
+#ifdef MAUI_PLATFORM_IOS
+        // The iOS twin of the Apple slot: the lifecycle proxy observing the UIApplication notifications
+        // (did-become-active → send_activated, will-enter-foreground → send_resumed, did-enter-background →
+        // send_stopped, will-terminate → send_destroying — the AppHostBuilderExtensions.iOS non-scene
+        // lifecycle map) AND KVO-observing the UIWindow's frame (WindowHandler.iOS's FrameObserverProxy →
+        // frame_changed). Held as a void* (retained) so the cross-platform struct stays Obj-C-free; released
+        // (after un-observing) in the destructor. Defined in src/platform/ios/window_handler.mm.
+        void* notification_trampoline = nullptr;
+#endif
     };
 
     class window_handler : public i_element_handler
