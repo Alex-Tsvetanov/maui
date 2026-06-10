@@ -227,6 +227,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/slider_handler.mm
     src/platform/apple/stepper_handler.mm
     src/platform/apple/editor_handler.mm
+    src/platform/apple/search_bar_handler.mm
     src/platform/apple/image_handler.mm
     src/platform/apple/image_source_services.mm
     src/platform/apple/layout_handler.mm
@@ -256,6 +257,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     src/platform/ios/slider_handler.mm
     src/platform/ios/stepper_handler.mm
     src/platform/ios/editor_handler.mm
+    src/platform/ios/search_bar_handler.mm
     src/platform/ios/image_handler.mm
     src/platform/ios/image_source_services.mm
     src/platform/ios/layout_handler.mm
@@ -280,6 +282,7 @@ else()
     src/platform/headless/slider_handler.cpp
     src/platform/headless/stepper_handler.cpp
     src/platform/headless/editor_handler.cpp
+    src/platform/headless/search_bar_handler.cpp
     src/platform/headless/image_handler.cpp
     src/platform/headless/image_source_services.cpp
     src/platform/headless/layout_handler.cpp
@@ -307,6 +310,7 @@ add_library(maui_core STATIC
   src/core/slider_handler.cpp
   src/core/stepper_handler.cpp
   src/core/editor_handler.cpp
+  src/core/search_bar_handler.cpp
   src/core/image_handler.cpp
   src/core/image_source_loader.cpp
   src/core/image_source_service_registry.cpp
@@ -463,6 +467,7 @@ add_library(maui_controls STATIC
   src/controls/slider.cpp
   src/controls/stepper.cpp
   src/controls/editor.cpp
+  src/controls/search_bar.cpp
   src/controls/image.cpp
   src/controls/file_image_source.cpp
   src/controls/vertical_stack_layout.cpp
@@ -500,6 +505,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/slider_apple_tests.mm
     tests/controls/stepper_apple_tests.mm
     tests/controls/editor_apple_tests.mm
+    tests/controls/search_bar_apple_tests.mm
     tests/controls/image_apple_tests.mm
     tests/controls/font_image_source_apple_tests.mm
     tests/controls/layout_apple_tests.mm
@@ -534,6 +540,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/slider_apple_tests.mm
     tests/controls/stepper_apple_tests.mm
     tests/controls/editor_apple_tests.mm
+    tests/controls/search_bar_apple_tests.mm
     tests/controls/image_apple_tests.mm
     tests/controls/font_image_source_apple_tests.mm
     tests/controls/layout_apple_tests.mm
@@ -563,6 +570,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/slider_ios_tests.mm
     tests/controls/stepper_ios_tests.mm
     tests/controls/editor_ios_tests.mm
+    tests/controls/search_bar_ios_tests.mm
     tests/controls/image_ios_tests.mm
     tests/controls/font_image_source_ios_tests.mm
     tests/controls/image_sources_ios_tests.mm
@@ -597,6 +605,7 @@ else()
     tests/controls/slider_tests.cpp
     tests/controls/stepper_tests.cpp
     tests/controls/editor_tests.cpp
+    tests/controls/search_bar_tests.cpp
     tests/controls/image_tests.cpp
     tests/controls/layout_tests.cpp
     tests/controls/grid_tests.cpp
