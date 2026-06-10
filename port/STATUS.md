@@ -32,6 +32,27 @@ Needs Xcode with an iOS-simulator SDK + at least one available iPhone simulator 
 first one; override with `MAUI_IOS_SIM_UDID=<udid>`). See the M6 row in the table below for the
 toolchain decisions (deployment floor 26.0, the TCC staging detour, PRE_TEST gtest discovery).
 
+**Android / NDK backend** (M-android scaffold; the pure-C++ HEADLESS partials cross-compiled for
+arm64-v8a and run ON a headless emulator — the JNI per-control fan-out swaps them later):
+
+```bash
+cmake --preset android && cmake --build --preset android   # in-SDK NDK 27.2 LTS via vcpkg chainload (triplet arm64-android, ANDROID_STL=c++_static)
+ctest --preset android -j 8                                # 747 cases run ON the dedicated maui-test AVD via tools/android-emu-run.sh (-j 8 ≈ 30 s)
+```
+
+Needs the command-line SDK at `/opt/homebrew/share/android-commandlinetools` (override:
+`MAUI_ANDROID_SDK_ROOT`) with platform-tools, emulator, and the android-34 google_apis arm64-v8a
+system image; the runner resolves every tool by ABSOLUTE path, creates + boots the dedicated
+`maui-test` AVD on demand (override: `MAUI_ANDROID_AVD`), stages binaries keyed by mtime+size under
+`/data/local/tmp/maui`, and leaves the emulator running. Portability notes: NDK r27 ships libc++ 18,
+which lacks floating-point `std::from_chars` — the four FP parse sites route through
+`maui/detail/charconv_compat.hpp` (a strtod/strtof fallback reproducing `chars_format::general`
+semantics there; a one-line `std::from_chars` forward on every other backend); Android has no `/tmp`,
+so the runner exports `TMPDIR`/`HOME` into the staging dir for `std::filesystem::temp_directory_path`.
+Known cosmetic noise: NDK clang 18 emits `-Wmissing-field-initializers` on 6 intentional designated
+initializers (`view.cpp` + bindable/binding tests) — clang 19+ removed that false positive, so the
+warnings vanish when the NDK rolls forward; left un-touched deliberately.
+
 **Resume:** continue to the next ⬜ milestone below, following `CLAUDE.md`. **M0–M5 are COMPLETE — including
 the M5d backlog sweep AND the M5e tail batch** — on **both** the headless backend (**616 tests**) and the
 **macOS AppKit backend** (**531 tests**, real `NSButton`/`NSTextField`/`NSWindow`), clang-tidy 0 +
@@ -312,6 +333,7 @@ intentionally-deferred markup-era items).
 | M5e | Tail batch (layout-engine size-requests/z-index/ClipsToBounds, native apple a11y + hit-test, image disk-cache + async HTTP + GIF, i_application + nav bar styling/events) | ✅ (4 parallel worktree agents) |
 | M6 | Second platform (iOS) behind the same handlers | ✅ (scaffold + 4 fan-out units: ALL 9 controls have real UIKit partials; the full suite — 538 cases — runs ON the iOS simulator via the `ios` preset's `simctl` ctest runner; `ios_app_sample` UIApplicationMain target) |
 | M7 | XAML and/or Essentials (as prioritized) | 🚧 (wave 1 ✅: `maui_xaml` registries + pugixml parser/node tree + converters + the `i_markup_extension` seam, 131 headless tests; wave 2 — visitors/loader (U3) + markup extensions (U5) — was cut off by a session limit MID-WORK: partial uncommitted code preserved in `.claude/worktrees/agent-a9c91013d1bcdc446` (U3: hydration_context/name_scope/visitors) + `agent-a4377f797717614d6` (U5: markup_extensions/runtime_environment/static_registry); U6 (end-to-end integration) not started) |
+| M-android | Third platform (Android) behind the same handlers | 🚧 (U7a scaffold: the `android` preset — in-SDK NDK 27.2 LTS, arm64-v8a, `c++_static`, vcpkg `arm64-android` — cross-compiles the FULL library + test tree with the headless partials, and `ctest --preset android` runs all **747** cases green ON the dedicated `maui-test` emulator via `tools/android-emu-run.sh` (adb twin of the simctl runner); next: the JNI seam headers + the widget test-host decision, then the per-control JNI fan-out) |
 
 ## Deferred backlog (revisit later — each was a documented "first cut", never a silent gap)
 
