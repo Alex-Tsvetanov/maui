@@ -498,3 +498,33 @@ maui_discover_tests(maui_layout_tests)
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_layout_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
+
+# ======================================================================
+# --- maui_xaml converters (M7) ---
+# Layer 6 - XAML  (maui::xaml  <=  Microsoft.Maui.Controls.Xaml : the runtime loader)
+# ======================================================================
+# Backend-agnostic pure C++ (string -> value conversion only); compiled on every backend. Sits above
+# Controls: the converters produce controls-layer values (row/column definitions).
+add_library(maui_xaml STATIC
+  src/xaml/xaml_converters.cpp
+)
+target_include_directories(maui_xaml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(maui_xaml PUBLIC maui_controls PRIVATE maui_sanitizers)
+if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+  set_target_properties(maui_xaml PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+endif()
+
+# ---- XAML tests (GoogleTest, discovered into ctest) ----
+add_executable(maui_xaml_tests
+  tests/xaml/converter_tests.cpp
+)
+target_link_libraries(maui_xaml_tests PRIVATE
+  maui_xaml
+  maui_sanitizers
+  GTest::gmock_main
+)
+maui_discover_tests(maui_xaml_tests)
+if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+  set_target_properties(maui_xaml_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+endif()
+# --- end maui_xaml converters (M7) ---
