@@ -16,7 +16,6 @@
 //       most-derived-interface walk, ambiguous-match throw, the GetRequiredImageSourceService throw).
 #include "maui/core/image_source_service_provider.hpp"
 
-#include <atomic>
 #include <chrono>
 #include <cstddef>
 #include <cstdio>
@@ -24,6 +23,7 @@
 #include <fstream>
 #include <ios>
 #include <memory>
+#include <random>
 #include <stdexcept>
 #include <string>
 #include <system_error>
@@ -184,11 +184,15 @@ namespace
     protected:
         void SetUp() override
         {
-            // A unique cache dir per test (TempDir + a monotonic counter), removed in TearDown.
-            static std::atomic<unsigned> counter{0};
+            // A cache dir unique ACROSS PROCESSES, removed in TearDown. `ctest -j N` runs every test in its
+            // own process, so a per-process counter is NOT unique — two concurrently-running fixture tests
+            // would share (and SetUp-delete!) the same directory. The TEST NAME is unique suite-wide (one
+            // ctest invocation never runs the same test twice at once), and the random suffix additionally
+            // isolates simultaneous ctest invocations (e.g. two checkouts/worktrees on one machine).
+            std::random_device entropy;
+            const auto* const info = ::testing::UnitTest::GetInstance()->current_test_info();
             dir_ = std::filesystem::path(::testing::TempDir()) /
-                   ("maui_disk_cache_" + std::to_string(counter.fetch_add(1)));
-            std::filesystem::remove_all(dir_);
+                   ("maui_disk_cache_" + std::string(info->name()) + "_" + std::to_string(entropy()));
         }
         void TearDown() override
         {
