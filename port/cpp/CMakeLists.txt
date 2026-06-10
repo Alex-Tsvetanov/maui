@@ -500,13 +500,18 @@ if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
 endif()
 
 # ======================================================================
-# --- maui_xaml converters (M7) ---
-# Layer 6 - XAML  (maui::xaml  <=  Microsoft.Maui.Controls.Xaml : the runtime loader)
+# Layer 6 - XAML  (maui::xaml  <=  Microsoft.Maui.Controls.Xaml : the M7 runtime loader)
 # ======================================================================
-# Backend-agnostic pure C++ (string -> value conversion only); compiled on every backend. Sits above
-# Controls: the converters produce controls-layer values (row/column definitions).
+# The reflection-free pieces the M7 XAML loader builds on (PROFILE §6: explicit registration replaces
+# XamlParser.GetElementType / Activator.CreateInstance / the property + [ContentProperty] reflection /
+# TypeConverter discovery), plus the string -> value converter functions. Pure cross-platform C++ over
+# the controls layer — no platform partials — so the library builds identically on every backend.
 add_library(maui_xaml STATIC
   src/xaml/xaml_converters.cpp
+  src/xaml/xaml_type_registry.cpp
+  src/xaml/xaml_property_registry.cpp
+  src/xaml/xaml_converter_registry.cpp
+  src/xaml/xaml_standard_types.cpp
 )
 target_include_directories(maui_xaml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(maui_xaml PUBLIC maui_controls PRIVATE maui_sanitizers)
@@ -514,17 +519,21 @@ if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_xaml PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
 
-# ---- XAML tests (GoogleTest, discovered into ctest) ----
-add_executable(maui_xaml_tests
-  tests/xaml/converter_tests.cpp
-)
-target_link_libraries(maui_xaml_tests PRIVATE
-  maui_xaml
-  maui_sanitizers
-  GTest::gmock_main
-)
-maui_discover_tests(maui_xaml_tests)
-if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
-  set_target_properties(maui_xaml_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+# ---- XAML tests (GoogleTest). Backend-agnostic pure C++; built on headless + apple but SKIPPED on
+# ios for now (device-free logic — re-running it through the simulator round-trip adds minutes for no
+# coverage; the ios lane picks it up with the M7 loader integration if desired). ----
+if(NOT MAUI_BACKEND STREQUAL "ios")
+  add_executable(maui_xaml_tests
+    tests/xaml/converter_tests.cpp
+    tests/xaml/registry_tests.cpp
+  )
+  target_link_libraries(maui_xaml_tests PRIVATE
+    maui_xaml
+    maui_sanitizers
+    GTest::gmock_main
+  )
+  maui_discover_tests(maui_xaml_tests)
+  if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+    set_target_properties(maui_xaml_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+  endif()
 endif()
-# --- end maui_xaml converters (M7) ---
