@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <memory>
-#include <string>
 #include <utility>
 
 #include "maui/controls/templates/template_utilities.hpp"
@@ -59,7 +58,7 @@ namespace maui::controls
             return false;
         }
         // Keep the child alive through the detach (the store may hold the only owner).
-        std::shared_ptr<element> removed = internal_children_[static_cast<std::size_t>(index)];
+        const std::shared_ptr<element> removed = internal_children_[static_cast<std::size_t>(index)];
         internal_children_.erase(internal_children_.begin() + index);
         if (removed.get() == template_root_)
         {

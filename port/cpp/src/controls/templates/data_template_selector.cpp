@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <utility>
 
+#include "maui/controls/templates/data_template.hpp"
 #include "maui/core/bindable_object.hpp"
 
 namespace maui::controls

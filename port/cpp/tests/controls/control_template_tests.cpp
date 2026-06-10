@@ -33,6 +33,7 @@
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/binding.hpp"
 #include "maui/core/binding_mode.hpp"
+#include "maui/core/i_view.hpp"
 #include "maui/core/property.hpp"
 #include "maui/core/setter_specificity.hpp"
 #include <gtest/gtest.h>

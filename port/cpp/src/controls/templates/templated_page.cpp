@@ -57,7 +57,7 @@ namespace maui::controls
         {
             return false;
         }
-        std::shared_ptr<element> removed = internal_children_[static_cast<std::size_t>(index)];
+        const std::shared_ptr<element> removed = internal_children_[static_cast<std::size_t>(index)];
         internal_children_.erase(internal_children_.begin() + index);
         if (removed.get() == template_root_)
         {

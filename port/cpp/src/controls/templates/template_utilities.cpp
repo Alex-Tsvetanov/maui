@@ -11,6 +11,7 @@
 #include "maui/controls/templates/content_presenter.hpp"
 #include "maui/controls/templates/control_template.hpp"
 #include "maui/controls/templates/i_control_templated.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/i_view.hpp"
 
 namespace maui::controls
@@ -55,7 +56,7 @@ namespace maui::controls
             std::deque<element*> queue{&self};
             while (!queue.empty())
             {
-                element* current = queue.front();
+                const element* current = queue.front();
                 queue.pop_front();
                 current->for_each_logical_child([&queue](element& child) {
                     if (auto* presenter = dynamic_cast<content_presenter*>(&child))
@@ -83,7 +84,7 @@ namespace maui::controls
         {
             return; // C#: "do nothing for now"
         }
-        std::shared_ptr<maui::core::bindable_object> created = new_value->create_content();
+        const std::shared_ptr<maui::core::bindable_object> created = new_value->create_content();
         auto content = std::dynamic_pointer_cast<element>(created);
         if (content == nullptr || dynamic_cast<maui::core::i_view*>(content.get()) == nullptr)
         {

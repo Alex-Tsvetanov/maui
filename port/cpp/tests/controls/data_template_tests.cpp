@@ -6,8 +6,7 @@
 // about template identity/created type, not about cells).
 #include "maui/controls/templates/data_template.hpp"
 
-#include <any>
-#include <functional>
+#include <cstdint>
 #include <memory>
 #include <stdexcept>
 #include <string>

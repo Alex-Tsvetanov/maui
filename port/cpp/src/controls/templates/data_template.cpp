@@ -7,6 +7,7 @@
 #include <string>
 #include <utility>
 
+#include "maui/controls/templates/element_template.hpp"
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/setter_specificity.hpp"
 
