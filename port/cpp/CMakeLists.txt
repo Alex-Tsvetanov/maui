@@ -371,9 +371,27 @@ endif()
 # ======================================================================
 # Layer 2 - Controls  (maui::controls  <=  Microsoft.Maui.Controls : the developer-facing controls)
 # ======================================================================
+# The gesture platform partial mirrors C#'s GesturePlatformManager.{iOS,Standard}.cs split: the
+# cross-platform manager core lives in src/controls/gestures/, and exactly one backend's native
+# attach/detach partial is compiled INTO maui_controls (the C# partials are part of Controls.Core too —
+# unlike the handler partials, the gesture manager needs the controls-layer recognizer types).
+if(MAUI_BACKEND STREQUAL "apple")
+  set(MAUI_CONTROLS_GESTURE_PLATFORM_SOURCES src/platform/apple/gesture_platform_manager.mm)
+  set_source_files_properties(${MAUI_CONTROLS_GESTURE_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+elseif(MAUI_BACKEND STREQUAL "ios")
+  set(MAUI_CONTROLS_GESTURE_PLATFORM_SOURCES src/platform/ios/gesture_platform_manager.mm)
+  set_source_files_properties(${MAUI_CONTROLS_GESTURE_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+else()
+  set(MAUI_CONTROLS_GESTURE_PLATFORM_SOURCES src/platform/headless/gesture_platform_manager.cpp)
+endif()
+
 add_library(maui_controls STATIC
   src/controls/element.cpp
   src/controls/view.cpp
+  src/controls/gestures/gesture_recognizers.cpp
+  src/controls/gestures/gesture_recognizer_collection.cpp
+  src/controls/gestures/gesture_platform_manager.cpp
+  ${MAUI_CONTROLS_GESTURE_PLATFORM_SOURCES}
   src/controls/layout.cpp
   src/controls/button.cpp
   src/controls/label.cpp
@@ -406,6 +424,7 @@ endif()
 if(MAUI_BACKEND STREQUAL "apple")
   add_executable(maui_controls_tests
     tests/controls/button_apple_tests.mm
+    tests/controls/gesture_apple_tests.mm # E1: native recognizer attachment + target/action drives
     tests/controls/label_apple_tests.mm
     tests/controls/view_mapper_apple_tests.mm
     tests/controls/entry_apple_tests.mm
@@ -432,6 +451,7 @@ if(MAUI_BACKEND STREQUAL "apple")
   # tests/controls/font_image_source_apple_tests.mm instead.
   set_source_files_properties(
     tests/controls/button_apple_tests.mm
+    tests/controls/gesture_apple_tests.mm
     tests/controls/label_apple_tests.mm
     tests/controls/view_mapper_apple_tests.mm
     tests/controls/entry_apple_tests.mm
@@ -456,6 +476,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
   # size-requests/lifecycle) run unchanged.
   set(MAUI_IOS_TEST_MM_SOURCES
     tests/controls/button_ios_tests.mm
+    tests/controls/gesture_ios_tests.mm # E1: native recognizer attachment + registered-target drives
     tests/controls/label_ios_tests.mm
     tests/controls/entry_ios_tests.mm
     tests/controls/image_ios_tests.mm
@@ -481,6 +502,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
 else()
   add_executable(maui_controls_tests
     tests/controls/button_tests.cpp
+    tests/controls/gesture_recognizer_tests.cpp # the E1 gesture state machines + synthetic pipeline
     tests/controls/label_tests.cpp
     tests/controls/view_mapper_tests.cpp
     tests/controls/entry_tests.cpp

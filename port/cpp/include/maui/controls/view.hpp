@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "maui/controls/element.hpp"
+#include "maui/controls/gestures/gesture_platform_manager.hpp" // --- gestures (W1-12) ---
 #include "maui/controls/style.hpp"
 #include "maui/controls/visual_state_manager.hpp"
 #include "maui/core/bindable_object.hpp"
@@ -135,6 +136,11 @@ namespace maui::controls
             {
                 previous->disconnect_handler();
             }
+            // --- gestures (W1-12): GestureManager.SetupGestureManager — re-seat the native gesture
+            // recognizers on the new handler's platform view (detaching from the old one first) ---
+            gesture_manager_.set_handler(dynamic_cast<maui::core::i_view_handler*>(handler_.get()), *this,
+                                         gesture_recognizers_);
+            // --- end gestures (W1-12) ---
         }
         [[nodiscard]] std::shared_ptr<maui::core::i_element> parent() const override
         {
@@ -550,6 +556,28 @@ namespace maui::controls
             visual_states_.go_to_state(*this, target);
         }
 
+        // --- gestures (W1-12) ---------------------------------------------------------------------------
+        // View.GestureRecognizers: the recognizers attached to this view. add/remove parents the
+        // recognizer to this view (Element.Parent + BindingContext/Window inheritance) and re-syncs the
+        // native attachments through the gesture platform manager (the member-initializer hooks below —
+        // the port's CollectionChanged subscription).
+        [[nodiscard]] gesture_recognizer_collection& gesture_recognizers()
+        {
+            return gesture_recognizers_;
+        }
+        [[nodiscard]] const gesture_recognizer_collection& gesture_recognizers() const
+        {
+            return gesture_recognizers_;
+        }
+        // The per-view gesture platform manager (View._gestureManager). Exposed for attachment
+        // observability + the synthetic dispatch (the headless stand-in for native gesture events);
+        // real input flows from the native recognizers the manager attaches.
+        [[nodiscard]] gesture_platform_manager& gesture_manager()
+        {
+            return gesture_manager_;
+        }
+        // --- end gestures (W1-12) -----------------------------------------------------------------------
+
     protected:
         view() = default;
 
@@ -573,6 +601,20 @@ namespace maui::controls
                 update_z_order();
             }
         }
+
+        // --- gestures (W1-12): View.OnBindingContextChanged — after the base propagation to the
+        // logical children, hand the (possibly inherited) context to every gesture recognizer too
+        // (C#'s PropagateBindingContext(GestureRecognizers)) ---
+        void on_binding_context_changed() override
+        {
+            maui::controls::element::on_binding_context_changed();
+            const auto& context = this->raw_binding_context();
+            for (const auto& recognizer : gesture_recognizers_.items())
+            {
+                recognizer->set_inherited_binding_context(context);
+            }
+        }
+        // --- end gestures (W1-12) ---
 
         // VisualElement.ZIndexProperty change → ViewHandler.MapZIndex: a z-index change re-stacks this view
         // among its siblings by asking the PARENT layout's handler to reorder it (C# walks
@@ -711,6 +753,19 @@ namespace maui::controls
         // layout's handler so the native panel re-stacks this child (see on_property_changed).
         maui::core::property<int> z_index_{*this, z_index_property()};
         bool is_focused_ = false;
+        // --- gestures (W1-12) ---------------------------------------------------------------------------
+        // Declaration order matters: the manager precedes the collection (the collection's hooks
+        // reference it), so on destruction the collection goes first while the manager still holds its
+        // own strong refs to the attached recognizers — the native detach in ~gesture_platform_manager
+        // never touches a freed recognizer. The hooks are the C# View ctor's CollectionChanged handler:
+        // attach/detach = the item.Parent writes (+ context/window inheritance), changed = the
+        // GesturePlatformManager.LoadRecognizers re-sync.
+        gesture_platform_manager gesture_manager_;
+        gesture_recognizer_collection gesture_recognizers_{
+            {.attach = [this](gesture_recognizer& recognizer) { this->attach_logical_child(recognizer); },
+             .detach = [](gesture_recognizer& recognizer) { element::detach_logical_child(recognizer); },
+             .changed = [this] { gesture_manager_.load_recognizers(); }}};
+        // --- end gestures (W1-12) -----------------------------------------------------------------------
         // The applied style (VisualElement.Style). Held by shared_ptr so one style can be shared across
         // many controls; setting/replacing it routes through set_style (apply/unapply at style_local).
         std::shared_ptr<maui::controls::style> style_;
