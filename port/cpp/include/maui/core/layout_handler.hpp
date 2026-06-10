@@ -89,6 +89,29 @@ namespace maui::core
         // view_platform_base override); the Apple body lives in layout_handler.mm, the headless body in
         // layout_handler.cpp — selected by the backend build, like the other update_* definitions.
 #endif
+
+#ifdef MAUI_PLATFORM_IOS
+        // iOS backend: push the generic IView properties to the UIView panel (defined in
+        // src/platform/ios/layout_handler.mm). is_enabled is intentionally NOT overridden — a plain
+        // UIView container has no enabled state (only UIControl has), so it keeps the base mirror.
+        // transform / flow_direction also keep the base mirrors for now (the shared ios view-ops
+        // helper arrives with the M6 retrofit; see port/STATUS.md).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+        // Background / shadow / clip pushed to the panel's layer (ios_visual_ops.hpp: the direct
+        // PaintExtensions / ShadowExtensions / WrapperView.SetClip ports).
+        void update_background(const maui::graphics::paint* value) override;
+        void update_shadow(const maui::core::i_shadow* value) override;
+        void update_clip(const maui::graphics::i_shape* value) override;
+        // Accessibility metadata + the input-transparent flag pushed to the UIView panel
+        // (ios_semantics_ops.hpp): semantics → accessibilityLabel/Hint + the Header trait,
+        // input_transparent → userInteractionEnabled (UIKit's native flag).
+        void update_semantics(const maui::core::semantics* value) override;
+        void update_input_transparent(bool value) override;
+        // update_clips_to_bounds (declared once above) pushes UIView.clipsToBounds — the REAL UIKit
+        // property C#'s LayoutViewExtensions.UpdateClipsToBounds drives; body in ios/layout_handler.mm.
+#endif
     };
 
     class layout_handler : public view_handler<layout_handler, i_layout, layout_platform>, public i_layout_handler

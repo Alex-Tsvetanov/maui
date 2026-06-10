@@ -79,14 +79,18 @@ namespace maui::core
         // content swap when true). Mirrors NavigationRequest.Animated for the realized transition.
         bool last_animated = false;
 
-#ifdef MAUI_PLATFORM_APPLE
-        void* bar = nullptr;             // the custom bar NSView (subview of the container)
-        void* title_field = nullptr;     // the bar's NSTextField (title)
-        void* back_button = nullptr;     // the bar's back NSButton
+#if defined(MAUI_PLATFORM_APPLE) || defined(MAUI_PLATFORM_IOS)
+        // The retained native chrome slots, shared by the two real-native twins (NSView/NSTextField/
+        // NSButton on macOS; UIView/UILabel/UIButton on iOS — same custom-bar recipe on both).
+        void* bar = nullptr;             // the custom bar view (subview of the container)
+        void* title_field = nullptr;     // the bar's title (NSTextField / UILabel)
+        void* back_button = nullptr;     // the bar's back button (NSButton / UIButton)
         void* back_target = nullptr;     // the back button's retained target-action trampoline
-        void* modal_overlay = nullptr;   // the presented modal's wrapper NSView overlaying the container
-        void* title_view_host = nullptr; // the hosted TitleView's native NSView (retained while in the bar)
+        void* modal_overlay = nullptr;   // the presented modal's wrapper view overlaying the container
+        void* title_view_host = nullptr; // the hosted TitleView's native view (retained while in the bar)
+#endif
 
+#ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSView container (defined in
         // src/platform/apple/navigation_page_handler.mm). is_enabled is intentionally NOT overridden — a
         // plain NSView container has no enabled state (unlike NSControl), so it keeps the base mirror.
@@ -95,6 +99,24 @@ namespace maui::core
         void update_automation_id(std::string_view value) override;
         void update_transform(const maui::core::transform_spec& value) override;
         void update_flow_direction(maui::core::flow_direction value) override;
+#endif
+
+#ifdef MAUI_PLATFORM_IOS
+        // iOS backend: push the generic IView properties to the UIView container (defined in
+        // src/platform/ios/navigation_page_handler.mm). is_enabled is intentionally NOT overridden — a
+        // plain UIView container has no enabled state (only UIControl has), so it keeps the base mirror.
+        // transform / flow_direction also keep the base mirrors for now (the shared ios view-ops
+        // helper arrives with the M6 retrofit; see port/STATUS.md).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+        // Background / shadow / clip pushed to the container's layer (ios_visual_ops.hpp) + semantics /
+        // input-transparent (ios_semantics_ops.hpp) — the direct iOS C# extension ports.
+        void update_background(const maui::graphics::paint* value) override;
+        void update_shadow(const maui::core::i_shadow* value) override;
+        void update_clip(const maui::graphics::i_shape* value) override;
+        void update_semantics(const maui::core::semantics* value) override;
+        void update_input_transparent(bool value) override;
 #endif
     };
 
@@ -130,11 +152,12 @@ namespace maui::core
         // modal request's last page (top-most modal), or null to clear the overlay.
         void host_modal(i_view* top_modal, bool animated);
 
-#ifdef MAUI_PLATFORM_APPLE
+#if defined(MAUI_PLATFORM_APPLE) || defined(MAUI_PLATFORM_IOS)
         // Host (or clear) the bar's TitleView (C# NavigationPage.TitleView): when set, hide the title label
-        // and add the title view's native NSView to the bar; when null, remove the previously-hosted title
-        // view and show the label again. Apple-only (the headless platform mirrors the pointer in
-        // host_current). Static-free member so it can be called from host_current; takes the platform slot.
+        // and add the title view's native view to the bar; when null, remove the previously-hosted title
+        // view and show the label again. Real-native twins only (the headless platform mirrors the pointer
+        // in host_current). Static-free member so it can be called from host_current; takes the platform
+        // slot.
         static void host_title_view(navigation_page_platform& platform, i_view* title_view);
 #endif
 

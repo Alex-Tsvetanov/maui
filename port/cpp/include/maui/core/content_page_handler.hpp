@@ -73,6 +73,25 @@ namespace maui::core
         void update_semantics(const maui::core::semantics* value) override;
         void update_input_transparent(bool value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_IOS
+        // iOS backend: push the generic IView properties to the UIView host (defined in
+        // src/platform/ios/content_page_handler.mm). is_enabled is intentionally NOT overridden — a
+        // plain UIView host has no enabled state (only UIControl has), so it keeps the base mirror.
+        // transform / flow_direction also keep the base mirrors for now (the shared ios view-ops
+        // helper arrives with the M6 retrofit; see port/STATUS.md).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+        // Background / shadow / clip pushed to the host's layer (ios_visual_ops.hpp) + semantics /
+        // input-transparent (ios_semantics_ops.hpp: accessibilityLabel/Hint + the Header trait,
+        // userInteractionEnabled) — the direct iOS C# extension ports.
+        void update_background(const maui::graphics::paint* value) override;
+        void update_shadow(const maui::core::i_shadow* value) override;
+        void update_clip(const maui::graphics::i_shape* value) override;
+        void update_semantics(const maui::core::semantics* value) override;
+        void update_input_transparent(bool value) override;
+#endif
     };
 
     class content_page_handler : public view_handler<content_page_handler, i_content_view, content_page_platform>
