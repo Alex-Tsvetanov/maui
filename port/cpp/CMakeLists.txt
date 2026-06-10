@@ -427,6 +427,14 @@ add_library(maui_controls STATIC
   src/controls/gestures/gesture_platform_manager.cpp
   ${MAUI_CONTROLS_GESTURE_PLATFORM_SOURCES}
   src/controls/layout.cpp
+  src/controls/templates/element_templates.cpp # the element-side W1-09 templated-parent members
+  src/controls/templates/element_template.cpp
+  src/controls/templates/data_template.cpp
+  src/controls/templates/data_template_selector.cpp
+  src/controls/templates/template_utilities.cpp
+  src/controls/templates/templated_view.cpp
+  src/controls/templates/templated_page.cpp
+  src/controls/templates/content_presenter.cpp
   src/controls/button.cpp
   src/controls/label.cpp
   src/controls/entry.cpp
@@ -478,7 +486,9 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/implicit_style_tests.cpp
     tests/controls/advanced_trigger_tests.cpp
     tests/controls/size_request_tests.cpp # backend-agnostic; the VisualElement size-request surface
-    tests/controls/lifecycle_tests.cpp)
+    tests/controls/lifecycle_tests.cpp
+    tests/controls/data_template_tests.cpp    # backend-agnostic (W1-09 templates)
+    tests/controls/control_template_tests.cpp)
   # tests/core/image_source_tests.cpp + font_image_source_tests.cpp are HEADLESS-ONLY: they assert on the
   # headless image_source_result mirror + the headless "any non-empty bytes => loaded" decode (raw test
   # bytes are not decodable NSImages on apple). The apple backend's native rasterize is covered by
@@ -531,7 +541,9 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/implicit_style_tests.cpp
     tests/controls/advanced_trigger_tests.cpp
     tests/controls/size_request_tests.cpp # backend-agnostic (compares against the handler's own size)
-    tests/controls/lifecycle_tests.cpp)
+    tests/controls/lifecycle_tests.cpp
+    tests/controls/data_template_tests.cpp    # backend-agnostic (W1-09 templates)
+    tests/controls/control_template_tests.cpp)
   set_source_files_properties(${MAUI_IOS_TEST_MM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
   add_executable(maui_controls_tests
@@ -554,6 +566,8 @@ else()
     tests/controls/advanced_trigger_tests.cpp
     tests/controls/size_request_tests.cpp # the VisualElement size-request surface (view<> IView mapping)
     tests/controls/lifecycle_tests.cpp
+    tests/controls/data_template_tests.cpp    # backend-agnostic (W1-09 templates)
+    tests/controls/control_template_tests.cpp
     tests/controls/window_handler_tests.cpp # the window_handler seam over the headless mirror
     tests/core/image_source_tests.cpp     # loader cache TTL + the typed service-provider
     tests/core/font_image_source_tests.cpp)

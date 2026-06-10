@@ -41,6 +41,10 @@
 namespace maui::controls
 {
     class window; // forward — the host; element only holds a non-owning back-ref
+    // --- templates (W1-09): forward declarations for the template-scope members below ---
+    class template_binding;   // the templated-parent binding an element can carry (templates/)
+    class template_utilities; // the ControlTemplate application machinery (friend — walks children)
+    // --- end templates (W1-09) ---
 
     class element : public maui::core::bindable_object
     {
@@ -90,7 +94,9 @@ namespace maui::controls
         void remove_dynamic_resource(std::string_view name);
 
     protected:
-        element() = default;
+        // Out-of-line (= default in element_templates.cpp): the inline form would instantiate the
+        // unwind destructor of the forward-declared template_bindings_ vector. --- templates (W1-09) ---
+        element();
 
         // Visit each direct logical child (default: none — a leaf). Containers override to expose theirs.
         // Every control is-a element, so propagation hands back element& and needs no cast at the call site.
@@ -159,5 +165,59 @@ namespace maui::controls
         // owned (a name or key may be a built string).
         std::unordered_map<std::string, std::string> dynamic_resources_;
         std::optional<maui::core::type_tag> style_target_type_; // this control's style TargetType (if any)
+
+        // --- templates (W1-09) --------------------------------------------------------------------------
+        // The Element-side templated-parent surface: Element.IsTemplateRoot, the synchronous
+        // TemplateUtilities.FindTemplatedParentAsync walk, and the storage/re-application of
+        // template_bindings (SetBinding(..., new TemplateBinding(...))). Bodies that need the complete
+        // template_binding type live in src/controls/templates/element_templates.cpp; the destructor is
+        // out-of-line for the same reason (the vector member of the forward-declared type).
+    public:
+        ~element() override; // = default, defined where template_binding is complete
+
+        // Element.IsTemplateRoot — set by element_template::create_content on the created root.
+        [[nodiscard]] bool is_template_root() const
+        {
+            return is_template_root_;
+        }
+        void set_is_template_root(bool value)
+        {
+            is_template_root_ = value;
+        }
+
+        // TemplateUtilities.FindTemplatedParentAsync, synchronous: walk the logical-parent chain for the
+        // nearest i_control_templated ancestor with a non-null ControlTemplate; each content_presenter
+        // passed on the way up skips one templated ancestor (a presenter's content belongs to the OUTER
+        // scope). C# awaits a pending ParentSet instead — the port re-resolves on every reparent (the
+        // reapply_template_bindings hook in reapply_resources_from_chain). Null when out of scope.
+        [[nodiscard]] element* find_templated_parent() const;
+
+        // Store (replacing any binding on the same target property) and immediately apply a
+        // template_binding — BindableObject.SetBinding(property, new TemplateBinding(...)). Re-applied
+        // automatically whenever this element's ancestor chain changes.
+        void set_template_binding(template_binding binding);
+        void clear_template_bindings();
+
+    protected:
+        // C# Element.SetChildInheritedBindingContext — the seam the templated controls override:
+        // TemplatedView/TemplatedPage SUPPRESS inheritance into template-created children while a
+        // ControlTemplate is set; content_presenter never propagates (its content gets the context
+        // pushed by the templated parent instead). Default: plain inheritance.
+        virtual void set_child_inherited_binding_context(
+            element& child, const maui::core::bindable_object::binding_context_box& context)
+        {
+            child.set_inherited_binding_context(context);
+        }
+
+    private:
+        // Re-resolve the templated parent and re-apply every stored template_binding against it (or
+        // un-apply when the element left its template scope). Called from reapply_resources_from_chain.
+        void reapply_template_bindings();
+
+        std::vector<template_binding> template_bindings_; // the element's TemplateBindings (target-keyed)
+        bool is_template_root_ = false;                   // Element.IsTemplateRoot
+
+        friend class template_utilities; // walks logical children for the ControlTemplate machinery
+        // --- end templates (W1-09) ----------------------------------------------------------------------
     };
 } // namespace maui::controls

@@ -21,7 +21,9 @@ namespace maui::controls
     {
         maui::core::bindable_object::on_binding_context_changed(); // raise binding_context_changed
         const auto& context = raw_binding_context();
-        for_each_logical_child([&context](element& child) { child.set_inherited_binding_context(context); });
+        // --- templates (W1-09): route through the overridable SetChildInheritedBindingContext seam ---
+        for_each_logical_child(
+            [this, &context](element& child) { set_child_inherited_binding_context(child, context); });
     }
 
     void element::set_containing_window(window* value)
@@ -161,6 +163,9 @@ namespace maui::controls
         apply_dynamic_resources(nullptr);
         merged_style_.refresh();
         on_resource_chain_changed();
+        // --- templates (W1-09): the ancestor chain also defines the TEMPLATE scope — re-resolve the
+        // templated parent and re-apply any template bindings before recursing ---
+        reapply_template_bindings();
         for_each_logical_child([](element& child) { child.reapply_resources_from_chain(); });
     }
 
@@ -177,7 +182,8 @@ namespace maui::controls
     void element::attach_logical_child(element& child)
     {
         child.logical_parent_ = this;
-        child.set_inherited_binding_context(raw_binding_context());
+        // --- templates (W1-09): route through the overridable SetChildInheritedBindingContext seam ---
+        set_child_inherited_binding_context(child, raw_binding_context());
         child.set_containing_window(window_);
         // Now that the child is in our subtree, its resource chain includes ours: re-resolve its (and its
         // descendants') DynamicResources + implicit styles against the extended chain.
