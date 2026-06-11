@@ -234,6 +234,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/content_page_handler.mm
     src/platform/apple/navigation_page_handler.mm
     src/platform/apple/window_handler.mm
+    # (W1-14 animations) the NSTimer platform ticker (AppKit has no CADisplayLink; see the .mm).
+    src/platform/apple/platform_ticker.mm
     # (M-L hosting-app-builder) the GCD main-queue dispatcher, SHARED with the ios backend (one .mm —
     # GCD is identical on both; the analog of a single Dispatcher.MaciOS.cs partial).
     src/platform/apple_shared/gcd_dispatcher.mm)
@@ -264,6 +266,8 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     src/platform/ios/content_page_handler.mm
     src/platform/ios/navigation_page_handler.mm
     src/platform/ios/window_handler.mm
+    # (W1-14 animations) the CADisplayLink platform ticker (PlatformTicker.iOS.cs, 1:1).
+    src/platform/ios/platform_ticker.mm
     # (M-L hosting-app-builder) the GCD dispatcher .mm shared with the apple backend (see above).
     src/platform/apple_shared/gcd_dispatcher.mm)
   set(MAUI_CORE_PLATFORM_SOURCES
@@ -288,7 +292,9 @@ else()
     src/platform/headless/layout_handler.cpp
     src/platform/headless/content_page_handler.cpp
     src/platform/headless/navigation_page_handler.cpp
-    src/platform/headless/window_handler.cpp)
+    src/platform/headless/window_handler.cpp
+    # (W1-14 animations) the deterministic manual_ticker is the headless platform ticker.
+    src/platform/headless/platform_ticker.cpp)
 endif()
 
 add_library(maui_core STATIC
@@ -326,6 +332,13 @@ add_library(maui_core STATIC
   src/core/navigation_page_handler.cpp
   src/core/window_handler.cpp
   src/core/grid_length.cpp
+  # (W1-14 animations) maui::animations <= Microsoft.Maui.Animations (the Core animation engine).
+  src/animations/easing.cpp
+  src/animations/lerp.cpp
+  src/animations/animation.cpp
+  src/animations/lerping_animation.cpp
+  src/animations/ticker.cpp
+  src/animations/animation_manager.cpp
   ${MAUI_CORE_PLATFORM_SOURCES}
 )
 target_include_directories(maui_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -429,6 +442,35 @@ if(MAUI_BACKEND STREQUAL "android")
   set_tests_properties(android_testhost_widget_suite PROPERTIES TIMEOUT 600)
 endif()
 
+# ---- Animations tests (W1-14: the maui::animations engine; GoogleTest, discovered into ctest) ----
+# Backend-agnostic suites (easing value tables, the animation/composition semantics, the manager over
+# the deterministic manual_ticker + manual_dispatcher) run everywhere; each Apple backend adds a short
+# real-time assertion that its native frame source actually fires (generous deadlines, no exact frame
+# counts — see the .mm files).
+add_executable(maui_animations_tests
+  tests/animations/easing_tests.cpp
+  tests/animations/animation_tests.cpp
+  tests/animations/animation_manager_tests.cpp
+)
+if(MAUI_BACKEND STREQUAL "apple")
+  target_sources(maui_animations_tests PRIVATE tests/animations/ticker_apple_tests.mm)
+  set_source_files_properties(tests/animations/ticker_apple_tests.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+elseif(MAUI_BACKEND STREQUAL "ios")
+  target_sources(maui_animations_tests PRIVATE tests/animations/ticker_ios_tests.mm)
+  set_source_files_properties(tests/animations/ticker_ios_tests.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+endif()
+target_link_libraries(maui_animations_tests PRIVATE
+  maui_core
+  maui_sanitizers
+  GTest::gmock_main
+)
+maui_discover_tests(maui_animations_tests)
+if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+  set_target_properties(maui_animations_tests PROPERTIES
+    CXX_CLANG_TIDY "${CLANG_TIDY_EXE}"
+    OBJCXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+endif()
+
 # ======================================================================
 # Layer 2 - Controls  (maui::controls  <=  Microsoft.Maui.Controls : the developer-facing controls)
 # ======================================================================
@@ -489,6 +531,13 @@ add_library(maui_controls STATIC
   src/controls/visual_state_manager.cpp
   src/controls/window.cpp
   src/controls/application.cpp
+  # (W1-14 animations) the Controls-layer animation surface: Controls.Animation + the
+  # AnimationExtensions pump (+ the internal tweener/per-element registry) + ViewExtensions.
+  src/controls/animation.cpp
+  src/controls/animation_extensions.cpp
+  src/controls/view_extensions.cpp
+  src/controls/detail/tweener.cpp
+  src/controls/detail/element_animations.cpp
 )
 target_include_directories(maui_controls PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # Controls depend on Core (handlers, contracts, the property system); the layout controls additionally
@@ -535,7 +584,9 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/control_template_tests.cpp
     tests/controls/binding_engine_tests.cpp # backend-agnostic; the W1-02 string-path binding engine
     tests/controls/multi_binding_tests.cpp
-    tests/controls/relative_source_binding_tests.cpp)
+    tests/controls/relative_source_binding_tests.cpp
+    tests/controls/view_extensions_tests.cpp # (W1-14) backend-agnostic animation surface
+)
   # tests/core/image_source_tests.cpp + font_image_source_tests.cpp are HEADLESS-ONLY: they assert on the
   # headless image_source_result mirror + the headless "any non-empty bytes => loaded" decode (raw test
   # bytes are not decodable NSImages on apple). The apple backend's native rasterize is covered by
@@ -605,7 +656,9 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/control_template_tests.cpp
     tests/controls/binding_engine_tests.cpp # backend-agnostic; the W1-02 string-path binding engine
     tests/controls/multi_binding_tests.cpp
-    tests/controls/relative_source_binding_tests.cpp)
+    tests/controls/relative_source_binding_tests.cpp
+    tests/controls/view_extensions_tests.cpp # (W1-14) backend-agnostic animation surface
+)
   set_source_files_properties(${MAUI_IOS_TEST_MM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
   add_executable(maui_controls_tests
@@ -633,6 +686,7 @@ else()
     tests/controls/implicit_style_tests.cpp
     tests/controls/advanced_trigger_tests.cpp
     tests/controls/size_request_tests.cpp # the VisualElement size-request surface (view<> IView mapping)
+    tests/controls/view_extensions_tests.cpp # (W1-14) the animation surface over the manual ticker
     tests/controls/lifecycle_tests.cpp
     tests/controls/data_template_tests.cpp    # backend-agnostic (W1-09 templates)
     tests/controls/control_template_tests.cpp

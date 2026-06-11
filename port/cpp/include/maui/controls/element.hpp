@@ -47,9 +47,40 @@ namespace maui::controls
     class template_utilities; // the ControlTemplate application machinery (friend — walks children)
     // --- end templates (W1-09) ---
 
+    // --- animations (W1-14) ---
+    // The per-element slice of C# AnimationExtensions' static animation tables (defined in
+    // src/controls/detail/element_animations.hpp — internal, PROFILE §3).
+    namespace detail
+    {
+        class element_animations;
+    } // namespace detail
+    // --- end animations (W1-14) ---
+
     class element : public maui::core::bindable_object
     {
     public:
+        // --- animations (W1-14) ---
+        // C# IAnimatable, folded into element: VisualElement.BatchBegin/BatchCommit nest a counter;
+        // the last commit raises batch_committed (VisualElement.BatchCommitted). DEVIATION
+        // (documented): the separate IAnimatable interface is not introduced because the hot-file
+        // rule forbids editing this class's base list — the batch hooks live directly on element.
+        void batch_begin();
+        void batch_commit();
+        [[nodiscard]] bool batched() const
+        {
+            return batched_ > 0;
+        }
+        maui::core::event<> batch_committed;
+        // Internal seam for the animation extensions: the named-animation + kinetic registry of this
+        // element (C# AnimationExtensions' s_animations/s_kinetics keyed by AnimatableKey(this, …)),
+        // lazily created on first use.
+        [[nodiscard]] detail::element_animations& animation_state();
+        [[nodiscard]] bool has_animation_state() const
+        {
+            return animation_state_ != nullptr;
+        }
+        // --- end animations (W1-14) ---
+
         // ---- Window back-ref + Loaded/Unloaded (VisualElement.Window / Loaded / Unloaded) ----
         [[nodiscard]] window* containing_window() const
         {
@@ -263,5 +294,13 @@ namespace maui::controls
         };
         std::unordered_map<std::string, bound_property> bindings_;
         // --- end runtime bindings (W1-02) ---------------------------------------------------------
+        // --- animations (W1-14) ---
+        // shared_ptr (not unique_ptr) so the deleter is type-erased at make_shared time: element's
+        // inline defaulted constructors never need the (header-incomplete) detail type. Destroying an
+        // element silently detaches its running animations from their manager (the deterministic-
+        // teardown analog of C#'s weak-keyed static tables; see element_animations). Never shared.
+        std::shared_ptr<detail::element_animations> animation_state_; // lazily created (see accessor)
+        int batched_ = 0;                                             // VisualElement._batched
+        // --- end animations (W1-14) ---
     };
 } // namespace maui::controls

@@ -21,6 +21,12 @@
 #include "maui/core/event.hpp"
 #include "maui/core/setter_specificity.hpp"
 
+// --- animations (W1-14) ---
+#include <algorithm>
+
+#include "detail/element_animations.hpp"
+// --- end animations (W1-14) ---
+
 namespace maui::controls
 {
     void element::on_binding_context_changed()
@@ -313,4 +319,30 @@ namespace maui::controls
         child.set_inherited_binding_context(maui::core::bindable_object::binding_context_box{});
         child.parent_set.raise(); // runtime bindings (W1-02): Element.ParentSet — ancestry re-resolution
     }
+
+    // --- animations (W1-14) ---
+    // VisualElement.BatchBegin / BatchCommit: nest a counter; the last commit raises batch_committed.
+    void element::batch_begin()
+    {
+        ++batched_;
+    }
+
+    void element::batch_commit()
+    {
+        batched_ = std::max(0, batched_ - 1);
+        if (!batched())
+        {
+            batch_committed.raise();
+        }
+    }
+
+    detail::element_animations& element::animation_state()
+    {
+        if (!animation_state_)
+        {
+            animation_state_ = std::make_shared<detail::element_animations>();
+        }
+        return *animation_state_;
+    }
+    // --- end animations (W1-14) ---
 } // namespace maui::controls
