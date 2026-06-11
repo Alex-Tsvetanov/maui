@@ -235,6 +235,9 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/layout_handler.mm
     src/platform/apple/content_page_handler.mm
     src/platform/apple/navigation_page_handler.mm
+    # (W1-08 web_view) the WKWebView recipe, ONE .mm shared with the ios backend (WebKit's API is
+    # identical on AppKit and UIKit — the gcd_dispatcher convention).
+    src/platform/apple_shared/web_view_handler.mm
     src/platform/apple/window_handler.mm
     # (W1-14 animations) the NSTimer platform ticker (AppKit has no CADisplayLink; see the .mm).
     src/platform/apple/platform_ticker.mm
@@ -269,6 +272,8 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     src/platform/ios/layout_handler.mm
     src/platform/ios/content_page_handler.mm
     src/platform/ios/navigation_page_handler.mm
+    # (W1-08 web_view) the WKWebView .mm shared with the apple backend (see above).
+    src/platform/apple_shared/web_view_handler.mm
     src/platform/ios/window_handler.mm
     # (W1-14 animations) the CADisplayLink platform ticker (PlatformTicker.iOS.cs, 1:1).
     src/platform/ios/platform_ticker.mm
@@ -363,7 +368,8 @@ target_link_libraries(maui_core PUBLIC maui_graphics PRIVATE maui_sanitizers)
 # struct definitions (with the view_platform_base update_* overrides) — keeping the class ODR-consistent
 # across the build (only one backend is ever compiled/linked together).
 if(MAUI_BACKEND STREQUAL "apple")
-  target_link_libraries(maui_core PUBLIC "-framework Cocoa" "-framework QuartzCore")
+  # WebKit carries the WKWebView the (W1-08) web_view handler drives.
+  target_link_libraries(maui_core PUBLIC "-framework Cocoa" "-framework QuartzCore" "-framework WebKit")
   target_compile_definitions(maui_core PUBLIC MAUI_PLATFORM_APPLE)
 endif()
 # The iOS twin of the apple block: UIKit instead of Cocoa (QuartzCore again for the layer C functions),
@@ -377,9 +383,10 @@ if(MAUI_BACKEND STREQUAL "ios")
   # ImageIO + CoreGraphics: the image services decode through CGImageSource and ios_visual_ops.hpp
   # calls the CGPath*/CGColor* C functions directly (UIKit re-exports neither, unlike macOS's Cocoa
   # umbrella); PUBLIC so the .mm tests (which also encode fixtures via CGImageDestination) link them.
+  # WebKit (like on apple) carries the WKWebView the (W1-08) web_view handler drives.
   target_link_libraries(maui_core PUBLIC
     "-framework UIKit" "-framework QuartzCore" "-framework Foundation" "-framework CoreFoundation"
-    "-framework ImageIO" "-framework CoreGraphics" objc)
+    "-framework ImageIO" "-framework CoreGraphics" "-framework WebKit" objc)
   target_compile_definitions(maui_core PUBLIC MAUI_PLATFORM_IOS)
 endif()
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
@@ -587,9 +594,11 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/grid_apple_tests.mm
     tests/controls/content_page_apple_tests.mm
     tests/controls/navigation_page_apple_tests.mm
+    tests/controls/web_view_apple_tests.mm # (W1-08) the real WKWebView seam, run-loop pumped
     tests/controls/window_apple_tests.mm
     tests/controls/window_handler_tests.cpp # the portable seam mirrors (real NSWindow behind them here)
     tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
+    tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
     tests/controls/style_tests.cpp   # backend-agnostic; compiled as C++ within the apple test exe
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
@@ -630,6 +639,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/grid_apple_tests.mm
     tests/controls/content_page_apple_tests.mm
     tests/controls/navigation_page_apple_tests.mm
+    tests/controls/web_view_apple_tests.mm
     tests/controls/window_apple_tests.mm
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 elseif(MAUI_BACKEND STREQUAL "ios")
