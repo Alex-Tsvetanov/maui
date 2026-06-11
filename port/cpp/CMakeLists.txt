@@ -948,7 +948,17 @@ set(MAUI_ESSENTIALS_FEATURES
   barometer
   orientation_sensor
   geolocation
-  geocoding)
+  geocoding
+  # --- W1-17: app-model + storage (version_tracking is PURE managed - no platform partial) ---
+  preferences
+  secure_storage
+  app_info
+  file_system
+  main_thread
+  launcher
+  browser
+  app_actions
+  permissions)
 
 set(MAUI_ESSENTIALS_PLATFORM_SOURCES "")
 if(MAUI_BACKEND STREQUAL "apple")
@@ -983,6 +993,16 @@ add_library(maui_essentials STATIC
   src/essentials/geolocation.cpp
   src/essentials/geocoding.cpp
   src/essentials/location.cpp
+  src/essentials/preferences.cpp
+  src/essentials/secure_storage.cpp
+  src/essentials/version_tracking.cpp
+  src/essentials/app_info.cpp
+  src/essentials/file_system.cpp
+  src/essentials/main_thread.cpp
+  src/essentials/launcher.cpp
+  src/essentials/browser.cpp
+  src/essentials/app_actions.cpp
+  src/essentials/permissions.cpp
   ${MAUI_ESSENTIALS_PLATFORM_SOURCES}
 )
 target_include_directories(maui_essentials PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -997,13 +1017,16 @@ target_link_libraries(maui_essentials PUBLIC maui_core PRIVATE maui_sanitizers)
 # and CoreLocation (geolocation/geocoding).
 if(MAUI_BACKEND STREQUAL "apple")
   target_link_libraries(maui_essentials PUBLIC
-    "-framework IOKit" "-framework SystemConfiguration" "-framework CoreLocation")
+    "-framework IOKit" "-framework SystemConfiguration" "-framework CoreLocation"
+    "-framework Security") # W1-17: secure_storage keychain
 endif()
 # The iOS partials add CoreMotion (sensors), CoreLocation (compass/geolocation/geocoding),
-# AVFoundation (flashlight torch) and AudioToolbox (vibration) on top of maui_core's UIKit set.
+# AVFoundation (flashlight torch) and AudioToolbox (vibration) on top of maui_core's UIKit set;
+# W1-17 adds Security (secure_storage keychain) and SafariServices (browser SFSafariViewController).
 if(MAUI_BACKEND STREQUAL "ios")
   target_link_libraries(maui_essentials PUBLIC
-    "-framework CoreMotion" "-framework CoreLocation" "-framework AVFoundation" "-framework AudioToolbox")
+    "-framework CoreMotion" "-framework CoreLocation" "-framework AVFoundation" "-framework AudioToolbox"
+    "-framework Security" "-framework SafariServices")
 endif()
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_essentials PROPERTIES
@@ -1020,14 +1043,24 @@ if(MAUI_BACKEND STREQUAL "apple")
   add_executable(maui_essentials_tests
     tests/essentials/types_tests.cpp
     tests/essentials/accelerometer_queue_tests.cpp
-    tests/essentials/essentials_apple_tests.mm)
-  set_source_files_properties(tests/essentials/essentials_apple_tests.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+    tests/essentials/version_tracking_tests.cpp # PURE managed - runs over fakes on every backend
+    tests/essentials/essentials_apple_tests.mm
+    tests/essentials/essentials_appmodel_apple_tests.mm)
+  set_source_files_properties(
+    tests/essentials/essentials_apple_tests.mm
+    tests/essentials/essentials_appmodel_apple_tests.mm
+    PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 elseif(MAUI_BACKEND STREQUAL "ios")
   add_executable(maui_essentials_tests
     tests/essentials/types_tests.cpp
     tests/essentials/accelerometer_queue_tests.cpp
-    tests/essentials/essentials_ios_tests.mm)
-  set_source_files_properties(tests/essentials/essentials_ios_tests.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+    tests/essentials/version_tracking_tests.cpp # PURE managed - runs over fakes on every backend
+    tests/essentials/essentials_ios_tests.mm
+    tests/essentials/essentials_appmodel_ios_tests.mm)
+  set_source_files_properties(
+    tests/essentials/essentials_ios_tests.mm
+    tests/essentials/essentials_appmodel_ios_tests.mm
+    PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
   add_executable(maui_essentials_tests
     tests/essentials/types_tests.cpp
@@ -1038,7 +1071,17 @@ else()
     tests/essentials/actuators_tests.cpp
     tests/essentials/sensors_tests.cpp
     tests/essentials/geolocation_tests.cpp
-    tests/essentials/geocoding_tests.cpp)
+    tests/essentials/geocoding_tests.cpp
+    tests/essentials/preferences_tests.cpp
+    tests/essentials/secure_storage_tests.cpp
+    tests/essentials/version_tracking_tests.cpp
+    tests/essentials/app_info_tests.cpp
+    tests/essentials/file_system_tests.cpp
+    tests/essentials/main_thread_tests.cpp
+    tests/essentials/launcher_tests.cpp
+    tests/essentials/browser_tests.cpp
+    tests/essentials/app_actions_tests.cpp
+    tests/essentials/permissions_tests.cpp)
 endif()
 target_include_directories(maui_essentials_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for src/... detail headers
 target_link_libraries(maui_essentials_tests PRIVATE
