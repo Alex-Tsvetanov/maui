@@ -160,6 +160,49 @@ namespace
         EXPECT_EQ(target.text(), "H"); // directly-driven VSM is above manual regardless of state name
     }
 
+    // ---- W1-15: the attached-property storage face (VisualStateManager.SetVisualStateGroups) ----
+
+    TEST(visual_state_manager, set_visual_state_groups_applies_the_initial_common_state)
+    {
+        // VisualStateGroupsPropertyChanged → visualElement.ChangeVisualState(): storing the groups on an
+        // enabled, unfocused control immediately applies Normal.
+        button target;
+        target.set_visual_state_groups(make_common_states_vsm("N", "D"));
+        EXPECT_EQ(target.text(), "N");
+        EXPECT_EQ(target.visual_states().groups()[0].current_state_name(), common_states::normal);
+    }
+
+    TEST(visual_state_manager, replacing_the_groups_unapplies_the_previous_current_state)
+    {
+        // The VisualStateGroupsPropertyChanged OLD-value branch: the outgoing list's current state is
+        // un-applied before the new list takes over (then ChangeVisualState applies the new Normal).
+        button target;
+        target.set_visual_state_groups(make_common_states_vsm("N1", "D1"));
+        target.set_is_enabled(false); // auto-drive → Disabled
+        EXPECT_EQ(target.text(), "D1");
+
+        target.set_visual_state_groups(make_common_states_vsm("N2", "D2"));
+        // still disabled → the replacement's ChangeVisualState lands on the NEW Disabled state;
+        // the old "D1" value is gone (un-applied, not layered beneath).
+        EXPECT_EQ(target.text(), "D2");
+
+        target.set_is_enabled(true);
+        EXPECT_EQ(target.text(), "N2");
+    }
+
+    TEST(visual_state_manager, replacing_with_an_empty_manager_restores_the_underlying_value)
+    {
+        // Clearing the attached groups un-applies the active state and leaves nothing to re-apply.
+        button target;
+        target.set_text("manual");
+        target.set_visual_state_groups(make_common_states_vsm("N", "D"));
+        EXPECT_EQ(target.text(), "N"); // directly-stored groups apply above the manual value
+
+        target.set_visual_state_groups(visual_state_manager{});
+        EXPECT_EQ(target.text(), "manual"); // Normal's setter un-applied → manual re-emerges
+        EXPECT_FALSE(target.visual_states().has_groups());
+    }
+
     // ---- M5d (unit H): view<> auto-drives Disabled/Normal from is_enabled (VisualElement.ChangeVisualState) ----
     TEST(visual_state_manager, view_auto_drives_disabled_and_normal_on_is_enabled_change)
     {

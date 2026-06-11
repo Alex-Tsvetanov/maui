@@ -1,5 +1,6 @@
 // maui::controls::merged_style — implicit + class style resolution/application (merged_style.hpp).
-// Ported from MergedStyle.cs (the implicit/class style layering; ApplyToDerivedTypes deferred).
+// Ported from MergedStyle.cs (the implicit/class style layering + the ApplyToDerivedTypes chain walk
+// of OnImplicitStyleChanged / Style.CanBeAppliedTo, over the element's DECLARED base-type chain).
 #include "maui/controls/merged_style.hpp"
 
 #include <any>
@@ -39,17 +40,26 @@ namespace maui::controls
 
     std::shared_ptr<style> merged_style::resolve_implicit() const
     {
-        if (!target_type_)
+        // MergedStyle.OnImplicitStyleChanged over the declared chain (most-derived first): the FIRST
+        // entry (the exact type) matches unconditionally; a BASE entry matches only when the style sets
+        // ApplyToDerivedTypes — and a non-matching base style does NOT stop the walk.
+        bool first = true;
+        for (const maui::core::type_tag& tag : target_chain_)
         {
-            return nullptr;
+            if (const std::any* value = owner_->try_get_resource(implicit_style_key(tag)))
+            {
+                if (const auto* found = std::any_cast<std::shared_ptr<style>>(value);
+                    found != nullptr && *found != nullptr)
+                {
+                    if (first || (*found)->apply_to_derived_types())
+                    {
+                        return *found;
+                    }
+                }
+            }
+            first = false;
         }
-        const std::any* value = owner_->try_get_resource(implicit_style_key(*target_type_));
-        if (value == nullptr)
-        {
-            return nullptr;
-        }
-        const auto* found = std::any_cast<std::shared_ptr<style>>(value);
-        return found != nullptr ? *found : nullptr;
+        return nullptr;
     }
 
     std::vector<std::shared_ptr<style>> merged_style::resolve_classes() const
@@ -64,12 +74,13 @@ namespace maui::controls
                 continue;
             }
             // A class key holds a vector<shared_ptr<style>> (classes accumulate); apply the first that targets
-            // this element's type. (C# OnClassStyleChanged picks FirstOrDefault(s => s.CanBeAppliedTo(type)).)
+            // this element's type — exactly or, with ApplyToDerivedTypes, a declared base type. (C#
+            // OnClassStyleChanged picks FirstOrDefault(s => s.CanBeAppliedTo(type)).)
             if (const auto* styles = std::any_cast<std::vector<std::shared_ptr<style>>>(value))
             {
                 for (const std::shared_ptr<style>& candidate : *styles)
                 {
-                    if (candidate && (!target_type_ || candidate->target_type() == *target_type_))
+                    if (candidate && candidate->can_be_applied_to(target_chain_))
                     {
                         resolved.push_back(candidate);
                         break;

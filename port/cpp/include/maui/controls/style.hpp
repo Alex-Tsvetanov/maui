@@ -15,10 +15,14 @@
 // the style when a control's style_class names it; an implicit style omits the class and is keyed by
 // target_type (resource_dictionary::add(style)).
 //
-// Scope (M5d): target_type + setters + based_on (direct or by-key) + style_class. Behaviors/Triggers
-// attached to a Style, ApplyToDerivedTypes / CanCascade, and the duplicate-key warning are deferred
-// (STATUS.md). The target_type is carried for the implicit-style match (merged_style); applying is by
-// typed descriptor, already type-correct at the call site (setter::of).
+// Scope (M5d): target_type + setters + based_on (direct or by-key) + style_class. W1-15 adds
+// ApplyToDerivedTypes: an implicit or class style whose target type is a BASE type applies to derived
+// controls when the flag is set — matched against the control's DECLARED base-type chain
+// (element::set_style_target_type<TControl, TBases...>, the reflection-free substitute for C#'s
+// Type.BaseType walk in Style.CanBeAppliedTo / MergedStyle.RegisterImplicitStyles). Behaviors/Triggers
+// attached to a Style, CanCascade, and the duplicate-key warning stay deferred (STATUS.md). The
+// target_type is carried for the implicit-style match (merged_style); applying is by typed descriptor,
+// already type-correct at the call site (setter::of).
 
 #include <functional>
 #include <memory>
@@ -56,6 +60,23 @@ namespace maui::controls
         {
             return target_type_;
         }
+
+        // Style.ApplyToDerivedTypes: whether this style may apply to types DERIVED from target_type
+        // (matched against the chain a control declares via set_style_target_type<TControl, TBases...>).
+        void set_apply_to_derived_types(bool value)
+        {
+            apply_to_derived_types_ = value;
+        }
+        [[nodiscard]] bool apply_to_derived_types() const
+        {
+            return apply_to_derived_types_;
+        }
+
+        // Style.CanBeAppliedTo(Type): true when target_type is the chain's exact (front) type, or — with
+        // apply_to_derived_types set — any of its declared base types. An EMPTY chain (a control that
+        // never declared a style target type) matches anything, preserving the pre-W1-15 class-style
+        // behavior. Used by merged_style to select class styles.
+        [[nodiscard]] bool can_be_applied_to(const std::vector<maui::core::type_tag>& target_chain) const;
 
         // Add a setter to the bundle (fluent — returns *this so calls can chain).
         style& add(setter value)
@@ -126,5 +147,6 @@ namespace maui::controls
         std::shared_ptr<style> based_on_;
         std::string base_resource_key_;
         std::string style_class_;
+        bool apply_to_derived_types_ = false; // Style.ApplyToDerivedTypes
     };
 } // namespace maui::controls

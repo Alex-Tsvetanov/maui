@@ -4,6 +4,7 @@
 #include "maui/controls/element.hpp"
 
 #include <any>
+#include <functional>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -335,4 +336,22 @@ namespace maui::controls
         return *animation_state_;
     }
     // --- end animations (W1-14) ---
+
+    // --- styles tail (W1-15) ---
+    // The named-event registrar (EventTrigger's reflection-free seam — see element.hpp).
+    void element::register_named_event(std::string name,
+                                       std::function<maui::core::scoped_connection(std::function<void()>)> subscribe)
+    {
+        named_events_.insert_or_assign(std::move(name), std::move(subscribe));
+    }
+
+    maui::core::scoped_connection element::connect_named_event(std::string_view name, std::function<void()> handler)
+    {
+        if (const auto it = named_events_.find(std::string{name}); it != named_events_.end())
+        {
+            return it->second(std::move(handler));
+        }
+        return {}; // unknown event name — attach nothing (C# logs a warning)
+    }
+    // --- end styles tail (W1-15) ---
 } // namespace maui::controls

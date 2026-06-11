@@ -22,6 +22,7 @@
 #include <utility>
 #include <vector>
 
+#include "maui/controls/behavior.hpp" // --- styles tail (W1-15) ---
 #include "maui/controls/element.hpp"
 #include "maui/controls/gestures/gesture_platform_manager.hpp" // --- gestures (W1-12) ---
 #include "maui/controls/style.hpp"
@@ -773,5 +774,34 @@ namespace maui::controls
         std::shared_ptr<maui::controls::style> style_;
         std::vector<std::string> style_class_;               // the selected style classes (VisualElement.StyleClass)
         maui::controls::visual_state_manager visual_states_; // VisualStateManager.VisualStateGroups host
+
+        // --- styles tail (W1-15) ------------------------------------------------------------------------
+    public:
+        // VisualStateManager.SetVisualStateGroups(element, groups): store `groups` as THIS control's
+        // visual-state groups. The previous groups' current states are un-applied first (the
+        // VisualStateGroupsPropertyChanged old-value branch), the new groups' state triggers are wired
+        // (attaching/detaching with this element's loaded/unloaded — InvalidateStateTriggers), then
+        // ChangeVisualState runs and the triggers are evaluated — so a Normal state and any
+        // already-active trigger apply immediately. The member manager is mutated IN PLACE (its address
+        // anchors the trigger hooks); visual_states() keeps exposing it.
+        void set_visual_state_groups(maui::controls::visual_state_manager groups)
+        {
+            visual_states_.replace_from(std::move(groups), *this, [this] { this->change_visual_state(); });
+        }
+
+        // VisualElement.Behaviors: the behavior collection of this control, pre-attached to it (the
+        // BehaviorsPropertyKey defaultValueCreator) — adding a behavior runs its OnAttachedTo here.
+        [[nodiscard]] behavior_collection& behaviors()
+        {
+            return behaviors_;
+        }
+        [[nodiscard]] const behavior_collection& behaviors() const
+        {
+            return behaviors_;
+        }
+
+    private:
+        behavior_collection behaviors_{*this};
+        // --- end styles tail (W1-15) --------------------------------------------------------------------
     };
 } // namespace maui::controls

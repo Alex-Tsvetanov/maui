@@ -566,6 +566,8 @@ add_library(maui_controls STATIC
   src/controls/resource_dictionary.cpp
   src/controls/merged_style.cpp
   src/controls/visual_state_manager.cpp
+  src/controls/behavior.cpp      # W1-15 styles tail: Behavior/AttachedCollection
+  src/controls/state_trigger.cpp # W1-15 styles tail: StateTriggerBase + the concrete state triggers
   src/controls/window.cpp
   src/controls/application.cpp
   # (W1-14 animations) the Controls-layer animation surface: Controls.Animation + the
@@ -579,7 +581,9 @@ add_library(maui_controls STATIC
 target_include_directories(maui_controls PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # Controls depend on Core (handlers, contracts, the property system); the layout controls additionally
 # use the maui_layouts measure/arrange managers (their create_layout_manager() instantiates them).
-target_link_libraries(maui_controls PUBLIC maui_core maui_layouts PRIVATE maui_sanitizers)
+# maui_essentials joins for the state triggers (DeviceStateTrigger/OrientationStateTrigger read the
+# device_info / device_display facades — the same dependency direction as C# Controls.Core → Essentials).
+target_link_libraries(maui_controls PUBLIC maui_core maui_layouts maui_essentials PRIVATE maui_sanitizers)
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_controls PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
@@ -621,6 +625,9 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/dynamic_resource_tests.cpp
     tests/controls/implicit_style_tests.cpp
     tests/controls/advanced_trigger_tests.cpp
+    tests/controls/behavior_tests.cpp # W1-15: Behavior/AttachedCollection (backend-agnostic)
+    tests/controls/event_trigger_tests.cpp # W1-15: EventTrigger over the named-event seam
+    tests/controls/state_trigger_tests.cpp # W1-15: StateTriggers driving visual states
     tests/controls/size_request_tests.cpp # backend-agnostic; the VisualElement size-request surface
     tests/controls/lifecycle_tests.cpp
     tests/controls/data_template_tests.cpp    # backend-agnostic (W1-09 templates)
@@ -701,6 +708,9 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/dynamic_resource_tests.cpp
     tests/controls/implicit_style_tests.cpp
     tests/controls/advanced_trigger_tests.cpp
+    tests/controls/behavior_tests.cpp # W1-15: Behavior/AttachedCollection (backend-agnostic)
+    tests/controls/event_trigger_tests.cpp # W1-15: EventTrigger over the named-event seam
+    tests/controls/state_trigger_tests.cpp # W1-15: StateTriggers driving visual states
     tests/controls/size_request_tests.cpp # backend-agnostic (compares against the handler's own size)
     tests/controls/lifecycle_tests.cpp
     tests/controls/data_template_tests.cpp    # backend-agnostic (W1-09 templates)
@@ -746,6 +756,9 @@ else()
     tests/controls/dynamic_resource_tests.cpp
     tests/controls/implicit_style_tests.cpp
     tests/controls/advanced_trigger_tests.cpp
+    tests/controls/behavior_tests.cpp # W1-15: Behavior/AttachedCollection (backend-agnostic)
+    tests/controls/event_trigger_tests.cpp # W1-15: EventTrigger over the named-event seam
+    tests/controls/state_trigger_tests.cpp # W1-15: StateTriggers driving visual states
     tests/controls/size_request_tests.cpp # the VisualElement size-request surface (view<> IView mapping)
     tests/controls/view_extensions_tests.cpp # (W1-14) the animation surface over the manual ticker
     tests/controls/lifecycle_tests.cpp

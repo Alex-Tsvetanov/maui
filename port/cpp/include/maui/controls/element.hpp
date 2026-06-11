@@ -302,5 +302,39 @@ namespace maui::controls
         std::shared_ptr<detail::element_animations> animation_state_; // lazily created (see accessor)
         int batched_ = 0;                                             // VisualElement._batched
         // --- end animations (W1-14) ---
+
+        // --- styles tail (W1-15) ------------------------------------------------------------------------
+        // 1) Style.ApplyToDerivedTypes needs the control's BASE-TYPE CHAIN: C# walks Type.BaseType
+        //    (MergedStyle.RegisterImplicitStyles registers one implicit-style slot per ancestor type); the
+        //    reflection-free substitute has a derived control DECLARE its chain, most-derived first —
+        //    `set_style_target_type<my_button, button>()`. The single-type overload above stays the common
+        //    case (chain of one). merged_style walks the chain: the exact type always matches; a base-type
+        //    implicit/class style matches only when it sets apply_to_derived_types (Style.CanBeAppliedTo).
+    protected:
+        template <class TControl, class TBase, class... TRest> void set_style_target_type()
+        {
+            style_target_type_ = maui::core::type_tag::of<TControl>();
+            merged_style_.set_target_chain({maui::core::type_tag::of<TControl>(), maui::core::type_tag::of<TBase>(),
+                                            maui::core::type_tag::of<TRest>()...});
+        }
+
+        // 2) The NAMED-EVENT registrar (EventTrigger's reflection-free seam — the event analog of the
+        //    property-name routing through apply_setter): a control registers each public event channel by
+        //    name in its constructor, supplying a subscribe function that connects a handler to the typed
+        //    event member and returns the RAII connection. Re-registering a name replaces the channel.
+        void register_named_event(std::string name,
+                                  std::function<maui::core::scoped_connection(std::function<void()>)> subscribe);
+
+    public:
+        // Subscribe `handler` to the named event channel (EventTrigger.AttachHandlerTo). An unknown or
+        // never-registered name returns an EMPTY connection — C# logs a warning and attaches nothing.
+        [[nodiscard]] maui::core::scoped_connection connect_named_event(std::string_view name,
+                                                                        std::function<void()> handler);
+
+    private:
+        // name → subscribe-function (the registered channels). Names are owned strings (built names ok).
+        std::unordered_map<std::string, std::function<maui::core::scoped_connection(std::function<void()>)>>
+            named_events_;
+        // --- end styles tail (W1-15) --------------------------------------------------------------------
     };
 } // namespace maui::controls

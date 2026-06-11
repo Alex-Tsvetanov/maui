@@ -124,6 +124,92 @@ namespace
         EXPECT_DOUBLE_EQ(lbl.character_spacing(), 3.0);
     }
 
+    // ---- W1-15: Style.ApplyToDerivedTypes over the DECLARED base-type chain ----
+    // C# walks Type.BaseType (MergedStyle.RegisterImplicitStyles); the reflection-free port has the
+    // derived control declare its chain: set_style_target_type<my_label, label>().
+
+    struct my_label : label
+    {
+        my_label()
+        {
+            this->set_style_target_type<my_label, label>();
+        }
+    };
+
+    TEST(implicit_style, not_applied_to_derived_types_by_default)
+    {
+        // ImplicitStylesNotAppliedToDerivedTypesByDefault: a label-targeted implicit style without the
+        // flag does not reach a my_label.
+        my_label lbl;
+        vertical_stack_layout layout;
+        layout.resources().add(label_text_style("Foo"));
+        layout.add(lbl);
+        EXPECT_EQ(lbl.text(), "");
+    }
+
+    TEST(implicit_style, applied_to_derived_types_if_specified)
+    {
+        // ImplicitStylesAreAppliedToDerivedIfSpecified: with ApplyToDerivedTypes the base-type style
+        // applies to the derived control.
+        auto sheet = label_text_style("Foo");
+        sheet->set_apply_to_derived_types(true);
+
+        my_label lbl;
+        vertical_stack_layout layout;
+        layout.resources().add(sheet);
+        layout.add(lbl);
+        EXPECT_EQ(lbl.text(), "Foo");
+    }
+
+    TEST(implicit_style, the_exact_type_implicit_style_outranks_a_flagged_base_type_one)
+    {
+        // MergedStyle.OnImplicitStyleChanged walks the chain most-derived first: an implicit style keyed
+        // on the EXACT type wins over a flagged base-type style.
+        auto base_style = label_text_style("base");
+        base_style->set_apply_to_derived_types(true);
+        auto exact = std::make_shared<style>(style::of<my_label>());
+        exact->add(setter::of(label::text_property(), std::string("exact")));
+
+        my_label lbl;
+        vertical_stack_layout layout;
+        layout.resources().add(base_style);
+        layout.resources().add(exact);
+        layout.add(lbl);
+        EXPECT_EQ(lbl.text(), "exact");
+    }
+
+    TEST(implicit_style, class_styles_honor_apply_to_derived_types)
+    {
+        // MultipleStylesCanShareTheSameClassName (the derived-control rows): a flagged base-type class
+        // style applies to the derived control; an unflagged one does not (CanBeAppliedTo).
+        auto flagged = std::make_shared<style>(style::of<label>());
+        flagged->set_style_class("pink");
+        flagged->set_apply_to_derived_types(true);
+        flagged->add(setter::of(label::text_property(), std::string("pink")));
+
+        {
+            my_label lbl;
+            lbl.set_style_class({"pink"});
+            vertical_stack_layout layout;
+            layout.resources().add(flagged);
+            layout.add(lbl);
+            EXPECT_EQ(lbl.text(), "pink"); // flagged class style reaches the derived control
+        }
+
+        auto unflagged = std::make_shared<style>(style::of<label>());
+        unflagged->set_style_class("plain");
+        unflagged->add(setter::of(label::text_property(), std::string("plain")));
+
+        {
+            my_label lbl;
+            lbl.set_style_class({"plain"});
+            vertical_stack_layout layout;
+            layout.resources().add(unflagged);
+            layout.add(lbl);
+            EXPECT_EQ(lbl.text(), ""); // unflagged class style skips the derived control
+        }
+    }
+
     TEST(implicit_style, unapplying_local_style_falls_back_to_implicit_then_to_default)
     {
         // UnapplyingStyleDefaultToImplicit1: implicit < local < manual; clearing the manual then the local

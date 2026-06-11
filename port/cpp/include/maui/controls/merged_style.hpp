@@ -13,12 +13,17 @@
 // implicit/class styles against the applied ones and re-applies only on a change (SetStyle's
 // shouldReApply…), so a no-op resource change doesn't churn the value precedence.
 //
-// Scope (M5d): implicit + class style resolution/application + a hook to mark the resolved implicit style's
-// VSM groups (so the VSM downgrade applies). ApplyToDerivedTypes (an implicit style applying to a subtype),
-// CanCascade, system resources, and style sheets are out of scope (STATUS.md).
+// W1-15 adds Style.ApplyToDerivedTypes: the element now declares its base-type CHAIN (most-derived
+// first — element::set_style_target_type<TControl, TBases...>, the reflection-free substitute for C#'s
+// Type.BaseType walk in MergedStyle.RegisterImplicitStyles). resolve_implicit walks the chain like
+// OnImplicitStyleChanged: the exact (front) type's implicit style always applies; a BASE type's only
+// when it sets apply_to_derived_types — and the walk continues past a non-matching base style. Class
+// styles select via style::can_be_applied_to over the same chain (CanBeAppliedTo).
+//
+// Scope: implicit + class style resolution/application. CanCascade, system resources, and style sheets
+// stay out of scope (STATUS.md).
 
 #include <memory>
-#include <optional>
 #include <string>
 #include <vector>
 
@@ -45,7 +50,13 @@ namespace maui::controls
         // resource key is derived from it. Until set, no implicit style is resolved.
         void set_target_type(maui::core::type_tag value)
         {
-            target_type_ = value;
+            set_target_chain({value});
+        }
+        // The element's declared base-type chain, most-derived first (set_style_target_type<T, Bases...>)
+        // — the implicit-style lookup tries each entry in order (MergedStyle's _implicitStyles slots).
+        void set_target_chain(std::vector<maui::core::type_tag> chain)
+        {
+            target_chain_ = std::move(chain);
         }
 
         // The style classes this element selects (VisualElement.StyleClass). Re-resolves the class styles.
@@ -67,7 +78,7 @@ namespace maui::controls
         [[nodiscard]] std::vector<std::shared_ptr<style>> resolve_classes() const;
 
         element* owner_;
-        std::optional<maui::core::type_tag> target_type_;
+        std::vector<maui::core::type_tag> target_chain_; // most-derived first; empty until declared
         std::vector<std::string> style_classes_;
         // The currently-applied styles (so refresh can un-apply the old before applying the new).
         std::shared_ptr<style> applied_implicit_;

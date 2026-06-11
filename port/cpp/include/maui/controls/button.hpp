@@ -16,6 +16,7 @@
 // CornerRadius). The generic IView properties (Visibility/Opacity/transforms/…) gain their shared
 // ViewMapper at M3/M4 with the visual-element + layout work.
 
+#include <functional>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -40,9 +41,20 @@ namespace maui::controls
         // Declare the style TargetType so an implicit (TargetType-keyed) style or a class style targeting
         // `button` matches this control (VisualElement's implicit-style resolution). The inline property
         // member initializers still run under this user-declared constructor.
+        // The named-event channels (W1-15) let an event_trigger subscribe Clicked/Pressed/Released by
+        // name — the reflection-free seam replacing C#'s GetRuntimeEvent (see element.hpp).
         button()
         {
             this->set_style_target_type<button>();
+            this->register_named_event("clicked", [this](std::function<void()> handler) {
+                return maui::core::connect_scoped(clicked, std::move(handler));
+            });
+            this->register_named_event("pressed", [this](std::function<void()> handler) {
+                return maui::core::connect_scoped(pressed, std::move(handler));
+            });
+            this->register_named_event("released", [this](std::function<void()> handler) {
+                return maui::core::connect_scoped(released, std::move(handler));
+            });
         }
 
         // Shared bindable-property descriptors (one instance per type, like Button.*Property).
