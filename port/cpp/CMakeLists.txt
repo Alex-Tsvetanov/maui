@@ -231,6 +231,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/progress_bar_handler.mm
     src/platform/apple/activity_indicator_handler.mm
     src/platform/apple/image_handler.mm
+    src/platform/apple/image_button_handler.mm
     src/platform/apple/image_source_services.mm
     src/platform/apple/layout_handler.mm
     src/platform/apple/content_page_handler.mm
@@ -268,6 +269,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     src/platform/ios/progress_bar_handler.mm
     src/platform/ios/activity_indicator_handler.mm
     src/platform/ios/image_handler.mm
+    src/platform/ios/image_button_handler.mm
     src/platform/ios/image_source_services.mm
     src/platform/ios/layout_handler.mm
     src/platform/ios/content_page_handler.mm
@@ -299,6 +301,7 @@ else()
     src/platform/headless/progress_bar_handler.cpp
     src/platform/headless/activity_indicator_handler.cpp
     src/platform/headless/image_handler.cpp
+    src/platform/headless/image_button_handler.cpp
     src/platform/headless/image_source_services.cpp
     src/platform/headless/layout_handler.cpp
     src/platform/headless/content_page_handler.cpp
@@ -336,6 +339,7 @@ add_library(maui_core STATIC
   src/core/progress_bar_handler.cpp
   src/core/activity_indicator_handler.cpp
   src/core/image_handler.cpp
+  src/core/image_button_handler.cpp
   src/core/image_source_loader.cpp
   src/core/image_source_service_registry.cpp
   src/core/image_source_services.cpp
@@ -543,6 +547,7 @@ add_library(maui_controls STATIC
   src/controls/progress_bar.cpp
   src/controls/activity_indicator.cpp
   src/controls/image.cpp
+  src/controls/image_button.cpp
   src/controls/file_image_source.cpp
   src/controls/vertical_stack_layout.cpp
   src/controls/horizontal_stack_layout.cpp
@@ -598,6 +603,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/progress_bar_apple_tests.mm
     tests/controls/activity_indicator_apple_tests.mm
     tests/controls/image_apple_tests.mm
+    tests/controls/image_button_apple_tests.mm
     tests/controls/font_image_source_apple_tests.mm
     tests/controls/layout_apple_tests.mm
     tests/controls/grid_apple_tests.mm
@@ -643,6 +649,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/progress_bar_apple_tests.mm
     tests/controls/activity_indicator_apple_tests.mm
     tests/controls/image_apple_tests.mm
+    tests/controls/image_button_apple_tests.mm
     tests/controls/font_image_source_apple_tests.mm
     tests/controls/layout_apple_tests.mm
     tests/controls/grid_apple_tests.mm
@@ -676,6 +683,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/progress_bar_ios_tests.mm
     tests/controls/activity_indicator_ios_tests.mm
     tests/controls/image_ios_tests.mm
+    tests/controls/image_button_ios_tests.mm
     tests/controls/font_image_source_ios_tests.mm
     tests/controls/image_sources_ios_tests.mm
     tests/controls/layout_ios_tests.mm
@@ -720,6 +728,7 @@ else()
     tests/controls/activity_indicator_tests.cpp
     tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
     tests/controls/image_tests.cpp
+    tests/controls/image_button_tests.cpp
     tests/controls/layout_tests.cpp
     tests/controls/grid_tests.cpp
     tests/controls/content_page_tests.cpp
