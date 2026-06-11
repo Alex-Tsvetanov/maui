@@ -302,6 +302,8 @@ else()
     src/platform/headless/image_source_services.cpp
     src/platform/headless/layout_handler.cpp
     src/platform/headless/content_page_handler.cpp
+    src/platform/headless/border_handler.cpp
+    src/platform/headless/scroll_view_handler.cpp
     src/platform/headless/navigation_page_handler.cpp
     src/platform/headless/web_view_handler.cpp
     src/platform/headless/window_handler.cpp
@@ -343,6 +345,8 @@ add_library(maui_core STATIC
   src/core/layout_handler.cpp
   src/core/layout_z_order.cpp
   src/core/content_page_handler.cpp
+  src/core/border_handler.cpp # (W1-07 containers)
+  src/core/scroll_view_handler.cpp
   src/core/navigation_page_handler.cpp
   src/core/web_view_handler.cpp
   src/core/web_view_helper.cpp
@@ -544,6 +548,11 @@ add_library(maui_controls STATIC
   src/controls/horizontal_stack_layout.cpp
   src/controls/grid.cpp
   src/controls/content_page.cpp
+  # (W1-07 containers) content_view (over the W1-09 templated_view base) + border + the frame facade.
+  src/controls/content_view.cpp
+  src/controls/border.cpp
+  src/controls/frame.cpp
+  src/controls/scroll_view.cpp
   src/controls/navigation_page.cpp
   src/controls/web_view.cpp
   src/controls/url_web_view_source.cpp
@@ -714,6 +723,10 @@ else()
     tests/controls/layout_tests.cpp
     tests/controls/grid_tests.cpp
     tests/controls/content_page_tests.cpp
+    tests/controls/content_view_tests.cpp # (W1-07 containers)
+    tests/controls/border_tests.cpp
+    tests/controls/frame_tests.cpp
+    tests/controls/scroll_view_tests.cpp
     tests/controls/navigation_page_tests.cpp
     tests/controls/web_view_tests.cpp
     tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
