@@ -8,11 +8,14 @@
 #include "maui/controls/bindings/multi_binding.hpp"
 
 #include <any>
+#include <cstddef>
 #include <functional>
 #include <memory>
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <string_view>
+#include <utility>
 #include <vector>
 
 #include "maui/controls/bindings/binding.hpp"
@@ -24,6 +27,7 @@
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/binding_mode.hpp"
+#include "maui/core/boxed_value.hpp"
 #include "maui/core/property.hpp"
 #include "maui/core/type_tag.hpp"
 #include <gtest/gtest.h>
@@ -36,8 +40,6 @@ namespace
     using maui::controls::element;
     using maui::controls::i_multi_value_converter;
     using maui::controls::i_value_converter;
-    using maui::controls::is_do_nothing;
-    using maui::controls::is_unset_value;
     using maui::controls::multi_binding;
     using maui::controls::relative_binding_source;
     using maui::controls::unset_value;
@@ -416,7 +418,6 @@ namespace
         const std::string old_name = group->person1->full_name();
         const std::string old_first = group->person1->first_name.get();
         const std::string old_middle = group->person1->middle_name.get();
-        const std::string old_last = group->person1->last_name.get();
 
         mock_label label;
         auto multi = std::make_shared<multi_binding>();

@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "maui/controls/setter.hpp"
@@ -28,9 +29,21 @@ namespace
     using maui::core::i_element_handler;
     using maui::graphics::color;
 
-    const color red{1.0F, 0.0F, 0.0F};
-    const color green{0.0F, 1.0F, 0.0F};
-    const color blue{0.0F, 0.0F, 1.0F};
+    [[nodiscard]] const color& red()
+    {
+        static const color value{1.0F, 0.0F, 0.0F};
+        return value;
+    }
+    [[nodiscard]] const color& green()
+    {
+        static const color value{0.0F, 1.0F, 0.0F};
+        return value;
+    }
+    [[nodiscard]] const color& blue()
+    {
+        static const color value{0.0F, 0.0F, 1.0F};
+        return value;
+    }
 
     // ---- the control in isolation (CheckBoxUnitTests.cs) ----
 
@@ -129,15 +142,15 @@ namespace
     {
         visual_state_group group{"CommonStates"};
         visual_state normal{std::string{common_states::normal}};
-        normal.add(setter::of(check_box::color_property(), blue));
+        normal.add(setter::of(check_box::color_property(), blue()));
         group.add(std::move(normal));
         visual_state disabled{std::string{common_states::disabled}};
-        disabled.add(setter::of(check_box::color_property(), red));
+        disabled.add(setter::of(check_box::color_property(), red()));
         group.add(std::move(disabled));
         if (include_is_checked)
         {
             visual_state checked{std::string{check_box::is_checked_visual_state}};
-            checked.add(setter::of(check_box::color_property(), green));
+            checked.add(setter::of(check_box::color_property(), green()));
             group.add(std::move(checked));
         }
         control.visual_states().add_group(std::move(group));
@@ -149,10 +162,10 @@ namespace
         add_states(control, true);
 
         control.set_is_checked(true);
-        EXPECT_EQ(control.color(), green); // the IsChecked state applied
+        EXPECT_EQ(control.color(), green()); // the IsChecked state applied
 
         control.set_is_checked(false);
-        EXPECT_EQ(control.color(), blue); // back to Normal (base ChangeVisualState)
+        EXPECT_EQ(control.color(), blue()); // back to Normal (base ChangeVisualState)
     }
 
     TEST(check_box_visual_states, checked_without_is_checked_state_falls_back_to_normal)
@@ -161,7 +174,7 @@ namespace
         add_states(control, false);
 
         control.set_is_checked(true);
-        EXPECT_EQ(control.color(), blue); // no IsChecked state: Normal
+        EXPECT_EQ(control.color(), blue()); // no IsChecked state: Normal
     }
 
     TEST(check_box_visual_states, disabled_outranks_checked)
@@ -169,10 +182,10 @@ namespace
         check_box control;
         add_states(control, true);
         control.set_is_checked(true);
-        EXPECT_EQ(control.color(), green);
+        EXPECT_EQ(control.color(), green());
 
         control.set_is_enabled(false); // disabled: base ChangeVisualState → Disabled
-        EXPECT_EQ(control.color(), red);
+        EXPECT_EQ(control.color(), red());
     }
 
     // ---- the handler seam (control <-> handler <-> headless platform) ----
@@ -181,7 +194,7 @@ namespace
     {
         check_box control;
         control.set_is_checked(true);
-        control.set_color(green);
+        control.set_color(green());
         auto handler = std::make_shared<check_box_handler>();
         control.set_handler(handler);
 
@@ -189,7 +202,7 @@ namespace
         ASSERT_NE(platform, nullptr);
         EXPECT_TRUE(platform->is_checked);
         ASSERT_NE(platform->foreground, nullptr); // Color?.AsPaint() — set, so a solid paint
-        EXPECT_EQ(platform->foreground->background_color(), green);
+        EXPECT_EQ(platform->foreground->background_color(), green());
     }
 
     TEST(check_box_seam, foreground_is_null_until_color_is_set)
@@ -200,9 +213,9 @@ namespace
 
         EXPECT_EQ(handler->typed_platform_view()->foreground, nullptr); // Color unset → null paint
 
-        control.set_color(red);
+        control.set_color(red());
         ASSERT_NE(handler->typed_platform_view()->foreground, nullptr);
-        EXPECT_EQ(handler->typed_platform_view()->foreground->background_color(), red);
+        EXPECT_EQ(handler->typed_platform_view()->foreground->background_color(), red());
     }
 
     TEST(check_box_seam, setting_is_checked_updates_the_platform)

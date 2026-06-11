@@ -14,7 +14,11 @@
 #include <utility>
 
 #include "maui/controls/element.hpp"
+#include "maui/core/bindable_object.hpp"
+#include "maui/core/binding_mode.hpp"
 #include "maui/core/boxed_value.hpp"
+#include "maui/core/setter_specificity.hpp"
+#include "maui/core/type_tag.hpp"
 
 namespace maui::controls
 {
@@ -161,7 +165,7 @@ namespace maui::controls
                     {
                         return std::nullopt;
                     }
-                    index = index * 10 + static_cast<std::size_t>(digit - '0');
+                    index = (index * 10) + static_cast<std::size_t>(digit - '0');
                 }
                 if (index >= args.size())
                 {

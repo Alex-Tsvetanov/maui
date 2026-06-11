@@ -4,6 +4,8 @@
 // theories and the requested-value recoercion; the seam half follows the headless conventions.
 #include "maui/controls/stepper.hpp"
 
+#include <algorithm>
+#include <array>
 #include <cmath>
 #include <memory>
 #include <stdexcept>
@@ -13,6 +15,7 @@
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/stepper_handler.hpp"
 #include <gtest/gtest.h>
+#include <string_view>
 
 namespace
 {
@@ -133,11 +136,14 @@ namespace
 
     TEST(stepper, value_changed_args_carry_old_and_new)
     {
-        const struct
+        struct value_change_case
         {
             double initial;
             double final_value;
-        } cases[] = {{100.0, 0.5}, {10.0, 25.0}, {0, 39.5}};
+        };
+        const std::array cases{value_change_case{.initial = 100.0, .final_value = 0.5},
+                               value_change_case{.initial = 10.0, .final_value = 25.0},
+                               value_change_case{.initial = 0, .final_value = 39.5}};
         for (const auto& c : cases)
         {
             stepper control;

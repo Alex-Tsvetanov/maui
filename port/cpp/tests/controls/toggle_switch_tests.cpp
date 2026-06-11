@@ -14,6 +14,7 @@
 #include "maui/core/switch_handler.hpp"
 #include "maui/graphics/color.hpp"
 #include <gtest/gtest.h>
+#include <utility>
 
 namespace
 {
@@ -26,10 +27,26 @@ namespace
     using maui::core::switch_handler;
     using maui::graphics::color;
 
-    const color red{1.0F, 0.0F, 0.0F};
-    const color green{0.0F, 1.0F, 0.0F};
-    const color blue{0.0F, 0.0F, 1.0F};
-    const color gray{0.5F, 0.5F, 0.5F};
+    [[nodiscard]] const color& red()
+    {
+        static const color value{1.0F, 0.0F, 0.0F};
+        return value;
+    }
+    [[nodiscard]] const color& green()
+    {
+        static const color value{0.0F, 1.0F, 0.0F};
+        return value;
+    }
+    [[nodiscard]] const color& blue()
+    {
+        static const color value{0.0F, 0.0F, 1.0F};
+        return value;
+    }
+    [[nodiscard]] const color& gray()
+    {
+        static const color value{0.5F, 0.5F, 0.5F};
+        return value;
+    }
 
     // ---- the control in isolation (SwitchUnitTests.cs) ----
 
@@ -81,20 +98,20 @@ namespace
     {
         visual_state_group group{"CommonStates"};
         visual_state disabled{std::string{common_states::disabled}};
-        disabled.add(setter::of(toggle_switch::thumb_color_property(), gray));
+        disabled.add(setter::of(toggle_switch::thumb_color_property(), gray()));
         group.add(std::move(disabled));
         if (include_normal)
         {
             visual_state normal{std::string{common_states::normal}};
-            normal.add(setter::of(toggle_switch::thumb_color_property(), blue));
+            normal.add(setter::of(toggle_switch::thumb_color_property(), blue()));
             group.add(std::move(normal));
         }
         if (include_on_off)
         {
             visual_state on{std::string{toggle_switch::switch_on_visual_state}};
-            on.add(setter::of(toggle_switch::thumb_color_property(), green));
+            on.add(setter::of(toggle_switch::thumb_color_property(), green()));
             visual_state off{std::string{toggle_switch::switch_off_visual_state}};
-            off.add(setter::of(toggle_switch::thumb_color_property(), red));
+            off.add(setter::of(toggle_switch::thumb_color_property(), red()));
             group.add(std::move(on));
             group.add(std::move(off));
         }
@@ -106,7 +123,7 @@ namespace
         toggle_switch control;
         add_states(control, true);
         control.set_is_enabled(false); // drives change_visual_state automatically
-        EXPECT_EQ(control.thumb_color(), gray);
+        EXPECT_EQ(control.thumb_color(), gray());
     }
 
     TEST(toggle_switch_visual_states, enabled_and_on_goes_to_on_state)
@@ -114,7 +131,7 @@ namespace
         toggle_switch control;
         add_states(control, true);
         control.set_is_toggled(true); // the IsToggled change drives ChangeVisualState
-        EXPECT_EQ(control.thumb_color(), green);
+        EXPECT_EQ(control.thumb_color(), green());
     }
 
     TEST(toggle_switch_visual_states, enabled_and_off_goes_to_off_state)
@@ -122,7 +139,7 @@ namespace
         toggle_switch control;
         add_states(control, true);
         control.change_visual_state(); // apply the initial state (IsToggled defaults to false)
-        EXPECT_EQ(control.thumb_color(), red);
+        EXPECT_EQ(control.thumb_color(), red());
     }
 
     TEST(toggle_switch_visual_states, normal_used_when_on_off_states_missing)
@@ -130,7 +147,7 @@ namespace
         toggle_switch control;
         add_states(control, false);
         control.change_visual_state();
-        EXPECT_EQ(control.thumb_color(), blue); // base ChangeVisualState's Normal; On/Off are absent
+        EXPECT_EQ(control.thumb_color(), blue()); // base ChangeVisualState's Normal; On/Off are absent
     }
 
     TEST(toggle_switch_visual_states, toggling_moves_between_on_and_off)
@@ -138,9 +155,9 @@ namespace
         toggle_switch control;
         add_states(control, true);
         control.set_is_toggled(true);
-        EXPECT_EQ(control.thumb_color(), green);
+        EXPECT_EQ(control.thumb_color(), green());
         control.set_is_toggled(false);
-        EXPECT_EQ(control.thumb_color(), red);
+        EXPECT_EQ(control.thumb_color(), red());
     }
 
     // ---- the handler seam (control <-> handler <-> headless platform) ----
@@ -149,33 +166,33 @@ namespace
     {
         toggle_switch control;
         control.set_is_toggled(true);
-        control.set_on_color(green);
-        control.set_thumb_color(red);
+        control.set_on_color(green());
+        control.set_thumb_color(red());
         auto handler = std::make_shared<switch_handler>();
         control.set_handler(handler);
 
         auto* platform = handler->typed_platform_view();
         ASSERT_NE(platform, nullptr);
         EXPECT_TRUE(platform->is_on);
-        EXPECT_EQ(platform->track_color, green); // toggled on: TrackColor reads OnColor
-        EXPECT_EQ(platform->thumb_color, red);
+        EXPECT_EQ(platform->track_color, green()); // toggled on: TrackColor reads OnColor
+        EXPECT_EQ(platform->thumb_color, red());
     }
 
     TEST(toggle_switch_seam, setting_is_toggled_updates_platform_and_track_color)
     {
         toggle_switch control;
-        control.set_on_color(green);
-        control.set_off_color(red);
+        control.set_on_color(green());
+        control.set_off_color(red());
         auto handler = std::make_shared<switch_handler>();
         control.set_handler(handler);
         auto* platform = handler->typed_platform_view();
         ASSERT_NE(platform, nullptr);
         EXPECT_FALSE(platform->is_on);
-        EXPECT_EQ(platform->track_color, red); // off: TrackColor reads OffColor
+        EXPECT_EQ(platform->track_color, red()); // off: TrackColor reads OffColor
 
         control.set_is_toggled(true);
         EXPECT_TRUE(platform->is_on);
-        EXPECT_EQ(platform->track_color, green); // the IsToggled change re-ran the TrackColor mapper
+        EXPECT_EQ(platform->track_color, green()); // the IsToggled change re-ran the TrackColor mapper
     }
 
     TEST(toggle_switch_seam, changing_on_color_while_on_remaps_track_color)
@@ -185,8 +202,8 @@ namespace
         auto handler = std::make_shared<switch_handler>();
         control.set_handler(handler);
 
-        control.set_on_color(blue);
-        EXPECT_EQ(handler->typed_platform_view()->track_color, blue);
+        control.set_on_color(blue());
+        EXPECT_EQ(handler->typed_platform_view()->track_color, blue());
     }
 
     TEST(toggle_switch_seam, native_toggle_flows_back_to_the_control)

@@ -20,6 +20,7 @@
 #include "maui/core/binding_mode.hpp"
 #include "maui/core/property.hpp"
 #include <gtest/gtest.h>
+#include <utility>
 
 namespace
 {

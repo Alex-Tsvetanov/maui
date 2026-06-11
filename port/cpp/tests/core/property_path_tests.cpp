@@ -6,6 +6,7 @@
 #include "maui/core/property_path.hpp"
 
 #include <any>
+#include <array>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -55,7 +56,7 @@ namespace
     TEST(property_path, valid_paths_parse_with_surrounding_whitespace)
     {
         // C# ValidPaths: every path x {space before, space after} combination parses.
-        const char* paths[] = {".",   "[1]",     "[1 ]",     ".[1]",       ". [1]",
+        const std::array paths{".",   "[1]",     "[1 ]",     ".[1]",       ". [1]",
                                "Foo", "Foo.Bar", "Foo. Bar", "Foo.Bar[1]", "Foo.Bar [1]"};
         for (const char* path : paths)
         {
@@ -127,8 +128,7 @@ namespace
         EXPECT_EQ(try_unbox<int>(std::any{}), std::nullopt);
         EXPECT_EQ(try_unbox<double>(std::any{}), std::nullopt);
         const auto null_ptr = try_unbox<std::shared_ptr<std::string>>(std::any{});
-        ASSERT_TRUE(null_ptr.has_value());
-        EXPECT_EQ(*null_ptr, nullptr);
+        EXPECT_EQ(null_ptr, std::make_optional<std::shared_ptr<std::string>>(nullptr));
         EXPECT_FALSE(box_value(std::shared_ptr<std::string>{}).has_value()); // null boxes as empty any
     }
 
@@ -177,7 +177,9 @@ namespace
         source.text.set("abc");
         const auto boxed = source.try_get_value("text");
         ASSERT_TRUE(boxed.has_value());
-        EXPECT_EQ(std::any_cast<std::string>(*boxed), "abc");
+        // value_or, not value(): the optional-access check cannot see through the gtest ASSERT
+        // guard; an empty any would still fail loudly via bad_any_cast.
+        EXPECT_EQ(std::any_cast<std::string>(boxed.value_or(std::any{})), "abc");
         EXPECT_EQ(source.try_get_value("missing"), std::nullopt);
         EXPECT_TRUE(source.has_property("text"));
         EXPECT_FALSE(source.has_property("missing"));
@@ -210,7 +212,7 @@ namespace
         EXPECT_EQ(source.property_is_read_only("text"), false);
         const auto def = source.property_default_value("count");
         ASSERT_TRUE(def.has_value());
-        EXPECT_EQ(std::any_cast<int>(*def), 7);
+        EXPECT_EQ(std::any_cast<int>(def.value_or(std::any{})), 7);
         EXPECT_EQ(source.property_default_binding_mode("missing"), std::nullopt);
     }
 

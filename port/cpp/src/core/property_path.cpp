@@ -2,6 +2,7 @@
 // A 1:1 port of BindingExpression.ParsePath (src/Controls/src/Core/BindingExpression.cs).
 #include "maui/core/property_path.hpp"
 
+#include <cstddef>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -13,11 +14,11 @@ namespace maui::core
     {
         [[nodiscard]] std::string_view trim(std::string_view text)
         {
-            while (!text.empty() && (std::string_view(" \t\r\n").find(text.front()) != std::string_view::npos))
+            while (!text.empty() && std::string_view(" \t\r\n").contains(text.front()))
             {
                 text.remove_prefix(1);
             }
-            while (!text.empty() && (std::string_view(" \t\r\n").find(text.back()) != std::string_view::npos))
+            while (!text.empty() && std::string_view(" \t\r\n").contains(text.back()))
             {
                 text.remove_suffix(1);
             }
@@ -52,7 +53,8 @@ namespace maui::core
         while (start <= p.size())
         {
             const std::size_t dot = p.find('.', start);
-            std::string_view segment = (dot == std::string_view::npos) ? p.substr(start) : p.substr(start, dot - start);
+            const std::string_view segment =
+                (dot == std::string_view::npos) ? p.substr(start) : p.substr(start, dot - start);
             std::string_view piece = trim(segment);
             if (piece.empty())
             {

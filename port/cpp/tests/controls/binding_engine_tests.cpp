@@ -7,9 +7,15 @@
 #include "maui/controls/bindings/binding.hpp"
 
 #include <any>
+#include <array>
+#include <cstddef>
+#include <functional>
+#include <map>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "maui/controls/bindings/binding_base.hpp"
@@ -94,6 +100,11 @@ namespace
             property_changed.raise("Indexer[" + std::string{index} + "]");
             return true;
         }
+        [[nodiscard]] std::shared_ptr<maui::core::bindable_object> try_get_item_object(
+            std::string_view index) const override
+        {
+            return i_indexable::try_get_item_object(index); // the default: items are leaves
+        }
         void set_item(std::size_t index, std::string value)
         {
             (void)try_set_item(std::to_string(index), std::any{std::move(value)});
@@ -110,7 +121,7 @@ namespace
             {
                 return std::nullopt;
             }
-            const std::size_t slot = static_cast<std::size_t>(index.front() - '0');
+            const auto slot = static_cast<std::size_t>(index.front() - '0');
             return slot < 5 ? std::optional<std::size_t>{slot} : std::nullopt;
         }
         std::array<std::string, 5> values_;
@@ -287,7 +298,7 @@ namespace
 
     TEST(binding_engine, change_binding_after_apply_throws)
     {
-        failure_log log;
+        failure_log const log;
         auto vm = std::make_shared<mock_view_model>();
         vm->text.set("Bar");
         mock_bindable target;
@@ -344,7 +355,7 @@ namespace
         {
             for (const bool use_default : {true, false})
             {
-                failure_log log;
+                failure_log const log;
                 auto vm = std::make_shared<mock_view_model>();
                 vm->text.set("Foo");
                 mock_bindable target;
@@ -373,7 +384,7 @@ namespace
         {
             for (const bool use_default : {true, false})
             {
-                failure_log log;
+                failure_log const log;
                 auto vm = std::make_shared<mock_view_model>();
                 mock_bindable target;
                 auto b = std::make_shared<binding>("text", use_default ? binding_mode::default_mode
@@ -401,7 +412,7 @@ namespace
         {
             for (const bool use_default : {true, false})
             {
-                failure_log log;
+                failure_log const log;
                 auto vm = std::make_shared<mock_view_model>();
                 vm->text.set("Foo");
                 mock_bindable target;
@@ -426,7 +437,7 @@ namespace
 
     TEST(binding_engine, value_updated_with_simple_path_on_one_way)
     {
-        failure_log log;
+        failure_log const log;
         auto vm = std::make_shared<mock_view_model>();
         vm->text.set("Foo");
         mock_bindable target;
@@ -441,7 +452,7 @@ namespace
 
     TEST(binding_engine, value_updated_with_simple_path_on_one_way_to_source)
     {
-        failure_log log;
+        failure_log const log;
         auto vm = std::make_shared<mock_view_model>();
         vm->text.set("Foo");
         mock_bindable target;
@@ -460,7 +471,7 @@ namespace
 
     TEST(binding_engine, value_updated_with_simple_path_on_two_way)
     {
-        failure_log log;
+        failure_log const log;
         auto vm = std::make_shared<mock_view_model>();
         vm->text.set("Foo");
         mock_bindable target;
@@ -482,7 +493,7 @@ namespace
         // C# ValueUpdatedWithOldContextDoesNotUpdateWith{OneWay,TwoWay}Binding.
         for (const binding_mode mode : {binding_mode::one_way, binding_mode::two_way})
         {
-            failure_log log;
+            failure_log const log;
             auto vm = std::make_shared<mock_view_model>();
             vm->text.set("Foo");
             mock_bindable target;
@@ -509,7 +520,7 @@ namespace
 
     TEST(binding_engine, binding_stays_on_update_value_from_binding)
     {
-        failure_log log;
+        failure_log const log;
         auto vm = std::make_shared<mock_view_model>();
         vm->text.set("Foo");
         mock_bindable target;
@@ -600,7 +611,7 @@ namespace
     {
         for (const bool context_first : {true, false})
         {
-            failure_log log;
+            failure_log const log;
             auto vm = make_complex_chain("Foo");
             mock_bindable target;
             auto b = std::make_shared<binding>("model.model.text", binding_mode::one_way);
@@ -621,7 +632,7 @@ namespace
 
     TEST(binding_engine, value_set_with_complex_path_one_way_to_source)
     {
-        failure_log log;
+        failure_log const log;
         auto vm = make_complex_chain("");
         mock_bindable target;
         target.set_binding_context(vm);
@@ -633,7 +644,7 @@ namespace
 
     TEST(binding_engine, value_set_with_complex_path_two_way)
     {
-        failure_log log;
+        failure_log const log;
         auto vm = make_complex_chain("Foo");
         mock_bindable target;
         target.set_binding_context(vm);
@@ -651,7 +662,7 @@ namespace
     TEST(binding_engine, value_updated_with_complex_path_intermediate_change)
     {
         // The heart of BindingExpression: an INTERMEDIATE hop swap re-resolves the chain.
-        failure_log log;
+        failure_log const log;
         auto vm = make_complex_chain("Foo");
         mock_bindable target;
         target.set_binding_context(vm);
@@ -667,7 +678,7 @@ namespace
 
     TEST(binding_engine, null_in_path_uses_default_value)
     {
-        failure_log log;
+        failure_log const log;
         auto vm = std::make_shared<complex_mock_view_model>();
         auto mid = std::make_shared<complex_mock_view_model>();
         mid->text.set("mid");
@@ -685,7 +696,7 @@ namespace
 
     TEST(binding_engine, null_context_uses_default_value)
     {
-        failure_log log;
+        failure_log const log;
         auto vm = std::make_shared<complex_mock_view_model>();
         auto mid = std::make_shared<complex_mock_view_model>();
         mid->text.set("vm value");
@@ -703,7 +714,7 @@ namespace
 
     TEST(binding_engine, chained_part_null_logs_nothing)
     {
-        failure_log log;
+        failure_log const log;
         mock_bindable target;
         target.set_binding_context(std::make_shared<complex_mock_view_model>()); // model is null
         target.set_binding("foo", std::make_shared<binding>("model.text"));
@@ -714,7 +725,7 @@ namespace
 
     TEST(binding_engine, value_set_on_one_way_with_indexed_path)
     {
-        failure_log log;
+        failure_log const log;
         auto vm = make_complex_chain("");
         vm->model.get()->model.get()->set_item(1, "Foo");
         mock_bindable target;
@@ -726,7 +737,7 @@ namespace
 
     TEST(binding_engine, value_set_on_one_way_with_self_indexed_path)
     {
-        failure_log log;
+        failure_log const log;
         auto vm = std::make_shared<complex_mock_view_model>();
         vm->set_item(1, "Foo");
         mock_bindable target;
@@ -738,7 +749,7 @@ namespace
 
     TEST(binding_engine, value_updated_with_indexed_path_on_one_way)
     {
-        failure_log log;
+        failure_log const log;
         auto vm = make_complex_chain("");
         vm->model.get()->model.get()->set_item(1, "Foo");
         mock_bindable target;
@@ -752,7 +763,7 @@ namespace
 
     TEST(binding_engine, value_updated_with_indexed_path_on_two_way)
     {
-        failure_log log;
+        failure_log const log;
         auto vm = make_complex_chain("");
         vm->model.get()->model.get()->set_item(1, "Foo");
         mock_bindable target;
@@ -789,6 +800,15 @@ namespace
             values_[std::string{index}] = *text;
             property_changed.raise("Item[" + std::string{index} + "]");
             return true;
+        }
+        [[nodiscard]] std::string_view indexer_name() const override
+        {
+            return i_indexable::indexer_name(); // the default "Item"
+        }
+        [[nodiscard]] std::shared_ptr<maui::core::bindable_object> try_get_item_object(
+            std::string_view index) const override
+        {
+            return i_indexable::try_get_item_object(index); // the default: items are leaves
         }
         void set_item(const std::string& index, std::string value)
         {
@@ -831,7 +851,7 @@ namespace
     {
         for (const bool context_first : {true, false})
         {
-            failure_log log;
+            failure_log const log;
             mock_bindable target;
             auto b = std::make_shared<binding>(".", binding_mode::one_way);
             auto context = std::make_shared<std::string>("value");
@@ -852,7 +872,7 @@ namespace
 
     TEST(binding_engine, value_not_set_on_one_way_to_source_with_self_path)
     {
-        failure_log log;
+        failure_log const log;
         mock_bindable target;
         target.set_binding("to_source", std::make_shared<binding>(".", binding_mode::one_way_to_source));
         EXPECT_EQ(target.to_source.get(), "ows-default"); // target unchanged
@@ -862,7 +882,7 @@ namespace
 
     TEST(binding_engine, value_updated_with_self_path_on_two_way)
     {
-        failure_log log;
+        failure_log const log;
         mock_bindable target;
         target.set_binding_context(std::make_shared<std::string>("value"));
         target.set_binding("text", std::make_shared<binding>(".", binding_mode::two_way));
@@ -891,7 +911,7 @@ namespace
                 return {};
             }
         };
-        failure_log log;
+        failure_log const log;
         mock_bindable target;
         target.set_binding_context(std::make_shared<int>(1));
         target.set_binding("foo", std::make_shared<binding>(".", binding_mode::default_mode,
@@ -904,7 +924,7 @@ namespace
 
     TEST(binding_engine, value_converter)
     {
-        failure_log log;
+        failure_log const log;
         auto vm = std::make_shared<mock_view_model>();
         vm->text.set("1");
         mock_bindable target;
@@ -929,7 +949,7 @@ namespace
                 return std::any{std::to_string(std::any_cast<int>(value))};
             }
         };
-        failure_log log;
+        failure_log const log;
         auto vm = std::make_shared<mock_view_model>();
         mock_bindable target;
         target.target_int.set(1);
@@ -942,7 +962,7 @@ namespace
 
     TEST(binding_engine, value_converter_parameter)
     {
-        failure_log log;
+        failure_log const log;
         auto vm = std::make_shared<mock_view_model>();
         mock_bindable target;
         target.set_binding("foo", std::make_shared<binding>("text", binding_mode::one_way_to_source,
@@ -962,7 +982,7 @@ namespace
         context->text.set("a binding context");
 
         mock_container root;
-        mock_bindable level1;
+        mock_bindable const level1;
         mock_container level1c; // need a container to host level2
         mock_bindable level2;
         level1c.set_binding("foo", std::make_shared<binding>("text", binding_mode::one_way,
@@ -1075,7 +1095,7 @@ namespace
     {
         for (const binding_mode mode : {binding_mode::one_way, binding_mode::one_way_to_source, binding_mode::two_way})
         {
-            failure_log log;
+            failure_log const log;
             mock_bindable target;
             target.set_binding_context(std::make_shared<mock_view_model>());
             target.text.set("foo");
@@ -1089,7 +1109,7 @@ namespace
         struct empty_view_model : bindable_object
         {
         };
-        failure_log log;
+        failure_log const log;
         mock_bindable target;
         target.set_binding_context(std::make_shared<empty_view_model>());
         target.set_binding("foo", std::make_shared<binding>("text"));
@@ -1104,7 +1124,7 @@ namespace
 
     TEST(binding_engine, property_not_found_chained)
     {
-        failure_log log;
+        failure_log const log;
         auto vm = std::make_shared<complex_mock_view_model>();
         vm->model.set(std::make_shared<complex_mock_view_model>());
         mock_bindable target;
@@ -1117,7 +1137,7 @@ namespace
     TEST(binding_engine, fail_to_convert_keeps_default)
     {
         // C# FailToConvert: a model object cannot convert to double — the target keeps its default.
-        failure_log log;
+        failure_log const log;
         auto vm = std::make_shared<complex_mock_view_model>();
         vm->model.set(std::make_shared<complex_mock_view_model>());
         mock_bindable target;
@@ -1336,7 +1356,7 @@ namespace
     TEST(binding_engine, convert_two_way_string_double)
     {
         // C# Convert: slider.Value (double, TwoWay) bound to vm.Text (string), invariant culture.
-        failure_log log;
+        failure_log const log;
         auto vm = std::make_shared<mock_view_model>();
         vm->text.set("0.5");
         mock_bindable slider;

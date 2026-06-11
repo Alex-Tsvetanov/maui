@@ -123,7 +123,7 @@ namespace maui::core
         void apply_core(const binding_source_node& source, bool from_target);
         [[nodiscard]] binding_mode realized_mode() const;
         void subscribe_part(std::size_t index, bindable_object& node, std::weak_ptr<void> alive);
-        void unsubscribe_part(runtime_part& part);
+        static void unsubscribe_part(runtime_part& part);
         // The part listener's name filter (C# BindingExpressionPart.PropertyChanged): matches against
         // the NEXT part (or this one), with the "<indexer_name>[<content>]" shape for indexer parts.
         [[nodiscard]] bool name_matches(std::size_t index, std::string_view name) const;

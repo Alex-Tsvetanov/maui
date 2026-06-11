@@ -131,7 +131,7 @@ namespace maui::controls
                                          std::string_view target_property, maui::core::setter_specificity specificity);
         void subscribe_to_ancestry_changes(const std::vector<element*>& chain, bool include_binding_context,
                                            bool root_is_source);
-        void clear_ancestry_subscriptions(std::size_t beginning_with = 0);
+        void clear_ancestry_subscriptions(std::size_t beginning_with = 0) noexcept; // dtor-safe (§8)
         [[nodiscard]] std::ptrdiff_t find_ancestry_index(const element* candidate) const;
         void on_ancestor_parent_set(element& changed);
         void on_ancestor_binding_context_changed();

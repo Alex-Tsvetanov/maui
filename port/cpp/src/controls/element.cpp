@@ -15,7 +15,6 @@
 #include "maui/controls/bindings/binding_base.hpp"
 #include "maui/controls/bindings/binding_diagnostics.hpp"
 #include "maui/controls/resource_dictionary.hpp"
-#include "maui/controls/templates/template_binding.hpp" // dtor: template_bindings_ teardown (W1-09)
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/binding_mode.hpp"
 #include "maui/core/event.hpp"
@@ -42,19 +41,10 @@ namespace maui::controls
     }
 
     // --- runtime bindings (W1-02) -------------------------------------------------------------
+    // (the destructor — binding unapply + template_bindings_ teardown — lives in
+    // element_templates.cpp, where template_binding is a complete type)
 
-    element::~element()
-    {
-        // Deterministic teardown (§8): unapply every binding so source-side subscriptions disconnect
-        // while the sources are still reachable (the C# weak-proxy GC sweep, made explicit). Defined
-        // here (not in element_templates.cpp) with template_binding complete via the include above.
-        for (auto& [name, bound] : bindings_)
-        {
-            bound.binding->unapply();
-        }
-    }
-
-    void element::set_binding(std::string property_name, std::shared_ptr<binding_base> binding)
+    void element::set_binding(const std::string& property_name, std::shared_ptr<binding_base> binding)
     {
         if (!binding)
         {
@@ -98,9 +88,9 @@ namespace maui::controls
                              specificity);
     }
 
-    void element::set_binding(std::string property_name, std::string path, maui::core::binding_mode mode)
+    void element::set_binding(const std::string& property_name, std::string path, maui::core::binding_mode mode)
     {
-        set_binding(std::move(property_name), std::make_shared<class binding>(std::move(path), mode));
+        set_binding(property_name, std::make_shared<class binding>(std::move(path), mode));
     }
 
     void element::remove_binding(std::string_view property_name)

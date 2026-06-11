@@ -267,9 +267,9 @@ namespace maui::controls
         // binding applies its values at from_handler specificity, others at from_binding — and any
         // value currently above from_binding is silently demoted so the first apply replaces it
         // (BindableObject.SetBinding, incl. the dotnet/maui#16849 two-way rules).
-        void set_binding(std::string property_name, std::shared_ptr<binding_base> binding);
+        void set_binding(const std::string& property_name, std::shared_ptr<binding_base> binding);
         // Convenience (the C# string-path SetBinding extension): create + set a path binding.
-        void set_binding(std::string property_name, std::string path,
+        void set_binding(const std::string& property_name, std::string path,
                          maui::core::binding_mode mode = maui::core::binding_mode::default_mode);
         // Unapply + drop the binding on `property_name` (BindableObject.RemoveBinding). The last
         // value the binding applied is kept, like C#.

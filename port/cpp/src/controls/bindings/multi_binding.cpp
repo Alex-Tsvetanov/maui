@@ -17,11 +17,14 @@
 #include <utility>
 #include <vector>
 
+#include "maui/controls/bindings/binding_base.hpp"
 #include "maui/controls/bindings/binding_diagnostics.hpp"
 #include "maui/controls/bindings/i_multi_value_converter.hpp"
 #include "maui/controls/element.hpp"
 #include "maui/core/bindable_property.hpp"
+#include "maui/core/binding_mode.hpp"
 #include "maui/core/property.hpp"
+#include "maui/core/type_tag.hpp"
 
 namespace maui::controls
 {
@@ -259,9 +262,9 @@ namespace maui::controls
                 for (std::size_t i = 0; i < bindings_.size(); ++i)
                 {
                     bindings_[i]->set_relative_source_target_override(target_element);
-                    std::string slot_name = "mb-proxy" + std::to_string(i);
+                    const std::string slot_name = "mb-proxy" + std::to_string(i);
                     proxy_->add_slot(slot_name, default_mode, [this] { on_proxy_changed(); });
-                    proxy_->set_binding(std::move(slot_name), bindings_[i]);
+                    proxy_->set_binding(slot_name, bindings_[i]);
                 }
             }
         }

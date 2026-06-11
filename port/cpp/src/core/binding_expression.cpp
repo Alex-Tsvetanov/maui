@@ -160,7 +160,7 @@ namespace maui::core
                     }
                     if (!last)
                     {
-                        std::shared_ptr<bindable_object> next =
+                        const std::shared_ptr<bindable_object> next =
                             indexable != nullptr ? indexable->try_get_item_object(part.spec.content) : nullptr;
                         hold = next;
                         current.object = next.get();
@@ -180,7 +180,7 @@ namespace maui::core
                     }
                     if (!last)
                     {
-                        std::shared_ptr<bindable_object> next =
+                        const std::shared_ptr<bindable_object> next =
                             exists ? current.object->try_get_object(part.spec.content) : nullptr;
                         hold = next;
                         current.object = next.get();
@@ -338,7 +338,7 @@ namespace maui::core
         const runtime_part& match = parts_[match_index];
         if (match.spec.is_indexer)
         {
-            if (name.find('[') != std::string_view::npos)
+            if (name.contains('['))
             {
                 return name == match.indexer_name + "[" + match.spec.content + "]";
             }

@@ -37,10 +37,9 @@ namespace maui::core
         virtual ~i_indexable() = default;
 
         // The name change notifications use ("Item" unless the type declares otherwise — [IndexerName]).
-        [[nodiscard]] virtual std::string_view indexer_name() const
-        {
-            return "Item";
-        }
+        // PURE like every i_* contract (PROFILE §4) — the C# defaults live in the out-of-line
+        // definitions below; an implementer keeps them with `return i_indexable::indexer_name();`.
+        [[nodiscard]] virtual std::string_view indexer_name() const = 0;
 
         // The item at `index`, boxed; nullopt when the index isn't present.
         [[nodiscard]] virtual std::optional<std::any> try_get_item(std::string_view index) const = 0;
@@ -49,10 +48,18 @@ namespace maui::core
         virtual bool try_set_item(std::string_view index, const std::any& value) = 0;
 
         // The item as a walkable bindable_object node (for an indexer mid-path), or null.
-        [[nodiscard]] virtual std::shared_ptr<bindable_object> try_get_item_object(std::string_view index) const
-        {
-            (void)index;
-            return nullptr;
-        }
+        [[nodiscard]] virtual std::shared_ptr<bindable_object> try_get_item_object(std::string_view index) const = 0;
     };
+
+    // The C# defaults ([IndexerName] absent -> "Item"; an item is not itself a walkable node),
+    // callable through a qualified call from an implementer's override.
+    inline std::string_view i_indexable::indexer_name() const
+    {
+        return "Item";
+    }
+
+    inline std::shared_ptr<bindable_object> i_indexable::try_get_item_object(std::string_view /*index*/) const
+    {
+        return nullptr;
+    }
 } // namespace maui::core

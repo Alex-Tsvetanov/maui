@@ -5,6 +5,7 @@
 // Changed — the ancestry chain is per-application state, so it lives on the binding here).
 #include "maui/controls/bindings/binding.hpp"
 
+#include <algorithm>
 #include <any>
 #include <cctype>
 #include <cstddef>
@@ -17,8 +18,13 @@
 
 #include "maui/controls/bindings/binding_diagnostics.hpp"
 #include "maui/controls/bindings/i_value_converter.hpp"
+#include "maui/controls/bindings/relative_binding_source.hpp"
 #include "maui/controls/element.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/binding_expression.hpp"
+#include "maui/core/binding_mode.hpp"
+#include "maui/core/setter_specificity.hpp"
+#include "maui/core/type_tag.hpp"
 
 namespace maui::controls
 {
@@ -26,14 +32,7 @@ namespace maui::controls
     {
         [[nodiscard]] bool is_blank(std::string_view text)
         {
-            for (const char c : text)
-            {
-                if (std::isspace(static_cast<unsigned char>(c)) == 0)
-                {
-                    return false;
-                }
-            }
-            return true;
+            return std::ranges::all_of(text, [](char c) { return std::isspace(static_cast<unsigned char>(c)) != 0; });
         }
     } // namespace
 
@@ -227,7 +226,7 @@ namespace maui::controls
         std::vector<element*> chain{&relative_target};
         int level = 0;
         const void* last_matching_context = nullptr;
-        element* current = &relative_target;
+        element const* current = &relative_target;
         while (true)
         {
             element* parent = current->logical_parent();
@@ -301,11 +300,11 @@ namespace maui::controls
         }
     }
 
-    void binding::clear_ancestry_subscriptions(std::size_t beginning_with)
+    void binding::clear_ancestry_subscriptions(std::size_t beginning_with) noexcept
     {
         for (std::size_t i = beginning_with; i < ancestry_.size(); ++i)
         {
-            ancestry_subscription& subscription = ancestry_[i];
+            ancestry_subscription const& subscription = ancestry_[i];
             if (subscription.node != nullptr && !subscription.alive.expired())
             {
                 if (subscription.parent_token != 0)
@@ -318,7 +317,9 @@ namespace maui::controls
                 }
             }
         }
-        ancestry_.resize(beginning_with);
+        // erase, not resize: resize's visible grow branch reads as a may-throw to the
+        // exception-escape analysis; shrinking only destroys (noexcept).
+        ancestry_.erase(ancestry_.begin() + static_cast<std::ptrdiff_t>(beginning_with), ancestry_.end());
     }
 
     std::ptrdiff_t binding::find_ancestry_index(const element* candidate) const

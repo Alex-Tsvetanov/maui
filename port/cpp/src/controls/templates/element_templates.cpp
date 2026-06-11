@@ -6,6 +6,7 @@
 
 #include <utility>
 
+#include "maui/controls/bindings/binding_base.hpp" // dtor: the runtime-binding teardown (W1-02)
 #include "maui/controls/templates/content_presenter.hpp"
 #include "maui/controls/templates/i_control_templated.hpp"
 #include "maui/controls/templates/template_binding.hpp"
@@ -13,7 +14,18 @@
 namespace maui::controls
 {
     element::element() = default; // out-of-line: template_bindings_ needs the complete type here
-    // (the destructor lives in element.cpp — it also unapplies the runtime bindings, W1-02)
+
+    element::~element()
+    {
+        // Deterministic teardown (§8): unapply every runtime binding (W1-02) so source-side
+        // subscriptions disconnect while the sources are still reachable (the C# weak-proxy GC
+        // sweep, made explicit). Lives here so template_bindings_'s vector teardown sees the
+        // complete template_binding type (the header only forward-declares it).
+        for (auto& [name, bound] : bindings_)
+        {
+            bound.binding->unapply();
+        }
+    }
 
     element* element::find_templated_parent() const
     {

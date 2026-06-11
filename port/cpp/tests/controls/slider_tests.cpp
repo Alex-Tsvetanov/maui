@@ -12,6 +12,7 @@
 #include "maui/core/slider_handler.hpp"
 #include "maui/graphics/color.hpp"
 #include <gtest/gtest.h>
+#include <utility>
 
 namespace
 {
