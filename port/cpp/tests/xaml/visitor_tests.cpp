@@ -720,8 +720,11 @@ namespace
     TEST(apply_properties_visitor, app_theme_binding_applies_and_reapplies_on_theme_change)
     {
         // AppThemeBinding.Apply/ApplyCore: the picked slot now, re-applied on RequestedThemeChanged.
-        auto context = make_context();
+        // The app outlives the context: the context's theme subscriptions are non-owning borrows
+        // that must disconnect while the application's event is still alive (the same teardown
+        // order xaml_load_result pins by member order) — ASan-verified.
         controls::application app;
+        auto context = make_context();
         context.application = &app;
         controls::label label;
         (void)load_into(context, label, R"xml(
