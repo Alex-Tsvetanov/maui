@@ -44,7 +44,7 @@
         return;
     }
     auto* view = self.handler->virtual_view();
-    UISlider* const native = (UISlider*)sender;
+    auto* const native = (UISlider*)sender;
     if (view != nullptr && native != nil)
     {
         view->set_value(native.value); // OnControlValueChanged: VirtualView.Value = PlatformView.Value

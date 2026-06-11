@@ -17,7 +17,7 @@ namespace maui::controls
         // nameof(ISwitch.TrackColor))` shared by the IsToggled / OnColor / OffColor callbacks).
         void update_track_color(maui::core::bindable_object& bindable)
         {
-            auto& self = static_cast<toggle_switch&>(bindable); // descriptor owner is always a toggle_switch
+            auto& self = dynamic_cast<toggle_switch&>(bindable); // descriptor owner is always a toggle_switch
             if (const auto& handler = self.handler())
             {
                 handler->update_value("track_color");
@@ -34,7 +34,7 @@ namespace maui::controls
             false,
             {.property_changed =
                  [](maui::core::bindable_object& bindable, const bool& /*old_value*/, const bool& new_value) {
-                     auto& self = static_cast<toggle_switch&>(bindable);
+                     auto& self = dynamic_cast<toggle_switch&>(bindable);
                      self.toggled.raise(new_value);
                      self.change_visual_state();
                      update_track_color(bindable);

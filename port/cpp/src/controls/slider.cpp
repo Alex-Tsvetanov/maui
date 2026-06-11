@@ -41,7 +41,7 @@ namespace maui::controls
             "minimum",
             0.0,
             {.property_changed = [](maui::core::bindable_object& bindable, const double&, const double&) {
-                slider_descriptor_access::recoerce(static_cast<slider&>(bindable));
+                slider_descriptor_access::recoerce(dynamic_cast<slider&>(bindable));
             }}};
         return descriptor;
     }
@@ -52,7 +52,7 @@ namespace maui::controls
             "maximum",
             1.0,
             {.property_changed = [](maui::core::bindable_object& bindable, const double&, const double&) {
-                slider_descriptor_access::recoerce(static_cast<slider&>(bindable));
+                slider_descriptor_access::recoerce(dynamic_cast<slider&>(bindable));
             }}};
         return descriptor;
     }
@@ -66,11 +66,11 @@ namespace maui::controls
             0.0,
             {.property_changed =
                  [](maui::core::bindable_object& bindable, const double& old_value, const double& new_value) {
-                     static_cast<slider&>(bindable).value_changed.raise(old_value, new_value);
+                     dynamic_cast<slider&>(bindable).value_changed.raise(old_value, new_value);
                  },
              .coerce_value =
                  [](maui::core::bindable_object& bindable, const double& value) {
-                     return slider_descriptor_access::coerce_value(static_cast<slider&>(bindable), value);
+                     return slider_descriptor_access::coerce_value(dynamic_cast<slider&>(bindable), value);
                  },
              .default_binding_mode = maui::core::binding_mode::two_way}};
         return descriptor;

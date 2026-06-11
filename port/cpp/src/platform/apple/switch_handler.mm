@@ -43,7 +43,7 @@
         return;
     }
     auto* view = self.handler->virtual_view();
-    NSSwitch* const native = (NSSwitch*)sender;
+    auto* const native = (NSSwitch*)sender;
     if (view != nullptr && native != nil)
     {
         const bool native_on = native.state == NSControlStateValueOn;

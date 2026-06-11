@@ -45,7 +45,7 @@
         return;
     }
     auto* view = self.handler->virtual_view();
-    NSButton* const native = (NSButton*)sender;
+    auto* const native = (NSButton*)sender;
     if (view != nullptr && native != nil)
     {
         const bool native_checked = native.state == NSControlStateValueOn;

@@ -109,7 +109,7 @@ namespace
         return;
     }
     auto* view = self.handler->virtual_view();
-    UIStepper* const native = (UIStepper*)sender;
+    auto* const native = (UIStepper*)sender;
     if (view == nullptr || native == nil)
     {
         return;

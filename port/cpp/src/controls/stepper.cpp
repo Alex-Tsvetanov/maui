@@ -68,10 +68,10 @@ namespace maui::controls
             0.0,
             {.property_changed =
                  [](maui::core::bindable_object& bindable, const double&, const double&) {
-                     stepper_descriptor_access::recoerce(static_cast<stepper&>(bindable));
+                     stepper_descriptor_access::recoerce(dynamic_cast<stepper&>(bindable));
                  },
              .validate_value = [](maui::core::bindable_object& bindable,
-                                  const double& value) { return value <= static_cast<stepper&>(bindable).maximum(); }}};
+                                  const double& value) { return value <= dynamic_cast<stepper&>(bindable).maximum(); }}};
         return descriptor;
     }
 
@@ -83,10 +83,10 @@ namespace maui::controls
             100.0,
             {.property_changed =
                  [](maui::core::bindable_object& bindable, const double&, const double&) {
-                     stepper_descriptor_access::recoerce(static_cast<stepper&>(bindable));
+                     stepper_descriptor_access::recoerce(dynamic_cast<stepper&>(bindable));
                  },
              .validate_value = [](maui::core::bindable_object& bindable,
-                                  const double& value) { return value >= static_cast<stepper&>(bindable).minimum(); }}};
+                                  const double& value) { return value >= dynamic_cast<stepper&>(bindable).minimum(); }}};
         return descriptor;
     }
 
@@ -99,11 +99,11 @@ namespace maui::controls
             0.0,
             {.property_changed =
                  [](maui::core::bindable_object& bindable, const double& old_value, const double& new_value) {
-                     static_cast<stepper&>(bindable).value_changed.raise(old_value, new_value);
+                     dynamic_cast<stepper&>(bindable).value_changed.raise(old_value, new_value);
                  },
              .coerce_value =
                  [](maui::core::bindable_object& bindable, const double& value) {
-                     return stepper_descriptor_access::coerce_value(static_cast<stepper&>(bindable), value);
+                     return stepper_descriptor_access::coerce_value(dynamic_cast<stepper&>(bindable), value);
                  },
              .default_binding_mode = maui::core::binding_mode::two_way}};
         return descriptor;
@@ -116,7 +116,7 @@ namespace maui::controls
             "increment",
             1.0,
             {.property_changed = [](maui::core::bindable_object& bindable, const double&, const double& new_value) {
-                stepper_descriptor_access::update_digits(static_cast<stepper&>(bindable), new_value);
+                stepper_descriptor_access::update_digits(dynamic_cast<stepper&>(bindable), new_value);
             }}};
         return descriptor;
     }

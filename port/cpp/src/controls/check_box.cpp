@@ -30,7 +30,7 @@ namespace maui::controls
             false,
             {.property_changed =
                  [](maui::core::bindable_object& bindable, const bool& /*old_value*/, const bool& new_value) {
-                     auto& self = static_cast<check_box&>(bindable); // descriptor owner is always a check_box
+                     auto& self = dynamic_cast<check_box&>(bindable); // descriptor owner is always a check_box
                      if (const auto& handler = self.handler())
                      {
                          handler->update_value("foreground");
@@ -55,7 +55,7 @@ namespace maui::controls
             maui::graphics::color{},
             {.property_changed = [](maui::core::bindable_object& bindable, const maui::graphics::color&,
                                     const maui::graphics::color&) {
-                auto& self = static_cast<check_box&>(bindable);
+                auto& self = dynamic_cast<check_box&>(bindable);
                 check_box_descriptor_access::refresh_foreground(self);
                 if (const auto& handler = self.handler())
                 {

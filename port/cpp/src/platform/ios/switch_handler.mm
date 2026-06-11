@@ -42,7 +42,7 @@
         return;
     }
     auto* view = self.handler->virtual_view();
-    UISwitch* const native = (UISwitch*)sender;
+    auto* const native = (UISwitch*)sender;
     if (view != nullptr && native != nil && view->is_on() != static_cast<bool>(native.on))
     {
         view->set_is_on(native.on);

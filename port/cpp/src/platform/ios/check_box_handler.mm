@@ -159,7 +159,7 @@ namespace
     UIGraphicsImageRenderer* const renderer =
         [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(k_default_size, k_default_size)];
     return [renderer imageWithActions:^(UIGraphicsImageRendererContext* ctx) {
-      CGContextRef const context = ctx.CGContext;
+      CGContextRef context = ctx.CGContext; // CGContextRef is itself a pointer typedef (no const slot)
       CGContextSaveGState(context);
       const CGFloat padding = k_line_width / 2;
       const CGFloat diameter = k_default_size - k_line_width;
@@ -325,7 +325,7 @@ namespace maui::core
         // CheckBoxHandler.iOS.ConnectHandler: subscribe CheckedChanged → write the native state back
         // (OnCheckedChanged: VirtualView.IsChecked = platformView.IsChecked).
         MauiCheckBox* const native = as_check_box(platform.native);
-        check_box_handler* const handler = this;
+        const check_box_handler* const handler = this; // the block only reads through the handler
         native.onCheckedChanged = ^{
           auto* view = handler->virtual_view();
           auto* platform_view = handler->typed_platform_view();

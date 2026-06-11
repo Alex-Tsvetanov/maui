@@ -85,7 +85,7 @@
         return;
     }
     auto* view = self.handler->virtual_view();
-    NSSlider* const native = (NSSlider*)sender;
+    auto* const native = (NSSlider*)sender;
     if (view != nullptr && native != nil)
     {
         view->set_value(native.doubleValue);

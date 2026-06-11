@@ -228,6 +228,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/stepper_handler.mm
     src/platform/apple/editor_handler.mm
     src/platform/apple/search_bar_handler.mm
+    src/platform/apple/progress_bar_handler.mm
+    src/platform/apple/activity_indicator_handler.mm
     src/platform/apple/image_handler.mm
     src/platform/apple/image_source_services.mm
     src/platform/apple/layout_handler.mm
@@ -260,6 +262,8 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     src/platform/ios/stepper_handler.mm
     src/platform/ios/editor_handler.mm
     src/platform/ios/search_bar_handler.mm
+    src/platform/ios/progress_bar_handler.mm
+    src/platform/ios/activity_indicator_handler.mm
     src/platform/ios/image_handler.mm
     src/platform/ios/image_source_services.mm
     src/platform/ios/layout_handler.mm
@@ -287,6 +291,8 @@ else()
     src/platform/headless/stepper_handler.cpp
     src/platform/headless/editor_handler.cpp
     src/platform/headless/search_bar_handler.cpp
+    src/platform/headless/progress_bar_handler.cpp
+    src/platform/headless/activity_indicator_handler.cpp
     src/platform/headless/image_handler.cpp
     src/platform/headless/image_source_services.cpp
     src/platform/headless/layout_handler.cpp
@@ -319,6 +325,8 @@ add_library(maui_core STATIC
   src/core/stepper_handler.cpp
   src/core/editor_handler.cpp
   src/core/search_bar_handler.cpp
+  src/core/progress_bar_handler.cpp
+  src/core/activity_indicator_handler.cpp
   src/core/image_handler.cpp
   src/core/image_source_loader.cpp
   src/core/image_source_service_registry.cpp
@@ -518,6 +526,8 @@ add_library(maui_controls STATIC
   src/controls/stepper.cpp
   src/controls/editor.cpp
   src/controls/search_bar.cpp
+  src/controls/progress_bar.cpp
+  src/controls/activity_indicator.cpp
   src/controls/image.cpp
   src/controls/file_image_source.cpp
   src/controls/vertical_stack_layout.cpp
@@ -563,6 +573,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/stepper_apple_tests.mm
     tests/controls/editor_apple_tests.mm
     tests/controls/search_bar_apple_tests.mm
+    tests/controls/progress_bar_apple_tests.mm
+    tests/controls/activity_indicator_apple_tests.mm
     tests/controls/image_apple_tests.mm
     tests/controls/font_image_source_apple_tests.mm
     tests/controls/layout_apple_tests.mm
@@ -571,6 +583,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/navigation_page_apple_tests.mm
     tests/controls/window_apple_tests.mm
     tests/controls/window_handler_tests.cpp # the portable seam mirrors (real NSWindow behind them here)
+    tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
     tests/controls/style_tests.cpp   # backend-agnostic; compiled as C++ within the apple test exe
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
@@ -603,6 +616,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/stepper_apple_tests.mm
     tests/controls/editor_apple_tests.mm
     tests/controls/search_bar_apple_tests.mm
+    tests/controls/progress_bar_apple_tests.mm
+    tests/controls/activity_indicator_apple_tests.mm
     tests/controls/image_apple_tests.mm
     tests/controls/font_image_source_apple_tests.mm
     tests/controls/layout_apple_tests.mm
@@ -633,6 +648,8 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/stepper_ios_tests.mm
     tests/controls/editor_ios_tests.mm
     tests/controls/search_bar_ios_tests.mm
+    tests/controls/progress_bar_ios_tests.mm
+    tests/controls/activity_indicator_ios_tests.mm
     tests/controls/image_ios_tests.mm
     tests/controls/font_image_source_ios_tests.mm
     tests/controls/image_sources_ios_tests.mm
@@ -643,6 +660,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/window_ios_tests.mm)
   add_executable(maui_controls_tests
     ${MAUI_IOS_TEST_MM_SOURCES}
+    tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
     tests/controls/style_tests.cpp
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
@@ -673,6 +691,9 @@ else()
     tests/controls/stepper_tests.cpp
     tests/controls/editor_tests.cpp
     tests/controls/search_bar_tests.cpp
+    tests/controls/progress_bar_tests.cpp
+    tests/controls/activity_indicator_tests.cpp
+    tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
     tests/controls/image_tests.cpp
     tests/controls/layout_tests.cpp
     tests/controls/grid_tests.cpp

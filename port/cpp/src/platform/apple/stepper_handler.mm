@@ -40,7 +40,7 @@
         return;
     }
     auto* view = self.handler->virtual_view();
-    NSStepper* const native = (NSStepper*)sender;
+    auto* const native = (NSStepper*)sender;
     if (view != nullptr && native != nil)
     {
         view->set_value(native.doubleValue);
