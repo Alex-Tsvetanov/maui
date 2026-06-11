@@ -298,6 +298,7 @@ else()
     src/platform/headless/layout_handler.cpp
     src/platform/headless/content_page_handler.cpp
     src/platform/headless/navigation_page_handler.cpp
+    src/platform/headless/web_view_handler.cpp
     src/platform/headless/window_handler.cpp
     # (W1-14 animations) the deterministic manual_ticker is the headless platform ticker.
     src/platform/headless/platform_ticker.cpp)
@@ -338,6 +339,8 @@ add_library(maui_core STATIC
   src/core/layout_z_order.cpp
   src/core/content_page_handler.cpp
   src/core/navigation_page_handler.cpp
+  src/core/web_view_handler.cpp
+  src/core/web_view_helper.cpp
   src/core/window_handler.cpp
   src/core/grid_length.cpp
   # (W1-14 animations) maui::animations <= Microsoft.Maui.Animations (the Core animation engine).
@@ -535,6 +538,9 @@ add_library(maui_controls STATIC
   src/controls/grid.cpp
   src/controls/content_page.cpp
   src/controls/navigation_page.cpp
+  src/controls/web_view.cpp
+  src/controls/url_web_view_source.cpp
+  src/controls/html_web_view_source.cpp
   src/controls/style.cpp
   src/controls/resource_dictionary.cpp
   src/controls/merged_style.cpp
@@ -699,6 +705,8 @@ else()
     tests/controls/grid_tests.cpp
     tests/controls/content_page_tests.cpp
     tests/controls/navigation_page_tests.cpp
+    tests/controls/web_view_tests.cpp
+    tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
     tests/controls/style_tests.cpp
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
