@@ -347,6 +347,15 @@ else()
     src/platform/headless/window_handler.cpp
     # (W1-14 animations) the deterministic manual_ticker is the headless platform ticker.
     src/platform/headless/platform_ticker.cpp)
+  if(MAUI_BACKEND STREQUAL "android")
+    # M-android per-control fan-out (unit 28): the JNI partial REPLACES the headless one control by
+    # control, exactly how the ios .mm partials displaced their headless twins. The android partial
+    # keeps the headless mirrors live (the pure-native cross-platform suite runs on the emulator
+    # WITHOUT a Java VM) and additionally drives the real android.widget view when a VM + app
+    # context exist (the widget test host / a real app host).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/button_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/button_handler.cpp)
+  endif()
 endif()
 
 add_library(maui_core STATIC
@@ -440,6 +449,15 @@ if(MAUI_BACKEND STREQUAL "ios")
     "-framework ImageIO" "-framework CoreGraphics" "-framework WebKit" objc)
   target_compile_definitions(maui_core PUBLIC MAUI_PLATFORM_IOS)
 endif()
+# The android twin of the two blocks above: MAUI_PLATFORM_ANDROID (PUBLIC, the same ODR rule)
+# selects the android update_* override blocks in the shared platform structs for every TU of the
+# build; the JNI seam headers (src/platform/android/jni) are PRIVATE — only the android partials
+# reach them (jni.h itself comes from the NDK sysroot, no extra link library needed: every JNI call
+# goes through the JNIEnv*/JavaVM* function tables).
+if(MAUI_BACKEND STREQUAL "android")
+  target_compile_definitions(maui_core PUBLIC MAUI_PLATFORM_ANDROID)
+  target_include_directories(maui_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/android)
+endif()
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
@@ -497,9 +515,13 @@ if(MAUI_BACKEND STREQUAL "android")
   # of maui_discover_tests.
   add_library(maui_android_widget_tests SHARED
     src/platform/android/testhost/test_host.cpp
-    tests/platform/android_widget_tests.cpp)
+    tests/platform/android_widget_tests.cpp
+    # (unit 28) the button Rosetta: the real control + handler drive a real android.widget.Button
+    # both directions (property pushes read back over JNI; performClick → clicked). Links
+    # maui_controls so the cross-platform seam is the one under test.
+    tests/platform/android_button_tests.cpp)
   target_include_directories(maui_android_widget_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/android)
-  target_link_libraries(maui_android_widget_tests PRIVATE GTest::gtest maui_sanitizers)
+  target_link_libraries(maui_android_widget_tests PRIVATE GTest::gtest maui_controls maui_sanitizers)
   if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     set_target_properties(maui_android_widget_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
   endif()

@@ -98,6 +98,23 @@ namespace maui::core
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_ANDROID
+        // Android backend (M-android fan-out, unit 28): push the four fundamental IView properties
+        // plus Background to the real android.widget.Button over JNI (defined in
+        // src/platform/android/button_handler.cpp). Background joins the four here because the
+        // android button's stroke/corner-radius land in the same GradientDrawable the background
+        // color fills (ButtonExtensions.UpdateButtonBackground). Each override calls the
+        // view_platform_base body FIRST — the android preset also runs the pure-native
+        // cross-platform suite on the emulator WITHOUT a Java VM, and that suite observes the
+        // headless mirrors — then pushes to the widget when one exists. The remaining generic-IView
+        // pushes keep the base mirrors for now (the android fan-out's shared view-op units).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
     };
 
     class button_handler : public view_handler<button_handler, i_button, button_platform>

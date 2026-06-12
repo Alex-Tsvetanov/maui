@@ -14,6 +14,7 @@
 
 #include <gtest/gtest.h>
 
+#include "jni/app_context.hpp"
 #include "jni/jni_env.hpp"
 #include "jni/jni_ref.hpp"
 #include "jni/jni_string.hpp"
@@ -46,8 +47,11 @@ extern "C" JNIEXPORT jint JNICALL Java_dev_mauicpp_testhost_Bootstrap_nativeRun(
         android::set_java_vm(vm); // global_ref teardown + scoped_env need it
     }
     // Pin the bootstrap's themed Context for the process lifetime (the host exits via System.exit
-    // right after this returns, so the reference is deliberately never released).
+    // right after this returns, so the reference is deliberately never released). It doubles as the
+    // process-wide app context the android handler partials create their widgets from — the test
+    // host plays the role a real app host's Application context registration plays.
     android::testhost::detail::host_context_slot() = env->NewGlobalRef(context);
+    android::set_app_context(android::testhost::detail::host_context_slot());
 
     // Rebuild argc/argv: gtest expects a program name at argv[0]; the Java side forwards only the
     // real arguments. The storage outlives both InitGoogleTest and RUN_ALL_TESTS (same scope).

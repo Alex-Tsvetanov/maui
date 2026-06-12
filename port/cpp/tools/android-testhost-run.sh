@@ -53,15 +53,43 @@ for candidate in "${maui_sdk_root}"/build-tools/*/d8; do
 done
 [[ -n "${d8_bin}" ]] || maui_die "no d8 found under ${maui_sdk_root}/build-tools"
 
+# The compiled sources: the bootstrap itself plus the backend's runtime Java support classes
+# (src/platform/android/java — the dev.mauicpp.* trampolines the JNI handler partials construct,
+# e.g. NativeOnClickListener; the port's twin of C#'s src/Core/AndroidNative maui Java library).
+# The layout coupling (../java relative to the bootstrap) is deliberate: the test host must dex
+# exactly what a real app host would have to ship.
+runtime_java_dir="$(cd "$(dirname "${bootstrap_java}")/.." && pwd)/java"
+java_sources=("${bootstrap_java}")
+if [[ -d "${runtime_java_dir}" ]]; then
+  for java_source in "${runtime_java_dir}"/*.java; do
+    [[ -f "${java_source}" ]] && java_sources+=("${java_source}")
+  done
+fi
+
 dex_dir="$(dirname "${test_so}")/android-testhost"
 dex_file="${dex_dir}/classes.dex"
-if [[ ! -f "${dex_file}" || "${bootstrap_java}" -nt "${dex_file}" ]]; then
+dex_stale=0
+if [[ ! -f "${dex_file}" ]]; then
+  dex_stale=1
+else
+  for java_source in "${java_sources[@]}"; do
+    [[ "${java_source}" -nt "${dex_file}" ]] && dex_stale=1
+  done
+fi
+if [[ "${dex_stale}" -eq 1 ]]; then
+  rm -rf "${dex_dir}/classes"
   mkdir -p "${dex_dir}/classes"
-  "${javac_bin}" --release 17 -classpath "${android_jar}" -d "${dex_dir}/classes" "${bootstrap_java}" >&2
-  # Every emitted .class, not just Bootstrap.class — a future lambda/inner class in the bootstrap
-  # would otherwise silently miss the dex and NoClassDefFoundError on the device.
+  "${javac_bin}" --release 17 -classpath "${android_jar}" -d "${dex_dir}/classes" "${java_sources[@]}" >&2
+  # Every emitted .class anywhere under classes/ (the runtime classes live outside the testhost
+  # package, and a future lambda/inner class would otherwise silently miss the dex and
+  # NoClassDefFoundError on the device).
+  class_files=()
+  while IFS= read -r -d '' class_file; do
+    class_files+=("${class_file}")
+  done < <(find "${dex_dir}/classes" -name '*.class' -print0)
+  [[ "${#class_files[@]}" -gt 0 ]] || maui_die "javac emitted no classes under ${dex_dir}/classes"
   "${d8_bin}" --release --lib "${android_jar}" --min-api 34 --output "${dex_dir}" \
-    "${dex_dir}/classes/dev/mauicpp/testhost/"*.class >&2
+    "${class_files[@]}" >&2
   [[ -f "${dex_file}" ]] || maui_die "d8 produced no classes.dex in ${dex_dir}"
 fi
 

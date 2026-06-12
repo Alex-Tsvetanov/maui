@@ -59,6 +59,36 @@ namespace maui::platform::android
             return method_impl(env, class_name, name, signature, /*is_static=*/true);
         }
 
+        // Instance field id ("F", "I", …), resolved through the pinned class; nullptr if the class
+        // or the field is missing. jfieldID values share jmethodID's validity rule (valid while the
+        // class is not unloaded — guaranteed by the pinned jclass), so the same memoization applies.
+        [[nodiscard]] jfieldID field(JNIEnv* env, const char* class_name, const char* name, const char* signature)
+        {
+            jclass owner = find_class(env, class_name);
+            if (owner == nullptr)
+            {
+                return nullptr;
+            }
+            std::string key{class_name};
+            key += '.'; // distinct from the '#'/'$' method keys — fields live in the same map space
+            key += name;
+            key += signature;
+            const std::scoped_lock lock(mutex_);
+            const auto memoized = fields_.find(key);
+            if (memoized != fields_.end())
+            {
+                return memoized->second;
+            }
+            jfieldID id = env->GetFieldID(owner, name, signature);
+            if (id == nullptr)
+            {
+                env->ExceptionClear(); // NoSuchFieldError -> nullptr, no pending state
+                return nullptr;
+            }
+            fields_.emplace(std::move(key), id);
+            return id;
+        }
+
     private:
         [[nodiscard]] jmethodID method_impl(JNIEnv* env, const char* class_name, const char* name,
                                             const char* signature, bool is_static)
@@ -92,6 +122,7 @@ namespace maui::platform::android
         std::mutex mutex_;
         std::unordered_map<std::string, global_ref<jclass>> classes_;
         std::unordered_map<std::string, jmethodID> methods_;
+        std::unordered_map<std::string, jfieldID> fields_;
     };
 
     // The process-wide cache instance (the backend's handlers and the test host share it).
