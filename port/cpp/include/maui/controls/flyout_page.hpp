@@ -136,7 +136,7 @@ namespace maui::controls
 
         // The FlyoutPage-level back-press branch (C# OnBackButtonPressed's BackButtonPressed event leg;
         // the Flyout/Detail SendBackButtonPressed legs are deferred — header note).
-        bool send_back_button_pressed();
+        bool send_back_button_pressed() const;
 
         // ---- page lifecycle (FlyoutPage.OnAppearing/OnDisappearing — panes first, then this page) ----
         void send_appearing() override;

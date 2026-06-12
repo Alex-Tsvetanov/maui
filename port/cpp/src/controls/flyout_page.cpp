@@ -10,6 +10,7 @@
 #include <string_view>
 
 #include "maui/controls/content_page.hpp"
+#include "maui/controls/flyout_layout_behavior.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/flyout_page_handler.hpp"
 #include "maui/core/handler_registry.hpp"
@@ -196,7 +197,7 @@ namespace maui::controls
         }
     }
 
-    bool flyout_page::send_back_button_pressed()
+    bool flyout_page::send_back_button_pressed() const
     {
         // C# OnBackButtonPressed: the presented flyout's and the detail's Page.SendBackButtonPressed
         // legs are deferred (no page-level back hook — header note); the FlyoutPage-level

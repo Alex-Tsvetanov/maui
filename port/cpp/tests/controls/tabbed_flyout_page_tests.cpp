@@ -4,6 +4,8 @@
 // status label). Backend-agnostic (no handlers attached); the essentials mocks pin the IsPresented
 // default + the split-mode computation, exactly like the flyout_page suite.
 
+#include "maui/core/event.hpp"
+#include "maui/core/move_only_function.hpp"
 #include "src/samples/pages/tabbed_flyout_page.hpp"
 
 #include <memory>

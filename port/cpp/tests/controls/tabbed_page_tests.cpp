@@ -12,7 +12,7 @@
 
 #include "maui/controls/tabbed_page.hpp"
 
-#include <any>
+#include <cstddef>
 #include <memory>
 #include <optional>
 #include <string>
@@ -22,6 +22,7 @@
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/i_tabbed_view.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/tabbed_page_handler.hpp"
@@ -769,14 +770,11 @@ namespace
         tabs.set_selected_tab_color(maui::graphics::colors::blue);
         tabs.set_unselected_tab_color(maui::graphics::colors::gray);
 
-        ASSERT_TRUE(platform->bar_background_color.has_value());
-        EXPECT_EQ(*platform->bar_background_color, maui::graphics::colors::red);
-        ASSERT_TRUE(platform->bar_text_color.has_value());
-        EXPECT_EQ(*platform->bar_text_color, maui::graphics::colors::white);
-        ASSERT_TRUE(platform->selected_tab_color.has_value());
-        EXPECT_EQ(*platform->selected_tab_color, maui::graphics::colors::blue);
-        ASSERT_TRUE(platform->unselected_tab_color.has_value());
-        EXPECT_EQ(*platform->unselected_tab_color, maui::graphics::colors::gray);
+        // Whole-optional compares: the gtest ASSERT guard is invisible to the optional-access check.
+        EXPECT_EQ(platform->bar_background_color, std::optional(maui::graphics::colors::red));
+        EXPECT_EQ(platform->bar_text_color, std::optional(maui::graphics::colors::white));
+        EXPECT_EQ(platform->selected_tab_color, std::optional(maui::graphics::colors::blue));
+        EXPECT_EQ(platform->unselected_tab_color, std::optional(maui::graphics::colors::gray));
     }
 
     TEST(tabbed_page_handler_seam, items_source_path_hosts_template_pages)

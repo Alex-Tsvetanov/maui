@@ -17,14 +17,15 @@
 #include <string>
 #include <string_view>
 #include <utility>
-#include <vector>
 
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/flyout_layout_behavior.hpp"
 #include "maui/controls/navigation_page.hpp"
 #include "maui/controls/tabbed_page.hpp"
+#include "maui/core/event.hpp"
 #include "maui/core/flyout_behavior.hpp"
 #include "maui/core/flyout_page_handler.hpp"
+#include "maui/core/move_only_function.hpp"
 #include "maui/essentials/device_display.hpp"
 #include "maui/essentials/device_info.hpp"
 #include <gtest/gtest.h>
@@ -389,7 +390,7 @@ namespace
     TEST_F(flyout_page_test, throws_when_adding_already_parented_detail)
     {
         content_page detail;
-        maui::controls::navigation_page nav(detail); // gives detail a parent
+        maui::controls::navigation_page const nav(detail); // gives detail a parent
 
         flyout_page page;
         EXPECT_THROW(page.set_detail(&detail), std::runtime_error);
@@ -399,7 +400,7 @@ namespace
     {
         content_page flyout;
         flyout.set_title("Foo");
-        maui::controls::navigation_page nav(flyout); // gives the flyout a parent
+        maui::controls::navigation_page const nav(flyout); // gives the flyout a parent
 
         flyout_page page;
         EXPECT_THROW(page.set_flyout(&flyout), std::runtime_error);
