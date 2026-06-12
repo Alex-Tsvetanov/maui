@@ -117,6 +117,10 @@ namespace maui::core
         void platform_arrange(const maui::graphics::rect& frame) override;
 
         // ---- per-backend pieces ----
+        // C# ConnectHandler/DisconnectHandler: wire (and tear down) the native scrolled write-back —
+        // the ScrollEventProxy.Connect/Disconnect pair. No-ops on headless.
+        void on_connect_handler(scroll_view_platform& platform);
+        static void on_disconnect_handler(scroll_view_platform& platform);
         // Re-host the content's native view as the scrollable document (C# UpdateContentView).
         void set_content();
         // Push orientation (C# MapOrientation: re-derives the native scroll-ability + invalidates).

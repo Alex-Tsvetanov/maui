@@ -83,6 +83,9 @@ namespace maui::core
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend (src/platform/apple/border_handler.mm): the generic IView pushes onto the
         // NSView host. is_enabled keeps the base mirror (a plain NSView has no enabled state).
+        // update_clip ALSO keeps the base mirror: the border's SHAPE owns the native layer mask (the
+        // *_border_ops install it), so the generic IView.Clip must not clobber it — a Border with an
+        // additional view-level Clip is out of scope (C# applies that clip on a WrapperView above).
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_automation_id(std::string_view value) override;
@@ -90,20 +93,19 @@ namespace maui::core
         void update_flow_direction(maui::core::flow_direction value) override;
         void update_background(const maui::graphics::paint* value) override;
         void update_shadow(const maui::core::i_shadow* value) override;
-        void update_clip(const maui::graphics::i_shape* value) override;
         void update_semantics(const maui::core::semantics* value) override;
         void update_input_transparent(bool value) override;
 #endif
 
 #ifdef MAUI_PLATFORM_IOS
         // iOS backend (src/platform/ios/border_handler.mm): the UIView-host twin. is_enabled and
-        // transform/flow_direction keep the base mirrors (matching the content_page partial's scope).
+        // transform/flow_direction keep the base mirrors (matching the content_page partial's scope);
+        // update_clip keeps the base mirror for the same shape-owns-the-mask reason as on apple.
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_automation_id(std::string_view value) override;
         void update_background(const maui::graphics::paint* value) override;
         void update_shadow(const maui::core::i_shadow* value) override;
-        void update_clip(const maui::graphics::i_shape* value) override;
         void update_semantics(const maui::core::semantics* value) override;
         void update_input_transparent(bool value) override;
 #endif

@@ -236,6 +236,10 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/image_source_services.mm
     src/platform/apple/layout_handler.mm
     src/platform/apple/content_page_handler.mm
+    # (W1-07 containers) the NSView border host (CAShapeLayer stroke via apple_border_ops.hpp) and the
+    # NSScrollView scroller (content_view reuses the content_page partial).
+    src/platform/apple/border_handler.mm
+    src/platform/apple/scroll_view_handler.mm
     src/platform/apple/navigation_page_handler.mm
     # (W1-10 tabbed + flyout pages) NSTabViewController / NSSplitViewController hosts.
     src/platform/apple/tabbed_page_handler.mm
@@ -278,6 +282,10 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     src/platform/ios/image_source_services.mm
     src/platform/ios/layout_handler.mm
     src/platform/ios/content_page_handler.mm
+    # (W1-07 containers) the UIView border host (CAShapeLayer stroke via ios_border_ops.hpp) and the
+    # UIScrollView scroller (content_view reuses the content_page partial).
+    src/platform/ios/border_handler.mm
+    src/platform/ios/scroll_view_handler.mm
     src/platform/ios/navigation_page_handler.mm
     # (W1-10 tabbed + flyout pages) UITabBarController / UISplitViewController child-VC hosts.
     src/platform/ios/tabbed_page_handler.mm
@@ -634,6 +642,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/layout_apple_tests.mm
     tests/controls/grid_apple_tests.mm
     tests/controls/content_page_apple_tests.mm
+    tests/controls/border_apple_tests.mm      # (W1-07 containers)
+    tests/controls/scroll_view_apple_tests.mm # (W1-07 containers)
     tests/controls/navigation_page_apple_tests.mm
     tests/controls/tabbed_page_apple_tests.mm # (W1-10) the real NSTabViewController seam
     tests/controls/flyout_page_apple_tests.mm # (W1-10) the real NSSplitViewController seam
@@ -642,7 +652,9 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/web_view_apple_tests.mm # (W1-08) the real WKWebView seam, run-loop pumped
     tests/controls/window_apple_tests.mm
     tests/controls/window_handler_tests.cpp # the portable seam mirrors (real NSWindow behind them here)
+    tests/controls/content_view_tests.cpp # (W1-07) backend-agnostic: the templated content host over mocks
     tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
+    tests/controls/containers_page_tests.cpp # the W1-07 demo page wiring (backend-agnostic)
     tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
     tests/controls/input_controls_page_tests.cpp # the W1-05 demo page wiring (backend-agnostic)
     tests/controls/tabbed_flyout_page_tests.cpp # the W1-10 demo page wiring (backend-agnostic)
@@ -690,6 +702,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/layout_apple_tests.mm
     tests/controls/grid_apple_tests.mm
     tests/controls/content_page_apple_tests.mm
+    tests/controls/border_apple_tests.mm
+    tests/controls/scroll_view_apple_tests.mm
     tests/controls/navigation_page_apple_tests.mm
     tests/controls/tabbed_page_apple_tests.mm
     tests/controls/flyout_page_apple_tests.mm
@@ -728,6 +742,8 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/layout_ios_tests.mm
     tests/controls/grid_ios_tests.mm
     tests/controls/content_page_ios_tests.mm
+    tests/controls/border_ios_tests.mm      # (W1-07 containers)
+    tests/controls/scroll_view_ios_tests.mm # (W1-07 containers)
     tests/controls/navigation_page_ios_tests.mm
     tests/controls/web_view_ios_tests.mm # (W1-08) the real WKWebView seam, run-loop pumped on-simulator
     tests/controls/tabbed_page_ios_tests.mm # (W1-10) the real UITabBarController child-VC seam
@@ -741,6 +757,8 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
     tests/controls/input_controls_page_tests.cpp # the W1-05 demo page wiring (backend-agnostic)
     tests/controls/tabbed_flyout_page_tests.cpp # the W1-10 demo page wiring (backend-agnostic)
+    tests/controls/containers_page_tests.cpp # the W1-07 demo page wiring (backend-agnostic)
+    tests/controls/content_view_tests.cpp # (W1-07) backend-agnostic: the templated content host over mocks
     tests/controls/style_tests.cpp
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
@@ -779,6 +797,7 @@ else()
     tests/controls/activity_indicator_tests.cpp
     tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
     tests/controls/input_controls_page_tests.cpp # the W1-05 demo page wiring (backend-agnostic)
+    tests/controls/containers_page_tests.cpp # the W1-07 demo page wiring (backend-agnostic)
     tests/controls/image_tests.cpp
     tests/controls/image_button_tests.cpp
     tests/controls/layout_tests.cpp

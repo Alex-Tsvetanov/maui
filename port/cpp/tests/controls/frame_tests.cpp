@@ -11,6 +11,7 @@
 #include "maui/controls/frame.hpp"
 
 #include <memory>
+#include <optional>
 #include <stdexcept>
 
 #include "maui/controls/setter.hpp"
@@ -106,8 +107,8 @@ namespace
         EXPECT_EQ(view.stroke_thickness(), 0.0); // the facade keeps 0 until a BorderColor arrives
 
         view.set_border_color(color(1.0F, 0.0F, 0.0F));
-        ASSERT_TRUE(view.border_color().has_value());
-        EXPECT_EQ(view.border_color().value_or(color{}), color(1.0F, 0.0F, 0.0F));
+        // Compare the whole optional (the analyzer-friendly unchecked-optional pattern).
+        EXPECT_EQ(view.border_color(), std::optional<color>(color(1.0F, 0.0F, 0.0F)));
         ASSERT_NE(view.stroke(), nullptr);
         EXPECT_EQ(view.stroke()->background_color(), color(1.0F, 0.0F, 0.0F));
         EXPECT_EQ(view.stroke_thickness(), 1.0); // IBorderElement.BorderWidth => 1

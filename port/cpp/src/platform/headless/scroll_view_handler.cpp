@@ -26,6 +26,16 @@ namespace maui::core
         return std::make_unique<scroll_view_platform>();
     }
 
+    // The scrolled write-back wiring is native-only (the apple/ios proxies); headless scroll_to writes
+    // the offsets back directly, so connect/disconnect have nothing to do here.
+    void scroll_view_handler::on_connect_handler(scroll_view_platform& /*platform*/)
+    {
+    }
+
+    void scroll_view_handler::on_disconnect_handler(scroll_view_platform& /*platform*/)
+    {
+    }
+
     void scroll_view_handler::set_content()
     {
         auto* platform = typed_platform_view();
