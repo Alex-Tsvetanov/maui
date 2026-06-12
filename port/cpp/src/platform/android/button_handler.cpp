@@ -44,6 +44,7 @@
 #include <jni.h>
 
 #include <array>
+#include <atomic>
 #include <cmath>
 #include <memory>
 #include <string>
@@ -169,10 +170,17 @@ namespace
         return static_cast<jint>(std::ceil((dp * static_cast<double>(density)) - k_to_pixels_epsilon));
     }
 
-    // The widget's display density (Context.getResources().getDisplayMetrics().density — what
-    // ContextExtensions caches as s_displayDensity). 1.0 when any step fails.
+    // The widget's display density (Context.getResources().getDisplayMetrics().density). Memoized
+    // process-wide after the first successful read, exactly like ContextExtensions' s_displayDensity
+    // cache (the JNI walk is four calls; C# caches for the same reason). 1.0 when any step fails
+    // (failures are NOT memoized, so a transient failure does not pin the fallback).
     [[nodiscard]] float display_density(JNIEnv* env, jobject widget)
     {
+        static std::atomic<float> memoized{0.0F}; // 0 = not read yet (a real density is never 0)
+        if (const float cached = memoized.load(std::memory_order_relaxed); cached != 0.0F)
+        {
+            return cached;
+        }
         auto& cache = default_jni_cache();
         jmethodID get_context = cache.method(env, k_button_class, "getContext", "()Landroid/content/Context;");
         jmethodID get_resources =
@@ -201,7 +209,12 @@ namespace
             return 1.0F;
         }
         const jfloat density = env->GetFloatField(metrics.get(), density_field);
-        return clear_pending(env) ? 1.0F : density;
+        if (clear_pending(env) || density == 0.0F)
+        {
+            return 1.0F;
+        }
+        memoized.store(density, std::memory_order_relaxed);
+        return density;
     }
 
     // The maui-managed GradientDrawable carrying background color + stroke + corner radius (the
@@ -366,7 +379,8 @@ namespace maui::core
     void button_platform::update_automation_id(std::string_view value)
     {
         view_platform_base::update_automation_id(value);
-        if (native == nullptr || value.empty()) // ViewExtensions.UpdateAutomationId's IsNullOrWhiteSpace gate
+        // ViewExtensions.UpdateAutomationId's IsNullOrWhiteSpace gate (a blank id is never pushed).
+        if (native == nullptr || value.find_first_not_of(" \t\n\v\f\r") == std::string_view::npos)
         {
             return;
         }

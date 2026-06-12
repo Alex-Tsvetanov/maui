@@ -70,7 +70,7 @@ namespace maui::platform::android
                 return nullptr;
             }
             std::string key{class_name};
-            key += '.'; // distinct from the '#'/'$' method keys — fields live in the same map space
+            key += '.'; // the field-key separator (fields have their own map; '#'/'$' are the method keys)
             key += name;
             key += signature;
             const std::scoped_lock lock(mutex_);
