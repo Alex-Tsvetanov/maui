@@ -61,8 +61,10 @@ namespace maui::controls
         maui::core::event<> disappearing;
 
         // C# Page.SendAppearing: idempotent — sets has_appeared and fires `appearing` once; a second call
-        // while already appeared is a no-op (matching _hasAppeared early-out).
-        void send_appearing()
+        // while already appeared is a no-op (matching _hasAppeared early-out). VIRTUAL (the C#
+        // OnAppearing/OnDisappearing template-method hook collapsed onto the send): a composite page
+        // (flyout_page) overrides to propagate the lifecycle into its panes first, then calls the base.
+        virtual void send_appearing()
         {
             if (has_appeared_)
             {
@@ -73,8 +75,8 @@ namespace maui::controls
         }
 
         // C# Page.SendDisappearing: idempotent — returns early unless the page has appeared, then clears
-        // has_appeared and fires `disappearing`.
-        void send_disappearing()
+        // has_appeared and fires `disappearing`. Virtual like send_appearing (see above).
+        virtual void send_disappearing()
         {
             if (!has_appeared_)
             {

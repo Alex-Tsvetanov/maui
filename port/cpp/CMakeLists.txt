@@ -237,6 +237,9 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/layout_handler.mm
     src/platform/apple/content_page_handler.mm
     src/platform/apple/navigation_page_handler.mm
+    # (W1-10 tabbed + flyout pages) NSTabViewController / NSSplitViewController hosts.
+    src/platform/apple/tabbed_page_handler.mm
+    src/platform/apple/flyout_page_handler.mm
     # (W1-08 web_view) the WKWebView recipe, ONE .mm shared with the ios backend (WebKit's API is
     # identical on AppKit and UIKit — the gcd_dispatcher convention).
     src/platform/apple_shared/web_view_handler.mm
@@ -276,6 +279,9 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     src/platform/ios/layout_handler.mm
     src/platform/ios/content_page_handler.mm
     src/platform/ios/navigation_page_handler.mm
+    # (W1-10 tabbed + flyout pages) UITabBarController / UISplitViewController child-VC hosts.
+    src/platform/ios/tabbed_page_handler.mm
+    src/platform/ios/flyout_page_handler.mm
     # (W1-08 web_view) the WKWebView .mm shared with the apple backend (see above).
     src/platform/apple_shared/web_view_handler.mm
     src/platform/ios/window_handler.mm
@@ -311,6 +317,9 @@ else()
     src/platform/headless/border_handler.cpp
     src/platform/headless/scroll_view_handler.cpp
     src/platform/headless/navigation_page_handler.cpp
+    # (W1-10 tabbed + flyout pages) the tab-host + two-pane mirrors.
+    src/platform/headless/tabbed_page_handler.cpp
+    src/platform/headless/flyout_page_handler.cpp
     src/platform/headless/web_view_handler.cpp
     src/platform/headless/window_handler.cpp
     # (W1-14 animations) the deterministic manual_ticker is the headless platform ticker.
@@ -356,6 +365,9 @@ add_library(maui_core STATIC
   src/core/border_handler.cpp # (W1-07 containers)
   src/core/scroll_view_handler.cpp
   src/core/navigation_page_handler.cpp
+  # (W1-10 tabbed + flyout pages) the cross-platform mapper tables.
+  src/core/tabbed_page_handler.cpp
+  src/core/flyout_page_handler.cpp
   src/core/web_view_handler.cpp
   src/core/web_view_helper.cpp
   src/core/window_handler.cpp
@@ -565,6 +577,9 @@ add_library(maui_controls STATIC
   src/controls/frame.cpp
   src/controls/scroll_view.cpp
   src/controls/navigation_page.cpp
+  # (W1-10 tabbed + flyout pages) multi_page<TPage> is header-only; these are the concrete pages.
+  src/controls/tabbed_page.cpp
+  src/controls/flyout_page.cpp
   src/controls/web_view.cpp
   src/controls/url_web_view_source.cpp
   src/controls/html_web_view_source.cpp
@@ -620,12 +635,17 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/grid_apple_tests.mm
     tests/controls/content_page_apple_tests.mm
     tests/controls/navigation_page_apple_tests.mm
+    tests/controls/tabbed_page_apple_tests.mm # (W1-10) the real NSTabViewController seam
+    tests/controls/flyout_page_apple_tests.mm # (W1-10) the real NSSplitViewController seam
+    tests/controls/tabbed_page_tests.cpp # (W1-10) the MultiPage/TabbedPage control suite + the mirrors
+    tests/controls/flyout_page_tests.cpp # (W1-10) the FlyoutPage control suite + the mirrors
     tests/controls/web_view_apple_tests.mm # (W1-08) the real WKWebView seam, run-loop pumped
     tests/controls/window_apple_tests.mm
     tests/controls/window_handler_tests.cpp # the portable seam mirrors (real NSWindow behind them here)
     tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
     tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
     tests/controls/input_controls_page_tests.cpp # the W1-05 demo page wiring (backend-agnostic)
+    tests/controls/tabbed_flyout_page_tests.cpp # the W1-10 demo page wiring (backend-agnostic)
     tests/controls/style_tests.cpp   # backend-agnostic; compiled as C++ within the apple test exe
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
@@ -671,6 +691,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/grid_apple_tests.mm
     tests/controls/content_page_apple_tests.mm
     tests/controls/navigation_page_apple_tests.mm
+    tests/controls/tabbed_page_apple_tests.mm
+    tests/controls/flyout_page_apple_tests.mm
     tests/controls/web_view_apple_tests.mm
     tests/controls/window_apple_tests.mm
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
@@ -708,12 +730,17 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/content_page_ios_tests.mm
     tests/controls/navigation_page_ios_tests.mm
     tests/controls/web_view_ios_tests.mm # (W1-08) the real WKWebView seam, run-loop pumped on-simulator
+    tests/controls/tabbed_page_ios_tests.mm # (W1-10) the real UITabBarController child-VC seam
+    tests/controls/flyout_page_ios_tests.mm # (W1-10) the real UISplitViewController column seam
     tests/controls/window_ios_tests.mm)
   add_executable(maui_controls_tests
     ${MAUI_IOS_TEST_MM_SOURCES}
+    tests/controls/tabbed_page_tests.cpp # (W1-10) the MultiPage/TabbedPage control suite + the mirrors
+    tests/controls/flyout_page_tests.cpp # (W1-10) the FlyoutPage control suite + the mirrors
     tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
     tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
     tests/controls/input_controls_page_tests.cpp # the W1-05 demo page wiring (backend-agnostic)
+    tests/controls/tabbed_flyout_page_tests.cpp # the W1-10 demo page wiring (backend-agnostic)
     tests/controls/style_tests.cpp
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
@@ -762,8 +789,11 @@ else()
     tests/controls/frame_tests.cpp
     tests/controls/scroll_view_tests.cpp
     tests/controls/navigation_page_tests.cpp
+    tests/controls/tabbed_page_tests.cpp # (W1-10) MultiPageTests + TabbedPageTests + the seam mirrors
+    tests/controls/flyout_page_tests.cpp # (W1-10) FlyoutPageUnitTests + the seam mirrors
     tests/controls/web_view_tests.cpp
     tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
+    tests/controls/tabbed_flyout_page_tests.cpp # the W1-10 demo page wiring (backend-agnostic)
     tests/controls/style_tests.cpp
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
