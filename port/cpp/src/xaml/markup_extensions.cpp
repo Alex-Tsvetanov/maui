@@ -13,15 +13,19 @@
 #include <memory>
 #include <optional>
 #include <span>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
 
 #include "maui/controls/application.hpp"
+#include "maui/controls/bindings/binding.hpp"
+#include "maui/controls/bindings/i_value_converter.hpp"
 #include "maui/controls/dynamic_resource.hpp"
-#include "maui/core/app_theme.hpp"
 #include "maui/controls/element.hpp"
 #include "maui/controls/resource_dictionary.hpp"
+#include "maui/core/app_theme.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/binding_mode.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/xaml/i_markup_extension.hpp"
@@ -502,9 +506,10 @@ namespace maui::xaml
         };
 
         // ---- {Binding}  <=  Microsoft.Maui.Controls.Xaml.BindingExtension ----
-        // C# builds `new Binding(Path, Mode, Converter, …)`; the typed-accessor port produces the
-        // binding_request marker (markup_extensions.hpp documents the applier contract + the precise
-        // deferral of the unsupported properties, which the factory rejects loudly).
+        // C# builds `new Binding(Path, Mode, Converter, ConverterParameter, StringFormat, Source)`;
+        // the factory below builds the same maui::controls::binding (the W1-02 string-path engine)
+        // and the binding_request carries it to the applier (markup_extensions.hpp documents the
+        // contract; register_runtime_bindings installs the element::set_binding route).
         class binding_extension final : public i_markup_extension
         {
         public:
@@ -660,9 +665,10 @@ namespace maui::xaml
         });
 
         extensions.register_extension("Binding", [](const markup_extension_arguments& args) {
-            static constexpr std::array<std::string_view, 6> k_unsupported{
-                "Source",          "StringFormat", "ConverterParameter", "UpdateSourceEventName",
-                "TargetNullValue", "FallbackValue"};
+            // UpdateSourceEventName needs the (unported) reflective event wiring — still a loud
+            // deferral; everything else BindingExtension.ProvideValue forwards into `new Binding(…)`
+            // is honored below.
+            static constexpr std::array<std::string_view, 1> k_unsupported{"UpdateSourceEventName"};
             static constexpr std::array<std::string_view, 10> k_known{"",
                                                                       "Path",
                                                                       "Mode",
@@ -684,10 +690,81 @@ namespace maui::xaml
             {
                 request.mode = parse_binding_mode(*mode);
             }
-            if (auto converter = string_argument(args, "Converter", "Binding"))
+            // BindingExtension.ProvideValue: new Binding(Path, Mode, Converter, ConverterParameter,
+            // StringFormat, Source). The Binding ctor's whitespace-path ArgumentException surfaces
+            // through the XAML error channel like every other malformed attribute.
+            std::shared_ptr<maui::controls::binding> built;
+            try
             {
-                request.converter = std::move(*converter);
+                built = std::make_shared<maui::controls::binding>(request.path, request.mode);
             }
+            catch (const std::invalid_argument& error)
+            {
+                throw xaml_parse_exception(error.what());
+            }
+            if (auto format = string_argument(args, "StringFormat", "Binding"))
+            {
+                built->set_string_format(std::move(*format));
+            }
+            // Converter: an IValueConverter INSTANCE — only a nested extension can provide one
+            // ({StaticResource …} hands back the boxed resource; a XAML-hydrated resource arrives as
+            // the create pass's shared_ptr<bindable_object> box and is downcast). A raw string has
+            // no instance lookup (C#'s reflective string→IValueConverter assignment fails too).
+            if (const std::any* value = find_value(args, "Converter"))
+            {
+                std::shared_ptr<maui::controls::i_value_converter> converter;
+                if (const auto* direct = std::any_cast<std::shared_ptr<maui::controls::i_value_converter>>(value))
+                {
+                    converter = *direct;
+                }
+                else if (const auto* object = std::any_cast<std::shared_ptr<maui::core::bindable_object>>(value))
+                {
+                    converter = std::dynamic_pointer_cast<maui::controls::i_value_converter>(*object);
+                }
+                if (converter == nullptr)
+                {
+                    throw xaml_parse_exception(
+                        "Property 'Converter' of Binding requires an i_value_converter instance");
+                }
+                built->set_converter(std::move(converter));
+            }
+            else if (find_attribute(args, "Converter") != nullptr)
+            {
+                throw xaml_parse_exception("Property 'Converter' of Binding requires a markup extension "
+                                           "providing an i_value_converter (e.g. {StaticResource …})");
+            }
+            if (auto parameter = any_argument(args, "ConverterParameter"))
+            {
+                built->set_converter_parameter(std::move(*parameter)); // object — the source form passes
+            }
+            if (auto target_null = any_argument(args, "TargetNullValue"))
+            {
+                built->set_target_null_value(std::move(*target_null));
+            }
+            if (auto fallback = any_argument(args, "FallbackValue"))
+            {
+                built->set_fallback_value(std::move(*fallback));
+            }
+            // Source: an explicit source OBJECT — supported when a nested extension provides a
+            // walkable bindable_object (the create-pass / code-seeded resource box). Other boxed
+            // shapes and raw strings are loud deferrals (C# accepts any object as a value-only
+            // source; the port's set_source needs the walkable form).
+            if (const std::any* value = find_value(args, "Source"))
+            {
+                const auto* object = std::any_cast<std::shared_ptr<maui::core::bindable_object>>(value);
+                if (object == nullptr)
+                {
+                    throw xaml_parse_exception("Property 'Source' of Binding requires a bindable_object "
+                                               "provided by a markup extension (STATUS.md M7 deferrals)");
+                }
+                built->set_source(*object);
+            }
+            else if (find_attribute(args, "Source") != nullptr)
+            {
+                throw xaml_parse_exception("Property 'Source' of Binding requires a markup extension "
+                                           "providing a bindable_object (e.g. {StaticResource …})");
+            }
+            request.instance = std::move(built);
             return std::make_unique<binding_extension>(std::move(request));
         });
 
@@ -695,7 +772,7 @@ namespace maui::xaml
         // (Microsoft.Maui.Graphics.Colors — the C# member names recovered from the single-source
         // X-macro's snake tokens.)
         xaml_static_registry& statics = xaml_static_registry::instance();
-#define MAUI_XAML_REGISTER_STATIC_COLOR(name, str, argb)                                                              \
+#define MAUI_XAML_REGISTER_STATIC_COLOR(name, str, argb)                                                               \
     statics.register_member("Colors." + pascalize(#name), [] { return std::any{maui::graphics::colors::name}; });
         MAUI_GRAPHICS_NAMED_COLORS(MAUI_XAML_REGISTER_STATIC_COLOR)
 #undef MAUI_XAML_REGISTER_STATIC_COLOR

@@ -1181,6 +1181,7 @@ add_library(maui_xaml STATIC
   src/xaml/xaml_static_registry.cpp
   src/xaml/xaml_visitors.cpp
   src/xaml/xaml_binding_applier.cpp
+  src/xaml/xaml_runtime_bindings.cpp
   src/xaml/xaml_loader.cpp
 )
 target_include_directories(maui_xaml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

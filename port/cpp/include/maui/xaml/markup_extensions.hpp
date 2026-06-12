@@ -42,11 +42,17 @@
 // shadow later style values; the port's skip leaves the property style-able.)
 
 #include <any>
+#include <memory>
 #include <string>
 
 #include "maui/controls/dynamic_resource.hpp"
 #include "maui/core/app_theme.hpp"
 #include "maui/core/binding_mode.hpp"
+
+namespace maui::controls
+{
+    class binding_base;
+} // namespace maui::controls
 
 namespace maui::xaml
 {
@@ -67,28 +73,30 @@ namespace maui::xaml
     {
     };
 
-    // The {Binding} ProvideValue result — the port's stand-in for the C# Binding OBJECT
-    // (BindingExtension builds `new Binding(Path, Mode, …)`; the loader then SetBinding()s it).
+    // The {Binding} ProvideValue result — the C# Binding OBJECT plus the parsed metadata the
+    // applier hook surfaces (BindingExtension builds `new Binding(Path, Mode, Converter,
+    // ConverterParameter, StringFormat, Source)`; the loader then SetBinding()s it).
     //
-    // DEFERRAL (precise): the port's M5 bindings are TYPED-accessor (core/binding.hpp bind() over
-    // property<T> pairs — no reflection, no string paths). A runtime string-path binding needs a
-    // name → typed-accessor GETTER table that does not exist yet (the xaml_property_registry only
-    // resolves name → SETTER). So {Binding} produces this marker and the APPLIER CONTRACT is:
-    //   - path == "." (Binding.SelfPath, the default): bind the target property to the binding
-    //     context itself — implementable today for a context that IS a bindable_object exposing the
-    //     target property's type;
-    //   - path naming a single REGISTERED property on the target's binding context: wire bind()
-    //     through the typed accessors once the getter table lands (U3/U6);
-    //   - nested paths ("Customer.Name"), Source/StringFormat/Converter instances/
-    //     ConverterParameter/UpdateSourceEventName/TargetNullValue/FallbackValue: NOT representable
-    //     yet — the factory rejects those attributes with xaml_parse_exception rather than dropping
-    //     them silently (C# honors them; see STATUS.md M7 deferrals).
+    // The factory BUILDS `instance` (a maui::controls::binding, the W1-02 string-path engine) from
+    // the markup attributes: Path (positional [ContentProperty] or named), Mode, StringFormat,
+    // Converter / ConverterParameter, TargetNullValue / FallbackValue, and Source — the reference-
+    // typed slots (Converter, Source) must arrive PRE-RESOLVED through a nested extension
+    // ({StaticResource}/{x:Static}); their raw-string spellings are rejected loudly (C#'s reflective
+    // assignment of a string to IValueConverter/object would be a XamlParseException too — the port
+    // has no string→instance lookup). UpdateSourceEventName stays a loud deferral (no event wiring).
+    //
+    // APPLIER CONTRACT (xaml_binding_applier.hpp; register_runtime_bindings installs the real one):
+    // resolve the XAML attribute through the property registry and route `instance` into
+    // element::set_binding(<bindable descriptor name>, instance) — C#'s "If value is BindingBase,
+    // SetBinding" branch of ApplyPropertiesVisitor.TrySetPropertyValue. A target that is not an
+    // element, or a property without a bindable descriptor, fails with TrySetPropertyValue's
+    // catch-all "Cannot assign property …" (LoaderTests.TestSetBindingToNonBindablePropertyShouldThrow).
+    // `path`/`mode` duplicate the parsed metadata for the hook seam (test/diagnostic appliers).
     struct binding_request
     {
         std::string path = ".";                                                 // Binding.SelfPath default
         maui::core::binding_mode mode = maui::core::binding_mode::default_mode; // BindingMode.Default
-        std::string converter; // Converter attribute as a NAME (raw text); empty = none. Resolution
-                               // against a value-converter table is deferred with the runtime binding.
+        std::shared_ptr<maui::controls::binding_base> instance;                 // the built Binding
     };
 
     // maui::xaml::app_theme_binding  <=  Microsoft.Maui.Controls.AppThemeBinding (the BindingBase

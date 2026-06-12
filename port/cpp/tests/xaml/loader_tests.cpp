@@ -4,10 +4,12 @@
 // full load (TestInXaml / TestDocumentationCode, over port-registered custom extensions — the C#
 // originals resolve their extension CLASSES by reflection from the test assembly).
 //
+// The binding cases — TestSetBindingToBindableProperty / TestBindingPath /
+// TestBindingModeAndConverter / TestSetBindingToNonBindablePropertyShouldThrow — run LIVE against
+// the runtime binding engine via register_runtime_bindings() (the hook's rejecting DEFAULT is still
+// asserted separately, plus the hook seam itself).
+//
 // Documented deviations (the C# cases that need machinery the port defers; each fails LOUDLY):
-//   - TestSetBindingToBindableProperty / TestBindingPath / TestBindingModeAndConverter: the runtime
-//     string-path binding engine is a parallel M7 unit — {Binding} routes through the
-//     xaml_binding_applier hook whose DEFAULT rejects (tested below, plus the hook seam itself);
 //   - TestAttachedBP / TestAttachedBPWithDifferentNS / TestBindOnAttachedBP: attached-property
 //     dotted names are an M7 deferral (the cannot-assign error is asserted below);
 //   - TestEvent / TestFailingEvent / TestConnectingEventOnMethodWithWrongSignature /
@@ -29,11 +31,16 @@
 #include <vector>
 
 #include "maui/controls/application.hpp"
+#include "maui/controls/bindings/i_value_converter.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/label.hpp"
+#include "maui/controls/resource_dictionary.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/controls/window.hpp"
 #include "maui/core/bindable_object.hpp"
+#include "maui/core/bindable_property.hpp"
 #include "maui/core/binding_mode.hpp"
+#include "maui/core/property.hpp"
 #include "maui/core/type_tag.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/xaml/i_markup_extension.hpp"
@@ -41,6 +48,7 @@
 #include "maui/xaml/xaml_binding_applier.hpp"
 #include "maui/xaml/xaml_parse_exception.hpp"
 #include "maui/xaml/xaml_property_registry.hpp"
+#include "maui/xaml/xaml_runtime_bindings.hpp"
 #include <gtest/gtest.h>
 
 namespace
@@ -346,6 +354,167 @@ namespace
         EXPECT_EQ(captured->front().path, "labeltext");
         EXPECT_EQ(captured->front().mode, maui::core::binding_mode::two_way);
         EXPECT_EQ(captured->front().bindable_name, "text"); // the SetBinding routing key
+    }
+
+    // ---- the runtime binding bridge (register_runtime_bindings; the C# cases that needed it) ------
+
+    // RAII pin of the real applier: register_runtime_bindings() for the test body, then restore the
+    // rejecting default so the deferral tests above stay order-independent.
+    class runtime_bindings_guard
+    {
+    public:
+        runtime_bindings_guard()
+        {
+            maui::xaml::register_runtime_bindings();
+        }
+        runtime_bindings_guard(const runtime_bindings_guard&) = delete;
+        runtime_bindings_guard(runtime_bindings_guard&&) = delete;
+        runtime_bindings_guard& operator=(const runtime_bindings_guard&) = delete;
+        runtime_bindings_guard& operator=(runtime_bindings_guard&&) = delete;
+        ~runtime_bindings_guard()
+        {
+            set_xaml_binding_applier(nullptr);
+        }
+    };
+
+    // The C# tests' binding contexts: `new { labeltext = "Foo" }` / the ViewModel { Text } poco
+    // become bindable_objects with a named property<T> (the port's INotifyPropertyChanged analog).
+    const maui::core::bindable_property<std::string>& vm_labeltext_property()
+    {
+        static const maui::core::bindable_property<std::string> descriptor{"labeltext"};
+        return descriptor;
+    }
+    struct labeltext_view_model : bindable_object
+    {
+        maui::core::property<std::string> labeltext{*this, vm_labeltext_property()};
+    };
+    const maui::core::bindable_property<std::string>& vm_text_property()
+    {
+        static const maui::core::bindable_property<std::string> descriptor{"text"};
+        return descriptor;
+    }
+    struct text_view_model : bindable_object
+    {
+        maui::core::property<std::string> text{*this, vm_text_property()};
+    };
+
+    // LoaderTests.ReverseConverter: Convert/ConvertBack reverse the bound string.
+    class reverse_converter final : public controls::i_value_converter
+    {
+    public:
+        [[nodiscard]] std::any convert(const std::any& value, type_tag /*target_type*/,
+                                       const std::any& /*parameter*/) override
+        {
+            return reversed(value);
+        }
+        [[nodiscard]] std::any convert_back(const std::any& value, type_tag /*target_type*/,
+                                            const std::any& /*parameter*/) override
+        {
+            return reversed(value);
+        }
+
+    private:
+        [[nodiscard]] static std::any reversed(const std::any& value)
+        {
+            const auto* text = std::any_cast<std::string>(&value);
+            if (text == nullptr)
+            {
+                return value;
+            }
+            return std::any{std::string{text->rbegin(), text->rend()}};
+        }
+    };
+
+    TEST(xaml_loader, test_set_binding_to_bindable_property)
+    {
+        // LoaderTests.TestSetBindingToBindableProperty: the {Binding} binds end-to-end once the
+        // runtime applier is registered — default until a context arrives, then the path value.
+        const runtime_bindings_guard guard;
+        controls::label label;
+        (void)xaml_loader::load_into(label, R"xml(
+<Label xmlns="http://schemas.microsoft.com/dotnet/2021/maui" Text="{Binding Path=labeltext}"/>)xml");
+        EXPECT_EQ(label.text(), ""); // Label.TextProperty.DefaultValue
+
+        auto context = std::make_shared<labeltext_view_model>();
+        context->labeltext.set("Foo");
+        label.set_binding_context(context);
+        EXPECT_EQ(label.text(), "Foo");
+    }
+
+    TEST(xaml_loader, test_binding_path)
+    {
+        // LoaderTests.TestBindingPath: the positional and the named Path spell the same binding;
+        // the context set on the root inherits down to both labels.
+        const runtime_bindings_guard guard;
+        controls::vertical_stack_layout stacklayout;
+        const xaml_load_result result = xaml_loader::load_into(stacklayout, R"xml(
+<VerticalStackLayout xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+	<VerticalStackLayout.Children>
+		<Label x:Name="label0" Text="{Binding text}"/>
+		<Label x:Name="label1" Text="{Binding Path=text}"/>
+	</VerticalStackLayout.Children>
+</VerticalStackLayout>)xml");
+        const std::shared_ptr<controls::label> label0 = result.find_by_name<controls::label>("label0");
+        const std::shared_ptr<controls::label> label1 = result.find_by_name<controls::label>("label1");
+        ASSERT_NE(label0, nullptr);
+        ASSERT_NE(label1, nullptr);
+        EXPECT_EQ(label0->text(), ""); // Label.TextProperty.DefaultValue
+        EXPECT_EQ(label1->text(), "");
+
+        auto context = std::make_shared<text_view_model>();
+        context->text.set("Foo");
+        stacklayout.set_binding_context(context);
+        EXPECT_EQ(label0->text(), "Foo");
+        EXPECT_EQ(label1->text(), "Foo");
+    }
+
+    TEST(xaml_loader, test_binding_mode_and_converter)
+    {
+        // LoaderTests.TestBindingModeAndConverter. C# hydrates <local:ReverseConverter x:Key=…/>
+        // from markup; custom non-element types are not XAML-creatable in the port, so the resource
+        // is code-seeded on the root (the same {StaticResource} live-chain lookup).
+        const runtime_bindings_guard guard;
+        controls::content_page content_page;
+        content_page.resources().set("reverseConverter", std::any{std::static_pointer_cast<controls::i_value_converter>(
+                                                             std::make_shared<reverse_converter>())});
+        const xaml_load_result result = xaml_loader::load_into(content_page, R"xml(
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+	<ContentPage.Content>
+		<VerticalStackLayout>
+			<Label x:Name="label0" Text="{Binding text, Converter={StaticResource reverseConverter}}"/>
+			<Label x:Name="label1" Text="{Binding text, Mode=TwoWay}"/>
+		</VerticalStackLayout>
+	</ContentPage.Content>
+</ContentPage>)xml");
+
+        auto context = std::make_shared<text_view_model>();
+        context->text.set("foobar");
+        content_page.set_binding_context(context);
+
+        const std::shared_ptr<controls::label> label0 = result.find_by_name<controls::label>("label0");
+        const std::shared_ptr<controls::label> label1 = result.find_by_name<controls::label>("label1");
+        ASSERT_NE(label0, nullptr);
+        ASSERT_NE(label1, nullptr);
+        EXPECT_EQ(label0->text(), "raboof"); // through ReverseConverter
+
+        label1->set_text("baz"); // TwoWay pushes target -> source
+        EXPECT_EQ(context->text.get(), "baz");
+    }
+
+    TEST(xaml_loader, test_set_binding_to_non_bindable_property_should_throw)
+    {
+        // LoaderTests.TestSetBindingToNonBindablePropertyShouldThrow — Window.Title is the port's
+        // registered NON-bindable property; SetBinding on it is TrySetPropertyValue's catch-all.
+        const runtime_bindings_guard guard;
+        controls::window window;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(window, R"xml(
+<Window xmlns="http://schemas.microsoft.com/dotnet/2021/maui" Title="{Binding text}"/>)xml");
+        });
+        EXPECT_EQ(message, "Cannot assign property \"Title\": Property does not exist, or is not assignable, or "
+                           "mismatching type between value and property");
     }
 
     TEST(xaml_loader, attached_property_is_a_loud_deferral)

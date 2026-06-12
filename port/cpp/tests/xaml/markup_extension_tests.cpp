@@ -16,11 +16,14 @@
 #include <utility>
 
 #include "maui/controls/application.hpp"
-#include "maui/controls/dynamic_resource.hpp"
+#include "maui/controls/bindings/binding.hpp"
+#include "maui/controls/bindings/i_value_converter.hpp"
 #include "maui/controls/button.hpp"
+#include "maui/controls/dynamic_resource.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/app_theme.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/binding_mode.hpp"
 #include "maui/core/type_tag.hpp"
 #include "maui/graphics/color.hpp"
@@ -35,6 +38,7 @@
 
 namespace
 {
+    using maui::controls::dynamic_resource;
     using maui::core::app_theme;
     using maui::core::binding_mode;
     using maui::core::type_tag;
@@ -43,7 +47,6 @@ namespace
     using maui::xaml::binding_request;
     using maui::xaml::device_idiom;
     using maui::xaml::device_platform;
-    using maui::controls::dynamic_resource;
     using maui::xaml::markup_extension_arguments;
     using maui::xaml::markup_extension_factory;
     using maui::xaml::markup_extension_registry;
@@ -559,6 +562,34 @@ namespace
 
     // ---- {Binding} (BindingExtension.cs) ----
 
+    // A test IValueConverter (the C# tests' ReverseConverter shape, identity here — only the
+    // instance plumbing is under test at the extension level).
+    class reversing_converter final : public maui::controls::i_value_converter
+    {
+    public:
+        [[nodiscard]] std::any convert(const std::any& value, maui::core::type_tag /*target_type*/,
+                                       const std::any& /*parameter*/) override
+        {
+            return value;
+        }
+        [[nodiscard]] std::any convert_back(const std::any& value, maui::core::type_tag /*target_type*/,
+                                            const std::any& /*parameter*/) override
+        {
+            return value;
+        }
+    };
+
+    // The built C# Binding object the request carries (the W1-02 engine).
+    std::shared_ptr<maui::controls::binding> built_binding(const std::any& result)
+    {
+        const auto* request = std::any_cast<binding_request>(&result);
+        if (request == nullptr)
+        {
+            return nullptr;
+        }
+        return std::dynamic_pointer_cast<maui::controls::binding>(request->instance);
+    }
+
     TEST(binding_extension, defaults_to_self_path_and_default_mode)
     {
         // C# Path defaults to Binding.SelfPath ".", Mode to BindingMode.Default.
@@ -567,7 +598,13 @@ namespace
         ASSERT_NE(request, nullptr);
         EXPECT_EQ(request->path, ".");
         EXPECT_EQ(request->mode, binding_mode::default_mode);
-        EXPECT_TRUE(request->converter.empty());
+        const std::shared_ptr<maui::controls::binding> built = built_binding(result);
+        ASSERT_NE(built, nullptr); // ProvideValue => new Binding(".", Default, …)
+        EXPECT_EQ(built->path(), ".");
+        EXPECT_EQ(built->mode(), binding_mode::default_mode);
+        EXPECT_EQ(built->converter(), nullptr);
+        EXPECT_TRUE(built->string_format().empty());
+        EXPECT_FALSE(built->has_source());
     }
 
     TEST(binding_extension, parses_path_and_mode)
@@ -578,6 +615,10 @@ namespace
         ASSERT_NE(request, nullptr);
         EXPECT_EQ(request->path, "Name");
         EXPECT_EQ(request->mode, binding_mode::two_way);
+        const std::shared_ptr<maui::controls::binding> built = built_binding(result);
+        ASSERT_NE(built, nullptr);
+        EXPECT_EQ(built->path(), "Name");
+        EXPECT_EQ(built->mode(), binding_mode::two_way);
 
         const std::any named = provide("Binding", {.attributes = {{"Path", "Title"}, {"Mode", "OneWayToSource"}}});
         EXPECT_EQ(std::any_cast<binding_request>(&named)->path, "Title");
@@ -594,12 +635,85 @@ namespace
                   "Cannot convert \"twoway\" into BindingMode");
     }
 
+    TEST(binding_extension, string_format_is_set_on_the_binding)
+    {
+        // BindingExtension.StringFormat -> new Binding(…, stringFormat: StringFormat, …).
+        const std::any result = provide("Binding", {.attributes = {{"", "Name"}, {"StringFormat", "{0:F2}"}}});
+        const std::shared_ptr<maui::controls::binding> built = built_binding(result);
+        ASSERT_NE(built, nullptr);
+        EXPECT_EQ(built->string_format(), "{0:F2}");
+    }
+
+    TEST(binding_extension, a_pre_resolved_converter_is_set_on_the_binding)
+    {
+        // "{Binding Name, Converter={StaticResource …}}": the nested extension resolves to the boxed
+        // resource value, here an i_value_converter instance.
+        const std::shared_ptr<maui::controls::i_value_converter> converter = std::make_shared<reversing_converter>();
+        markup_extension_arguments args{.attributes = {{"", "Name"}, {"ConverterParameter", "token"}}};
+        args.values.insert_or_assign("Converter", std::any{converter});
+        const std::any result = provide("Binding", args);
+        const std::shared_ptr<maui::controls::binding> built = built_binding(result);
+        ASSERT_NE(built, nullptr);
+        EXPECT_EQ(built->converter(), converter);
+        // ConverterParameter is a plain object slot: the raw attribute string arrives boxed.
+        EXPECT_EQ(std::any_cast<std::string>(built->converter_parameter()), "token");
+    }
+
+    TEST(binding_extension, a_raw_string_converter_throws)
+    {
+        // No string -> IValueConverter instance lookup exists (C#'s reflective assignment of a
+        // string to the IValueConverter CLR property is a XamlParseException too).
+        EXPECT_EQ(parse_error_message([&] { return provide("Binding", {.attributes = {{"Converter", "reverse"}}}); }),
+                  "Property 'Converter' of Binding requires a markup extension providing an "
+                  "i_value_converter (e.g. {StaticResource …})");
+    }
+
+    TEST(binding_extension, a_pre_resolved_bindable_source_is_set_on_the_binding)
+    {
+        // "{Binding Name, Source={StaticResource vm}}": the create-pass / code-seeded resource box
+        // (shared_ptr<bindable_object>) becomes the explicit walkable source.
+        const auto source = std::make_shared<maui::controls::label>();
+        markup_extension_arguments args{.attributes = {{"", "Name"}}};
+        args.values.insert_or_assign("Source", std::any{std::static_pointer_cast<maui::core::bindable_object>(source)});
+        const std::any result = provide("Binding", args);
+        const std::shared_ptr<maui::controls::binding> built = built_binding(result);
+        ASSERT_NE(built, nullptr);
+        EXPECT_TRUE(built->has_source());
+    }
+
+    TEST(binding_extension, a_non_walkable_source_throws)
+    {
+        // A value-only Source (C# accepts any object) has no walkable form in the port — loud.
+        EXPECT_EQ(parse_error_message([&] { return provide("Binding", {.attributes = {{"Source", "x"}}}); }),
+                  "Property 'Source' of Binding requires a markup extension providing a "
+                  "bindable_object (e.g. {StaticResource …})");
+        markup_extension_arguments args;
+        args.values.insert_or_assign("Source", std::any{std::string{"boxed-but-not-bindable"}});
+        EXPECT_EQ(parse_error_message([&] { return provide("Binding", args); }),
+                  "Property 'Source' of Binding requires a bindable_object provided by a markup "
+                  "extension (STATUS.md M7 deferrals)");
+    }
+
+    TEST(binding_extension, target_null_and_fallback_values_pass_through)
+    {
+        // TargetNullValue / FallbackValue are object slots — the source form passes through.
+        const std::any result = provide(
+            "Binding", {.attributes = {{"", "Name"}, {"TargetNullValue", "none"}, {"FallbackValue", "missing"}}});
+        const std::shared_ptr<maui::controls::binding> built = built_binding(result);
+        ASSERT_NE(built, nullptr);
+        EXPECT_EQ(std::any_cast<std::string>(built->target_null_value()), "none");
+        EXPECT_EQ(std::any_cast<std::string>(built->fallback_value()), "missing");
+    }
+
     TEST(binding_extension, deferred_properties_are_rejected_loudly)
     {
-        // C# honors StringFormat/Source/…; the port rejects them instead of dropping them silently.
-        EXPECT_EQ(parse_error_message(
-                      [&] { return provide("Binding", {.attributes = {{"", "Name"}, {"StringFormat", "{0:F2}"}}}); }),
-                  "Property 'StringFormat' of Binding is not supported by the port yet (STATUS.md M7 deferrals)");
+        // C# honors UpdateSourceEventName (reflective event lookup); the port rejects it instead of
+        // dropping it silently.
+        EXPECT_EQ(parse_error_message([&] {
+                      return provide("Binding", {.attributes = {{"", "Name"}, {"UpdateSourceEventName", "Completed"}}});
+                  }),
+                  "Property 'UpdateSourceEventName' of Binding is not supported by the port yet (STATUS.md M7 "
+                  "deferrals)");
     }
 
     TEST(binding_extension, an_unknown_attribute_throws)
