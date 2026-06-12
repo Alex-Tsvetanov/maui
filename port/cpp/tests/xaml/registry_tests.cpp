@@ -267,8 +267,8 @@ namespace
     TEST(xaml_property_registry, add_child_pushes_the_navigation_root)
     {
         const registries reg;
+        controls::content_page root; // outlives the nav whose internal tracker subscribes to it (§8)
         controls::navigation_page navigation;
-        controls::content_page root;
 
         ASSERT_TRUE(reg.properties.try_add_child(type_tag::of<controls::navigation_page>(), navigation, root));
         EXPECT_EQ(navigation.current_page(), &root);
@@ -278,8 +278,8 @@ namespace
     TEST(xaml_property_registry, add_child_hosts_a_page_on_a_window)
     {
         const registries reg;
+        controls::content_page page; // outlives the hosting window's chrome subscriptions (§8)
         controls::window host;
-        controls::content_page page;
 
         ASSERT_TRUE(reg.properties.try_add_child(type_tag::of<controls::window>(), host, page));
         EXPECT_EQ(host.content_element(), &page);

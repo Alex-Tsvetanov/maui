@@ -88,10 +88,11 @@ namespace
 
     TEST(tabbed_page, logical_and_internal_children_maintain_order)
     {
-        tabbed_page tabs;
         content_page page1;
         content_page page2;
 
+        // Declared AFTER its child pages: the subscriber disconnects first (§8).
+        tabbed_page tabs;
         tabs.add(page2);
         tabs.insert(0, page1);
         tabs.remove(page1);
@@ -106,8 +107,11 @@ namespace
 
     TEST(tabbed_page, set_children_fires_pages_added_and_attaches)
     {
-        tabbed_page tabs;
         int pages_added = 0;
+        // Declared AFTER its child pages: the subscriber disconnects first (§8).
+        content_page first;  // outlives the subscribing tabs (§8)
+        content_page second; // outlives the subscribing tabs (§8)
+        tabbed_page tabs;
         tabs.pages_changed.connect([&pages_added](const collection_changed_args& args) {
             if (args.action == collection_changed_action::add)
             {
@@ -115,8 +119,6 @@ namespace
             }
         });
 
-        content_page first;
-        content_page second;
         tabs.add(first);
         tabs.add(second);
 
@@ -129,9 +131,12 @@ namespace
 
     TEST(tabbed_page, overwrite_children_detaches_then_reattaches)
     {
-        tabbed_page tabs;
         content_page first;
         content_page second;
+        // Declared AFTER its child pages: the subscriber disconnects first (§8).
+        content_page third;  // outlives the subscribing tabs (§8)
+        content_page fourth; // outlives the subscribing tabs (§8)
+        tabbed_page tabs;
         tabs.add(first);
         tabs.add(second);
 
@@ -152,8 +157,6 @@ namespace
         tabs.remove(second);
         EXPECT_EQ(first.logical_parent(), nullptr); // ChildRemoved: left the logical tree
 
-        content_page third;
-        content_page fourth;
         tabs.add(third);
         tabs.add(fourth);
 
@@ -164,6 +167,7 @@ namespace
 
     TEST(tabbed_page, current_page_set_after_add)
     {
+        content_page child; // outlives the subscribing tabs (§8)
         tabbed_page tabs;
         EXPECT_EQ(tabs.current_page(), nullptr);
 
@@ -175,7 +179,6 @@ namespace
             }
         });
 
-        content_page child;
         tabs.add(child);
 
         EXPECT_EQ(tabs.current_page(), &child);
@@ -184,9 +187,10 @@ namespace
 
     TEST(tabbed_page, current_page_changed_after_remove)
     {
-        tabbed_page tabs;
         content_page child;
         content_page child2;
+        // Declared AFTER its child pages: the subscriber disconnects first (§8).
+        tabbed_page tabs;
         tabs.add(child);
         tabs.add(child2);
 
@@ -206,8 +210,9 @@ namespace
 
     TEST(tabbed_page, current_page_null_after_remove)
     {
-        tabbed_page tabs;
         content_page child;
+        // Declared AFTER its child pages: the subscriber disconnects first (§8).
+        tabbed_page tabs;
         tabs.add(child);
 
         bool property = false;
@@ -226,9 +231,10 @@ namespace
 
     TEST(tabbed_page, current_page_changed_event)
     {
-        tabbed_page tabs;
         content_page first;
         content_page second;
+        // Declared AFTER its child pages: the subscriber disconnects first (§8).
+        tabbed_page tabs;
         tabs.add(first);
         tabs.add(second);
 
@@ -290,8 +296,9 @@ namespace
 
     TEST(tabbed_page, selected_item_null_after_remove)
     {
-        tabbed_page tabs;
         auto items = std::make_shared<observable_collection<std::string>>(std::vector<std::string>{"foo"});
+        // Declared AFTER its child pages: the subscriber disconnects first (§8).
+        tabbed_page tabs;
         tabs.set_items_source(items);
 
         bool selected = false;
@@ -318,10 +325,11 @@ namespace
     // "When ItemsSource is set with items, the first item should automatically be selected."
     TEST(tabbed_page, selected_item_set_after_items_source_set)
     {
-        tabbed_page tabs;
 
         bool selected = false;
         bool current = false;
+        // Declared AFTER its child pages: the subscriber disconnects first (§8).
+        tabbed_page tabs;
         tabs.property_changed.connect([&](std::string_view name) {
             if (name == "current_page")
             {
@@ -357,8 +365,9 @@ namespace
 
     TEST(tabbed_page, selected_item_after_move)
     {
-        tabbed_page tabs;
         auto items = std::make_shared<observable_collection<std::string>>(std::vector<std::string>{"foo", "bar"});
+        // Declared AFTER its child pages: the subscriber disconnects first (§8).
+        tabbed_page tabs;
         tabs.set_items_source(items);
 
         EXPECT_EQ(tabs.selected_item<std::string>(), "foo");
@@ -388,10 +397,10 @@ namespace
 
     TEST(tabbed_page, children_read_only_while_items_source_set)
     {
+        content_page outsider; // outlives the subscribing tabs (§8)
         tabbed_page tabs;
         tabs.set_items_source(std::vector<std::string>{"Foo"});
 
-        content_page outsider;
         tabs.add(outsider); // C# throws NotSupportedException; the port no-ops (documented)
         EXPECT_EQ(tabs.children().size(), 1U);
         EXPECT_EQ(outsider.logical_parent(), nullptr);
@@ -680,11 +689,12 @@ namespace
 
     TEST(tabbed_page_handler_seam, mirrors_pages_titles_current_and_selection)
     {
-        tabbed_page tabs;
         content_page first;
         first.set_title("First");
         content_page second;
         second.set_title("Second");
+        // Declared AFTER its child pages: the subscriber disconnects first (§8).
+        tabbed_page tabs;
         tabs.add(first);
         tabs.add(second);
 
@@ -706,9 +716,11 @@ namespace
 
     TEST(tabbed_page_handler_seam, pages_change_and_title_change_refresh_the_tabs)
     {
-        tabbed_page tabs;
         content_page first;
         first.set_title("First");
+        content_page second; // declared BEFORE tabs even though added later: it must outlive the subscriber
+        // Declared AFTER its child pages: the subscriber disconnects first (§8).
+        tabbed_page tabs;
         tabs.add(first);
 
         auto handler = std::make_shared<tabbed_page_handler>();
@@ -716,7 +728,6 @@ namespace
         auto* platform = handler->typed_platform_view();
         ASSERT_NE(platform, nullptr);
 
-        content_page second;
         second.set_title("Second");
         tabs.add(second); // PagesChanged -> Handler.UpdateValue(ItemsSource)
         EXPECT_EQ(platform->hosted_pages.size(), 2U);
@@ -728,9 +739,10 @@ namespace
 
     TEST(tabbed_page_handler_seam, native_tab_selection_drives_current_page)
     {
-        tabbed_page tabs;
         content_page first;
         content_page second;
+        // Declared AFTER its child pages: the subscriber disconnects first (§8).
+        tabbed_page tabs;
         tabs.add(first);
         tabs.add(second);
 
@@ -750,8 +762,9 @@ namespace
 
     TEST(tabbed_page_handler_seam, bar_colors_mirror_with_unset_as_nullopt)
     {
-        tabbed_page tabs;
         content_page first;
+        // Declared AFTER its child pages: the subscriber disconnects first (§8).
+        tabbed_page tabs;
         tabs.add(first);
 
         auto handler = std::make_shared<tabbed_page_handler>();
@@ -779,8 +792,9 @@ namespace
 
     TEST(tabbed_page_handler_seam, items_source_path_hosts_template_pages)
     {
-        tabbed_page tabs;
         auto handler = std::make_shared<tabbed_page_handler>();
+        // Declared AFTER its child pages: the subscriber disconnects first (§8).
+        tabbed_page tabs;
         tabs.set_handler(handler);
         auto* platform = handler->typed_platform_view();
         ASSERT_NE(platform, nullptr);

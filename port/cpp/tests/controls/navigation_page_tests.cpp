@@ -278,9 +278,9 @@ namespace
         auto* resolved = dynamic_cast<navigation_page_handler*>(handler.get());
         ASSERT_NE(resolved, nullptr);
 
+        content_page root; // outlives the nav whose internal tracker subscribes to it (§8)
         navigation_page nav;
         nav.set_handler(handler);
-        content_page root;
         nav.push(root);
         EXPECT_EQ(resolved->typed_platform_view()->hosted_page, &root);
     }

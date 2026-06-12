@@ -313,6 +313,14 @@ namespace maui::controls
 
         void install_adapter(items_adapter adapter)
         {
+            // Disconnect the OLD subscription FIRST, while the old closures still pin the old source:
+            // a plain member-wise move-assignment replaces the closures (dropping the shared_ptr that
+            // keeps the source alive) BEFORE assigning `changed`, whose disconnect would then touch a
+            // freed event (ASan-caught heap-use-after-free on items_source replacement).
+            if (items_.has_value())
+            {
+                items_->changed = {};
+            }
             items_ = std::move(adapter);
             this->on_property_changed("items_source"); // C# flips _children.IsReadOnly here
             reset_pages();

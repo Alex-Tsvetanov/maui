@@ -46,8 +46,9 @@ namespace
     // C# ToolbarTrackerTests.SimpleTrackEmpty.
     TEST(toolbar_tracker, simple_track_empty)
     {
-        toolbar_tracker tracker;
         content_page page;
+        // Declared AFTER the tracked pages/items: the subscriber disconnects first (§8).
+        toolbar_tracker tracker;
         tracker.set_target(&page);
         EXPECT_TRUE(tracker.toolbar_items().empty());
     }
@@ -55,13 +56,14 @@ namespace
     // C# ToolbarTrackerTests.SimpleTrackWithItems.
     TEST(toolbar_tracker, simple_track_with_items)
     {
-        toolbar_tracker tracker;
         toolbar_item item1("Foo", "Foo.png", [] {});
         toolbar_item item2("Bar", "Bar.png", [] {});
         content_page page;
         page.toolbar_items().add(item1);
         page.toolbar_items().add(item2);
 
+        // Declared AFTER the tracked pages/items: the subscriber disconnects first (§8).
+        toolbar_tracker tracker;
         tracker.set_target(&page);
 
         EXPECT_TRUE(contains(tracker.toolbar_items(), item1));
@@ -71,7 +73,6 @@ namespace
     // The ToolBarItemComparer sort: lower Priority first; equal priorities keep insertion order.
     TEST(toolbar_tracker, items_sort_by_priority)
     {
-        toolbar_tracker tracker;
         toolbar_item low("Low", "Low.png", [] {});
         low.set_priority(1);
         toolbar_item high("High", "High.png", [] {});
@@ -83,6 +84,8 @@ namespace
         page.toolbar_items().add(high);
         page.toolbar_items().add(low);
         page.toolbar_items().add(also_low);
+        // Declared AFTER the tracked pages/items: the subscriber disconnects first (§8).
+        toolbar_tracker tracker;
         tracker.set_target(&page);
 
         const auto items = tracker.toolbar_items();
@@ -95,7 +98,6 @@ namespace
     // C# ToolbarTrackerTests.AdditionalTargets.
     TEST(toolbar_tracker, additional_targets)
     {
-        toolbar_tracker tracker;
         toolbar_item item1("Foo", "Foo.png", [] {});
         toolbar_item item2("Bar", "Bar.png", [] {});
 
@@ -104,6 +106,8 @@ namespace
         content_page additional;
         additional.toolbar_items().add(item2);
 
+        // Declared AFTER the tracked pages/items: the subscriber disconnects first (§8).
+        toolbar_tracker tracker;
         tracker.set_target(&page);
         tracker.set_additional_targets({&additional});
 
@@ -114,15 +118,16 @@ namespace
     // C# ToolbarTrackerTests.PushAfterTrackingStarted.
     TEST(toolbar_tracker, push_after_tracking_started)
     {
-        toolbar_tracker tracker;
         toolbar_item item1("Foo", "Foo.png", [] {});
         toolbar_item item2("Bar", "Bar.png", [] {});
 
+        content_page first_page; // outlives the nav whose internal tracker subscribes to it (§8)
         navigation_page nav;
         nav.toolbar_items().add(item1);
-        content_page first_page;
         first_page.toolbar_items().add(item2);
 
+        // Declared AFTER the tracked pages/items: the subscriber disconnects first (§8).
+        toolbar_tracker tracker;
         tracker.set_target(&nav);
 
         EXPECT_TRUE(contains(tracker.toolbar_items(), item1));
@@ -137,16 +142,17 @@ namespace
     // C# ToolbarTrackerTests.PopAfterTrackingStarted.
     TEST(toolbar_tracker, pop_after_tracking_started)
     {
-        toolbar_tracker tracker;
         toolbar_item item1("Foo", "Foo.png", [] {});
         toolbar_item item2("Bar", "Bar.png", [] {});
 
         content_page root;
+        content_page first_page; // outlives the nav whose internal tracker subscribes to it (§8)
         navigation_page nav(root);
         nav.toolbar_items().add(item1);
-        content_page first_page;
         first_page.toolbar_items().add(item2);
 
+        // Declared AFTER the tracked pages/items: the subscriber disconnects first (§8).
+        toolbar_tracker tracker;
         tracker.set_target(&nav);
         nav.push(first_page);
 
@@ -162,13 +168,14 @@ namespace
     // C# ToolbarTrackerTests.UnsetTarget.
     TEST(toolbar_tracker, unset_target)
     {
-        toolbar_tracker tracker;
         toolbar_item item1("Foo", "Foo.png", [] {});
         toolbar_item item2("Bar", "Bar.png", [] {});
         content_page page;
         page.toolbar_items().add(item1);
         page.toolbar_items().add(item2);
 
+        // Declared AFTER the tracked pages/items: the subscriber disconnects first (§8).
+        toolbar_tracker tracker;
         tracker.set_target(&page);
         EXPECT_EQ(tracker.toolbar_items().size(), 2U);
 
@@ -180,7 +187,6 @@ namespace
     // items aggregate; a navigation fires CollectionChanged.
     TEST(toolbar_tracker, current_page_switch_fires_collection_changed)
     {
-        toolbar_tracker tracker;
         toolbar_item item1("Foo", "Foo.png", [] {});
         toolbar_item item2("Bar", "Bar.png", [] {});
 
@@ -190,6 +196,8 @@ namespace
         page2.toolbar_items().add(item2);
 
         navigation_page nav(page1);
+        // Declared AFTER the tracked pages/items: the subscriber disconnects first (§8).
+        toolbar_tracker tracker;
         tracker.set_target(&nav);
 
         EXPECT_TRUE(contains(tracker.toolbar_items(), item1));
@@ -210,6 +218,7 @@ namespace
         toolbar_item item1("Foo", "Foo.png", [] {});
         toolbar_item item2("Bar", "Bar.png", [] {});
 
+        content_page first_page; // outlives the nav whose internal tracker subscribes to it (§8)
         navigation_page nav;
         nav.toolbar_items().add(item1);
 
@@ -218,7 +227,6 @@ namespace
         window host;
         host.set_content(nav);
 
-        content_page first_page;
         first_page.toolbar_items().add(item2);
         nav.push(first_page);
 
@@ -257,8 +265,9 @@ namespace
 
     TEST(menu_bar_tracker, simple_track_empty)
     {
-        menu_bar_tracker tracker;
         content_page page;
+        // Declared AFTER the tracked pages/items: the subscriber disconnects first (§8).
+        menu_bar_tracker tracker;
         tracker.set_target(&page);
         EXPECT_TRUE(tracker.toolbar_items().empty());
         EXPECT_EQ(tracker.menu_bar(), nullptr);
@@ -266,13 +275,14 @@ namespace
 
     TEST(menu_bar_tracker, simple_track_with_items)
     {
-        menu_bar_tracker tracker;
         menu_bar_item item1;
         menu_bar_item item2;
         content_page page;
         page.menu_bar_items().add(item1);
         page.menu_bar_items().add(item2);
 
+        // Declared AFTER the tracked pages/items: the subscriber disconnects first (§8).
+        menu_bar_tracker tracker;
         tracker.set_target(&page);
 
         EXPECT_TRUE(contains(tracker.toolbar_items(), item1));
@@ -289,7 +299,6 @@ namespace
     // C# MenuBarTrackerTests.AddingMenuBarItemsFireCollectionChanged.
     TEST(menu_bar_tracker, adding_menu_bar_items_fires_collection_changed)
     {
-        menu_bar_tracker tracker;
         menu_bar_item item1;
         menu_bar_item item2;
 
@@ -297,6 +306,8 @@ namespace
         sub_page.menu_bar_items().add(item1);
 
         navigation_page nav(sub_page);
+        // Declared AFTER the tracked pages/items: the subscriber disconnects first (§8).
+        menu_bar_tracker tracker;
         tracker.set_target(&nav);
 
         bool changed = false;
@@ -310,11 +321,12 @@ namespace
 
     TEST(menu_bar_tracker, unset_target)
     {
-        menu_bar_tracker tracker;
         menu_bar_item item1;
         content_page page;
         page.menu_bar_items().add(item1);
 
+        // Declared AFTER the tracked pages/items: the subscriber disconnects first (§8).
+        menu_bar_tracker tracker;
         tracker.set_target(&page);
         EXPECT_EQ(tracker.toolbar_items().size(), 1U);
 
