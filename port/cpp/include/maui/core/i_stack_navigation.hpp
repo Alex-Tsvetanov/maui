@@ -35,6 +35,7 @@
 namespace maui::core
 {
     class i_view;
+    class i_toolbar_item; // chrome (W1-11) — the toolbar items the navigation chrome materializes
 
     class i_stack_navigation
     {
@@ -68,6 +69,15 @@ namespace maui::core
         // property the toolbar surfaces). Non-owning; null when none — the bar then shows the title label.
         // The handler hosts this view's native view in the bar.
         [[nodiscard]] virtual i_view* navigation_bar_title_view() const = 0;
+
+        // --- chrome (W1-11): the priority-sorted toolbar items of the navigation view + its current
+        // page (the ToolbarTracker aggregate C#'s Toolbar surfaces). The iOS twin materializes these as
+        // bar buttons on the navigation bar (the UINavigationBar rightBarButtonItems path); the other
+        // backends mirror them. Defaulted empty so existing implementers stay source-compatible. ---
+        [[nodiscard]] virtual std::vector<i_toolbar_item*> navigation_toolbar_items() const
+        {
+            return {};
+        }
 
         // The bar's back button (and a hardware back press) routes here — C# NavigationPage.
         // OnBackButtonPressed: pop the current page when above the root and report handled (true), else

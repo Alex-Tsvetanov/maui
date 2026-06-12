@@ -5,9 +5,15 @@
 
 #include "maui/core/view_mapper.hpp"
 
+#include <optional>
+#include <string>
+
+#include "maui/core/i_context_flyout_element.hpp"
+#include "maui/core/i_tool_tip_element.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/property_mapper.hpp"
+#include "maui/core/view_chrome_ops.hpp"
 #include "maui/core/view_platform_base.hpp"
 
 namespace maui::core
@@ -125,6 +131,36 @@ namespace maui::core
                 base->update_input_transparent(view.input_transparent());
             }
         }
+
+        // chrome (W1-11): ViewHandler.MapToolTip — `view is IToolTipElement` (the dynamic_cast probe is
+        // C#'s type check) → record the mirror, then push the text to the NATIVE view through the
+        // per-backend free function (C#'s ToPlatform().UpdateToolTip extension shape), so every control
+        // gets the native behavior with no per-control platform override.
+        void map_tool_tip(i_view_handler& handler, i_view& view)
+        {
+            const auto* tool_tip_element = dynamic_cast<const i_tool_tip_element*>(&view);
+            const std::optional<std::string> text =
+                tool_tip_element != nullptr ? tool_tip_element->tool_tip() : std::nullopt;
+            if (auto* base = handler.platform_base())
+            {
+                base->update_tool_tip(text);
+            }
+            apply_native_tool_tip(handler.native_view(), text);
+        }
+
+        // chrome (W1-11): ViewHandler.MapContextFlyout — `view is IContextFlyoutElement` → record the
+        // mirror, then materialize the menu on the native view (NSView.menu on AppKit; a
+        // UIContextMenuInteraction on iOS; headless no-op).
+        void map_context_flyout(i_view_handler& handler, i_view& view)
+        {
+            const auto* flyout_element = dynamic_cast<const i_context_flyout_element*>(&view);
+            const i_flyout* flyout = flyout_element != nullptr ? flyout_element->context_flyout() : nullptr;
+            if (auto* base = handler.platform_base())
+            {
+                base->update_context_flyout(flyout);
+            }
+            apply_native_context_flyout(handler.native_view(), flyout);
+        }
     } // namespace
 
     property_mapper<i_view, i_view_handler>& view_mapper()
@@ -152,6 +188,9 @@ namespace maui::core
             {"clip", &map_clip},
             {"semantics", &map_semantics},
             {"input_transparent", &map_input_transparent},
+            // chrome (W1-11): the attached ToolTip + ContextFlyout (keys match the view<> setters).
+            {"tool_tip", &map_tool_tip},
+            {"context_flyout", &map_context_flyout},
         };
         return table;
     }

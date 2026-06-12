@@ -48,6 +48,9 @@ namespace maui::core
             platform->bar_background_color = navigation->navigation_bar_background_color();
             platform->bar_text_color = navigation->navigation_bar_text_color();
             platform->hosted_title_view = navigation->navigation_bar_title_view();
+            // chrome (W1-11): mirror the page-surfaced toolbar items (the iOS twin materializes them as
+            // bar buttons; AppKit surfaces them through the window's NSToolbar instead).
+            platform->toolbar_items = navigation->navigation_toolbar_items();
         }
     }
 

@@ -32,6 +32,9 @@
 #include "maui/controls/element.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/event.hpp"
+#include "maui/core/i_menu_bar_element.hpp"  // --- chrome (W1-11) ---
+#include "maui/core/i_title_bar_element.hpp" // --- chrome (W1-11) ---
+#include "maui/core/i_toolbar_element.hpp"   // --- chrome (W1-11) ---
 #include "maui/core/i_window.hpp"
 #include "maui/core/property.hpp"
 #include "maui/graphics/rect.hpp"
@@ -39,6 +42,12 @@
 namespace maui::controls
 {
     class content_page; // forward — the convenience ctor hosts one; appearing is driven by dynamic_cast in .cpp
+    // --- chrome (W1-11) forwards: the window chrome members are unique_ptr/raw pointers to these, with
+    // the complete types living in window.cpp (keeps this header light + cycle-free) ---
+    class toolbar;
+    class toolbar_tracker;
+    class menu_bar_tracker;
+    class title_bar;
 
     // Shared bindable-property descriptors for the window geometry (Window.X/Y/Width/Height). NON-template
     // free functions so the descriptor identity (and thus the property name the window_handler keys on) is
@@ -49,11 +58,20 @@ namespace maui::controls
     const maui::core::bindable_property<double>& window_width_property();
     const maui::core::bindable_property<double>& window_height_property();
 
-    class window : public element, public maui::core::i_window
+    class window : public element,
+                   public maui::core::i_window,
+                   public maui::core::i_toolbar_element,  // --- chrome (W1-11): C# Window : IToolbarElement
+                   public maui::core::i_menu_bar_element, // --- chrome (W1-11): C# Window : IMenuBarElement
+                   public maui::core::i_title_bar_element // --- chrome (W1-11): C# IWindow.TitleBar
     {
     public:
         window();
         explicit window(content_page& page);
+        ~window() override; // out-of-line: the chrome unique_ptrs need the complete tracker/toolbar types
+        window(const window&) = delete;
+        window(window&&) = delete;
+        window& operator=(const window&) = delete;
+        window& operator=(window&&) = delete;
 
         // ---- i_element (the handler seam — a window is an IElement, like every control) ----
         [[nodiscard]] const std::shared_ptr<maui::core::i_element_handler>& handler() const override
@@ -181,6 +199,25 @@ namespace maui::controls
         maui::core::event<> stopped;
         maui::core::event<> backgrounding;
 
+        // --- chrome (W1-11): toolbar / menu bar / title bar --------------------------------------------
+        // C# Window.Toolbar (IToolbarElement): the window-level toolbar chrome. Created when the hosted
+        // page is a navigation_page (C#: NavigationPage assigns a NavigationPageToolbar to its window;
+        // the port creates it in set_content — documented simplification) — null otherwise. The owned
+        // toolbar_tracker aggregates the page hierarchy's toolbar_items (priority-sorted) into it, and
+        // any change re-runs the window handler's "toolbar" map (NSToolbar on AppKit; iOS surfaces the
+        // items through the navigation bar instead — see navigation_page_handler).
+        [[nodiscard]] maui::core::i_toolbar* toolbar() const override;
+        // C# IMenuBarElement.MenuBar: the menu_bar_tracker's synced aggregate of the page hierarchy's
+        // menu_bar_items — null while there are none. Changes re-run the handler's "menu_bar" map (the
+        // NSMenu main menu on AppKit; stored-inert on iOS — C# materializes menus on desktop/Catalyst).
+        [[nodiscard]] maui::core::i_menu_bar* menu_bar() const override;
+        // C# IWindow.TitleBar (the basics): the custom title bar, NON-owning (the caller owns it; null
+        // clears). Setting re-runs the handler's "title_bar" map (an NSTitlebarAccessoryViewController
+        // on AppKit; documented no-op on iOS — C# maps TitleBar on Windows + Mac Catalyst only).
+        [[nodiscard]] maui::core::i_title_bar* title_bar() const override;
+        void set_title_bar(class title_bar* value);
+        // --- end chrome (W1-11) ------------------------------------------------------------------------
+
         // ---- application back-reference (set by application::open_window / cleared by close_window) ----
         // The resume/sleep drive routes through these so a window started by an application resumes/sleeps it
         // (Window.cs Application?.SendResume / SendSleep). Non-owning; both are reset on close.
@@ -210,6 +247,11 @@ namespace maui::controls
         // subtree) and drive Appearing/Disappearing when the page is a content_page (Window.SendWindow*).
         void attach_page();
         void detach_page();
+        // --- chrome (W1-11): (re)wire the chrome trackers to the (new) content page — create the window
+        // toolbar when the page is a navigation_page, hide/clear it otherwise; retarget the menu bar
+        // tracker — and push the tracker aggregate into the toolbar chrome. Called from set_content. ---
+        void setup_chrome();
+        void refresh_toolbar_items();
         // Push a geometry/title/content change to the handler (Window.OnPropertyChanged → Handler.UpdateValue),
         // unless suppressed during a frame_changed batch (matching Window.UpdateHandlerValue).
         void update_handler_value(std::string_view property);
@@ -224,6 +266,14 @@ namespace maui::controls
         maui::core::property<double> y_{*this, window_y_property()};
         maui::core::property<double> width_{*this, window_width_property()};
         maui::core::property<double> height_{*this, window_height_property()};
+        // --- chrome (W1-11) members: the owned chrome + trackers (complete types in window.cpp) and the
+        // tracker subscriptions. title_bar_ is NON-owning (the caller owns the title bar, PROFILE §8). ---
+        std::unique_ptr<maui::controls::toolbar> toolbar_;
+        std::unique_ptr<toolbar_tracker> toolbar_tracker_;
+        std::unique_ptr<menu_bar_tracker> menu_bar_tracker_; // C# Window ctor: new MenuBarTracker(this, "MenuBar")
+        maui::core::scoped_connection toolbar_items_token_;  // tracker → refresh_toolbar_items
+        maui::core::scoped_connection menu_bar_items_token_; // tracker → update_handler_value("menu_bar")
+        maui::controls::title_bar* title_bar_ = nullptr;
         std::function<void()> on_resume_; // Application.SendResume hook (set by open_window)
         std::function<void()> on_sleep_;  // Application.SendSleep hook (set by open_window)
         int batch_frame_update_ = 0;      // Window._batchFrameUpdate — suppresses the handler re-push

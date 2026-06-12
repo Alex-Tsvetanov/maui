@@ -62,11 +62,15 @@
 
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/element.hpp"
+#include "maui/controls/menu_bar_item.hpp"
+#include "maui/controls/menu_element_list.hpp"
+#include "maui/controls/toolbar_item.hpp"
 #include "maui/controls/view.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/event.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_stack_navigation.hpp"
+#include "maui/core/i_toolbar_item.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/navigation_request.hpp"
 #include "maui/core/property.hpp"
@@ -74,20 +78,20 @@
 
 namespace maui::controls
 {
+    class toolbar_tracker; // forward — chrome (W1-11): the nav page owns one (defined with the trackers)
+
     class navigation_page : public view<maui::core::i_view>, public maui::core::i_stack_navigation
     {
     public:
-        navigation_page()
-        {
-            this->set_style_target_type<navigation_page>(); // implicit / class style match
-        }
+        navigation_page();
         // Construct with a root page already pushed (C# NavigationPage(Page root) → PushPage(root)). The
         // root is made the initial current page and appears (the window's role, stood in for here).
-        explicit navigation_page(content_page& root)
-        {
-            this->set_style_target_type<navigation_page>();
-            push_initial(root);
-        }
+        explicit navigation_page(content_page& root);
+        ~navigation_page() override; // out-of-line: the unique_ptr<toolbar_tracker> needs the complete type
+        navigation_page(const navigation_page&) = delete;
+        navigation_page(navigation_page&&) = delete;
+        navigation_page& operator=(const navigation_page&) = delete;
+        navigation_page& operator=(navigation_page&&) = delete;
 
         // ---- the navigation stack (top-most page LAST), C# NavigationPage.NavigationStack ----
         [[nodiscard]] const std::vector<content_page*>& navigation_stack() const
@@ -223,6 +227,18 @@ namespace maui::controls
         }
         void set_title_view(maui::core::i_view* value);
 
+        // ---- chrome (W1-11): the per-page chrome item collections (Page.ToolbarItems /
+        // Page.MenuBarItems — a NavigationPage IS a Page in C#, so it carries its own too). Items are
+        // parented to this page on add; NON-owning (PROFILE §8). ----
+        [[nodiscard]] menu_element_list<toolbar_item>& toolbar_items()
+        {
+            return toolbar_items_;
+        }
+        [[nodiscard]] menu_element_list<menu_bar_item>& menu_bar_items()
+        {
+            return menu_bar_items_;
+        }
+
         // ---- i_stack_navigation chrome getters (the handler reads these to build the bar) ----
         [[nodiscard]] std::string_view navigation_bar_title() const override
         {
@@ -246,6 +262,11 @@ namespace maui::controls
         {
             return title_view_;
         }
+        // chrome (W1-11): the priority-sorted toolbar items of this nav page + its current page (the
+        // tracker aggregate) — the iOS twin materializes these as bar buttons on the navigation bar
+        // (C#'s UINavigationBar rightBarButtonItems path); AppKit surfaces them through the window's
+        // NSToolbar instead and only mirrors here. Defined out-of-line (needs the tracker type).
+        [[nodiscard]] std::vector<maui::core::i_toolbar_item*> navigation_toolbar_items() const override;
 
         // ---- i_element (override to host the current page once a handler attaches) ----
         // C# NavigationPage.OnHandlerChangedCore: when the handler connects to a navigation page that
@@ -260,7 +281,8 @@ namespace maui::controls
 
     protected:
         // Every page in the stack — and every modal — is a logical child, so BindingContext + Window
-        // inherit down to them. content_page is-a element, so visiting needs no cast.
+        // inherit down to them. content_page is-a element, so visiting needs no cast. The page's own
+        // chrome items (W1-11) are logical children too, like content_page's.
         void for_each_logical_child(const std::function<void(element&)>& visit) const override
         {
             for (content_page* const page : stack_)
@@ -270,6 +292,14 @@ namespace maui::controls
             for (content_page* const modal : modal_stack_)
             {
                 visit(*modal);
+            }
+            for (toolbar_item* const item : toolbar_items_.items())
+            {
+                visit(*item);
+            }
+            for (menu_bar_item* const item : menu_bar_items_.items())
+            {
+                visit(*item);
             }
         }
 
@@ -305,6 +335,20 @@ namespace maui::controls
 
         std::vector<content_page*> stack_;       // NON-owning: the caller owns the pages' lifetime
         std::vector<content_page*> modal_stack_; // NON-owning: the modal overlay stack
+        // chrome (W1-11): the page's own chrome item collections + the toolbar tracker aggregating this
+        // nav page's items with its current page's (the NavigationPageToolbar tracker role). The tracker
+        // is a unique_ptr (forward-declared type; created in the ctor targeting *this); its
+        // collection_changed re-issues the navigation request so the native chrome refreshes.
+        menu_element_list<toolbar_item> toolbar_items_{[this](toolbar_item& item) { attach_logical_child(item); },
+                                                       [](toolbar_item& item) { detach_logical_child(item); }};
+        menu_element_list<menu_bar_item> menu_bar_items_{[this](menu_bar_item& item) { attach_logical_child(item); },
+                                                         [](menu_bar_item& item) { detach_logical_child(item); }};
+        std::unique_ptr<toolbar_tracker> toolbar_tracker_;
+        maui::core::scoped_connection toolbar_items_token_; // tracker collection_changed → bar refresh
+        // The aggregate as of the LAST issued navigation request: the tracker emits collection_changed
+        // on every navigation (C# parity), but only an ACTUAL item change should re-issue the request —
+        // otherwise the refresh would clobber the just-realized transition's animated flag.
+        std::vector<maui::core::i_toolbar_item*> last_toolbar_items_;
         // Bar styling (C# BarBackgroundColor / BarTextColor / TitleView). The colors are bindable; the *_set_
         // flags track "was the developer color ever set" so the handler leaves the system default when unset
         // (C# default(Color) = null). title_view is NON-owning (the caller owns it).

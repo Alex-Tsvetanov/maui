@@ -5,6 +5,7 @@
 
 #include "maui/core/view_platform_base.hpp"
 
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -70,5 +71,17 @@ namespace maui::core
     void view_platform_base::update_input_transparent(bool value)
     {
         input_transparent = value;
+    }
+
+    // chrome (W1-11): mirrors only — the native push goes through the per-backend view_chrome_ops free
+    // functions the view_mapper calls (see view_platform_base.hpp).
+    void view_platform_base::update_tool_tip(const std::optional<std::string>& value)
+    {
+        tool_tip = value;
+    }
+
+    void view_platform_base::update_context_flyout(const maui::core::i_flyout* value)
+    {
+        context_flyout = value;
     }
 } // namespace maui::core

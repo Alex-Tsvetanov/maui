@@ -33,6 +33,11 @@
 namespace maui::core
 {
     class i_maui_context;
+    // --- chrome (W1-11) forwards: the window chrome contracts the mapper additions below consume ---
+    class i_toolbar;
+    class i_menu_bar;
+    class i_title_bar;
+    // --- end chrome (W1-11) ---
 
     // The pimpl that owns the native window (PROFILE §8). A single cross-platform struct (like the view
     // handlers' *_platform): the native slot + a headless mirror of what the native host tracks (the hosted
@@ -54,6 +59,24 @@ namespace maui::core
         std::string title;                 // the last title pushed (MapTitle)
         bool content_hosted = false;       // whether the root page's native view is hosted (MapContent)
         bool activated = false;            // mirrors NSWindow main/key on the headless backend
+
+        // --- chrome (W1-11): the window chrome mirrors + the retained native chrome slots -------------
+        // NON-owning borrows of the window's chrome (null = none); every backend records these, and the
+        // Apple build additionally materializes the real NSToolbar / NSMenu main menu / titlebar
+        // accessory from them. On iOS all three stay mirror-only by design: the toolbar items surface
+        // through the navigation bar (navigation_page_handler), and C# materializes menu bars / title
+        // bars on desktop (Windows/Catalyst) only — documented no-ops.
+        i_toolbar* hosted_toolbar = nullptr;     // MapToolbar (IToolbarElement.Toolbar)
+        i_menu_bar* hosted_menu_bar = nullptr;   // MapMenuBar (IMenuBarElement.MenuBar)
+        i_title_bar* hosted_title_bar = nullptr; // MapTitleBar (IWindow.TitleBar)
+#ifdef MAUI_PLATFORM_APPLE
+        void* chrome_toolbar = nullptr;          // retained NSToolbar (window.toolbar)
+        void* chrome_toolbar_delegate = nullptr; // retained NSToolbarDelegate trampoline (items + clicks)
+        void* chrome_main_menu = nullptr;        // retained NSMenu (assigned to NSApp.mainMenu when present)
+        void* chrome_menu_target = nullptr;      // retained menu-item target trampoline (click → send_clicked)
+        void* chrome_title_bar = nullptr;        // retained NSTitlebarAccessoryViewController
+#endif
+        // --- end chrome (W1-11) ------------------------------------------------------------------------
 
 #ifdef MAUI_PLATFORM_APPLE
         // The trampoline (an NSWindowDelegate-style observer) that maps the native window notifications back
@@ -128,6 +151,20 @@ namespace maui::core
         static void map_y(window_handler& handler, i_window& view);
         static void map_width(window_handler& handler, i_window& view);
         static void map_height(window_handler& handler, i_window& view);
+
+        // --- chrome (W1-11): WindowHandler.MapToolbar / MapMenuBar / MapTitleBar ------------------------
+        // Each cross-casts the i_window to its chrome element interface (i_toolbar_element /
+        // i_menu_bar_element / i_title_bar_element — C#'s `window as IToolbarElement` probes) and hands
+        // the chrome to the per-backend apply_* recipe (real NSToolbar / NSMenu main menu / titlebar
+        // accessory on AppKit; mirror-only on headless and iOS — see window_platform above). The apply_*
+        // are defined per backend in src/platform/<backend>/window_handler.{cpp,mm}.
+        static void map_toolbar(window_handler& handler, i_window& view);
+        static void map_menu_bar(window_handler& handler, i_window& view);
+        static void map_title_bar(window_handler& handler, i_window& view);
+        void apply_toolbar(i_toolbar* toolbar);
+        void apply_menu_bar(i_menu_bar* menu_bar);
+        void apply_title_bar(i_title_bar* title_bar);
+        // --- end chrome (W1-11) ------------------------------------------------------------------------
 
     private:
         // The backend recipe: create the native window, host the root page's native view as the content

@@ -30,6 +30,9 @@
 #include <utility>
 
 #include "maui/controls/element.hpp"
+#include "maui/controls/menu_bar_item.hpp"
+#include "maui/controls/menu_element_list.hpp"
+#include "maui/controls/toolbar_item.hpp"
 #include "maui/controls/view.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/event.hpp"
@@ -142,6 +145,19 @@ namespace maui::controls
             title_.set(std::move(value));
         }
 
+        // ---- chrome (W1-11): the per-page chrome item collections (Page.ToolbarItems /
+        // Page.MenuBarItems). Items added here are parented to this page (Page's collection-changed
+        // parenting), surface through the window chrome via the toolbar/menu-bar trackers, and are
+        // NON-owning (the caller owns each item's lifetime, PROFILE §8). ----
+        [[nodiscard]] menu_element_list<toolbar_item>& toolbar_items()
+        {
+            return toolbar_items_;
+        }
+        [[nodiscard]] menu_element_list<menu_bar_item>& menu_bar_items()
+        {
+            return menu_bar_items_;
+        }
+
         // ---- layout pass: the content view computes its OWN geometry by measuring/arranging the single
         // content within the padding (C# LayoutExtensions.MeasureContent / ArrangeContent), unlike a leaf
         // control which delegates measure/arrange to its handler. arrange additionally sizes the native
@@ -151,13 +167,22 @@ namespace maui::controls
         maui::graphics::size arrange(const maui::graphics::rect& bounds) override;
 
     protected:
-        // The single content child is this page's one logical child, so BindingContext + Window inherit
-        // down to it. content_ is the i_view contract; cross-cast to the element base every control shares.
+        // The content child plus the chrome items are this page's logical children, so BindingContext +
+        // Window inherit down to them (C# Page propagates into ToolbarItems/MenuBarItems too). content_
+        // is the i_view contract; cross-cast to the element base every control shares.
         void for_each_logical_child(const std::function<void(element&)>& visit) const override
         {
             if (auto* child = dynamic_cast<element*>(content_))
             {
                 visit(*child);
+            }
+            for (toolbar_item* const item : toolbar_items_.items())
+            {
+                visit(*item);
+            }
+            for (menu_bar_item* const item : menu_bar_items_.items())
+            {
+                visit(*item);
             }
         }
 
@@ -175,6 +200,12 @@ namespace maui::controls
         maui::core::i_view* content_ = nullptr; // NON-owning: the caller owns the content's lifetime
         maui::core::property<maui::core::thickness> padding_{*this, padding_property()};
         maui::core::property<std::string> title_{*this, title_property()};
+        // chrome (W1-11): the page's chrome item collections — items parent to this page on add and
+        // un-parent on remove (Page's collection-changed parenting).
+        menu_element_list<toolbar_item> toolbar_items_{[this](toolbar_item& item) { attach_logical_child(item); },
+                                                       [](toolbar_item& item) { detach_logical_child(item); }};
+        menu_element_list<menu_bar_item> menu_bar_items_{[this](menu_bar_item& item) { attach_logical_child(item); },
+                                                         [](menu_bar_item& item) { detach_logical_child(item); }};
         bool has_appeared_ = false; // Page._hasAppeared — gates the idempotent appearing/disappearing pair
     };
 } // namespace maui::controls

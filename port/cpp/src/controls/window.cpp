@@ -10,6 +10,11 @@
 
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/element.hpp"
+#include "maui/controls/menu_bar_tracker.hpp" // --- chrome (W1-11) ---
+#include "maui/controls/navigation_page.hpp"  // --- chrome (W1-11) ---
+#include "maui/controls/title_bar.hpp"        // --- chrome (W1-11) ---
+#include "maui/controls/toolbar.hpp"          // --- chrome (W1-11) ---
+#include "maui/controls/toolbar_tracker.hpp"  // --- chrome (W1-11) ---
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/dimension.hpp"
@@ -45,12 +50,100 @@ namespace maui::controls
         return descriptor;
     }
 
-    window::window() = default;
+    window::window()
+    {
+        // C# Window(): _menuBarTracker = new MenuBarTracker(this, "MenuBar") — every page-sourced menu
+        // bar change re-runs the window handler's "menu_bar" map (the C# handlerProperty poke).
+        menu_bar_tracker_ = std::make_unique<menu_bar_tracker>();
+        menu_bar_items_token_ = maui::core::scoped_connection(
+            menu_bar_tracker_->collection_changed,
+            menu_bar_tracker_->collection_changed.connect([this] { update_handler_value("menu_bar"); }));
+    }
 
-    window::window(content_page& page)
+    window::window(content_page& page) : window()
     {
         set_content(page);
     }
+
+    // Out-of-line: the chrome unique_ptrs (toolbar / trackers) need their complete types here.
+    window::~window() = default;
+
+    // --- chrome (W1-11) -----------------------------------------------------------------------------
+    maui::core::i_toolbar* window::toolbar() const
+    {
+        return toolbar_.get();
+    }
+
+    maui::core::i_menu_bar* window::menu_bar() const
+    {
+        // C# IMenuBarElement.MenuBar => _menuBarTracker.MenuBar (null while the aggregate is empty).
+        return menu_bar_tracker_->menu_bar();
+    }
+
+    maui::core::i_title_bar* window::title_bar() const
+    {
+        return title_bar_;
+    }
+
+    void window::set_title_bar(maui::controls::title_bar* value)
+    {
+        // C# Window.TitleBar: replacing (or clearing) re-runs the handler's "title_bar" map, which
+        // swaps the native titlebar accessory. NON-owning — the caller owns both old and new bars.
+        if (title_bar_ == value)
+        {
+            return;
+        }
+        title_bar_ = value;
+        update_handler_value("title_bar");
+    }
+
+    void window::setup_chrome()
+    {
+        // The menu bar tracker always follows the hosted page (C# tracker.Target = window.Page).
+        menu_bar_tracker_->set_target(content_);
+
+        // C# NavigationPage assigns a NavigationPageToolbar to its window when it lands in one
+        // (NavigationPage.TryHookupToolbar: w.Toolbar = new NavigationPageToolbar(w, w.Page)); the port
+        // creates the window toolbar here when the hosted page IS a navigation_page (the only
+        // chrome-bearing page container at this layer — documented simplification).
+        if (dynamic_cast<navigation_page*>(content_) == nullptr)
+        {
+            if (toolbar_ != nullptr)
+            {
+                // The new page has no navigation chrome: hide the toolbar and empty its aggregate
+                // (C# NavigationPageToolbar sets IsVisible = false when no NavigationPage is current).
+                toolbar_tracker_->set_target(nullptr);
+                toolbar_->set_is_visible(false);
+                refresh_toolbar_items();
+            }
+            return;
+        }
+        if (toolbar_ == nullptr)
+        {
+            toolbar_ = std::make_unique<maui::controls::toolbar>(this);
+            // The Toolbar.SetProperty → Handler.UpdateValue collapse: any chrome change re-runs the
+            // WINDOW handler's "toolbar" map (see toolbar.hpp).
+            toolbar_->set_notify([this](std::string_view /*property*/) { update_handler_value("toolbar"); });
+            toolbar_tracker_ = std::make_unique<toolbar_tracker>();
+            toolbar_items_token_ = maui::core::scoped_connection(
+                toolbar_tracker_->collection_changed,
+                toolbar_tracker_->collection_changed.connect([this] { refresh_toolbar_items(); }));
+        }
+        toolbar_tracker_->set_target(content_);
+        toolbar_->set_is_visible(true); // C# NavigationPageToolbar: visible while a nav page is current
+        refresh_toolbar_items();
+        update_handler_value("toolbar"); // a freshly-created toolbar reaches an already-attached handler
+    }
+
+    void window::refresh_toolbar_items()
+    {
+        // C# NavigationPageToolbar.OnToolbarItemsChanged: ToolbarItems = _toolbarTracker.ToolbarItems.
+        if (toolbar_ != nullptr && toolbar_tracker_ != nullptr)
+        {
+            toolbar_->set_toolbar_items(toolbar_tracker_->toolbar_items());
+        }
+    }
+    // --- end chrome (W1-11) -------------------------------------------------------------------------
 
     void window::set_handler(std::shared_ptr<maui::core::i_element_handler> value)
     {
@@ -86,6 +179,7 @@ namespace maui::controls
         {
             attach_page();
         }
+        setup_chrome();                  // chrome (W1-11): retarget the menu bar tracker + (un)wire the window toolbar
         update_handler_value("content"); // Window.OnPropertyChanged(Page) -> MapContent re-hosts the page
     }
 

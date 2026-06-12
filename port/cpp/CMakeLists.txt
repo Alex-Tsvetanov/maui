@@ -328,6 +328,7 @@ else()
     # (W1-10 tabbed + flyout pages) the tab-host + two-pane mirrors.
     src/platform/headless/tabbed_page_handler.cpp
     src/platform/headless/flyout_page_handler.cpp
+    src/platform/headless/view_chrome_ops.cpp # (W1-11 chrome) tooltip/context-flyout native push (no-op)
     src/platform/headless/web_view_handler.cpp
     src/platform/headless/window_handler.cpp
     # (W1-14 animations) the deterministic manual_ticker is the headless platform ticker.
@@ -591,6 +592,14 @@ add_library(maui_controls STATIC
   src/controls/web_view.cpp
   src/controls/url_web_view_source.cpp
   src/controls/html_web_view_source.cpp
+  # (W1-11 chrome/menus) toolbar items + menu bar/flyout family + trackers + window chrome.
+  src/controls/menu_item.cpp
+  src/controls/toolbar_item.cpp
+  src/controls/menu_bar_item.cpp
+  src/controls/menu_bar.cpp
+  src/controls/toolbar_tracker.cpp
+  src/controls/menu_bar_tracker.cpp
+  src/controls/title_bar.cpp
   src/controls/style.cpp
   src/controls/resource_dictionary.cpp
   src/controls/merged_style.cpp
@@ -813,6 +822,12 @@ else()
     tests/controls/web_view_tests.cpp
     tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
     tests/controls/tabbed_flyout_page_tests.cpp # the W1-10 demo page wiring (backend-agnostic)
+    # (W1-11 chrome/menus) menu items + containers + trackers + window/view chrome + the demo page.
+    tests/controls/menu_item_tests.cpp
+    tests/controls/menu_bar_tests.cpp
+    tests/controls/menu_tracker_tests.cpp
+    tests/controls/chrome_tests.cpp
+    tests/controls/chrome_page_tests.cpp
     tests/controls/style_tests.cpp
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp

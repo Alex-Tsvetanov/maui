@@ -32,6 +32,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <vector> // --- chrome (W1-11): the toolbar_items mirror ---
 
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/i_view.hpp"
@@ -45,6 +46,8 @@
 
 namespace maui::core
 {
+    class i_toolbar_item; // --- chrome (W1-11): the toolbar_items mirror below borrows these ---
+
     // Derives view_platform_base so the shared view_mapper can push the generic IView properties onto it
     // (headless keeps the base mirrors; Apple overrides update_* to push to the NSView container).
     struct navigation_page_platform : view_platform_base
@@ -78,6 +81,19 @@ namespace maui::core
         // The last navigation request's animated flag (headless-observable; the Apple twin cross-fades the
         // content swap when true). Mirrors NavigationRequest.Animated for the realized transition.
         bool last_animated = false;
+
+        // --- chrome (W1-11): the page-surfaced toolbar items ---------------------------------------------
+        // Mirror of i_stack_navigation::navigation_toolbar_items() (the ToolbarTracker aggregate),
+        // refreshed by host_current. The iOS twin ADDITIONALLY materializes them as buttons on the right
+        // of the custom navigation bar (C#'s UINavigationBar rightBarButtonItems path; secondary items
+        // follow the primaries — documented simplification of the overflow). AppKit keeps the mirror only
+        // — its toolbar items surface through the window's NSToolbar (window_handler) instead.
+        std::vector<i_toolbar_item*> toolbar_items;
+#ifdef MAUI_PLATFORM_IOS
+        void* toolbar_buttons = nullptr; // retained NSMutableArray<UIButton*> (the bar's right buttons)
+        void* toolbar_targets = nullptr; // retained NSMutableArray of click trampolines (button → send_clicked)
+#endif
+        // --- end chrome (W1-11) --------------------------------------------------------------------------
 
 #if defined(MAUI_PLATFORM_APPLE) || defined(MAUI_PLATFORM_IOS)
         // The retained native chrome slots, shared by the two real-native twins (NSView/NSTextField/

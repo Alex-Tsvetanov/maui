@@ -218,4 +218,13 @@ namespace maui::controls
         static const maui::core::bindable_property<int> descriptor{"z_index", 0};
         return descriptor;
     }
+
+    // chrome (W1-11): the attached ToolTipProperties.Text storage (default empty; property<T>::is_set()
+    // distinguishes "never set" — the C# IsSet(TextProperty) probe GetToolTip applies). The name is the
+    // view_mapper key map_tool_tip listens on.
+    const maui::core::bindable_property<std::string>& tool_tip_text_property()
+    {
+        static const maui::core::bindable_property<std::string> descriptor{"tool_tip"};
+        return descriptor;
+    }
 } // namespace maui::controls

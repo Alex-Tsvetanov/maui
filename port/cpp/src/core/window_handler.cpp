@@ -15,6 +15,9 @@
 #include <utility>
 
 #include "maui/core/i_element.hpp"
+#include "maui/core/i_menu_bar_element.hpp"  // --- chrome (W1-11) ---
+#include "maui/core/i_title_bar_element.hpp" // --- chrome (W1-11) ---
+#include "maui/core/i_toolbar_element.hpp"   // --- chrome (W1-11) ---
 #include "maui/core/i_window.hpp"
 #include "maui/core/property_mapper.hpp"
 
@@ -26,9 +29,16 @@ namespace maui::core
     property_mapper<i_window, window_handler>& window_handler::mapper()
     {
         static property_mapper<i_window, window_handler> table{
-            {"title", &window_handler::map_title}, {"content", &window_handler::map_content},
-            {"x", &window_handler::map_x},         {"y", &window_handler::map_y},
-            {"width", &window_handler::map_width}, {"height", &window_handler::map_height},
+            {"title", &window_handler::map_title},
+            {"content", &window_handler::map_content},
+            {"x", &window_handler::map_x},
+            {"y", &window_handler::map_y},
+            {"width", &window_handler::map_width},
+            {"height", &window_handler::map_height},
+            // chrome (W1-11): IToolbarElement.Toolbar / IMenuBarElement.MenuBar / IWindow.TitleBar.
+            {"toolbar", &window_handler::map_toolbar},
+            {"menu_bar", &window_handler::map_menu_bar},
+            {"title_bar", &window_handler::map_title_bar},
         };
         return table;
     }
@@ -135,5 +145,27 @@ namespace maui::core
     void window_handler::map_height(window_handler& handler, i_window& /*view*/)
     {
         handler.apply_frame();
+    }
+
+    // --- chrome (W1-11): each map cross-casts the window to its chrome element interface (the C#
+    // `window as IToolbarElement/IMenuBarElement` probes; TitleBar sits on IWindow in C# — the port's
+    // i_title_bar_element is the documented cast-interface stand-in) and hands the chrome to the
+    // per-backend recipe. ---
+    void window_handler::map_toolbar(window_handler& handler, i_window& view)
+    {
+        auto* element = dynamic_cast<i_toolbar_element*>(&view);
+        handler.apply_toolbar(element != nullptr ? element->toolbar() : nullptr);
+    }
+
+    void window_handler::map_menu_bar(window_handler& handler, i_window& view)
+    {
+        auto* element = dynamic_cast<i_menu_bar_element*>(&view);
+        handler.apply_menu_bar(element != nullptr ? element->menu_bar() : nullptr);
+    }
+
+    void window_handler::map_title_bar(window_handler& handler, i_window& view)
+    {
+        auto* element = dynamic_cast<i_title_bar_element*>(&view);
+        handler.apply_title_bar(element != nullptr ? element->title_bar() : nullptr);
     }
 } // namespace maui::core

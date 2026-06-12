@@ -17,10 +17,12 @@
 #include <vector>
 
 #include "maui/controls/content_page.hpp"
+#include "maui/controls/toolbar_tracker.hpp"
 #include "maui/controls/view.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/i_toolbar_item.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/navigation_page_handler.hpp"
 #include "maui/core/navigation_request.hpp"
@@ -28,6 +30,51 @@
 
 namespace maui::controls
 {
+    // chrome (W1-11): the ctors are out-of-line so the unique_ptr<toolbar_tracker> sees the complete
+    // type. Each nav page owns a tracker targeting ITSELF (the NavigationPageToolbar tracker role): the
+    // aggregate = this page's own toolbar_items + the current page's, priority-sorted; any change
+    // re-issues the (unanimated) navigation request so the handler's chrome — the iOS bar buttons, the
+    // headless mirror — refreshes without a push/pop.
+    navigation_page::navigation_page()
+    {
+        this->set_style_target_type<navigation_page>(); // implicit / class style match
+        toolbar_tracker_ = std::make_unique<toolbar_tracker>();
+        toolbar_tracker_->set_target(this);
+        toolbar_items_token_ = maui::core::scoped_connection(
+            toolbar_tracker_->collection_changed, toolbar_tracker_->collection_changed.connect([this] {
+                // The tracker emits on every navigation too (C# parity) — only an ACTUAL aggregate
+                // change re-issues the (unanimated) request, so a plain push/pop keeps its realized
+                // animated flag (notify_request_navigation snapshots the aggregate it shipped).
+                if (!stack_.empty() && navigation_toolbar_items() != last_toolbar_items_)
+                {
+                    notify_request_navigation(false);
+                }
+            }));
+    }
+
+    navigation_page::navigation_page(content_page& root) : navigation_page()
+    {
+        push_initial(root);
+    }
+
+    navigation_page::~navigation_page() = default;
+
+    std::vector<maui::core::i_toolbar_item*> navigation_page::navigation_toolbar_items() const
+    {
+        // The tracker aggregate (priority-sorted toolbar_item*), widened to the core contract the
+        // handler chrome consumes.
+        std::vector<maui::core::i_toolbar_item*> result;
+        if (toolbar_tracker_ == nullptr)
+        {
+            return result;
+        }
+        for (toolbar_item* const item : toolbar_tracker_->toolbar_items())
+        {
+            result.push_back(item);
+        }
+        return result;
+    }
+
     // Shared bindable-property descriptors for the bar styling (C# NavigationPage.BarBackgroundColorProperty /
     // BarTextColorProperty). One instance per type; the default is an unset (default-constructed) color — the
     // navigation_page's *_set_ flag distinguishes "never set" so the handler keeps the system default.
@@ -78,6 +125,13 @@ namespace maui::controls
         // The window's role at this layer: make the root visible. A later push then fires the root's
         // send_disappearing() correctly (it is now in the appeared state).
         root.send_appearing();
+        // chrome (W1-11): this seed does not fire `navigated` (no navigation events for the ctor root,
+        // like C# PushPage), so re-register the tracker's child pages explicitly — the root's toolbar
+        // items must be observed (C# hears this through DescendantAdded).
+        if (toolbar_tracker_ != nullptr)
+        {
+            toolbar_tracker_->retrack();
+        }
         // Host the root on the handler (if already attached) so the native container shows it.
         notify_request_navigation(false);
     }
@@ -254,6 +308,11 @@ namespace maui::controls
         // The inserted page is off-screen — no lifecycle fires and the current page is unchanged — but the
         // realized stack changed, so re-issue the (non-animated) navigation request (C# NavigationType.Insert
         // is unanimated). hosted_page stays the same; this keeps the handler's stack mirror in sync.
+        // chrome (W1-11): a silent stack edit — re-register the tracker's child pages (no `navigated`).
+        if (toolbar_tracker_ != nullptr)
+        {
+            toolbar_tracker_->retrack();
+        }
         notify_request_navigation(false);
     }
 
@@ -282,6 +341,11 @@ namespace maui::controls
         }
         stack_.erase(it);
         detach_logical_child(page); // the removed page leaves the tree (loses Window + inherited context)
+        // chrome (W1-11): a silent stack edit — re-register the tracker's child pages (no `navigated`).
+        if (toolbar_tracker_ != nullptr)
+        {
+            toolbar_tracker_->retrack();
+        }
         // The realized stack changed but the visible page did not; sync the handler's mirror (unanimated).
         notify_request_navigation(false);
     }
@@ -331,6 +395,9 @@ namespace maui::controls
     {
         // C# IStackNavigation.RequestNavigation: build the request from the current stack and hand it to
         // the handler. The handler hosts the new top-most page and (synchronously) reports completion.
+        // chrome (W1-11): snapshot the toolbar aggregate this request ships, so the tracker's
+        // post-navigation collection_changed only re-issues when the items ACTUALLY changed.
+        last_toolbar_items_ = navigation_toolbar_items();
         const maui::core::navigation_request request{.stack = as_views(stack_), .animated = animated};
         request_navigation(request);
     }

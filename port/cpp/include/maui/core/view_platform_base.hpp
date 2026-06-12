@@ -20,6 +20,7 @@
 // copied or moved — hence the deleted copy/move (mirroring the existing *_platform structs). The dtor
 // is virtual (this is a polymorphic base) and defined out-of-line in view_platform_base.cpp.
 
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -39,6 +40,7 @@ namespace maui::core
 {
     class i_shadow;
     class semantics;
+    class i_flyout; // chrome (W1-11) — the context-flyout mirror below borrows it
 
     // The ten ITransform scalars as a single POD (the render transform is rebuilt as a whole from all
     // of them — see TransformationExtensions.UpdateTransformation — so the mapper passes one bundle, not
@@ -89,6 +91,12 @@ namespace maui::core
         // deferred (see STATUS.md), so the apple structs keep the base mirror for these two.
         const maui::core::semantics* semantics = nullptr;
         bool input_transparent = false;
+        // chrome (W1-11): the ToolTip text (nullopt = never set) + the ContextFlyout borrow (null =
+        // none). Mirrors only — the NATIVE push (NSView.toolTip / NSView.menu / the iOS
+        // UIContextMenuInteraction) goes through the per-backend view_chrome_ops free functions the
+        // view_mapper calls with the handler's native view, so NO per-control override is needed.
+        std::optional<std::string> tool_tip;
+        const maui::core::i_flyout* context_flyout = nullptr;
 
         // The default (headless) bodies write the mirrors above; backends override to push to the
         // native view. Defined out-of-line in view_platform_base.cpp.
@@ -111,5 +119,10 @@ namespace maui::core
         // not override these yet (native a11y / hit-testing deferred), so they keep the base mirror.
         virtual void update_semantics(const maui::core::semantics* value);
         virtual void update_input_transparent(bool value);
+        // chrome (W1-11): ToolTip + ContextFlyout (ViewHandler.MapToolTip / MapContextFlyout). The base
+        // bodies record the mirrors above; the native push is the view_chrome_ops free functions (every
+        // backend's native view accepts them uniformly), so backends need no per-control overrides.
+        virtual void update_tool_tip(const std::optional<std::string>& value);
+        virtual void update_context_flyout(const maui::core::i_flyout* value);
     };
 } // namespace maui::core

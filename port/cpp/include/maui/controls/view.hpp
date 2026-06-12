@@ -16,6 +16,7 @@
 
 #include <any>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -31,9 +32,12 @@
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/dimension.hpp"
 #include "maui/core/flow_direction.hpp"
+#include "maui/core/i_context_flyout_element.hpp" // --- chrome (W1-11) ---
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/i_flyout.hpp" // --- chrome (W1-11) ---
 #include "maui/core/i_layout.hpp"
 #include "maui/core/i_shadow.hpp"
+#include "maui/core/i_tool_tip_element.hpp" // --- chrome (W1-11) ---
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/layout_alignment.hpp"
@@ -107,7 +111,18 @@ namespace maui::controls
     // default 0. A change re-stacks the element among its siblings (see view<>::on_property_changed).
     const maui::core::bindable_property<int>& z_index_property();
 
-    template <class ViewInterface> class view : public maui::controls::element, public ViewInterface
+    // chrome (W1-11): the attached ToolTipProperties.Text storage (the per-instance store of the C#
+    // attached BindableProperty). Shared NON-template descriptor named "tool_tip" — the view_mapper key.
+    const maui::core::bindable_property<std::string>& tool_tip_text_property();
+
+    // chrome (W1-11): every view is a tool-tip + context-flyout element, exactly as C# VisualElement
+    // implements IToolTipElement + IContextFlyoutElement (the shared view_mapper discovers both by
+    // dynamic_cast, like C#'s `view is IToolTipElement` checks in ViewHandler.MapToolTip/MapContextFlyout).
+    template <class ViewInterface>
+    class view : public maui::controls::element,
+                 public ViewInterface,
+                 public maui::core::i_tool_tip_element,
+                 public maui::core::i_context_flyout_element
     {
         static_assert(std::is_base_of_v<maui::core::i_view, ViewInterface>,
                       "ViewInterface must derive maui::core::i_view");
@@ -581,6 +596,52 @@ namespace maui::controls
         }
         // --- end gestures (W1-12) -----------------------------------------------------------------------
 
+        // --- chrome (W1-11): ToolTip + ContextFlyout ------------------------------------------------------
+        // i_tool_tip_element: nullopt until the attached text is set (C# ToolTipProperties.GetToolTip's
+        // IsSet probe). The setter is what ToolTipProperties.SetText delegates to; the property change
+        // flows through on_property_changed → handler->update_value("tool_tip") → the chained
+        // view_mapper's map_tool_tip (NSView.toolTip on AppKit; documented no-op on plain iOS).
+        [[nodiscard]] std::optional<std::string> tool_tip() const override
+        {
+            return tool_tip_text_.is_set() ? std::optional<std::string>{tool_tip_text_.get()} : std::nullopt;
+        }
+        void set_tool_tip_text(std::string value)
+        {
+            tool_tip_text_.set(std::move(value));
+        }
+
+        // i_context_flyout_element: the attached right-click/long-press menu (C# FlyoutBase's attached
+        // ContextFlyout). NON-owning — the caller owns the flyout (PROFILE §8). Setting it re-parents the
+        // flyout into this view's logical tree (C# AddRemoveLogicalChildren — so the flyout and its items
+        // inherit this view's BindingContext) and notifies the handler so the chained view_mapper's
+        // map_context_flyout materializes the native menu (NSView.menu / UIContextMenuInteraction).
+        [[nodiscard]] maui::core::i_flyout* context_flyout() const override
+        {
+            return context_flyout_;
+        }
+        void set_context_flyout(maui::core::i_flyout* value)
+        {
+            if (context_flyout_ == value)
+            {
+                return;
+            }
+            if (context_flyout_element_ != nullptr)
+            {
+                detach_logical_child(*context_flyout_element_);
+            }
+            context_flyout_ = value;
+            context_flyout_element_ = dynamic_cast<element*>(context_flyout_);
+            if (context_flyout_element_ != nullptr)
+            {
+                attach_logical_child(*context_flyout_element_);
+            }
+            if (handler_)
+            {
+                handler_->update_value("context_flyout");
+            }
+        }
+        // --- end chrome (W1-11) ---------------------------------------------------------------------------
+
     protected:
         view() = default;
 
@@ -607,7 +668,9 @@ namespace maui::controls
 
         // --- gestures (W1-12): View.OnBindingContextChanged — after the base propagation to the
         // logical children, hand the (possibly inherited) context to every gesture recognizer too
-        // (C#'s PropagateBindingContext(GestureRecognizers)) ---
+        // (C#'s PropagateBindingContext(GestureRecognizers)). chrome (W1-11): the attached context
+        // flyout inherits the context the same way (C# parents it via AddRemoveLogicalChildren; the
+        // port's for_each_logical_child overrides don't enumerate it, so propagate here explicitly). ---
         void on_binding_context_changed() override
         {
             maui::controls::element::on_binding_context_changed();
@@ -615,6 +678,10 @@ namespace maui::controls
             for (const auto& recognizer : gesture_recognizers_.items())
             {
                 recognizer->set_inherited_binding_context(context);
+            }
+            if (context_flyout_element_ != nullptr)
+            {
+                context_flyout_element_->set_inherited_binding_context(context);
             }
         }
         // --- end gestures (W1-12) ---
@@ -755,6 +822,11 @@ namespace maui::controls
         // The z-order within the parent layout (VisualElement.ZIndex). A change routes to the parent
         // layout's handler so the native panel re-stacks this child (see on_property_changed).
         maui::core::property<int> z_index_{*this, z_index_property()};
+        // chrome (W1-11): the attached ToolTip text (bindable; is_set() distinguishes "never set") and
+        // the attached ContextFlyout (non-owning; the element face is cached for tree/context plumbing).
+        maui::core::property<std::string> tool_tip_text_{*this, tool_tip_text_property()};
+        maui::core::i_flyout* context_flyout_ = nullptr;
+        element* context_flyout_element_ = nullptr;
         bool is_focused_ = false;
         // --- gestures (W1-12) ---------------------------------------------------------------------------
         // Declaration order matters: the manager precedes the collection (the collection's hooks

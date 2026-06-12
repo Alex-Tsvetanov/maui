@@ -71,4 +71,31 @@ namespace maui::core
         // Headless: no native window to move/size; the geometry lives in the window's properties. (The Apple
         // twin calls NSWindow setFrame:display:.)
     }
+
+    // --- chrome (W1-11): headless recipes — record the chrome borrows so the tests can observe each map
+    // ran with the window's current chrome. (The Apple twin materializes the real NSToolbar / NSMenu main
+    // menu / NSTitlebarAccessoryViewController from the same borrows.) ---
+    void window_handler::apply_toolbar(i_toolbar* toolbar)
+    {
+        if (auto* platform = typed_platform_view())
+        {
+            platform->hosted_toolbar = toolbar;
+        }
+    }
+
+    void window_handler::apply_menu_bar(i_menu_bar* menu_bar)
+    {
+        if (auto* platform = typed_platform_view())
+        {
+            platform->hosted_menu_bar = menu_bar;
+        }
+    }
+
+    void window_handler::apply_title_bar(i_title_bar* title_bar)
+    {
+        if (auto* platform = typed_platform_view())
+        {
+            platform->hosted_title_bar = title_bar;
+        }
+    }
 } // namespace maui::core
