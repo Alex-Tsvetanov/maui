@@ -49,8 +49,11 @@ namespace maui::application_model
         // AppActionsExtensions.ToAppAction(UIApplicationShortcutItem).
         app_action to_app_action(UIApplicationShortcutItem* item)
         {
-            NSString* const identifier = item.userInfo[@"id"] != nil ? [item.userInfo[@"id"] description] : nil;
-            NSString* const icon = item.userInfo[@"icon"] != nil ? [item.userInfo[@"icon"] description] : nil;
+            // userInfo values are id<NSSecureCoding> - go through NSObject for ToString().
+            NSObject* const identifier_object = (NSObject*)item.userInfo[@"id"];
+            NSObject* const icon_object = (NSObject*)item.userInfo[@"icon"];
+            NSString* const identifier = identifier_object != nil ? [identifier_object description] : nil;
+            NSString* const icon = icon_object != nil ? [icon_object description] : nil;
             return app_action(to_std_string(identifier), to_std_string(item.localizedTitle),
                               to_optional_string(item.localizedSubtitle), to_optional_string(icon));
         }

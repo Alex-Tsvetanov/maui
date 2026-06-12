@@ -168,6 +168,21 @@ namespace maui::controls
     class visual_state_manager
     {
     public:
+        visual_state_manager() = default;
+        // Moves stay available for the unwired by-value builders (a WIRED manager — the view's member —
+        // is never moved; the trigger hooks capture its address). Copies are unavailable (the wiring
+        // subscriptions are move-only).
+        visual_state_manager(visual_state_manager&&) = default;
+        visual_state_manager& operator=(visual_state_manager&&) = default;
+        visual_state_manager(const visual_state_manager&) = delete;
+        visual_state_manager& operator=(const visual_state_manager&) = delete;
+        // Unwire on destruction so an EXTERNALLY-held shared state trigger never keeps a hook into a
+        // dead manager (C# relies on weak refs there; the port detaches deterministically — §8).
+        ~visual_state_manager()
+        {
+            unwire_state_triggers();
+        }
+
         visual_state_manager& add_group(visual_state_group group)
         {
             groups_.push_back(std::move(group));

@@ -259,6 +259,11 @@ namespace
 
         win.frame_changed({0, 0, 100, 100});
         EXPECT_EQ(target.text(), "small");
+
+        // Detach before the window leaves scope: the page unloads → the triggers drop their
+        // size_changed subscriptions while the window is alive (event.hpp's publisher-outlives rule).
+        win.send_deactivated();
+        EXPECT_FALSE(large_trigger->is_attached());
     }
 
     TEST_F(state_trigger_test, adaptive_trigger_attaches_with_the_window_and_detaches_without_it)
