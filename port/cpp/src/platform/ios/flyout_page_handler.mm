@@ -204,7 +204,7 @@ namespace maui::core
         {
             return;
         }
-        UIView* const host = (__bridge UIView*)platform->native;
+        UIView* const host = as_controller(platform->controller).view;
         [host setFrame:CGRectMake(frame.x, frame.y, frame.width, frame.height)];
     }
 } // namespace maui::core

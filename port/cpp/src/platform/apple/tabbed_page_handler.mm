@@ -16,6 +16,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <utility>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -44,8 +45,8 @@
     {
         return;
     }
-    const NSInteger index = [self.tabViewItems indexOfObject:tabViewItem];
-    if (index == NSNotFound)
+    const NSUInteger index = [self.tabViewItems indexOfObject:tabViewItem];
+    if (index == static_cast<NSUInteger>(NSNotFound))
     {
         return;
     }
@@ -192,7 +193,7 @@ namespace maui::core
             return;
         }
         MauiTabViewController* const tabs = as_controller(platform->controller);
-        if (static_cast<NSInteger>(platform->selected_index) < static_cast<NSInteger>(tabs.tabViewItems.count))
+        if (std::cmp_less(platform->selected_index, tabs.tabViewItems.count))
         {
             tabs.suppressSelection = YES;
             tabs.selectedTabViewItemIndex = platform->selected_index;
@@ -231,7 +232,7 @@ namespace maui::core
         {
             return;
         }
-        NSView* const host = (__bridge NSView*)platform->native;
+        NSView* const host = as_controller(platform->controller).view;
         [host setFrame:NSMakeRect(frame.x, frame.y, frame.width, frame.height)];
     }
 } // namespace maui::core

@@ -48,7 +48,7 @@
         return;
     }
     const NSUInteger index = [tabBarController.viewControllers indexOfObject:viewController];
-    if (index == NSNotFound)
+    if (index == static_cast<NSUInteger>(NSNotFound))
     {
         return;
     }
@@ -268,7 +268,7 @@ namespace maui::core
         {
             return;
         }
-        UIView* const host = (__bridge UIView*)platform->native;
+        UIView* const host = as_controller(platform->controller).view;
         [host setFrame:CGRectMake(frame.x, frame.y, frame.width, frame.height)];
     }
 } // namespace maui::core
