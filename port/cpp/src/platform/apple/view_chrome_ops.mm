@@ -10,6 +10,7 @@
 #include "maui/core/view_chrome_ops.hpp"
 
 #import <AppKit/AppKit.h>
+#import <objc/runtime.h>
 
 #include <optional>
 #include <string>
@@ -45,12 +46,37 @@ namespace maui::core
         view.toolTip = value;
     }
 
+    namespace
+    {
+        // Tags the NSMenus THIS op installs (associated object on the menu) so a null flyout only
+        // clears what the op owns: menu-bearing controls (NSPopUpButton, NSDatePicker, ...) expose
+        // their ITEM LIST through NSView.menu, and the shared view_mapper pushes every key on attach
+        // — blindly assigning nil would destroy the control's own menu (it emptied the picker).
+        const void* context_flyout_tag()
+        {
+            static const char key = 0;
+            return &key;
+        }
+    } // namespace
+
     void apply_native_context_flyout(void* native_view, const i_flyout* flyout)
     {
         if (native_view == nullptr)
         {
             return;
         }
-        as_view(native_view).menu = flyout != nullptr ? maui::platform::apple::build_menu_from_flyout(flyout) : nil;
+        NSView* const view = as_view(native_view);
+        if (flyout != nullptr)
+        {
+            NSMenu* const menu = maui::platform::apple::build_menu_from_flyout(flyout);
+            objc_setAssociatedObject(menu, context_flyout_tag(), @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            view.menu = menu; // a ContextFlyout on a menu-bearing control replaces its menu (documented)
+            return;
+        }
+        NSMenu* const current = view.menu;
+        if (current != nil && objc_getAssociatedObject(current, context_flyout_tag()) != nil)
+        {
+            view.menu = nil; // cleared flyout: remove only the menu the op installed
+        }
     }
 } // namespace maui::core
