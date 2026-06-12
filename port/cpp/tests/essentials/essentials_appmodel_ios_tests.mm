@@ -1,7 +1,8 @@
 // The W1-17 app-model + storage suite against the REAL iOS partials, run ON the simulator (via
 // tools/ios-sim-run.sh): true NSUserDefaults preferences (uniquely-keyed entries, removed in
-// teardown), the simulator KEYCHAIN secure storage (works without entitlements there - the full
-// DeviceTests round-trip runs), NSSearchPath file-system directories, the GCD main-thread
+// teardown), the simulator KEYCHAIN secure storage (SKIPPED when the spawned process lacks the
+// keychain entitlement — see the probe in the test; the macOS suite owns the real round trip),
+// NSSearchPath file-system directories, the GCD main-thread
 // facade, and the documented NO-UIAPPLICATION surface: the spawned gtest process has no
 // UIApplication instance, so launcher queries/open complete false, the browser has no view
 // controller to present from (SystemPreferred -> false) and External routes to the false-
@@ -127,6 +128,23 @@ namespace
     // Remove_All_Keys, on the REAL simulator keychain.
     TEST(appmodel_ios_secure_storage, keychain_round_trip_and_lifecycle)
     {
+        // LANE LIMIT: bare binaries spawned via `simctl spawn` (tools/ios-sim-run.sh) carry no
+        // keychain-access entitlement, so SecItemAdd can fail with errSecMissingEntitlement
+        // (-34018) even though the same code works inside an app bundle. The macOS suite covers
+        // the real keychain round trip (the login keychain needs no entitlement); probe once and
+        // SKIP when this lane cannot write — the surface up to the OS call is still exercised.
+        try
+        {
+            secure_storage::set_async("ENTITLEMENT_PROBE", "probe");
+        }
+        catch (const std::exception& error)
+        {
+            if (std::string_view{error.what()}.find("-34018") != std::string_view::npos)
+            {
+                GTEST_SKIP() << "no keychain entitlement under simctl spawn: " << error.what();
+            }
+            throw;
+        }
         secure_storage::remove_all(); // the DeviceTests ctor: a clean keychain service
 
         const std::pair<std::string_view, std::string_view> cases[] = {
