@@ -279,6 +279,9 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     src/platform/ios/radio_button_handler.mm
     src/platform/ios/slider_handler.mm
     src/platform/ios/stepper_handler.mm
+    src/platform/ios/picker_handler.mm
+    src/platform/ios/date_picker_handler.mm
+    src/platform/ios/time_picker_handler.mm
     src/platform/ios/editor_handler.mm
     src/platform/ios/search_bar_handler.mm
     src/platform/ios/progress_bar_handler.mm
@@ -693,6 +696,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/chrome_page_tests.cpp
     tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
     tests/controls/containers_page_tests.cpp # the W1-07 demo page wiring (backend-agnostic)
+    tests/controls/pickers_page_tests.cpp # the W1-06 demo page wiring (backend-agnostic)
     tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
     tests/controls/input_controls_page_tests.cpp # the W1-05 demo page wiring (backend-agnostic)
     tests/controls/tabbed_flyout_page_tests.cpp # the W1-10 demo page wiring (backend-agnostic)
@@ -773,6 +777,9 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/radio_button_ios_tests.mm
     tests/controls/slider_ios_tests.mm
     tests/controls/stepper_ios_tests.mm
+    tests/controls/picker_ios_tests.mm
+    tests/controls/date_picker_ios_tests.mm
+    tests/controls/time_picker_ios_tests.mm
     tests/controls/editor_ios_tests.mm
     tests/controls/search_bar_ios_tests.mm
     tests/controls/progress_bar_ios_tests.mm
@@ -811,6 +818,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/tabbed_flyout_page_tests.cpp # the W1-10 demo page wiring (backend-agnostic)
     tests/controls/containers_page_tests.cpp # the W1-07 demo page wiring (backend-agnostic)
     tests/controls/content_view_tests.cpp # (W1-07) backend-agnostic: the templated content host over mocks
+    tests/controls/pickers_page_tests.cpp # the W1-06 demo page wiring (backend-agnostic)
     tests/controls/style_tests.cpp
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
@@ -853,6 +861,7 @@ else()
     tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
     tests/controls/input_controls_page_tests.cpp # the W1-05 demo page wiring (backend-agnostic)
     tests/controls/containers_page_tests.cpp # the W1-07 demo page wiring (backend-agnostic)
+    tests/controls/pickers_page_tests.cpp # the W1-06 demo page wiring (backend-agnostic)
     tests/controls/image_tests.cpp
     tests/controls/image_button_tests.cpp
     tests/controls/layout_tests.cpp

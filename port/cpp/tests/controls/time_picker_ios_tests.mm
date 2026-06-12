@@ -1,12 +1,14 @@
-// Apple (AppKit) backend tests for the time_picker seam — run only for MAUI_BACKEND=apple. Drives a
-// genuine NSDatePicker (hour/minute elements, UTC): Time maps onto dateValue anchored on the epoch
-// day, and a native edit (set dateValue + send the wired target-action, no run loop needed) flows
-// back through the handler with the SECONDS DROPPED (SetVirtualViewTime). Compiled as Objective-C++
-// with ARC.
-#import <AppKit/AppKit.h>
+// iOS (UIKit) backend tests for the time_picker seam — run only for MAUI_BACKEND=ios (executed ON
+// the iOS simulator via tools/ios-sim-run.sh). Drives the real MauiTimePicker shape: a UITextField
+// whose inputView is a time-mode UIDatePicker on UTC — Time maps onto the wheel, the formatted text
+// renders into the field (the invariant/en-US time formatter), and the Done commit
+// (SetVirtualViewTime) flows back through the portable on_done channel with the SECONDS DROPPED.
+// Compiled as Objective-C++ with ARC.
+#import <UIKit/UIKit.h>
 
 #include <memory>
 #include <optional>
+#include <string>
 
 #include "maui/controls/time_picker.hpp"
 #include "maui/core/date_time.hpp"
@@ -23,12 +25,22 @@ namespace
     using maui::core::time_picker_handler;
     using maui::core::time_span;
 
-    NSDatePicker* native_picker(const std::shared_ptr<time_picker_handler>& handler)
+    std::string to_std_string(NSString* value)
     {
-        return (__bridge NSDatePicker*)handler->typed_platform_view()->native;
+        const char* const utf8 = value.UTF8String;
+        return utf8 != nullptr ? std::string(utf8) : std::string();
     }
 
-    // The UTC hour/minute/second components of an NSDate (the picker runs on the UTC time zone).
+    UITextField* native_field(const std::shared_ptr<time_picker_handler>& handler)
+    {
+        return (__bridge UITextField*)handler->typed_platform_view()->native;
+    }
+
+    UIDatePicker* wheel_of(UITextField* field)
+    {
+        return (UIDatePicker*)field.inputView;
+    }
+
     NSDateComponents* utc_components(NSDate* date)
     {
         NSCalendar* const calendar = [NSCalendar calendarWithIdentifier:NSCalendarIdentifierGregorian];
@@ -52,54 +64,53 @@ namespace
         return result != nil ? result : NSDate.distantPast;
     }
 
-    class apple_time_picker_seam : public ::testing::Test
-    {
-    protected:
-        void SetUp() override
-        {
-            [NSApplication sharedApplication];
-        }
-    };
-
-    TEST_F(apple_time_picker_seam, attaching_handler_maps_the_time)
+    TEST(ios_time_picker_seam, attaching_handler_maps_time_and_text)
     {
         time_picker control;
         control.set_time(time_span(17, 30, 0));
         auto handler = std::make_shared<time_picker_handler>();
         control.set_handler(handler);
 
-        NSDatePicker* const native = native_picker(handler);
-        ASSERT_NE(native, nil);
-        NSDateComponents* const components = utc_components(native.dateValue);
+        UITextField* const field = native_field(handler);
+        ASSERT_NE(field, nil);
+        EXPECT_EQ(field.borderStyle, UITextBorderStyleRoundedRect);
+        ASSERT_TRUE([field.inputView isKindOfClass:[UIDatePicker class]]);
+        EXPECT_NE(field.inputAccessoryView, nil); // the Done toolbar
+
+        UIDatePicker* const wheel = wheel_of(field);
+        EXPECT_EQ(wheel.datePickerMode, UIDatePickerModeTime);
+        NSDateComponents* const components = utc_components(wheel.date);
         EXPECT_EQ(components.hour, 17);
         EXPECT_EQ(components.minute, 30);
+        EXPECT_EQ(to_std_string(field.text), "5:30 PM"); // the "t" default in the en-US lean
     }
 
-    TEST_F(apple_time_picker_seam, setting_time_updates_the_native_value)
+    TEST(ios_time_picker_seam, format_change_rerenders_the_field_text)
     {
         time_picker control;
+        control.set_time(time_span(17, 30, 0));
         auto handler = std::make_shared<time_picker_handler>();
         control.set_handler(handler);
 
-        control.set_time(time_span(8, 5, 0));
-        NSDateComponents* const components = utc_components(native_picker(handler).dateValue);
-        EXPECT_EQ(components.hour, 8);
-        EXPECT_EQ(components.minute, 5);
+        control.set_format("HH:mm");
+        EXPECT_EQ(to_std_string(native_field(handler).text), "17:30");
     }
 
-    TEST_F(apple_time_picker_seam, null_time_falls_back_to_zero_on_the_native_wheel)
+    TEST(ios_time_picker_seam, null_time_renders_empty_and_falls_back_to_zero)
     {
         time_picker control;
         control.set_time(std::nullopt);
         auto handler = std::make_shared<time_picker_handler>();
         control.set_handler(handler);
 
-        NSDateComponents* const components = utc_components(native_picker(handler).dateValue);
+        UITextField* const field = native_field(handler);
+        EXPECT_EQ(field.text.length, 0U);
+        NSDateComponents* const components = utc_components(wheel_of(field).date);
         EXPECT_EQ(components.hour, 0);
         EXPECT_EQ(components.minute, 0);
     }
 
-    TEST_F(apple_time_picker_seam, native_edit_flows_back_dropping_seconds)
+    TEST(ios_time_picker_seam, done_commits_hours_and_minutes_dropping_seconds)
     {
         time_picker control;
         auto handler = std::make_shared<time_picker_handler>();
@@ -109,32 +120,33 @@ namespace
         control.time_selected.connect(
             [&selected](const std::optional<time_span>&, const std::optional<time_span>&) { ++selected; });
 
-        NSDatePicker* const native = native_picker(handler);
-        native.dateValue = utc_time(9, 45, 30); // the user edits the field...
-        [native sendAction:native.action to:native.target];
+        UITextField* const field = native_field(handler);
+        wheel_of(field).date = utc_time(9, 45, 30); // the user spins the wheel...
+        handler->typed_platform_view()->on_done();  // ...and taps Done
 
         EXPECT_EQ(control.time(), std::optional<time_span>(time_span(9, 45, 0))); // seconds dropped
         EXPECT_EQ(selected, 1);
+        EXPECT_EQ(to_std_string(field.text), "9:45 AM");
     }
 
-    TEST_F(apple_time_picker_seam, generic_iview_properties_reach_the_native_picker)
+    TEST(ios_time_picker_seam, generic_iview_properties_reach_the_field)
     {
         time_picker control;
         auto handler = std::make_shared<time_picker_handler>();
         control.set_handler(handler);
-        NSDatePicker* const native = native_picker(handler);
+        UITextField* const field = native_field(handler);
 
         control.set_is_enabled(false);
-        EXPECT_FALSE(native.enabled);
+        EXPECT_FALSE(field.enabled);
 
         control.set_visibility(maui::core::visibility::hidden);
-        EXPECT_TRUE(native.hidden);
+        EXPECT_TRUE(field.hidden);
 
         control.set_opacity(0.5);
-        EXPECT_EQ(native.alphaValue, 0.5);
+        EXPECT_NEAR(field.alpha, 0.5, 0.001);
     }
 
-    TEST_F(apple_time_picker_seam, handler_resolved_from_default_registry)
+    TEST(ios_time_picker_seam, handler_resolved_from_default_registry)
     {
         std::shared_ptr<i_element_handler> const handler =
             maui::core::default_handler_registry().create_handler<time_picker>();

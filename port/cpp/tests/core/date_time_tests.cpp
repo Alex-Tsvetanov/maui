@@ -4,6 +4,7 @@
 // Total* doubles, chronological ordering, and the DateTime.ToString format subset.
 #include "maui/core/date_time.hpp"
 
+#include <__chrono/duration.h> // include-cleaner: the chrono literals/durations live here on libc++
 #include <chrono>
 
 #include <gtest/gtest.h>
