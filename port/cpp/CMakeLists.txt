@@ -707,6 +707,11 @@ add_library(maui_controls STATIC
   src/controls/items/collection_view.cpp
   src/controls/items/collection_view_handler.cpp
   ${MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES}
+  # (W2-23 shapes) the Shapes geometry/transform model + the path markup parser.
+  src/controls/shapes/matrix.cpp
+  src/controls/shapes/geometry_helper.cpp
+  src/controls/shapes/path_geometry.cpp
+  src/controls/shapes/path_markup_parser.cpp
   # (W1-14 animations) the Controls-layer animation surface: Controls.Animation + the
   # AnimationExtensions pump (+ the internal tweener/per-element registry) + ViewExtensions.
   src/controls/animation.cpp
@@ -786,6 +791,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
     tests/controls/input_controls_page_tests.cpp # the W1-05 demo page wiring (backend-agnostic)
     tests/controls/tabbed_flyout_page_tests.cpp # the W1-10 demo page wiring (backend-agnostic)
+    tests/controls/shapes_tests.cpp # (W2-23 shapes) geometry/transform model + path markup parser
     tests/controls/style_tests.cpp   # backend-agnostic; compiled as C++ within the apple test exe
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
@@ -918,6 +924,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/content_view_tests.cpp # (W1-07) backend-agnostic: the templated content host over mocks
     tests/controls/drag_drop_tests.cpp # (W2-22) backend-agnostic: data_package + drag/drop recognizers + wiring
     tests/controls/pickers_page_tests.cpp # the W1-06 demo page wiring (backend-agnostic)
+    tests/controls/shapes_tests.cpp # (W2-23 shapes) geometry/transform model + path markup parser
     tests/controls/style_tests.cpp
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
@@ -995,6 +1002,7 @@ else()
     tests/controls/menu_tracker_tests.cpp
     tests/controls/chrome_tests.cpp
     tests/controls/chrome_page_tests.cpp
+    tests/controls/shapes_tests.cpp # (W2-23 shapes) geometry/transform model + path markup parser
     tests/controls/style_tests.cpp
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
