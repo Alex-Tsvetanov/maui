@@ -136,6 +136,23 @@ namespace maui::core
         platform->hosted_flyout = flyout->flyout_view();
         platform->hosted_detail = flyout->flyout_detail();
 
+        // Detach the PREVIOUS wrappers first: a UIView can only be associated with one view controller
+        // at a time (UIViewControllerHierarchyInconsistency), so the old wrappers must release the
+        // pane views before the fresh wrappers adopt them ("flyout" and "detail" both map here, so a
+        // connect runs this twice back to back).
+        if (platform->flyout_host != nullptr)
+        {
+            UIViewController* const old_flyout = (__bridge UIViewController*)platform->flyout_host;
+            [old_flyout.viewIfLoaded removeFromSuperview]; // pull the pane view out of the old column
+            old_flyout.view = nil;
+        }
+        if (platform->detail_host != nullptr)
+        {
+            UIViewController* const old_detail = (__bridge UIViewController*)platform->detail_host;
+            [old_detail.viewIfLoaded removeFromSuperview];
+            old_detail.view = nil;
+        }
+
         // Rebuild the two columns: the flyout as the PRIMARY column, the detail as the SECONDARY.
         UIViewController* const flyout_controller = make_pane_controller(platform->hosted_flyout);
         UIViewController* const detail_controller = make_pane_controller(platform->hosted_detail);

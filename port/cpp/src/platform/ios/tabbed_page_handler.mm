@@ -154,6 +154,18 @@ namespace maui::core
         platform->hosted_pages = tabbed->tabbed_pages();
         platform->tab_titles = tabbed->tabbed_titles();
 
+        // Detach the PREVIOUS wrappers first: a UIView can only be associated with one view controller
+        // at a time (UIViewControllerHierarchyInconsistency), so the old wrapper must release the
+        // page's view before a fresh wrapper adopts it.
+        UITabBarController* const tabs = as_controller(platform->controller);
+        NSArray<UIViewController*>* const previous = tabs.viewControllers;
+        tabs.viewControllers = @[];
+        for (NSUInteger i = 0; i < previous.count; ++i)
+        {
+            [previous[i].viewIfLoaded removeFromSuperview]; // pull the page view out of the old chrome
+            previous[i].view = nil; // the discarded wrapper releases the page-view association
+        }
+
         // Rebuild the child view controllers: one wrapper UIViewController per page, its view the
         // page's native UIView (or an empty UIView for an unattached page), its tabBarItem titled with
         // the page's Title (the TabbedRenderer SetTabBarItem role).
@@ -167,7 +179,7 @@ namespace maui::core
             wrapper.tabBarItem.title = title != nil ? title : @"";
             [children addObject:wrapper];
         }
-        as_controller(platform->controller).viewControllers = children;
+        tabs.viewControllers = children;
     }
 
     void tabbed_page_handler::set_current(i_view& view)

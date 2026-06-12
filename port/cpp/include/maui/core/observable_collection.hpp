@@ -23,6 +23,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -102,6 +103,7 @@ namespace maui::core
 
         void insert(std::size_t index, T value)
         {
+            require_range(index, 0); // C# ArgumentOutOfRangeException (index may equal size)
             items_.insert(items_.begin() + static_cast<std::ptrdiff_t>(index), std::move(value));
             raise({.action = collection_changed_action::add,
                    .new_starting_index = static_cast<int>(index),
@@ -122,6 +124,7 @@ namespace maui::core
 
         void remove_at(std::size_t index)
         {
+            require_range(index, 1);
             items_.erase(items_.begin() + static_cast<std::ptrdiff_t>(index));
             raise({.action = collection_changed_action::remove,
                    .old_starting_index = static_cast<int>(index),
@@ -137,6 +140,7 @@ namespace maui::core
         // Replace the item at `index` (the C# indexer set → a Replace notification).
         void set(std::size_t index, T value)
         {
+            require_range(index, 1);
             items_[index] = std::move(value);
             raise({.action = collection_changed_action::replace,
                    .new_starting_index = static_cast<int>(index),
@@ -165,6 +169,7 @@ namespace maui::core
 
         void insert_range(std::size_t index, std::vector<T> values)
         {
+            require_range(index, 0); // C#: 0 <= index <= Count
             const std::size_t count = values.size();
             items_.insert(items_.begin() + static_cast<std::ptrdiff_t>(index), std::make_move_iterator(values.begin()),
                           std::make_move_iterator(values.end()));
@@ -177,6 +182,13 @@ namespace maui::core
         // re-insert at newIndex adjusted when moving forward (index -= count - 1), exactly the C# math.
         void move(std::size_t old_index, std::size_t new_index, std::size_t count)
         {
+            // C#: both windows must fit; a zero count would also underflow the forward-insert math.
+            require_range(old_index, count);
+            require_range(new_index, count);
+            if (count == 0 || old_index == new_index)
+            {
+                return;
+            }
             std::vector<T> moved;
             moved.reserve(count);
             for (std::size_t i = 0; i < count; ++i)
@@ -204,6 +216,7 @@ namespace maui::core
         // ObservableList<T>.RemoveAt(index, count) — really removes the window (see the header DEVIATION).
         void remove_at(std::size_t index, std::size_t count)
         {
+            require_range(index, count);
             items_.erase(items_.begin() + static_cast<std::ptrdiff_t>(index),
                          items_.begin() + static_cast<std::ptrdiff_t>(index + count));
             raise({.action = collection_changed_action::remove,
@@ -214,6 +227,7 @@ namespace maui::core
         // ObservableList<T>.ReplaceRange(startIndex, items).
         void replace_range(std::size_t start_index, std::vector<T> values)
         {
+            require_range(start_index, values.size()); // C#: startIndex + items.Length <= Count
             const std::size_t count = values.size();
             for (std::size_t i = 0; i < count; ++i)
             {
@@ -227,6 +241,16 @@ namespace maui::core
         }
 
     private:
+        // The C# ArgumentOutOfRangeException guards (ObservableList<T>): the [index, index + count)
+        // window must lie within the list (count = 0 admits index == size, the insert positions).
+        void require_range(std::size_t index, std::size_t count) const
+        {
+            if (index + count > items_.size())
+            {
+                throw std::out_of_range("observable_collection: index/count out of range");
+            }
+        }
+
         void raise(const collection_changed_args& args)
         {
             collection_changed.raise(args);
