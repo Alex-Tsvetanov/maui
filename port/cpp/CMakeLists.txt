@@ -344,6 +344,9 @@ else()
     src/platform/headless/layout_handler.cpp
     src/platform/headless/content_page_handler.cpp
     src/platform/headless/border_handler.cpp
+    # (W2-23 shapes) the op-recording graphics/shape drawing seats.
+    src/platform/headless/graphics_view_handler.cpp
+    src/platform/headless/shape_view_handler.cpp
     src/platform/headless/scroll_view_handler.cpp
     # (W2-20 swipe + refresh) the swipe state machine (synthetic-offset driven) + the refresh pull mirror.
     src/platform/headless/swipe_view_handler.cpp
@@ -410,6 +413,10 @@ add_library(maui_core STATIC
   src/core/layout_z_order.cpp
   src/core/content_page_handler.cpp
   src/core/border_handler.cpp # (W1-07 containers)
+  # (W2-23 shapes) the canvas-drawn + shape-rendering handlers and the shape drawable.
+  src/core/shape_drawable.cpp
+  src/core/graphics_view_handler.cpp
+  src/core/shape_view_handler.cpp
   src/core/scroll_view_handler.cpp
   # (W2-20 swipe + refresh) the cross-platform mapper/command tables + the shared swipe state machine.
   src/core/swipe_view_handler.cpp
@@ -707,7 +714,16 @@ add_library(maui_controls STATIC
   src/controls/items/collection_view.cpp
   src/controls/items/collection_view_handler.cpp
   ${MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES}
-  # (W2-23 shapes) the Shapes geometry/transform model + the path markup parser.
+  # (W2-23 shapes) the Shapes geometry/transform model + the path markup parser + the controls.
+  src/controls/graphics_view.cpp
+  src/controls/box_view.cpp
+  src/controls/shapes/shape.cpp
+  src/controls/shapes/rectangle.cpp
+  src/controls/shapes/ellipse.cpp
+  src/controls/shapes/line.cpp
+  src/controls/shapes/polyline.cpp
+  src/controls/shapes/polygon.cpp
+  src/controls/shapes/path.cpp
   src/controls/shapes/matrix.cpp
   src/controls/shapes/geometry_helper.cpp
   src/controls/shapes/path_geometry.cpp
@@ -792,6 +808,9 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/input_controls_page_tests.cpp # the W1-05 demo page wiring (backend-agnostic)
     tests/controls/tabbed_flyout_page_tests.cpp # the W1-10 demo page wiring (backend-agnostic)
     tests/controls/shapes_tests.cpp # (W2-23 shapes) geometry/transform model + path markup parser
+    tests/controls/graphics_view_tests.cpp # (W2-23) graphics_view + box_view + the golden-op seat
+    tests/controls/shape_view_tests.cpp # (W2-23) the shape control family + shape_view_handler
+    tests/controls/shapes_page_tests.cpp # the W2-23 demo page wiring (backend-agnostic)
     tests/controls/style_tests.cpp   # backend-agnostic; compiled as C++ within the apple test exe
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
@@ -925,6 +944,9 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/drag_drop_tests.cpp # (W2-22) backend-agnostic: data_package + drag/drop recognizers + wiring
     tests/controls/pickers_page_tests.cpp # the W1-06 demo page wiring (backend-agnostic)
     tests/controls/shapes_tests.cpp # (W2-23 shapes) geometry/transform model + path markup parser
+    tests/controls/graphics_view_tests.cpp # (W2-23) graphics_view + box_view + the golden-op seat
+    tests/controls/shape_view_tests.cpp # (W2-23) the shape control family + shape_view_handler
+    tests/controls/shapes_page_tests.cpp # the W2-23 demo page wiring (backend-agnostic)
     tests/controls/style_tests.cpp
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
@@ -1003,6 +1025,9 @@ else()
     tests/controls/chrome_tests.cpp
     tests/controls/chrome_page_tests.cpp
     tests/controls/shapes_tests.cpp # (W2-23 shapes) geometry/transform model + path markup parser
+    tests/controls/graphics_view_tests.cpp # (W2-23) graphics_view + box_view + the golden-op seat
+    tests/controls/shape_view_tests.cpp # (W2-23) the shape control family + shape_view_handler
+    tests/controls/shapes_page_tests.cpp # the W2-23 demo page wiring (backend-agnostic)
     tests/controls/style_tests.cpp
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp

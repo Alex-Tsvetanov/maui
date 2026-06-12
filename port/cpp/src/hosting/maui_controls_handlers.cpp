@@ -5,15 +5,23 @@
 
 #include "maui/hosting/maui_controls_handlers.hpp"
 
+#include "maui/controls/box_view.hpp"
 #include "maui/controls/button.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/entry.hpp"
 #include "maui/controls/flyout_page.hpp"
+#include "maui/controls/graphics_view.hpp"
 #include "maui/controls/grid.hpp"
 #include "maui/controls/horizontal_stack_layout.hpp"
 #include "maui/controls/image.hpp"
 #include "maui/controls/items/collection_view.hpp"
 #include "maui/controls/items/collection_view_handler.hpp"
+#include "maui/controls/shapes/ellipse.hpp"
+#include "maui/controls/shapes/line.hpp"
+#include "maui/controls/shapes/path.hpp"
+#include "maui/controls/shapes/polygon.hpp"
+#include "maui/controls/shapes/polyline.hpp"
+#include "maui/controls/shapes/rectangle.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/navigation_page.hpp"
 #include "maui/controls/tabbed_page.hpp"
@@ -23,10 +31,12 @@
 #include "maui/core/content_page_handler.hpp"
 #include "maui/core/entry_handler.hpp"
 #include "maui/core/flyout_page_handler.hpp"
+#include "maui/core/graphics_view_handler.hpp"
 #include "maui/core/image_handler.hpp"
 #include "maui/core/label_handler.hpp"
 #include "maui/core/layout_handler.hpp"
 #include "maui/core/navigation_page_handler.hpp"
+#include "maui/core/shape_view_handler.hpp"
 #include "maui/core/tabbed_page_handler.hpp"
 #include "maui/core/window_handler.hpp"
 #include "maui/hosting/i_maui_handlers_collection.hpp"
@@ -48,6 +58,15 @@ namespace maui::hosting
         // (W1-10) the tabbed + flyout page hosts.
         handlers.add_handler<maui::controls::tabbed_page, maui::core::tabbed_page_handler>();
         handlers.add_handler<maui::controls::flyout_page, maui::core::flyout_page_handler>();
+        // (W2-23 shapes) the canvas-drawn view + the shape family (one shared shape handler).
+        handlers.add_handler<maui::controls::graphics_view, maui::core::graphics_view_handler>();
+        handlers.add_handler<maui::controls::box_view, maui::core::shape_view_handler>();
+        handlers.add_handler<maui::controls::shapes::rectangle, maui::core::shape_view_handler>();
+        handlers.add_handler<maui::controls::shapes::ellipse, maui::core::shape_view_handler>();
+        handlers.add_handler<maui::controls::shapes::line, maui::core::shape_view_handler>();
+        handlers.add_handler<maui::controls::shapes::polyline, maui::core::shape_view_handler>();
+        handlers.add_handler<maui::controls::shapes::polygon, maui::core::shape_view_handler>();
+        handlers.add_handler<maui::controls::shapes::path, maui::core::shape_view_handler>();
         handlers.add_handler<maui::controls::window, maui::core::window_handler>();
         // (W2-19 items core) the collection view over the controls-layer handler (the C# pair
         // CollectionView ↔ CollectionViewHandler in AddControlsHandlers).
