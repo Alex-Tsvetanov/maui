@@ -370,6 +370,18 @@ namespace maui::core
         if (toolbar == nullptr || !toolbar->is_visible())
         {
             window.toolbar = nil;
+            // Release the now-detached chrome (the delegate keeps borrowed i_toolbar_item pointers —
+            // dropping it here keeps nothing stale alive while the toolbar is hidden).
+            if (platform->chrome_toolbar != nullptr)
+            {
+                CFRelease(platform->chrome_toolbar);
+                platform->chrome_toolbar = nullptr;
+            }
+            if (platform->chrome_toolbar_delegate != nullptr)
+            {
+                CFRelease(platform->chrome_toolbar_delegate);
+                platform->chrome_toolbar_delegate = nullptr;
+            }
             return;
         }
         MauiToolbarDelegate* delegate = nil;
