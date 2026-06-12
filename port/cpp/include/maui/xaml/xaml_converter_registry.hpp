@@ -16,10 +16,11 @@
 // THROWS xaml_parse_exception on a malformed literal — the net behavior of C#'s Parse raising
 // FormatException, which ConvertTo catches and the visitor then throws as a XAML error.
 //
-// Scope (M7 wave 1): only the trivially-available built-ins ship here — std::string, double, int,
-// bool, registered by register_standard_xaml_converters (xaml_standard_types.hpp). The MAUI value
-// converters (color, thickness, grid-definition lists, image sources, enums, …) are unit U4's
-// deliverable and slot into this same seam; tests cover the seam with fakes until then.
+// Scope: register_standard_xaml_converters (xaml_standard_types.hpp) seeds the FULL converter table
+// — the invariant built-ins (std::string, double, float, int, bool) plus every xaml_converters.hpp
+// value/enum converter (color, point, rect, sizes, thickness, corner_radius, grid_length, the
+// definition lists, layout_alignment, easing, the enum tables). Image sources and the per-property
+// C# converters (FontSize names, IsVisible aliases) remain documented deferrals.
 
 #include <any>
 #include <functional>

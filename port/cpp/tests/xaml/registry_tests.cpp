@@ -20,6 +20,7 @@
 #include "maui/controls/button.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/entry.hpp"
+#include "maui/controls/image.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/navigation_page.hpp"
 #include "maui/controls/setter.hpp"
@@ -27,11 +28,13 @@
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/controls/window.hpp"
 #include "maui/core/bindable_object.hpp"
+#include "maui/core/i_image_source.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/setter_specificity.hpp"
 #include "maui/core/type_tag.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
+#include "maui/graphics/colors.hpp"
 #include <gtest/gtest.h>
 
 namespace
@@ -348,13 +351,17 @@ namespace
         EXPECT_THROW((void)reg.converters.convert(type_tag::of<bool>(), "abc"), std::runtime_error);
     }
 
-    // A lookup MISS is throw-free (an empty any) — only the loader escalates it.
+    // A lookup MISS is throw-free (an empty any) — only the loader escalates it. Image sources are
+    // the documented converter-less value type (color & friends register since the M7
+    // converter-parity unit).
     TEST(xaml_converter_registry, missing_converter_returns_an_empty_any_without_throwing)
     {
         const registries reg;
 
-        EXPECT_FALSE(reg.converters.has_converter(type_tag::of<maui::graphics::color>()));
-        EXPECT_FALSE(reg.converters.convert(type_tag::of<maui::graphics::color>(), "Red").has_value());
+        EXPECT_TRUE(reg.converters.has_converter(type_tag::of<maui::graphics::color>()));
+        EXPECT_FALSE(reg.converters.has_converter(type_tag::of<std::shared_ptr<maui::core::i_image_source>>()));
+        EXPECT_FALSE(
+            reg.converters.convert(type_tag::of<std::shared_ptr<maui::core::i_image_source>>(), "img.png").has_value());
     }
 
     // ---- the converter ⇄ property seam (converters named implicitly by the value type T) -------------
@@ -370,12 +377,17 @@ namespace
         EXPECT_TRUE(reg.properties.try_set_from_text(type_tag::of<controls::button>(), target, "CornerRadius", "7",
                                                      reg.converters));
         EXPECT_EQ(target.corner_radius(), 7);
+        // The M7 converter-parity unit: a color-typed attribute converts from markup text.
+        EXPECT_TRUE(reg.properties.try_set_from_text(type_tag::of<controls::button>(), target, "TextColor", "Red",
+                                                     reg.converters));
+        EXPECT_EQ(target.text_color(), maui::graphics::colors::red);
 
         // Unknown property → false; a known property whose value type has no converter yet → false.
         EXPECT_FALSE(
             reg.properties.try_set_from_text(type_tag::of<controls::button>(), target, "NoSuch", "1", reg.converters));
-        EXPECT_FALSE(reg.properties.try_set_from_text(type_tag::of<controls::button>(), target, "TextColor", "Red",
-                                                      reg.converters));
+        controls::image image_target;
+        EXPECT_FALSE(reg.properties.try_set_from_text(type_tag::of<controls::image>(), image_target, "Source",
+                                                      "img.png", reg.converters));
     }
 
     // The U4 seam, exercised with a fake: registering a color converter makes the already-registered

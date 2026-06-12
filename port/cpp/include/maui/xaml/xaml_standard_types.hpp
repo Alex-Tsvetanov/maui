@@ -15,11 +15,14 @@
 //   properties routed through apply_setter + the explicit non-bindable members) and the
 //   [ContentProperty] metadata (Label→Text; ContentPage→set_content, layouts→add, Window→set_content,
 //   NavigationPage→push). See xaml_standard_types.cpp for the per-control derivations + documented
-//   deferrals (enum/struct-typed attributes wait on unit U4's converters; attached properties and
-//   font sub-attributes are loader-side work).
-// register_standard_xaml_converters — the trivially-available built-ins only: std::string, double,
-//   int, bool (TypeConversionExtensions' invariant Parse behaviors). The MAUI value converters
-//   (color/thickness/…) are unit U4's deliverable into the same seam.
+//   deferrals (attached properties and font sub-attributes are loader-side work).
+// register_standard_xaml_converters — the FULL converter table (M7 converter parity):
+//   TypeConversionExtensions' invariant built-ins (std::string/double/float/int/bool) plus every
+//   maui/xaml/xaml_converters.hpp value converter (color/point/rect/size/size_f/thickness/
+//   corner_radius/grid_length/row+column definitions/layout_alignment/easing) and enum table
+//   (text_alignment/aspect/visibility/return_type/clear_button_visibility/flow_direction/
+//   text_decorations), keyed by value type. Per-PROPERTY C# converters (FontSizeConverter,
+//   VisibilityConverter's IsVisible aliases) have no type-keyed slot — documented deferral.
 
 namespace maui::xaml
 {

@@ -19,8 +19,12 @@
 //   convert_bool/double/float/int/string
 //                             <=  Microsoft.Maui.Controls.Xaml.TypeConversionExtensions.ConvertTo's
 //                                 built-in Boolean/Double/Single/Int32/String conversions
+//   convert_easing            <=  Microsoft.Maui.Converters.EasingTypeConverter (named easings,
+//                                 case-insensitive, optional "Easing." qualifier)
+//   convert_text_decorations  <=  Microsoft.Maui.Controls.TextDecorationConverter ([Flags] over
+//                                 ','/' '-separated parts + the "line-through" CSS alias)
 //   parse_enum / convert_text_alignment / convert_aspect / convert_visibility /
-//   convert_flow_direction / convert_return_type
+//   convert_flow_direction / convert_return_type / convert_clear_button_visibility
 //                             <=  Enum.Parse(toType, str, ignoreCase: false) in TypeConversionExtensions
 //                                 (FlowDirection additionally via Microsoft.Maui.Controls.FlowDirectionConverter)
 //
@@ -45,7 +49,13 @@
 //    ignores it outside legacy Compatibility layouts, and the port's i_view carries only
 //    layout_alignment).
 //  - C# Keyboard is a class with named INSTANCES (KeyboardTypeConverter), not an enum; the port has
-//    no keyboard type yet, so its converter is deferred with it.
+//    no keyboard type yet, so its converter is deferred with it. The FlexEnumsConverters
+//    (FlexJustify/FlexDirection/…) and SafeAreaEdgesTypeConverter are deferred the same way — the
+//    flex layout and safe_area_regions types are unported (STATUS.md M7 deferrals).
+//  - EasingTypeConverter returns a NULL Easing for null/empty/whitespace input; the port's
+//    maui::animations::easing has no null form, so convert_easing throws xaml_convert_error there
+//    instead (everything else, including the case-insensitive names and the "Easing." qualifier,
+//    matches C#).
 //  - C# converters throw on a null input string; std::string_view cannot be null — an empty view
 //    follows each converter's empty-STRING behavior (throw everywhere except the row/column
 //    definition collections, where "" yields an empty collection).
@@ -62,14 +72,17 @@
 #include <system_error>
 #include <vector>
 
+#include "maui/animations/easing.hpp"
 #include "maui/controls/column_definition.hpp"
 #include "maui/controls/row_definition.hpp"
 #include "maui/core/aspect.hpp"
+#include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/flow_direction.hpp"
 #include "maui/core/grid_length.hpp"
 #include "maui/core/layout_alignment.hpp"
 #include "maui/core/return_type.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/text_decorations.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
@@ -126,6 +139,18 @@ namespace maui::xaml
     // Default (Button -> 15) needs an IProvideValueTarget; like C#'s ConvertFrom path, the free
     // function always resolves against Label.)
     [[nodiscard]] double convert_font_size(std::string_view text);
+
+    // EasingTypeConverter.ConvertFrom: the eleven named easings, matched case-INSENSITIVELY, with an
+    // optional "Easing." qualifier (exactly two '.'-separated parts). Returns a copy of the standard
+    // easing singleton. Empty/whitespace input throws (the documented null-easing deviation above).
+    [[nodiscard]] maui::animations::easing convert_easing(std::string_view text);
+
+    // TextDecorationConverter.ConvertFrom: parts split on ',' (or ' ' when no comma yields multiple
+    // parts; consecutive separators yield EMPTY parts that throw, like C# string.Split), each part
+    // trimmed and matched case-insensitively against the [Flags] member names (None/Underline/
+    // Strikethrough) — plus the CSS "line-through" alias (matched UNtrimmed, the C# quirk) — and
+    // OR-combined into the result.
+    [[nodiscard]] maui::core::text_decorations convert_text_decorations(std::string_view text);
 
     // VisualElement.VisibilityConverter — the [TypeConverter] on VisualElement.IsVisibleProperty:
     // "true"/"visible" -> true, "false"/"hidden"/"collapse" -> false (trimmed, case-insensitive;
@@ -229,6 +254,7 @@ namespace maui::xaml
     [[nodiscard]] maui::core::aspect convert_aspect(std::string_view text);
     [[nodiscard]] maui::core::visibility convert_visibility(std::string_view text);
     [[nodiscard]] maui::core::return_type convert_return_type(std::string_view text);
+    [[nodiscard]] maui::core::clear_button_visibility convert_clear_button_visibility(std::string_view text);
     // FlowDirectionConverter: the enum names (via Enum.TryParse) plus the case-insensitive
     // "ltr" / "rtl" / "inherit" aliases (these aliases are NOT trimmed, matching C#).
     [[nodiscard]] maui::core::flow_direction convert_flow_direction(std::string_view text);

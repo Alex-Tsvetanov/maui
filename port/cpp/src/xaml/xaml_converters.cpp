@@ -21,17 +21,21 @@
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <utility>
 #include <vector>
 
+#include "maui/animations/easing.hpp"
 #include "maui/controls/column_definition.hpp"
 #include "maui/controls/row_definition.hpp"
 #include "maui/core/aspect.hpp"
+#include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/flow_direction.hpp"
 #include "maui/core/grid_length.hpp"
 #include "maui/core/grid_unit_type.hpp"
 #include "maui/core/layout_alignment.hpp"
 #include "maui/core/return_type.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/text_decorations.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/detail/charconv_compat.hpp" // FP from_chars (general) with the libc++ < 20 fallback
@@ -663,5 +667,122 @@ namespace maui::xaml
             return flow_direction::match_parent;
         }
         throw_cannot_convert(text, "maui::core::flow_direction");
+    }
+
+    // Microsoft.Maui.ClearButtonVisibility (no [TypeConverter] in C# — TypeConversionExtensions'
+    // generic Enum.Parse path).
+    maui::core::clear_button_visibility convert_clear_button_visibility(std::string_view text)
+    {
+        using maui::core::clear_button_visibility;
+        static constexpr std::array<enum_entry<clear_button_visibility>, 2> names{{
+            {.name = "Never", .value = clear_button_visibility::never},
+            {.name = "WhileEditing", .value = clear_button_visibility::while_editing},
+        }};
+        return parse_enum<clear_button_visibility>(text, names, "maui::core::clear_button_visibility");
+    }
+
+    // Microsoft.Maui.Converters.EasingTypeConverter.ConvertFrom (src/Core/src/Converters/
+    // EasingTypeConverter.cs): names compared OrdinalIgnoreCase; an exactly-two-part "Easing.<Name>"
+    // spelling strips the qualifier first. C# returns null for null/whitespace input — the port's
+    // easing has no null form, so that case throws (the header's documented deviation).
+    maui::animations::easing convert_easing(std::string_view text)
+    {
+        using maui::animations::easing;
+        if (detail::trim(text).empty())
+        {
+            throw_cannot_convert(text, "maui::animations::easing"); // C#: a null Easing
+        }
+        std::string_view value = text;
+        // var parts = strValue.Split('.'); parts.Length == 2 && Compare(parts[0], nameof(Easing)).
+        const std::size_t dot = value.find('.');
+        if (dot != std::string_view::npos && value.find('.', dot + 1) == std::string_view::npos &&
+            equals_ignore_case(value.substr(0, dot), "Easing"))
+        {
+            value.remove_prefix(dot + 1);
+        }
+        struct named_easing
+        {
+            std::string_view name;
+            const easing& (*get)();
+        };
+        static constexpr std::array<named_easing, 11> names{{
+            {.name = "Linear", .get = &easing::linear},
+            {.name = "SinIn", .get = &easing::sin_in},
+            {.name = "SinOut", .get = &easing::sin_out},
+            {.name = "SinInOut", .get = &easing::sin_in_out},
+            {.name = "CubicIn", .get = &easing::cubic_in},
+            {.name = "CubicOut", .get = &easing::cubic_out},
+            {.name = "CubicInOut", .get = &easing::cubic_in_out},
+            {.name = "BounceIn", .get = &easing::bounce_in},
+            {.name = "BounceOut", .get = &easing::bounce_out},
+            {.name = "SpringIn", .get = &easing::spring_in},
+            {.name = "SpringOut", .get = &easing::spring_out},
+        }};
+        for (const named_easing& entry : names)
+        {
+            if (equals_ignore_case(value, entry.name))
+            {
+                return entry.get();
+            }
+        }
+        // C#'s InvalidOperationException carries the post-strip value.
+        throw_cannot_convert(value, "maui::animations::easing");
+    }
+
+    // Microsoft.Maui.Controls.TextDecorationConverter.ConvertFrom (DecorableTextElement.cs): split
+    // on ',' — or on ' ' when the comma split yields a single part — keeping EMPTY parts (C#
+    // string.Split), each part trimmed and Enum.TryParse'd case-insensitively, with the untrimmed
+    // "line-through" CSS alias, OR-combined into the [Flags] result.
+    maui::core::text_decorations convert_text_decorations(std::string_view text)
+    {
+        using maui::core::text_decorations;
+        static constexpr std::array<enum_entry<text_decorations>, 3> names{{
+            {.name = "None", .value = text_decorations::none},
+            {.name = "Underline", .value = text_decorations::underline},
+            {.name = "Strikethrough", .value = text_decorations::strikethrough},
+        }};
+        const char separator = text.find(',') != std::string_view::npos ? ',' : ' ';
+        auto result = std::to_underlying(text_decorations::none);
+        std::size_t begin = 0;
+        while (true)
+        {
+            const std::size_t end = text.find(separator, begin);
+            const std::string_view item =
+                text.substr(begin, end == std::string_view::npos ? std::string_view::npos : end - begin);
+            const std::string_view trimmed = detail::trim(item);
+            // Enum.TryParse(item.Trim(), ignoreCase: true): the case-insensitive name match (the
+            // numeric form follows the port's defined-values rule via the case-sensitive helper).
+            bool matched = false;
+            for (const enum_entry<text_decorations>& entry : names)
+            {
+                if (equals_ignore_case(trimmed, entry.name))
+                {
+                    result |= std::to_underlying(entry.value);
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched)
+            {
+                if (const auto numeric = try_parse_enum<text_decorations>(trimmed, names))
+                {
+                    result |= std::to_underlying(*numeric);
+                }
+                else if (equals_ignore_case(item, "line-through")) // the UNtrimmed C# alias check
+                {
+                    result |= std::to_underlying(text_decorations::strikethrough);
+                }
+                else
+                {
+                    throw_cannot_convert(item, "maui::core::text_decorations"); // C# names the ITEM
+                }
+            }
+            if (end == std::string_view::npos)
+            {
+                break;
+            }
+            begin = end + 1;
+        }
+        return static_cast<text_decorations>(result);
     }
 } // namespace maui::xaml

@@ -30,6 +30,11 @@
 #include <utility>
 #include <vector>
 
+#include "maui/core/text_alignment.hpp"
+#include "maui/core/text_decorations.hpp"
+#include "maui/core/thickness.hpp"
+#include "maui/graphics/colors.hpp"
+
 #include "maui/controls/application.hpp"
 #include "maui/controls/bindings/i_value_converter.hpp"
 #include "maui/controls/content_page.hpp"
@@ -129,6 +134,23 @@ namespace
         (void)xaml_loader::load_into(label, R"xml(
 <Label xmlns="http://schemas.microsoft.com/dotnet/2021/maui" Text="Foo"/>)xml");
         EXPECT_EQ(label.text(), "Foo");
+    }
+
+    TEST(xaml_loader, converted_literal_attributes_apply)
+    {
+        // The M7 converter-parity unit end-to-end: color / [Flags] enum / enum / thickness literals
+        // convert through the now-registered default converter table during a real load.
+        controls::label label;
+        (void)xaml_loader::load_into(label, R"xml(
+<Label xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       TextColor="Red" HorizontalTextAlignment="Center" Padding="1,2,3,4"
+       TextDecorations="Underline,Strikethrough"/>)xml");
+        EXPECT_EQ(label.text_color(), maui::graphics::colors::red);
+        EXPECT_EQ(label.horizontal_text_alignment(), maui::core::text_alignment::center);
+        EXPECT_EQ(label.padding(), (maui::core::thickness{1, 2, 3, 4}));
+        EXPECT_EQ(std::to_underlying(label.text_decorations()),
+                  std::to_underlying(maui::core::text_decorations::underline) |
+                      std::to_underlying(maui::core::text_decorations::strikethrough));
     }
 
     TEST(xaml_loader, test_non_empty_collection_members)

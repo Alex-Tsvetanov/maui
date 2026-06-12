@@ -10,28 +10,33 @@
 //   - [ContentProperty] metadata: ContentPage.cs `[ContentProperty("Content")]`, Layout.cs
 //     `[ContentProperty(nameof(Children))]`, Window.cs `[ContentProperty(nameof(Page))]`, Label.cs
 //     `[ContentProperty(nameof(Text))]`;
-//   - converters: TypeConversionExtensions.ConvertTo's built-in invariant-culture conversions.
+//   - converters: TypeConversionExtensions.ConvertTo's built-in invariant-culture conversions plus
+//     the full maui/xaml/xaml_converters.hpp table (color/point/rect/size/thickness/corner_radius/
+//     grid_length/definition lists/layout_alignment/easing/the enum tables), each bridged through
+//     registry_converter — so every registered enum/struct-typed attribute IS settable from markup
+//     text (M7 converter parity).
 //
 // Documented v1 deferrals (registered surface only grows from here, it never silently shrinks):
-//   - enum/struct-typed attributes ARE registered (their value_type names the converter implicitly),
-//     but their string converters are unit U4's deliverable — until then they are settable from a
-//     typed std::any (or a test fake), not from markup text;
+//   - per-PROPERTY C# converters have no type-keyed slot: FontSizeConverter (double-typed named
+//     sizes) and VisualElement.VisibilityConverter (bool-typed "visible"/"hidden" aliases) stay free
+//     functions until a per-property converter override channel exists (STATUS.md M7 deferrals);
 //   - Background/Clip/Shadow/Semantics/Style/StyleClass and the font sub-attributes
-//     (FontFamily/FontSize/FontAttributes over the port's single font value) wait on U4 converters /
+//     (FontFamily/FontSize/FontAttributes over the port's single font value) wait on unported types /
 //     loader-side composition;
-//   - Grid.RowDefinitions/ColumnDefinitions ("Auto,*,2*") need U4's definition-list converter, and
-//     attached properties (Grid.Row=…) are the M7 loader's dotted-name path — neither is a plain
-//     per-type property registration.
+//   - Grid.RowDefinitions/ColumnDefinitions ("Auto,*,2*") CONVERT now but their attribute
+//     registrations wait on the grid's definition-collection properties, and attached properties
+//     (Grid.Row=…) are the M7 loader's dotted-name path — neither is a plain per-type property
+//     registration.
 
 #include "maui/xaml/xaml_standard_types.hpp"
 
-#include <charconv>
-#include <cstddef>
 #include <string>
 #include <string_view>
-#include <system_error>
+#include <vector>
 
+#include "maui/animations/easing.hpp"
 #include "maui/controls/button.hpp"
+#include "maui/controls/column_definition.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/element.hpp"
 #include "maui/controls/entry.hpp"
@@ -41,14 +46,30 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/layout.hpp"
 #include "maui/controls/navigation_page.hpp"
+#include "maui/controls/row_definition.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/controls/view.hpp"
 #include "maui/controls/window.hpp"
+#include "maui/core/aspect.hpp"
 #include "maui/core/bindable_object.hpp"
+#include "maui/core/clear_button_visibility.hpp"
+#include "maui/core/flow_direction.hpp"
+#include "maui/core/grid_length.hpp"
 #include "maui/core/i_view.hpp"
+#include "maui/core/layout_alignment.hpp"
+#include "maui/core/return_type.hpp"
+#include "maui/core/text_alignment.hpp"
+#include "maui/core/text_decorations.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
-#include "maui/detail/charconv_compat.hpp" // FP from_chars (general) with the libc++ < 20 fallback
+#include "maui/graphics/color.hpp"
+#include "maui/graphics/corner_radius.hpp"
+#include "maui/graphics/point.hpp"
+#include "maui/graphics/rect.hpp"
+#include "maui/graphics/size.hpp"
+#include "maui/graphics/size_f.hpp"
 #include "maui/xaml/xaml_converter_registry.hpp"
+#include "maui/xaml/xaml_converters.hpp"
 #include "maui/xaml/xaml_parse_exception.hpp"
 #include "maui/xaml/xaml_property_registry.hpp"
 #include "maui/xaml/xaml_type_registry.hpp"
@@ -57,126 +78,24 @@ namespace maui::xaml
 {
     namespace
     {
-        // ---- built-in converters (TypeConversionExtensions.ConvertTo's invariant behaviors) --------
+        // ---- the converter-table adapter --------------------------------------------------------
 
-        [[noreturn]] void throw_malformed(const std::string& text, std::string_view target_type)
+        // Bridge a maui/xaml/xaml_converters.hpp free function into the registry's error contract:
+        // the converter unit throws xaml_convert_error (C#'s per-converter Invalid/FormatException);
+        // the registry's stored converters throw xaml_parse_exception (the one error
+        // TypeConversionExtensions.ConvertTo surfaces). Same message, translated type.
+        template <class T> [[nodiscard]] auto registry_converter(T (*convert)(std::string_view))
         {
-            // The message shape follows the codebase's parse errors (graphics color.cpp); C# raises
-            // FormatException here, which the XAML stack surfaces as a XamlParseException.
-            throw xaml_parse_exception("Cannot convert \"" + text + "\" into " + std::string{target_type});
-        }
-
-        // C#'s Parse family trims leading/trailing whitespace (NumberStyles AllowLeading/TrailingWhite;
-        // Boolean.Parse calls value.Trim()).
-        [[nodiscard]] std::string_view trim(std::string_view text)
-        {
-            const auto is_space = [](char c) {
-                return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v' || c == '\f';
-            };
-            while (!text.empty() && is_space(text.front()))
-            {
-                text.remove_prefix(1);
-            }
-            while (!text.empty() && is_space(text.back()))
-            {
-                text.remove_suffix(1);
-            }
-            return text;
-        }
-
-        // C# NumberStyles.AllowLeadingSign accepts one leading '+', which std::from_chars rejects —
-        // strip it, but only when not followed by another sign ("+-5" stays malformed).
-        [[nodiscard]] std::string_view strip_leading_plus(std::string_view token)
-        {
-            if (token.size() >= 2 && token.front() == '+' && token[1] != '+' && token[1] != '-')
-            {
-                token.remove_prefix(1);
-            }
-            return token;
-        }
-
-        // Whole-token invariant-culture numeric parse (std::from_chars is locale-independent, like
-        // CultureInfo.InvariantCulture). Rejects partial consumption ("100#"). Deviation from C#'s
-        // default NumberStyles: thousands separators ("1,234") are NOT accepted; double keeps
-        // exponent and the inf/nan forms (from_chars chars_format::general).
-        [[nodiscard]] bool parse_whole_token(std::string_view token, double& out)
-        {
-            const char* begin = token.data();
-            // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic) — from_chars needs [first,last)
-            const char* end = begin + token.size();
-            const auto [ptr, ec] = maui::detail::from_chars_general(begin, end, out);
-            return ec == std::errc{} && ptr == end;
-        }
-        [[nodiscard]] bool parse_whole_token(std::string_view token, int& out)
-        {
-            const char* begin = token.data();
-            // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic) — from_chars needs [first,last)
-            const char* end = begin + token.size();
-            const auto [ptr, ec] = std::from_chars(begin, end, out);
-            return ec == std::errc{} && ptr == end;
-        }
-
-        // C# Double.Parse(str, CultureInfo.InvariantCulture).
-        [[nodiscard]] double convert_double(const std::string& text)
-        {
-            const std::string_view token = strip_leading_plus(trim(text));
-            double value{};
-            if (token.empty() || !parse_whole_token(token, value))
-            {
-                throw_malformed(text, "double");
-            }
-            return value;
-        }
-
-        // C# Int32.Parse(str, CultureInfo.InvariantCulture).
-        [[nodiscard]] int convert_int(const std::string& text)
-        {
-            const std::string_view token = strip_leading_plus(trim(text));
-            int value{};
-            if (token.empty() || !parse_whole_token(token, value))
-            {
-                throw_malformed(text, "int");
-            }
-            return value;
-        }
-
-        // C# Boolean.Parse: trimmed, case-insensitive TrueString/FalseString, else FormatException.
-        [[nodiscard]] bool convert_bool(const std::string& text)
-        {
-            const auto ascii_lower = [](char c) { return c >= 'A' && c <= 'Z' ? static_cast<char>(c - 'A' + 'a') : c; };
-            const auto equals_ignore_case = [&ascii_lower](std::string_view token, std::string_view expected) {
-                if (token.size() != expected.size())
+            return [convert](const std::string& text) -> T {
+                try
                 {
-                    return false;
+                    return convert(text);
                 }
-                for (std::size_t i = 0; i < token.size(); ++i)
+                catch (const xaml_convert_error& error)
                 {
-                    if (ascii_lower(token[i]) != expected[i])
-                    {
-                        return false;
-                    }
+                    throw xaml_parse_exception(error.what());
                 }
-                return true;
             };
-            const std::string_view token = trim(text);
-            if (equals_ignore_case(token, "true"))
-            {
-                return true;
-            }
-            if (equals_ignore_case(token, "false"))
-            {
-                return false;
-            }
-            throw_malformed(text, "bool");
-        }
-
-        // C# string conversion: a leading "{}" escapes markup-extension syntax and is stripped
-        // (StartsWith("{}", Ordinal) → Substring(2)); otherwise the literal is the value as-is.
-        // (Markup-extension parsing itself — "{Binding …}" — is the M7 loader's job, before it ever
-        // reaches a converter.)
-        [[nodiscard]] std::string convert_string(const std::string& text)
-        {
-            return text.starts_with("{}") ? text.substr(2) : text;
         }
 
         // ---- shared per-control property surfaces ---------------------------------------------------
@@ -402,24 +321,60 @@ namespace maui::xaml
         properties.register_bindable_property<controls::window>("Height", controls::window_height_property());
         // C# Window.Page accepts a Page; the port has no shared page base yet, so the registration
         // exposes the existing window::set_content(element&) seam (every loadable root is an element).
-        properties.register_add_child<controls::window>(
-            "Page", [](controls::window& host, maui::core::bindable_object& child) {
-            auto* page = dynamic_cast<controls::element*>(&child);
-            if (page == nullptr)
-            {
-                return false;
-            }
-            host.set_content(*page);
-            return true;
-        });
+        properties.register_add_child<controls::window>("Page",
+                                                        [](controls::window& host, maui::core::bindable_object& child) {
+                                                            auto* page = dynamic_cast<controls::element*>(&child);
+                                                            if (page == nullptr)
+                                                            {
+                                                                return false;
+                                                            }
+                                                            host.set_content(*page);
+                                                            return true;
+                                                        });
     }
 
     void register_standard_xaml_converters(xaml_converter_registry& converters)
     {
-        converters.register_converter<std::string>(&convert_string);
-        converters.register_converter<double>(&convert_double);
-        converters.register_converter<int>(&convert_int);
-        converters.register_converter<bool>(&convert_bool);
+        // The full xaml_converters.hpp table (M7 converter parity), each bridged through
+        // registry_converter (xaml_convert_error -> xaml_parse_exception). The registry is
+        // TYPE-keyed, so the per-PROPERTY C# converters cannot live here and stay free functions:
+        // FontSizeConverter (double-typed FontSize names) and VisualElement.VisibilityConverter
+        // (bool-typed IsVisible "visible"/"hidden" aliases) — see STATUS.md M7 deferrals.
+
+        // TypeConversionExtensions.ConvertTo built-ins.
+        converters.register_converter<std::string>(registry_converter(&convert_string));
+        converters.register_converter<double>(registry_converter(&convert_double));
+        converters.register_converter<float>(registry_converter(&convert_float));
+        converters.register_converter<int>(registry_converter(&convert_int));
+        converters.register_converter<bool>(registry_converter(&convert_bool));
+
+        // Graphics values.
+        converters.register_converter<maui::graphics::color>(registry_converter(&convert_color));
+        converters.register_converter<maui::graphics::point>(registry_converter(&convert_point));
+        converters.register_converter<maui::graphics::rect>(registry_converter(&convert_rect));
+        converters.register_converter<maui::graphics::size>(registry_converter(&convert_size));
+        converters.register_converter<maui::graphics::size_f>(registry_converter(&convert_size_f));
+        converters.register_converter<maui::graphics::corner_radius>(registry_converter(&convert_corner_radius));
+
+        // Core/Controls value types.
+        converters.register_converter<maui::core::thickness>(registry_converter(&convert_thickness));
+        converters.register_converter<maui::core::grid_length>(registry_converter(&convert_grid_length));
+        converters.register_converter<std::vector<maui::controls::row_definition>>(
+            registry_converter(&convert_row_definitions));
+        converters.register_converter<std::vector<maui::controls::column_definition>>(
+            registry_converter(&convert_column_definitions));
+        converters.register_converter<maui::core::layout_alignment>(registry_converter(&convert_layout_alignment));
+        converters.register_converter<maui::animations::easing>(registry_converter(&convert_easing));
+
+        // Enums (incl. the [Flags] TextDecorations and the aliased FlowDirection).
+        converters.register_converter<maui::core::text_alignment>(registry_converter(&convert_text_alignment));
+        converters.register_converter<maui::core::aspect>(registry_converter(&convert_aspect));
+        converters.register_converter<maui::core::visibility>(registry_converter(&convert_visibility));
+        converters.register_converter<maui::core::return_type>(registry_converter(&convert_return_type));
+        converters.register_converter<maui::core::clear_button_visibility>(
+            registry_converter(&convert_clear_button_visibility));
+        converters.register_converter<maui::core::flow_direction>(registry_converter(&convert_flow_direction));
+        converters.register_converter<maui::core::text_decorations>(registry_converter(&convert_text_decorations));
     }
 
     void register_standard_xaml(xaml_type_registry& types, xaml_property_registry& properties,

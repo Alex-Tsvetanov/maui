@@ -18,19 +18,23 @@
 #include <optional>
 #include <span>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include <gtest/gtest.h>
 
 // row/column_definition are reached through xaml_converters.hpp's return types (the .height()/.width()
 // accessors below); include-cleaner treats their headers as indirect, so they are not re-included here.
+#include "maui/animations/easing.hpp"
 #include "maui/core/aspect.hpp"
+#include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/flow_direction.hpp"
 #include "maui/core/grid_length.hpp"
 #include "maui/core/grid_unit_type.hpp"
 #include "maui/core/layout_alignment.hpp"
 #include "maui/core/return_type.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/text_decorations.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
@@ -482,5 +486,109 @@ namespace
         EXPECT_EQ(xaml::parse_enum(std::string_view("1"), table, "sample_enum"), sample_enum::beta);
         EXPECT_EQ(xaml::try_parse_enum(std::string_view("nope"), table), std::nullopt);
         EXPECT_THROW((void)xaml::parse_enum(std::string_view("nope"), table, "sample_enum"), xaml_convert_error);
+    }
+
+    // ---- easing (EasingTypeConverter; oracle: src/Core/tests/UnitTests/Animations/EasingTests.cs) ----
+
+    // The C# asserts compare the converted Easing against the static singleton by reference; the
+    // port's easing is a copyable value, so identity is asserted behaviorally — same curve samples.
+    void expect_same_easing(const maui::animations::easing& actual, const maui::animations::easing& expected)
+    {
+        for (const double v : {0.0, 0.2, 0.45, 0.7, 1.0})
+        {
+            EXPECT_DOUBLE_EQ(actual.ease(v), expected.ease(v));
+        }
+    }
+
+    TEST(xaml_convert_easing, can_convert_from_easing_name_to_easing)
+    {
+        using maui::animations::easing;
+        // EasingTests.CanConvertFromEasingNameToEasing: the exact name, the all-lowercase spelling,
+        // and the "Easing."-qualified form, for every named easing.
+        struct easing_case
+        {
+            std::string_view name;
+            std::string_view lower;
+            std::string_view qualified;
+            const easing& expected;
+        };
+        const std::array<easing_case, 11> cases{{
+            {"Linear", "linear", "Easing.Linear", easing::linear()},
+            {"SinOut", "sinout", "Easing.SinOut", easing::sin_out()},
+            {"SinIn", "sinin", "Easing.SinIn", easing::sin_in()},
+            {"SinInOut", "sininout", "Easing.SinInOut", easing::sin_in_out()},
+            {"CubicOut", "cubicout", "Easing.CubicOut", easing::cubic_out()},
+            {"CubicIn", "cubicin", "Easing.CubicIn", easing::cubic_in()},
+            {"CubicInOut", "cubicinout", "Easing.CubicInOut", easing::cubic_in_out()},
+            {"BounceOut", "bounceout", "Easing.BounceOut", easing::bounce_out()},
+            {"BounceIn", "bouncein", "Easing.BounceIn", easing::bounce_in()},
+            {"SpringOut", "springout", "Easing.SpringOut", easing::spring_out()},
+            {"SpringIn", "springin", "Easing.SpringIn", easing::spring_in()},
+        }};
+        for (const easing_case& test_case : cases)
+        {
+            expect_same_easing(xaml::convert_easing(test_case.name), test_case.expected);
+            expect_same_easing(xaml::convert_easing(test_case.lower), test_case.expected);
+            expect_same_easing(xaml::convert_easing(test_case.qualified), test_case.expected);
+        }
+        // The qualifier itself is case-insensitive too (Compare(parts[0], nameof(Easing))).
+        expect_same_easing(xaml::convert_easing("easing.linear"), easing::linear());
+    }
+
+    TEST(xaml_convert_easing, invalid_easing_names_throw)
+    {
+        // EasingTests.InvalidEasingNamesThrow (InvalidOperationException -> the single error channel).
+        EXPECT_THROW((void)xaml::convert_easing("WrongEasingName"), xaml_convert_error);
+        EXPECT_THROW((void)xaml::convert_easing("Easing.Linear.SinInOut"), xaml_convert_error);
+    }
+
+    TEST(xaml_convert_easing, empty_and_whitespace_throw)
+    {
+        // EasingTests.NonTextEasingsAreNull returns a NULL Easing in C#; the port's easing has no
+        // null form — the documented deviation throws instead (xaml_converters.hpp).
+        EXPECT_THROW((void)xaml::convert_easing(""), xaml_convert_error);
+        EXPECT_THROW((void)xaml::convert_easing(" "), xaml_convert_error);
+    }
+
+    // ---- text decorations (TextDecorationConverter; oracle: TextDecorationUnitTests.cs) ----
+
+    TEST(xaml_convert_text_decorations, test_text_decoration_converter)
+    {
+        using maui::core::text_decorations;
+        constexpr auto both = static_cast<text_decorations>(std::to_underlying(text_decorations::underline) |
+                                                            std::to_underlying(text_decorations::strikethrough));
+        // TextDecorationUnitTests.TestTextDecorationConverter, row for row.
+        EXPECT_EQ(xaml::convert_text_decorations("strikethrough"), text_decorations::strikethrough);
+        EXPECT_EQ(xaml::convert_text_decorations("underline"), text_decorations::underline);
+        EXPECT_EQ(xaml::convert_text_decorations("line-through"), text_decorations::strikethrough);
+        EXPECT_EQ(xaml::convert_text_decorations("none"), text_decorations::none);
+        EXPECT_EQ(xaml::convert_text_decorations("strikethrough underline"), both);
+        EXPECT_EQ(xaml::convert_text_decorations("underline strikethrough"), both);
+        EXPECT_EQ(xaml::convert_text_decorations("underline line-through"), both);
+        EXPECT_EQ(xaml::convert_text_decorations("line-through underline"), both);
+        // The comma spelling and the PascalCase member names.
+        EXPECT_EQ(xaml::convert_text_decorations("Underline,Strikethrough"), both);
+        EXPECT_EQ(xaml::convert_text_decorations("Underline, Strikethrough"), both);
+    }
+
+    TEST(xaml_convert_text_decorations, invalid_throws)
+    {
+        EXPECT_THROW((void)xaml::convert_text_decorations("wavy"), xaml_convert_error);
+        EXPECT_THROW((void)xaml::convert_text_decorations(""), xaml_convert_error);
+        // C# Split keeps empty entries, so doubled separators throw there too.
+        EXPECT_THROW((void)xaml::convert_text_decorations("underline  strikethrough"), xaml_convert_error);
+        // The "line-through" alias is compared UNtrimmed (the C# quirk).
+        EXPECT_THROW((void)xaml::convert_text_decorations("underline, line-through"), xaml_convert_error);
+    }
+
+    // ---- clear button visibility (the TypeConversionExtensions generic Enum.Parse path) ----
+
+    TEST(xaml_convert_enums, clear_button_visibility_names)
+    {
+        EXPECT_EQ(xaml::convert_clear_button_visibility("Never"), maui::core::clear_button_visibility::never);
+        EXPECT_EQ(xaml::convert_clear_button_visibility("WhileEditing"),
+                  maui::core::clear_button_visibility::while_editing);
+        EXPECT_THROW((void)xaml::convert_clear_button_visibility("whileediting"), xaml_convert_error);
+        EXPECT_THROW((void)xaml::convert_clear_button_visibility("Always"), xaml_convert_error);
     }
 } // namespace
