@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "maui/controls/content_page.hpp"
+#include "maui/controls/toolbar_item.hpp"
 #include "maui/controls/toolbar_tracker.hpp"
 #include "maui/controls/view.hpp"
 #include "maui/core/bindable_property.hpp"

@@ -17,6 +17,7 @@
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/flyout_base.hpp"
 #include "maui/controls/menu_bar_item.hpp"
+#include "maui/controls/menu_element_list.hpp"
 #include "maui/controls/menu_flyout.hpp"
 #include "maui/controls/menu_flyout_item.hpp"
 #include "maui/controls/menu_flyout_sub_item.hpp"

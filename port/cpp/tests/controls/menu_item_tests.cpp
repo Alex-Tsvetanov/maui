@@ -6,7 +6,6 @@
 // channel — ICommand is not ported; STATUS.md W1-11).
 #include "maui/controls/menu_item.hpp"
 
-#include <memory>
 #include <stdexcept>
 #include <string>
 

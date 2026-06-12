@@ -5,6 +5,9 @@
 
 #include "maui/core/view_chrome_ops.hpp"
 
+#include <optional>
+#include <string>
+
 namespace maui::core
 {
     void apply_native_tool_tip(void* /*native_view*/, const std::optional<std::string>& /*text*/)

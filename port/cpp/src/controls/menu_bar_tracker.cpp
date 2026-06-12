@@ -5,6 +5,10 @@
 #include "maui/controls/menu_bar_tracker.hpp"
 
 #include "maui/controls/content_page.hpp"
+#include "maui/controls/element.hpp"
+#include "maui/controls/menu_bar.hpp"
+#include "maui/controls/menu_bar_item.hpp"
+#include "maui/controls/menu_element_list.hpp"
 #include "maui/controls/navigation_page.hpp"
 
 namespace maui::controls

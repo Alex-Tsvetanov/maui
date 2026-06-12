@@ -65,6 +65,30 @@ namespace
         return (__bridge UIView*)handler->native_view();
     }
 
+    // Replicates -[UIControl sendActionsForControlEvents:]'s dispatch-table walk for one event — the
+    // spawned test process has no UIApplication to deliver the action through (the same helper the
+    // button seam tests use; see button_ios_tests.mm).
+    void send_control_event(UIControl* control, UIControlEvents event)
+    {
+        NSArray* const targets = control.allTargets.allObjects;
+        for (NSUInteger t = 0; t < targets.count; ++t)
+        {
+            id const target = targets[t];
+            NSArray<NSString*>* const actions = [control actionsForTarget:target forControlEvent:event];
+            for (NSUInteger a = 0; a < actions.count; ++a)
+            {
+                SEL const action = NSSelectorFromString(actions[a]);
+                NSMethodSignature* const signature = [target methodSignatureForSelector:action];
+                ASSERT_NE(signature, nil);
+                NSInvocation* const invocation = [NSInvocation invocationWithMethodSignature:signature];
+                invocation.selector = action;
+                id sender = control;
+                [invocation setArgument:&sender atIndex:2]; // 0 = self, 1 = _cmd, 2 = the sender
+                [invocation invokeWithTarget:target];
+            }
+        }
+    }
+
     // ---- navigation bar: real toolbar buttons ----
 
     TEST(ios_chrome, toolbar_items_materialize_as_bar_buttons)
@@ -100,7 +124,7 @@ namespace
 
         NSArray<UIButton*>* const buttons = bar_buttons(handler);
         ASSERT_EQ(buttons.count, 1U);
-        [buttons[0] sendActionsForControlEvents:UIControlEventTouchUpInside];
+        send_control_event(buttons[0], UIControlEventTouchUpInside);
 
         EXPECT_TRUE(fired);
     }
@@ -129,6 +153,22 @@ namespace
 
     // ---- context flyout: the UIContextMenuInteraction ATTACH (materialization needs interaction) ----
 
+    // The number of UIContextMenuInteractions on the view — counted by TYPE, not by total interaction
+    // count: attaching one can make UIKit add unrelated system interactions of its own alongside it.
+    NSUInteger context_menu_interaction_count(UIView* view)
+    {
+        NSUInteger count = 0;
+        NSArray<id<UIInteraction>>* const interactions = view.interactions;
+        for (NSUInteger i = 0; i < interactions.count; ++i)
+        {
+            if ([interactions[i] isKindOfClass:[UIContextMenuInteraction class]])
+            {
+                ++count;
+            }
+        }
+        return count;
+    }
+
     TEST(ios_chrome, context_flyout_attaches_a_context_menu_interaction)
     {
         button host;
@@ -140,15 +180,14 @@ namespace
         auto handler = std::make_shared<button_handler>();
         host.set_handler(handler);
         UIView* const native = native_view_of(handler);
-        const NSUInteger baseline = native.interactions.count;
+        const NSUInteger baseline = context_menu_interaction_count(native);
 
         host.set_context_flyout(&flyout);
-        ASSERT_EQ(native.interactions.count, baseline + 1);
-        EXPECT_TRUE([native.interactions.lastObject isKindOfClass:[UIContextMenuInteraction class]]);
+        EXPECT_EQ(context_menu_interaction_count(native), baseline + 1);
 
         // Clearing removes the interaction again.
         host.set_context_flyout(nullptr);
-        EXPECT_EQ(native.interactions.count, baseline);
+        EXPECT_EQ(context_menu_interaction_count(native), baseline);
     }
 
     // ---- the documented iOS no-ops: tooltip + window menu bar / title bar stay mirrors ----
@@ -162,8 +201,8 @@ namespace
         tool_tip_properties::set_text(host, "No hover here");
         auto* base = handler->platform_base();
         ASSERT_NE(base, nullptr);
-        ASSERT_TRUE(base->tool_tip.has_value()); // the mirror records it; no native surface on iOS
-        EXPECT_EQ(*base->tool_tip, "No hover here");
+        // The mirror records it; no native surface on iOS.
+        EXPECT_EQ(base->tool_tip, std::optional<std::string>("No hover here"));
     }
 
     TEST(ios_chrome, window_menu_bar_and_title_bar_stay_stored_inert)

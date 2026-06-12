@@ -6,6 +6,8 @@
 #include <cstddef>
 #include <vector>
 
+#include "maui/controls/menu_bar_item.hpp"
+#include "maui/controls/menu_element_list.hpp"
 #include "maui/core/bindable_property.hpp"
 
 namespace maui::controls

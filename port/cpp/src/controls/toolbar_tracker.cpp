@@ -4,7 +4,10 @@
 #include "maui/controls/toolbar_tracker.hpp"
 
 #include "maui/controls/content_page.hpp"
+#include "maui/controls/element.hpp"
+#include "maui/controls/menu_element_list.hpp"
 #include "maui/controls/navigation_page.hpp"
+#include "maui/controls/toolbar_item.hpp"
 
 namespace maui::controls
 {

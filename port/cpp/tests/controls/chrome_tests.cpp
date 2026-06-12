@@ -209,8 +209,7 @@ namespace
 
         tool_tip_properties::set_text(host, "Click me");
         EXPECT_EQ(tool_tip_properties::get_text(host), std::optional<std::string>("Click me"));
-        ASSERT_TRUE(base->tool_tip.has_value());
-        EXPECT_EQ(*base->tool_tip, "Click me");
+        EXPECT_EQ(base->tool_tip, std::optional<std::string>("Click me"));
     }
 
     TEST(view_chrome, tool_tip_set_before_attach_reaches_the_platform_on_connect)
@@ -223,8 +222,7 @@ namespace
 
         auto* base = handler->platform_base();
         ASSERT_NE(base, nullptr);
-        ASSERT_TRUE(base->tool_tip.has_value());
-        EXPECT_EQ(*base->tool_tip, "Early");
+        EXPECT_EQ(base->tool_tip, std::optional<std::string>("Early"));
     }
 
     TEST(view_chrome, context_flyout_maps_to_the_platform_base)

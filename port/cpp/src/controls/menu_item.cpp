@@ -7,6 +7,7 @@
 #include <string>
 
 #include "maui/core/bindable_property.hpp"
+#include "maui/core/i_image_source.hpp"
 
 namespace maui::controls
 {
