@@ -7,10 +7,14 @@
 // Apple/iOS .mm twins drive the real natives.
 #include "maui/controls/picker.hpp"
 
+#include <array>
 #include <cstddef>
 #include <memory>
+#include <optional>
+#include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "maui/controls/observable_collection.hpp"
@@ -114,12 +118,10 @@ namespace
         picker control;
         control.set_items_source(make_source({"Monkey", "Banana", "Lemon"}));
         control.set_selected_index(0);
-        ASSERT_TRUE(control.selected_item().has_value());
-        EXPECT_EQ(*control.selected_item(), "Monkey");
+        EXPECT_EQ(control.selected_item(), std::optional<std::string>("Monkey"));
 
         control.set_selected_index(42);
-        ASSERT_TRUE(control.selected_item().has_value());
-        EXPECT_EQ(*control.selected_item(), "Lemon");
+        EXPECT_EQ(control.selected_item(), std::optional<std::string>("Lemon"));
 
         control.set_selected_index(-42);
         EXPECT_FALSE(control.selected_item().has_value());
@@ -134,8 +136,7 @@ namespace
         EXPECT_EQ(control.selected_index(), 0);
 
         control.set_selected_index(1);
-        ASSERT_TRUE(control.selected_item().has_value());
-        EXPECT_EQ(*control.selected_item(), "Center");
+        EXPECT_EQ(control.selected_item(), std::optional<std::string>("Center"));
     }
 
     TEST(picker, setting_selected_item_updates_selected_index)
@@ -147,8 +148,7 @@ namespace
 
         control.set_selected_item("John");
         EXPECT_EQ(control.selected_index(), 0);
-        ASSERT_TRUE(control.selected_item().has_value());
-        EXPECT_EQ(*control.selected_item(), "John");
+        EXPECT_EQ(control.selected_item(), std::optional<std::string>("John"));
     }
 
     // ---- ItemsSource wiring (subscribe / unsubscribe / reset) ----
@@ -266,9 +266,15 @@ namespace
             std::size_t insertion_index;
             std::vector<std::string> insert_names;
         };
-        const case_t cases[] = {
-            {0, {"George"}},         {1, {"George"}},         {2, {"George"}},         {3, {"George"}},
-            {0, {"George", "Pete"}}, {1, {"George", "Pete"}}, {2, {"George", "Pete"}}, {3, {"George", "Pete"}},
+        const std::array cases{
+            case_t{.insertion_index = 0, .insert_names = {"George"}},
+            case_t{.insertion_index = 1, .insert_names = {"George"}},
+            case_t{.insertion_index = 2, .insert_names = {"George"}},
+            case_t{.insertion_index = 3, .insert_names = {"George"}},
+            case_t{.insertion_index = 0, .insert_names = {"George", "Pete"}},
+            case_t{.insertion_index = 1, .insert_names = {"George", "Pete"}},
+            case_t{.insertion_index = 2, .insert_names = {"George", "Pete"}},
+            case_t{.insertion_index = 3, .insert_names = {"George", "Pete"}},
         };
         for (const auto& test_case : cases)
         {
@@ -278,12 +284,13 @@ namespace
             control.set_selected_index(1);
             const auto original = control.selected_item();
             ASSERT_TRUE(original.has_value());
+            const std::string original_item = original.value_or(std::string{});
 
             items->insert_range(test_case.insertion_index, test_case.insert_names);
             EXPECT_EQ(control.items().count(), 3U + test_case.insert_names.size());
             // The selected item remains the same; the index follows it.
             EXPECT_EQ(control.selected_item(), original);
-            EXPECT_EQ(control.selected_index(), items->index_of(*original));
+            EXPECT_EQ(control.selected_index(), items->index_of(original_item));
         }
     }
 
@@ -295,15 +302,15 @@ namespace
             std::size_t remove_count;
             bool selected_item_preserved;
         };
-        const case_t cases[] = {
+        const std::array cases{
             // removed items do NOT include the selected item ("Paul" at index 1)
-            {0, 1, true},
-            {2, 1, true},
-            {2, 2, true},
+            case_t{.remove_index = 0, .remove_count = 1, .selected_item_preserved = true},
+            case_t{.remove_index = 2, .remove_count = 1, .selected_item_preserved = true},
+            case_t{.remove_index = 2, .remove_count = 2, .selected_item_preserved = true},
             // removed items include the selected item
-            {1, 1, false},
-            {0, 2, false},
-            {1, 2, false},
+            case_t{.remove_index = 1, .remove_count = 1, .selected_item_preserved = false},
+            case_t{.remove_index = 0, .remove_count = 2, .selected_item_preserved = false},
+            case_t{.remove_index = 1, .remove_count = 2, .selected_item_preserved = false},
         };
         for (const auto& test_case : cases)
         {
@@ -313,13 +320,14 @@ namespace
             control.set_selected_index(1);
             const auto original = control.selected_item();
             ASSERT_TRUE(original.has_value());
+            const std::string original_item = original.value_or(std::string{});
 
             items->remove_range(test_case.remove_index, test_case.remove_count);
             EXPECT_EQ(control.items().count(), 4U - test_case.remove_count);
             if (test_case.selected_item_preserved)
             {
                 EXPECT_EQ(control.selected_item(), original);
-                EXPECT_EQ(control.selected_index(), items->index_of(*original));
+                EXPECT_EQ(control.selected_index(), items->index_of(original_item));
             }
             else
             {
@@ -340,8 +348,7 @@ namespace
             items->remove_range(4 - remove_count, remove_count);
             EXPECT_EQ(control.items().count(), 4U - remove_count);
             EXPECT_EQ(control.selected_index(), static_cast<int>(items->count()) - 1);
-            ASSERT_TRUE(control.selected_item().has_value());
-            EXPECT_EQ(*control.selected_item(), items->at(items->count() - 1));
+            EXPECT_EQ(control.selected_item(), std::optional<std::string>(items->at(items->count() - 1)));
         }
     }
 
@@ -351,13 +358,11 @@ namespace
         picker control;
         control.set_items_source(items);
         control.set_selected_index(2);
-        ASSERT_TRUE(control.selected_item().has_value());
-        EXPECT_EQ(*control.selected_item(), "Item2");
+        EXPECT_EQ(control.selected_item(), std::optional<std::string>("Item2"));
         EXPECT_EQ(control.selected_index(), 2);
 
         items->remove_at(0);
-        ASSERT_TRUE(control.selected_item().has_value());
-        EXPECT_EQ(*control.selected_item(), "Item2");
+        EXPECT_EQ(control.selected_item(), std::optional<std::string>("Item2"));
         EXPECT_EQ(control.selected_index(), 1);
     }
 
@@ -367,13 +372,11 @@ namespace
         picker control;
         control.set_items_source(items);
         control.set_selected_index(1);
-        ASSERT_TRUE(control.selected_item().has_value());
-        EXPECT_EQ(*control.selected_item(), "Dog");
+        EXPECT_EQ(control.selected_item(), std::optional<std::string>("Dog"));
         EXPECT_EQ(control.selected_index(), 1);
 
         items->insert(0, "Goat");
-        ASSERT_TRUE(control.selected_item().has_value());
-        EXPECT_EQ(*control.selected_item(), "Dog");
+        EXPECT_EQ(control.selected_item(), std::optional<std::string>("Dog"));
         EXPECT_EQ(control.selected_index(), 2);
     }
 
@@ -398,8 +401,7 @@ namespace
         EXPECT_EQ(control.items().count(), 4U);
         EXPECT_EQ(control.items().at(control.items().count() - 1), "George");
         EXPECT_EQ(control.selected_index(), 1);
-        ASSERT_TRUE(control.selected_item().has_value());
-        EXPECT_EQ(*control.selected_item(), items->at(1));
+        EXPECT_EQ(control.selected_item(), std::optional<std::string>(items->at(1)));
     }
 
     TEST(picker, reentrant_clear_during_selected_index_change)
@@ -442,8 +444,7 @@ namespace
         EXPECT_EQ(control.items().count(), 4U);
         EXPECT_EQ(control.items().at(1), "George");
         EXPECT_EQ(control.selected_index(), 2);
-        ASSERT_TRUE(control.selected_item().has_value());
-        EXPECT_EQ(*control.selected_item(), items->at(2));
+        EXPECT_EQ(control.selected_item(), std::optional<std::string>(items->at(2)));
     }
 
     TEST(picker, reentrant_items_source_swap_during_selected_index_change)
@@ -466,8 +467,7 @@ namespace
         EXPECT_EQ(control.items().count(), 2U);
         EXPECT_EQ(control.items().at(0), "Peach");
         EXPECT_EQ(control.selected_index(), 1);
-        ASSERT_TRUE(control.selected_item().has_value());
-        EXPECT_EQ(*control.selected_item(), "Orange");
+        EXPECT_EQ(control.selected_item(), std::optional<std::string>("Orange"));
     }
 
     TEST(picker, reentrant_remove_during_selected_index_change)
@@ -490,8 +490,7 @@ namespace
         EXPECT_EQ(control.items().count(), 2U);
         EXPECT_EQ(control.items().at(1), "Ringo");
         EXPECT_EQ(control.selected_index(), 1);
-        ASSERT_TRUE(control.selected_item().has_value());
-        EXPECT_EQ(*control.selected_item(), items->at(1));
+        EXPECT_EQ(control.selected_item(), std::optional<std::string>(items->at(1)));
     }
 
     // ---- the IItemDelegate face ----
@@ -592,8 +591,8 @@ namespace
 
         platform->on_done(1); // the Done-accessory tap committing wheel row 1 (FinishSelectItem)
         EXPECT_EQ(control.selected_index(), 1);
-        ASSERT_TRUE(control.selected_item().has_value()); // UpdateSelectedItem reads Items w/o a source
-        EXPECT_EQ(*control.selected_item(), "Paul");
+        EXPECT_EQ(control.selected_item(),
+                  std::optional<std::string>("Paul")); // UpdateSelectedItem reads Items w/o a source
         EXPECT_EQ(platform->text, "Paul");
         EXPECT_EQ(raised, 1);
     }

@@ -25,6 +25,7 @@
 
 #include "../apple_shared/date_conversions.hpp"
 #include "ios_conversions.hpp"
+#include "ios_done_accessory.hpp"
 #include "ios_text_ops.hpp"
 #include "maui/core/date_time.hpp"
 #include "maui/core/i_time_picker.hpp"
@@ -167,17 +168,7 @@ namespace maui::core
         // The Done accessory (MauiDoneAccessoryView(OnDateSelected)).
         MauiIosTimePickerDoneTarget* const done = [[MauiIosTimePickerDoneTarget alloc] init];
         done.handler = this;
-        UIToolbar* const toolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, 0, 320, 44)];
-        UIBarButtonItem* const spacer =
-            [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace
-                                                          target:nil
-                                                          action:nil];
-        UIBarButtonItem* const done_item =
-            [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone
-                                                          target:done
-                                                          action:@selector(onDone:)];
-        toolbar.items = @[ spacer, done_item ];
-        field.inputAccessoryView = toolbar;
+        field.inputAccessoryView = maui::platform::ios::make_done_accessory(done, @selector(onDone:));
         field.inputAccessoryView.autoresizingMask = UIViewAutoresizingFlexibleHeight;
         objc_setAssociatedObject(field, &k_done_key, done, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 

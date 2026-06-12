@@ -5,11 +5,11 @@
 // date_picker_platform (the DatePickerExtensions.UpdateDate mirror + the on_done commit).
 #include "maui/controls/date_picker.hpp"
 
+#include <array>
 #include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
-#include <vector>
 
 #include "maui/core/date_picker_handler.hpp"
 #include "maui/core/date_time.hpp"
@@ -30,12 +30,10 @@ namespace
     {
         date_picker picker;
         picker.set_minimum_date(date_time(1950, 1, 1));
-        ASSERT_TRUE(picker.minimum_date().has_value());
-        EXPECT_EQ(*picker.minimum_date(), date_time(1950, 1, 1));
+        EXPECT_EQ(picker.minimum_date(), std::optional<date_time>(date_time(1950, 1, 1)));
 
         picker.set_minimum_date(date_time(2200, 1, 1)); // above the 2100-12-31 maximum -> invalid
-        ASSERT_TRUE(picker.minimum_date().has_value());
-        EXPECT_EQ(*picker.minimum_date(), date_time(1950, 1, 1));
+        EXPECT_EQ(picker.minimum_date(), std::optional<date_time>(date_time(1950, 1, 1)));
     }
 
     TEST(date_picker, minimum_date_null_is_valid)
@@ -49,12 +47,10 @@ namespace
     {
         date_picker picker;
         picker.set_maximum_date(date_time(2050, 1, 1));
-        ASSERT_TRUE(picker.maximum_date().has_value());
-        EXPECT_EQ(*picker.maximum_date(), date_time(2050, 1, 1));
+        EXPECT_EQ(picker.maximum_date(), std::optional<date_time>(date_time(2050, 1, 1)));
 
         picker.set_maximum_date(date_time(1800, 1, 1)); // below the 1900-1-1 minimum -> invalid
-        ASSERT_TRUE(picker.maximum_date().has_value());
-        EXPECT_EQ(*picker.maximum_date(), date_time(2050, 1, 1));
+        EXPECT_EQ(picker.maximum_date(), std::optional<date_time>(date_time(2050, 1, 1)));
     }
 
     TEST(date_picker, maximum_date_null_is_valid)
@@ -71,8 +67,7 @@ namespace
     {
         date_picker picker;
         picker.set_date(date_time(2050, 1, 1));
-        ASSERT_TRUE(picker.date().has_value());
-        EXPECT_EQ(*picker.date(), date_time(2050, 1, 1));
+        EXPECT_EQ(picker.date(), std::optional<date_time>(date_time(2050, 1, 1)));
 
         bool date_changed = false;
         bool maximum_changed = false;
@@ -102,8 +97,7 @@ namespace
     {
         date_picker picker;
         picker.set_date(date_time(1950, 1, 1));
-        ASSERT_TRUE(picker.date().has_value());
-        EXPECT_EQ(*picker.date(), date_time(1950, 1, 1));
+        EXPECT_EQ(picker.date(), std::optional<date_time>(date_time(1950, 1, 1)));
 
         bool date_changed = false;
         bool minimum_changed = false;
@@ -159,12 +153,12 @@ namespace
             std::optional<date_time> initial_value;
             std::optional<date_time> final_value;
         };
-        const case_t cases[] = {
-            {date_time(2006, 12, 20), date_time(2011, 11, 30)},
-            {date_time(1900, 1, 1), date_time(1999, 1, 15)},    // minimum date
-            {date_time(2006, 12, 20), date_time(2100, 12, 31)}, // maximum date
-            {date_time(2006, 12, 20), std::nullopt},
-            {std::nullopt, date_time(2006, 12, 20)},
+        const std::array cases{
+            case_t{.initial_value = date_time(2006, 12, 20), .final_value = date_time(2011, 11, 30)},
+            case_t{.initial_value = date_time(1900, 1, 1), .final_value = date_time(1999, 1, 15)},    // minimum
+            case_t{.initial_value = date_time(2006, 12, 20), .final_value = date_time(2100, 12, 31)}, // maximum
+            case_t{.initial_value = date_time(2006, 12, 20), .final_value = std::nullopt},
+            case_t{.initial_value = std::nullopt, .final_value = date_time(2006, 12, 20)},
         };
         for (const auto& test_case : cases)
         {
@@ -194,14 +188,21 @@ namespace
             std::optional<date_time> final_value;
             bool should_trigger;
         };
-        const case_t cases[] = {
-            {date_time(2006, 12, 20), date_time(2011, 11, 30), true},
-            {date_time(1900, 1, 1), date_time(1999, 1, 15), true},
-            {date_time(2006, 12, 20), date_time(2100, 12, 31), true},
-            {date_time(2006, 12, 20), std::nullopt, true},
-            {std::nullopt, date_time(2006, 12, 20), true},
-            {date_time(2006, 12, 20), date_time(2006, 12, 20), false},
-            {std::nullopt, std::nullopt, false},
+        const std::array cases{
+            case_t{.initial_value = date_time(2006, 12, 20),
+                   .final_value = date_time(2011, 11, 30),
+                   .should_trigger = true},
+            case_t{
+                .initial_value = date_time(1900, 1, 1), .final_value = date_time(1999, 1, 15), .should_trigger = true},
+            case_t{.initial_value = date_time(2006, 12, 20),
+                   .final_value = date_time(2100, 12, 31),
+                   .should_trigger = true},
+            case_t{.initial_value = date_time(2006, 12, 20), .final_value = std::nullopt, .should_trigger = true},
+            case_t{.initial_value = std::nullopt, .final_value = date_time(2006, 12, 20), .should_trigger = true},
+            case_t{.initial_value = date_time(2006, 12, 20),
+                   .final_value = date_time(2006, 12, 20),
+                   .should_trigger = false},
+            case_t{.initial_value = std::nullopt, .final_value = std::nullopt, .should_trigger = false},
         };
         for (const auto& test_case : cases)
         {

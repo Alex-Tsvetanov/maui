@@ -5,6 +5,7 @@
 // on_done commit, which drops seconds exactly like TimePickerHandler.SetVirtualViewTime).
 #include "maui/controls/time_picker.hpp"
 
+#include <array>
 #include <memory>
 #include <optional>
 #include <string>
@@ -18,7 +19,6 @@
 namespace
 {
     using maui::controls::time_picker;
-    using maui::core::date_time;
     using maui::core::i_element_handler;
     using maui::core::time_picker_handler;
     using maui::core::time_span;
@@ -79,10 +79,12 @@ namespace
             std::optional<time_span> initial_value;
             std::optional<time_span> final_value;
         };
-        const case_t cases[] = {
-            {time_span(), time_span(9, 0, 0)},           {time_span(9, 0, 0), time_span(17, 30, 0)},
-            {time_span(23, 59, 59), time_span(0, 0, 0)}, {time_span(23, 59, 59), std::nullopt},
-            {std::nullopt, time_span(23, 59, 59)},
+        const std::array cases{
+            case_t{.initial_value = time_span(), .final_value = time_span(9, 0, 0)},
+            case_t{.initial_value = time_span(9, 0, 0), .final_value = time_span(17, 30, 0)},
+            case_t{.initial_value = time_span(23, 59, 59), .final_value = time_span(0, 0, 0)},
+            case_t{.initial_value = time_span(23, 59, 59), .final_value = std::nullopt},
+            case_t{.initial_value = std::nullopt, .final_value = time_span(23, 59, 59)},
         };
         for (const auto& test_case : cases)
         {

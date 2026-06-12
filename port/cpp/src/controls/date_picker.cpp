@@ -11,7 +11,9 @@
 #include "maui/core/binding_mode.hpp"
 #include "maui/core/date_picker_handler.hpp"
 #include "maui/core/date_time.hpp"
+#include "maui/core/font.hpp"
 #include "maui/core/handler_registry.hpp"
+#include "maui/graphics/color.hpp"
 
 namespace maui::controls
 {

@@ -10,7 +10,9 @@
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/binding_mode.hpp"
 #include "maui/core/date_time.hpp"
+#include "maui/core/font.hpp"
 #include "maui/core/handler_registry.hpp"
+#include "maui/graphics/color.hpp"
 #include "maui/core/time_picker_handler.hpp"
 
 namespace maui::controls

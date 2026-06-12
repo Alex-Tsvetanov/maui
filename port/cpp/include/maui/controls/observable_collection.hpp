@@ -13,6 +13,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -96,8 +97,14 @@ namespace maui::controls
             remove_range(index, 1);
         }
         // The ObservableRangeCollection.RemoveRange shape: ONE remove notification for the range.
+        // Out-of-range arguments throw (C#'s List.RemoveAt ArgumentOutOfRangeException analog) —
+        // never UB-erase past the end.
         void remove_range(std::size_t index, std::size_t count)
         {
+            if (index > items_.size() || count > items_.size() - index)
+            {
+                throw std::out_of_range("observable_collection::remove_range: range exceeds the collection");
+            }
             const auto first = items_.begin() + static_cast<std::ptrdiff_t>(index);
             const auto last = first + static_cast<std::ptrdiff_t>(count);
             collection_changed_args<T> args;

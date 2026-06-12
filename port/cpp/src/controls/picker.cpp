@@ -11,11 +11,15 @@
 #include <string>
 #include <utility>
 
+#include "maui/controls/observable_collection.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/binding_mode.hpp"
+#include "maui/core/font.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/picker_handler.hpp"
 #include "maui/core/setter_specificity.hpp"
+#include "maui/core/text_alignment.hpp"
+#include "maui/graphics/color.hpp"
 
 namespace maui::controls
 {
@@ -186,12 +190,12 @@ namespace maui::controls
         {
             return {};
         }
-        if (index < static_cast<int>(items_.count()))
+        if (std::cmp_less(index, items_.count()))
         {
             return items_.at(static_cast<std::size_t>(index));
         }
         const auto& source = items_source_.get();
-        if (source && index < static_cast<int>(source->count()))
+        if (source && std::cmp_less(index, source->count()))
         {
             return source->at(static_cast<std::size_t>(index));
         }
@@ -237,7 +241,7 @@ namespace maui::controls
         if (source)
         {
             std::optional<std::string> item;
-            if (index < static_cast<int>(source->count()))
+            if (std::cmp_less(index, source->count()))
             {
                 item = source->at(static_cast<std::size_t>(index));
             }
@@ -245,7 +249,7 @@ namespace maui::controls
             return;
         }
         std::optional<std::string> item;
-        if (index < static_cast<int>(items_.count()))
+        if (std::cmp_less(index, items_.count()))
         {
             item = items_.at(static_cast<std::size_t>(index));
         }
@@ -294,7 +298,7 @@ namespace maui::controls
             items_.insert(index++, item);
         }
         const int selected = get_selected_index();
-        if (static_cast<int>(insert_index) <= selected)
+        if (std::cmp_less_equal(insert_index, selected))
         {
             clamp_selected_index(selected);
         }
@@ -321,7 +325,7 @@ namespace maui::controls
             items_.remove_at(index--);
         }
         const int selected = get_selected_index();
-        if (static_cast<int>(remove_start) <= selected)
+        if (std::cmp_less_equal(remove_start, selected))
         {
             clamp_selected_index(selected);
         }
