@@ -20,7 +20,6 @@
 
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
-#include "maui/core/i_scroll_view.hpp"
 #include "maui/core/scroll_bar_visibility.hpp"
 #include "maui/core/scroll_orientation.hpp"
 #include "maui/core/scroll_to_request.hpp"

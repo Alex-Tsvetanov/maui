@@ -11,6 +11,7 @@
 #include <optional>
 
 #include <gtest/gtest.h>
+#include <string_view>
 
 #include "maui/essentials/app_info.hpp"
 #include "maui/essentials/feature_not_supported.hpp"

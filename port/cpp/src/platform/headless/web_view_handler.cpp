@@ -8,10 +8,13 @@
 
 #include "maui/core/web_view_handler.hpp"
 
+#include <any>
 #include <cmath>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
+#include <vector>
 
 #include "maui/core/evaluate_java_script_request.hpp"
 #include "maui/core/i_web_view.hpp"

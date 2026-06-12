@@ -214,7 +214,7 @@ namespace maui::controls
         // descriptors' property_changed callbacks (radio_button.cpp), exactly like C#'s static delegates.
         void on_is_checked_changed(bool is_checked);
         void on_value_changed();
-        void on_group_name_changed(const std::string& old_group_name, const std::string& new_group_name);
+        void on_group_name_changed(const std::string& old_group_name, const std::string& new_group_name) const;
         friend struct radio_button_descriptor_access;
 
         maui::core::property<bool> is_checked_{*this, is_checked_property()};

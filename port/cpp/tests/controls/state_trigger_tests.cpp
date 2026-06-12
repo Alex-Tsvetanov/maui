@@ -18,6 +18,7 @@
 #include "maui/controls/visual_state_manager.hpp"
 #include "maui/controls/window.hpp"
 #include "maui/core/event.hpp"
+#include "maui/core/move_only_function.hpp"
 #include "maui/essentials/device_display.hpp"
 #include "maui/essentials/device_info.hpp"
 #include <gtest/gtest.h>

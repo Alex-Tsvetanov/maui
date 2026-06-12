@@ -89,8 +89,9 @@ namespace
 
         fake->simulate_activated(app_action("TEST1", "Test 1"));
         ASSERT_TRUE(received.has_value());
-        EXPECT_EQ(received->id(), "TEST1");
-        EXPECT_EQ(received->subtitle(), std::nullopt);
+        const app_action action = received.value_or(app_action("", ""));
+        EXPECT_EQ(action.id(), "TEST1");
+        EXPECT_EQ(action.subtitle(), std::nullopt);
 
         EXPECT_TRUE(app_actions::remove_on_app_action(token));
         EXPECT_FALSE(app_actions::remove_on_app_action(token));

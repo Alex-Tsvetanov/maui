@@ -9,15 +9,16 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "maui/controls/file_image_source.hpp"
 #include "maui/controls/setter.hpp"
+#include "maui/controls/view.hpp"
 #include "maui/controls/visual_state_manager.hpp"
 #include "maui/core/aspect.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
-#include "maui/core/i_image_button.hpp"
 #include "maui/core/image_button_handler.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
@@ -29,7 +30,6 @@ namespace
     using maui::controls::image_source;
     using maui::core::aspect;
     using maui::core::i_element_handler;
-    using maui::core::i_image_button;
     using maui::core::image_button_handler;
 
     // ---- the control in isolation ----

@@ -32,6 +32,8 @@ namespace
         bool detached = false;
         bindable_object* associated_object = nullptr;
 
+    protected:
+        // Same visibility as the base (the hooks are protected — only the attach machinery calls them).
         void on_attached_to(bindable_object& bindable) override
         {
             typed_behavior<T>::on_attached_to(bindable);

@@ -11,6 +11,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -162,12 +163,15 @@ namespace
     {
         web_view control;
         std::shared_ptr<web_view_handler> handler = std::make_shared<web_view_handler>();
-        maui::core::web_view_platform* platform = nullptr;
+        // ORDER: the platform view exists only after set_handler connects the pair, so the
+        // initializer routes through connect() (a plain member-init would read it too early).
+        maui::core::web_view_platform* platform = connect(control, handler);
 
-        seam()
+        [[nodiscard]] static maui::core::web_view_platform* connect(web_view& view,
+                                                                    const std::shared_ptr<web_view_handler>& target)
         {
-            control.set_handler(handler);
-            platform = handler->typed_platform_view();
+            view.set_handler(target);
+            return target->typed_platform_view();
         }
     };
 
@@ -207,9 +211,11 @@ namespace
     {
         seam s;
         std::vector<std::string> order;
-        web_navigation_event navigating_kind{};
-        web_navigation_event navigated_kind{};
-        web_navigation_result navigated_result{};
+        // Valid-but-wrong initializers (the enums have no zero enumerator); the assertions
+        // below expect new_page/success, so a misfire is still caught.
+        web_navigation_event navigating_kind = web_navigation_event::back;
+        web_navigation_event navigated_kind = web_navigation_event::back;
+        web_navigation_result navigated_result = web_navigation_result::cancel;
         std::string navigated_url;
         s.control.navigating.connect([&](const web_navigating_event_args& args) {
             order.emplace_back("navigating");
@@ -432,7 +438,7 @@ namespace
 
         ASSERT_TRUE(completed);
         ASSERT_TRUE(result.has_value());
-        EXPECT_EQ(*result, "2");
+        EXPECT_EQ(result.value_or(""), "2");
         // The platform received the ESCAPED + WRAPPED script (the EvaluateJavaScriptAsync transform).
         ASSERT_EQ(s.platform->eval_scripts.size(), 1U);
         EXPECT_EQ(s.platform->eval_scripts[0], "try{JSON.stringify(eval('1+1'))}catch(e){'null'};");
@@ -453,7 +459,7 @@ namespace
         std::optional<std::string> result;
         s.control.eval_js("test();", [&](const std::optional<std::string>& value) { result = value; });
         ASSERT_TRUE(result.has_value());
-        EXPECT_EQ(*result, "Test");
+        EXPECT_EQ(result.value_or(""), "Test");
     }
 
     TEST(web_view_handler_seam, eval_js_escapes_the_script_for_the_eval_literal)
@@ -512,7 +518,7 @@ namespace
 
     TEST(web_view_handler_seam, desired_size_falls_back_to_minimum_under_unbounded_constraints)
     {
-        seam s;
+        seam const s;
         const auto size = s.handler->get_desired_size(std::numeric_limits<double>::infinity(),
                                                       std::numeric_limits<double>::infinity());
         EXPECT_DOUBLE_EQ(size.width, web_view_handler::minimum_size);

@@ -9,6 +9,7 @@
 
 #include "maui/controls/element.hpp"
 #include "maui/controls/radio_button_group.hpp"
+#include "maui/controls/view.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/binding_mode.hpp"
 #include "maui/core/font.hpp"
@@ -135,7 +136,7 @@ namespace maui::controls
 
     // RadioButton.OnGroupNamePropertyChanged: moving between two NAMED groups clears the old group's
     // selection (via the still-associated controller).
-    void radio_button::on_group_name_changed(const std::string& old_group_name, const std::string& new_group_name)
+    void radio_button::on_group_name_changed(const std::string& old_group_name, const std::string& new_group_name) const
     {
         if (old_group_name.empty() || new_group_name.empty() || new_group_name == old_group_name)
         {

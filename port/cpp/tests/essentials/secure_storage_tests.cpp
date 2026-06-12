@@ -4,12 +4,15 @@
 // configured fake runs the DeviceTests SecureStorage_Tests behavior suite (saves/loads, saves
 // the same key twice, missing key reads null, remove, remove-all).
 
+#include <array>
 #include <memory>
 #include <optional>
 #include <stdexcept>
 #include <string>
 
 #include <gtest/gtest.h>
+#include <string_view>
+#include <utility>
 
 #include "maui/essentials/feature_not_supported.hpp"
 #include "maui/essentials/secure_storage.hpp"
@@ -78,11 +81,11 @@ namespace
     TEST_F(secure_storage_test, saves_and_loads)
     {
         install_configured();
-        const std::pair<std::string_view, std::string_view> cases[] = {
+        const std::array<std::pair<std::string_view, std::string_view>, 3> cases = {{
             {"test.txt", "data"},
             {"noextension", "data2"},
             {"funny*&$%@!._/\\chars", "data3"},
-        };
+        }};
         for (const auto& [key, data] : cases)
         {
             secure_storage::set_async(key, data);

@@ -4,15 +4,22 @@
 
 #include "maui/controls/web_view.hpp"
 
+#include <cstddef>
 #include <memory>
 #include <optional>
 #include <string>
 #include <utility>
 
 #include "maui/controls/url_web_view_source.hpp"
+#include "maui/controls/view.hpp"
+#include "maui/controls/web_navigation_event_args.hpp"
+#include "maui/controls/web_view_source.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/evaluate_java_script_request.hpp"
+#include "maui/core/event.hpp"
 #include "maui/core/handler_registry.hpp"
+#include "maui/core/web_navigation_event.hpp"
+#include "maui/core/web_navigation_result.hpp"
 #include "maui/core/web_view_handler.hpp"
 #include "maui/core/web_view_helper.hpp"
 

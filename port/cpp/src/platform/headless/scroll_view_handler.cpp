@@ -13,6 +13,7 @@
 #include <memory>
 
 #include "maui/core/i_scroll_view.hpp"
+#include "maui/core/scroll_to_request.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 

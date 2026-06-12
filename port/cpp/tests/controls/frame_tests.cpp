@@ -13,6 +13,7 @@
 #include <memory>
 #include <stdexcept>
 
+#include "maui/controls/setter.hpp"
 #include "maui/controls/style.hpp"
 #include "maui/core/border_handler.hpp"
 #include "maui/core/handler_registry.hpp"
@@ -106,7 +107,7 @@ namespace
 
         view.set_border_color(color(1.0F, 0.0F, 0.0F));
         ASSERT_TRUE(view.border_color().has_value());
-        EXPECT_EQ(*view.border_color(), color(1.0F, 0.0F, 0.0F));
+        EXPECT_EQ(view.border_color().value_or(color{}), color(1.0F, 0.0F, 0.0F));
         ASSERT_NE(view.stroke(), nullptr);
         EXPECT_EQ(view.stroke()->background_color(), color(1.0F, 0.0F, 0.0F));
         EXPECT_EQ(view.stroke_thickness(), 1.0); // IBorderElement.BorderWidth => 1

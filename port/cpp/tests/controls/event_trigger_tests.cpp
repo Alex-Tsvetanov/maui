@@ -12,6 +12,7 @@
 
 #include "maui/controls/button.hpp"
 #include "maui/controls/element.hpp"
+#include "maui/controls/trigger.hpp"
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/event.hpp"
 #include <gtest/gtest.h>
@@ -52,11 +53,11 @@ namespace
             });
         }
 
-        void fire_event()
+        void fire_event() const
         {
             mock_event.raise();
         }
-        void fire_event2()
+        void fire_event2() const
         {
             mock_event2.raise();
         }

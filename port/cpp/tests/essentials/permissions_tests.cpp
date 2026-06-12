@@ -44,7 +44,7 @@ namespace
             std::optional<permission_status> result;
             permissions::check_status_async<TPermission>([&result](permission_status value) { result = value; });
             EXPECT_TRUE(result.has_value());
-            return *result;
+            return result.value_or(permission_status::unknown);
         }
 
         template <class TPermission> static permission_status request()
@@ -52,7 +52,7 @@ namespace
             std::optional<permission_status> result;
             permissions::request_async<TPermission>([&result](permission_status value) { result = value; });
             EXPECT_TRUE(result.has_value());
-            return *result;
+            return result.value_or(permission_status::unknown);
         }
     };
 

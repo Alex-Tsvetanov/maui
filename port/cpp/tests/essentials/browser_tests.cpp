@@ -64,11 +64,12 @@ namespace
         EXPECT_TRUE(result);
         EXPECT_EQ(fake->last_uri(), "http://xamarin.com");
         ASSERT_TRUE(fake->last_options().has_value());
-        EXPECT_EQ(fake->last_options()->launch_mode, browser_launch_mode::system_preferred);
-        EXPECT_EQ(fake->last_options()->title_mode, browser_title_mode::default_);
-        EXPECT_EQ(fake->last_options()->flags, browser_launch_flags::none);
-        EXPECT_FALSE(fake->last_options()->preferred_toolbar_color.has_value());
-        EXPECT_FALSE(fake->last_options()->preferred_control_color.has_value());
+        const browser_launch_options opts = fake->last_options().value_or(browser_launch_options{});
+        EXPECT_EQ(opts.launch_mode, browser_launch_mode::system_preferred);
+        EXPECT_EQ(opts.title_mode, browser_title_mode::default_);
+        EXPECT_EQ(opts.flags, 0U); // no combined browser_launch_flags bits
+        EXPECT_FALSE(opts.preferred_toolbar_color.has_value());
+        EXPECT_FALSE(opts.preferred_control_color.has_value());
     }
 
     // The launch-mode overload wraps the mode into options (BrowserExtensions.OpenAsync).
@@ -77,7 +78,7 @@ namespace
         auto fake = install_configured();
         browser::open_async("https://example.com", browser_launch_mode::external, [](bool) {});
         ASSERT_TRUE(fake->last_options().has_value());
-        EXPECT_EQ(fake->last_options()->launch_mode, browser_launch_mode::external);
+        EXPECT_EQ(fake->last_options().value_or(browser_launch_options{}).launch_mode, browser_launch_mode::external);
     }
 
     // The options overload passes everything through; has_flag mirrors BrowserLaunchOptions.HasFlag.
@@ -95,10 +96,11 @@ namespace
         EXPECT_FALSE(result); // the staged open answer
 
         ASSERT_TRUE(fake->last_options().has_value());
-        EXPECT_TRUE(fake->last_options()->has_flag(browser_launch_flags::present_as_page_sheet));
-        EXPECT_TRUE(fake->last_options()->has_flag(browser_launch_flags::launch_adjacent));
-        EXPECT_FALSE(fake->last_options()->has_flag(browser_launch_flags::present_as_form_sheet));
-        EXPECT_EQ(fake->last_options()->title_mode, browser_title_mode::show);
-        EXPECT_TRUE(fake->last_options()->preferred_toolbar_color.has_value());
+        const browser_launch_options opts = fake->last_options().value_or(browser_launch_options{});
+        EXPECT_TRUE(opts.has_flag(browser_launch_flags::present_as_page_sheet));
+        EXPECT_TRUE(opts.has_flag(browser_launch_flags::launch_adjacent));
+        EXPECT_FALSE(opts.has_flag(browser_launch_flags::present_as_form_sheet));
+        EXPECT_EQ(opts.title_mode, browser_title_mode::show);
+        EXPECT_TRUE(opts.preferred_toolbar_color.has_value());
     }
 } // namespace

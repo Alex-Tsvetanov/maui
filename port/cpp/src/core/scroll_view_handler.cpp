@@ -12,6 +12,7 @@
 #include "maui/core/scroll_to_request.hpp"
 #include "maui/core/view_handler.hpp"
 #include "maui/core/view_mapper.hpp"
+#include "maui/graphics/size.hpp"
 
 namespace maui::core
 {

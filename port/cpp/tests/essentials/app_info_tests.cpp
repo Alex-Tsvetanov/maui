@@ -10,6 +10,7 @@
 
 #include "maui/core/app_theme.hpp"
 #include "maui/essentials/app_info.hpp"
+#include "maui/essentials/device_info.hpp"
 #include "maui/essentials/feature_not_supported.hpp"
 
 #include "src/platform/headless/essentials_appmodel_fakes.hpp"

@@ -4,15 +4,17 @@
 // directory (valid cache/app-data paths, package files load by relative path - both separator
 // styles - and a missing package file throws).
 
-#include <cstdio>
 #include <filesystem>
 #include <fstream>
+#include <ios>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 
 #include <gtest/gtest.h>
+#include <string_view>
+#include <utility>
 
 #include "maui/essentials/feature_not_supported.hpp"
 #include "maui/essentials/file_system.hpp"

@@ -7,6 +7,7 @@
 #include <memory>
 #include <stdexcept>
 
+#include "maui/controls/border.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/border_handler.hpp"
 #include "maui/core/handler_registry.hpp"

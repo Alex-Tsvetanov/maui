@@ -4,6 +4,7 @@
 
 #include "maui/core/web_view_helper.hpp"
 
+#include <cstddef>
 #include <string>
 #include <string_view>
 

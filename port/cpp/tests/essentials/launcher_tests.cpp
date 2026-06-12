@@ -8,6 +8,7 @@
 #include <stdexcept>
 
 #include <gtest/gtest.h>
+#include <string_view>
 
 #include "maui/essentials/feature_not_supported.hpp"
 #include "maui/essentials/launcher.hpp"

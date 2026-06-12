@@ -57,13 +57,18 @@ namespace maui::application_model
         present_as_form_sheet = 4, // iOS only
     };
 
-    [[nodiscard]] constexpr browser_launch_flags operator|(browser_launch_flags a, browser_launch_flags b)
+    // Combined [Flags] values live as the underlying bits, not the enum (an enum object may only
+    // hold enumerator values — the M3b grid-flags precedent): 'page_sheet | adjacent' == 3 is not a
+    // browser_launch_flags enumerator.
+    using browser_launch_flag_bits = std::uint32_t;
+
+    [[nodiscard]] constexpr browser_launch_flag_bits operator|(browser_launch_flags a, browser_launch_flags b)
     {
-        return static_cast<browser_launch_flags>(static_cast<std::uint32_t>(a) | static_cast<std::uint32_t>(b));
+        return static_cast<browser_launch_flag_bits>(a) | static_cast<browser_launch_flag_bits>(b);
     }
-    [[nodiscard]] constexpr browser_launch_flags operator&(browser_launch_flags a, browser_launch_flags b)
+    [[nodiscard]] constexpr browser_launch_flag_bits operator|(browser_launch_flag_bits a, browser_launch_flags b)
     {
-        return static_cast<browser_launch_flags>(static_cast<std::uint32_t>(a) & static_cast<std::uint32_t>(b));
+        return a | static_cast<browser_launch_flag_bits>(b);
     }
 
     // Optional settings to open the browser with (BrowserLaunchOptions.shared.cs; the nullable
@@ -74,12 +79,12 @@ namespace maui::application_model
         std::optional<maui::graphics::color> preferred_control_color; // iOS only
         browser_launch_mode launch_mode = browser_launch_mode::system_preferred;
         browser_title_mode title_mode = browser_title_mode::default_;
-        browser_launch_flags flags = browser_launch_flags::none;
+        browser_launch_flag_bits flags = 0; // combined browser_launch_flags bits
 
         // BrowserLaunchOptions.HasFlag.
         [[nodiscard]] bool has_flag(browser_launch_flags flag) const
         {
-            return (flags & flag) == flag;
+            return (flags & static_cast<browser_launch_flag_bits>(flag)) != 0;
         }
     };
 

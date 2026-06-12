@@ -3,9 +3,10 @@
 // interactions (source swap buttons, navigated → status label, eval_js → result label) without a
 // hosting main. The handler-dependent paths (back/forward/reload, the real eval round trip) are covered
 // by the web_view seam suites per backend.
+#include "maui/core/web_navigation_event.hpp"
+#include "maui/core/web_navigation_result.hpp"
 #include "src/samples/pages/web_view_page.hpp"
 
-#include <memory>
 #include <string>
 
 #include "maui/controls/html_web_view_source.hpp"

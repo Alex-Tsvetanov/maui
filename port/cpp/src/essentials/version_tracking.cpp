@@ -5,8 +5,11 @@
 // "{PackageName}.microsoft.maui.essentials.versiontracking" container.
 
 #include "maui/essentials/version_tracking.hpp"
+#include "maui/essentials/app_info.hpp"
+#include "maui/essentials/preferences.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <memory>
 #include <optional>
 #include <string>

@@ -12,7 +12,6 @@
 
 #include "maui/core/border_handler.hpp"
 #include "maui/core/handler_registry.hpp"
-#include "maui/core/i_border_view.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
@@ -30,7 +29,6 @@ namespace
 {
     using maui::controls::border;
     using maui::core::border_handler;
-    using maui::core::i_border_view;
     using maui::core::i_element_handler;
     using maui::core::thickness;
     using maui::graphics::color;

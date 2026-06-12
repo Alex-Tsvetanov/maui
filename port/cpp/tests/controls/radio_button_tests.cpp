@@ -9,6 +9,7 @@
 #include <any>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "maui/controls/content_page.hpp"
@@ -16,6 +17,7 @@
 #include "maui/controls/radio_button_group.hpp"
 #include "maui/controls/setter.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/controls/view.hpp"
 #include "maui/controls/visual_state_manager.hpp"
 #include "maui/core/boxed_value.hpp"
 #include "maui/core/handler_registry.hpp"
