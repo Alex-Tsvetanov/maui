@@ -1,8 +1,8 @@
 // The W1-17 app-model + storage suite against the REAL iOS partials, run ON the simulator (via
 // tools/ios-sim-run.sh): true NSUserDefaults preferences (uniquely-keyed entries, removed in
-// teardown), the simulator KEYCHAIN secure storage (SKIPPED when the spawned process lacks the
-// keychain entitlement — see the probe in the test; the macOS suite owns the real round trip),
-// NSSearchPath file-system directories, the GCD main-thread
+// teardown), the simulator KEYCHAIN secure storage (the link-embedded
+// tools/ios-sim-entitlements.plist entitles SecItem* on iOS 26.5+; the full DeviceTests
+// round-trip runs), NSSearchPath file-system directories, the GCD main-thread
 // facade, and the documented NO-UIAPPLICATION surface: the spawned gtest process has no
 // UIApplication instance, so launcher queries/open complete false, the browser has no view
 // controller to present from (SystemPreferred -> false) and External routes to the false-
@@ -128,11 +128,10 @@ namespace
     // Remove_All_Keys, on the REAL simulator keychain.
     TEST(appmodel_ios_secure_storage, keychain_round_trip_and_lifecycle)
     {
-        // LANE LIMIT: bare binaries spawned via `simctl spawn` (tools/ios-sim-run.sh) carry no
-        // keychain-access entitlement, so SecItemAdd can fail with errSecMissingEntitlement
-        // (-34018) even though the same code works inside an app bundle. The macOS suite covers
-        // the real keychain round trip (the login keychain needs no entitlement); probe once and
-        // SKIP when this lane cannot write — the surface up to the OS call is still exercised.
+        // The link-embedded tools/ios-sim-entitlements.plist entitles SecItem* for this spawned
+        // binary (iOS 26.5+ enforces it: errSecMissingEntitlement -34018 otherwise). Keep a
+        // defensive probe-and-skip for runtimes where the embedding stops being honored — the
+        // macOS suite independently covers the real keychain round trip.
         try
         {
             secure_storage::set_async("ENTITLEMENT_PROBE", "probe");

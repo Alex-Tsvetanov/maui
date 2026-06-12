@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Entitlements EMBEDDED at link time (the __TEXT,__entitlements section — how Xcode entitles
+     SIMULATOR builds; a signature-carried entitlement on an ad-hoc binary is rejected by
+     launchd_sim with "Security policy issue"). securityd on the iOS 26.5+ simulator runtime
+     enforces an application-identifier + keychain-access-group for SecItem* (errSecMissingEntitlement
+     -34018 without it; older runtimes allowed unentitled keychain access, which is what
+     SecureStorage.ios.tvos.watchos.macos.cs and the W1-17 port relied on). The identifiers are
+     arbitrary on the simulator — no provisioning profile is checked. -->
+<plist version="1.0">
+<dict>
+  <key>application-identifier</key>
+  <string>MAUIPORT.maui.port.tests</string>
+  <key>keychain-access-groups</key>
+  <array>
+    <string>MAUIPORT.maui.port.tests</string>
+  </array>
+</dict>
+</plist>

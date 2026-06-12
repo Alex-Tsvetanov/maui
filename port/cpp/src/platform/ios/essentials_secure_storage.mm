@@ -1,6 +1,8 @@
 // secure_storage - iOS (UIKit) platform partial: the shared Keychain implementation
-// (essentials_keychain.hpp, the SecureStorage.ios.tvos.watchos.macos.cs twin; the simulator's
-// keychain works without entitlements). Compiled as Objective-C++ with ARC for the ios backend.
+// (essentials_keychain.hpp, the SecureStorage.ios.tvos.watchos.macos.cs twin). The iOS 26.5+
+// simulator runtime enforces keychain entitlements even for spawned test processes — the ios test
+// executable embeds them at link time (tools/ios-sim-entitlements.plist documents the recipe).
+// Compiled as Objective-C++ with ARC for the ios backend.
 
 #include <memory>
 

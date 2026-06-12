@@ -1159,6 +1159,11 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/essentials/essentials_ios_tests.mm
     tests/essentials/essentials_appmodel_ios_tests.mm
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+  # The iOS 26.5+ simulator runtime enforces keychain entitlements for SecItem* (-34018 without
+  # them); embed them the way Xcode does for simulator builds — a __TEXT,__entitlements section
+  # (see tools/ios-sim-entitlements.plist for the why; signature-carried entitlements are rejected).
+  target_link_options(maui_essentials_tests PRIVATE
+    "LINKER:-sectcreate,__TEXT,__entitlements,${CMAKE_CURRENT_SOURCE_DIR}/tools/ios-sim-entitlements.plist")
 else()
   add_executable(maui_essentials_tests
     tests/essentials/types_tests.cpp
