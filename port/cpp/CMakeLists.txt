@@ -224,6 +224,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/entry_handler.mm
     src/platform/apple/switch_handler.mm
     src/platform/apple/check_box_handler.mm
+    src/platform/apple/radio_button_handler.mm
     src/platform/apple/slider_handler.mm
     src/platform/apple/stepper_handler.mm
     src/platform/apple/editor_handler.mm
@@ -262,6 +263,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     src/platform/ios/entry_handler.mm
     src/platform/ios/switch_handler.mm
     src/platform/ios/check_box_handler.mm
+    src/platform/ios/radio_button_handler.mm
     src/platform/ios/slider_handler.mm
     src/platform/ios/stepper_handler.mm
     src/platform/ios/editor_handler.mm
@@ -294,6 +296,7 @@ else()
     src/platform/headless/entry_handler.cpp
     src/platform/headless/switch_handler.cpp
     src/platform/headless/check_box_handler.cpp
+    src/platform/headless/radio_button_handler.cpp
     src/platform/headless/slider_handler.cpp
     src/platform/headless/stepper_handler.cpp
     src/platform/headless/editor_handler.cpp
@@ -332,6 +335,7 @@ add_library(maui_core STATIC
   src/core/entry_handler.cpp
   src/core/switch_handler.cpp
   src/core/check_box_handler.cpp
+  src/core/radio_button_handler.cpp
   src/core/slider_handler.cpp
   src/core/stepper_handler.cpp
   src/core/editor_handler.cpp
@@ -540,6 +544,8 @@ add_library(maui_controls STATIC
   src/controls/entry.cpp
   src/controls/toggle_switch.cpp
   src/controls/check_box.cpp
+  src/controls/radio_button.cpp
+  src/controls/radio_button_group.cpp
   src/controls/slider.cpp
   src/controls/stepper.cpp
   src/controls/editor.cpp
@@ -600,6 +606,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/entry_apple_tests.mm
     tests/controls/toggle_switch_apple_tests.mm
     tests/controls/check_box_apple_tests.mm
+    tests/controls/radio_button_apple_tests.mm
     tests/controls/slider_apple_tests.mm
     tests/controls/stepper_apple_tests.mm
     tests/controls/editor_apple_tests.mm
@@ -618,6 +625,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/window_handler_tests.cpp # the portable seam mirrors (real NSWindow behind them here)
     tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
     tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
+    tests/controls/input_controls_page_tests.cpp # the W1-05 demo page wiring (backend-agnostic)
     tests/controls/style_tests.cpp   # backend-agnostic; compiled as C++ within the apple test exe
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
@@ -649,6 +657,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/entry_apple_tests.mm
     tests/controls/toggle_switch_apple_tests.mm
     tests/controls/check_box_apple_tests.mm
+    tests/controls/radio_button_apple_tests.mm
     tests/controls/slider_apple_tests.mm
     tests/controls/stepper_apple_tests.mm
     tests/controls/editor_apple_tests.mm
@@ -683,6 +692,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/entry_ios_tests.mm
     tests/controls/toggle_switch_ios_tests.mm
     tests/controls/check_box_ios_tests.mm
+    tests/controls/radio_button_ios_tests.mm
     tests/controls/slider_ios_tests.mm
     tests/controls/stepper_ios_tests.mm
     tests/controls/editor_ios_tests.mm
@@ -701,6 +711,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
   add_executable(maui_controls_tests
     ${MAUI_IOS_TEST_MM_SOURCES}
     tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
+    tests/controls/input_controls_page_tests.cpp # the W1-05 demo page wiring (backend-agnostic)
     tests/controls/style_tests.cpp
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
@@ -730,6 +741,7 @@ else()
     tests/controls/entry_tests.cpp
     tests/controls/toggle_switch_tests.cpp
     tests/controls/check_box_tests.cpp
+    tests/controls/radio_button_tests.cpp
     tests/controls/slider_tests.cpp
     tests/controls/stepper_tests.cpp
     tests/controls/editor_tests.cpp
@@ -737,6 +749,7 @@ else()
     tests/controls/progress_bar_tests.cpp
     tests/controls/activity_indicator_tests.cpp
     tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
+    tests/controls/input_controls_page_tests.cpp # the W1-05 demo page wiring (backend-agnostic)
     tests/controls/image_tests.cpp
     tests/controls/image_button_tests.cpp
     tests/controls/layout_tests.cpp

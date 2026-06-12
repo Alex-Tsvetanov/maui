@@ -247,4 +247,28 @@ namespace maui::core
         }
         return std::nullopt;
     }
+
+    // Equality over the boxed representation — the port's `object.Equals(a, b)` for the values MAUI
+    // compares through `object` slots (RadioButton.Value vs RadioButtonGroup.SelectedValue). Semantics:
+    //   - both empty (the engine's null) -> equal; one empty -> unequal;
+    //   - DIFFERENT held types -> unequal (C# Equals(1, 1L) is false — no cross-type lattice here);
+    //   - same-type values within the render lattice (bool/char/arithmetic/std::string, incl. the
+    //     shared_ptr<string> box) -> compare by the invariant render (equal values render identically);
+    //   - anything outside the lattice -> unequal (C# falls back to reference equality, which the
+    //     type-erased box cannot probe generically — documented deviation; box such values by
+    //     shared_ptr<string>/string key instead).
+    [[nodiscard]] inline bool boxed_equals(const std::any& left, const std::any& right)
+    {
+        if (!left.has_value() || !right.has_value())
+        {
+            return left.has_value() == right.has_value();
+        }
+        if (left.type() != right.type())
+        {
+            return false;
+        }
+        const std::optional<std::string> left_text = boxed_to_string(left);
+        const std::optional<std::string> right_text = boxed_to_string(right);
+        return left_text.has_value() && right_text.has_value() && *left_text == *right_text;
+    }
 } // namespace maui::core
