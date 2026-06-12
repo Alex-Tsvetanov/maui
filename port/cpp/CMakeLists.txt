@@ -707,10 +707,12 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/grid_ios_tests.mm
     tests/controls/content_page_ios_tests.mm
     tests/controls/navigation_page_ios_tests.mm
+    tests/controls/web_view_ios_tests.mm # (W1-08) the real WKWebView seam, run-loop pumped on-simulator
     tests/controls/window_ios_tests.mm)
   add_executable(maui_controls_tests
     ${MAUI_IOS_TEST_MM_SOURCES}
     tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
+    tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
     tests/controls/input_controls_page_tests.cpp # the W1-05 demo page wiring (backend-agnostic)
     tests/controls/style_tests.cpp
     tests/controls/trigger_tests.cpp
