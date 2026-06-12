@@ -303,6 +303,10 @@ namespace maui::core
             platform->bar_background_color = background;
             platform->bar_text_color = text_color;
             platform->hosted_title_view = title_view;
+            // chrome (W1-11): mirror the page-surfaced toolbar items. AppKit keeps the MIRROR only — the
+            // items materialize on the WINDOW's NSToolbar (window_handler.mm), not in this custom bar;
+            // the iOS twin builds real bar buttons from the same aggregate.
+            platform->toolbar_items = navigation->navigation_toolbar_items();
         }
     }
 

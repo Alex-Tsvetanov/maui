@@ -244,6 +244,9 @@ if(MAUI_BACKEND STREQUAL "apple")
     # (W1-10 tabbed + flyout pages) NSTabViewController / NSSplitViewController hosts.
     src/platform/apple/tabbed_page_handler.mm
     src/platform/apple/flyout_page_handler.mm
+    # (W1-11 chrome) the shared NSMenu builder + the NSView toolTip/menu push.
+    src/platform/apple/apple_menu_ops.mm
+    src/platform/apple/view_chrome_ops.mm
     # (W1-08 web_view) the WKWebView recipe, ONE .mm shared with the ios backend (WebKit's API is
     # identical on AppKit and UIKit — the gcd_dispatcher convention).
     src/platform/apple_shared/web_view_handler.mm
@@ -290,6 +293,8 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     # (W1-10 tabbed + flyout pages) UITabBarController / UISplitViewController child-VC hosts.
     src/platform/ios/tabbed_page_handler.mm
     src/platform/ios/flyout_page_handler.mm
+    # (W1-11 chrome) tooltip documented no-op + the UIContextMenuInteraction attach.
+    src/platform/ios/view_chrome_ops.mm
     # (W1-08 web_view) the WKWebView .mm shared with the apple backend (see above).
     src/platform/apple_shared/web_view_handler.mm
     src/platform/ios/window_handler.mm
@@ -660,8 +665,15 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/flyout_page_tests.cpp # (W1-10) the FlyoutPage control suite + the mirrors
     tests/controls/web_view_apple_tests.mm # (W1-08) the real WKWebView seam, run-loop pumped
     tests/controls/window_apple_tests.mm
+    tests/controls/chrome_apple_tests.mm # (W1-11) real NSMenu/NSToolbar/NSView.menu/toolTip/titlebar accessory
     tests/controls/window_handler_tests.cpp # the portable seam mirrors (real NSWindow behind them here)
     tests/controls/content_view_tests.cpp # (W1-07) backend-agnostic: the templated content host over mocks
+    # (W1-11 chrome/menus) the backend-agnostic chrome suites (real natives behind the mirrors here).
+    tests/controls/menu_item_tests.cpp
+    tests/controls/menu_bar_tests.cpp
+    tests/controls/menu_tracker_tests.cpp
+    tests/controls/chrome_tests.cpp
+    tests/controls/chrome_page_tests.cpp
     tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
     tests/controls/containers_page_tests.cpp # the W1-07 demo page wiring (backend-agnostic)
     tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
@@ -718,6 +730,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/flyout_page_apple_tests.mm
     tests/controls/web_view_apple_tests.mm
     tests/controls/window_apple_tests.mm
+    tests/controls/chrome_apple_tests.mm # (W1-11)
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 elseif(MAUI_BACKEND STREQUAL "ios")
   # Every control is a real UIKit partial on ios (M6 fan-out complete), so the suite runs each control's
@@ -762,6 +775,16 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     ${MAUI_IOS_TEST_MM_SOURCES}
     tests/controls/tabbed_page_tests.cpp # (W1-10) the MultiPage/TabbedPage control suite + the mirrors
     tests/controls/flyout_page_tests.cpp # (W1-10) the FlyoutPage control suite + the mirrors
+    tests/controls/chrome_ios_tests.mm # (W1-11) real bar buttons + UIContextMenuInteraction attach + inert mirrors
+    tests/controls/window_ios_tests.mm)
+  add_executable(maui_controls_tests
+    ${MAUI_IOS_TEST_MM_SOURCES}
+    # (W1-11 chrome/menus) the backend-agnostic chrome suites.
+    tests/controls/menu_item_tests.cpp
+    tests/controls/menu_bar_tests.cpp
+    tests/controls/menu_tracker_tests.cpp
+    tests/controls/chrome_tests.cpp
+    tests/controls/chrome_page_tests.cpp
     tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
     tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
     tests/controls/input_controls_page_tests.cpp # the W1-05 demo page wiring (backend-agnostic)

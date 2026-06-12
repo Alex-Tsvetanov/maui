@@ -94,8 +94,7 @@ namespace maui::controls
                     }
                 }
             }
-            std::stable_sort(result.begin(), result.end(),
-                             [this](const TItem* lhs, const TItem* rhs) { return less(*lhs, *rhs); });
+            std::ranges::stable_sort(result, [this](const TItem* lhs, const TItem* rhs) { return less(*lhs, *rhs); });
             return result;
         }
 

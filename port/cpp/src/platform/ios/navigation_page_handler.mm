@@ -34,11 +34,14 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "ios_conversions.hpp"
 #include "ios_semantics_ops.hpp"
 #include "ios_visual_ops.hpp"
+#include "maui/core/i_menu_element.hpp" // --- chrome (W1-11) ---
 #include "maui/core/i_stack_navigation.hpp"
+#include "maui/core/i_toolbar_item.hpp" // --- chrome (W1-11) ---
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/navigation_page_handler.hpp"
@@ -66,6 +69,24 @@
         {
             navigation->send_back_button_pressed();
         }
+    }
+}
+@end
+
+// --- chrome (W1-11): the toolbar-item tap trampoline — one per bar button, routing TouchUpInside back
+// to the borrowed i_menu_element (ToolbarItem click → MenuItem.Activate → clicked). ---
+@interface MauiToolbarItemProxy : NSObject
+@property(nonatomic) maui::core::i_menu_element* element;
+- (void)onTap:(id)sender;
+@end
+
+@implementation MauiToolbarItemProxy
+- (void)onTap:(id)sender
+{
+    (void)sender;
+    if (self.element != nullptr)
+    {
+        self.element->send_clicked();
     }
 }
 @end
@@ -122,6 +143,24 @@ namespace
         transition.duration = 0.25;
         [view.layer addAnimation:transition forKey:@"maui_nav_crossfade"];
     }
+
+    // chrome (W1-11): right-align the bar's toolbar buttons (the FIRST button sits rightmost, like
+    // UINavigationBar's rightBarButtonItems). Called by the rebuild and by platform_arrange.
+    constexpr double k_toolbar_button_width = 70.0;
+
+    void layout_toolbar_buttons(maui::core::navigation_page_platform& platform, double bar_width)
+    {
+        if (platform.toolbar_buttons == nullptr)
+        {
+            return;
+        }
+        NSArray<UIButton*>* const buttons = (__bridge NSArray<UIButton*>*)platform.toolbar_buttons;
+        for (NSUInteger i = 0; i < buttons.count; ++i)
+        {
+            const double x = bar_width - (k_toolbar_button_width * static_cast<double>(i + 1));
+            buttons[i].frame = CGRectMake(x, 0, k_toolbar_button_width, k_bar_height);
+        }
+    }
 } // namespace
 
 namespace maui::core
@@ -145,6 +184,17 @@ namespace maui::core
         {
             CFRelease(back_target);
             back_target = nullptr;
+        }
+        // chrome (W1-11): the bar's toolbar-item buttons + their tap trampolines.
+        if (toolbar_buttons != nullptr)
+        {
+            CFRelease(toolbar_buttons);
+            toolbar_buttons = nullptr;
+        }
+        if (toolbar_targets != nullptr)
+        {
+            CFRelease(toolbar_targets);
+            toolbar_targets = nullptr;
         }
         if (back_button != nullptr)
         {
@@ -305,6 +355,55 @@ namespace maui::core
             platform->bar_background_color = background;
             platform->bar_text_color = text_color;
             platform->hosted_title_view = title_view;
+
+            // chrome (W1-11): materialize the page-surfaced toolbar items as REAL buttons on the bar's
+            // right (C#'s UINavigationBar rightBarButtonItems path — the custom bar's analog). The
+            // aggregate arrives priority-sorted; secondary items simply follow the primaries (the
+            // overflow split is a desktop affordance — documented simplification). Rebuilt whole.
+            const std::vector<i_toolbar_item*> items = navigation->navigation_toolbar_items();
+            platform->toolbar_items = items;
+            if (platform->toolbar_buttons != nullptr)
+            {
+                NSArray<UIButton*>* const old_buttons = (__bridge NSArray<UIButton*>*)platform->toolbar_buttons;
+                for (NSUInteger i = 0; i < old_buttons.count; ++i)
+                {
+                    [old_buttons[i] removeFromSuperview];
+                }
+                CFRelease(platform->toolbar_buttons);
+                platform->toolbar_buttons = nullptr;
+            }
+            if (platform->toolbar_targets != nullptr)
+            {
+                CFRelease(platform->toolbar_targets);
+                platform->toolbar_targets = nullptr;
+            }
+            NSMutableArray<UIButton*>* const buttons = [NSMutableArray array];
+            NSMutableArray* const targets = [NSMutableArray array];
+            // Primaries first, then secondaries (each group keeps the tracker's priority order).
+            for (const bool secondary_pass : {false, true})
+            {
+                for (i_toolbar_item* const item : items)
+                {
+                    if (item == nullptr || item->is_secondary() != secondary_pass)
+                    {
+                        continue;
+                    }
+                    UIButton* const button = [UIButton buttonWithType:UIButtonTypeSystem];
+                    const std::string text(item->text());
+                    NSString* const label = [NSString stringWithUTF8String:text.c_str()];
+                    [button setTitle:(label != nil ? label : @"") forState:UIControlStateNormal];
+                    button.enabled = static_cast<BOOL>(item->is_enabled());
+                    MauiToolbarItemProxy* const proxy = [[MauiToolbarItemProxy alloc] init];
+                    proxy.element = item;
+                    [button addTarget:proxy action:@selector(onTap:) forControlEvents:UIControlEventTouchUpInside];
+                    [targets addObject:proxy];
+                    [buttons addObject:button];
+                    [bar addSubview:button];
+                }
+            }
+            platform->toolbar_buttons = (__bridge_retained void*)buttons;
+            platform->toolbar_targets = (__bridge_retained void*)targets;
+            layout_toolbar_buttons(*platform, bar.bounds.size.width);
         }
     }
 
@@ -416,6 +515,8 @@ namespace maui::core
         {
             [as_view(platform->title_view_host) setFrame:title_frame];
         }
+        // chrome (W1-11): keep the toolbar buttons pinned to the bar's right edge.
+        layout_toolbar_buttons(*platform, frame.width);
 
         // The current page fills the content area below the bar (y = bar_height in the container's space).
         if (platform->hosted_page != nullptr)

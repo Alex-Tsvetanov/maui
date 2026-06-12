@@ -18,11 +18,21 @@
 #import <AppKit/AppKit.h>
 
 #include <cmath>
+#include <cstddef>
 #include <memory>
 #include <string>
+#include <vector>
 
+#include "apple_menu_ops.hpp" // --- chrome (W1-11): the shared NSMenu builder ---
 #include "maui/core/dimension.hpp"
 #include "maui/core/i_element.hpp"
+#include "maui/core/i_menu_bar.hpp"      // --- chrome (W1-11) ---
+#include "maui/core/i_menu_bar_item.hpp" // --- chrome (W1-11) ---
+#include "maui/core/i_menu_element.hpp"  // --- chrome (W1-11) ---
+#include "maui/core/i_title_bar.hpp"     // --- chrome (W1-11) ---
+#include "maui/core/i_toolbar.hpp"       // --- chrome (W1-11) ---
+#include "maui/core/i_toolbar_item.hpp"  // --- chrome (W1-11) ---
+#include "maui/core/i_view.hpp"          // --- chrome (W1-11): the title bar content's native view ---
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/i_window.hpp"
 #include "maui/core/window_handler.hpp"
@@ -61,6 +71,113 @@
 }
 @end
 
+// --- chrome (W1-11): the NSToolbarDelegate trampoline. Built EAGERLY from the i_toolbar's items (the
+// primary items as NSToolbarItems; the secondary/overflow items as one trailing NSMenuToolbarItem whose
+// menu apple_menu_ops builds — the Toolbar.Windows.cs primary/SecondaryCommands split translated to
+// AppKit), then served to the NSToolbar through the delegate methods. Item clicks route back through
+// i_menu_element::send_clicked (the represented element is borrowed; the controls own it). The eager
+// array also makes the chrome ASSERTABLE without showing the window (NSToolbar materializes its items
+// lazily on display). ---
+@interface MauiToolbarDelegate : NSObject <NSToolbarDelegate>
+@property(nonatomic, strong) NSArray<NSToolbarItem*>* items;
+@property(nonatomic, strong) NSArray<NSToolbarItemIdentifier>* identifiers;
+- (void)rebuildFromToolbar:(maui::core::i_toolbar*)toolbar;
+- (void)itemClicked:(NSToolbarItem*)sender;
+@end
+
+@implementation MauiToolbarDelegate
+{
+    // The element behind each identifier (borrowed; index-aligned with _items).
+    std::vector<maui::core::i_menu_element*> _elements;
+}
+
+- (void)rebuildFromToolbar:(maui::core::i_toolbar*)toolbar
+{
+    NSMutableArray<NSToolbarItem*>* const items = [NSMutableArray array];
+    NSMutableArray<NSToolbarItemIdentifier>* const identifiers = [NSMutableArray array];
+    _elements.clear();
+
+    std::vector<maui::core::i_menu_element*> secondary;
+    for (std::size_t i = 0; toolbar != nullptr && i < toolbar->item_count(); ++i)
+    {
+        maui::core::i_toolbar_item* const item = toolbar->item_at(i);
+        if (item == nullptr)
+        {
+            continue;
+        }
+        if (item->is_secondary())
+        {
+            secondary.push_back(item); // → the overflow menu (Toolbar.Windows SecondaryCommands)
+            continue;
+        }
+        NSString* const identifier = [NSString stringWithFormat:@"maui-toolbar-item-%zu", i];
+        NSToolbarItem* const native = [[NSToolbarItem alloc] initWithItemIdentifier:identifier];
+        const std::string text(item->text());
+        NSString* const label = [NSString stringWithUTF8String:text.c_str()];
+        native.label = label != nil ? label : @"";
+        native.enabled = static_cast<BOOL>(item->is_enabled());
+        native.target = self;
+        native.action = @selector(itemClicked:);
+        [items addObject:native];
+        [identifiers addObject:identifier];
+        _elements.push_back(item);
+    }
+    if (!secondary.empty())
+    {
+        // One trailing overflow item carrying the secondary items as a menu (NSMenuToolbarItem).
+        NSMenuToolbarItem* const overflow = [[NSMenuToolbarItem alloc] initWithItemIdentifier:@"maui-toolbar-overflow"];
+        overflow.label = @"More";
+        overflow.menu = maui::platform::apple::build_menu(@"", secondary);
+        [items addObject:overflow];
+        [identifiers addObject:@"maui-toolbar-overflow"];
+        _elements.push_back(nullptr); // index-aligned placeholder (the menu routes its own clicks)
+    }
+    self.items = items;
+    self.identifiers = identifiers;
+}
+
+- (void)itemClicked:(NSToolbarItem*)sender
+{
+    const NSUInteger index = [self.items indexOfObject:sender];
+    if (index == NSNotFound || index >= _elements.size())
+    {
+        return;
+    }
+    if (maui::core::i_menu_element* const element = _elements[index])
+    {
+        element->send_clicked(); // ToolbarItem click → MenuItem.Activate → clicked
+    }
+}
+
+- (NSArray<NSToolbarItemIdentifier>*)toolbarAllowedItemIdentifiers:(NSToolbar*)toolbar
+{
+    (void)toolbar;
+    return self.identifiers != nil ? self.identifiers : @[];
+}
+
+- (NSArray<NSToolbarItemIdentifier>*)toolbarDefaultItemIdentifiers:(NSToolbar*)toolbar
+{
+    (void)toolbar;
+    return self.identifiers != nil ? self.identifiers : @[];
+}
+
+- (NSToolbarItem*)toolbar:(NSToolbar*)toolbar
+        itemForItemIdentifier:(NSToolbarItemIdentifier)itemIdentifier
+    willBeInsertedIntoToolbar:(BOOL)flag
+{
+    (void)toolbar;
+    (void)flag;
+    for (NSToolbarItem* item in self.items)
+    {
+        if ([item.itemIdentifier isEqualToString:itemIdentifier])
+        {
+            return item;
+        }
+    }
+    return nil;
+}
+@end
+
 namespace
 {
     NSWindow* as_window(void* native)
@@ -89,6 +206,33 @@ namespace maui::core
         {
             CFRelease(notification_trampoline); // balances the __bridge_retained in connect()
             notification_trampoline = nullptr;
+        }
+        // --- chrome (W1-11): release the retained chrome slots (each balances a __bridge_retained in
+        // the apply_* below). ---
+        if (chrome_toolbar != nullptr)
+        {
+            CFRelease(chrome_toolbar);
+            chrome_toolbar = nullptr;
+        }
+        if (chrome_toolbar_delegate != nullptr)
+        {
+            CFRelease(chrome_toolbar_delegate);
+            chrome_toolbar_delegate = nullptr;
+        }
+        if (chrome_main_menu != nullptr)
+        {
+            CFRelease(chrome_main_menu);
+            chrome_main_menu = nullptr;
+        }
+        if (chrome_menu_target != nullptr)
+        {
+            CFRelease(chrome_menu_target);
+            chrome_menu_target = nullptr;
+        }
+        if (chrome_title_bar != nullptr)
+        {
+            CFRelease(chrome_title_bar);
+            chrome_title_bar = nullptr;
         }
         if (native != nullptr)
         {
@@ -204,5 +348,159 @@ namespace maui::core
             return;
         }
         [as_window(platform->native) setFrame:NSMakeRect(x, y, w, h) display:YES];
+    }
+
+    // --- chrome (W1-11): the AppKit chrome recipes -----------------------------------------------------
+
+    // MapToolbar → a REAL NSToolbar on the NSWindow: the delegate trampoline eagerly builds the
+    // NSToolbarItems (primary) + the overflow NSMenuToolbarItem (secondary) from the i_toolbar and
+    // serves them to the toolbar. A null/invisible toolbar detaches it (window.toolbar = nil).
+    void window_handler::apply_toolbar(i_toolbar* toolbar)
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->native == nullptr)
+        {
+            return;
+        }
+        platform->hosted_toolbar = toolbar; // keep the portable mirror in sync (tests read it)
+        NSWindow* const window = as_window(platform->native);
+        if (toolbar == nullptr || !toolbar->is_visible())
+        {
+            window.toolbar = nil;
+            return;
+        }
+        MauiToolbarDelegate* delegate = nil;
+        if (platform->chrome_toolbar_delegate == nullptr)
+        {
+            delegate = [[MauiToolbarDelegate alloc] init];
+            platform->chrome_toolbar_delegate = (__bridge_retained void*)delegate;
+        }
+        else
+        {
+            delegate = (__bridge MauiToolbarDelegate*)platform->chrome_toolbar_delegate;
+        }
+        [delegate rebuildFromToolbar:toolbar];
+        // Rebuild the NSToolbar whole on every change (an attached NSToolbar does not re-query its
+        // delegate for an item-set change; whole-rebuild is the same strategy the menu chrome uses).
+        if (platform->chrome_toolbar != nullptr)
+        {
+            CFRelease(platform->chrome_toolbar);
+            platform->chrome_toolbar = nullptr;
+        }
+        NSToolbar* const native = [[NSToolbar alloc] initWithIdentifier:@"maui-window-toolbar"];
+        native.delegate = delegate; // NSToolbar holds its delegate weakly — the slot above retains it
+        platform->chrome_toolbar = (__bridge_retained void*)native;
+        window.toolbar = native;
+    }
+
+    // MapMenuBar → a REAL NSMenu main menu: each i_menu_bar_item becomes a top-level NSMenuItem whose
+    // submenu apple_menu_ops builds from the drop-down elements (separators / sub-menus / accelerators /
+    // click routing included). Assigned to NSApp.mainMenu when an app instance exists (the unit tests
+    // assert the BUILT menu through the retained slot instead — NSApp.mainMenu needs a running app).
+    void window_handler::apply_menu_bar(i_menu_bar* menu_bar)
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        platform->hosted_menu_bar = menu_bar; // keep the portable mirror in sync
+        if (platform->chrome_main_menu != nullptr)
+        {
+            CFRelease(platform->chrome_main_menu);
+            platform->chrome_main_menu = nullptr;
+        }
+        if (menu_bar == nullptr)
+        {
+            if (NSApp != nil)
+            {
+                NSApp.mainMenu = nil;
+            }
+            return;
+        }
+        NSMenu* const main = [[NSMenu alloc] initWithTitle:@""];
+        main.autoenablesItems = NO;
+        for (std::size_t i = 0; i < menu_bar->item_count(); ++i)
+        {
+            i_menu_bar_item* const bar_item = menu_bar->item_at(i);
+            if (bar_item == nullptr)
+            {
+                continue;
+            }
+            const std::string text(bar_item->text());
+            NSString* const title = [NSString stringWithUTF8String:text.c_str()];
+            NSMenuItem* const top = [[NSMenuItem alloc] initWithTitle:title != nil ? title : @""
+                                                               action:nil
+                                                        keyEquivalent:@""];
+            top.enabled = static_cast<BOOL>(bar_item->is_enabled());
+            std::vector<i_menu_element*> children;
+            children.reserve(bar_item->item_count());
+            for (std::size_t child = 0; child < bar_item->item_count(); ++child)
+            {
+                children.push_back(bar_item->item_at(child));
+            }
+            top.submenu = maui::platform::apple::build_menu(top.title, children);
+            [main addItem:top];
+        }
+        platform->chrome_main_menu = (__bridge_retained void*)main;
+        if (NSApp != nil)
+        {
+            NSApp.mainMenu = main;
+        }
+    }
+
+    // MapTitleBar → an NSTitlebarAccessoryViewController: a small accessory view carrying the title (+
+    // subtitle) text — or the title bar's custom Content native view when it has one — pinned to the
+    // titlebar area. Replacing removes the previous accessory; null clears it. (The C# TitleBar maps on
+    // Windows + Mac Catalyst; this is the AppKit-basics translation — STATUS.md.)
+    void window_handler::apply_title_bar(i_title_bar* title_bar)
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->native == nullptr)
+        {
+            return;
+        }
+        platform->hosted_title_bar = title_bar; // keep the portable mirror in sync
+        NSWindow* const window = as_window(platform->native);
+        // Remove + release the previous accessory (a replace or a clear).
+        if (platform->chrome_title_bar != nullptr)
+        {
+            auto* const previous = (__bridge NSTitlebarAccessoryViewController*)platform->chrome_title_bar;
+            [previous removeFromParentViewController];
+            CFRelease(platform->chrome_title_bar);
+            platform->chrome_title_bar = nullptr;
+        }
+        if (title_bar == nullptr)
+        {
+            return;
+        }
+        NSTitlebarAccessoryViewController* const accessory = [[NSTitlebarAccessoryViewController alloc] init];
+        NSView* content = nil;
+        if (title_bar->content() != nullptr)
+        {
+            // Host the custom Content's native view when its handler is attached.
+            if (auto* content_handler = dynamic_cast<i_view_handler*>(title_bar->content()->handler().get()))
+            {
+                content = (__bridge NSView*)content_handler->native_view();
+            }
+        }
+        if (content == nil)
+        {
+            // The basics: one line of "Title — Subtitle" text (TitleBar.Title/Subtitle).
+            const std::string title_text(title_bar->title());
+            const std::string subtitle_text(title_bar->subtitle());
+            std::string combined = title_text;
+            if (!subtitle_text.empty())
+            {
+                combined += combined.empty() ? subtitle_text : (" — " + subtitle_text);
+            }
+            NSString* const value = [NSString stringWithUTF8String:combined.c_str()];
+            NSTextField* const field = [NSTextField labelWithString:value != nil ? value : @""];
+            content = field;
+        }
+        accessory.view = content;
+        accessory.layoutAttribute = NSLayoutAttributeBottom; // a strip under the standard title bar
+        [window addTitlebarAccessoryViewController:accessory];
+        platform->chrome_title_bar = (__bridge_retained void*)accessory;
     }
 } // namespace maui::core
