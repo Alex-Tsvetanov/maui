@@ -227,6 +227,9 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/radio_button_handler.mm
     src/platform/apple/slider_handler.mm
     src/platform/apple/stepper_handler.mm
+    src/platform/apple/picker_handler.mm
+    src/platform/apple/date_picker_handler.mm
+    src/platform/apple/time_picker_handler.mm
     src/platform/apple/editor_handler.mm
     src/platform/apple/search_bar_handler.mm
     src/platform/apple/progress_bar_handler.mm
@@ -657,6 +660,9 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/radio_button_apple_tests.mm
     tests/controls/slider_apple_tests.mm
     tests/controls/stepper_apple_tests.mm
+    tests/controls/picker_apple_tests.mm
+    tests/controls/date_picker_apple_tests.mm
+    tests/controls/time_picker_apple_tests.mm
     tests/controls/editor_apple_tests.mm
     tests/controls/search_bar_apple_tests.mm
     tests/controls/progress_bar_apple_tests.mm
@@ -724,6 +730,9 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/radio_button_apple_tests.mm
     tests/controls/slider_apple_tests.mm
     tests/controls/stepper_apple_tests.mm
+    tests/controls/picker_apple_tests.mm
+    tests/controls/date_picker_apple_tests.mm
+    tests/controls/time_picker_apple_tests.mm
     tests/controls/editor_apple_tests.mm
     tests/controls/search_bar_apple_tests.mm
     tests/controls/progress_bar_apple_tests.mm
