@@ -594,6 +594,20 @@ elseif(MAUI_BACKEND STREQUAL "ios")
 else()
   set(MAUI_CONTROLS_GESTURE_PLATFORM_SOURCES src/platform/headless/gesture_platform_manager.cpp)
 endif()
+# (W2-19 items core) the collection_view_handler's per-backend partial: the simulator is
+# cross-platform (src/controls/items/); each backend only mints the platform struct (+ a placeholder
+# native view on apple/ios until the wave-3 NSCollectionView/UICollectionView hosts land). It lives
+# in maui_controls because the handler consumes the controls-layer template machinery — exactly where
+# C# keeps it (Controls.Handlers.Items).
+if(MAUI_BACKEND STREQUAL "apple")
+  set(MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES src/platform/apple/collection_view_handler.mm)
+  set_source_files_properties(${MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+elseif(MAUI_BACKEND STREQUAL "ios")
+  set(MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES src/platform/ios/collection_view_handler.mm)
+  set_source_files_properties(${MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+else()
+  set(MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES src/platform/headless/collection_view_handler.cpp)
+endif()
 
 add_library(maui_controls STATIC
   src/controls/element.cpp
@@ -678,6 +692,21 @@ add_library(maui_controls STATIC
   src/controls/state_trigger.cpp # W1-15 styles tail: StateTriggerBase + the concrete state triggers
   src/controls/window.cpp
   src/controls/application.cpp
+  # (W2-19 items core) the Items layer: layouts + the items_view hierarchy + the source family + the
+  # collection_view handler (cross-platform simulator; per-backend partial below).
+  src/controls/items/items_layout.cpp
+  src/controls/items/linear_items_layout.cpp
+  src/controls/items/grid_items_layout.cpp
+  src/controls/items/items_source_factory.cpp
+  src/controls/items/items_view.cpp
+  src/controls/items/structured_items_view.cpp
+  src/controls/items/selection_list.cpp
+  src/controls/items/selectable_items_view.cpp
+  src/controls/items/groupable_items_view.cpp
+  src/controls/items/reorderable_items_view.cpp
+  src/controls/items/collection_view.cpp
+  src/controls/items/collection_view_handler.cpp
+  ${MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES}
   # (W1-14 animations) the Controls-layer animation surface: Controls.Animation + the
   # AnimationExtensions pump (+ the internal tweener/per-element registry) + ViewExtensions.
   src/controls/animation.cpp
@@ -770,6 +799,12 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/size_request_tests.cpp # backend-agnostic; the VisualElement size-request surface
     tests/controls/lifecycle_tests.cpp
     tests/controls/data_template_tests.cpp    # backend-agnostic (W1-09 templates)
+    # (W2-19 items core) backend-agnostic: the items hierarchy + sources + the simulator + demo page.
+    tests/controls/items_view_tests.cpp
+    tests/controls/items_sources_tests.cpp
+    tests/controls/selectable_items_view_tests.cpp
+    tests/controls/collection_view_tests.cpp
+    tests/controls/items_page_tests.cpp
     tests/controls/control_template_tests.cpp
     tests/controls/binding_engine_tests.cpp # backend-agnostic; the W1-02 string-path binding engine
     tests/controls/multi_binding_tests.cpp
@@ -896,6 +931,12 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/size_request_tests.cpp # backend-agnostic (compares against the handler's own size)
     tests/controls/lifecycle_tests.cpp
     tests/controls/data_template_tests.cpp    # backend-agnostic (W1-09 templates)
+    # (W2-19 items core) backend-agnostic: the items hierarchy + sources + the simulator + demo page.
+    tests/controls/items_view_tests.cpp
+    tests/controls/items_sources_tests.cpp
+    tests/controls/selectable_items_view_tests.cpp
+    tests/controls/collection_view_tests.cpp
+    tests/controls/items_page_tests.cpp
     tests/controls/control_template_tests.cpp
     tests/controls/binding_engine_tests.cpp # backend-agnostic; the W1-02 string-path binding engine
     tests/controls/multi_binding_tests.cpp
@@ -968,6 +1009,12 @@ else()
     tests/controls/view_extensions_tests.cpp # (W1-14) the animation surface over the manual ticker
     tests/controls/lifecycle_tests.cpp
     tests/controls/data_template_tests.cpp    # backend-agnostic (W1-09 templates)
+    # (W2-19 items core) backend-agnostic: the items hierarchy + sources + the simulator + demo page.
+    tests/controls/items_view_tests.cpp
+    tests/controls/items_sources_tests.cpp
+    tests/controls/selectable_items_view_tests.cpp
+    tests/controls/collection_view_tests.cpp
+    tests/controls/items_page_tests.cpp
     tests/controls/control_template_tests.cpp
     tests/controls/binding_engine_tests.cpp # backend-agnostic; the W1-02 string-path binding engine
     tests/controls/multi_binding_tests.cpp
