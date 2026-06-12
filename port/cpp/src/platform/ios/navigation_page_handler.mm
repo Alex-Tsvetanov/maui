@@ -117,6 +117,12 @@ namespace
         return (__bridge UIButton*)handle;
     }
 
+    // chrome (W1-11): typed view of the retained toolbar-buttons array slot.
+    NSArray<UIButton*>* as_button_array(void* handle)
+    {
+        return (__bridge NSArray<UIButton*>*)handle;
+    }
+
     // The page's native UIView, via its view-handler's native_view() (nil if the page is unattached or
     // its handler has no native view). native_view() returns the real UIView the pimpl owns — not the
     // pimpl pointer that platform_view() returns. Mirrors layout_handler.mm's native_child helper.
@@ -144,6 +150,14 @@ namespace
         [view.layer addAnimation:transition forKey:@"maui_nav_crossfade"];
     }
 
+    // chrome (W1-11): hand the borrowed element to the tap trampoline. A plain function parameter (not
+    // the Obj-C property dot-assignment) so the non-const use is visible where the element pointer is
+    // consumed — the proxy's onTap: calls the element's non-const send_clicked().
+    void set_proxy_element(MauiToolbarItemProxy* proxy, maui::core::i_menu_element* element)
+    {
+        proxy.element = element;
+    }
+
     // chrome (W1-11): right-align the bar's toolbar buttons (the FIRST button sits rightmost, like
     // UINavigationBar's rightBarButtonItems). Called by the rebuild and by platform_arrange.
     constexpr double k_toolbar_button_width = 70.0;
@@ -154,7 +168,7 @@ namespace
         {
             return;
         }
-        NSArray<UIButton*>* const buttons = (__bridge NSArray<UIButton*>*)platform.toolbar_buttons;
+        NSArray<UIButton*>* const buttons = as_button_array(platform.toolbar_buttons);
         for (NSUInteger i = 0; i < buttons.count; ++i)
         {
             const double x = bar_width - (k_toolbar_button_width * static_cast<double>(i + 1));
@@ -364,7 +378,7 @@ namespace maui::core
             platform->toolbar_items = items;
             if (platform->toolbar_buttons != nullptr)
             {
-                NSArray<UIButton*>* const old_buttons = (__bridge NSArray<UIButton*>*)platform->toolbar_buttons;
+                NSArray<UIButton*>* const old_buttons = as_button_array(platform->toolbar_buttons);
                 for (NSUInteger i = 0; i < old_buttons.count; ++i)
                 {
                     [old_buttons[i] removeFromSuperview];
@@ -380,26 +394,31 @@ namespace maui::core
             NSMutableArray<UIButton*>* const buttons = [NSMutableArray array];
             NSMutableArray* const targets = [NSMutableArray array];
             // Primaries first, then secondaries (each group keeps the tracker's priority order).
+            std::vector<i_menu_element*> ordered;
+            ordered.reserve(items.size());
             for (const bool secondary_pass : {false, true})
             {
                 for (i_toolbar_item* const item : items)
                 {
-                    if (item == nullptr || item->is_secondary() != secondary_pass)
+                    if (item != nullptr && item->is_secondary() == secondary_pass)
                     {
-                        continue;
+                        ordered.push_back(item);
                     }
-                    UIButton* const button = [UIButton buttonWithType:UIButtonTypeSystem];
-                    const std::string text(item->text());
-                    NSString* const label = [NSString stringWithUTF8String:text.c_str()];
-                    [button setTitle:(label != nil ? label : @"") forState:UIControlStateNormal];
-                    button.enabled = static_cast<BOOL>(item->is_enabled());
-                    MauiToolbarItemProxy* const proxy = [[MauiToolbarItemProxy alloc] init];
-                    proxy.element = item;
-                    [button addTarget:proxy action:@selector(onTap:) forControlEvents:UIControlEventTouchUpInside];
-                    [targets addObject:proxy];
-                    [buttons addObject:button];
-                    [bar addSubview:button];
                 }
+            }
+            for (i_menu_element* const element : ordered)
+            {
+                UIButton* const button = [UIButton buttonWithType:UIButtonTypeSystem];
+                const std::string text(element->text());
+                NSString* const label = [NSString stringWithUTF8String:text.c_str()];
+                [button setTitle:(label != nil ? label : @"") forState:UIControlStateNormal];
+                button.enabled = static_cast<BOOL>(element->is_enabled());
+                MauiToolbarItemProxy* const proxy = [[MauiToolbarItemProxy alloc] init];
+                set_proxy_element(proxy, element);
+                [button addTarget:proxy action:@selector(onTap:) forControlEvents:UIControlEventTouchUpInside];
+                [targets addObject:proxy];
+                [buttons addObject:button];
+                [bar addSubview:button];
             }
             platform->toolbar_buttons = (__bridge_retained void*)buttons;
             platform->toolbar_targets = (__bridge_retained void*)targets;

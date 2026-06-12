@@ -49,6 +49,12 @@ namespace
         return &key;
     }
 
+    // Typed view of the handler's native slot (the convention the other .mm partials follow).
+    UIView* as_ui_view(void* native)
+    {
+        return (__bridge UIView*)native;
+    }
+
     NSString* to_ns_string(std::string_view text)
     {
         const std::string owned(text);
@@ -152,7 +158,7 @@ namespace maui::core
         {
             return;
         }
-        UIView* const view = (__bridge UIView*)native_view;
+        UIView* const view = as_ui_view(native_view);
         // Detach any previous interaction (a replace or a clear).
         if (UIContextMenuInteraction* const previous = objc_getAssociatedObject(view, context_interaction_key()))
         {

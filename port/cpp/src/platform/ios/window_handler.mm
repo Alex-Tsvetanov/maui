@@ -362,7 +362,7 @@ namespace maui::core
     // Toolbar: C#'s iOS toolbar items surface through the NAVIGATION chrome (UINavigationBar
     // rightBarButtonItems), not the window — the port's navigation_page_handler.mm builds the bar
     // buttons; the window only records the chrome aggregate here.
-    void window_handler::apply_toolbar(i_toolbar* toolbar)
+    void window_handler::apply_toolbar(i_toolbar* toolbar) const
     {
         if (auto* platform = typed_platform_view())
         {
@@ -373,7 +373,7 @@ namespace maui::core
     // MenuBar: stored-inert — C# materializes menu bars on desktop only (WindowHandler maps MenuBar on
     // WINDOWS, and on iOS only Mac Catalyst's UIMenuBuilder realizes it; a plain-iOS UIApplication has
     // no menu bar surface). The aggregate stays observable through the mirror.
-    void window_handler::apply_menu_bar(i_menu_bar* menu_bar)
+    void window_handler::apply_menu_bar(i_menu_bar* menu_bar) const
     {
         if (auto* platform = typed_platform_view())
         {
@@ -383,7 +383,7 @@ namespace maui::core
 
     // TitleBar: documented no-op — C# maps Window.TitleBar on Windows + Mac Catalyst only (a plain-iOS
     // UIWindow has no title bar). Mirror-only, like the menu bar.
-    void window_handler::apply_title_bar(i_title_bar* title_bar)
+    void window_handler::apply_title_bar(i_title_bar* title_bar) const
     {
         if (auto* platform = typed_platform_view())
         {

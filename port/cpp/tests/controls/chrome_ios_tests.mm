@@ -55,6 +55,16 @@ namespace
         return (__bridge NSArray<UIButton*>*)handler->typed_platform_view()->toolbar_buttons;
     }
 
+    UIView* bar_view(const std::shared_ptr<navigation_page_handler>& handler)
+    {
+        return (__bridge UIView*)handler->typed_platform_view()->bar;
+    }
+
+    UIView* native_view_of(const std::shared_ptr<button_handler>& handler)
+    {
+        return (__bridge UIView*)handler->native_view();
+    }
+
     // ---- navigation bar: real toolbar buttons ----
 
     TEST(ios_chrome, toolbar_items_materialize_as_bar_buttons)
@@ -72,8 +82,7 @@ namespace
         ASSERT_EQ(buttons.count, 1U);
         EXPECT_EQ(to_std_string([buttons[0] titleForState:UIControlStateNormal]), "Save");
         // The button lives ON the custom bar.
-        UIView* const bar = (__bridge UIView*)handler->typed_platform_view()->bar;
-        EXPECT_EQ(buttons[0].superview, bar);
+        EXPECT_EQ(buttons[0].superview, bar_view(handler));
         // The mirror agrees.
         ASSERT_EQ(handler->typed_platform_view()->toolbar_items.size(), 1U);
     }
@@ -130,7 +139,7 @@ namespace
 
         auto handler = std::make_shared<button_handler>();
         host.set_handler(handler);
-        UIView* const native = (__bridge UIView*)handler->native_view();
+        UIView* const native = native_view_of(handler);
         const NSUInteger baseline = native.interactions.count;
 
         host.set_context_flyout(&flyout);

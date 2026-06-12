@@ -126,7 +126,7 @@
     {
         // One trailing overflow item carrying the secondary items as a menu (NSMenuToolbarItem).
         NSMenuToolbarItem* const overflow = [[NSMenuToolbarItem alloc] initWithItemIdentifier:@"maui-toolbar-overflow"];
-        overflow.label = @"More";
+        overflow.label = NSLocalizedString(@"More", @"the toolbar overflow (secondary items) label");
         overflow.menu = maui::platform::apple::build_menu(@"", secondary);
         [items addObject:overflow];
         [identifiers addObject:@"maui-toolbar-overflow"];
@@ -167,8 +167,11 @@
 {
     (void)toolbar;
     (void)flag;
-    for (NSToolbarItem* item in self.items)
+    // An index loop, not Obj-C fast enumeration (which clang-tidy's init-variables check misreads as
+    // uninitialized — the same workaround host_current uses).
+    for (NSUInteger i = 0; i < self.items.count; ++i)
     {
+        NSToolbarItem* const item = self.items[i];
         if ([item.itemIdentifier isEqualToString:itemIdentifier])
         {
             return item;
@@ -355,7 +358,7 @@ namespace maui::core
     // MapToolbar → a REAL NSToolbar on the NSWindow: the delegate trampoline eagerly builds the
     // NSToolbarItems (primary) + the overflow NSMenuToolbarItem (secondary) from the i_toolbar and
     // serves them to the toolbar. A null/invisible toolbar detaches it (window.toolbar = nil).
-    void window_handler::apply_toolbar(i_toolbar* toolbar)
+    void window_handler::apply_toolbar(i_toolbar* toolbar) const
     {
         auto* platform = typed_platform_view();
         if (platform == nullptr || platform->native == nullptr)
@@ -397,7 +400,7 @@ namespace maui::core
     // submenu apple_menu_ops builds from the drop-down elements (separators / sub-menus / accelerators /
     // click routing included). Assigned to NSApp.mainMenu when an app instance exists (the unit tests
     // assert the BUILT menu through the retained slot instead — NSApp.mainMenu needs a running app).
-    void window_handler::apply_menu_bar(i_menu_bar* menu_bar)
+    void window_handler::apply_menu_bar(i_menu_bar* menu_bar) const
     {
         auto* platform = typed_platform_view();
         if (platform == nullptr)
@@ -422,7 +425,7 @@ namespace maui::core
         main.autoenablesItems = NO;
         for (std::size_t i = 0; i < menu_bar->item_count(); ++i)
         {
-            i_menu_bar_item* const bar_item = menu_bar->item_at(i);
+            const i_menu_bar_item* const bar_item = menu_bar->item_at(i);
             if (bar_item == nullptr)
             {
                 continue;
@@ -453,7 +456,7 @@ namespace maui::core
     // subtitle) text — or the title bar's custom Content native view when it has one — pinned to the
     // titlebar area. Replacing removes the previous accessory; null clears it. (The C# TitleBar maps on
     // Windows + Mac Catalyst; this is the AppKit-basics translation — STATUS.md.)
-    void window_handler::apply_title_bar(i_title_bar* title_bar)
+    void window_handler::apply_title_bar(i_title_bar* title_bar) const
     {
         auto* platform = typed_platform_view();
         if (platform == nullptr || platform->native == nullptr)

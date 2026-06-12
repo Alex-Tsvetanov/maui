@@ -51,12 +51,12 @@ namespace maui::application_model
         {
             // C# UserInfo["id"]?.ToString() — the userInfo values are id<NSSecureCoding> on current
             // SDKs (no statically-known `description`), so go through NSObject explicitly.
-            NSObject* const raw_identifier = (NSObject*)item.userInfo[@"id"];
-            NSObject* const raw_icon = (NSObject*)item.userInfo[@"icon"];
-            NSString* const identifier = raw_identifier != nil ? raw_identifier.description : nil;
-            NSString* const icon = raw_icon != nil ? raw_icon.description : nil;
-            return app_action(to_std_string(identifier), to_std_string(item.localizedTitle),
-                              to_optional_string(item.localizedSubtitle), to_optional_string(icon));
+            NSObject* const identifier_value = static_cast<NSObject*>(item.userInfo[@"id"]);
+            NSObject* const icon_value = static_cast<NSObject*>(item.userInfo[@"icon"]);
+            NSString* const identifier = identifier_value != nil ? identifier_value.description : nil;
+            NSString* const icon = icon_value != nil ? icon_value.description : nil;
+            return {to_std_string(identifier), to_std_string(item.localizedTitle),
+                    to_optional_string(item.localizedSubtitle), to_optional_string(icon)};
         }
 
         // AppActionsExtensions.ToShortcutItem(AppAction).
@@ -93,9 +93,11 @@ namespace maui::application_model
                 UIApplication* const app = [UIApplication sharedApplication];
                 NSArray<UIApplicationShortcutItem*>* const items = app.shortcutItems; // nil app -> nil
                 result.reserve(items.count);
-                for (UIApplicationShortcutItem* item in items)
+                // An index loop, not Obj-C fast enumeration (which clang-tidy's init-variables check
+                // misreads as uninitialized).
+                for (NSUInteger i = 0; i < items.count; ++i)
                 {
-                    result.push_back(to_app_action(item));
+                    result.push_back(to_app_action(items[i]));
                 }
                 on_complete(result);
             }

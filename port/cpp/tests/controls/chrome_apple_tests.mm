@@ -68,6 +68,11 @@ namespace
         return (__bridge NSMenu*)handler->typed_platform_view()->chrome_main_menu;
     }
 
+    NSView* native_view_of(const std::shared_ptr<button_handler>& handler)
+    {
+        return (__bridge NSView*)handler->native_view();
+    }
+
     // NSWindow creation needs the shared application object (no run loop required).
     class apple_chrome : public ::testing::Test
     {
@@ -208,8 +213,14 @@ namespace
         NSToolbarItem* const item = [delegate toolbar:toolbar
                                 itemForItemIdentifier:identifiers[0]
                             willBeInsertedIntoToolbar:YES];
-        // Drive the target-action exactly as NSToolbar would on a click.
-        [NSApp sendAction:item.action to:item.target from:item];
+        // Drive the target-action exactly as NSToolbar would on a click (the action is guaranteed by
+        // the builder; the explicit branch keeps the analyzer's nonnull contract satisfied).
+        SEL const action = item.action;
+        ASSERT_NE(action, nullptr);
+        if (action != nullptr)
+        {
+            [NSApp sendAction:action to:item.target from:item];
+        }
 
         EXPECT_TRUE(fired);
     }
@@ -233,7 +244,7 @@ namespace
         host.set_handler(handler);
         host.set_context_flyout(&flyout);
 
-        NSView* const native = (__bridge NSView*)handler->native_view();
+        NSView* const native = native_view_of(handler);
         ASSERT_NE(native.menu, nil);
         ASSERT_EQ(native.menu.numberOfItems, 3);
         EXPECT_EQ(to_std_string([native.menu itemAtIndex:0].title), "Copy");
@@ -255,7 +266,7 @@ namespace
         auto handler = std::make_shared<button_handler>();
         host.set_handler(handler);
 
-        NSView* const native = (__bridge NSView*)handler->native_view();
+        NSView* const native = native_view_of(handler);
         EXPECT_EQ(native.toolTip, nil);
 
         tool_tip_properties::set_text(host, "Click me");

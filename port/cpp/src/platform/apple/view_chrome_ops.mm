@@ -17,6 +17,16 @@
 #include "apple_menu_ops.hpp"
 #include "maui/core/i_flyout.hpp"
 
+namespace
+{
+    // Typed view of the handler's native slot (routing the cast through a helper keeps direct casts out
+    // of variable initializers, the convention the other .mm partials follow).
+    NSView* as_view(void* native)
+    {
+        return (__bridge NSView*)native;
+    }
+} // namespace
+
 namespace maui::core
 {
     void apply_native_tool_tip(void* native_view, const std::optional<std::string>& text)
@@ -25,7 +35,7 @@ namespace maui::core
         {
             return;
         }
-        NSView* const view = (__bridge NSView*)native_view;
+        NSView* const view = as_view(native_view);
         if (!text.has_value())
         {
             view.toolTip = nil; // never set (or cleared) → no tooltip
@@ -41,7 +51,6 @@ namespace maui::core
         {
             return;
         }
-        NSView* const view = (__bridge NSView*)native_view;
-        view.menu = flyout != nullptr ? maui::platform::apple::build_menu_from_flyout(flyout) : nil;
+        as_view(native_view).menu = flyout != nullptr ? maui::platform::apple::build_menu_from_flyout(flyout) : nil;
     }
 } // namespace maui::core

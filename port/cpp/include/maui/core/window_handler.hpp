@@ -161,9 +161,10 @@ namespace maui::core
         static void map_toolbar(window_handler& handler, i_window& view);
         static void map_menu_bar(window_handler& handler, i_window& view);
         static void map_title_bar(window_handler& handler, i_window& view);
-        void apply_toolbar(i_toolbar* toolbar);
-        void apply_menu_bar(i_menu_bar* menu_bar);
-        void apply_title_bar(i_title_bar* title_bar);
+        // const like disconnect(): each touches only the pimpl (and the native window it owns).
+        void apply_toolbar(i_toolbar* toolbar) const;
+        void apply_menu_bar(i_menu_bar* menu_bar) const;
+        void apply_title_bar(i_title_bar* title_bar) const;
         // --- end chrome (W1-11) ------------------------------------------------------------------------
 
     private:

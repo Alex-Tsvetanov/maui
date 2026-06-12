@@ -75,7 +75,7 @@ namespace maui::core
     // --- chrome (W1-11): headless recipes — record the chrome borrows so the tests can observe each map
     // ran with the window's current chrome. (The Apple twin materializes the real NSToolbar / NSMenu main
     // menu / NSTitlebarAccessoryViewController from the same borrows.) ---
-    void window_handler::apply_toolbar(i_toolbar* toolbar)
+    void window_handler::apply_toolbar(i_toolbar* toolbar) const
     {
         if (auto* platform = typed_platform_view())
         {
@@ -83,7 +83,7 @@ namespace maui::core
         }
     }
 
-    void window_handler::apply_menu_bar(i_menu_bar* menu_bar)
+    void window_handler::apply_menu_bar(i_menu_bar* menu_bar) const
     {
         if (auto* platform = typed_platform_view())
         {
@@ -91,7 +91,7 @@ namespace maui::core
         }
     }
 
-    void window_handler::apply_title_bar(i_title_bar* title_bar)
+    void window_handler::apply_title_bar(i_title_bar* title_bar) const
     {
         if (auto* platform = typed_platform_view())
         {
