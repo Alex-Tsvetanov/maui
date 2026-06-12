@@ -797,15 +797,12 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/web_view_ios_tests.mm # (W1-08) the real WKWebView seam, run-loop pumped on-simulator
     tests/controls/tabbed_page_ios_tests.mm # (W1-10) the real UITabBarController child-VC seam
     tests/controls/flyout_page_ios_tests.mm # (W1-10) the real UISplitViewController column seam
+    tests/controls/chrome_ios_tests.mm # (W1-11) real bar buttons + UIContextMenuInteraction attach + inert mirrors
     tests/controls/window_ios_tests.mm)
   add_executable(maui_controls_tests
     ${MAUI_IOS_TEST_MM_SOURCES}
     tests/controls/tabbed_page_tests.cpp # (W1-10) the MultiPage/TabbedPage control suite + the mirrors
     tests/controls/flyout_page_tests.cpp # (W1-10) the FlyoutPage control suite + the mirrors
-    tests/controls/chrome_ios_tests.mm # (W1-11) real bar buttons + UIContextMenuInteraction attach + inert mirrors
-    tests/controls/window_ios_tests.mm)
-  add_executable(maui_controls_tests
-    ${MAUI_IOS_TEST_MM_SOURCES}
     # (W1-11 chrome/menus) the backend-agnostic chrome suites.
     tests/controls/menu_item_tests.cpp
     tests/controls/menu_bar_tests.cpp
