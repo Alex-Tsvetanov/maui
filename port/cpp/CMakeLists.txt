@@ -318,6 +318,9 @@ else()
     src/platform/headless/radio_button_handler.cpp
     src/platform/headless/slider_handler.cpp
     src/platform/headless/stepper_handler.cpp
+    src/platform/headless/picker_handler.cpp
+    src/platform/headless/date_picker_handler.cpp
+    src/platform/headless/time_picker_handler.cpp
     src/platform/headless/editor_handler.cpp
     src/platform/headless/search_bar_handler.cpp
     src/platform/headless/progress_bar_handler.cpp
@@ -347,6 +350,7 @@ add_library(maui_core STATIC
   src/core/binding_expression.cpp
   src/core/thickness.cpp
   src/core/font.cpp
+  src/core/date_time.cpp
   src/core/property_mapper.cpp
   src/core/command_mapper.cpp
   src/core/handler_registry.cpp
@@ -361,6 +365,9 @@ add_library(maui_core STATIC
   src/core/radio_button_handler.cpp
   src/core/slider_handler.cpp
   src/core/stepper_handler.cpp
+  src/core/picker_handler.cpp
+  src/core/date_picker_handler.cpp
+  src/core/time_picker_handler.cpp
   src/core/editor_handler.cpp
   src/core/search_bar_handler.cpp
   src/core/progress_bar_handler.cpp
@@ -438,6 +445,7 @@ add_executable(maui_core_tests
   tests/core/specificity_tests.cpp
   tests/core/bindable_tests.cpp
   tests/core/primitives_tests.cpp
+  tests/core/date_time_tests.cpp
   tests/core/contracts_tests.cpp
   tests/core/handler_tests.cpp
   tests/core/binding_tests.cpp
@@ -574,6 +582,9 @@ add_library(maui_controls STATIC
   src/controls/radio_button_group.cpp
   src/controls/slider.cpp
   src/controls/stepper.cpp
+  src/controls/picker.cpp
+  src/controls/date_picker.cpp
+  src/controls/time_picker.cpp
   src/controls/editor.cpp
   src/controls/search_bar.cpp
   src/controls/progress_bar.cpp
@@ -823,6 +834,9 @@ else()
     tests/controls/radio_button_tests.cpp
     tests/controls/slider_tests.cpp
     tests/controls/stepper_tests.cpp
+    tests/controls/picker_tests.cpp
+    tests/controls/date_picker_tests.cpp
+    tests/controls/time_picker_tests.cpp
     tests/controls/editor_tests.cpp
     tests/controls/search_bar_tests.cpp
     tests/controls/progress_bar_tests.cpp
