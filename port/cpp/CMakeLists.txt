@@ -1168,7 +1168,8 @@ set(MAUI_ESSENTIALS_FEATURES
   # --- W2-26: essentials networking + media ---
   connectivity
   text_to_speech
-  screenshot)
+  screenshot
+  media_picker)
 
 set(MAUI_ESSENTIALS_PLATFORM_SOURCES "")
 if(MAUI_BACKEND STREQUAL "apple")
@@ -1217,6 +1218,8 @@ add_library(maui_essentials STATIC
   src/essentials/connectivity.cpp
   src/essentials/text_to_speech.cpp
   src/essentials/screenshot.cpp
+  src/essentials/media_picker.cpp
+  src/essentials/file_result.cpp
   ${MAUI_ESSENTIALS_PLATFORM_SOURCES}
 )
 target_include_directories(maui_essentials PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -1308,7 +1311,8 @@ else()
     tests/essentials/unit_converters_tests.cpp
     tests/essentials/connectivity_tests.cpp
     tests/essentials/text_to_speech_tests.cpp
-    tests/essentials/screenshot_tests.cpp)
+    tests/essentials/screenshot_tests.cpp
+    tests/essentials/media_picker_tests.cpp)
 endif()
 target_include_directories(maui_essentials_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for src/... detail headers
 target_link_libraries(maui_essentials_tests PRIVATE

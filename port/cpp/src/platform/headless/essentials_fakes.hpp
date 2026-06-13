@@ -37,6 +37,7 @@
 #include "maui/essentials/device_display.hpp"
 #include "maui/essentials/device_info.hpp"
 #include "maui/essentials/feature_not_supported.hpp"
+#include "maui/essentials/file_result.hpp"
 #include "maui/essentials/flashlight.hpp"
 #include "maui/essentials/geocoding.hpp"
 #include "maui/essentials/geolocation.hpp"
@@ -44,6 +45,7 @@
 #include "maui/essentials/haptic_feedback.hpp"
 #include "maui/essentials/location.hpp"
 #include "maui/essentials/magnetometer.hpp"
+#include "maui/essentials/media_picker.hpp"
 #include "maui/essentials/orientation_sensor.hpp"
 #include "maui/essentials/placemark.hpp"
 #include "maui/essentials/screenshot.hpp"
@@ -951,5 +953,116 @@ namespace maui::media
         int width_ = 0;
         int height_ = 0;
         std::vector<std::byte> bytes_;
+    };
+
+    // MediaPickerImplementation (netstandard): every member (incl. IsCaptureSupported) throws -
+    // until configured. The SERVICE-SEAM fake: pick returns the staged single/multi results
+    // (default empty = the user cancelled), capture is gated on is_capture_supported (throws
+    // feature_not_supported when false, the ios partial's CapturePhoto/CaptureVideo guard), and the
+    // last requested kind + options are recorded so the seam can be asserted.
+    class headless_media_picker final : public i_media_picker
+    {
+    public:
+        enum class kind
+        {
+            pick_photo,
+            pick_video,
+            pick_photos,
+            pick_videos,
+            capture_photo,
+            capture_video,
+        };
+
+        [[nodiscard]] bool is_capture_supported() const override
+        {
+            if (!supported_.has_value())
+            {
+                headless_detail::throw_not_implemented();
+            }
+            return *supported_;
+        }
+
+        void pick_photo_async(const media_picker_options& options, file_result_callback on_complete) override
+        {
+            record(kind::pick_photo, options);
+            on_complete(single_result_);
+        }
+        void pick_video_async(const media_picker_options& options, file_result_callback on_complete) override
+        {
+            record(kind::pick_video, options);
+            on_complete(single_result_);
+        }
+        void pick_photos_async(const media_picker_options& options, file_results_callback on_complete) override
+        {
+            record(kind::pick_photos, options);
+            on_complete(multi_result_);
+        }
+        void pick_videos_async(const media_picker_options& options, file_results_callback on_complete) override
+        {
+            record(kind::pick_videos, options);
+            on_complete(multi_result_);
+        }
+        void capture_photo_async(const media_picker_options& options, file_result_callback on_complete) override
+        {
+            require_capture();
+            record(kind::capture_photo, options);
+            on_complete(single_result_);
+        }
+        void capture_video_async(const media_picker_options& options, file_result_callback on_complete) override
+        {
+            require_capture();
+            record(kind::capture_video, options);
+            on_complete(single_result_);
+        }
+
+        void set_is_capture_supported(bool value)
+        {
+            supported_ = value;
+        }
+        void set_single_result(std::optional<maui::storage::file_result> value)
+        {
+            configured_ = true;
+            single_result_ = std::move(value);
+        }
+        void set_multi_result(std::vector<maui::storage::file_result> value)
+        {
+            configured_ = true;
+            multi_result_ = std::move(value);
+        }
+
+        [[nodiscard]] std::optional<kind> last_kind() const
+        {
+            return last_kind_;
+        }
+        [[nodiscard]] std::optional<media_picker_options> last_options() const
+        {
+            return last_options_;
+        }
+
+    private:
+        void require_capture() const
+        {
+            if (!supported_.has_value() || !*supported_)
+            {
+                // The ios CapturePhoto/CaptureVideo `if (!IsCaptureSupported) throw`.
+                throw maui::application_model::feature_not_supported();
+            }
+        }
+        void record(kind which, const media_picker_options& options)
+        {
+            if (!configured_)
+            {
+                headless_detail::throw_not_implemented();
+            }
+            last_kind_ = which;
+            last_options_ = options;
+        }
+
+        std::optional<bool> supported_;
+        bool configured_ = false;
+        std::optional<maui::storage::file_result> single_result_;
+        std::vector<maui::storage::file_result> multi_result_;
+        std::optional<kind> last_kind_;
+        std::optional<media_picker_options> last_options_;
     };
 } // namespace maui::media
