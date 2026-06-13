@@ -20,6 +20,7 @@
 // install them through the facades' set_current/set_default seams.
 
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <stdexcept>
@@ -45,6 +46,7 @@
 #include "maui/essentials/magnetometer.hpp"
 #include "maui/essentials/orientation_sensor.hpp"
 #include "maui/essentials/placemark.hpp"
+#include "maui/essentials/screenshot.hpp"
 #include "maui/essentials/sensor_types.hpp"
 #include "maui/essentials/text_to_speech.hpp"
 #include "maui/essentials/vibration.hpp"
@@ -864,5 +866,90 @@ namespace maui::media
     private:
         std::optional<std::vector<locale>> locales_;
         std::vector<spoken> spoken_;
+    };
+
+    // The canned IScreenshotResult the headless screenshot fake hands back: stored width/height +
+    // encoded bytes; open_read_async replays the bytes inline (the headless stream stand-in).
+    class headless_screenshot_result final : public i_screenshot_result
+    {
+    public:
+        headless_screenshot_result(int width, int height, std::vector<std::byte> bytes)
+            : width_(width), height_(height), bytes_(std::move(bytes))
+        {
+        }
+
+        [[nodiscard]] int width() const override
+        {
+            return width_;
+        }
+        [[nodiscard]] int height() const override
+        {
+            return height_;
+        }
+
+        void open_read_async(screenshot_format format, int quality, read_callback on_complete) override
+        {
+            last_format_ = format;
+            last_quality_ = quality;
+            on_complete(bytes_);
+        }
+
+        [[nodiscard]] std::optional<screenshot_format> last_format() const
+        {
+            return last_format_;
+        }
+        [[nodiscard]] std::optional<int> last_quality() const
+        {
+            return last_quality_;
+        }
+
+    private:
+        int width_;
+        int height_;
+        std::vector<std::byte> bytes_;
+        std::optional<screenshot_format> last_format_;
+        std::optional<int> last_quality_;
+    };
+
+    // ScreenshotImplementation (netstandard, the macOS mirror): IsCaptureSupported and CaptureAsync
+    // both throw - until configured. Configured supported=true, capture_async hands back a canned
+    // headless_screenshot_result with the staged width/height/bytes.
+    class headless_screenshot final : public i_screenshot
+    {
+    public:
+        [[nodiscard]] bool is_capture_supported() const override
+        {
+            if (!supported_.has_value())
+            {
+                headless_detail::throw_not_implemented();
+            }
+            return *supported_;
+        }
+
+        void capture_async(screenshot_callback on_complete) override
+        {
+            if (!supported_.has_value() || !*supported_)
+            {
+                headless_detail::throw_not_implemented();
+            }
+            on_complete(std::make_shared<headless_screenshot_result>(width_, height_, bytes_));
+        }
+
+        void set_is_capture_supported(bool value)
+        {
+            supported_ = value;
+        }
+        void set_result(int width, int height, std::vector<std::byte> bytes)
+        {
+            width_ = width;
+            height_ = height;
+            bytes_ = std::move(bytes);
+        }
+
+    private:
+        std::optional<bool> supported_;
+        int width_ = 0;
+        int height_ = 0;
+        std::vector<std::byte> bytes_;
     };
 } // namespace maui::media
