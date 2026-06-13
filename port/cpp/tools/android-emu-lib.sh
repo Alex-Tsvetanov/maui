@@ -104,6 +104,18 @@ maui_android_stage_file() {
   maui_staged_file="${maui_device_dir}/${maui_staged_key}-$(basename "${host_file}")"
   if ! "${maui_adb}" -s "${maui_serial}" shell "test -e '${maui_staged_file}'" > /dev/null 2>&1; then
     "${maui_adb}" -s "${maui_serial}" shell "mkdir -p '${maui_device_dir}/tmp'" > /dev/null
+    # Prune STALE builds of this same artifact before pushing the new one. Every rebuild mints a
+    # fresh key (path|mtime|size), so without this each `maui_xaml_tests` etc. accumulates a full
+    # copy on the device and /data fills up (observed: 4.3 GB of stale binaries → push fails with
+    # no space, killing test discovery). The glob is exactly the 16-hex key + "-<basename>", so it
+    # only ever matches prior builds of THIS file, never a different artifact (the "-" separator and
+    # fixed key width prevent a basename-suffix collision). The current key does not exist yet (the
+    # test above just failed), so nothing live is removed. `rm -f ... || true` keeps the no-match
+    # case (mksh leaves the unexpanded glob) from failing under `set -e`.
+    local base
+    base="$(basename "${host_file}")"
+    "${maui_adb}" -s "${maui_serial}" shell \
+      "rm -f ${maui_device_dir}/????????????????-${base} 2>/dev/null || true" > /dev/null 2>&1
     "${maui_adb}" -s "${maui_serial}" push "${host_file}" "${maui_staged_file}.tmp.$$" > /dev/null 2>&1
     "${maui_adb}" -s "${maui_serial}" shell "chmod 755 '${maui_staged_file}.tmp.$$' && mv '${maui_staged_file}.tmp.$$' '${maui_staged_file}'" > /dev/null
   fi
