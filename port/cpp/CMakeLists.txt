@@ -1209,6 +1209,7 @@ add_library(maui_essentials STATIC
   src/essentials/browser.cpp
   src/essentials/app_actions.cpp
   src/essentials/permissions.cpp
+  src/essentials/unit_converters.cpp
   ${MAUI_ESSENTIALS_PLATFORM_SOURCES}
 )
 target_include_directories(maui_essentials PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -1250,6 +1251,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/essentials/types_tests.cpp
     tests/essentials/accelerometer_queue_tests.cpp
     tests/essentials/version_tracking_tests.cpp # PURE managed - runs over fakes on every backend
+    tests/essentials/unit_converters_tests.cpp  # PURE managed - identical on every backend
     tests/essentials/essentials_apple_tests.mm
     tests/essentials/essentials_appmodel_apple_tests.mm)
   set_source_files_properties(
@@ -1261,6 +1263,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/essentials/types_tests.cpp
     tests/essentials/accelerometer_queue_tests.cpp
     tests/essentials/version_tracking_tests.cpp # PURE managed - runs over fakes on every backend
+    tests/essentials/unit_converters_tests.cpp  # PURE managed - identical on every backend
     tests/essentials/essentials_ios_tests.mm
     tests/essentials/essentials_appmodel_ios_tests.mm)
   set_source_files_properties(
@@ -1292,7 +1295,8 @@ else()
     tests/essentials/launcher_tests.cpp
     tests/essentials/browser_tests.cpp
     tests/essentials/app_actions_tests.cpp
-    tests/essentials/permissions_tests.cpp)
+    tests/essentials/permissions_tests.cpp
+    tests/essentials/unit_converters_tests.cpp)
 endif()
 target_include_directories(maui_essentials_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for src/... detail headers
 target_link_libraries(maui_essentials_tests PRIVATE
