@@ -1164,7 +1164,9 @@ set(MAUI_ESSENTIALS_FEATURES
   launcher
   browser
   app_actions
-  permissions)
+  permissions
+  # --- W2-26: essentials networking + media ---
+  connectivity)
 
 set(MAUI_ESSENTIALS_PLATFORM_SOURCES "")
 if(MAUI_BACKEND STREQUAL "apple")
@@ -1210,6 +1212,7 @@ add_library(maui_essentials STATIC
   src/essentials/app_actions.cpp
   src/essentials/permissions.cpp
   src/essentials/unit_converters.cpp
+  src/essentials/connectivity.cpp
   ${MAUI_ESSENTIALS_PLATFORM_SOURCES}
 )
 target_include_directories(maui_essentials PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -1225,7 +1228,8 @@ target_link_libraries(maui_essentials PUBLIC maui_core PRIVATE maui_sanitizers)
 if(MAUI_BACKEND STREQUAL "apple")
   target_link_libraries(maui_essentials PUBLIC
     "-framework IOKit" "-framework SystemConfiguration" "-framework CoreLocation"
-    "-framework Security") # W1-17: secure_storage keychain
+    "-framework Security" # W1-17: secure_storage keychain
+    "-framework Network") # W2-26: connectivity NWPathMonitor
 endif()
 # The iOS partials add CoreMotion (sensors), CoreLocation (compass/geolocation/geocoding),
 # AVFoundation (flashlight torch) and AudioToolbox (vibration) on top of maui_core's UIKit set;
@@ -1233,7 +1237,8 @@ endif()
 if(MAUI_BACKEND STREQUAL "ios")
   target_link_libraries(maui_essentials PUBLIC
     "-framework CoreMotion" "-framework CoreLocation" "-framework AVFoundation" "-framework AudioToolbox"
-    "-framework Security" "-framework SafariServices")
+    "-framework Security" "-framework SafariServices"
+    "-framework Network") # W2-26: connectivity NWPathMonitor
 endif()
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_essentials PROPERTIES
@@ -1296,7 +1301,8 @@ else()
     tests/essentials/browser_tests.cpp
     tests/essentials/app_actions_tests.cpp
     tests/essentials/permissions_tests.cpp
-    tests/essentials/unit_converters_tests.cpp)
+    tests/essentials/unit_converters_tests.cpp
+    tests/essentials/connectivity_tests.cpp)
 endif()
 target_include_directories(maui_essentials_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for src/... detail headers
 target_link_libraries(maui_essentials_tests PRIVATE

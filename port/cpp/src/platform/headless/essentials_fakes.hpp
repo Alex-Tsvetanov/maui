@@ -32,6 +32,7 @@
 #include "maui/essentials/barometer.hpp"
 #include "maui/essentials/battery.hpp"
 #include "maui/essentials/compass.hpp"
+#include "maui/essentials/connectivity.hpp"
 #include "maui/essentials/device_display.hpp"
 #include "maui/essentials/device_info.hpp"
 #include "maui/essentials/feature_not_supported.hpp"
@@ -50,6 +51,7 @@
 #include "src/essentials/detail/accelerometer_base.hpp"
 #include "src/essentials/detail/battery_base.hpp"
 #include "src/essentials/detail/compass_base.hpp"
+#include "src/essentials/detail/connectivity_base.hpp"
 #include "src/essentials/detail/device_display_base.hpp"
 #include "src/essentials/detail/geolocation_base.hpp"
 #include "src/essentials/detail/sensor_base.hpp"
@@ -745,3 +747,64 @@ namespace maui::devices::sensors
         std::optional<std::string> last_address_;
     };
 } // namespace maui::devices::sensors
+
+namespace maui::networking
+{
+    namespace headless_detail = maui::devices::headless_detail;
+
+    // ConnectivityImplementation (netstandard): NetworkAccess, ConnectionProfiles, and the
+    // listener start hidden behind the ConnectivityChanged add all throw - until configured. Once
+    // the access/profiles are staged, the shared dedupe + listener lifecycle (connectivity_base)
+    // runs for real, and simulate_connectivity_changed() drives the platform-callback raise path.
+    class headless_connectivity final : public detail::connectivity_base
+    {
+    public:
+        [[nodiscard]] enum network_access network_access() const override
+        {
+            return headless_detail::require(network_access_);
+        }
+        [[nodiscard]] std::vector<connection_profile> connection_profiles() const override
+        {
+            return headless_detail::require(connection_profiles_);
+        }
+
+        void set_network_access(enum network_access value)
+        {
+            network_access_ = value;
+        }
+        void set_connection_profiles(std::vector<connection_profile> value)
+        {
+            connection_profiles_ = std::move(value);
+        }
+
+        // A connectivity change arriving from the platform (the path monitor callback's role).
+        void simulate_connectivity_changed()
+        {
+            on_connectivity_changed();
+        }
+
+        [[nodiscard]] bool is_listening() const
+        {
+            return listening_;
+        }
+
+    protected:
+        void platform_start_listeners() override
+        {
+            if (!network_access_.has_value() && !connection_profiles_.has_value())
+            {
+                headless_detail::throw_not_implemented(); // netstandard StartListeners
+            }
+            listening_ = true;
+        }
+        void platform_stop_listeners() override
+        {
+            listening_ = false;
+        }
+
+    private:
+        std::optional<enum network_access> network_access_;
+        std::optional<std::vector<connection_profile>> connection_profiles_;
+        bool listening_ = false;
+    };
+} // namespace maui::networking
