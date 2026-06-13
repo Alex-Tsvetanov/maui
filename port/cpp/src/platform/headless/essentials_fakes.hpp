@@ -46,6 +46,7 @@
 #include "maui/essentials/orientation_sensor.hpp"
 #include "maui/essentials/placemark.hpp"
 #include "maui/essentials/sensor_types.hpp"
+#include "maui/essentials/text_to_speech.hpp"
 #include "maui/essentials/vibration.hpp"
 
 #include "src/essentials/detail/accelerometer_base.hpp"
@@ -55,6 +56,7 @@
 #include "src/essentials/detail/device_display_base.hpp"
 #include "src/essentials/detail/geolocation_base.hpp"
 #include "src/essentials/detail/sensor_base.hpp"
+#include "src/essentials/detail/text_to_speech_base.hpp"
 #include "src/essentials/detail/vibration_base.hpp"
 
 namespace maui::devices
@@ -808,3 +810,59 @@ namespace maui::networking
         bool listening_ = false;
     };
 } // namespace maui::networking
+
+namespace maui::media
+{
+    namespace headless_detail = maui::devices::headless_detail;
+
+    // TextToSpeechImplementation (netstandard): PlatformGetLocalesAsync and PlatformSpeakAsync both
+    // throw - until configured. Configured, get_locales hands back the staged locale list and
+    // speak records each spoken (text, options) pair then completes inline (the headless analog of
+    // the engine finishing the utterance); a cancelled token still records + completes (mirroring
+    // the platforms' TryCancel, which also resolves the task). The shared validation in
+    // text_to_speech_base runs for real either way.
+    class headless_text_to_speech final : public detail::text_to_speech_base
+    {
+    public:
+        struct spoken
+        {
+            std::string text;
+            std::optional<speech_options> options;
+            bool cancelled = false;
+        };
+
+        void set_locales(std::vector<locale> value)
+        {
+            locales_ = std::move(value);
+        }
+
+        [[nodiscard]] const std::vector<spoken>& spoken_utterances() const
+        {
+            return spoken_;
+        }
+
+    protected:
+        void platform_get_locales_async(locales_callback on_complete) override
+        {
+            on_complete(headless_detail::require(locales_));
+        }
+
+        void platform_speak_async(std::string_view text, const std::optional<speech_options>& options,
+                                  maui::core::cancellation_token token, speak_callback on_complete) override
+        {
+            if (!locales_.has_value())
+            {
+                headless_detail::throw_not_implemented(); // netstandard PlatformSpeakAsync
+            }
+            spoken_.push_back(spoken{std::string(text), options, token.is_cancelled()});
+            if (on_complete)
+            {
+                on_complete();
+            }
+        }
+
+    private:
+        std::optional<std::vector<locale>> locales_;
+        std::vector<spoken> spoken_;
+    };
+} // namespace maui::media
