@@ -651,6 +651,20 @@ elseif(MAUI_BACKEND STREQUAL "ios")
 else()
   set(MAUI_CONTROLS_TABLE_PLATFORM_SOURCES src/platform/headless/table_view_handler.cpp)
 endif()
+# (W3-32) the native shell chrome handler's per-backend partial: the cross-platform mapper + model→tree
+# rebuild lives in src/core/shell_handler.cpp (compiled into maui_controls below); each backend's recipe
+# (create the container + realize_tree() materializing the VC hierarchy from the tree) lives here. It is
+# in maui_controls (not maui_core) because it consumes the controls-layer shell model — exactly like the
+# items handler above, and like C# (Controls.Handlers / Controls.Compatibility own the Shell renderers).
+if(MAUI_BACKEND STREQUAL "apple")
+  set(MAUI_CONTROLS_SHELL_PLATFORM_SOURCES src/platform/apple/shell_handler.mm)
+  set_source_files_properties(${MAUI_CONTROLS_SHELL_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+elseif(MAUI_BACKEND STREQUAL "ios")
+  set(MAUI_CONTROLS_SHELL_PLATFORM_SOURCES src/platform/ios/shell_handler.mm)
+  set_source_files_properties(${MAUI_CONTROLS_SHELL_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+else()
+  set(MAUI_CONTROLS_SHELL_PLATFORM_SOURCES src/platform/headless/shell_handler.cpp)
+endif()
 
 add_library(maui_controls STATIC
   src/controls/element.cpp
@@ -805,6 +819,10 @@ add_library(maui_controls STATIC
   src/controls/shell/shell_uri_handler.cpp
   src/controls/shell/shell_navigation_manager.cpp
   src/controls/shell/shell.cpp
+  # (W3-32) the native shell chrome handler (cross-platform mapper KEYS + the model→render-tree rebuild);
+  # the per-backend platform recipe is in src/platform/<backend>/shell_handler.{cpp,mm} (selected above).
+  src/core/shell_handler.cpp
+  ${MAUI_CONTROLS_SHELL_PLATFORM_SOURCES}
   # (W1-14 animations) the Controls-layer animation surface: Controls.Animation + the
   # AnimationExtensions pump (+ the internal tweener/per-element registry) + ViewExtensions.
   src/controls/animation.cpp
@@ -867,6 +885,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/navigation_page_apple_tests.mm
     tests/controls/tabbed_page_apple_tests.mm # (W1-10) the real NSTabViewController seam
     tests/controls/flyout_page_apple_tests.mm # (W1-10) the real NSSplitViewController seam
+    # (W3-32) the shell chrome: the real NSSplitViewController sidebar + NSTabView seam + route→tab e2e.
+    tests/controls/shell_handler_apple_tests.mm
     tests/controls/tabbed_page_tests.cpp # (W1-10) the MultiPage/TabbedPage control suite + the mirrors
     tests/controls/flyout_page_tests.cpp # (W1-10) the FlyoutPage control suite + the mirrors
     tests/controls/web_view_apple_tests.mm # (W1-08) the real WKWebView seam, run-loop pumped
@@ -963,6 +983,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/navigation_page_apple_tests.mm
     tests/controls/tabbed_page_apple_tests.mm
     tests/controls/flyout_page_apple_tests.mm
+    tests/controls/shell_handler_apple_tests.mm # (W3-32)
     tests/controls/web_view_apple_tests.mm
     tests/controls/window_apple_tests.mm
     tests/controls/chrome_apple_tests.mm # (W1-11)
@@ -1015,6 +1036,9 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/hybrid_web_view_ios_tests.mm # (G5) the real JS↔native bridge round trip on-simulator
     tests/controls/tabbed_page_ios_tests.mm # (W1-10) the real UITabBarController child-VC seam
     tests/controls/flyout_page_ios_tests.mm # (W1-10) the real UISplitViewController column seam
+    # (W3-32) the shell chrome: the real container split + UITabBarController + per-section
+    # UINavigationController seam, with the route→VC-stack e2e (the on-simulator gate).
+    tests/controls/shell_handler_ios_tests.mm
     tests/controls/chrome_ios_tests.mm # (W1-11) real bar buttons + UIContextMenuInteraction attach + inert mirrors
     # (W3-29 items) the REAL UICollectionView native virtualization (Items2 compositional path): cell
     # reuse under programmatic scroll, selection single/multi, grouping supplementaries, reorder,
@@ -1177,7 +1201,9 @@ else()
     # the library sources still compile through on apple/ios.
     tests/controls/shell_tests.cpp
     tests/controls/shell_uri_handler_tests.cpp
-    tests/controls/shell_navigating_tests.cpp)
+    tests/controls/shell_navigating_tests.cpp
+    # (W3-32) the native shell chrome handler — headless structure mapping + route→render-tree e2e.
+    tests/controls/shell_handler_tests.cpp)
 endif()
 target_include_directories(maui_controls_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for tests/layouts/*.hpp
 # The apple .mm tests share the backend's text/visual op headers (apple_text_ops.hpp etc.), which live
