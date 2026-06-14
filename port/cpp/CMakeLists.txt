@@ -741,6 +741,22 @@ add_library(maui_controls STATIC
   src/controls/shapes/geometry_helper.cpp
   src/controls/shapes/path_geometry.cpp
   src/controls/shapes/path_markup_parser.cpp
+  # (W2-21) the shell model + routing (HEADLESS-ONLY — the native shell chrome is a later wave)
+  src/controls/shell/shell_uri.cpp
+  src/controls/shell/shell_route_parameters.cpp
+  src/controls/shell/routing.cpp
+  src/controls/shell/base_shell_item.cpp
+  src/controls/shell/shell_group_item.cpp
+  src/controls/shell/shell_content.cpp
+  src/controls/shell/shell_section.cpp
+  src/controls/shell/shell_item.cpp
+  src/controls/shell/shell_navigation_state.cpp
+  src/controls/shell/shell_navigating_event_args.cpp
+  src/controls/shell/route_request_builder.cpp
+  src/controls/shell/request_definition.cpp
+  src/controls/shell/shell_uri_handler.cpp
+  src/controls/shell/shell_navigation_manager.cpp
+  src/controls/shell/shell.cpp
   # (W1-14 animations) the Controls-layer animation surface: Controls.Animation + the
   # AnimationExtensions pump (+ the internal tweener/per-element registry) + ViewExtensions.
   src/controls/animation.cpp
@@ -1076,7 +1092,12 @@ else()
     tests/controls/relative_source_binding_tests.cpp
     tests/controls/window_handler_tests.cpp # the window_handler seam over the headless mirror
     tests/core/image_source_tests.cpp     # loader cache TTL + the typed service-provider
-    tests/core/font_image_source_tests.cpp)
+    tests/core/font_image_source_tests.cpp
+    # (W2-21) shell model + routing — HEADLESS-ONLY this unit (the native chrome is a later wave);
+    # the library sources still compile through on apple/ios.
+    tests/controls/shell_tests.cpp
+    tests/controls/shell_uri_handler_tests.cpp
+    tests/controls/shell_navigating_tests.cpp)
 endif()
 target_include_directories(maui_controls_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for tests/layouts/*.hpp
 # The apple .mm tests share the backend's text/visual op headers (apple_text_ops.hpp etc.), which live
