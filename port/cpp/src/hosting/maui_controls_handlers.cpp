@@ -12,6 +12,8 @@
 #include "maui/controls/grid.hpp"
 #include "maui/controls/horizontal_stack_layout.hpp"
 #include "maui/controls/image.hpp"
+#include "maui/controls/items/collection_view.hpp"
+#include "maui/controls/items/collection_view_handler.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/navigation_page.hpp"
 #include "maui/controls/tabbed_page.hpp"
@@ -47,6 +49,9 @@ namespace maui::hosting
         handlers.add_handler<maui::controls::tabbed_page, maui::core::tabbed_page_handler>();
         handlers.add_handler<maui::controls::flyout_page, maui::core::flyout_page_handler>();
         handlers.add_handler<maui::controls::window, maui::core::window_handler>();
+        // (W2-19 items core) the collection view over the controls-layer handler (the C# pair
+        // CollectionView ↔ CollectionViewHandler in AddControlsHandlers).
+        handlers.add_handler<maui::controls::collection_view, maui::controls::collection_view_handler>();
         return handlers;
     }
 } // namespace maui::hosting
