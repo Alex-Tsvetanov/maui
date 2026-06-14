@@ -242,6 +242,10 @@ if(MAUI_BACKEND STREQUAL "apple")
     # (W1-07 containers) the NSView border host (CAShapeLayer stroke via apple_border_ops.hpp) and the
     # NSScrollView scroller (content_view reuses the content_page partial).
     src/platform/apple/border_handler.mm
+    # (W2-23 shapes) the shared NSView drawing host + the graphics/shape handlers over it.
+    src/platform/apple/graphics_host.mm
+    src/platform/apple/graphics_view_handler.mm
+    src/platform/apple/shape_view_handler.mm
     src/platform/apple/scroll_view_handler.mm
     # (W2-20 swipe + refresh) the NSView swipe host (pan-driven reveal, documented AppKit deviation) and
     # the refresh host (AppKit has no native pull — IsRefreshing drives a spinner-overlay flag).
@@ -298,6 +302,10 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     # (W1-07 containers) the UIView border host (CAShapeLayer stroke via ios_border_ops.hpp) and the
     # UIScrollView scroller (content_view reuses the content_page partial).
     src/platform/ios/border_handler.mm
+    # (W2-23 shapes) the shared UIView drawing host + the graphics/shape handlers over it.
+    src/platform/ios/graphics_host.mm
+    src/platform/ios/graphics_view_handler.mm
+    src/platform/ios/shape_view_handler.mm
     src/platform/ios/scroll_view_handler.mm
     # (W2-20 swipe + refresh) the UIView swipe host (pan-driven reveal) + the UIRefreshControl host.
     src/platform/ios/swipe_view_handler.mm
@@ -453,6 +461,9 @@ if(MAUI_BACKEND STREQUAL "apple")
   # WebKit carries the WKWebView the (W1-08) web_view handler drives.
   target_link_libraries(maui_core PUBLIC "-framework Cocoa" "-framework QuartzCore" "-framework WebKit")
   target_compile_definitions(maui_core PUBLIC MAUI_PLATFORM_APPLE)
+  # (W2-23) the drawing host renders through the shared CoreGraphics canvas, whose header lives
+  # beside its .mm (the maui_graphics apple_shared convention).
+  target_include_directories(maui_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/apple_shared)
 endif()
 # The iOS twin of the apple block: UIKit instead of Cocoa (QuartzCore again for the layer C functions),
 # plus Foundation/CoreFoundation/libobjc explicitly — unlike macOS's Cocoa umbrella, iOS's UIKit does
@@ -470,6 +481,8 @@ if(MAUI_BACKEND STREQUAL "ios")
     "-framework UIKit" "-framework QuartzCore" "-framework Foundation" "-framework CoreFoundation"
     "-framework ImageIO" "-framework CoreGraphics" "-framework WebKit" objc)
   target_compile_definitions(maui_core PUBLIC MAUI_PLATFORM_IOS)
+  # (W2-23) the drawing host renders through the shared CoreGraphics canvas (see the apple block).
+  target_include_directories(maui_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/apple_shared)
 endif()
 # The android twin of the two blocks above: MAUI_PLATFORM_ANDROID (PUBLIC, the same ODR rule)
 # selects the android update_* override blocks in the shared platform structs for every TU of the
@@ -777,6 +790,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/grid_apple_tests.mm
     tests/controls/content_page_apple_tests.mm
     tests/controls/border_apple_tests.mm      # (W1-07 containers)
+    tests/controls/graphics_view_apple_tests.mm # (W2-23) the NSView drawing host + CG readback
+    tests/controls/shape_view_apple_tests.mm    # (W2-23) the shape host CG readback
     tests/controls/scroll_view_apple_tests.mm # (W1-07 containers)
     # (W2-20 swipe + refresh) the backend-agnostic control + state-machine suites + the apple seam.
     tests/controls/swipe_view_tests.cpp
@@ -866,6 +881,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/grid_apple_tests.mm
     tests/controls/content_page_apple_tests.mm
     tests/controls/border_apple_tests.mm
+    tests/controls/graphics_view_apple_tests.mm
+    tests/controls/shape_view_apple_tests.mm
     tests/controls/scroll_view_apple_tests.mm
     tests/controls/navigation_page_apple_tests.mm
     tests/controls/tabbed_page_apple_tests.mm
@@ -911,6 +928,8 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/grid_ios_tests.mm
     tests/controls/content_page_ios_tests.mm
     tests/controls/border_ios_tests.mm      # (W1-07 containers)
+    tests/controls/graphics_view_ios_tests.mm # (W2-23) the UIView drawing host + CG readback
+    tests/controls/shape_view_ios_tests.mm    # (W2-23) the shape host CG readback
     tests/controls/scroll_view_ios_tests.mm # (W1-07 containers)
     tests/controls/swipe_refresh_ios_tests.mm # (W2-20) the UIKit seam (UIRefreshControl + the swipe host)
     tests/controls/navigation_page_ios_tests.mm
