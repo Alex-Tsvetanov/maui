@@ -243,6 +243,10 @@ if(MAUI_BACKEND STREQUAL "apple")
     # NSScrollView scroller (content_view reuses the content_page partial).
     src/platform/apple/border_handler.mm
     src/platform/apple/scroll_view_handler.mm
+    # (W2-20 swipe + refresh) the NSView swipe host (pan-driven reveal, documented AppKit deviation) and
+    # the refresh host (AppKit has no native pull — IsRefreshing drives a spinner-overlay flag).
+    src/platform/apple/swipe_view_handler.mm
+    src/platform/apple/refresh_view_handler.mm
     src/platform/apple/navigation_page_handler.mm
     # (W1-10 tabbed + flyout pages) NSTabViewController / NSSplitViewController hosts.
     src/platform/apple/tabbed_page_handler.mm
@@ -295,6 +299,9 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     # UIScrollView scroller (content_view reuses the content_page partial).
     src/platform/ios/border_handler.mm
     src/platform/ios/scroll_view_handler.mm
+    # (W2-20 swipe + refresh) the UIView swipe host (pan-driven reveal) + the UIRefreshControl host.
+    src/platform/ios/swipe_view_handler.mm
+    src/platform/ios/refresh_view_handler.mm
     src/platform/ios/navigation_page_handler.mm
     # (W1-10 tabbed + flyout pages) UITabBarController / UISplitViewController child-VC hosts.
     src/platform/ios/tabbed_page_handler.mm
@@ -338,6 +345,9 @@ else()
     src/platform/headless/content_page_handler.cpp
     src/platform/headless/border_handler.cpp
     src/platform/headless/scroll_view_handler.cpp
+    # (W2-20 swipe + refresh) the swipe state machine (synthetic-offset driven) + the refresh pull mirror.
+    src/platform/headless/swipe_view_handler.cpp
+    src/platform/headless/refresh_view_handler.cpp
     src/platform/headless/navigation_page_handler.cpp
     # (W1-10 tabbed + flyout pages) the tab-host + two-pane mirrors.
     src/platform/headless/tabbed_page_handler.cpp
@@ -401,6 +411,10 @@ add_library(maui_core STATIC
   src/core/content_page_handler.cpp
   src/core/border_handler.cpp # (W1-07 containers)
   src/core/scroll_view_handler.cpp
+  # (W2-20 swipe + refresh) the cross-platform mapper/command tables + the shared swipe state machine.
+  src/core/swipe_view_handler.cpp
+  src/core/swipe_view_machine.cpp
+  src/core/refresh_view_handler.cpp
   src/core/navigation_page_handler.cpp
   # (W1-10 tabbed + flyout pages) the cross-platform mapper tables.
   src/core/tabbed_page_handler.cpp
@@ -635,6 +649,12 @@ add_library(maui_controls STATIC
   src/controls/border.cpp
   src/controls/frame.cpp
   src/controls/scroll_view.cpp
+  # (W2-20 swipe + refresh) the swipe item family + the two content-host controls.
+  src/controls/swipe_item.cpp
+  src/controls/swipe_items.cpp
+  src/controls/swipe_item_view.cpp
+  src/controls/swipe_view.cpp
+  src/controls/refresh_view.cpp
   src/controls/navigation_page.cpp
   # (W1-10 tabbed + flyout pages) multi_page<TPage> is header-only; these are the concrete pages.
   src/controls/tabbed_page.cpp
@@ -708,6 +728,11 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/content_page_apple_tests.mm
     tests/controls/border_apple_tests.mm      # (W1-07 containers)
     tests/controls/scroll_view_apple_tests.mm # (W1-07 containers)
+    # (W2-20 swipe + refresh) the backend-agnostic control + state-machine suites + the apple seam.
+    tests/controls/swipe_view_tests.cpp
+    tests/controls/refresh_view_tests.cpp
+    tests/controls/swipe_refresh_page_tests.cpp
+    tests/controls/swipe_refresh_apple_tests.mm
     tests/controls/navigation_page_apple_tests.mm
     tests/controls/tabbed_page_apple_tests.mm # (W1-10) the real NSTabViewController seam
     tests/controls/flyout_page_apple_tests.mm # (W1-10) the real NSSplitViewController seam
@@ -827,6 +852,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/content_page_ios_tests.mm
     tests/controls/border_ios_tests.mm      # (W1-07 containers)
     tests/controls/scroll_view_ios_tests.mm # (W1-07 containers)
+    tests/controls/swipe_refresh_ios_tests.mm # (W2-20) the UIKit seam (UIRefreshControl + the swipe host)
     tests/controls/navigation_page_ios_tests.mm
     tests/controls/web_view_ios_tests.mm # (W1-08) the real WKWebView seam, run-loop pumped on-simulator
     tests/controls/tabbed_page_ios_tests.mm # (W1-10) the real UITabBarController child-VC seam
@@ -836,6 +862,10 @@ elseif(MAUI_BACKEND STREQUAL "ios")
   add_executable(maui_controls_tests
     ${MAUI_IOS_TEST_MM_SOURCES}
     tests/controls/formatted_text_tests.cpp # G1: span/formatted_string/label.formatted_text (backend-agnostic)
+    # (W2-20 swipe + refresh) the backend-agnostic control + state-machine suites + the demo page.
+    tests/controls/swipe_view_tests.cpp
+    tests/controls/refresh_view_tests.cpp
+    tests/controls/swipe_refresh_page_tests.cpp
     tests/controls/tabbed_page_tests.cpp # (W1-10) the MultiPage/TabbedPage control suite + the mirrors
     tests/controls/flyout_page_tests.cpp # (W1-10) the FlyoutPage control suite + the mirrors
     # (W1-11 chrome/menus) the backend-agnostic chrome suites.
@@ -908,6 +938,10 @@ else()
     tests/controls/border_tests.cpp
     tests/controls/frame_tests.cpp
     tests/controls/scroll_view_tests.cpp
+    # (W2-20 swipe + refresh) the control behavior + the swipe state-machine seam + the demo page wiring.
+    tests/controls/swipe_view_tests.cpp
+    tests/controls/refresh_view_tests.cpp
+    tests/controls/swipe_refresh_page_tests.cpp
     tests/controls/navigation_page_tests.cpp
     tests/controls/tabbed_page_tests.cpp # (W1-10) MultiPageTests + TabbedPageTests + the seam mirrors
     tests/controls/flyout_page_tests.cpp # (W1-10) FlyoutPageUnitTests + the seam mirrors
