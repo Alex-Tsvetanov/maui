@@ -3,8 +3,10 @@
 // argument guards (empty text, out-of-range volume/pitch/rate), the recorded utterances, the
 // locale query, and the cancellation-completes contract.
 
+#include <atomic>
 #include <memory>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -70,7 +72,7 @@ namespace
     TEST_F(text_to_speech_test, configured_fake_records_utterance)
     {
         auto fake = std::make_shared<headless_text_to_speech>();
-        fake->set_locales({locale{"en", "", "English", "en-US"}});
+        fake->set_locales({locale{.language = "en", .country = "", .name = "English", .id = "en-US"}});
         text_to_speech::set_default(fake);
 
         bool completed = false;
@@ -84,7 +86,8 @@ namespace
     TEST_F(text_to_speech_test, get_locales_returns_staged)
     {
         auto fake = std::make_shared<headless_text_to_speech>();
-        fake->set_locales({locale{"en", "", "English", "en-US"}, locale{"fr", "", "French", "fr-FR"}});
+        fake->set_locales({locale{.language = "en", .country = "", .name = "English", .id = "en-US"},
+                           locale{.language = "fr", .country = "", .name = "French", .id = "fr-FR"}});
         text_to_speech::set_default(fake);
 
         std::vector<locale> got;
@@ -129,7 +132,7 @@ namespace
         text_to_speech::set_default(fake);
 
         auto flag = std::make_shared<std::atomic<bool>>(true);
-        maui::core::cancellation_token token(flag);
+        const maui::core::cancellation_token token(flag);
 
         bool completed = false;
         text_to_speech::speak_async("hello", {}, token, [&] { completed = true; });

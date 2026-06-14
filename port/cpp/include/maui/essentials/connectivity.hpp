@@ -86,7 +86,8 @@ namespace maui::networking
         [[nodiscard]] std::shared_ptr<i_connectivity> make_connectivity();
 
         // Connectivity.ConnectionProfiles applies .Distinct() (order-preserving, first occurrence).
-        [[nodiscard]] std::vector<connection_profile> distinct_profiles(std::vector<connection_profile> profiles);
+        [[nodiscard]] std::vector<connection_profile> distinct_profiles(
+            const std::vector<connection_profile>& profiles);
     } // namespace detail
 
     // The static facade over connectivity::current() (C# Connectivity.Current).

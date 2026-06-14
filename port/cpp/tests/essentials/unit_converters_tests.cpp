@@ -4,8 +4,8 @@
 // operands to N decimal places before comparing, so the port mirrors that with a round-to-N helper
 // rather than a relative tolerance.
 
+#include <array>
 #include <cmath>
-#include <tuple>
 
 #include <gtest/gtest.h>
 
@@ -388,16 +388,16 @@ namespace
         double distance_km;
     };
 
-    const coords_row kCoordRows[] = {
-        {55.85781, -4.24253, 51.509865, -0.118092, 554.3128},    // glasgow -> london
-        {36.12, -86.67, 33.94, -118.40, 2886.4444},              // nashville -> los angeles
-        {51.509865, -0.118092, -33.92528, 18.42389, 9671.1251},  // london -> cape town
-        {51.509865, -0.118092, 40.42028, -3.70577, 1263.4938},   // london -> madrid
-        {42.93708, -75.6107, -33.92528, 18.42389, 12789.5628},   // new york -> cape town
-        {45.80721, 15.96757, 19.432608, -99.133209, 10264.4796}, // zagreb -> mexico city
-        {43.623409, -79.368683, 42.35866, -71.05674, 690.2032},  // toronto -> boston
-        {37.720134, -122.182552, 37.720266, -122.181969, .0533},
-    };
+    constexpr auto kCoordRows = std::to_array<coords_row>({
+        {.lat1 = 55.85781, .lon1 = -4.24253, .lat2 = 51.509865, .lon2 = -0.118092, .distance_km = 554.3128},
+        {.lat1 = 36.12, .lon1 = -86.67, .lat2 = 33.94, .lon2 = -118.40, .distance_km = 2886.4444},
+        {.lat1 = 51.509865, .lon1 = -0.118092, .lat2 = -33.92528, .lon2 = 18.42389, .distance_km = 9671.1251},
+        {.lat1 = 51.509865, .lon1 = -0.118092, .lat2 = 40.42028, .lon2 = -3.70577, .distance_km = 1263.4938},
+        {.lat1 = 42.93708, .lon1 = -75.6107, .lat2 = -33.92528, .lon2 = 18.42389, .distance_km = 12789.5628},
+        {.lat1 = 45.80721, .lon1 = 15.96757, .lat2 = 19.432608, .lon2 = -99.133209, .distance_km = 10264.4796},
+        {.lat1 = 43.623409, .lon1 = -79.368683, .lat2 = 42.35866, .lon2 = -71.05674, .distance_km = 690.2032},
+        {.lat1 = 37.720134, .lon1 = -122.182552, .lat2 = 37.720266, .lon2 = -122.181969, .distance_km = .0533},
+    });
 
     class coordinates_to_km : public ::testing::TestWithParam<coords_row>
     {

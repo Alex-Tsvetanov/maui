@@ -53,9 +53,10 @@ namespace
         std::optional<file_result> result;
         media_picker::pick_photo_async([&](const std::optional<file_result>& r) { result = r; });
         ASSERT_TRUE(result.has_value());
-        EXPECT_EQ(result->full_path(), "/tmp/photo.png");
-        EXPECT_EQ(result->file_name(), "photo.png");
-        EXPECT_EQ(result->content_type(), "image/png");
+        const file_result picked = result.value_or(file_result{});
+        EXPECT_EQ(picked.full_path(), "/tmp/photo.png");
+        EXPECT_EQ(picked.file_name(), "photo.png");
+        EXPECT_EQ(picked.content_type(), "image/png");
         EXPECT_EQ(fake->last_kind(), headless_media_picker::kind::pick_photo);
     }
 
@@ -84,8 +85,9 @@ namespace
         ASSERT_EQ(results.size(), 2U);
         EXPECT_EQ(results[0].content_type(), "image/jpeg");
         EXPECT_EQ(results[1].content_type(), "video/quicktime");
-        ASSERT_TRUE(fake->last_options().has_value());
-        EXPECT_EQ(fake->last_options()->selection_limit, 0);
+        const std::optional<media_picker_options> recorded = fake->last_options();
+        ASSERT_TRUE(recorded.has_value());
+        EXPECT_EQ(recorded.value_or(media_picker_options{}).selection_limit, 0);
     }
 
     TEST_F(media_picker_test, capture_gated_on_is_capture_supported)

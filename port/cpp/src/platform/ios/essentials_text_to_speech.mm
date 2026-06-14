@@ -98,8 +98,10 @@ namespace maui::media
             void platform_get_locales_async(locales_callback on_complete) override
             {
                 std::vector<locale> locales;
-                for (AVSpeechSynthesisVoice* const voice in [AVSpeechSynthesisVoice speechVoices])
+                NSArray<AVSpeechSynthesisVoice*>* const voices = [AVSpeechSynthesisVoice speechVoices];
+                for (NSUInteger i = 0; i < voices.count; ++i)
                 {
+                    AVSpeechSynthesisVoice* const voice = voices[i];
                     locale result;
                     result.language = to_std_string(voice.language);
                     result.name = to_std_string(voice.name);

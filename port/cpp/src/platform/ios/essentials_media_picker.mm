@@ -34,23 +34,28 @@ namespace maui::media
                 return [UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera] == YES;
             }
 
-            void pick_photo_async(const media_picker_options&, file_result_callback) override
+            void pick_photo_async(const media_picker_options& /*options*/,
+                                  file_result_callback /*on_complete*/) override
             {
                 service_seam_unavailable();
             }
-            void pick_video_async(const media_picker_options&, file_result_callback) override
+            void pick_video_async(const media_picker_options& /*options*/,
+                                  file_result_callback /*on_complete*/) override
             {
                 service_seam_unavailable();
             }
-            void pick_photos_async(const media_picker_options&, file_results_callback) override
+            void pick_photos_async(const media_picker_options& /*options*/,
+                                   file_results_callback /*on_complete*/) override
             {
                 service_seam_unavailable();
             }
-            void pick_videos_async(const media_picker_options&, file_results_callback) override
+            void pick_videos_async(const media_picker_options& /*options*/,
+                                   file_results_callback /*on_complete*/) override
             {
                 service_seam_unavailable();
             }
-            void capture_photo_async(const media_picker_options&, file_result_callback) override
+            void capture_photo_async(const media_picker_options& /*options*/,
+                                     file_result_callback /*on_complete*/) override
             {
                 if (!is_capture_supported())
                 {
@@ -58,7 +63,8 @@ namespace maui::media
                 }
                 service_seam_unavailable();
             }
-            void capture_video_async(const media_picker_options&, file_result_callback) override
+            void capture_video_async(const media_picker_options& /*options*/,
+                                     file_result_callback /*on_complete*/) override
             {
                 if (!is_capture_supported())
                 {

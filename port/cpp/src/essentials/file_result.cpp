@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <fstream>
 #include <ios>
+#include <iterator>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -21,8 +22,8 @@ namespace maui::storage
         std::string content_type_from_extension(std::string_view extension)
         {
             std::string ext(extension);
-            std::transform(ext.begin(), ext.end(), ext.begin(),
-                           [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+            std::ranges::transform(ext, ext.begin(),
+                                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
             // The common image/video MIME types FileSystem.PlatformGetContentType resolves.
             if (ext == "png")
@@ -103,11 +104,12 @@ namespace maui::storage
         std::vector<std::byte> bytes;
         if (stream)
         {
-            char buffer[4096];
-            while (stream.read(buffer, sizeof(buffer)) || stream.gcount() > 0)
+            // Read the whole file via the streambuf char iterators, then widen each char to a byte.
+            const std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+            bytes.reserve(contents.size());
+            for (const char c : contents)
             {
-                const auto* const start = reinterpret_cast<const std::byte*>(buffer);
-                bytes.insert(bytes.end(), start, start + stream.gcount());
+                bytes.push_back(static_cast<std::byte>(static_cast<unsigned char>(c)));
             }
         }
         on_complete(bytes);

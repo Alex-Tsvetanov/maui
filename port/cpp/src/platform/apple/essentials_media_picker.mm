@@ -29,28 +29,34 @@ namespace maui::media
                 return false; // MediaPicker.macos.cs
             }
 
-            void pick_photo_async(const media_picker_options&, file_result_callback) override
+            void pick_photo_async(const media_picker_options& /*options*/,
+                                  file_result_callback /*on_complete*/) override
             {
                 service_seam_unavailable();
             }
-            void pick_video_async(const media_picker_options&, file_result_callback) override
+            void pick_video_async(const media_picker_options& /*options*/,
+                                  file_result_callback /*on_complete*/) override
             {
                 service_seam_unavailable();
             }
-            void pick_photos_async(const media_picker_options&, file_results_callback) override
+            void pick_photos_async(const media_picker_options& /*options*/,
+                                   file_results_callback /*on_complete*/) override
             {
                 service_seam_unavailable();
             }
-            void pick_videos_async(const media_picker_options&, file_results_callback) override
+            void pick_videos_async(const media_picker_options& /*options*/,
+                                   file_results_callback /*on_complete*/) override
             {
                 service_seam_unavailable();
             }
-            void capture_photo_async(const media_picker_options&, file_result_callback) override
+            void capture_photo_async(const media_picker_options& /*options*/,
+                                     file_result_callback /*on_complete*/) override
             {
                 // macOS: IsCaptureSupported is false, so capture is never supported.
                 throw maui::application_model::feature_not_supported();
             }
-            void capture_video_async(const media_picker_options&, file_result_callback) override
+            void capture_video_async(const media_picker_options& /*options*/,
+                                     file_result_callback /*on_complete*/) override
             {
                 throw maui::application_model::feature_not_supported();
             }

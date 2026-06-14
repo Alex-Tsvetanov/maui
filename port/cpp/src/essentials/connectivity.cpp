@@ -23,7 +23,7 @@ namespace maui::networking
 
     namespace detail
     {
-        std::vector<connection_profile> distinct_profiles(std::vector<connection_profile> profiles)
+        std::vector<connection_profile> distinct_profiles(const std::vector<connection_profile>& profiles)
         {
             // LINQ Distinct(): preserve order, drop later duplicates. The set is tiny (<= 5 enum
             // values), so a linear membership scan is cheaper than a hash set.

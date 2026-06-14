@@ -24,7 +24,7 @@ namespace maui::media
         const double d_lat2 = std::sin(d_lat / 2) * std::sin(d_lat / 2);
         const double d_lon2 = std::sin(d_lon / 2) * std::sin(d_lon / 2);
 
-        const double a = d_lat2 + d_lon2 * std::cos(lat1) * std::cos(lat2);
+        const double a = d_lat2 + (d_lon2 * std::cos(lat1) * std::cos(lat2));
         const double c = 2 * std::asin(std::sqrt(a));
 
         return mean_earth_radius_in_kilometers * c;

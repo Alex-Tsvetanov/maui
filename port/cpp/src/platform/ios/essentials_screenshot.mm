@@ -38,19 +38,22 @@ namespace maui::media
         // WindowStateManager.GetCurrentUIWindow analog: the key window of a foreground-active scene.
         UIWindow* current_key_window()
         {
-            for (UIScene* const scene in UIApplication.sharedApplication.connectedScenes)
+            NSArray<UIScene*>* const scenes = [UIApplication.sharedApplication.connectedScenes allObjects];
+            for (NSUInteger s = 0; s < scenes.count; ++s)
             {
+                UIScene* const scene = scenes[s];
                 if (scene.activationState != UISceneActivationStateForegroundActive ||
                     ![scene isKindOfClass:[UIWindowScene class]])
                 {
                     continue;
                 }
                 auto* const window_scene = static_cast<UIWindowScene*>(scene);
-                for (UIWindow* const window in window_scene.windows)
+                NSArray<UIWindow*>* const windows = window_scene.windows;
+                for (NSUInteger w = 0; w < windows.count; ++w)
                 {
-                    if (window.isKeyWindow)
+                    if (windows[w].isKeyWindow)
                     {
-                        return window;
+                        return windows[w];
                     }
                 }
             }
