@@ -510,26 +510,35 @@ namespace
             std::string_view name;
             std::string_view lower;
             std::string_view qualified;
-            const easing& expected;
+            const easing& (*expected)();
         };
-        const std::array<easing_case, 11> cases{{
-            {"Linear", "linear", "Easing.Linear", easing::linear()},
-            {"SinOut", "sinout", "Easing.SinOut", easing::sin_out()},
-            {"SinIn", "sinin", "Easing.SinIn", easing::sin_in()},
-            {"SinInOut", "sininout", "Easing.SinInOut", easing::sin_in_out()},
-            {"CubicOut", "cubicout", "Easing.CubicOut", easing::cubic_out()},
-            {"CubicIn", "cubicin", "Easing.CubicIn", easing::cubic_in()},
-            {"CubicInOut", "cubicinout", "Easing.CubicInOut", easing::cubic_in_out()},
-            {"BounceOut", "bounceout", "Easing.BounceOut", easing::bounce_out()},
-            {"BounceIn", "bouncein", "Easing.BounceIn", easing::bounce_in()},
-            {"SpringOut", "springout", "Easing.SpringOut", easing::spring_out()},
-            {"SpringIn", "springin", "Easing.SpringIn", easing::spring_in()},
+        static constexpr std::array<easing_case, 11> cases{{
+            {.name = "Linear", .lower = "linear", .qualified = "Easing.Linear", .expected = &easing::linear},
+            {.name = "SinOut", .lower = "sinout", .qualified = "Easing.SinOut", .expected = &easing::sin_out},
+            {.name = "SinIn", .lower = "sinin", .qualified = "Easing.SinIn", .expected = &easing::sin_in},
+            {.name = "SinInOut", .lower = "sininout", .qualified = "Easing.SinInOut", .expected = &easing::sin_in_out},
+            {.name = "CubicOut", .lower = "cubicout", .qualified = "Easing.CubicOut", .expected = &easing::cubic_out},
+            {.name = "CubicIn", .lower = "cubicin", .qualified = "Easing.CubicIn", .expected = &easing::cubic_in},
+            {.name = "CubicInOut",
+             .lower = "cubicinout",
+             .qualified = "Easing.CubicInOut",
+             .expected = &easing::cubic_in_out},
+            {.name = "BounceOut",
+             .lower = "bounceout",
+             .qualified = "Easing.BounceOut",
+             .expected = &easing::bounce_out},
+            {.name = "BounceIn", .lower = "bouncein", .qualified = "Easing.BounceIn", .expected = &easing::bounce_in},
+            {.name = "SpringOut",
+             .lower = "springout",
+             .qualified = "Easing.SpringOut",
+             .expected = &easing::spring_out},
+            {.name = "SpringIn", .lower = "springin", .qualified = "Easing.SpringIn", .expected = &easing::spring_in},
         }};
         for (const easing_case& test_case : cases)
         {
-            expect_same_easing(xaml::convert_easing(test_case.name), test_case.expected);
-            expect_same_easing(xaml::convert_easing(test_case.lower), test_case.expected);
-            expect_same_easing(xaml::convert_easing(test_case.qualified), test_case.expected);
+            expect_same_easing(xaml::convert_easing(test_case.name), test_case.expected());
+            expect_same_easing(xaml::convert_easing(test_case.lower), test_case.expected());
+            expect_same_easing(xaml::convert_easing(test_case.qualified), test_case.expected());
         }
         // The qualifier itself is case-insensitive too (Compare(parts[0], nameof(Easing))).
         expect_same_easing(xaml::convert_easing("easing.linear"), easing::linear());
@@ -555,20 +564,25 @@ namespace
     TEST(xaml_convert_text_decorations, test_text_decoration_converter)
     {
         using maui::core::text_decorations;
-        constexpr auto both = static_cast<text_decorations>(std::to_underlying(text_decorations::underline) |
-                                                            std::to_underlying(text_decorations::strikethrough));
+        // The combined [Flags] value, compared through the underlying type (no enumerator spells
+        // Underline|Strikethrough).
+        constexpr auto both =
+            std::to_underlying(text_decorations::underline) | std::to_underlying(text_decorations::strikethrough);
+        const auto convert = [](std::string_view text) {
+            return std::to_underlying(xaml::convert_text_decorations(text));
+        };
         // TextDecorationUnitTests.TestTextDecorationConverter, row for row.
         EXPECT_EQ(xaml::convert_text_decorations("strikethrough"), text_decorations::strikethrough);
         EXPECT_EQ(xaml::convert_text_decorations("underline"), text_decorations::underline);
         EXPECT_EQ(xaml::convert_text_decorations("line-through"), text_decorations::strikethrough);
         EXPECT_EQ(xaml::convert_text_decorations("none"), text_decorations::none);
-        EXPECT_EQ(xaml::convert_text_decorations("strikethrough underline"), both);
-        EXPECT_EQ(xaml::convert_text_decorations("underline strikethrough"), both);
-        EXPECT_EQ(xaml::convert_text_decorations("underline line-through"), both);
-        EXPECT_EQ(xaml::convert_text_decorations("line-through underline"), both);
+        EXPECT_EQ(convert("strikethrough underline"), both);
+        EXPECT_EQ(convert("underline strikethrough"), both);
+        EXPECT_EQ(convert("underline line-through"), both);
+        EXPECT_EQ(convert("line-through underline"), both);
         // The comma spelling and the PascalCase member names.
-        EXPECT_EQ(xaml::convert_text_decorations("Underline,Strikethrough"), both);
-        EXPECT_EQ(xaml::convert_text_decorations("Underline, Strikethrough"), both);
+        EXPECT_EQ(convert("Underline,Strikethrough"), both);
+        EXPECT_EQ(convert("Underline, Strikethrough"), both);
     }
 
     TEST(xaml_convert_text_decorations, invalid_throws)

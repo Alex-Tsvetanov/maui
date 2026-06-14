@@ -739,8 +739,9 @@ namespace
 
     TEST(apply_properties_visitor, binding_markup_fails_loudly_without_a_binding_applier)
     {
-        // The {Binding} applier contract: the runtime-binding engine is a parallel unit, so the
-        // default applier REJECTS with a clear error instead of dropping the binding.
+        // The {Binding} applier contract: until register_runtime_bindings() installs the real
+        // applier (loader_tests cover that), the DEFAULT one REJECTS with a clear error instead of
+        // dropping the binding.
         auto context = make_context();
         controls::label label;
         const std::string message = parse_error_message([&] {

@@ -741,7 +741,7 @@ namespace maui::xaml
             {.name = "Underline", .value = text_decorations::underline},
             {.name = "Strikethrough", .value = text_decorations::strikethrough},
         }};
-        const char separator = text.find(',') != std::string_view::npos ? ',' : ' ';
+        const char separator = text.contains(',') ? ',' : ' ';
         auto result = std::to_underlying(text_decorations::none);
         std::size_t begin = 0;
         while (true)

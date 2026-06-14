@@ -26,7 +26,9 @@
 //     spelling of the same property wins over the positional one.
 //   - a name present in markup_extension_arguments::values (a nested extension the pipeline already
 //     resolved) takes precedence over its raw string form; string-typed extension properties (Key,
-//     Member, TypeName, Path, Mode, Converter) require the boxed value to BE a std::string.
+//     Member, TypeName, Path, Mode, StringFormat) require the boxed value to BE a std::string,
+//     while the instance-typed Binding slots (Converter, Source) require a pre-resolved boxed
+//     instance and REJECT the raw string form (no string→instance lookup exists).
 //   - an attribute the extension has no property for throws xaml_parse_exception (C# fails the
 //     reflective property lookup and the visitor surfaces a XamlParseException).
 //
