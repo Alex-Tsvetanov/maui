@@ -637,6 +637,20 @@ elseif(MAUI_BACKEND STREQUAL "ios")
 else()
   set(MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES src/platform/headless/collection_view_handler.cpp)
 endif()
+# (W3-31 table_view) the table_view_handler's per-backend partial: the cross-platform mapper tables +
+# cell-text helpers live in src/controls/; each backend supplies the realization recipe — a real
+# UITableView (ios) / NSTableView (apple) with datasource/delegate + cell reuse + selection, or the
+# headless row-realization simulator. It lives in maui_controls because the handler reads the
+# controls-layer table_model (exactly like the items handler).
+if(MAUI_BACKEND STREQUAL "apple")
+  set(MAUI_CONTROLS_TABLE_PLATFORM_SOURCES src/platform/apple/table_view_handler.mm)
+  set_source_files_properties(${MAUI_CONTROLS_TABLE_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+elseif(MAUI_BACKEND STREQUAL "ios")
+  set(MAUI_CONTROLS_TABLE_PLATFORM_SOURCES src/platform/ios/table_view_handler.mm)
+  set_source_files_properties(${MAUI_CONTROLS_TABLE_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+else()
+  set(MAUI_CONTROLS_TABLE_PLATFORM_SOURCES src/platform/headless/table_view_handler.cpp)
+endif()
 
 add_library(maui_controls STATIC
   src/controls/element.cpp
@@ -740,6 +754,20 @@ add_library(maui_controls STATIC
   src/controls/items/collection_view.cpp
   src/controls/items/collection_view_handler.cpp
   ${MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES}
+  # (W3-31 table_view + cells) the obsolete-but-ported Cell family + the TableView model layer + control
+  # + handler (ListView deferred → CollectionView; see STATUS).
+  src/controls/cells/cell.cpp
+  src/controls/cells/text_cell.cpp
+  src/controls/cells/switch_cell.cpp
+  src/controls/cells/entry_cell.cpp
+  src/controls/cells/image_cell.cpp
+  src/controls/cells/view_cell.cpp
+  src/controls/table_section_base.cpp
+  src/controls/table_section.cpp
+  src/controls/table_root.cpp
+  src/controls/table_view.cpp
+  src/controls/table_view_handler.cpp
+  ${MAUI_CONTROLS_TABLE_PLATFORM_SOURCES}
   # (W2-23 shapes) the Shapes geometry/transform model + the path markup parser + the controls.
   src/controls/graphics_view.cpp
   src/controls/box_view.cpp
@@ -884,6 +912,10 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/multi_binding_tests.cpp
     tests/controls/relative_source_binding_tests.cpp
     tests/controls/view_extensions_tests.cpp # (W1-14) backend-agnostic animation surface
+    # (W3-31 table_view + cells) backend-agnostic: the cell family + the table model/control/handler.
+    tests/controls/cells_tests.cpp
+    tests/controls/table_view_tests.cpp
+    tests/controls/table_view_apple_tests.mm # the real NSTableView realization + reuse + selection seam
 )
   # tests/core/image_source_tests.cpp + font_image_source_tests.cpp are HEADLESS-ONLY: they assert on the
   # headless image_source_result mirror + the headless "any non-empty bytes => loaded" decode (raw test
@@ -925,6 +957,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/window_apple_tests.mm
     tests/controls/chrome_apple_tests.mm # (W1-11)
     tests/controls/window_overlay_apple_tests.mm # (G4) the overlay CG readback smoke
+    tests/controls/table_view_apple_tests.mm # (W3-31)
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 elseif(MAUI_BACKEND STREQUAL "ios")
   # Every control is a real UIKit partial on ios (M6 fan-out complete), so the suite runs each control's
@@ -977,6 +1010,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     # reuse under programmatic scroll, selection single/multi, grouping supplementaries, reorder,
     # scroll-to, empty-view — run-loop pumped via tests/support/run_loop_pump.hpp.
     tests/controls/collection_view_ios_tests.mm
+    tests/controls/table_view_ios_tests.mm # (W3-31) the real UITableView realization + reuse + selection seam
     tests/controls/window_ios_tests.mm)
   add_executable(maui_controls_tests
     ${MAUI_IOS_TEST_MM_SOURCES}
@@ -1033,6 +1067,9 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/multi_binding_tests.cpp
     tests/controls/relative_source_binding_tests.cpp
     tests/controls/view_extensions_tests.cpp # (W1-14) backend-agnostic animation surface
+    # (W3-31 table_view + cells) backend-agnostic: the cell family + the table model/control/handler.
+    tests/controls/cells_tests.cpp
+    tests/controls/table_view_tests.cpp
 )
   set_source_files_properties(${MAUI_IOS_TEST_MM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 else()
@@ -1116,6 +1153,9 @@ else()
     tests/controls/binding_engine_tests.cpp # backend-agnostic; the W1-02 string-path binding engine
     tests/controls/multi_binding_tests.cpp
     tests/controls/relative_source_binding_tests.cpp
+    # (W3-31 table_view + cells) the cell family + the table model/control/handler simulator.
+    tests/controls/cells_tests.cpp
+    tests/controls/table_view_tests.cpp
     tests/controls/window_handler_tests.cpp # the window_handler seam over the headless mirror
     tests/controls/window_modal_events_tests.cpp # (G4) the Window modal events ordering
     tests/controls/window_overlay_tests.cpp # (G4) add/remove overlay + adorner list + invalidate->draw mirror
