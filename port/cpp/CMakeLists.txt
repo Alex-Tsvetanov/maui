@@ -574,7 +574,11 @@ if(MAUI_BACKEND STREQUAL "android")
     # (W4-34d) navigation + window: the real navigation_page / window controls + handlers drive a real
     # android.widget.FrameLayout — set window content → the root container hosts it; push/pop → the
     # visible native child swaps; push/pop modal → the overlay child appears/clears.
-    tests/controls/navigation_window_android_tests.cpp)
+    tests/controls/navigation_window_android_tests.cpp
+    # (W4-34e) the shared generic-IView view-mapper + semantics: render transform / flow direction /
+    # background / semantics pushed to a real android.view.View via the shared android_*_ops helpers,
+    # read back over JNI.
+    tests/platform/android_view_mapper_tests.cpp)
   target_include_directories(maui_android_widget_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/android)
   target_link_libraries(maui_android_widget_tests PRIVATE GTest::gtest maui_controls maui_sanitizers)
   if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)

@@ -107,13 +107,19 @@ namespace maui::core
         // color fills (ButtonExtensions.UpdateButtonBackground). Each override calls the
         // view_platform_base body FIRST — the android preset also runs the pure-native
         // cross-platform suite on the emulator WITHOUT a Java VM, and that suite observes the
-        // headless mirrors — then pushes to the widget when one exists. The remaining generic-IView
-        // pushes keep the base mirrors for now (the android fan-out's shared view-op units).
+        // headless mirrors — then pushes to the widget when one exists. The render transform, flow
+        // direction, and semantics push through the shared android view/semantics ops (W4-34e). Shadow,
+        // Clip, and InputTransparent keep ONLY the base mirror: on Android those are WrapperView-only
+        // (no plain-android.view.View analog), so an unwrapped View receives no update in C# either
+        // (see src/platform/android/android_visual_ops.hpp / android_semantics_ops.hpp deviations).
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
         void update_background(const maui::graphics::paint* value) override;
+        void update_transform(const maui::core::transform_spec& value) override;
+        void update_flow_direction(maui::core::flow_direction value) override;
+        void update_semantics(const maui::core::semantics* value) override;
 #endif
     };
 

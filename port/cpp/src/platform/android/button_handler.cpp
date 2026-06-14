@@ -50,6 +50,9 @@
 #include <string>
 #include <string_view>
 
+#include "android_semantics_ops.hpp"
+#include "android_view_ops.hpp"
+#include "android_visual_ops.hpp"
 #include "jni/app_context.hpp"
 #include "jni/jni_cache.hpp"
 #include "jni/jni_env.hpp"
@@ -448,6 +451,27 @@ namespace maui::core
         const jint argb = value != nullptr ? static_cast<jint>(value->background_color().to_int()) : 0;
         env->CallVoidMethod(drawable.get(), set_color, argb);
         clear_pending(env.get());
+    }
+
+    // Render transform + flow direction + semantics pushed to the real widget via the shared android
+    // ops (W4-34e). Each calls the view_platform_base body FIRST — the VM-less cross-platform suite
+    // observes the headless mirror — then the shared op (itself VM-less safe) pushes to the View.
+    void button_platform::update_transform(const maui::core::transform_spec& value)
+    {
+        view_platform_base::update_transform(value);
+        maui::platform::android::apply_transform(native, value);
+    }
+
+    void button_platform::update_flow_direction(maui::core::flow_direction value)
+    {
+        view_platform_base::update_flow_direction(value);
+        maui::platform::android::apply_flow_direction(native, value);
+    }
+
+    void button_platform::update_semantics(const maui::core::semantics* value)
+    {
+        view_platform_base::update_semantics(value);
+        maui::platform::android::apply_semantics(native, value);
     }
 
     namespace
