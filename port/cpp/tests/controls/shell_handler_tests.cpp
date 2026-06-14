@@ -7,6 +7,7 @@
 // §8 teardown: the shell model (the publisher of on_property_changed → handler.update_value) is declared
 // BEFORE the handler (the subscriber) in every test body, and the fixture-owned pages outlive both.
 
+#include <cstddef>
 #include <memory>
 #include <string>
 
@@ -22,8 +23,10 @@
 #include "tests/controls/shell_test_base.hpp"
 #include <gtest/gtest.h>
 
-namespace maui::controls::shell_tests
+namespace
 {
+    using namespace maui::controls;              // shell, shell_item, shell_content, …
+    using namespace maui::controls::shell_tests; // shell_test_base
     using maui::core::shell_handler;
 
     class shell_handler_test : public shell_test_base
@@ -209,4 +212,4 @@ namespace maui::controls::shell_tests
         EXPECT_EQ(item_renderer.sections[static_cast<std::size_t>(item_renderer.selected_index)].section,
                   sh.current_section());
     }
-} // namespace maui::controls::shell_tests
+} // namespace

@@ -13,11 +13,11 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "maui/controls/hybrid_web_view_handler.hpp"
 #include "maui/controls/hybrid_web_view_raw_message_received_event_args.hpp"
-#include "maui/core/evaluate_java_script_request.hpp"
 #include "maui/core/hybrid_web_view_protocol.hpp"
 #include "maui/core/invoke_java_script_request.hpp"
 #include <gtest/gtest.h>
@@ -228,7 +228,7 @@ namespace
     TEST(hybrid_web_view_handler_seam, invoke_js_no_params_builds_empty_args)
     {
         seam s;
-        s.control.invoke_js("DoThing", [](std::optional<std::string> /*value*/) {});
+        s.control.invoke_js("DoThing", [](const std::optional<std::string>& /*value*/) {});
         ASSERT_EQ(s.platform->evaluated_scripts.size(), 1U);
         EXPECT_EQ(s.platform->evaluated_scripts[0], "window.HybridWebView.__InvokeJavaScript(1, DoThing, [])");
     }
@@ -236,7 +236,7 @@ namespace
     TEST(hybrid_web_view_handler_seam, invoke_js_multiple_params_are_comma_joined)
     {
         seam s;
-        s.control.invoke_js("AddNumbers", {"123.456", "654.321"}, [](std::optional<std::string> /*value*/) {});
+        s.control.invoke_js("AddNumbers", {"123.456", "654.321"}, [](const std::optional<std::string>& /*value*/) {});
         ASSERT_EQ(s.platform->evaluated_scripts.size(), 1U);
         EXPECT_EQ(s.platform->evaluated_scripts[0],
                   "window.HybridWebView.__InvokeJavaScript(1, AddNumbers, [123.456, 654.321])");
@@ -298,7 +298,7 @@ namespace
     TEST(hybrid_web_view_handler_seam, unknown_task_completion_is_dropped)
     {
         seam s;
-        s.control.invoke_js("Method", [](std::optional<std::string> /*v*/) {});
+        s.control.invoke_js("Method", [](const std::optional<std::string>& /*v*/) {});
         s.handler->message_received("__InvokeJavaScriptCompleted|999|\"x\""); // wrong id
         EXPECT_EQ(s.platform->pending_invokes.size(), 1U);                    // still pending
     }

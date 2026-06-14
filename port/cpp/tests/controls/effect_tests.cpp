@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include "maui/controls/effect.hpp"
 #include "maui/controls/effect_collection.hpp"
@@ -24,7 +25,6 @@ namespace
     using maui::controls::i_effect_control_provider;
     using maui::controls::label;
     using maui::controls::null_effect;
-    using maui::controls::platform_effect_base;
     using maui::controls::register_effect;
     using maui::controls::resolve_effect;
     using maui::controls::routing_effect;
