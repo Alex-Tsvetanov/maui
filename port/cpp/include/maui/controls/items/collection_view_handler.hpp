@@ -135,6 +135,25 @@ namespace maui::controls
         void* empty_view_native = nullptr; // the realized EmptyView's native UIView while shown
 #endif
 
+        // --- appkit (W3-30) ---
+        // The AppKit native virtualization stack — a REAL NSCollectionView driven by an
+        // NSCollectionViewFlowLayout + NSCollectionViewDataSource/Delegate, mirroring the iOS
+        // controller/cell/source architecture (W3-29) adapted to AppKit. The classic FlowLayout
+        // realizes items lazily inside the run loop exactly like UICollectionView; the cross-platform
+        // simulator above still runs as the in-memory state mirror, and these natives are what the
+        // apple seam suite asserts against. All slots are retained Obj-C objects, released in the
+        // backend-defined destructor (the .mm). DOCUMENTED DEVIATION: the compositional-layout +
+        // snap-points path is iOS-only — AppKit's NSCollectionView has no compositional layout, so the
+        // port uses NSCollectionViewFlowLayout (linear list = 1 column; grid = `span` columns; both
+        // orientations via scrollDirection). Header/footer use the flow layout's section
+        // header/footer supplementary views.
+#ifdef MAUI_PLATFORM_APPLE
+        void* scroll = nullptr;            // the NSScrollView hosting the collection view (the composed native)
+        void* data_source = nullptr;       // the MauiCollectionDataSource (datasource + delegate adapter)
+        void* flow_layout = nullptr;       // the current NSCollectionViewFlowLayout (rebuilt from items_layout)
+        void* empty_view_native = nullptr; // the realized EmptyView's native NSView while shown
+#endif
+
         // ---- the fake viewport ----
         double viewport_main_extent = 400;  // along the scroll axis
         double viewport_cross_extent = 400; // across it
@@ -254,6 +273,42 @@ namespace maui::controls
         // The text the realized cell at `path` currently displays (the DefaultCell2 label / the item's
         // text mirror) — the test seam that proves a model reorder re-rendered the native cells. Empty
         // when the path is not realized.
+        [[nodiscard]] std::string native_cell_text(const index_path& path) const;
+#endif
+
+        // --- appkit (W3-30) ---
+        // The AppKit native bridge — the macOS twin of the iOS bridge above. The cross-platform .cpp
+        // calls each at the same moments C# does (Controller.ReloadData / UpdateItemsSource /
+        // UpdateLayout / UpdateSelectionMode / UpdatePlatformSelection / UpdateEmptyView / ScrollTo),
+        // guarded by #ifdef MAUI_PLATFORM_APPLE. No-ops until the data source is wired
+        // (on_connect_handler installs it).
+#ifdef MAUI_PLATFORM_APPLE
+        void on_connect_handler(collection_view_platform& platform); // wire datasource/delegate + initial reload
+        void native_reload();                                        // Controller.ReloadData (re-realize cells)
+        void native_rebuild_layout();            // SelectLayout → UpdateLayout (rebuild the flow layout)
+        void native_update_selection_mode();     // SelectableItemsViewController.UpdateSelectionMode
+        void native_update_platform_selection(); // SelectableItemsViewController.UpdatePlatformSelection
+        void native_update_empty_view();         // ItemsViewController.UpdateEmptyView
+        void native_update_can_reorder();        // ReorderableItemsViewController.UpdateCanReorderItems
+        // ScrollTo (ItemsViewHandler.ScrollToRequested): move the native viewport to `path`/`position`.
+        void native_scroll_to(const index_path& path, controls::scroll_to_position position, bool animate);
+        // Mount/force a layout pass (test seam — pump the loop so cells realize). Returns visible count.
+        int native_force_layout(double width, double height);
+        // Inspection seams for the apple seam tests (read straight off the live NSCollectionView).
+        [[nodiscard]] int native_visible_cell_count() const;                     // visibleItems.count
+        [[nodiscard]] int native_distinct_cell_instances() const;                // unique item pointers ever vended
+        [[nodiscard]] int native_visible_supplementary_count(bool header) const; // section header/footer supplementals
+        [[nodiscard]] int native_selected_count() const;                         // selectionIndexPaths.count
+        // Whether the EmptyView host is currently mounted in the collection view (NSView.tag is
+        // read-only, so the empty host is a marker subclass — this is the test seam, the C# EmptyTag
+        // viewWithTag analog).
+        [[nodiscard]] bool native_empty_view_shown() const;
+        // Simulate a user click selecting/deselecting the item at `path` (the delegate's
+        // didSelect/didDeselect path — fans back to the control).
+        void native_select(const index_path& path);
+        void native_deselect(const index_path& path);
+        // The text the realized item at `path` currently displays (the default-item label / the item's
+        // text mirror). Empty when the path is not realized.
         [[nodiscard]] std::string native_cell_text(const index_path& path) const;
 #endif
 

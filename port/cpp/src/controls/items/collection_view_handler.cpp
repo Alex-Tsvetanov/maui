@@ -146,6 +146,12 @@ namespace maui::controls
         // platform struct's destructor releases the controller (§8: drop data while alive).
         native_reload();
 #endif
+#ifdef MAUI_PLATFORM_APPLE
+        // The NSCollectionView datasource reads the now-null source on each query; ReloadData flushes
+        // it to an empty state so it never touches freed data after the platform struct's destructor
+        // releases the native tree (§8: drop data while alive).
+        native_reload();
+#endif
     }
 
     // ItemsView.OnMeasure: clamp to the scaled screen size (the C# 40x40 minimum SizeRequest has no
@@ -200,12 +206,18 @@ namespace maui::controls
         handler.native_rebuild_layout();
         handler.native_reload();
 #endif
+#ifdef MAUI_PLATFORM_APPLE
+        handler.native_reload(); // C# MapItemTemplate → reload (the cell hosts the template's content)
+#endif
     }
 
     void collection_view_handler::map_empty_view(collection_view_handler& handler, i_items_view& /*view*/)
     {
         handler.update_empty_view();
 #ifdef MAUI_PLATFORM_IOS
+        handler.native_update_empty_view();
+#endif
+#ifdef MAUI_PLATFORM_APPLE
         handler.native_update_empty_view();
 #endif
     }
@@ -245,6 +257,12 @@ namespace maui::controls
         handler.native_rebuild_layout();
         handler.native_reload();
 #endif
+#ifdef MAUI_PLATFORM_APPLE
+        // C# MapHeaderTemplate/MapFooterTemplate → UpdateLayout (the flow layout's section
+        // header/footer reference size changes) + reload realizes them.
+        handler.native_rebuild_layout();
+        handler.native_reload();
+#endif
     }
 
     void collection_view_handler::map_items_layout(collection_view_handler& handler, i_items_view& view)
@@ -273,6 +291,12 @@ namespace maui::controls
         handler.native_rebuild_layout();
         handler.native_reload();
 #endif
+#ifdef MAUI_PLATFORM_APPLE
+        // C# MapItemsLayout → UpdateLayout: rebuild the NSCollectionViewFlowLayout from the new
+        // ItemsLayout (orientation → scrollDirection, span → item width, spacing → inter-item/line).
+        handler.native_rebuild_layout();
+        handler.native_reload();
+#endif
     }
 
     void collection_view_handler::map_item_sizing_strategy(collection_view_handler& handler, i_items_view& view)
@@ -286,12 +310,18 @@ namespace maui::controls
 #ifdef MAUI_PLATFORM_IOS
         handler.native_rebuild_layout(); // C# MapItemSizingStrategy → UpdateLayout
 #endif
+#ifdef MAUI_PLATFORM_APPLE
+        handler.native_rebuild_layout(); // C# MapItemSizingStrategy → UpdateLayout
+#endif
     }
 
     void collection_view_handler::map_selected_item(collection_view_handler& handler, i_items_view& /*view*/)
     {
         handler.update_platform_selection();
 #ifdef MAUI_PLATFORM_IOS
+        handler.native_update_platform_selection();
+#endif
+#ifdef MAUI_PLATFORM_APPLE
         handler.native_update_platform_selection();
 #endif
     }
@@ -302,6 +332,9 @@ namespace maui::controls
 #ifdef MAUI_PLATFORM_IOS
         handler.native_update_platform_selection();
 #endif
+#ifdef MAUI_PLATFORM_APPLE
+        handler.native_update_platform_selection();
+#endif
     }
 
     void collection_view_handler::map_selection_mode(collection_view_handler& handler, i_items_view& /*view*/)
@@ -309,6 +342,10 @@ namespace maui::controls
         handler.update_selection_mode();
         handler.update_platform_selection();
 #ifdef MAUI_PLATFORM_IOS
+        handler.native_update_selection_mode();
+        handler.native_update_platform_selection();
+#endif
+#ifdef MAUI_PLATFORM_APPLE
         handler.native_update_selection_mode();
         handler.native_update_platform_selection();
 #endif
@@ -324,6 +361,12 @@ namespace maui::controls
         handler.native_rebuild_layout();
         handler.native_reload();
 #endif
+#ifdef MAUI_PLATFORM_APPLE
+        // C# MapIsGrouped: UpdateItemsSource (done above) + UpdateLayout — the grouped path puts
+        // headers/footers in per-section flow-layout supplementary views.
+        handler.native_rebuild_layout();
+        handler.native_reload();
+#endif
     }
 
     void collection_view_handler::map_group_templates(collection_view_handler& handler, i_items_view& /*view*/)
@@ -333,6 +376,12 @@ namespace maui::controls
 #ifdef MAUI_PLATFORM_IOS
         // C# MapHeaderTemplate/MapFooterTemplate (the group twins): UpdateLayout adds/removes the
         // section boundary supplementary items, then reload realizes them.
+        handler.native_rebuild_layout();
+        handler.native_reload();
+#endif
+#ifdef MAUI_PLATFORM_APPLE
+        // C# group-template twins: UpdateLayout toggles the section header/footer reference size, then
+        // reload realizes them.
         handler.native_rebuild_layout();
         handler.native_reload();
 #endif
@@ -347,6 +396,9 @@ namespace maui::controls
             platform->can_reorder_items = reorderable->can_reorder_items();
         }
 #ifdef MAUI_PLATFORM_IOS
+        handler.native_update_can_reorder(); // C# MapCanReorderItems → UpdateCanReorderItems
+#endif
+#ifdef MAUI_PLATFORM_APPLE
         handler.native_update_can_reorder(); // C# MapCanReorderItems → UpdateCanReorderItems
 #endif
     }
@@ -384,6 +436,10 @@ namespace maui::controls
 #ifdef MAUI_PLATFORM_IOS
         // C# ItemsViewHandler2.ScrollToRequested: move the native viewport (the simulator math below is
         // the cross-platform state mirror; the native scroll is what the on-simulator suite asserts).
+        handler.native_scroll_to(path, request->scroll_to_position, request->is_animated);
+#endif
+#ifdef MAUI_PLATFORM_APPLE
+        // C# ItemsViewHandler.ScrollToRequested: scroll the real NSCollectionView to the item.
         handler.native_scroll_to(path, request->scroll_to_position, request->is_animated);
 #endif
 
@@ -460,6 +516,11 @@ namespace maui::controls
 #ifdef MAUI_PLATFORM_IOS
         // C# ItemsViewController2.UpdateItemsSource: re-create the source, ReloadData, invalidate the
         // layout (the grouped⇄flat shape change re-mints the compositional layout via map_is_grouped).
+        native_reload();
+        native_update_platform_selection();
+#endif
+#ifdef MAUI_PLATFORM_APPLE
+        // C# ItemsViewController.UpdateItemsSource: re-create the source, ReloadData, re-sync selection.
         native_reload();
         native_update_platform_selection();
 #endif
@@ -544,6 +605,11 @@ namespace maui::controls
         // C# IObservableItemsViewSource translates each change into a UICollectionView batch update;
         // the port re-runs the full realization pass (ReloadData) on the native view too (the precise
         // op trail is already in platform->source_updates for any consumer that wants the diff).
+        native_reload();
+        native_update_empty_view();
+#endif
+#ifdef MAUI_PLATFORM_APPLE
+        // The same on AppKit: re-run the realization pass (ReloadData) on the real NSCollectionView.
         native_reload();
         native_update_empty_view();
 #endif

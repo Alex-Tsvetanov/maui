@@ -938,6 +938,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/items_sources_tests.cpp
     tests/controls/selectable_items_view_tests.cpp
     tests/controls/collection_view_tests.cpp
+    tests/controls/collection_view_appkit_tests.mm # (W3-30) the real NSCollectionView FlowLayout reuse/selection/supplementaries/reorder seam
     tests/controls/items_page_tests.cpp
     tests/controls/control_template_tests.cpp
     tests/controls/binding_engine_tests.cpp # backend-agnostic; the W1-02 string-path binding engine
@@ -992,6 +993,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/chrome_apple_tests.mm # (W1-11)
     tests/controls/window_overlay_apple_tests.mm # (G4) the overlay CG readback smoke
     tests/controls/table_view_apple_tests.mm # (W3-31)
+    tests/controls/collection_view_appkit_tests.mm # (W3-30)
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 elseif(MAUI_BACKEND STREQUAL "ios")
   # Every control is a real UIKit partial on ios (M6 fan-out complete), so the suite runs each control's
