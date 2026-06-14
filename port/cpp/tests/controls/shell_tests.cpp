@@ -4,8 +4,12 @@
 // reflection / modal — STATUS.md): flyout header/template projection, toolbar/title, Visual,
 // MenuShellItem, TabBarIsVisible, window-title, and the hot-reload location restore.
 
+#include "maui/controls/shell/base_shell_item.hpp"
+#include "maui/controls/shell/flyout_behavior.hpp"
+#include "maui/controls/shell/flyout_display_options.hpp"
 #include "maui/controls/shell/shell.hpp"
 
+#include <algorithm>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -16,6 +20,7 @@
 #include "maui/controls/shell/shell_content.hpp"
 #include "maui/controls/shell/shell_item.hpp"
 #include "maui/controls/shell/shell_section.hpp"
+#include "maui/core/event.hpp"
 #include "shell_test_base.hpp"
 #include <gtest/gtest.h>
 
@@ -30,7 +35,7 @@ namespace
 
     TEST_F(shell_test, default_state)
     {
-        shell sh;
+        shell const sh;
         EXPECT_TRUE(sh.items().empty());
         EXPECT_EQ(sh.current_item(), nullptr);
         EXPECT_EQ(sh.current_state(), nullptr);
@@ -44,7 +49,7 @@ namespace
         auto item = std::make_shared<shell_item>();
         auto section = std::make_shared<shell_section>();
         auto content = std::make_shared<shell_content>();
-        std::shared_ptr<content_page> page = make_page();
+        std::shared_ptr<content_page> const page = make_page();
         content->set_content(page.get());
         section->add(content);
         item->add(section);
@@ -63,7 +68,7 @@ namespace
 
             std::shared_ptr<shell_content> content;
             std::shared_ptr<shell_section> section;
-            base_shell_item* shell_element = nullptr;
+            base_shell_item const* shell_element = nullptr;
 
             if (use_shell_content)
             {
@@ -78,7 +83,7 @@ namespace
                 sh.add_item(section);
             }
 
-            shell_item* item2 = sh.items()[1].get();
+            shell_item const* item2 = sh.items()[1].get();
             EXPECT_EQ(shell_element->find_parent_shell(), &sh);
 
             if (use_shell_content)
@@ -90,15 +95,15 @@ namespace
                 sh.set_current_item(section);
             }
 
-            EXPECT_EQ(2u, sh.items().size());
+            EXPECT_EQ(2U, sh.items().size());
             EXPECT_EQ(item2, sh.current_item());
         }
     }
 
     TEST_F(shell_test, setting_current_item_on_shell_via_content_page)
     {
-        std::shared_ptr<content_page> page1 = make_page();
-        std::shared_ptr<content_page> page2 = make_page();
+        std::shared_ptr<content_page> const page1 = make_page();
+        std::shared_ptr<content_page> const page2 = make_page();
         test_shell sh;
         auto bar = std::make_shared<tab_bar>();
         auto content1 = std::make_shared<shell_content>();
@@ -110,10 +115,10 @@ namespace
         sh.add_item(bar);
 
         sh.set_current_item(*page2);
-        EXPECT_EQ(1u, sh.items().size());
-        EXPECT_EQ(2u, sh.items()[0]->items().size());
-        EXPECT_EQ(1u, sh.items()[0]->items()[0]->items().size());
-        EXPECT_EQ(1u, sh.items()[0]->items()[1]->items().size());
+        EXPECT_EQ(1U, sh.items().size());
+        EXPECT_EQ(2U, sh.items()[0]->items().size());
+        EXPECT_EQ(1U, sh.items()[0]->items()[0]->items().size());
+        EXPECT_EQ(1U, sh.items()[0]->items()[1]->items().size());
         EXPECT_EQ(sh.current_item()->current_item(), sh.items()[0]->items()[1].get());
     }
 
@@ -202,7 +207,7 @@ namespace
 
         auto view_model = std::make_shared<std::string>("vm");
         sh.set_binding_context(view_model);
-        std::shared_ptr<content_page> page = make_page();
+        std::shared_ptr<content_page> const page = make_page();
 
         sh.items()[0]->items()[0]->items()[0]->set_content(page.get());
         EXPECT_EQ(view_model, page->binding_context<std::string>());
@@ -215,7 +220,7 @@ namespace
 
         auto view_model = std::make_shared<std::string>("vm");
         sh.set_binding_context(view_model);
-        std::shared_ptr<content_page> page = make_page();
+        std::shared_ptr<content_page> const page = make_page();
         sh.navigation_push(*page);
 
         EXPECT_EQ(view_model, page->binding_context<std::string>());
@@ -312,7 +317,7 @@ namespace
         sh.go_to_async(shell_navigation_state{"DotDotAdheresToAnimationParameter"});
         sh.go_to_async(shell_navigation_state{".."}, true);
         ASSERT_TRUE(section->last_pop_was_animated.has_value());
-        EXPECT_TRUE(*section->last_pop_was_animated);
+        EXPECT_TRUE(section->last_pop_was_animated.value_or(false));
     }
 
     TEST_F(shell_test, back_navigation_defaults_to_animated_when_not_specified)
@@ -328,7 +333,7 @@ namespace
         sh.go_to_async(shell_navigation_state{"BackNavigationDefaultsToAnimatedWhenNotSpecified"});
         sh.go_to_async(shell_navigation_state{".."});
         ASSERT_TRUE(section->last_pop_was_animated.has_value());
-        EXPECT_TRUE(*section->last_pop_was_animated);
+        EXPECT_TRUE(section->last_pop_was_animated.value_or(false));
     }
 
     TEST_F(shell_test, default_routes_maintained_if_thats_all_there_is)
@@ -386,7 +391,7 @@ namespace
         my_tab->add(create_shell_content());
         sh.add_item(my_tab);
 
-        ASSERT_EQ(1u, sh.items().size());
+        ASSERT_EQ(1U, sh.items().size());
         EXPECT_NE(dynamic_cast<tab_bar*>(sh.items()[0].get()), nullptr);
         EXPECT_EQ(sh.items()[0]->items()[0], my_tab);
     }
@@ -410,7 +415,7 @@ namespace
     TEST_F(shell_test, adopted_page_title_syncs_into_shell_content)
     {
         // The `implicit operator ShellContent(TemplatedPage)` Title binding.
-        std::shared_ptr<content_page> page = make_page();
+        std::shared_ptr<content_page> const page = make_page();
         page->set_title("PageTitle");
         auto content = shell_content::adopt(*page);
         EXPECT_EQ("PageTitle", content->title());
@@ -423,11 +428,11 @@ namespace
     TEST_F(shell_test, shell_content_with_template_creates_page_lazily)
     {
         // IShellContentController.GetOrCreateContent over ContentTemplate (W1-09 templates).
-        std::shared_ptr<content_page> page = make_page();
+        std::shared_ptr<content_page> const page = make_page();
         auto content = create_shell_content(page, false, "templated", true);
 
         EXPECT_EQ(content->page(), nullptr); // nothing created yet
-        content_page* created = content->get_or_create_content();
+        content_page const* created = content->get_or_create_content();
         EXPECT_EQ(page.get(), created);
         EXPECT_EQ(page.get(), content->page()); // cached
         EXPECT_EQ(created, content->get_or_create_content());
@@ -443,7 +448,7 @@ namespace
     {
         // NavigatedFiresAfterContentIsCreatedWhenUsingTemplate: with a templated content the
         // Navigated event waits (the OnAppearing gate) until the page exists.
-        std::shared_ptr<content_page> page = make_page();
+        std::shared_ptr<content_page> const page = make_page();
         test_shell sh;
         auto content = create_shell_content(page, false, "templated", true);
         auto section = std::make_shared<shell_section>();

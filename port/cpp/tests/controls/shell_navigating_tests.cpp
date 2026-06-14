@@ -19,8 +19,11 @@
 #include "maui/controls/shell/shell_item.hpp"
 #include "maui/controls/shell/shell_navigating_deferral.hpp"
 #include "maui/controls/shell/shell_navigating_event_args.hpp"
+#include "maui/controls/shell/shell_navigation_source.hpp"
 #include "maui/controls/shell/shell_section.hpp"
+#include "maui/controls/shell/shell_uri_handler.hpp"
 #include "maui/core/content_page_handler.hpp"
+#include "maui/core/event.hpp"
 #include "shell_test_base.hpp"
 #include <gtest/gtest.h>
 
@@ -107,7 +110,7 @@ namespace
         EXPECT_FALSE(result); // delayed (deferred), so the caller may not proceed now
 
         // The content active while the deferral is open is still the original one.
-        shell_content* content_active_before_completing = flyout->items()[0]->items()[0].get();
+        shell_content const* content_active_before_completing = flyout->items()[0]->items()[0].get();
         EXPECT_NE(content_active_before_completing, navigating_to.get());
         EXPECT_EQ(flyout->items()[0]->items()[0].get(), content_active_before_completing);
 
@@ -134,11 +137,11 @@ namespace
             }
         });
 
-        std::shared_ptr<content_page> page = make_page();
+        std::shared_ptr<content_page> const page = make_page();
         sh.navigation_push(*page);
 
         EXPECT_TRUE(executed);
-        EXPECT_EQ(2u, sh.navigation_stack().size());
+        EXPECT_EQ(2U, sh.navigation_stack().size());
     }
 
     class defer_pop_navigation_test : public shell_navigating_test, public ::testing::WithParamInterface<const char*>
@@ -162,18 +165,18 @@ namespace
         {
             sh.navigation_pop();
             // suspended behind the deferral: nothing popped yet
-            EXPECT_EQ(3u, sh.navigation_stack().size());
+            EXPECT_EQ(3U, sh.navigation_stack().size());
             ASSERT_NE(token, nullptr);
             token->complete();
-            EXPECT_EQ(2u, sh.navigation_stack().size());
+            EXPECT_EQ(2U, sh.navigation_stack().size());
         }
         else
         {
             sh.navigation_pop_to_root();
-            EXPECT_EQ(3u, sh.navigation_stack().size());
+            EXPECT_EQ(3U, sh.navigation_stack().size());
             ASSERT_NE(token, nullptr);
             token->complete();
-            EXPECT_EQ(1u, sh.navigation_stack().size());
+            EXPECT_EQ(1U, sh.navigation_stack().size());
         }
     }
 
@@ -239,8 +242,8 @@ namespace
     {
         auto flyout = create_shell_item<flyout_item>();
         const std::string item_route = flyout->current_item()->current_item()->route();
-        std::shared_ptr<content_page> page1 = make_page();
-        std::shared_ptr<content_page> page2 = make_page();
+        std::shared_ptr<content_page> const page1 = make_page();
+        std::shared_ptr<content_page> const page2 = make_page();
         test_shell sh;
         sh.add_item(flyout);
 
@@ -277,8 +280,8 @@ namespace
     {
         auto flyout = create_shell_item<flyout_item>(nullptr, false, "content", "section", "item");
         const std::string item_route = "item/section/content";
-        std::shared_ptr<content_page> page1 = make_page();
-        std::shared_ptr<content_page> page2 = make_page();
+        std::shared_ptr<content_page> const page1 = make_page();
+        std::shared_ptr<content_page> const page2 = make_page();
         test_shell sh;
         sh.add_item(flyout);
 
@@ -299,7 +302,7 @@ namespace
     {
         test_shell sh;
         sh.add_item(create_shell_item<flyout_item>());
-        std::shared_ptr<content_page> page = make_page();
+        std::shared_ptr<content_page> const page = make_page();
 
         const std::string content_route = sh.current_item()->current_item()->current_item()->route();
         const std::string page_route = routing::get_route(*page);
@@ -321,7 +324,7 @@ namespace
         sh.navigation_push(*make_page());
         sh.navigation_push(*make_page());
         sh.navigation_pop_to_root();
-        EXPECT_EQ(1u, sh.navigation_stack().size());
+        EXPECT_EQ(1U, sh.navigation_stack().size());
     }
 
     TEST_F(shell_navigating_test, multiple_pops_remove_middle_pages_before_final_pop)
@@ -331,7 +334,7 @@ namespace
         monitoring_tab->add(create_shell_content(nullptr, false, "rootpage"));
         sh.add_item(monitoring_tab);
 
-        std::shared_ptr<content_page> page_left_on_stack = make_page();
+        std::shared_ptr<content_page> const page_left_on_stack = make_page();
         sh.navigation_push(*page_left_on_stack);
         sh.navigation_push(*make_page());
         sh.navigation_push(*make_page());
@@ -340,7 +343,7 @@ namespace
         sh.go_to_async(shell_navigation_state{"../.."});
         EXPECT_EQ(location_of(sh), "//rootpage/" + routing::get_route(*page_left_on_stack));
 
-        ASSERT_EQ(2u, monitoring_tab->navigations_fired.size());
+        ASSERT_EQ(2U, monitoring_tab->navigations_fired.size());
         EXPECT_EQ("OnRemovePage", monitoring_tab->navigations_fired[0]);
         EXPECT_EQ("OnPopAsync", monitoring_tab->navigations_fired[1]);
     }
@@ -361,7 +364,7 @@ namespace
         sh.go_to_async(shell_navigation_state{"../pageToSwapIn"});
         EXPECT_EQ("//rootpage/pageToSwapIn", location_of(sh));
 
-        ASSERT_EQ(2u, monitoring_tab->navigations_fired.size());
+        ASSERT_EQ(2U, monitoring_tab->navigations_fired.size());
         EXPECT_EQ("OnPushAsync", monitoring_tab->navigations_fired[0]);
         EXPECT_EQ("OnRemovePage", monitoring_tab->navigations_fired[1]);
     }
@@ -387,7 +390,7 @@ namespace
         sh.go_to_async(shell_navigation_state{"//rootpage/thirdPage/fifthPage"});
         EXPECT_EQ("//rootpage/thirdPage/fifthPage", location_of(sh));
 
-        ASSERT_EQ(3u, monitoring_tab->navigations_fired.size());
+        ASSERT_EQ(3U, monitoring_tab->navigations_fired.size());
         EXPECT_EQ("OnRemovePage", monitoring_tab->navigations_fired[0]);
         EXPECT_EQ("OnRemovePage", monitoring_tab->navigations_fired[1]);
         EXPECT_EQ("OnRemovePage", monitoring_tab->navigations_fired[2]);
@@ -456,7 +459,7 @@ namespace
         auto request = shell_uri_handler::get_navigation_request(sh, create_uri("//rootlevelcontent1/edit"));
 
         ASSERT_NE(request, nullptr);
-        ASSERT_EQ(1u, request->definition().global_routes().size());
+        ASSERT_EQ(1U, request->definition().global_routes().size());
         EXPECT_EQ("edit", request->definition().global_routes().front());
     }
 
@@ -539,13 +542,13 @@ namespace
 
         sh.go_to_async(shell_navigation_state{"//MainPage/first/second"});
 
-        ASSERT_GE(sh.navigation_stack().size(), 3u);
+        ASSERT_GE(sh.navigation_stack().size(), 3U);
         EXPECT_NE(dynamic_cast<test_page1*>(sh.navigation_stack()[1]), nullptr);
         EXPECT_NE(dynamic_cast<test_page2*>(sh.navigation_stack()[2]), nullptr);
 
         sh.go_to_async(shell_navigation_state{"//MainPage/first/second/third"});
 
-        ASSERT_GE(sh.navigation_stack().size(), 4u);
+        ASSERT_GE(sh.navigation_stack().size(), 4U);
         EXPECT_NE(dynamic_cast<test_page1*>(sh.navigation_stack()[1]), nullptr);
         EXPECT_NE(dynamic_cast<test_page2*>(sh.navigation_stack()[2]), nullptr);
         EXPECT_NE(dynamic_cast<test_page3*>(sh.navigation_stack()[3]), nullptr);
@@ -597,7 +600,7 @@ namespace
 
         sh.go_to_async(shell_navigation_state{"//animals/monkeys/monkeyDetails"});
         sh.go_to_async(shell_navigation_state{"monkeygenome"});
-        ASSERT_GE(sh.navigation_stack().size(), 2u);
+        ASSERT_GE(sh.navigation_stack().size(), 2U);
         sh.navigation_remove_page(*sh.navigation_stack()[1]);
         EXPECT_NO_THROW(sh.navigation_pop());
     }
@@ -674,7 +677,7 @@ namespace
         sh.go_to_async(shell_navigation_state{"page1/page2/page3"});
 
         EXPECT_NE(dynamic_cast<test_page1*>(sh.current_page()), nullptr);
-        ASSERT_GE(sh.navigation_stack().size(), 2u);
+        ASSERT_GE(sh.navigation_stack().size(), 2U);
         EXPECT_NE(dynamic_cast<shell_test_page*>(sh.navigation_stack()[1]), nullptr);
     }
 
@@ -688,7 +691,7 @@ namespace
         sh.go_to_async(shell_navigation_state{"page1/page2/page3"});
 
         EXPECT_NE(dynamic_cast<test_page1*>(sh.current_page()), nullptr);
-        ASSERT_GE(sh.navigation_stack().size(), 2u);
+        ASSERT_GE(sh.navigation_stack().size(), 2U);
         EXPECT_NE(dynamic_cast<shell_test_page*>(sh.navigation_stack()[1]), nullptr);
     }
 
@@ -725,8 +728,8 @@ namespace
         sh.navigation_push(*make_page());
         sh.on_flyout_item_selected(*content1);
 
-        EXPECT_EQ(2u, sh.items()[0]->items()[0]->stack().size());
-        EXPECT_EQ(2u, sh.items()[1]->items()[0]->stack().size());
+        EXPECT_EQ(2U, sh.items()[0]->items()[0]->stack().size());
+        EXPECT_EQ(2U, sh.items()[1]->items()[0]->stack().size());
     }
 
     TEST_F(shell_navigating_test, remove_page_disconnects_handler_in_shell)
@@ -734,7 +737,7 @@ namespace
         // C# holds `middlePage` (a managed reference) so the page survives RemovePage; the port test
         // must own it too — register_page mints a fixture-owned page behind a concrete factory so the
         // raw pointer the assertion inspects stays alive after the section drops its retention (§8).
-        std::shared_ptr<content_page> page1 = register_page("page1");
+        std::shared_ptr<content_page> const page1 = register_page("page1");
         routing::register_route<test_page2>("page2");
         test_shell sh;
         sh.add_item(create_shell_item(nullptr, false, "root", "", "main"));
@@ -743,7 +746,7 @@ namespace
         sh.go_to_async(shell_navigation_state{"page2"});
 
         // Get the middle page and assign a handler.
-        ASSERT_GE(sh.navigation_stack().size(), 3u);
+        ASSERT_GE(sh.navigation_stack().size(), 3U);
         content_page* middle_page = sh.navigation_stack()[1];
         ASSERT_EQ(middle_page, page1.get());
         middle_page->set_handler(std::make_shared<maui::core::content_page_handler>());
@@ -752,6 +755,6 @@ namespace
         sh.navigation_remove_page(*middle_page);
 
         EXPECT_EQ(middle_page->handler(), nullptr);
-        EXPECT_EQ(2u, sh.navigation_stack().size());
+        EXPECT_EQ(2U, sh.navigation_stack().size());
     }
 } // namespace

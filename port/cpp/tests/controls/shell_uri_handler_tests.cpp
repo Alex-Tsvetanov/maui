@@ -5,6 +5,7 @@
 #include "maui/controls/shell/shell_uri_handler.hpp"
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -12,7 +13,6 @@
 #include "maui/controls/shell/route_request_builder.hpp"
 #include "maui/controls/shell/routing.hpp"
 #include "maui/controls/shell/shell.hpp"
-#include "maui/controls/shell/shell_navigation_request.hpp"
 #include "shell_test_base.hpp"
 #include <gtest/gtest.h>
 
@@ -36,11 +36,11 @@ namespace
 
         auto next = node_location.walk_to_next_node();
         ASSERT_TRUE(next.has_value());
-        EXPECT_EQ(next->content(), sh.items()[0]->items()[0]->items()[0].get());
+        EXPECT_EQ((next ? next->content() : nullptr), sh.items()[0]->items()[0]->items()[0].get());
 
-        next = next->walk_to_next_node();
+        next = next ? next->walk_to_next_node() : std::nullopt;
         ASSERT_TRUE(next.has_value());
-        EXPECT_EQ(next->content(), sh.items()[1]->items()[0]->items()[0].get());
+        EXPECT_EQ((next ? next->content() : nullptr), sh.items()[1]->items()[0]->items()[0].get());
     }
 
     TEST_F(shell_uri_handler_test, node_walking_multiple_content)
@@ -51,7 +51,7 @@ namespace
         sh.add_item(create_shell_item(nullptr, false, "monkeys", "", "animals3"));
         sh.add_item(create_shell_item(nullptr, false, "monkeys", "", "animals4"));
 
-        std::shared_ptr<shell_content> content = create_shell_content();
+        std::shared_ptr<shell_content> const content = create_shell_content();
         sh.items()[1]->items()[0]->add(content);
         sh.items()[2]->items()[0]->add(create_shell_content());
 
@@ -63,15 +63,15 @@ namespace
 
         auto next = node_location.walk_to_next_node();
         ASSERT_TRUE(next.has_value());
-        EXPECT_EQ(sh.items()[2]->items()[0]->items()[0].get(), next->content());
+        EXPECT_EQ(sh.items()[2]->items()[0]->items()[0].get(), (next ? next->content() : nullptr));
 
-        next = next->walk_to_next_node();
+        next = next ? next->walk_to_next_node() : std::nullopt;
         ASSERT_TRUE(next.has_value());
-        EXPECT_EQ(sh.items()[2]->items()[0]->items()[1].get(), next->content());
+        EXPECT_EQ(sh.items()[2]->items()[0]->items()[1].get(), (next ? next->content() : nullptr));
 
-        next = next->walk_to_next_node();
+        next = next ? next->walk_to_next_node() : std::nullopt;
         ASSERT_TRUE(next.has_value());
-        EXPECT_EQ(sh.items()[3]->items()[0]->items()[0].get(), next->content());
+        EXPECT_EQ(sh.items()[3]->items()[0]->items()[0].get(), (next ? next->content() : nullptr));
     }
 
     TEST_F(shell_uri_handler_test, global_register_absolute_matching)
@@ -100,7 +100,7 @@ namespace
         auto request = shell_uri_handler::get_navigation_request(sh, create_uri("section1/edit"), true);
 
         ASSERT_NE(request, nullptr);
-        ASSERT_EQ(1u, request->definition().global_routes().size());
+        ASSERT_EQ(1U, request->definition().global_routes().size());
         EXPECT_EQ("item1/section1/edit", request->definition().global_routes().front());
     }
 
@@ -117,7 +117,7 @@ namespace
         auto request = shell_uri_handler::get_navigation_request(sh, create_uri("//rootlevelcontent1/add/edit"));
 
         ASSERT_NE(request, nullptr);
-        ASSERT_EQ(2u, request->definition().global_routes().size());
+        ASSERT_EQ(2U, request->definition().global_routes().size());
         EXPECT_EQ("section1/add", request->definition().global_routes()[0]);
         EXPECT_EQ("section1/edit", request->definition().global_routes()[1]);
     }
@@ -135,7 +135,7 @@ namespace
         auto request = shell_uri_handler::get_navigation_request(sh, create_uri("edit"));
 
         ASSERT_NE(request, nullptr);
-        ASSERT_EQ(1u, request->definition().global_routes().size());
+        ASSERT_EQ(1U, request->definition().global_routes().size());
         EXPECT_EQ("edit", request->definition().global_routes().front());
     }
 
@@ -168,11 +168,11 @@ namespace
         std::vector<route_request_builder> builders =
             shell_uri_handler::generate_route_paths(sh, create_uri("//rootlevelcontent1"));
 
-        ASSERT_EQ(1u, builders.size());
+        ASSERT_EQ(1U, builders.size());
         EXPECT_EQ("//rootlevelcontent1", builders.front().path_no_implicit());
 
         builders = shell_uri_handler::generate_route_paths(sh, create_uri("//rootlevelcontent2"));
-        ASSERT_EQ(1u, builders.size());
+        ASSERT_EQ(1U, builders.size());
         EXPECT_EQ("//rootlevelcontent2", builders.front().path_no_implicit());
     }
 
@@ -187,11 +187,11 @@ namespace
 
         std::vector<route_request_builder> builders =
             shell_uri_handler::generate_route_paths(sh, create_uri("//section1/rootlevelcontent"));
-        ASSERT_EQ(1u, builders.size());
+        ASSERT_EQ(1U, builders.size());
         EXPECT_EQ("//section1/rootlevelcontent", builders.front().path_no_implicit());
 
         builders = shell_uri_handler::generate_route_paths(sh, create_uri("//section2/rootlevelcontent"));
-        ASSERT_EQ(1u, builders.size());
+        ASSERT_EQ(1U, builders.size());
         EXPECT_EQ("//section2/rootlevelcontent", builders.front().path_no_implicit());
     }
 
@@ -206,11 +206,11 @@ namespace
 
         std::vector<route_request_builder> builders =
             shell_uri_handler::generate_route_paths(sh, create_uri("//item1/rootlevelcontent"));
-        ASSERT_EQ(1u, builders.size());
+        ASSERT_EQ(1U, builders.size());
         EXPECT_EQ("//item1/rootlevelcontent", builders.front().path_no_implicit());
 
         builders = shell_uri_handler::generate_route_paths(sh, create_uri("//item2/rootlevelcontent"));
-        ASSERT_EQ(1u, builders.size());
+        ASSERT_EQ(1U, builders.size());
         EXPECT_EQ("//item2/rootlevelcontent", builders.front().path_no_implicit());
     }
 
