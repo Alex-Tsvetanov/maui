@@ -220,7 +220,11 @@ namespace maui::layouts::flex
                     // Stable sort of indices by each child's Order (std::stable_sort preserves insertion
                     // order for equal Order, matching .NET's stable OrderBy).
                     std::vector<std::size_t> indices(it.count());
-                    std::ranges::iota(indices, std::size_t{0});
+                    // std::iota over the iterator pair (not std::ranges::iota): the NDK r27 libc++ 18 the
+                    // android backend cross-compiles against does not ship the C++23 ranges::iota (added in
+                    // libc++ 20). Plain std::iota is identical here and available on every backend — the
+                    // same libc++-18-gap accommodation STATUS.md documents for floating-point from_chars.
+                    std::iota(indices.begin(), indices.end(), std::size_t{0});
                     std::ranges::stable_sort(indices, [&it](std::size_t a, std::size_t b) {
                         return it.child_at(a).order() < it.child_at(b).order();
                     });

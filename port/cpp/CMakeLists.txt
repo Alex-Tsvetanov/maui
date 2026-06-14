@@ -383,6 +383,13 @@ else()
     # context exist (the widget test host / a real app host).
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/button_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/button_handler.cpp)
+    # (W4-34d) navigation + window: the FrameLayout-based page-stack container + the Activity
+    # content-view stand-in. The android partials keep the headless mirrors live (VM-less suite) and
+    # additionally drive the real FrameLayout child swap when a VM + app context exist (the test host).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/navigation_page_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/navigation_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/window_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/window_handler.cpp)
   endif()
 endif()
 
@@ -563,7 +570,11 @@ if(MAUI_BACKEND STREQUAL "android")
     # (unit 28) the button Rosetta: the real control + handler drive a real android.widget.Button
     # both directions (property pushes read back over JNI; performClick → clicked). Links
     # maui_controls so the cross-platform seam is the one under test.
-    tests/platform/android_button_tests.cpp)
+    tests/platform/android_button_tests.cpp
+    # (W4-34d) navigation + window: the real navigation_page / window controls + handlers drive a real
+    # android.widget.FrameLayout — set window content → the root container hosts it; push/pop → the
+    # visible native child swaps; push/pop modal → the overlay child appears/clears.
+    tests/controls/navigation_window_android_tests.cpp)
   target_include_directories(maui_android_widget_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/android)
   target_link_libraries(maui_android_widget_tests PRIVATE GTest::gtest maui_controls maui_sanitizers)
   if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
