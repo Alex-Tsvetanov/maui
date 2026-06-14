@@ -117,9 +117,23 @@ namespace maui::controls
         collection_view_platform& operator=(const collection_view_platform&) = delete;
         collection_view_platform& operator=(collection_view_platform&&) = delete;
 
-        // The native placeholder view (headless: null; apple/ios: a plain NSView/UIView until the
-        // wave-3 native collection views land — per-backend members stay in the #ifdef blocks then).
+        // The native view the handler composes into a real view tree:
+        //   - headless: null (no native tree);
+        //   - apple: a plain placeholder NSView (the macOS NSCollectionView host is a later wave —
+        //     the cross-platform simulator below is the macOS state mirror, documented);
+        //   - ios: the REAL UICollectionView the items_view_controller drives (W3-29).
         void* native = nullptr;
+
+#ifdef MAUI_PLATFORM_IOS
+        // W3-29 — the iOS native virtualization stack (the Items2 compositional path). All slots are
+        // retained Obj-C objects, released in the backend-defined destructor (the .mm). The classic
+        // flow-layout Items path is NOT ported (Items2 compositional only — documented deviation).
+        // The items_view_controller (a UICollectionViewController subclass) IS the data source +
+        // delegate + cell/source adapter (the Items2 controller/cell/source collapsed into one class).
+        void* controller = nullptr;        // the items_view_controller (owns the UICollectionView)
+        void* layout = nullptr;            // the current UICollectionViewCompositionalLayout (from layout_factory)
+        void* empty_view_native = nullptr; // the realized EmptyView's native UIView while shown
+#endif
 
         // ---- the fake viewport ----
         double viewport_main_extent = 400;  // along the scroll axis
@@ -208,6 +222,40 @@ namespace maui::controls
         static void map_group_templates(collection_view_handler& handler, i_items_view& view);
         static void map_can_reorder_items(collection_view_handler& handler, i_items_view& view);
         static void map_scroll_to(collection_view_handler& handler, i_items_view& view, const std::any& args);
+
+#ifdef MAUI_PLATFORM_IOS
+        // ---- the iOS native bridge (W3-29) ----
+        // The cross-platform simulator below still runs as the in-memory state mirror; in PARALLEL these
+        // entry points drive the REAL UICollectionView controller (defined in the .mm) so the on-
+        // simulator suite asserts genuine cell reuse / supplementaries / native selection. The .cpp
+        // calls each at the same moments C# does (ItemsViewController2.ReloadData / UpdateItemsSource /
+        // UpdateSelectionMode / UpdatePlatformSelection / UpdateLayout / UpdateEmptyView / ScrollTo).
+        // No-ops until the controller exists (create_platform_view mints it).
+        void native_reload();                    // CollectionView.ReloadData (re-realize visible cells)
+        void native_rebuild_layout();            // SelectLayout → UpdateLayout (rebuild the compositional layout)
+        void native_update_selection_mode();     // SelectableItemsViewController2.UpdateSelectionMode
+        void native_update_platform_selection(); // SelectableItemsViewController2.UpdatePlatformSelection
+        void native_update_empty_view();         // ItemsViewController2.UpdateEmptyView
+        void native_update_can_reorder();        // ReorderableItemsViewController2.UpdateCanReorderItems
+        // ScrollTo (ItemsViewHandler2.ScrollToRequested): move the native viewport to `path`/`position`.
+        void native_scroll_to(const index_path& path, controls::scroll_to_position position, bool animate);
+        // Mount the native UICollectionView in a host window + force a layout pass (test seam — the
+        // run_loop_pump helper turns the loop so cells realize). Returns the visible cell count.
+        int native_force_layout(double width, double height);
+        // Inspection seams for the on-simulator tests (read straight off the live UICollectionView).
+        [[nodiscard]] int native_visible_cell_count() const;                     // CollectionView.VisibleCells.Length
+        [[nodiscard]] int native_distinct_cell_instances() const;                // unique cell pointers ever seen
+        [[nodiscard]] int native_visible_supplementary_count(bool header) const; // group/section supplementals
+        [[nodiscard]] int native_selected_count() const;                         // GetIndexPathsForSelectedItems.Length
+        // Simulate a user tap selecting/deselecting the cell at `path` on the native collection view
+        // (the delegate's ItemSelected/ItemDeselected path — fans back to the control).
+        void native_select(const index_path& path);
+        void native_deselect(const index_path& path);
+        // The text the realized cell at `path` currently displays (the DefaultCell2 label / the item's
+        // text mirror) — the test seam that proves a model reorder re-rendered the native cells. Empty
+        // when the path is not realized.
+        [[nodiscard]] std::string native_cell_text(const index_path& path) const;
+#endif
 
     private:
         // One slot of the flat layout model (the simulator's UICollectionViewLayout stand-in).

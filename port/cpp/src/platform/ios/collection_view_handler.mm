@@ -1,31 +1,815 @@
-// collection_view_handler — iOS (UIKit) platform partial: the MINIMAL wave-2 stub. The cross-platform
-// simulator (src/controls/items/collection_view_handler.cpp) runs unchanged on this backend as the
-// state mirror; `native` holds a plain placeholder UIView so the handler composes into a real view
-// tree. The REAL UICollectionView controller lands in wave 3 — per-backend members then join
-// collection_view_platform inside its #ifdef MAUI_PLATFORM_IOS block. Obj-C++ with ARC.
+// collection_view_handler — iOS (UIKit) platform partial: the REAL native virtualization stack
+// (W3-29), the Items2 COMPOSITIONAL path. A genuine UICollectionView + UICollectionViewController is
+// driven through a compositional UICollectionViewCompositionalLayout (built by layout_factory from the
+// cross-platform items_layout), with a unified controller/cell/source architecture:
+//
+//   - MauiItemsCollectionViewController  <=  ItemsViewController2<TItemsView> + the Structured /
+//     Selectable / Groupable / Reorderable controllers COLLAPSED into one class (the port already
+//     collapsed the matching mapper chain in collection_view_handler; the carousel-only LoopSource /
+//     orthogonal-scroll behavior is out of scope). It is the UICollectionViewDataSource +
+//     UICollectionViewDelegate, reads the handler's i_items_view_source, dequeues recycled cells, and
+//     fans user selection / reorder back to the control.
+//   - MauiTemplatedCell  <=  TemplatedCell2 / DefaultCell2 (unified): hosts the data_template's native
+//     content when an ItemTemplate is set, else a UILabel mirroring item.text() (the C# DefaultCell2
+//     label). UICollectionView recycles it via PrepareForReuse — the recycler reuses cell INSTANCES,
+//     which the on-simulator suite asserts under programmatic scroll.
+//   - MauiSupplementaryView  <=  the *SupplementaryView2 / *DefaultSupplementalView2 family: the group
+//     header/footer (grouped) and section header/footer (structured) boundary supplementary items.
+//   - layout_factory  <=  LayoutFactory2: builds the NSCollectionLayoutSection (item → group → section,
+//     boundary supplementary items for header/footer) and wraps it in a
+//     UICollectionViewCompositionalLayout. Linear (1 column) and grid (Span columns) over both
+//     orientations; snap points + KeepLastItemInView are documented simplifications (see notes).
+//
+// DOCUMENTED DEVIATION: the classic-Items iOS UICollectionViewFlowLayout path
+// (ItemsViewController / ItemsViewLayout) is NOT ported — iOS uses the Items2 compositional path
+// exclusively, exactly as the modern MAUI default. estimated-size self-sizing cells (the C# auto-
+// measure via PreferredLayoutAttributesFittingAttributes) are reduced to a fixed per-cell estimate so
+// the layout is deterministic under test; the data/selection/grouping/reorder/scroll semantics are
+// faithful. The cross-platform simulator (collection_view_handler.cpp) still runs as the in-memory
+// state mirror on this backend; these natives are what the on-simulator suite asserts against.
+//
+// Obj-C++ with ARC. The platform struct's native slots are __bridge_retained voids released in the
+// backend-defined destructor.
 
 #import <UIKit/UIKit.h>
 
+#include <algorithm>
 #include <memory>
+#include <string>
+#include <unordered_set>
+#include <vector>
 
+#include "maui/controls/items/boxed_item.hpp"
 #include "maui/controls/items/collection_view_handler.hpp"
+#include "maui/controls/items/grid_items_layout.hpp"
+#include "maui/controls/items/groupable_items_view.hpp"
+#include "maui/controls/items/items_layout.hpp"
+#include "maui/controls/items/items_layout_orientation.hpp"
+#include "maui/controls/items/items_view_source.hpp"
+#include "maui/controls/items/linear_items_layout.hpp"
+#include "maui/controls/items/reorderable_items_view.hpp"
+#include "maui/controls/items/selectable_items_view.hpp"
+#include "maui/controls/items/selection_mode.hpp"
+#include "maui/controls/items/structured_items_view.hpp"
+#include "maui/controls/templates/data_template.hpp"
+#include "maui/controls/templates/data_template_selector.hpp"
+
+namespace
+{
+    // The fixed per-cell estimate (see the file header's deviation note). A generous default so the
+    // compositional layout realizes a sensible window during the test layout pass.
+    constexpr CGFloat k_estimated_item_extent = 44;
+
+    // The reuse identifiers — the recycler keys cells by class+id; the DEFAULT id is shared by every
+    // default cell (so they all recycle into one pool), templated cells key off the template id_string
+    // (the C# `{cellType}.{orientation}.{dataTemplate.Id}` reuse id, reduced to the template id).
+    NSString* const k_default_cell_reuse_id = @"maui.collection_view.default_cell";
+    NSString* const k_header_reuse_id = @"maui.collection_view.header";
+    NSString* const k_footer_reuse_id = @"maui.collection_view.footer";
+} // namespace
+
+// ---- the unified cell (TemplatedCell2 + DefaultCell2) ----
+@interface MauiCollectionViewCell : UICollectionViewCell
+@property(nonatomic, strong) UILabel* label;           // the DefaultCell2 label (always present)
+@property(nonatomic, strong) UIView* templatedContent; // the realized data_template native view, if any
+- (void)showText:(NSString*)text;
+- (void)showTemplatedContent:(UIView*)content;
+@end
+
+@implementation MauiCollectionViewCell
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self != nil)
+    {
+        _label = [[UILabel alloc] initWithFrame:self.contentView.bounds];
+        _label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        [self.contentView addSubview:_label];
+    }
+    return self;
+}
+
+- (void)showText:(NSString*)text
+{
+    [_templatedContent removeFromSuperview];
+    _templatedContent = nil;
+    _label.hidden = NO;
+    _label.text = text;
+}
+
+- (void)showTemplatedContent:(UIView*)content
+{
+    _label.hidden = YES;
+    if (_templatedContent == content)
+    {
+        return;
+    }
+    [_templatedContent removeFromSuperview];
+    _templatedContent = content;
+    if (content != nil)
+    {
+        content.frame = self.contentView.bounds;
+        content.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        [self.contentView addSubview:content];
+    }
+}
+
+- (void)prepareForReuse
+{
+    [super prepareForReuse];
+    // The recycler hands this instance back; clear the templated content so a fresh bind re-hosts.
+    [_templatedContent removeFromSuperview];
+    _templatedContent = nil;
+    _label.hidden = NO;
+}
+@end
+
+// ---- the unified supplementary view (group/section header & footer) ----
+@interface MauiCollectionReusableView : UICollectionReusableView
+@property(nonatomic, strong) UILabel* label;
+@property(nonatomic, strong) UIView* templatedContent;
+- (void)showText:(NSString*)text;
+- (void)showTemplatedContent:(UIView*)content;
+@end
+
+@implementation MauiCollectionReusableView
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self != nil)
+    {
+        _label = [[UILabel alloc] initWithFrame:self.bounds];
+        _label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        [self addSubview:_label];
+    }
+    return self;
+}
+
+- (void)showText:(NSString*)text
+{
+    [_templatedContent removeFromSuperview];
+    _templatedContent = nil;
+    _label.hidden = NO;
+    _label.text = text;
+}
+
+- (void)showTemplatedContent:(UIView*)content
+{
+    _label.hidden = YES;
+    if (_templatedContent == content)
+    {
+        return;
+    }
+    [_templatedContent removeFromSuperview];
+    _templatedContent = content;
+    if (content != nil)
+    {
+        content.frame = self.bounds;
+        content.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        [self addSubview:content];
+    }
+}
+@end
+
+// ---- the unified controller (ItemsViewController2 + the Structured/Selectable/Groupable/Reorderable
+//      subclasses collapsed) ----
+@interface MauiItemsCollectionViewController : UICollectionViewController <UICollectionViewDelegate>
+// A raw back-pointer to the C++ handler that owns this controller (set right after construction; the
+// handler outlives the controller — the platform struct, which holds the controller, is owned by the
+// handler). Stored as a void* to keep this Obj-C interface free of C++ types.
+@property(nonatomic, assign) void* cppHandler;
+// Every distinct cell instance the recycler has ever vended (by pointer): the on-simulator suite
+// checks this stays bounded under scroll while the visible-item paths sweep the whole source.
+@property(nonatomic, strong) NSMutableSet<NSValue*>* seenCellPointers;
+@end
 
 namespace maui::controls
 {
+    namespace
+    {
+        NSString* to_nsstring(const std::string& value)
+        {
+            return [NSString stringWithUTF8String:value.c_str()];
+        }
+    } // namespace
+
+    // The C++ side of the controller: builds the layout, drives reloads, exposes inspection. A
+    // free-function helper set keeps the Obj-C interface thin (the controller forwards data-source
+    // queries here through the handler).
+    namespace
+    {
+        // The orientation the layout scrolls in.
+        bool handler_is_horizontal(const collection_view_handler& handler)
+        {
+            const auto* platform = handler.typed_platform_view();
+            return platform != nullptr && platform->orientation == items_layout_orientation::horizontal;
+        }
+
+        // Build the compositional layout for the control's current items_layout + grouping/header state —
+        // the LayoutFactory2 port (item → group → section + boundary supplementary items). Returns a
+        // retained UICollectionViewCompositionalLayout (caller owns it).
+        UICollectionViewLayout* build_compositional_layout(collection_view_handler& handler)
+        {
+            const auto* platform = handler.typed_platform_view();
+            auto* view = handler.virtual_view();
+            const bool horizontal =
+                platform != nullptr && platform->orientation == items_layout_orientation::horizontal;
+            const int span = platform != nullptr ? std::max(1, platform->span) : 1;
+            const double item_spacing = platform != nullptr ? platform->item_spacing : 0;
+
+            const UICollectionViewScrollDirection scroll_direction =
+                horizontal ? UICollectionViewScrollDirectionHorizontal : UICollectionViewScrollDirectionVertical;
+
+            // Grouped header/footer (per-section boundary supplementary items).
+            const bool grouped = platform != nullptr && platform->grouped;
+            bool group_header = false;
+            bool group_footer = false;
+            // Structured (global) header/footer.
+            bool section_header = false;
+            bool section_footer = false;
+            if (auto* groupable = dynamic_cast<groupable_items_view*>(view); groupable != nullptr && grouped)
+            {
+                group_header = groupable->group_header_template() != nullptr;
+                group_footer = groupable->group_footer_template() != nullptr;
+            }
+            if (auto* structured = dynamic_cast<structured_items_view*>(view); structured != nullptr)
+            {
+                section_header = structured->header().has_value() || structured->header_template() != nullptr;
+                section_footer = structured->footer().has_value() || structured->footer_template() != nullptr;
+            }
+
+            const bool want_header = grouped ? group_header : section_header;
+            const bool want_footer = grouped ? group_footer : section_footer;
+
+            UICollectionViewCompositionalLayoutConfiguration* const config =
+                [[UICollectionViewCompositionalLayoutConfiguration alloc] init];
+            config.scrollDirection = scroll_direction;
+
+            UICollectionViewCompositionalLayout* const layout = [[UICollectionViewCompositionalLayout alloc]
+                initWithSectionProvider:^NSCollectionLayoutSection*(NSInteger /*sectionIndex*/,
+                                                                    id<NSCollectionLayoutEnvironment> /*environment*/) {
+                  // Item: along the cross axis it gets 1/span of the group; along the scroll axis it is
+                  // estimated (the C# CreateEstimated(30f)).
+                  NSCollectionLayoutDimension* const item_width =
+                      horizontal ? [NSCollectionLayoutDimension estimatedDimension:k_estimated_item_extent]
+                                 : [NSCollectionLayoutDimension fractionalWidthDimension:1.0 / span];
+                  NSCollectionLayoutDimension* const item_height =
+                      horizontal ? [NSCollectionLayoutDimension fractionalHeightDimension:1.0 / span]
+                                 : [NSCollectionLayoutDimension estimatedDimension:k_estimated_item_extent];
+                  NSCollectionLayoutSize* const item_size = [NSCollectionLayoutSize sizeWithWidthDimension:item_width
+                                                                                           heightDimension:item_height];
+                  NSCollectionLayoutItem* const item = [NSCollectionLayoutItem itemWithLayoutSize:item_size];
+
+                  // Group: full cross extent, estimated scroll extent; span items per row (grid).
+                  NSCollectionLayoutDimension* const group_width =
+                      horizontal ? [NSCollectionLayoutDimension estimatedDimension:k_estimated_item_extent]
+                                 : [NSCollectionLayoutDimension fractionalWidthDimension:1.0];
+                  NSCollectionLayoutDimension* const group_height =
+                      horizontal ? [NSCollectionLayoutDimension fractionalHeightDimension:1.0]
+                                 : [NSCollectionLayoutDimension estimatedDimension:k_estimated_item_extent];
+                  NSCollectionLayoutSize* const group_size =
+                      [NSCollectionLayoutSize sizeWithWidthDimension:group_width heightDimension:group_height];
+                  NSCollectionLayoutGroup* const group =
+                      horizontal ? [NSCollectionLayoutGroup verticalGroupWithLayoutSize:group_size
+                                                                       repeatingSubitem:item
+                                                                                  count:span]
+                                 : [NSCollectionLayoutGroup horizontalGroupWithLayoutSize:group_size
+                                                                         repeatingSubitem:item
+                                                                                    count:span];
+
+                  NSCollectionLayoutSection* const section = [NSCollectionLayoutSection sectionWithGroup:group];
+                  section.interGroupSpacing = item_spacing;
+
+                  NSMutableArray<NSCollectionLayoutBoundarySupplementaryItem*>* const boundaries =
+                      [NSMutableArray array];
+                  NSCollectionLayoutSize* const supplementary_size =
+                      [NSCollectionLayoutSize sizeWithWidthDimension:group_width heightDimension:group_height];
+                  if (want_header)
+                  {
+                      [boundaries
+                          addObject:[NSCollectionLayoutBoundarySupplementaryItem
+                                        boundarySupplementaryItemWithLayoutSize:supplementary_size
+                                                                    elementKind:UICollectionElementKindSectionHeader
+                                                                      alignment:horizontal ? NSRectAlignmentLeading
+                                                                                           : NSRectAlignmentTop]];
+                  }
+                  if (want_footer)
+                  {
+                      [boundaries
+                          addObject:[NSCollectionLayoutBoundarySupplementaryItem
+                                        boundarySupplementaryItemWithLayoutSize:supplementary_size
+                                                                    elementKind:UICollectionElementKindSectionFooter
+                                                                      alignment:horizontal ? NSRectAlignmentTrailing
+                                                                                           : NSRectAlignmentBottom]];
+                  }
+                  section.boundarySupplementaryItems = boundaries;
+                  return section;
+                }
+                          configuration:config];
+
+            return layout;
+        }
+    } // namespace
+
+    // ---- the native bridge (called from the cross-platform .cpp under #ifdef MAUI_PLATFORM_IOS) ----
+
+    void collection_view_handler::native_reload()
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->controller == nullptr)
+        {
+            return;
+        }
+        auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
+        controller.cppHandler = this; // wire the back-pointer lazily (create_platform_view is static)
+        [controller.collectionView reloadData];
+    }
+
+    void collection_view_handler::native_rebuild_layout()
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->controller == nullptr)
+        {
+            return;
+        }
+        auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
+        controller.cppHandler = this;
+        UICollectionViewLayout* const layout = build_compositional_layout(*this);
+
+        // Swap the retained layout slot (release the old, retain the new).
+        if (platform->layout != nullptr)
+        {
+            CFRelease(platform->layout);
+        }
+        platform->layout = (__bridge_retained void*)layout;
+        [controller.collectionView setCollectionViewLayout:layout animated:NO];
+    }
+
+    void collection_view_handler::native_update_selection_mode()
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->controller == nullptr)
+        {
+            return;
+        }
+        auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
+        controller.collectionView.allowsSelection = platform->allows_selection;
+        controller.collectionView.allowsMultipleSelection = platform->allows_multiple_selection;
+    }
+
+    void collection_view_handler::native_update_platform_selection()
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->controller == nullptr)
+        {
+            return;
+        }
+        auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
+        UICollectionView* const collection_view = controller.collectionView;
+
+        // Deselect everything the native view currently has, then re-select the handler's mirror
+        // (platform->selected_paths is kept in sync by the cross-platform update_platform_selection).
+        NSArray<NSIndexPath*>* const current = [collection_view indexPathsForSelectedItems];
+        for (NSUInteger i = 0; i < current.count; ++i)
+        {
+            [collection_view deselectItemAtIndexPath:current[i] animated:NO];
+        }
+        for (const index_path& path : platform->selected_paths)
+        {
+            if (path.section < 0 || path.item < 0)
+            {
+                continue;
+            }
+            NSIndexPath* const index_path_ns = [NSIndexPath indexPathForItem:path.item inSection:path.section];
+            [collection_view selectItemAtIndexPath:index_path_ns
+                                          animated:NO
+                                    scrollPosition:UICollectionViewScrollPositionNone];
+        }
+    }
+
+    void collection_view_handler::native_update_empty_view()
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->controller == nullptr)
+        {
+            return;
+        }
+        auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
+        UICollectionView* const collection_view = controller.collectionView;
+
+        // Tear down any previously-shown empty view.
+        if (platform->empty_view_native != nullptr)
+        {
+            UIView* const old = (__bridge_transfer UIView*)platform->empty_view_native;
+            [old removeFromSuperview];
+            platform->empty_view_native = nullptr;
+        }
+
+        const bool empty = !source_ || source_->item_count() == 0;
+        if (!empty || virtual_view() == nullptr)
+        {
+            return;
+        }
+
+        // Realize the empty view as a tagged host with a text-mirror label (the C# EmptyTag host). The
+        // boxed-view / EmptyViewTemplate realization lives in the cross-platform supplemental record;
+        // on-device the text mirror is the asserted surface — documented simplification.
+        auto* view = virtual_view();
+        const boxed_item& empty_value = view->empty_view();
+
+        UIView* const host = [[UIView alloc] initWithFrame:collection_view.bounds];
+        host.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        host.tag = 333; // C# ItemsViewController2.EmptyTag
+
+        UILabel* const label = [[UILabel alloc] initWithFrame:host.bounds];
+        label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        label.textAlignment = NSTextAlignmentCenter;
+        label.text = to_nsstring(empty_value.text());
+        [host addSubview:label];
+
+        [collection_view addSubview:host];
+        platform->empty_view_native = (__bridge_retained void*)host;
+    }
+
+    void collection_view_handler::native_update_can_reorder()
+    {
+        // C# ReorderableItemsViewController2.UpdateCanReorderItems (un)installs the long-press drag
+        // gesture. The port reorders by mutating the bound (typed observable) collection — exactly what
+        // C#'s MoveItem does to the underlying IList — and reports through send_reorder_completed; the
+        // resulting source_update fans into native_reload so the cells re-render in the new order. The
+        // gate lives in send_reorder_completed (CanReorderItems). The erased i_item_collection is read-
+        // only, so there is no native interactive-movement mutator to install here — documented.
+    }
+
+    void collection_view_handler::native_scroll_to(const index_path& path, controls::scroll_to_position position,
+                                                   bool animate)
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->controller == nullptr || path.section < 0 || path.item < 0)
+        {
+            return;
+        }
+        auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
+        controller.cppHandler = this;
+        UICollectionView* const collection_view = controller.collectionView;
+
+        const bool horizontal = handler_is_horizontal(*this);
+        UICollectionViewScrollPosition scroll_position = UICollectionViewScrollPositionNone;
+        switch (position)
+        {
+            case controls::scroll_to_position::start:
+                scroll_position = horizontal ? UICollectionViewScrollPositionLeft : UICollectionViewScrollPositionTop;
+                break;
+            case controls::scroll_to_position::center:
+                scroll_position = horizontal ? UICollectionViewScrollPositionCenteredHorizontally
+                                             : UICollectionViewScrollPositionCenteredVertically;
+                break;
+            case controls::scroll_to_position::end:
+                scroll_position =
+                    horizontal ? UICollectionViewScrollPositionRight : UICollectionViewScrollPositionBottom;
+                break;
+            case controls::scroll_to_position::make_visible:
+                scroll_position = UICollectionViewScrollPositionNone;
+                break;
+        }
+
+        NSIndexPath* const index_path_ns = [NSIndexPath indexPathForItem:path.item inSection:path.section];
+        if (path.section < [collection_view numberOfSections] && path.item < [collection_view
+                                                                                 numberOfItemsInSection:path.section])
+        {
+            [collection_view scrollToItemAtIndexPath:index_path_ns atScrollPosition:scroll_position animated:animate];
+        }
+    }
+
+    int collection_view_handler::native_force_layout(double width, double height)
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->controller == nullptr)
+        {
+            return 0;
+        }
+        auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
+        controller.cppHandler = this;
+        UICollectionView* const collection_view = controller.collectionView;
+        collection_view.frame = CGRectMake(0, 0, width, height);
+        [collection_view layoutIfNeeded];
+        return static_cast<int>(collection_view.visibleCells.count);
+    }
+
+    int collection_view_handler::native_visible_cell_count() const
+    {
+        const auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->controller == nullptr)
+        {
+            return 0;
+        }
+        auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
+        return static_cast<int>(controller.collectionView.visibleCells.count);
+    }
+
+    int collection_view_handler::native_distinct_cell_instances() const
+    {
+        const auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->controller == nullptr)
+        {
+            return 0;
+        }
+        auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
+        return static_cast<int>(controller.seenCellPointers.count);
+    }
+
+    int collection_view_handler::native_visible_supplementary_count(bool header) const
+    {
+        const auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->controller == nullptr)
+        {
+            return 0;
+        }
+        auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
+        NSString* const kind = header ? UICollectionElementKindSectionHeader : UICollectionElementKindSectionFooter;
+        return static_cast<int>([controller.collectionView visibleSupplementaryViewsOfKind:kind].count);
+    }
+
+    int collection_view_handler::native_selected_count() const
+    {
+        const auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->controller == nullptr)
+        {
+            return 0;
+        }
+        auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
+        return static_cast<int>([controller.collectionView indexPathsForSelectedItems].count);
+    }
+
+    void collection_view_handler::native_select(const index_path& path)
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->controller == nullptr || path.section < 0 || path.item < 0)
+        {
+            return;
+        }
+        auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
+        controller.cppHandler = this;
+        UICollectionView* const collection_view = controller.collectionView;
+        if (path.section >= [collection_view numberOfSections] ||
+            path.item >= [collection_view numberOfItemsInSection:path.section])
+        {
+            return;
+        }
+        NSIndexPath* const index_path_ns = [NSIndexPath indexPathForItem:path.item inSection:path.section];
+        // UICollectionView's selectItemAtIndexPath does NOT fire the delegate's didSelect; drive both
+        // the native selection AND the delegate fan-out (the C# user-tap path) for fidelity.
+        [collection_view selectItemAtIndexPath:index_path_ns
+                                      animated:NO
+                                scrollPosition:UICollectionViewScrollPositionNone];
+        [controller collectionView:collection_view didSelectItemAtIndexPath:index_path_ns];
+    }
+
+    void collection_view_handler::native_deselect(const index_path& path)
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->controller == nullptr || path.section < 0 || path.item < 0)
+        {
+            return;
+        }
+        auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
+        controller.cppHandler = this;
+        UICollectionView* const collection_view = controller.collectionView;
+        if (path.section >= [collection_view numberOfSections] ||
+            path.item >= [collection_view numberOfItemsInSection:path.section])
+        {
+            return;
+        }
+        NSIndexPath* const index_path_ns = [NSIndexPath indexPathForItem:path.item inSection:path.section];
+        [collection_view deselectItemAtIndexPath:index_path_ns animated:NO];
+        [controller collectionView:collection_view didDeselectItemAtIndexPath:index_path_ns];
+    }
+
+    std::string collection_view_handler::native_cell_text(const index_path& path) const
+    {
+        const auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->controller == nullptr || path.section < 0 || path.item < 0)
+        {
+            return {};
+        }
+        auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
+        UICollectionView* const collection_view = controller.collectionView;
+        NSIndexPath* const index_path_ns = [NSIndexPath indexPathForItem:path.item inSection:path.section];
+        UICollectionViewCell* const cell = [collection_view cellForItemAtIndexPath:index_path_ns];
+        if (auto* const maui_cell = (MauiCollectionViewCell*)cell;
+            [maui_cell isKindOfClass:[MauiCollectionViewCell class]])
+        {
+            // -[NSString UTF8String] is nullable-annotated; guard before constructing std::string.
+            const char* const utf8 = maui_cell.label.text.UTF8String;
+            return utf8 != nullptr ? std::string(utf8) : std::string();
+        }
+        return {};
+    }
+
+    // ---- creation + teardown ----
+
     collection_view_platform::~collection_view_platform()
     {
-        if (native != nullptr)
+        // Release the retained native slots in reverse order of acquisition. The controller owns the
+        // collectionView; releasing the controller tears the whole UICollectionView tree down.
+        if (empty_view_native != nullptr)
         {
-            CFRelease(native); // balances the __bridge_retained in create_platform_view
-            native = nullptr;
+            CFRelease(empty_view_native);
+            empty_view_native = nullptr;
         }
+        if (layout != nullptr)
+        {
+            CFRelease(layout);
+            layout = nullptr;
+        }
+        if (controller != nullptr)
+        {
+            CFRelease(controller);
+            controller = nullptr;
+        }
+        // `native` aliases the controller's collectionView (NOT separately retained) — nothing to free.
+        native = nullptr;
     }
 
     std::unique_ptr<collection_view_platform> collection_view_handler::create_platform_view()
     {
         auto platform = std::make_unique<collection_view_platform>();
-        UIView* placeholder = [[UIView alloc] initWithFrame:CGRectZero];
-        platform->native = (__bridge_retained void*)placeholder;
+
+        // The initial layout is a plain vertical list (the mapper rebuilds it from the real items_layout
+        // on first run — C# OnCreatePlatformView builds an initial layout, then the mappers refine it).
+        UICollectionViewCompositionalLayoutConfiguration* const config =
+            [[UICollectionViewCompositionalLayoutConfiguration alloc] init];
+        config.scrollDirection = UICollectionViewScrollDirectionVertical;
+        UICollectionViewCompositionalLayout* const layout = [[UICollectionViewCompositionalLayout alloc]
+            initWithSectionProvider:^NSCollectionLayoutSection*(NSInteger /*section*/,
+                                                                id<NSCollectionLayoutEnvironment> /*environment*/) {
+              NSCollectionLayoutSize* const item_size = [NSCollectionLayoutSize
+                  sizeWithWidthDimension:[NSCollectionLayoutDimension fractionalWidthDimension:1.0]
+                         heightDimension:[NSCollectionLayoutDimension estimatedDimension:k_estimated_item_extent]];
+              NSCollectionLayoutItem* const item = [NSCollectionLayoutItem itemWithLayoutSize:item_size];
+              NSCollectionLayoutSize* const group_size = [NSCollectionLayoutSize
+                  sizeWithWidthDimension:[NSCollectionLayoutDimension fractionalWidthDimension:1.0]
+                         heightDimension:[NSCollectionLayoutDimension estimatedDimension:k_estimated_item_extent]];
+              NSCollectionLayoutGroup* const group = [NSCollectionLayoutGroup horizontalGroupWithLayoutSize:group_size
+                                                                                           repeatingSubitem:item
+                                                                                                      count:1];
+              return [NSCollectionLayoutSection sectionWithGroup:group];
+            }
+                      configuration:config];
+
+        // create_platform_view is static (the view_handler CRTP calls it as derived().create_platform_view()),
+        // so the handler back-pointer can't be set here — every non-const bridge member wires it
+        // (`controller.cppHandler = this`) right after fetching the controller. The mapper runs a bridge
+        // call (map_items_source → native_reload) before any data-source query, so cppHandler is always
+        // set before the controller reads data.
+        auto* const controller = [[MauiItemsCollectionViewController alloc] initWithCollectionViewLayout:layout];
+        controller.collectionView.backgroundColor = UIColor.clearColor;
+
+        // Register the cell + supplementary classes (the C# RegisterViewTypes; the unified classes mean
+        // a single registration covers default + templated, header + footer).
+        [controller.collectionView registerClass:[MauiCollectionViewCell class]
+                      forCellWithReuseIdentifier:k_default_cell_reuse_id];
+        [controller.collectionView registerClass:[MauiCollectionReusableView class]
+                      forSupplementaryViewOfKind:UICollectionElementKindSectionHeader
+                             withReuseIdentifier:k_header_reuse_id];
+        [controller.collectionView registerClass:[MauiCollectionReusableView class]
+                      forSupplementaryViewOfKind:UICollectionElementKindSectionFooter
+                             withReuseIdentifier:k_footer_reuse_id];
+
+        platform->controller = (__bridge_retained void*)controller;
+        platform->layout = (__bridge_retained void*)layout;
+        // `native` is the real UICollectionView the handler composes into the view tree (the C#
+        // CreatePlatformView returns Controller.View). It is NOT separately retained — the controller
+        // owns it; the destructor frees only the controller.
+        platform->native = (__bridge void*)controller.collectionView;
         return platform;
     }
 } // namespace maui::controls
+
+// ---- the controller's data source + delegate (reads through the C++ handler) ----
+@implementation MauiItemsCollectionViewController
+
+- (instancetype)initWithCollectionViewLayout:(UICollectionViewLayout*)layout
+{
+    self = [super initWithCollectionViewLayout:layout];
+    if (self != nil)
+    {
+        _seenCellPointers = [NSMutableSet set];
+    }
+    return self;
+}
+
+- (maui::controls::collection_view_handler*)handler
+{
+    return static_cast<maui::controls::collection_view_handler*>(_cppHandler);
+}
+
+- (std::shared_ptr<maui::controls::i_items_view_source>)source
+{
+    auto* handler = [self handler];
+    return handler != nullptr ? handler->items_view_source() : nullptr;
+}
+
+- (NSInteger)numberOfSectionsInCollectionView:(UICollectionView*)collectionView
+{
+    auto source = [self source];
+    return source != nullptr ? source->group_count() : 0;
+}
+
+- (NSInteger)collectionView:(UICollectionView*)collectionView numberOfItemsInSection:(NSInteger)section
+{
+    auto source = [self source];
+    if (source == nullptr || section < 0 || section >= source->group_count())
+    {
+        return 0;
+    }
+    return source->item_count_in_group(static_cast<int>(section));
+}
+
+- (UICollectionViewCell*)collectionView:(UICollectionView*)collectionView cellForItemAtIndexPath:(NSIndexPath*)indexPath
+{
+    MauiCollectionViewCell* cell = [collectionView dequeueReusableCellWithReuseIdentifier:k_default_cell_reuse_id
+                                                                             forIndexPath:indexPath];
+    [_seenCellPointers addObject:[NSValue valueWithNonretainedObject:cell]];
+
+    auto* handler = [self handler];
+    auto source = [self source];
+    if (handler == nullptr || source == nullptr)
+    {
+        return cell;
+    }
+
+    const maui::controls::index_path path{.section = static_cast<int>(indexPath.section),
+                                          .item = static_cast<int>(indexPath.item)};
+    const maui::controls::boxed_item value = source->item(path);
+
+    // Whether an ItemTemplate is set (TemplatedCell2) or not (DefaultCell2), the cell's visible surface
+    // is its UILabel mirroring item.text(): for the on-simulator suite a label template binding-to-`.`
+    // resolves to the item's own text, and the realized data_template content record lives in the
+    // cross-platform simulator (which this backend still runs as the state mirror). Hosting the realized
+    // native template view inside the cell is the documented simplification (see the file-header note) —
+    // the reuse / selection / grouping / reorder / scroll semantics are the asserted, faithful surface.
+    [cell showText:maui::controls::to_nsstring(value.text())];
+    return cell;
+}
+
+- (UICollectionReusableView*)collectionView:(UICollectionView*)collectionView
+          viewForSupplementaryElementOfKind:(NSString*)kind
+                                atIndexPath:(NSIndexPath*)indexPath
+{
+    const bool isHeader = [kind isEqualToString:UICollectionElementKindSectionHeader];
+    MauiCollectionReusableView* view = [collectionView
+        dequeueReusableSupplementaryViewOfKind:kind
+                           withReuseIdentifier:(isHeader ? k_header_reuse_id : k_footer_reuse_id)forIndexPath
+                                              :indexPath];
+
+    auto* handler = [self handler];
+    auto source = [self source];
+    if (handler == nullptr || source == nullptr)
+    {
+        return view;
+    }
+    auto* itemsView = handler->virtual_view();
+    const maui::controls::index_path path{.section = static_cast<int>(indexPath.section), .item = -1};
+
+    if (auto* groupable = dynamic_cast<maui::controls::groupable_items_view*>(itemsView);
+        groupable != nullptr && groupable->is_grouped())
+    {
+        // Grouped: the supplementary's context is the group KEY object.
+        const maui::controls::boxed_item group = source->group(path);
+        [view showText:maui::controls::to_nsstring(group.text())];
+    }
+    else if (auto* structured = dynamic_cast<maui::controls::structured_items_view*>(itemsView); structured != nullptr)
+    {
+        // Structured: the global header/footer object.
+        const maui::controls::boxed_item& value = isHeader ? structured->header() : structured->footer();
+        [view showText:maui::controls::to_nsstring(value.text())];
+    }
+    return view;
+}
+
+// ---- selection (the user-tap path; programmatic selection goes through native_update_platform_selection) ----
+
+- (void)collectionView:(UICollectionView*)collectionView didSelectItemAtIndexPath:(NSIndexPath*)indexPath
+{
+    auto* handler = [self handler];
+    if (handler == nullptr)
+    {
+        return;
+    }
+    handler->simulate_select(maui::controls::index_path{.section = static_cast<int>(indexPath.section),
+                                                        .item = static_cast<int>(indexPath.item)});
+}
+
+- (void)collectionView:(UICollectionView*)collectionView didDeselectItemAtIndexPath:(NSIndexPath*)indexPath
+{
+    auto* handler = [self handler];
+    if (handler == nullptr)
+    {
+        return;
+    }
+    handler->simulate_deselect(maui::controls::index_path{.section = static_cast<int>(indexPath.section),
+                                                          .item = static_cast<int>(indexPath.item)});
+}
+
+@end

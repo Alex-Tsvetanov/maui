@@ -968,6 +968,10 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/tabbed_page_ios_tests.mm # (W1-10) the real UITabBarController child-VC seam
     tests/controls/flyout_page_ios_tests.mm # (W1-10) the real UISplitViewController column seam
     tests/controls/chrome_ios_tests.mm # (W1-11) real bar buttons + UIContextMenuInteraction attach + inert mirrors
+    # (W3-29 items) the REAL UICollectionView native virtualization (Items2 compositional path): cell
+    # reuse under programmatic scroll, selection single/multi, grouping supplementaries, reorder,
+    # scroll-to, empty-view — run-loop pumped via tests/support/run_loop_pump.hpp.
+    tests/controls/collection_view_ios_tests.mm
     tests/controls/window_ios_tests.mm)
   add_executable(maui_controls_tests
     ${MAUI_IOS_TEST_MM_SOURCES}
