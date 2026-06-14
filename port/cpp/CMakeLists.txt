@@ -1265,10 +1265,12 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/essentials/version_tracking_tests.cpp # PURE managed - runs over fakes on every backend
     tests/essentials/unit_converters_tests.cpp  # PURE managed - identical on every backend
     tests/essentials/essentials_apple_tests.mm
-    tests/essentials/essentials_appmodel_apple_tests.mm)
+    tests/essentials/essentials_appmodel_apple_tests.mm
+    tests/essentials/essentials_media_apple_tests.mm)
   set_source_files_properties(
     tests/essentials/essentials_apple_tests.mm
     tests/essentials/essentials_appmodel_apple_tests.mm
+    tests/essentials/essentials_media_apple_tests.mm
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 elseif(MAUI_BACKEND STREQUAL "ios")
   add_executable(maui_essentials_tests
@@ -1277,10 +1279,12 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/essentials/version_tracking_tests.cpp # PURE managed - runs over fakes on every backend
     tests/essentials/unit_converters_tests.cpp  # PURE managed - identical on every backend
     tests/essentials/essentials_ios_tests.mm
-    tests/essentials/essentials_appmodel_ios_tests.mm)
+    tests/essentials/essentials_appmodel_ios_tests.mm
+    tests/essentials/essentials_media_ios_tests.mm)
   set_source_files_properties(
     tests/essentials/essentials_ios_tests.mm
     tests/essentials/essentials_appmodel_ios_tests.mm
+    tests/essentials/essentials_media_ios_tests.mm
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
   # The iOS 26.5+ simulator runtime enforces keychain entitlements for SecItem* (-34018 without
   # them); embed them the way Xcode does for simulator builds — a __TEXT,__entitlements section
