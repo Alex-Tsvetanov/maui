@@ -46,6 +46,8 @@
 
 #include "ios_gesture_ops.hpp"
 #include "maui/controls/gestures/buttons_mask.hpp"
+#include "maui/controls/gestures/drag_gesture_recognizer.hpp" // --- drag&drop (W2-22) ---
+#include "maui/controls/gestures/drop_gesture_recognizer.hpp" // --- drag&drop (W2-22) ---
 #include "maui/controls/gestures/gesture_platform_manager.hpp"
 #include "maui/controls/gestures/gesture_recognizer.hpp"
 #include "maui/controls/gestures/pan_gesture_recognizer.hpp"
@@ -144,6 +146,31 @@
 }
 @end
 
+// --- drag&drop (W2-22): the DragAndDropDelegate.cs port — one delegate object backing both the
+// UIDragInteraction and the UIDropInteraction installed on a view (C# shares a single _dragAndDropDelegate
+// for both). Attachment-only: the required drag-session callback returns no items and the drop session is
+// accepted with a Copy proposal — enough to install/remove the interactions; driving a real
+// UIDrag/UIDropSession isn't possible on the spawned simulator lane (documented). The full session →
+// SendDragStarting / SendDrop bridge is the device-test territory the cross-platform recognizer already
+// pins headlessly. ---
+@interface MauiDragDropDelegate : NSObject <UIDragInteractionDelegate, UIDropInteractionDelegate>
+@end
+
+@implementation MauiDragDropDelegate
+- (NSArray<UIDragItem*>*)dragInteraction:(UIDragInteraction*)interaction
+                itemsForBeginningSession:(id<UIDragSession>)session
+{
+    return @[]; // attachment-only — no synthetic session payload
+}
+- (UIDropProposal*)dropInteraction:(UIDropInteraction*)interaction sessionDidUpdate:(id<UIDropSession>)session
+{
+    return [[UIDropProposal alloc] initWithDropOperation:UIDropOperationCopy];
+}
+- (void)dropInteraction:(UIDropInteraction*)interaction performDrop:(id<UIDropSession>)session
+{
+}
+@end
+
 namespace
 {
     using maui::platform::ios::gesture_target_key;
@@ -160,6 +187,14 @@ namespace
         double previous_scale = 1.0;                  // GesturePlatformManager._previousScale
         double starting_scale = 1.0;                  // view.Scale at pinch start
         bool pointer_exited = false;                  // CreatePointerRecognizer's `exited` capture
+        // --- drag&drop (W2-22): the UIDragInteraction / UIDropInteraction this attachment installed onto
+        // the view (LoadRecognizers' AddInteraction), removed on detach. Attachment-only — a synthetic
+        // UIDrag/UIDropSession isn't drivable on the spawned simulator lane (documented); the native test
+        // asserts these are installed/removed. The delegate is held strongly here (UIxInteraction.delegate
+        // is a weak ref — C#'s _dragAndDropDelegate field is the GC-rooted equivalent). ---
+        UIDragInteraction* drag_interaction = nil;
+        UIDropInteraction* drop_interaction = nil;
+        id<UIDragInteractionDelegate, UIDropInteractionDelegate> drag_drop_delegate = nil;
     };
 
     maui::graphics::point location_in(UIGestureRecognizer* recognizer)
@@ -466,6 +501,27 @@ namespace maui::controls
             MauiPressGestureRecognizer* const press = [[MauiPressGestureRecognizer alloc] init];
             add_native(press, action);
         }
+        // --- drag&drop (W2-22): LoadRecognizers' AddInteraction (see MauiDragDropDelegate). A drag
+        // recognizer installs a UIDragInteraction; a drop recognizer installs a UIDropInteraction. The
+        // delegate is shared (one per attachment here); the interaction is tracked for detach. ---
+        else if (dynamic_cast<drag_gesture_recognizer*>(recognizer.get()) != nullptr)
+        {
+            MauiDragDropDelegate* const delegate_obj = [[MauiDragDropDelegate alloc] init];
+            UIDragInteraction* const interaction = [[UIDragInteraction alloc] initWithDelegate:delegate_obj];
+            interaction.enabled = YES;
+            [view addInteraction:interaction];
+            att->drag_drop_delegate = delegate_obj; // retain (delegate is weak on the interaction)
+            att->drag_interaction = interaction;
+        }
+        else if (dynamic_cast<drop_gesture_recognizer*>(recognizer.get()) != nullptr)
+        {
+            MauiDragDropDelegate* const delegate_obj = [[MauiDragDropDelegate alloc] init];
+            UIDropInteraction* const interaction = [[UIDropInteraction alloc] initWithDelegate:delegate_obj];
+            [view addInteraction:interaction];
+            att->drag_drop_delegate = delegate_obj; // retain (delegate is weak on the interaction)
+            att->drop_interaction = interaction;
+        }
+        // --- end drag&drop (W2-22) ---
 
         state.attachments[recognizer.get()] = std::move(attachment);
     }
@@ -481,6 +537,17 @@ namespace maui::controls
             {
                 [view removeGestureRecognizer:recognizers[i]];
             }
+            // --- drag&drop (W2-22): remove the drag/drop interactions this attachment installed
+            // (LoadRecognizers' RemoveInteraction). ---
+            if (attachment.drag_interaction != nil && view != nil)
+            {
+                [view removeInteraction:attachment.drag_interaction];
+            }
+            if (attachment.drop_interaction != nil && view != nil)
+            {
+                [view removeInteraction:attachment.drop_interaction];
+            }
+            // --- end drag&drop (W2-22) ---
         }
     } // namespace
 
@@ -511,4 +578,26 @@ namespace maui::controls
         }
         native_state_->attachments.clear();
     }
+
+    // --- drag&drop (W2-22): read the installed-interaction state off the backend table. ---
+    bool gesture_platform_manager::native_registered_drag_source(const gesture_recognizer& recognizer) const
+    {
+        if (!native_state_)
+        {
+            return false;
+        }
+        const auto it = native_state_->attachments.find(&recognizer);
+        return it != native_state_->attachments.end() && it->second->drag_interaction != nil;
+    }
+
+    bool gesture_platform_manager::native_registered_drop_target(const gesture_recognizer& recognizer) const
+    {
+        if (!native_state_)
+        {
+            return false;
+        }
+        const auto it = native_state_->attachments.find(&recognizer);
+        return it != native_state_->attachments.end() && it->second->drop_interaction != nil;
+    }
+    // --- end drag&drop (W2-22) ---
 } // namespace maui::controls

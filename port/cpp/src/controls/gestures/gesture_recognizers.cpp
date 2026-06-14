@@ -8,6 +8,8 @@
 #include <cstdint>
 
 #include "maui/controls/gestures/buttons_mask.hpp"
+#include "maui/controls/gestures/drag_gesture_recognizer.hpp" // --- drag&drop (W2-22) ---
+#include "maui/controls/gestures/drop_gesture_recognizer.hpp" // --- drag&drop (W2-22) ---
 #include "maui/controls/gestures/pan_gesture_recognizer.hpp"
 #include "maui/controls/gestures/pointer_gesture_recognizer.hpp"
 #include "maui/controls/gestures/swipe_gesture_recognizer.hpp"
@@ -70,6 +72,24 @@ namespace maui::controls
         static const maui::core::bindable_property<buttons_mask> descriptor{"buttons", buttons_mask::primary};
         return descriptor;
     }
+
+    // --- drag&drop (W2-22) ---
+    // ---- drag_gesture_recognizer ----
+    const maui::core::bindable_property<bool>& drag_gesture_recognizer::can_drag_property()
+    {
+        // DragGestureRecognizer.CanDragProperty (default true).
+        static const maui::core::bindable_property<bool> descriptor{"can_drag", true};
+        return descriptor;
+    }
+
+    // ---- drop_gesture_recognizer ----
+    const maui::core::bindable_property<bool>& drop_gesture_recognizer::allow_drop_property()
+    {
+        // DropGestureRecognizer.AllowDropProperty (default true).
+        static const maui::core::bindable_property<bool> descriptor{"allow_drop", true};
+        return descriptor;
+    }
+    // --- end drag&drop (W2-22) ---
 
     // ---- Internals.SwipeGestureExtensions.TransformSwipeDirectionForRotation ----
     maui::core::swipe_direction transform_swipe_direction_for_rotation(maui::core::swipe_direction direction,

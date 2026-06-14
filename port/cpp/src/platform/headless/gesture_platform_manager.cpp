@@ -42,4 +42,19 @@ namespace maui::controls
     {
         native_state_.reset();
     }
+
+    // --- drag&drop (W2-22): headless owns no native drag/drop registration (the recognizer still joins
+    // attached_ via the cross-platform diff-sync, observable through is_attached). ---
+    bool gesture_platform_manager::native_registered_drag_source(const gesture_recognizer& recognizer) const
+    {
+        (void)recognizer;
+        return false;
+    }
+
+    bool gesture_platform_manager::native_registered_drop_target(const gesture_recognizer& recognizer) const
+    {
+        (void)recognizer;
+        return false;
+    }
+    // --- end drag&drop (W2-22) ---
 } // namespace maui::controls

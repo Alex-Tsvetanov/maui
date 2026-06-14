@@ -18,6 +18,8 @@
 
 #include "maui/controls/button.hpp"
 #include "maui/controls/gestures/buttons_mask.hpp"
+#include "maui/controls/gestures/drag_gesture_recognizer.hpp" // --- drag&drop (W2-22) ---
+#include "maui/controls/gestures/drop_gesture_recognizer.hpp" // --- drag&drop (W2-22) ---
 #include "maui/controls/gestures/pan_gesture_recognizer.hpp"
 #include "maui/controls/gestures/pinch_gesture_recognizer.hpp"
 #include "maui/controls/gestures/pointer_gesture_recognizer.hpp"
@@ -75,6 +77,8 @@ namespace
 {
     using maui::controls::button;
     using maui::controls::buttons_mask;
+    using maui::controls::drag_gesture_recognizer; // --- drag&drop (W2-22) ---
+    using maui::controls::drop_gesture_recognizer; // --- drag&drop (W2-22) ---
     using maui::controls::pan_gesture_recognizer;
     using maui::controls::pan_updated_event_args;
     using maui::controls::pinch_gesture_recognizer;
@@ -404,6 +408,63 @@ namespace
 
         control.set_handler(nullptr); // GestureManager.DisconnectGestures
         EXPECT_EQ(view.gestureRecognizers.count, 0U);
+        EXPECT_EQ(control.gesture_manager().attached_count(), 0U);
+    }
+
+    // --- drag&drop (W2-22): attachment-only native install/remove. AppKit has no drag/drop
+    // gesture-recognizer object, so the proof is the NSDraggingDestination registration
+    // (registerForDraggedTypes:) for a drop recognizer and the manager's drag-source flag for a drag
+    // recognizer. Driving a real NSDraggingSession needs a window-server session the test process does
+    // not own (the AppKit twin of the no-touch-synthesis rule; documented). ---
+    TEST_F(apple_gesture_seam, drop_recognizer_registers_dragged_types)
+    {
+        button control;
+        auto handler = std::make_shared<maui::core::button_handler>();
+        control.set_handler(handler);
+
+        auto drop = std::make_shared<drop_gesture_recognizer>();
+        control.gesture_recognizers().add(drop);
+
+        NSView* const view = native_view(handler);
+        // The drop install registers the text pasteboard type; no NSGestureRecognizer is added.
+        EXPECT_EQ(view.gestureRecognizers.count, 0U);
+        ASSERT_NE(view.registeredDraggedTypes, nil);
+        EXPECT_GT(view.registeredDraggedTypes.count, 0U);
+        EXPECT_TRUE([view.registeredDraggedTypes containsObject:NSPasteboardTypeString]);
+        EXPECT_TRUE(control.gesture_manager().native_registered_drop_target(*drop));
+        EXPECT_TRUE(control.gesture_manager().is_attached(*drop));
+    }
+
+    TEST_F(apple_gesture_seam, drag_recognizer_marks_drag_source)
+    {
+        button control;
+        auto handler = std::make_shared<maui::core::button_handler>();
+        control.set_handler(handler);
+
+        auto drag = std::make_shared<drag_gesture_recognizer>();
+        control.gesture_recognizers().add(drag);
+
+        EXPECT_TRUE(control.gesture_manager().native_registered_drag_source(*drag));
+        EXPECT_FALSE(control.gesture_manager().native_registered_drop_target(*drag));
+        EXPECT_TRUE(control.gesture_manager().is_attached(*drag));
+    }
+
+    TEST_F(apple_gesture_seam, removing_drop_recognizer_unregisters_dragged_types)
+    {
+        button control;
+        auto handler = std::make_shared<maui::core::button_handler>();
+        control.set_handler(handler);
+
+        auto drop = std::make_shared<drop_gesture_recognizer>();
+        control.gesture_recognizers().add(drop);
+
+        NSView* const view = native_view(handler);
+        EXPECT_GT(view.registeredDraggedTypes.count, 0U);
+
+        EXPECT_TRUE(control.gesture_recognizers().remove(drop));
+        // unregisterDraggedTypes leaves the view with no registered types (nil or empty).
+        EXPECT_EQ(view.registeredDraggedTypes.count, 0U);
+        EXPECT_FALSE(control.gesture_manager().native_registered_drop_target(*drop));
         EXPECT_EQ(control.gesture_manager().attached_count(), 0U);
     }
 } // namespace

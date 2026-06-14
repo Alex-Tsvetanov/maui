@@ -40,6 +40,8 @@
 
 #include "apple_gesture_ops.hpp"
 #include "maui/controls/gestures/buttons_mask.hpp"
+#include "maui/controls/gestures/drag_gesture_recognizer.hpp" // --- drag&drop (W2-22) ---
+#include "maui/controls/gestures/drop_gesture_recognizer.hpp" // --- drag&drop (W2-22) ---
 #include "maui/controls/gestures/gesture_platform_manager.hpp"
 #include "maui/controls/gestures/gesture_recognizer.hpp"
 #include "maui/controls/gestures/pan_gesture_recognizer.hpp"
@@ -146,6 +148,14 @@ namespace
         maui::core::scoped_connection property_token; // tap: Buttons/NumberOfTapsRequired → native knobs
         double previous_scale = 1.0;                  // GesturePlatformManager._previousScale
         double starting_scale = 1.0;                  // the view's render scale at pinch start
+        // --- drag&drop (W2-22): the drag-source / drop-target registration this attachment installed
+        // (so detach unregisters exactly what it registered). AppKit has no drag/drop gesture-recognizer
+        // object (unlike UIKit's UIDrag/UIDropInteraction) — a drag source is the view's
+        // beginDraggingSessionWithItems flow and a drop target is registerForDraggedTypes:. The native
+        // tests assert these flags flip on attach/detach (attachment-only — synthetic dragging SESSIONS
+        // aren't drivable headlessly or in the spawned sim lane; documented). ---
+        bool registered_drag_source = false;
+        bool registered_drop_target = false;
     };
 
     maui::graphics::point location_in(NSGestureRecognizer* recognizer)
@@ -385,6 +395,24 @@ namespace maui::controls
                 }
             });
         }
+        // --- drag&drop (W2-22): attachment-only native install (see the gesture_attachment fields).
+        // AppKit has no drag/drop gesture-recognizer object — a drag SOURCE is the view's
+        // beginDraggingSessionWithItems flow (gated here by setting the source flag; the synthetic
+        // session isn't drivable, documented), and a drop TARGET is registerForDraggedTypes: (the
+        // NSDraggingDestination registration). Both branches install onto the view and flip a flag the
+        // detach path reads to unregister. ---
+        else if (dynamic_cast<drag_gesture_recognizer*>(recognizer.get()) != nullptr)
+        {
+            att->registered_drag_source = true;
+        }
+        else if (dynamic_cast<drop_gesture_recognizer*>(recognizer.get()) != nullptr)
+        {
+            // NSDraggingDestination: register the view to receive drags. NSPasteboardTypeString is the
+            // text payload a DataPackage carries (the AppKit twin of the UIDropInteraction install).
+            [view registerForDraggedTypes:@[ NSPasteboardTypeString ]];
+            att->registered_drop_target = true;
+        }
+        // --- end drag&drop (W2-22) ---
 
         state.attachments[recognizer.get()] = std::move(attachment);
     }
@@ -404,6 +432,13 @@ namespace maui::controls
             {
                 [view removeTrackingArea:attachment.tracking_area];
             }
+            // --- drag&drop (W2-22): undo the drop-target registration this attachment installed (the
+            // drag-source flag carries no native state to undo). ---
+            if (attachment.registered_drop_target && view != nil)
+            {
+                [view unregisterDraggedTypes];
+            }
+            // --- end drag&drop (W2-22) ---
         }
     } // namespace
 
@@ -434,4 +469,26 @@ namespace maui::controls
         }
         native_state_->attachments.clear();
     }
+
+    // --- drag&drop (W2-22): read the per-recognizer registration flags off the backend table. ---
+    bool gesture_platform_manager::native_registered_drag_source(const gesture_recognizer& recognizer) const
+    {
+        if (!native_state_)
+        {
+            return false;
+        }
+        const auto it = native_state_->attachments.find(&recognizer);
+        return it != native_state_->attachments.end() && it->second->registered_drag_source;
+    }
+
+    bool gesture_platform_manager::native_registered_drop_target(const gesture_recognizer& recognizer) const
+    {
+        if (!native_state_)
+        {
+            return false;
+        }
+        const auto it = native_state_->attachments.find(&recognizer);
+        return it != native_state_->attachments.end() && it->second->registered_drop_target;
+    }
+    // --- end drag&drop (W2-22) ---
 } // namespace maui::controls

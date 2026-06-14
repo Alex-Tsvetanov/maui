@@ -124,6 +124,17 @@ namespace maui::controls
         }
         [[nodiscard]] bool is_attached(const gesture_recognizer& recognizer) const;
 
+        // --- drag&drop (W2-22) ---------------------------------------------------------------------------
+        // Native-attachment observability for the drag & drop recognizers (the attachment-only proof — a
+        // synthetic dragging SESSION isn't drivable headlessly or in the spawned sim lane, so the native
+        // tests assert the install/remove via these instead; documented). True iff the recognizer
+        // currently has its native drag-source / drop-target registration installed. Defined per backend:
+        // headless owns no native registration (always false — the recognizer still joins attached_ for
+        // the diff-sync pipeline); apple/ios read the backend attachment table.
+        [[nodiscard]] bool native_registered_drag_source(const gesture_recognizer& recognizer) const;
+        [[nodiscard]] bool native_registered_drop_target(const gesture_recognizer& recognizer) const;
+        // --- end drag&drop (W2-22) -----------------------------------------------------------------------
+
         // ---- synthetic dispatch (see the header comment) ----
         // A tap with `number_of_taps` taps of `button`: routed to every attached tap recognizer whose
         // number_of_taps_required matches and whose buttons mask contains `button` (the iOS bridge's
