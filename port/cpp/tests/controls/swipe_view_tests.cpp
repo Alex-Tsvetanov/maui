@@ -20,6 +20,11 @@
 // ListView/CollectionView ancestors don't exist in the port).
 #include "maui/controls/swipe_view.hpp"
 
+#include <utility> // std::move
+
+#include "maui/core/swipe_transition_mode.hpp" // swipe_transition_mode
+#include "maui/core/swipe_view_requests.hpp"   // open/close requests + swipe event args
+
 #include <memory>
 
 #include "maui/controls/swipe_item.hpp"
@@ -254,7 +259,7 @@ namespace
 
     // ---- the state-machine seam (the headless handler) ----
 
-    static std::shared_ptr<swipe_view_handler> attach_handler(swipe_view& view)
+    std::shared_ptr<swipe_view_handler> attach_handler(swipe_view& view)
     {
         auto handler = std::make_shared<swipe_view_handler>();
         view.set_handler(handler);
