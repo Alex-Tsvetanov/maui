@@ -23,6 +23,7 @@
 
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <vector>
 
 #include "maui/essentials/connectivity.hpp"
@@ -153,16 +154,19 @@ namespace maui::networking::apple_shared
         }
 
         // A one-shot path snapshot: spin up a monitor on a private queue, capture the first update,
-        // cancel. The captured path is ARC-retained by the __block local and returned (the caller
-        // reads it within the same call frame).
+        // cancel. The captured path is read back on the calling thread; a std::mutex guards the
+        // shared slot so a late handler invocation on the probe queue (after a wait timeout, before
+        // cancel takes effect) cannot race the read. The captured path is ARC-retained.
         [[nodiscard]] static nw_path_t probe_path()
         {
             nw_path_monitor_t monitor = nw_path_monitor_create();
             dispatch_queue_t queue = dispatch_queue_create("maui.connectivity.probe", DISPATCH_QUEUE_SERIAL);
             nw_path_monitor_set_queue(monitor, queue);
             dispatch_semaphore_t done = dispatch_semaphore_create(0);
+            const auto guard = std::make_shared<std::mutex>();
             __block nw_path_t captured = nullptr;
             nw_path_monitor_set_update_handler(monitor, ^(nw_path_t path) {
+              const std::lock_guard<std::mutex> lock(*guard);
               if (captured == nullptr)
               {
                   captured = path; // ARC retains into the __block local
@@ -172,6 +176,7 @@ namespace maui::networking::apple_shared
             nw_path_monitor_start(monitor);
             dispatch_semaphore_wait(done, dispatch_time(DISPATCH_TIME_NOW, static_cast<int64_t>(2 * NSEC_PER_SEC)));
             nw_path_monitor_cancel(monitor);
+            const std::lock_guard<std::mutex> lock(*guard);
             return captured;
         }
 
