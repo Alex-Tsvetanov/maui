@@ -721,6 +721,9 @@ add_library(maui_controls STATIC
   src/controls/vertical_stack_layout.cpp
   src/controls/horizontal_stack_layout.cpp
   src/controls/grid.cpp
+  # (G2) absolute_layout + flex_layout controls (over the absolute/flex managers in maui_layouts).
+  src/controls/absolute_layout.cpp
+  src/controls/flex_layout.cpp
   src/controls/content_page.cpp
   # (W1-07 containers) content_view (over the W1-09 templated_view base) + border + the frame facade.
   src/controls/content_view.cpp
@@ -1137,6 +1140,9 @@ else()
     tests/controls/image_button_tests.cpp
     tests/controls/layout_tests.cpp
     tests/controls/grid_tests.cpp
+    # (G2) absolute_layout + flex_layout control surface + handler seam.
+    tests/controls/absolute_layout_tests.cpp
+    tests/controls/flex_layout_tests.cpp
     tests/controls/content_page_tests.cpp
     tests/controls/content_view_tests.cpp # (W1-07 containers)
     tests/controls/border_tests.cpp
@@ -1276,6 +1282,10 @@ add_library(maui_layouts STATIC
   src/layouts/vertical_stack_layout_manager.cpp
   src/layouts/horizontal_stack_layout_manager.cpp
   src/layouts/grid_layout_manager.cpp
+  # (G2) absolute + flex layout managers + the vendored flex engine (src/layouts/detail/flex).
+  src/layouts/absolute_layout_manager.cpp
+  src/layouts/flex_layout_manager.cpp
+  src/layouts/detail/flex.cpp
 )
 target_include_directories(maui_layouts PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(maui_layouts PUBLIC maui_core PRIVATE maui_sanitizers)
@@ -1291,6 +1301,9 @@ add_executable(maui_layout_tests
   tests/layouts/grid_layout_manager_tests.cpp
   tests/layouts/constraint_tests.cpp
   tests/layouts/z_index_tests.cpp
+  # (G2) absolute + flex layout manager measure/arrange tests.
+  tests/layouts/absolute_layout_manager_tests.cpp
+  tests/layouts/flex_layout_manager_tests.cpp
 )
 target_include_directories(maui_layout_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for tests/layouts/*.hpp
 target_link_libraries(maui_layout_tests PRIVATE
