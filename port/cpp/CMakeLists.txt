@@ -1221,7 +1221,17 @@ set(MAUI_ESSENTIALS_FEATURES
   connectivity
   text_to_speech
   screenshot
-  media_picker)
+  media_picker
+  # --- Unit 27: comms (clipboard/share + communication email/sms/phone_dialer/contacts +
+  # authentication web_authenticator + accessibility semantic_screen_reader) ---
+  clipboard
+  share
+  email
+  sms
+  phone_dialer
+  contacts
+  web_authenticator
+  semantic_screen_reader)
 
 set(MAUI_ESSENTIALS_PLATFORM_SOURCES "")
 if(MAUI_BACKEND STREQUAL "apple")
@@ -1272,6 +1282,15 @@ add_library(maui_essentials STATIC
   src/essentials/screenshot.cpp
   src/essentials/media_picker.cpp
   src/essentials/file_result.cpp
+  # --- Unit 27: comms facades + shared logic ---
+  src/essentials/clipboard.cpp
+  src/essentials/share.cpp
+  src/essentials/email.cpp
+  src/essentials/sms.cpp
+  src/essentials/phone_dialer.cpp
+  src/essentials/contacts.cpp
+  src/essentials/web_authenticator.cpp
+  src/essentials/semantic_screen_reader.cpp
   ${MAUI_ESSENTIALS_PLATFORM_SOURCES}
 )
 target_include_directories(maui_essentials PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -1288,7 +1307,11 @@ if(MAUI_BACKEND STREQUAL "apple")
   target_link_libraries(maui_essentials PUBLIC
     "-framework IOKit" "-framework SystemConfiguration" "-framework CoreLocation"
     "-framework Security" # W1-17: secure_storage keychain
-    "-framework Network") # W2-26: connectivity NWPathMonitor
+    "-framework Network" # W2-26: connectivity NWPathMonitor
+    # Unit 27 comms: Contacts (contacts CNContactStore), AuthenticationServices (web_authenticator
+    # ASWebAuthenticationSession). Clipboard/share/email/sms/phone_dialer/semantic_screen_reader ride
+    # on Cocoa/AppKit already PUBLIC on maui_core.
+    "-framework Contacts" "-framework AuthenticationServices")
 endif()
 # The iOS partials add CoreMotion (sensors), CoreLocation (compass/geolocation/geocoding),
 # AVFoundation (flashlight torch) and AudioToolbox (vibration) on top of maui_core's UIKit set;
@@ -1297,7 +1320,12 @@ if(MAUI_BACKEND STREQUAL "ios")
   target_link_libraries(maui_essentials PUBLIC
     "-framework CoreMotion" "-framework CoreLocation" "-framework AVFoundation" "-framework AudioToolbox"
     "-framework Security" "-framework SafariServices"
-    "-framework Network") # W2-26: connectivity NWPathMonitor
+    "-framework Network" # W2-26: connectivity NWPathMonitor
+    # Unit 27 comms: MessageUI (email MFMailComposeViewController + sms MFMessageComposeViewController),
+    # Contacts (contacts CNContactStore + CNContactPickerViewController via ContactsUI, which MessageUI/
+    # UIKit pull), AuthenticationServices (web_authenticator). Clipboard/share/phone_dialer/
+    # semantic_screen_reader ride on UIKit already PUBLIC on maui_core.
+    "-framework MessageUI" "-framework Contacts" "-framework ContactsUI" "-framework AuthenticationServices")
 endif()
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_essentials PROPERTIES
@@ -1318,11 +1346,13 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/essentials/unit_converters_tests.cpp  # PURE managed - identical on every backend
     tests/essentials/essentials_apple_tests.mm
     tests/essentials/essentials_appmodel_apple_tests.mm
-    tests/essentials/essentials_media_apple_tests.mm)
+    tests/essentials/essentials_media_apple_tests.mm
+    tests/essentials/comms_apple_tests.mm) # Unit 27
   set_source_files_properties(
     tests/essentials/essentials_apple_tests.mm
     tests/essentials/essentials_appmodel_apple_tests.mm
     tests/essentials/essentials_media_apple_tests.mm
+    tests/essentials/comms_apple_tests.mm
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 elseif(MAUI_BACKEND STREQUAL "ios")
   add_executable(maui_essentials_tests
@@ -1332,11 +1362,13 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/essentials/unit_converters_tests.cpp  # PURE managed - identical on every backend
     tests/essentials/essentials_ios_tests.mm
     tests/essentials/essentials_appmodel_ios_tests.mm
-    tests/essentials/essentials_media_ios_tests.mm)
+    tests/essentials/essentials_media_ios_tests.mm
+    tests/essentials/comms_ios_tests.mm) # Unit 27
   set_source_files_properties(
     tests/essentials/essentials_ios_tests.mm
     tests/essentials/essentials_appmodel_ios_tests.mm
     tests/essentials/essentials_media_ios_tests.mm
+    tests/essentials/comms_ios_tests.mm
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
   # The iOS 26.5+ simulator runtime enforces keychain entitlements for SecItem* (-34018 without
   # them); embed them the way Xcode does for simulator builds — a __TEXT,__entitlements section
@@ -1368,7 +1400,8 @@ else()
     tests/essentials/connectivity_tests.cpp
     tests/essentials/text_to_speech_tests.cpp
     tests/essentials/screenshot_tests.cpp
-    tests/essentials/media_picker_tests.cpp)
+    tests/essentials/media_picker_tests.cpp
+    tests/essentials/comms_tests.cpp) # Unit 27
 endif()
 target_include_directories(maui_essentials_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for src/... detail headers
 target_link_libraries(maui_essentials_tests PRIVATE
