@@ -6,8 +6,13 @@
 // The modal stack lives on the navigation_page in the port; pushing/popping a modal there fires the
 // HOST window's events when the navigation_page is hosted in an activated window (containing_window).
 //
-// §8 teardown: the window (publisher of the modal events) is declared BEFORE the navigation_page and
-// the event subscribers, so subscribers disconnect before the publisher dies.
+// §8 teardown: the window's menu_bar_tracker subscribes to BOTH the content page's menu-bar collection
+// AND the navigation_page's current-page-changed event (so it re-tracks the menu bar as pages push/pop).
+// All of those publishers (root/modal pages + the navigation_page) must therefore outlive the window
+// (the subscriber), so the window is declared LAST among them — it is destroyed first, disconnecting its
+// tracker while they are all still alive. The navigation_page's back-ref to the window (containing_window)
+// is only read during push/pop, never in ~navigation_page, so the window dying first is safe. The
+// modal-event subscriber connections are declared after the window and disconnected before it dies.
 #include <string>
 #include <vector>
 
@@ -34,10 +39,10 @@ namespace
 
     TEST(window_modal_events, push_fires_pushing_then_pushed_with_the_modal_page)
     {
-        window win; // publisher first (§8)
-        content_page root;
-        content_page modal;
+        content_page root;  // §8: the pages + the navigation_page publish the events the window's
+        content_page modal; // menu_bar_tracker subscribes to (page menu bars + nav's current-page-changed),
         navigation_page nav(root);
+        window win;
         host_in_active_window(win, nav);
 
         std::vector<std::string> transcript;
@@ -65,10 +70,10 @@ namespace
 
     TEST(window_modal_events, pop_fires_popping_then_popped_with_the_modal_page)
     {
-        window win;
         content_page root;
         content_page modal;
         navigation_page nav(root);
+        window win;
         host_in_active_window(win, nav);
         nav.push_modal(modal);
 
@@ -98,10 +103,10 @@ namespace
 
     TEST(window_modal_events, popping_cancel_aborts_the_pop_and_fires_pop_canceled)
     {
-        window win;
         content_page root;
         content_page modal;
         navigation_page nav(root);
+        window win;
         host_in_active_window(win, nav);
         nav.push_modal(modal);
 
@@ -129,11 +134,11 @@ namespace
 
     TEST(window_modal_events, second_modal_push_carries_the_second_page)
     {
-        window win;
         content_page root;
         content_page first;
         content_page second;
         navigation_page nav(root);
+        window win;
         host_in_active_window(win, nav);
         nav.push_modal(first);
 
