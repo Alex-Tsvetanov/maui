@@ -228,7 +228,7 @@ namespace
         // Run 0: the span's own color / bold / size / kerning / underline.
         EXPECT_EQ(runs[0].text, "red");
         ASSERT_TRUE(runs[0].text_color.has_value());
-        EXPECT_EQ(*runs[0].text_color, color::from_rgb(1.0F, 0.0F, 0.0F));
+        EXPECT_EQ(runs[0].text_color.value_or(color{}), color::from_rgb(1.0F, 0.0F, 0.0F));
         EXPECT_EQ(runs[0].run_font.size(), 20);
         EXPECT_EQ(runs[0].run_font.weight(), maui::core::font_weight::bold);
         EXPECT_EQ(runs[0].character_spacing, 3);
@@ -237,7 +237,7 @@ namespace
         // Run 1: unset span inherits the label defaults (color, font size 14, no decorations).
         EXPECT_EQ(runs[1].text, "plain");
         ASSERT_TRUE(runs[1].text_color.has_value());
-        EXPECT_EQ(*runs[1].text_color, color::from_rgb(0.0F, 0.0F, 0.0F));
+        EXPECT_EQ(runs[1].text_color.value_or(color{}), color::from_rgb(0.0F, 0.0F, 0.0F));
         EXPECT_EQ(runs[1].run_font.size(), 14);
         EXPECT_EQ(runs[1].decorations, text_decorations::none);
     }
@@ -283,7 +283,7 @@ namespace
         ASSERT_EQ(platform->formatted_text_runs.size(), 2U);
         EXPECT_EQ(platform->formatted_text_runs[0].text, "AA");
         ASSERT_TRUE(platform->formatted_text_runs[0].text_color.has_value());
-        EXPECT_EQ(*platform->formatted_text_runs[0].text_color, color::from_rgb(0.0F, 1.0F, 0.0F));
+        EXPECT_EQ(platform->formatted_text_runs[0].text_color.value_or(color{}), color::from_rgb(0.0F, 1.0F, 0.0F));
         EXPECT_EQ(platform->formatted_text_runs[1].text, "BB");
 
         // A later span change re-resolves + re-maps through the handler.

@@ -3,7 +3,7 @@
 // rich-text demo's structure (three styled spans on the rich label, the plain label's Text path).
 #include "src/samples/pages/formatted_text_page.hpp"
 
-#include "maui/core/font_attributes.hpp"
+#include "maui/core/font.hpp" // font_weight
 #include "maui/core/text_decorations.hpp"
 #include <gtest/gtest.h>
 

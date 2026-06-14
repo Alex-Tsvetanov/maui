@@ -3,6 +3,8 @@
 
 #include "maui/controls/label.hpp"
 
+#include "maui/controls/element.hpp" // detach_logical_child on the formatted_text child
+
 #include <algorithm>
 #include <memory>
 #include <string>
