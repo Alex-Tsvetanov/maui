@@ -261,6 +261,9 @@ if(MAUI_BACKEND STREQUAL "apple")
     # (W1-08 web_view) the WKWebView recipe, ONE .mm shared with the ios backend (WebKit's API is
     # identical on AppKit and UIKit — the gcd_dispatcher convention).
     src/platform/apple_shared/web_view_handler.mm
+    # (G5 hybrid_web_view) the WKWebView + WKScriptMessageHandler bridge, ONE .mm shared with ios (the
+    # script-message handler is identical on AppKit and UIKit — the web_view_handler convention).
+    src/platform/apple_shared/hybrid_web_view_handler.mm
     src/platform/apple/window_handler.mm
     # (W1-14 animations) the NSTimer platform ticker (AppKit has no CADisplayLink; see the .mm).
     src/platform/apple/platform_ticker.mm
@@ -318,6 +321,8 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     src/platform/ios/view_chrome_ops.mm
     # (W1-08 web_view) the WKWebView .mm shared with the apple backend (see above).
     src/platform/apple_shared/web_view_handler.mm
+    # (G5 hybrid_web_view) the WKWebView + WKScriptMessageHandler bridge .mm shared with apple (see above).
+    src/platform/apple_shared/hybrid_web_view_handler.mm
     src/platform/ios/window_handler.mm
     # (W1-14 animations) the CADisplayLink platform ticker (PlatformTicker.iOS.cs, 1:1).
     src/platform/ios/platform_ticker.mm
@@ -365,6 +370,8 @@ else()
     src/platform/headless/flyout_page_handler.cpp
     src/platform/headless/view_chrome_ops.cpp # (W1-11 chrome) tooltip/context-flyout native push (no-op)
     src/platform/headless/web_view_handler.cpp
+    # (G5 hybrid_web_view) the message-bridge mirror (records sent/received messages, the invoke-task table).
+    src/platform/headless/hybrid_web_view_handler.cpp
     src/platform/headless/window_handler.cpp
     # (W1-14 animations) the deterministic manual_ticker is the headless platform ticker.
     src/platform/headless/platform_ticker.cpp)
@@ -436,6 +443,8 @@ add_library(maui_core STATIC
   src/core/flyout_page_handler.cpp
   src/core/web_view_handler.cpp
   src/core/web_view_helper.cpp
+  # (G5 hybrid_web_view) the cross-platform JS↔native message protocol (HybridWebView.js host side).
+  src/core/hybrid_web_view_protocol.cpp
   src/core/window_handler.cpp
   src/core/grid_length.cpp
   # (W1-14 animations) maui::animations <= Microsoft.Maui.Animations (the Core animation engine).
@@ -696,6 +705,9 @@ add_library(maui_controls STATIC
   src/controls/web_view.cpp
   src/controls/url_web_view_source.cpp
   src/controls/html_web_view_source.cpp
+  # (G5 hybrid_web_view) the hybrid web view control + its cross-platform handler tables/protocol routing.
+  src/controls/hybrid_web_view.cpp
+  src/controls/hybrid_web_view_handler.cpp
   # (W1-11 chrome/menus) toolbar items + menu bar/flyout family + trackers + window chrome.
   src/controls/menu_item.cpp
   src/controls/toolbar_item.cpp
@@ -820,6 +832,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/tabbed_page_tests.cpp # (W1-10) the MultiPage/TabbedPage control suite + the mirrors
     tests/controls/flyout_page_tests.cpp # (W1-10) the FlyoutPage control suite + the mirrors
     tests/controls/web_view_apple_tests.mm # (W1-08) the real WKWebView seam, run-loop pumped
+    tests/controls/hybrid_web_view_apple_tests.mm # (G5) the real WKWebView + WKScriptMessageHandler bridge
     tests/controls/window_apple_tests.mm
     tests/controls/chrome_apple_tests.mm # (W1-11) real NSMenu/NSToolbar/NSView.menu/toolTip/titlebar accessory
     tests/controls/window_handler_tests.cpp # the portable seam mirrors (real NSWindow behind them here)
@@ -951,6 +964,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/swipe_refresh_ios_tests.mm # (W2-20) the UIKit seam (UIRefreshControl + the swipe host)
     tests/controls/navigation_page_ios_tests.mm
     tests/controls/web_view_ios_tests.mm # (W1-08) the real WKWebView seam, run-loop pumped on-simulator
+    tests/controls/hybrid_web_view_ios_tests.mm # (G5) the real JS↔native bridge round trip on-simulator
     tests/controls/tabbed_page_ios_tests.mm # (W1-10) the real UITabBarController child-VC seam
     tests/controls/flyout_page_ios_tests.mm # (W1-10) the real UISplitViewController column seam
     tests/controls/chrome_ios_tests.mm # (W1-11) real bar buttons + UIContextMenuInteraction attach + inert mirrors
@@ -1054,6 +1068,7 @@ else()
     tests/controls/flyout_page_tests.cpp # (W1-10) FlyoutPageUnitTests + the seam mirrors
     tests/controls/web_view_tests.cpp
     tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
+    tests/controls/hybrid_web_view_tests.cpp # (G5) the hybrid web view control + the message-bridge mirror
     tests/controls/tabbed_flyout_page_tests.cpp # the W1-10 demo page wiring (backend-agnostic)
     # (W1-11 chrome/menus) menu items + containers + trackers + window/view chrome + the demo page.
     tests/controls/menu_item_tests.cpp
