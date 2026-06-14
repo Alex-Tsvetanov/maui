@@ -6,14 +6,19 @@
 // button: bare-noun interface getters + method accessors, each backed by a private property<T> whose
 // change flows through view::on_property_changed to the handler.
 
+#include <memory>
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
+#include "maui/controls/formatted_string.hpp"
 #include "maui/controls/view.hpp"
 #include "maui/core/bindable_property.hpp"
+#include "maui/core/event.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/i_label.hpp"
+#include "maui/core/label_run.hpp"
 #include "maui/core/property.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/text_decorations.hpp"
@@ -43,6 +48,9 @@ namespace maui::controls
         static const maui::core::bindable_property<maui::core::text_alignment>& vertical_text_alignment_property();
         static const maui::core::bindable_property<maui::core::text_decorations>& text_decorations_property();
         static const maui::core::bindable_property<double>& line_height_property();
+        // Label.FormattedTextProperty — the rich per-span text. Not a property<T> member: a heap-only,
+        // non-copyable element can't live in the typed precedence store, so it is held directly and
+        // notified by hand (set_formatted_text). The descriptor exists only for name cross-reference.
 
         // ---- i_text / i_text_style ----
         [[nodiscard]] std::string_view text() const override
@@ -86,10 +94,34 @@ namespace maui::controls
             return line_height_.get();
         }
 
+        // ---- i_label: the resolved per-span runs (Label.FormattedText → ToNSAttributedString) ----
+        [[nodiscard]] const std::vector<maui::core::label_run>& formatted_text_runs() const override
+        {
+            return formatted_text_runs_;
+        }
+
+        // ---- FormattedText (Label.FormattedText) ----
+        [[nodiscard]] const std::shared_ptr<formatted_string>& formatted_text() const
+        {
+            return formatted_text_;
+        }
+        // Set (or clear, with nullptr) the FormattedText. A non-null value clears Text (Label.cs sets
+        // Text = null) and subscribes the formatted_string's `changed` signal so a later span / collection
+        // change re-resolves the runs + re-maps. §8: the old subscription is dropped before the old
+        // formatted_string is released.
+        void set_formatted_text(std::shared_ptr<formatted_string> value);
+
         // ---- public setters (drive the handler via on_property_changed) ----
+        // Label.cs OnTextPropertyChanged: `if (newvalue != null) FormattedText = null`. The port's text is
+        // a std::string (never null), so any set_text — even with "" — is "newvalue != null" and clears
+        // FormattedText (the two are mutually exclusive).
         void set_text(std::string value)
         {
             text_.set(std::move(value));
+            if (formatted_text_)
+            {
+                set_formatted_text(nullptr);
+            }
         }
         void set_text_color(maui::graphics::color value)
         {
@@ -125,6 +157,11 @@ namespace maui::controls
         }
 
     private:
+        // Re-resolve formatted_text_ into formatted_text_runs_ (the Span.ToNSAttributedString resolution:
+        // each span's effective font/color/kerning/decorations against this label's defaults) and re-map
+        // (on_property_changed("formatted_text") → handler->update_value). Called on set + on any change.
+        void rebuild_formatted_text_runs();
+
         maui::core::property<std::string> text_{*this, text_property()};
         maui::core::property<maui::graphics::color> text_color_{*this, text_color_property()};
         maui::core::property<maui::core::font> font_{*this, font_property()};
@@ -136,5 +173,11 @@ namespace maui::controls
                                                                                   vertical_text_alignment_property()};
         maui::core::property<maui::core::text_decorations> text_decorations_{*this, text_decorations_property()};
         maui::core::property<double> line_height_{*this, line_height_property()};
+
+        // FormattedText: the owned formatted_string (null = none), the resolved runs the handler reads, and
+        // the §8 token on the formatted_string's `changed` signal (dropped before the old one is released).
+        std::shared_ptr<formatted_string> formatted_text_;
+        std::vector<maui::core::label_run> formatted_text_runs_;
+        maui::core::scoped_connection formatted_text_token_;
     };
 } // namespace maui::controls

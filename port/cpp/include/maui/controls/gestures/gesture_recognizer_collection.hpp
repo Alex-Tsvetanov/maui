@@ -31,12 +31,15 @@ namespace maui::controls
     {
     public:
         // The owning view's callbacks: attach/detach parent the recognizer into the view's logical
-        // tree; changed re-syncs the platform manager. All three may be empty (tests).
+        // tree; changed re-syncs the platform manager; validate is the owner's View.ValidateGesture
+        // override run BEFORE insert (it throws to reject a candidate — e.g. a span allows only tap).
+        // All four may be empty (tests / the common view case validates pinch internally below).
         struct hooks
         {
             std::function<void(gesture_recognizer&)> attach;
             std::function<void(gesture_recognizer&)> detach;
             std::function<void()> changed;
+            std::function<void(const gesture_recognizer&)> validate;
         };
 
         explicit gesture_recognizer_collection(hooks owner_hooks) : hooks_(std::move(owner_hooks))

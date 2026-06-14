@@ -365,6 +365,7 @@ add_library(maui_core STATIC
   src/core/binding_expression.cpp
   src/core/thickness.cpp
   src/core/font.cpp
+  src/core/font_attributes.cpp
   src/core/date_time.cpp
   src/core/property_mapper.cpp
   src/core/command_mapper.cpp
@@ -603,6 +604,8 @@ add_library(maui_controls STATIC
   src/controls/templates/content_presenter.cpp
   src/controls/button.cpp
   src/controls/label.cpp
+  src/controls/span.cpp
+  src/controls/formatted_string.cpp
   src/controls/entry.cpp
   src/controls/toggle_switch.cpp
   src/controls/check_box.cpp
@@ -678,6 +681,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/button_apple_tests.mm
     tests/controls/gesture_apple_tests.mm # E1: native recognizer attachment + target/action drives
     tests/controls/label_apple_tests.mm
+    tests/controls/formatted_text_tests.cpp # G1: span/formatted_string/label.formatted_text (backend-agnostic)
+    tests/controls/formatted_text_apple_tests.mm # G1: the real NSAttributedString seam
     tests/controls/view_mapper_apple_tests.mm
     tests/controls/entry_apple_tests.mm
     tests/controls/toggle_switch_apple_tests.mm
@@ -717,6 +722,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/chrome_tests.cpp
     tests/controls/chrome_page_tests.cpp
     tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
+    tests/controls/formatted_text_page_tests.cpp # the G1 formatted-text demo page wiring (backend-agnostic)
     tests/controls/containers_page_tests.cpp # the W1-07 demo page wiring (backend-agnostic)
     tests/controls/pickers_page_tests.cpp # the W1-06 demo page wiring (backend-agnostic)
     tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
@@ -749,6 +755,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/button_apple_tests.mm
     tests/controls/gesture_apple_tests.mm
     tests/controls/label_apple_tests.mm
+    tests/controls/formatted_text_apple_tests.mm # G1
     tests/controls/view_mapper_apple_tests.mm
     tests/controls/entry_apple_tests.mm
     tests/controls/toggle_switch_apple_tests.mm
@@ -793,6 +800,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/button_ios_tests.mm
     tests/controls/gesture_ios_tests.mm # E1: native recognizer attachment + registered-target drives
     tests/controls/label_ios_tests.mm
+    tests/controls/formatted_text_ios_tests.mm # G1: the real UILabel attributed-text seam
     tests/controls/entry_ios_tests.mm
     tests/controls/toggle_switch_ios_tests.mm
     tests/controls/check_box_ios_tests.mm
@@ -823,6 +831,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/window_ios_tests.mm)
   add_executable(maui_controls_tests
     ${MAUI_IOS_TEST_MM_SOURCES}
+    tests/controls/formatted_text_tests.cpp # G1: span/formatted_string/label.formatted_text (backend-agnostic)
     tests/controls/tabbed_page_tests.cpp # (W1-10) the MultiPage/TabbedPage control suite + the mirrors
     tests/controls/flyout_page_tests.cpp # (W1-10) the FlyoutPage control suite + the mirrors
     # (W1-11 chrome/menus) the backend-agnostic chrome suites.
@@ -832,6 +841,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/chrome_tests.cpp
     tests/controls/chrome_page_tests.cpp
     tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
+    tests/controls/formatted_text_page_tests.cpp # the G1 formatted-text demo page wiring (backend-agnostic)
     tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
     tests/controls/input_controls_page_tests.cpp # the W1-05 demo page wiring (backend-agnostic)
     tests/controls/tabbed_flyout_page_tests.cpp # the W1-10 demo page wiring (backend-agnostic)
@@ -863,6 +873,7 @@ else()
     tests/controls/button_tests.cpp
     tests/controls/gesture_recognizer_tests.cpp # the E1 gesture state machines + synthetic pipeline
     tests/controls/label_tests.cpp
+    tests/controls/formatted_text_tests.cpp # G1: span + formatted_string + label.formatted_text mirror
     tests/controls/view_mapper_tests.cpp
     tests/controls/entry_tests.cpp
     tests/controls/toggle_switch_tests.cpp
@@ -878,6 +889,7 @@ else()
     tests/controls/progress_bar_tests.cpp
     tests/controls/activity_indicator_tests.cpp
     tests/controls/value_controls_page_tests.cpp # the W1-04 demo page wiring (backend-agnostic)
+    tests/controls/formatted_text_page_tests.cpp # the G1 formatted-text demo page wiring (backend-agnostic)
     tests/controls/input_controls_page_tests.cpp # the W1-05 demo page wiring (backend-agnostic)
     tests/controls/containers_page_tests.cpp # the W1-07 demo page wiring (backend-agnostic)
     tests/controls/pickers_page_tests.cpp # the W1-06 demo page wiring (backend-agnostic)

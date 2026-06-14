@@ -11,10 +11,12 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/i_label.hpp"
+#include "maui/core/label_run.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/text_decorations.hpp"
@@ -48,6 +50,10 @@ namespace maui::core
         text_alignment vertical_alignment = text_alignment::start; // C# Label default Start
         double character_spacing = 0;
         maui::core::text_decorations decorations = maui::core::text_decorations::none;
+        // Headless mirror of the resolved attributed runs (Label.FormattedText). Empty = plain text path.
+        // The Apple/iOS builds turn these into an NSAttributedString instead; the headless build keeps the
+        // run list so tests can assert per-span attributes flowed to the platform mirror.
+        std::vector<maui::core::label_run> formatted_text_runs;
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSTextField (defined in
@@ -105,5 +111,9 @@ namespace maui::core
         // LabelHandler.MapTextDecorations → LabelExtensions.UpdateTextDecorations (underline /
         // strikethrough on the attributed text; headless mirrors the flags).
         static void map_text_decorations(label_handler& handler, i_label& view);
+        // The port's gap-closure G1 map: Label.FormattedText → LabelExtensions.UpdateText's FormattedText
+        // branch. Non-empty runs build the native attributed string (NSAttributedString on apple/ios; the
+        // headless run mirror); empty runs revert to the plain text path (clearing the attributed string).
+        static void map_formatted_text(label_handler& handler, i_label& view);
     };
 } // namespace maui::core

@@ -76,6 +76,17 @@ namespace maui::core
         }
     }
 
+    void label_handler::map_formatted_text(label_handler& handler, i_label& view)
+    {
+        // Headless: mirror the resolved attributed runs so tests can assert per-span attributes flowed to
+        // the platform mirror (the Apple/iOS twin builds an NSAttributedString instead). Empty runs leave
+        // the plain `text` mirror in place — the FormattedText / Text exclusivity is enforced by the label.
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->formatted_text_runs = view.formatted_text_runs();
+        }
+    }
+
     maui::graphics::size label_handler::get_desired_size(double /*width_constraint*/,
                                                          double /*height_constraint*/) const
     {

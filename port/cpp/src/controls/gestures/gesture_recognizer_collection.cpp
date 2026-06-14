@@ -21,6 +21,12 @@ namespace maui::controls
         {
             return; // ValidateGesture's null guard (C# silently skips a null item)
         }
+        // The owner's View.ValidateGesture override, run before insert so a rejected candidate (e.g. a
+        // non-tap recognizer on a span) never enters the list — it throws to reject (Span.ValidateGesture).
+        if (hooks_.validate)
+        {
+            hooks_.validate(*recognizer);
+        }
         // View.ValidateGesture: "Only one PinchGestureRecognizer per view is allowed" —
         // InvalidOperationException in C#, std::runtime_error here (the port's stand-in).
         if (dynamic_cast<pinch_gesture_recognizer*>(recognizer.get()) != nullptr)

@@ -25,8 +25,13 @@
 #import <AppKit/AppKit.h>
 
 #include <utility>
+#include <vector>
 
+#include "apple_conversions.hpp" // to_ns_color / to_ns_font (the run-builder reuses to_ns_color)
+#include "maui/core/font.hpp"
+#include "maui/core/label_run.hpp"
 #include "maui/core/text_decorations.hpp"
+#include "maui/graphics/color.hpp"
 
 namespace maui::platform::apple
 {
@@ -127,5 +132,87 @@ namespace maui::platform::apple
         update_decoration(mutable_copy, NSUnderlineStyleAttributeName, range,
                           (flags & std::to_underlying(maui::core::text_decorations::underline)) != 0);
         return mutable_copy;
+    }
+
+    // Build an NSFont for a span run, applying the run font's bold (weight == Bold) + italic (slant !=
+    // normal) as symbolic traits — the AppKit analog of Font.ToUIFont(fontManager), which the per-span
+    // attributed-string build uses (to_ns_font in apple_conversions ignores traits; a run needs them).
+    inline NSFont* to_ns_run_font(const maui::core::font& value)
+    {
+        const double size = value.size() > 0 ? value.size() : static_cast<double>(NSFont.systemFontSize);
+        NSFont* base = nil;
+        if (!value.family().empty())
+        {
+            NSString* const name = [NSString stringWithUTF8String:value.family().c_str()];
+            base = name != nil ? [NSFont fontWithName:name size:size] : nil;
+        }
+        if (base == nil)
+        {
+            base = [NSFont systemFontOfSize:size];
+        }
+        NSFontTraitMask traits = 0;
+        if (value.weight() == maui::core::font_weight::bold)
+        {
+            traits |= NSBoldFontMask;
+        }
+        if (value.slant() != maui::core::font_slant::normal)
+        {
+            traits |= NSItalicFontMask;
+        }
+        if (traits == 0)
+        {
+            return base;
+        }
+        NSFont* const traited = [[NSFontManager sharedFontManager] convertFont:base toHaveTrait:traits];
+        return traited != nil ? traited : base;
+    }
+
+    // Port of FormattedStringExtensions.ToNSAttributedString: append one attributed substring per run
+    // (font / foreground color / background color / underline / strikethrough / kerning / line-height
+    // paragraph style), exactly as the C# loop over formattedString.Spans does. Returns an empty
+    // NSAttributedString for no runs (the caller falls back to the plain-text path).
+    inline NSAttributedString* attributed_from_runs(const std::vector<maui::core::label_run>& runs)
+    {
+        NSMutableAttributedString* const attributed = [[NSMutableAttributedString alloc] init];
+        for (const maui::core::label_run& run : runs)
+        {
+            NSString* const text = [NSString stringWithUTF8String:run.text.c_str()];
+            if (text == nil)
+            {
+                continue;
+            }
+            NSMutableDictionary<NSAttributedStringKey, id>* const attrs = [NSMutableDictionary dictionary];
+            attrs[NSFontAttributeName] = to_ns_run_font(run.run_font);
+            if (run.text_color.has_value())
+            {
+                attrs[NSForegroundColorAttributeName] = to_ns_color(*run.text_color);
+            }
+            if (run.background_color.has_value())
+            {
+                attrs[NSBackgroundColorAttributeName] = to_ns_color(*run.background_color);
+            }
+            const auto flags = std::to_underlying(run.decorations);
+            if ((flags & std::to_underlying(maui::core::text_decorations::underline)) != 0)
+            {
+                attrs[NSUnderlineStyleAttributeName] = [NSNumber numberWithInteger:NSUnderlineStyleSingle];
+            }
+            if ((flags & std::to_underlying(maui::core::text_decorations::strikethrough)) != 0)
+            {
+                attrs[NSStrikethroughStyleAttributeName] = [NSNumber numberWithInteger:NSUnderlineStyleSingle];
+            }
+            if (run.character_spacing != 0)
+            {
+                attrs[NSKernAttributeName] = [NSNumber numberWithDouble:run.character_spacing];
+            }
+            if (run.line_height >= 0)
+            {
+                NSMutableParagraphStyle* const style = [[NSMutableParagraphStyle alloc] init];
+                style.lineHeightMultiple = static_cast<CGFloat>(run.line_height);
+                attrs[NSParagraphStyleAttributeName] = style;
+            }
+            NSAttributedString* const piece = [[NSAttributedString alloc] initWithString:text attributes:attrs];
+            [attributed appendAttributedString:piece];
+        }
+        return attributed;
     }
 } // namespace maui::platform::apple

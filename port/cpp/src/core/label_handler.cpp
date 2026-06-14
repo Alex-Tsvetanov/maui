@@ -30,6 +30,7 @@ namespace maui::core
                 {"vertical_text_alignment", &label_handler::map_vertical_text_alignment},
                 {"character_spacing", &label_handler::map_character_spacing},
                 {"text_decorations", &label_handler::map_text_decorations},
+                {"formatted_text", &label_handler::map_formatted_text},
             },
         };
         return table;

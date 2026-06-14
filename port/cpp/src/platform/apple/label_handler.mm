@@ -231,6 +231,35 @@ namespace maui::core
         }
     }
 
+    void label_handler::map_formatted_text(label_handler& handler, i_label& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        NSTextField* const field = as_label(platform->native);
+        const auto& runs = view.formatted_text_runs();
+        if (runs.empty())
+        {
+            // LabelExtensions.UpdateText FormattedText==null branch: revert to the plain text path —
+            // platformLabel.Text = text. Re-assign stringValue from view.text() directly (setting an empty
+            // attributedStringValue would wipe the field), then re-apply the attributed formatting.
+            const std::string text(view.text());
+            NSString* const value = [NSString stringWithUTF8String:text.c_str()];
+            field.stringValue = value != nil ? value : @"";
+            refresh_label_text_formatting(field, view);
+        }
+        else
+        {
+            // LabelExtensions.UpdateText FormattedText!=null branch: platformLabel.AttributedText =
+            // label.ToNSAttributedString() — build one attributed substring per resolved run.
+            field.attributedStringValue = maui::platform::apple::attributed_from_runs(runs);
+            // Re-apply the alignment: replacing the attributed value resets the field's paragraph alignment.
+            field.alignment = to_ns_text_alignment(view.horizontal_text_alignment());
+        }
+    }
+
     maui::graphics::size label_handler::get_desired_size(double /*width_constraint*/,
                                                          double /*height_constraint*/) const
     {

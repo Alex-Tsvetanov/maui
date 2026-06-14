@@ -92,10 +92,10 @@ namespace
         return (__bridge UILabel*)native;
     }
 
+    using maui::platform::ios::to_ns_text_alignment;
     using maui::platform::ios::to_ui_color;
     using maui::platform::ios::to_ui_control_content_vertical_alignment;
     using maui::platform::ios::to_ui_font;
-    using maui::platform::ios::to_ns_text_alignment;
     using maui::platform::ios::with_character_spacing;
     using maui::platform::ios::with_decorations;
 
@@ -247,6 +247,35 @@ namespace maui::core
         {
             // LabelExtensions.UpdateTextDecorations (via the shared formatting refresh).
             refresh_label_formatting(as_label(platform->native), view);
+        }
+    }
+
+    void label_handler::map_formatted_text(label_handler& handler, i_label& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        UILabel* const label = as_label(platform->native);
+        const auto& runs = view.formatted_text_runs();
+        if (runs.empty())
+        {
+            // LabelExtensions.UpdateText FormattedText==null branch: AttributedText = null, then revert to the
+            // plain text path — platformLabel.Text = text. Re-assign label.text from view.text() directly
+            // (UILabel clears its text when attributedText is set to nil), then re-apply the formatting.
+            label.attributedText = nil;
+            const std::string text(view.text());
+            label.text = [NSString stringWithUTF8String:text.c_str()];
+            refresh_label_formatting(label, view);
+            label.textAlignment = to_ns_text_alignment(view.horizontal_text_alignment());
+        }
+        else
+        {
+            // FormattedText!=null branch: platformLabel.AttributedText = label.ToNSAttributedString().
+            label.attributedText =
+                maui::platform::ios::attributed_from_runs(runs, static_cast<double>(UIFont.labelFontSize));
+            label.textAlignment = to_ns_text_alignment(view.horizontal_text_alignment());
         }
     }
 
