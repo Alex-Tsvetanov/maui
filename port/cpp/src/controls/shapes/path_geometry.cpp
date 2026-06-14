@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "maui/controls/shapes/geometry_helper.hpp"
+#include "maui/controls/shapes/path_figure.hpp"
 #include "maui/controls/shapes/path_segment.hpp"
 #include "maui/controls/shapes/sweep_direction.hpp"
 #include "maui/graphics/path_f.hpp"

@@ -29,6 +29,7 @@
 #include "maui/controls/shapes/scale_transform.hpp"
 #include "maui/controls/shapes/skew_transform.hpp"
 #include "maui/controls/shapes/sweep_direction.hpp"
+#include "maui/controls/shapes/transform.hpp"
 #include "maui/controls/shapes/transform_group.hpp"
 #include "maui/controls/shapes/translate_transform.hpp"
 #include "maui/graphics/corner_radius.hpp"

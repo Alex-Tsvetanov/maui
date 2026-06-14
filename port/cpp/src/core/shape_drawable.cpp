@@ -8,13 +8,13 @@
 #include "maui/core/shape_drawable.hpp"
 
 #include "maui/core/i_shape_view.hpp"
-#include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/i_canvas.hpp"
 #include "maui/graphics/i_shape.hpp"
 #include "maui/graphics/paint.hpp"
 #include "maui/graphics/path_f.hpp"
 #include "maui/graphics/rect.hpp"
+#include "maui/graphics/winding_mode.hpp"
 
 namespace maui::core
 {

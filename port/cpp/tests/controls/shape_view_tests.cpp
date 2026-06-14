@@ -6,16 +6,20 @@
 // these pin the source behavior per the porting doctrine.
 //
 // §8 teardown order: each control is declared before its handler (the handler borrows the control).
-#include "maui/controls/shapes/shape.hpp"
+#include "maui/controls/shapes/fill_rule.hpp"
+#include "maui/controls/shapes/path_figure.hpp"
+#include "maui/controls/shapes/path_geometry.hpp"
+#include "maui/controls/shapes/path_segment.hpp"
 
+#include <cstddef>
 #include <limits>
 #include <memory>
+#include <utility>
 #include <variant>
 #include <vector>
 
 #include "maui/controls/shapes/ellipse.hpp"
 #include "maui/controls/shapes/line.hpp"
-#include "maui/controls/shapes/line_geometry.hpp"
 #include "maui/controls/shapes/path.hpp"
 #include "maui/controls/shapes/path_markup_parser.hpp"
 #include "maui/controls/shapes/polygon.hpp"
@@ -24,13 +28,14 @@
 #include "maui/controls/shapes/translate_transform.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/i_shape_view.hpp"
 #include "maui/core/path_aspect.hpp"
 #include "maui/core/shape_view_handler.hpp"
 #include "maui/graphics/color.hpp"
+#include "maui/graphics/i_shape.hpp"
 #include "maui/graphics/line_cap.hpp"
 #include "maui/graphics/line_join.hpp"
 #include "maui/graphics/path_f.hpp"
-#include "maui/graphics/path_operation.hpp"
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/point_f.hpp"
 #include "maui/graphics/recording_canvas.hpp"

@@ -4,6 +4,7 @@
 #include "maui/controls/shapes/polygon.hpp"
 
 #include "maui/controls/shapes/fill_rule.hpp"
+#include "maui/controls/shapes/path_segment.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/shape_view_handler.hpp"

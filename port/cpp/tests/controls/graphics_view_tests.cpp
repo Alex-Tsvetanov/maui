@@ -18,12 +18,15 @@
 #include "maui/core/graphics_view_handler.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/i_graphics_view.hpp"
+#include "maui/core/path_aspect.hpp"
 #include "maui/core/shape_view_handler.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/corner_radius.hpp"
 #include "maui/graphics/i_canvas.hpp"
 #include "maui/graphics/i_drawable.hpp"
-#include "maui/graphics/path_operation.hpp"
+#include "maui/graphics/i_shape.hpp"
+#include "maui/graphics/path_f.hpp"
 #include "maui/graphics/point_f.hpp"
 #include "maui/graphics/recording_canvas.hpp"
 #include "maui/graphics/rect.hpp"
@@ -156,7 +159,7 @@ namespace
 
         // golden ops: the staged fill color, then the rectangle fill over the dirty rect.
         ASSERT_EQ(canvas.ops().size(), 2U);
-        const auto* staged = std::get_if<maui::graphics::canvas_ops::set_fill_color>(&canvas.ops()[0]);
+        const auto* staged = std::get_if<maui::graphics::canvas_ops::set_fill_color>(canvas.ops().data());
         ASSERT_NE(staged, nullptr);
         EXPECT_EQ(staged->value, color(1.0F, 0.0F, 0.0F));
         const auto* filled = std::get_if<fill_rectangle>(&canvas.ops()[1]);

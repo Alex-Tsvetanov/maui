@@ -8,10 +8,13 @@
 #include <algorithm>
 #include <cctype>
 #include <cstddef>
+#include <iterator>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <system_error>
+#include <utility>
 
 #include "maui/controls/shapes/path_figure.hpp"
 #include "maui/controls/shapes/path_geometry.hpp"
@@ -33,7 +36,7 @@ namespace maui::controls::shapes
         {
         public:
             figure_parser(path_figure_collection& figures, std::string_view path_string, std::size_t start_index)
-                : figures_(figures), text_(path_string), index_(start_index)
+                : figures_(&figures), text_(path_string), index_(start_index)
             {
             }
 
@@ -65,7 +68,7 @@ namespace maui::controls::shapes
 
                             figure = std::make_shared<path_figure>();
                             figure->set_start_point(last_point_);
-                            figures_.push_back(figure);
+                            figures_->push_back(figure);
 
                             figure_started_ = true;
                             last_start_ = last_point_;
@@ -87,7 +90,7 @@ namespace maui::controls::shapes
                         case 'v':
                         case 'V': {
                             ensure_figure();
-                            do
+                            while (true)
                             {
                                 switch (cmd)
                                 {
@@ -112,7 +115,11 @@ namespace maui::controls::shapes
                                 }
                                 ensure_path_figure(figure)->segments().push_back(
                                     std::make_shared<line_segment>(last_point_));
-                            } while (is_number(allow_comma));
+                                if (!is_number(allow_comma))
+                                {
+                                    break;
+                                }
+                            }
 
                             last_cmd = 'L';
                             break;
@@ -124,7 +131,7 @@ namespace maui::controls::shapes
                         case 'S': // smooth cubic Bezier
                         {
                             ensure_figure();
-                            do
+                            while (true)
                             {
                                 maui::graphics::point p;
                                 if (cmd == 's' || cmd == 'S')
@@ -142,7 +149,11 @@ namespace maui::controls::shapes
                                 ensure_path_figure(figure)->segments().push_back(
                                     std::make_shared<bezier_segment>(p, second_last_point_, last_point_));
                                 last_cmd = 'C';
-                            } while (is_number(allow_comma));
+                                if (!is_number(allow_comma))
+                                {
+                                    break;
+                                }
+                            }
                             break;
                         }
 
@@ -152,7 +163,7 @@ namespace maui::controls::shapes
                         case 'T': // smooth quadratic Bezier
                         {
                             ensure_figure();
-                            do
+                            while (true)
                             {
                                 if (cmd == 't' || cmd == 'T')
                                 {
@@ -168,14 +179,18 @@ namespace maui::controls::shapes
                                 ensure_path_figure(figure)->segments().push_back(
                                     std::make_shared<quadratic_bezier_segment>(second_last_point_, last_point_));
                                 last_cmd = 'Q';
-                            } while (is_number(allow_comma));
+                                if (!is_number(allow_comma))
+                                {
+                                    break;
+                                }
+                            }
                             break;
                         }
 
                         case 'a':
                         case 'A': {
                             ensure_figure();
-                            do
+                            while (true)
                             {
                                 // A 3,4 5, 0, 0, 6,7
                                 const double w = read_number(!allow_comma);
@@ -194,7 +209,11 @@ namespace maui::controls::shapes
                                                                : sweep_direction::counter_clockwise);
                                 arc->set_point(last_point_);
                                 ensure_path_figure(figure)->segments().push_back(std::move(arc));
-                            } while (is_number(allow_comma));
+                                if (!is_number(allow_comma))
+                                {
+                                    break;
+                                }
+                            }
 
                             last_cmd = 'A';
                             break;
@@ -224,7 +243,7 @@ namespace maui::controls::shapes
             }
 
             // C# EnsurePathFigure — a draw command before any M.
-            [[nodiscard]] const std::shared_ptr<path_figure>& ensure_path_figure(
+            [[nodiscard]] std::shared_ptr<path_figure> ensure_path_figure(
                 const std::shared_ptr<path_figure>& figure) const
             {
                 if (figure == nullptr)
@@ -433,10 +452,10 @@ namespace maui::controls::shapes
                     token.remove_prefix(1);
                 }
                 double parsed = 0;
-                // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic) — from_chars takes [first,last)
-                const auto [ptr, ec] =
-                    maui::detail::from_chars_general(token.data(), token.data() + token.size(), parsed);
-                if (ec != std::errc{} || ptr != token.data() + token.size())
+                const char* const first = token.data();
+                const char* const last = std::next(first, static_cast<std::ptrdiff_t>(token.size()));
+                const auto [ptr, ec] = maui::detail::from_chars_general(first, last, parsed);
+                if (ec != std::errc{} || ptr != last)
                 {
                     throw std::invalid_argument("UnexpectedToken \"" + std::to_string(start) + "\" into " +
                                                 std::string(text_));
@@ -444,7 +463,7 @@ namespace maui::controls::shapes
                 return parsed;
             }
 
-            path_figure_collection& figures_;
+            path_figure_collection* figures_; // non-owning: the caller-provided output sink
             std::string_view text_;
             std::size_t index_ = 0;
             bool figure_started_ = false;
@@ -525,10 +544,10 @@ namespace maui::controls::shapes
             {
                 numeric.remove_prefix(1);
             }
-            // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic) — from_chars takes [first,last)
-            const auto [ptr, ec] =
-                maui::detail::from_chars_general(numeric.data(), numeric.data() + numeric.size(), number);
-            if (ec != std::errc{} || ptr != numeric.data() + numeric.size())
+            const char* const first = numeric.data();
+            const char* const last = std::next(first, static_cast<std::ptrdiff_t>(numeric.size()));
+            const auto [ptr, ec] = maui::detail::from_chars_general(first, last, number);
+            if (ec != std::errc{} || ptr != last)
             {
                 throw std::invalid_argument("Cannot convert \"" + std::string(token) + "\" into a double");
             }
