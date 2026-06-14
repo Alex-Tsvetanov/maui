@@ -3,6 +3,8 @@
 
 #include "maui/controls/items/items_layout.hpp"
 
+#include "maui/controls/items/snap_points_alignment.hpp"
+#include "maui/controls/items/snap_points_type.hpp"
 #include "maui/core/bindable_property.hpp"
 
 namespace maui::controls

@@ -4,6 +4,9 @@
 
 #include <memory>
 
+#include "maui/controls/items/boxed_item.hpp"
+#include "maui/controls/items/item_sizing_strategy.hpp"
+#include "maui/controls/templates/data_template.hpp"
 #include "maui/core/bindable_property.hpp"
 
 namespace maui::controls

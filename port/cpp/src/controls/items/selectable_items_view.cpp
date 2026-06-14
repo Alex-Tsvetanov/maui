@@ -7,8 +7,13 @@
 #include <utility>
 #include <vector>
 
+#include "maui/controls/items/boxed_item.hpp"
+#include "maui/controls/items/selection_changed_event_args.hpp"
+#include "maui/controls/items/selection_list.hpp"
+#include "maui/controls/items/selection_mode.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/binding_mode.hpp"
+#include "maui/core/observable_collection.hpp"
 
 namespace maui::controls
 {

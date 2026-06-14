@@ -81,7 +81,7 @@ namespace
     {
         selectable_items_view view;
         view.set_selected_item(box("A"));
-        selection_watcher watcher{view};
+        selection_watcher const watcher{view};
         view.set_selected_item(box("A")); // SetValue equality → no change
         EXPECT_TRUE(watcher.changes.empty());
     }
@@ -249,7 +249,7 @@ namespace
     TEST(selectable_items_view, mode_change_with_no_selection_does_not_signal)
     {
         selectable_items_view view;
-        selection_watcher watcher{view};
+        selection_watcher const watcher{view};
         view.set_selection_mode(selection_mode::single);
         view.set_selection_mode(selection_mode::multiple);
         view.set_selection_mode(selection_mode::none);
@@ -276,7 +276,7 @@ namespace
         view.set_selection_mode(selection_mode::single);
         view.set_selected_item(box("A"));
         view.selected_items().add(box("A")); // the same single item on both sides
-        selection_watcher watcher{view};
+        selection_watcher const watcher{view};
 
         view.set_selection_mode(selection_mode::multiple);
 

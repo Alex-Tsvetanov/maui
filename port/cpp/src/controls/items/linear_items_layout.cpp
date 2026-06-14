@@ -4,6 +4,7 @@
 
 #include <memory>
 
+#include "maui/controls/items/items_layout_orientation.hpp"
 #include "maui/core/bindable_property.hpp"
 
 namespace maui::controls

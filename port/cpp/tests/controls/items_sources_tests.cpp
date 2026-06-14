@@ -9,12 +9,14 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "maui/controls/items/boxed_item.hpp"
 #include "maui/controls/items/item_collection.hpp"
 #include "maui/controls/items/items_source_factory.hpp"
 #include "maui/controls/items/items_view_source.hpp"
+#include "maui/core/event.hpp"
 #include "maui/core/observable_collection.hpp"
 #include <gtest/gtest.h>
 

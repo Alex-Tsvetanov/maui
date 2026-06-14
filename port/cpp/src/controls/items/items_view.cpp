@@ -6,8 +6,19 @@
 #include <memory>
 #include <utility>
 
+#include "maui/controls/items/boxed_item.hpp"
+#include "maui/controls/items/i_items_view.hpp"
+#include "maui/controls/items/item_collection.hpp"
+#include "maui/controls/items/items_layout.hpp"
+#include "maui/controls/items/items_updating_scroll_mode.hpp"
+#include "maui/controls/items/items_view_scrolled_event_args.hpp"
 #include "maui/controls/items/linear_items_layout.hpp"
+#include "maui/controls/items/scroll_to_request_event_args.hpp"
+#include "maui/controls/scroll_to_position.hpp"
+#include "maui/controls/templates/data_template.hpp"
+#include "maui/controls/view.hpp"
 #include "maui/core/bindable_property.hpp"
+#include "maui/core/scroll_bar_visibility.hpp"
 
 namespace maui::controls
 {

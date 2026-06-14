@@ -7,15 +7,27 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
+#include "maui/controls/items/boxed_item.hpp"
 #include "maui/controls/items/collection_view.hpp"
 #include "maui/controls/items/collection_view_handler.hpp"
 #include "maui/controls/items/grid_items_layout.hpp"
+#include "maui/controls/items/item_sizing_strategy.hpp"
+#include "maui/controls/items/items_layout_orientation.hpp"
+#include "maui/controls/items/items_updating_scroll_mode.hpp"
 #include "maui/controls/items/linear_items_layout.hpp"
+#include "maui/controls/items/scroll_to_request_event_args.hpp"
+#include "maui/controls/items/snap_points_alignment.hpp"
+#include "maui/controls/items/snap_points_type.hpp"
 #include "maui/controls/items/structured_items_view.hpp"
+#include "maui/controls/scroll_to_position.hpp"
 #include "maui/core/event.hpp"
+#include "maui/core/move_only_function.hpp"
+#include "maui/core/scroll_bar_visibility.hpp"
 #include "maui/essentials/device_display.hpp"
+#include "maui/graphics/size.hpp"
 #include <gtest/gtest.h>
 
 namespace

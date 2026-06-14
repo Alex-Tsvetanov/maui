@@ -4,6 +4,7 @@
 
 #include <memory>
 
+#include "maui/controls/templates/data_template.hpp"
 #include "maui/core/bindable_property.hpp"
 
 namespace maui::controls

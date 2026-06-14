@@ -7,17 +7,26 @@
 // on every backend. §8: collections (publishers) are declared before the view/handler (subscribers).
 
 #include <algorithm>
+#include <cstddef>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
+#include "maui/controls/items/boxed_item.hpp"
 #include "maui/controls/items/collection_view.hpp"
 #include "maui/controls/items/collection_view_handler.hpp"
 #include "maui/controls/items/grid_items_layout.hpp"
 #include "maui/controls/items/item_collection.hpp"
+#include "maui/controls/items/items_layout_orientation.hpp"
+#include "maui/controls/items/items_updating_scroll_mode.hpp"
+#include "maui/controls/items/items_view_scrolled_event_args.hpp"
+#include "maui/controls/items/items_view_source.hpp"
 #include "maui/controls/items/linear_items_layout.hpp"
+#include "maui/controls/items/selection_changed_event_args.hpp"
 #include "maui/controls/items/selection_mode.hpp"
 #include "maui/controls/label.hpp"
+#include "maui/controls/scroll_to_position.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/core/event.hpp"
 #include "maui/core/observable_collection.hpp"
@@ -100,7 +109,7 @@ namespace
 
     TEST(collection_view_sim, attach_realizes_only_the_visible_window)
     {
-        sim rig;
+        sim const rig;
         // viewport 400 / extent 100 → items 0..3 fill the window; content extent = 10 * 100.
         const std::vector<index_path> expected{{0, 0}, {0, 1}, {0, 2}, {0, 3}};
         EXPECT_EQ(rig.realized_item_paths(), expected);
@@ -113,7 +122,7 @@ namespace
 
     TEST(collection_view_sim, scrolling_recycles_and_realizes_the_new_window)
     {
-        sim rig;
+        sim const rig;
         rig.handler->simulate_scroll(250);
         // window [250, 650): rows starting 200..600 intersect → items 2..6.
         const std::vector<index_path> expected{{0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}};
@@ -240,7 +249,7 @@ namespace
 
     TEST(collection_view_sim, tap_in_none_mode_is_ignored)
     {
-        sim rig;
+        sim const rig;
         rig.handler->simulate_select({0, 2});
         EXPECT_FALSE(rig.view.selected_item().has_value());
         EXPECT_TRUE(rig.platform->selected_paths.empty());
@@ -368,7 +377,7 @@ namespace
 
     TEST(collection_view_sim, keep_items_in_view_compensates_inserts_before_the_window)
     {
-        sim rig;                           // keep_items_in_view is the default mode
+        sim const rig;                     // keep_items_in_view is the default mode
         rig.handler->simulate_scroll(200); // first visible row = item 2
         rig.items->insert(0, "Z");         // lands before the window → everything shifts by one row
         EXPECT_DOUBLE_EQ(rig.platform->scroll_offset, 300);
@@ -378,7 +387,7 @@ namespace
 
     TEST(collection_view_sim, keep_items_in_view_ignores_appends_after_the_window)
     {
-        sim rig;
+        sim const rig;
         rig.handler->simulate_scroll(200);
         rig.items->add("K"); // lands after the window → no shift
         EXPECT_DOUBLE_EQ(rig.platform->scroll_offset, 200);
@@ -530,7 +539,7 @@ namespace
 
     TEST(collection_view_sim, source_update_trail_records_the_translated_ops)
     {
-        sim rig;
+        sim const rig;
         rig.items->add("K");
         rig.items->remove_at(0);
         rig.items->clear();

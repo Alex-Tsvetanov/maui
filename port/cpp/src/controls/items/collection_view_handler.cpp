@@ -23,22 +23,39 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
+#include "maui/controls/items/boxed_item.hpp"
 #include "maui/controls/items/grid_items_layout.hpp"
 #include "maui/controls/items/groupable_items_view.hpp"
+#include "maui/controls/items/i_items_view.hpp"
+#include "maui/controls/items/items_layout_orientation.hpp"
 #include "maui/controls/items/items_source_factory.hpp"
-#include "maui/controls/items/items_view.hpp"
+#include "maui/controls/items/items_updating_scroll_mode.hpp"
 #include "maui/controls/items/items_view_scrolled_event_args.hpp"
+#include "maui/controls/items/items_view_source.hpp"
 #include "maui/controls/items/linear_items_layout.hpp"
 #include "maui/controls/items/reorderable_items_view.hpp"
+#include "maui/controls/items/scroll_to_request_event_args.hpp"
 #include "maui/controls/items/selectable_items_view.hpp"
+#include "maui/controls/items/selection_mode.hpp"
+#include "maui/controls/items/snap_points_alignment.hpp"
+#include "maui/controls/items/snap_points_type.hpp"
 #include "maui/controls/items/structured_items_view.hpp"
+#include "maui/controls/scroll_to_position.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/templates/data_template_selector.hpp"
+#include "maui/core/bindable_object.hpp"
+#include "maui/core/command_mapper.hpp"
+#include "maui/core/event.hpp"
+#include "maui/core/property_mapper.hpp"
+#include "maui/core/view_handler.hpp"
 #include "maui/core/view_mapper.hpp"
 #include "maui/essentials/device_display.hpp"
+#include "maui/graphics/rect.hpp"
+#include "maui/graphics/size.hpp"
 
 namespace maui::controls
 {

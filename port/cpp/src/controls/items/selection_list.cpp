@@ -8,7 +8,10 @@
 #include <utility>
 #include <vector>
 
+#include "maui/controls/items/boxed_item.hpp"
 #include "maui/controls/items/selectable_items_view.hpp"
+#include "maui/core/event.hpp"
+#include "maui/core/observable_collection.hpp"
 
 namespace maui::controls
 {
