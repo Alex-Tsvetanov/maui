@@ -637,6 +637,19 @@ elseif(MAUI_BACKEND STREQUAL "ios")
 else()
   set(MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES src/platform/headless/collection_view_handler.cpp)
 endif()
+# (W3-33 indicator_view) the indicator_view_handler's per-backend partial: the cross-platform mapper +
+# GetMaximumVisible/IsCircleShape helpers live in src/core/indicator_view_handler.cpp; each backend
+# supplies the dot recipe — a real UIPageControl (ios), an NSStackView-of-dots (apple), or the headless
+# dot mirror recording count/position/shape.
+if(MAUI_BACKEND STREQUAL "apple")
+  set(MAUI_CONTROLS_INDICATOR_PLATFORM_SOURCES src/platform/apple/indicator_view_handler.mm)
+  set_source_files_properties(${MAUI_CONTROLS_INDICATOR_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+elseif(MAUI_BACKEND STREQUAL "ios")
+  set(MAUI_CONTROLS_INDICATOR_PLATFORM_SOURCES src/platform/ios/indicator_view_handler.mm)
+  set_source_files_properties(${MAUI_CONTROLS_INDICATOR_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+else()
+  set(MAUI_CONTROLS_INDICATOR_PLATFORM_SOURCES src/platform/headless/indicator_view_handler.cpp)
+endif()
 # (W3-31 table_view) the table_view_handler's per-backend partial: the cross-platform mapper tables +
 # cell-text helpers live in src/controls/; each backend supplies the realization recipe — a real
 # UITableView (ios) / NSTableView (apple) with datasource/delegate + cell reuse + selection, or the
@@ -777,6 +790,12 @@ add_library(maui_controls STATIC
   src/controls/items/reorderable_items_view.cpp
   src/controls/items/collection_view.cpp
   src/controls/items/collection_view_handler.cpp
+  # (W3-33) carousel_view reuses the collection_view virtualization handler; indicator_view has its own
+  # handler (per-backend partial below: UIPageControl / NSStackView-of-dots / headless dot mirror).
+  src/controls/items/carousel_view.cpp
+  src/controls/indicator_view.cpp
+  src/core/indicator_view_handler.cpp
+  ${MAUI_CONTROLS_INDICATOR_PLATFORM_SOURCES}
   ${MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES}
   # (W3-31 table_view + cells) the obsolete-but-ported Cell family + the TableView model layer + control
   # + handler (ListView deferred → CollectionView; see STATUS).
@@ -939,6 +958,9 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/selectable_items_view_tests.cpp
     tests/controls/collection_view_tests.cpp
     tests/controls/collection_view_appkit_tests.mm # (W3-30) the real NSCollectionView FlowLayout reuse/selection/supplementaries/reorder seam
+    # (W3-33) carousel_view + indicator_view — backend-agnostic behavior over the W3-29 items infra.
+    tests/controls/carousel_view_tests.cpp
+    tests/controls/indicator_view_tests.cpp
     tests/controls/items_page_tests.cpp
     tests/controls/control_template_tests.cpp
     tests/controls/binding_engine_tests.cpp # backend-agnostic; the W1-02 string-path binding engine
@@ -949,6 +971,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/cells_tests.cpp
     tests/controls/table_view_tests.cpp
     tests/controls/table_view_apple_tests.mm # the real NSTableView realization + reuse + selection seam
+    tests/controls/indicator_view_apple_tests.mm # (W3-33) the real NSStackView-of-dots indicator row
 )
   # tests/core/image_source_tests.cpp + font_image_source_tests.cpp are HEADLESS-ONLY: they assert on the
   # headless image_source_result mirror + the headless "any non-empty bytes => loaded" decode (raw test
@@ -994,6 +1017,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/window_overlay_apple_tests.mm # (G4) the overlay CG readback smoke
     tests/controls/table_view_apple_tests.mm # (W3-31)
     tests/controls/collection_view_appkit_tests.mm # (W3-30)
+    tests/controls/indicator_view_apple_tests.mm # (W3-33)
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 elseif(MAUI_BACKEND STREQUAL "ios")
   # Every control is a real UIKit partial on ios (M6 fan-out complete), so the suite runs each control's
@@ -1049,6 +1073,10 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     # reuse under programmatic scroll, selection single/multi, grouping supplementaries, reorder,
     # scroll-to, empty-view — run-loop pumped via tests/support/run_loop_pump.hpp.
     tests/controls/collection_view_ios_tests.mm
+    # (W3-33) the carousel rides the real compositional UICollectionView; the indicator is the real
+    # MauiPageControl (UIPageControl) with the native page-tap write-back.
+    tests/controls/carousel_view_ios_tests.mm
+    tests/controls/indicator_view_ios_tests.mm
     tests/controls/table_view_ios_tests.mm # (W3-31) the real UITableView realization + reuse + selection seam
     tests/controls/window_ios_tests.mm)
   add_executable(maui_controls_tests
@@ -1101,6 +1129,9 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/items_sources_tests.cpp
     tests/controls/selectable_items_view_tests.cpp
     tests/controls/collection_view_tests.cpp
+    # (W3-33) carousel_view + indicator_view — backend-agnostic behavior over the W3-29 items infra.
+    tests/controls/carousel_view_tests.cpp
+    tests/controls/indicator_view_tests.cpp
     tests/controls/items_page_tests.cpp
     tests/controls/control_template_tests.cpp
     tests/controls/binding_engine_tests.cpp # backend-agnostic; the W1-02 string-path binding engine
@@ -1192,6 +1223,9 @@ else()
     tests/controls/items_sources_tests.cpp
     tests/controls/selectable_items_view_tests.cpp
     tests/controls/collection_view_tests.cpp
+    # (W3-33) carousel_view + indicator_view — backend-agnostic behavior over the W3-29 items infra.
+    tests/controls/carousel_view_tests.cpp
+    tests/controls/indicator_view_tests.cpp
     tests/controls/items_page_tests.cpp
     tests/controls/control_template_tests.cpp
     tests/controls/binding_engine_tests.cpp # backend-agnostic; the W1-02 string-path binding engine
