@@ -77,4 +77,14 @@ namespace maui::core
     {
         // Headless: no native container to position; the current page is arranged by the control directly.
     }
+
+    // --- platform configuration (W2-24): the iOSSpecific IsNavigationBarTranslucent push — headless
+    // keeps the cross-platform mirror only.
+    void navigation_page_handler::update_bar_translucent(bool value)
+    {
+        if (auto* platform = typed_platform_view())
+        {
+            platform->bar_translucent = value;
+        }
+    }
 } // namespace maui::core

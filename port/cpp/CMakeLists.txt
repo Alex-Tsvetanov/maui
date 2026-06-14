@@ -830,6 +830,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
     tests/controls/resource_dictionary_tests.cpp
+    tests/controls/platform_configuration_tests.cpp # (W2-24) the platform-config mechanism + *Specific knob sets (backend-agnostic)
     tests/controls/dynamic_resource_tests.cpp
     tests/controls/implicit_style_tests.cpp
     tests/controls/advanced_trigger_tests.cpp
@@ -970,6 +971,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
     tests/controls/resource_dictionary_tests.cpp
+    tests/controls/platform_configuration_tests.cpp # (W2-24) the platform-config mechanism + *Specific knob sets (backend-agnostic)
     tests/controls/dynamic_resource_tests.cpp
     tests/controls/implicit_style_tests.cpp
     tests/controls/advanced_trigger_tests.cpp
@@ -1051,6 +1053,7 @@ else()
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
     tests/controls/resource_dictionary_tests.cpp
+    tests/controls/platform_configuration_tests.cpp # (W2-24) the platform-config mechanism + *Specific knob sets (backend-agnostic)
     tests/controls/dynamic_resource_tests.cpp
     tests/controls/implicit_style_tests.cpp
     tests/controls/advanced_trigger_tests.cpp

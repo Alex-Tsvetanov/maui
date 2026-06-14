@@ -28,10 +28,13 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <type_traits> // --- platform configuration (W2-24) ---
 #include <unordered_map>
+#include <utility> // --- platform configuration (W2-24) ---
 #include <vector>
 
 #include "maui/controls/merged_style.hpp"
+#include "maui/controls/platform_configuration/configuration.hpp" // --- platform configuration (W2-24) ---
 #include "maui/controls/resource_dictionary.hpp"
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/event.hpp"
@@ -336,5 +339,67 @@ namespace maui::controls
         std::unordered_map<std::string, std::function<maui::core::scoped_connection(std::function<void()>)>>
             named_events_;
         // --- end styles tail (W1-15) --------------------------------------------------------------------
+
+        // --- platform configuration (W2-24) ---------------------------------------------------------------
+        // IElementConfiguration<TElement>.On<T>() + the attached-BindableProperty store the *Specific knob
+        // sets (include/maui/controls/platform_configuration/) write through. Regular properties keep their
+        // typed property<T> members; this side store exists ONLY for the platform-specific attached knobs,
+        // whose keys are namespaced "<platform>.<DeclaringClass>.<PropertyName>" (the C# attached property's
+        // declaring-type identity) so they can never collide with a property/mapper name.
+    public:
+        // C# IElementConfiguration<TElement>.On<T>(): the typed platform-config accessor over this element.
+        // Deducing-this supplies C#'s self-typing — the static type at the call site becomes TElement, so
+        // `entry.on<platform_configuration::ios>()` is a config<ios, entry> the entry knob set chains on.
+        // Lazily minted per call (see configuration.hpp on the dropped registry cache).
+        template <class TPlatform, class TSelf> [[nodiscard]] auto on(this TSelf& self)
+        {
+            static_assert(std::is_base_of_v<platform_configuration::i_config_platform, TPlatform>,
+                          "TPlatform must be a platform marker tag (i_config_platform)");
+            return platform_configuration::config<TPlatform, TSelf>(self);
+        }
+
+        // BindableObject.SetValue for a platform-spec attached property: equal value short-circuits (C#
+        // SetValueActual), otherwise property_changing fires, the value is stored, and property_changed
+        // fires — so a view<> forwards the (namespaced) name to its handler like any property change, and
+        // a wired-real knob's mapper key re-runs.
+        template <class T> void set_platform_spec(std::string_view name, T value)
+        {
+            std::string key{name};
+            if (const auto it = platform_specs_.find(key); it != platform_specs_.end())
+            {
+                if (const T* current = std::any_cast<T>(&it->second); current != nullptr && *current == value)
+                {
+                    return;
+                }
+            }
+            on_property_changing(name);
+            platform_specs_.insert_or_assign(std::move(key), std::move(value));
+            on_property_changed(name);
+        }
+
+        // BindableObject.GetValue: the stored value, or the knob's declared default when never set (the
+        // knob header supplies the default — C# keeps it on the BindableProperty descriptor).
+        template <class T> [[nodiscard]] T platform_spec(std::string_view name, T default_value) const
+        {
+            if (const auto it = platform_specs_.find(std::string{name}); it != platform_specs_.end())
+            {
+                if (const T* current = std::any_cast<T>(&it->second); current != nullptr)
+                {
+                    return *current;
+                }
+            }
+            return default_value;
+        }
+
+        // BindableObject.IsSet for a platform-spec attached property (the guard C# consumers apply, e.g.
+        // TextExtensions.UpdateCursorColor only acts when Entry.CursorColorProperty IsSet).
+        [[nodiscard]] bool has_platform_spec(std::string_view name) const
+        {
+            return platform_specs_.find(std::string{name}) != platform_specs_.end();
+        }
+
+    private:
+        std::unordered_map<std::string, std::any> platform_specs_; // namespaced key → boxed value
+        // --- end platform configuration (W2-24) -----------------------------------------------------------
     };
 } // namespace maui::controls

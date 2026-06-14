@@ -262,6 +262,9 @@ namespace maui::controls
         {
             return title_view_;
         }
+        // --- platform configuration (W2-24): the iOSSpecific IsNavigationBarTranslucent knob's core face
+        // (defined in navigation_page.cpp over the platform-spec store). ---
+        [[nodiscard]] bool navigation_bar_translucent() const override;
         // chrome (W1-11): the priority-sorted toolbar items of this nav page + its current page (the
         // tracker aggregate) — the iOS twin materializes these as bar buttons on the navigation bar
         // (C#'s UINavigationBar rightBarButtonItems path); AppKit surfaces them through the window's

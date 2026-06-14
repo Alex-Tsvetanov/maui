@@ -127,6 +127,34 @@ namespace maui::core
         [as_host(platform->native) setFrame:NSMakeRect(frame.x, frame.y, frame.width, frame.height)];
     }
 
+    // --- platform configuration (W2-24): the iOSSpecific Page knob nudges — the knob set is iOS-only in
+    // C# (PageHandler maps it under #if IOS), so the AppKit twin keeps the cross-platform request
+    // counters and pokes nothing native.
+    void content_page_handler::map_prefers_status_bar_hidden(content_page_handler& handler, i_content_view& /*view*/)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            ++platform->status_bar_appearance_requests;
+        }
+    }
+
+    void content_page_handler::map_home_indicator_auto_hidden(content_page_handler& handler, i_content_view& /*view*/)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            ++platform->home_indicator_requests;
+        }
+    }
+
+    // W2-24: nothing to wire — only the iOS twin needs the host→handler backref (safe-area push).
+    void content_page_handler::on_connect_handler(content_page_platform& /*platform*/)
+    {
+    }
+
+    void content_page_handler::on_disconnect_handler(content_page_platform& /*platform*/)
+    {
+    }
+
     // Render transform + flow direction pushed to the native view via the shared apple_view_ops helpers
     // (M4c: the generic-IView ViewMapper widening). `native` is this struct's NSView handle.
     void content_page_platform::update_transform(const maui::core::transform_spec& value)

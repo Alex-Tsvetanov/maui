@@ -7,8 +7,10 @@
 #include "maui/controls/entry.hpp"
 
 #include <limits>
+#include <optional> // --- W2-24: the cursor_color() return type ---
 #include <string>
 
+#include "maui/controls/platform_configuration/ios_specific/entry.hpp" // --- W2-24 ---
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/entry_handler.hpp"
@@ -129,6 +131,21 @@ namespace maui::controls
             "vertical_text_alignment", maui::core::text_alignment::center};
         return descriptor;
     }
+
+    // --- platform configuration (W2-24): the iOSSpecific Entry.CursorColor face ----------------------
+
+    // C# entry.IsSet(iOSSpecific.Entry.CursorColorProperty).
+    bool entry::cursor_color_set() const
+    {
+        return has_platform_spec(platform_configuration::ios_specific::entry::cursor_color_key);
+    }
+
+    // C# iOSSpecific.Entry.GetCursorColor.
+    std::optional<maui::graphics::color> entry::cursor_color() const
+    {
+        return platform_configuration::ios_specific::entry::get_cursor_color(*this);
+    }
+    // --- end platform configuration (W2-24) -----------------------------------------------------------
 } // namespace maui::controls
 
 // Self-register the default handler for entry (opt-in, PROFILE §6).

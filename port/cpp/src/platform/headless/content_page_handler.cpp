@@ -43,4 +43,32 @@ namespace maui::core
     {
         // Headless: no native host to position; the content is arranged by the control directly.
     }
+
+    // --- platform configuration (W2-24): the iOSSpecific Page knob nudges — count the appearance-update
+    // request (C#'s SetNeedsStatusBarAppearanceUpdate / SetNeedsUpdateOfHomeIndicatorAutoHidden have no
+    // native object here; the iOS twin pokes the real UIViewController).
+    void content_page_handler::map_prefers_status_bar_hidden(content_page_handler& handler, i_content_view& /*view*/)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            ++platform->status_bar_appearance_requests;
+        }
+    }
+
+    void content_page_handler::map_home_indicator_auto_hidden(content_page_handler& handler, i_content_view& /*view*/)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            ++platform->home_indicator_requests;
+        }
+    }
+
+    // W2-24: nothing to wire — only the iOS twin needs the host→handler backref (safe-area push).
+    void content_page_handler::on_connect_handler(content_page_platform& /*platform*/)
+    {
+    }
+
+    void content_page_handler::on_disconnect_handler(content_page_platform& /*platform*/)
+    {
+    }
 } // namespace maui::core

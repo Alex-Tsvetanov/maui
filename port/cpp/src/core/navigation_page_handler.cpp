@@ -27,7 +27,13 @@ namespace maui::core
     {
         static property_mapper<i_view, navigation_page_handler> table{
             view_mapper(),
-            {},
+            {
+                // --- platform configuration (W2-24): C# appends this from the Controls layer (the
+                // NavigationRenderer consumes On<iOS>().IsNavigationBarTranslucent()); the port's table is
+                // core-owned, so the key (the namespaced knob name the store raises) lives here.
+                {"ios.NavigationPage.IsNavigationBarTranslucent",
+                 &navigation_page_handler::map_is_navigation_bar_translucent},
+            },
         };
         return table;
     }
@@ -46,6 +52,16 @@ namespace maui::core
 
     navigation_page_handler::navigation_page_handler() : view_handler(&mapper(), &command_mapper())
     {
+    }
+
+    // --- platform configuration (W2-24): read the knob through the i_stack_navigation face and hand it
+    // to the per-backend push (NavigationRenderer.UpdateTranslucent's NavigationBar.Translucent = value).
+    void navigation_page_handler::map_is_navigation_bar_translucent(navigation_page_handler& handler, i_view& view)
+    {
+        if (auto* navigation = dynamic_cast<i_stack_navigation*>(&view))
+        {
+            handler.update_bar_translucent(navigation->navigation_bar_translucent());
+        }
     }
 
     // C# MapRequestNavigation: read the request's top-most page, re-host it as the container's content +

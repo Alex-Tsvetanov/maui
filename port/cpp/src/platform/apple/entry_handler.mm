@@ -29,6 +29,7 @@
 #include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/entry_handler.hpp"
 #include "maui/core/i_entry.hpp"
+#include "maui/core/i_ios_entry_specifics.hpp" // --- platform configuration (W2-24) ---
 #include "maui/core/return_type.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/visibility.hpp"
@@ -606,6 +607,20 @@ namespace maui::core
         {
             apply_editor_selection(editor, view.cursor_position(), view.selection_length());
         }
+    }
+
+    // --- platform configuration (W2-24): the iOSSpecific Entry.CursorColor map — AppKit has no insertion
+    // tint on the field itself (C# only maps this knob on iOS), so the macOS twin keeps the cross-platform
+    // mirror only, with the same IsSet guard as TextExtensions.UpdateCursorColor.
+    void entry_handler::map_cursor_color(entry_handler& handler, i_entry& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        const auto* specifics = dynamic_cast<const i_ios_entry_specifics*>(&view);
+        if (platform == nullptr || specifics == nullptr || !specifics->cursor_color_set())
+        {
+            return;
+        }
+        platform->cursor_color = specifics->cursor_color();
     }
 
     maui::graphics::size entry_handler::get_desired_size(double /*width_constraint*/,

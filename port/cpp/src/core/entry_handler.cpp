@@ -39,6 +39,11 @@ namespace maui::core
                 {"clear_button_visibility", &entry_handler::map_clear_button_visibility},
                 {"cursor_position", &entry_handler::map_cursor_position},
                 {"selection_length", &entry_handler::map_selection_length},
+                // --- platform configuration (W2-24): C# appends this mapping from the Controls layer
+                // (Entry.Mapper.cs ReplaceMapping(CursorColorProperty.PropertyName, MapCursorColor),
+                // iOS only); the port's table is core-owned, so the key (the namespaced knob name the
+                // store raises) lives here and the per-backend body reads the i_ios_entry_specifics face.
+                {"ios.Entry.CursorColor", &entry_handler::map_cursor_color},
             },
         };
         return table;

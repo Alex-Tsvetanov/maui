@@ -37,6 +37,8 @@
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/event.hpp"
 #include "maui/core/i_content_view.hpp"
+#include "maui/core/i_ios_page_specifics.hpp" // --- platform configuration (W2-24) ---
+#include "maui/core/i_safe_area_view.hpp"     // --- platform configuration (W2-24) ---
 #include "maui/core/i_view.hpp"
 #include "maui/core/property.hpp"
 #include "maui/core/thickness.hpp"
@@ -45,7 +47,10 @@
 
 namespace maui::controls
 {
-    class content_page : public view<maui::core::i_content_view>
+    class content_page : public view<maui::core::i_content_view>,
+                         public maui::core::i_ios_page_specifics, // --- platform configuration (W2-24) ---
+                         public maui::core::i_safe_area_view,     // (the iOS status-bar / safe-area faces
+                         public maui::core::i_safe_area_view2     //  the native host consults; Page.cs)
     {
     public:
         // Declare the style TargetType so an implicit / class style targeting `content_page` matches it.
@@ -165,6 +170,25 @@ namespace maui::controls
         // Handler.PlatformArrange) before placing the content.
         maui::graphics::size measure(double width_constraint, double height_constraint) override;
         maui::graphics::size arrange(const maui::graphics::rect& bounds) override;
+
+        // --- platform configuration (W2-24): the iOSSpecific Page faces ----------------------------------
+        // C# Page.cs's explicit IiOSPageSpecifics implementation (each getter carries the oracle's
+        // parent-redirect quirk: when the logical parent is a page that has the HOME-INDICATOR knob set —
+        // yes, all three getters probe that one key — the parent's value wins). Defined in content_page.cpp.
+        [[nodiscard]] bool is_home_indicator_auto_hidden() const override;
+        [[nodiscard]] int prefers_status_bar_hidden_mode() const override;
+        [[nodiscard]] int preferred_status_bar_update_animation_mode() const override;
+
+        // C# Page.cs: ISafeAreaView.IgnoreSafeArea => !On<iOS>().UsingSafeArea();
+        // ISafeAreaView2.SafeAreaInsets set => On<iOS>().SetSafeAreaInsets(value).
+        [[nodiscard]] bool ignore_safe_area() const override;
+        void set_safe_area_insets(const maui::core::thickness& value) override;
+
+    private:
+        // Padding + (when UseSafeArea) the realized safe-area insets — the MauiView.AdjustForSafeArea
+        // analog folded into the measure/arrange inset (content_page.cpp).
+        [[nodiscard]] maui::core::thickness layout_inset() const;
+        // --- end platform configuration (W2-24) -----------------------------------------------------------
 
     protected:
         // The content child plus the chrome items are this page's logical children, so BindingContext +

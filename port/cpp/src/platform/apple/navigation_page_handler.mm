@@ -339,6 +339,16 @@ namespace maui::core
         }
     }
 
+    // --- platform configuration (W2-24): the iOSSpecific IsNavigationBarTranslucent push — an iOS-only
+    // knob in C# (the AppKit twin keeps the cross-platform mirror; nothing native to drive on macOS).
+    void navigation_page_handler::update_bar_translucent(bool value)
+    {
+        if (auto* platform = typed_platform_view())
+        {
+            platform->bar_translucent = value;
+        }
+    }
+
     void navigation_page_handler::host_modal(i_view* top_modal, bool animated)
     {
         auto* platform = typed_platform_view();

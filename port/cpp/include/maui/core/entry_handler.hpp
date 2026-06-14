@@ -25,6 +25,7 @@
 
 #include <limits>
 #include <memory>
+#include <optional> // --- platform configuration (W2-24): the cursor-color mirror ---
 #include <string>
 #include <string_view>
 
@@ -73,6 +74,10 @@ namespace maui::core
         int selection_length = 0;
         return_type entry_return_type = return_type::default_;
         clear_button_visibility clear_button = clear_button_visibility::never;
+        // --- platform configuration (W2-24): the realized iOSSpecific Entry.CursorColor (nullopt until
+        // the knob is SET — TextExtensions.UpdateCursorColor's IsSet guard; every backend keeps this
+        // mirror, the iOS twin additionally tints the UITextField). ---
+        std::optional<maui::graphics::color> cursor_color;
 
         // The last text the entry is known to hold, so an inbound edit can report the *old* value.
         std::string last_known_text;
@@ -148,5 +153,8 @@ namespace maui::core
         static void map_clear_button_visibility(entry_handler& handler, i_entry& view);
         static void map_cursor_position(entry_handler& handler, i_entry& view);
         static void map_selection_length(entry_handler& handler, i_entry& view);
+        // --- platform configuration (W2-24): the iOSSpecific Entry.CursorColor map (the Entry.iOS.cs
+        // MapCursorColor / TextExtensions.UpdateCursorColor port; reads the i_ios_entry_specifics face).
+        static void map_cursor_color(entry_handler& handler, i_entry& view);
     };
 } // namespace maui::core

@@ -5,6 +5,7 @@
 // is the real-native twin.
 
 #include "maui/core/entry_handler.hpp"
+#include "maui/core/i_ios_entry_specifics.hpp" // --- platform configuration (W2-24) ---
 
 #include <memory>
 #include <string>
@@ -186,6 +187,20 @@ namespace maui::core
         {
             platform->selection_length = view.selection_length();
         }
+    }
+
+    // --- platform configuration (W2-24): the iOSSpecific Entry.CursorColor map — headless keeps the
+    // mirror only, guarded by the IsSet probe like TextExtensions.UpdateCursorColor (an untouched entry
+    // leaves the mirror nullopt). The value crosses on the i_ios_entry_specifics face.
+    void entry_handler::map_cursor_color(entry_handler& handler, i_entry& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        const auto* specifics = dynamic_cast<const i_ios_entry_specifics*>(&view);
+        if (platform == nullptr || specifics == nullptr || !specifics->cursor_color_set())
+        {
+            return;
+        }
+        platform->cursor_color = specifics->cursor_color();
     }
 
     maui::graphics::size entry_handler::get_desired_size(double width_constraint, double /*height_constraint*/) const

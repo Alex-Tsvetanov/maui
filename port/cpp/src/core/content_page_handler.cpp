@@ -25,6 +25,9 @@ namespace maui::core
             view_mapper(),
             {
                 {"content", &content_page_handler::map_content},
+                // --- platform configuration (W2-24): the iOSSpecific Page knob nudges (see the hpp note).
+                {"ios.Page.PrefersStatusBarHidden", &content_page_handler::map_prefers_status_bar_hidden},
+                {"ios.Page.PrefersHomeIndicatorAutoHidden", &content_page_handler::map_home_indicator_auto_hidden},
             },
         };
         return table;

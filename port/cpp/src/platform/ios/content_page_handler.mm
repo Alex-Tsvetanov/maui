@@ -19,11 +19,39 @@
 #include "ios_visual_ops.hpp"
 #include "maui/core/content_page_handler.hpp"
 #include "maui/core/i_content_view.hpp"
+#include "maui/core/i_safe_area_view.hpp" // --- platform configuration (W2-24) ---
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
+#include "maui/core/thickness.hpp" // --- platform configuration (W2-24) ---
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+
+// --- platform configuration (W2-24): the page host UIView. C# MauiView (the ContentView base) overrides
+// SafeAreaInsetsDidChange to report the realized insets to the cross-platform page (ISafeAreaView2.
+// SafeAreaInsets); the port's host subclass forwards them through the handler's virtual view. The handler
+// backref is wired in on_connect_handler and cleared in on_disconnect_handler (no ownership).
+@interface MauiIosPageView : UIView
+@property(nonatomic) maui::core::content_page_handler* mauiHandler;
+@end
+
+@implementation MauiIosPageView
+- (void)safeAreaInsetsDidChange
+{
+    [super safeAreaInsetsDidChange];
+    if (self.mauiHandler == nullptr || self.mauiHandler->virtual_view() == nullptr)
+    {
+        return;
+    }
+    // C# MauiView.SafeAreaInsetsDidChange → ISafeAreaView2.SafeAreaInsets = SafeAreaInsets (UIEdgeInsets
+    // → Thickness). The page stores them under the read-only "ios.Page.SafeAreaInsets" knob.
+    if (auto* safe_area = dynamic_cast<maui::core::i_safe_area_view2*>(self.mauiHandler->virtual_view()))
+    {
+        const UIEdgeInsets insets = self.safeAreaInsets;
+        safe_area->set_safe_area_insets(maui::core::thickness{insets.left, insets.top, insets.right, insets.bottom});
+    }
+}
+@end
 
 namespace
 {
@@ -79,9 +107,72 @@ namespace maui::core
     std::unique_ptr<content_page_platform> content_page_handler::create_platform_view()
     {
         auto platform = std::make_unique<content_page_platform>();
-        UIView* const host = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
+        // W2-24: the host is the MauiView-analog subclass so safe-area changes reach the page (above).
+        UIView* const host = [[MauiIosPageView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
         platform->native = (__bridge_retained void*)host; // the void* slot owns one reference
         return platform;
+    }
+
+    // --- platform configuration (W2-24): wire (and unwire) the host's handler backref for the safe-area
+    // push, then report the CURRENT insets once (C# reads them on attach through the first layout pass).
+    void content_page_handler::on_connect_handler(content_page_platform& platform)
+    {
+        if (auto* host = (__bridge MauiIosPageView*)platform.native; host != nil)
+        {
+            host.mauiHandler = this;
+        }
+    }
+
+    void content_page_handler::on_disconnect_handler(content_page_platform& platform)
+    {
+        if (auto* host = (__bridge MauiIosPageView*)platform.native; host != nil)
+        {
+            host.mauiHandler = nullptr;
+        }
+    }
+
+    // The iOSSpecific Page knob nudges (C# PageHandler.iOS MapPrefersStatusBarHiddenMode /
+    // MapHomeIndicatorAutoHidden): count the request (the cross-platform mirror) and poke the host's
+    // owning UIViewController — found through the responder chain, the port's stand-in for C#'s
+    // IPlatformViewHandler.ViewController — so UIKit re-queries the root controller's overrides.
+    namespace
+    {
+        UIViewController* owning_view_controller(void* native)
+        {
+            UIResponder* responder = as_host(native);
+            while (responder != nil)
+            {
+                responder = responder.nextResponder;
+                if (auto* controller =
+                        (UIViewController*)([responder isKindOfClass:[UIViewController class]] ? responder : nil))
+                {
+                    return controller;
+                }
+            }
+            return nil;
+        }
+    } // namespace
+
+    void content_page_handler::map_prefers_status_bar_hidden(content_page_handler& handler, i_content_view& /*view*/)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        ++platform->status_bar_appearance_requests;
+        [owning_view_controller(platform->native) setNeedsStatusBarAppearanceUpdate];
+    }
+
+    void content_page_handler::map_home_indicator_auto_hidden(content_page_handler& handler, i_content_view& /*view*/)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        ++platform->home_indicator_requests;
+        [owning_view_controller(platform->native) setNeedsUpdateOfHomeIndicatorAutoHidden];
     }
 
     void content_page_handler::set_content()

@@ -55,6 +55,13 @@ namespace maui::core
         // observe this to confirm the host tracks the control's content.
         i_view* hosted_content = nullptr;
 
+        // --- platform configuration (W2-24): the iOSSpecific Page nudge mirrors. C#'s PageHandler maps
+        // the IiOSPageSpecifics keys to ViewController.SetNeedsStatusBarAppearanceUpdate() /
+        // SetNeedsUpdateOfHomeIndicatorAutoHidden(); every backend counts the request (the seam tests
+        // observe it), the iOS twin additionally pokes the host's owning UIViewController. ---
+        int status_bar_appearance_requests = 0;
+        int home_indicator_requests = 0;
+
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSView host (defined in
         // src/platform/apple/content_page_handler.mm). is_enabled is intentionally NOT overridden — a
@@ -121,5 +128,18 @@ namespace maui::core
         // content change). Reads the new content from the virtual view (no payload needed), mirroring C#'s
         // UpdateContent reading VirtualView.PresentedContent.
         static void map_set_content(content_page_handler& handler, i_content_view& view, const std::any& args);
+
+        // --- platform configuration (W2-24): the iOSSpecific Page knob nudges (C# PageHandler.iOS
+        // MapPrefersStatusBarHiddenMode / MapHomeIndicatorAutoHidden — the C# double indirection through
+        // ContentPage.RemapForControls + UpdateValue(IiOSPageSpecifics key) collapses to mapping the
+        // namespaced knob names the store raises). Defined per backend.
+        static void map_prefers_status_bar_hidden(content_page_handler& handler, i_content_view& view);
+        static void map_home_indicator_auto_hidden(content_page_handler& handler, i_content_view& view);
+
+        // C# OnConnectHandler/OnDisconnectHandler analog: the iOS twin wires the host UIView back to this
+        // handler so safeAreaInsetsDidChange can push the realized insets through i_safe_area_view2
+        // (MauiView.SafeAreaInsetsDidChange); headless/AppKit define both empty.
+        void on_connect_handler(content_page_platform& platform);
+        static void on_disconnect_handler(content_page_platform& platform);
     };
 } // namespace maui::core

@@ -81,6 +81,10 @@ namespace maui::core
         // The last navigation request's animated flag (headless-observable; the Apple twin cross-fades the
         // content swap when true). Mirrors NavigationRequest.Animated for the realized transition.
         bool last_animated = false;
+        // --- platform configuration (W2-24): the realized iOSSpecific IsNavigationBarTranslucent knob
+        // (every backend keeps the mirror; the iOS twin additionally gives the custom bar a blur backdrop
+        // and lets the content extend under it — the UINavigationBar.Translucent analog). ---
+        bool bar_translucent = false;
 
         // --- chrome (W1-11): the page-surfaced toolbar items ---------------------------------------------
         // Mirror of i_stack_navigation::navigation_toolbar_items() (the ToolbarTracker aggregate),
@@ -92,6 +96,7 @@ namespace maui::core
 #ifdef MAUI_PLATFORM_IOS
         void* toolbar_buttons = nullptr; // retained NSMutableArray<UIButton*> (the bar's right buttons)
         void* toolbar_targets = nullptr; // retained NSMutableArray of click trampolines (button → send_clicked)
+        void* bar_backdrop = nullptr;    // retained UIVisualEffectView behind the bar while translucent (W2-24)
 #endif
         // --- end chrome (W1-11) --------------------------------------------------------------------------
 
@@ -185,5 +190,11 @@ namespace maui::core
         // The "request_modal_navigation" COMMAND: read the modal request's top-most modal and overlay it
         // (or clear the overlay when the modal stack is empty). Payload = a navigation_request.
         static void map_request_modal_navigation(navigation_page_handler& handler, i_view& view, const std::any& args);
+
+        // --- platform configuration (W2-24): the iOSSpecific IsNavigationBarTranslucent map. The
+        // cross-platform map (navigation_page_handler.cpp) reads the i_stack_navigation face and routes
+        // to the per-backend push below (headless/AppKit: the mirror; iOS: blur backdrop + content frame).
+        static void map_is_navigation_bar_translucent(navigation_page_handler& handler, i_view& view);
+        void update_bar_translucent(bool value);
     };
 } // namespace maui::core

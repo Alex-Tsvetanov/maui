@@ -70,6 +70,15 @@ namespace maui::core
         // The handler hosts this view's native view in the bar.
         [[nodiscard]] virtual i_view* navigation_bar_title_view() const = 0;
 
+        // --- platform configuration (W2-24): the iOSSpecific NavigationPage.IsNavigationBarTranslucent
+        // knob's core face (C#'s NavigationRenderer reads it straight off On<iOS>(); the port's handler
+        // reads it here). Defaulted false so existing implementers stay source-compatible; the
+        // navigation_page control overrides it over the platform-spec store. ---
+        [[nodiscard]] virtual bool navigation_bar_translucent() const
+        {
+            return false;
+        }
+
         // --- chrome (W1-11): the priority-sorted toolbar items of the navigation view + its current
         // page (the ToolbarTracker aggregate C#'s Toolbar surfaces). The iOS twin materializes these as
         // bar buttons on the navigation bar (the UINavigationBar rightBarButtonItems path); the other

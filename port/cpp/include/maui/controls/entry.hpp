@@ -37,6 +37,7 @@
 #include "maui/core/event.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/i_entry.hpp"
+#include "maui/core/i_ios_entry_specifics.hpp" // --- platform configuration (W2-24) ---
 #include "maui/core/property.hpp"
 #include "maui/core/return_type.hpp"
 #include "maui/core/text_alignment.hpp"
@@ -44,7 +45,9 @@
 
 namespace maui::controls
 {
-    class entry : public view<maui::core::i_entry>
+    class entry : public view<maui::core::i_entry>,
+                  public maui::core::i_ios_entry_specifics // --- platform configuration (W2-24): the
+                                                           // CursorColor face the iOS map body consults
     {
     public:
         // Declare the style TargetType so an implicit / class style targeting `entry` matches this control.
@@ -253,6 +256,13 @@ namespace maui::controls
         // ---- developer-facing events (the outbound channel) ----
         maui::core::event<> completed;
         maui::core::event<std::string, std::string> text_changed;
+
+        // --- platform configuration (W2-24): the iOSSpecific Entry.CursorColor face (the i_ios_entry_
+        // specifics contract the iOS map body consults — TextExtensions.UpdateCursorColor's two reads).
+        // Defined in entry.cpp over the platform-spec store.
+        [[nodiscard]] bool cursor_color_set() const override;
+        [[nodiscard]] std::optional<maui::graphics::color> cursor_color() const override;
+        // --- end platform configuration (W2-24) ---
 
     private:
         maui::core::property<std::string> text_{*this, text_property()};

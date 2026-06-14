@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "maui/controls/content_page.hpp"
+#include "maui/controls/platform_configuration/ios_specific/navigation_page.hpp" // --- W2-24 ---
 #include "maui/controls/toolbar_item.hpp"
 #include "maui/controls/toolbar_tracker.hpp"
 #include "maui/controls/view.hpp"
@@ -454,6 +455,13 @@ namespace maui::controls
         // stack and completes the pending navigation task. Here the xplat stack is already authoritative
         // (we mutate it before calling the handler, and there is no overlapping-navigation queue to
         // reconcile), so this is the synchronous completion acknowledgement — no reconciliation needed.
+    }
+
+    // --- platform configuration (W2-24): the iOSSpecific NavigationPage.IsNavigationBarTranslucent face
+    // (C# NavigationRenderer.UpdateTranslucent reads On<iOS>().IsNavigationBarTranslucent()).
+    bool navigation_page::navigation_bar_translucent() const
+    {
+        return platform_configuration::ios_specific::navigation_page::get_is_navigation_bar_translucent(*this);
     }
 } // namespace maui::controls
 

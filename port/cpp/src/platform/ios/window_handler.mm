@@ -51,6 +51,7 @@
 
 #include "maui/core/dimension.hpp"
 #include "maui/core/i_element.hpp"
+#include "maui/core/i_ios_page_specifics.hpp" // --- platform configuration (W2-24) ---
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/i_window.hpp"
 #include "maui/core/window_handler.hpp"
@@ -79,6 +80,9 @@ namespace
 // View.Bounds).
 @interface MauiWindowRootViewController : UIViewController
 @property(nonatomic, strong) UIView* hostedView; // ContainerViewController.currentPlatformView
+// --- platform configuration (W2-24): the hosted page's iOSSpecific face (PageViewController.CurrentView
+// as IiOSPageSpecifics) — non-owning; set by host_content when the window content implements it. ---
+@property(nonatomic) maui::core::i_ios_page_specifics* pageSpecifics;
 @end
 
 @implementation MauiWindowRootViewController
@@ -89,6 +93,52 @@ namespace
     {
         self.hostedView.frame = self.view.bounds;
     }
+}
+
+// --- platform configuration (W2-24): the PageViewController.cs overrides, ported verbatim onto the
+// window's root controller (the port hosts the page under ONE container controller; C# wraps each page
+// in its own PageViewController — same consult, different host). ---
+- (BOOL)prefersStatusBarHidden
+{
+    // C# PrefersStatusBarHidden(): StatusBarHiddenMode 1 (True) → hidden, 2 (False) → shown, else base.
+    if (self.pageSpecifics != nullptr)
+    {
+        switch (self.pageSpecifics->prefers_status_bar_hidden_mode())
+        {
+            case 1:
+                return YES;
+            case 2:
+                return NO;
+            default:
+                break;
+        }
+    }
+    return [super prefersStatusBarHidden];
+}
+
+- (BOOL)prefersHomeIndicatorAutoHidden
+{
+    // C# PrefersHomeIndicatorAutoHidden => CurrentView is IiOSPageSpecifics && IsHomeIndicatorAutoHidden.
+    return self.pageSpecifics != nullptr && self.pageSpecifics->is_home_indicator_auto_hidden();
+}
+
+- (UIStatusBarAnimation)preferredStatusBarUpdateAnimation
+{
+    // C# PreferredStatusBarUpdateAnimation: mode 0 → Fade, 1 → Slide, else None — the oracle's switch
+    // DISAGREES with the UIStatusBarAnimation enum order (None=0/Slide=1/Fade=2); ported verbatim.
+    if (self.pageSpecifics != nullptr)
+    {
+        switch (self.pageSpecifics->preferred_status_bar_update_animation_mode())
+        {
+            case 0:
+                return UIStatusBarAnimationFade;
+            case 1:
+                return UIStatusBarAnimationSlide;
+            default:
+                return UIStatusBarAnimationNone;
+        }
+    }
+    return [super preferredStatusBarUpdateAnimation];
 }
 @end
 
@@ -319,6 +369,9 @@ namespace maui::core
             view.frame = controller.view.bounds;
             platform->content_hosted = true;
         }
+        // W2-24: hand the controller the page's IiOSPageSpecifics face (PageViewController.CurrentView)
+        // so the status-bar / home-indicator overrides above consult the live knob store.
+        controller.pageSpecifics = dynamic_cast<maui::core::i_ios_page_specifics*>(page);
         window.rootViewController = controller;
     }
 

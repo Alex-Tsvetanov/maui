@@ -189,6 +189,11 @@ namespace maui::core
             CFRelease(title_view_host);
             title_view_host = nullptr;
         }
+        if (bar_backdrop != nullptr) // W2-24: the translucent bar's blur backdrop
+        {
+            CFRelease(bar_backdrop);
+            bar_backdrop = nullptr;
+        }
         if (modal_overlay != nullptr)
         {
             CFRelease(modal_overlay);
@@ -455,6 +460,52 @@ namespace maui::core
         }
     }
 
+    // --- platform configuration (W2-24): the iOSSpecific IsNavigationBarTranslucent push — the
+    // UINavigationBar.Translucent analog over the port's custom bar (NavigationRenderer.UpdateTranslucent):
+    // translucent gives the bar a system-material blur backdrop (what a translucent UINavigationBar draws)
+    // and lets the current page's content extend UNDER the bar; opaque removes the backdrop and re-frames
+    // the content below the bar. Idempotent; the mirror records the realized state for the seam tests.
+    void navigation_page_handler::update_bar_translucent(bool value)
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->native == nullptr)
+        {
+            return;
+        }
+        platform->bar_translucent = value;
+        UIView* const bar = as_view(platform->bar);
+        if (value && platform->bar_backdrop == nullptr)
+        {
+            UIVisualEffectView* const backdrop = [[UIVisualEffectView alloc]
+                initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemChromeMaterial]];
+            backdrop.frame = bar.bounds;
+            backdrop.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+            [bar insertSubview:backdrop atIndex:0];
+            platform->bar_backdrop = (__bridge_retained void*)backdrop; // the slot owns one reference
+        }
+        else if (!value && platform->bar_backdrop != nullptr)
+        {
+            [as_view(platform->bar_backdrop) removeFromSuperview];
+            CFRelease(platform->bar_backdrop);
+            platform->bar_backdrop = nullptr;
+        }
+        // Re-frame the hosted page for the new content origin (under / below the bar), from the
+        // container's current bounds (platform_arrange re-derives the same frames on the next pass).
+        UIView* const container = as_container(platform->native);
+        const CGRect bounds = container.bounds;
+        if (platform->hosted_page != nullptr && bounds.size.height > 0)
+        {
+            if (UIView* const subview = native_child(*platform->hosted_page))
+            {
+                const double content_y = value ? 0.0 : k_bar_height;
+                const double page_height =
+                    value ? bounds.size.height
+                          : (bounds.size.height > k_bar_height ? bounds.size.height - k_bar_height : 0.0);
+                [subview setFrame:CGRectMake(0, content_y, bounds.size.width, page_height)];
+            }
+        }
+    }
+
     void navigation_page_handler::host_modal(i_view* top_modal, bool animated)
     {
         auto* platform = typed_platform_view();
@@ -537,12 +588,16 @@ namespace maui::core
         // chrome (W1-11): keep the toolbar buttons pinned to the bar's right edge.
         layout_toolbar_buttons(*platform, frame.width);
 
-        // The current page fills the content area below the bar (y = bar_height in the container's space).
+        // The current page fills the content area below the bar (y = bar_height in the container's
+        // space) — or the WHOLE container when the bar is translucent (W2-24: UINavigationBar.Translucent
+        // lets the content extend under the bar; the blur backdrop keeps it legible).
         if (platform->hosted_page != nullptr)
         {
             if (UIView* const subview = native_child(*platform->hosted_page))
             {
-                [subview setFrame:CGRectMake(0, k_bar_height, frame.width, content_height)];
+                const double content_y = platform->bar_translucent ? 0.0 : k_bar_height;
+                const double page_height = platform->bar_translucent ? frame.height : content_height;
+                [subview setFrame:CGRectMake(0, content_y, frame.width, page_height)];
             }
         }
         // The modal overlay (if presented) fills the WHOLE container, covering the bar + content.
