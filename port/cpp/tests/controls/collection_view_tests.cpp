@@ -49,7 +49,6 @@ namespace
     using maui::controls::items_layout_orientation;
     using maui::controls::items_updating_scroll_mode;
     using maui::controls::label;
-    using maui::controls::make_grouping;
     using maui::controls::make_item_collection;
     using maui::controls::realized_cell;
     using maui::controls::selection_mode;
@@ -72,16 +71,24 @@ namespace
     {
         std::shared_ptr<string_collection> items; // publisher FIRST (§8)
         collection_view view;
-        std::shared_ptr<collection_view_handler> handler;
-        collection_view_platform* platform = nullptr;
+        std::shared_ptr<collection_view_handler> handler = std::make_shared<collection_view_handler>();
+        // ORDER: the platform view exists only after set_handler connects the pair, so the initializer
+        // routes through connect() (items is declared first, so it is constructed before this runs). A
+        // plain member assignment trips prefer-member-initializer, whose hoist would deref null → segfault.
+        collection_view_platform* platform = connect(view, handler, items);
 
         explicit sim(std::vector<std::string> initial = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"})
             : items(std::make_shared<string_collection>(std::move(initial)))
         {
-            view.set_items_source(items);
-            handler = std::make_shared<collection_view_handler>();
-            view.set_handler(handler);
-            platform = handler->typed_platform_view();
+        }
+
+        [[nodiscard]] static collection_view_platform* connect(
+            collection_view& view_ref, const std::shared_ptr<collection_view_handler>& handler_ref,
+            const std::shared_ptr<string_collection>& items_ref)
+        {
+            view_ref.set_items_source(items_ref);
+            view_ref.set_handler(handler_ref);
+            return handler_ref->typed_platform_view();
         }
 
         [[nodiscard]] std::vector<index_path> realized_item_paths() const
@@ -111,7 +118,8 @@ namespace
     {
         sim const rig;
         // viewport 400 / extent 100 → items 0..3 fill the window; content extent = 10 * 100.
-        const std::vector<index_path> expected{{0, 0}, {0, 1}, {0, 2}, {0, 3}};
+        const std::vector<index_path> expected{
+            {.section = 0, .item = 0}, {.section = 0, .item = 1}, {.section = 0, .item = 2}, {.section = 0, .item = 3}};
         EXPECT_EQ(rig.realized_item_paths(), expected);
         EXPECT_DOUBLE_EQ(rig.platform->content_extent, 1000);
         // Default cells mirror item.ToString().
@@ -125,12 +133,15 @@ namespace
         sim const rig;
         rig.handler->simulate_scroll(250);
         // window [250, 650): rows starting 200..600 intersect → items 2..6.
-        const std::vector<index_path> expected{{0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}};
+        const std::vector<index_path> expected{{.section = 0, .item = 2},
+                                               {.section = 0, .item = 3},
+                                               {.section = 0, .item = 4},
+                                               {.section = 0, .item = 5},
+                                               {.section = 0, .item = 6}};
         EXPECT_EQ(rig.realized_item_paths(), expected);
-        const bool recycled_first =
-            std::any_of(rig.platform->events.begin(), rig.platform->events.end(), [](const cell_event& entry) {
-                return entry.kind == cell_event_kind::recycled && entry.path == index_path{0, 0};
-            });
+        const bool recycled_first = std::ranges::any_of(rig.platform->events, [](const cell_event& entry) {
+            return entry.kind == cell_event_kind::recycled && entry.path == index_path{.section = 0, .item = 0};
+        });
         EXPECT_TRUE(recycled_first);
     }
 
@@ -238,7 +249,7 @@ namespace
         const maui::core::connection_token token = rig.view.selection_changed.connect(
             [&changes](const maui::controls::selection_changed_event_args&) { ++changes; });
 
-        rig.handler->simulate_select({0, 2});
+        rig.handler->simulate_select({.section = 0, .item = 2});
 
         EXPECT_EQ(rig.view.selected_item().text(), "C");
         EXPECT_EQ(changes, 1);
@@ -250,7 +261,7 @@ namespace
     TEST(collection_view_sim, tap_in_none_mode_is_ignored)
     {
         sim const rig;
-        rig.handler->simulate_select({0, 2});
+        rig.handler->simulate_select({.section = 0, .item = 2});
         EXPECT_FALSE(rig.view.selected_item().has_value());
         EXPECT_TRUE(rig.platform->selected_paths.empty());
     }
@@ -259,12 +270,12 @@ namespace
     {
         sim rig;
         rig.view.set_selection_mode(selection_mode::multiple);
-        rig.handler->simulate_select({0, 1});
-        rig.handler->simulate_select({0, 3});
+        rig.handler->simulate_select({.section = 0, .item = 1});
+        rig.handler->simulate_select({.section = 0, .item = 3});
         EXPECT_EQ(rig.view.selected_items().count(), 2U);
         ASSERT_EQ(rig.platform->selected_paths.size(), 2U);
 
-        rig.handler->simulate_deselect({0, 1});
+        rig.handler->simulate_deselect({.section = 0, .item = 1});
         EXPECT_EQ(rig.view.selected_items().count(), 1U);
         ASSERT_EQ(rig.platform->selected_paths.size(), 1U);
         EXPECT_EQ(rig.platform->selected_paths[0], (index_path{0, 3}));
@@ -491,7 +502,7 @@ namespace
 
         // Selection across sections resolves the right path.
         view.set_selection_mode(selection_mode::single);
-        handler->simulate_select({1, 0});
+        handler->simulate_select({.section = 1, .item = 0});
         EXPECT_EQ(view.selected_item().text(), "Kale");
 
         // A nested change fans out and re-realizes.

@@ -85,13 +85,7 @@ namespace
 
     class items_view_test : public ::testing::Test
     {
-    protected:
-        items_view_test()
-        {
-            // 1920x1080 @ density 2 → the scaled screen size is 960x540.
-            maui::devices::device_display::set_current(
-                std::make_shared<mock_device_display>(display_info{.width = 1920, .height = 1080, .density = 2}));
-        }
+    public:
         ~items_view_test() override
         {
             maui::devices::device_display::set_current(nullptr);
@@ -100,6 +94,14 @@ namespace
         items_view_test(items_view_test&&) = delete;
         items_view_test& operator=(const items_view_test&) = delete;
         items_view_test& operator=(items_view_test&&) = delete;
+
+    protected:
+        items_view_test()
+        {
+            // 1920x1080 @ density 2 → the scaled screen size is 960x540.
+            maui::devices::device_display::set_current(
+                std::make_shared<mock_device_display>(display_info{.width = 1920, .height = 1080, .density = 2}));
+        }
     };
 
     // ---- ItemsViewTests.cs ----
@@ -161,7 +163,7 @@ namespace
         EXPECT_EQ(view.horizontal_scroll_bar_visibility(), maui::core::scroll_bar_visibility::default_);
         EXPECT_EQ(view.vertical_scroll_bar_visibility(), maui::core::scroll_bar_visibility::default_);
         // The default ItemsLayout is a fresh vertical linear layout.
-        const auto layout = view.items_layout();
+        const auto& layout = view.items_layout();
         ASSERT_NE(layout, nullptr);
         EXPECT_EQ(layout->orientation(), items_layout_orientation::vertical);
         EXPECT_NE(std::dynamic_pointer_cast<linear_items_layout>(layout), nullptr);

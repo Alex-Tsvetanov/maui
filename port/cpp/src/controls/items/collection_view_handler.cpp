@@ -311,7 +311,7 @@ namespace maui::controls
         index_path path{};
         if (request->mode == scroll_to_mode::position)
         {
-            path = {request->group_index == -1 ? 0 : request->group_index, request->index};
+            path = {.section = request->group_index == -1 ? 0 : request->group_index, .item = request->index};
         }
         else
         {
@@ -533,12 +533,16 @@ namespace maui::controls
             {
                 for (int item = first_item; item < first_item + item_count; ++item)
                 {
-                    entries.push_back({element, {section, item}, cursor, extent});
+                    entries.push_back({.element = element,
+                                       .path = {.section = section, .item = item},
+                                       .start = cursor,
+                                       .extent = extent});
                 }
             }
             else
             {
-                entries.push_back({element, {section, -1}, cursor, extent});
+                entries.push_back(
+                    {.element = element, .path = {.section = section, .item = -1}, .start = cursor, .extent = extent});
             }
             cursor += extent + spacing;
         };
@@ -740,7 +744,7 @@ namespace maui::controls
             {
                 platform->events.push_back({.kind = cell_event_kind::recycled,
                                             .element = cell_element_kind::empty_view,
-                                            .path = {-1, -1},
+                                            .path = {.section = -1, .item = -1},
                                             .reuse_id = platform->empty_view.reuse_id});
                 platform->empty_view = {};
             }
@@ -784,8 +788,10 @@ namespace maui::controls
             slot.reuse_id = resolved->id_string();
             slot.content = resolved->create_content();
             slot.content->set_binding_context_box(value.context_box());
-            platform->events.push_back(
-                {.kind = cell_event_kind::realized, .element = element, .path = {-1, -1}, .reuse_id = slot.reuse_id});
+            platform->events.push_back({.kind = cell_event_kind::realized,
+                                        .element = element,
+                                        .path = {.section = -1, .item = -1},
+                                        .reuse_id = slot.reuse_id});
         }
         else if (value.as_bindable())
         {
@@ -803,8 +809,10 @@ namespace maui::controls
             return; // nothing to show
         }
         slot.text = value.text();
-        platform->events.push_back(
-            {.kind = cell_event_kind::bound, .element = element, .path = {-1, -1}, .reuse_id = slot.reuse_id});
+        platform->events.push_back({.kind = cell_event_kind::bound,
+                                    .element = element,
+                                    .path = {.section = -1, .item = -1},
+                                    .reuse_id = slot.reuse_id});
     }
 
     // ---- selection (SelectableItemsViewController + UpdateSelectionMode) ----

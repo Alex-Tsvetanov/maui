@@ -6,7 +6,6 @@
 #include <string>
 
 #include "maui/controls/items/collection_view_handler.hpp"
-#include "maui/controls/items/items_view_source.hpp"
 #include "maui/controls/items/selection_mode.hpp"
 #include "src/samples/pages/items_page.hpp"
 #include <gtest/gtest.h>
@@ -14,7 +13,6 @@
 namespace
 {
     using maui::controls::collection_view_handler;
-    using maui::controls::index_path;
     using maui::samples::items_page;
 
     TEST(items_page, builds_the_tree_and_defaults)
@@ -33,7 +31,7 @@ namespace
         auto handler = std::make_shared<collection_view_handler>();
         page.list().set_handler(handler);
 
-        handler->simulate_select({0, 1});
+        handler->simulate_select({.section = 0, .item = 1});
         EXPECT_EQ(page.readout().text(), "Selected: Review the port");
     }
 

@@ -120,7 +120,7 @@ namespace maui::controls
             [[nodiscard]] index_path get_index_for_item(const boxed_item& item) const override
             {
                 const int found = source_->index_of(item);
-                return found >= 0 ? index_path{0, found} : index_path{-1, -1};
+                return found >= 0 ? index_path{.section = 0, .item = found} : index_path{.section = -1, .item = -1};
             }
 
         private:
@@ -182,10 +182,10 @@ namespace maui::controls
                 {
                     if (source_->at(static_cast<std::size_t>(index)) == item)
                     {
-                        return {section_, index};
+                        return {.section = section_, .item = index};
                     }
                 }
-                return {-1, -1};
+                return {.section = -1, .item = -1};
             }
 
             [[nodiscard]] bool observe_changes() const override
@@ -241,7 +241,7 @@ namespace maui::controls
                                            .section = section_,
                                            .index = args.old_starting_index,
                                            .count = 1,
-                                           .move_to = {section_, args.new_starting_index}});
+                                           .move_to = {.section = section_, .item = args.new_starting_index}});
                             break;
                         }
                         // The literal C# multi-move reload window (header deviation note).
@@ -279,9 +279,9 @@ namespace maui::controls
         class observable_grouped_source final : public i_observable_items_view_source
         {
         public:
-            explicit observable_grouped_source(std::shared_ptr<i_item_collection> source) : source_(std::move(source))
+            explicit observable_grouped_source(std::shared_ptr<i_item_collection> source)
+                : source_(std::move(source)), group_count_(static_cast<int>(source_->count()))
             {
-                group_count_ = static_cast<int>(source_->count());
                 reset_group_tracking();
                 if (auto* feed = source_->changed())
                 {
@@ -349,10 +349,10 @@ namespace maui::controls
                     const int index = nested->index_of(item);
                     if (index >= 0)
                     {
-                        return {static_cast<int>(group), index};
+                        return {.section = static_cast<int>(group), .item = index};
                     }
                 }
-                return {-1, -1};
+                return {.section = -1, .item = -1};
             }
 
             [[nodiscard]] bool observe_changes() const override
@@ -450,7 +450,7 @@ namespace maui::controls
                             updated.raise({.kind = source_update_kind::move_section,
                                            .section = args.old_starting_index,
                                            .count = 1,
-                                           .move_to = {args.new_starting_index, -1}});
+                                           .move_to = {.section = args.new_starting_index, .item = -1}});
                             break;
                         }
                         // The literal C# multi-move reload window (header deviation note).

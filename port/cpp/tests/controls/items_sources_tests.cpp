@@ -25,7 +25,6 @@ namespace
     using maui::controls::boxed_item;
     using maui::controls::grouping;
     using maui::controls::grouping_ptr;
-    using maui::controls::i_item_collection;
     using maui::controls::i_items_view_source;
     using maui::controls::i_observable_items_view_source;
     using maui::controls::index_path;
@@ -311,7 +310,7 @@ namespace
 
     TEST_F(grouped_source_test, group_items_view_source_views_one_section)
     {
-        const auto section = source->group_items_view_source({1, 0});
+        const auto section = source->group_items_view_source({.section = 1, .item = 0});
         ASSERT_NE(section, nullptr);
         EXPECT_EQ(section->item_count(), 1);
         EXPECT_EQ(section->item({1, 0}).text(), "Kale"); // the child reports its own section index
@@ -394,7 +393,7 @@ namespace
         groups->add(make_grouping(std::string{"Fruit"}, std::vector<std::string>{"Apple"}));
         const auto source = items_source_factory::create_grouped(make_item_collection(groups));
         EXPECT_EQ(source->item_count_in_group(0), 1);
-        const auto section = source->group_items_view_source({0, 0});
+        const auto section = source->group_items_view_source({.section = 0, .item = 0});
         ASSERT_NE(section, nullptr); // a snapshot group still answers as a list view
         EXPECT_EQ(section->item_count(), 1);
     }
