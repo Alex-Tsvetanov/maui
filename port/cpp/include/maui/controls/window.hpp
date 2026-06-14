@@ -28,14 +28,17 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector> // --- modal events + overlay (G4): the overlays() list ---
 
 #include "maui/controls/element.hpp"
+#include "maui/controls/modal_event_args.hpp" // --- modal events (G4) ---
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/event.hpp"
 #include "maui/core/i_menu_bar_element.hpp"  // --- chrome (W1-11) ---
 #include "maui/core/i_title_bar_element.hpp" // --- chrome (W1-11) ---
 #include "maui/core/i_toolbar_element.hpp"   // --- chrome (W1-11) ---
 #include "maui/core/i_window.hpp"
+#include "maui/core/i_window_overlay.hpp" // --- modal events + overlay (G4) ---
 #include "maui/core/property.hpp"
 #include "maui/graphics/rect.hpp"
 
@@ -199,6 +202,50 @@ namespace maui::controls
         maui::core::event<> stopped;
         maui::core::event<> backgrounding;
 
+        // --- modal events (G4) -------------------------------------------------------------------------
+        // C# Window.ModalPushing / ModalPushed / ModalPopping / ModalPopped + PopCanceled
+        // (EventHandler<ModalXxxEventArgs>). The args carry the modal page (modal_event_args.modal).
+        // modal_popping is raised by MUTABLE reference (event<modal_popping_event_args&>) so a subscriber
+        // can set `cancel` and abort the pop — exactly C# ModalPoppingEventArgs.Cancel. Fired by the
+        // on_modal_* drivers below, which the navigation subsystem calls around its modal push/pop (the
+        // C# ModalNavigationManager → Window.OnModal* call chain). Ordering, per
+        // ModalNavigationManager.cs: push fires modal_pushing FIRST then modal_pushed LAST (around the
+        // page Disappearing/Appearing); pop fires modal_popping FIRST (may cancel) then modal_popped LAST.
+        maui::core::event<maui::controls::modal_pushing_event_args> modal_pushing;
+        maui::core::event<maui::controls::modal_pushed_event_args> modal_pushed;
+        maui::core::event<maui::controls::modal_popping_event_args&> modal_popping;
+        maui::core::event<maui::controls::modal_popped_event_args> modal_popped;
+        maui::core::event<> pop_canceled;
+
+        // C# Window.OnModalPushing — raise modal_pushing(args{modal}). Called by the navigation subsystem
+        // BEFORE the modal page is shown (the page Disappearing/Appearing run between this and
+        // on_modal_pushed). The C# bookkeeping (_visualChildren.Add) lives in the navigation subsystem in
+        // the port (the modal stack is owned there), so this is purely the event drive — const because it
+        // only raises the event (event::raise is const), mutating no window state.
+        void on_modal_pushing(maui::controls::content_page& modal) const;
+        // C# Window.OnModalPushed — raise modal_pushed(args{modal}). Called AFTER the modal is shown.
+        void on_modal_pushed(maui::controls::content_page& modal) const;
+        // C# Window.OnModalPopping — raise modal_popping(args{modal}) and return args.Cancel. A true
+        // return tells the caller to abort the pop (and fire pop_canceled / on_pop_canceled).
+        [[nodiscard]] bool on_modal_popping(maui::controls::content_page& modal) const;
+        // C# Window.OnModalPopped — raise modal_popped(args{modal}). Called AFTER the modal is removed.
+        void on_modal_popped(maui::controls::content_page& modal) const;
+        // C# Window.OnPopCanceled — raise pop_canceled (a cancelled pop was rolled back).
+        void on_pop_canceled() const;
+
+        // ---- overlays (Window.Overlays / AddOverlay / RemoveOverlay) ----
+        // C# Window.Overlays — the window's overlay layers (NON-owning borrows; the caller owns each).
+        [[nodiscard]] std::vector<maui::core::i_window_overlay*> overlays() const
+        {
+            return overlays_;
+        }
+        // C# Window.AddOverlay: add the overlay (false if already present), then initialize() + invalidate()
+        // it. (C# rejects the IVisualDiagnosticsOverlay — that overlay is out of scope here.)
+        bool add_overlay(maui::core::i_window_overlay& overlay);
+        // C# Window.RemoveOverlay: remove the overlay (false if absent), then deinitialize() it.
+        bool remove_overlay(maui::core::i_window_overlay& overlay);
+        // --- end (G4) ----------------------------------------------------------------------------------
+
         // --- chrome (W1-11): toolbar / menu bar / title bar --------------------------------------------
         // C# Window.Toolbar (IToolbarElement): the window-level toolbar chrome. Created when the hosted
         // page is a navigation_page (C#: NavigationPage assigns a NavigationPageToolbar to its window;
@@ -276,7 +323,10 @@ namespace maui::controls
         maui::controls::title_bar* title_bar_ = nullptr;
         std::function<void()> on_resume_; // Application.SendResume hook (set by open_window)
         std::function<void()> on_sleep_;  // Application.SendSleep hook (set by open_window)
-        int batch_frame_update_ = 0;      // Window._batchFrameUpdate — suppresses the handler re-push
+        // --- modal events + overlay (G4): the overlay layers (Window._overlays). NON-owning; the
+        // caller owns each overlay (PROFILE §8). Insertion-ordered + deduplicated like the C# HashSet. ---
+        std::vector<maui::core::i_window_overlay*> overlays_;
+        int batch_frame_update_ = 0; // Window._batchFrameUpdate — suppresses the handler re-push
         bool is_created_ = false;
         bool is_activated_ = false;
     };

@@ -723,6 +723,7 @@ add_library(maui_controls STATIC
   src/controls/behavior.cpp      # W1-15 styles tail: Behavior/AttachedCollection
   src/controls/state_trigger.cpp # W1-15 styles tail: StateTriggerBase + the concrete state triggers
   src/controls/window.cpp
+  src/controls/window_overlay.cpp # (G4) the concrete window overlay + adorner draw seam
   src/controls/application.cpp
   # (W2-19 items core) the Items layer: layouts + the items_view hierarchy + the source family + the
   # collection_view handler (cross-platform simulator; per-backend partial below).
@@ -836,6 +837,9 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/window_apple_tests.mm
     tests/controls/chrome_apple_tests.mm # (W1-11) real NSMenu/NSToolbar/NSView.menu/toolTip/titlebar accessory
     tests/controls/window_handler_tests.cpp # the portable seam mirrors (real NSWindow behind them here)
+    tests/controls/window_modal_events_tests.cpp # (G4) backend-agnostic: the Window modal events ordering
+    tests/controls/window_overlay_tests.cpp # (G4) backend-agnostic: add/remove overlay + adorner list + invalidate->draw
+    tests/controls/window_overlay_apple_tests.mm # (G4) the overlay draws through the real graphics host
     tests/controls/content_view_tests.cpp # (W1-07) backend-agnostic: the templated content host over mocks
     tests/controls/drag_drop_tests.cpp # (W2-22) backend-agnostic: data_package + drag/drop recognizers + wiring
     # (W1-11 chrome/menus) the backend-agnostic chrome suites (real natives behind the mirrors here).
@@ -920,6 +924,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/web_view_apple_tests.mm
     tests/controls/window_apple_tests.mm
     tests/controls/chrome_apple_tests.mm # (W1-11)
+    tests/controls/window_overlay_apple_tests.mm # (G4) the overlay CG readback smoke
     PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 elseif(MAUI_BACKEND STREQUAL "ios")
   # Every control is a real UIKit partial on ios (M6 fan-out complete), so the suite runs each control's
@@ -976,6 +981,8 @@ elseif(MAUI_BACKEND STREQUAL "ios")
   add_executable(maui_controls_tests
     ${MAUI_IOS_TEST_MM_SOURCES}
     tests/controls/formatted_text_tests.cpp # G1: span/formatted_string/label.formatted_text (backend-agnostic)
+    tests/controls/window_modal_events_tests.cpp # (G4) backend-agnostic: the Window modal events ordering
+    tests/controls/window_overlay_tests.cpp # (G4) backend-agnostic: add/remove overlay + adorner list + invalidate->draw
     # (W2-20 swipe + refresh) the backend-agnostic control + state-machine suites + the demo page.
     tests/controls/swipe_view_tests.cpp
     tests/controls/refresh_view_tests.cpp
@@ -1110,6 +1117,8 @@ else()
     tests/controls/multi_binding_tests.cpp
     tests/controls/relative_source_binding_tests.cpp
     tests/controls/window_handler_tests.cpp # the window_handler seam over the headless mirror
+    tests/controls/window_modal_events_tests.cpp # (G4) the Window modal events ordering
+    tests/controls/window_overlay_tests.cpp # (G4) add/remove overlay + adorner list + invalidate->draw mirror
     tests/core/image_source_tests.cpp     # loader cache TTL + the typed service-provider
     tests/core/font_image_source_tests.cpp
     # (W2-21) shell model + routing — HEADLESS-ONLY this unit (the native chrome is a later wave);

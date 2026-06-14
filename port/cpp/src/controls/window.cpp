@@ -7,10 +7,12 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector> // --- modal events + overlay (G4) ---
 
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/element.hpp"
 #include "maui/controls/menu_bar_tracker.hpp" // --- chrome (W1-11) ---
+#include "maui/controls/modal_event_args.hpp" // --- modal events (G4) ---
 #include "maui/controls/navigation_page.hpp"  // --- chrome (W1-11) ---
 #include "maui/controls/title_bar.hpp"        // --- chrome (W1-11) ---
 #include "maui/controls/toolbar.hpp"          // --- chrome (W1-11) ---
@@ -20,6 +22,7 @@
 #include "maui/core/dimension.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/i_window_overlay.hpp" // --- overlay (G4) ---
 #include "maui/core/setter_specificity.hpp"
 #include "maui/core/window_handler.hpp"
 #include "maui/graphics/rect.hpp"
@@ -289,6 +292,76 @@ namespace maui::controls
     {
         backgrounding.raise(); // Window.cs: Backgrounding?.Invoke (IPersistedState payload omitted)
     }
+
+    // --- modal events (G4) -------------------------------------------------------------------------
+    // The four Window.OnModal* drivers + OnPopCanceled. C# also adds/removes the modal from
+    // _visualChildren and notifies the application; in the port the modal visual-tree bookkeeping lives
+    // in the navigation subsystem (which owns the modal stack) and the application has no modal-event
+    // notification (out of scope), so these are the pure event drives — the events themselves match
+    // Window.cs exactly, fired in the same order around the modal push/pop.
+    void window::on_modal_pushing(content_page& modal) const
+    {
+        modal_pushing_event_args args;
+        args.modal = &modal;
+        modal_pushing.raise(args); // C# ModalPushing?.Invoke(this, new ModalPushingEventArgs(modalPage))
+    }
+
+    void window::on_modal_pushed(content_page& modal) const
+    {
+        modal_pushed_event_args args;
+        args.modal = &modal;
+        modal_pushed.raise(args); // C# ModalPushed?.Invoke(this, new ModalPushedEventArgs(modalPage))
+    }
+
+    bool window::on_modal_popping(content_page& modal) const
+    {
+        // C# OnModalPopping: raise the event, then return args.Cancel so the caller can abort the pop.
+        modal_popping_event_args args;
+        args.modal = &modal;
+        modal_popping.raise(args);
+        return args.cancel;
+    }
+
+    void window::on_modal_popped(content_page& modal) const
+    {
+        modal_popped_event_args args;
+        args.modal = &modal;
+        modal_popped.raise(args); // C# ModalPopped?.Invoke(this, new ModalPoppedEventArgs(modalPage))
+    }
+
+    void window::on_pop_canceled() const
+    {
+        pop_canceled.raise(); // C# PopCanceled?.Invoke(this, EventArgs.Empty)
+    }
+
+    bool window::add_overlay(maui::core::i_window_overlay& overlay)
+    {
+        // C# Window.AddOverlay: reject a duplicate (HashSet.Add semantics), else add + initialize +
+        // invalidate so it is drawn. (The IVisualDiagnosticsOverlay rejection is moot — that overlay is
+        // out of scope here.)
+        if (std::ranges::find(overlays_, &overlay) != overlays_.end())
+        {
+            return false;
+        }
+        overlays_.push_back(&overlay);
+        overlay.initialize();
+        overlay.invalidate();
+        return true;
+    }
+
+    bool window::remove_overlay(maui::core::i_window_overlay& overlay)
+    {
+        // C# Window.RemoveOverlay: remove (HashSet.Remove semantics), then deinitialize the layer.
+        const auto it = std::ranges::find(overlays_, &overlay);
+        if (it == overlays_.end())
+        {
+            return false;
+        }
+        overlays_.erase(it);
+        overlay.deinitialize();
+        return true;
+    }
+    // --- end (G4) ----------------------------------------------------------------------------------
 
     void window::on_property_changed(std::string_view name)
     {

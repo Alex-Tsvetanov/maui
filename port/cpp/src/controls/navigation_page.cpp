@@ -21,6 +21,7 @@
 #include "maui/controls/toolbar_item.hpp"
 #include "maui/controls/toolbar_tracker.hpp"
 #include "maui/controls/view.hpp"
+#include "maui/controls/window.hpp" // --- modal events (G4): containing_window()->on_modal_* ---
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
@@ -252,6 +253,17 @@ namespace maui::controls
             return;
         }
 
+        // G4: the window modal events (C# ModalNavigationManager.PushModalAsync → Window.OnModal*).
+        // OnModalPushing FIRST (before the page lifecycle), OnModalPushed LAST. The window is the one
+        // hosting this navigation_page (containing_window) — null when this nav page is not yet in a
+        // window, in which case the events simply don't fire (no host to raise them on). const because the
+        // on_modal_* event drives are const (they only raise the window's events).
+        const window* const host = containing_window();
+        if (host != nullptr)
+        {
+            host->on_modal_pushing(page);
+        }
+
         // C# NavigationModel.PushModal: previousPage = the current visible page (top modal or nav current),
         // captured BEFORE the push.
         content_page* const previous = current_visible_page();
@@ -266,6 +278,12 @@ namespace maui::controls
         page.send_appearing();
 
         notify_request_modal_navigation(animated);
+
+        // G4: OnModalPushed AFTER the transition (C# _window.OnModalPushed(modal) is the last step).
+        if (host != nullptr)
+        {
+            host->on_modal_pushed(page);
+        }
     }
 
     content_page* navigation_page::pop_modal(bool animated)
@@ -278,6 +296,19 @@ namespace maui::controls
 
         // C# PopModal: previousPage = the current visible page (the top modal being popped), captured first.
         content_page* const modal = modal_stack_.back();
+
+        // G4: the window modal events (C# ModalNavigationManager.PopModalAsync → Window.OnModal*).
+        // OnModalPopping FIRST — a subscriber may cancel it; on cancel C# fires OnPopCanceled and leaves
+        // the modal in place (returns without popping). OnModalPopped fires LAST. The host window is the
+        // one containing this navigation_page (null = no host, so the events don't fire). const: the
+        // on_modal_* event drives are const.
+        const window* const host = containing_window();
+        if (host != nullptr && host->on_modal_popping(*modal))
+        {
+            host->on_pop_canceled(); // C# _window.OnPopCanceled(); the modal stays on the stack
+            return nullptr;
+        }
+
         content_page* const previous = current_visible_page(); // == modal (top of the modal stack)
         modal_stack_.pop_back();
         detach_logical_child(*modal);                             // the popped modal leaves the tree
@@ -291,6 +322,12 @@ namespace maui::controls
         }
 
         notify_request_modal_navigation(animated);
+
+        // G4: OnModalPopped AFTER the transition (C# _window.OnModalPopped(modal) is the last step).
+        if (host != nullptr)
+        {
+            host->on_modal_popped(*modal);
+        }
         return modal;
     }
 
