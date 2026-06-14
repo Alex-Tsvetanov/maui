@@ -48,13 +48,13 @@ namespace maui::controls
     bool gesture_platform_manager::native_registered_drag_source(const gesture_recognizer& recognizer) const
     {
         (void)recognizer;
-        return false;
+        return native_state_ != nullptr; // headless never builds native_state_ → always false
     }
 
     bool gesture_platform_manager::native_registered_drop_target(const gesture_recognizer& recognizer) const
     {
         (void)recognizer;
-        return false;
+        return native_state_ != nullptr; // headless never builds native_state_ → always false
     }
     // --- end drag&drop (W2-22) ---
 } // namespace maui::controls
