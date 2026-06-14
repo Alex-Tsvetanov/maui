@@ -365,7 +365,8 @@ namespace maui::controls
 
     void window::on_property_changed(std::string_view name)
     {
-        maui::core::bindable_object::on_property_changed(name); // raise property_changed + drive bindings
+        // Route through element (raise property_changed + drive bindings + fan effects out — G3).
+        maui::controls::element::on_property_changed(name);
         update_handler_value(name);
     }
 

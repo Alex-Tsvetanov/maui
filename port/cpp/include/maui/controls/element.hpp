@@ -33,6 +33,7 @@
 #include <utility> // --- platform configuration (W2-24) ---
 #include <vector>
 
+#include "maui/controls/effect_collection.hpp" // --- effects (G3): the unique_ptr<effect_collection> member ---
 #include "maui/controls/merged_style.hpp"
 #include "maui/controls/platform_configuration/configuration.hpp" // --- platform configuration (W2-24) ---
 #include "maui/controls/resource_dictionary.hpp"
@@ -43,8 +44,10 @@
 
 namespace maui::controls
 {
-    class window;       // forward — the host; element only holds a non-owning back-ref
-    class binding_base; // forward — runtime bindings (W1-02); element only stores shared_ptrs
+    class window;                    // forward — the host; element only holds a non-owning back-ref
+    class binding_base;              // forward — runtime bindings (W1-02); element only stores shared_ptrs
+    class effect;                    // forward — effects (G3); the element's effect collection owns these
+    class i_effect_control_provider; // forward — effects (G3); the settable provider seam
     // --- templates (W1-09): forward declarations for the template-scope members below ---
     class template_binding;   // the templated-parent binding an element can carry (templates/)
     class template_utilities; // the ControlTemplate application machinery (friend — walks children)
@@ -401,5 +404,55 @@ namespace maui::controls
     private:
         std::unordered_map<std::string, std::any> platform_specs_; // namespaced key → boxed value
         // --- end platform configuration (W2-24) -----------------------------------------------------------
+
+        // --- effects (G3) ---------------------------------------------------------------------------------
+        // Element.Effects + the attach/detach lifecycle (Element.cs): the owning effect collection, the
+        // settable IEffectControlProvider (the IElementController/IVisualElementController role), and the
+        // AttachEffect / EffectControlProvider-change / property-changed routing. The bodies live in
+        // element_effects.cpp; effect_collection.hpp is included above (alongside resource_dictionary.hpp,
+        // for the same unique_ptr<...>-member reason — the destructor needs the complete type), while
+        // effect / i_effect_control_provider stay forward-declared (only pointers/refs to them here).
+    public:
+        // Element.Effects: the collection of effects applied to this element, lazily created on first access
+        // (matching C#'s lazy _effects). Adding / removing an effect triggers attach / detach against the
+        // current effect-control-provider; clearing detaches each.
+        [[nodiscard]] maui::controls::effect_collection& effects();
+        [[nodiscard]] bool has_effects() const
+        {
+            return effects_ != nullptr;
+        }
+
+        // IVisualElementController.EffectControlProvider (the setter the renderer/handler — or a test stub —
+        // assigns). On change: detach every effect from the old provider, swap, then attach every effect to
+        // the new one (Element.EffectControlProvider's setter). NON-owning (the provider outlives the element
+        // in tests; a handler-backed provider is owned elsewhere).
+        void set_effect_control_provider(maui::controls::i_effect_control_provider* value);
+        [[nodiscard]] maui::controls::i_effect_control_provider* effect_control_provider() const
+        {
+            return effect_control_provider_;
+        }
+
+        // Element.EffectIsAttached(name): whether any attached effect resolves to `name`.
+        [[nodiscard]] bool effect_is_attached(std::string_view name);
+
+    protected:
+        // Element.OnPropertyChanged: after the base notification, fan SendOnElementPropertyChanged out to
+        // every effect (C# raises args once and forwards to each effect). Derived view<> / window route
+        // their on_property_changed through this (instead of straight to bindable_object) so attached
+        // effects observe the change. Defined in element_effects.cpp.
+        void on_property_changed(std::string_view name) override;
+
+    private:
+        // Element.AttachEffect: no-op without a provider; throws if the effect is already attached; for a
+        // routing_effect with an inner effect, registers the INNER effect; sets the effect's Element, then
+        // send_attached. The collection's add/insert hook.
+        void attach_effect(maui::controls::effect& target);
+        // The collection's clear/remove hook (Effect.ClearEffect): detach + drop the element back-ref.
+        static void clear_effect(maui::controls::effect& target);
+
+        std::unique_ptr<maui::controls::effect_collection> effects_; // Element._effects (lazy, owning)
+        // Element._effectControlProvider — non-owning back-ref to the provider.
+        maui::controls::i_effect_control_provider* effect_control_provider_ = nullptr;
+        // --- end effects (G3) -----------------------------------------------------------------------------
     };
 } // namespace maui::controls

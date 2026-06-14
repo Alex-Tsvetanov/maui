@@ -654,6 +654,13 @@ endif()
 
 add_library(maui_controls STATIC
   src/controls/element.cpp
+  # (G3 effects) the abstract effect base + Resolve, the explicit effect registry, the routing_effect
+  # wrapper, and the element-side Effects collection + attach/detach lifecycle (element_effects.cpp).
+  src/controls/effect.cpp
+  src/controls/effect_registry.cpp
+  src/controls/routing_effect.cpp
+  src/controls/platform_effect.cpp
+  src/controls/element_effects.cpp
   src/controls/bindings/binding_diagnostics.cpp
   src/controls/bindings/binding_base.cpp
   src/controls/bindings/binding.cpp
@@ -822,6 +829,8 @@ endif()
 if(MAUI_BACKEND STREQUAL "apple")
   add_executable(maui_controls_tests
     tests/controls/button_apple_tests.mm
+    tests/controls/effect_apple_tests.mm # (G3) effect attaching to a real native-handled NSButton
+    tests/controls/effect_tests.cpp # (G3) effects: registry + resolve + element attach/detach (backend-agnostic)
     tests/controls/gesture_apple_tests.mm # E1: native recognizer attachment + target/action drives
     tests/controls/label_apple_tests.mm
     tests/controls/formatted_text_tests.cpp # G1: span/formatted_string/label.formatted_text (backend-agnostic)
@@ -923,6 +932,7 @@ if(MAUI_BACKEND STREQUAL "apple")
   # tests/controls/font_image_source_apple_tests.mm instead.
   set_source_files_properties(
     tests/controls/button_apple_tests.mm
+    tests/controls/effect_apple_tests.mm # (G3)
     tests/controls/gesture_apple_tests.mm
     tests/controls/label_apple_tests.mm
     tests/controls/formatted_text_apple_tests.mm # G1
@@ -1055,6 +1065,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/state_trigger_tests.cpp # W1-15: StateTriggers driving visual states
     tests/controls/size_request_tests.cpp # backend-agnostic (compares against the handler's own size)
     tests/controls/lifecycle_tests.cpp
+    tests/controls/effect_tests.cpp # (G3) effects (backend-agnostic): registry + resolve + element attach/detach
     tests/controls/data_template_tests.cpp    # backend-agnostic (W1-09 templates)
     # (W2-19 items core) backend-agnostic: the items hierarchy + sources + the simulator + demo page.
     tests/controls/items_view_tests.cpp
@@ -1142,6 +1153,7 @@ else()
     tests/controls/size_request_tests.cpp # the VisualElement size-request surface (view<> IView mapping)
     tests/controls/view_extensions_tests.cpp # (W1-14) the animation surface over the manual ticker
     tests/controls/lifecycle_tests.cpp
+    tests/controls/effect_tests.cpp # (G3) effects: registry + resolve + element attach/detach + routing/platform
     tests/controls/data_template_tests.cpp    # backend-agnostic (W1-09 templates)
     # (W2-19 items core) backend-agnostic: the items hierarchy + sources + the simulator + demo page.
     tests/controls/items_view_tests.cpp

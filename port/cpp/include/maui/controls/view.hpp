@@ -651,7 +651,9 @@ namespace maui::controls
         // → ChangeVisualState), so a configured Disabled/Normal state applies automatically.
         void on_property_changed(std::string_view name) override
         {
-            maui::core::bindable_object::on_property_changed(name);
+            // Route through element (not straight to bindable_object) so attached effects observe the
+            // change (Element.OnPropertyChanged fans SendOnElementPropertyChanged out — effects, G3).
+            maui::controls::element::on_property_changed(name);
             if (handler_)
             {
                 handler_->update_value(name);
