@@ -414,6 +414,57 @@ namespace
         EXPECT_TRUE(s.control.can_go_back());
     }
 
+    // ---- user agent (WebViewHandler.iOS.MapUserAgent + WebViewExtensions.UpdateUserAgent) ----
+
+    // The control's UserAgent slot defaults to unset (C#'s null → empty here) and fires a property change
+    // on set; the getter reflects the stored value.
+    TEST(web_view, user_agent_set_fires_change_and_get_returns)
+    {
+        web_view control;
+        EXPECT_EQ(control.user_agent(), "");
+
+        bool signaled = false;
+        control.property_changed.connect([&signaled](const std::string_view& name) {
+            if (name == "user_agent")
+            {
+                signaled = true;
+            }
+        });
+        control.set_user_agent("MauiUA/1.0");
+        EXPECT_TRUE(signaled);
+        EXPECT_EQ(control.user_agent(), "MauiUA/1.0");
+    }
+
+    // C# WebView.UserAgent setter `value ?? UserAgent`: a null (empty) assignment keeps the current value
+    // rather than clearing it.
+    TEST(web_view, user_agent_empty_set_keeps_current)
+    {
+        web_view control;
+        control.set_user_agent("MauiUA/1.0");
+        control.set_user_agent("");
+        EXPECT_EQ(control.user_agent(), "MauiUA/1.0");
+    }
+
+    // map_user_agent runs when the slot changes through a connected handler, mirroring the synced value
+    // into the platform stub (the headless test-inspection seam).
+    TEST(web_view_handler_seam, set_user_agent_maps_to_platform)
+    {
+        seam s;
+        EXPECT_EQ(s.platform->user_agent, "");
+        s.control.set_user_agent("MauiUA/1.0");
+        EXPECT_EQ(s.platform->user_agent, "MauiUA/1.0");
+    }
+
+    // Unset UserAgent: map_user_agent runs once at connect (the full mapper sync) with the unset value;
+    // the headless stub has no platform default to read back, so the mirror stays empty (the bidirectional
+    // read-back is the apple_shared .mm's real-native job).
+    TEST(web_view_handler_seam, unset_user_agent_leaves_empty_mirror)
+    {
+        seam s;
+        EXPECT_EQ(s.platform->user_agent, "");
+        EXPECT_EQ(s.control.user_agent(), "");
+    }
+
     // ---- scripting ----
 
     TEST(web_view_handler_seam, eval_records_script)

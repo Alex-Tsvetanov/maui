@@ -6,8 +6,14 @@
 // (exactly one backend is ever compiled, so the branches are build-time disjoint).
 //
 // Ported from WebViewHandler.iOS.cs + MauiWKWebView.cs + MauiWebViewNavigationDelegate.cs +
-// WebViewExtensions.cs (cookie sync / UserAgent / WKUIDelegate are out of scope — see the handler
+// MauiWebViewUIDelegate.cs + WebViewExtensions.cs (cookie sync is out of scope — see the handler
 // header):
+//   - map_user_agent is the bidirectional UserAgent sync (WebViewExtensions UpdateUserAgent): write
+//     WKWebView.CustomUserAgent when the virtual view has a value, else read CustomUserAgent / the default
+//     `userAgent` KVC back into the virtual view;
+//   - an Obj-C MauiCppWebViewUIDelegate trampoline presents the native JS alert / confirm / prompt dialogs
+//     (UIAlertController on iOS, NSAlert on macOS), wired as the WKWebView's uiDelegate in
+//     on_connect_handler (a DISTINCT associated-object key from the navigation delegate);
 //   - the platform struct IS the i_web_view_delegate (MauiWKWebView : IWebViewDelegate): load_html →
 //     loadHTMLString:baseURL: (a missing base url falls back to the main bundle path, as C# does);
 //     load_url → loadRequest: (an unparsable url falls back to a bundled-file load, C#'s LoadFile);
@@ -126,6 +132,25 @@ namespace
 
     // Key for the associated navigation delegate kept alive by the WKWebView (navigationDelegate is weak).
     const char k_navigation_delegate_key = 0;
+    // DISTINCT key for the UI delegate (the WKUIDelegate JS-dialog trampoline) — uiDelegate is weak too.
+    const char k_ui_delegate_key = 0;
+
+    // MauiWebViewUIDelegate.GetJsAlertTitle: the scheme://host of the current url, unless the web view is
+    // showing local bundle content (the `file://<bundlePath>/` url), in which case the bundle's last path
+    // component is the title (emulating UIWebView's dialog titles).
+    std::string js_alert_title(WKWebView* web_view)
+    {
+        NSString* const bundle_path = NSBundle.mainBundle.bundlePath;
+        NSString* const bundle_root = [NSString stringWithFormat:@"file://%@/", bundle_path];
+        NSURL* const url = web_view.URL;
+        if (url != nil && ![url.absoluteString isEqualToString:bundle_root])
+        {
+            NSString* const scheme = url.scheme != nil ? url.scheme : @"";
+            NSString* const host = url.host != nil ? url.host : @"";
+            return to_std_string([NSString stringWithFormat:@"%@://%@", scheme, host]);
+        }
+        return to_std_string(bundle_path.lastPathComponent);
+    }
 } // namespace
 
 // Obj-C trampoline: forwards the WKNavigationDelegate callbacks to the C++ handler's virtual view —
@@ -242,6 +267,240 @@ namespace
     virtual_view->send_navigated(self.lastEvent, current_url(webView), maui::core::web_navigation_result::failure);
     update_can_go_back_forward(*virtual_view, webView);
 }
+
+@end
+
+// Obj-C trampoline for the WKUIDelegate JS-dialog panels — the port of MauiWebViewUIDelegate.cs
+// (RunJavaScriptAlertPanel / ConfirmPanel / TextInputPanel). On iOS it presents a UIAlertController on
+// the top view controller; on macOS (AppKit, where C# ships no oracle — Mac Catalyst reuses the UIKit
+// delegate) it presents the faithful NSAlert analog. The dialog title is the current url's scheme://host
+// (or the bundle name for local content), mirroring js_alert_title.
+//
+// DEVIATIONS: (1) C# prefers handler.MauiContext.GetPlatformWindow().RootViewController, falling back to
+// the shared application's key-window root; the port's i_maui_context cut does not expose the platform
+// window, so this uses the key-window root directly (C#'s documented fallback). (2) When there is no
+// presenter (nil root VC / nil window), C# silently drops the panel and never calls the completion
+// handler (which would hang the JS engine); the port instead completes with the Cancel default so the
+// page never wedges and the seam is deterministically testable.
+@interface MauiCppWebViewUIDelegate : NSObject <WKUIDelegate>
+@end
+
+@implementation MauiCppWebViewUIDelegate
+
+#ifdef MAUI_PLATFORM_IOS
+
+// MauiWebViewUIDelegate.GetTopViewController: descend navigation/tab/presented chains to the visible VC.
++ (UIViewController*)topViewController:(UIViewController*)viewController
+{
+    if ([viewController isKindOfClass:[UINavigationController class]])
+    {
+        return [self topViewController:((UINavigationController*)viewController).visibleViewController];
+    }
+    if ([viewController isKindOfClass:[UITabBarController class]])
+    {
+        UITabBarController* const tabs = (UITabBarController*)viewController;
+        if (tabs.selectedViewController != nil)
+        {
+            return [self topViewController:tabs.selectedViewController];
+        }
+    }
+    if (viewController.presentedViewController != nil)
+    {
+        return [self topViewController:viewController.presentedViewController];
+    }
+    return viewController;
+}
+
+// The shared application's key-window root view controller (C#'s GetKeyWindow().RootViewController).
++ (UIViewController*)rootViewController
+{
+    UIApplication* const app = [UIApplication sharedApplication];
+    if (app == nil)
+    {
+        return nil;
+    }
+    for (UIWindow* window in app.windows)
+    {
+        if (window.isKeyWindow)
+        {
+            return window.rootViewController;
+        }
+    }
+    return nil;
+}
+
+- (void)webView:(WKWebView*)webView
+    runJavaScriptAlertPanelWithMessage:(NSString*)message
+                      initiatedByFrame:(WKFrameInfo*)frame
+                     completionHandler:(void (^)(void))completionHandler
+{
+    UIViewController* const root = [MauiCppWebViewUIDelegate rootViewController];
+    if (root == nil)
+    {
+        completionHandler();
+        return;
+    }
+    NSString* const local_ok = [[NSBundle bundleWithIdentifier:@"com.apple.UIKit"] localizedStringForKey:@"OK"
+                                                                                                   value:@"OK"
+                                                                                                   table:nil];
+    UIAlertController* const controller = [UIAlertController alertControllerWithTitle:@(js_alert_title(webView).c_str())
+                                                                              message:message
+                                                                       preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction* const ok = [UIAlertAction actionWithTitle:local_ok
+                                                       style:UIAlertActionStyleDefault
+                                                     handler:^(UIAlertAction* _Nonnull) {
+                                                       completionHandler();
+                                                     }];
+    [controller addAction:ok];
+    controller.preferredAction = ok;
+    [[MauiCppWebViewUIDelegate topViewController:root] presentViewController:controller animated:YES completion:nil];
+}
+
+- (void)webView:(WKWebView*)webView
+    runJavaScriptConfirmPanelWithMessage:(NSString*)message
+                        initiatedByFrame:(WKFrameInfo*)frame
+                       completionHandler:(void (^)(BOOL))completionHandler
+{
+    UIViewController* const root = [MauiCppWebViewUIDelegate rootViewController];
+    if (root == nil)
+    {
+        completionHandler(NO);
+        return;
+    }
+    NSBundle* const ui_kit = [NSBundle bundleWithIdentifier:@"com.apple.UIKit"];
+    NSString* const local_ok = [ui_kit localizedStringForKey:@"OK" value:@"OK" table:nil];
+    NSString* const local_cancel = [ui_kit localizedStringForKey:@"Cancel" value:@"Cancel" table:nil];
+    UIAlertController* const controller = [UIAlertController alertControllerWithTitle:@(js_alert_title(webView).c_str())
+                                                                              message:message
+                                                                       preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction* const ok = [UIAlertAction actionWithTitle:local_ok
+                                                       style:UIAlertActionStyleDefault
+                                                     handler:^(UIAlertAction* _Nonnull) {
+                                                       completionHandler(YES);
+                                                     }];
+    [controller addAction:ok];
+    controller.preferredAction = ok;
+    [controller addAction:[UIAlertAction actionWithTitle:local_cancel
+                                                   style:UIAlertActionStyleCancel
+                                                 handler:^(UIAlertAction* _Nonnull) {
+                                                   completionHandler(NO);
+                                                 }]];
+    [[MauiCppWebViewUIDelegate topViewController:root] presentViewController:controller animated:YES completion:nil];
+}
+
+- (void)webView:(WKWebView*)webView
+    runJavaScriptTextInputPanelWithPrompt:(NSString*)prompt
+                              defaultText:(NSString*)defaultText
+                         initiatedByFrame:(WKFrameInfo*)frame
+                        completionHandler:(void (^)(NSString*))completionHandler
+{
+    UIViewController* const root = [MauiCppWebViewUIDelegate rootViewController];
+    if (root == nil)
+    {
+        completionHandler(nil);
+        return;
+    }
+    NSBundle* const ui_kit = [NSBundle bundleWithIdentifier:@"com.apple.UIKit"];
+    NSString* const local_ok = [ui_kit localizedStringForKey:@"OK" value:@"OK" table:nil];
+    NSString* const local_cancel = [ui_kit localizedStringForKey:@"Cancel" value:@"Cancel" table:nil];
+    UIAlertController* const controller = [UIAlertController alertControllerWithTitle:@(js_alert_title(webView).c_str())
+                                                                              message:prompt
+                                                                       preferredStyle:UIAlertControllerStyleAlert];
+    [controller addTextFieldWithConfigurationHandler:^(UITextField* textField) {
+      textField.text = defaultText;
+    }];
+    UIAlertAction* const ok = [UIAlertAction actionWithTitle:local_ok
+                                                       style:UIAlertActionStyleDefault
+                                                     handler:^(UIAlertAction* _Nonnull) {
+                                                       completionHandler(controller.textFields.firstObject.text);
+                                                     }];
+    [controller addAction:ok];
+    controller.preferredAction = ok;
+    [controller addAction:[UIAlertAction actionWithTitle:local_cancel
+                                                   style:UIAlertActionStyleCancel
+                                                 handler:^(UIAlertAction* _Nonnull) {
+                                                   completionHandler(nil);
+                                                 }]];
+    [[MauiCppWebViewUIDelegate topViewController:root] presentViewController:controller animated:YES completion:nil];
+}
+
+#endif // MAUI_PLATFORM_IOS
+
+#ifdef MAUI_PLATFORM_APPLE
+
+// AppKit analog (no C# oracle — Mac Catalyst reuses the UIKit delegate): present an NSAlert as a sheet on
+// the web view's window. When there is no window to anchor a sheet, complete with the Cancel default —
+// the iOS no-root path's twin (a non-blocking, deterministic fallback; never a blocking -runModal).
+- (void)webView:(WKWebView*)webView
+    runJavaScriptAlertPanelWithMessage:(NSString*)message
+                      initiatedByFrame:(WKFrameInfo*)frame
+                     completionHandler:(void (^)(void))completionHandler
+{
+    NSWindow* const window = webView.window;
+    if (window == nil)
+    {
+        completionHandler();
+        return;
+    }
+    NSAlert* const alert = [[NSAlert alloc] init];
+    alert.messageText = @(js_alert_title(webView).c_str());
+    alert.informativeText = message;
+    [alert addButtonWithTitle:NSLocalizedString(@"OK", nil)];
+    [alert beginSheetModalForWindow:window
+                  completionHandler:^(NSModalResponse) {
+                    completionHandler();
+                  }];
+}
+
+- (void)webView:(WKWebView*)webView
+    runJavaScriptConfirmPanelWithMessage:(NSString*)message
+                        initiatedByFrame:(WKFrameInfo*)frame
+                       completionHandler:(void (^)(BOOL))completionHandler
+{
+    NSWindow* const window = webView.window;
+    if (window == nil)
+    {
+        completionHandler(NO);
+        return;
+    }
+    NSAlert* const alert = [[NSAlert alloc] init];
+    alert.messageText = @(js_alert_title(webView).c_str());
+    alert.informativeText = message;
+    [alert addButtonWithTitle:NSLocalizedString(@"OK", nil)];
+    [alert addButtonWithTitle:NSLocalizedString(@"Cancel", nil)];
+    [alert beginSheetModalForWindow:window
+                  completionHandler:^(NSModalResponse response) {
+                    completionHandler(response == NSAlertFirstButtonReturn ? YES : NO);
+                  }];
+}
+
+- (void)webView:(WKWebView*)webView
+    runJavaScriptTextInputPanelWithPrompt:(NSString*)prompt
+                              defaultText:(NSString*)defaultText
+                         initiatedByFrame:(WKFrameInfo*)frame
+                        completionHandler:(void (^)(NSString*))completionHandler
+{
+    NSWindow* const window = webView.window;
+    if (window == nil)
+    {
+        completionHandler(nil);
+        return;
+    }
+    NSAlert* const alert = [[NSAlert alloc] init];
+    alert.messageText = @(js_alert_title(webView).c_str());
+    alert.informativeText = prompt;
+    [alert addButtonWithTitle:NSLocalizedString(@"OK", nil)];
+    [alert addButtonWithTitle:NSLocalizedString(@"Cancel", nil)];
+    NSTextField* const input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 250, 24)];
+    input.stringValue = defaultText != nil ? defaultText : @"";
+    alert.accessoryView = input;
+    [alert beginSheetModalForWindow:window
+                  completionHandler:^(NSModalResponse response) {
+                    completionHandler(response == NSAlertFirstButtonReturn ? input.stringValue : nil);
+                  }];
+}
+
+#endif // MAUI_PLATFORM_APPLE
 
 @end
 
@@ -421,6 +680,13 @@ namespace maui::core
         web_view.navigationDelegate = delegate; // WKWebView holds the delegate weakly...
         // ...so keep it alive for the web view's lifetime via an associated object.
         objc_setAssociatedObject(web_view, &k_navigation_delegate_key, delegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
+        // WebViewHandler.iOS.MapWKUIDelegate: install the JS-dialog WKUIDelegate (uiDelegate is weak too,
+        // so retain it under a DISTINCT associated-object key). It carries no handler back-reference — the
+        // dialogs only need the WKWebView (passed to each callback) and the key-window root.
+        MauiCppWebViewUIDelegate* const ui_delegate = [[MauiCppWebViewUIDelegate alloc] init];
+        web_view.UIDelegate = ui_delegate;
+        objc_setAssociatedObject(web_view, &k_ui_delegate_key, ui_delegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
 
     void web_view_handler::on_disconnect_handler(web_view_platform& platform)
@@ -435,6 +701,8 @@ namespace maui::core
         }
         web_view.navigationDelegate = nil;
         objc_setAssociatedObject(web_view, &k_navigation_delegate_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        web_view.UIDelegate = nil;
+        objc_setAssociatedObject(web_view, &k_ui_delegate_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
 
     // WebViewHandler.MapSource + WebViewExtensions.UpdateSource: the platform view is the
@@ -451,6 +719,40 @@ namespace maui::core
             source->load(*platform);
         }
         update_can_go_back_forward(view, as_web_view(platform->native));
+    }
+
+    // WebViewHandler.iOS.MapUserAgent + WebViewExtensions.UpdateUserAgent: bidirectional CustomUserAgent
+    // sync. When the virtual view has a value, push it to WKWebView.CustomUserAgent; otherwise read the
+    // platform's CustomUserAgent (or the default `userAgent` via KVC) back into the virtual view.
+    void web_view_handler::map_user_agent(web_view_handler& handler, i_web_view& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr || platform->native == nullptr)
+        {
+            return;
+        }
+        WKWebView* const web_view = as_web_view(platform->native);
+        if (!view.user_agent().empty())
+        {
+            web_view.customUserAgent = to_ns_string(view.user_agent());
+            platform->user_agent = std::string(view.user_agent());
+            return;
+        }
+        // C#: webView.UserAgent = platformWebView.CustomUserAgent ?? ValueForKey("userAgent")?.ToString().
+        // A WKWebView with no custom agent reports customUserAgent as the empty string here (not nil), so
+        // the `?? userAgent` fallback must also cover empty — otherwise the browser's real default UA is
+        // never read back (which is the whole point of the unset branch).
+        NSString* default_agent = web_view.customUserAgent;
+        if (default_agent == nil || default_agent.length == 0)
+        {
+            id const value = [web_view valueForKey:@"userAgent"];
+            default_agent = [value isKindOfClass:[NSString class]] ? (NSString*)value : [value description];
+        }
+        const std::string resolved = default_agent != nil ? to_std_string(default_agent) : std::string();
+        platform->user_agent = resolved;
+        // Store back into the virtual view (set_user_agent triggers map_user_agent again, which now takes
+        // the `set` branch and re-writes the same CustomUserAgent — a redundant write that terminates).
+        view.set_user_agent(resolved);
     }
 
     // WebViewHandler.MapGoBack + WebViewExtensions.UpdateGoBack.

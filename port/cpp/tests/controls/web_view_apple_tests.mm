@@ -183,4 +183,83 @@ namespace
         ASSERT_TRUE(pump_until([&] { return completed; }));
         EXPECT_FALSE(result.has_value());
     }
+
+    // ---- user agent (WebViewHandler.iOS.MapUserAgent + WebViewExtensions.UpdateUserAgent) ----
+
+    // Setting UserAgent flows virtual→native: WKWebView.customUserAgent reflects the value.
+    TEST(web_view_apple, set_user_agent_updates_custom_user_agent)
+    {
+        seam s;
+        s.control.set_user_agent("MauiUA/1.0");
+        EXPECT_EQ(std::string(native_web_view(s.handler).customUserAgent.UTF8String), "MauiUA/1.0");
+    }
+
+    // Leaving UserAgent unset reads the platform default back into the virtual view (the bidirectional
+    // branch): WKWebView reports a non-empty default `userAgent`, which lands in the control.
+    TEST(web_view_apple, unset_user_agent_reads_platform_default_back)
+    {
+        seam s; // the full mapper ran at connect with the unset value → read-back populated the control
+        EXPECT_FALSE(s.control.user_agent().empty());
+    }
+
+    // ---- WKUIDelegate JS dialogs (NSAlert analog) ----
+
+    // MapWKUIDelegate installs our WKUIDelegate trampoline on the WKWebView.
+    TEST(web_view_apple, installs_ui_delegate)
+    {
+        seam s;
+        EXPECT_NE(native_web_view(s.handler).UIDelegate, nil);
+    }
+
+    // JS confirm() routes through the WKUIDelegate. With no anchoring window in the test process the panel
+    // auto-completes with Cancel (false) — proving the completion handler is invoked (no hang / no blocking
+    // modal) and the result reaches JS.
+    TEST(web_view_apple, js_confirm_completes_with_false_without_window)
+    {
+        seam s;
+        ASSERT_TRUE(s.load_html_and_wait("<html><body><p>confirm host</p></body></html>", "https://demo.test/c"));
+
+        bool completed = false;
+        std::optional<std::string> result;
+        s.control.eval_js("confirm('proceed?')", [&](const std::optional<std::string>& value) {
+            completed = true;
+            result = value;
+        });
+        ASSERT_TRUE(pump_until([&] { return completed; }));
+        ASSERT_TRUE(result.has_value());
+        EXPECT_EQ(*result, "false"); // JSON.stringify(false)
+    }
+
+    // JS alert() routes through the WKUIDelegate and completes (returns undefined → "null").
+    TEST(web_view_apple, js_alert_completes_and_script_continues)
+    {
+        seam s;
+        ASSERT_TRUE(s.load_html_and_wait("<html><body><p>alert host</p></body></html>", "https://demo.test/a"));
+
+        bool completed = false;
+        std::optional<std::string> result{"sentinel"};
+        s.control.eval_js("alert('hi')", [&](const std::optional<std::string>& value) {
+            completed = true;
+            result = value;
+        });
+        ASSERT_TRUE(pump_until([&] { return completed; }));
+        EXPECT_FALSE(result.has_value());
+    }
+
+    // JS prompt() routes through the WKUIDelegate. With no window the panel auto-completes with Cancel
+    // (nil → JS null → "null").
+    TEST(web_view_apple, js_prompt_completes_with_null_without_window)
+    {
+        seam s;
+        ASSERT_TRUE(s.load_html_and_wait("<html><body><p>prompt host</p></body></html>", "https://demo.test/p"));
+
+        bool completed = false;
+        std::optional<std::string> result{"sentinel"};
+        s.control.eval_js("prompt('name?','default')", [&](const std::optional<std::string>& value) {
+            completed = true;
+            result = value;
+        });
+        ASSERT_TRUE(pump_until([&] { return completed; }));
+        EXPECT_FALSE(result.has_value());
+    }
 } // namespace

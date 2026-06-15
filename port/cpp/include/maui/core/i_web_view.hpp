@@ -19,8 +19,14 @@
 //     "evaluate_java_script" — WebViewHandler.CommandMapper's keys), so the i_* surface carries only what
 //     the handler reads or pushes.
 //
-// OUT OF SCOPE (documented, not stubbed): Cookies (CookieContainer sync), UserAgent, and
-// ProcessTerminated (the WebContent-process crash notification).
+//   - user_agent() / set_user_agent() are the BIDIRECTIONAL UserAgent channel (C# IWebView.UserAgent
+//     { get; set; }): the developer or a binding can set it (virtual→native: the handler writes
+//     WKWebView.CustomUserAgent), and when it is UNSET the handler READS BACK the platform's
+//     CustomUserAgent / default `userAgent` and stores it into the virtual view (WebViewExtensions.iOS
+//     UpdateUserAgent). C#'s `string?` is modeled as std::string — empty means "unset" (the null branch).
+//
+// OUT OF SCOPE (documented, not stubbed): Cookies (CookieContainer sync) and ProcessTerminated (the
+// WebContent-process crash notification).
 
 #include <string_view>
 
@@ -44,6 +50,13 @@ namespace maui::core
         virtual void set_can_go_back(bool value) = 0;
         [[nodiscard]] virtual bool can_go_forward() const = 0;
         virtual void set_can_go_forward(bool value) = 0;
+
+        // C# IWebView.UserAgent { get; set; }: the bidirectional user-agent slot. The getter returns a
+        // view over the stored value (empty == C#'s null, "unset"); the setter triggers a property change
+        // so the handler's map_user_agent runs (WebViewExtensions.iOS UpdateUserAgent — write
+        // CustomUserAgent when set, else read the platform default back into the virtual view).
+        [[nodiscard]] virtual std::string_view user_agent() const = 0;
+        virtual void set_user_agent(std::string value) = 0;
 
         // C# IWebView.Navigating: raised by the platform BEFORE a navigation; returns true when a
         // subscriber cancelled it (WebNavigatingEventArgs.Cancel).

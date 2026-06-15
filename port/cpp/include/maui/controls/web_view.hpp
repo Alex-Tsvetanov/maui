@@ -27,8 +27,13 @@
 // callback-based form of C#'s Task<string>, per the port's async idiom. The legacy renderer events
 // (EvalRequested/GoBackRequested/…, the IWebViewController seam) are Compatibility-era and out of scope.
 //
-// OUT OF SCOPE (documented, not stubbed): Cookies, UserAgent, ProcessTerminated, and the
-// platform-configuration (On<Android>() zoom/mixed-content) surface.
+// user_agent is a bindable property (C# WebView.UserAgentProperty, default null): setting it flows
+// virtual→native (the handler writes WKWebView.CustomUserAgent); leaving it unset lets the handler read
+// the platform's default back into it (WebViewExtensions.iOS UpdateUserAgent). C#'s `string?` is a
+// std::string here — empty is the unset/null state.
+//
+// OUT OF SCOPE (documented, not stubbed): Cookies, ProcessTerminated, and the platform-configuration
+// (On<Android>() zoom/mixed-content) surface.
 
 #include <memory>
 #include <optional>
@@ -68,6 +73,8 @@ namespace maui::controls
         static const maui::core::bindable_property<std::shared_ptr<web_view_source>>& source_property();
         static const maui::core::bindable_property<bool>& can_go_back_property();
         static const maui::core::bindable_property<bool>& can_go_forward_property();
+        // WebView.UserAgentProperty (default null → empty string here).
+        static const maui::core::bindable_property<std::string>& user_agent_property();
 
         // ---- i_web_view ----
         // A raw borrow of the owned source (null when unset), like i_image::source().
@@ -92,6 +99,19 @@ namespace maui::controls
         void set_can_go_forward(bool value) override
         {
             can_go_forward_.set(value);
+        }
+
+        // C# IWebView.UserAgent. The getter is a view over the stored value (empty == unset/null).
+        [[nodiscard]] std::string_view user_agent() const override
+        {
+            return user_agent_.get();
+        }
+        // C# WebView.UserAgent setter `set { SetValue(UserAgentProperty, value ?? UserAgent); }`: a null
+        // (empty) assignment keeps the current value — so the developer / handler write-back never wipes a
+        // set agent with null. The handler's read-back path supplies the non-empty platform default here.
+        void set_user_agent(std::string value) override
+        {
+            user_agent_.set(value.empty() ? user_agent_.get() : std::move(value));
         }
 
         // C# IWebView.Navigating: mint the args (with a UrlWebViewSource for the url), raise the public
@@ -145,6 +165,7 @@ namespace maui::controls
         maui::core::property<std::shared_ptr<web_view_source>> source_{*this, source_property()};
         maui::core::property<bool> can_go_back_{*this, can_go_back_property()};
         maui::core::property<bool> can_go_forward_{*this, can_go_forward_property()};
+        maui::core::property<std::string> user_agent_{*this, user_agent_property()};
 
         // The source the subscription below is attached to — kept alive until rewired so the
         // scoped_connection's disconnect never runs against a destroyed event.

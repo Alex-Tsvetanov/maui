@@ -38,6 +38,13 @@ namespace maui::controls
         return descriptor;
     }
 
+    const maui::core::bindable_property<std::string>& web_view::user_agent_property()
+    {
+        // C# WebView.UserAgentProperty: default null (modeled as the empty string).
+        static const maui::core::bindable_property<std::string> descriptor{"user_agent", std::string{}};
+        return descriptor;
+    }
+
     const maui::core::bindable_property<bool>& web_view::can_go_forward_property()
     {
         // C# CanGoForwardPropertyKey: read-only, default false.

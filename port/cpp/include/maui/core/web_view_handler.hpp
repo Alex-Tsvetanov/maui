@@ -24,8 +24,14 @@
 // counters and every evaluated script; eval_result_provider is the canned-result seam headless eval
 // round trips complete through.
 //
-// OUT OF SCOPE (documented, not stubbed): UserAgent, cookie sync (the bulk of WebViewHandler.iOS.cs),
-// WKUIDelegate (JS alert/confirm panels), and the Android/Windows client mappings.
+// UserAgent flows through map_user_agent (WebViewHandler.iOS.MapUserAgent → WebViewExtensions
+// UpdateUserAgent): bidirectional — write WKWebView.CustomUserAgent when the virtual view has a value,
+// else read the platform's CustomUserAgent / default `userAgent` back into the virtual view. The
+// apple_shared .mm also installs a WKUIDelegate that presents the native JS alert / confirm / prompt
+// dialogs (MauiWebViewUIDelegate); both are no-ops headless (the user_agent mirror is stored for tests).
+//
+// OUT OF SCOPE (documented, not stubbed): cookie sync (the bulk of WebViewHandler.iOS.cs) and the
+// Android/Windows client mappings.
 
 #include <cstddef>
 #include <cstdint>
@@ -84,6 +90,9 @@ namespace maui::core
         web_navigation_event current_navigation_event = web_navigation_event::new_page;
 
         // ---- headless mirrors (the apple/ios build pushes to `native` instead) ----
+        // The user agent map_user_agent last synced (the headless stub stores it for test inspection;
+        // the apple/ios build pushes it to WKWebView.CustomUserAgent and reads the default back here).
+        std::string user_agent;
         web_view_source_kind last_source_kind = web_view_source_kind::none;
         std::string last_url;
         std::string last_html;
@@ -149,6 +158,9 @@ namespace maui::core
 
         // Property map (platform recipe): Source?.Load(platform-as-delegate) + UpdateCanGoBackForward.
         static void map_source(web_view_handler& handler, i_web_view& view);
+        // WebViewHandler.iOS.MapUserAgent: bidirectional CustomUserAgent sync (WebViewExtensions
+        // UpdateUserAgent). Headless stores the value in platform->user_agent (no native sync).
+        static void map_user_agent(web_view_handler& handler, i_web_view& view);
 
         // Command map (platform recipe) — WebViewHandler.CommandMapper's entries.
         static void map_go_back(web_view_handler& handler, i_web_view& view, const std::any& args);

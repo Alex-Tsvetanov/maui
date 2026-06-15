@@ -13,15 +13,16 @@
 
 namespace maui::core
 {
-    // WebViewHandler.Mapper: Source (the only property this cut maps — UserAgent/cookies are out of
-    // scope, the Android/Windows client keys are other platforms'). Chained onto the shared view_mapper
-    // so the generic IView properties map first.
+    // WebViewHandler.Mapper: Source + UserAgent (cookies are out of scope, the Android/Windows client
+    // keys are other platforms'). Chained onto the shared view_mapper so the generic IView properties map
+    // first.
     property_mapper<i_web_view, web_view_handler>& web_view_handler::mapper()
     {
         static property_mapper<i_web_view, web_view_handler> table{
             view_mapper(),
             {
                 {"source", &web_view_handler::map_source},
+                {"user_agent", &web_view_handler::map_user_agent},
             },
         };
         return table;

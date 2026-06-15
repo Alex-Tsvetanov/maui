@@ -125,6 +125,22 @@ namespace maui::core
         update_can_go_back_forward(*platform);
     }
 
+    // WebViewHandler.iOS.MapUserAgent + WebViewExtensions.UpdateUserAgent, headless stub: there is no
+    // WKWebView to write CustomUserAgent into, so the synced value is mirrored in platform->user_agent
+    // (the test-inspection seam). When the virtual view's UserAgent is unset, the platform has no default
+    // to read back — C#'s `platformWebView.CustomUserAgent ?? userAgent` is genuinely platform state — so
+    // the headless mirror records the empty string (no native sync). The apple_shared .mm is the
+    // real-native twin that performs the bidirectional CustomUserAgent / `userAgent` KVC sync.
+    void web_view_handler::map_user_agent(web_view_handler& handler, i_web_view& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        platform->user_agent = std::string(view.user_agent());
+    }
+
     // WebViewHandler.MapGoBack + WebViewExtensions.UpdateGoBack, replayed over the simulated list: set
     // CurrentNavigationEvent = Back when a back entry exists, navigate only if CanGoBack, and let the
     // virtual view cancel through send_navigating (the DecidePolicy BackForward branch).
