@@ -11,11 +11,10 @@
 
 namespace maui::core
 {
-    // Mirrors TimePickerHandler.Mapper (character_spacing/font/format/text_color/time), chained onto
-    // the shared view_mapper. The Android/Windows-only Background remap and the iOS/Android
+    // Mirrors TimePickerHandler.Mapper (character_spacing/font/format/is_open/text_color/time), chained
+    // onto the shared view_mapper. The Android/Windows-only Background remap and the iOS/Android
     // FlowDirection+TextAlignment remap stay platform-specific in C# and are not replicated (the
-    // shared view_mapper carries flow_direction); IsOpen is deferred with the focus subsystem (see
-    // i_time_picker.hpp).
+    // shared view_mapper carries flow_direction).
     property_mapper<i_time_picker, time_picker_handler>& time_picker_handler::mapper()
     {
         static property_mapper<i_time_picker, time_picker_handler> table{
@@ -24,6 +23,7 @@ namespace maui::core
                 {"character_spacing", &time_picker_handler::map_character_spacing},
                 {"font", &time_picker_handler::map_font},
                 {"format", &time_picker_handler::map_format},
+                {"is_open", &time_picker_handler::map_is_open},
                 {"text_color", &time_picker_handler::map_text_color},
                 {"time", &time_picker_handler::map_time},
             },

@@ -8,11 +8,16 @@
 // silently rejected (C# logs a warning and keeps the stored value). time_selected carries (old, new)
 // like TimeChangedEventArgs and raises only on a real change.
 //
+// IsOpen (TimePicker.IsOpenProperty, default false, TwoWay) tracks whether the native dialog is
+// visible; a transition raises Opened/Closed (TimePicker.OnIsOpenPropertyChanged). The events fire
+// AFTER the value is stored (the property_changed callback runs post-store), so a handler reading
+// is_open() sees the new value.
+//
 // Specificity note (documented deviation, the entry/slider precedent): C#'s explicit ITimePicker.Time
 // setter writes at FromHandler; the port's set_time doubles as the developer setter, so it stores at
 // manual_value_setter.
 //
-// Deferred (documented, not stubbed): IsOpen + Opened/Closed (focus subsystem), TextTransform.
+// Deferred (documented, not stubbed): TextTransform.
 
 #include <optional>
 #include <string>
@@ -41,6 +46,7 @@ namespace maui::controls
         // Shared bindable-property descriptors (one instance per type, like TimePicker.*Property).
         static const maui::core::bindable_property<std::string>& format_property();
         static const maui::core::bindable_property<std::optional<maui::core::time_span>>& time_property();
+        static const maui::core::bindable_property<bool>& is_open_property();
         static const maui::core::bindable_property<maui::graphics::color>& text_color_property();
         static const maui::core::bindable_property<maui::core::font>& font_property();
         static const maui::core::bindable_property<double>& character_spacing_property();
@@ -58,6 +64,15 @@ namespace maui::controls
         void set_time(std::optional<maui::core::time_span> value) override
         {
             time_.set(value);
+        }
+        [[nodiscard]] bool is_open() const override
+        {
+            return is_open_.get();
+        }
+        // The developer setter AND the handler write-back channel (editing-begin/end on iOS).
+        void set_is_open(bool value) override
+        {
+            is_open_.set(value);
         }
 
         // ---- i_text_style ----
@@ -95,13 +110,19 @@ namespace maui::controls
         // ---- developer-facing events ----
         // TimePicker.TimeSelected — (old, new), the TimeChangedEventArgs pair.
         maui::core::event<std::optional<maui::core::time_span>, std::optional<maui::core::time_span>> time_selected;
+        maui::core::event<> opened; // TimePicker.Opened
+        maui::core::event<> closed; // TimePicker.Closed
 
     private:
         // The descriptor callbacks (time_picker.cpp) reach the event above.
         friend struct time_picker_descriptor_access;
 
+        // TimePicker.HandleIsOpenChanged: raise Opened when the new value is true, else Closed.
+        void on_is_open_changed(bool new_value);
+
         maui::core::property<std::string> format_{*this, format_property()};
         maui::core::property<std::optional<maui::core::time_span>> time_{*this, time_property()};
+        maui::core::property<bool> is_open_{*this, is_open_property()};
         maui::core::property<maui::graphics::color> text_color_{*this, text_color_property()};
         maui::core::property<maui::core::font> font_{*this, font_property()};
         maui::core::property<double> character_spacing_{*this, character_spacing_property()};

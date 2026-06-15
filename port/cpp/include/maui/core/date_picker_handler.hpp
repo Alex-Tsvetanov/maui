@@ -108,5 +108,7 @@ namespace maui::core
         static void map_text_color(date_picker_handler& handler, i_date_picker& view);
         static void map_font(date_picker_handler& handler, i_date_picker& view);
         static void map_character_spacing(date_picker_handler& handler, i_date_picker& view);
+        // DatePickerHandler.MapIsOpen: become first responder when IsOpen, else resign.
+        static void map_is_open(date_picker_handler& handler, i_date_picker& view);
     };
 } // namespace maui::core

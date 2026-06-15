@@ -102,5 +102,7 @@ namespace maui::core
         static void map_text_color(time_picker_handler& handler, i_time_picker& view);
         static void map_font(time_picker_handler& handler, i_time_picker& view);
         static void map_character_spacing(time_picker_handler& handler, i_time_picker& view);
+        // TimePickerHandler.MapIsOpen: become first responder when IsOpen, else resign.
+        static void map_is_open(time_picker_handler& handler, i_time_picker& view);
     };
 } // namespace maui::core

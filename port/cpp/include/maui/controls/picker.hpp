@@ -23,8 +23,14 @@
 // developer setter, so it stores at manual_value_setter — the INTERNAL clamp/update writes keep
 // C#'s from_handler specificity.
 //
-// Deferred (documented, not stubbed): IsOpen + Opened/Closed (the focus subsystem, see i_picker.hpp),
-// ItemDisplayBinding, TextTransform (a Picker no-op in C# anyway).
+// IsOpen (Picker.IsOpenProperty, default false, TwoWay) tracks whether the native dialog/wheel is
+// visible; a transition raises Opened/Closed (Picker.OnIsOpenPropertyChanged → HandleIsOpenChanged).
+// The events fire AFTER the value is stored (the property_changed callback runs post-store), so a
+// handler reading is_open() sees the new value. The C# pending-action queue (deferring the raise until
+// a handler attaches) is NOT replicated — the port raises eagerly on every transition (the
+// PickerTests.cs oracle only asserts the transition→raise).
+//
+// Deferred (documented, not stubbed): ItemDisplayBinding, TextTransform (a Picker no-op in C# anyway).
 
 #include <cstddef>
 #include <memory>
@@ -63,6 +69,7 @@ namespace maui::controls
         static const maui::core::bindable_property<std::string>& title_property();
         static const maui::core::bindable_property<maui::graphics::color>& title_color_property();
         static const maui::core::bindable_property<int>& selected_index_property();
+        static const maui::core::bindable_property<bool>& is_open_property();
         static const maui::core::bindable_property<std::shared_ptr<items_source_type>>& items_source_property();
         static const maui::core::bindable_property<std::optional<std::string>>& selected_item_property();
         static const maui::core::bindable_property<maui::graphics::color>& text_color_property();
@@ -151,6 +158,15 @@ namespace maui::controls
         {
             selected_index_.set(value);
         }
+        [[nodiscard]] bool is_open() const override
+        {
+            return is_open_.get();
+        }
+        // The developer setter AND the handler write-back channel (editing-begin/end on iOS).
+        void set_is_open(bool value) override
+        {
+            is_open_.set(value);
+        }
 
         // ---- i_item_delegate<std::string> (the face the platform recipes read items through) ----
         [[nodiscard]] int get_count() const override;
@@ -228,10 +244,16 @@ namespace maui::controls
 
         // ---- developer-facing events ----
         maui::core::event<> selected_index_changed; // Picker.SelectedIndexChanged
+        maui::core::event<> opened;                 // Picker.Opened (PickerOpenedEventArgs.Empty)
+        maui::core::event<> closed;                 // Picker.Closed (PickerClosedEventArgs.Empty)
 
     private:
         // The descriptor callbacks (picker.cpp) reach the private machinery below.
         friend struct picker_descriptor_access;
+
+        // Picker.HandleIsOpenChanged: raise Opened when the new value is true, else Closed (the value
+        // is already stored, so a handler reading is_open() sees the transition's result).
+        void on_is_open_changed(bool new_value);
 
         // Picker.GetSelectedIndex: re-derive the index from the selected item when one is set.
         [[nodiscard]] int get_selected_index() const;
@@ -265,6 +287,7 @@ namespace maui::controls
         maui::core::property<std::string> title_{*this, title_property()};
         maui::core::property<maui::graphics::color> title_color_{*this, title_color_property()};
         maui::core::property<int> selected_index_{*this, selected_index_property()};
+        maui::core::property<bool> is_open_{*this, is_open_property()};
         maui::core::property<std::shared_ptr<items_source_type>> items_source_{*this, items_source_property()};
         maui::core::property<std::optional<std::string>> selected_item_{*this, selected_item_property()};
         maui::core::property<maui::graphics::color> text_color_{*this, text_color_property()};

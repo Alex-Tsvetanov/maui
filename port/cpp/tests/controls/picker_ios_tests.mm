@@ -42,6 +42,32 @@ namespace
         return (UIPickerView*)field.inputView;
     }
 
+    // Replicates -[UIControl sendActionsForControlEvents:]'s dispatch-table walk for one event (as in
+    // button_ios_tests.mm): a spawned simulator process has no key window, so BecomeFirstResponder (and
+    // the EditingDidBegin/DidEnd actions it would fire) never runs — instead invoke every (target,
+    // action) pair registered for `event` with the control as sender, the exact path the native
+    // callback takes on a device.
+    void send_control_event(UIControl* control, UIControlEvents event)
+    {
+        NSArray* const targets = control.allTargets.allObjects;
+        for (NSUInteger t = 0; t < targets.count; ++t)
+        {
+            id const target = targets[t];
+            NSArray<NSString*>* const actions = [control actionsForTarget:target forControlEvent:event];
+            for (NSUInteger a = 0; a < actions.count; ++a)
+            {
+                SEL const action = NSSelectorFromString(actions[a]);
+                NSMethodSignature* const signature = [target methodSignatureForSelector:action];
+                ASSERT_NE(signature, nil);
+                NSInvocation* const invocation = [NSInvocation invocationWithMethodSignature:signature];
+                invocation.selector = action;
+                id sender = control;
+                [invocation setArgument:&sender atIndex:2]; // 0 = self, 1 = _cmd, 2 = the sender
+                [invocation invokeWithTarget:target];
+            }
+        }
+    }
+
     TEST(ios_picker_seam, attaching_handler_builds_the_maui_picker_shape)
     {
         picker control;
@@ -152,6 +178,54 @@ namespace
 
         control.set_automation_id("beatle_picker");
         EXPECT_EQ(to_std_string(field.accessibilityIdentifier), "beatle_picker");
+    }
+
+    // ---- the IsOpen focus dance (MauiPickerProxy.OnStarted/OnEnded) ----
+
+    TEST(ios_picker_seam, native_editing_begin_sets_is_open_and_is_focused)
+    {
+        picker control;
+        auto handler = std::make_shared<picker_handler>();
+        control.set_handler(handler);
+
+        int opened = 0;
+        control.opened.connect([&opened] { ++opened; });
+
+        send_control_event(native_field(handler), UIControlEventEditingDidBegin);
+        EXPECT_TRUE(control.is_open());
+        EXPECT_TRUE(control.is_focused());
+        EXPECT_EQ(opened, 1); // the IsOpen transition raised Opened
+    }
+
+    TEST(ios_picker_seam, native_editing_end_clears_is_open_and_is_focused)
+    {
+        picker control;
+        auto handler = std::make_shared<picker_handler>();
+        control.set_handler(handler);
+        UITextField* const field = native_field(handler);
+
+        send_control_event(field, UIControlEventEditingDidBegin);
+        int closed = 0;
+        control.closed.connect([&closed] { ++closed; });
+
+        send_control_event(field, UIControlEventEditingDidEnd);
+        EXPECT_FALSE(control.is_open());
+        EXPECT_FALSE(control.is_focused());
+        EXPECT_EQ(closed, 1);
+    }
+
+    TEST(ios_picker_seam, programmatic_is_open_invokes_map_is_open_without_crashing)
+    {
+        picker control;
+        auto handler = std::make_shared<picker_handler>();
+        control.set_handler(handler);
+
+        // MapIsOpen → BecomeFirstResponder (returns NO with no key window in the spawned process, so no
+        // editing callback fires) then ResignFirstResponder — neither crashes; the virtual IsOpen holds.
+        control.set_is_open(true);
+        EXPECT_TRUE(control.is_open());
+        control.set_is_open(false);
+        EXPECT_FALSE(control.is_open());
     }
 
     TEST(ios_picker_seam, handler_resolved_from_default_registry)

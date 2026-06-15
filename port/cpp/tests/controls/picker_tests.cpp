@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "maui/controls/observable_collection.hpp"
+#include "maui/core/binding_mode.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_picker.hpp"
@@ -522,6 +523,61 @@ namespace
         EXPECT_EQ(raised, 1);
         control.set_selected_index(0);
         EXPECT_EQ(raised, 2);
+    }
+
+    // ---- IsOpen + Opened/Closed (Picker.IsOpenProperty / OnIsOpenPropertyChanged) ----
+
+    TEST(picker, is_open_default_false)
+    {
+        const picker control;
+        EXPECT_FALSE(control.is_open());
+    }
+
+    TEST(picker, is_open_property_is_two_way)
+    {
+        EXPECT_EQ(picker::is_open_property().default_binding_mode(), maui::core::binding_mode::two_way);
+    }
+
+    TEST(picker, set_is_open_true_raises_opened)
+    {
+        picker control;
+        int opened = 0;
+        int closed = 0;
+        bool open_when_raised = false;
+        control.opened.connect([&] {
+            ++opened;
+            open_when_raised = control.is_open(); // the value is stored before Opened fires
+        });
+        control.closed.connect([&] { ++closed; });
+
+        control.set_is_open(true);
+        EXPECT_EQ(opened, 1);
+        EXPECT_EQ(closed, 0);
+        EXPECT_TRUE(control.is_open());
+        EXPECT_TRUE(open_when_raised);
+
+        control.set_is_open(true); // unchanged -> silent
+        EXPECT_EQ(opened, 1);
+    }
+
+    TEST(picker, set_is_open_false_raises_closed)
+    {
+        picker control;
+        control.set_is_open(true);
+        int opened = 0;
+        int closed = 0;
+        bool open_when_raised = true;
+        control.opened.connect([&] { ++opened; });
+        control.closed.connect([&] {
+            ++closed;
+            open_when_raised = control.is_open(); // the value is stored (false) before Closed fires
+        });
+
+        control.set_is_open(false);
+        EXPECT_EQ(closed, 1);
+        EXPECT_EQ(opened, 0);
+        EXPECT_FALSE(control.is_open());
+        EXPECT_FALSE(open_when_raised);
     }
 
     // ---- the headless handler seam (PickerExtensions.UpdatePicker mirrors + the on_done commit) ----

@@ -10,6 +10,7 @@
 #include <optional>
 #include <string>
 
+#include "maui/core/binding_mode.hpp"
 #include "maui/core/date_time.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
@@ -104,6 +105,56 @@ namespace
             EXPECT_EQ(old_time, test_case.initial_value);
             EXPECT_EQ(new_time, test_case.final_value);
         }
+    }
+
+    // ---- IsOpen + Opened/Closed (TimePicker.IsOpenProperty / OnIsOpenPropertyChanged) ----
+
+    TEST(time_picker, is_open_default_false)
+    {
+        const time_picker picker;
+        EXPECT_FALSE(picker.is_open());
+    }
+
+    TEST(time_picker, is_open_property_is_two_way)
+    {
+        EXPECT_EQ(time_picker::is_open_property().default_binding_mode(), maui::core::binding_mode::two_way);
+    }
+
+    TEST(time_picker, set_is_open_true_raises_opened)
+    {
+        time_picker picker;
+        int opened = 0;
+        int closed = 0;
+        bool open_when_raised = false;
+        picker.opened.connect([&] {
+            ++opened;
+            open_when_raised = picker.is_open(); // the value is stored before Opened fires
+        });
+        picker.closed.connect([&] { ++closed; });
+
+        picker.set_is_open(true);
+        EXPECT_EQ(opened, 1);
+        EXPECT_EQ(closed, 0);
+        EXPECT_TRUE(picker.is_open());
+        EXPECT_TRUE(open_when_raised);
+
+        picker.set_is_open(true); // unchanged -> silent
+        EXPECT_EQ(opened, 1);
+    }
+
+    TEST(time_picker, set_is_open_false_raises_closed)
+    {
+        time_picker picker;
+        picker.set_is_open(true);
+        int opened = 0;
+        int closed = 0;
+        picker.opened.connect([&] { ++opened; });
+        picker.closed.connect([&] { ++closed; });
+
+        picker.set_is_open(false);
+        EXPECT_EQ(closed, 1);
+        EXPECT_EQ(opened, 0);
+        EXPECT_FALSE(picker.is_open());
     }
 
     // ---- the headless handler seam (the TimePickerExtensions.UpdateTime mirror + on_done) ----

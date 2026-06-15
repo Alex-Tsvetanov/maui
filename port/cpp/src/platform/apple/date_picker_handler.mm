@@ -31,6 +31,7 @@
 #include "maui/core/date_picker_handler.hpp"
 #include "maui/core/date_time.hpp"
 #include "maui/core/i_date_picker.hpp"
+#include "maui/core/view_focus_ops.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
@@ -249,6 +250,21 @@ namespace maui::core
         // No NSDatePicker analog (no attributed field text) — see the header note.
         (void)handler;
         (void)view;
+    }
+
+    void date_picker_handler::map_is_open(date_picker_handler& handler, i_date_picker& view)
+    {
+        // DatePickerHandler.MapIsOpen → become first responder when IsOpen, else resign. AppKit's idiom
+        // is window.makeFirstResponder: (the shared view_focus_ops); there is no UITextField editing
+        // callback on macOS, so the dialog focus is the observable behavior.
+        if (view.is_open())
+        {
+            focus_native_view(handler.native_view());
+        }
+        else
+        {
+            unfocus_native_view(handler.native_view());
+        }
     }
 
     maui::graphics::size date_picker_handler::get_desired_size(double /*width_constraint*/,

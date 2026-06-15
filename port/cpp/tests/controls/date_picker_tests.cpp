@@ -11,6 +11,7 @@
 #include <string>
 #include <string_view>
 
+#include "maui/core/binding_mode.hpp"
 #include "maui/core/date_picker_handler.hpp"
 #include "maui/core/date_time.hpp"
 #include "maui/core/handler_registry.hpp"
@@ -260,6 +261,56 @@ namespace
         date_picker picker;
         picker.set_date(date_time{date_time(2015, 7, 21).days(), std::chrono::hours{13}});
         EXPECT_EQ(picker.date(), std::optional<date_time>(date_time(2015, 7, 21)));
+    }
+
+    // ---- IsOpen + Opened/Closed (DatePicker.IsOpenProperty / OnIsOpenPropertyChanged) ----
+
+    TEST(date_picker, is_open_default_false)
+    {
+        const date_picker picker;
+        EXPECT_FALSE(picker.is_open());
+    }
+
+    TEST(date_picker, is_open_property_is_two_way)
+    {
+        EXPECT_EQ(date_picker::is_open_property().default_binding_mode(), maui::core::binding_mode::two_way);
+    }
+
+    TEST(date_picker, set_is_open_true_raises_opened)
+    {
+        date_picker picker;
+        int opened = 0;
+        int closed = 0;
+        bool open_when_raised = false;
+        picker.opened.connect([&] {
+            ++opened;
+            open_when_raised = picker.is_open(); // the value is stored before Opened fires
+        });
+        picker.closed.connect([&] { ++closed; });
+
+        picker.set_is_open(true);
+        EXPECT_EQ(opened, 1);
+        EXPECT_EQ(closed, 0);
+        EXPECT_TRUE(picker.is_open());
+        EXPECT_TRUE(open_when_raised);
+
+        picker.set_is_open(true); // unchanged -> silent
+        EXPECT_EQ(opened, 1);
+    }
+
+    TEST(date_picker, set_is_open_false_raises_closed)
+    {
+        date_picker picker;
+        picker.set_is_open(true);
+        int opened = 0;
+        int closed = 0;
+        picker.opened.connect([&] { ++opened; });
+        picker.closed.connect([&] { ++closed; });
+
+        picker.set_is_open(false);
+        EXPECT_EQ(closed, 1);
+        EXPECT_EQ(opened, 0);
+        EXPECT_FALSE(picker.is_open());
     }
 
     // ---- the headless handler seam (the DatePickerExtensions.UpdateDate mirror + on_done) ----

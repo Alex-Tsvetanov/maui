@@ -144,6 +144,13 @@ namespace maui::core
         }
     }
 
+    void picker_handler::map_is_open(picker_handler& /*handler*/, i_picker& /*view*/)
+    {
+        // PickerHandler.MapIsOpen → UpdateIsOpen: become/resign first responder on the native field.
+        // Headless has no native dialog to present (and no editing-begin/end callback to fire back), so
+        // this is a genuine no-op — the control-level is_open()/Opened/Closed are the observable result.
+    }
+
     maui::graphics::size picker_handler::get_desired_size(double width_constraint, double /*height_constraint*/) const
     {
         // Headless placeholder metric (no real text layout): a single-line field ~150pt wide by

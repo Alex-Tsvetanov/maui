@@ -12,10 +12,13 @@
 //   UpdateDate = set the dialog date only on a real difference, then render the field text — null
 //   Date shows empty; "d"/"D"/empty route through the standard patterns, anything else is a custom
 //   DateTime.ToString pattern (the port renders in the invariant/en-US culture — see date_time.hpp);
-//   UpdateMinimumDate/UpdateMaximumDate land on the dialog's MinimumDate/MaximumDate.
-// Not ported here (deferred): IsOpen + the focus dance (EditingDidBegin/DidEnd → IsFocused/IsOpen),
-// UpdateImmediately (ValueChanged → live commit, an iOS platform-specific), the VoiceOver
-// notifications, and the FlowDirection+TextAlignment remap (the shared view_mapper carries
+//   UpdateMinimumDate/UpdateMaximumDate land on the dialog's MinimumDate/MaximumDate;
+//   MapIsOpen = BecomeFirstResponder when IsOpen, else ResignFirstResponder.
+// The IsOpen focus dance is wired through the editing proxy (DatePickerHandler.iOS.cs OnStarted/OnEnded):
+// EditingDidBegin sets `IsOpen = IsFocused = true` (IsOpen FIRST), EditingDidEnd sets both false. The
+// proxy holds a RAW handler back-ref cleared on disconnect (no retain cycle; C# uses WeakReference).
+// Not ported here (deferred): UpdateImmediately (ValueChanged → live commit, an iOS platform-specific),
+// the VoiceOver notifications, and the FlowDirection+TextAlignment remap (the shared view_mapper carries
 // flow_direction).
 
 #import <UIKit/UIKit.h>
@@ -33,6 +36,7 @@
 #include "maui/core/date_picker_handler.hpp"
 #include "maui/core/date_time.hpp"
 #include "maui/core/i_date_picker.hpp"
+#include "maui/core/view_focus_ops.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/rect.hpp"
@@ -45,10 +49,19 @@
 - (void)onDone:(id)sender;
 @end
 
+// The IsOpen focus dance (DatePickerHandler.iOS.cs OnStarted/OnEnded): observes EditingDidBegin/DidEnd
+// and writes IsOpen + IsFocused back (IsOpen FIRST). Raw handler back-ref cleared on disconnect.
+@interface MauiIosDatePickerEditingProxy : NSObject
+@property(nonatomic) maui::core::date_picker_handler* handler;
+- (void)onStarted:(id)sender;
+- (void)onEnded:(id)sender;
+@end
+
 namespace
 {
-    // Key for the associated done-target the UITextField keeps alive (bar-button targets are weak).
+    // Keys for the associated done-target / editing-proxy the UITextField keeps alive (weak otherwise).
     const char k_done_key = 0;
+    const char k_editing_proxy_key = 0;
 
     UITextField* as_field(void* native)
     {
@@ -125,6 +138,30 @@ namespace
 }
 @end
 
+@implementation MauiIosDatePickerEditingProxy
+- (void)onStarted:(id)sender
+{
+    // DatePickerHandler.iOS.cs OnStarted: `virtualView.IsFocused = virtualView.IsOpen = true` (IsOpen FIRST).
+    auto* const view = self.handler != nullptr ? self.handler->virtual_view() : nullptr;
+    if (view != nullptr)
+    {
+        view->set_is_open(true);
+        view->set_is_focused(true);
+    }
+}
+
+- (void)onEnded:(id)sender
+{
+    // DatePickerHandler.iOS.cs OnEnded: `virtualView.IsFocused = virtualView.IsOpen = false` (IsOpen FIRST).
+    auto* const view = self.handler != nullptr ? self.handler->virtual_view() : nullptr;
+    if (view != nullptr)
+    {
+        view->set_is_open(false);
+        view->set_is_focused(false);
+    }
+}
+@end
+
 namespace maui::core
 {
     date_picker_platform::~date_picker_platform()
@@ -187,6 +224,13 @@ namespace maui::core
         field.inputAccessoryView.autoresizingMask = UIViewAutoresizingFlexibleHeight;
         objc_setAssociatedObject(field, &k_done_key, done, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 
+        // The IsOpen focus dance: EditingDidBegin/DidEnd drive the editing proxy (raw back-ref).
+        MauiIosDatePickerEditingProxy* const editing = [[MauiIosDatePickerEditingProxy alloc] init];
+        editing.handler = this;
+        [field addTarget:editing action:@selector(onStarted:) forControlEvents:UIControlEventEditingDidBegin];
+        [field addTarget:editing action:@selector(onEnded:) forControlEvents:UIControlEventEditingDidEnd];
+        objc_setAssociatedObject(field, &k_editing_proxy_key, editing, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
         // ConnectHandler's initial dialog seed (the C# `picker.Date = dt.ToNSDate()` block) happens
         // through map_date on attach; on_done is the portable Done channel.
         platform.on_done = [this] { commit_date(*this); };
@@ -196,7 +240,15 @@ namespace maui::core
     {
         UITextField* const field = as_field(platform.native);
         field.inputAccessoryView = nil;
+        if (MauiIosDatePickerEditingProxy* const editing =
+                (MauiIosDatePickerEditingProxy*)objc_getAssociatedObject(field, &k_editing_proxy_key))
+        {
+            [field removeTarget:editing action:@selector(onStarted:) forControlEvents:UIControlEventEditingDidBegin];
+            [field removeTarget:editing action:@selector(onEnded:) forControlEvents:UIControlEventEditingDidEnd];
+            editing.handler = nullptr;
+        }
         objc_setAssociatedObject(field, &k_done_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(field, &k_editing_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         platform.on_done = nullptr;
     }
 
@@ -273,6 +325,21 @@ namespace maui::core
         if (text_attr != nil)
         {
             field.attributedText = text_attr;
+        }
+    }
+
+    void date_picker_handler::map_is_open(date_picker_handler& handler, i_date_picker& view)
+    {
+        // DatePickerHandler.MapIsOpen: BecomeFirstResponder when IsOpen (presenting the dialog), else
+        // ResignFirstResponder. On a real device this fires EditingDidBegin/DidEnd, which the editing
+        // proxy turns into the IsOpen + IsFocused write-back.
+        if (view.is_open())
+        {
+            focus_native_view(handler.native_view());
+        }
+        else
+        {
+            unfocus_native_view(handler.native_view());
         }
     }
 

@@ -11,11 +11,10 @@
 
 namespace maui::core
 {
-    // Mirrors DatePickerHandler.Mapper (character_spacing/date/font/format/maximum_date/minimum_date/
-    // text_color), chained onto the shared view_mapper. The Android/Windows-only Background remap and
-    // the iOS FlowDirection+TextAlignment remap stay platform-specific in C# and are not replicated
-    // (the shared view_mapper carries flow_direction); IsOpen is deferred with the focus subsystem
-    // (see i_date_picker.hpp).
+    // Mirrors DatePickerHandler.Mapper (character_spacing/date/font/format/is_open/maximum_date/
+    // minimum_date/text_color), chained onto the shared view_mapper. The Android/Windows-only Background
+    // remap and the iOS FlowDirection+TextAlignment remap stay platform-specific in C# and are not
+    // replicated (the shared view_mapper carries flow_direction).
     property_mapper<i_date_picker, date_picker_handler>& date_picker_handler::mapper()
     {
         static property_mapper<i_date_picker, date_picker_handler> table{
@@ -25,6 +24,7 @@ namespace maui::core
                 {"date", &date_picker_handler::map_date},
                 {"font", &date_picker_handler::map_font},
                 {"format", &date_picker_handler::map_format},
+                {"is_open", &date_picker_handler::map_is_open},
                 {"maximum_date", &date_picker_handler::map_maximum_date},
                 {"minimum_date", &date_picker_handler::map_minimum_date},
                 {"text_color", &date_picker_handler::map_text_color},

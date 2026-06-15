@@ -14,11 +14,16 @@
 //
 // date_selected carries (old, new) like DateChangedEventArgs; it raises only on a real change.
 //
+// IsOpen (DatePicker.IsOpenProperty, default false, TwoWay) tracks whether the native dialog is
+// visible; a transition raises Opened/Closed (DatePicker.OnIsOpenPropertyChanged). The events fire
+// AFTER the value is stored (the property_changed callback runs post-store), so a handler reading
+// is_open() sees the new value.
+//
 // Specificity note (documented deviation, the entry/slider precedent): C#'s explicit IDatePicker
 // setters write at FromHandler; the port's set_date/set_format double as the developer setters, so
 // they store at manual_value_setter.
 //
-// Deferred (documented, not stubbed): IsOpen + Opened/Closed (focus subsystem), TextTransform.
+// Deferred (documented, not stubbed): TextTransform.
 
 #include <optional>
 #include <string>
@@ -49,6 +54,7 @@ namespace maui::controls
         static const maui::core::bindable_property<std::optional<maui::core::date_time>>& date_property();
         static const maui::core::bindable_property<std::optional<maui::core::date_time>>& minimum_date_property();
         static const maui::core::bindable_property<std::optional<maui::core::date_time>>& maximum_date_property();
+        static const maui::core::bindable_property<bool>& is_open_property();
         static const maui::core::bindable_property<maui::graphics::color>& text_color_property();
         static const maui::core::bindable_property<maui::core::font>& font_property();
         static const maui::core::bindable_property<double>& character_spacing_property();
@@ -78,6 +84,15 @@ namespace maui::controls
         [[nodiscard]] std::optional<maui::core::date_time> maximum_date() const override
         {
             return maximum_date_.get();
+        }
+        [[nodiscard]] bool is_open() const override
+        {
+            return is_open_.get();
+        }
+        // The developer setter AND the handler write-back channel (editing-begin/end on iOS).
+        void set_is_open(bool value) override
+        {
+            is_open_.set(value);
         }
 
         // ---- i_text_style ----
@@ -119,15 +134,21 @@ namespace maui::controls
         // ---- developer-facing events ----
         // DatePicker.DateSelected — (old, new), the DateChangedEventArgs pair.
         maui::core::event<std::optional<maui::core::date_time>, std::optional<maui::core::date_time>> date_selected;
+        maui::core::event<> opened; // DatePicker.Opened
+        maui::core::event<> closed; // DatePicker.Closed
 
     private:
         // The descriptor callbacks (date_picker.cpp) reach the typed properties below.
         friend struct date_picker_descriptor_access;
 
+        // DatePicker.HandleIsOpenChanged: raise Opened when the new value is true, else Closed.
+        void on_is_open_changed(bool new_value);
+
         maui::core::property<std::string> format_{*this, format_property()};
         maui::core::property<std::optional<maui::core::date_time>> date_{*this, date_property()};
         maui::core::property<std::optional<maui::core::date_time>> minimum_date_{*this, minimum_date_property()};
         maui::core::property<std::optional<maui::core::date_time>> maximum_date_{*this, maximum_date_property()};
+        maui::core::property<bool> is_open_{*this, is_open_property()};
         maui::core::property<maui::graphics::color> text_color_{*this, text_color_property()};
         maui::core::property<maui::core::font> font_{*this, font_property()};
         maui::core::property<double> character_spacing_{*this, character_spacing_property()};

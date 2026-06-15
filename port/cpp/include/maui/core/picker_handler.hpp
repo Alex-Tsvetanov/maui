@@ -114,5 +114,8 @@ namespace maui::core
         static void map_character_spacing(picker_handler& handler, i_picker& view);
         static void map_horizontal_text_alignment(picker_handler& handler, i_picker& view);
         static void map_vertical_text_alignment(picker_handler& handler, i_picker& view);
+        // PickerHandler.MapIsOpen: become first responder when IsOpen, else resign (focus the native
+        // field opens its inputView wheel; resigning dismisses it).
+        static void map_is_open(picker_handler& handler, i_picker& view);
     };
 } // namespace maui::core

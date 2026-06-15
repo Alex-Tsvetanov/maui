@@ -11,11 +11,10 @@
 
 namespace maui::core
 {
-    // Mirrors PickerHandler.Mapper (character_spacing/font/selected_index/text_color/title/
+    // Mirrors PickerHandler.Mapper (character_spacing/font/is_open/selected_index/text_color/title/
     // title_color/alignments/items), chained onto the shared view_mapper. The Android/Windows-only
-    // Background and IsEnabled remaps stay platform-specific in C# and are not replicated; IsOpen is
-    // deferred with the focus subsystem (see i_picker.hpp). The control re-runs the "items" key on
-    // every collection change (Handler?.UpdateValue(nameof(IPicker.Items))).
+    // Background and IsEnabled remaps stay platform-specific in C# and are not replicated. The control
+    // re-runs the "items" key on every collection change (Handler?.UpdateValue(nameof(IPicker.Items))).
     property_mapper<i_picker, picker_handler>& picker_handler::mapper()
     {
         static property_mapper<i_picker, picker_handler> table{
@@ -23,6 +22,7 @@ namespace maui::core
             {
                 {"character_spacing", &picker_handler::map_character_spacing},
                 {"font", &picker_handler::map_font},
+                {"is_open", &picker_handler::map_is_open},
                 {"selected_index", &picker_handler::map_selected_index},
                 {"text_color", &picker_handler::map_text_color},
                 {"title", &picker_handler::map_title},

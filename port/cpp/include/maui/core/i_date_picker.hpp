@@ -9,7 +9,9 @@
 // specificity, like C#'s explicit IDatePicker.Date setter). format() likewise mirrors C#'s settable
 // interface property. minimum_date()/maximum_date() are read-only on the contract, exactly as in C#.
 //
-// Deferred (documented, not stubbed): IsOpen + Opened/Closed (focus subsystem; see date_picker.hpp).
+// is_open tracks whether the native dialog is visible and flows both ways (MapIsOpen pushes it native;
+// the editing-begin/end callback writes it back — DatePickerHandler.iOS.cs sets IsFocused = IsOpen).
+// The Opened/Closed events live on the control (DatePicker → date_picker.hpp).
 
 #include <optional>
 #include <string_view>
@@ -32,5 +34,9 @@ namespace maui::core
 
         [[nodiscard]] virtual std::optional<date_time> minimum_date() const = 0;
         [[nodiscard]] virtual std::optional<date_time> maximum_date() const = 0;
+
+        [[nodiscard]] virtual bool is_open() const = 0;
+        // Both ways: MapIsOpen pushes it native, the editing-begin/end callback writes it back.
+        virtual void set_is_open(bool value) = 0;
     };
 } // namespace maui::core

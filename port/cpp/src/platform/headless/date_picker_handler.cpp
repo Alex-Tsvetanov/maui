@@ -128,6 +128,13 @@ namespace maui::core
         }
     }
 
+    void date_picker_handler::map_is_open(date_picker_handler& /*handler*/, i_date_picker& /*view*/)
+    {
+        // DatePickerHandler.MapIsOpen → become/resign first responder on the native field. Headless
+        // has no native dialog (and no editing-begin/end callback to fire back), so this is a genuine
+        // no-op — the control-level is_open()/Opened/Closed are the observable result.
+    }
+
     maui::graphics::size date_picker_handler::get_desired_size(double width_constraint,
                                                                double /*height_constraint*/) const
     {

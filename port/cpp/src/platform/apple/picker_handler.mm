@@ -31,6 +31,7 @@
 #include "maui/core/i_picker.hpp"
 #include "maui/core/picker_handler.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/view_focus_ops.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
@@ -333,6 +334,22 @@ namespace maui::core
         // mirror on picker_platform stays headless-only.
         (void)handler;
         (void)view;
+    }
+
+    void picker_handler::map_is_open(picker_handler& handler, i_picker& view)
+    {
+        // PickerHandler.MapIsOpen → UpdateIsOpen: become first responder when IsOpen, else resign.
+        // AppKit's idiom is window.makeFirstResponder: (the popup opens its menu on interaction); the
+        // shared view_focus_ops is the faithful AppKit analog. There is no UITextField editing
+        // callback on macOS, so the dialog presentation is the observable behavior.
+        if (view.is_open())
+        {
+            focus_native_view(handler.native_view());
+        }
+        else
+        {
+            unfocus_native_view(handler.native_view());
+        }
     }
 
     maui::graphics::size picker_handler::get_desired_size(double /*width_constraint*/,

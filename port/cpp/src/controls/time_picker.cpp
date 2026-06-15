@@ -12,8 +12,8 @@
 #include "maui/core/date_time.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/handler_registry.hpp"
-#include "maui/graphics/color.hpp"
 #include "maui/core/time_picker_handler.hpp"
+#include "maui/graphics/color.hpp"
 
 namespace maui::controls
 {
@@ -29,6 +29,12 @@ namespace maui::controls
         static void raise_time_selected(time_picker& self, const opt_time& old_value, const opt_time& new_value)
         {
             self.time_selected.raise(old_value, new_value);
+        }
+
+        // TimePicker.OnIsOpenPropertyChanged → HandleIsOpenChanged (raise Opened/Closed by transition).
+        static void on_is_open_changed(time_picker& self, bool new_value)
+        {
+            self.on_is_open_changed(new_value);
         }
     };
 
@@ -75,6 +81,34 @@ namespace maui::controls
     {
         static const maui::core::bindable_property<double> descriptor{"character_spacing", 0.0};
         return descriptor;
+    }
+
+    // TimePicker.IsOpenProperty: default false, TwoWay; a change raises Opened/Closed by transition.
+    const maui::core::bindable_property<bool>& time_picker::is_open_property()
+    {
+        static const maui::core::bindable_property<bool> descriptor{
+            "is_open",
+            false,
+            {.property_changed =
+                 [](maui::core::bindable_object& bindable, const bool&, const bool& new_value) {
+                     time_picker_descriptor_access::on_is_open_changed(dynamic_cast<time_picker&>(bindable), new_value);
+                 },
+             .default_binding_mode = maui::core::binding_mode::two_way}};
+        return descriptor;
+    }
+
+    void time_picker::on_is_open_changed(bool new_value)
+    {
+        // TimePicker.HandleIsOpenChanged: the value is already stored, so raise Opened when it turned
+        // true and Closed when it turned false (a handler reading is_open() observes the transition).
+        if (new_value)
+        {
+            opened.raise();
+        }
+        else
+        {
+            closed.raise();
+        }
     }
 } // namespace maui::controls
 

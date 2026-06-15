@@ -13,8 +13,11 @@
 // (the control stores it at setter_specificity::from_handler, like C#'s explicit IPicker.SelectedIndex
 // setter using SetterSpecificity.FromHandler).
 //
-// Deferred (documented, not stubbed): IsOpen + the Opened/Closed events (the focus/first-responder
-// subsystem is out of the port's contract — see picker.hpp).
+// is_open tracks whether the native dialog/wheel is visible. It flows both ways like selected_index:
+// setting it virtual→native opens/closes the dialog (PickerHandler.MapIsOpen → become/resign first
+// responder), and the native editing-begin/end callback writes it back (PickerHandler.iOS.cs
+// OnStarted/OnEnded set IsFocused = IsOpen = true/false). The Opened/Closed events live on the control
+// (Picker.OnIsOpenPropertyChanged → picker.hpp).
 
 #include <string>
 #include <string_view>
@@ -36,5 +39,9 @@ namespace maui::core
         [[nodiscard]] virtual int selected_index() const = 0;
         // Inbound channel: the handler writes the native row pick back (FromHandler specificity).
         virtual void set_selected_index(int value) = 0;
+
+        [[nodiscard]] virtual bool is_open() const = 0;
+        // Both ways: MapIsOpen pushes it native, the editing-begin/end callback writes it back.
+        virtual void set_is_open(bool value) = 0;
     };
 } // namespace maui::core

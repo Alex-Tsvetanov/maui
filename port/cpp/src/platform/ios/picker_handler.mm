@@ -12,11 +12,16 @@
 //   not ported); OnDone = FinishSelectItem (an unset row with items present commits row 0, then
 //   UpdatePickerFromPickerSource writes text + the virtual selection and resigns first responder);
 //   map bodies = PickerExtensions.UpdatePicker / UpdatePickerTitle (attributed placeholder in
-//   TitleColor) / UpdateTextColor / UpdateFont / UpdateCharacterSpacing / alignment updates.
-// Not ported here (deferred): IsOpen + the focus/first-responder dance (EditingDidBegin/DidEnd set
-// IsFocused/IsOpen — focus subsystem), the touch-dismiss window gesture (needs a UIWindow), the
-// VoiceOver focus notifications, and the EditingChanged keyboard-typing reset (no editing sessions in
-// the spawned test process — see button_ios_tests.mm).
+//   TitleColor) / UpdateTextColor / UpdateFont / UpdateCharacterSpacing / alignment updates;
+//   MapIsOpen = UpdateIsOpen (BecomeFirstResponder when IsOpen, else ResignFirstResponder).
+// The IsOpen focus dance is wired through MauiPickerProxy (the MauiPickerProxy.OnStarted/OnEnded port):
+// EditingDidBegin sets `IsOpen = IsFocused = true` (IsOpen FIRST, matching C#'s
+// `virtualView.IsFocused = virtualView.IsOpen = true` right-to-left assignment), EditingDidEnd sets
+// both false. The proxy holds a RAW back-ref to the handler cleared on disconnect (the file's
+// weak-back-ref idiom; C# uses WeakReference) — no retain cycle.
+// Not ported here (deferred): the touch-dismiss window gesture (needs a UIWindow), the VoiceOver focus
+// notifications, and the EditingChanged keyboard-typing reset (no editing sessions in the spawned test
+// process — see button_ios_tests.mm).
 
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
@@ -33,6 +38,7 @@
 #include "maui/core/i_picker.hpp"
 #include "maui/core/picker_handler.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/view_focus_ops.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/rect.hpp"
@@ -83,11 +89,21 @@
 - (void)onDone:(id)sender;
 @end
 
+// MauiPickerProxy (the IsOpen focus dance, MauiPickerProxy.OnStarted/OnEnded port): observes
+// EditingDidBegin/DidEnd on the field and writes IsOpen + IsFocused back to the virtual view (IsOpen
+// FIRST). Holds a RAW handler back-ref cleared on disconnect (no retain cycle; C# uses WeakReference).
+@interface MauiPickerEditingProxy : NSObject
+@property(nonatomic) maui::core::picker_handler* handler;
+- (void)onStarted:(id)sender;
+- (void)onEnded:(id)sender;
+@end
+
 namespace
 {
     // Keys for the associated objects the UITextField keeps alive (targets/delegates are weak).
     const char k_source_key = 0;
     const char k_done_key = 0;
+    const char k_editing_proxy_key = 0;
 
     UITextField* as_field(void* native)
     {
@@ -204,6 +220,30 @@ namespace
 }
 @end
 
+@implementation MauiPickerEditingProxy
+- (void)onStarted:(id)sender
+{
+    // MauiPickerProxy.OnStarted: `virtualView.IsFocused = virtualView.IsOpen = true` (IsOpen FIRST).
+    auto* const view = self.handler != nullptr ? self.handler->virtual_view() : nullptr;
+    if (view != nullptr)
+    {
+        view->set_is_open(true);
+        view->set_is_focused(true);
+    }
+}
+
+- (void)onEnded:(id)sender
+{
+    // MauiPickerProxy.OnEnded: `virtualView.IsFocused = virtualView.IsOpen = false` (IsOpen FIRST).
+    auto* const view = self.handler != nullptr ? self.handler->virtual_view() : nullptr;
+    if (view != nullptr)
+    {
+        view->set_is_open(false);
+        view->set_is_focused(false);
+    }
+}
+@end
+
 namespace maui::core
 {
     picker_platform::~picker_platform()
@@ -271,6 +311,14 @@ namespace maui::core
         field.inputAccessoryView.autoresizingMask = UIViewAutoresizingFlexibleHeight;
         objc_setAssociatedObject(field, &k_done_key, done, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 
+        // MauiPickerProxy.Connect: EditingDidBegin/DidEnd drive the IsOpen focus dance. The proxy holds
+        // a raw back-ref to `this` (cleared on disconnect) — no retain cycle.
+        MauiPickerEditingProxy* const editing = [[MauiPickerEditingProxy alloc] init];
+        editing.handler = this;
+        [field addTarget:editing action:@selector(onStarted:) forControlEvents:UIControlEventEditingDidBegin];
+        [field addTarget:editing action:@selector(onEnded:) forControlEvents:UIControlEventEditingDidEnd];
+        objc_setAssociatedObject(field, &k_editing_proxy_key, editing, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
         // The portable Done channel (the headless twin's seam): commits the given row (or the
         // source's pending one at -1 → row 0, FinishSelectItem).
         platform.on_done = [this](int row) {
@@ -295,8 +343,17 @@ namespace maui::core
         wheel.dataSource = nil;
         wheel.delegate = nil;
         field.inputAccessoryView = nil;
+        // MauiPickerProxy.Disconnect: detach the editing observers and clear its raw handler back-ref.
+        if (MauiPickerEditingProxy* const editing =
+                (MauiPickerEditingProxy*)objc_getAssociatedObject(field, &k_editing_proxy_key))
+        {
+            [field removeTarget:editing action:@selector(onStarted:) forControlEvents:UIControlEventEditingDidBegin];
+            [field removeTarget:editing action:@selector(onEnded:) forControlEvents:UIControlEventEditingDidEnd];
+            editing.handler = nullptr;
+        }
         objc_setAssociatedObject(field, &k_source_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(field, &k_done_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        objc_setAssociatedObject(field, &k_editing_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         platform.on_done = nullptr;
     }
 
@@ -388,6 +445,22 @@ namespace maui::core
         {
             as_field(platform->native).contentVerticalAlignment =
                 maui::platform::ios::to_ui_control_content_vertical_alignment(view.vertical_text_alignment());
+        }
+    }
+
+    void picker_handler::map_is_open(picker_handler& handler, i_picker& view)
+    {
+        // PickerHandler.MapIsOpen → UpdateIsOpen: BecomeFirstResponder when IsOpen (showing the wheel),
+        // else ResignFirstResponder. On a real device this fires EditingDidBegin/DidEnd, which the
+        // MauiPickerProxy turns into the IsOpen + IsFocused write-back (the property guard makes the
+        // already-stored IsOpen a silent no-op, so no double Opened/Closed).
+        if (view.is_open())
+        {
+            focus_native_view(handler.native_view());
+        }
+        else
+        {
+            unfocus_native_view(handler.native_view());
         }
     }
 

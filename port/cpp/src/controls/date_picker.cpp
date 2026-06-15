@@ -100,6 +100,12 @@ namespace maui::controls
         {
             self.date_selected.raise(old_value, new_value);
         }
+
+        // DatePicker.OnIsOpenPropertyChanged → HandleIsOpenChanged (raise Opened/Closed by transition).
+        static void on_is_open_changed(date_picker& self, bool new_value)
+        {
+            self.on_is_open_changed(new_value);
+        }
     };
 
     // DatePicker.FormatProperty: default "d" (the short-date pattern).
@@ -186,6 +192,34 @@ namespace maui::controls
     {
         static const maui::core::bindable_property<double> descriptor{"character_spacing", 0.0};
         return descriptor;
+    }
+
+    // DatePicker.IsOpenProperty: default false, TwoWay; a change raises Opened/Closed by transition.
+    const maui::core::bindable_property<bool>& date_picker::is_open_property()
+    {
+        static const maui::core::bindable_property<bool> descriptor{
+            "is_open",
+            false,
+            {.property_changed =
+                 [](maui::core::bindable_object& bindable, const bool&, const bool& new_value) {
+                     date_picker_descriptor_access::on_is_open_changed(dynamic_cast<date_picker&>(bindable), new_value);
+                 },
+             .default_binding_mode = maui::core::binding_mode::two_way}};
+        return descriptor;
+    }
+
+    void date_picker::on_is_open_changed(bool new_value)
+    {
+        // DatePicker.HandleIsOpenChanged: the value is already stored, so raise Opened when it turned
+        // true and Closed when it turned false (a handler reading is_open() observes the transition).
+        if (new_value)
+        {
+            opened.raise();
+        }
+        else
+        {
+            closed.raise();
+        }
     }
 } // namespace maui::controls
 
