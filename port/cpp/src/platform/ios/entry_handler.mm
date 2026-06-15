@@ -471,7 +471,7 @@ namespace maui::core
     {
         auto platform = std::make_unique<entry_platform>();
         // CreatePlatformView: new MauiTextField { BorderStyle = RoundedRect, ClipsToBounds = true }.
-        // AddMauiDoneAccessoryView (the keyboard Done bar) is deferred with the Keyboard subsystem.
+        // AddMauiDoneAccessoryView (the keyboard Done bar) is installed in on_connect_handler (W8-53).
         MauiIosTextField* const field = [[MauiIosTextField alloc] initWithFrame:CGRectZero];
         field.borderStyle = UITextBorderStyleRoundedRect;
         field.clipsToBounds = YES;

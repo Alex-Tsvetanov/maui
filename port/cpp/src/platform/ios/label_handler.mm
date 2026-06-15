@@ -4,14 +4,15 @@
 // Ported DIRECTLY from LabelHandler.iOS.cs + Platform/iOS/LabelExtensions.cs + MauiLabel.cs (the same
 // oracles the AppKit twin in src/platform/apple/label_handler.mm was adapted from — UIKit needs no
 // adaptation): CreatePlatformView = new MauiLabel(); MapText = UpdateTextPlainText + MapFormatting
-// (TextDecorations → CharacterSpacing → HorizontalTextAlignment, with LineHeight deferred);
+// (LineHeight → TextDecorations → CharacterSpacing → HorizontalTextAlignment);
 // UpdateTextColor / UpdateFont(LabelFontSize) / UpdateHorizontalTextAlignment (TextAlignment) /
 // UpdateVerticalTextAlignment (MauiLabel.VerticalAlignment — the DrawText offset) / UpdateTextDecorations
-// + UpdateCharacterSpacing (the attributed WithDecorations / WithCharacterSpacing passes). Not ported
-// here (deferred with the cross-platform contract/mapper): LineHeight + Padding (TextInsets) + the
-// LineBreakMode/MaxLines pair (not in i_label), MapBackground/NeedsContainer (no container
-// infrastructure), and GetDesiredSize's PreferredMaxLayoutWidth branch (needs the virtual Width;
-// single-line UILabel default measure via sizeThatFits, like the button recipe).
+// + UpdateCharacterSpacing (the attributed WithDecorations / WithCharacterSpacing passes) /
+// UpdateLineHeight + UpdatePadding (MauiLabel.TextInsets — DrawText insets, sizeThatFits folds them).
+// Not ported here (deferred with the cross-platform contract/mapper): the LineBreakMode/MaxLines pair
+// (not in i_label), MapBackground/NeedsContainer (no container infrastructure), and GetDesiredSize's
+// PreferredMaxLayoutWidth branch (needs the virtual Width; single-line UILabel default measure via
+// sizeThatFits, like the button recipe).
 
 #import <UIKit/UIKit.h>
 
