@@ -15,6 +15,8 @@
 #include "coregraphics_canvas.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/font.hpp"
+#include "maui/graphics/i_canvas.hpp"
+#include "maui/graphics/i_graphics_image.hpp"
 #include "maui/graphics/linear_gradient_paint.hpp"
 #include "maui/graphics/path_f.hpp"
 #include "maui/graphics/point.hpp"
@@ -34,6 +36,75 @@ namespace
     {
         std::uint8_t r, g, b, a;
     };
+
+    // A drawing-layer image backed by a real CGImage (the slice coregraphics_canvas::draw_image
+    // needs): to_platform_image() hands back the CGImageRef the blit casts. Owns the CGImage (the
+    // canvas only reads it). Stands in for the not-yet-ported production PlatformImage wrapper.
+    class coregraphics_image final : public maui::graphics::i_graphics_image
+    {
+    public:
+        coregraphics_image(CGImageRef image, float width, float height)
+            : image_(CGImageRetain(image)), width_(width), height_(height)
+        {
+        }
+        ~coregraphics_image() override
+        {
+            CGImageRelease(image_);
+        }
+        coregraphics_image(const coregraphics_image&) = delete;
+        coregraphics_image(coregraphics_image&&) = delete;
+        coregraphics_image& operator=(const coregraphics_image&) = delete;
+        coregraphics_image& operator=(coregraphics_image&&) = delete;
+
+        [[nodiscard]] float width() const override
+        {
+            return width_;
+        }
+        [[nodiscard]] float height() const override
+        {
+            return height_;
+        }
+        [[nodiscard]] void* to_platform_image() const override
+        {
+            return image_;
+        }
+        void draw(maui::graphics::i_canvas& canvas, const maui::graphics::rect_f& dirty_rect) override
+        {
+            canvas.draw_image(*this, dirty_rect.left(), dirty_rect.top(), dirty_rect.width, dirty_rect.height);
+        }
+
+    private:
+        CGImageRef image_;
+        float width_;
+        float height_;
+    };
+
+    // Builds a width x height RGBA8888 CGImage whose TOP half is `top` and BOTTOM half is `bottom`
+    // (image row 0 = top), so a draw can detect an upside-down blit. Caller owns the returned image.
+    CGImageRef make_two_tone_image(std::size_t width, std::size_t height, rgba top, rgba bottom)
+    {
+        std::vector<std::uint8_t> pixels(width * height * 4, 0);
+        for (std::size_t row = 0; row < height; row++)
+        {
+            const rgba& tone = row < height / 2 ? top : bottom;
+            for (std::size_t col = 0; col < width; col++)
+            {
+                const std::size_t offset = ((row * width) + col) * 4;
+                pixels[offset] = tone.r;
+                pixels[offset + 1] = tone.g;
+                pixels[offset + 2] = tone.b;
+                pixels[offset + 3] = tone.a;
+            }
+        }
+
+        CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB();
+        CGContextRef ctx =
+            CGBitmapContextCreate(pixels.data(), width, height, 8, width * 4, space, kCGImageAlphaPremultipliedLast);
+        CGImageRef image = CGBitmapContextCreateImage(ctx);
+        CGContextRelease(ctx);
+        CGColorSpaceRelease(space);
+        return image;
+    }
 
     // A zero-initialized RGBA8888 (premultiplied-last) DeviceRGB bitmap context with a top-left
     // origin (CTM flipped like the UIKit hosts the C# PlatformCanvas runs under).
@@ -229,5 +300,63 @@ namespace
                                                                        maui::graphics::vertical_alignment::top);
         EXPECT_GT(aligned.width, 0.0F);
         EXPECT_GT(aligned.height, 0.0F);
+    }
+
+    // C# PlatformCanvas.DrawImage blits the platform image at (x, y) sized (w, h), flipping the CTM so
+    // the top-left-origin canvas renders the bottom-up CGImage upright. The image is red on top, blue
+    // on the bottom; after the draw the red must land in the upper half of the target rect and blue in
+    // the lower half — an upside-down blit (a missing/wrong flip) would swap them.
+    TEST_F(coregraphics_canvas_pixels, draw_image_blits_upright_at_canvas_coordinates)
+    {
+        constexpr rgba red{.r = 255, .g = 0, .b = 0, .a = 255};
+        constexpr rgba blue{.r = 0, .g = 0, .b = 255, .a = 255};
+        CGImageRef cg_image = make_two_tone_image(40, 40, red, blue);
+        const coregraphics_image image(cg_image, 40, 40);
+        CGImageRelease(cg_image); // the wrapper retained it
+
+        canvas_.draw_image(image, 10, 10, 40, 40);
+
+        // Upper half of the target rect (canvas y 10..30) is the image top = red.
+        const rgba upper = pixel_at(30, 18);
+        EXPECT_EQ(upper.r, 255);
+        EXPECT_EQ(upper.b, 0);
+        // Lower half (canvas y 30..50) is the image bottom = blue.
+        const rgba lower = pixel_at(30, 42);
+        EXPECT_EQ(lower.b, 255);
+        EXPECT_EQ(lower.r, 0);
+
+        // Nothing painted outside the target rect.
+        EXPECT_EQ(pixel_at(70, 70).a, 0);
+        EXPECT_EQ(pixel_at(5, 5).a, 0);
+    }
+
+    // A null platform representation (the headless image case) is a no-op — the guard mirrors C#'s
+    // `if (platformRepresentation != null)`.
+    TEST_F(coregraphics_canvas_pixels, draw_image_with_null_platform_image_is_a_noop)
+    {
+        class null_image final : public maui::graphics::i_graphics_image
+        {
+        public:
+            [[nodiscard]] float width() const override
+            {
+                return 10;
+            }
+            [[nodiscard]] float height() const override
+            {
+                return 10;
+            }
+            [[nodiscard]] void* to_platform_image() const override
+            {
+                return nullptr;
+            }
+            void draw(maui::graphics::i_canvas& canvas, const maui::graphics::rect_f& dirty_rect) override
+            {
+                canvas.draw_image(*this, dirty_rect.left(), dirty_rect.top(), dirty_rect.width, dirty_rect.height);
+            }
+        } const image;
+
+        canvas_.draw_image(image, 0, 0, 100, 100);
+
+        EXPECT_FALSE(any_ink_in(0, 0, 100, 100)); // nothing drawn
     }
 } // namespace

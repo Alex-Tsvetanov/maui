@@ -147,6 +147,14 @@ namespace maui::graphics
             platform_draw_path(path);
         }
 
+        // C# AbstractCanvas.DrawImage is abstract (each backend implements it directly). The port
+        // routes it through a platform_draw_image hook for symmetry with the other draws — a blit, so
+        // no dash-pattern flush. The image is caller-owned; the backend reads it during the call only.
+        void draw_image(const i_graphics_image& image, float x, float y, float width, float height) override
+        {
+            platform_draw_image(image, x, y, width, height);
+        }
+
         // ---- transforms: tracked on the state, then delegated to the platform ----
 
         // C# AbstractCanvas.Rotate(degrees, x, y) — translate(x,y) * rotate * translate(-x,-y),
@@ -284,6 +292,8 @@ namespace maui::graphics
                                                      float corner_radius) = 0;
         virtual void platform_draw_ellipse(float x, float y, float width, float height) = 0;
         virtual void platform_draw_path(const path_f& path) = 0;
+        virtual void platform_draw_image(const i_graphics_image& image, float x, float y, float width,
+                                         float height) = 0;
         virtual void platform_rotate(float degrees, float radians, float x, float y) = 0;
         virtual void platform_rotate(float degrees, float radians) = 0;
         virtual void platform_scale(float sx, float sy) = 0;

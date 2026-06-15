@@ -14,9 +14,9 @@
 // fill-color/paint change, after each gradient draw, on restore_state and in the destructor).
 //
 // First-cut deviations (recorded in port/STATUS.md):
-//  - PatternPaint/ImagePaint fills + DrawImage(IImage) are deferred — those paint kinds and the
-//    drawing-layer IImage are not yet ported (FillWithPattern/FillWithImage/DrawImageCallback land
-//    with them).
+//  - PatternPaint/ImagePaint fills are deferred — those paint kinds are not yet ported
+//    (FillWithPattern/FillWithImage land with them). DrawImage(IImage) IS ported (the drawing-layer
+//    i_graphics_image is in; its to_platform_image() returns the CGImageRef the blit needs).
 //  - C#'s Func<CGColorSpace> getColorspace ctor knob is collapsed to DeviceRGB (the C# default).
 //  - SetShadow ports the UIKit/Catalyst branch (no MONOMAC height negation — modern MAUI does not
 //    define MONOMAC; hosts with flipped coordinates flip the CTM, not the shadow).
@@ -38,6 +38,7 @@
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/font.hpp"
 #include "maui/graphics/horizontal_alignment.hpp"
+#include "maui/graphics/i_graphics_image.hpp"
 #include "maui/graphics/line_cap.hpp"
 #include "maui/graphics/line_join.hpp"
 #include "maui/graphics/matrix3x2.hpp"
@@ -149,6 +150,8 @@ namespace maui::platform::apple_shared
         void platform_draw_rounded_rectangle(float x, float y, float width, float height, float corner_radius) override;
         void platform_draw_ellipse(float x, float y, float width, float height) override;
         void platform_draw_path(const maui::graphics::path_f& path) override;
+        void platform_draw_image(const maui::graphics::i_graphics_image& image, float x, float y, float width,
+                                 float height) override;
         void platform_rotate(float degrees, float radians, float x, float y) override;
         void platform_rotate(float degrees, float radians) override;
         void platform_scale(float sx, float sy) override;

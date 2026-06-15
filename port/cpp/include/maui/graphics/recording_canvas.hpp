@@ -175,6 +175,11 @@ namespace maui::graphics
             winding_mode winding;
             bool operator==(const fill_path&) const = default;
         };
+        struct draw_image // geometry only — the i_graphics_image pointer is caller-owned, NOT recorded
+        {
+            float x, y, width, height;
+            bool operator==(const draw_image&) const = default;
+        };
 
         // ---- clip ops ----
         struct clip_path
@@ -286,8 +291,8 @@ namespace maui::graphics
         canvas_ops::set_alpha, canvas_ops::set_antialias, canvas_ops::set_blend_mode, canvas_ops::draw_line,
         canvas_ops::draw_arc, canvas_ops::fill_arc, canvas_ops::draw_rectangle, canvas_ops::fill_rectangle,
         canvas_ops::draw_rounded_rectangle, canvas_ops::fill_rounded_rectangle, canvas_ops::draw_ellipse,
-        canvas_ops::fill_ellipse, canvas_ops::draw_path, canvas_ops::fill_path, canvas_ops::clip_path,
-        canvas_ops::clip_rectangle, canvas_ops::subtract_from_clip, canvas_ops::draw_string,
+        canvas_ops::fill_ellipse, canvas_ops::draw_path, canvas_ops::fill_path, canvas_ops::draw_image,
+        canvas_ops::clip_path, canvas_ops::clip_rectangle, canvas_ops::subtract_from_clip, canvas_ops::draw_string,
         canvas_ops::draw_string_in_bounds, canvas_ops::draw_text, canvas_ops::rotate, canvas_ops::rotate_at,
         canvas_ops::scale, canvas_ops::translate, canvas_ops::concatenate_transform, canvas_ops::save_state,
         canvas_ops::restore_state, canvas_ops::reset_state, canvas_ops::set_shadow, canvas_ops::set_fill_paint>;
@@ -356,6 +361,7 @@ namespace maui::graphics
         void platform_draw_rounded_rectangle(float x, float y, float width, float height, float corner_radius) override;
         void platform_draw_ellipse(float x, float y, float width, float height) override;
         void platform_draw_path(const path_f& path) override;
+        void platform_draw_image(const i_graphics_image& image, float x, float y, float width, float height) override;
         void platform_rotate(float degrees, float radians, float x, float y) override;
         void platform_rotate(float degrees, float radians) override;
         void platform_scale(float sx, float sy) override;

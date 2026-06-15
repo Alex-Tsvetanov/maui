@@ -13,8 +13,8 @@
 //  - IFont is the collapsed maui::graphics::font value type (see font.hpp).
 //  - set_fill_paint takes `const paint*` (nullable, like the C# parameter — null falls back to a
 //    white solid fill).
-//  - DrawImage(IImage, ...) is documented-deferred: Microsoft.Maui.Graphics.IImage (the drawing-layer
-//    image) is not yet ported. Add draw_image with it.
+//  - draw_image takes the ported drawing-layer image i_graphics_image (Microsoft.Maui.Graphics.IImage);
+//    the image is caller-owned, read during the call only.
 
 #include <string>
 #include <string_view>
@@ -37,6 +37,7 @@
 namespace maui::graphics
 {
     class paint;
+    class i_graphics_image;
 
     namespace text
     {
@@ -170,6 +171,12 @@ namespace maui::graphics
         virtual void set_shadow(const size_f& offset, float blur, const color& shadow_color) = 0;
         // C# ICanvas.SetFillPaint(Paint paint, RectF rectangle) — null paint = solid white.
         virtual void set_fill_paint(const paint* fill_paint, const rect_f& rectangle) = 0;
+
+        // ---- images ----
+
+        // C# ICanvas.DrawImage(IImage image, x, y, width, height) — draws image at (x, y) sized
+        // width x height. The image is caller-owned; the backend reads it during the call only.
+        virtual void draw_image(const i_graphics_image& image, float x, float y, float width, float height) = 0;
 
     protected:
         i_canvas() = default;

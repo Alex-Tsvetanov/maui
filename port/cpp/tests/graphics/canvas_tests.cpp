@@ -17,6 +17,7 @@
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/font.hpp"
+#include "maui/graphics/headless_image.hpp"
 #include "maui/graphics/horizontal_alignment.hpp"
 #include "maui/graphics/i_canvas.hpp"
 #include "maui/graphics/i_drawable.hpp"
@@ -283,6 +284,18 @@ namespace
         EXPECT_EQ(op_at<ops::draw_path>(canvas, 0).path, path);
         EXPECT_EQ(op_at<ops::fill_path>(canvas, 1).winding, winding_mode::even_odd);
         EXPECT_EQ(op_at<ops::clip_path>(canvas, 2).winding, winding_mode::non_zero); // default arg
+    }
+
+    // C# AbstractCanvas.DrawImage(IImage, x, y, w, h) — the headless recorder records the geometry
+    // only; the image pointer is caller-owned and NOT retained (see recording_canvas header note).
+    TEST(recording_canvas_test, records_draw_image_geometry_only)
+    {
+        const maui::graphics::headless_image image(100, 50);
+        recording_canvas canvas;
+        canvas.draw_image(image, 10, 20, 150, 80);
+
+        ASSERT_EQ(canvas.ops().size(), 1U);
+        EXPECT_EQ((op_at<ops::draw_image>(canvas, 0)), (ops::draw_image{10, 20, 150, 80}));
     }
 
     TEST(recording_canvas_test, set_fill_paint_records_background_projection_and_null_is_white)

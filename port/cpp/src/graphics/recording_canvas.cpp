@@ -15,6 +15,7 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/font.hpp"
 #include "maui/graphics/horizontal_alignment.hpp"
+#include "maui/graphics/i_graphics_image.hpp"
 #include "maui/graphics/line_cap.hpp"
 #include "maui/graphics/line_join.hpp"
 #include "maui/graphics/matrix3x2.hpp"
@@ -271,6 +272,14 @@ namespace maui::graphics
     void recording_canvas::platform_draw_path(const path_f& path)
     {
         ops_.emplace_back(canvas_ops::draw_path{.path = path});
+    }
+
+    void recording_canvas::platform_draw_image(const i_graphics_image& image, float x, float y, float width,
+                                               float height)
+    {
+        // Geometry only; the image is caller-owned and not retained (see the header note).
+        (void)image;
+        ops_.emplace_back(canvas_ops::draw_image{.x = x, .y = y, .width = width, .height = height});
     }
 
     void recording_canvas::platform_rotate(float degrees, float radians, float x, float y)

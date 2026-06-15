@@ -24,6 +24,7 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/gradient_paint.hpp"
 #include "maui/graphics/gradient_stop.hpp"
+#include "maui/graphics/i_graphics_image.hpp"
 #include "maui/graphics/linear_gradient_paint.hpp"
 #include "maui/graphics/paint.hpp"
 #include "maui/graphics/path_f.hpp"
@@ -1047,6 +1048,29 @@ namespace maui::platform::apple_shared
         }
 
         CGPathRelease(platform_path);
+    }
+
+    void coregraphics_canvas::platform_draw_image(const maui::graphics::i_graphics_image& image, float x, float y,
+                                                  float width, float height)
+    {
+        // C# PlatformCanvas.DrawImage (PlatformCanvas.cs:658-676): grab the CGImage off the platform
+        // image; the canvas uses a top-left origin while CoreGraphics blits bottom-up, so flip the CTM
+        // (ScaleCTM(1,-1) + TranslateCTM(0,-height)) before the draw. _rect.Y is -y exactly per C#.
+        // The drawing layer hands the handle out as an opaque void*; cast it back to the CGImageRef
+        // the blit needs.
+        auto* cg_image = static_cast<CGImageRef>(image.to_platform_image());
+        if (cg_image == nullptr)
+        {
+            return;
+        }
+
+        const CGRect rect = CGRectMake(x, -y, width, height);
+
+        CGContextSaveGState(context_);
+        CGContextScaleCTM(context_, 1, -1);
+        CGContextTranslateCTM(context_, 0, -rect.size.height);
+        CGContextDrawImage(context_, rect, cg_image);
+        CGContextRestoreGState(context_);
     }
 
     void coregraphics_canvas::clip_path(const maui::graphics::path_f& path, maui::graphics::winding_mode winding)
