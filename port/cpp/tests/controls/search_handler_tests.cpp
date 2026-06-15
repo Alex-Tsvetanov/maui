@@ -11,7 +11,9 @@
 
 #include <cstddef>
 #include <memory>
+#include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "maui/controls/content_page.hpp"
@@ -19,9 +21,11 @@
 #include "maui/controls/shell/search_box_visibility.hpp"
 #include "maui/controls/shell/search_handler.hpp"
 #include "maui/controls/shell/shell.hpp"
+#include "maui/controls/shell/shell_content.hpp"
 #include "maui/controls/shell/shell_item.hpp"
 #include "maui/controls/shell/shell_navigation_state.hpp"
 #include "maui/controls/shell_handler.hpp"
+#include "maui/core/event.hpp"
 #include "tests/controls/shell_test_base.hpp"
 #include <gtest/gtest.h>
 
@@ -51,7 +55,7 @@ namespace
 
     TEST(search_handler_model, defaults_match_oracle)
     {
-        search_handler sh;
+        const search_handler sh;
         EXPECT_TRUE(sh.query().empty());
         EXPECT_TRUE(sh.placeholder().empty());
         // C# SearchBoxVisibilityProperty default: Expanded.
@@ -159,7 +163,7 @@ namespace
     TEST(search_handler_model, items_source_builds_results_proxy)
     {
         search_handler sh;
-        const list_proxy* last_old = reinterpret_cast<const list_proxy*>(0x1);
+        const list_proxy* last_old = nullptr; // count==1 below proves the callback fired
         const list_proxy* last_new = nullptr;
         int count = 0;
         auto token =
@@ -285,20 +289,25 @@ namespace
     {
         auto handler = std::make_shared<search_handler>();
 
-        alignas(content_page) unsigned char storage[sizeof(content_page)];
-        auto* first = new (storage) content_page();
-        shell::set_search_handler(*first, handler);
-        EXPECT_EQ(shell::get_search_handler(*first), handler.get());
+        // A std::optional gives a fixed inline buffer; reset()+emplace() destroys then reconstructs a
+        // content_page at the SAME address, deterministically recycling the storage (no raw placement-new).
+        std::optional<content_page> slot;
+        slot.emplace();
+        content_page& first = slot.value();
+        const void* const slot_addr = &first;
+        shell::set_search_handler(first, handler);
+        EXPECT_EQ(shell::get_search_handler(first), handler.get());
         const auto live_refs = handler.use_count(); // ours + the map entry
-        first->~content_page();
+        slot.reset();                               // destroys the original page
 
         // Recycle the SAME storage for a brand-new page — the stale map entry now keys this fresh object,
         // but its captured liveness token belongs to the destroyed original, so it must NOT resolve.
-        auto* second = new (storage) content_page();
-        EXPECT_EQ(shell::get_search_handler(*second), nullptr);
+        slot.emplace();
+        content_page& second = slot.value();
+        ASSERT_EQ(static_cast<const void*>(&second), slot_addr); // storage truly recycled
+        EXPECT_EQ(shell::get_search_handler(second), nullptr);
         // The prune released the map's strong ref (use_count dropped back).
         EXPECT_LT(handler.use_count(), live_refs);
-        second->~content_page();
     }
 
     // ---- (3) the chrome search-box wiring (headless mirror) ----
