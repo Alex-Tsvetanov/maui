@@ -23,6 +23,12 @@ namespace maui::core
         virtual void set_has_container(bool value) = 0;
         [[nodiscard]] virtual void* container_view() const = 0;
 
+        // C# ViewHandler.NeedsContainer (default IView.NeedsContainer()): whether this view must be
+        // wrapped in a container view. The shared view_mapper's container_view map reads it and sets
+        // has_container accordingly. The CRTP view_handler resolves the default (false) and lets a
+        // concrete handler override it (SwitchHandler => true for the UISwitch >101pt a11y workaround).
+        [[nodiscard]] virtual bool needs_container() const = 0;
+
         // The platform view's view_platform_base face, used by the shared view_mapper to push the
         // generic IView properties — or null when the platform view does not derive view_platform_base
         // (then those maps are no-ops). The CRTP view_handler resolves this with `if constexpr`.

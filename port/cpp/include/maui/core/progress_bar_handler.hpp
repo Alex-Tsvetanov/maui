@@ -7,14 +7,16 @@
 // (the platform recipe; the AppKit backend translates the UIProgressView recipe to a determinate-bar
 // NSProgressIndicator).
 //
-// Not ported (deferred, documented): the iOS FlowDirection mapper override (the iOS-26 RTL subview
-// SemanticContentAttribute walk — the port's shared flow-direction push is the view_mapper's).
+// The iOS FlowDirection mapper override IS ported (map_flow_direction): the bar-specific
+// UISemanticContentAttribute recipe with the MatchParent → parent-IView fallback + the iOS-26 subview
+// re-application; the apple twin maps it to NSView's layout direction with the same parent fallback.
 
 #include <memory>
 #include <string>
 #include <string_view>
 
 #include "maui/core/command_mapper.hpp"
+#include "maui/core/flow_direction.hpp"
 #include "maui/core/i_progress.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/view_handler.hpp"
@@ -43,6 +45,10 @@ namespace maui::core
         // API, see src/platform/apple/progress_bar_handler.mm).
         double progress = 0;
         maui::graphics::color progress_color;
+        // The RESOLVED flow direction the MapFlowDirection recipe computed (after the MatchParent →
+        // parent-IView fallback). Headless records it as the observable mirror; the Apple/iOS builds push
+        // it to the native bar (NSView layout direction / UISemanticContentAttribute) AND mirror it here.
+        maui::core::flow_direction resolved_flow_direction = maui::core::flow_direction::match_parent;
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSProgressIndicator (defined in
@@ -91,5 +97,17 @@ namespace maui::core
         // Property map functions (platform recipe).
         static void map_progress(progress_bar_handler& handler, i_progress& view);
         static void map_progress_color(progress_bar_handler& handler, i_progress& view);
+        // ProgressBarHandler.MapFlowDirection (iOS): overrides the shared view_mapper's generic flow push
+        // with the bar-specific UISemanticContentAttribute recipe — Force{Left,Right}ToLeft from
+        // FlowDirection, MatchParent falling back to the parent IView's FlowDirection, and (iOS-26) the
+        // attribute re-applied to each internal subview. The apple twin maps it to NSView's layout
+        // direction with the same parent fallback. Keyed on "flow_direction" in the handler mapper.
+        static void map_flow_direction(progress_bar_handler& handler, i_progress& view);
+
+        // ProgressBarHandler.GetSemanticContentAttribute / GetParentSemanticContentAttribute, collapsed:
+        // the view's own FlowDirection, or — when MatchParent — the parent IView's FlowDirection (else
+        // MatchParent when there is no IView parent). Cross-platform (progress_bar_handler.cpp); both the
+        // Apple and iOS map_flow_direction call it to get the resolved direction to apply natively.
+        [[nodiscard]] static maui::core::flow_direction resolved_flow_direction(const i_progress& view);
     };
 } // namespace maui::core

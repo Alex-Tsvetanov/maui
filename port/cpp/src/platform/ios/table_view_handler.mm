@@ -11,10 +11,12 @@
 // the on-simulator suite asserts the same realize/reuse/selection oracle as headless. Compiled as
 // Objective-C++ with ARC only for the `ios` backend.
 //
-// Coverage note (documented): the row hosts the cell's primary text (text_cell.Text / switch_cell.Text /
-// entry_cell.Label); the live per-cell native editors (an embedded UISwitch / UITextField inside the
-// row) are not wired this unit — the cross-platform cell properties + the realize/reuse/selection seam
-// are. view_cell content hosting beyond the text mirror is likewise deferred.
+// Coverage note (documented): cellForRow builds the PER-CELL-TYPE native content (the C# per-cell
+// renderers' GetCell) — a UISwitch accessory bound to switch_cell.On, a UITextField accessory bound to
+// entry_cell.Text/Placeholder, the cell's imageView populated for image_cell — plus text/detail labels.
+// Section headers render natively via titleForHeaderInSection (recorded in the section_headers mirror).
+// The image is a placeholder when the cell has a resolved ImageSource (the full async thumbnail decode
+// rides the image-service seam, W3-31). view_cell hosts text only (its content view is W3-31 follow-up).
 
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
@@ -119,20 +121,70 @@ namespace maui::controls
     const bool reused = dequeued != nil;
     if (!reused)
     {
+        // Subtitle style so the text/detail labels exist; ImageCell uses the cell's imageView.
         dequeued = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:identifier];
     }
-    const std::string text = source != nullptr ? table_view_handler::display_text(*source) : std::string{};
-    dequeued.textLabel.text = [NSString stringWithUTF8String:text.c_str()];
+
+    const maui::controls::table_row_path path{.section = section, .row = row};
+    maui::controls::realized_row realized;
+    realized.path = path;
+    realized.reuse_id = reuse_id;
+    if (source != nullptr)
+    {
+        realized.text = table_view_handler::display_text(*source);
+        realized.source = source;
+        table_view_handler::describe_cell(realized, *source); // the per-cell-type content fields
+    }
+
+    // The primary text + the per-cell-type native content (the C# per-cell renderers' GetCell):
+    dequeued.textLabel.text = [NSString stringWithUTF8String:realized.text.c_str()];
+    dequeued.detailTextLabel.text = [NSString stringWithUTF8String:realized.detail.c_str()];
+    // Reset any reused content to the default before re-binding the current cell's content.
+    dequeued.accessoryView = nil;
+    dequeued.imageView.image = nil;
+    switch (realized.content)
+    {
+        case maui::controls::cell_content_kind::toggle: {
+            // SwitchCellRenderer: a UISwitch in the accessory view, bound to switch_cell.On.
+            UISwitch* const sw = [[UISwitch alloc] initWithFrame:CGRectZero];
+            sw.on = realized.toggle_on;
+            dequeued.accessoryView = sw;
+            break;
+        }
+        case maui::controls::cell_content_kind::entry: {
+            // EntryCellRenderer: a UITextField accessory bound to entry_cell.Text/Placeholder (the label
+            // rides textLabel via display_text → entry_cell.Label).
+            UITextField* const tf = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, 200, 30)];
+            tf.text = [NSString stringWithUTF8String:realized.entry_text.c_str()];
+            tf.placeholder = [NSString stringWithUTF8String:realized.entry_placeholder.c_str()];
+            dequeued.accessoryView = tf;
+            break;
+        }
+        case maui::controls::cell_content_kind::image: {
+            // ImageCellRenderer: imageView.Image from the resolved ImageSource (a placeholder proves the
+            // image view is built + bound; the full async decode rides the image-service seam, W3-31).
+            if (realized.has_image)
+            {
+                UIGraphicsImageRendererFormat* const format = [[UIGraphicsImageRendererFormat alloc] init];
+                format.scale = 1;
+                UIGraphicsImageRenderer* const renderer =
+                    [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(24, 24) format:format];
+                dequeued.imageView.image = [renderer imageWithActions:^(UIGraphicsImageRendererContext* context) {
+                  [[UIColor grayColor] setFill];
+                  [context fillRect:CGRectMake(0, 0, 24, 24)];
+                }];
+            }
+            break;
+        }
+        case maui::controls::cell_content_kind::text:
+        case maui::controls::cell_content_kind::view:
+        case maui::controls::cell_content_kind::none:
+            break;
+    }
 
     if (platform != nullptr)
     {
-        const maui::controls::table_row_path path{.section = section, .row = row};
-        maui::controls::realized_row realized;
-        realized.path = path;
-        realized.reuse_id = reuse_id;
-        realized.text = text;
-        realized.source = source;
-        platform->realized.push_back(std::move(realized));
+        platform->realized.push_back(realized);
         platform->events.push_back({.kind = reused ? table_row_event_kind::reused : table_row_event_kind::realized,
                                     .path = path,
                                     .reuse_id = reuse_id});
@@ -195,6 +247,7 @@ namespace maui::controls
         platform.realized.clear();
         platform.recycle_pool.clear();
         platform.selected_path.reset();
+        platform.section_headers.clear();
     }
 
     void table_view_handler::reload()
@@ -205,6 +258,20 @@ namespace maui::controls
             return;
         }
         platform->realized.clear(); // re-filled by cellForRow during the layout pass
+        platform->section_headers.clear();
+        // Record the section headers for each non-empty section (UITableView renders them natively via
+        // titleForHeaderInSection; the mirror lets the suites assert the same oracle as headless/apple).
+        if (auto* model = virtual_view() != nullptr ? virtual_view()->model() : nullptr)
+        {
+            const int sections = model->get_section_count();
+            for (int s = 0; s < sections; ++s)
+            {
+                if (model->get_row_count(s) > 0)
+                {
+                    platform->section_headers.push_back({.section = s, .title = model->get_section_title(s)});
+                }
+            }
+        }
         UITableView* const native = as_table(platform->native);
         // A generous frame so every row is in the viewport and cellForRow fires for all of them.
         native.frame = CGRectMake(0, 0, 400, 5000);

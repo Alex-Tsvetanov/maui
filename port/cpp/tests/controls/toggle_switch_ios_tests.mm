@@ -159,6 +159,24 @@ namespace
         EXPECT_EQ(to_std_string(view.accessibilityIdentifier), "dark_mode_switch");
     }
 
+    TEST(ios_switch_seam, needs_container_wraps_the_uiswitch)
+    {
+        // SwitchHandler.NeedsContainer => true: the container_view map wraps the natural-sized UISwitch
+        // in a plain UIView container on connect (the >101pt accessibility workaround). The switch
+        // becomes a subview of the container, and the handler exposes it as container_view().
+        toggle_switch control;
+        auto handler = std::make_shared<switch_handler>();
+        control.set_handler(handler);
+
+        EXPECT_TRUE(handler->has_container());
+        void* const container = handler->container_view();
+        ASSERT_NE(container, nullptr);
+        UIView* const wrapper = (__bridge UIView*)container;
+        UISwitch* const view = native_switch(handler);
+        EXPECT_EQ(view.superview, wrapper);
+        EXPECT_EQ(wrapper.subviews.count, 1U);
+    }
+
     TEST(ios_switch_seam, clearing_handler_disconnects)
     {
         toggle_switch control;

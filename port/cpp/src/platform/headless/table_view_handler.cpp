@@ -40,6 +40,7 @@ namespace maui::controls
         platform.realized.clear();
         platform.recycle_pool.clear();
         platform.selected_path.reset();
+        platform.section_headers.clear();
     }
 
     void table_view_handler::reload()
@@ -69,11 +70,19 @@ namespace maui::controls
         }
         platform->realized.clear();
         platform->selected_path.reset();
+        platform->section_headers.clear();
 
         const int section_count = data_model->get_section_count();
         for (int section = 0; section < section_count; ++section)
         {
             const int row_count = data_model->get_row_count(section);
+            // Record the section header/group row for each non-empty section (the renderer's
+            // titleForHeaderInSection; the apple twin renders an explicit header row).
+            if (row_count > 0)
+            {
+                platform->section_headers.push_back(
+                    {.section = section, .title = data_model->get_section_title(section)});
+            }
             for (int row = 0; row < row_count; ++row)
             {
                 const std::shared_ptr<cell> source = data_model->get_cell(section, row);
@@ -98,6 +107,7 @@ namespace maui::controls
                 realized.reuse_id = reuse_id;
                 realized.text = display_text(*source);
                 realized.source = source;
+                describe_cell(realized, *source); // the per-cell-type content (switch on / entry text / image / detail)
                 platform->realized.push_back(std::move(realized));
 
                 platform->events.push_back(

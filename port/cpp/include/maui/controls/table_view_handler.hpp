@@ -59,13 +59,45 @@ namespace maui::controls
         std::string reuse_id; // the cell's reuse identifier (its type name)
     };
 
+    // The native content a row hosts, per the C# per-cell-type renderers (GetCell): a SwitchCell builds a
+    // UISwitch accessory, an EntryCell a UITextField, an ImageCell a text label + an image view, a TextCell
+    // text + detail, a ViewCell an arbitrary content view. `none` = an unrecognized cell (text only).
+    enum class cell_content_kind : std::uint8_t
+    {
+        text = 0, // text_cell (Text + Detail)
+        toggle,   // switch_cell (a native switch accessory)
+        entry,    // entry_cell (a native text field + label)
+        image,    // image_cell (a native image view + text)
+        view,     // view_cell (a hosted content view)
+        none,     // an unknown cell type (no specific native content)
+    };
+
     // One realized (visible) row.
     struct realized_row
     {
         table_row_path path{};
         std::string reuse_id;
-        std::string text;             // the row's primary text (text_cell.Text etc.)
+        std::string text;             // the row's primary text (text_cell.Text / switch_cell.Text / entry_cell.Label)
         std::shared_ptr<cell> source; // the cell the row was realized from
+        // The native content the row built (the per-cell-type GetCell path). The backends embed the real
+        // sub-control (UISwitch/UITextField/UIImageView etc.) AND record it here so the suites assert which
+        // native content was realized — headless mirrors the kind without a native tree.
+        cell_content_kind content = cell_content_kind::text;
+        // Per-content observable state the embedded native control was bound to (the tests assert these):
+        bool toggle_on = false;        // switch_cell.On → the embedded switch's on-state
+        std::string entry_text;        // entry_cell.Text → the embedded text field's text
+        std::string entry_placeholder; // entry_cell.Placeholder → the field's placeholder
+        std::string detail;            // text_cell/image_cell Detail → the row's detail label
+        bool has_image = false;        // image_cell with a resolved ImageSource → an image view is populated
+    };
+
+    // A native section header/group row (the table's sections). iOS renders these as the grouped
+    // UITableView's section headers (titleForHeaderInSection); apple, which has no native grouped table,
+    // renders an explicit non-selectable header ROW before each section's rows. Recorded for the suites.
+    struct section_header
+    {
+        int section = 0;
+        std::string title;
     };
 
     struct table_view_platform : maui::core::view_platform_base
@@ -90,6 +122,8 @@ namespace maui::controls
         std::vector<std::pair<std::string, std::shared_ptr<cell>>> recycle_pool;
         std::vector<table_row_event> events; // the realize/reuse/select trail
         std::optional<table_row_path> selected_path;
+        // The native section headers/group rows realized for each non-empty section (their titles).
+        std::vector<section_header> section_headers;
     };
 
     class table_view_handler : public maui::core::view_handler<table_view_handler, i_table_view, table_view_platform>
@@ -127,6 +161,12 @@ namespace maui::controls
         [[nodiscard]] static std::string display_text(const cell& source);
         // The reuse identifier for a cell (its concrete type name — the dequeue key).
         [[nodiscard]] static std::string reuse_identifier(const cell& source);
+        // The native content kind a cell realizes (the per-cell-type GetCell dispatch).
+        [[nodiscard]] static cell_content_kind classify_cell(const cell& source);
+        // Fill the per-content fields of a realized_row from the cell (text/detail, the switch on-state, the
+        // entry text/placeholder, the image presence) — the cross-platform half of GetCell that both the
+        // native datasource callbacks (to drive the embedded controls) and the headless mirror share.
+        static void describe_cell(realized_row& row, const cell& source);
 
     private:
         // Realize one row through the model (dequeue from the pool if a same-type cell is free, else a

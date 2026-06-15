@@ -15,9 +15,20 @@
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/i_canvas.hpp"
 #include "maui/graphics/i_drawable.hpp"
+#include "maui/graphics/point_f.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/rect_f.hpp"
 #include <gtest/gtest.h>
+
+// The drag-notify methods MauiCppDrawableHostView (graphics_host.mm) defines; declared as a category
+// so the test can call them directly without synthesizing blocking AppKit mouse events (the slider
+// suite's documented compromise — the real mouseDown:/Dragged:/Up: forward to these).
+@interface NSView (MauiGraphicsTouchTesting)
+- (void)notifyStartInteractionAtPoint:(NSPoint)point;
+- (void)notifyDragInteractionAtPoint:(NSPoint)point;
+- (void)notifyEndInteractionAtPoint:(NSPoint)point;
+- (void)notifyCancelInteraction;
+@end
 
 namespace
 {
@@ -110,5 +121,110 @@ namespace
 
         const std::vector<std::uint8_t> buffer = render_host(handler);
         EXPECT_EQ(channel(buffer, k_size / 2, k_size / 2, 3), 0); // fully transparent
+    }
+
+    // ---- the touch plumbing (PlatformTouchGraphicsView, apple) ----
+
+    TEST_F(apple_graphics_view_seam, mouse_events_drive_the_interaction_callbacks)
+    {
+        graphics_view view;
+        auto handler = std::make_shared<graphics_view_handler>();
+        view.set_handler(handler);
+        handler->platform_arrange(maui::graphics::rect(0, 0, k_size, k_size));
+
+        std::vector<maui::graphics::point_f> started;
+        std::vector<maui::graphics::point_f> dragged;
+        std::vector<maui::graphics::point_f> ended;
+        bool end_inside = false;
+        view.start_interaction.connect([&started](const std::vector<maui::graphics::point_f>& p) { started = p; });
+        view.drag_interaction.connect([&dragged](const std::vector<maui::graphics::point_f>& p) { dragged = p; });
+        view.end_interaction.connect([&ended, &end_inside](const std::vector<maui::graphics::point_f>& p, bool inside) {
+            ended = p;
+            end_inside = inside;
+        });
+
+        auto* const host = (__bridge NSView*)handler->native_view();
+        [host notifyStartInteractionAtPoint:NSMakePoint(10, 12)];
+        ASSERT_EQ(started.size(), 1U);
+        EXPECT_FLOAT_EQ(started[0].x, 10.0F);
+        EXPECT_FLOAT_EQ(started[0].y, 12.0F);
+
+        [host notifyDragInteractionAtPoint:NSMakePoint(20, 22)];
+        ASSERT_EQ(dragged.size(), 1U);
+        EXPECT_FLOAT_EQ(dragged[0].x, 20.0F);
+
+        // ending inside the bounds reports is_inside_bounds = true.
+        [host notifyEndInteractionAtPoint:NSMakePoint(30, 32)];
+        ASSERT_EQ(ended.size(), 1U);
+        EXPECT_FLOAT_EQ(ended[0].x, 30.0F);
+        EXPECT_TRUE(end_inside);
+    }
+
+    TEST_F(apple_graphics_view_seam, drag_outside_bounds_reports_not_contained_on_end)
+    {
+        graphics_view view;
+        auto handler = std::make_shared<graphics_view_handler>();
+        view.set_handler(handler);
+        handler->platform_arrange(maui::graphics::rect(0, 0, k_size, k_size));
+
+        bool end_inside = true;
+        view.end_interaction.connect(
+            [&end_inside](const std::vector<maui::graphics::point_f>&, bool inside) { end_inside = inside; });
+
+        auto* const host = (__bridge NSView*)handler->native_view();
+        [host notifyStartInteractionAtPoint:NSMakePoint(10, 10)];
+        [host notifyDragInteractionAtPoint:NSMakePoint(500, 500)]; // outside the 64x64 host
+        [host notifyEndInteractionAtPoint:NSMakePoint(500, 500)];
+        EXPECT_FALSE(end_inside); // _pressedContained went false on the out-of-bounds drag
+    }
+
+    TEST_F(apple_graphics_view_seam, cancel_interaction_fires)
+    {
+        graphics_view view;
+        auto handler = std::make_shared<graphics_view_handler>();
+        view.set_handler(handler);
+        handler->platform_arrange(maui::graphics::rect(0, 0, k_size, k_size));
+
+        bool cancelled = false;
+        view.cancel_interaction.connect([&cancelled] { cancelled = true; });
+
+        auto* const host = (__bridge NSView*)handler->native_view();
+        [host notifyStartInteractionAtPoint:NSMakePoint(5, 5)];
+        [host notifyCancelInteraction];
+        EXPECT_TRUE(cancelled);
+    }
+
+    TEST_F(apple_graphics_view_seam, disabled_view_swallows_interactions)
+    {
+        graphics_view view;
+        view.set_is_enabled(false);
+        auto handler = std::make_shared<graphics_view_handler>();
+        view.set_handler(handler);
+        handler->platform_arrange(maui::graphics::rect(0, 0, k_size, k_size));
+
+        bool started = false;
+        view.start_interaction.connect([&started](const std::vector<maui::graphics::point_f>&) { started = true; });
+
+        auto* const host = (__bridge NSView*)handler->native_view();
+        [host notifyStartInteractionAtPoint:NSMakePoint(10, 10)];
+        EXPECT_FALSE(started); // C# IsEnabled gate: a disabled view receives no interactions
+    }
+
+    TEST_F(apple_graphics_view_seam, disconnecting_clears_the_interaction_target)
+    {
+        graphics_view view;
+        auto handler = std::make_shared<graphics_view_handler>();
+        view.set_handler(handler);
+        handler->platform_arrange(maui::graphics::rect(0, 0, k_size, k_size));
+        // Hold a STRONG ARC reference so the host survives the platform view's CFRelease on disconnect —
+        // then a stray mouse event must be a safe no-op (the on_disconnect cleared the interaction target).
+        NSView* const host = (__bridge NSView*)handler->native_view();
+
+        bool started = false;
+        view.start_interaction.connect([&started](const std::vector<maui::graphics::point_f>&) { started = true; });
+
+        view.set_handler(nullptr); // PlatformTouchGraphicsView.Disconnect: clears the host's target
+        [host notifyStartInteractionAtPoint:NSMakePoint(1, 1)];
+        EXPECT_FALSE(started); // the borrow was cleared, so the event is dropped (no UAF, no callback)
     }
 } // namespace

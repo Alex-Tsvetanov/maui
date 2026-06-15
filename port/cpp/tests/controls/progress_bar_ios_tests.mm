@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "maui/controls/progress_bar.hpp"
+#include "maui/core/flow_direction.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/progress_bar_handler.hpp"
@@ -16,6 +17,7 @@
 namespace
 {
     using maui::controls::progress_bar;
+    using maui::core::flow_direction;
     using maui::core::i_element_handler;
     using maui::core::progress_bar_handler;
 
@@ -78,6 +80,27 @@ namespace
 
         control.set_opacity(0.5);
         EXPECT_EQ(view.alpha, 0.5);
+    }
+
+    TEST(ios_progress_bar_seam, flow_direction_maps_to_semantic_content_attribute)
+    {
+        // ProgressBarHandler.MapFlowDirection: the resolved direction sets the bar's
+        // UISemanticContentAttribute and is re-applied to each subview (the iOS-26 walk).
+        progress_bar control;
+        control.set_flow_direction(flow_direction::right_to_left);
+        auto handler = std::make_shared<progress_bar_handler>();
+        control.set_handler(handler);
+
+        UIProgressView* const view = native_bar(handler);
+        EXPECT_EQ(view.semanticContentAttribute, UISemanticContentAttributeForceRightToLeft);
+        EXPECT_EQ(handler->typed_platform_view()->resolved_flow_direction, flow_direction::right_to_left);
+        for (UIView* subview in view.subviews)
+        {
+            EXPECT_EQ(subview.semanticContentAttribute, UISemanticContentAttributeForceRightToLeft);
+        }
+
+        control.set_flow_direction(flow_direction::left_to_right);
+        EXPECT_EQ(view.semanticContentAttribute, UISemanticContentAttributeForceLeftToRight);
     }
 
     TEST(ios_progress_bar_seam, clearing_handler_disconnects)

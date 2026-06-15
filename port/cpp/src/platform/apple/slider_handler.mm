@@ -11,7 +11,10 @@
 //  - MinimumTrackColor maps to NSSlider.trackFillColor (the filled side — the AppKit equivalent of
 //    MinimumTrackTintColor); MaximumTrackColor and ThumbColor have NO public NSSlider API (the cell
 //    draws both), so those two record the cross-platform mirrors only.
-//  - ThumbImageSource and the UpdateOnTap platform configuration are deferred (see slider_handler.hpp).
+//  - ThumbImageSource loads through the handler-owned image_source_loader (the cross-platform seam); but
+//    NSSlider has NO public knob-image API, so apply/clear record the cross-platform mirror only (the
+//    documented AppKit gap, like map_thumb_color). UpdateOnTap: NSSlider already jumps to the clicked
+//    track position by default (the iOS workaround is a no-op on AppKit) — the flag is recorded for parity.
 
 #import <AppKit/AppKit.h>
 #import <objc/runtime.h>
@@ -24,7 +27,10 @@
 #include "apple_semantics_ops.hpp"
 #include "apple_view_ops.hpp"
 #include "apple_visual_ops.hpp"
+#include "maui/core/i_ios_slider_specifics.hpp"
 #include "maui/core/i_slider.hpp"
+#include "maui/core/image_source_loader.hpp"
+#include "maui/core/image_source_result.hpp"
 #include "maui/core/slider_handler.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
@@ -292,5 +298,45 @@ namespace maui::core
             return;
         }
         [as_slider(platform->native) setFrame:NSMakeRect(frame.x, frame.y, frame.width, frame.height)];
+    }
+
+    // ThumbImageSource (SliderExtensions.UpdateThumbImageSourceAsync) + UpdateOnTap, apple recipe.
+    // The image-service load runs through the SAME handler-owned loader the cross-platform map drives; on
+    // the default (synchronous read_uri_bytes) fetch a file:// / local thumb image loads inline. AppKit
+    // DEVIATION (documented): NSSlider exposes NO public knob-image API (UISlider.SetThumbImage has no
+    // analog — the cell draws the knob), so apply/clear record the cross-platform mirror, the
+    // observable native-adjacent state (the MauiButtonCell convention shared with map_thumb_color).
+    void slider_handler::configure_thumb_loader(image_source_loader& /*loader*/)
+    {
+        // Leave the loader on its synchronous read_uri_bytes default: the common ThumbImageSource is a
+        // file/local source, which the default fetch resolves inline (no NSURLSession needed for the knob).
+    }
+
+    void slider_handler::apply_thumb_image(slider_platform& platform, const image_source_result& /*result*/)
+    {
+        // AppKit deviation: no NSSlider knob-image API — record that a thumb image is set (the loader has
+        // resolved the source; UISlider would call SetThumbImage here).
+        platform.thumb_image_set = true;
+    }
+
+    void slider_handler::clear_thumb_image(slider_platform& platform, i_slider& view)
+    {
+        // SliderExtensions: no image → restore the thumb color mirror (UpdateThumbColor's else branch).
+        platform.thumb_image_set = false;
+        platform.thumb_color = view.thumb_color();
+    }
+
+    void slider_handler::map_update_on_tap(slider_handler& handler, i_slider& view)
+    {
+        // AppKit deviation: NSSlider already jumps to the clicked track position by default (no tap
+        // recognizer needed — UpdateOnTap is an iOS workaround for UISlider, which does NOT). Record the
+        // resolved flag for parity; the native NSSlider behavior already matches the requested intent.
+        auto* platform = handler.typed_platform_view();
+        const auto* specifics = dynamic_cast<const i_ios_slider_specifics*>(&view);
+        if (platform == nullptr || specifics == nullptr)
+        {
+            return;
+        }
+        platform->update_on_tap = specifics->update_on_tap();
     }
 } // namespace maui::core

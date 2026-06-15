@@ -1,6 +1,8 @@
 // graphics_view_handler — iOS (UIKit) platform recipe: the UIView drawing host twin of the apple
-// partial (graphics_host.hpp over coregraphics_canvas). Translated from GraphicsViewHandler.iOS.cs.
-// Compiled as Objective-C++ with ARC for the `ios` backend.
+// partial (graphics_host.hpp over coregraphics_canvas) carrying the PlatformTouchGraphicsView touch
+// plumbing. ConnectHandler/DisconnectHandler point the host's touch events at the virtual view
+// (PlatformTouchGraphicsView.Connect/Disconnect). Translated from GraphicsViewHandler.iOS.cs + the
+// touch recipe. Compiled as Objective-C++ with ARC for the `ios` backend.
 
 #import <UIKit/UIKit.h>
 
@@ -99,6 +101,20 @@ namespace maui::core
         auto platform = std::make_unique<graphics_view_platform>();
         platform->native = maui::platform::ios::create_drawable_host();
         return platform;
+    }
+
+    // PlatformTouchGraphicsView.Connect: point the host's touch plumbing at the virtual view so
+    // touchesBegan/Moved/Ended/Cancelled route into send_start/drag/end/cancel_interaction (non-owning
+    // borrow — the view owns the handler that owns the host).
+    void graphics_view_handler::on_connect_handler(graphics_view_platform& platform)
+    {
+        maui::platform::ios::drawable_host_set_interaction_target(platform.native, virtual_view());
+    }
+
+    // PlatformTouchGraphicsView.Disconnect: clear the borrow before the view goes away.
+    void graphics_view_handler::on_disconnect_handler(graphics_view_platform& platform)
+    {
+        maui::platform::ios::drawable_host_set_interaction_target(platform.native, nullptr);
     }
 
     // C# UpdateDrawable: point the host at VirtualView.Drawable (and redraw).

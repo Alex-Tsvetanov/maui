@@ -253,6 +253,25 @@ namespace
         EXPECT_EQ(handler->virtual_view(), nullptr);
     }
 
+    // ---- NeedsContainer (SwitchHandler.NeedsContainer => true) ----
+
+    TEST(toggle_switch_seam, needs_container_is_true)
+    {
+        switch_handler handler;
+        EXPECT_TRUE(handler.needs_container());
+    }
+
+    TEST(toggle_switch_seam, attaching_handler_sets_has_container)
+    {
+        // The shared view_mapper's container_view map runs on connect and sets has_container from
+        // needs_container() — true for the switch (the >101pt accessibility wrap). Headless has no native
+        // tree, so the container_view stays null; only the flag is recorded.
+        toggle_switch control;
+        auto handler = std::make_shared<switch_handler>();
+        control.set_handler(handler);
+        EXPECT_TRUE(handler->has_container());
+    }
+
     TEST(toggle_switch_seam, handler_resolved_from_default_registry)
     {
         // toggle_switch -> switch_handler is self-registered in toggle_switch.cpp.

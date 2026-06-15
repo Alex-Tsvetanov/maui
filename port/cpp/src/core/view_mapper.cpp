@@ -148,6 +148,17 @@ namespace maui::core
             apply_native_tool_tip(handler.native_view(), text);
         }
 
+        // ViewHandler.MapContainerView: the "special" mapper that runs before every other property (its
+        // key sits first in the chained view_mapper). It reconciles has_container with needs_container —
+        // setting it flips the native container wrap on/off via the handler's on_setup_container /
+        // on_remove_container hooks (SwitchHandler => needs_container() true). C#'s WrapperView property
+        // re-push (UpdateValue(ContainerView)) and the obsolete IBorder branch are not modeled (the port
+        // wraps purely for the NeedsContainer cases — see view_handler.hpp + the switch handler).
+        void map_container_view(i_view_handler& handler, i_view& /*view*/)
+        {
+            handler.set_has_container(handler.needs_container());
+        }
+
         // chrome (W1-11): ViewHandler.MapContextFlyout — `view is IContextFlyoutElement` → record the
         // mirror, then materialize the menu on the native view (NSView.menu on AppKit; a
         // UIContextMenuInteraction on iOS; headless no-op).
@@ -166,6 +177,8 @@ namespace maui::core
     property_mapper<i_view, i_view_handler>& view_mapper()
     {
         static property_mapper<i_view, i_view_handler> table{
+            // C#'s "special" first key: the container wrap is reconciled before every other property.
+            {"container_view", &map_container_view},
             {"visibility", &map_visibility},
             {"opacity", &map_opacity},
             {"is_enabled", &map_is_enabled},

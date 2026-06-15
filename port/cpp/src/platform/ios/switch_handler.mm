@@ -6,8 +6,9 @@
 // Ported DIRECTLY from SwitchHandler.iOS.cs + Platform/iOS/SwitchExtensions.cs: CreatePlatformView =
 // UISwitch(Empty); SwitchProxy's ValueChanged → IsOn write-back (guarded against echo);
 // UpdateIsOn/UpdateTrackColor (the track-subview walk incl. the iOS-13 SecondarySystemFill fallback) /
-// UpdateThumbColor as the map_* bodies. Not ported (deferred, documented): NeedsContainer (the
-// UISwitch >101pt accessibility workaround needs the container infrastructure no backend has yet) and
+// UpdateThumbColor as the map_* bodies. NeedsContainer IS ported: on_setup_container /
+// on_remove_container wrap the UISwitch in a plain UIView container (the >101pt accessibility
+// workaround), driven by the shared view_mapper's container map. Not ported (deferred, documented):
 // the iOS/Catalyst-26 foreground/trait-change observers (color re-application timing workarounds).
 // Color collapse: the port's color is non-nullable, so C#'s null-color branches (restore the platform
 // default) collapse — the off-track fallback keeps the SecondarySystemFill push for the DEFAULT color.
@@ -75,6 +76,11 @@ namespace maui::core
 {
     switch_platform::~switch_platform()
     {
+        if (container != nullptr)
+        {
+            CFRelease(container); // balances the __bridge_retained in on_setup_container
+            container = nullptr;
+        }
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -132,6 +138,46 @@ namespace maui::core
             [native removeTarget:proxy action:@selector(onValueChanged:) forControlEvents:UIControlEventValueChanged];
         }
         objc_setAssociatedObject(native, &k_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+
+    // C# ViewHandler.SetupContainer (ViewHandlerOfT.iOS WrapperView swap): wrap the natural-sized UISwitch
+    // in a plain UIView container — the documented UISwitch >101pt accessibility workaround (the switch
+    // stays its natural size; the container carries background/chrome). RemoveFromSuperview →
+    // ContainerView.AddSubview(PlatformView): the wrapper is freshly minted (no prior superview on a
+    // just-connected handler), so it adopts the switch and becomes the handler's container_view.
+    void switch_handler::on_setup_container()
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->native == nullptr || platform->container != nullptr)
+        {
+            return; // C# guard: PlatformView == null || ContainerView != null
+        }
+        UISwitch* const native = as_switch(platform->native);
+        UIView* const wrapper = [[UIView alloc] initWithFrame:native.bounds];
+        [native removeFromSuperview];
+        [wrapper addSubview:native];
+        platform->container = (__bridge_retained void*)wrapper; // the handler owns one reference
+        set_container_view(platform->container);
+    }
+
+    // C# ViewHandler.RemoveContainer: unwrap the switch (drop the wrapper, restore the bare PlatformView)
+    // and clear container_view. The wrapper has no parent yet in the port, so this releases it and
+    // re-isolates the switch.
+    void switch_handler::on_remove_container()
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        if (platform->container != nullptr)
+        {
+            UIView* const native = (__bridge UIView*)platform->native;
+            [native removeFromSuperview]; // detach from the wrapper before it is released
+            CFRelease(platform->container);
+            platform->container = nullptr;
+        }
+        set_container_view(nullptr);
     }
 
     void switch_handler::map_is_on(switch_handler& handler, i_switch& view)

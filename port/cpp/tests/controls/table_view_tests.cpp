@@ -11,8 +11,12 @@
 #include <memory>
 #include <string>
 
+#include "maui/controls/cells/entry_cell.hpp"
+#include "maui/controls/cells/image_cell.hpp"
+#include "maui/controls/cells/switch_cell.hpp"
 #include "maui/controls/cells/text_cell.hpp"
 #include "maui/controls/cells/view_cell.hpp"
+#include "maui/controls/file_image_source.hpp" // image_source::from_file
 #include "maui/controls/label.hpp"
 #include "maui/controls/table_root.hpp"
 #include "maui/controls/table_section.hpp"
@@ -23,7 +27,12 @@
 
 namespace
 {
+    using maui::controls::cell_content_kind;
+    using maui::controls::entry_cell;
+    using maui::controls::image_cell;
+    using maui::controls::image_source;
     using maui::controls::label;
+    using maui::controls::switch_cell;
     using maui::controls::table_root;
     using maui::controls::table_row_event_kind;
     using maui::controls::table_section;
@@ -308,6 +317,138 @@ namespace
         // Whole-optional compare (avoids unchecked optional deref): the selected path is exactly {0,1}.
         EXPECT_EQ(platform->selected_path, (maui::controls::table_row_path{.section = 0, .row = 1}));
         EXPECT_TRUE(tapped); // selection routes through the model → cell.OnTapped
+    }
+
+    // ---- rich per-cell-type content (switch / entry / image) + section group rows ----
+
+    // A table with a switch, entry, image, and text cell in one titled section.
+    [[nodiscard]] std::shared_ptr<table_view> make_rich_table()
+    {
+        auto table = std::make_shared<table_view>();
+        auto root = std::make_shared<table_root>();
+        auto section = std::make_shared<table_section>("Settings");
+
+        auto sw = std::make_shared<switch_cell>();
+        sw->set_text("Wi-Fi");
+        sw->set_on(true);
+        section->add(sw);
+
+        auto entry = std::make_shared<entry_cell>();
+        entry->set_label("Name");
+        entry->set_text("Ada");
+        entry->set_placeholder("enter name");
+        section->add(entry);
+
+        auto image = std::make_shared<image_cell>();
+        image->set_text("Avatar");
+        image->set_detail("profile");
+        image->set_image_source(image_source::from_file("/tmp/avatar.png"));
+        section->add(image);
+
+        auto text = std::make_shared<text_cell>();
+        text->set_text("About");
+        text->set_detail("v1.0");
+        section->add(text);
+
+        root->add(section);
+        table->set_root(root);
+        return table;
+    }
+
+    TEST(table_view_seam, switch_cell_realizes_toggle_content)
+    {
+        auto table = make_rich_table();
+        auto handler = std::make_shared<table_view_handler>();
+        table->set_handler(handler);
+
+        const auto& rows = handler->typed_platform_view()->realized;
+        ASSERT_GE(rows.size(), 1U);
+        EXPECT_EQ(rows[0].content, cell_content_kind::toggle);
+        EXPECT_EQ(rows[0].text, "Wi-Fi");
+        EXPECT_TRUE(rows[0].toggle_on);
+    }
+
+    TEST(table_view_seam, entry_cell_realizes_entry_content)
+    {
+        auto table = make_rich_table();
+        auto handler = std::make_shared<table_view_handler>();
+        table->set_handler(handler);
+
+        const auto& rows = handler->typed_platform_view()->realized;
+        ASSERT_GE(rows.size(), 2U);
+        EXPECT_EQ(rows[1].content, cell_content_kind::entry);
+        EXPECT_EQ(rows[1].text, "Name"); // the label rides the primary text
+        EXPECT_EQ(rows[1].entry_text, "Ada");
+        EXPECT_EQ(rows[1].entry_placeholder, "enter name");
+    }
+
+    TEST(table_view_seam, image_cell_realizes_image_content)
+    {
+        auto table = make_rich_table();
+        auto handler = std::make_shared<table_view_handler>();
+        table->set_handler(handler);
+
+        const auto& rows = handler->typed_platform_view()->realized;
+        ASSERT_GE(rows.size(), 3U);
+        EXPECT_EQ(rows[2].content, cell_content_kind::image);
+        EXPECT_EQ(rows[2].text, "Avatar");
+        EXPECT_EQ(rows[2].detail, "profile");
+        EXPECT_TRUE(rows[2].has_image); // a non-empty ImageSource → an image view is populated
+    }
+
+    TEST(table_view_seam, text_cell_realizes_text_with_detail)
+    {
+        auto table = make_rich_table();
+        auto handler = std::make_shared<table_view_handler>();
+        table->set_handler(handler);
+
+        const auto& rows = handler->typed_platform_view()->realized;
+        ASSERT_GE(rows.size(), 4U);
+        EXPECT_EQ(rows[3].content, cell_content_kind::text);
+        EXPECT_EQ(rows[3].text, "About");
+        EXPECT_EQ(rows[3].detail, "v1.0");
+    }
+
+    TEST(table_view_seam, section_headers_are_realized)
+    {
+        auto table = std::make_shared<table_view>();
+        auto root = std::make_shared<table_root>();
+        auto s0 = std::make_shared<table_section>("Alpha");
+        s0->add(std::make_shared<text_cell>());
+        auto s1 = std::make_shared<table_section>("Beta");
+        s1->add(std::make_shared<text_cell>());
+        s1->add(std::make_shared<text_cell>());
+        root->add(s0);
+        root->add(s1);
+        table->set_root(root);
+
+        auto handler = std::make_shared<table_view_handler>();
+        table->set_handler(handler);
+
+        const auto& headers = handler->typed_platform_view()->section_headers;
+        ASSERT_EQ(headers.size(), 2U);
+        EXPECT_EQ(headers[0].section, 0);
+        EXPECT_EQ(headers[0].title, "Alpha");
+        EXPECT_EQ(headers[1].section, 1);
+        EXPECT_EQ(headers[1].title, "Beta");
+    }
+
+    TEST(table_view_seam, empty_sections_produce_no_header)
+    {
+        auto table = std::make_shared<table_view>();
+        auto root = std::make_shared<table_root>();
+        root->add(std::make_shared<table_section>("Empty")); // no rows → no header
+        auto s1 = std::make_shared<table_section>("HasRows");
+        s1->add(std::make_shared<text_cell>());
+        root->add(s1);
+        table->set_root(root);
+
+        auto handler = std::make_shared<table_view_handler>();
+        table->set_handler(handler);
+
+        const auto& headers = handler->typed_platform_view()->section_headers;
+        ASSERT_EQ(headers.size(), 1U);
+        EXPECT_EQ(headers[0].title, "HasRows");
     }
 
     TEST(table_view_seam, handler_resolved_from_default_registry)

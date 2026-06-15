@@ -8,7 +8,11 @@
 #include <memory>
 #include <string>
 
+#include "maui/controls/cells/entry_cell.hpp"
+#include "maui/controls/cells/image_cell.hpp"
+#include "maui/controls/cells/switch_cell.hpp"
 #include "maui/controls/cells/text_cell.hpp"
+#include "maui/controls/file_image_source.hpp"
 #include "maui/controls/table_root.hpp"
 #include "maui/controls/table_section.hpp"
 #include "maui/controls/table_view.hpp"
@@ -17,11 +21,22 @@
 
 namespace
 {
+    using maui::controls::entry_cell;
+    using maui::controls::image_cell;
+    using maui::controls::image_source;
+    using maui::controls::switch_cell;
     using maui::controls::table_root;
     using maui::controls::table_section;
     using maui::controls::table_view;
     using maui::controls::table_view_handler;
     using maui::controls::text_cell;
+
+    UITableViewCell* cell_at(const std::shared_ptr<table_view_handler>& handler, int section, int row)
+    {
+        UITableView* const native = (__bridge UITableView*)handler->typed_platform_view()->native;
+        NSIndexPath* const path = [NSIndexPath indexPathForRow:row inSection:section];
+        return [native.dataSource tableView:native cellForRowAtIndexPath:path];
+    }
 
     [[nodiscard]] std::shared_ptr<table_view> make_populated(int sections, int rows_per_section)
     {
@@ -101,5 +116,85 @@ namespace
         auto* platform = handler->typed_platform_view();
         UITableView* const native = (__bridge UITableView*)platform->native;
         EXPECT_DOUBLE_EQ(native.rowHeight, 55.0);
+    }
+
+    // ---- rich per-cell-type content + native section headers ----
+
+    [[nodiscard]] std::shared_ptr<table_view> make_rich_table()
+    {
+        auto table = std::make_shared<table_view>();
+        auto root = std::make_shared<table_root>();
+        auto section = std::make_shared<table_section>("Settings");
+        auto sw = std::make_shared<switch_cell>();
+        sw->set_text("Wi-Fi");
+        sw->set_on(true);
+        section->add(sw);
+        auto entry = std::make_shared<entry_cell>();
+        entry->set_label("Name");
+        entry->set_text("Ada");
+        entry->set_placeholder("enter name");
+        section->add(entry);
+        auto image = std::make_shared<image_cell>();
+        image->set_text("Avatar");
+        image->set_image_source(image_source::from_file("/tmp/a.png"));
+        section->add(image);
+        root->add(section);
+        table->set_root(root);
+        return table;
+    }
+
+    TEST(table_view_ios_seam, switch_cell_has_a_uiswitch_accessory)
+    {
+        auto table = make_rich_table();
+        auto handler = std::make_shared<table_view_handler>();
+        table->set_handler(handler);
+
+        UITableViewCell* const cell = cell_at(handler, 0, 0);
+        ASSERT_TRUE([cell.accessoryView isKindOfClass:[UISwitch class]]);
+        EXPECT_TRUE(((UISwitch*)cell.accessoryView).on); // bound to switch_cell.On
+        // The primary text is asserted through the cross-platform realized mirror (UITableViewCell.textLabel
+        // is deprecated/unreliable on iOS 14+ — the C# renderer flags the same).
+        EXPECT_EQ(handler->typed_platform_view()->realized[0].text, "Wi-Fi");
+    }
+
+    TEST(table_view_ios_seam, entry_cell_has_a_uitextfield_accessory)
+    {
+        auto table = make_rich_table();
+        auto handler = std::make_shared<table_view_handler>();
+        table->set_handler(handler);
+
+        UITableViewCell* const cell = cell_at(handler, 0, 1);
+        ASSERT_TRUE([cell.accessoryView isKindOfClass:[UITextField class]]);
+        UITextField* const field = (UITextField*)cell.accessoryView;
+        EXPECT_TRUE([field.text isEqualToString:@"Ada"]);
+        EXPECT_TRUE([field.placeholder isEqualToString:@"enter name"]);
+        EXPECT_EQ(handler->typed_platform_view()->realized[1].text, "Name"); // the label rides the primary text
+    }
+
+    TEST(table_view_ios_seam, image_cell_populates_the_image_view)
+    {
+        auto table = make_rich_table();
+        auto handler = std::make_shared<table_view_handler>();
+        table->set_handler(handler);
+
+        UITableViewCell* const cell = cell_at(handler, 0, 2);
+        EXPECT_NE(cell.imageView.image, nil); // a resolved ImageSource → a populated image view
+        EXPECT_EQ(handler->typed_platform_view()->realized[2].text, "Avatar");
+    }
+
+    TEST(table_view_ios_seam, section_header_renders_natively)
+    {
+        auto table = make_rich_table();
+        auto handler = std::make_shared<table_view_handler>();
+        table->set_handler(handler);
+
+        auto* platform = handler->typed_platform_view();
+        UITableView* const native = (__bridge UITableView*)platform->native;
+        // The grouped UITableView returns the section title for its native header.
+        NSString* const title = [native.dataSource tableView:native titleForHeaderInSection:0];
+        EXPECT_TRUE([title isEqualToString:@"Settings"]);
+        // And the mirror records it for the cross-backend oracle.
+        ASSERT_EQ(platform->section_headers.size(), 1U);
+        EXPECT_EQ(platform->section_headers[0].title, "Settings");
     }
 } // namespace

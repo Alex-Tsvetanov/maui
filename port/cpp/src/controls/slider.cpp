@@ -3,9 +3,13 @@
 
 #include "maui/controls/slider.hpp"
 
+#include <memory>
+
+#include "maui/controls/platform_configuration/ios_specific/slider.hpp" // the UpdateOnTap knob (key + getter)
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/binding_mode.hpp"
 #include "maui/core/handler_registry.hpp"
+#include "maui/core/i_image_source.hpp"
 #include "maui/core/slider_handler.hpp"
 #include "maui/graphics/color.hpp"
 
@@ -92,6 +96,23 @@ namespace maui::controls
     {
         static const maui::core::bindable_property<maui::graphics::color> descriptor{"thumb_color"};
         return descriptor;
+    }
+
+    // Slider.ThumbImageSourceProperty: default null ImageSource. The key matches the handler's mapper
+    // entry so a change re-runs MapThumbImageSource (the async image-service load + thumb swap).
+    const maui::core::bindable_property<std::shared_ptr<maui::core::i_image_source>>& slider::
+        thumb_image_source_property()
+    {
+        static const maui::core::bindable_property<std::shared_ptr<maui::core::i_image_source>> descriptor{
+            "thumb_image_source"};
+        return descriptor;
+    }
+
+    // i_ios_slider_specifics: read the iOSSpecific.Slider.UpdateOnTap platform-spec store (the
+    // entry::cursor_color pattern — the knob header lives here in the .cpp to avoid a header cycle).
+    bool slider::update_on_tap() const
+    {
+        return platform_configuration::ios_specific::slider::get_update_on_tap(*this);
     }
 } // namespace maui::controls
 

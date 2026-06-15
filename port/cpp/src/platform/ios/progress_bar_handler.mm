@@ -6,9 +6,10 @@
 // Ported DIRECTLY from ProgressBarHandler.iOS.cs + Platform/iOS/ProgressBarExtensions.cs:
 // CreatePlatformView = new UIProgressView(UIProgressViewStyle.Default); UpdateProgress /
 // UpdateProgressColor as the map_* bodies (the nullable ProgressColor collapses — non-nullable color,
-// the button convention). Not ported (deferred, documented in progress_bar_handler.hpp): the
-// FlowDirection mapper override (the iOS-26 RTL subview SemanticContentAttribute walk).
-// UIProgressView is not a UIControl: is_enabled keeps the base mirror.
+// the button convention). The FlowDirection mapper override IS ported (map_flow_direction): the
+// resolved direction (MatchParent → parent-IView fallback) sets the bar's UISemanticContentAttribute +
+// is re-applied to each subview (the iOS-26 RTL subview walk). UIProgressView is not a UIControl:
+// is_enabled keeps the base mirror.
 
 #import <UIKit/UIKit.h>
 
@@ -29,6 +30,23 @@ namespace
     UIProgressView* as_bar(void* native)
     {
         return (__bridge UIProgressView*)native;
+    }
+
+    // ProgressBarHandler.GetSemanticContentAttribute's enum → UISemanticContentAttribute mapping
+    // (Force{Left,Right}ToLeft; an unresolved MatchParent stays Unspecified — the C# Unspecified case
+    // when the parent has no explicit direction).
+    UISemanticContentAttribute to_semantic_content(maui::core::flow_direction fd)
+    {
+        switch (fd)
+        {
+            case maui::core::flow_direction::left_to_right:
+                return UISemanticContentAttributeForceLeftToRight;
+            case maui::core::flow_direction::right_to_left:
+                return UISemanticContentAttributeForceRightToLeft;
+            case maui::core::flow_direction::match_parent:
+                return UISemanticContentAttributeUnspecified;
+        }
+        return UISemanticContentAttributeUnspecified;
     }
 
     using maui::platform::ios::to_ui_color;
@@ -86,6 +104,29 @@ namespace maui::core
         {
             // ProgressBarExtensions.UpdateProgressColor (the nullable collapse — see the header).
             as_bar(platform->native).progressTintColor = to_ui_color(view.progress_color());
+        }
+    }
+
+    void progress_bar_handler::map_flow_direction(progress_bar_handler& handler, i_progress& view)
+    {
+        // ProgressBarHandler.MapFlowDirection: set the bar's UISemanticContentAttribute from the RESOLVED
+        // direction (the MatchParent → parent-IView fallback), then re-apply it to each internal subview —
+        // the iOS-26 workaround (UIProgressView stopped propagating the attribute to its subviews). The
+        // port's floor is recent iOS, so the subview walk runs unconditionally (it is a harmless no-op on
+        // OSes that still propagate). The resolved direction is mirrored for the headless-parity oracle.
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr || platform->native == nullptr)
+        {
+            return;
+        }
+        const maui::core::flow_direction resolved = resolved_flow_direction(view);
+        platform->resolved_flow_direction = resolved;
+        const UISemanticContentAttribute attribute = to_semantic_content(resolved);
+        UIProgressView* const bar = as_bar(platform->native);
+        bar.semanticContentAttribute = attribute;
+        for (UIView* subview in bar.subviews)
+        {
+            subview.semanticContentAttribute = attribute;
         }
     }
 

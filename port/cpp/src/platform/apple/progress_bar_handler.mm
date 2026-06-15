@@ -7,7 +7,9 @@
 // Catalyst). AppKit DEVIATIONS (documented, not silent):
 //  - NSProgressIndicator exposes NO public fill-color API (UIProgressView.ProgressTintColor has no
 //    AppKit analog), so map_progress_color records the cross-platform mirror only.
-//  - The iOS FlowDirection mapper override is deferred with the handler (see progress_bar_handler.hpp).
+//  - The iOS FlowDirection mapper override IS ported (map_flow_direction): the resolved direction (with
+//    the MatchParent → parent-IView fallback) is applied via NSView.userInterfaceLayoutDirection. The
+//    iOS-26 subview re-application is iOS-only (no AppKit counterpart).
 // An NSProgressIndicator is an NSView (not NSControl): is_enabled keeps the base mirror.
 
 #import <AppKit/AppKit.h>
@@ -130,6 +132,22 @@ namespace maui::core
         {
             platform->progress_color = view.progress_color();
         }
+    }
+
+    void progress_bar_handler::map_flow_direction(progress_bar_handler& handler, i_progress& view)
+    {
+        // ProgressBarHandler.MapFlowDirection: AppKit has no UISemanticContentAttribute — the analog is
+        // NSView.userInterfaceLayoutDirection (apply_flow_direction). Apply the RESOLVED direction (the
+        // MatchParent → parent-IView fallback) and mirror it. The iOS-26 subview re-application has no
+        // AppKit counterpart (the NSProgressIndicator honors the view's layout direction directly).
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr || platform->native == nullptr)
+        {
+            return;
+        }
+        const maui::core::flow_direction resolved = resolved_flow_direction(view);
+        platform->resolved_flow_direction = resolved;
+        maui::platform::apple::apply_flow_direction(platform->native, resolved);
     }
 
     maui::graphics::size progress_bar_handler::get_desired_size(double /*width_constraint*/,

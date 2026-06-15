@@ -9,9 +9,10 @@
 //
 // Same partial-class split + single cross-platform slider_platform struct as button_handler.
 //
-// Not ported (deferred, documented): ThumbImageSource (the async image-service fetch — see
-// i_slider.hpp) and the iOS-specific UpdateOnTap platform configuration (the tap-to-set gesture from
-// Slider.iOS.cs needs the platform-configuration subsystem).
+// ThumbImageSource (the async image-service fetch — see i_slider.hpp) and the iOS-specific UpdateOnTap
+// platform configuration (the tap-to-set gesture from Slider.iOS.cs) are BOTH ported: ThumbImageSource
+// flows through the handler-owned image_source_loader (the same seam as image_handler), and UpdateOnTap
+// rides the i_ios_slider_specifics side contract (the W2-24 platform-configuration pattern).
 
 #include <memory>
 #include <string>
@@ -19,6 +20,8 @@
 
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/i_slider.hpp"
+#include "maui/core/image_source_loader.hpp"
+#include "maui/core/image_source_result.hpp"
 #include "maui/core/move_only_function.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/view_handler.hpp"
@@ -55,6 +58,11 @@ namespace maui::core
         move_only_function<void()> on_value_changed;
         move_only_function<void()> on_drag_started;
         move_only_function<void()> on_drag_completed;
+        // Headless mirrors of the ThumbImageSource fetch (whether a thumb image is currently set — the
+        // Apple/iOS builds set the native thumb image instead) and the UpdateOnTap platform configuration
+        // (whether the tap-to-set gesture is installed; the native builds attach/remove a real recognizer).
+        bool thumb_image_set = false;
+        bool update_on_tap = false;
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSSlider (defined in
@@ -110,5 +118,32 @@ namespace maui::core
         static void map_minimum_track_color(slider_handler& handler, i_slider& view);
         static void map_maximum_track_color(slider_handler& handler, i_slider& view);
         static void map_thumb_color(slider_handler& handler, i_slider& view);
+        // SliderHandler.MapThumbImageSource → SliderExtensions.UpdateThumbImageSourceAsync: resolve the
+        // ThumbImageSource through the handler-owned image_source_loader and swap the native thumb image
+        // (clearing the thumb tint while an image is set, exactly like C#). A null source clears it and
+        // re-applies the thumb color. Keyed on "thumb_image_source"; map_thumb_color also re-runs it.
+        static void map_thumb_image_source(slider_handler& handler, i_slider& view);
+        // Slider.MapUpdateOnTap (the iOSSpecific UpdateOnTap remap): install/remove the tap-to-set gesture
+        // on the native slider based on i_ios_slider_specifics::update_on_tap(). Keyed on the namespaced
+        // platform-spec key "ios.Slider.UpdateOnTap" so a knob change re-runs it.
+        static void map_update_on_tap(slider_handler& handler, i_slider& view);
+
+        // The handler-owned async image-source loader (C#'s thumb-image fetch path). Tests inject a
+        // dispatcher (and pump it) to drive the load deterministically; the apple recipe leaves it inline.
+        [[nodiscard]] image_source_loader& thumb_image_loader()
+        {
+            return thumb_image_loader_;
+        }
+
+    private:
+        // Per-backend primitives map_thumb_image_source routes to: apply the decoded image to the native
+        // thumb, or clear it (and re-apply the thumb color). Defined in src/platform/<backend>/slider_handler.*.
+        static void apply_thumb_image(slider_platform& platform, const image_source_result& result);
+        static void clear_thumb_image(slider_platform& platform, i_slider& view);
+        // Per-backend loader wiring (apple/ios: the NSURLSession async fetch + the cache directory; headless
+        // leaves the loader on its synchronous defaults). Called once from the constructor.
+        static void configure_thumb_loader(image_source_loader& loader);
+
+        image_source_loader thumb_image_loader_;
     };
 } // namespace maui::core

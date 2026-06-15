@@ -8,9 +8,11 @@
 // Ported DIRECTLY from SliderHandler.iOS.cs + Platform/iOS/SliderExtensions.cs: CreatePlatformView =
 // UISlider { Continuous = true }; SliderProxy's three wirings; UpdateMinimum/UpdateMaximum/UpdateValue
 // (the differs-only guard) / UpdateMinimumTrackColor / UpdateMaximumTrackColor / UpdateThumbColor as
-// the map_* bodies (the null-color guards collapse — non-nullable color, the button convention). Not
-// ported (deferred, documented): ThumbImageSource (the async image-service fetch), the MacCatalyst
-// PreferredBehavioralStyle branch (Catalyst-only), and MapUpdateOnTap (platform configuration).
+// the map_* bodies (the null-color guards collapse — non-nullable color, the button convention).
+// ThumbImageSource IS ported (map_thumb_image_source → SetThumbImage via the handler-owned loader, with
+// the thumb-tint cleared while an image is shown) and MapUpdateOnTap IS ported (a real
+// UITapGestureRecognizer that sets Value from the tap location, via the i_ios_slider_specifics knob). Not
+// ported (deferred, documented): the MacCatalyst PreferredBehavioralStyle branch (Catalyst-only).
 
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
@@ -21,7 +23,11 @@
 #include <string_view>
 
 #include "ios_conversions.hpp"
+#include "maui/core/i_image_source.hpp"
+#include "maui/core/i_ios_slider_specifics.hpp"
 #include "maui/core/i_slider.hpp"
+#include "maui/core/image_source_loader.hpp"
+#include "maui/core/image_source_result.hpp"
 #include "maui/core/slider_handler.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
@@ -76,11 +82,48 @@
 }
 @end
 
+// The UpdateOnTap recognizer's target (SliderHandler.MapUpdateOnTap's UITapGestureRecognizer body): on a
+// tap, set Value from the tapped X relative to the track width — Value = tappedX * MaxValue / Width.
+@interface MauiSliderTapProxy : NSObject
+@property(nonatomic) maui::core::slider_handler* handler;
+- (void)onTap:(UITapGestureRecognizer*)recognizer;
+@end
+
+@implementation MauiSliderTapProxy
+- (void)onTap:(UITapGestureRecognizer*)recognizer
+{
+    if (self.handler == nullptr)
+    {
+        return;
+    }
+    auto* view = self.handler->virtual_view();
+    auto* const platform = self.handler->typed_platform_view();
+    if (view == nullptr || platform == nullptr || platform->native == nullptr)
+    {
+        return;
+    }
+    UISlider* const slider = (__bridge UISlider*)platform->native;
+    const CGPoint location = [recognizer locationInView:slider];
+    const CGFloat width = slider.frame.size.width;
+    // C# guards `tappedLocation != default` — CGPoint has no operator!=, so compare components.
+    const bool non_default = location.x != 0 || location.y != 0;
+    if (non_default && width > 0)
+    {
+        view->set_value(static_cast<double>(location.x) * static_cast<double>(slider.maximumValue) /
+                        static_cast<double>(width));
+    }
+}
+@end
+
 namespace
 {
     // Key for the associated MauiSliderEventProxy kept alive by the UISlider (UIControl does not
     // retain its targets — the target-action convention).
     const char k_proxy_key = 0;
+    // Key for the UpdateOnTap recognizer (attached to the slider) + its target proxy (attached to the
+    // recognizer) — both kept alive via associated objects (distinct keys, distinct host objects).
+    const char k_tap_recognizer_key = 0;
+    const char k_tap_target_key = 0;
 
     UISlider* as_slider(void* native)
     {
@@ -214,10 +257,16 @@ namespace maui::core
 
     void slider_handler::map_thumb_color(slider_handler& handler, i_slider& view)
     {
+        // SliderExtensions.UpdateThumbColor: when a ThumbImageSource is set, the image wins (re-run the
+        // image map so the thumb image — not the tint — is applied); otherwise push the color tint (the
+        // null guard collapses — non-nullable color). Mirrors C#'s UpdateThumbColor branch.
+        if (view.thumb_image_source() != nullptr && !view.thumb_image_source()->is_empty())
+        {
+            map_thumb_image_source(handler, view);
+            return;
+        }
         if (auto* platform = handler.typed_platform_view())
         {
-            // SliderExtensions.UpdateThumbColor's color branch (the ThumbImageSource branch is deferred
-            // with the image source; the null guard collapses).
             as_slider(platform->native).thumbTintColor = to_ui_color(view.thumb_color());
         }
     }
@@ -243,5 +292,81 @@ namespace maui::core
             return;
         }
         [as_slider(platform->native) setFrame:CGRectMake(frame.x, frame.y, frame.width, frame.height)];
+    }
+
+    // ThumbImageSource (SliderExtensions.UpdateThumbImageSourceAsync), iOS recipe. The cross-platform
+    // map routes the source through the handler-owned loader; these per-backend primitives apply/clear the
+    // decoded UIImage on the real UISlider.
+    void slider_handler::configure_thumb_loader(image_source_loader& /*loader*/)
+    {
+        // Leave the loader on its synchronous read_uri_bytes default: the common ThumbImageSource is a
+        // file/local source, resolved inline. (A remote-URI thumb would want the NSURLSession fetch the
+        // image_handler installs; the knob image is virtually always a bundled asset, so the default
+        // suffices and keeps the slider handler free of the network dependency.)
+    }
+
+    void slider_handler::apply_thumb_image(slider_platform& platform, const image_source_result& result)
+    {
+        if (platform.native == nullptr)
+        {
+            return;
+        }
+        UISlider* const slider = as_slider(platform.native);
+        // SliderExtensions: "Clear the thumb color if we have a thumb image, so the slider doesn't clear
+        // the image while sliding", then SetThumbImage for the Normal state.
+        slider.thumbTintColor = nil;
+        UIImage* const image = result.loaded() ? (__bridge UIImage*)result.image() : nil;
+        [slider setThumbImage:image forState:UIControlStateNormal];
+        platform.thumb_image_set = image != nil;
+    }
+
+    void slider_handler::clear_thumb_image(slider_platform& platform, i_slider& view)
+    {
+        if (platform.native == nullptr)
+        {
+            return;
+        }
+        // SliderExtensions.UpdateThumbImageSourceAsync else branch: drop the image, then re-apply the
+        // thumb color (UpdateThumbColor).
+        UISlider* const slider = as_slider(platform.native);
+        [slider setThumbImage:nil forState:UIControlStateNormal];
+        platform.thumb_image_set = false;
+        slider.thumbTintColor = maui::platform::ios::to_ui_color(view.thumb_color());
+    }
+
+    // SliderHandler.MapUpdateOnTap: install (or remove) the tap-to-set UITapGestureRecognizer based on the
+    // iOSSpecific UpdateOnTap knob. Re-running is idempotent: a recognizer is attached only once, and a
+    // false value removes it. The recognizer + its target proxy are kept alive via associated objects.
+    void slider_handler::map_update_on_tap(slider_handler& handler, i_slider& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        const auto* specifics = dynamic_cast<const i_ios_slider_specifics*>(&view);
+        if (platform == nullptr || platform->native == nullptr || specifics == nullptr)
+        {
+            return;
+        }
+        UISlider* const slider = as_slider(platform->native);
+        auto* existing = (UITapGestureRecognizer*)objc_getAssociatedObject(slider, &k_tap_recognizer_key);
+        if (specifics->update_on_tap())
+        {
+            if (existing == nil)
+            {
+                MauiSliderTapProxy* const tap_proxy = [[MauiSliderTapProxy alloc] init];
+                tap_proxy.handler = &handler;
+                UITapGestureRecognizer* const recognizer =
+                    [[UITapGestureRecognizer alloc] initWithTarget:tap_proxy action:@selector(onTap:)];
+                recognizer.cancelsTouchesInView = NO; // C# CancelsTouchesInView = false
+                [slider addGestureRecognizer:recognizer];
+                // The recognizer retains its target only weakly; keep the proxy alive next to it.
+                objc_setAssociatedObject(recognizer, &k_tap_target_key, tap_proxy, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                objc_setAssociatedObject(slider, &k_tap_recognizer_key, recognizer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            }
+        }
+        else if (existing != nil)
+        {
+            [slider removeGestureRecognizer:existing];
+            objc_setAssociatedObject(slider, &k_tap_recognizer_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        platform->update_on_tap = specifics->update_on_tap();
     }
 } // namespace maui::core

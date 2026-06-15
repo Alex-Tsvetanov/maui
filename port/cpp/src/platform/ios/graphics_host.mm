@@ -1,21 +1,35 @@
 // The UIKit drawing host (graphics_host.hpp): a transparent UIView whose drawRect builds the shared
 // coregraphics_canvas over UIGraphicsGetCurrentContext and replays the borrowed drawable — the
-// PlatformGraphicsView (MaciOS) recipe. Compiled as Objective-C++ with ARC for the `ios` backend.
+// PlatformGraphicsView (MaciOS) recipe — PLUS the PlatformTouchGraphicsView touch plumbing
+// (touchesBegan/Moved/Ended/Cancelled → the connected i_graphics_view's send_*_interaction). Compiled
+// as Objective-C++ with ARC for the `ios` backend.
 
 #import <UIKit/UIKit.h>
 
+#include <vector>
+
 #include "coregraphics_canvas.hpp"
 #include "graphics_host.hpp"
+#include "maui/core/i_graphics_view.hpp"
 #include "maui/graphics/i_drawable.hpp"
+#include "maui/graphics/point_f.hpp"
 #include "maui/graphics/rect_f.hpp"
 
-// The drawable-rendering UIView (C# PlatformGraphicsView): UIKit is already top-left; transparent
-// (C# Opaque = false / BackgroundColor null).
+// The drawable-rendering UIView (C# PlatformGraphicsView / PlatformTouchGraphicsView): UIKit is already
+// top-left; transparent (C# Opaque = false / BackgroundColor null); multi-touch enabled.
 @interface MauiCppDrawableHostView : UIView
 {
 @public
-    maui::graphics::i_drawable* _drawable; // non-owning borrow (graphics_host.hpp)
+    maui::graphics::i_drawable* _drawable;           // non-owning borrow (graphics_host.hpp)
+    maui::core::i_graphics_view* _interactionTarget; // non-owning borrow (set on connect, cleared on disconnect)
+    bool _pressedContained;                          // C# PlatformTouchGraphicsView._pressedContained
 }
+// Split out so the on-simulator seam test can drive the same paths a real gesture takes (UITouch sets
+// cannot be synthesized in a unit test — the documented compromise shared with the other ios suites).
+- (void)notifyStartInteraction:(const std::vector<maui::graphics::point_f>&)points;
+- (void)notifyDragInteraction:(const std::vector<maui::graphics::point_f>&)points;
+- (void)notifyEndInteraction:(const std::vector<maui::graphics::point_f>&)points;
+- (void)notifyCancelInteraction;
 @end
 
 @implementation MauiCppDrawableHostView
@@ -27,6 +41,7 @@
     {
         self.opaque = NO;
         self.backgroundColor = nil;
+        self.multipleTouchEnabled = YES; // C# PlatformTouchGraphicsView ctor
     }
     return self;
 }
@@ -51,6 +66,98 @@
                                            static_cast<float>(rect.size.width), static_cast<float>(rect.size.height)));
 }
 
+// ---- the PlatformTouchGraphicsView touch plumbing ----
+// C# GetPointsInView(evt): each touch's location in the host (the multi-touch point array).
+- (std::vector<maui::graphics::point_f>)pointsFromTouches:(NSSet<UITouch*>*)touches
+{
+    std::vector<maui::graphics::point_f> points;
+    points.reserve(touches.count);
+    for (UITouch* touch in touches)
+    {
+        const CGPoint location = [touch locationInView:self];
+        points.emplace_back(static_cast<float>(location.x), static_cast<float>(location.y));
+    }
+    return points;
+}
+
+// Whether any of the points is inside the host bounds (C# RectF.ContainsAny).
+- (bool)anyPointContained:(const std::vector<maui::graphics::point_f>&)points
+{
+    const CGRect bounds = self.bounds;
+    for (const auto& point : points)
+    {
+        if (CGRectContainsPoint(bounds, CGPointMake(point.x, point.y)))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+- (void)notifyStartInteraction:(const std::vector<maui::graphics::point_f>&)points
+{
+    if (_interactionTarget == nullptr || !_interactionTarget->is_enabled())
+    {
+        return;
+    }
+    _interactionTarget->send_start_interaction(points);
+    _pressedContained = true;
+}
+
+- (void)notifyDragInteraction:(const std::vector<maui::graphics::point_f>&)points
+{
+    if (_interactionTarget == nullptr || !_interactionTarget->is_enabled())
+    {
+        return;
+    }
+    _pressedContained = [self anyPointContained:points];
+    _interactionTarget->send_drag_interaction(points);
+}
+
+- (void)notifyEndInteraction:(const std::vector<maui::graphics::point_f>&)points
+{
+    if (_interactionTarget == nullptr || !_interactionTarget->is_enabled())
+    {
+        return;
+    }
+    _interactionTarget->send_end_interaction(points, _pressedContained);
+}
+
+- (void)notifyCancelInteraction
+{
+    if (_interactionTarget == nullptr || !_interactionTarget->is_enabled())
+    {
+        return;
+    }
+    _pressedContained = false;
+    _interactionTarget->send_cancel_interaction();
+}
+
+- (void)touchesBegan:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event
+{
+    (void)event;
+    [self notifyStartInteraction:[self pointsFromTouches:touches]];
+}
+
+- (void)touchesMoved:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event
+{
+    (void)event;
+    [self notifyDragInteraction:[self pointsFromTouches:touches]];
+}
+
+- (void)touchesEnded:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event
+{
+    (void)event;
+    [self notifyEndInteraction:[self pointsFromTouches:touches]];
+}
+
+- (void)touchesCancelled:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event
+{
+    (void)touches;
+    (void)event;
+    [self notifyCancelInteraction];
+}
+
 @end
 
 namespace maui::platform::ios
@@ -71,5 +178,10 @@ namespace maui::platform::ios
     void drawable_host_invalidate(void* host)
     {
         [(__bridge MauiCppDrawableHostView*)host setNeedsDisplay];
+    }
+
+    void drawable_host_set_interaction_target(void* host, maui::core::i_graphics_view* target)
+    {
+        ((__bridge MauiCppDrawableHostView*)host)->_interactionTarget = target; // non-owning borrow
     }
 } // namespace maui::platform::ios

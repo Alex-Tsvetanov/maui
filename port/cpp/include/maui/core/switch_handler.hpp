@@ -11,6 +11,10 @@
 // mapper TABLES and ctor are cross-platform (src/core/switch_handler.cpp); create / connect /
 // disconnect / map_* / measure are per backend under src/platform/<backend>/switch_handler.{cpp,mm}.
 //
+// NeedsContainer (SwitchHandler.NeedsContainer => true) IS ported: needs_container() returns true and
+// the per-backend on_setup_container / on_remove_container wrap the native switch in a container view
+// (the UISwitch >101pt accessibility workaround) — driven by the shared view_mapper's container_view map.
+//
 // Not ported (deferred, documented): SwitchHandler.iOS's foreground/trait-change observers (UIKit-26
 // theme-reset workarounds re-applying colors after lifecycle events) and the MACCATALYST notification
 // dance — both are version-specific re-application timing, not mapping behavior.
@@ -52,6 +56,12 @@ namespace maui::core
         maui::graphics::color track_color;
         maui::graphics::color thumb_color;
         move_only_function<void()> on_value_changed;
+        // C# NeedsContainer => true: the container view that wraps the native switch (the UISwitch >101pt
+        // accessibility workaround — the natural-sized switch stays inside a sizable container). The Apple
+        // (NSView) / iOS (UIView) builds retain a real wrapper here; released in on_remove_container / the
+        // platform dtor. Headless has no native tree, so it has no wrapper (the handler's has_container /
+        // container_view mirrors record the state instead).
+        void* container = nullptr;
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSSwitch (defined in
@@ -91,10 +101,27 @@ namespace maui::core
         static property_mapper<i_switch, switch_handler>& mapper();
         static command_mapper<i_switch, switch_handler>& command_mapper();
 
+        // C# SwitchHandler.NeedsContainer => true (always): the natural-sized native switch is wrapped in
+        // a container so background/visual chrome can grow without the >101pt UISwitch accessibility bug.
+        // The CRTP base's needs_container() override reads this opt-in constant (the view_mapper's
+        // container_view map then drives the wrap). Cross-platform — the WRAP itself is per backend
+        // (on_setup_container / on_remove_container).
+        static constexpr bool needs_container_v = true;
+
         // Platform recipe (defined per backend: src/platform/<backend>/switch_handler.{cpp,mm}).
         static std::unique_ptr<switch_platform> create_platform_view();
         void on_connect_handler(switch_platform& platform);
         static void on_disconnect_handler(switch_platform& platform);
+
+        // C# ViewHandler.SetupContainer / RemoveContainer (the iOS WrapperView swap): wrap the native
+        // switch in a container view (or unwrap it), keeping the handler's container_view current. The
+        // view_mapper's container_view map drives these via set_has_container(needs_container()). Defined
+        // per backend (the Apple/iOS .mm build a real wrapper; headless has no native tree — it keeps the
+        // base container mirrors only, so it declares no hook and the wrap is a recorded no-op there).
+#if defined(MAUI_PLATFORM_APPLE) || defined(MAUI_PLATFORM_IOS)
+        void on_setup_container();
+        void on_remove_container();
+#endif
 
         // i_view_handler measure/arrange seam (platform-specific sizing).
         [[nodiscard]] maui::graphics::size get_desired_size(double width_constraint,

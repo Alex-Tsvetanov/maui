@@ -9,8 +9,9 @@
 //  - NSSwitch exposes NO public track/thumb tint API (UISwitch's OnTintColor / ThumbTintColor /
 //    track-subview walk have no AppKit analog), so map_track_color / map_thumb_color record the
 //    cross-platform mirrors only — observable native-adjacent state, the MauiButtonCell convention.
-//  - The UIKit-26 foreground/trait-change observers (color re-application timing workarounds) and
-//    NeedsContainer (no container infrastructure in the port yet) are not ported.
+//  - The UIKit-26 foreground/trait-change observers (color re-application timing workarounds) are not
+//    ported. NeedsContainer IS ported: on_setup_container / on_remove_container wrap the NSSwitch in a
+//    plain NSView container (the WrapperView analog), driven by the shared view_mapper's container map.
 
 #import <AppKit/AppKit.h>
 #import <objc/runtime.h>
@@ -70,6 +71,11 @@ namespace maui::core
 {
     switch_platform::~switch_platform()
     {
+        if (container != nullptr)
+        {
+            CFRelease(container); // balances the __bridge_retained in on_setup_container
+            container = nullptr;
+        }
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -163,6 +169,47 @@ namespace maui::core
         native.target = nil;
         native.action = nil;
         objc_setAssociatedObject(native, &k_target_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+
+    // C# ViewHandler.SetupContainer (the WrapperView swap): wrap the natural-sized NSSwitch in a plain
+    // NSView container so the switch never has to grow (the >101pt accessibility bug) while chrome
+    // (background colors, etc.) can still size the container. Re-pointing PlatformView's superview to the
+    // wrapper matches the C# `RemoveFromSuperview` → `ContainerView.AddSubview(PlatformView)` dance; the
+    // wrapper here is freshly minted (no prior superview on a just-connected handler), so it just adopts
+    // the switch and becomes the handler's container_view.
+    void switch_handler::on_setup_container()
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->native == nullptr || platform->container != nullptr)
+        {
+            return; // C# guard: PlatformView == null || ContainerView != null
+        }
+        NSSwitch* const native = as_switch(platform->native);
+        NSView* const wrapper = [[NSView alloc] initWithFrame:native.bounds];
+        [native removeFromSuperview];
+        [wrapper addSubview:native];
+        platform->container = (__bridge_retained void*)wrapper; // the handler owns one reference
+        set_container_view(platform->container);
+    }
+
+    // C# ViewHandler.RemoveContainer: unwrap the switch (drop the wrapper, restore the bare PlatformView)
+    // and clear container_view. The wrapper has no parent yet in the port (it was never inserted into a
+    // superview after setup), so this releases it and re-isolates the switch.
+    void switch_handler::on_remove_container()
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        if (platform->container != nullptr)
+        {
+            NSView* const native = (__bridge NSView*)platform->native;
+            [native removeFromSuperview]; // detach from the wrapper before it is released
+            CFRelease(platform->container);
+            platform->container = nullptr;
+        }
+        set_container_view(nullptr);
     }
 
     void switch_handler::map_is_on(switch_handler& handler, i_switch& view)

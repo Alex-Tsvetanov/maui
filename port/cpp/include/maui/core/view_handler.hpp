@@ -201,6 +201,24 @@ namespace maui::core
             return container_view_;
         }
 
+        // C# ViewHandler.NeedsContainer: defaults false (IView.NeedsContainer() with no Clip/Shadow set);
+        // a concrete handler opts in by declaring `static constexpr bool needs_container_v = true;`
+        // (SwitchHandler — the UISwitch >101pt a11y wrap), detected here with `if constexpr (requires …)`.
+        // A distinct *member-constant* name (not a same-named override) is required: a same-named hook
+        // would be found by name lookup as the inherited base override itself and recurse. Read by the
+        // shared view_mapper's container_view map.
+        [[nodiscard]] bool needs_container() const override
+        {
+            if constexpr (requires { Derived::needs_container_v; })
+            {
+                return Derived::needs_container_v;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         // The platform view's view_platform_base face for the shared view_mapper. NON-BREAKING: a
         // handler whose Platform does NOT derive view_platform_base still compiles — it just returns
         // null and the generic-IView maps become no-ops for that handler.

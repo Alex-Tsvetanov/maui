@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "maui/controls/progress_bar.hpp"
+#include "maui/core/flow_direction.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/progress_bar_handler.hpp"
@@ -16,6 +17,7 @@
 namespace
 {
     using maui::controls::progress_bar;
+    using maui::core::flow_direction;
     using maui::core::i_element_handler;
     using maui::core::progress_bar_handler;
 
@@ -87,6 +89,23 @@ namespace
 
         control.set_opacity(0.5);
         EXPECT_EQ(view.alphaValue, 0.5);
+    }
+
+    TEST_F(apple_progress_bar_seam, flow_direction_maps_to_layout_direction)
+    {
+        // ProgressBarHandler.MapFlowDirection (apple): the resolved direction drives NSView's
+        // userInterfaceLayoutDirection (the AppKit analog of UISemanticContentAttribute).
+        progress_bar control;
+        control.set_flow_direction(flow_direction::right_to_left);
+        auto handler = std::make_shared<progress_bar_handler>();
+        control.set_handler(handler);
+
+        NSProgressIndicator* const view = native_bar(handler);
+        EXPECT_EQ(view.userInterfaceLayoutDirection, NSUserInterfaceLayoutDirectionRightToLeft);
+        EXPECT_EQ(handler->typed_platform_view()->resolved_flow_direction, flow_direction::right_to_left);
+
+        control.set_flow_direction(flow_direction::left_to_right);
+        EXPECT_EQ(view.userInterfaceLayoutDirection, NSUserInterfaceLayoutDirectionLeftToRight);
     }
 
     TEST_F(apple_progress_bar_seam, clearing_handler_disconnects)

@@ -6,12 +6,18 @@
 // ios suite's dispatch-walk). Compiled as Objective-C++ with ARC.
 #import <AppKit/AppKit.h>
 
+#include <cstddef>
 #include <memory>
+#include <span>
 #include <string>
 
+#include "maui/controls/file_image_source.hpp" // image_source::from_stream
+#include "maui/controls/platform_configuration/ios_specific/slider.hpp"
 #include "maui/controls/slider.hpp"
+#include "maui/core/cancellation_token.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/i_stream_image_source.hpp" // image_bytes
 #include "maui/core/slider_handler.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
@@ -26,9 +32,40 @@
 
 namespace
 {
+    using maui::controls::image_source;
     using maui::controls::slider;
+    using maui::core::cancellation_token;
     using maui::core::i_element_handler;
+    using maui::core::image_bytes;
     using maui::core::slider_handler;
+
+    // A real 2x2 PNG so the loader decodes a genuine NSImage (the apple stream service synchronous path).
+    image_bytes make_png_bytes()
+    {
+        NSBitmapImageRep* const rep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:nullptr
+                                                                              pixelsWide:2
+                                                                              pixelsHigh:2
+                                                                           bitsPerSample:8
+                                                                         samplesPerPixel:4
+                                                                                hasAlpha:YES
+                                                                                isPlanar:NO
+                                                                          colorSpaceName:NSDeviceRGBColorSpace
+                                                                             bytesPerRow:0
+                                                                            bitsPerPixel:0];
+        NSData* const png = rep != nil ? [rep representationUsingType:NSBitmapImageFileTypePNG properties:@{}] : nil;
+        if (png == nil)
+        {
+            return {};
+        }
+        const std::span<const std::byte> raw{static_cast<const std::byte*>(png.bytes), png.length};
+        return {raw.begin(), raw.end()};
+    }
+
+    // A stream source yielding a real PNG — exercises the handler-owned loader's apply path inline.
+    std::shared_ptr<maui::core::i_image_source> make_png_stream_source()
+    {
+        return image_source::from_stream([](const cancellation_token&) { return make_png_bytes(); });
+    }
 
     NSSlider* native_slider(const std::shared_ptr<slider_handler>& handler)
     {
@@ -132,6 +169,36 @@ namespace
         control.set_thumb_color(maui::graphics::color(1.0F, 0.0F, 0.0F));
         EXPECT_EQ(handler->typed_platform_view()->maximum_track_color, maui::graphics::color(0.0F, 0.0F, 1.0F));
         EXPECT_EQ(handler->typed_platform_view()->thumb_color, maui::graphics::color(1.0F, 0.0F, 0.0F));
+    }
+
+    TEST_F(apple_slider_seam, thumb_image_source_loads_and_records_the_mirror)
+    {
+        // AppKit deviation (documented): NSSlider has no knob-image API, so the loaded thumb image is
+        // recorded as the cross-platform mirror. The loader runs inline here (no dispatcher), so a stream
+        // source applies synchronously — proving the image-service seam fires.
+        slider control;
+        auto handler = std::make_shared<slider_handler>();
+        control.set_handler(handler);
+
+        control.set_thumb_image_source(make_png_stream_source());
+        EXPECT_TRUE(handler->typed_platform_view()->thumb_image_set);
+
+        control.set_thumb_image_source(nullptr); // clearing restores the thumb-color branch
+        EXPECT_FALSE(handler->typed_platform_view()->thumb_image_set);
+    }
+
+    TEST_F(apple_slider_seam, update_on_tap_records_the_flag)
+    {
+        // NSSlider already jumps to the clicked track position, so UpdateOnTap is a no-op on AppKit — the
+        // flag is recorded for parity (documented in slider_handler.mm).
+        namespace ios_slider = maui::controls::platform_configuration::ios_specific::slider;
+        slider control;
+        auto handler = std::make_shared<slider_handler>();
+        control.set_handler(handler);
+        EXPECT_FALSE(handler->typed_platform_view()->update_on_tap);
+
+        ios_slider::set_update_on_tap(control, true);
+        EXPECT_TRUE(handler->typed_platform_view()->update_on_tap);
     }
 
     TEST_F(apple_slider_seam, clearing_handler_disconnects)

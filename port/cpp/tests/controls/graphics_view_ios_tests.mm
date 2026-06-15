@@ -14,14 +14,26 @@
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/i_canvas.hpp"
 #include "maui/graphics/i_drawable.hpp"
+#include "maui/graphics/point_f.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/rect_f.hpp"
 #include <gtest/gtest.h>
+
+// The drag-notify methods MauiCppDrawableHostView (graphics_host.mm) defines; declared as a category so
+// the test drives the same paths a real UITouch gesture takes (UITouch sets cannot be synthesized in a
+// unit test — the documented compromise shared with the other ios suites).
+@interface UIView (MauiGraphicsTouchTesting)
+- (void)notifyStartInteraction:(const std::vector<maui::graphics::point_f>&)points;
+- (void)notifyDragInteraction:(const std::vector<maui::graphics::point_f>&)points;
+- (void)notifyEndInteraction:(const std::vector<maui::graphics::point_f>&)points;
+- (void)notifyCancelInteraction;
+@end
 
 namespace
 {
     using maui::controls::graphics_view;
     using maui::core::graphics_view_handler;
+    using maui::graphics::point_f;
 
     constexpr std::size_t k_size = 64;
 
@@ -94,5 +106,84 @@ namespace
 
         const std::vector<std::uint8_t> buffer = render_host(handler->native_view());
         EXPECT_EQ(channel(buffer, k_size / 2, k_size / 2, 3), 0);
+    }
+
+    // ---- the touch plumbing (PlatformTouchGraphicsView, iOS) ----
+
+    TEST(ios_graphics_view_seam, touch_events_drive_the_interaction_callbacks)
+    {
+        graphics_view view;
+        auto handler = std::make_shared<graphics_view_handler>();
+        view.set_handler(handler);
+        handler->platform_arrange(maui::graphics::rect(0, 0, k_size, k_size));
+
+        std::vector<point_f> started;
+        std::vector<point_f> ended;
+        bool end_inside = false;
+        view.start_interaction.connect([&started](const std::vector<point_f>& p) { started = p; });
+        view.end_interaction.connect([&ended, &end_inside](const std::vector<point_f>& p, bool inside) {
+            ended = p;
+            end_inside = inside;
+        });
+
+        auto* const host = (__bridge UIView*)handler->native_view();
+        [host notifyStartInteraction:std::vector<point_f>{point_f(10, 12)}];
+        ASSERT_EQ(started.size(), 1U);
+        EXPECT_FLOAT_EQ(started[0].x, 10.0F);
+
+        [host notifyDragInteraction:std::vector<point_f>{point_f(20, 22)}];
+        [host notifyEndInteraction:std::vector<point_f>{point_f(30, 32)}];
+        ASSERT_EQ(ended.size(), 1U);
+        EXPECT_FLOAT_EQ(ended[0].x, 30.0F);
+        EXPECT_TRUE(end_inside); // the drag stayed inside the 64x64 host
+    }
+
+    TEST(ios_graphics_view_seam, drag_outside_bounds_reports_not_contained_on_end)
+    {
+        graphics_view view;
+        auto handler = std::make_shared<graphics_view_handler>();
+        view.set_handler(handler);
+        handler->platform_arrange(maui::graphics::rect(0, 0, k_size, k_size));
+
+        bool end_inside = true;
+        view.end_interaction.connect([&end_inside](const std::vector<point_f>&, bool inside) { end_inside = inside; });
+
+        auto* const host = (__bridge UIView*)handler->native_view();
+        [host notifyStartInteraction:std::vector<point_f>{point_f(10, 10)}];
+        [host notifyDragInteraction:std::vector<point_f>{point_f(500, 500)}]; // outside the host
+        [host notifyEndInteraction:std::vector<point_f>{point_f(500, 500)}];
+        EXPECT_FALSE(end_inside);
+    }
+
+    TEST(ios_graphics_view_seam, cancel_interaction_fires)
+    {
+        graphics_view view;
+        auto handler = std::make_shared<graphics_view_handler>();
+        view.set_handler(handler);
+        handler->platform_arrange(maui::graphics::rect(0, 0, k_size, k_size));
+
+        bool cancelled = false;
+        view.cancel_interaction.connect([&cancelled] { cancelled = true; });
+
+        auto* const host = (__bridge UIView*)handler->native_view();
+        [host notifyStartInteraction:std::vector<point_f>{point_f(5, 5)}];
+        [host notifyCancelInteraction];
+        EXPECT_TRUE(cancelled);
+    }
+
+    TEST(ios_graphics_view_seam, disabled_view_swallows_interactions)
+    {
+        graphics_view view;
+        view.set_is_enabled(false);
+        auto handler = std::make_shared<graphics_view_handler>();
+        view.set_handler(handler);
+        handler->platform_arrange(maui::graphics::rect(0, 0, k_size, k_size));
+
+        bool started = false;
+        view.start_interaction.connect([&started](const std::vector<point_f>&) { started = true; });
+
+        auto* const host = (__bridge UIView*)handler->native_view();
+        [host notifyStartInteraction:std::vector<point_f>{point_f(10, 10)}];
+        EXPECT_FALSE(started); // C# IsEnabled gate
     }
 } // namespace

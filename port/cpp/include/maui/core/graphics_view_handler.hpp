@@ -12,10 +12,12 @@
 //     (background only invalidates when one is set, exactly like C#).
 //   - MapInvalidate (command) → InvalidateDrawable.
 //
-// PLATFORM ADAPTATION (recorded in STATUS): C#'s PlatformTouchGraphicsView adds the UIKit touch /
-// hover plumbing into IGraphicsView.Start/Drag/EndInteraction; the port's native hosts draw only —
-// the interaction channel is portable (i_graphics_view's methods are public and the control raises
-// its events), but the native gesture wiring is deferred with the shared gesture seam (documented).
+// PLATFORM ADAPTATION (recorded in STATUS): C#'s PlatformTouchGraphicsView adds the touch plumbing into
+// IGraphicsView.Start/Drag/End/CancelInteraction. The port's drawing hosts now carry it: on_connect_handler
+// points the host at this handler's virtual view, and the host's native pointer events route there —
+// AppKit mouseDown/Dragged/Up → start/drag/end on apple, UIKit TouchesBegan/Moved/Ended/Cancelled →
+// start/drag/end/cancel on iOS (each gated by IsEnabled, the C# guard). Hover (UIHoverGestureRecognizer)
+// stays deferred with the wider gesture seam; the shape host stays draw-only (it connects no target).
 //
 // Same partial split as the other handlers: mapper tables + ctor cross-platform
 // (graphics_view_handler.cpp); create + update_drawable + invalidate_drawable + arrange_native per
@@ -103,6 +105,16 @@ namespace maui::core
         static command_mapper<i_graphics_view, graphics_view_handler>& command_mapper();
 
         static std::unique_ptr<graphics_view_platform> create_platform_view();
+
+        // C# GraphicsViewHandler.ConnectHandler/DisconnectHandler → PlatformTouchGraphicsView.Connect /
+        // Disconnect: point the native drawing host's touch plumbing at this handler's virtual view (so
+        // its mouse/touch events route into i_graphics_view::send_*_interaction) and clear it on teardown.
+        // Apple/iOS only — headless has no native host, so it declares no hook (the CRTP base's
+        // `requires` detection then skips the call). The shape host never connects a target (draw-only).
+#if defined(MAUI_PLATFORM_APPLE) || defined(MAUI_PLATFORM_IOS)
+        void on_connect_handler(graphics_view_platform& platform);
+        void on_disconnect_handler(graphics_view_platform& platform);
+#endif
 
         // C# GraphicsViewHandler keeps the base GetDesiredSize (the native host reports no intrinsic
         // size — a plain canvas measures 0 and the size requests drive the layout).

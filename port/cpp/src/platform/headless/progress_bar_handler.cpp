@@ -36,6 +36,16 @@ namespace maui::core
         }
     }
 
+    void progress_bar_handler::map_flow_direction(progress_bar_handler& handler, i_progress& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            // Headless mirror of ProgressBarHandler.MapFlowDirection: record the RESOLVED direction (the
+            // MatchParent → parent-IView fallback) the native bars push to SemanticContentAttribute.
+            platform->resolved_flow_direction = resolved_flow_direction(view);
+        }
+    }
+
     maui::graphics::size progress_bar_handler::get_desired_size(double /*width_constraint*/,
                                                                 double /*height_constraint*/) const
     {

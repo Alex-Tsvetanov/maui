@@ -8,7 +8,11 @@
 #include <memory>
 #include <string>
 
+#include "maui/controls/cells/entry_cell.hpp"
+#include "maui/controls/cells/image_cell.hpp"
+#include "maui/controls/cells/switch_cell.hpp"
 #include "maui/controls/cells/text_cell.hpp"
+#include "maui/controls/file_image_source.hpp"
 #include "maui/controls/table_root.hpp"
 #include "maui/controls/table_section.hpp"
 #include "maui/controls/table_view.hpp"
@@ -17,11 +21,21 @@
 
 namespace
 {
+    using maui::controls::entry_cell;
+    using maui::controls::image_cell;
+    using maui::controls::image_source;
+    using maui::controls::switch_cell;
     using maui::controls::table_root;
     using maui::controls::table_section;
     using maui::controls::table_view;
     using maui::controls::table_view_handler;
     using maui::controls::text_cell;
+
+    NSTableView* native_table(const std::shared_ptr<table_view_handler>& handler)
+    {
+        NSScrollView* const scroll = (__bridge NSScrollView*)handler->typed_platform_view()->native;
+        return scroll.documentView;
+    }
 
     [[nodiscard]] std::shared_ptr<table_view> make_populated(int sections, int rows_per_section)
     {
@@ -80,16 +94,77 @@ namespace
         auto handler = std::make_shared<table_view_handler>();
         table->set_handler(handler);
 
-        // Drive the AppKit selection through the real NSTableView (row 1 = section 0, row 1).
+        // The header-aware flat layout for 1 section x 2 rows is [header@0, cell(0,0)@1, cell(0,1)@2], so
+        // flat index 2 selects section 0, row 1.
         auto* platform = handler->typed_platform_view();
-        NSScrollView* const scroll = (__bridge NSScrollView*)platform->native;
-        NSTableView* const native = scroll.documentView;
-        [native selectRowIndexes:[NSIndexSet indexSetWithIndex:1] byExtendingSelection:NO];
+        NSTableView* const native = native_table(handler);
+        [native selectRowIndexes:[NSIndexSet indexSetWithIndex:2] byExtendingSelection:NO];
 
         ASSERT_TRUE(platform->selected_path.has_value());
         EXPECT_EQ(platform->selected_path->section, 0);
         EXPECT_EQ(platform->selected_path->row, 1);
         EXPECT_TRUE(tapped);
+    }
+
+    TEST(table_view_apple_seam, section_header_is_a_non_selectable_group_row)
+    {
+        auto table = make_populated(1, 2);
+        auto handler = std::make_shared<table_view_handler>();
+        table->set_handler(handler);
+
+        auto* platform = handler->typed_platform_view();
+        NSTableView* const native = native_table(handler);
+        // [header@0, cell@1, cell@2] — 3 native rows; the section header is recorded + is a group row.
+        EXPECT_EQ(native.numberOfRows, 3);
+        EXPECT_TRUE([(id<NSTableViewDelegate>)native.delegate tableView:native isGroupRow:0]);
+        ASSERT_EQ(platform->section_headers.size(), 1U);
+        EXPECT_EQ(platform->section_headers[0].title, "S0");
+
+        // Selecting the header row is a no-op (it is not selectable) — no selection is recorded.
+        [native selectRowIndexes:[NSIndexSet indexSetWithIndex:0] byExtendingSelection:NO];
+        EXPECT_FALSE(platform->selected_path.has_value());
+    }
+
+    TEST(table_view_apple_seam, rich_cells_build_native_subcontrols)
+    {
+        auto table = std::make_shared<table_view>();
+        auto root = std::make_shared<table_root>();
+        auto section = std::make_shared<table_section>("Mix");
+        auto sw = std::make_shared<switch_cell>();
+        sw->set_text("Wi-Fi");
+        sw->set_on(true);
+        section->add(sw);
+        auto entry = std::make_shared<entry_cell>();
+        entry->set_label("Name");
+        entry->set_text("Ada");
+        section->add(entry);
+        auto image = std::make_shared<image_cell>();
+        image->set_text("Avatar");
+        image->set_image_source(image_source::from_file("/tmp/a.png"));
+        section->add(image);
+        root->add(section);
+        table->set_root(root);
+
+        auto handler = std::make_shared<table_view_handler>();
+        table->set_handler(handler);
+
+        const auto& rows = handler->typed_platform_view()->realized;
+        ASSERT_EQ(rows.size(), 3U);
+        EXPECT_EQ(rows[0].content, maui::controls::cell_content_kind::toggle);
+        EXPECT_TRUE(rows[0].toggle_on);
+        EXPECT_EQ(rows[1].content, maui::controls::cell_content_kind::entry);
+        EXPECT_EQ(rows[1].entry_text, "Ada");
+        EXPECT_EQ(rows[2].content, maui::controls::cell_content_kind::image);
+        EXPECT_TRUE(rows[2].has_image);
+
+        // The native row views carry the embedded sub-controls (flat indices 1,2,3 after the header@0).
+        NSTableView* const native = native_table(handler);
+        NSView* const switchRow = [native viewAtColumn:0 row:1 makeIfNecessary:YES];
+        EXPECT_NE([switchRow viewWithTag:1002], nil); // the embedded NSSwitch
+        NSView* const entryRow = [native viewAtColumn:0 row:2 makeIfNecessary:YES];
+        EXPECT_NE([entryRow viewWithTag:1003], nil); // the embedded NSTextField
+        NSView* const imageRow = [native viewAtColumn:0 row:3 makeIfNecessary:YES];
+        EXPECT_NE([imageRow viewWithTag:1004], nil); // the embedded NSImageView
     }
 
     TEST(table_view_apple_seam, row_height_maps_to_native)

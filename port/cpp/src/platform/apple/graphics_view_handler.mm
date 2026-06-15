@@ -1,9 +1,11 @@
 // graphics_view_handler — Apple (AppKit / macOS) platform recipe: the shared drawing host
-// (graphics_host.hpp — the PlatformGraphicsView recipe over coregraphics_canvas) carries the
-// drawable; the mirrors (drawable borrow + invalidation count) stay current beside the native
-// pushes so the portable seam tests read the same surface as headless. Translated from
-// GraphicsViewHandler.iOS.cs (CreatePlatformView/UpdateDrawable/InvalidateDrawable). Compiled as
-// Objective-C++ with ARC for the `apple` backend.
+// (graphics_host.hpp — the PlatformGraphicsView / PlatformTouchGraphicsView recipe over
+// coregraphics_canvas) carries the drawable AND the touch plumbing; the mirrors (drawable borrow +
+// invalidation count) stay current beside the native pushes so the portable seam tests read the same
+// surface as headless. ConnectHandler/DisconnectHandler point the host's mouse plumbing at the virtual
+// view (PlatformTouchGraphicsView.Connect/Disconnect). Translated from GraphicsViewHandler.iOS.cs
+// (CreatePlatformView/UpdateDrawable/InvalidateDrawable + the touch recipe). Compiled as Objective-C++
+// with ARC for the `apple` backend.
 
 #import <AppKit/AppKit.h>
 
@@ -115,6 +117,20 @@ namespace maui::core
         auto platform = std::make_unique<graphics_view_platform>();
         platform->native = maui::platform::apple::create_drawable_host();
         return platform;
+    }
+
+    // PlatformTouchGraphicsView.Connect: point the host's mouse plumbing at the virtual view so
+    // mouseDown/Dragged/Up route into send_start/drag/end_interaction (the touch target is a non-owning
+    // borrow — the view owns the handler that owns the host).
+    void graphics_view_handler::on_connect_handler(graphics_view_platform& platform)
+    {
+        maui::platform::apple::drawable_host_set_interaction_target(platform.native, virtual_view());
+    }
+
+    // PlatformTouchGraphicsView.Disconnect: clear the borrow before the view goes away.
+    void graphics_view_handler::on_disconnect_handler(graphics_view_platform& platform)
+    {
+        maui::platform::apple::drawable_host_set_interaction_target(platform.native, nullptr);
     }
 
     // C# UpdateDrawable: point the host at VirtualView.Drawable (and redraw).

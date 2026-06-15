@@ -4,11 +4,18 @@
 // drag channel; the seam half follows the headless conventions (button_tests.cpp).
 #include "maui/controls/slider.hpp"
 
+#include <cstddef>
 #include <memory>
 #include <stdexcept>
 
+#include "maui/controls/file_image_source.hpp" // image_source::from_stream / from_file
+#include "maui/controls/platform_configuration/ios_specific/slider.hpp"
+#include "maui/core/cancellation_token.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/i_image_source.hpp"        // the make_stream_source return type
+#include "maui/core/i_stream_image_source.hpp" // image_bytes
+#include "maui/core/manual_dispatcher.hpp"
 #include "maui/core/slider_handler.hpp"
 #include "maui/graphics/color.hpp"
 #include <gtest/gtest.h>
@@ -16,10 +23,22 @@
 
 namespace
 {
+    using maui::controls::image_source;
     using maui::controls::slider;
+    using maui::core::cancellation_token;
     using maui::core::i_element_handler;
+    using maui::core::image_bytes;
+    using maui::core::manual_dispatcher;
     using maui::core::slider_handler;
     using maui::graphics::color;
+
+    // A stream source yielding a fixed byte count (the headless mirror only records that an image was
+    // applied; the bytes' content does not matter — the same helper as image_tests.cpp).
+    std::shared_ptr<maui::core::i_image_source> make_stream_source(std::size_t byte_count)
+    {
+        return image_source::from_stream(
+            [byte_count](const cancellation_token&) { return image_bytes(byte_count, std::byte{0x7F}); });
+    }
 
     // ---- constructor (SliderUnitTests.TestConstructor / TestInvalidConstructor / clamping) ----
 
@@ -347,6 +366,76 @@ namespace
         EXPECT_EQ(control.handler(), nullptr);
         EXPECT_EQ(handler->platform_view(), nullptr);
         EXPECT_EQ(handler->virtual_view(), nullptr);
+    }
+
+    // ---- ThumbImageSource (SliderHandler.MapThumbImageSource) ----
+
+    TEST(slider, thumb_image_source_defaults_null_and_is_owned)
+    {
+        slider control;
+        EXPECT_EQ(control.thumb_image_source(), nullptr);
+        const auto source = make_stream_source(4);
+        control.set_thumb_image_source(source);
+        EXPECT_EQ(control.thumb_image_source(), source.get()); // the borrow points at the owned source
+    }
+
+    TEST(slider_seam, thumb_image_source_loads_through_the_loader)
+    {
+        slider control;
+        auto handler = std::make_shared<slider_handler>();
+        manual_dispatcher disp;
+        control.set_handler(handler);
+        handler->thumb_image_loader().set_dispatcher(disp);
+
+        control.set_thumb_image_source(make_stream_source(4));
+        EXPECT_FALSE(handler->typed_platform_view()->thumb_image_set); // the apply is queued on the dispatcher
+        disp.run_pending();
+        EXPECT_TRUE(handler->typed_platform_view()->thumb_image_set); // applied after the pump
+    }
+
+    TEST(slider_seam, clearing_thumb_image_source_restores_the_thumb_color)
+    {
+        slider control;
+        control.set_thumb_color(color(1.0F, 0.0F, 0.0F));
+        auto handler = std::make_shared<slider_handler>();
+        manual_dispatcher disp;
+        control.set_handler(handler);
+        handler->thumb_image_loader().set_dispatcher(disp);
+
+        control.set_thumb_image_source(make_stream_source(4));
+        disp.run_pending();
+        ASSERT_TRUE(handler->typed_platform_view()->thumb_image_set);
+
+        control.set_thumb_image_source(nullptr); // a null source clears synchronously
+        EXPECT_FALSE(handler->typed_platform_view()->thumb_image_set);
+        EXPECT_EQ(handler->typed_platform_view()->thumb_color, color(1.0F, 0.0F, 0.0F));
+    }
+
+    // ---- UpdateOnTap (the iOSSpecific platform configuration) ----
+
+    TEST(slider_seam, update_on_tap_defaults_false_and_maps_when_set)
+    {
+        namespace ios_slider = maui::controls::platform_configuration::ios_specific::slider;
+        slider control;
+        auto handler = std::make_shared<slider_handler>();
+        control.set_handler(handler);
+        EXPECT_FALSE(handler->typed_platform_view()->update_on_tap); // default false
+
+        ios_slider::set_update_on_tap(control, true); // the knob change re-runs map_update_on_tap
+        EXPECT_TRUE(handler->typed_platform_view()->update_on_tap);
+
+        ios_slider::set_update_on_tap(control, false);
+        EXPECT_FALSE(handler->typed_platform_view()->update_on_tap);
+    }
+
+    TEST(slider_seam, update_on_tap_set_before_connect_maps_on_connect)
+    {
+        namespace ios_slider = maui::controls::platform_configuration::ios_specific::slider;
+        slider control;
+        ios_slider::set_update_on_tap(control, true); // set before the handler attaches
+        auto handler = std::make_shared<slider_handler>();
+        control.set_handler(handler); // the initial mapper pass picks it up
+        EXPECT_TRUE(handler->typed_platform_view()->update_on_tap);
     }
 
     TEST(slider_seam, handler_resolved_from_default_registry)

@@ -8,7 +8,10 @@
 
 #include <memory>
 
+#include "maui/core/i_ios_slider_specifics.hpp"
 #include "maui/core/i_slider.hpp"
+#include "maui/core/image_source_loader.hpp"
+#include "maui/core/image_source_result.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -106,6 +109,40 @@ namespace maui::core
         {
             platform->thumb_color = view.thumb_color();
         }
+    }
+
+    // Headless loader wiring: no native fetch — leave the loader on its synchronous read_uri_bytes
+    // defaults (the disk layer off), exactly like the headless image_handler.
+    void slider_handler::configure_thumb_loader(image_source_loader& /*loader*/)
+    {
+    }
+
+    // Headless: a loaded result is mirrored as "a thumb image is set" (the Apple/iOS builds set the real
+    // native thumb image instead). The thumb tint is conceptually cleared while an image is shown.
+    void slider_handler::apply_thumb_image(slider_platform& platform, const image_source_result& /*result*/)
+    {
+        platform.thumb_image_set = true;
+    }
+
+    // Headless: clearing the thumb image restores the thumb color mirror (SliderExtensions
+    // UpdateThumbImageSourceAsync's else branch → UpdateThumbColor).
+    void slider_handler::clear_thumb_image(slider_platform& platform, i_slider& view)
+    {
+        platform.thumb_image_set = false;
+        platform.thumb_color = view.thumb_color();
+    }
+
+    // Slider.MapUpdateOnTap: headless records the resolved flag (the Apple/iOS builds attach/remove a
+    // real UITapGestureRecognizer). Reads the i_ios_slider_specifics side contract the control implements.
+    void slider_handler::map_update_on_tap(slider_handler& handler, i_slider& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        const auto* specifics = dynamic_cast<const i_ios_slider_specifics*>(&view);
+        if (platform == nullptr || specifics == nullptr)
+        {
+            return;
+        }
+        platform->update_on_tap = specifics->update_on_tap();
     }
 
     maui::graphics::size slider_handler::get_desired_size(double /*width_constraint*/,

@@ -1,19 +1,24 @@
 // table_view_handler — macOS (AppKit) platform recipe: a real view-based NSTableView inside an
 // NSScrollView, driven by an NSTableViewDataSource + NSTableViewDelegate. The AppKit analog of
-// TableViewRenderer (macOS has no native grouped table, so the port flattens sections+rows into one
-// column and keeps a row→[section,row] map; section titles ride as the row's accessory, deferred):
-//   - numberOfRowsInTableView returns the flattened cell count,
-//   - viewForTableColumn:row: DEQUEUES an NSTextField row view by the cell's reuse identifier (its type
-//     name) via makeViewWithIdentifier: — a fresh make records a `realized`, a reuse hit records a
-//     `reused` — and fills its stringValue from the cell (the GetCell text),
-//   - tableViewSelectionDidChange: records the selection + routes through the model's RowSelected (taps
-//     the cell), the NSTableView selection analog of HandleRowSelected.
-// The platform mirror (events / realized / selected_path) is populated alongside the real NSTableView so
-// the apple suite asserts the same realize/reuse/selection oracle as headless. Obj-C++ with ARC.
+// TableViewRenderer (macOS has no native grouped table, so the port flattens header+rows per section into
+// one column: a non-selectable GROUP ROW per non-empty section, then its cells):
+//   - numberOfRowsInTableView returns the header-aware flat count,
+//   - isGroupRow: / shouldSelectRow: render the section headers as macOS group rows (bold, not selectable),
+//   - viewForTableColumn:row: for a header builds a bold title label; for a cell DEQUEUES an
+//     NSTableCellView by the cell's reuse identifier (a fresh make records a `realized`, a reuse hit a
+//     `reused`) and builds the PER-CELL-TYPE native content — a primary text label plus an embedded
+//     NSSwitch (switch_cell), NSTextField (entry_cell), or NSImageView (image_cell) — rebinding it from
+//     the cross-platform describe_cell fields,
+//   - tableViewSelectionDidChange: records the selection (cells only) + routes through the model's
+//     RowSelected (taps the cell), the NSTableView selection analog of HandleRowSelected.
+// The platform mirror (events / realized incl. the per-content fields / selected_path / section_headers)
+// is populated alongside the real NSTableView so the apple suite asserts the same realize/reuse/selection
+// + cell-content + section oracle as headless. Obj-C++ with ARC.
 //
-// Coverage note (documented): the row hosts the cell's primary text; live per-cell native editors
-// (an embedded NSButton switch / NSTextField inside the row) + native section group rows are deferred —
-// the cross-platform cell properties + the realize/reuse/selection seam are covered here.
+// Coverage note (documented): switch / entry / image cells + section group rows are rendered here; the
+// image view is populated with a placeholder when the cell has a resolved ImageSource (the full async
+// thumbnail decode rides the image-service seam, as in W3-31 — the row only proves the image view is
+// built + bound). view_cell hosts text only (its arbitrary content view is W3-31 follow-up work).
 
 #import <AppKit/AppKit.h>
 #import <objc/runtime.h>
@@ -38,6 +43,16 @@ using maui::controls::table_view_platform;
 
 namespace maui::controls
 {
+    // One entry in the AppKit flat layout: macOS NSTableView has no native grouped sections, so the port
+    // flattens [ header(s0), cell(s0,0), …, header(s1), cell(s1,0), … ] into one column. A header entry is
+    // a non-selectable section group row; a cell entry carries its [section,row] path.
+    struct flat_entry
+    {
+        bool is_header = false;
+        int section = 0;
+        int row = 0; // valid only when !is_header
+    };
+
     // Bridges the Obj-C datasource/delegate to the C++ handler's mirror (the handler owns the records).
     struct table_view_source_bridge
     {
@@ -50,31 +65,25 @@ namespace maui::controls
         {
             return handler.typed_platform_view();
         }
-        // The flattened [section,row] path of the Nth visible cell (skips empty sections).
-        static table_row_path path_for_flat_row(table_model& model, int flat)
+        // The header-aware flat layout: a group-row header before each non-empty section, then its rows.
+        static std::vector<flat_entry> flatten(table_model& model)
         {
-            int seen = 0;
+            std::vector<flat_entry> entries;
             const int sections = model.get_section_count();
             for (int s = 0; s < sections; ++s)
             {
                 const int rows = model.get_row_count(s);
-                if (flat < seen + rows)
+                if (rows <= 0)
                 {
-                    return {s, flat - seen};
+                    continue; // empty sections contribute no header + no rows
                 }
-                seen += rows;
+                entries.push_back({.is_header = true, .section = s, .row = 0});
+                for (int r = 0; r < rows; ++r)
+                {
+                    entries.push_back({.is_header = false, .section = s, .row = r});
+                }
             }
-            return {0, 0};
-        }
-        static int flat_row_count(table_model& model)
-        {
-            int total = 0;
-            const int sections = model.get_section_count();
-            for (int s = 0; s < sections; ++s)
-            {
-                total += model.get_row_count(s);
-            }
-            return total;
+            return entries;
         }
     };
 } // namespace maui::controls
@@ -93,26 +102,60 @@ namespace
     char g_source_key = 0;
 } // namespace
 
-// The datasource + delegate, holding a non-owning back-pointer to the C++ handler.
+// The datasource + delegate, holding a non-owning back-pointer to the C++ handler. It caches the
+// header-aware flat layout (rebuilt on each reload) so numberOfRows / viewForTableColumn / selection all
+// agree on which flat rows are section headers vs cells.
 @interface MauiTableViewSource : NSObject <NSTableViewDataSource, NSTableViewDelegate>
 @property(nonatomic, assign) table_view_handler* handler;
+- (void)rebuildLayout;
 @end
 
 @implementation MauiTableViewSource
+{
+    std::vector<maui::controls::flat_entry> _layout;
+}
+
+- (void)rebuildLayout
+{
+    _layout.clear();
+    if (self.handler != nullptr)
+    {
+        if (auto* model = maui::controls::table_view_source_bridge::model_for(*self.handler))
+        {
+            _layout = maui::controls::table_view_source_bridge::flatten(*model);
+        }
+    }
+}
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView*)tableView
 {
     (void)tableView;
-    table_model* const model =
-        self.handler != nullptr ? maui::controls::table_view_source_bridge::model_for(*self.handler) : nullptr;
-    return model != nullptr ? maui::controls::table_view_source_bridge::flat_row_count(*model) : 0;
+    return static_cast<NSInteger>(_layout.size());
 }
 
+// AppKit group rows render the section header style (bold, full-width) — the macOS section-group-row look.
+- (BOOL)tableView:(NSTableView*)tableView isGroupRow:(NSInteger)row
+{
+    (void)tableView;
+    return row >= 0 && static_cast<std::size_t>(row) < _layout.size() &&
+           _layout[static_cast<std::size_t>(row)].is_header;
+}
+
+// Headers are not selectable (they are group rows, like the C# section headers).
+- (BOOL)tableView:(NSTableView*)tableView shouldSelectRow:(NSInteger)row
+{
+    (void)tableView;
+    return !(row >= 0 && static_cast<std::size_t>(row) < _layout.size() &&
+             _layout[static_cast<std::size_t>(row)].is_header);
+}
+
+// Build the row's native content: a bold header label for a group row, or — for a cell — the per-cell-type
+// native content (a text label, plus a switch / text field / image view embedded in a container row view).
 - (NSView*)tableView:(NSTableView*)tableView viewForTableColumn:(NSTableColumn*)tableColumn row:(NSInteger)row
 {
     (void)tableColumn;
     table_view_handler* const handler = self.handler;
-    if (handler == nullptr)
+    if (handler == nullptr || row < 0 || static_cast<std::size_t>(row) >= _layout.size())
     {
         return nil;
     }
@@ -122,53 +165,134 @@ namespace
     {
         return nil;
     }
-    const table_row_path path =
-        maui::controls::table_view_source_bridge::path_for_flat_row(*model, static_cast<int>(row));
+    const maui::controls::flat_entry entry = _layout[static_cast<std::size_t>(row)];
+
+    if (entry.is_header)
+    {
+        // The section group row: a bold title label (NSTableViewRenderer's section header). Recorded in the
+        // section_headers mirror by reload(); here we just build the native view.
+        const std::string title = model->get_section_title(entry.section);
+        NSTextField* header = [tableView makeViewWithIdentifier:@"maui_section_header" owner:self];
+        if (header == nil)
+        {
+            header = [NSTextField labelWithString:@""];
+            header.identifier = @"maui_section_header";
+            header.font = [NSFont boldSystemFontOfSize:NSFont.smallSystemFontSize];
+        }
+        header.stringValue = [NSString stringWithUTF8String:title.c_str()];
+        return header;
+    }
+
+    const maui::controls::table_row_path path{.section = entry.section, .row = entry.row};
     std::shared_ptr<cell> source = model->get_cell(path.section, path.row);
     const std::string reuse_id = source != nullptr ? table_view_handler::reuse_identifier(*source) : std::string{};
     NSString* const identifier = [NSString stringWithUTF8String:reuse_id.c_str()];
 
-    NSTextField* field = [tableView makeViewWithIdentifier:identifier owner:self];
-    const bool reused = field != nil;
+    // Dequeue a reusable container row view by the cell's reuse id (a fresh make = realize, a hit = reuse).
+    NSTableCellView* rowView = [tableView makeViewWithIdentifier:identifier owner:self];
+    const bool reused = rowView != nil;
+
+    maui::controls::realized_row realized;
+    realized.path = path;
+    realized.reuse_id = reuse_id;
+    if (source != nullptr)
+    {
+        realized.text = table_view_handler::display_text(*source);
+        realized.source = source;
+        table_view_handler::describe_cell(realized, *source); // the per-cell-type content fields
+    }
+
     if (!reused)
     {
-        field = [NSTextField labelWithString:@""];
-        field.identifier = identifier;
+        rowView = [[NSTableCellView alloc] initWithFrame:NSMakeRect(0, 0, 400, 24)];
+        rowView.identifier = identifier;
+        NSTextField* const label = [NSTextField labelWithString:@""];
+        label.tag = 1001; // the primary text label (kept addressable across reuse)
+        [rowView addSubview:label];
+        rowView.textField = label;
+        // The per-cell-type accessory (built once per realized view; rebound below for both make + reuse):
+        switch (realized.content)
+        {
+            case maui::controls::cell_content_kind::toggle: {
+                NSSwitch* const sw = [[NSSwitch alloc] initWithFrame:NSMakeRect(300, 0, 50, 24)];
+                sw.tag = 1002;
+                [rowView addSubview:sw];
+                break;
+            }
+            case maui::controls::cell_content_kind::entry: {
+                NSTextField* const tf = [[NSTextField alloc] initWithFrame:NSMakeRect(150, 0, 200, 24)];
+                tf.tag = 1003;
+                [rowView addSubview:tf];
+                break;
+            }
+            case maui::controls::cell_content_kind::image: {
+                NSImageView* const iv = [[NSImageView alloc] initWithFrame:NSMakeRect(0, 0, 24, 24)];
+                iv.tag = 1004;
+                [rowView addSubview:iv];
+                break;
+            }
+            case maui::controls::cell_content_kind::text:
+            case maui::controls::cell_content_kind::view:
+            case maui::controls::cell_content_kind::none:
+                break;
+        }
     }
-    const std::string text = source != nullptr ? table_view_handler::display_text(*source) : std::string{};
-    field.stringValue = [NSString stringWithUTF8String:text.c_str()];
+
+    // Bind the primary text + the per-cell-type content to the (possibly reused) native sub-controls.
+    if (NSTextField* const label = [rowView viewWithTag:1001])
+    {
+        label.stringValue = [NSString stringWithUTF8String:realized.text.c_str()];
+    }
+    if (realized.content == maui::controls::cell_content_kind::toggle)
+    {
+        if (auto* sw = (NSSwitch*)[rowView viewWithTag:1002])
+        {
+            sw.state = realized.toggle_on ? NSControlStateValueOn : NSControlStateValueOff;
+        }
+    }
+    else if (realized.content == maui::controls::cell_content_kind::entry)
+    {
+        if (auto* tf = (NSTextField*)[rowView viewWithTag:1003])
+        {
+            tf.stringValue = [NSString stringWithUTF8String:realized.entry_text.c_str()];
+            tf.placeholderString = [NSString stringWithUTF8String:realized.entry_placeholder.c_str()];
+        }
+    }
+    else if (realized.content == maui::controls::cell_content_kind::image)
+    {
+        if (auto* iv = (NSImageView*)[rowView viewWithTag:1004])
+        {
+            // A resolved ImageSource → a placeholder image so the view is populated (the real decode rides
+            // the same image-service seam the image handler uses; the row only needs a non-nil image to
+            // prove the image view was built + bound). No source → cleared.
+            iv.image = realized.has_image ? [[NSImage alloc] initWithSize:NSMakeSize(24, 24)] : nil;
+        }
+    }
 
     if (platform != nullptr)
     {
-        maui::controls::realized_row realized;
-        realized.path = path;
-        realized.reuse_id = reuse_id;
-        realized.text = text;
-        realized.source = source;
-        platform->realized.push_back(std::move(realized));
+        platform->realized.push_back(realized);
         platform->events.push_back({.kind = reused ? table_row_event_kind::reused : table_row_event_kind::realized,
                                     .path = path,
                                     .reuse_id = reuse_id});
     }
-    return field;
+    return rowView;
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification*)notification
 {
     NSTableView* const tableView = (NSTableView*)notification.object;
     const NSInteger row = tableView.selectedRow;
-    if (row < 0 || self.handler == nullptr)
+    if (row < 0 || self.handler == nullptr || static_cast<std::size_t>(row) >= _layout.size())
     {
         return;
     }
-    table_model* const model = maui::controls::table_view_source_bridge::model_for(*self.handler);
-    if (model == nullptr)
+    const maui::controls::flat_entry entry = _layout[static_cast<std::size_t>(row)];
+    if (entry.is_header)
     {
-        return;
+        return; // group rows are not selectable
     }
-    const table_row_path path =
-        maui::controls::table_view_source_bridge::path_for_flat_row(*model, static_cast<int>(row));
-    self.handler->simulate_select(path.section, path.row);
+    self.handler->simulate_select(entry.section, entry.row);
 }
 @end
 
@@ -223,6 +347,7 @@ namespace maui::controls
         platform.realized.clear();
         platform.recycle_pool.clear();
         platform.selected_path.reset();
+        platform.section_headers.clear();
     }
 
     void table_view_handler::reload()
@@ -233,7 +358,26 @@ namespace maui::controls
             return;
         }
         platform->realized.clear(); // re-filled by viewForTableColumn during the layout pass
+        platform->section_headers.clear();
+        // Record the section headers/group rows for each non-empty section (the mirror the suites assert;
+        // the native group rows are built by viewForTableColumn below).
+        if (auto* model = virtual_view() != nullptr ? virtual_view()->model() : nullptr)
+        {
+            const int sections = model->get_section_count();
+            for (int s = 0; s < sections; ++s)
+            {
+                if (model->get_row_count(s) > 0)
+                {
+                    platform->section_headers.push_back({.section = s, .title = model->get_section_title(s)});
+                }
+            }
+        }
         NSTableView* const native = as_table(platform->native);
+        // Rebuild the header-aware flat layout the datasource walks before reloadData reads its counts.
+        if (auto* source = (MauiTableViewSource*)objc_getAssociatedObject(native, &g_source_key))
+        {
+            [source rebuildLayout];
+        }
         as_scroll(platform->native).frame = NSMakeRect(0, 0, 400, 5000);
         native.frame = NSMakeRect(0, 0, 400, 5000);
         [native reloadData];
