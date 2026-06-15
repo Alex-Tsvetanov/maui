@@ -95,6 +95,17 @@ namespace maui::controls
         maui::core::event<> loaded;
         maui::core::event<> unloaded;
 
+        // C# Element.OnParentChangingCore — invoked on this element just before its logical parent changes
+        // (attach_logical_child passes the new parent; detach passes nullptr). The default is a no-op;
+        // ImmutableBrush overrides it to throw, so a named brush static refuses to be parented (the public-
+        // facing analog of C#'s settable Element.Parent —
+        // BrushTypeConverterUnitTests.InvalidOperationExceptionWhenSettingParentOnImmutableBrush). Public so
+        // it is reachable both from attach_logical_child and as the developer-facing "set Parent" throw.
+        virtual void on_logical_parent_changing(element* new_parent)
+        {
+            (void)new_parent;
+        }
+
         // Attach (non-null) or detach (null) this element + its logical subtree to a window. A non-null
         // transition fires loaded (top-down: this element first, then children); a null transition fires
         // unloaded (bottom-up: children first, then this element). Idempotent — same window is a no-op.

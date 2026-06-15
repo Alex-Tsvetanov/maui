@@ -30,11 +30,15 @@
 
 #include "maui/xaml/xaml_standard_types.hpp"
 
+#include <memory> // X1: std::shared_ptr<brush> converter registration
+
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include "maui/animations/easing.hpp"
+#include "maui/controls/brushes/brush.hpp"                // X1: the Brush-typed converter's value type
+#include "maui/controls/brushes/brush_type_converter.hpp" // X1: maui::controls::convert_brush
 #include "maui/controls/button.hpp"
 #include "maui/controls/column_definition.hpp"
 #include "maui/controls/content_page.hpp"
@@ -375,6 +379,13 @@ namespace maui::xaml
             registry_converter(&convert_clear_button_visibility));
         converters.register_converter<maui::core::flow_direction>(registry_converter(&convert_flow_direction));
         converters.register_converter<maui::core::text_decorations>(registry_converter(&convert_text_decorations));
+
+        // X1 — the Brush converter (BrushTypeConverter): a Brush-typed XAML attribute (e.g.
+        // VisualElement.Background) parses a color name/hex/CSS-color or a linear-/radial-gradient string
+        // into a std::shared_ptr<maui::controls::brush>. Self-contained + appended so the sibling X4
+        // converter additions union-merge trivially.
+        converters.register_converter<std::shared_ptr<maui::controls::brush>>(
+            registry_converter(&maui::controls::convert_brush));
     }
 
     void register_standard_xaml(xaml_type_registry& types, xaml_property_registry& properties,

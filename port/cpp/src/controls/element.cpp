@@ -285,6 +285,7 @@ namespace maui::controls
 
     void element::attach_logical_child(element& child)
     {
+        child.on_logical_parent_changing(this); // Element.OnParentChangingCore (ImmutableBrush throws here)
         child.logical_parent_ = this;
         // --- templates (W1-09): route through the overridable SetChildInheritedBindingContext seam ---
         set_child_inherited_binding_context(child, raw_binding_context());
@@ -297,6 +298,7 @@ namespace maui::controls
 
     void element::detach_logical_child(element& child)
     {
+        child.on_logical_parent_changing(nullptr); // Element.OnParentChangingCore (ImmutableBrush throws here)
         child.set_containing_window(nullptr);
         child.logical_parent_ = nullptr;
         // The child's resource chain shrank to itself — re-resolve so an implicit style from the old

@@ -840,6 +840,16 @@ add_library(maui_controls STATIC
   src/controls/table_view.cpp
   src/controls/table_view_handler.cpp
   ${MAUI_CONTROLS_TABLE_PLATFORM_SOURCES}
+  # (X1 brushes) the controls-level Brush family (solid/gradient/image) + the named statics + the
+  # Brush<->Paint bridge. ImageBrush is header-only; the others have out-of-line .cpp bodies.
+  src/controls/brushes/brush.cpp
+  src/controls/brushes/solid_color_brush.cpp
+  src/controls/brushes/gradient_stop.cpp
+  src/controls/brushes/gradient_brush.cpp
+  src/controls/brushes/linear_gradient_brush.cpp
+  src/controls/brushes/radial_gradient_brush.cpp
+  src/controls/brushes/brush_paint_bridge.cpp
+  src/controls/brushes/brush_type_converter.cpp # X1: BrushTypeConverter (string -> Brush), Controls-level
   # (W2-23 shapes) the Shapes geometry/transform model + the path markup parser + the controls.
   src/controls/graphics_view.cpp
   src/controls/box_view.cpp
@@ -977,6 +987,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/graphics_view_tests.cpp # (W2-23) graphics_view + box_view + the golden-op seat
     tests/controls/shape_view_tests.cpp # (W2-23) the shape control family + shape_view_handler
     tests/controls/shapes_page_tests.cpp # the W2-23 demo page wiring (backend-agnostic)
+    tests/controls/brush_tests.cpp # (X1) the controls Brush family + paint bridge + XAML converter (backend-agnostic)
     tests/controls/style_tests.cpp   # backend-agnostic; compiled as C++ within the apple test exe
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
@@ -1156,6 +1167,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/graphics_view_tests.cpp # (W2-23) graphics_view + box_view + the golden-op seat
     tests/controls/shape_view_tests.cpp # (W2-23) the shape control family + shape_view_handler
     tests/controls/shapes_page_tests.cpp # the W2-23 demo page wiring (backend-agnostic)
+    tests/controls/brush_tests.cpp # (X1) the controls Brush family + paint bridge + XAML converter (backend-agnostic)
     tests/controls/style_tests.cpp
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp
@@ -1249,6 +1261,7 @@ else()
     tests/controls/graphics_view_tests.cpp # (W2-23) graphics_view + box_view + the golden-op seat
     tests/controls/shape_view_tests.cpp # (W2-23) the shape control family + shape_view_handler
     tests/controls/shapes_page_tests.cpp # the W2-23 demo page wiring (backend-agnostic)
+    tests/controls/brush_tests.cpp # (X1) the controls Brush family + paint bridge + XAML converter (backend-agnostic)
     tests/controls/style_tests.cpp
     tests/controls/trigger_tests.cpp
     tests/controls/visual_state_manager_tests.cpp

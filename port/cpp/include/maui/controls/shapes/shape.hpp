@@ -31,6 +31,7 @@
 #include <utility>
 #include <vector>
 
+#include "maui/controls/brushes/brush.hpp" // X1: Shape.Fill/Stroke accept a Brush (bridged to paint)
 #include "maui/controls/view.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/i_shape_view.hpp"
@@ -86,6 +87,7 @@ namespace maui::controls::shapes
         }
         void set_fill(std::shared_ptr<maui::graphics::paint> value)
         {
+            fill_brush_.reset(); // a raw-paint fill clears any brush previously set
             fill_.set(std::move(value));
         }
         [[nodiscard]] maui::graphics::paint* stroke() const override
@@ -94,7 +96,40 @@ namespace maui::controls::shapes
         }
         void set_stroke(std::shared_ptr<maui::graphics::paint> value)
         {
+            stroke_brush_.reset();
             stroke_.set(std::move(value));
+        }
+
+        // X1 — Shape.Fill / Shape.Stroke as Brushes (the C# bindable surface). The shape owns the brush for
+        // BindingContext inheritance and bridges it to the graphics::paint the shape_view_handler renders
+        // (Brush's implicit operator Paint). Named set_fill_brush / set_stroke_brush (not overloads) so the
+        // existing set_fill(nullptr)/(paint) calls stay unambiguous — non-breaking: the paint-typed setters
+        // above are untouched.
+        void set_fill_brush(std::shared_ptr<brush> value)
+        {
+            fill_brush_ = std::move(value);
+            if (fill_brush_)
+            {
+                fill_brush_->set_inherited_binding_context(this->raw_binding_context());
+            }
+            fill_.set(maui::controls::to_paint(fill_brush_));
+        }
+        void set_stroke_brush(std::shared_ptr<brush> value)
+        {
+            stroke_brush_ = std::move(value);
+            if (stroke_brush_)
+            {
+                stroke_brush_->set_inherited_binding_context(this->raw_binding_context());
+            }
+            stroke_.set(maui::controls::to_paint(stroke_brush_));
+        }
+        [[nodiscard]] const std::shared_ptr<brush>& fill_brush() const
+        {
+            return fill_brush_;
+        }
+        [[nodiscard]] const std::shared_ptr<brush>& stroke_brush() const
+        {
+            return stroke_brush_;
         }
 
         // ---- the stroke detail surface (i_stroke) ----
@@ -184,6 +219,24 @@ namespace maui::controls::shapes
             shape_self_ = this;
         }
 
+        // X1 — after the base (view<>) propagation (which handles the Background brush + gesture
+        // recognizers), flow this shape's (possibly inherited) context into the Fill/Stroke brushes too, so
+        // a brush's gradient stops inherit it. The brushes are not logical children (their Parent stays
+        // null), matching the VisualElement.Background treatment.
+        void on_binding_context_changed() override
+        {
+            maui::controls::view<maui::core::i_shape_view>::on_binding_context_changed();
+            const auto& context = this->raw_binding_context();
+            if (fill_brush_)
+            {
+                fill_brush_->set_inherited_binding_context(context);
+            }
+            if (stroke_brush_)
+            {
+                stroke_brush_->set_inherited_binding_context(context);
+            }
+        }
+
         // C# Shape.TransformPathForBounds — fit the path into the (stroke-inset) view bounds.
         void transform_path_for_bounds(maui::graphics::path_f& path, const maui::graphics::rect& view_bounds) const;
 
@@ -202,6 +255,10 @@ namespace maui::controls::shapes
     private:
         maui::core::property<std::shared_ptr<maui::graphics::paint>> fill_{*this, fill_property()};
         maui::core::property<std::shared_ptr<maui::graphics::paint>> stroke_{*this, stroke_property()};
+        // X1 — the developer-facing Fill/Stroke brushes (when set via the brush overloads). Owned by the
+        // shape so they inherit its BindingContext; the bridged paints live in fill_/stroke_ for the handler.
+        std::shared_ptr<brush> fill_brush_;
+        std::shared_ptr<brush> stroke_brush_;
         maui::core::property<double> stroke_thickness_{*this, stroke_thickness_property()};
         maui::core::property<std::vector<double>> stroke_dash_array_{*this, stroke_dash_array_property()};
         maui::core::property<double> stroke_dash_offset_{*this, stroke_dash_offset_property()};

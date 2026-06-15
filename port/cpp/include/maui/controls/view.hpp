@@ -23,7 +23,8 @@
 #include <utility>
 #include <vector>
 
-#include "maui/controls/behavior.hpp" // --- styles tail (W1-15) ---
+#include "maui/controls/behavior.hpp"      // --- styles tail (W1-15) ---
+#include "maui/controls/brushes/brush.hpp" // X1: VisualElement.Background accepts a Brush (bridged to paint)
 #include "maui/controls/element.hpp"
 #include "maui/controls/gestures/gesture_platform_manager.hpp" // --- gestures (W1-12) ---
 #include "maui/controls/style.hpp"
@@ -55,6 +56,11 @@
 
 namespace maui::controls
 {
+    // X1 brush bridge: defined in src/controls/brushes/brush_paint_bridge.cpp. Declared here so the
+    // set_background(brush) template overload can convert without pulling the full bridge header into this
+    // central control header.
+    [[nodiscard]] std::shared_ptr<maui::graphics::paint> to_paint(const std::shared_ptr<brush>& source);
+
     // The shared bindable-property descriptors for the four generic IView properties (VisualElement's
     // IsEnabled / Opacity / IsVisible(Visibility) + Element's AutomationId). They are NON-template free
     // functions — one descriptor per property, shared across EVERY view<ViewInterface> instantiation —
@@ -312,7 +318,30 @@ namespace maui::controls
         // The control takes ownership of the background paint. Passing a distinct instance fires the change.
         void set_background(std::shared_ptr<maui::graphics::paint> value)
         {
+            background_brush_.reset(); // a raw-paint background clears any brush previously set
             background_.set(std::move(value));
+        }
+
+        // X1 — VisualElement.Background as a Brush (the developer-facing surface). The view owns the brush
+        // for BindingContext inheritance (SetInheritedBindingContext on the brush, mirroring C#
+        // VisualElement.SetInheritedBindingContext(Background, …)) and bridges it to the graphics::paint the
+        // native layer already renders (Brush's implicit operator Paint). Setting null clears both. Named
+        // set_background_brush (not an overload) so the existing set_background(nullptr)/(paint) calls stay
+        // unambiguous — non-breaking: the paint-typed setter/getter above is untouched; handlers keep
+        // consuming background().
+        void set_background_brush(std::shared_ptr<brush> value)
+        {
+            background_brush_ = std::move(value);
+            if (background_brush_)
+            {
+                background_brush_->set_inherited_binding_context(this->raw_binding_context());
+            }
+            background_.set(to_paint(background_brush_));
+        }
+        // The owned background brush (null when the background was set as a raw paint, or never set).
+        [[nodiscard]] const std::shared_ptr<brush>& background_brush() const
+        {
+            return background_brush_;
         }
         [[nodiscard]] maui::core::visibility visibility() const override
         {
@@ -737,6 +766,13 @@ namespace maui::controls
             {
                 context_flyout_element_->set_inherited_binding_context(context);
             }
+            // X1 — VisualElement.OnBindingContextChanged: `if (Background != null) SetInheritedBindingContext
+            // (Background, BindingContext)`. The background brush is NOT a logical child (so its Parent stays
+            // null — BrushTypeConverterUnitTests.ImmutableBrushDoesntSetParent), only an inherited context.
+            if (background_brush_)
+            {
+                background_brush_->set_inherited_binding_context(context);
+            }
         }
         // --- end gestures (W1-12) ---
 
@@ -860,6 +896,9 @@ namespace maui::controls
         maui::core::property<std::shared_ptr<maui::graphics::paint>> background_{*this, background_property()};
         maui::core::property<std::shared_ptr<maui::core::i_shadow>> shadow_{*this, shadow_property()};
         maui::core::property<std::shared_ptr<maui::graphics::i_shape>> clip_{*this, clip_property()};
+        // X1 — the developer-facing Background brush (when set via the brush overload). Owned by the view so
+        // it inherits the view's BindingContext; the bridged paint lives in background_ above for the handler.
+        std::shared_ptr<brush> background_brush_;
         // Accessibility metadata + the input-transparent flag (each re-runs the chained view_mapper's
         // map_semantics / map_input_transparent). Shared descriptors, like the visual-layer props.
         maui::core::property<std::shared_ptr<maui::core::semantics>> semantics_{*this, semantics_property()};
