@@ -20,8 +20,8 @@
 // Defaults (SearchBar.cs): ReturnType.Search; CancelButtonColor/SearchIconColor default-color ("null" —
 // platform default); HorizontalTextAlignment Start, VerticalTextAlignment Center (TextAlignmentElement).
 //
-// Deferred (OUT OF SCOPE this cut, documented not stubbed): Keyboard, TextTransform, the ICommand
-// CanExecute → IsEnabledCore coupling.
+// Deferred (OUT OF SCOPE this cut, documented not stubbed): TextTransform, the ICommand CanExecute →
+// IsEnabledCore coupling.
 
 #include <cstddef>
 #include <string>
@@ -33,6 +33,7 @@
 #include "maui/core/event.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/i_search_bar.hpp"
+#include "maui/core/keyboard.hpp"
 #include "maui/core/move_only_function.hpp"
 #include "maui/core/property.hpp"
 #include "maui/core/return_type.hpp"
@@ -68,6 +69,7 @@ namespace maui::controls
         static const maui::core::bindable_property<double>& character_spacing_property();
         static const maui::core::bindable_property<maui::core::text_alignment>& horizontal_text_alignment_property();
         static const maui::core::bindable_property<maui::core::text_alignment>& vertical_text_alignment_property();
+        static const maui::core::bindable_property<maui::core::keyboard>& keyboard_property();
 
         // ---- i_text / i_text_style ----
         [[nodiscard]] std::string_view text() const override
@@ -119,6 +121,10 @@ namespace maui::controls
         [[nodiscard]] int selection_length() const override
         {
             return selection_length_.get();
+        }
+        [[nodiscard]] maui::core::keyboard keyboard() const override
+        {
+            return keyboard_.get();
         }
 
         // ---- i_text_alignment ----
@@ -235,6 +241,10 @@ namespace maui::controls
         {
             return_type_.set(value);
         }
+        void set_keyboard(maui::core::keyboard value)
+        {
+            keyboard_.set(value);
+        }
 
         // ---- i_search_bar inbound channel (called by the handler on native events) ----
         // SearchBar.OnSearchButtonPressed: run the command (when set), then raise the event. No
@@ -277,5 +287,6 @@ namespace maui::controls
             *this, horizontal_text_alignment_property()};
         maui::core::property<maui::core::text_alignment> vertical_text_alignment_{*this,
                                                                                   vertical_text_alignment_property()};
+        maui::core::property<maui::core::keyboard> keyboard_{*this, keyboard_property()};
     };
 } // namespace maui::controls

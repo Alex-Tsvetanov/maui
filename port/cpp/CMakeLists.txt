@@ -258,6 +258,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     # (W1-11 chrome) the shared NSMenu builder + the NSView toolTip/menu push.
     src/platform/apple/apple_menu_ops.mm
     src/platform/apple/view_chrome_ops.mm
+    # (W8-53 focus) the NSWindow makeFirstResponder: focus/unfocus push behind the view_command_mapper.
+    src/platform/apple/view_focus_ops.mm
     # (W1-08 web_view) the WKWebView recipe, ONE .mm shared with the ios backend (WebKit's API is
     # identical on AppKit and UIKit — the gcd_dispatcher convention).
     src/platform/apple_shared/web_view_handler.mm
@@ -319,6 +321,8 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     src/platform/ios/flyout_page_handler.mm
     # (W1-11 chrome) tooltip documented no-op + the UIContextMenuInteraction attach.
     src/platform/ios/view_chrome_ops.mm
+    # (W8-53 focus) the UIView becomeFirstResponder/resignFirstResponder push behind the view_command_mapper.
+    src/platform/ios/view_focus_ops.mm
     # (W1-08 web_view) the WKWebView .mm shared with the apple backend (see above).
     src/platform/apple_shared/web_view_handler.mm
     # (G5 hybrid_web_view) the WKWebView + WKScriptMessageHandler bridge .mm shared with apple (see above).
@@ -369,6 +373,7 @@ else()
     src/platform/headless/tabbed_page_handler.cpp
     src/platform/headless/flyout_page_handler.cpp
     src/platform/headless/view_chrome_ops.cpp # (W1-11 chrome) tooltip/context-flyout native push (no-op)
+    src/platform/headless/view_focus_ops.cpp # (W8-53 focus) first-responder push (no-op; focus always succeeds)
     src/platform/headless/web_view_handler.cpp
     # (G5 hybrid_web_view) the message-bridge mirror (records sent/received messages, the invoke-task table).
     src/platform/headless/hybrid_web_view_handler.cpp
@@ -407,6 +412,7 @@ add_library(maui_core STATIC
   src/core/handler_registry.cpp
   src/core/view_platform_base.cpp
   src/core/view_mapper.cpp
+  src/core/view_command_mapper.cpp # (W8-53 focus) the shared IView Focus/Unfocus command mapper
   src/core/shadow.cpp
   src/core/button_handler.cpp
   src/core/label_handler.cpp
@@ -520,6 +526,7 @@ add_executable(maui_core_tests
   tests/core/specificity_tests.cpp
   tests/core/bindable_tests.cpp
   tests/core/primitives_tests.cpp
+  tests/core/keyboard_tests.cpp # (W8-53) the keyboard value type + keyboard_flags
   tests/core/date_time_tests.cpp
   tests/core/contracts_tests.cpp
   tests/core/handler_tests.cpp

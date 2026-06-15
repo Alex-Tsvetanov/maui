@@ -5,18 +5,21 @@
 // Compiled as Objective-C++ with ARC only for the `ios` backend.
 //
 // Ported DIRECTLY from EditorHandler.iOS.cs + Platform/iOS/TextViewExtensions.cs + MauiTextView.cs:
-//   CreatePlatformView = new MauiTextView() (AddMauiDoneAccessoryView is deferred with the Keyboard
-//   subsystem); MauiTextViewEventProxy: TextSetOrChanged/Changed → UpdateText (send_text_changed),
-//   Ended → Completed (send_completed), ShouldChangeText → TextWithinMaxLength (the REAL native
-//   max-length gate), SelectionChanged → CursorPosition/SelectionLength write-back.
+//   CreatePlatformView = new MauiTextView(); MauiTextViewEventProxy: TextSetOrChanged/Changed →
+//   UpdateText (send_text_changed), Began → IsFocused=true, Ended → Completed + IsFocused=false,
+//   ShouldChangeText → TextWithinMaxLength (the REAL native max-length gate), SelectionChanged →
+//   CursorPosition/SelectionLength write-back.
 //   Map bodies below = TextViewExtensions.UpdateText/UpdateTextColor/UpdatePlaceholder(+Color)/
 //   UpdateIsReadOnly/UpdateMaxLength/UpdateFont/UpdateCharacterSpacing/UpdateHorizontal+Vertical
-//   TextAlignment/UpdateIsTextPredictionEnabled/UpdateIsSpellCheckEnabled/UpdateCursorPosition/
-//   UpdateSelectionLength.
-// Not ported here (deferred): MapKeyboard, MapBackground's ImageSourcePaint branch (the shared
-// view_mapper carries background), the IsFocused focus subsystem, and MauiTextView's vertical-centering
-// content-inset dance (vertical_text_alignment keeps the mirror; an un-centered UITextView is the
-// Start default).
+//   TextAlignment/UpdateKeyboard/UpdateIsTextPredictionEnabled/UpdateIsSpellCheckEnabled/
+//   UpdateCursorPosition/UpdateSelectionLength.
+// Keyboard subsystem (W8-53): MapKeyboard pushes UIKeyboardType + the autocapitalization/spellcheck/
+// autocorrection traits (ios_keyboard_ops.hpp), plus the Done input accessory toolbar
+// (AddMauiDoneAccessoryView → ios_done_accessory.hpp). Focus (W8-53): becomeFirstResponder /
+// resignFirstResponder via the shared view_command_mapper (view_focus_ops.mm), reflected onto IsFocused.
+// Not ported here (deferred): MapBackground's ImageSourcePaint branch (the shared view_mapper carries
+// background) and MauiTextView's vertical-centering content-inset dance (vertical_text_alignment keeps
+// the mirror; an un-centered UITextView is the Start default).
 
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
@@ -27,6 +30,8 @@
 #include <string_view>
 
 #include "ios_conversions.hpp"
+#include "ios_done_accessory.hpp"
+#include "ios_keyboard_ops.hpp"
 #include "ios_text_ops.hpp"
 #include "maui/core/editor_handler.hpp"
 #include "maui/core/i_editor.hpp"
@@ -151,16 +156,47 @@ namespace
     [self mauiSyncTextFrom:(MauiIosEditorTextView*)textView];
 }
 
+- (void)textViewDidBeginEditing:(UITextView*)textView
+{
+    // The text view took first responder: reflect IsFocused = true onto the virtual view (fires Focused
+    // + ChangeVisualState through set_is_focused) — the native focus callback's analog.
+    (void)textView;
+    if (self.handler != nullptr)
+    {
+        if (auto* view = self.handler->virtual_view())
+        {
+            view->set_is_focused(true);
+        }
+    }
+}
+
 - (void)textViewDidEndEditing:(UITextView*)textView
 {
-    // MauiTextViewEventProxy.OnEnded: one final text sync, then Completed.
+    // MauiTextViewEventProxy.OnEnded: one final text sync, then Completed, then IsFocused = false (it
+    // resigned first responder).
     [self mauiSyncTextFrom:(MauiIosEditorTextView*)textView];
     if (self.handler != nullptr)
     {
         if (auto* view = self.handler->virtual_view())
         {
             view->send_completed();
+            view->set_is_focused(false);
         }
+    }
+}
+
+- (void)onDoneClicked:(id)sender
+{
+    // MauiDoneAccessoryView's OnDoneClicked: resign first responder (which fires OnEnded → Completed +
+    // IsFocused=false). The Editor's Done bar dismisses the keyboard for a multi-line field.
+    (void)sender;
+    if (self.handler == nullptr)
+    {
+        return;
+    }
+    if (auto* const platform = self.handler->typed_platform_view())
+    {
+        [(__bridge UITextView*)platform->native resignFirstResponder];
     }
 }
 
@@ -254,7 +290,8 @@ namespace maui::core
     {
         auto platform = std::make_unique<editor_platform>();
         // CreatePlatformView: new MauiTextView(); the placeholder label is created with it
-        // (MauiTextView.InitPlaceholderLabel). AddMauiDoneAccessoryView is deferred (Keyboard subsystem).
+        // (MauiTextView.InitPlaceholderLabel). The Done input accessory is attached in on_connect_handler
+        // (the proxy is its target — created there).
         MauiIosEditorTextView* const text_view = [[MauiIosEditorTextView alloc] initWithFrame:CGRectZero];
         UILabel* const placeholder = [[UILabel alloc] initWithFrame:CGRectMake(5, 5, 0, 0)];
         placeholder.textColor = UIColor.placeholderTextColor;
@@ -274,6 +311,8 @@ namespace maui::core
         proxy.previousText = text_view.text != nil ? text_view.text : @"";
         text_view.delegate = proxy; // weak, so the proxy is retained via an associated object
         objc_setAssociatedObject(text_view, &k_proxy_key, proxy, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        // AddMauiDoneAccessoryView: the Done toolbar above the soft keyboard (the proxy is its target).
+        text_view.inputAccessoryView = maui::platform::ios::make_done_accessory(proxy, @selector(onDoneClicked:));
     }
 
     void editor_handler::on_disconnect_handler(editor_platform& platform)
@@ -418,6 +457,26 @@ namespace maui::core
             as_text_view(platform->native).spellCheckingType =
                 view.is_spell_check_enabled() ? UITextSpellCheckingTypeYes : UITextSpellCheckingTypeNo;
         }
+    }
+
+    void editor_handler::map_keyboard(editor_handler& handler, i_editor& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        platform->keyboard = view.keyboard();
+        // TextViewExtensions.UpdateKeyboard: ApplyKeyboard, then (for non-custom keyboards) re-apply the
+        // prediction/spellcheck pushes, then ReloadInputViews so a live keyboard re-styles.
+        MauiIosEditorTextView* const text_view = as_text_view(platform->native);
+        maui::platform::ios::apply_keyboard(text_view, view.keyboard());
+        if (!maui::platform::ios::is_custom_keyboard(view.keyboard()))
+        {
+            map_is_text_prediction_enabled(handler, view);
+            map_is_spell_check_enabled(handler, view);
+        }
+        [text_view reloadInputViews];
     }
 
     void editor_handler::map_cursor_position(editor_handler& handler, i_editor& view)

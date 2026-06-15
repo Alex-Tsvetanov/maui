@@ -11,9 +11,10 @@
 // the platform recipe — create/connect/disconnect/map_*/measure — is per backend under
 // src/platform/<backend>/search_bar_handler.{cpp,mm}. Only one backend is linked.
 //
-// Out of the C# mapper this cut: MapBackground rides the shared view_mapper; MapKeyboard stays out with
-// the deferred Keyboard subsystem; the iOS/Android MapIsEnabled override collapses into the shared
-// view_mapper is_enabled push.
+// Out of the C# mapper this cut: MapBackground rides the shared view_mapper; MapKeyboard pushes
+// UIKeyboardType + the autocapitalization/spellcheck/autocorrection traits onto the UISearchBar on iOS
+// (a documented no-op on AppKit, which has no soft keyboard); the iOS/Android MapIsEnabled override
+// collapses into the shared view_mapper is_enabled push.
 //
 // search_bar_platform is a single cross-platform struct: `native` holds the real backend view (an
 // NSSearchField* on apple, a UISearchBar* on ios, retained in the .mm; unused headless), the value
@@ -29,6 +30,7 @@
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/i_search_bar.hpp"
+#include "maui/core/keyboard.hpp"
 #include "maui/core/move_only_function.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/return_type.hpp"
@@ -70,6 +72,10 @@ namespace maui::core
         int cursor_position = 0;
         int selection_length = 0;
         return_type bar_return_type = return_type::search; // C# SearchBar default
+        // The realized keyboard input type (InputView.Keyboard default = Keyboard.Default). Every backend
+        // records this mirror; the iOS twin additionally pushes UIKeyboardType + the traits (MapKeyboard);
+        // AppKit has no soft keyboard (documented no-op).
+        maui::core::keyboard keyboard = maui::core::keyboard::default_keyboard();
 
         // The last text the bar is known to hold, so an inbound edit can report the *old* value.
         std::string last_known_text;
@@ -136,6 +142,7 @@ namespace maui::core
         static void map_vertical_text_alignment(search_bar_handler& handler, i_search_bar& view);
         static void map_is_text_prediction_enabled(search_bar_handler& handler, i_search_bar& view);
         static void map_is_spell_check_enabled(search_bar_handler& handler, i_search_bar& view);
+        static void map_keyboard(search_bar_handler& handler, i_search_bar& view);
         static void map_cursor_position(search_bar_handler& handler, i_search_bar& view);
         static void map_selection_length(search_bar_handler& handler, i_search_bar& view);
         static void map_cancel_button_color(search_bar_handler& handler, i_search_bar& view);

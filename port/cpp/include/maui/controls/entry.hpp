@@ -24,7 +24,7 @@
 // re-pushes through the property store so the mapper keeps the native field in sync (idempotent: a set to
 // the current value is a no-op in property<T>).
 //
-// Deferred (OUT OF SCOPE this cut, documented not stubbed): ReturnCommand, Keyboard.
+// Deferred (OUT OF SCOPE this cut, documented not stubbed): ReturnCommand.
 
 #include <cstddef>
 #include <string>
@@ -38,6 +38,7 @@
 #include "maui/core/font.hpp"
 #include "maui/core/i_entry.hpp"
 #include "maui/core/i_ios_entry_specifics.hpp" // --- platform configuration (W2-24) ---
+#include "maui/core/keyboard.hpp"
 #include "maui/core/property.hpp"
 #include "maui/core/return_type.hpp"
 #include "maui/core/text_alignment.hpp"
@@ -75,6 +76,7 @@ namespace maui::controls
         static const maui::core::bindable_property<double>& character_spacing_property();
         static const maui::core::bindable_property<maui::core::text_alignment>& horizontal_text_alignment_property();
         static const maui::core::bindable_property<maui::core::text_alignment>& vertical_text_alignment_property();
+        static const maui::core::bindable_property<maui::core::keyboard>& keyboard_property();
 
         // ---- i_text / i_text_style ----
         [[nodiscard]] std::string_view text() const override
@@ -126,6 +128,10 @@ namespace maui::controls
         [[nodiscard]] int selection_length() const override
         {
             return selection_length_.get();
+        }
+        [[nodiscard]] maui::core::keyboard keyboard() const override
+        {
+            return keyboard_.get();
         }
 
         // ---- i_text_alignment ----
@@ -238,6 +244,10 @@ namespace maui::controls
         {
             clear_button_visibility_.set(value);
         }
+        void set_keyboard(maui::core::keyboard value)
+        {
+            keyboard_.set(value);
+        }
 
         // ---- i_entry inbound channel (called by the handler on native edits) ----
         void send_completed() override
@@ -285,5 +295,6 @@ namespace maui::controls
             *this, horizontal_text_alignment_property()};
         maui::core::property<maui::core::text_alignment> vertical_text_alignment_{*this,
                                                                                   vertical_text_alignment_property()};
+        maui::core::property<maui::core::keyboard> keyboard_{*this, keyboard_property()};
     };
 } // namespace maui::controls

@@ -479,6 +479,16 @@ namespace maui::core
         }
     }
 
+    void editor_handler::map_keyboard(editor_handler& handler, i_editor& view)
+    {
+        // AppKit has NO soft keyboard — no UIKeyboardType / Done input accessory analog on macOS
+        // (DEVIATION, documented in STATUS): the macOS twin records the cross-platform mirror only.
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->keyboard = view.keyboard();
+        }
+    }
+
     void editor_handler::map_cursor_position(editor_handler& handler, i_editor& view)
     {
         auto* platform = handler.typed_platform_view();

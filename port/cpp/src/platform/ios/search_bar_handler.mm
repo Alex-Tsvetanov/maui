@@ -12,9 +12,13 @@
 //   Map bodies below = SearchBarExtensions.UpdateText/UpdatePlaceholder/UpdateIsReadOnly/
 //   UpdateMaxLength/UpdateCancelButton/UpdateSearchIcon(leftView tint)/UpdateReturnType +
 //   TextFieldish font/color/alignment/prediction/spellcheck pushes onto the QueryEditor.
-// Not ported here (deferred): MapKeyboard, the IsFocused focus subsystem, OnMovedToWindow's
-// cancel-color re-fire (the cancel button is tinted directly when visible), and the QueryEditor
-// UITextPosition cursor arithmetic beyond the clamped-range write (the entry carries the full port).
+// Keyboard subsystem (W8-53): MapKeyboard pushes UIKeyboardType + the autocapitalization/spellcheck/
+// autocorrection traits onto the search field (ios_keyboard_ops.hpp). The Done input accessory is NOT
+// added (C# adds it only on Entry/Editor, not SearchBar). Focus (W8-53): the begin/end editing delegate
+// callbacks reflect IsFocused; the shared view_command_mapper drives becomeFirstResponder on the bar.
+// Not ported here (deferred): OnMovedToWindow's cancel-color re-fire (the cancel button is tinted
+// directly when visible), and the QueryEditor UITextPosition cursor arithmetic beyond the clamped-range
+// write (the entry carries the full port).
 
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
@@ -25,6 +29,7 @@
 #include <string_view>
 
 #include "ios_conversions.hpp"
+#include "ios_keyboard_ops.hpp"
 #include "ios_text_ops.hpp"
 #include "maui/core/i_search_bar.hpp"
 #include "maui/core/return_type.hpp"
@@ -190,6 +195,33 @@ namespace
     // report the change through the same diff channel.
     searchBar.text = @"";
     [self mauiSyncTextFrom:searchBar];
+}
+
+- (void)searchBarTextDidBeginEditing:(UISearchBar*)searchBar
+{
+    // The search field took first responder: reflect IsFocused = true onto the virtual view (fires
+    // Focused + ChangeVisualState through set_is_focused) — the native focus callback's analog.
+    (void)searchBar;
+    if (self.handler != nullptr)
+    {
+        if (auto* view = self.handler->virtual_view())
+        {
+            view->set_is_focused(true);
+        }
+    }
+}
+
+- (void)searchBarTextDidEndEditing:(UISearchBar*)searchBar
+{
+    // The search field resigned first responder: reflect IsFocused = false (fires Unfocused).
+    (void)searchBar;
+    if (self.handler != nullptr)
+    {
+        if (auto* view = self.handler->virtual_view())
+        {
+            view->set_is_focused(false);
+        }
+    }
 }
 
 - (BOOL)searchBar:(UISearchBar*)searchBar shouldChangeTextInRange:(NSRange)range replacementText:(NSString*)text
@@ -419,6 +451,27 @@ namespace maui::core
             query_editor(platform->native).spellCheckingType =
                 view.is_spell_check_enabled() ? UITextSpellCheckingTypeYes : UITextSpellCheckingTypeNo;
         }
+    }
+
+    void search_bar_handler::map_keyboard(search_bar_handler& handler, i_search_bar& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        platform->keyboard = view.keyboard();
+        // SearchBarExtensions.UpdateKeyboard: ApplyKeyboard onto the search field (UISearchTextField
+        // conforms to UITextInputTraits), then (for non-custom keyboards) re-apply prediction/spellcheck,
+        // then ReloadInputViews so a live keyboard re-styles.
+        UISearchBar* const bar = as_search_bar(platform->native);
+        maui::platform::ios::apply_keyboard(query_editor(platform->native), view.keyboard());
+        if (!maui::platform::ios::is_custom_keyboard(view.keyboard()))
+        {
+            map_is_text_prediction_enabled(handler, view);
+            map_is_spell_check_enabled(handler, view);
+        }
+        [bar reloadInputViews];
     }
 
     void search_bar_handler::map_cursor_position(search_bar_handler& handler, i_search_bar& view)

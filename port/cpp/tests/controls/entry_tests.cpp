@@ -16,6 +16,8 @@
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_entry.hpp"
 #include "maui/core/i_text.hpp"
+#include "maui/core/keyboard.hpp"
+#include "maui/core/keyboard_flags.hpp"
 #include "maui/core/return_type.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/color.hpp"
@@ -29,6 +31,8 @@ namespace
     using maui::core::i_element_handler;
     using maui::core::i_entry;
     using maui::core::i_text;
+    using maui::core::keyboard;
+    using maui::core::keyboard_flags;
     using maui::core::return_type;
     using maui::core::text_alignment;
 
@@ -286,5 +290,134 @@ namespace
         control.set_text("Registered");
         control.set_handler(handler);
         EXPECT_EQ(resolved->typed_platform_view()->text, "Registered");
+    }
+
+    // ---- keyboard property (ITextInput.Keyboard) ----
+
+    TEST(entry, keyboard_defaults_to_default_and_is_settable)
+    {
+        entry control;
+        EXPECT_EQ(control.keyboard(), keyboard::default_keyboard()); // InputView.KeyboardProperty default
+
+        control.set_keyboard(keyboard::email());
+        EXPECT_EQ(control.keyboard(), keyboard::email());
+
+        control.set_keyboard(keyboard::create(keyboard_flags::capitalize_word));
+        EXPECT_EQ(control.keyboard().kind(), keyboard::kind::custom);
+    }
+
+    TEST(entry_seam, keyboard_maps_to_platform)
+    {
+        entry control;
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+        // The default mapped at connect.
+        EXPECT_EQ(platform->keyboard, keyboard::default_keyboard());
+
+        control.set_keyboard(keyboard::numeric());
+        EXPECT_EQ(platform->keyboard, keyboard::numeric());
+    }
+
+    // ---- focus state machine (VisualElement Focus / Unfocus / Focused / Unfocused / IsFocused) ----
+
+    TEST(entry_focus, focus_sets_is_focused_and_fires_focused)
+    {
+        entry control;
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+
+        int focused_count = 0;
+        bool last_focused_arg = false;
+        control.focused.connect([&](bool is_focused) {
+            ++focused_count;
+            last_focused_arg = is_focused;
+        });
+
+        EXPECT_FALSE(control.is_focused());
+        EXPECT_TRUE(control.focus()); // headless focus succeeds
+        EXPECT_TRUE(control.is_focused());
+        EXPECT_EQ(focused_count, 1);
+        EXPECT_TRUE(last_focused_arg);
+    }
+
+    TEST(entry_focus, focusing_an_already_focused_view_is_idempotent)
+    {
+        entry control;
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+
+        int focused_count = 0;
+        control.focused.connect([&](bool) { ++focused_count; });
+        EXPECT_TRUE(control.focus());
+        EXPECT_TRUE(control.focus()); // already focused → no second event
+        EXPECT_EQ(focused_count, 1);
+    }
+
+    TEST(entry_focus, unfocus_clears_is_focused_and_fires_unfocused)
+    {
+        entry control;
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+
+        int unfocused_count = 0;
+        bool last_unfocused_arg = true;
+        control.unfocused.connect([&](bool is_focused) {
+            ++unfocused_count;
+            last_unfocused_arg = is_focused;
+        });
+
+        control.focus();
+        ASSERT_TRUE(control.is_focused());
+        control.unfocus();
+        EXPECT_FALSE(control.is_focused());
+        EXPECT_EQ(unfocused_count, 1);
+        EXPECT_FALSE(last_unfocused_arg);
+    }
+
+    TEST(entry_focus, unfocus_when_not_focused_is_a_no_op)
+    {
+        entry control;
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+
+        int unfocused_count = 0;
+        control.unfocused.connect([&](bool) { ++unfocused_count; });
+        control.unfocus(); // not focused → VisualElement.Unfocus's IsFocused guard returns early
+        EXPECT_EQ(unfocused_count, 0);
+        EXPECT_FALSE(control.is_focused());
+    }
+
+    TEST(entry_focus, focus_without_a_handler_does_nothing)
+    {
+        entry control; // no handler attached → MapFocus's "nothing handled this" tail: result false
+        int focused_count = 0;
+        control.focused.connect([&](bool) { ++focused_count; });
+        EXPECT_FALSE(control.focus()); // no platform to take focus (C# RequestFocus returns false)
+        EXPECT_FALSE(control.is_focused());
+        EXPECT_EQ(focused_count, 0);
+    }
+
+    // The native focus callback path: a backend setting IsFocused directly (set_is_focused) fires the
+    // events too — this is what the iOS EditingDidBegin/End callbacks drive.
+    TEST(entry_focus, set_is_focused_funnels_events)
+    {
+        entry control;
+        int focused_count = 0;
+        int unfocused_count = 0;
+        control.focused.connect([&](bool) { ++focused_count; });
+        control.unfocused.connect([&](bool) { ++unfocused_count; });
+
+        control.set_is_focused(true);
+        EXPECT_TRUE(control.is_focused());
+        EXPECT_EQ(focused_count, 1);
+
+        control.set_is_focused(true); // redundant → silent
+        EXPECT_EQ(focused_count, 1);
+
+        control.set_is_focused(false);
+        EXPECT_FALSE(control.is_focused());
+        EXPECT_EQ(unfocused_count, 1);
     }
 } // namespace

@@ -556,6 +556,19 @@ namespace maui::core
         }
     }
 
+    void entry_handler::map_keyboard(entry_handler& handler, i_entry& view)
+    {
+        // AppKit has NO soft keyboard — there is no UIKeyboardType / autocapitalization / Done input
+        // accessory analog on macOS (DEVIATION, documented in STATUS): a desktop hardware keyboard always
+        // shows the same physical keys. So the macOS twin records the cross-platform mirror only; the iOS
+        // twin (entry_handler.mm under platform/ios) does the real MapKeyboard. (Spellcheck / autocorrect
+        // are mapped independently via map_is_spell_check_enabled / map_is_text_prediction_enabled.)
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->keyboard = view.keyboard();
+        }
+    }
+
     void entry_handler::map_return_type(entry_handler& handler, i_entry& view)
     {
         // macOS uses a hardware keyboard with no software return-key styling (the iOS ReturnKeyType has no

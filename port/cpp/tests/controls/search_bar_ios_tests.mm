@@ -11,6 +11,7 @@
 
 #include "maui/controls/search_bar.hpp"
 #include "maui/core/font.hpp"
+#include "maui/core/keyboard.hpp"
 #include "maui/core/return_type.hpp"
 #include "maui/core/search_bar_handler.hpp"
 #include "maui/core/text_alignment.hpp"
@@ -20,6 +21,7 @@
 namespace
 {
     using maui::controls::search_bar;
+    using maui::core::keyboard;
     using maui::core::return_type;
     using maui::core::search_bar_handler;
     using maui::core::text_alignment;
@@ -225,6 +227,43 @@ namespace
 
         control.set_automation_id("search-id");
         EXPECT_EQ(to_std_string(native_bar(handler).accessibilityIdentifier), "search-id");
+    }
+
+    // Keyboard (W8-53): UpdateKeyboard sets the search field's keyboardType (ApplyKeyboard on the
+    // UISearchTextField, which conforms to UITextInputTraits).
+    TEST(ios_search_bar_seam, keyboard_maps_to_search_field_type)
+    {
+        search_bar control;
+        control.set_keyboard(keyboard::email());
+        auto handler = std::make_shared<search_bar_handler>();
+        control.set_handler(handler);
+        EXPECT_EQ(native_bar(handler).searchTextField.keyboardType, UIKeyboardTypeEmailAddress);
+
+        control.set_keyboard(keyboard::url());
+        EXPECT_EQ(native_bar(handler).searchTextField.keyboardType, UIKeyboardTypeURL);
+    }
+
+    // Focus (W8-53): the begin/end editing delegate callbacks reflect IsFocused (firing Focused/Unfocused).
+    TEST(ios_search_bar_seam, begin_end_editing_reflect_is_focused)
+    {
+        search_bar control;
+        auto handler = std::make_shared<search_bar_handler>();
+        control.set_handler(handler);
+        UISearchBar* const bar = native_bar(handler);
+        auto* const delegate = (id<UISearchBarDelegate>)bar.delegate;
+
+        int focused_count = 0;
+        int unfocused_count = 0;
+        control.focused.connect([&focused_count](bool) { ++focused_count; });
+        control.unfocused.connect([&unfocused_count](bool) { ++unfocused_count; });
+
+        [delegate searchBarTextDidBeginEditing:bar];
+        EXPECT_TRUE(control.is_focused());
+        EXPECT_EQ(focused_count, 1);
+
+        [delegate searchBarTextDidEndEditing:bar];
+        EXPECT_FALSE(control.is_focused());
+        EXPECT_EQ(unfocused_count, 1);
     }
 
     TEST(ios_search_bar_seam, clearing_handler_disconnects)

@@ -389,9 +389,25 @@ The earlier deferrals are now implemented: `character_spacing` on button/label/e
 `vertical_text_alignment` (custom vertical-aligning cells) + `placeholder_color` (attributed placeholder
 foreground), `button` padding (custom `MauiButtonCell` content insets), and the entry editing surface —
 `ReturnType` / `ClearButtonVisibility` / `IsTextPredictionEnabled` / `IsSpellCheckEnabled` /
-`CursorPosition` / `SelectionLength`. Still deferred (genuine gaps): the `Keyboard` type subsystem +
-`ReturnCommand`; on AppKit, `ReturnType` / `ClearButtonVisibility` have no desktop visual analog
-(hardware keyboard / no built-in clear button) so they are mirror-only (headless mirrors them too), and
+`CursorPosition` / `SelectionLength`. **Keyboard + focus subsystem — ✅ DONE (W8-53):** the `Keyboard`
+value type (`maui::core::keyboard` ⇐ Keyboard.cs + `keyboard_flags` ⇐ KeyboardFlags.cs — a `kind`
+discriminator + flags value type reproducing C#'s singleton/RTTI identity by value equality, with
+`default_keyboard()/plain/chat/email/numeric/telephone/text/url/date/time/password` + `create(flags)`),
+the `keyboard` bindable property on entry/editor/search_bar (ITextInput.Keyboard, default Keyboard.Default)
+wired through each handler's mapper key `keyboard` (mapped AFTER prediction/spellcheck so a custom
+keyboard's flags win — the C# mapper order); and the **focus subsystem** — `i_view`'s Focus/Unfocus/
+IsFocused/Focused/Unfocused, `set_is_focused` as the OnIsFocusedPropertyChanged funnel (fires
+Focused/Unfocused + ChangeVisualState), and the shared `view_command_mapper` (Focus/Unfocus) chained onto
+every text handler's command mapper, driving the per-backend `view_focus_ops` (becomeFirstResponder /
+resignFirstResponder on iOS, window makeFirstResponder: on AppKit, always-succeed no-op headless). iOS
+also adds `MapKeyboard` (UIKeyboardType + autocapitalization/spellcheck/autocorrection traits via
+`ios_keyboard_ops.hpp` = KeyboardExtensions.ApplyKeyboard) + the **Done input-accessory toolbar**
+(AddMauiDoneAccessoryView, entry+editor only — not search bar, matching C#) + IsFocused reflection from
+the editing-begin/end callbacks. Still deferred (genuine gaps): `ReturnCommand`; the full
+`KeyboardAutoManager` scroll-avoidance (ShouldReturn's next-responder walk collapses to its resign arm);
+on AppKit, soft-keyboard concepts (KeyboardType / the Done accessory bar) have **no equivalent** so
+`map_keyboard` is mirror-only there (documented deviation — AppKit has no soft keyboard); `ReturnType` /
+`ClearButtonVisibility` likewise have no AppKit visual analog (mirror-only, headless mirrors them too), and
 prediction/spellcheck apply only while a field editor is attached (first-responder).
 
 **Styles / triggers / VSM (M5b → mostly resolved in M5d):**

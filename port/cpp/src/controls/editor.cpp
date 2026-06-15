@@ -16,6 +16,7 @@
 #include "maui/core/editor_handler.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/handler_registry.hpp"
+#include "maui/core/keyboard.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/color.hpp"
 
@@ -117,6 +118,14 @@ namespace maui::controls
         // C# default: EditorAutoSizeOption.Disabled.
         static const maui::core::bindable_property<editor_auto_size_option> descriptor{
             "auto_size", editor_auto_size_option::disabled};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<maui::core::keyboard>& editor::keyboard_property()
+    {
+        // C# InputView.KeyboardProperty default is Keyboard.Default.
+        static const maui::core::bindable_property<maui::core::keyboard> descriptor{
+            "keyboard", maui::core::keyboard::default_keyboard()};
         return descriptor;
     }
 } // namespace maui::controls

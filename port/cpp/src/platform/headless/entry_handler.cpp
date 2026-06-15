@@ -157,6 +157,15 @@ namespace maui::core
         }
     }
 
+    void entry_handler::map_keyboard(entry_handler& handler, i_entry& view)
+    {
+        // Headless keeps the mirror only (no soft keyboard); the iOS twin pushes UIKeyboardType + traits.
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->keyboard = view.keyboard();
+        }
+    }
+
     void entry_handler::map_return_type(entry_handler& handler, i_entry& view)
     {
         if (auto* platform = handler.typed_platform_view())

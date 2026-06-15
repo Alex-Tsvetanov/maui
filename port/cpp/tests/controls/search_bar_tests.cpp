@@ -14,6 +14,7 @@
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_search_bar.hpp"
+#include "maui/core/keyboard.hpp"
 #include "maui/core/return_type.hpp"
 #include "maui/core/search_bar_handler.hpp"
 #include "maui/core/text_alignment.hpp"
@@ -247,5 +248,35 @@ namespace
         control.set_text("Registered");
         control.set_handler(handler);
         EXPECT_EQ(resolved->typed_platform_view()->text, "Registered");
+    }
+
+    // ---- keyboard + focus (W8-53) ----
+
+    TEST(search_bar, keyboard_defaults_and_maps_to_platform)
+    {
+        search_bar control;
+        EXPECT_EQ(control.keyboard(), maui::core::keyboard::default_keyboard());
+        auto handler = std::make_shared<search_bar_handler>();
+        control.set_handler(handler);
+        control.set_keyboard(maui::core::keyboard::url());
+        EXPECT_EQ(handler->typed_platform_view()->keyboard, maui::core::keyboard::url());
+    }
+
+    TEST(search_bar_focus, focus_unfocus_drive_state_and_events)
+    {
+        search_bar control;
+        auto handler = std::make_shared<search_bar_handler>();
+        control.set_handler(handler);
+        int focused_count = 0;
+        int unfocused_count = 0;
+        control.focused.connect([&focused_count](bool) { ++focused_count; });
+        control.unfocused.connect([&unfocused_count](bool) { ++unfocused_count; });
+
+        EXPECT_TRUE(control.focus());
+        EXPECT_TRUE(control.is_focused());
+        EXPECT_EQ(focused_count, 1);
+        control.unfocus();
+        EXPECT_FALSE(control.is_focused());
+        EXPECT_EQ(unfocused_count, 1);
     }
 } // namespace

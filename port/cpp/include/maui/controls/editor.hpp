@@ -23,7 +23,7 @@
 // max_length: set_text truncates to max_length, and lowering max_length re-trims the stored text — the
 // same control-side enforcement entry applies (C# enforces natively via UpdateMaxLength).
 //
-// Deferred (OUT OF SCOPE this cut, documented not stubbed): Keyboard, FontAutoScaling, TextTransform.
+// Deferred (OUT OF SCOPE this cut, documented not stubbed): FontAutoScaling, TextTransform.
 
 #include <cstddef>
 #include <string>
@@ -36,6 +36,7 @@
 #include "maui/core/event.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/i_editor.hpp"
+#include "maui/core/keyboard.hpp"
 #include "maui/core/property.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/color.hpp"
@@ -67,6 +68,7 @@ namespace maui::controls
         static const maui::core::bindable_property<maui::core::text_alignment>& horizontal_text_alignment_property();
         static const maui::core::bindable_property<maui::core::text_alignment>& vertical_text_alignment_property();
         static const maui::core::bindable_property<editor_auto_size_option>& auto_size_property();
+        static const maui::core::bindable_property<maui::core::keyboard>& keyboard_property();
 
         // ---- i_text / i_text_style ----
         [[nodiscard]] std::string_view text() const override
@@ -118,6 +120,10 @@ namespace maui::controls
         [[nodiscard]] int selection_length() const override
         {
             return selection_length_.get();
+        }
+        [[nodiscard]] maui::core::keyboard keyboard() const override
+        {
+            return keyboard_.get();
         }
 
         // ---- i_text_alignment (Editor defaults: Start / Start — its own VerticalTextAlignmentProperty) ----
@@ -219,6 +225,10 @@ namespace maui::controls
         {
             is_spell_check_enabled_.set(value);
         }
+        void set_keyboard(maui::core::keyboard value)
+        {
+            keyboard_.set(value);
+        }
 
         // ---- i_editor inbound channel (called by the handler on native edits) ----
         // Editor.SendCompleted has no IsEnabled gate (unlike Entry) — preserved faithfully.
@@ -264,5 +274,6 @@ namespace maui::controls
         maui::core::property<maui::core::text_alignment> vertical_text_alignment_{*this,
                                                                                   vertical_text_alignment_property()};
         maui::core::property<editor_auto_size_option> auto_size_{*this, auto_size_property()};
+        maui::core::property<maui::core::keyboard> keyboard_{*this, keyboard_property()};
     };
 } // namespace maui::controls

@@ -24,6 +24,8 @@
 #include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/entry_handler.hpp"
 #include "maui/core/font.hpp"
+#include "maui/core/keyboard.hpp"
+#include "maui/core/keyboard_flags.hpp"
 #include "maui/core/return_type.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/visibility.hpp"
@@ -35,6 +37,8 @@ namespace
     using maui::controls::entry;
     using maui::core::clear_button_visibility;
     using maui::core::entry_handler;
+    using maui::core::keyboard;
+    using maui::core::keyboard_flags;
     using maui::core::return_type;
     using maui::core::text_alignment;
     using maui::platform::ios::kerning_of;
@@ -450,6 +454,88 @@ namespace
 
         control.set_automation_id("name_entry");
         EXPECT_EQ(to_std_string(field.accessibilityIdentifier), "name_entry");
+    }
+
+    // Keyboard (W8-53): UpdateKeyboard → ApplyKeyboard sets the UIKeyboardType + the autocapitalization /
+    // spellcheck / autocorrection traits (REAL on iOS).
+    TEST(ios_entry_seam, keyboard_maps_to_native_traits)
+    {
+        entry control;
+        control.set_keyboard(keyboard::email());
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+        UITextField* const field = native_field(handler);
+        EXPECT_EQ(field.keyboardType, UIKeyboardTypeEmailAddress);
+
+        control.set_keyboard(keyboard::numeric());
+        EXPECT_EQ(field.keyboardType, UIKeyboardTypeDecimalPad);
+
+        control.set_keyboard(keyboard::telephone());
+        EXPECT_EQ(field.keyboardType, UIKeyboardTypePhonePad);
+
+        control.set_keyboard(keyboard::url());
+        EXPECT_EQ(field.keyboardType, UIKeyboardTypeURL);
+    }
+
+    // The Text/Default/Chat keyboards force Sentences capitalization + autocorrect + spellcheck on iOS.
+    TEST(ios_entry_seam, text_keyboard_forces_sentences_and_corrections)
+    {
+        entry control;
+        control.set_keyboard(keyboard::text());
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+        UITextField* const field = native_field(handler);
+        EXPECT_EQ(field.autocapitalizationType, UITextAutocapitalizationTypeSentences);
+        EXPECT_EQ(field.autocorrectionType, UITextAutocorrectionTypeYes);
+        EXPECT_EQ(field.spellCheckingType, UITextSpellCheckingTypeYes);
+    }
+
+    // A custom keyboard's KeyboardFlags drive capitalization + suggestions + spellcheck.
+    TEST(ios_entry_seam, custom_keyboard_flags_drive_traits)
+    {
+        entry control;
+        control.set_keyboard(keyboard::create(keyboard_flags::capitalize_word | keyboard_flags::spellcheck));
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+        UITextField* const field = native_field(handler);
+        EXPECT_EQ(field.autocapitalizationType, UITextAutocapitalizationTypeWords);
+        EXPECT_EQ(field.spellCheckingType, UITextSpellCheckingTypeYes);
+        EXPECT_EQ(field.autocorrectionType, UITextAutocorrectionTypeNo); // no Suggestions flag
+    }
+
+    // AddMauiDoneAccessoryView: the field carries a Done input-accessory toolbar.
+    TEST(ios_entry_seam, has_done_input_accessory_toolbar)
+    {
+        entry control;
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+        UITextField* const field = native_field(handler);
+        ASSERT_NE(field.inputAccessoryView, nil);
+        EXPECT_TRUE([field.inputAccessoryView isKindOfClass:[UIToolbar class]]);
+    }
+
+    // Focus (W8-53): the EditingDidBegin / EditingDidEnd control events reflect IsFocused onto the control
+    // (firing Focused / Unfocused) — the native focus callback path. Injected via the dispatch-table walk
+    // (no UIApplication needed), exactly like the editing-changed tests above.
+    TEST(ios_entry_seam, editing_begin_end_reflect_is_focused)
+    {
+        entry control;
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+        UITextField* const field = native_field(handler);
+
+        int focused_count = 0;
+        int unfocused_count = 0;
+        control.focused.connect([&focused_count](bool) { ++focused_count; });
+        control.unfocused.connect([&unfocused_count](bool) { ++unfocused_count; });
+
+        send_control_event(field, UIControlEventEditingDidBegin);
+        EXPECT_TRUE(control.is_focused());
+        EXPECT_EQ(focused_count, 1);
+
+        send_control_event(field, UIControlEventEditingDidEnd);
+        EXPECT_FALSE(control.is_focused());
+        EXPECT_EQ(unfocused_count, 1);
     }
 
     TEST(ios_entry_seam, clearing_handler_disconnects)

@@ -16,6 +16,7 @@
 #include "maui/core/entry_handler.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/handler_registry.hpp"
+#include "maui/core/keyboard.hpp"
 #include "maui/core/return_type.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/color.hpp"
@@ -129,6 +130,15 @@ namespace maui::controls
     {
         static const maui::core::bindable_property<maui::core::text_alignment> descriptor{
             "vertical_text_alignment", maui::core::text_alignment::center};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<maui::core::keyboard>& entry::keyboard_property()
+    {
+        // C# InputView.KeyboardProperty default is Keyboard.Default (its coerceValue maps null -> Default;
+        // a value-type keyboard can never be null, so the default alone reproduces that).
+        static const maui::core::bindable_property<maui::core::keyboard> descriptor{
+            "keyboard", maui::core::keyboard::default_keyboard()};
         return descriptor;
     }
 

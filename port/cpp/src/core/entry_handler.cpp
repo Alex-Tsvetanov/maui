@@ -6,6 +6,7 @@
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/i_entry.hpp"
 #include "maui/core/property_mapper.hpp"
+#include "maui/core/view_command_mapper.hpp"
 #include "maui/core/view_handler.hpp"
 #include "maui/core/view_mapper.hpp"
 
@@ -15,8 +16,7 @@ namespace maui::core
     // i_text_alignment directly. Chained onto the shared view_mapper so the generic IView properties
     // (Visibility/Opacity/IsEnabled/AutomationId) map first (keys() walks the chain first). Mirrors
     // EntryHandler.Mapper (text/placeholder/is_password/is_read_only/max_length/alignment/text_color/font/
-    // character_spacing/return_type/clear_button_visibility/prediction/spellcheck/cursor/selection); the
-    // Keyboard subsystem stays out of scope.
+    // character_spacing/keyboard/return_type/clear_button_visibility/prediction/spellcheck/cursor/selection).
     property_mapper<i_entry, entry_handler>& entry_handler::mapper()
     {
         static property_mapper<i_entry, entry_handler> table{
@@ -35,6 +35,9 @@ namespace maui::core
                 {"vertical_text_alignment", &entry_handler::map_vertical_text_alignment},
                 {"is_text_prediction_enabled", &entry_handler::map_is_text_prediction_enabled},
                 {"is_spell_check_enabled", &entry_handler::map_is_spell_check_enabled},
+                // Keyboard maps AFTER prediction/spellcheck (C# EntryHandler.Mapper order): for a custom
+                // keyboard its flags must win over the standalone prediction/spellcheck pushes.
+                {"keyboard", &entry_handler::map_keyboard},
                 {"return_type", &entry_handler::map_return_type},
                 {"clear_button_visibility", &entry_handler::map_clear_button_visibility},
                 {"cursor_position", &entry_handler::map_cursor_position},
@@ -50,9 +53,12 @@ namespace maui::core
     }
 
     // The type must be qualified inside the body: the method name `command_mapper` shadows the template.
+    // Chained onto the shared view_command_mapper (Focus / Unfocus) — the entry adds no command of its own
+    // (C# EntryHandler.CommandMapper chains ViewCommandMapper and only re-keys Focus on platforms with a
+    // bespoke focus path, which the port handles uniformly through the chained base).
     maui::core::command_mapper<i_entry, entry_handler>& entry_handler::command_mapper()
     {
-        static maui::core::command_mapper<i_entry, entry_handler> table{};
+        static maui::core::command_mapper<i_entry, entry_handler> table{view_command_mapper(), {}};
         return table;
     }
 

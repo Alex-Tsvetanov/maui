@@ -12,9 +12,10 @@
 // platform recipe — create/connect/disconnect/map_*/measure — is per backend under
 // src/platform/<backend>/editor_handler.{cpp,mm}. Only one backend is linked.
 //
-// Out of the C# mapper, this cut: MapBackground rides the shared view_mapper; MapKeyboard stays out
-// with the deferred Keyboard subsystem; the iOS-only MapIsEnabled override collapses into the shared
-// view_mapper's is_enabled push.
+// Out of the C# mapper, this cut: MapBackground rides the shared view_mapper; MapKeyboard pushes
+// UIKeyboardType + the autocapitalization/spellcheck/autocorrection traits onto the UITextView on iOS
+// (a documented no-op on AppKit, which has no soft keyboard); the iOS-only MapIsEnabled override
+// collapses into the shared view_mapper's is_enabled push.
 //
 // editor_platform is a single cross-platform struct (so the CRTP Platform type stays complete
 // everywhere): `native` holds the real backend view (an NSScrollView* hosting the NSTextView on apple,
@@ -31,6 +32,7 @@
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/i_editor.hpp"
+#include "maui/core/keyboard.hpp"
 #include "maui/core/move_only_function.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/text_alignment.hpp"
@@ -68,8 +70,10 @@ namespace maui::core
         bool is_spell_check_enabled = true;                        // C# InputView default
         int cursor_position = 0;
         int selection_length = 0;
-
-        // The last text the editor is known to hold, so an inbound edit can report the *old* value.
+        // The realized keyboard input type (InputView.Keyboard default = Keyboard.Default). Every backend
+        // records this mirror; the iOS twin additionally pushes UIKeyboardType + the traits (MapKeyboard);
+        // AppKit has no soft keyboard (documented no-op).
+        maui::core::keyboard keyboard = maui::core::keyboard::default_keyboard();
         std::string last_known_text;
 
         // Inbound channel hooks (wired by the platform partial; headless tests invoke them directly).
@@ -135,6 +139,7 @@ namespace maui::core
         static void map_vertical_text_alignment(editor_handler& handler, i_editor& view);
         static void map_is_text_prediction_enabled(editor_handler& handler, i_editor& view);
         static void map_is_spell_check_enabled(editor_handler& handler, i_editor& view);
+        static void map_keyboard(editor_handler& handler, i_editor& view);
         static void map_cursor_position(editor_handler& handler, i_editor& view);
         static void map_selection_length(editor_handler& handler, i_editor& view);
     };

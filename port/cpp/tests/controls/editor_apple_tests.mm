@@ -11,6 +11,7 @@
 #include "maui/controls/editor.hpp"
 #include "maui/core/editor_handler.hpp"
 #include "maui/core/font.hpp"
+#include "maui/core/keyboard.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/color.hpp"
 #include <gtest/gtest.h>
@@ -230,6 +231,36 @@ namespace
 
         control.set_automation_id("editor-id");
         EXPECT_EQ(to_std_string(native_scroll(handler).accessibilityIdentifier), "editor-id");
+    }
+
+    // Keyboard (W8-53): AppKit has no soft keyboard — MapKeyboard records the cross-platform mirror only.
+    TEST_F(apple_editor_seam, keyboard_records_mirror_only)
+    {
+        editor control;
+        control.set_keyboard(maui::core::keyboard::numeric());
+        auto handler = std::make_shared<editor_handler>();
+        control.set_handler(handler);
+        EXPECT_EQ(handler->typed_platform_view()->keyboard, maui::core::keyboard::numeric());
+    }
+
+    // Focus (W8-53): the native focus-callback path funnels Focused/Unfocused via set_is_focused.
+    TEST_F(apple_editor_seam, set_is_focused_funnels_events)
+    {
+        editor control;
+        auto handler = std::make_shared<editor_handler>();
+        control.set_handler(handler);
+
+        int focused_count = 0;
+        int unfocused_count = 0;
+        control.focused.connect([&focused_count](bool) { ++focused_count; });
+        control.unfocused.connect([&unfocused_count](bool) { ++unfocused_count; });
+
+        control.set_is_focused(true);
+        EXPECT_TRUE(control.is_focused());
+        EXPECT_EQ(focused_count, 1);
+        control.set_is_focused(false);
+        EXPECT_FALSE(control.is_focused());
+        EXPECT_EQ(unfocused_count, 1);
     }
 
     TEST_F(apple_editor_seam, clearing_handler_disconnects)

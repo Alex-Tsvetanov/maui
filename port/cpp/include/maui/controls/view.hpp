@@ -31,7 +31,9 @@
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/dimension.hpp"
+#include "maui/core/event.hpp"
 #include "maui/core/flow_direction.hpp"
+#include "maui/core/focus_request.hpp"
 #include "maui/core/i_context_flyout_element.hpp" // --- chrome (W1-11) ---
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_flyout.hpp" // --- chrome (W1-11) ---
@@ -340,9 +342,27 @@ namespace maui::controls
         {
             return is_focused_;
         }
+        // The IsFocused funnel (VisualElement.OnIsFocusedPropertyChanged): this is the INBOUND channel the
+        // native focus/blur callback drives — and the focus/unfocus command mappers reflect the native
+        // first-responder result through it. When the value actually changes it fires Focused (→ true) or
+        // Unfocused (→ false) and runs ChangeVisualState, exactly like C#'s IsFocused bindable-property
+        // changed callback. A redundant set (same value) is silent, matching the property no-op.
         void set_is_focused(bool value) override
         {
+            if (is_focused_ == value)
+            {
+                return;
+            }
             is_focused_ = value;
+            if (is_focused_)
+            {
+                focused.raise(true); // VisualElement.OnFocused → Focused(FocusEventArgs(this, true))
+            }
+            else
+            {
+                unfocused.raise(false); // VisualElement.OnUnfocus → Unfocused(FocusEventArgs(this, false))
+            }
+            change_visual_state();
         }
         // InputTransparent (bindable; flows through the chained view_mapper's map_input_transparent).
         [[nodiscard]] bool input_transparent() const override
@@ -493,17 +513,49 @@ namespace maui::controls
         void invalidate_arrange() override
         {
         }
+        // VisualElement.Focus → ViewExtensions.RequestFocus / MapFocus: already-focused returns true
+        // (MapFocus's own early-out). With a handler attached, invoke its Focus command with a focus_request
+        // payload (the chained view_command_mapper's map_focus asks the native view for first responder,
+        // records the realized result on the request, and reflects it onto IsFocused — which fires Focused
+        // here through set_is_focused); return the realized result. With NO handler there is no platform to
+        // take focus, so — exactly like MapFocus's "nothing handled this" tail — nothing changes and the
+        // result is false.
         bool focus() override
         {
-            is_focused_ = true;
-            change_visual_state(); // VisualElement.Focus → ChangeVisualState (Focused)
-            return true;
+            if (is_focused_)
+            {
+                return true;
+            }
+            if (handler_)
+            {
+                maui::core::focus_request request;
+                handler_->invoke("focus", request);
+                return request.result();
+            }
+            return false;
         }
+        // VisualElement.Unfocus: if not focused, do nothing (its IsFocused guard); otherwise invoke the
+        // handler's Unfocus command (the chained view_command_mapper resigns the native first responder and
+        // clears IsFocused — firing Unfocused here). With no handler `Handler?.Invoke` is a no-op (C#
+        // leaves IsFocused for the native callback) — and a view with no handler can never have become
+        // focused, so the guard above has already returned.
         void unfocus() override
         {
-            is_focused_ = false;
-            change_visual_state();
+            if (!is_focused_)
+            {
+                return;
+            }
+            if (handler_)
+            {
+                handler_->invoke("unfocus");
+            }
         }
+
+        // ---- focus events (VisualElement.Focused / VisualElement.Unfocused) ----
+        // Each carries the IsFocused bool of FocusEventArgs (true for focused, false for unfocused).
+        // Fired by set_is_focused when the focus state actually changes (OnFocused / OnUnfocus).
+        maui::core::event<bool> focused;
+        maui::core::event<bool> unfocused;
 
         // --- styles/resources (M5d) ---------------------------------------------------------------------
         // ---- style (VisualElement.Style / IStyleElement) ----

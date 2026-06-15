@@ -14,13 +14,15 @@
 // set_selection_length) the handler calls — the AppKit/headless analog of `entry.CursorPosition = …`
 // inside the native selection-changed callback.
 //
-// Deferred (OUT OF SCOPE this cut, documented rather than stubbed): Keyboard (needs the Keyboard type
-// subsystem). IsSpellCheckEnabled is included alongside IsTextPredictionEnabled (both map to the same
-// kind of AppKit field-editor toggle).
+// IsSpellCheckEnabled is included alongside IsTextPredictionEnabled (both map to the same kind of AppKit
+// field-editor toggle). Keyboard (the keyboard input type) is now part of the surface — it lives on
+// ITextInput in C# and drives the per-backend MapKeyboard (UIKeyboardType + the autocapitalization /
+// spellcheck / autocorrection traits on iOS; a documented no-op on AppKit, which has no soft keyboard).
 
 #include <string_view>
 
 #include "maui/core/i_text.hpp"
+#include "maui/core/keyboard.hpp"
 #include "maui/graphics/color.hpp"
 
 namespace maui::core
@@ -37,6 +39,9 @@ namespace maui::core
         [[nodiscard]] virtual int max_length() const = 0;
         [[nodiscard]] virtual bool is_text_prediction_enabled() const = 0;
         [[nodiscard]] virtual bool is_spell_check_enabled() const = 0;
+        // The keyboard input type (ITextInput.Keyboard). Qualified return so the getter name does not hide
+        // the maui::core::keyboard type.
+        [[nodiscard]] virtual maui::core::keyboard keyboard() const = 0;
 
         // ---- cursor / selection (mutable in C#) ----
         [[nodiscard]] virtual int cursor_position() const = 0;

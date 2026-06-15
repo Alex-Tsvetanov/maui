@@ -18,12 +18,18 @@
 //   UpdateHorizontal+VerticalTextAlignment/UpdateIsTextPredictionEnabled/UpdateIsSpellCheckEnabled/
 //   UpdateReturnType (returnKeyType — REAL on iOS)/UpdateClearButtonVisibility (clearButtonMode — REAL
 //   on iOS)/UpdateCursorPosition/UpdateSelectionLength (selectedTextRange, both directions).
-// Not ported here (deferred): MapKeyboard + AddMauiDoneAccessoryView (the Keyboard subsystem is out of
-// the contract; ShouldReturn's KeyboardAutoManager.GoToNextResponderOrResign collapses to its resign
-// arm), UpdateClearButtonColor (tints UIKit's private clearButton subview via KVC), TextPropertySet
+// Keyboard subsystem (W8-53): MapKeyboard pushes UIKeyboardType + the autocapitalization / spellcheck /
+// autocorrection traits (ios_keyboard_ops.hpp / KeyboardExtensions.ApplyKeyboard), and the Done input
+// accessory toolbar (AddMauiDoneAccessoryView → ios_done_accessory.hpp) resigns first responder + fires
+// Completed. Focus (W8-53): becomeFirstResponder / resignFirstResponder via the shared view_command_mapper
+// (view_focus_ops.mm), reflected onto IsFocused; OnEditingBegan/Ended now drive is_focused too.
+//
+// Not ported here (deferred): KeyboardAutoManager scroll-avoidance (ShouldReturn's
+// GoToNextResponderOrResign collapses to its resign arm — the next-responder walk is a large separate
+// subsystem), UpdateClearButtonColor (tints UIKit's private clearButton subview via KVC), TextPropertySet
 // (the port has no native-programmatic-text channel; map_text is the only programmatic writer), the
 // iOS-26 ShouldChangeCharactersInRanges variant (this SDK's delegate channel is the classic single
-// range), MapBackground, and IsFocused (focus subsystem).
+// range), and MapBackground.
 
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
@@ -36,6 +42,8 @@
 #include <utility>
 
 #include "ios_conversions.hpp"
+#include "ios_done_accessory.hpp"
+#include "ios_keyboard_ops.hpp"
 #include "ios_text_ops.hpp"
 #include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/entry_handler.hpp"
@@ -58,6 +66,7 @@
 - (void)onEditingChanged:(id)sender;
 - (void)onEditingDidBegin:(id)sender;
 - (void)onEditingDidEnd:(id)sender;
+- (void)onDoneClicked:(id)sender;
 - (void)mauiSelectionChangedFrom:(UITextField*)field;
 @end
 
@@ -291,8 +300,10 @@ namespace
     {
         return;
     }
-    // OnEditingBegan: re-apply the virtual selection now that the field has an editing session
-    // (IsFocused = true has no port surface yet — the focus subsystem is deferred).
+    // OnEditingBegan: the field took first responder, so reflect IsFocused = true onto the virtual view
+    // (which fires Focused + ChangeVisualState through set_is_focused's funnel) — the native focus
+    // callback C# relies on. Then re-apply the virtual selection now that the field has an editing session.
+    view->set_is_focused(true);
     if (view->selection_length() > 0)
     {
         maui::core::entry_handler::map_selection_length(*self.handler, *view);
@@ -310,15 +321,39 @@ namespace
     {
         return;
     }
-    // OnEditingEnded: one final text sync (Completed is ShouldReturn's job, not end-of-edit's).
+    // OnEditingEnded: one final text sync (Completed is ShouldReturn's job, not end-of-edit's). The field
+    // also resigned first responder, so reflect IsFocused = false (firing Unfocused through set_is_focused).
     [self mauiSyncTextFrom:field];
+    if (auto* view = self.handler->virtual_view())
+    {
+        view->set_is_focused(false);
+    }
+}
+
+- (void)onDoneClicked:(id)sender
+{
+    // MauiDoneAccessoryView's OnDoneClicked: resign first responder, then fire Completed (the keyboard's
+    // Done bar commits the edit just like the return key).
+    (void)sender;
+    if (self.handler == nullptr)
+    {
+        return;
+    }
+    if (auto* const platform = self.handler->typed_platform_view())
+    {
+        [as_field(platform->native) resignFirstResponder];
+    }
+    if (auto* view = self.handler->virtual_view())
+    {
+        view->send_completed();
+    }
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField*)textField
 {
     // OnShouldReturn: KeyboardAutoManager.GoToNextResponderOrResign collapses to its resign arm (the
-    // next-responder walk belongs to the deferred Keyboard subsystem), then Completed, then false so
-    // UIKit inserts no newline.
+    // next-responder walk belongs to the deferred scroll-avoidance subsystem), then Completed, then false
+    // so UIKit inserts no newline. Resigning also fires onEditingDidEnd which clears IsFocused.
     [textField resignFirstResponder];
     if (self.handler != nullptr)
     {
@@ -457,6 +492,9 @@ namespace maui::core
         [field addTarget:proxy action:@selector(onEditingDidBegin:) forControlEvents:UIControlEventEditingDidBegin];
         [field addTarget:proxy action:@selector(onEditingDidEnd:) forControlEvents:UIControlEventEditingDidEnd];
         field.delegate = proxy;
+        // AddMauiDoneAccessoryView: the Done toolbar above the soft keyboard, resigning + completing on tap
+        // (the proxy is the target — already retained for the field's lifetime via the associated object).
+        field.inputAccessoryView = maui::platform::ios::make_done_accessory(proxy, @selector(onDoneClicked:));
         if ([field isKindOfClass:[MauiIosTextField class]])
         {
             ((MauiIosTextField*)field).mauiProxy = proxy;
@@ -665,6 +703,26 @@ namespace maui::core
             as_field(platform->native).spellCheckingType =
                 view.is_spell_check_enabled() ? UITextSpellCheckingTypeYes : UITextSpellCheckingTypeNo;
         }
+    }
+
+    void entry_handler::map_keyboard(entry_handler& handler, i_entry& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        platform->keyboard = view.keyboard();
+        // TextFieldExtensions.UpdateKeyboard: ApplyKeyboard, then (for non-custom keyboards) re-apply the
+        // prediction/spellcheck property pushes, then ReloadInputViews so a live keyboard re-styles.
+        UITextField* const field = as_field(platform->native);
+        maui::platform::ios::apply_keyboard(field, view.keyboard());
+        if (!maui::platform::ios::is_custom_keyboard(view.keyboard()))
+        {
+            map_is_text_prediction_enabled(handler, view);
+            map_is_spell_check_enabled(handler, view);
+        }
+        [field reloadInputViews];
     }
 
     void entry_handler::map_return_type(entry_handler& handler, i_entry& view)

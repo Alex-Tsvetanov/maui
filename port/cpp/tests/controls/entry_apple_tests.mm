@@ -12,6 +12,7 @@
 #include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/entry_handler.hpp"
 #include "maui/core/font.hpp"
+#include "maui/core/keyboard.hpp"
 #include "maui/core/return_type.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/color.hpp"
@@ -279,5 +280,61 @@ namespace
         control.set_handler(nullptr);
         EXPECT_EQ(handler->platform_view(), nullptr);
         EXPECT_EQ(handler->virtual_view(), nullptr);
+    }
+
+    // Keyboard (W8-53): AppKit has no soft keyboard, so MapKeyboard records the cross-platform mirror only
+    // (the documented deviation) — there is no UIKeyboardType analog to assert on the NSTextField.
+    TEST_F(apple_entry_seam, keyboard_records_mirror_only)
+    {
+        entry control;
+        control.set_keyboard(maui::core::keyboard::email());
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+        EXPECT_EQ(handler->typed_platform_view()->keyboard, maui::core::keyboard::email());
+
+        control.set_keyboard(maui::core::keyboard::numeric());
+        EXPECT_EQ(handler->typed_platform_view()->keyboard, maui::core::keyboard::numeric());
+    }
+
+    // Focus (W8-53): the shared view_command_mapper drives the apple view_focus_ops path (window
+    // makeFirstResponder:). A field NOT yet hosted in a window cannot join a responder chain, so
+    // focus_native_view returns false (AppKit's "no window" guard) and the state machine stays
+    // consistent — focus() reports false and IsFocused is not set. (The real key-window first-responder
+    // round trip needs an on-screen window + run loop, which in-process AppKit global state makes flaky to
+    // host here; the cross-platform focus state machine is verified headless in entry_tests.cpp.)
+    TEST_F(apple_entry_seam, focus_without_a_window_does_not_take_focus)
+    {
+        entry control;
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+
+        int focused_count = 0;
+        control.focused.connect([&focused_count](bool) { ++focused_count; });
+
+        EXPECT_FALSE(control.focus()); // no window → makeFirstResponder cannot run
+        EXPECT_FALSE(control.is_focused());
+        EXPECT_EQ(focused_count, 0);
+    }
+
+    // The native focus-callback path still funnels Focused/Unfocused on apple (a backend setting
+    // IsFocused directly — the AppKit window-did-become/resign-key analog the mapper relies on).
+    TEST_F(apple_entry_seam, set_is_focused_funnels_events)
+    {
+        entry control;
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+
+        int focused_count = 0;
+        int unfocused_count = 0;
+        control.focused.connect([&focused_count](bool) { ++focused_count; });
+        control.unfocused.connect([&unfocused_count](bool) { ++unfocused_count; });
+
+        control.set_is_focused(true);
+        EXPECT_TRUE(control.is_focused());
+        EXPECT_EQ(focused_count, 1);
+
+        control.set_is_focused(false);
+        EXPECT_FALSE(control.is_focused());
+        EXPECT_EQ(unfocused_count, 1);
     }
 } // namespace

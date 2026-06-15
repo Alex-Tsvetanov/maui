@@ -33,6 +33,7 @@
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/i_entry.hpp"
+#include "maui/core/keyboard.hpp"
 #include "maui/core/move_only_function.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/return_type.hpp"
@@ -74,6 +75,10 @@ namespace maui::core
         int selection_length = 0;
         return_type entry_return_type = return_type::default_;
         clear_button_visibility clear_button = clear_button_visibility::never;
+        // The realized keyboard input type (InputView.Keyboard default = Keyboard.Default). Every backend
+        // records this mirror; the iOS twin additionally pushes UIKeyboardType + the autocapitalization /
+        // spellcheck / autocorrection traits (MapKeyboard); AppKit has no soft keyboard (documented no-op).
+        maui::core::keyboard keyboard = maui::core::keyboard::default_keyboard();
         // --- platform configuration (W2-24): the realized iOSSpecific Entry.CursorColor (nullopt until
         // the knob is SET — TextExtensions.UpdateCursorColor's IsSet guard; every backend keeps this
         // mirror, the iOS twin additionally tints the UITextField). ---
@@ -149,6 +154,7 @@ namespace maui::core
         static void map_vertical_text_alignment(entry_handler& handler, i_entry& view);
         static void map_is_text_prediction_enabled(entry_handler& handler, i_entry& view);
         static void map_is_spell_check_enabled(entry_handler& handler, i_entry& view);
+        static void map_keyboard(entry_handler& handler, i_entry& view);
         static void map_return_type(entry_handler& handler, i_entry& view);
         static void map_clear_button_visibility(entry_handler& handler, i_entry& view);
         static void map_cursor_position(entry_handler& handler, i_entry& view);

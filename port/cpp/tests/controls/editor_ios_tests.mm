@@ -13,6 +13,7 @@
 #include "maui/controls/editor.hpp"
 #include "maui/core/editor_handler.hpp"
 #include "maui/core/font.hpp"
+#include "maui/core/keyboard.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/color.hpp"
 #include <gtest/gtest.h>
@@ -21,6 +22,7 @@ namespace
 {
     using maui::controls::editor;
     using maui::core::editor_handler;
+    using maui::core::keyboard;
     using maui::core::text_alignment;
     using maui::platform::ios::kerning_of;
 
@@ -234,6 +236,53 @@ namespace
 
         control.set_automation_id("editor-id");
         EXPECT_EQ(to_std_string(native_text_view(handler).accessibilityIdentifier), "editor-id");
+    }
+
+    // Keyboard (W8-53): UpdateKeyboard sets the UITextView's keyboardType.
+    TEST(ios_editor_seam, keyboard_maps_to_native_type)
+    {
+        editor control;
+        control.set_keyboard(keyboard::email());
+        auto handler = std::make_shared<editor_handler>();
+        control.set_handler(handler);
+        EXPECT_EQ(native_text_view(handler).keyboardType, UIKeyboardTypeEmailAddress);
+
+        control.set_keyboard(keyboard::numeric());
+        EXPECT_EQ(native_text_view(handler).keyboardType, UIKeyboardTypeDecimalPad);
+    }
+
+    // AddMauiDoneAccessoryView: the text view carries a Done input-accessory toolbar.
+    TEST(ios_editor_seam, has_done_input_accessory_toolbar)
+    {
+        editor control;
+        auto handler = std::make_shared<editor_handler>();
+        control.set_handler(handler);
+        UITextView* const text_view = native_text_view(handler);
+        ASSERT_NE(text_view.inputAccessoryView, nil);
+        EXPECT_TRUE([text_view.inputAccessoryView isKindOfClass:[UIToolbar class]]);
+    }
+
+    // Focus (W8-53): the begin/end editing delegate callbacks reflect IsFocused (firing Focused/Unfocused).
+    TEST(ios_editor_seam, begin_end_editing_reflect_is_focused)
+    {
+        editor control;
+        auto handler = std::make_shared<editor_handler>();
+        control.set_handler(handler);
+        UITextView* const text_view = native_text_view(handler);
+        auto* const delegate = (id<UITextViewDelegate>)text_view.delegate;
+
+        int focused_count = 0;
+        int unfocused_count = 0;
+        control.focused.connect([&focused_count](bool) { ++focused_count; });
+        control.unfocused.connect([&unfocused_count](bool) { ++unfocused_count; });
+
+        [delegate textViewDidBeginEditing:text_view];
+        EXPECT_TRUE(control.is_focused());
+        EXPECT_EQ(focused_count, 1);
+
+        [delegate textViewDidEndEditing:text_view];
+        EXPECT_FALSE(control.is_focused());
+        EXPECT_EQ(unfocused_count, 1);
     }
 
     TEST(ios_editor_seam, clearing_handler_disconnects)
