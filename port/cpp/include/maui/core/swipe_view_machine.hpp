@@ -29,6 +29,12 @@ namespace maui::core
         // C# MauiSwipeView.GetSwipeThreshold(SwipeDirection): the open distance for a swipe in `direction`.
         [[nodiscard]] double swipe_threshold(i_swipe_view& view, swipe_direction direction);
 
+        // C# SwipeDirectionHelper.GetSwipeDirection (Primitives/SwipeDirection.cs): the single dominant
+        // direction of a drag from (x1,y1) to (x2,y2), via the atan2 angle classification. The native pan
+        // recognizer calls this to pick the swipe direction from the gesture's initial translation
+        // (MauiSwipeView.ProcessTouchMove). Returns a single SwipeDirection (never a flag combination).
+        [[nodiscard]] swipe_direction get_swipe_direction(double x1, double y1, double x2, double y2);
+
         // C# ProcessTouchMove (part 1): a swipe begins — set the direction + reset the offset. Idle state.
         void begin_swipe(swipe_view_state& state, swipe_direction direction);
 

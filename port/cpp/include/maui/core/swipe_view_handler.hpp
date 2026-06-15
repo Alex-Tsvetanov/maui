@@ -83,6 +83,12 @@ namespace maui::core
 #endif
 
 #ifdef MAUI_PLATFORM_IOS
+        // The interactive drag-to-reveal pieces (W7-U09): the UIPanGestureRecognizer + its target
+        // trampoline (retained void* so this struct stays Obj-C-free) drive the shared swipe_machine from
+        // the real gesture (MauiSwipeView's _panGestureRecognizer + HandlePan). Released in the destructor.
+        void* pan_recognizer = nullptr; // retained UIPanGestureRecognizer
+        void* pan_target = nullptr;     // retained target trampoline (calls back into the handler)
+
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_automation_id(std::string_view value) override;
@@ -103,6 +109,13 @@ namespace maui::core
         static command_mapper<i_swipe_view, swipe_view_handler>& command_mapper();
 
         static std::unique_ptr<swipe_view_platform> create_platform_view();
+
+#ifdef MAUI_PLATFORM_IOS
+        // C# ConnectHandler (W7-U09 iOS): bind the pan-gesture target to this handler so the real
+        // UIPanGestureRecognizer can drive the shared swipe machine. Detected by the base view_handler's
+        // `if constexpr (requires …)` and called once on first connect; iOS-only (no native pan elsewhere).
+        void on_connect_handler(swipe_view_platform& platform);
+#endif
 
         // A swipe view computes its own size through the control (which ports MeasureContent), so the
         // handler reports nothing here.

@@ -23,3 +23,9 @@ namespace maui::controls
         return descriptor;
     }
 } // namespace maui::controls
+
+// NOTE: swipe_item is NOT self-registered through MAUI_REGISTER_HANDLER. That seam keys on the i_element
+// registry and connects via set_handler/set_virtual_view(i_element&) — but a swipe_item (: menu_item) is
+// not an i_element in this port (see swipe_item_menu_item_handler.hpp). Its handler
+// (maui::core::swipe_item_menu_item_handler) is a standalone handler the SwipeView creates directly when
+// it materializes the swipe items natively; the tests drive set_virtual_view(swipe_item&) on it directly.

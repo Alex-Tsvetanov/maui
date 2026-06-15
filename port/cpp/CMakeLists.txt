@@ -257,6 +257,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     # (W2-20 swipe + refresh) the NSView swipe host (pan-driven reveal, documented AppKit deviation) and
     # the refresh host (AppKit has no native pull — IsRefreshing drives a spinner-overlay flag).
     src/platform/apple/swipe_view_handler.mm
+    # (W7-U09) the swipe menu-item NSButton handler (AppKit twin of the iOS UIButton recipe).
+    src/platform/apple/swipe_item_menu_item_handler.mm
     src/platform/apple/refresh_view_handler.mm
     src/platform/apple/navigation_page_handler.mm
     # (W1-10 tabbed + flyout pages) NSTabViewController / NSSplitViewController hosts.
@@ -331,6 +333,8 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     src/platform/ios/scroll_view_handler.mm
     # (W2-20 swipe + refresh) the UIView swipe host (pan-driven reveal) + the UIRefreshControl host.
     src/platform/ios/swipe_view_handler.mm
+    # (W7-U09) the swipe menu-item UIButton handler (UserInteractionEnabled=false + frame KVO + parent notify).
+    src/platform/ios/swipe_item_menu_item_handler.mm
     src/platform/ios/refresh_view_handler.mm
     src/platform/ios/navigation_page_handler.mm
     # (W1-10 tabbed + flyout pages) UITabBarController / UISplitViewController child-VC hosts.
@@ -391,6 +395,8 @@ else()
     src/platform/headless/scroll_view_handler.cpp
     # (W2-20 swipe + refresh) the swipe state machine (synthetic-offset driven) + the refresh pull mirror.
     src/platform/headless/swipe_view_handler.cpp
+    # (W7-U09) the swipe menu-item button mirror (records the mapped text/colour/font/source/visibility).
+    src/platform/headless/swipe_item_menu_item_handler.cpp
     src/platform/headless/refresh_view_handler.cpp
     src/platform/headless/navigation_page_handler.cpp
     # (W1-10 tabbed + flyout pages) the tab-host + two-pane mirrors.
@@ -480,6 +486,8 @@ add_library(maui_core STATIC
   # (W2-20 swipe + refresh) the cross-platform mapper/command tables + the shared swipe state machine.
   src/core/swipe_view_handler.cpp
   src/core/swipe_view_machine.cpp
+  # (W7-U09) the swipe menu-item (UIButton) handler — mapper table + GetTextColor extension.
+  src/core/swipe_item_menu_item_handler.cpp
   src/core/refresh_view_handler.cpp
   src/core/navigation_page_handler.cpp
   # (W1-10 tabbed + flyout pages) the cross-platform mapper tables.
@@ -974,6 +982,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/scroll_view_apple_tests.mm # (W1-07 containers)
     # (W2-20 swipe + refresh) the backend-agnostic control + state-machine suites + the apple seam.
     tests/controls/swipe_view_tests.cpp
+    # (W7-U09) the swipe menu-item handler contract + mapper-mirror suite (backend-agnostic).
+    tests/controls/swipe_item_menu_item_tests.cpp
     tests/controls/refresh_view_tests.cpp
     tests/controls/swipe_refresh_page_tests.cpp
     tests/controls/swipe_refresh_apple_tests.mm
@@ -1144,6 +1154,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/shape_view_ios_tests.mm    # (W2-23) the shape host CG readback
     tests/controls/scroll_view_ios_tests.mm # (W1-07 containers)
     tests/controls/swipe_refresh_ios_tests.mm # (W2-20) the UIKit seam (UIRefreshControl + the swipe host)
+    tests/controls/swipe_item_menu_item_ios_tests.mm # (W7-U09) the UIButton swipe-item handler seam + pan reveal
     tests/controls/navigation_page_ios_tests.mm
     tests/controls/web_view_ios_tests.mm # (W1-08) the real WKWebView seam, run-loop pumped on-simulator
     tests/controls/hybrid_web_view_ios_tests.mm # (G5) the real JS↔native bridge round trip on-simulator
@@ -1173,6 +1184,8 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/window_overlay_tests.cpp # (G4) backend-agnostic: add/remove overlay + adorner list + invalidate->draw
     # (W2-20 swipe + refresh) the backend-agnostic control + state-machine suites + the demo page.
     tests/controls/swipe_view_tests.cpp
+    # (W7-U09) the swipe menu-item handler contract + mapper-mirror suite (backend-agnostic).
+    tests/controls/swipe_item_menu_item_tests.cpp
     tests/controls/refresh_view_tests.cpp
     tests/controls/swipe_refresh_page_tests.cpp
     tests/controls/tabbed_page_tests.cpp # (W1-10) the MultiPage/TabbedPage control suite + the mirrors
@@ -1271,6 +1284,8 @@ else()
     tests/controls/scroll_view_tests.cpp
     # (W2-20 swipe + refresh) the control behavior + the swipe state-machine seam + the demo page wiring.
     tests/controls/swipe_view_tests.cpp
+    # (W7-U09) the swipe menu-item handler contract + mapper-mirror suite (backend-agnostic).
+    tests/controls/swipe_item_menu_item_tests.cpp
     tests/controls/refresh_view_tests.cpp
     tests/controls/swipe_refresh_page_tests.cpp
     tests/controls/navigation_page_tests.cpp

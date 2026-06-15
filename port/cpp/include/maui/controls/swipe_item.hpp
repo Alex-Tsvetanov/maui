@@ -13,7 +13,9 @@
 // BackgroundColor (null when unset → the state machine treats it as no background); Visibility =>
 // IsVisible ? Visible : Collapsed (the swipe state machine's GetIsVisible reads this to skip collapsed
 // items). AutomationId is carried here (C# Element.AutomationId; menu_item doesn't model it) for the
-// native item identification — behaviorally inert at this layer.
+// native item identification — behaviorally inert at this layer. The text-style face + Source come from
+// the inert MenuItem.ITextStyle defaults (TextColor null → black, Font.Default, CharacterSpacing 0 —
+// MenuItem.cs:156-160) and the menu_item icon (IMenuElement.Source => IconImageSource).
 
 #include <memory>
 #include <optional>
@@ -24,6 +26,8 @@
 #include "maui/controls/menu_item.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/event.hpp"
+#include "maui/core/font.hpp"
+#include "maui/core/i_image_source.hpp"
 #include "maui/core/i_swipe_item_menu_item.hpp"
 #include "maui/core/property.hpp"
 #include "maui/core/visibility.hpp"
@@ -111,6 +115,31 @@ namespace maui::controls
         [[nodiscard]] maui::core::visibility visibility() const override
         {
             return is_visible() ? maui::core::visibility::visible : maui::core::visibility::collapsed;
+        }
+
+        // ---- i_text_style (the inert MenuItem.ITextStyle defaults — MenuItem.cs:156-160) ----
+        // C# MenuItem.ITextStyle.TextColor => null. The port has no nullable colour on the contract; the
+        // default-constructed colour (opaque black) is the documented stand-in (the visible label colour
+        // is driven by get_text_color() off the background, not this).
+        [[nodiscard]] maui::graphics::color text_color() const override
+        {
+            return {};
+        }
+        // C# MenuItem.ITextStyle.Font => Font.Default.
+        [[nodiscard]] maui::core::font font() const override
+        {
+            return maui::core::font::default_font();
+        }
+        // C# MenuItem.ITextStyle.CharacterSpacing => 0.
+        [[nodiscard]] double character_spacing() const override
+        {
+            return 0;
+        }
+
+        // C# SwipeItem.IMenuElement.Source => IconImageSource (carried by the menu_item base).
+        [[nodiscard]] std::shared_ptr<maui::core::i_image_source> source() const override
+        {
+            return icon_image_source();
         }
 
     private:

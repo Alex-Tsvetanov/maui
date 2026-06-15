@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <numbers>
 
 #include "maui/core/i_swipe_item.hpp"
 #include "maui/core/i_swipe_item_menu_item.hpp"
@@ -101,6 +102,30 @@ namespace maui::core::swipe_machine
             return (direction == swipe_direction::left || direction == swipe_direction::up) ? -threshold : threshold;
         }
     } // namespace
+
+    // C# SwipeDirectionHelper.GetSwipeDirection / GetAngleFromPoints / GetSwipeDirectionFromAngle /
+    // IsAngleInRange (Primitives/SwipeDirection.cs), ported verbatim: classify a drag into the single
+    // dominant direction by the atan2 angle (0..360, screen coordinates with y down).
+    swipe_direction get_swipe_direction(double x1, double y1, double x2, double y2)
+    {
+        const double rad = std::atan2(y1 - y2, x2 - x1) + std::numbers::pi;
+        const double angle = std::fmod((rad * 180.0 / std::numbers::pi) + 180.0, 360.0);
+
+        const auto in_range = [angle](double init, double end) { return angle >= init && angle < end; };
+        if (in_range(45, 135))
+        {
+            return swipe_direction::up;
+        }
+        if (in_range(0, 45) || in_range(315, 360))
+        {
+            return swipe_direction::right;
+        }
+        if (in_range(225, 315))
+        {
+            return swipe_direction::down;
+        }
+        return swipe_direction::left;
+    }
 
     // C# MauiSwipeView.GetSwipeThreshold: Element.Threshold wins; else Reveal sums the visible items'
     // widths and Execute uses the default. (The content-frame-relative sizing — contentWidth * 0.8,
