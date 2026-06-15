@@ -30,6 +30,7 @@
 #include <string_view>
 
 #include "maui/controls/content_page.hpp"
+#include "maui/controls/shell/search_handler.hpp"
 #include "maui/controls/shell/shell.hpp"
 #include "maui/controls/shell_handler.hpp"
 #include "maui/core/i_view.hpp"
@@ -37,6 +38,38 @@
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+
+// AppKit trampoline for the shell search box: an NSSearchField's editing notifications + search action
+// route to the C++ search_handler model. AppKit DEVIATION (documented in shell_handler.hpp): macOS has no
+// UISearchController, so the search field is added as a subview above the tab content rather than installed
+// into a navigation item.
+@interface MauiShellSearchTarget : NSObject <NSSearchFieldDelegate>
+@property(nonatomic) maui::controls::search_handler* handler;
+- (void)onSearch:(id)sender;
+@end
+
+@implementation MauiShellSearchTarget
+- (void)controlTextDidChange:(NSNotification*)notification
+{
+    if (self.handler == nullptr)
+    {
+        return;
+    }
+    NSSearchField* const field = (NSSearchField*)notification.object;
+    NSString* const text = field.stringValue != nil ? field.stringValue : @"";
+    // A native edit funnels through Query (SearchHandler's two-way Query path → OnQueryChanged).
+    self.handler->send_query_changed(std::string(text.UTF8String));
+}
+
+- (void)onSearch:(id)sender
+{
+    (void)sender;
+    if (self.handler != nullptr)
+    {
+        self.handler->query_confirmed();
+    }
+}
+@end
 
 namespace
 {
@@ -67,6 +100,16 @@ namespace maui::core
     shell_platform::~shell_platform()
     {
         // Release the retained AppKit handles (each balances a __bridge_retained below).
+        if (search_delegate != nullptr)
+        {
+            CFRelease(search_delegate);
+            search_delegate = nullptr;
+        }
+        if (search_controller != nullptr)
+        {
+            CFRelease(search_controller);
+            search_controller = nullptr;
+        }
         if (section_hosts != nullptr)
         {
             CFRelease(section_hosts);
@@ -207,6 +250,63 @@ namespace maui::core
         // DEVIATION: no drawer — IsPresented collapses/expands the persistent sidebar instead.
         NSSplitViewItem* const sidebar = split.splitViewItems.firstObject;
         sidebar.collapsed = platform->tree.flyout_presented ? NO : YES;
+    }
+
+    void shell_handler::realize_search_box()
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->controller == nullptr)
+        {
+            return;
+        }
+        const maui::controls::shell_search_box& box = platform->tree.search_box;
+
+        // Lazily create the NSSearchField + its trampoline on first install. AppKit DEVIATION: no
+        // UISearchController — the field is added as a subview at the top of the split controller's view.
+        if (platform->search_controller == nullptr && box.present)
+        {
+            NSSearchField* const field = [[NSSearchField alloc] initWithFrame:NSMakeRect(0, 0, 240, 24)];
+            MauiShellSearchTarget* const target = [[MauiShellSearchTarget alloc] init];
+            field.delegate = target; // weak — the field references the target weakly
+            field.target = target;   // weak — fired on Return (the search action)
+            field.action = @selector(onSearch:);
+            NSView* const host = as_controller(platform->controller).view;
+            [host addSubview:field];
+            platform->search_controller = (__bridge_retained void*)field; // owns one ref
+            platform->search_delegate = (__bridge_retained void*)target;  // owns one ref (control holds it weakly)
+        }
+
+        if (platform->search_controller == nullptr)
+        {
+            return; // never installed and not present this pass
+        }
+
+        NSSearchField* const field = (__bridge NSSearchField*)platform->search_controller;
+        MauiShellSearchTarget* const target = (__bridge MauiShellSearchTarget*)platform->search_delegate;
+        target.handler = box.handler;
+
+        if (!box.present)
+        {
+            // Visibility Hidden (or no handler): hide the field (the C# RemoveSearchController analog). The
+            // field is kept retained for re-show; hiding is the AppKit equivalent of detaching it.
+            field.hidden = YES;
+            return;
+        }
+        field.hidden = NO;
+        field.enabled = box.enabled ? YES : NO;
+        NSString* const ph = [NSString stringWithUTF8String:box.placeholder.c_str()];
+        field.placeholderString = ph != nil ? ph : @"";
+        // Drive the field's text from the model WITHOUT bouncing it back (guard the delegate during the
+        // programmatic set so controlTextDidChange doesn't re-enter send_query_changed).
+        NSString* const query = [NSString stringWithUTF8String:box.query.c_str()];
+        NSString* const current = field.stringValue != nil ? field.stringValue : @"";
+        if (![current isEqualToString:(query != nil ? query : @"")])
+        {
+            id<NSSearchFieldDelegate> const saved = field.delegate;
+            field.delegate = nil;
+            field.stringValue = query != nil ? query : @"";
+            field.delegate = saved;
+        }
     }
 
     void shell_handler::platform_arrange(const maui::graphics::rect& frame)

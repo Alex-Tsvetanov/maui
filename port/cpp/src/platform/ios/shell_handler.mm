@@ -34,6 +34,7 @@
 #include <string_view>
 
 #include "maui/controls/content_page.hpp"
+#include "maui/controls/shell/search_handler.hpp"
 #include "maui/controls/shell/shell.hpp"
 #include "maui/controls/shell_handler.hpp"
 #include "maui/core/i_view.hpp"
@@ -41,6 +42,44 @@
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+
+// UIKit trampoline for the shell search box: the UISearchBar's text edits + search-button taps + the
+// bookmark (clear-placeholder) button route to the C++ search_handler model. Mirrors
+// ShellPageRendererTracker's UISearchController wiring: the search bar's delegate funnels live edits to
+// Query (OnQueryChanged), the search button to QueryConfirmed, and the bookmark button to
+// ClearPlaceholderClicked.
+@interface MauiShellSearchDelegate : NSObject <UISearchBarDelegate>
+@property(nonatomic) maui::controls::search_handler* handler;
+@end
+
+@implementation MauiShellSearchDelegate
+- (void)searchBar:(UISearchBar*)searchBar textDidChange:(NSString*)searchText
+{
+    (void)searchBar;
+    if (self.handler != nullptr)
+    {
+        self.handler->send_query_changed(std::string(searchText != nil ? searchText.UTF8String : ""));
+    }
+}
+
+- (void)searchBarSearchButtonClicked:(UISearchBar*)searchBar
+{
+    (void)searchBar;
+    if (self.handler != nullptr)
+    {
+        self.handler->query_confirmed();
+    }
+}
+
+- (void)searchBarBookmarkButtonClicked:(UISearchBar*)searchBar
+{
+    (void)searchBar;
+    if (self.handler != nullptr)
+    {
+        self.handler->clear_placeholder_clicked();
+    }
+}
+@end
 
 namespace
 {
@@ -104,6 +143,16 @@ namespace maui::core
     shell_platform::~shell_platform()
     {
         // Release the retained UIKit handles (each balances a __bridge_retained below).
+        if (search_delegate != nullptr)
+        {
+            CFRelease(search_delegate);
+            search_delegate = nullptr;
+        }
+        if (search_controller != nullptr)
+        {
+            CFRelease(search_controller);
+            search_controller = nullptr;
+        }
         if (section_hosts != nullptr)
         {
             CFRelease(section_hosts);
@@ -232,6 +281,12 @@ namespace maui::core
             UITableViewController* const flyout = (__bridge UITableViewController*)platform->flyout_host;
             [flyout.tableView reloadData];
         }
+
+        // Rebuilding the tab host replaced the nav controllers (fresh top VCs), so the search box's host
+        // nav item is now stale — reinstall it onto the new current section's nav item. (realize_tree runs
+        // both from the full rebuild AND from the flyout-only paths map_flyout_items / set_flyout_item_
+        // template, which do not call rebuild_search_box, so reinstalling here keeps the box attached.)
+        realize_search_box();
     }
 
     void shell_handler::update_flyout_presented(maui::controls::shell& host)
@@ -246,6 +301,76 @@ namespace maui::core
         split.preferredDisplayMode = platform->tree.flyout_presented
                                          ? UISplitViewControllerDisplayModeOneBesideSecondary
                                          : UISplitViewControllerDisplayModeSecondaryOnly;
+    }
+
+    void shell_handler::realize_search_box()
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->tab_host == nullptr)
+        {
+            return;
+        }
+        const maui::controls::shell_search_box& box = platform->tree.search_box;
+
+        // Lazily create the UISearchController + its UISearchBar delegate on first install (mirrors
+        // ShellPageRendererTracker.AttachSearchController). The results VC is nil — the model drives results
+        // (the headless mirror records the row count); a full results renderer is the deferred piece.
+        if (platform->search_controller == nullptr && box.present)
+        {
+            UISearchController* const controller = [[UISearchController alloc] initWithSearchResultsController:nil];
+            MauiShellSearchDelegate* const del = [[MauiShellSearchDelegate alloc] init];
+            controller.searchBar.delegate = del; // weak — the bar references the delegate weakly
+            platform->search_controller = (__bridge_retained void*)controller; // owns one ref
+            platform->search_delegate = (__bridge_retained void*)del;          // owns one ref (bar holds it weakly)
+        }
+        if (platform->search_controller == nullptr)
+        {
+            return;
+        }
+
+        UISearchController* const controller = (__bridge UISearchController*)platform->search_controller;
+        MauiShellSearchDelegate* const del = (__bridge MauiShellSearchDelegate*)platform->search_delegate;
+        del.handler = box.handler;
+
+        // Drive the bar's state from the model.
+        controller.searchBar.userInteractionEnabled = box.enabled ? YES : NO;
+        controller.searchBar.showsBookmarkButton = (box.handler != nullptr && box.handler->clear_placeholder_enabled());
+        NSString* const ph = [NSString stringWithUTF8String:box.placeholder.c_str()];
+        controller.searchBar.placeholder = ph != nil ? ph : @"";
+        NSString* const query = [NSString stringWithUTF8String:box.query.c_str()];
+        NSString* const current = controller.searchBar.text != nil ? controller.searchBar.text : @"";
+        if (![current isEqualToString:(query != nil ? query : @"")])
+        {
+            controller.searchBar.text = query != nil ? query : @""; // setting text does not call the delegate
+        }
+
+        // Install/remove the controller on the current section's nav item (UpdateSearchVisibility):
+        // present (Collapsible/Expanded) → set searchController + HidesSearchBarWhenScrolling; Hidden → nil.
+        // Resolve the active nav controller by the mirror's selected_index (deterministic — matches what
+        // realize_tree set); selectedViewController is unreliable for a tab controller not yet in a window.
+        UITabBarController* const tabs = (__bridge UITabBarController*)platform->tab_host;
+        const int selected_index = platform->tree.current_item_renderer.selected_index;
+        UIViewController* selected = nil;
+        if (selected_index >= 0 && static_cast<NSUInteger>(selected_index) < tabs.viewControllers.count)
+        {
+            selected = tabs.viewControllers[static_cast<NSUInteger>(selected_index)];
+        }
+        UINavigationController* const nav =
+            [selected isKindOfClass:[UINavigationController class]] ? (UINavigationController*)selected : nil;
+        UIViewController* const top = nav != nil ? nav.topViewController : nil;
+        if (top == nil)
+        {
+            return; // no nav item to host the search controller yet
+        }
+        if (box.present)
+        {
+            top.navigationItem.searchController = controller;
+            top.navigationItem.hidesSearchBarWhenScrolling = box.collapsible ? YES : NO;
+        }
+        else
+        {
+            top.navigationItem.searchController = nil; // RemoveSearchController
+        }
     }
 
     void shell_handler::platform_arrange(const maui::graphics::rect& frame)

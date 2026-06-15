@@ -34,6 +34,12 @@ namespace maui::core
         }
     }
 
+    void shell_handler::realize_search_box()
+    {
+        // Headless: the shell_search_box mirror IS the realized state (filled by rebuild_search_box); there
+        // is no native UISearchController / NSSearchField to install.
+    }
+
     void shell_handler::platform_arrange(const maui::graphics::rect& /*frame*/)
     {
         // Headless: no native container to position.

@@ -8,6 +8,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -17,6 +18,7 @@
 #include "maui/controls/shell/flyout_behavior.hpp"
 #include "maui/controls/shell/route_request_builder.hpp"
 #include "maui/controls/shell/routing.hpp"
+#include "maui/controls/shell/search_handler.hpp"
 #include "maui/controls/shell/shell_content.hpp"
 #include "maui/controls/shell/shell_navigated_event_args.hpp"
 #include "maui/controls/shell/shell_navigating_event_args.hpp"
@@ -25,11 +27,36 @@
 #include "maui/controls/shell/shell_route_parameters.hpp"
 #include "maui/controls/shell/shell_section.hpp"
 #include "maui/controls/shell/shell_uri_handler.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/event.hpp"
 
 namespace maui::controls
 {
+    namespace
+    {
+        // The process-wide attached-property side map for Shell.SearchHandler, keyed by the TARGET
+        // bindable_object pointer (the port has no central attached-property store — the routing
+        // element-route side map precedent, routing.cpp). Unlike routing (whose elements call
+        // remove_route in their dtor), the attached target here can be ANY bindable_object (typically a
+        // content_page, a layer BELOW shell that cannot call back into shell), so each entry also captures
+        // the target's weak liveness token (bindable_object::weak_token, PROFILE §8); a stale/dead entry
+        // (token expired, so the raw pointer may have been recycled) is pruned on access — self-cleaning,
+        // no dtor hook or layer-inverting dependency. Owned by a function-local static so its lifetime
+        // spans every translation unit.
+        struct search_handler_entry
+        {
+            std::weak_ptr<void> liveness;
+            std::shared_ptr<search_handler> handler;
+        };
+
+        std::unordered_map<const maui::core::bindable_object*, search_handler_entry>& search_handler_map()
+        {
+            static std::unordered_map<const maui::core::bindable_object*, search_handler_entry> map;
+            return map;
+        }
+    } // namespace
+
     shell::shell()
     {
         this->set_style_target_type<shell>();
@@ -65,6 +92,55 @@ namespace maui::controls
     {
         static const maui::core::bindable_property<bool> descriptor{"flyout_is_presented", false};
         return descriptor;
+    }
+
+    // ---- Shell.SearchHandler (attached property) ----
+
+    void shell::set_search_handler(maui::core::bindable_object& target, std::shared_ptr<search_handler> handler)
+    {
+        auto& map = search_handler_map();
+        // C# OnSearchHandlerPropertyChanged: detach the old handler's inherited binding context, then flow
+        // the target's context into the new handler (SetInheritedBindingContext).
+        if (const auto it = map.find(&target); it != map.end() && it->second.handler)
+        {
+            it->second.handler->set_inherited_binding_context({});
+        }
+        if (handler == nullptr)
+        {
+            map.erase(&target);
+            return;
+        }
+        handler->set_inherited_binding_context(target.raw_binding_context());
+        map.insert_or_assign(&target,
+                             search_handler_entry{.liveness = target.weak_token(), .handler = std::move(handler)});
+    }
+
+    search_handler* shell::get_search_handler(const maui::core::bindable_object& target)
+    {
+        return get_search_handler_shared(target).get();
+    }
+
+    std::shared_ptr<search_handler> shell::get_search_handler_shared(const maui::core::bindable_object& target)
+    {
+        auto& map = search_handler_map();
+        const auto it = map.find(&target);
+        if (it == map.end())
+        {
+            return nullptr;
+        }
+        // Prune a stale entry: the target died and the raw pointer may have been recycled into a new,
+        // unrelated object (the weak token would belong to the dead original).
+        if (it->second.liveness.expired())
+        {
+            map.erase(it);
+            return nullptr;
+        }
+        return it->second.handler;
+    }
+
+    void shell::remove_search_handler(const maui::core::bindable_object& target)
+    {
+        search_handler_map().erase(&target);
     }
 
     // ---- Items ----

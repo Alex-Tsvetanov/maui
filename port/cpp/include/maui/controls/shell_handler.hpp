@@ -49,12 +49,14 @@
 //              NSNavigationController on macOS).
 
 #include <any>
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include "maui/core/command_mapper.hpp"
+#include "maui/core/event.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/view_handler.hpp"
@@ -104,6 +106,33 @@ namespace maui::controls
         std::shared_ptr<maui::core::bindable_object> templated_content; // the data_template-built row (if any)
     };
 
+    class search_handler;
+
+    // The resolved search box (ShellPageRendererTracker's UISearchController + UISearchBar / the AppKit
+    // NSSearchField). Mirrors the SearchHandler installed onto the current page via Shell.SearchHandler:
+    // `present` is false when no handler is attached or its visibility is Hidden (the box is removed from
+    // the nav item, C# RemoveSearchController). The recorded fields are the headless-observable mirror of
+    // the native search bar's state; the real twins ALSO drive the native control from the same handler.
+    //
+    // DEVIATION (documented, not stubbed): a per-handler property change re-realizes the box (the chrome
+    // subscribes to it), and a navigation that changes the current page re-resolves it. But ADDING/REMOVING
+    // the Shell.SearchHandler attached property itself after connect (set_search_handler(page, h2/nullptr))
+    // does NOT notify the chrome — the port has no observer on the attached-property side map — so a swap of
+    // WHICH handler is attached to the current page is picked up on the NEXT navigation rebuild (the W3-32
+    // "flyout structural change refreshes on next navigation" precedent). The common flow (attach before
+    // connect / navigate between pages with different handlers) is exercised and correct.
+    struct shell_search_box
+    {
+        search_handler* handler = nullptr; // the model handler this box mirrors (null when none attached)
+        bool present = false;              // installed into the chrome (handler present AND not Hidden)
+        bool collapsible = false;          // SearchBoxVisibility.Collapsible (HidesSearchBarWhenScrolling)
+        bool enabled = true;               // IsSearchEnabled (the bar's UserInteractionEnabled)
+        bool shows_results = false;        // ShowsResults (whether the results list is shown)
+        std::string query;                 // the bar's current text (Query)
+        std::string placeholder;           // the bar's placeholder
+        std::size_t result_count = 0;      // the rows the results proxy exposes (the result list size)
+    };
+
     // The whole resolved renderer tree — the headless mirror of the native container. Rebuilt on every
     // current_item / current_state change (model navigation reconfigures it).
     struct shell_render_tree
@@ -111,6 +140,7 @@ namespace maui::controls
         shell_item_renderer current_item_renderer; // the tab host for the shell's current item
         std::vector<shell_flyout_row> flyout_rows; // the flyout drawer rows (Shell.GetItems())
         bool flyout_presented = false;             // FlyoutIsPresented as realized
+        shell_search_box search_box;               // the current page's search box (Shell.SearchHandler)
     };
 } // namespace maui::controls
 
@@ -140,6 +170,12 @@ namespace maui::core
         void* tab_host = nullptr;      // the current item's UITabBarController / the content NSTabView (retained)
         void* flyout_host = nullptr;   // the flyout drawer column / sidebar wrapper controller (retained)
         void* section_hosts = nullptr; // a retained array of the per-section nav controllers / wrappers
+        // The search box: iOS = a UISearchController (its searchBar installed into the nav item); apple = an
+        // NSSearchField added above the content. Null until a SearchHandler is resolved; both are retained
+        // and torn down with the platform. search_delegate is the Obj-C trampoline routing native edits +
+        // the search action back to the model (retained because the native control holds it weakly).
+        void* search_controller = nullptr; // UISearchController (ios) / NSSearchField (apple)
+        void* search_delegate = nullptr;   // the Obj-C delegate/target trampoline (retained)
 #endif
 
 #ifdef MAUI_PLATFORM_APPLE
@@ -194,6 +230,16 @@ namespace maui::core
         // everywhere). Defined per backend.
         void update_flyout_presented(maui::controls::shell& host);
 
+        // Resolve the current page's Shell.SearchHandler into the tree's search_box mirror (the
+        // ShellPageRendererTracker.UpdateShellToMyPage path: GetSearchHandler(current_page), falling back
+        // to the shell). CROSS-PLATFORM: pure model→mirror logic; calls realize_search_box() so the real
+        // twins install/remove the native UISearchController/NSSearchField. Called from rebuild() (a
+        // navigation may change the current page) and re-run when the handler's own properties change.
+        void rebuild_search_box(maui::controls::shell& host);
+        // Materialize the native search box from the search_box mirror (per backend: headless no-op; iOS
+        // installs a UISearchController into the nav item; AppKit installs an NSSearchField in the toolbar).
+        void realize_search_box();
+
         // The flyout item template (C# Shell.ItemTemplate) — the W1-09 data_template each flyout row is
         // built through. A null template falls back to a plain title label per item. Setting it rebuilds.
         void set_flyout_item_template(std::shared_ptr<maui::controls::data_template> value);
@@ -225,7 +271,22 @@ namespace maui::core
         // item template when set (cross-platform — the tree mirror is shared; the real twins read it to
         // build native rows). Returns the rows so the .mm can materialize them.
         void rebuild_flyout_rows(maui::controls::shell& host);
+        // Recompute the search_box mirror fields from the already-recorded handler and re-realize, WITHOUT
+        // re-subscribing — the body of the property-changed subscription rebuild_search_box installs.
+        void resolve_search_box();
 
         std::shared_ptr<maui::controls::data_template> flyout_item_template_;
+        // A STRONG ref to the installed search handler, held for as long as the box is installed. The chrome
+        // subscribes to its property_changed (search_box_token_), and §8 requires the publisher to outlive
+        // the subscription; the page also keeps it alive via the Shell.SearchHandler side map, but a
+        // SetSearchHandler(page, nullptr) would otherwise drop the page's only ref while the token is live.
+        // Holding it here makes the publisher's lifetime independent of the side map for the box's duration.
+        // Declared BEFORE the token so it is destroyed AFTER the token disconnects (reverse member order).
+        std::shared_ptr<maui::controls::search_handler> installed_search_handler_;
+        // The subscription to the installed search handler's property_changed (re-realizes the native box
+        // on a Query/Placeholder/Visibility/IsSearchEnabled/ShowsResults change). Reset when the box is
+        // removed or re-resolved to a different handler. Declared LAST so it disconnects before the rest of
+        // the handler tears down (§8); the installed_search_handler_ above keeps the publisher alive.
+        maui::core::scoped_connection search_box_token_;
     };
 } // namespace maui::core

@@ -40,6 +40,7 @@
 namespace maui::controls
 {
     class content_page;
+    class search_handler;
 
     class shell : public view<maui::core::i_view>
     {
@@ -163,6 +164,23 @@ namespace maui::controls
         {
             return navigation_manager_;
         }
+
+        // ---- Shell.SearchHandler (attached property) ----
+        // Shell.SetSearchHandler / GetSearchHandler — the search surface installed onto a page (the common
+        // case) or the shell itself. Ported from Shell.SearchHandlerProperty (an attached BindableProperty,
+        // BindingMode.OneTime). The port has no central attached-property store, so (exactly like
+        // routing's element-route side map) the handler is held in a process-wide side map keyed by the
+        // TARGET bindable_object pointer; the C# OnSearchHandlerPropertyChanged inherited-binding-context
+        // wiring is reproduced — setting a handler flows the target's binding context into it; clearing
+        // detaches it. The chrome resolves get_search_handler(current_page) (falling back to the shell).
+        // The target object's destructor must call remove_search_handler (lifetime hygiene); content_page
+        // does so in its dtor, like base_shell_item does for routes.
+        static void set_search_handler(maui::core::bindable_object& target, std::shared_ptr<search_handler> handler);
+        [[nodiscard]] static search_handler* get_search_handler(const maui::core::bindable_object& target);
+        // The owning handle (so the chrome can keep it alive while installed), or null when unset.
+        [[nodiscard]] static std::shared_ptr<search_handler> get_search_handler_shared(
+            const maui::core::bindable_object& target);
+        static void remove_search_handler(const maui::core::bindable_object& target);
 
         // ---- IShellController ----
         // ProposeNavigation: route the UI-initiated change through Navigating (cancel/defer).

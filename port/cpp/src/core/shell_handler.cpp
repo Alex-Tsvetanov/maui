@@ -10,16 +10,21 @@
 #include <cstddef>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
 #include "maui/controls/content_page.hpp"
+#include "maui/controls/shell/list_proxy.hpp"
+#include "maui/controls/shell/search_box_visibility.hpp"
+#include "maui/controls/shell/search_handler.hpp"
 #include "maui/controls/shell/shell.hpp"
 #include "maui/controls/shell/shell_content.hpp"
 #include "maui/controls/shell/shell_item.hpp"
 #include "maui/controls/shell/shell_section.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/core/command_mapper.hpp"
+#include "maui/core/event.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/property_mapper.hpp"
@@ -159,6 +164,94 @@ namespace maui::core
 
         // Realize the matching native VC hierarchy (no-op on headless; the real twins build it).
         realize_tree();
+
+        // (c) The current page's search box (Shell.SearchHandler) — a navigation may change the page, so
+        // the box is re-resolved here (ShellPageRendererTracker.UpdateShellToMyPage on page set).
+        rebuild_search_box(host);
+    }
+
+    namespace
+    {
+        // Fill the search-box mirror's visibility/enabled/query/results fields from the (already-resolved)
+        // handler. C# UpdateSearchVisibility: Hidden removes the controller (present=false); Collapsible /
+        // Expanded install it (Collapsible = HidesSearchBarWhenScrolling).
+        void fill_search_box_mirror(maui::controls::shell_search_box& box, maui::controls::search_handler& found)
+        {
+            const maui::controls::search_box_visibility visibility = found.get_search_box_visibility();
+            box.handler = &found;
+            box.present = visibility != maui::controls::search_box_visibility::hidden;
+            box.collapsible = visibility == maui::controls::search_box_visibility::collapsible;
+            box.enabled = found.is_search_enabled();
+            box.shows_results = found.shows_results();
+            box.query = std::string{found.query()};
+            box.placeholder = std::string{found.placeholder()};
+            box.result_count = found.results() != nullptr ? found.results()->count() : 0;
+        }
+    } // namespace
+
+    void shell_handler::rebuild_search_box(maui::controls::shell& host)
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+
+        // ShellPageRendererTracker reads Shell.GetSearchHandler(Page) (the current page); the port also
+        // falls back to the shell itself so Shell.SetSearchHandler(shell, ...) installs a chrome-wide box.
+        // Take the OWNING handle so the publisher outlives the property-changed subscription (§8) even if
+        // the page's side-map entry is later cleared.
+        std::shared_ptr<maui::controls::search_handler> found;
+        if (const maui::controls::content_page* const page = host.current_page())
+        {
+            found = maui::controls::shell::get_search_handler_shared(*page);
+        }
+        if (found == nullptr)
+        {
+            found = maui::controls::shell::get_search_handler_shared(host);
+        }
+
+        maui::controls::shell_search_box& box = platform->tree.search_box;
+        box = {}; // reset to "no box" before re-resolving
+
+        // Drop the previous subscription BEFORE swapping the owning handle, so a re-resolve to a different
+        // handler tears down the old token while its publisher is still alive (§8 publisher-outlives-token).
+        search_box_token_.reset();
+        installed_search_handler_ = found;
+
+        if (found != nullptr)
+        {
+            fill_search_box_mirror(box, *found);
+
+            // Re-realize the native box whenever the installed handler's own properties change
+            // (ShellPageRendererTracker.OnSearchHandlerPropertyChanged). The lambda re-runs
+            // resolve_search_box so a visibility flip to Hidden removes the box too. It captures only `this`
+            // (no dangling reference to the call-scoped host): resolve_search_box reads the recorded handler.
+            search_box_token_ = maui::core::connect_scoped(found->property_changed,
+                                                           [this](std::string_view) { this->resolve_search_box(); });
+        }
+
+        realize_search_box();
+    }
+
+    void shell_handler::resolve_search_box()
+    {
+        // Re-run the resolve WITHOUT re-subscribing (we are already inside the subscription). Recompute the
+        // mirror fields from the already-recorded handler and re-realize; if its visibility is now Hidden
+        // the box is removed (present=false). The handler pointer is stable while the subscription lives
+        // (the publisher outlives the token).
+        auto* platform = typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        maui::controls::shell_search_box& box = platform->tree.search_box;
+        if (box.handler == nullptr)
+        {
+            return;
+        }
+        fill_search_box_mirror(box, *box.handler);
+        realize_search_box();
     }
 
     void shell_handler::rebuild_flyout_rows(maui::controls::shell& host)

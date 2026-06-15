@@ -869,6 +869,9 @@ add_library(maui_controls STATIC
   src/controls/shell/request_definition.cpp
   src/controls/shell/shell_uri_handler.cpp
   src/controls/shell/shell_navigation_manager.cpp
+  # (W7-50/X2) the Shell SearchHandler model (BindableObject) + list_proxy; the Shell.SearchHandler
+  # attached property lives in shell.cpp; the chrome's search-box wiring is in shell_handler.{cpp,mm}.
+  src/controls/shell/search_handler.cpp
   src/controls/shell/shell.cpp
   # (W3-32) the native shell chrome handler (cross-platform mapper KEYS + the model→render-tree rebuild);
   # the per-backend platform recipe is in src/platform/<backend>/shell_handler.{cpp,mm} (selected above).
@@ -940,6 +943,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/flyout_page_apple_tests.mm # (W1-10) the real NSSplitViewController seam
     # (W3-32) the shell chrome: the real NSSplitViewController sidebar + NSTabView seam + route→tab e2e.
     tests/controls/shell_handler_apple_tests.mm
+    # (W7-50/X2) the shell search box: the real NSSearchField seam + native edit/confirm round-trip.
+    tests/controls/search_handler_apple_tests.mm
     tests/controls/tabbed_page_tests.cpp # (W1-10) the MultiPage/TabbedPage control suite + the mirrors
     tests/controls/flyout_page_tests.cpp # (W1-10) the FlyoutPage control suite + the mirrors
     tests/controls/web_view_apple_tests.mm # (W1-08) the real WKWebView seam, run-loop pumped
@@ -1044,6 +1049,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/tabbed_page_apple_tests.mm
     tests/controls/flyout_page_apple_tests.mm
     tests/controls/shell_handler_apple_tests.mm # (W3-32)
+    tests/controls/search_handler_apple_tests.mm # (W7-50/X2)
     tests/controls/web_view_apple_tests.mm
     tests/controls/window_apple_tests.mm
     tests/controls/chrome_apple_tests.mm # (W1-11)
@@ -1103,6 +1109,9 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     # (W3-32) the shell chrome: the real container split + UITabBarController + per-section
     # UINavigationController seam, with the route→VC-stack e2e (the on-simulator gate).
     tests/controls/shell_handler_ios_tests.mm
+    # (W7-50/X2) the shell search box: the real UISearchController install into the nav item + native
+    # edit/confirm round-trip on-simulator.
+    tests/controls/search_handler_ios_tests.mm
     tests/controls/chrome_ios_tests.mm # (W1-11) real bar buttons + UIContextMenuInteraction attach + inert mirrors
     # (W3-29 items) the REAL UICollectionView native virtualization (Items2 compositional path): cell
     # reuse under programmatic scroll, selection single/multi, grouping supplementaries, reorder,
@@ -1280,7 +1289,9 @@ else()
     tests/controls/shell_uri_handler_tests.cpp
     tests/controls/shell_navigating_tests.cpp
     # (W3-32) the native shell chrome handler — headless structure mapping + route→render-tree e2e.
-    tests/controls/shell_handler_tests.cpp)
+    tests/controls/shell_handler_tests.cpp
+    # (W7-50/X2) the Shell SearchHandler model + attached property + chrome search-box wiring.
+    tests/controls/search_handler_tests.cpp)
 endif()
 target_include_directories(maui_controls_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for tests/layouts/*.hpp
 # The apple .mm tests share the backend's text/visual op headers (apple_text_ops.hpp etc.), which live
