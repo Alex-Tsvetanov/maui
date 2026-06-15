@@ -202,7 +202,7 @@ namespace maui::controls
     {
         const maui::core::thickness padding_inset = padding();
         const maui::core::thickness safe_area = ios_page::get_safe_area_insets(*this);
-        const auto edge_inset = [this, &safe_area](int edge, double value) -> double {
+        const auto edge_inset = [this](int edge, double value) -> double {
             return get_safe_area_regions_for_edge(edge) != maui::core::safe_area_regions::none ? value : 0.0;
         };
         return maui::core::thickness{padding_inset.left + edge_inset(0, safe_area.left),
