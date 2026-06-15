@@ -34,6 +34,8 @@
 #include "maui/essentials/preferences.hpp"
 #include "maui/essentials/secure_storage.hpp"
 
+#include "src/platform/apple_shared/essentials_url.hpp"
+
 namespace
 {
     using namespace maui::application_model;
@@ -228,6 +230,28 @@ namespace
         bool tried = true;
         launcher::try_open_async("https://example.com", [&tried](bool value) { tried = value; });
         EXPECT_FALSE(tried);
+    }
+
+    // U17: the WebUtils.GetNativeUrl OriginalString->AbsoluteUri fallback. The no-UIApplication
+    // simulator reports false for every launch regardless of the URL, so the fallback is asserted at
+    // the get_native_url helper the partial routes through: a URI with a literal space in the authority
+    // (rejected by [NSURL URLWithString:] raw) parses once normalized, so the launcher never returns
+    // nil for it.
+    TEST(appmodel_ios_launcher, get_native_url_normalizes_when_raw_parse_fails)
+    {
+        using maui::platform::apple_shared::get_native_url;
+
+        EXPECT_TRUE([NSURL URLWithString:@"https://exa mple.com/path"] == nil); // the raw form is unparseable
+
+        NSURL* const url = get_native_url("https://exa mple.com/path");
+        ASSERT_TRUE(url != nil);
+        EXPECT_TRUE([[url scheme] isEqualToString:@"https"]);
+        EXPECT_TRUE([[url absoluteString] isEqualToString:@"https://exa%20mple.com/path"]);
+
+        // An already-valid URI is returned as-is (no spurious normalization - idempotent on %XX).
+        NSURL* const plain = get_native_url("https://example.com/already/encoded%20ok");
+        ASSERT_TRUE(plain != nil);
+        EXPECT_TRUE([[plain absoluteString] isEqualToString:@"https://example.com/already/encoded%20ok"]);
     }
 
     // SystemPreferred has no view controller to present from; External routes to the launcher.

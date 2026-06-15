@@ -4,8 +4,10 @@
 // completion arrives on the main queue), and try-open opens only when canOpenURL says yes. The
 // spawned simulator test process has no UIApplication instance ([UIApplication sharedApplication]
 // is nil), so every query completes false there - asserted by the on-simulator suite; a real app
-// exercises the true paths. A string NSURL cannot represent reports false (the WebUtils escaping
-// is not ported; launcher.hpp). Compiled as Objective-C++ with ARC for the ios backend.
+// exercises the true paths. The URI goes through apple_shared::get_native_url - the
+// WebUtils.GetNativeUrl OriginalString->AbsoluteUri fallback, so a URI NSURL rejects raw but accepts
+// normalized still parses; only a URI neither form can parse (nil) reports false.
+// Compiled as Objective-C++ with ARC for the ios backend.
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
@@ -16,17 +18,13 @@
 
 #include "maui/essentials/launcher.hpp"
 
+#include "src/platform/apple_shared/essentials_url.hpp"
+
 namespace maui::application_model
 {
     namespace
     {
-        NSURL* to_ns_url(std::string_view uri)
-        {
-            NSString* const text = [[NSString alloc] initWithBytes:uri.data()
-                                                            length:uri.size()
-                                                          encoding:NSUTF8StringEncoding];
-            return [NSURL URLWithString:text];
-        }
+        using maui::platform::apple_shared::get_native_url;
 
         bool can_open_url(NSURL* url)
         {
@@ -55,17 +53,17 @@ namespace maui::application_model
         public:
             void can_open_async(std::string_view uri, launch_callback on_complete) override
             {
-                on_complete(can_open_url(to_ns_url(uri)));
+                on_complete(can_open_url(get_native_url(uri)));
             }
 
             void open_async(std::string_view uri, launch_callback on_complete) override
             {
-                open_url(to_ns_url(uri), std::move(on_complete));
+                open_url(get_native_url(uri), std::move(on_complete));
             }
 
             void try_open_async(std::string_view uri, launch_callback on_complete) override
             {
-                NSURL* const url = to_ns_url(uri);
+                NSURL* const url = get_native_url(uri);
                 if (!can_open_url(url))
                 {
                     on_complete(false);

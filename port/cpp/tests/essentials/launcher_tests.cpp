@@ -83,6 +83,18 @@ namespace
         }
     }
 
+    // U17: a URI whose raw form NSURL cannot parse (a literal space) but whose normalized form can
+    // (the WebUtils.GetNativeUrl OriginalString->AbsoluteUri fallback the apple/ios partials now
+    // route through). The format gate is unaffected here - it accepts the space-bearing URI and the
+    // headless fake never touches NSURL, so the gate-then-fake path stays green. The real fallback is
+    // exercised by the apple/ios appmodel suites.
+    TEST_F(launcher_test, normalizable_uri_passes_format_gate)
+    {
+        auto fake = install_configured(true);
+        EXPECT_TRUE(result_of(&launcher::can_open_async, "https://example.com/a b"));
+        EXPECT_EQ(fake->last_queried_uri(), "https://example.com/a b");
+    }
+
     TEST_F(launcher_test, can_open_reports_staged_answer)
     {
         auto fake = install_configured(false);
