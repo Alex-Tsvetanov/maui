@@ -4,6 +4,27 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## iOS/macOS-completion batch — ✅ DONE (2026-06-15, pushed `b27ca67e19`)
+
+Closed the cross-platform + iOS/macOS gaps a fresh disk-verified audit surfaced (8 units). **Gate (all
+backends): headless 2867 / AppKit 2366 / iOS-on-simulator 2068 / ASan 2867 / TSan 2867 / clang-tidy 0
+(clean build).** Each unit was adversarially reviewed (multi-agent) and its findings fixed before push.
+
+- **X1 — Brush family** (`W7-49`): Brush/SolidColor/Gradient/Linear/Radial/Image brushes + GradientStop(Collection) over `graphics::paint`; Background/Fill/Stroke bridge; XAML `convert_brush`. *(row below)*
+- **X2 — Shell `SearchHandler`** (`W7-50`) + **X3 — Shell appearance/styling** (`W7-51`). *(rows below)*
+- **X4 — XAML markup-extension + converter tail** (`W7-52`): the `{x:Array}`/`{x:Reference}`/`{FontImage}`/standalone `{TemplateBinding}`/`{RelativeSource}`/`{DataTemplate}` extensions + the `Keyboard`/Flex-enums/`SafeAreaEdges` converters + `ISafeAreaView`/`ICrossPlatformLayout` (line ~365). Headless + compile-through.
+- **Y1 — Keyboard + focus subsystem** (`W8-53`) and **Y2 — label/editor text-layout polish** (`W8-54`). *(rows below)*
+- **Y3 — image production tail + FontManager** (`W8-55`, folded into the **Image** row).
+- **Y4 — control-polish sweep** (`W8-56`): slider `ThumbImageSource`+tint+UpdateOnTap+iOS-26 layout, switch `NeedsContainer` (→ `native_view()` returns the container, the C# `ToPlatform()` seam), progress_bar FlowDirection, graphics_view touch plumbing (apple), table_view rich cells (switch/entry/image) + section group rows — closing the documented apple+ios `// deferred` markers on those controls.
+
+**Android backend — ⏸ DEFERRED (explicit).** This batch was iOS/macOS-only. Android still has only the
+M6-equivalent core handlers (button + navigation + window + the W4-34d/e view-mapper/visual/semantics
+ops). DEFERRED for a later batch: the in-flight trio **W4-34a/b/c** (label+entry / image / layouts+page),
+the broader android control fan-out (~25 more handlers), all **43 Essentials JNI** (currently headless
+fakes on android), the **AndroidSpecific** platform-config wiring (stored-inert), and the semantics
+**Hint** delegate. Windows/Tizen/GTK + BlazorWebView + Map + source-gen compiled bindings remain
+out-of-scope.
+
 ## Build & test (headless) — run from `port/cpp/`
 
 ```bash
