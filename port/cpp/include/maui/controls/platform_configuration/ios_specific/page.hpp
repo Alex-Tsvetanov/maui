@@ -23,6 +23,7 @@
 #include "maui/controls/platform_configuration/ios_specific/status_bar_hidden_mode.hpp"
 #include "maui/controls/platform_configuration/ios_specific/ui_modal_presentation_style.hpp"
 #include "maui/controls/platform_configuration/ios_specific/ui_status_bar_animation.hpp"
+#include "maui/core/safe_area_edges.hpp" // --- U20: the per-edge SafeAreaEdges config value
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/rect.hpp"
 
@@ -107,6 +108,39 @@ namespace maui::controls::platform_configuration::ios_specific::page
     template <page_element TElement> config<ios, TElement> set_use_safe_area(config<ios, TElement> cfg, bool value)
     {
         set_use_safe_area(cfg.element(), value);
+        return cfg;
+    }
+
+    // ---- SafeAreaEdges (SafeAreaEdges, per-element default None) — the per-edge replacement for the
+    // obsolete UseSafeArea (C# SafeAreaElement.SafeAreaEdges on ContentPage). Unlike the other knobs, the
+    // storage is the control's bindable property<safe_area_edges> (so IsSet works for
+    // GetSafeAreaRegionsForEdge), not the attached platform-spec store; these wrappers delegate to the
+    // content_page accessors. A non-content_page element reads the None default and ignores a set. The
+    // config-chaining overloads constrain on content_page (where the property lives). ----
+    [[nodiscard]] inline maui::core::safe_area_edges get_safe_area_edges(const element& target)
+    {
+        if (const auto* page = dynamic_cast<const content_page*>(&target))
+        {
+            return page->safe_area_edges();
+        }
+        return maui::core::safe_area_edges::none();
+    }
+    inline void set_safe_area_edges(element& target, maui::core::safe_area_edges value)
+    {
+        if (auto* page = dynamic_cast<content_page*>(&target))
+        {
+            page->set_safe_area_edges(value);
+        }
+    }
+    template <std::derived_from<content_page> TElement>
+    [[nodiscard]] maui::core::safe_area_edges safe_area_edges(config<ios, TElement> cfg)
+    {
+        return get_safe_area_edges(cfg.element());
+    }
+    template <std::derived_from<content_page> TElement>
+    config<ios, TElement> set_safe_area_edges(config<ios, TElement> cfg, maui::core::safe_area_edges value)
+    {
+        set_safe_area_edges(cfg.element(), value);
         return cfg;
     }
 

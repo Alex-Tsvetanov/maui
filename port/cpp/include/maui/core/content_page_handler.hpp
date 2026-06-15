@@ -143,6 +143,12 @@ namespace maui::core
         // HideSoftInputOnTapped change routed through the property path (key "hide_soft_input_on_tapped").
         static void map_hide_soft_input_on_tapped(content_page_handler& handler, i_content_view& view);
 
+        // C# SafeAreaElement / ContentPage.SafeAreaEdges: a change to the per-edge safe-area knob re-runs
+        // the layout (the native host insets per GetSafeAreaRegionsForEdge). The port invalidates the
+        // page's measure so MeasureContent/ArrangeContent re-fold the new per-edge insets. Runs on connect
+        // AND on every SafeAreaEdges change routed through the property path (key "safe_area_edges").
+        static void map_safe_area_edges(content_page_handler& handler, i_content_view& view);
+
         // The per-handler HideSoftInputOnTapped manager (C#'s scoped HideSoftInputOnTappedChangedManager
         // service). InputView focus changes (VisualElement.Focused/Unfocused → C# InputView.MapIsFocused)
         // route through update_focus_for_view; the page mapper routes through update_page.

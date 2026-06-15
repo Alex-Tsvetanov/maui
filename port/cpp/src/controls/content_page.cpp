@@ -11,11 +11,14 @@
 #include "maui/controls/navigation_page.hpp"                          // --- W2-24
 #include "maui/controls/platform_configuration/ios_specific/page.hpp" // --- W2-24: the knob store face
 #include "maui/controls/tabbed_page.hpp"                              // --- W2-24
+#include "maui/core/bindable_object.hpp"                              // --- U20: the default-value-creator owner type
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/content_page_handler.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
+#include "maui/core/safe_area_edges.hpp"   // --- U20: per-control SafeAreaEdges
+#include "maui/core/safe_area_regions.hpp" // --- U20
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
@@ -41,6 +44,21 @@ namespace maui::controls
         // C# ContentPage.HideSoftInputOnTappedProperty default is false; the key matches the handler
         // mapper entry "hide_soft_input_on_tapped" that on_property_changed → update_value drives.
         static const maui::core::bindable_property<bool> descriptor{"hide_soft_input_on_tapped", false};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<maui::core::safe_area_edges>& content_page::safe_area_edges_property()
+    {
+        // C# SafeAreaElement.SafeAreaEdgesProperty: static metadata default SafeAreaEdges.Default, but the
+        // per-element default-value creator (ContentPage.SafeAreaEdgesDefaultValueCreator) returns
+        // SafeAreaEdges.None — so every page reads None (edge-to-edge) by default. The key matches the
+        // handler mapper entry "safe_area_edges" that on_property_changed → update_value drives.
+        static const maui::core::bindable_property<maui::core::safe_area_edges> descriptor{
+            "safe_area_edges",
+            maui::core::safe_area_edges::default_edges(),
+            {.default_value_creator = [](const maui::core::bindable_object&) {
+                return maui::core::safe_area_edges::none();
+            }}};
         return descriptor;
     }
 
@@ -159,17 +177,38 @@ namespace maui::controls
         ios_page::set_safe_area_insets(*this, value);
     }
 
-    // The effective layout inset: Padding, plus the realized safe-area insets when the page honors them
-    // (UseSafeArea set) — the cross-platform face of C# MauiView.AdjustForSafeArea (which insets the
-    // bounds before CrossPlatformArrange; the port folds it into MeasureContent/ArrangeContent's inset).
+    // C# ContentPage.ISafeAreaView2.GetSafeAreaRegionsForEdge: when the developer has explicitly set
+    // SafeAreaEdgesProperty, return that edge's region directly; otherwise fall back to the legacy
+    // IgnoreSafeArea boolean (ignore → None edge-to-edge; obey → Container). The is_set() check must run
+    // BEFORE reading the property (C# IsSet sees an untouched property as unset; reading it would
+    // materialize the default-value creator and flip IsSet — exactly C#'s GetOrCreateContext ordering).
+    maui::core::safe_area_regions content_page::get_safe_area_regions_for_edge(int edge) const
+    {
+        if (safe_area_edges_.is_set())
+        {
+            return safe_area_edges_.get().edge(edge);
+        }
+        // Legacy fallback (C#'s IOS/MACCATALYST branch): ignore → None, else Container.
+        return ignore_safe_area() ? maui::core::safe_area_regions::none : maui::core::safe_area_regions::container;
+    }
+
+    // The effective layout inset: Padding, plus — PER EDGE — the realized safe-area inset for any edge whose
+    // GetSafeAreaRegionsForEdge != None. The cross-platform face of C# MauiView.GetSafeAreaForEdge (which
+    // zeroes an edge's inset when its region is None and otherwise keeps the device safe area), folded into
+    // MeasureContent/ArrangeContent's inset. PER-EDGE, not all-or-nothing: "None,All,None,All" insets only
+    // top + bottom. (The SoftInput-only keyboard-showing carve-out lives in the native handler — out of
+    // scope here; an unset property still routes through the legacy UseSafeArea path for back-compat.)
     maui::core::thickness content_page::layout_inset() const
     {
-        maui::core::thickness inset = padding();
-        if (!ignore_safe_area())
-        {
-            inset = inset + ios_page::get_safe_area_insets(*this);
-        }
-        return inset;
+        const maui::core::thickness padding_inset = padding();
+        const maui::core::thickness safe_area = ios_page::get_safe_area_insets(*this);
+        const auto edge_inset = [this, &safe_area](int edge, double value) -> double {
+            return get_safe_area_regions_for_edge(edge) != maui::core::safe_area_regions::none ? value : 0.0;
+        };
+        return maui::core::thickness{padding_inset.left + edge_inset(0, safe_area.left),
+                                     padding_inset.top + edge_inset(1, safe_area.top),
+                                     padding_inset.right + edge_inset(2, safe_area.right),
+                                     padding_inset.bottom + edge_inset(3, safe_area.bottom)};
     }
     // --- end platform configuration (W2-24) ---------------------------------------------------------------
 } // namespace maui::controls

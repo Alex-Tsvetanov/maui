@@ -7,11 +7,15 @@
 
 #include <memory>
 
+#include "maui/controls/platform_configuration/ios_specific/page.hpp" // U20: use_safe_area / safe_area knobs
 #include "maui/core/content_page_handler.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_content_view.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_padding.hpp"
+#include "maui/core/i_safe_area_view.hpp"  // U20: the GetSafeAreaRegionsForEdge contract
+#include "maui/core/safe_area_edges.hpp"   // U20: the per-edge SafeAreaEdges value
+#include "maui/core/safe_area_regions.hpp" // U20
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
@@ -25,10 +29,14 @@ namespace
     using maui::core::i_content_view;
     using maui::core::i_element_handler;
     using maui::core::i_padding;
+    using maui::core::i_safe_area_view2;
+    using maui::core::safe_area_edges;
+    using maui::core::safe_area_regions;
     using maui::core::thickness;
     using maui::graphics::rect;
     using maui::graphics::size;
     using maui::layouts::testing::mock_view;
+    namespace ios_page = maui::controls::platform_configuration::ios_specific::page;
 
     // ---- the control in isolation (no handler) ----
 
@@ -181,5 +189,115 @@ namespace
         page.set_content(child);
         page.set_handler(handler);
         EXPECT_EQ(resolved->typed_platform_view()->hosted_content, &child);
+    }
+
+    // ---- U20: per-control SafeAreaEdges bindable + GetSafeAreaRegionsForEdge + per-edge inset ----
+    // Derived from ContentPage.cs (SafeAreaEdges / ISafeAreaView2.GetSafeAreaRegionsForEdge /
+    // SafeAreaEdgesDefaultValueCreator) + MauiView.GetSafeAreaForEdge (the per-edge selective inset).
+
+    // The per-element default-value creator gives every page SafeAreaEdges.None (edge-to-edge).
+    TEST(content_page_safe_area, safe_area_edges_defaults_to_none)
+    {
+        content_page page;
+        EXPECT_EQ(page.safe_area_edges(), safe_area_edges::none());
+    }
+
+    // Setting SafeAreaEdges flows through the bindable system (the descriptor + property<T>).
+    TEST(content_page_safe_area, safe_area_edges_is_settable_through_the_bindable)
+    {
+        content_page page;
+        const safe_area_edges all{safe_area_regions::all};
+        page.set_safe_area_edges(all);
+        EXPECT_EQ(page.safe_area_edges(), all);
+    }
+
+    // When SafeAreaEdges is explicitly set, GetSafeAreaRegionsForEdge returns that edge's region —
+    // PER-EDGE: "None,All,None,All" → left+right None, top+bottom All (0=Left,1=Top,2=Right,3=Bottom).
+    TEST(content_page_safe_area, get_regions_for_edge_uses_the_explicit_property_per_edge)
+    {
+        content_page page;
+        page.set_safe_area_edges(safe_area_edges{safe_area_regions::none, safe_area_regions::all,
+                                                 safe_area_regions::none, safe_area_regions::all});
+
+        i_safe_area_view2& face = page;
+        EXPECT_EQ(face.get_safe_area_regions_for_edge(0), safe_area_regions::none); // left
+        EXPECT_EQ(face.get_safe_area_regions_for_edge(1), safe_area_regions::all);  // top
+        EXPECT_EQ(face.get_safe_area_regions_for_edge(2), safe_area_regions::none); // right
+        EXPECT_EQ(face.get_safe_area_regions_for_edge(3), safe_area_regions::all);  // bottom
+    }
+
+    // Unset SafeAreaEdges falls back to the legacy IgnoreSafeArea/UseSafeArea boolean:
+    // !UseSafeArea → None (edge-to-edge); UseSafeArea → Container.
+    TEST(content_page_safe_area, get_regions_for_edge_falls_back_to_legacy_use_safe_area)
+    {
+        content_page page;
+        i_safe_area_view2& face = page;
+
+        for (int edge = 0; edge < 4; ++edge)
+        {
+            EXPECT_EQ(face.get_safe_area_regions_for_edge(edge), safe_area_regions::none); // legacy: ignore
+        }
+
+        ios_page::set_use_safe_area(page, true);
+        for (int edge = 0; edge < 4; ++edge)
+        {
+            EXPECT_EQ(face.get_safe_area_regions_for_edge(edge), safe_area_regions::container); // legacy: obey
+        }
+    }
+
+    // The per-edge layout inset (MauiView.GetSafeAreaForEdge): an edge whose region != None gets that
+    // edge's native safe-area inset; an edge whose region == None stays edge-to-edge (0 inset). The
+    // host reports the realized insets through i_safe_area_view2::set_safe_area_insets.
+    TEST(content_page_safe_area, arrange_applies_safe_area_per_edge_when_set)
+    {
+        content_page page;
+        mock_view body;
+        body.configure({0, 0});
+        page.set_content(body);
+        page.set_padding(thickness{10});
+
+        i_safe_area_view2& insets_face = page;
+        insets_face.set_safe_area_insets(thickness{7, 59, 11, 34}); // L,T,R,B realized insets
+
+        // top + bottom obey the safe area, left + right go edge-to-edge.
+        page.set_safe_area_edges(safe_area_edges{safe_area_regions::none, safe_area_regions::all,
+                                                 safe_area_regions::none, safe_area_regions::all});
+        page.arrange(rect{0, 0, 200, 400});
+        // left/right insets = padding only (10); top/bottom = padding + safe area (10+59, 10+34).
+        // x=10, y=10+59=69, width=200-(10+10)=180, height=400-(69)-(10+34)=287.
+        EXPECT_EQ(body.last_arrange, (rect{10, 69, 180, 287}));
+    }
+
+    // With SafeAreaEdges.All on every edge, all four native insets join the padding.
+    TEST(content_page_safe_area, arrange_applies_all_edges_when_all)
+    {
+        content_page page;
+        mock_view body;
+        body.configure({0, 0});
+        page.set_content(body);
+        page.set_padding(thickness{10});
+
+        i_safe_area_view2& insets_face = page;
+        insets_face.set_safe_area_insets(thickness{7, 59, 11, 34});
+        page.set_safe_area_edges(safe_area_edges{safe_area_regions::all});
+        page.arrange(rect{0, 0, 200, 400});
+        // each edge = padding + its inset: left 17, top 69, right 200-(17+21)=162, bottom 400-(69+44)=287.
+        EXPECT_EQ(body.last_arrange, (rect{17, 69, 162, 287}));
+    }
+
+    // With SafeAreaEdges.None on every edge, the page is edge-to-edge even though insets were reported.
+    TEST(content_page_safe_area, arrange_is_edge_to_edge_when_all_none)
+    {
+        content_page page;
+        mock_view body;
+        body.configure({0, 0});
+        page.set_content(body);
+        page.set_padding(thickness{10});
+
+        i_safe_area_view2& insets_face = page;
+        insets_face.set_safe_area_insets(thickness{7, 59, 11, 34});
+        page.set_safe_area_edges(safe_area_edges::none());
+        page.arrange(rect{0, 0, 200, 400});
+        EXPECT_EQ(body.last_arrange, (rect{10, 10, 180, 380})); // padding only
     }
 } // namespace

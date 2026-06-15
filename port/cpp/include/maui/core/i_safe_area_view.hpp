@@ -9,6 +9,7 @@
 // knobs (IgnoreSafeArea = !UsingSafeArea(); the insets store under "ios.Page.SafeAreaInsets" — exactly
 // Page.cs's explicit interface implementations).
 
+#include "maui/core/safe_area_regions.hpp"
 #include "maui/core/thickness.hpp"
 
 namespace maui::core
@@ -36,6 +37,16 @@ namespace maui::core
 
         // C# ISafeAreaView2.SafeAreaInsets (set) — the native host reports the realized insets here.
         virtual void set_safe_area_insets(const thickness& value) = 0;
+
+        // C# ISafeAreaView2.GetSafeAreaRegionsForEdge(int edge) — the effective safe-area region for one
+        // edge (0=Left, 1=Top, 2=Right, 3=Bottom). The iOS host (MauiView.AdjustForSafeArea) consults this
+        // per edge to decide whether to inset by that edge's device safe area. The faithful default mirrors
+        // ContentPage.cs's non-iOS branch (edge-to-edge — None) so a future implementer compiles unchanged.
+        [[nodiscard]] virtual safe_area_regions get_safe_area_regions_for_edge(int edge) const
+        {
+            (void)edge;
+            return safe_area_regions::none;
+        }
 
     protected:
         i_safe_area_view2() = default;

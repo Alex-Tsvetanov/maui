@@ -41,6 +41,8 @@
 #include "maui/core/i_safe_area_view.hpp"     // --- platform configuration (W2-24) ---
 #include "maui/core/i_view.hpp"
 #include "maui/core/property.hpp"
+#include "maui/core/safe_area_edges.hpp" // --- per-control SafeAreaEdges (U20) ---
+#include "maui/core/safe_area_regions.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
@@ -71,6 +73,12 @@ namespace maui::controls
         // hide_soft_input_on_tapped_manager). A change routes through on_property_changed →
         // handler->update_value("hide_soft_input_on_tapped") → the handler's map_hide_soft_input_on_tapped.
         static const maui::core::bindable_property<bool>& hide_soft_input_on_tapped_property();
+        // C# SafeAreaElement.SafeAreaEdgesProperty (ContentPage.SafeAreaEdgesProperty): the per-edge
+        // safe-area knob. Static metadata default is SafeAreaEdges.Default, but the per-element
+        // default-value creator returns SafeAreaEdges.None (edge-to-edge) — every page is None by default.
+        // A change routes through on_property_changed -> handler->update_value("safe_area_edges") ->
+        // content_page_handler::map_safe_area_edges (re-layout).
+        static const maui::core::bindable_property<maui::core::safe_area_edges>& safe_area_edges_property();
 
         // ---- page lifecycle events (Page.Appearing / Page.Disappearing) ----
         // Fired by send_appearing()/send_disappearing(); carry no args (C# EventHandler with EventArgs.Empty).
@@ -171,6 +179,18 @@ namespace maui::controls
             hide_soft_input_on_tapped_.set(value);
         }
 
+        // ---- SafeAreaEdges (control-only; ContentPage.SafeAreaEdges) ----
+        // The per-edge safe-area knob. A change flows through on_property_changed →
+        // handler->update_value("safe_area_edges") (content_page_handler::map_safe_area_edges → re-layout).
+        [[nodiscard]] maui::core::safe_area_edges safe_area_edges() const
+        {
+            return safe_area_edges_.get();
+        }
+        void set_safe_area_edges(maui::core::safe_area_edges value)
+        {
+            safe_area_edges_.set(value);
+        }
+
         // ---- chrome (W1-11): the per-page chrome item collections (Page.ToolbarItems /
         // Page.MenuBarItems). Items added here are parented to this page (Page's collection-changed
         // parenting), surface through the window chrome via the toolbar/menu-bar trackers, and are
@@ -204,6 +224,11 @@ namespace maui::controls
         // ISafeAreaView2.SafeAreaInsets set => On<iOS>().SetSafeAreaInsets(value).
         [[nodiscard]] bool ignore_safe_area() const override;
         void set_safe_area_insets(const maui::core::thickness& value) override;
+
+        // C# ContentPage.ISafeAreaView2.GetSafeAreaRegionsForEdge: when SafeAreaEdgesProperty IS set, the
+        // edge's region from the property; otherwise the legacy IgnoreSafeArea fallback
+        // (ignore → None, else Container). The iOS host (MauiView.AdjustForSafeArea) consults this per edge.
+        [[nodiscard]] maui::core::safe_area_regions get_safe_area_regions_for_edge(int edge) const override;
 
     private:
         // Padding + (when UseSafeArea) the realized safe-area insets — the MauiView.AdjustForSafeArea
@@ -253,6 +278,9 @@ namespace maui::controls
         // ContentPage.HideSoftInputOnTapped (default false); a change routes through on_property_changed →
         // handler->update_value("hide_soft_input_on_tapped").
         maui::core::property<bool> hide_soft_input_on_tapped_{*this, hide_soft_input_on_tapped_property()};
+        // ContentPage.SafeAreaEdges (per-element default SafeAreaEdges.None via the descriptor's
+        // default-value creator); a change routes through on_property_changed → update_value("safe_area_edges").
+        maui::core::property<maui::core::safe_area_edges> safe_area_edges_{*this, safe_area_edges_property()};
         // chrome (W1-11): the page's chrome item collections — items parent to this page on add and
         // un-parent on remove (Page's collection-changed parenting).
         menu_element_list<toolbar_item> toolbar_items_{[this](toolbar_item& item) { attach_logical_child(item); },

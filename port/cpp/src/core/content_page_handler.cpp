@@ -29,6 +29,9 @@ namespace maui::core
                 // C# ContentPage.RemapForControls: ReplaceMapping(nameof(HideSoftInputOnTapped), …). Runs
                 // on connect + on each change → manager.update_page (see map_hide_soft_input_on_tapped).
                 {"hide_soft_input_on_tapped", &content_page_handler::map_hide_soft_input_on_tapped},
+                // C# SafeAreaElement.SafeAreaEdges: re-layout per the new per-edge safe-area knob (see
+                // map_safe_area_edges). Runs on connect + on each SafeAreaEdges change.
+                {"safe_area_edges", &content_page_handler::map_safe_area_edges},
                 // --- platform configuration (W2-24): the iOSSpecific Page knob nudges (see the hpp note).
                 {"ios.Page.PrefersStatusBarHidden", &content_page_handler::map_prefers_status_bar_hidden},
                 {"ios.Page.PrefersHomeIndicatorAutoHidden", &content_page_handler::map_home_indicator_auto_hidden},
@@ -78,5 +81,15 @@ namespace maui::core
         {
             handler.soft_input_manager().update_page(*page);
         }
+    }
+
+    // C# SafeAreaElement.SafeAreaEdges change → re-layout (the iOS host re-insets per
+    // GetSafeAreaRegionsForEdge in MauiView.AdjustForSafeArea). The port invalidates the page's measure so
+    // the next pass re-folds the new per-edge safe-area insets through MeasureContent/ArrangeContent.
+    // Cross-platform: invalidate_measure is backend-agnostic. The handler is unused (the view carries the
+    // measure invalidation) but kept for the mapper signature.
+    void content_page_handler::map_safe_area_edges(content_page_handler& /*handler*/, i_content_view& view)
+    {
+        view.invalidate_measure();
     }
 } // namespace maui::core

@@ -15,10 +15,14 @@
 #include "maui/controls/button.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/entry.hpp"
+#include "maui/controls/platform_configuration/ios_specific/page.hpp" // U20: use_safe_area legacy fallback
 #include "maui/core/button_handler.hpp"
 #include "maui/core/content_page_handler.hpp"
 #include "maui/core/entry_handler.hpp"
+#include "maui/core/i_safe_area_view.hpp" // U20: GetSafeAreaRegionsForEdge contract
 #include "maui/core/i_view_handler.hpp"
+#include "maui/core/safe_area_edges.hpp"   // U20
+#include "maui/core/safe_area_regions.hpp" // U20
 #include "maui/core/semantics.hpp"
 #include "maui/graphics/rect.hpp"
 #include "resign_first_responder_touch_gesture_recognizer.hpp" // U04 test seam (fire-for-testing)
@@ -125,6 +129,43 @@ namespace
         EXPECT_EQ(frame.origin.y, 10.0);
         EXPECT_EQ(frame.size.width, 200.0);
         EXPECT_EQ(frame.size.height, 120.0);
+    }
+
+    // U20: setting SafeAreaEdges changes ISafeAreaView2.GetSafeAreaRegionsForEdge results without error,
+    // PER-EDGE (0=Left,1=Top,2=Right,3=Bottom), driven through the real on-simulator content_page. When the
+    // property is unset, GetSafeAreaRegionsForEdge falls back to the legacy UseSafeArea boolean.
+    TEST(ios_content_page_safe_area, safe_area_edges_drives_get_regions_for_edge)
+    {
+        using maui::core::i_safe_area_view2;
+        using maui::core::safe_area_edges;
+        using maui::core::safe_area_regions;
+        namespace ios_page = maui::controls::platform_configuration::ios_specific::page;
+
+        content_page page;
+        auto handler = std::make_shared<content_page_handler>();
+        page.set_handler(handler);
+        i_safe_area_view2& face = page;
+
+        // Unset → legacy fallback: UseSafeArea false → every edge None (edge-to-edge).
+        for (int edge = 0; edge < 4; ++edge)
+        {
+            EXPECT_EQ(face.get_safe_area_regions_for_edge(edge), safe_area_regions::none);
+        }
+
+        // Unset + UseSafeArea true → every edge Container (legacy obey).
+        ios_page::set_use_safe_area(page, true);
+        for (int edge = 0; edge < 4; ++edge)
+        {
+            EXPECT_EQ(face.get_safe_area_regions_for_edge(edge), safe_area_regions::container);
+        }
+
+        // Explicit per-edge property wins over the legacy boolean: "None,All,None,All".
+        page.set_safe_area_edges(safe_area_edges{safe_area_regions::none, safe_area_regions::all,
+                                                 safe_area_regions::none, safe_area_regions::all});
+        EXPECT_EQ(face.get_safe_area_regions_for_edge(0), safe_area_regions::none); // left
+        EXPECT_EQ(face.get_safe_area_regions_for_edge(1), safe_area_regions::all);  // top
+        EXPECT_EQ(face.get_safe_area_regions_for_edge(2), safe_area_regions::none); // right
+        EXPECT_EQ(face.get_safe_area_regions_for_edge(3), safe_area_regions::all);  // bottom
     }
 
     // Semantics + InputTransparent reach the page's host UIView through the content_page_platform
