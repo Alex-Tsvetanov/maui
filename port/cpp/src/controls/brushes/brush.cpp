@@ -8,8 +8,9 @@
 #include "maui/controls/brushes/gradient_brush.hpp"
 #include "maui/controls/brushes/immutable_brush.hpp"
 #include "maui/controls/brushes/solid_color_brush.hpp"
+#include "maui/controls/element.hpp"
 #include "maui/graphics/color.hpp"
-#include "maui/graphics/colors.hpp"
+#include "maui/graphics/colors.hpp" // IWYU pragma: keep  (colors:: used via the named_brushes.inc X-macro)
 
 namespace maui::controls
 {

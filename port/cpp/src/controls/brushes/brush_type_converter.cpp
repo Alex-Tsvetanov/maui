@@ -13,10 +13,12 @@
 #include <charconv>
 #include <cmath>
 #include <cstddef>
+#include <iterator>
 #include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <utility>
 #include <vector>
 
@@ -49,7 +51,9 @@ namespace maui::controls
                 return {};
             }
             const auto e = s.find_last_not_of(ws);
-            return s.substr(b, e - b + 1);
+            s.remove_suffix(s.size() - (e + 1)); // keep [0, e]
+            s.remove_prefix(b);                  // then drop the leading run → [b, e]
+            return s;
         }
 
         // Split on any of the delimiters, dropping empty parts (C# Split(.., RemoveEmptyEntries)).
@@ -83,7 +87,7 @@ namespace maui::controls
             }
             float v = 0.0F;
             const char* first = s.data();
-            const char* last = first + s.size();
+            const char* last = std::next(first, static_cast<std::ptrdiff_t>(s.size()));
             const auto [ptr, ec] = std::from_chars(first, last, v);
             if (ec == std::errc{} && ptr == last)
             {
@@ -384,7 +388,7 @@ namespace maui::controls
                 const std::string part = std::string{trim(part_at(position_))};
                 const auto words = split_remove_empty(part, " ");
                 constexpr std::size_t center_pos = 1;
-                if (words.size() > center_pos && words[center_pos].find("at") != std::string::npos)
+                if (words.size() > center_pos && words[center_pos].contains("at"))
                 {
                     std::size_t idx = center_pos + 1;
                     const std::string dir_x = idx < words.size() ? std::string{trim(words[idx])} : std::string{};

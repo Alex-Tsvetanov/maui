@@ -9,7 +9,6 @@
 #include "maui/controls/brushes/gradient_brush.hpp"
 #include "maui/controls/brushes/gradient_stop.hpp"
 #include "maui/controls/brushes/image_brush.hpp"
-#include "maui/controls/brushes/immutable_brush.hpp"
 #include "maui/controls/brushes/linear_gradient_brush.hpp"
 #include "maui/controls/brushes/radial_gradient_brush.hpp"
 #include "maui/controls/brushes/solid_color_brush.hpp"
@@ -17,6 +16,7 @@
 #include <memory>
 #include <optional>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 #include "maui/controls/brushes/brush_type_converter.hpp"
@@ -28,7 +28,6 @@
 #include "maui/graphics/linear_gradient_paint.hpp"
 #include "maui/graphics/paint.hpp"
 #include "maui/graphics/point.hpp"
-#include "maui/graphics/radial_gradient_paint.hpp"
 #include "maui/graphics/solid_paint.hpp"
 
 namespace
@@ -59,8 +58,7 @@ namespace
     TEST(solid_color_brush_test, constructor_using_color)
     {
         const solid_color_brush brush_value{colors::red};
-        ASSERT_TRUE(brush_value.color().has_value());
-        EXPECT_EQ(*brush_value.color(), colors::red);
+        EXPECT_EQ(brush_value.color(), std::optional{colors::red});
     }
 
     TEST(solid_color_brush_test, empty_solid_color_brush)
@@ -81,12 +79,10 @@ namespace
     TEST(solid_color_brush_test, default_brushes)
     {
         const solid_color_brush& black = brush::black();
-        ASSERT_TRUE(black.color().has_value());
-        EXPECT_EQ(*black.color(), colors::black);
+        EXPECT_EQ(black.color(), std::optional{colors::black});
 
         const solid_color_brush& white = brush::white();
-        ASSERT_TRUE(white.color().has_value());
-        EXPECT_EQ(*white.color(), colors::white);
+        EXPECT_EQ(white.color(), std::optional{colors::white});
     }
 
     TEST(solid_color_brush_test, equals_compares_color_values) // dotnet/maui#27281
@@ -337,8 +333,7 @@ namespace
         const auto brush_value = maui::controls::to_brush(solid.get());
         const auto* as_solid = dynamic_cast<const solid_color_brush*>(brush_value.get());
         ASSERT_NE(as_solid, nullptr);
-        ASSERT_TRUE(as_solid->color().has_value());
-        EXPECT_EQ(*as_solid->color(), colors::green);
+        EXPECT_EQ(as_solid->color(), std::optional{colors::green});
     }
 
     TEST(brush_paint_bridge_test, null_brush_to_paint_is_null)

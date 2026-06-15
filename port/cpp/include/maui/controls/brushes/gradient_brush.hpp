@@ -117,7 +117,7 @@ namespace maui::controls
         // stop, (un)subscribe its property_changed, and raise the invalidate event.
         void on_stop_added(gradient_stop& stop);
         static void on_stop_removed(gradient_stop& stop);
-        void raise_invalidate();
+        void raise_invalidate() const;
 
         gradient_stop_collection stops_{*this};
         // Per-stop property_changed subscriptions, parallel to stops_ (dropped on clear/replace). Stored as

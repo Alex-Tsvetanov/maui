@@ -3,13 +3,16 @@
 
 #include "maui/controls/brushes/gradient_brush.hpp"
 
+#include <algorithm>
 #include <cstddef>
 #include <functional>
 #include <memory>
+#include <string_view>
 #include <utility>
 #include <vector>
 
 #include "maui/controls/brushes/gradient_stop.hpp"
+#include "maui/controls/element.hpp"
 #include "maui/core/event.hpp"
 
 namespace maui::controls
@@ -34,10 +37,7 @@ namespace maui::controls
     void gradient_stop_collection::insert(std::size_t index, std::shared_ptr<gradient_stop> stop)
     {
         gradient_stop* raw = stop.get();
-        if (index > stops_.size())
-        {
-            index = stops_.size();
-        }
+        index = std::min(index, stops_.size());
         stops_.insert(stops_.begin() + static_cast<container::difference_type>(index), std::move(stop));
         if (raw != nullptr)
         {
@@ -117,7 +117,7 @@ namespace maui::controls
         element::detach_logical_child(stop);
     }
 
-    void gradient_brush::raise_invalidate()
+    void gradient_brush::raise_invalidate() const
     {
         // C# GradientBrush.Invalidate — fire InvalidateGradientBrushRequested only (the signal the owning
         // VisualElement subscribes to re-render its background); C#'s Invalidate raises nothing else.

@@ -5,7 +5,6 @@
 #include <cstddef>
 #include <functional>
 #include <optional>
-#include <utility>
 
 #include "maui/core/bindable_property.hpp"
 #include "maui/graphics/color.hpp"
@@ -28,7 +27,7 @@ namespace maui::controls
 
     solid_color_brush::solid_color_brush(std::optional<maui::graphics::color> color)
     {
-        color_.set(std::move(color));
+        color_.set(color);
     }
 
     bool solid_color_brush::equals(const solid_color_brush& other) const

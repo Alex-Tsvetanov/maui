@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <optional>
+#include <utility>
 #include <vector>
 
 #include "maui/controls/brushes/brush.hpp"
@@ -14,9 +15,8 @@
 #include "maui/controls/brushes/linear_gradient_brush.hpp"
 #include "maui/controls/brushes/radial_gradient_brush.hpp"
 #include "maui/controls/brushes/solid_color_brush.hpp"
-#include "maui/core/i_image_source.hpp"
 #include "maui/core/image_source_paint.hpp"
-#include "maui/graphics/color.hpp"
+#include "maui/graphics/gradient_paint.hpp"
 #include "maui/graphics/gradient_stop.hpp"
 #include "maui/graphics/linear_gradient_paint.hpp"
 #include "maui/graphics/paint.hpp"

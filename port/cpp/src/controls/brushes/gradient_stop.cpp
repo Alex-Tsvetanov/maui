@@ -6,7 +6,6 @@
 #include <cstddef>
 #include <functional>
 #include <optional>
-#include <utility>
 
 #include "maui/core/bindable_property.hpp"
 #include "maui/graphics/color.hpp"
