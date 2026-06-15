@@ -8,8 +8,11 @@
 // always-on): UIStepper 26 no longer clamps a step that would overshoot a bound, it just disables the
 // button — AdjustStepValueForBoundaries temporarily shrinks stepValue to the remaining space so the
 // exact Minimum/Maximum stays reachable, and the proxy's OnValueChanged corrects an accidental partial
-// step back to the full increment when it still fits (apple.com forums thread 802452). Not ported
-// (documented in stepper_handler.hpp): the iOS-26 RTL FlowDirection transform override and the Liquid
+// step back to the full increment when it still fits (apple.com forums thread 802452). The
+// FlowDirection mapper override IS ported for its BASE part (map_flow_direction): the resolved
+// direction (MatchParent → parent-IView fallback) sets the stepper's UISemanticContentAttribute + is
+// re-applied to each subview (the iOS-26 walk), mirroring progress_bar_handler. Not ported (documented
+// in stepper_handler.hpp): the iOS-26 RTL FlowDirection CGAffineTransform visual flip and the Liquid
 // Glass landscape width compensation (cosmetic, empirically-measured).
 
 #import <UIKit/UIKit.h>
@@ -20,6 +23,8 @@
 #include <string>
 #include <string_view>
 
+#include "ios_view_ops.hpp"
+#include "maui/core/flow_direction.hpp"
 #include "maui/core/i_stepper.hpp"
 #include "maui/core/stepper_handler.hpp"
 #include "maui/core/visibility.hpp"
@@ -270,6 +275,23 @@ namespace maui::core
             native.value = view.value();
         }
         adjust_if_needed(view, native); // MapValue's iOS-26 boundary tail
+    }
+
+    void stepper_handler::map_flow_direction(stepper_handler& handler, i_stepper& view)
+    {
+        // StepperHandler.MapFlowDirection (base part): set the stepper's UISemanticContentAttribute from
+        // the RESOLVED direction (the MatchParent → parent-IView fallback), then re-apply it to each
+        // internal subview (the iOS-26 walk — UIStepper stopped propagating the attribute to its
+        // subviews). The resolved direction is mirrored for the headless-parity oracle. Mirrors
+        // ProgressBarHandler.MapFlowDirection; the iOS-26 RTL CGAffineTransform flip stays deferred.
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr || platform->native == nullptr)
+        {
+            return;
+        }
+        const maui::core::flow_direction resolved = resolved_flow_direction(view);
+        platform->resolved_flow_direction = resolved;
+        maui::platform::ios::apply_flow_direction(platform->native, resolved);
     }
 
     maui::graphics::size stepper_handler::get_desired_size(double width_constraint, double height_constraint) const

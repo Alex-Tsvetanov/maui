@@ -85,6 +85,16 @@ namespace maui::core
         }
     }
 
+    void stepper_handler::map_flow_direction(stepper_handler& handler, i_stepper& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            // Headless mirror of StepperHandler.MapFlowDirection: record the RESOLVED direction (the
+            // MatchParent → parent-IView fallback) the native steppers push to SemanticContentAttribute.
+            platform->resolved_flow_direction = resolved_flow_direction(view);
+        }
+    }
+
     maui::graphics::size stepper_handler::get_desired_size(double /*width_constraint*/,
                                                            double /*height_constraint*/) const
     {

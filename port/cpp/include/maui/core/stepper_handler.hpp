@@ -9,16 +9,21 @@
 // (AdjustStepValueForBoundaries — the port's simulator floor IS 26, where UIStepper stops clamping at
 // the range edges; see src/platform/ios/stepper_handler.mm).
 //
-// Not ported (deferred, documented): the iOS/Catalyst FlowDirection mapper override (the iOS-26 RTL
-// transform dance — the port's shared flow-direction push is the view_mapper's) and the iOS-26
-// "Liquid Glass" landscape width compensation in GetDesiredSize (a cosmetic, empirically-measured
-// overflow constant; the port keeps the native fitting size).
+// The iOS/Catalyst FlowDirection mapper override IS ported for its BASE part (map_flow_direction): the
+// resolved direction (MatchParent → parent-IView fallback) sets the stepper's UISemanticContentAttribute
+// + is re-applied to each internal subview, exactly like ProgressBarHandler.MapFlowDirection — the
+// apple twin maps it to NSView's layout direction. STILL deferred: the iOS-26 RTL CGAffineTransform
+// horizontal flip (StepperExtensions.cs:47-74 — progress_bar does not apply it either, keeping the
+// semantic-attribute-only consistency) and the iOS-26 "Liquid Glass" landscape width compensation in
+// GetDesiredSize (a cosmetic, empirically-measured overflow constant; the port keeps the native
+// fitting size).
 
 #include <memory>
 #include <string>
 #include <string_view>
 
 #include "maui/core/command_mapper.hpp"
+#include "maui/core/flow_direction.hpp"
 #include "maui/core/i_stepper.hpp"
 #include "maui/core/move_only_function.hpp"
 #include "maui/core/property_mapper.hpp"
@@ -50,6 +55,11 @@ namespace maui::core
         double increment = 1;
         double value = 0;
         move_only_function<void()> on_value_changed;
+        // The RESOLVED flow direction the MapFlowDirection recipe computed (after the MatchParent →
+        // parent-IView fallback). Headless records it as the observable mirror; the Apple/iOS builds push
+        // it to the native stepper (NSView layout direction / UISemanticContentAttribute) AND mirror it
+        // here (the same convention as progress_bar_platform).
+        maui::core::flow_direction resolved_flow_direction = maui::core::flow_direction::match_parent;
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSStepper (defined in
@@ -75,6 +85,10 @@ namespace maui::core
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
+        // FlowDirection is NOT a platform-struct update_* override here: the handler mapper's
+        // "flow_direction" key (map_flow_direction) overrides the shared view_mapper's generic push, so
+        // it resolves the direction and applies it (via ios_view_ops::apply_flow_direction) directly —
+        // the same shape as the iOS progress_bar twin, which likewise omits an update_flow_direction.
 #endif
     };
 
@@ -105,5 +119,18 @@ namespace maui::core
         static void map_minimum(stepper_handler& handler, i_stepper& view);
         static void map_maximum(stepper_handler& handler, i_stepper& view);
         static void map_value(stepper_handler& handler, i_stepper& view);
+        // StepperHandler's FlowDirection mapper override (base part): overrides the shared view_mapper's
+        // generic flow push with the resolved-direction recipe — Force{Left,Right}ToLeft from
+        // FlowDirection, MatchParent falling back to the parent IView's FlowDirection, and the attribute
+        // re-applied to each internal subview (the iOS-26 walk). Mirrors ProgressBarHandler.MapFlowDirection;
+        // the apple twin maps it to NSView's layout direction with the same parent fallback. Keyed on
+        // "flow_direction" in the handler mapper. (The iOS-26 RTL CGAffineTransform flip stays deferred.)
+        static void map_flow_direction(stepper_handler& handler, i_stepper& view);
+
+        // StepperHandler.GetSemanticContentAttribute / GetParentSemanticContentAttribute, collapsed: the
+        // view's own FlowDirection, or — when MatchParent — the parent IView's FlowDirection (else
+        // MatchParent when there is no IView parent). Cross-platform (stepper_handler.cpp); both the Apple
+        // and iOS map_flow_direction call it to get the resolved direction to apply natively.
+        [[nodiscard]] static maui::core::flow_direction resolved_flow_direction(const i_stepper& view);
     };
 } // namespace maui::core

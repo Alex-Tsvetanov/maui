@@ -205,6 +205,23 @@ namespace maui::core
         }
     }
 
+    void stepper_handler::map_flow_direction(stepper_handler& handler, i_stepper& view)
+    {
+        // StepperHandler.MapFlowDirection: AppKit has no UISemanticContentAttribute — the analog is
+        // NSView.userInterfaceLayoutDirection (apply_flow_direction). Apply the RESOLVED direction (the
+        // MatchParent → parent-IView fallback) and mirror it. The iOS-26 subview re-application has no
+        // AppKit counterpart (the NSStepper honors the view's layout direction directly). Mirrors the
+        // apple progress_bar twin.
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr || platform->native == nullptr)
+        {
+            return;
+        }
+        const maui::core::flow_direction resolved = resolved_flow_direction(view);
+        platform->resolved_flow_direction = resolved;
+        maui::platform::apple::apply_flow_direction(platform->native, resolved);
+    }
+
     maui::graphics::size stepper_handler::get_desired_size(double /*width_constraint*/,
                                                            double /*height_constraint*/) const
     {

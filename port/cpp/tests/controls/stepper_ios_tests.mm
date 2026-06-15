@@ -11,6 +11,7 @@
 #include <memory>
 
 #include "maui/controls/stepper.hpp"
+#include "maui/core/flow_direction.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/stepper_handler.hpp"
@@ -20,6 +21,7 @@
 namespace
 {
     using maui::controls::stepper;
+    using maui::core::flow_direction;
     using maui::core::i_element_handler;
     using maui::core::stepper_handler;
 
@@ -146,6 +148,29 @@ namespace
 
         control.set_opacity(0.5);
         EXPECT_EQ(view.alpha, 0.5);
+    }
+
+    TEST(ios_stepper_seam, flow_direction_sets_semantic_content_attribute)
+    {
+        // StepperHandler.MapFlowDirection (base part): the resolved direction sets the stepper's
+        // UISemanticContentAttribute and is re-applied to each subview (the iOS-26 walk). The iOS-26
+        // CGAffineTransform visual flip stays deferred — semantic-attribute-only, matching progress_bar.
+        stepper control;
+        control.set_flow_direction(flow_direction::right_to_left);
+        auto handler = std::make_shared<stepper_handler>();
+        control.set_handler(handler);
+
+        UIStepper* const view = native_stepper(handler);
+        EXPECT_EQ(view.semanticContentAttribute, UISemanticContentAttributeForceRightToLeft);
+        EXPECT_EQ(handler->typed_platform_view()->resolved_flow_direction, flow_direction::right_to_left);
+        for (UIView* subview in view.subviews)
+        {
+            EXPECT_EQ(subview.semanticContentAttribute, UISemanticContentAttributeForceRightToLeft);
+        }
+
+        control.set_flow_direction(flow_direction::left_to_right);
+        EXPECT_EQ(view.semanticContentAttribute, UISemanticContentAttributeForceLeftToRight);
+        EXPECT_EQ(handler->typed_platform_view()->resolved_flow_direction, flow_direction::left_to_right);
     }
 
     TEST(ios_stepper_seam, clearing_handler_disconnects)
