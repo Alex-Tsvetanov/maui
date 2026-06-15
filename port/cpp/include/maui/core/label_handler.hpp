@@ -20,6 +20,7 @@
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/text_decorations.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/core/view_handler.hpp"
 #include "maui/core/view_platform_base.hpp"
 #include "maui/core/visibility.hpp"
@@ -49,6 +50,11 @@ namespace maui::core
         text_alignment horizontal_alignment = text_alignment::start;
         text_alignment vertical_alignment = text_alignment::start; // C# Label default Start
         double character_spacing = 0;
+        // Headless mirror of LineHeight (Label.LineHeight default -1 = "unset", no paragraph-style
+        // multiple) and Padding (ILabel.Padding → the native TextInsets / cell inset). The Apple/iOS
+        // builds push these onto the NSTextField cell / MauiLabel TextInsets + paragraph style instead.
+        double line_height = -1;
+        maui::core::thickness padding;
         maui::core::text_decorations decorations = maui::core::text_decorations::none;
         // Headless mirror of the resolved attributed runs (Label.FormattedText). Empty = plain text path.
         // The Apple/iOS builds turn these into an NSAttributedString instead; the headless build keeps the
@@ -111,6 +117,12 @@ namespace maui::core
         // LabelHandler.MapTextDecorations → LabelExtensions.UpdateTextDecorations (underline /
         // strikethrough on the attributed text; headless mirrors the flags).
         static void map_text_decorations(label_handler& handler, i_label& view);
+        // LabelHandler.MapLineHeight → LabelExtensions.UpdateLineHeight (a paragraph-style
+        // lineHeightMultiple over the attributed string; -1 leaves it unset). Headless mirrors the value.
+        static void map_line_height(label_handler& handler, i_label& view);
+        // LabelHandler.MapPadding → LabelExtensions.UpdatePadding (MauiLabel.TextInsets on iOS / the cell
+        // title-rect inset on AppKit, with an RTL flip). Headless mirrors the thickness.
+        static void map_padding(label_handler& handler, i_label& view);
         // The port's gap-closure G1 map: Label.FormattedText → LabelExtensions.UpdateText's FormattedText
         // branch. Non-empty runs build the native attributed string (NSAttributedString on apple/ios; the
         // headless run mirror); empty runs revert to the plain text path (clearing the attributed string).

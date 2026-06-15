@@ -12,7 +12,9 @@
 #include "maui/core/label_handler.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/text_decorations.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
+#include "maui/graphics/size.hpp"
 #include <gtest/gtest.h>
 
 namespace
@@ -87,6 +89,75 @@ namespace
 
         control.set_text_decorations(maui::core::text_decorations::none);
         EXPECT_EQ(platform->decorations, maui::core::text_decorations::none);
+    }
+
+    // line_height + padding flow virtual→platform mirror (LabelHandler.Mapper LineHeight / Padding entries).
+    TEST(label_seam, line_height_and_padding_map_to_platform)
+    {
+        label control;
+        auto handler = std::make_shared<label_handler>();
+        control.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+
+        // Default: LineHeight -1 ("unset"), zero padding (Label.LineHeightProperty default / empty Thickness).
+        EXPECT_EQ(platform->line_height, -1.0);
+        EXPECT_EQ(platform->padding.left, 0.0);
+
+        control.set_line_height(1.5);
+        EXPECT_EQ(platform->line_height, 1.5);
+
+        control.set_padding(maui::core::thickness(4, 8, 12, 16));
+        EXPECT_EQ(platform->padding.left, 4.0);
+        EXPECT_EQ(platform->padding.top, 8.0);
+        EXPECT_EQ(platform->padding.right, 12.0);
+        EXPECT_EQ(platform->padding.bottom, 16.0);
+    }
+
+    // Padding inflates the desired size: MauiLabel.SizeThatFits subtracts the insets before measuring and
+    // adds them back, so the measured size grows by (left+right, top+bottom).
+    TEST(label_seam, padding_inflates_desired_size)
+    {
+        label control;
+        control.set_text("Hi"); // 2 chars * 7pt = 14 wide, one 16pt line
+        auto handler = std::make_shared<label_handler>();
+        control.set_handler(handler);
+
+        const maui::graphics::size bare = handler->get_desired_size(1.0e9, 1.0e9);
+        control.set_padding(maui::core::thickness(5, 6, 7, 8));
+        const maui::graphics::size padded = handler->get_desired_size(1.0e9, 1.0e9);
+        EXPECT_DOUBLE_EQ(padded.width, bare.width + 12.0);   // 5 + 7
+        EXPECT_DOUBLE_EQ(padded.height, bare.height + 14.0); // 6 + 8
+    }
+
+    // PreferredMaxLayoutWidth branch: an explicit virtual Width wraps the text to multiple lines, so the
+    // measured height grows past a single line and the width clamps to the explicit Width.
+    TEST(label_seam, explicit_width_wraps_to_multiple_lines)
+    {
+        label control;
+        // 10 chars * 7pt = 70pt of text; an explicit 35pt width => 2 lines (ceil(70/35)).
+        control.set_text("ABCDEFGHIJ");
+        control.set_width_request(35);
+        auto handler = std::make_shared<label_handler>();
+        control.set_handler(handler);
+
+        const maui::graphics::size wrapped = handler->get_desired_size(1.0e9, 1.0e9);
+        EXPECT_DOUBLE_EQ(wrapped.width, 35.0);  // clamped to the explicit Width
+        EXPECT_DOUBLE_EQ(wrapped.height, 32.0); // two 16pt lines
+    }
+
+    // Without an explicit Width an unconstrained measure stays a single line (the non-PreferredMaxLayoutWidth
+    // branch: PlatformView.PreferredMaxLayoutWidth = 0).
+    TEST(label_seam, unconstrained_measure_is_single_line)
+    {
+        label control;
+        control.set_text("ABCDEFGHIJ");
+        auto handler = std::make_shared<label_handler>();
+        control.set_handler(handler);
+
+        const maui::graphics::size measured = handler->get_desired_size(1.0e9, 1.0e9);
+        EXPECT_DOUBLE_EQ(measured.width, 70.0);
+        EXPECT_DOUBLE_EQ(measured.height, 16.0);
     }
 
     TEST(label_seam, handler_resolved_from_default_registry)

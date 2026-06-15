@@ -16,8 +16,10 @@ namespace maui::core
     // IView properties (Visibility/Opacity/IsEnabled/AutomationId) map first (keys() walks the chain
     // first). Maps the visible native text properties plus character_spacing (the kerning attribute),
     // vertical_text_alignment (custom cell on AppKit / MauiLabel draw-rect on UIKit) and text_decorations
-    // (underline/strikethrough on the attributed text — LabelHandler.Mapper's TextDecorations entry);
-    // line_height / padding remain present on the control with their native mapping deferred (STATUS).
+    // (underline/strikethrough on the attributed text — LabelHandler.Mapper's TextDecorations entry).
+    // line_height (LabelHandler.Mapper LineHeight → UpdateLineHeight, a paragraph-style multiple) and
+    // padding (LabelHandler.Mapper Padding → UpdatePadding, the native TextInsets / cell inset) round out
+    // the LabelHandler.Mapper coverage.
     property_mapper<i_label, label_handler>& label_handler::mapper()
     {
         static property_mapper<i_label, label_handler> table{
@@ -30,6 +32,8 @@ namespace maui::core
                 {"vertical_text_alignment", &label_handler::map_vertical_text_alignment},
                 {"character_spacing", &label_handler::map_character_spacing},
                 {"text_decorations", &label_handler::map_text_decorations},
+                {"line_height", &label_handler::map_line_height},
+                {"padding", &label_handler::map_padding},
                 {"formatted_text", &label_handler::map_formatted_text},
             },
         };

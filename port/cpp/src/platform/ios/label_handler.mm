@@ -15,6 +15,7 @@
 
 #import <UIKit/UIKit.h>
 
+#include <algorithm>
 #include <cmath>
 #include <memory>
 #include <string>
@@ -22,19 +23,23 @@
 
 #include "ios_conversions.hpp"
 #include "ios_text_ops.hpp"
+#include "maui/core/dimension.hpp"
 #include "maui/core/i_label.hpp"
 #include "maui/core/label_handler.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
 // MauiIosLabel  <=  Microsoft.Maui.Platform.MauiLabel — a UILabel honoring a vertical content alignment
 // by offsetting the draw rect (UILabel itself always centers vertically): Top pins the text height to
-// the top, Bottom to the bottom, Center/Fill leave UIKit's own centering. TextInsets (Padding) is
-// deferred with the cross-platform padding mapping, so DrawText's inset/RTL-flip half is not ported.
+// the top, Bottom to the bottom, Center/Fill leave UIKit's own centering. It also insets the text by the
+// label Padding (MauiLabel.TextInsets), flipping left/right under RTL, and reflects the insets in
+// sizeThatFits (subtract before measuring, add back) exactly as MauiLabel does.
 @interface MauiIosLabel : UILabel
 @property(nonatomic) UIControlContentVerticalAlignment verticalAlignment;
+@property(nonatomic) UIEdgeInsets textInsets;
 @end
 
 @implementation MauiIosLabel
@@ -44,6 +49,7 @@
     if (self != nil)
     {
         _verticalAlignment = UIControlContentVerticalAlignmentCenter; // MauiLabel's field default
+        _textInsets = UIEdgeInsetsZero;                               // MauiLabel.TextInsets default
     }
     return self;
 }
@@ -52,6 +58,13 @@
 {
     _verticalAlignment = value;
     [self setNeedsDisplay]; // MauiLabel.VerticalAlignment setter
+}
+
+- (void)setTextInsets:(UIEdgeInsets)value
+{
+    _textInsets = value;
+    [self invalidateIntrinsicContentSize];
+    [self setNeedsDisplay];
 }
 
 // MauiLabel.AlignVertical: the required text height is the single-line font height (Lines == 1) or the
@@ -73,15 +86,35 @@
     return rect;
 }
 
-// MauiLabel.DrawText (minus the TextInsets half — padding is deferred).
+// MauiLabel.DrawText: inset by the (RTL-flipped) TextInsets, then the vertical-alignment offset.
 - (void)drawTextInRect:(CGRect)rect
 {
+    UIEdgeInsets insets = self.textInsets;
+    // Respect RTL (flip left/right insets) — MauiLabel.DrawText's EffectiveUserInterfaceLayoutDirection.
+    if (self.effectiveUserInterfaceLayoutDirection == UIUserInterfaceLayoutDirectionRightToLeft)
+    {
+        insets = UIEdgeInsetsMake(insets.top, insets.right, insets.bottom, insets.left);
+    }
+    rect = UIEdgeInsetsInsetRect(rect, insets);
+
     if (self.verticalAlignment != UIControlContentVerticalAlignmentCenter &&
         self.verticalAlignment != UIControlContentVerticalAlignmentFill)
     {
         rect = [self maui_alignVertical:rect];
     }
     [super drawTextInRect:rect];
+}
+
+// MauiLabel.SizeThatFits: reduce the padding before measuring, then add it back, clamped to the container.
+- (CGSize)sizeThatFits:(CGSize)size
+{
+    const UIEdgeInsets insets = self.textInsets;
+    const CGSize adjusted =
+        CGSizeMake(size.width - insets.left - insets.right, size.height - insets.top - insets.bottom);
+    const CGSize requested = [super sizeThatFits:adjusted];
+    const CGFloat width = MIN(requested.width, size.width) + insets.left + insets.right;
+    const CGFloat height = MIN(requested.height, size.height) + insets.top + insets.bottom;
+    return CGSizeMake(width, height);
 }
 @end
 
@@ -98,13 +131,19 @@ namespace
     using maui::platform::ios::to_ui_font;
     using maui::platform::ios::with_character_spacing;
     using maui::platform::ios::with_decorations;
+    using maui::platform::ios::with_line_height;
 
-    // LabelHandler.MapFormatting: "Update all of the attributed text formatting properties" —
-    // TextDecorations (LabelExtensions.UpdateTextDecorations), then CharacterSpacing
-    // (UpdateCharacterSpacing), then re-assert the horizontal alignment ("Setting any of those may have
-    // removed text alignment settings"). LineHeight is deferred with the cross-platform mapper.
+    // LabelHandler.MapFormatting: "Update all of the attributed text formatting properties" — LineHeight
+    // (LabelExtensions.UpdateLineHeight), then TextDecorations (UpdateTextDecorations), then
+    // CharacterSpacing (UpdateCharacterSpacing), then re-assert the horizontal alignment ("Setting any of
+    // those may have removed text alignment settings"), matching the C# MapFormatting order exactly.
     void refresh_label_formatting(UILabel* label, const maui::core::i_label& view)
     {
+        NSAttributedString* const with_lh = with_line_height(label.attributedText, view.line_height());
+        if (with_lh != nil)
+        {
+            label.attributedText = with_lh;
+        }
         NSAttributedString* const decorated = with_decorations(label.attributedText, view.text_decorations());
         if (decorated != nil)
         {
@@ -159,6 +198,9 @@ namespace maui::core
     {
         auto platform = std::make_unique<label_platform>();
         MauiIosLabel* const label = [[MauiIosLabel alloc] initWithFrame:CGRectZero]; // new MauiLabel()
+        // Wrap by default (MAUI Label's default LineBreakMode is WordWrap with no MaxLines cap), so the
+        // PreferredMaxLayoutWidth branch can measure multiple lines for an explicit Width.
+        label.numberOfLines = 0;
         platform->native = (__bridge_retained void*)label; // the void* slot owns one reference
         return platform;
     }
@@ -250,6 +292,36 @@ namespace maui::core
         }
     }
 
+    void label_handler::map_line_height(label_handler& handler, i_label& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform != nullptr)
+        {
+            // LabelExtensions.UpdateLineHeight — folded into the shared formatting refresh (applied first,
+            // matching the C# MapFormatting order), so kerning + decorations + alignment stay consistent.
+            refresh_label_formatting(as_label(platform->native), view);
+        }
+    }
+
+    void label_handler::map_padding(label_handler& handler, i_label& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        // LabelExtensions.UpdatePadding → MauiLabel.TextInsets (Top, Left, Bottom, Right). The DrawText
+        // override flips left/right under RTL; sizeThatFits reflects the insets into the measured size.
+        UILabel* const label = as_label(platform->native);
+        if ([label isKindOfClass:[MauiIosLabel class]])
+        {
+            const maui::core::thickness pad = view.padding();
+            ((MauiIosLabel*)label).textInsets =
+                UIEdgeInsetsMake(static_cast<CGFloat>(pad.top), static_cast<CGFloat>(pad.left),
+                                 static_cast<CGFloat>(pad.bottom), static_cast<CGFloat>(pad.right));
+        }
+    }
+
     void label_handler::map_formatted_text(label_handler& handler, i_label& view)
     {
         auto* platform = handler.typed_platform_view();
@@ -286,12 +358,33 @@ namespace maui::core
         {
             return {0, 0};
         }
-        // ViewHandlerExtensions.GetDesiredSizeFromHandler: infinite constraints become the platform
-        // maximum, then the native view measures itself (UIView.SizeThatFits). LabelHandler.iOS's
-        // PreferredMaxLayoutWidth branch (explicit virtual Width) is deferred with multi-line wrapping.
+        UILabel* const label = as_label(platform->native);
+        // LabelHandler.iOS.GetDesiredSize: when the virtual view carries an explicit Width, clamp the width
+        // constraint to it and set PreferredMaxLayoutWidth so the wrapped text measures over multiple lines;
+        // otherwise PreferredMaxLayoutWidth = 0 (single-line measure). Then the native view measures itself
+        // (UIView.SizeThatFits; MauiLabel.SizeThatFits already folds the TextInsets in).
+        const i_label* const v = virtual_view();
+        const double virtual_width = v != nullptr ? v->width() : maui::core::dimension::unset;
+        if (maui::core::dimension::is_explicit_set(virtual_width))
+        {
+            if (std::isfinite(width_constraint))
+            {
+                width_constraint = std::min(width_constraint, virtual_width);
+            }
+            else
+            {
+                width_constraint = virtual_width;
+            }
+            label.preferredMaxLayoutWidth = static_cast<CGFloat>(virtual_width);
+        }
+        else
+        {
+            label.preferredMaxLayoutWidth = 0;
+        }
+        // ViewHandlerExtensions.GetDesiredSizeFromHandler: infinite constraints become the platform maximum.
         const CGFloat width = std::isfinite(width_constraint) ? static_cast<CGFloat>(width_constraint) : CGFLOAT_MAX;
         const CGFloat height = std::isfinite(height_constraint) ? static_cast<CGFloat>(height_constraint) : CGFLOAT_MAX;
-        const CGSize fitting = [as_label(platform->native) sizeThatFits:CGSizeMake(width, height)];
+        const CGSize fitting = [label sizeThatFits:CGSizeMake(width, height)];
         return {fitting.width, fitting.height};
     }
 

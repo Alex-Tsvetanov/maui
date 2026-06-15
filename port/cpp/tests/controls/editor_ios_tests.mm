@@ -98,6 +98,36 @@ namespace
         EXPECT_NEAR(green, 0.0, 0.01);
     }
 
+    // MauiTextView.UpdatePlaceholderFont: the placeholder label tracks the editor's font.
+    TEST(ios_editor_seam, placeholder_font_tracks_the_editor_font)
+    {
+        editor control;
+        control.set_placeholder("Hint");
+        auto handler = std::make_shared<editor_handler>();
+        control.set_handler(handler);
+        UITextView* const text_view = native_text_view(handler);
+        UILabel* const label = placeholder_label(text_view);
+        ASSERT_NE(label, nil);
+
+        control.set_font(maui::core::font::of_size("Helvetica", 22));
+        EXPECT_EQ(label.font.pointSize, 22.0);
+        EXPECT_EQ(label.font.pointSize, text_view.font.pointSize);
+    }
+
+    // MauiTextView.UpdateHorizontalTextAlignment: the placeholder follows the editor's text alignment.
+    TEST(ios_editor_seam, placeholder_alignment_tracks_the_editor)
+    {
+        editor control;
+        control.set_placeholder("Hint");
+        auto handler = std::make_shared<editor_handler>();
+        control.set_handler(handler);
+        UILabel* const label = placeholder_label(native_text_view(handler));
+        ASSERT_NE(label, nil);
+
+        control.set_horizontal_text_alignment(text_alignment::center);
+        EXPECT_EQ(label.textAlignment, NSTextAlignmentCenter);
+    }
+
     TEST(ios_editor_seam, read_only_toggles_editable)
     {
         editor control;

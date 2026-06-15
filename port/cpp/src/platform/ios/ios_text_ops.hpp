@@ -136,6 +136,49 @@ namespace maui::platform::ios
         return mutable_copy;
     }
 
+    // AttributedStringExtensions.WithLineHeight: set NSMutableParagraphStyle.lineHeightMultiple over the
+    // whole range, copying any existing paragraph style first. line_height == -1 with no existing
+    // paragraph-style attribute is the C# "un-set but nothing to modify" bail-out (returns nil); the value
+    // written is clamped to -1 for any negative input (matching `lineHeight >= 0 ? lineHeight : -1`).
+    inline NSAttributedString* with_line_height(NSAttributedString* attributed, double line_height)
+    {
+        if (attributed == nil || attributed.length == 0)
+        {
+            return nil;
+        }
+        NSParagraphStyle* const existing =
+            [attributed attribute:NSParagraphStyleAttributeName atIndex:0 effectiveRange:nullptr];
+        if (line_height == -1 && existing == nil)
+        {
+            return nil;
+        }
+        NSMutableParagraphStyle* const paragraph = [[NSMutableParagraphStyle alloc] init];
+        if (existing != nil)
+        {
+            [paragraph setParagraphStyle:existing];
+        }
+        paragraph.lineHeightMultiple = static_cast<CGFloat>(line_height >= 0 ? line_height : -1);
+        NSMutableAttributedString* const mutable_copy =
+            [[NSMutableAttributedString alloc] initWithAttributedString:attributed];
+        [mutable_copy addAttribute:NSParagraphStyleAttributeName
+                             value:paragraph
+                             range:NSMakeRange(0, mutable_copy.length)];
+        return mutable_copy;
+    }
+
+    // Read the lineHeightMultiple off an attributed string's paragraph style; 0 when absent / empty (the
+    // .mm tests assert on this).
+    inline double line_height_multiple_of(NSAttributedString* attributed)
+    {
+        if (attributed == nil || attributed.length == 0)
+        {
+            return 0;
+        }
+        NSParagraphStyle* const style =
+            [attributed attribute:NSParagraphStyleAttributeName atIndex:0 effectiveRange:nullptr];
+        return style != nil ? static_cast<double>(style.lineHeightMultiple) : 0;
+    }
+
     // Build a UIFont for a span run, applying bold (weight == Bold) + italic (slant != normal) as symbolic
     // traits — Font.ToUIFont(fontManager)'s trait path (to_ui_font ignores them; a run needs them).
     inline UIFont* to_ui_run_font(const maui::core::font& value, double default_size)

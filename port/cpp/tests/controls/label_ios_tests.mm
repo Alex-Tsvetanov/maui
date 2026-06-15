@@ -14,15 +14,18 @@
 #include "maui/core/label_handler.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/text_decorations.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
+#include "maui/graphics/size.hpp"
 #include <gtest/gtest.h>
 
 // The shape of the handler's MauiIosLabel (declared in src/platform/ios/label_handler.mm): the test
-// reads the custom verticalAlignment back through this protocol after a respondsToSelector: probe (the
-// AppKit twin reads its custom cell the same way).
+// reads the custom verticalAlignment + textInsets back through this protocol after a respondsToSelector:
+// probe (the AppKit twin reads its custom cell the same way).
 @protocol MauiTestLabelVerticalAlignment <NSObject>
 @property(nonatomic) UIControlContentVerticalAlignment verticalAlignment;
+@property(nonatomic) UIEdgeInsets textInsets;
 @end
 
 namespace
@@ -32,6 +35,7 @@ namespace
     using maui::core::text_alignment;
     using maui::core::text_decorations;
     using maui::platform::ios::kerning_of;
+    using maui::platform::ios::line_height_multiple_of;
 
     // -[NSString UTF8String] is nullable-annotated; convert through this guard so the std::string
     // construction never receives a null pointer (the values under test are always non-null).
@@ -211,5 +215,79 @@ namespace
 
         control.set_automation_id("title_label");
         EXPECT_EQ(to_std_string(view.accessibilityIdentifier), "title_label");
+    }
+
+    // LabelExtensions.UpdateLineHeight: the line-height multiple lands on the attributed text's paragraph
+    // style (default -1 leaves none); kerning/decorations co-exist (MapFormatting order).
+    TEST(ios_label_seam, line_height_applies_a_paragraph_style_multiple)
+    {
+        label control;
+        control.set_text("Test");
+        auto handler = std::make_shared<label_handler>();
+        control.set_handler(handler);
+        UILabel* const view = native_label(handler);
+
+        // Default -1: no positive multiple (the bail-out branch leaves the attributed text un-styled here).
+        EXPECT_LE(line_height_multiple_of(view.attributedText), 0.0);
+
+        control.set_line_height(2.0);
+        EXPECT_DOUBLE_EQ(line_height_multiple_of(view.attributedText), 2.0);
+
+        control.set_character_spacing(3.0);
+        EXPECT_DOUBLE_EQ(line_height_multiple_of(view.attributedText), 2.0);
+        EXPECT_EQ(kerning_of(view.attributedText), 3.0);
+        EXPECT_EQ(to_std_string(view.text), "Test");
+    }
+
+    // LabelExtensions.UpdatePadding → MauiLabel.TextInsets (Top, Left, Bottom, Right) on the custom label.
+    TEST(ios_label_seam, padding_reaches_the_text_insets)
+    {
+        label control;
+        control.set_text("Test");
+        auto handler = std::make_shared<label_handler>();
+        control.set_handler(handler);
+        UILabel* const view = native_label(handler);
+        ASSERT_TRUE([view respondsToSelector:@selector(textInsets)]);
+        id const any_label = view;
+        id<MauiTestLabelVerticalAlignment> const aligned = any_label;
+
+        control.set_padding(maui::core::thickness(4, 8, 12, 16)); // left, top, right, bottom
+        EXPECT_DOUBLE_EQ(aligned.textInsets.left, 4.0);
+        EXPECT_DOUBLE_EQ(aligned.textInsets.top, 8.0);
+        EXPECT_DOUBLE_EQ(aligned.textInsets.right, 12.0);
+        EXPECT_DOUBLE_EQ(aligned.textInsets.bottom, 16.0);
+    }
+
+    // MauiLabel.SizeThatFits reflects the insets: get_desired_size grows by (left+right, top+bottom).
+    TEST(ios_label_seam, padding_inflates_desired_size)
+    {
+        label control;
+        control.set_text("Padded");
+        auto handler = std::make_shared<label_handler>();
+        control.set_handler(handler);
+
+        const maui::graphics::size bare = handler->get_desired_size(1.0e9, 1.0e9);
+        control.set_padding(maui::core::thickness(5, 6, 7, 8));
+        const maui::graphics::size padded = handler->get_desired_size(1.0e9, 1.0e9);
+        EXPECT_NEAR(padded.width, bare.width + 12.0, 0.5);   // 5 + 7
+        EXPECT_NEAR(padded.height, bare.height + 14.0, 0.5); // 6 + 8
+    }
+
+    // PreferredMaxLayoutWidth branch (LabelHandler.iOS.GetDesiredSize): an explicit virtual Width wraps the
+    // long text onto more than one line, so the measured height exceeds the single-line measure and the
+    // width stays within the explicit cap.
+    TEST(ios_label_seam, explicit_width_wraps_to_multiple_lines)
+    {
+        label control;
+        control.set_text("The quick brown fox jumps over the lazy dog repeatedly");
+        auto handler = std::make_shared<label_handler>();
+        control.set_handler(handler);
+
+        const maui::graphics::size single = handler->get_desired_size(1.0e9, 1.0e9);
+
+        control.set_width_request(80);
+        const maui::graphics::size wrapped = handler->get_desired_size(1.0e9, 1.0e9);
+        EXPECT_GT(wrapped.height, single.height);
+        EXPECT_LE(wrapped.width, 80.0 + 1.0); // within the PreferredMaxLayoutWidth cap (allow rounding)
     }
 } // namespace

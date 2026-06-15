@@ -20,6 +20,10 @@
 // MapBackground's ImageSourcePaint branch (W8-55) is handled by the shared view_mapper → ios_visual_ops
 // apply_background (an image_source_paint installs the source's image as a named backing CALayer), so an
 // image-backed Background renders on the editor like any other view.
+// Placeholder parity (W8-54): MauiTextView's placeholder dance is ported — InitPlaceholderLabel (a
+// wrapping UILabel), UpdatePlaceholderLabelFrame (pinned to the text container's LineFragmentPadding /
+// TextContainerInset in layoutSubviews), UpdatePlaceholderFont (the placeholder tracks the editor font),
+// and UpdateHorizontalTextAlignment (the placeholder follows the editor's alignment).
 // Not ported here (deferred): MauiTextView's vertical-centering content-inset dance
 // (vertical_text_alignment keeps the mirror; an un-centered UITextView is the Start default).
 
@@ -56,6 +60,28 @@
     // MauiTextView.HidePlaceholderIfTextIsPresent.
     self.placeholderLabel.hidden = self.text.length > 0;
 }
+
+// MauiTextView.UpdatePlaceholderLabelFrame: pin the placeholder to the text origin — x at the text
+// container's LineFragmentPadding, y at TextContainerInset.Top — sized to the content area inside the
+// horizontal padding and vertical insets. A no-op until the view has bounds (matches the C# guard).
+- (void)mauiUpdatePlaceholderFrame
+{
+    if (self.placeholderLabel == nil || CGRectEqualToRect(self.bounds, CGRectZero))
+    {
+        return;
+    }
+    const CGFloat x = self.textContainer.lineFragmentPadding;
+    const CGFloat y = self.textContainerInset.top;
+    const CGFloat width = self.bounds.size.width - (x * 2);
+    const CGFloat height = self.frame.size.height - (self.textContainerInset.top + self.textContainerInset.bottom);
+    self.placeholderLabel.frame = CGRectMake(x, y, width > 0 ? width : 0, height > 0 ? height : 0);
+}
+
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    [self mauiUpdatePlaceholderFrame]; // MauiTextView.LayoutSubviews
+}
 @end
 
 // Obj-C trampoline: forwards the UITextView's delegate callbacks to the C++ handler's virtual view.
@@ -83,7 +109,8 @@ namespace
 
     // TextViewExtensions.UpdatePlaceholder(+Color) onto MauiTextView's PlaceholderText/Color. The
     // default-constructed color (opaque black) counts as "no explicit color" (the entry collapse),
-    // keeping UIKit's muted placeholderText gray.
+    // keeping UIKit's muted placeholderText gray. After setting the text/color, re-pin the placeholder
+    // frame against the text container insets (MauiTextView.LayoutSubviews → UpdatePlaceholderLabelFrame).
     void refresh_editor_placeholder(MauiIosEditorTextView* text_view, const maui::core::i_editor& view)
     {
         const std::string placeholder(view.placeholder());
@@ -92,8 +119,18 @@ namespace
         const maui::graphics::color color = view.placeholder_color();
         const bool explicit_color = color != maui::graphics::color{};
         text_view.placeholderLabel.textColor = explicit_color ? to_ui_color(color) : UIColor.placeholderTextColor;
-        [text_view.placeholderLabel sizeToFit];
+        [text_view.placeholderLabel sizeToFit]; // MauiTextView.PlaceholderText setter's SizeToFit
+        [text_view mauiUpdatePlaceholderFrame]; // ...then the layout pass overrides the frame for wrapping
         [text_view mauiUpdatePlaceholderVisibility];
+    }
+
+    // MauiTextView.UpdatePlaceholderFont + UpdateHorizontalTextAlignment: the placeholder label tracks the
+    // editor's font and text alignment so the hint renders in the same style as the typed text.
+    void sync_placeholder_style(MauiIosEditorTextView* text_view, const maui::core::i_editor& view)
+    {
+        text_view.placeholderLabel.font = text_view.font; // base.Font setter → UpdatePlaceholderFont(value)
+        text_view.placeholderLabel.textAlignment = to_ns_text_alignment(view.horizontal_text_alignment());
+        [text_view mauiUpdatePlaceholderFrame];
     }
 
     // Move the caret/selection to (cursor_position, selection_length), clamped to the current text
@@ -398,7 +435,10 @@ namespace maui::core
         if (platform != nullptr)
         {
             // TextViewExtensions.UpdateFont with UIFont.LabelFontSize as the control default.
-            as_text_view(platform->native).font = to_ui_font(view.font(), static_cast<double>(UIFont.labelFontSize));
+            MauiIosEditorTextView* const text_view = as_text_view(platform->native);
+            text_view.font = to_ui_font(view.font(), static_cast<double>(UIFont.labelFontSize));
+            // MauiTextView.Font setter → UpdatePlaceholderFont: the placeholder tracks the editor's font.
+            sync_placeholder_style(text_view, view);
         }
     }
 
@@ -425,7 +465,10 @@ namespace maui::core
         auto* platform = handler.typed_platform_view();
         if (platform != nullptr)
         {
-            as_text_view(platform->native).textAlignment = to_ns_text_alignment(view.horizontal_text_alignment());
+            MauiIosEditorTextView* const text_view = as_text_view(platform->native);
+            text_view.textAlignment = to_ns_text_alignment(view.horizontal_text_alignment());
+            // MauiTextView.TextAlignment setter → UpdateHorizontalTextAlignment: the placeholder follows.
+            sync_placeholder_style(text_view, view);
         }
     }
 

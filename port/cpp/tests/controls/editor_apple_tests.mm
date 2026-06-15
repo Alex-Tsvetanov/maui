@@ -40,6 +40,18 @@ namespace
         return (NSTextView*)native_scroll(handler).documentView;
     }
 
+    NSTextField* placeholder_label_of(NSTextView* text_view)
+    {
+        for (NSView* subview in text_view.subviews)
+        {
+            if ([subview isKindOfClass:[NSTextField class]])
+            {
+                return (NSTextField*)subview;
+            }
+        }
+        return nil;
+    }
+
     class apple_editor_seam : public ::testing::Test
     {
     protected:
@@ -94,6 +106,37 @@ namespace
 
         control.set_text("");
         EXPECT_FALSE(label.hidden);
+    }
+
+    // MauiTextView.UpdatePlaceholderFont: the placeholder label tracks the editor's font so the hint
+    // renders in the same style as the typed text.
+    TEST_F(apple_editor_seam, placeholder_font_tracks_the_editor_font)
+    {
+        editor control;
+        control.set_placeholder("Hint");
+        auto handler = std::make_shared<editor_handler>();
+        control.set_handler(handler);
+        NSTextView* const text_view = native_text_view(handler);
+        NSTextField* const label = placeholder_label_of(text_view);
+        ASSERT_NE(label, nil);
+
+        control.set_font(maui::core::font::of_size("Helvetica", 22));
+        EXPECT_EQ(label.font.pointSize, 22.0);
+        EXPECT_EQ(label.font.pointSize, text_view.font.pointSize);
+    }
+
+    // MauiTextView.UpdateHorizontalTextAlignment: the placeholder follows the editor's text alignment.
+    TEST_F(apple_editor_seam, placeholder_alignment_tracks_the_editor)
+    {
+        editor control;
+        control.set_placeholder("Hint");
+        auto handler = std::make_shared<editor_handler>();
+        control.set_handler(handler);
+        NSTextField* const label = placeholder_label_of(native_text_view(handler));
+        ASSERT_NE(label, nil);
+
+        control.set_horizontal_text_alignment(text_alignment::center);
+        EXPECT_EQ(label.alignment, NSTextAlignmentCenter);
     }
 
     TEST_F(apple_editor_seam, read_only_toggles_editable)

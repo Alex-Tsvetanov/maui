@@ -4,6 +4,7 @@
 
 #import <AppKit/AppKit.h>
 
+#include <cmath>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -13,38 +14,70 @@
 #include "apple_text_ops.hpp"
 #include "apple_view_ops.hpp"
 #include "apple_visual_ops.hpp"
+#include "maui/core/dimension.hpp"
 #include "maui/core/i_label.hpp"
 #include "maui/core/label_handler.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
-// A label-style NSTextFieldCell that honors a maui vertical text alignment. AppKit's NSTextField has no
-// vertical alignment (MauiLabel.VerticalAlignment is custom on iOS), so this cell offsets the title rect
-// within the cell bounds: Start = top, Center = middle, End = bottom — the AppKit analog of
-// TextAlignmentExtensions.ToPlatformVertical (Start->Top / Center->Center / End->Bottom).
+// A label-style NSTextFieldCell that honors a maui vertical text alignment + the label Padding. AppKit's
+// NSTextField has no vertical alignment (MauiLabel.VerticalAlignment is custom on iOS), so this cell
+// offsets the title rect within the cell bounds: Start = top, Center = middle, End = bottom — the AppKit
+// analog of TextAlignmentExtensions.ToPlatformVertical (Start->Top / Center->Center / End->Bottom). It
+// also insets the drawing rect by the label Padding (the cell analog of MauiLabel.TextInsets), flipping
+// the left/right insets under RTL exactly as MauiLabel.DrawText does.
 @interface MauiLabelCell : NSTextFieldCell
 @property(nonatomic) maui::core::text_alignment verticalAlignment;
+@property(nonatomic) maui::core::thickness textInsets;
 @end
 
 @implementation MauiLabelCell
+// Inset the bounds by the (RTL-flipped) Padding — the AppKit equivalent of MauiLabel.DrawText's
+// `insets.InsetRect(rect)`. The layout direction is read live from the control view at draw/measure time
+// (MauiLabel.DrawText reads EffectiveUserInterfaceLayoutDirection live), so a later flow-direction change
+// is honored without re-mapping Padding.
+- (NSRect)maui_insetBounds:(NSRect)bounds
+{
+    const maui::core::thickness insets = self.textInsets;
+    const BOOL rtl =
+        self.controlView.userInterfaceLayoutDirection == NSUserInterfaceLayoutDirectionRightToLeft ? YES : NO;
+    const CGFloat left = rtl ? insets.right : insets.left;
+    const CGFloat right = rtl ? insets.left : insets.right;
+    bounds.origin.x += left;
+    bounds.size.width -= (left + right);
+    bounds.origin.y += insets.top;
+    bounds.size.height -= (insets.top + insets.bottom);
+    if (bounds.size.width < 0)
+    {
+        bounds.size.width = 0;
+    }
+    if (bounds.size.height < 0)
+    {
+        bounds.size.height = 0;
+    }
+    return bounds;
+}
+
 - (NSRect)titleRectForBounds:(NSRect)bounds
 {
-    NSRect rect = [super titleRectForBounds:bounds];
-    const CGFloat full = bounds.size.height;
+    const NSRect inset = [self maui_insetBounds:bounds];
+    NSRect rect = [super titleRectForBounds:inset];
+    const CGFloat full = inset.size.height;
     const CGFloat text_height = rect.size.height;
     switch (self.verticalAlignment)
     {
         case maui::core::text_alignment::center:
         case maui::core::text_alignment::justify:
-            rect.origin.y = bounds.origin.y + ((full - text_height) / 2);
+            rect.origin.y = inset.origin.y + ((full - text_height) / 2);
             break;
         case maui::core::text_alignment::end:
-            rect.origin.y = bounds.origin.y + (full - text_height);
+            rect.origin.y = inset.origin.y + (full - text_height);
             break;
         case maui::core::text_alignment::start:
-            rect.origin.y = bounds.origin.y;
+            rect.origin.y = inset.origin.y;
             break;
     }
     return rect;
@@ -79,13 +112,12 @@ namespace
         return NSTextAlignmentLeft;
     }
 
-    // Rebuild the label's attributed string from its current plain text with the given kerning +
-    // decorations, mirroring the LabelHandler.MapFormatting pipeline (UpdateTextDecorations →
-    // UpdateCharacterSpacing; LineHeight stays deferred). When spacing == 0 the attributed value falls
-    // back to the plain string (the un-kerned path) before the decorations pass — which adds/removes the
-    // underline/strikethrough styles (LabelExtensions.UpdateTextDecorations / WithDecorations).
-    // Re-applies the alignment afterward (NSTextField resets paragraph alignment when the attributed
-    // value is replaced).
+    // Rebuild the label's attributed string from its current plain text with the given line-height +
+    // decorations + kerning, mirroring the LabelHandler.MapFormatting pipeline in C# order (UpdateLineHeight
+    // → UpdateTextDecorations → UpdateCharacterSpacing → re-assert HorizontalTextAlignment). Each pass is
+    // cumulative over the running attributed value; a nil return (the "nothing to do" branch of the
+    // corresponding With* helper) leaves the prior value untouched. Re-applies the alignment afterward
+    // (NSTextField resets paragraph alignment when the attributed value is replaced).
     void refresh_label_text_formatting(NSTextField* field, const maui::core::i_label& view)
     {
         const double spacing = view.character_spacing();
@@ -93,6 +125,12 @@ namespace
         if (attributed == nil)
         {
             attributed = [[NSAttributedString alloc] initWithString:field.stringValue];
+        }
+        // UpdateLineHeight: a paragraph-style lineHeightMultiple (no-op for the -1 default with no style).
+        NSAttributedString* const with_lh = maui::platform::apple::with_line_height(attributed, view.line_height());
+        if (with_lh != nil)
+        {
+            attributed = with_lh;
         }
         NSAttributedString* const decorated =
             maui::platform::apple::with_decorations(attributed, view.text_decorations());
@@ -149,6 +187,7 @@ namespace maui::core
         cell.bezeled = NO;
         cell.drawsBackground = NO;
         cell.verticalAlignment = maui::core::text_alignment::start;
+        cell.textInsets = maui::core::thickness{}; // zero Padding default (MauiLabel.TextInsets default)
         field.cell = cell;
         platform->native = (__bridge_retained void*)field;
         return platform;
@@ -231,6 +270,35 @@ namespace maui::core
         }
     }
 
+    void label_handler::map_line_height(label_handler& handler, i_label& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform != nullptr)
+        {
+            // LabelExtensions.UpdateLineHeight — folded into the shared formatting refresh (which applies it
+            // first, then decorations + kerning, matching the C# MapFormatting order).
+            refresh_label_text_formatting(as_label(platform->native), view);
+        }
+    }
+
+    void label_handler::map_padding(label_handler& handler, i_label& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        // LabelExtensions.UpdatePadding(MauiLabel.TextInsets) — the AppKit cell carries the inset and flips
+        // it under RTL when drawing (the cell reads the control view's layout direction live, so a later
+        // flow-direction change is honored without re-mapping Padding).
+        NSTextField* const field = as_label(platform->native);
+        if ([field.cell isKindOfClass:[MauiLabelCell class]])
+        {
+            ((MauiLabelCell*)field.cell).textInsets = view.padding();
+            [field setNeedsDisplay:YES];
+        }
+    }
+
     void label_handler::map_formatted_text(label_handler& handler, i_label& view)
     {
         auto* platform = handler.typed_platform_view();
@@ -260,16 +328,40 @@ namespace maui::core
         }
     }
 
-    maui::graphics::size label_handler::get_desired_size(double /*width_constraint*/,
-                                                         double /*height_constraint*/) const
+    maui::graphics::size label_handler::get_desired_size(double width_constraint, double /*height_constraint*/) const
     {
         const auto* platform = typed_platform_view();
         if (platform == nullptr || platform->native == nullptr)
         {
             return {0, 0};
         }
-        const NSSize fitting = [as_label(platform->native) fittingSize];
-        return {fitting.width, fitting.height};
+        NSTextField* const field = as_label(platform->native);
+        // LabelHandler.iOS.GetDesiredSize's PreferredMaxLayoutWidth branch: an explicit virtual Width caps
+        // the wrap width (clamped by the incoming constraint) and turns on multi-line wrapping; otherwise
+        // the label measures single-line (PreferredMaxLayoutWidth = 0). NSTextField wraps when its cell's
+        // `wraps` is set and `preferredMaxLayoutWidth` is finite.
+        const i_label* const v = virtual_view();
+        const double virtual_width = v != nullptr ? v->width() : maui::core::dimension::unset;
+        if (maui::core::dimension::is_explicit_set(virtual_width))
+        {
+            double wrap_width = virtual_width;
+            if (std::isfinite(width_constraint) && width_constraint < wrap_width)
+            {
+                wrap_width = width_constraint;
+            }
+            field.cell.wraps = YES;
+            field.preferredMaxLayoutWidth = static_cast<CGFloat>(wrap_width);
+        }
+        else
+        {
+            field.cell.wraps = NO;
+            field.preferredMaxLayoutWidth = 0;
+        }
+        const NSSize fitting = [field fittingSize];
+        // MauiLabel.SizeThatFits adds the TextInsets back onto the measured content — the cell's inset
+        // shrinks the drawing rect, so the desired size must include the padding.
+        const maui::core::thickness pad = v != nullptr ? v->padding() : maui::core::thickness{};
+        return {fitting.width + pad.left + pad.right, fitting.height + pad.top + pad.bottom};
     }
 
     void label_handler::platform_arrange(const maui::graphics::rect& frame)
