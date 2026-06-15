@@ -23,13 +23,15 @@
 // accessory toolbar (AddMauiDoneAccessoryView → ios_done_accessory.hpp) resigns first responder + fires
 // Completed. Focus (W8-53): becomeFirstResponder / resignFirstResponder via the shared view_command_mapper
 // (view_focus_ops.mm), reflected onto IsFocused; OnEditingBegan/Ended now drive is_focused too.
+// Keyboard auto-manager (W7 keyboard-automanager): ShouldReturn now drives the full
+// KeyboardAutoManager.GoToNextResponderOrResign next-responder walk (ios_keyboard_manager_ops.hpp), and
+// on_connect_handler connects the KeyboardAutoManagerScroll scroll-avoidance engine once
+// (keyboard_auto_manager.hpp / ios_keyboard_auto_manager.mm).
 //
-// Not ported here (deferred): KeyboardAutoManager scroll-avoidance (ShouldReturn's
-// GoToNextResponderOrResign collapses to its resign arm — the next-responder walk is a large separate
-// subsystem), UpdateClearButtonColor (tints UIKit's private clearButton subview via KVC), TextPropertySet
-// (the port has no native-programmatic-text channel; map_text is the only programmatic writer), the
-// iOS-26 ShouldChangeCharactersInRanges variant (this SDK's delegate channel is the classic single
-// range), and MapBackground.
+// Not ported here (deferred): UpdateClearButtonColor (tints UIKit's private clearButton subview via KVC),
+// TextPropertySet (the port has no native-programmatic-text channel; map_text is the only programmatic
+// writer), the iOS-26 ShouldChangeCharactersInRanges variant (this SDK's delegate channel is the classic
+// single range), and MapBackground.
 
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
@@ -43,12 +45,14 @@
 
 #include "ios_conversions.hpp"
 #include "ios_done_accessory.hpp"
+#include "ios_keyboard_manager_ops.hpp" // W7 keyboard-automanager: the next-responder walk
 #include "ios_keyboard_ops.hpp"
 #include "ios_text_ops.hpp"
 #include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/entry_handler.hpp"
 #include "maui/core/i_entry.hpp"
 #include "maui/core/i_ios_entry_specifics.hpp" // --- platform configuration (W2-24) ---
+#include "maui/core/keyboard_auto_manager.hpp" // W7 keyboard-automanager: connect the scroll engine once
 #include "maui/core/return_type.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/visibility.hpp"
@@ -352,10 +356,13 @@ namespace
 
 - (BOOL)textFieldShouldReturn:(UITextField*)textField
 {
-    // OnShouldReturn: KeyboardAutoManager.GoToNextResponderOrResign collapses to its resign arm (the
-    // next-responder walk belongs to the deferred scroll-avoidance subsystem), then Completed, then false
-    // so UIKit inserts no newline. Resigning also fires onEditingDidEnd which clears IsFocused.
-    [textField resignFirstResponder];
+    // OnShouldReturn (EntryHandler.iOS.cs:204-211): KeyboardAutoManager.GoToNextResponderOrResign walks
+    // the responder tree for the next editable field (when the field's returnKeyType is Next) and focuses
+    // it, else resigns first responder; then Completed; then false so UIKit inserts no newline. Resigning
+    // (or moving focus away) fires onEditingDidEnd which clears IsFocused. The walk is the
+    // ios_keyboard_manager_ops.hpp port; production passes no explicit container (GetContainerView resolves
+    // it from the view's window root).
+    maui::platform::ios::go_to_next_responder_or_resign(textField);
     if (self.handler != nullptr)
     {
         if (auto* view = self.handler->virtual_view())
@@ -501,6 +508,13 @@ namespace maui::core
             ((MauiIosTextField*)field).mauiProxy = proxy;
         }
         objc_setAssociatedObject(field, &k_proxy_key, proxy, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        // KeyboardAutoManagerScroll.Connect: register the keyboard scroll-avoidance observers once
+        // (idempotent global). C# wires this at the app's FinishedLaunching lifecycle event
+        // (AppHostBuilderExtensions.iOS.cs); the port has no such hook wired here yet, so the first entry
+        // to connect installs it. It is NOT torn down on a single entry's disconnect — the engine is
+        // global and sibling entries would lose scroll-avoidance (C#'s Disconnect is app-WillTerminate
+        // scope, not per-handler). See keyboard_auto_manager.hpp.
+        maui::core::keyboard_auto_manager::connect_scroll_handler();
     }
 
     void entry_handler::on_disconnect_handler(entry_platform& platform)

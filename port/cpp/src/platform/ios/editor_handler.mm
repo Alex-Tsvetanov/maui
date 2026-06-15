@@ -24,6 +24,13 @@
 // wrapping UILabel), UpdatePlaceholderLabelFrame (pinned to the text container's LineFragmentPadding /
 // TextContainerInset in layoutSubviews), UpdatePlaceholderFont (the placeholder tracks the editor font),
 // and UpdateHorizontalTextAlignment (the placeholder follows the editor's alignment).
+// Keyboard auto-manager (W7 keyboard-automanager): the editor participates in KeyboardAutoManagerScroll's
+// scroll-avoidance (the UITextViewTextDidBeginEditingNotification observer, connected once via the entry
+// handler's on_connect_handler — the engine is a global notification subscriber, not per-control wired).
+// There is NO editor return-key / next-responder entry point: EditorHandler.iOS.cs does not call
+// KeyboardAutoManager.GoToNextResponderOrResign anywhere (a UITextView's return key inserts a newline by
+// design — only EntryHandler.iOS.cs's OnShouldReturn invokes the walk). Per the derive-not-invent rule,
+// no editor return-key wiring is added here (see the unit's deviation note).
 // Not ported here (deferred): MauiTextView's vertical-centering content-inset dance
 // (vertical_text_alignment keeps the mirror; an un-centered UITextView is the Start default).
 

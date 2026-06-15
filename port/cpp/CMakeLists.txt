@@ -231,6 +231,9 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/date_picker_handler.mm
     src/platform/apple/time_picker_handler.mm
     src/platform/apple/editor_handler.mm
+    # (W7 keyboard-automanager) the AppKit no-op stub of the iOS keyboard scroll-avoidance engine
+    # (macOS has no soft keyboard); the real engine is the ios partial.
+    src/platform/apple/ios_keyboard_auto_manager.mm
     src/platform/apple/search_bar_handler.mm
     src/platform/apple/progress_bar_handler.mm
     src/platform/apple/activity_indicator_handler.mm
@@ -297,6 +300,10 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     src/platform/ios/date_picker_handler.mm
     src/platform/ios/time_picker_handler.mm
     src/platform/ios/editor_handler.mm
+    # (W7 keyboard-automanager) the KeyboardAutoManagerScroll scroll-avoidance engine
+    # (KeyboardAutoManagerScroll.cs); the next-responder walk lives header-only in
+    # ios_keyboard_manager_ops.hpp (KeyboardAutoManager.cs).
+    src/platform/ios/ios_keyboard_auto_manager.mm
     src/platform/ios/search_bar_handler.mm
     src/platform/ios/progress_bar_handler.mm
     src/platform/ios/activity_indicator_handler.mm
@@ -354,6 +361,9 @@ else()
     src/platform/headless/date_picker_handler.cpp
     src/platform/headless/time_picker_handler.cpp
     src/platform/headless/editor_handler.cpp
+    # (W7 keyboard-automanager) the headless no-op stub of the iOS keyboard scroll-avoidance engine
+    # (no native windowing/keyboard); lets the suite link and run. The real engine is the ios partial.
+    src/platform/headless/ios_keyboard_auto_manager.cpp
     src/platform/headless/search_bar_handler.cpp
     src/platform/headless/progress_bar_handler.cpp
     src/platform/headless/activity_indicator_handler.cpp
@@ -1099,6 +1109,9 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/date_picker_ios_tests.mm
     tests/controls/time_picker_ios_tests.mm
     tests/controls/editor_ios_tests.mm
+    # (W7 keyboard-automanager) the KeyboardAutoManager next-responder walk over raw UIKit hierarchies +
+    # the scroll-engine connect/disconnect idempotence smoke (KeyboardAutoManager.cs / KeyboardAutoManagerScroll.cs).
+    tests/controls/keyboard_auto_manager_ios_tests.mm
     tests/controls/search_bar_ios_tests.mm
     tests/controls/progress_bar_ios_tests.mm
     tests/controls/activity_indicator_ios_tests.mm
