@@ -21,6 +21,7 @@
 #include "maui/core/switch_handler.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
+#include "tests/support/run_loop_pump.hpp"
 #include <gtest/gtest.h>
 
 namespace
@@ -39,6 +40,46 @@ namespace
     UISwitch* native_switch(const std::shared_ptr<switch_handler>& handler)
     {
         return (__bridge UISwitch*)handler->typed_platform_view()->native;
+    }
+
+    // SwitchExtensions.GetTrackSubview (iOS 13+ branch): the live track view whose backgroundColor the
+    // track-color recipe drives — the first subview's first subview. Mirrors switch_handler.mm.
+    UIView* track_subview(UISwitch* native)
+    {
+        return native.subviews.firstObject.subviews.firstObject;
+    }
+
+    // The green channel of a UIColor (the color-re-application assertions compare a single component —
+    // re-application restores the custom color the test corrupted).
+    CGFloat green_component(UIColor* color)
+    {
+        CGFloat red = 0;
+        CGFloat green = 0;
+        CGFloat blue = 0;
+        CGFloat alpha = 0;
+        return [color getRed:&red green:&green blue:&blue alpha:&alpha] ? green : -1;
+    }
+
+    CGFloat red_component(UIColor* color)
+    {
+        CGFloat red = 0;
+        CGFloat green = 0;
+        CGFloat blue = 0;
+        CGFloat alpha = 0;
+        return [color getRed:&red green:&green blue:&blue alpha:&alpha] ? red : -1;
+    }
+
+    // A key+visible host window so a trait change actually propagates to a hosted view (a detached view
+    // does not observe an overrideUserInterfaceStyle flip). [[UIWindow alloc] init] adopts a placeholder
+    // scene in the spawned test process — the same initializer window_handler.mm uses; the deprecation
+    // pragma matches that established precedent (see collection_view_ios_tests.mm).
+    UIWindow* make_host_window()
+    {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        UIWindow* const window = [[UIWindow alloc] init]; // SDK-deprecated; see window_handler.mm precedent
+#pragma clang diagnostic pop
+        return window;
     }
 
     // Replicates -[UIControl sendActionsForControlEvents:]'s dispatch-table walk for one event (see
@@ -217,6 +258,67 @@ namespace
         EXPECT_EQ(panel.subviews.firstObject, wrapper); // the container is the panel's subview
         EXPECT_NE(panel.subviews.firstObject, view);    // NOT the bare switch
         EXPECT_EQ(view.superview, wrapper);             // the switch still lives inside the container
+    }
+
+    // U19 — SwitchProxy.WillEnterForeground observer: on app return-from-background UIKit re-applies the
+    // default OFF-track styling, so the handler re-applies the custom OFF track color (async, 10ms settle)
+    // when the switch is OFF and a custom color is set. The spawned process has no UIApplication, but the
+    // handler observes object:nil, so a nil-object post reaches the block exactly like the system's would.
+    TEST(ios_switch_seam, foreground_notification_reapplies_off_track_color)
+    {
+        toggle_switch control;
+        control.set_is_toggled(false);                                  // OFF — the re-apply branch
+        control.set_off_color(maui::graphics::color(0.0F, 1.0F, 0.0F)); // custom green OFF track
+        auto handler = std::make_shared<switch_handler>();
+        control.set_handler(handler);
+
+        UISwitch* const view = native_switch(handler);
+        UIView* const track = track_subview(view);
+        ASSERT_NE(track, nil);
+        EXPECT_NEAR(green_component(track.backgroundColor), 1.0, 0.01); // mapped on connect
+
+        // Corrupt the live track color the way a UIKit lifecycle reset would, then post the notification.
+        track.backgroundColor = UIColor.redColor;
+        [[NSNotificationCenter defaultCenter] postNotificationName:UIApplicationWillEnterForegroundNotification
+                                                            object:nil];
+
+        // The re-apply is dispatched async with a 10ms settle — pump the main loop until it lands.
+        const bool restored =
+            maui::tests::pump_until([&] { return green_component(track_subview(view).backgroundColor) > 0.99; });
+        EXPECT_TRUE(restored);
+    }
+
+    // U19 — SwitchProxy iOS-26 trait-change registration: a light/dark change resets thumbTintColor, so
+    // the handler re-applies the custom ThumbColor (async, 10ms settle). The switch is hosted in a
+    // key+visible window and the WINDOW's overrideUserInterfaceStyle is flipped, which propagates a
+    // UITraitUserInterfaceStyle change down to the hosted switch — firing the registration the handler made.
+    TEST(ios_switch_seam, trait_change_reapplies_thumb_color)
+    {
+        toggle_switch control;
+        control.set_thumb_color(maui::graphics::color(0.0F, 1.0F, 0.0F)); // custom green thumb
+        auto handler = std::make_shared<switch_handler>();
+        control.set_handler(handler);
+
+        UISwitch* const view = native_switch(handler);
+        EXPECT_NEAR(green_component(view.thumbTintColor), 1.0, 0.01); // mapped on connect
+
+        // Host the switch in a key+visible window (a detached view does not observe a trait flip).
+        UIWindow* const window = make_host_window();
+        window.overrideUserInterfaceStyle = UIUserInterfaceStyleLight; // start light
+        [window addSubview:view];
+        [window makeKeyAndVisible];
+
+        // Drain the connect-time immediate re-apply (also async, 10ms) so it cannot confound the trait
+        // path: after this settle the ONLY thing that can restore green is the trait-change registration.
+        maui::tests::pump_run_loop(0.05);
+
+        // Corrupt the thumb tint the way a UIKit theme reset would, then drive the light→dark change.
+        view.thumbTintColor = UIColor.redColor;
+        EXPECT_NEAR(red_component(view.thumbTintColor), 1.0, 0.01);
+        window.overrideUserInterfaceStyle = UIUserInterfaceStyleDark; // propagates the trait change down
+
+        const bool restored = maui::tests::pump_until([&] { return green_component(view.thumbTintColor) > 0.99; });
+        EXPECT_TRUE(restored);
     }
 
     TEST(ios_switch_seam, clearing_handler_disconnects)

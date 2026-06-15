@@ -15,10 +15,13 @@
 // the per-backend on_setup_container / on_remove_container wrap the native switch in a container view
 // (the UISwitch >101pt accessibility workaround) — driven by the shared view_mapper's container_view map.
 //
-// Not ported (deferred, documented): SwitchHandler.iOS's foreground/trait-change observers (UIKit-26
-// theme-reset workarounds re-applying colors after lifecycle events) and the MACCATALYST notification
-// dance — both are version-specific re-application timing, not mapping behavior.
+// SwitchHandler.iOS's SwitchProxy color-re-application observers ARE ported on the iOS backend (the
+// UIKit-26 theme-reset workarounds): WillEnterForeground re-applies the OFF track color, and the
+// iOS-26 trait-change registration re-applies the thumb color after a light/dark switch — both with
+// the empirically-required 10ms main-queue settle. Not ported (deferred, documented): the MACCATALYST
+// NSWindowDidBecomeKey notification dance (no macOS backend here yet).
 
+#include <atomic>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -88,6 +91,25 @@ namespace maui::core
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
+
+        // SwitchProxy's color-re-application observers (SwitchHandler.iOS.cs). Held as void* (retained)
+        // so the cross-platform struct stays Obj-C-free, matching window_platform::notification_trampoline;
+        // the .mm bridges via __bridge_retained / CFRelease. Both MUST be torn down in BOTH
+        // on_disconnect_handler AND the dtor — a surviving observer fires into freed memory (UAF).
+        //
+        // The WillEnterForeground notification token (NSObject* from addObserverForName:…usingBlock:):
+        // on app return-from-background the block re-applies the OFF track color (the UISwitch resets it).
+        void* foreground_observer = nullptr;
+        // The iOS-26 trait-change registration (id<UITraitChangeRegistration> from
+        // registerForTraitChanges:withHandler:): on a light/dark change the block re-applies the thumb
+        // color (UIKit 26 resets thumbTintColor when the interface style flips).
+        void* trait_change_registration = nullptr;
+        // Liveness flag for the deferred (10ms) re-apply blocks. SwitchProxy guards the post-delay body
+        // with WeakReferences; the port has no shared_from_this on the handler, so the blocks capture a
+        // copy of THIS flag (keeping the flag — never the handler — alive) and check it after the delay.
+        // Teardown (on_disconnect_handler + dtor) sets it false, so a block already in flight when the
+        // handler is destroyed bails BEFORE dereferencing the freed handler (the battery alive_ pattern).
+        std::shared_ptr<std::atomic<bool>> reapply_alive = std::make_shared<std::atomic<bool>>(true);
 #endif
     };
 

@@ -8,14 +8,21 @@
 // UpdateIsOn/UpdateTrackColor (the track-subview walk incl. the iOS-13 SecondarySystemFill fallback) /
 // UpdateThumbColor as the map_* bodies. NeedsContainer IS ported: on_setup_container /
 // on_remove_container wrap the UISwitch in a plain UIView container (the >101pt accessibility
-// workaround), driven by the shared view_mapper's container map. Not ported (deferred, documented):
-// the iOS/Catalyst-26 foreground/trait-change observers (color re-application timing workarounds).
+// workaround), driven by the shared view_mapper's container map. SwitchProxy's color-re-application
+// observers ARE ported (the UIKit-26 theme-reset workarounds): WillEnterForeground re-applies the OFF
+// track color and the iOS-26 trait-change registration re-applies the thumb color — both async on the
+// main queue with the empirically-required 10ms settle, and both torn down in on_disconnect_handler
+// AND the dtor (no dangling observer → no UAF). The MACCATALYST NSWindowDidBecomeKey branch is not
+// ported (no macOS backend here yet).
 // Color collapse: the port's color is non-nullable, so C#'s null-color branches (restore the platform
 // default) collapse — the off-track fallback keeps the SecondarySystemFill push for the DEFAULT color.
+// "A custom color is set" (C#'s `is not null`) maps to `!= maui::graphics::color{}` (the default-black
+// sentinel the track-color recipe already treats as "no custom color").
 
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
 
+#include <atomic>
 #include <cmath>
 #include <memory>
 #include <string>
@@ -70,12 +77,118 @@ namespace
     }
 
     using maui::platform::ios::to_ui_color;
+
+    // The empirically-required settle (SwitchProxy's `await Task.Delay(10)`): a 10ms delay on the main
+    // queue lets UIKit finish its internal layout/styling before the custom color is re-applied.
+    constexpr int64_t k_color_reapply_delay_ms = 10;
+
+    // SwitchProxy.UpdateTrackOffColor: re-apply the OFF track color after a UIKit lifecycle reset.
+    // Dispatched onto the main queue; bails unless the switch is still OFF and a custom color is set
+    // (C#'s `!platformView.On` + `view.TrackColor is not null` → the default-black sentinel here).
+    //
+    // `alive` is the handler's reapply_alive flag (a copy of the shared_ptr, so the flag — never the
+    // handler — is kept alive by the block). SwitchProxy uses WeakReferences for the same purpose; the
+    // port checks `*alive` before dereferencing the raw `handler`, so a block still in flight when the
+    // handler is torn down bails instead of touching freed memory (UAF).
+    void reapply_track_off_color(maui::core::switch_handler* handler, std::shared_ptr<std::atomic<bool>> alive)
+    {
+        // The blocks capture `alive` by copy (automatic-storage local), keeping the flag — not the
+        // handler — alive; the by-value param is consumed by those captures.
+        dispatch_async(dispatch_get_main_queue(), ^{
+          if (!*alive)
+          {
+              return; // the handler was torn down before this block ran
+          }
+          auto* const platform = handler->typed_platform_view();
+          if (platform == nullptr || platform->native == nullptr)
+          {
+              return;
+          }
+          UISwitch* const native = as_switch(platform->native);
+          if (native.on)
+          {
+              return; // C#: only re-applies while OFF
+          }
+          dispatch_after(dispatch_time(DISPATCH_TIME_NOW, k_color_reapply_delay_ms * NSEC_PER_MSEC),
+                         dispatch_get_main_queue(), ^{
+                           if (!*alive)
+                           {
+                               return; // torn down during the 10ms settle (SwitchProxy's weak-ref guard)
+                           }
+                           auto* const view = handler->virtual_view();
+                           auto* const settled = handler->typed_platform_view();
+                           if (view == nullptr || settled == nullptr || settled->native == nullptr)
+                           {
+                               return;
+                           }
+                           if (view->track_color() != maui::graphics::color{}) // a custom color is set
+                           {
+                               maui::core::switch_handler::map_track_color(*handler, *view);
+                           }
+                         });
+        });
+    }
+
+    // SwitchProxy.UpdateThumbColor: re-apply the custom thumb color after a light/dark theme reset.
+    // Same async/settle shape + `*alive` liveness guard; bails unless a custom thumb color is set.
+    void reapply_thumb_color(maui::core::switch_handler* handler, std::shared_ptr<std::atomic<bool>> alive)
+    {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          if (!*alive)
+          {
+              return;
+          }
+          auto* const platform = handler->typed_platform_view();
+          if (handler->virtual_view() == nullptr || platform == nullptr || platform->native == nullptr)
+          {
+              return;
+          }
+          dispatch_after(dispatch_time(DISPATCH_TIME_NOW, k_color_reapply_delay_ms * NSEC_PER_MSEC),
+                         dispatch_get_main_queue(), ^{
+                           if (!*alive)
+                           {
+                               return; // torn down during the 10ms settle (SwitchProxy's weak-ref guard)
+                           }
+                           auto* const view = handler->virtual_view();
+                           auto* const settled = handler->typed_platform_view();
+                           if (view == nullptr || settled == nullptr || settled->native == nullptr)
+                           {
+                               return;
+                           }
+                           if (view->thumb_color() != maui::graphics::color{}) // a custom color is set
+                           {
+                               maui::core::switch_handler::map_thumb_color(*handler, *view);
+                           }
+                         });
+        });
+    }
 } // namespace
 
 namespace maui::core
 {
     switch_platform::~switch_platform()
     {
+        // Tear down SwitchProxy's color-re-application observers BEFORE the native UISwitch is released —
+        // a surviving NSNotificationCenter observer or trait-change registration would fire into freed
+        // memory (UAF). Mirrors on_disconnect_handler so a never-disconnected handler is still safe.
+        // Trip the liveness flag first so any deferred re-apply block already in flight bails out.
+        *reapply_alive = false;
+        if (foreground_observer != nullptr)
+        {
+            NSObject* const observer = (__bridge_transfer NSObject*)foreground_observer;
+            [[NSNotificationCenter defaultCenter] removeObserver:observer];
+            foreground_observer = nullptr;
+        }
+        if (trait_change_registration != nullptr)
+        {
+            id<UITraitChangeRegistration> const registration =
+                (__bridge_transfer id<UITraitChangeRegistration>)trait_change_registration;
+            if (native != nullptr)
+            {
+                [as_switch(native) unregisterForTraitChanges:registration];
+            }
+            trait_change_registration = nullptr;
+        }
         if (container != nullptr)
         {
             CFRelease(container); // balances the __bridge_retained in on_setup_container
@@ -128,6 +241,37 @@ namespace maui::core
         // proxy is kept alive for the switch's lifetime via an associated object (the button pattern).
         [native addTarget:proxy action:@selector(onValueChanged:) forControlEvents:UIControlEventValueChanged];
         objc_setAssociatedObject(native, &k_proxy_key, proxy, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
+        // SwitchProxy.Connect (iOS branch): on app return-from-background re-apply the OFF track color.
+        // object:nil matches any poster — the real poster is the UIApplication singleton (absent in a
+        // simctl-spawned test process), exactly as window_handler observes the lifecycle notifications.
+        // The blocks capture a copy of reapply_alive so the deferred body can detect a torn-down handler.
+        switch_handler* const self = this;
+        const std::shared_ptr<std::atomic<bool>> alive = platform.reapply_alive;
+        NSObject* const observer =
+            [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification
+                                                              object:nil
+                                                               queue:nil
+                                                          usingBlock:^(NSNotification*) {
+                                                            reapply_track_off_color(self, alive);
+                                                          }];
+        platform.foreground_observer = (__bridge_retained void*)observer; // the void* slot owns the token
+
+        // SwitchProxy.Connect: iOS 26+ resets ThumbTintColor on a light/dark change. The deployment
+        // floor IS 26, so the gate is always true; keep it for fidelity with SwitchHandler.iOS.cs.
+        if (@available(iOS 26, *))
+        {
+            id<UITraitChangeRegistration> const registration =
+                [native registerForTraitChanges:@[ UITraitUserInterfaceStyle.class ]
+                                    withHandler:^(__kindof id<UITraitEnvironment> /*traitEnvironment*/,
+                                                  UITraitCollection* /*previousCollection*/) {
+                                      reapply_thumb_color(self, alive);
+                                    }];
+            platform.trait_change_registration = (__bridge_retained void*)registration; // void* owns it
+
+            // iOS 26+ resets ThumbTintColor after the initial layout, so re-apply the custom color now.
+            reapply_thumb_color(this, platform.reapply_alive);
+        }
     }
 
     void switch_handler::on_disconnect_handler(switch_platform& platform)
@@ -138,6 +282,27 @@ namespace maui::core
             [native removeTarget:proxy action:@selector(onValueChanged:) forControlEvents:UIControlEventValueChanged];
         }
         objc_setAssociatedObject(native, &k_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
+        // SwitchProxy.Disconnect: RemoveObserver + UnregisterForTraitChanges; release both. Trip the
+        // liveness flag so any deferred re-apply block already in flight bails, then null the void*
+        // slots so the dtor does not double-free (no dangling observer → no UAF).
+        *platform.reapply_alive = false;
+        if (platform.foreground_observer != nullptr)
+        {
+            NSObject* const observer = (__bridge_transfer NSObject*)platform.foreground_observer;
+            [[NSNotificationCenter defaultCenter] removeObserver:observer];
+            platform.foreground_observer = nullptr;
+        }
+        if (platform.trait_change_registration != nullptr)
+        {
+            id<UITraitChangeRegistration> const registration =
+                (__bridge_transfer id<UITraitChangeRegistration>)platform.trait_change_registration;
+            if (native != nil)
+            {
+                [native unregisterForTraitChanges:registration];
+            }
+            platform.trait_change_registration = nullptr;
+        }
     }
 
     // C# ViewHandler.SetupContainer (ViewHandlerOfT.iOS WrapperView swap): wrap the natural-sized UISwitch
