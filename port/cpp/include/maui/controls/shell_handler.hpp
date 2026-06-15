@@ -56,6 +56,7 @@
 #include <string_view>
 #include <vector>
 
+#include "maui/controls/shell/flyout_header_behavior.hpp"
 #include "maui/controls/shell/shell_appearance.hpp"
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/event.hpp"
@@ -143,6 +144,20 @@ namespace maui::controls
         std::vector<shell_flyout_row> flyout_rows; // the flyout drawer rows (Shell.GetItems())
         bool flyout_presented = false;             // FlyoutIsPresented as realized
         shell_search_box search_box;               // the current page's search box (Shell.SearchHandler)
+        // The resolved flyout HEADER / FOOTER views (Shell.FlyoutHeaderView / FlyoutFooterView — the
+        // Template result or the raw FlyoutHeader/Footer). null when none. The iOS twin wraps the header in
+        // a ShellFlyoutHeaderContainer (safe-area-except-bottom margin, subview index 0) and the footer in a
+        // clip-to-bounds container pinned to the bottom; headless just records the pointers (assertable).
+        maui::core::i_view* flyout_header = nullptr;
+        maui::core::i_view* flyout_footer = nullptr;
+        // Shell.FlyoutHeaderBehavior as resolved (Default/Fixed = content below header, no inset; Scroll /
+        // CollapseOnScroll = the scroll-tracked variants — see the iOS twin / the deviation note).
+        maui::controls::flyout_header_behavior header_behavior =
+            maui::controls::flyout_header_behavior::default_behavior;
+        // The flyout pane WIDTH (Shell.FlyoutWidth attached property, resolved via the appearance walk). -1
+        // (the C# unset sentinel) and std::nullopt both mean "platform default"; a positive value sizes the
+        // flyout column (iOS: the split VC's primary column width). nullopt when nothing set it.
+        std::optional<double> flyout_width;
         // The resolved appearance for the current page (Shell.GetAppearanceForPivot of the current page) —
         // the colors the nav bar / tab bar / flyout chrome is tinted with. nullopt = nothing in the line set
         // any value, so the chrome stays on its system defaults (the C# null appearance). Recomputed on every
@@ -184,6 +199,13 @@ namespace maui::core
         // the search action back to the model (retained because the native control holds it weakly).
         void* search_controller = nullptr; // UISearchController (ios) / NSSearchField (apple)
         void* search_delegate = nullptr;   // the Obj-C delegate/target trampoline (retained)
+        // The flyout HEADER / FOOTER native containers (iOS: ShellFlyoutHeaderContainer = a UIView with a
+        // safe-area-except-bottom margin at subview index 0; the footer = a clip-to-bounds UIView pinned to
+        // the bottom). Null until a header/footer view resolves; both retained and torn down with the
+        // platform. Unused on apple (the AppKit flyout is a sidebar with no header/footer band — see the
+        // apple realize_flyout deviation), but kept in the shared block so the struct layout matches.
+        void* flyout_header_container = nullptr; // the realized header container (retained)
+        void* flyout_footer_container = nullptr; // the realized footer container (retained)
 #endif
 
 #ifdef MAUI_PLATFORM_APPLE
@@ -238,6 +260,14 @@ namespace maui::core
         // everywhere). Defined per backend.
         void update_flyout_presented(maui::controls::shell& host);
 
+        // Materialize the flyout HEADER / FOOTER from the tree mirror (flyout_header / flyout_footer +
+        // header_behavior + flyout_width), per backend: headless no-op (the tree IS the realized state);
+        // iOS wraps the header in a ShellFlyoutHeaderContainer (safe-area-except-bottom margin, subview index
+        // 0) + the footer in a clip-to-bounds container pinned to the bottom (repositioned on a measure
+        // change), and applies flyout_width to the split VC's primary column. Called from rebuild() after
+        // the cross-platform resolution fills the tree.
+        void realize_flyout();
+
         // Resolve the current page's Shell.SearchHandler into the tree's search_box mirror (the
         // ShellPageRendererTracker.UpdateShellToMyPage path: GetSearchHandler(current_page), falling back
         // to the shell). CROSS-PLATFORM: pure model→mirror logic; calls realize_search_box() so the real
@@ -284,6 +314,14 @@ namespace maui::core
         static void map_flyout_is_presented(shell_handler& handler, i_view& view);
         // "flyout_behavior" → C# MapFlyoutBehavior: realize the behavior (mirror; affects presentation).
         static void map_flyout_behavior(shell_handler& handler, i_view& view);
+        // "flyout_header" → the C# ShellFlyoutContentRenderer.UpdateFlyoutHeader path: re-resolve the header
+        // view into the tree + re-materialize the header container (iOS) / record it (headless).
+        static void map_flyout_header(shell_handler& handler, i_view& view);
+        // "flyout_footer" → the C# UpdateFlyoutFooter path: re-resolve the footer view + re-materialize it.
+        static void map_flyout_footer(shell_handler& handler, i_view& view);
+        // "flyout_header_behavior" → the C# ShellFlyoutLayoutManager header-behavior switch: record the
+        // behavior into the tree + re-realize the header positioning (iOS) / record it (headless).
+        static void map_flyout_header_behavior(shell_handler& handler, i_view& view);
 
         // The "rebuild_shell" COMMAND — the control re-issues this after wiring so a freshly-attached
         // container realizes the current item (C# ShellRenderer.SetupCurrentShellItem on ViewDidLoad).

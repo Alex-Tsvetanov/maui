@@ -16,6 +16,7 @@
 #include "maui/controls/element.hpp"
 #include "maui/controls/shell/base_shell_item.hpp"
 #include "maui/controls/shell/flyout_behavior.hpp"
+#include "maui/controls/shell/flyout_header_behavior.hpp"
 #include "maui/controls/shell/route_request_builder.hpp"
 #include "maui/controls/shell/routing.hpp"
 #include "maui/controls/shell/search_handler.hpp"
@@ -28,9 +29,11 @@
 #include "maui/controls/shell/shell_route_parameters.hpp"
 #include "maui/controls/shell/shell_section.hpp"
 #include "maui/controls/shell/shell_uri_handler.hpp"
+#include "maui/controls/templates/data_template.hpp"
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/event.hpp"
+#include "maui/core/i_view.hpp"
 #include "maui/graphics/color.hpp"
 
 namespace maui::controls
@@ -144,6 +147,114 @@ namespace maui::controls
     {
         static const maui::core::bindable_property<bool> descriptor{"flyout_is_presented", false};
         return descriptor;
+    }
+
+    const maui::core::bindable_property<flyout_header_behavior>& shell::flyout_header_behavior_property()
+    {
+        // C# FlyoutHeaderBehaviorProperty: default FlyoutHeaderBehavior.Default, BindingMode.OneTime.
+        static const maui::core::bindable_property<flyout_header_behavior> descriptor{
+            "flyout_header_behavior", flyout_header_behavior::default_behavior};
+        return descriptor;
+    }
+
+    // ---- flyout header / footer (Shell.FlyoutHeader/FlyoutFooter + their *Template props) ----
+
+    namespace
+    {
+        // ShellTemplatedViewManager resolution: a non-null DataTemplate wins (CreateContent() cast to a
+        // View), else the raw header/footer view. A template that builds a non-View content resolves to
+        // null (the C# `(View)Template.CreateContent(...)` / `as View` cast). Returns the resolved View
+        // (null when nothing resolves).
+        std::shared_ptr<maui::core::i_view> resolve_templated_view(const std::shared_ptr<data_template>& tmpl,
+                                                                   const std::shared_ptr<maui::core::i_view>& raw)
+        {
+            if (tmpl != nullptr)
+            {
+                const std::shared_ptr<maui::core::bindable_object> content = tmpl->create_content();
+                return std::dynamic_pointer_cast<maui::core::i_view>(content);
+            }
+            return raw;
+        }
+    } // namespace
+
+    void shell::set_flyout_header(std::shared_ptr<maui::core::i_view> value)
+    {
+        if (flyout_header_ == value)
+        {
+            return;
+        }
+        flyout_header_ = std::move(value);
+        resolve_flyout_header_view();
+    }
+
+    void shell::set_flyout_footer(std::shared_ptr<maui::core::i_view> value)
+    {
+        if (flyout_footer_ == value)
+        {
+            return;
+        }
+        flyout_footer_ = std::move(value);
+        resolve_flyout_footer_view();
+    }
+
+    void shell::set_flyout_header_template(std::shared_ptr<data_template> value)
+    {
+        if (flyout_header_template_ == value)
+        {
+            return;
+        }
+        flyout_header_template_ = std::move(value);
+        resolve_flyout_header_view();
+    }
+
+    void shell::set_flyout_footer_template(std::shared_ptr<data_template> value)
+    {
+        if (flyout_footer_template_ == value)
+        {
+            return;
+        }
+        flyout_footer_template_ = std::move(value);
+        resolve_flyout_footer_view();
+    }
+
+    void shell::resolve_flyout_header_view()
+    {
+        std::shared_ptr<maui::core::i_view> resolved = resolve_templated_view(flyout_header_template_, flyout_header_);
+        if (resolved == flyout_header_view_)
+        {
+            return;
+        }
+        // ShellTemplatedViewManager.SetView's RemoveLogicalChild / AddLogicalChild — flow this shell's
+        // binding context into the header chrome view (and drop it from the previous one).
+        if (auto* old_child = dynamic_cast<element*>(flyout_header_view_.get()))
+        {
+            element::detach_logical_child(*old_child);
+        }
+        flyout_header_view_ = std::move(resolved);
+        if (auto* new_child = dynamic_cast<element*>(flyout_header_view_.get()))
+        {
+            this->attach_logical_child(*new_child);
+        }
+        on_property_changed("flyout_header"); // the chrome re-materializes the header
+    }
+
+    void shell::resolve_flyout_footer_view()
+    {
+        std::shared_ptr<maui::core::i_view> resolved = resolve_templated_view(flyout_footer_template_, flyout_footer_);
+        if (resolved == flyout_footer_view_)
+        {
+            return;
+        }
+        if (auto* old_child = dynamic_cast<element*>(flyout_footer_view_.get()))
+        {
+            element::detach_logical_child(*old_child);
+        }
+        flyout_footer_view_ = std::move(resolved);
+        if (auto* new_child = dynamic_cast<element*>(flyout_footer_view_.get()))
+        {
+            this->attach_logical_child(*new_child);
+        }
+        on_property_changed("flyout_footer"); // the chrome re-materializes the footer
     }
 
     // ---- Shell.SearchHandler (attached property) ----
@@ -844,6 +955,18 @@ namespace maui::controls
         for (const std::shared_ptr<shell_item>& item : items_)
         {
             visit(*item);
+        }
+        // The resolved flyout header / footer views are logical children too (C# AddLogicalChild via
+        // ShellTemplatedViewManager.SetView) so the base on_binding_context_changed re-flows this shell's
+        // BindingContext into them on a later context change — matching Shell.OnBindingContextChanged's
+        // SetInheritedBindingContext(FlyoutHeaderView/FlyoutFooterView, BindingContext).
+        if (auto* header_child = dynamic_cast<element*>(flyout_header_view_.get()))
+        {
+            visit(*header_child);
+        }
+        if (auto* footer_child = dynamic_cast<element*>(flyout_footer_view_.get()))
+        {
+            visit(*footer_child);
         }
     }
 } // namespace maui::controls

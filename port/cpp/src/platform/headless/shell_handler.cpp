@@ -34,6 +34,13 @@ namespace maui::core
         }
     }
 
+    void shell_handler::realize_flyout()
+    {
+        // Headless: the tree mirror (flyout_header / flyout_footer + header_behavior + flyout_width, filled
+        // by the cross-platform rebuild()/rebuild_appearance()) IS the realized state; there is no native
+        // ShellFlyoutHeaderContainer / split column to materialize.
+    }
+
     void shell_handler::realize_search_box()
     {
         // Headless: the shell_search_box mirror IS the realized state (filled by rebuild_search_box); there

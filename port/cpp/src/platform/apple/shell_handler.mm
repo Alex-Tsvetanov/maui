@@ -103,7 +103,19 @@ namespace maui::core
 {
     shell_platform::~shell_platform()
     {
-        // Release the retained AppKit handles (each balances a __bridge_retained below).
+        // Release the retained AppKit handles (each balances a __bridge_retained below). The flyout
+        // header/footer container slots are unused on apple (the sidebar has no header/footer band — see
+        // realize_flyout) but released defensively in case a future revision retains into them.
+        if (flyout_footer_container != nullptr)
+        {
+            CFRelease(flyout_footer_container);
+            flyout_footer_container = nullptr;
+        }
+        if (flyout_header_container != nullptr)
+        {
+            CFRelease(flyout_header_container);
+            flyout_header_container = nullptr;
+        }
         if (search_delegate != nullptr)
         {
             CFRelease(search_delegate);
@@ -254,6 +266,18 @@ namespace maui::core
         // DEVIATION: no drawer — IsPresented collapses/expands the persistent sidebar instead.
         NSSplitViewItem* const sidebar = split.splitViewItems.firstObject;
         sidebar.collapsed = platform->tree.flyout_presented ? NO : YES;
+    }
+
+    void shell_handler::realize_flyout()
+    {
+        // AppKit DEVIATION (documented, not stubbed-as-fake): macOS has no pan-presented flyout drawer, no
+        // ShellFlyoutHeaderContainer, and no UIKit content-inset scroll model. The flyout is a persistent
+        // NSSplitView SIDEBAR (see realize_tree). The resolved header/footer views + header_behavior +
+        // flyout_width are recorded in the tree mirror (assertable, the cross-platform rebuild() filled
+        // them); the visible AppKit surface does not host a separate header/footer band, and FlyoutWidth
+        // could map to the sidebar item's holding-priority width — left as a follow-up to avoid faking a
+        // sizing the AppKit shell does not currently expose. This keeps the apple preset compiling with the
+        // same tree contract as iOS/headless.
     }
 
     void shell_handler::realize_search_box()

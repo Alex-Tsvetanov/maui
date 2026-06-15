@@ -12,7 +12,9 @@
 #include <optional>
 #include <string>
 
+#include "maui/controls/box_view.hpp"
 #include "maui/controls/content_page.hpp"
+#include "maui/controls/shell/flyout_header_behavior.hpp"
 #include "maui/controls/shell/routing.hpp"
 #include "maui/controls/shell/shell.hpp"
 #include "maui/controls/shell/shell_content.hpp"
@@ -284,5 +286,137 @@ namespace
         // Re-tinted to //two.
         EXPECT_EQ(platform->tree.applied_appearance.value_or(shell_appearance{}).background_color(),
                   std::optional{colors::blue});
+    }
+
+    // ---- flyout header / footer / behavior / width (U10) ----
+
+    // A header / footer View set BEFORE connect resolves into the tree on the initial rebuild
+    // (Shell.FlyoutHeaderView / FlyoutFooterView → ShellFlyoutContentRenderer's header/footer containers).
+    TEST_F(shell_handler_test, connect_resolves_flyout_header_and_footer)
+    {
+        shell sh;
+        build_two_item_shell(sh);
+        auto header = std::make_shared<box_view>();
+        auto footer = std::make_shared<box_view>();
+        sh.set_flyout_header(header);
+        sh.set_flyout_footer(footer);
+
+        auto handler = std::make_shared<shell_handler>();
+        sh.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+
+        EXPECT_EQ(platform->tree.flyout_header, header.get());
+        EXPECT_EQ(platform->tree.flyout_footer, footer.get());
+    }
+
+    // No header / footer set → the tree slots are null (no header/footer band).
+    TEST_F(shell_handler_test, no_flyout_header_footer_leaves_slots_null)
+    {
+        shell sh;
+        build_two_item_shell(sh);
+
+        auto handler = std::make_shared<shell_handler>();
+        sh.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+        EXPECT_EQ(platform->tree.flyout_header, nullptr);
+        EXPECT_EQ(platform->tree.flyout_footer, nullptr);
+    }
+
+    // Setting FlyoutHeader AFTER connect triggers a rebuild through the mapper ("flyout_header"): the tree
+    // header slot updates without an explicit navigation.
+    TEST_F(shell_handler_test, set_flyout_header_after_connect_triggers_rebuild)
+    {
+        shell sh;
+        build_two_item_shell(sh);
+
+        auto handler = std::make_shared<shell_handler>();
+        sh.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+        EXPECT_EQ(platform->tree.flyout_header, nullptr);
+
+        auto header = std::make_shared<box_view>();
+        sh.set_flyout_header(header);
+        EXPECT_EQ(platform->tree.flyout_header, header.get());
+
+        // Clearing it removes the header from the tree.
+        sh.set_flyout_header(nullptr);
+        EXPECT_EQ(platform->tree.flyout_header, nullptr);
+    }
+
+    // FlyoutHeaderTemplate wins over the raw FlyoutHeader: the resolved header view is the template's
+    // CreateContent() result (ShellTemplatedViewManager.OnViewTemplateChanged). The resolved view is a
+    // box_view (the template builds one) — non-null and NOT the raw header.
+    TEST_F(shell_handler_test, flyout_header_template_overrides_raw_header)
+    {
+        shell sh;
+        build_two_item_shell(sh);
+        auto raw_header = std::make_shared<box_view>();
+        sh.set_flyout_header(raw_header);
+        sh.set_flyout_header_template(data_template::of<box_view>());
+
+        auto handler = std::make_shared<shell_handler>();
+        sh.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+
+        // The resolved header is the template-built view (not the raw header), and matches the model's
+        // FlyoutHeaderView accessor.
+        EXPECT_NE(platform->tree.flyout_header, nullptr);
+        EXPECT_NE(platform->tree.flyout_header, raw_header.get());
+        EXPECT_EQ(platform->tree.flyout_header, sh.flyout_header_view());
+    }
+
+    // FlyoutHeaderBehavior defaults to Default and maps into the tree; setting it (Scroll) updates the tree
+    // through the mapper ("flyout_header_behavior").
+    TEST_F(shell_handler_test, flyout_header_behavior_maps_to_tree)
+    {
+        shell sh;
+        build_two_item_shell(sh);
+
+        auto handler = std::make_shared<shell_handler>();
+        sh.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+        EXPECT_EQ(platform->tree.header_behavior, flyout_header_behavior::default_behavior);
+
+        sh.set_flyout_header_behavior(flyout_header_behavior::scroll);
+        EXPECT_EQ(platform->tree.header_behavior, flyout_header_behavior::scroll);
+
+        sh.set_flyout_header_behavior(flyout_header_behavior::collapse_on_scroll);
+        EXPECT_EQ(platform->tree.header_behavior, flyout_header_behavior::collapse_on_scroll);
+    }
+
+    // FlyoutWidth (a Shell attached property resolved via the appearance walk) surfaces in the tree's
+    // flyout_width slot. A value set on the current item is ingested into the resolved appearance and
+    // recorded; with nothing set the slot is nullopt (platform default).
+    TEST_F(shell_handler_test, flyout_width_resolves_into_tree)
+    {
+        shell sh;
+        auto item = create_shell_item<flyout_item>();
+        shell::set_flyout_width(*item, 250.0);
+        sh.add_item(item);
+
+        auto handler = std::make_shared<shell_handler>();
+        sh.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+
+        ASSERT_TRUE(platform->tree.flyout_width.has_value());
+        EXPECT_DOUBLE_EQ(platform->tree.flyout_width.value_or(0.0), 250.0);
+    }
+
+    TEST_F(shell_handler_test, no_flyout_width_leaves_slot_empty)
+    {
+        shell sh;
+        build_two_item_shell(sh);
+
+        auto handler = std::make_shared<shell_handler>();
+        sh.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+        EXPECT_FALSE(platform->tree.flyout_width.has_value());
     }
 } // namespace

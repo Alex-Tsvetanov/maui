@@ -85,6 +85,102 @@
 }
 @end
 
+// The flyout HEADER container (ShellFlyoutHeaderContainer): a UIView that hosts the header's native view and
+// applies a safe-area-EXCEPT-bottom margin (the header sits ABOVE the content, so the window's bottom safe
+// area must NOT be treated as a gap between header and content — C# ShellFlyoutHeaderContainer.Margin
+// returns Thickness(left, top, right, 0)). It is added at subview index 0 of the flyout drawer's view.
+@interface MauiShellFlyoutHeaderContainer : UIView
+@property(nonatomic, strong) UIView* contentView;
+@end
+
+@implementation MauiShellFlyoutHeaderContainer
+- (void)setContentView:(UIView*)contentView
+{
+    if (_contentView == contentView)
+    {
+        return;
+    }
+    [_contentView removeFromSuperview];
+    _contentView = contentView;
+    if (_contentView != nil)
+    {
+        [self addSubview:_contentView];
+    }
+    [self setNeedsLayout];
+}
+
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    if (self.contentView == nil)
+    {
+        return;
+    }
+    // Safe area EXCEPT bottom: inset the content by the window safe area's top/left/right, bottom = 0.
+    const UIEdgeInsets safe = self.safeAreaInsets;
+    const CGRect bounds = self.bounds;
+    self.contentView.frame =
+        CGRectMake(safe.left, safe.top, bounds.size.width - safe.left - safe.right, bounds.size.height - safe.top);
+}
+@end
+
+// The flyout FOOTER container: a clip-to-bounds UIView pinned to the BOTTOM of the flyout drawer's view. Its
+// layoutSubviews re-positions itself to the bottom (ReMeasure then UpdatePosition order from
+// ShellFlyoutContentRenderer.UpdateFooterPosition) and lays the footer content to fill it. A recursion guard
+// prevents the bottom-reposition (a frame change) from re-entering layout endlessly.
+@interface MauiShellFlyoutFooterContainer : UIView
+@property(nonatomic, strong) UIView* contentView;
+@property(nonatomic, assign) BOOL repositioning;
+@end
+
+@implementation MauiShellFlyoutFooterContainer
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    if ((self = [super initWithFrame:frame]) != nil)
+    {
+        self.clipsToBounds = YES;
+    }
+    return self;
+}
+
+- (void)setContentView:(UIView*)contentView
+{
+    if (_contentView == contentView)
+    {
+        return;
+    }
+    [_contentView removeFromSuperview];
+    _contentView = contentView;
+    if (_contentView != nil)
+    {
+        [self addSubview:_contentView];
+    }
+    [self setNeedsLayout];
+}
+
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    if (self.contentView != nil)
+    {
+        self.contentView.frame = self.bounds;
+    }
+
+    // UpdateFooterPosition: pin to the bottom of the superview (above its bottom safe area). Guarded so the
+    // frame mutation does not re-enter layout (ReMeasure → UpdatePosition once, no infinite recursion).
+    if (self.repositioning || self.superview == nil)
+    {
+        return;
+    }
+    self.repositioning = YES;
+    const CGRect parent = self.superview.bounds;
+    const CGFloat footerHeight = self.frame.size.height;
+    const UIEdgeInsets parentSafe = self.superview.safeAreaInsets;
+    self.frame = CGRectMake(0, parent.size.height - footerHeight - parentSafe.bottom, parent.size.width, footerHeight);
+    self.repositioning = NO;
+}
+@end
+
 namespace
 {
     UISplitViewController* as_split(void* handle)
@@ -101,6 +197,22 @@ namespace
             return nil;
         }
         auto* handler = dynamic_cast<maui::core::i_view_handler*>(page->handler().get());
+        if (handler == nullptr)
+        {
+            return nil;
+        }
+        return (__bridge UIView*)handler->native_view();
+    }
+
+    // A generic view's native UIView (the flyout header/footer are arbitrary Views, not pages): via its
+    // view-handler's native_view() (nil when unattached / handler-less). Same seam as native_page_view.
+    UIView* native_view_of(maui::core::i_view* view)
+    {
+        if (view == nullptr)
+        {
+            return nil;
+        }
+        auto* handler = dynamic_cast<maui::core::i_view_handler*>(view->handler().get());
         if (handler == nullptr)
         {
             return nil;
@@ -147,6 +259,16 @@ namespace maui::core
     shell_platform::~shell_platform()
     {
         // Release the retained UIKit handles (each balances a __bridge_retained below).
+        if (flyout_footer_container != nullptr)
+        {
+            CFRelease(flyout_footer_container);
+            flyout_footer_container = nullptr;
+        }
+        if (flyout_header_container != nullptr)
+        {
+            CFRelease(flyout_header_container);
+            flyout_header_container = nullptr;
+        }
         if (search_delegate != nullptr)
         {
             CFRelease(search_delegate);
@@ -312,6 +434,92 @@ namespace maui::core
                                          : UISplitViewControllerDisplayModeSecondaryOnly;
     }
 
+    void shell_handler::realize_flyout()
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->flyout_host == nullptr)
+        {
+            return;
+        }
+        const maui::controls::shell_render_tree& tree = platform->tree;
+        UITableViewController* const flyout = (__bridge UITableViewController*)platform->flyout_host;
+        UIView* const flyout_view = flyout.viewIfLoaded != nil ? flyout.viewIfLoaded : flyout.view;
+
+        // ---- the HEADER container (ShellFlyoutHeaderContainer, subview index 0) ----
+        UIView* const header_content = native_view_of(tree.flyout_header);
+        MauiShellFlyoutHeaderContainer* header_container =
+            platform->flyout_header_container != nullptr
+                ? (__bridge MauiShellFlyoutHeaderContainer*)platform->flyout_header_container
+                : nil;
+        if (header_content != nil)
+        {
+            if (header_container == nil)
+            {
+                header_container = [[MauiShellFlyoutHeaderContainer alloc] initWithFrame:CGRectZero];
+                platform->flyout_header_container = (__bridge_retained void*)header_container; // owns one ref
+            }
+            header_container.contentView = header_content;
+            if (header_container.superview != flyout_view)
+            {
+                [header_container removeFromSuperview];
+                [flyout_view insertSubview:header_container atIndex:0]; // HeaderIndex
+            }
+            [header_container setNeedsLayout];
+        }
+        else if (header_container != nil)
+        {
+            // No header resolves: detach + release the container (UpdateFlyoutHeader's removal branch).
+            [header_container removeFromSuperview];
+            CFRelease(platform->flyout_header_container);
+            platform->flyout_header_container = nullptr;
+        }
+
+        // ---- the FOOTER container (clip-to-bounds, pinned to the bottom) ----
+        UIView* const footer_content = native_view_of(tree.flyout_footer);
+        MauiShellFlyoutFooterContainer* footer_container =
+            platform->flyout_footer_container != nullptr
+                ? (__bridge MauiShellFlyoutFooterContainer*)platform->flyout_footer_container
+                : nil;
+        if (footer_content != nil)
+        {
+            if (footer_container == nil)
+            {
+                footer_container = [[MauiShellFlyoutFooterContainer alloc] initWithFrame:CGRectZero];
+                platform->flyout_footer_container = (__bridge_retained void*)footer_container; // owns one ref
+            }
+            footer_container.contentView = footer_content;
+            if (footer_container.superview != flyout_view)
+            {
+                [footer_container removeFromSuperview];
+                [flyout_view addSubview:footer_container]; // bottom-most subview
+            }
+            [footer_container setNeedsLayout];
+        }
+        else if (footer_container != nil)
+        {
+            [footer_container removeFromSuperview];
+            CFRelease(platform->flyout_footer_container);
+            platform->flyout_footer_container = nullptr;
+        }
+
+        // ---- the flyout WIDTH (FlyoutWidth → the split VC's primary column) ----
+        // A resolved positive width sizes the primary (flyout) column; nullopt / the C# -1 sentinel restores
+        // the platform default (UISplitViewControllerAutomaticDimension). preferredPrimaryColumnWidth is the
+        // point-width control on the double-column split (iOS 14+); the fraction variant is the relative one.
+        if (platform->controller != nullptr)
+        {
+            UISplitViewController* const split = as_split(platform->controller);
+            if (tree.flyout_width.has_value())
+            {
+                split.preferredPrimaryColumnWidth = static_cast<CGFloat>(*tree.flyout_width);
+            }
+            else
+            {
+                split.preferredPrimaryColumnWidth = UISplitViewControllerAutomaticDimension;
+            }
+        }
+    }
+
     void shell_handler::realize_search_box()
     {
         auto* platform = typed_platform_view();
@@ -322,8 +530,13 @@ namespace maui::core
         const maui::controls::shell_search_box& box = platform->tree.search_box;
 
         // Lazily create the UISearchController + its UISearchBar delegate on first install (mirrors
-        // ShellPageRendererTracker.AttachSearchController). The results VC is nil — the model drives results
-        // (the headless mirror records the row count); a full results renderer is the deferred piece.
+        // ShellPageRendererTracker.AttachSearchController). The results VC is nil even when box.shows_results
+        // is true — DEFERRED (documented): the full ItemsSource-bound results renderer (C#
+        // ShellSearchResultsRenderer — a UITableViewController bound to SearchHandler.ItemsSource via the
+        // ListProxy, rendering DisplayMemberName cells and firing ItemSelected on a row tap) is not wired
+        // here. The model-side results infra already exists (search_handler::results() / the search_box
+        // mirror's result_count + search_handler::item_selected as the row-tap seam); only the native
+        // table-binding renderer is the follow-up. The search bar itself (query/confirm/clear) works fully.
         if (platform->search_controller == nullptr && box.present)
         {
             UISearchController* const controller = [[UISearchController alloc] initWithSearchResultsController:nil];

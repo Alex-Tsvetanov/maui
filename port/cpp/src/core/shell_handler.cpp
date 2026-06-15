@@ -58,6 +58,9 @@ namespace maui::core
                 {"flyout_items", &shell_handler::map_flyout_items},
                 {"flyout_is_presented", &shell_handler::map_flyout_is_presented},
                 {"flyout_behavior", &shell_handler::map_flyout_behavior},
+                {"flyout_header", &shell_handler::map_flyout_header},
+                {"flyout_footer", &shell_handler::map_flyout_footer},
+                {"flyout_header_behavior", &shell_handler::map_flyout_header_behavior},
             },
         };
         return table;
@@ -163,6 +166,13 @@ namespace maui::core
 
         // (b) The flyout drawer rows (Shell.GetItems()).
         rebuild_flyout_rows(host);
+
+        // (b2) The flyout header / footer views + the header behavior + the flyout width — resolved into the
+        // tree mirror (Shell.FlyoutHeaderView / FlyoutFooterView + FlyoutHeaderBehavior + the appearance
+        // FlyoutWidth). The iOS twin materializes the containers; headless records the pointers.
+        platform->tree.flyout_header = host.flyout_header_view();
+        platform->tree.flyout_footer = host.flyout_footer_view();
+        platform->tree.header_behavior = host.get_flyout_header_behavior();
 
         // Realize the matching native VC hierarchy (no-op on headless; the real twins build it).
         realize_tree();
@@ -277,10 +287,30 @@ namespace maui::core
         {
             resolved = maui::controls::shell::get_appearance_for_pivot(*page);
         }
+
+        // The flyout pane WIDTH rides the appearance walk (Shell.FlyoutWidth is an attached property the
+        // GetAppearanceForPivot resolution carries, ShellAppearance.FlyoutWidth). Record it into the tree's
+        // own slot — the C# unset sentinel (-1) is normalized to nullopt ("platform default"). The iOS twin
+        // applies it to the split VC's primary column.
+        std::optional<double> width;
+        if (resolved.has_value())
+        {
+            // Keep the whole optional (avoid an unwrap/rewrap round-trip) once it carries a non-sentinel
+            // value; the C# unset sentinel (-1) and an absent value both stay nullopt ("platform default").
+            if (const std::optional<double> fw = resolved->flyout_width(); fw >= 0.0)
+            {
+                width = fw;
+            }
+        }
+        platform->tree.flyout_width = width;
         platform->tree.applied_appearance = std::move(resolved);
 
         // Push the resolved colors onto the native chrome (no-op on headless; the real twins tint the bars).
         realize_appearance();
+
+        // Re-apply the flyout header/footer sizing now the width is known (the iOS twin pins the footer +
+        // sizes the flyout column; headless no-op). Run after the appearance so flyout_width is populated.
+        realize_flyout();
     }
 
     void shell_handler::rebuild_flyout_rows(maui::controls::shell& host)
@@ -364,6 +394,46 @@ namespace maui::core
         if (auto* host = dynamic_cast<maui::controls::shell*>(&view))
         {
             handler.update_flyout_presented(*host);
+        }
+    }
+
+    void shell_handler::map_flyout_header(shell_handler& handler, i_view& view)
+    {
+        // The header view changed (Shell.FlyoutHeader / FlyoutHeaderTemplate re-resolved): re-record the
+        // resolved view into the tree + re-materialize the header container (iOS) / record it (headless).
+        if (auto* host = dynamic_cast<maui::controls::shell*>(&view))
+        {
+            if (auto* platform = handler.typed_platform_view())
+            {
+                platform->tree.flyout_header = host->flyout_header_view();
+            }
+            handler.realize_flyout();
+        }
+    }
+
+    void shell_handler::map_flyout_footer(shell_handler& handler, i_view& view)
+    {
+        if (auto* host = dynamic_cast<maui::controls::shell*>(&view))
+        {
+            if (auto* platform = handler.typed_platform_view())
+            {
+                platform->tree.flyout_footer = host->flyout_footer_view();
+            }
+            handler.realize_flyout();
+        }
+    }
+
+    void shell_handler::map_flyout_header_behavior(shell_handler& handler, i_view& view)
+    {
+        // The header behavior changed (ShellFlyoutLayoutManager re-evaluates the header positioning): record
+        // it + re-realize the flyout (iOS re-positions the header; headless records the enum).
+        if (auto* host = dynamic_cast<maui::controls::shell*>(&view))
+        {
+            if (auto* platform = handler.typed_platform_view())
+            {
+                platform->tree.header_behavior = host->get_flyout_header_behavior();
+            }
+            handler.realize_flyout();
         }
     }
 

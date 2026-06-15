@@ -13,10 +13,13 @@
 #include <string>
 
 #include "maui/controls/content_page.hpp"
+#include "maui/controls/label.hpp"
+#include "maui/controls/shell/flyout_header_behavior.hpp"
 #include "maui/controls/shell/routing.hpp"
 #include "maui/controls/shell/shell.hpp"
 #include "maui/controls/shell/shell_navigation_state.hpp"
 #include "maui/controls/shell_handler.hpp"
+#include "maui/core/label_handler.hpp"
 #include "maui/graphics/colors.hpp"
 #include "tests/controls/shell_test_base.hpp"
 #include <gtest/gtest.h>
@@ -26,10 +29,12 @@
 namespace
 {
     using maui::controls::content_page;
+    using maui::controls::label;
     using maui::controls::routing;
     using maui::controls::shell;
     using maui::controls::shell_item;
     using maui::controls::shell_navigation_state;
+    using maui::core::label_handler;
     using maui::core::shell_handler;
 
     UISplitViewController* native_controller(const std::shared_ptr<shell_handler>& handler)
@@ -195,5 +200,158 @@ namespace
         // The tab bar's standard appearance carries the EffectiveTabBarBackgroundColor.
         UIColor* const expected_tab = maui::platform::ios::to_ui_color(colors::blue);
         EXPECT_TRUE([tabs.tabBar.standardAppearance.backgroundColor isEqual:expected_tab]);
+    }
+
+    // ---- flyout header / footer / width (U10) ----
+
+    // The flyout drawer view (the primary column's UITableViewController.view) hosting the header/footer.
+    UIView* flyout_drawer_view(const std::shared_ptr<shell_handler>& handler)
+    {
+        UITableViewController* const flyout =
+            (__bridge UITableViewController*)handler->typed_platform_view()->flyout_host;
+        return flyout.viewIfLoaded != nil ? flyout.viewIfLoaded : flyout.view;
+    }
+
+    // The resolved header is materialized in a header container at subview index 0 of the flyout drawer;
+    // the footer is materialized in a clip-to-bounds container added to the drawer. The header container's
+    // content is the header view's native UIView; the footer container clips to bounds.
+    TEST_F(ios_shell_seam, header_and_footer_materialize_with_z_order)
+    {
+        shell sh;
+        build_two_item_shell(sh);
+
+        // Header / footer Views backed by real label native UIViews.
+        auto header = std::make_shared<label>();
+        auto header_handler = std::make_shared<label_handler>();
+        header->set_handler(header_handler);
+        auto footer = std::make_shared<label>();
+        auto footer_handler = std::make_shared<label_handler>();
+        footer->set_handler(footer_handler);
+        sh.set_flyout_header(header);
+        sh.set_flyout_footer(footer);
+
+        auto handler = std::make_shared<shell_handler>();
+        sh.set_handler(handler);
+
+        auto* platform = handler->typed_platform_view();
+        EXPECT_EQ(platform->tree.flyout_header, header.get());
+        EXPECT_EQ(platform->tree.flyout_footer, footer.get());
+
+        // Both containers were retained on the platform.
+        ASSERT_NE(platform->flyout_header_container, nullptr);
+        ASSERT_NE(platform->flyout_footer_container, nullptr);
+
+        UIView* const drawer = flyout_drawer_view(handler);
+        UIView* const header_container = (__bridge UIView*)platform->flyout_header_container;
+        UIView* const footer_container = (__bridge UIView*)platform->flyout_footer_container;
+
+        // The header container is subview index 0 (HeaderIndex), above the content.
+        ASSERT_GT(drawer.subviews.count, 0U);
+        EXPECT_EQ(drawer.subviews[0], header_container);
+        // Both containers are subviews of the drawer.
+        EXPECT_EQ(header_container.superview, drawer);
+        EXPECT_EQ(footer_container.superview, drawer);
+        // The footer container clips to bounds (UIContainerView.ClipsToBounds = true).
+        EXPECT_TRUE(footer_container.clipsToBounds);
+        // The header container hosts the header view's native UIView.
+        UIView* const header_native = (__bridge UIView*)header_handler->native_view();
+        EXPECT_TRUE([header_native isDescendantOfView:header_container]);
+    }
+
+    // Clearing the header after connect tears down the header container (UpdateFlyoutHeader's removal branch).
+    TEST_F(ios_shell_seam, clearing_header_removes_container)
+    {
+        shell sh;
+        build_two_item_shell(sh);
+        auto header = std::make_shared<label>();
+        auto header_handler = std::make_shared<label_handler>();
+        header->set_handler(header_handler);
+        sh.set_flyout_header(header);
+
+        auto handler = std::make_shared<shell_handler>();
+        sh.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform->flyout_header_container, nullptr);
+
+        sh.set_flyout_header(nullptr);
+        EXPECT_EQ(platform->tree.flyout_header, nullptr);
+        EXPECT_EQ(platform->flyout_header_container, nullptr);
+    }
+
+    // The footer container repositions itself to the bottom of the drawer on layout (UpdateFooterPosition),
+    // with the recursion guard preventing infinite layout. After a layout pass the footer's frame sits at
+    // the bottom of the drawer (within its bottom safe area).
+    TEST_F(ios_shell_seam, footer_repositions_to_bottom_on_layout)
+    {
+        shell sh;
+        build_two_item_shell(sh);
+        auto footer = std::make_shared<label>();
+        auto footer_handler = std::make_shared<label_handler>();
+        footer->set_handler(footer_handler);
+        sh.set_flyout_footer(footer);
+
+        auto handler = std::make_shared<shell_handler>();
+        sh.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform->flyout_footer_container, nullptr);
+
+        UIView* const drawer = flyout_drawer_view(handler);
+        UIView* const footer_container = (__bridge UIView*)platform->flyout_footer_container;
+        // Give the drawer + footer concrete sizes, then lay out.
+        drawer.frame = CGRectMake(0, 0, 320, 600);
+        footer_container.frame = CGRectMake(0, 0, 320, 44);
+        [footer_container layoutIfNeeded];
+
+        // The footer is pinned to the bottom: top = drawer.height - footerHeight - bottomSafeArea.
+        const CGFloat expected_top = drawer.bounds.size.height - 44 - drawer.safeAreaInsets.bottom;
+        EXPECT_NEAR(footer_container.frame.origin.y, expected_top, 0.5);
+    }
+
+    // FlyoutWidth (a Shell attached property carried by the appearance walk) sizes the split VC's primary
+    // (flyout) column; nothing set leaves it at the automatic dimension.
+    TEST_F(ios_shell_seam, flyout_width_sizes_primary_column)
+    {
+        shell sh;
+        auto item = std::make_shared<shell_item>();
+        item->set_route("one");
+        item->add(make_simple_shell_section("tabone", "content"));
+        shell::set_flyout_width(*item, 280.0);
+        sh.add_item(item);
+
+        auto handler = std::make_shared<shell_handler>();
+        sh.set_handler(handler);
+
+        auto* platform = handler->typed_platform_view();
+        ASSERT_TRUE(platform->tree.flyout_width.has_value());
+        UISplitViewController* const split = native_controller(handler);
+        EXPECT_NEAR(split.preferredPrimaryColumnWidth, 280.0, 0.5);
+    }
+
+    TEST_F(ios_shell_seam, no_flyout_width_uses_automatic_dimension)
+    {
+        shell sh;
+        build_two_item_shell(sh);
+
+        auto handler = std::make_shared<shell_handler>();
+        sh.set_handler(handler);
+        UISplitViewController* const split = native_controller(handler);
+        EXPECT_EQ(split.preferredPrimaryColumnWidth, UISplitViewControllerAutomaticDimension);
+    }
+
+    // FlyoutHeaderBehavior is recorded into the tree (the Default/Fixed positioning lands; Scroll /
+    // CollapseOnScroll scroll-tracking is the documented follow-up). Setting it updates the mirror.
+    TEST_F(ios_shell_seam, flyout_header_behavior_recorded)
+    {
+        namespace mc = maui::controls;
+        shell sh;
+        build_two_item_shell(sh);
+
+        auto handler = std::make_shared<shell_handler>();
+        sh.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        EXPECT_EQ(platform->tree.header_behavior, mc::flyout_header_behavior::default_behavior);
+
+        sh.set_flyout_header_behavior(mc::flyout_header_behavior::collapse_on_scroll);
+        EXPECT_EQ(platform->tree.header_behavior, mc::flyout_header_behavior::collapse_on_scroll);
     }
 } // namespace

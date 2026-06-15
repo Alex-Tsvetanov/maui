@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "maui/controls/shell/flyout_behavior.hpp"
+#include "maui/controls/shell/flyout_header_behavior.hpp"
 #include "maui/controls/shell/shell_appearance.hpp"
 #include "maui/controls/shell/shell_item.hpp"
 #include "maui/controls/shell/shell_navigated_event_args.hpp"
@@ -42,6 +43,7 @@ namespace maui::controls
 {
     class content_page;
     class search_handler;
+    class data_template;
 
     class shell : public view<maui::core::i_view>
     {
@@ -57,6 +59,8 @@ namespace maui::controls
         // attached here — and Shell.FlyoutIsPresentedProperty).
         static const maui::core::bindable_property<flyout_behavior>& flyout_behavior_property();
         static const maui::core::bindable_property<bool>& flyout_is_presented_property();
+        // Shell.FlyoutHeaderBehaviorProperty (BindingMode.OneTime, default FlyoutHeaderBehavior.Default).
+        static const maui::core::bindable_property<flyout_header_behavior>& flyout_header_behavior_property();
 
         // ---- Items (Shell.Items — owned children) ----
         [[nodiscard]] const std::vector<std::shared_ptr<shell_item>>& items() const
@@ -148,6 +152,59 @@ namespace maui::controls
         [[nodiscard]] flyout_behavior effective_flyout_behavior() const
         {
             return flyout_behavior_.get();
+        }
+
+        // ---- flyout header / footer (Shell.FlyoutHeader/FlyoutFooter + their *Template props) ----
+        // Shell.FlyoutHeader / FlyoutFooter (C# `object`, BindingMode.OneTime). In C# these accept any
+        // object but the renderer uses only `value as View` (ShellTemplatedViewManager.OnViewDataChanged
+        // only applies a header view when no Template is set). The port models the View directly as a
+        // shared_ptr<i_view> (the resolved chrome content); a Template, when set, overrides it. Setting
+        // either re-resolves _flyoutHeaderView/_flyoutFooterView and notifies the handler so the chrome
+        // re-materializes (C# OnFlyoutHeaderChanged → Handler.UpdateValue path via the renderer's
+        // PropertyChanged subscription).
+        void set_flyout_header(std::shared_ptr<maui::core::i_view> value);
+        void set_flyout_footer(std::shared_ptr<maui::core::i_view> value);
+        [[nodiscard]] maui::core::i_view* flyout_header() const
+        {
+            return flyout_header_.get();
+        }
+        [[nodiscard]] maui::core::i_view* flyout_footer() const
+        {
+            return flyout_footer_.get();
+        }
+        // Shell.FlyoutHeaderTemplate / FlyoutFooterTemplate (DataTemplate, BindingMode.OneTime). When set,
+        // the resolved header/footer view is Template.CreateContent() (cast to View) instead of the raw
+        // FlyoutHeader/Footer (ShellTemplatedViewManager.OnViewTemplateChanged). Setting it re-resolves.
+        void set_flyout_header_template(std::shared_ptr<data_template> value);
+        void set_flyout_footer_template(std::shared_ptr<data_template> value);
+        [[nodiscard]] const std::shared_ptr<data_template>& flyout_header_template() const
+        {
+            return flyout_header_template_;
+        }
+        [[nodiscard]] const std::shared_ptr<data_template>& flyout_footer_template() const
+        {
+            return flyout_footer_template_;
+        }
+        // The RESOLVED header/footer view (C# Shell.FlyoutHeaderView / FlyoutFooterView): the
+        // Template.CreateContent() result when a Template is set, else the raw FlyoutHeader/Footer view.
+        // null when nothing resolves. The chrome (the handler rebuild) reads these.
+        [[nodiscard]] maui::core::i_view* flyout_header_view() const
+        {
+            return flyout_header_view_.get();
+        }
+        [[nodiscard]] maui::core::i_view* flyout_footer_view() const
+        {
+            return flyout_footer_view_.get();
+        }
+
+        // Shell.FlyoutHeaderBehavior — how the header behaves on flyout scroll.
+        [[nodiscard]] flyout_header_behavior get_flyout_header_behavior() const
+        {
+            return flyout_header_behavior_.get();
+        }
+        void set_flyout_header_behavior(flyout_header_behavior value)
+        {
+            flyout_header_behavior_.set(value);
         }
 
         // ---- routes (Shell.Route/RouteHost/RouteScheme) ----
@@ -291,11 +348,27 @@ namespace maui::controls
         // BaseShellItem.IsChecked maintenance across the whole tree (Shell.UpdateChecked).
         void update_checked();
 
+        // Re-resolve _flyoutHeaderView from FlyoutHeader / FlyoutHeaderTemplate (ShellTemplatedViewManager:
+        // Template wins, else the raw header view), then notify the handler ("flyout_header"). Same for the
+        // footer ("flyout_footer"). Adds/removes the resolved view as a logical child for context inheritance.
+        void resolve_flyout_header_view();
+        void resolve_flyout_footer_view();
+
         std::vector<std::shared_ptr<shell_item>> items_; // OWNED children
         shell_item* current_item_ = nullptr;             // borrowed view of one items_ entry
         std::optional<shell_navigation_state> current_state_;
         maui::core::property<flyout_behavior> flyout_behavior_{*this, flyout_behavior_property()};
         maui::core::property<bool> flyout_is_presented_{*this, flyout_is_presented_property()};
+        maui::core::property<flyout_header_behavior> flyout_header_behavior_{*this, flyout_header_behavior_property()};
+        // The raw FlyoutHeader / FlyoutFooter views (the `object as View` slot) and their DataTemplates;
+        // flyout_header_view_ / flyout_footer_view_ are the RESOLVED views (Template result or raw view) the
+        // chrome reads. The views are OWNED here (the C# tree keeps them alive as logical children).
+        std::shared_ptr<maui::core::i_view> flyout_header_;
+        std::shared_ptr<maui::core::i_view> flyout_footer_;
+        std::shared_ptr<data_template> flyout_header_template_;
+        std::shared_ptr<data_template> flyout_footer_template_;
+        std::shared_ptr<maui::core::i_view> flyout_header_view_;
+        std::shared_ptr<maui::core::i_view> flyout_footer_view_;
         std::string route_host_ = "shell";
         std::string route_scheme_ = "app";
         // The manager is declared AFTER the state it reads and BEFORE the forwarding tokens, so the
