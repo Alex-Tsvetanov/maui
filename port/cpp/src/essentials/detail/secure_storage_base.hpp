@@ -39,13 +39,38 @@ namespace maui::storage::detail
             platform_remove_all();
         }
 
+        [[nodiscard]] secure_accessible get_default_accessible() const final
+        {
+            return platform_get_default_accessible();
+        }
+
+        void set_default_accessible(secure_accessible accessible) final
+        {
+            platform_set_default_accessible(accessible);
+        }
+
+        void set_async_with_accessible(std::string_view key, std::string_view value, secure_accessible accessible) final
+        {
+            // The C# SetAsync(key, value, accessible) re-runs the same key gate before the keychain.
+            require_secure_storage_key(key);
+            platform_set_async_with_accessible(key, value, accessible);
+        }
+
     protected:
         secure_storage_base() = default;
 
-        // PlatformGetAsync / PlatformSetAsync / PlatformRemove / PlatformRemoveAll.
+        // PlatformGetAsync / PlatformSetAsync / PlatformRemove / PlatformRemoveAll. PlatformSetAsync
+        // is the no-accessible path (C# forwards it to SetAsync with the DefaultAccessible).
         virtual void platform_get_async(std::string_view key, secure_value_callback on_complete) = 0;
         virtual void platform_set_async(std::string_view key, std::string_view value) = 0;
         virtual bool platform_remove(std::string_view key) = 0;
         virtual void platform_remove_all() = 0;
+
+        // The IPlatformSecureStorage hooks: DefaultAccessible get/set and the accessible-taking
+        // SetAsync. (Mirrors the get_async -> platform_get_async forwarding pattern.)
+        [[nodiscard]] virtual secure_accessible platform_get_default_accessible() const = 0;
+        virtual void platform_set_default_accessible(secure_accessible accessible) = 0;
+        virtual void platform_set_async_with_accessible(std::string_view key, std::string_view value,
+                                                        secure_accessible accessible) = 0;
     };
 } // namespace maui::storage::detail

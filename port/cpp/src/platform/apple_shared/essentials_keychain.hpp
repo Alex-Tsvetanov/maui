@@ -6,9 +6,12 @@
 //     SecureStorageImplementation.Alias ("{PackageName}.microsoft.maui.essentials.preferences").
 //   * ValueForKey: SecItemCopyMatching (one record, return-data); not-found reads as nullopt.
 //   * SetValueForKey: an existing record is removed first, then SecItemAdd with label = key and
-//     kSecAttrAccessible = AfterFirstUnlock (the C# DefaultAccessible default - the SecAccessible
-//     knob itself is not ported); errSecDuplicateItem retries remove+add once; any other failure
-//     throws std::runtime_error("Error adding record: <code>").
+//     kSecAttrAccessible = the active SecAccessible (the stored DefaultAccessible, after_first_unlock
+//     by default, or the explicit value from set_async_with_accessible - the C# `new KeyChain(accessible)`
+//     per call); errSecDuplicateItem retries remove+add once; any other failure throws
+//     std::runtime_error("Error adding record: <code>").
+//   * DefaultAccessible (IPlatformSecureStorage): a stored accessible_ member; set_async uses it,
+//     set_async_with_accessible overrides it for one call. secure_accessible maps to kSecAttrAccessible*.
 //   * Remove: query-then-SecItemDelete, true only when the record existed.
 //   * RemoveAll: SecItemDelete over class+service.
 // Included by src/platform/{apple,ios}/essentials_secure_storage.mm (the .mm provides
@@ -24,6 +27,7 @@
 #include <utility>
 
 #include "maui/essentials/preferences.hpp" // private_preferences_shared_name (the Alias)
+#include "maui/essentials/secure_accessible.hpp"
 #include "maui/essentials/secure_storage.hpp"
 
 #include "src/essentials/detail/secure_storage_base.hpp"
@@ -46,6 +50,42 @@ namespace maui::storage::apple_shared
             query[(__bridge NSString*)kSecAttrService] = service;
             return query;
         }
+
+        // secure_accessible -> kSecAttrAccessible* (Security.SecAccessible -> the CFString constant
+        // the C# binding wraps). The invalid sentinel has no constant; fall back to the
+        // SecureStorage default (after_first_unlock), matching the C# default knob. `always` /
+        // `always_this_device_only` map to constants Apple deprecated in 10.14 - the C# SecAccessible
+        // binding keeps those members too, so the mapping preserves them and silences the SDK
+        // deprecation locally (the value is the user's explicit choice, not our default).
+        inline CFStringRef accessible_constant(secure_accessible accessible)
+        {
+            switch (accessible)
+            {
+                case secure_accessible::when_unlocked:
+                    return kSecAttrAccessibleWhenUnlocked;
+                case secure_accessible::after_first_unlock:
+                    return kSecAttrAccessibleAfterFirstUnlock;
+                case secure_accessible::always:
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+                    return kSecAttrAccessibleAlways;
+#pragma clang diagnostic pop
+                case secure_accessible::when_unlocked_this_device_only:
+                    return kSecAttrAccessibleWhenUnlockedThisDeviceOnly;
+                case secure_accessible::after_first_unlock_this_device_only:
+                    return kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly;
+                case secure_accessible::always_this_device_only:
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+                    return kSecAttrAccessibleAlwaysThisDeviceOnly;
+#pragma clang diagnostic pop
+                case secure_accessible::when_passcode_set_this_device_only:
+                    return kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly;
+                case secure_accessible::invalid:
+                    break;
+            }
+            return kSecAttrAccessibleAfterFirstUnlock;
+        }
     } // namespace keychain_detail
 
     class keychain_secure_storage final : public detail::secure_storage_base
@@ -66,27 +106,25 @@ namespace maui::storage::apple_shared
 
         void platform_set_async(std::string_view key, std::string_view value) override
         {
-            // C# SetValueForKey: an empty value only removes the record.
-            if (value_for_key(key).has_value())
-            {
-                remove_record(key);
-            }
-            if (value.empty())
-            {
-                return;
-            }
+            // C# PlatformSetAsync -> SetAsync(key, value, DefaultAccessible).
+            set_value_for_key(key, value, accessible_);
+        }
 
-            OSStatus result = add_record(key, value);
-            if (result == errSecDuplicateItem)
-            {
-                // "Duplicate item found. Attempting to remove and add again."
-                remove_record(key);
-                result = add_record(key, value);
-            }
-            if (result != errSecSuccess)
-            {
-                throw std::runtime_error("Error adding record: " + std::to_string(result));
-            }
+        void platform_set_async_with_accessible(std::string_view key, std::string_view value,
+                                                secure_accessible accessible) override
+        {
+            // C# SetAsync(key, value, accessible) -> new KeyChain(accessible).SetValueForKey(...).
+            set_value_for_key(key, value, accessible);
+        }
+
+        [[nodiscard]] secure_accessible platform_get_default_accessible() const override
+        {
+            return accessible_;
+        }
+
+        void platform_set_default_accessible(secure_accessible accessible) override
+        {
+            accessible_ = accessible;
         }
 
         bool platform_remove(std::string_view key) override
@@ -126,13 +164,40 @@ namespace maui::storage::apple_shared
             return utf8 != nullptr ? std::optional<std::string>(utf8) : std::optional<std::string>(std::string());
         }
 
-        [[nodiscard]] OSStatus add_record(std::string_view key, std::string_view value) const
+        // C# KeyChain.SetValueForKey over a per-call accessible (the C# `new KeyChain(accessible)`).
+        void set_value_for_key(std::string_view key, std::string_view value, secure_accessible accessible)
+        {
+            // C# SetValueForKey: an existing record is removed first (an empty value only removes).
+            if (value_for_key(key).has_value())
+            {
+                remove_record(key);
+            }
+            if (value.empty())
+            {
+                return;
+            }
+
+            OSStatus result = add_record(key, value, accessible);
+            if (result == errSecDuplicateItem)
+            {
+                // "Duplicate item found. Attempting to remove and add again."
+                remove_record(key);
+                result = add_record(key, value, accessible);
+            }
+            if (result != errSecSuccess)
+            {
+                throw std::runtime_error("Error adding record: " + std::to_string(result));
+            }
+        }
+
+        [[nodiscard]] OSStatus add_record(std::string_view key, std::string_view value,
+                                          secure_accessible accessible) const
         {
             // CreateRecordForNewKeyValue: account/service/label/accessible/value-data.
             NSMutableDictionary* const record = keychain_detail::record_query(key, service_);
             record[(__bridge NSString*)kSecAttrLabel] = keychain_detail::to_ns_string(key);
             record[(__bridge NSString*)kSecAttrAccessible] =
-                (__bridge NSString*)kSecAttrAccessibleAfterFirstUnlock; // the C# DefaultAccessible
+                (__bridge NSString*)keychain_detail::accessible_constant(accessible);
             record[(__bridge NSString*)kSecValueData] = [NSData dataWithBytes:value.data() length:value.size()];
             return SecItemAdd((__bridge CFDictionaryRef)record, nullptr);
         }
@@ -148,5 +213,7 @@ namespace maui::storage::apple_shared
         }
 
         NSString* service_;
+        // C# `DefaultAccessible { get; set; } = SecAccessible.AfterFirstUnlock;`.
+        secure_accessible accessible_ = secure_accessible::after_first_unlock;
     };
 } // namespace maui::storage::apple_shared

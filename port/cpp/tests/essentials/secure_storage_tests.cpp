@@ -2,7 +2,10 @@
 // netstandard partial (Essentials.UnitTests SecureStorage_Tests: get/set fail); the shared-
 // partial key validation throws std::invalid_argument for blank keys on EVERY backend; the
 // configured fake runs the DeviceTests SecureStorage_Tests behavior suite (saves/loads, saves
-// the same key twice, missing key reads null, remove, remove-all).
+// the same key twice, missing key reads null, remove, remove-all). The IPlatformSecureStorage knob
+// (DefaultAccessible + the accessible-taking SetAsync, from SecureStorage.ios.tvos.watchos.macos.cs)
+// is verified through the fake's accessible_for() seam: the default is after_first_unlock, set
+// persists, the overload overrides for one op, and a changed default flows to later plain sets.
 
 #include <array>
 #include <memory>
@@ -15,6 +18,7 @@
 #include <utility>
 
 #include "maui/essentials/feature_not_supported.hpp"
+#include "maui/essentials/secure_accessible.hpp"
 #include "maui/essentials/secure_storage.hpp"
 
 #include "src/platform/headless/essentials_appmodel_fakes.hpp"
@@ -128,5 +132,55 @@ namespace
         secure_storage::remove_all();
         EXPECT_EQ(get("KEYS_TO_REMOVEA1"), std::nullopt);
         EXPECT_EQ(get("KEYS_TO_REMOVEA2"), std::nullopt);
+    }
+
+    // C# `DefaultAccessible { get; set; } = SecAccessible.AfterFirstUnlock;` - the default value.
+    TEST_F(secure_storage_test, default_accessible_is_after_first_unlock)
+    {
+        install_configured();
+        EXPECT_EQ(secure_storage::get_default_accessible(), secure_accessible::after_first_unlock);
+    }
+
+    // DefaultAccessible setter persists.
+    TEST_F(secure_storage_test, set_default_accessible_persists)
+    {
+        install_configured();
+        secure_storage::set_default_accessible(secure_accessible::when_unlocked_this_device_only);
+        EXPECT_EQ(secure_storage::get_default_accessible(), secure_accessible::when_unlocked_this_device_only);
+    }
+
+    // SetAsync(key, value, accessible) uses the explicit value, not the default.
+    TEST_F(secure_storage_test, set_async_with_accessible_overrides_default)
+    {
+        auto fake = install_configured();
+        secure_storage::set_async_with_accessible("k", "v", secure_accessible::when_passcode_set_this_device_only);
+        EXPECT_EQ(get("k"), "v");
+        EXPECT_EQ(fake->accessible_for("k"), secure_accessible::when_passcode_set_this_device_only);
+        // The default is untouched by the per-op override.
+        EXPECT_EQ(secure_storage::get_default_accessible(), secure_accessible::after_first_unlock);
+    }
+
+    // After changing the default, a plain SetAsync records the new default.
+    TEST_F(secure_storage_test, plain_set_async_uses_current_default)
+    {
+        auto fake = install_configured();
+        secure_storage::set_async("a", "1");
+        EXPECT_EQ(fake->accessible_for("a"), secure_accessible::after_first_unlock);
+
+        secure_storage::set_default_accessible(secure_accessible::when_unlocked);
+        secure_storage::set_async("b", "2");
+        EXPECT_EQ(fake->accessible_for("b"), secure_accessible::when_unlocked);
+        // The earlier key keeps the accessible it was stored with.
+        EXPECT_EQ(fake->accessible_for("a"), secure_accessible::after_first_unlock);
+    }
+
+    // The accessible-taking SetAsync re-runs the shared blank-key gate (C# SetAsync throws first).
+    TEST_F(secure_storage_test, set_async_with_accessible_validates_key)
+    {
+        install_configured();
+        EXPECT_THROW(secure_storage::set_async_with_accessible("", "v", secure_accessible::when_unlocked),
+                     std::invalid_argument);
+        EXPECT_THROW(secure_storage::set_async_with_accessible("  ", "v", secure_accessible::when_unlocked),
+                     std::invalid_argument);
     }
 } // namespace

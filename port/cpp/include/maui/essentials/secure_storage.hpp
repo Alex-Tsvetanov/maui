@@ -12,9 +12,13 @@
 // key (ArgumentNullException -> std::invalid_argument; a key is "blank" when empty or
 // whitespace-only). The C# null-value SetAsync throw cannot arise (string_view is a value).
 //
-// Apple specifics not ported: IPlatformSecureStorage.DefaultAccessible (the SecAccessible knob) -
-// the keychain partials hardcode C#'s default kSecAttrAccessibleAfterFirstUnlock; the
-// SecAccessible-taking SetAsync overload collapses onto the plain one.
+// Apple IPlatformSecureStorage ported: DefaultAccessible (the SecAccessible knob) becomes
+// get/set_default_accessible, and the SecAccessible-taking SetAsync overload becomes
+// set_async_with_accessible. C# guards both behind #if IOS||MACCATALYST||..., but the port keeps
+// them unconditional so the headless fake can be tested and the (deferred) Android backend still
+// compiles. Apple/macOS + ios map secure_accessible -> kSecAttrAccessible* on the real keychain;
+// the headless fake stores the value (it has no keychain) and mirrors the default
+// (after_first_unlock); Android, when it lands, will no-op them (its backend has no SecAccessible).
 //
 // Backends (suffix oracle): apple/macOS + ios REAL (SecureStorage.ios.tvos.watchos.macos.cs -
 // keychain GenericPassword records; service = the SecureStorageImplementation.Alias
@@ -28,6 +32,7 @@
 #include <utility>
 
 #include "maui/core/move_only_function.hpp"
+#include "maui/essentials/secure_accessible.hpp"
 
 namespace maui::storage
 {
@@ -47,6 +52,16 @@ namespace maui::storage
         virtual bool remove(std::string_view key) = 0;
         // RemoveAll: drop every stored pair.
         virtual void remove_all() = 0;
+
+        // IPlatformSecureStorage.DefaultAccessible (get): the SecAccessible new keychain records are
+        // created with when set_async carries no explicit accessible. Default is after_first_unlock.
+        [[nodiscard]] virtual secure_accessible get_default_accessible() const = 0;
+        // IPlatformSecureStorage.DefaultAccessible (set).
+        virtual void set_default_accessible(secure_accessible accessible) = 0;
+        // IPlatformSecureStorage.SetAsync(key, value, accessible): store the value with this
+        // accessible instead of the default (completes inline; throws inline on errors).
+        virtual void set_async_with_accessible(std::string_view key, std::string_view value,
+                                               secure_accessible accessible) = 0;
 
     protected:
         i_secure_storage() = default;
@@ -88,6 +103,22 @@ namespace maui::storage
         static void remove_all()
         {
             default_().remove_all();
+        }
+
+        // SecureStorage.DefaultAccessible (get/set) - the C# static property over Current.
+        [[nodiscard]] static secure_accessible get_default_accessible()
+        {
+            return default_().get_default_accessible();
+        }
+        static void set_default_accessible(secure_accessible accessible)
+        {
+            default_().set_default_accessible(accessible);
+        }
+        // SecureStorage.SetAsync(key, value, accessible).
+        static void set_async_with_accessible(std::string_view key, std::string_view value,
+                                              secure_accessible accessible)
+        {
+            default_().set_async_with_accessible(key, value, accessible);
         }
 
         // SecureStorage.Default (lazy platform default) + SetDefault (the C# internal test seam

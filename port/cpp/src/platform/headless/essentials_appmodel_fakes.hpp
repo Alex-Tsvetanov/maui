@@ -43,6 +43,7 @@
 #include "maui/essentials/main_thread.hpp"
 #include "maui/essentials/permissions.hpp"
 #include "maui/essentials/preferences.hpp"
+#include "maui/essentials/secure_accessible.hpp"
 #include "maui/essentials/secure_storage.hpp"
 
 #include "src/essentials/detail/app_actions_base.hpp"
@@ -226,13 +227,24 @@ namespace maui::storage
 
     // SecureStorageImplementation (netstandard): every platform hook throws - until configure()
     // flips the fake into a working in-memory keychain twin (the shared key validation in
-    // secure_storage_base runs for real either way).
+    // secure_storage_base runs for real either way). DefaultAccessible is mirrored as a plain field
+    // (the C# get/set property); the fake has no keychain so the SecAccessible never reaches a real
+    // record - it only records, per stored key, which accessible the set used, so the
+    // IPlatformSecureStorage paths can be exercised headless.
     class headless_secure_storage final : public detail::secure_storage_base
     {
     public:
         void configure()
         {
             configured_ = true;
+        }
+
+        // Test seam (no C# analog): the accessible the value at `key` was last stored with, so the
+        // headless suite can verify set_async vs set_async_with_accessible without a real keychain.
+        [[nodiscard]] std::optional<secure_accessible> accessible_for(std::string_view key) const
+        {
+            const auto entry = accessibles_.find(std::string(key));
+            return entry == accessibles_.end() ? std::nullopt : std::optional<secure_accessible>(entry->second);
         }
 
     protected:
@@ -245,13 +257,30 @@ namespace maui::storage
 
         void platform_set_async(std::string_view key, std::string_view value) override
         {
-            require_configured();
-            values_[std::string(key)] = std::string(value);
+            // C# PlatformSetAsync -> SetAsync(key, value, DefaultAccessible).
+            store(key, value, accessible_);
+        }
+
+        void platform_set_async_with_accessible(std::string_view key, std::string_view value,
+                                                secure_accessible accessible) override
+        {
+            store(key, value, accessible);
+        }
+
+        [[nodiscard]] secure_accessible platform_get_default_accessible() const override
+        {
+            return accessible_;
+        }
+
+        void platform_set_default_accessible(secure_accessible accessible) override
+        {
+            accessible_ = accessible;
         }
 
         bool platform_remove(std::string_view key) override
         {
             require_configured();
+            accessibles_.erase(std::string(key));
             return values_.erase(std::string(key)) > 0;
         }
 
@@ -259,9 +288,17 @@ namespace maui::storage
         {
             require_configured();
             values_.clear();
+            accessibles_.clear();
         }
 
     private:
+        void store(std::string_view key, std::string_view value, secure_accessible accessible)
+        {
+            require_configured();
+            values_[std::string(key)] = std::string(value);
+            accessibles_[std::string(key)] = accessible;
+        }
+
         void require_configured() const
         {
             if (!configured_)
@@ -271,7 +308,10 @@ namespace maui::storage
         }
 
         bool configured_ = false;
+        // C# `DefaultAccessible { get; set; } = SecAccessible.AfterFirstUnlock;`.
+        secure_accessible accessible_ = secure_accessible::after_first_unlock;
         std::map<std::string, std::string> values_;
+        std::map<std::string, secure_accessible> accessibles_;
     };
 
     // FileSystemImplementation (netstandard): every member throws - until the directories / the
