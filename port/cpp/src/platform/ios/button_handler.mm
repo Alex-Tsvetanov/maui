@@ -8,8 +8,11 @@
 // CreatePlatformView = UIButton(UIButtonType.System) + SetControlPropertiesFromProxy; ButtonEventProxy's
 // TouchDown → Pressed, TouchUpInside → Released + Clicked, TouchUpOutside/TouchCancel → Released;
 // UpdateText/UpdateTextColor/UpdateCharacterSpacing/UpdateFont/UpdatePadding/UpdateStroke* as the map_*
-// bodies below. Not ported here (deferred to the M6 fan-out): NeedsContainer/WrapperView (the port has
-// no container infrastructure on any backend yet), MapImageSource (the button image part), and the
+// bodies below; MapImageSource (the button image part) loads through the handler-owned source loader and
+// applies via ButtonImageSourcePartSetter.SetImageSource = AlwaysOriginal + SetImage(Normal) +
+// LayoutIfNeeded (ButtonHandler.iOS.cs:216-231). Not ported here (deferred to the M6 fan-out):
+// NeedsContainer/WrapperView (the port has no container infrastructure on any backend yet), the
+// ContentLayout text+image composition (UpdateContentLayout — needs the container), and the
 // Mac-Catalyst-only UIButtonConfiguration branches of MapBackground/MapTextColor.
 
 #import <UIKit/UIKit.h>
@@ -25,7 +28,10 @@
 #include "ios_text_ops.hpp"
 #include "maui/core/button_handler.hpp"
 #include "maui/core/i_button.hpp"
+#include "maui/core/i_image_source.hpp"
 #include "maui/core/i_text_button.hpp"
+#include "maui/core/image_source_loader.hpp"
+#include "maui/core/image_source_result.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
@@ -120,6 +126,41 @@ namespace
 
     using maui::platform::ios::to_ui_color;
     using maui::platform::ios::to_ui_font;
+
+    UIImage* load_image_from_file(std::string_view path)
+    {
+        const std::string file(path);
+        NSString* const raw = [NSString stringWithUTF8String:file.c_str()];
+        if (raw == nil)
+        {
+            return nil;
+        }
+        // ImageSourceExtensions.GetPlatformImage: UIImage.FromBundle(name) ?? UIImage.FromFile(file).
+        UIImage* const bundled = [UIImage imageNamed:raw];
+        return bundled != nil ? bundled : [UIImage imageWithContentsOfFile:raw];
+    }
+
+    std::string platform_cache_directory()
+    {
+        NSArray<NSString*>* const paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+        if (paths.count == 0)
+        {
+            return {};
+        }
+        NSString* const dir = [paths objectAtIndex:0];
+        const char* const utf8 = dir.UTF8String;
+        return utf8 != nullptr ? std::string(utf8) : std::string();
+    }
+
+    // ButtonHandler.iOS.cs ButtonImageSourcePartSetter.SetImageSource: force AlwaysOriginal rendering,
+    // SetImage(Normal), then LayoutIfNeeded — "UIButton.SetImage does not immediately assign to
+    // ImageView.Image; it is applied only at render, so force a layout to keep SizeThatFits correct."
+    void set_button_image(UIButton* button, UIImage* image)
+    {
+        UIImage* const resolved = [image imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+        [button setImage:resolved forState:UIControlStateNormal];
+        [button layoutIfNeeded];
+    }
 } // namespace
 
 namespace maui::core
@@ -387,5 +428,41 @@ namespace maui::core
             return;
         }
         [as_button(platform->native) setFrame:CGRectMake(frame.x, frame.y, frame.width, frame.height)];
+    }
+
+    // ---- per-backend image-source primitives (the cross-platform map_image_source routes here) ----
+
+    // iOS loader wiring: the on-disk uri cache (the async http(s) fetch stays with image_handler —
+    // matching the image_button_handler.mm deviation).
+    void button_handler::configure_loader(maui::core::image_source_loader& loader)
+    {
+        loader.set_disk_cache_directory(platform_cache_directory());
+    }
+
+    void button_handler::load_file_source_sync(button_platform& platform, const i_file_image_source& file_src)
+    {
+        if (platform.native == nullptr)
+        {
+            return;
+        }
+        set_button_image(as_button(platform.native), load_image_from_file(file_src.file()));
+    }
+
+    void button_handler::apply_loaded_result(button_platform& platform, const image_source_result& result)
+    {
+        if (platform.native == nullptr)
+        {
+            return;
+        }
+        set_button_image(as_button(platform.native), result.loaded() ? (__bridge UIImage*)result.image() : nil);
+    }
+
+    void button_handler::clear_source_native(button_platform& platform)
+    {
+        if (platform.native == nullptr)
+        {
+            return;
+        }
+        [as_button(platform.native) setImage:nil forState:UIControlStateNormal];
     }
 } // namespace maui::core

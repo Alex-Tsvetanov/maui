@@ -21,6 +21,8 @@
 
 #include "ios_text_ops.hpp"
 #include "maui/controls/button.hpp"
+#include "maui/controls/button_content_layout.hpp"
+#include "maui/controls/file_image_source.hpp"
 #include "maui/core/button_handler.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/handler_registry.hpp"
@@ -33,6 +35,8 @@
 namespace
 {
     using maui::controls::button;
+    using maui::controls::button_content_layout;
+    using maui::controls::image_source;
     using maui::core::button_handler;
     using maui::core::i_element_handler;
     using maui::platform::ios::kerning_of;
@@ -72,6 +76,40 @@ namespace
                 [invocation setArgument:&sender atIndex:2]; // 0 = self, 1 = _cmd, 2 = the sender
                 [invocation invokeWithTarget:target];
             }
+        }
+    }
+
+    // Writes a tiny 2x2 PNG to a unique path under NSTemporaryDirectory() (the image test convention).
+    std::string write_temp_png()
+    {
+        UIGraphicsImageRendererFormat* const format = [[UIGraphicsImageRendererFormat alloc] init];
+        format.opaque = NO;
+        format.scale = 1;
+        UIGraphicsImageRenderer* const renderer = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(2, 2)
+                                                                                         format:format];
+        UIImage* const image = [renderer imageWithActions:^(UIGraphicsImageRendererContext* context) {
+          [[UIColor colorWithRed:0 green:0 blue:1 alpha:1] setFill];
+          [context fillRect:CGRectMake(0, 0, 2, 2)];
+        }];
+        NSData* const png = image != nil ? UIImagePNGRepresentation(image) : nil;
+        if (png == nil)
+        {
+            return {};
+        }
+        NSString* const name = [NSString stringWithFormat:@"maui_button_image_test_%@.png", [[NSUUID UUID] UUIDString]];
+        NSString* const path = [NSTemporaryDirectory() stringByAppendingPathComponent:name];
+        if (![png writeToFile:path atomically:YES])
+        {
+            return {};
+        }
+        return to_std_string(path);
+    }
+
+    void remove_file(const std::string& path)
+    {
+        if (!path.empty())
+        {
+            [[NSFileManager defaultManager] removeItemAtPath:@(path.c_str()) error:nil];
         }
     }
 
@@ -359,5 +397,89 @@ namespace
         control.set_handler(handler);
         auto const button_view = (__bridge UIButton*)resolved->typed_platform_view()->native;
         EXPECT_EQ(to_std_string(button_view.currentTitle), "Registered");
+    }
+
+    // ---- the image surface (ButtonHandler.MapImageSource → SetImage(Normal) + LayoutIfNeeded) ----
+
+    TEST(ios_button_seam, file_image_source_loads_into_the_normal_state_image)
+    {
+        const std::string path = write_temp_png();
+        ASSERT_FALSE(path.empty());
+
+        button control;
+        control.set_image_source(image_source::from_file(path));
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        UIButton* const view = native_button(handler);
+        // ButtonImageSourcePartSetter.SetImageSource: SetImage(..., Normal).
+        EXPECT_NE([view imageForState:UIControlStateNormal], nil);
+        remove_file(path);
+    }
+
+    TEST(ios_button_seam, set_image_applies_always_original_rendering_mode)
+    {
+        const std::string path = write_temp_png();
+        ASSERT_FALSE(path.empty());
+
+        button control;
+        control.set_image_source(image_source::from_file(path));
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        UIImage* const set = [native_button(handler) imageForState:UIControlStateNormal];
+        ASSERT_NE(set, nil);
+        // ImageWithRenderingMode(AlwaysOriginal): the iOS-only step the AppKit twin omits.
+        EXPECT_EQ(set.renderingMode, UIImageRenderingModeAlwaysOriginal);
+        remove_file(path);
+    }
+
+    TEST(ios_button_seam, set_image_forces_layout_so_size_that_fits_grows)
+    {
+        // LayoutIfNeeded after SetImage is required: UIButton applies the image only at render, so
+        // SizeThatFits would not reflect it without the forced layout (ButtonHandler.iOS.cs:225-229).
+        const std::string path = write_temp_png();
+        ASSERT_FALSE(path.empty());
+
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        UIButton* const view = native_button(handler);
+        const CGSize before = [view sizeThatFits:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX)];
+
+        control.set_image_source(image_source::from_file(path));
+        const CGSize after = [view sizeThatFits:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX)];
+        // The 2x2 image adds to the empty button's fitted size once the forced layout takes effect.
+        EXPECT_GT(after.width, before.width);
+        remove_file(path);
+    }
+
+    TEST(ios_button_seam, clearing_image_source_removes_the_normal_state_image)
+    {
+        const std::string path = write_temp_png();
+        ASSERT_FALSE(path.empty());
+
+        button control;
+        control.set_image_source(image_source::from_file(path));
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        UIButton* const view = native_button(handler);
+        ASSERT_NE([view imageForState:UIControlStateNormal], nil);
+
+        control.set_image_source(nullptr);
+        EXPECT_EQ([view imageForState:UIControlStateNormal], nil);
+        remove_file(path);
+    }
+
+    TEST(ios_button_seam, content_layout_is_stored_and_pushes_without_crashing)
+    {
+        // ContentLayout is stored + pushed (the text+image composition is deferred — no container infra).
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        control.set_content_layout(button_content_layout{button_content_layout::image_position::right, 6.0});
+        EXPECT_EQ(control.content_layout().position, button_content_layout::image_position::right);
+        EXPECT_EQ(control.content_layout().spacing, 6.0);
     }
 } // namespace

@@ -3,9 +3,14 @@
 
 #include "maui/core/button_handler.hpp"
 
+#include <utility>
+
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/i_button.hpp"
+#include "maui/core/i_image_source.hpp"
 #include "maui/core/i_text_button.hpp"
+#include "maui/core/image_source_loader.hpp"
+#include "maui/core/image_source_result.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/view_handler.hpp"
 #include "maui/core/view_mapper.hpp"
@@ -24,11 +29,23 @@ namespace maui::core
         return table;
     }
 
-    // The button's own mapper (padding + the i_button_stroke border), chained onto BOTH the shared
-    // view_mapper (the generic IView properties) and the text mapper — mirroring C# ButtonHandler.Mapper
-    // chaining TextButtonMapper, which ultimately chains ViewHandler.ViewMapper. The chain is ordered so
-    // the generic IView keys run first (keys() walks the chain in reverse), then the text keys, then the
-    // button's own keys; no keys collide across the three mappers. ImageButtonMapper is still deferred.
+    // The cross-platform ImageButtonMapper (C# ButtonHandler.ImageButtonMapper, [Source] → MapImageSource)
+    // plus the controls-side ContentLayout remap (Button.Mapper.cs MapContentLayout). Keyed on
+    // i_text_button — the narrow seam (Button is not an i_image): map_image_source reads view.image_source().
+    property_mapper<i_text_button, button_handler>& button_handler::image_mapper()
+    {
+        static property_mapper<i_text_button, button_handler> table{
+            {"source", &button_handler::map_image_source},
+            {"content_layout", &button_handler::map_content_layout},
+        };
+        return table;
+    }
+
+    // The button's own mapper (padding + the i_button_stroke border), chained onto the shared view_mapper
+    // (the generic IView properties), the text mapper, and the image mapper — mirroring C#
+    // ButtonHandler.Mapper(TextButtonMapper, ImageButtonMapper, ViewHandler.ViewMapper). The chain is
+    // ordered so the generic IView keys run first (keys() walks the chain in reverse), then the image keys,
+    // then the text keys, then the button's own keys; no keys collide across the four mappers.
     property_mapper<i_button, button_handler>& button_handler::mapper()
     {
         static property_mapper<i_button, button_handler> table = [] {
@@ -38,12 +55,56 @@ namespace maui::core
                 {"stroke_thickness", &button_handler::map_stroke_thickness},
                 {"corner_radius", &button_handler::map_corner_radius},
             };
-            // Reverse-order iteration in keys() means the LAST chained mapper's keys come first, so
-            // listing text_mapper then view_mapper yields: view (generic IView) keys, then text keys.
-            mapped.set_chained({&text_mapper(), &view_mapper()});
+            // Reverse-order iteration in keys() means the LAST chained mapper's keys come first, so listing
+            // image_mapper then text_mapper then view_mapper yields: view (generic IView) keys, then text
+            // keys, then image keys (C# lists TextButtonMapper, ImageButtonMapper, ViewMapper — same set).
+            mapped.set_chained({&image_mapper(), &text_mapper(), &view_mapper()});
             return mapped;
         }();
         return table;
+    }
+
+    // Cross-platform source routing — image_handler::map_source's twin over the button platform primitives
+    // (ButtonHandler.MapImageSource → MapImageSourceAsync → ImageSourceLoader.UpdateImageSourceAsync): the
+    // file fast-path is synchronous; every other source (uri/stream/font) goes through the handler-owned
+    // loader (async, with the source-identity recheck); a null/empty source cancels + clears.
+    void button_handler::map_image_source(button_handler& handler, i_text_button& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+
+        i_image_source* const src = view.image_source();
+        if (src == nullptr || src->is_empty())
+        {
+            handler.image_source_loader_.update_source(nullptr, nullptr);
+            clear_source_native(*platform);
+            return;
+        }
+
+        if (const auto* file_src = dynamic_cast<const i_file_image_source*>(src))
+        {
+            handler.image_source_loader_.update_source(nullptr, nullptr);
+            load_file_source_sync(*platform, *file_src);
+            return;
+        }
+
+        handler.image_source_loader_.update_source(
+            src, [platform](const image_source_result& result) { apply_loaded_result(*platform, result); });
+    }
+
+    // ContentLayout (Button.Mapper.cs MapContentLayout → UpdateContentLayout): the port stores + pushes it
+    // but defers the text+image composition (no container infra), so the cross-platform mapper just records
+    // a push for tests to observe. A real UpdateContentLayout (image positioning + spacing) lands when the
+    // container subsystem does (see button_handler.hpp / the iOS partial header).
+    void button_handler::map_content_layout(button_handler& handler, i_text_button& /*view*/)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            ++platform->content_layout_push_count;
+        }
     }
 
     // No button-specific commands beyond the (currently empty) view command set. The type must be
@@ -56,5 +117,7 @@ namespace maui::core
 
     button_handler::button_handler() : view_handler(&mapper(), &command_mapper())
     {
+        // Per-backend loader wiring (the image_handler convention; headless leaves the defaults).
+        configure_loader(image_source_loader_);
     }
 } // namespace maui::core

@@ -23,7 +23,10 @@
 
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/i_button.hpp"
+#include "maui/core/i_image_source.hpp"
 #include "maui/core/i_text_button.hpp"
+#include "maui/core/image_source_loader.hpp"
+#include "maui/core/image_source_result.hpp"
 #include "maui/core/move_only_function.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/thickness.hpp"
@@ -63,6 +66,14 @@ namespace maui::core
         maui::graphics::color stroke_color;
         double stroke_thickness = 0;
         int corner_radius = 0;
+        // Image-source mirrors (the image_platform convention copied here so the headless tests observe a
+        // load): kind/file/loaded after map_image_source pushes the source. content_layout_push_count
+        // counts map_content_layout invocations — the port stores + pushes ContentLayout but defers the
+        // text+image composition (no container infra), so the count is all a test can observe.
+        std::string source_kind;
+        std::string source_file;
+        bool source_loaded = false;
+        int content_layout_push_count = 0;
         move_only_function<void()> on_click;
         move_only_function<void()> on_press;
         move_only_function<void()> on_release;
@@ -129,9 +140,15 @@ namespace maui::core
         button_handler();
 
         // Shared mapper tables (cross-platform — defined in button_handler.cpp). `mapper` chains the
-        // text mapper, mirroring ButtonHandler.Mapper chaining TextButtonMapper.
+        // text mapper + the image mapper, mirroring ButtonHandler.Mapper chaining TextButtonMapper +
+        // ImageButtonMapper.
         static property_mapper<i_button, button_handler>& mapper();
         static property_mapper<i_text_button, button_handler>& text_mapper();
+        // C# ButtonHandler.ImageButtonMapper — PropertyMapper<IImage, IButtonHandler> keyed on the image
+        // source ([Source] → MapImageSource) plus the controls-side ContentLayout remap (Button.Mapper.cs's
+        // MapContentLayout). Keyed on i_text_button (Button's virtual view, which carries image_source()):
+        // the diamond-free narrow seam (Button is not an i_image — see i_text_button.hpp).
+        static property_mapper<i_text_button, button_handler>& image_mapper();
         static command_mapper<i_button, button_handler>& command_mapper();
 
         // Platform recipe (defined per backend: src/platform/<backend>/button_handler.{cpp,mm}).
@@ -157,5 +174,32 @@ namespace maui::core
         static void map_stroke_color(button_handler& handler, i_button& view);
         static void map_stroke_thickness(button_handler& handler, i_button& view);
         static void map_corner_radius(button_handler& handler, i_button& view);
+
+        // Cross-platform image-source routing (ButtonHandler.MapImageSource → MapImageSourceAsync →
+        // ImageSourceLoader.UpdateImageSourceAsync). Defined in button_handler.cpp: the file fast-path is
+        // synchronous; every other source goes through the handler-owned loader (async, with the
+        // source-identity recheck); a null/empty source cancels + clears — image_handler::map_source's twin.
+        static void map_image_source(button_handler& handler, i_text_button& view);
+        // ContentLayout (Button.Mapper.cs MapContentLayout → UpdateContentLayout): stored + pushed only —
+        // the text+image composition is deferred (no container infra). Records a push on the platform.
+        static void map_content_layout(button_handler& handler, i_text_button& view);
+
+        // The handler-owned async image-source loader (C#'s ButtonHandler.ImageSourceLoader /
+        // ImageSourcePartLoader). Per-backend wiring happens in the platform partial's configure_loader.
+        [[nodiscard]] image_source_loader& image_source_loader_ref()
+        {
+            return image_source_loader_;
+        }
+
+    private:
+        // Per-backend source primitives (the image_handler convention; defined in the platform partial).
+        // The file fast-path loads synchronously; apply_loaded_result copies a delivered async result onto
+        // the platform; clear_source_native removes the image; configure_loader wires per-backend seams.
+        static void load_file_source_sync(button_platform& platform, const i_file_image_source& file_src);
+        static void apply_loaded_result(button_platform& platform, const image_source_result& result);
+        static void clear_source_native(button_platform& platform);
+        static void configure_loader(maui::core::image_source_loader& loader);
+
+        maui::core::image_source_loader image_source_loader_;
     };
 } // namespace maui::core

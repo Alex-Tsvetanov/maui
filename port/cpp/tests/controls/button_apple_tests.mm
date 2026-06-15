@@ -9,6 +9,8 @@
 
 #include "apple_text_ops.hpp"
 #include "maui/controls/button.hpp"
+#include "maui/controls/button_content_layout.hpp"
+#include "maui/controls/file_image_source.hpp"
 #include "maui/core/button_handler.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/handler_registry.hpp"
@@ -20,6 +22,8 @@
 namespace
 {
     using maui::controls::button;
+    using maui::controls::button_content_layout;
+    using maui::controls::image_source;
     using maui::core::button_handler;
     using maui::core::i_element_handler;
     using maui::platform::apple::kerning_of;
@@ -35,6 +39,45 @@ namespace
     NSButton* native_button(const std::shared_ptr<button_handler>& handler)
     {
         return (__bridge NSButton*)handler->typed_platform_view()->native;
+    }
+
+    // Writes a tiny 2x2 PNG to a unique path under NSTemporaryDirectory() (the image test convention).
+    std::string write_temp_png()
+    {
+        NSBitmapImageRep* const rep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:nullptr
+                                                                              pixelsWide:2
+                                                                              pixelsHigh:2
+                                                                           bitsPerSample:8
+                                                                         samplesPerPixel:4
+                                                                                hasAlpha:YES
+                                                                                isPlanar:NO
+                                                                          colorSpaceName:NSDeviceRGBColorSpace
+                                                                             bytesPerRow:0
+                                                                            bitsPerPixel:0];
+        if (rep == nil)
+        {
+            return {};
+        }
+        NSData* const png = [rep representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
+        if (png == nil)
+        {
+            return {};
+        }
+        NSString* const name = [NSString stringWithFormat:@"maui_button_image_test_%@.png", [[NSUUID UUID] UUIDString]];
+        NSString* const path = [NSTemporaryDirectory() stringByAppendingPathComponent:name];
+        if (![png writeToFile:path atomically:YES])
+        {
+            return {};
+        }
+        return to_std_string(path);
+    }
+
+    void remove_file(const std::string& path)
+    {
+        if (!path.empty())
+        {
+            [[NSFileManager defaultManager] removeItemAtPath:@(path.c_str()) error:nil];
+        }
     }
 
     // NSButton creation needs the shared application object (no run loop required).
@@ -216,5 +259,64 @@ namespace
         control.set_handler(handler);
         auto const button_view = (__bridge NSButton*)resolved->typed_platform_view()->native;
         EXPECT_EQ(to_std_string(button_view.title), "Registered");
+    }
+
+    // ---- the image surface (the AppKit twin: NSButton.image, no AlwaysOriginal rendering step) ----
+
+    TEST_F(apple_button_seam, file_image_source_loads_into_the_nsbutton_image)
+    {
+        const std::string path = write_temp_png();
+        ASSERT_FALSE(path.empty());
+
+        button control;
+        control.set_image_source(image_source::from_file(path));
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        EXPECT_NE(native_button(handler).image, nil); // map_image_source's file fast-path → NSButton.image
+        remove_file(path);
+    }
+
+    TEST_F(apple_button_seam, setting_image_source_after_attach_updates_the_image)
+    {
+        const std::string path = write_temp_png();
+        ASSERT_FALSE(path.empty());
+
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        EXPECT_EQ(native_button(handler).image, nil); // no source yet
+
+        control.set_image_source(image_source::from_file(path));
+        EXPECT_NE(native_button(handler).image, nil);
+        remove_file(path);
+    }
+
+    TEST_F(apple_button_seam, clearing_image_source_removes_the_image)
+    {
+        const std::string path = write_temp_png();
+        ASSERT_FALSE(path.empty());
+
+        button control;
+        control.set_image_source(image_source::from_file(path));
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        ASSERT_NE(native_button(handler).image, nil);
+
+        control.set_image_source(nullptr);
+        EXPECT_EQ(native_button(handler).image, nil);
+        remove_file(path);
+    }
+
+    TEST_F(apple_button_seam, content_layout_is_stored_and_pushes_without_crashing)
+    {
+        // ContentLayout is stored + pushed (the text+image composition is deferred — no container infra).
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        control.set_content_layout(button_content_layout{button_content_layout::image_position::top, 8.0});
+        EXPECT_EQ(control.content_layout().position, button_content_layout::image_position::top);
+        EXPECT_EQ(control.content_layout().spacing, 8.0);
     }
 } // namespace

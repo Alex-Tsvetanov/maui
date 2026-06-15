@@ -6,8 +6,11 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
+#include "maui/controls/button_content_layout.hpp"
+#include "maui/controls/file_image_source.hpp"
 #include "maui/core/button_handler.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/handler_registry.hpp"
@@ -21,6 +24,8 @@
 namespace
 {
     using maui::controls::button;
+    using maui::controls::button_content_layout;
+    using maui::controls::image_source;
     using maui::core::button_handler;
     using maui::core::i_button;
     using maui::core::i_element_handler;
@@ -222,5 +227,144 @@ namespace
         control.set_text("Registered");
         control.set_handler(handler);
         EXPECT_EQ(resolved->typed_platform_view()->title, "Registered");
+    }
+
+    // ---- image surface (Button.ImageSource + ContentLayout + the ImageButtonMapper) ----
+
+    TEST(button, image_source_defaults_null_and_is_settable)
+    {
+        button control;
+        EXPECT_EQ(control.image_source(), nullptr); // C# Button.ImageSource default: null
+
+        auto source = image_source::from_file("Logo.png");
+        control.set_image_source(source);
+        EXPECT_EQ(control.image_source(), source.get());
+    }
+
+    TEST(button, content_layout_defaults_to_left_and_default_spacing)
+    {
+        button control;
+        // C# Button.ContentLayoutProperty default: new ButtonContentLayout(ImagePosition.Left, DefaultSpacing).
+        EXPECT_EQ(control.content_layout().position, button_content_layout::image_position::left);
+        EXPECT_EQ(control.content_layout().spacing, button_content_layout::default_spacing);
+    }
+
+    TEST(button, content_layout_is_settable)
+    {
+        button control;
+        control.set_content_layout(button_content_layout{button_content_layout::image_position::bottom, 4.0});
+        EXPECT_EQ(control.content_layout().position, button_content_layout::image_position::bottom);
+        EXPECT_EQ(control.content_layout().spacing, 4.0);
+    }
+
+    TEST(button, image_source_change_fires_once_per_distinct_instance)
+    {
+        button control;
+        int source_changes = 0;
+        control.property_changed.connect([&source_changes](std::string_view name) {
+            if (name == "source")
+            {
+                ++source_changes;
+            }
+        });
+
+        auto source = image_source::from_file("Logo.png");
+        control.set_image_source(source);
+        EXPECT_EQ(source_changes, 1);
+
+        // Re-setting the SAME instance does not fire (value-precedence change detection).
+        control.set_image_source(source);
+        EXPECT_EQ(source_changes, 1);
+    }
+
+    TEST(button_seam, file_image_source_loads_synchronously_to_the_platform)
+    {
+        button control;
+        control.set_image_source(image_source::from_file("Logo.png"));
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+        // map_image_source's file fast-path records the headless mirrors (the image_handler convention).
+        EXPECT_EQ(platform->source_kind, "file");
+        EXPECT_EQ(platform->source_file, "Logo.png");
+        EXPECT_TRUE(platform->source_loaded);
+    }
+
+    TEST(button_seam, setting_image_source_after_attach_maps_to_platform)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+        EXPECT_FALSE(platform->source_loaded); // no source yet
+
+        control.set_image_source(image_source::from_file("Later.png"));
+        EXPECT_TRUE(platform->source_loaded);
+        EXPECT_EQ(platform->source_file, "Later.png");
+    }
+
+    TEST(button_seam, clearing_image_source_clears_the_native_mirror)
+    {
+        button control;
+        control.set_image_source(image_source::from_file("Logo.png"));
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+        ASSERT_TRUE(platform->source_loaded);
+
+        control.set_image_source(nullptr);
+        EXPECT_FALSE(platform->source_loaded);
+        EXPECT_EQ(platform->source_kind, "");
+        EXPECT_EQ(platform->source_file, "");
+    }
+
+    TEST(button_seam, content_layout_is_pushed_to_the_handler)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+        // The initial mapper pass on connect pushes ContentLayout once.
+        const int initial_pushes = platform->content_layout_push_count;
+
+        control.set_content_layout(button_content_layout{button_content_layout::image_position::right, 6.0});
+        // A change re-runs map_content_layout (stored + pushed — the composition is deferred).
+        EXPECT_EQ(platform->content_layout_push_count, initial_pushes + 1);
+    }
+
+    TEST(button_seam, finishing_a_load_re_pushes_content_layout)
+    {
+        // C# Button.IImageSourcePart.UpdateIsLoading: a load FINISH (was loading → not loading) re-pushes
+        // ContentLayout so the text+image composition re-measures (deferred here; the push is the seam).
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+
+        const int before = platform->content_layout_push_count;
+        control.update_is_loading(true); // begin: no re-push
+        EXPECT_EQ(platform->content_layout_push_count, before);
+        control.update_is_loading(false); // finish: re-push ContentLayout
+        EXPECT_EQ(platform->content_layout_push_count, before + 1);
+    }
+
+    TEST(button, update_is_loading_without_prior_loading_does_not_re_push)
+    {
+        // A standalone "not loading" (no prior loading) must NOT re-push (C#'s `_wasImageLoading` gate).
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+
+        const int before = platform->content_layout_push_count;
+        control.update_is_loading(false);
+        EXPECT_EQ(platform->content_layout_push_count, before);
     }
 } // namespace

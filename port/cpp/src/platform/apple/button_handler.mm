@@ -23,7 +23,10 @@
 #include "apple_visual_ops.hpp"
 #include "maui/core/button_handler.hpp"
 #include "maui/core/i_button.hpp"
+#include "maui/core/i_image_source.hpp"
 #include "maui/core/i_text_button.hpp"
+#include "maui/core/image_source_loader.hpp"
+#include "maui/core/image_source_result.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
@@ -89,6 +92,30 @@ namespace
 
     using maui::platform::apple::to_ns_color;
     using maui::platform::apple::to_ns_font;
+
+    NSImage* load_image_from_file(std::string_view path)
+    {
+        const std::string file(path);
+        NSString* const raw = [NSString stringWithUTF8String:file.c_str()];
+        if (raw == nil)
+        {
+            return nil;
+        }
+        return [[NSImage alloc] initWithContentsOfFile:raw];
+    }
+
+    // NSCachesDirectory (the image_handler convention) for the loader's on-disk uri cache.
+    std::string platform_cache_directory()
+    {
+        NSArray<NSString*>* const paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+        if (paths.count == 0)
+        {
+            return {};
+        }
+        NSString* const dir = [paths objectAtIndex:0];
+        const char* const utf8 = dir.UTF8String;
+        return utf8 != nullptr ? std::string(utf8) : std::string();
+    }
 } // namespace
 
 namespace maui::core
@@ -353,5 +380,41 @@ namespace maui::core
     void button_platform::update_input_transparent(bool value)
     {
         maui::platform::apple::apply_input_transparent((__bridge NSView*)native, value);
+    }
+
+    // ---- per-backend image-source primitives (the cross-platform map_image_source routes here) ----
+    // The AppKit twin of the iOS recipe: NSButton.image carries the picture; AppKit has no
+    // UIImageRenderingMode (the AlwaysOriginal step is iOS-only) and applies the image immediately, so no
+    // explicit layout-refresh is needed. The on-disk uri cache mirrors the image_button_handler wiring.
+    void button_handler::configure_loader(maui::core::image_source_loader& loader)
+    {
+        loader.set_disk_cache_directory(platform_cache_directory());
+    }
+
+    void button_handler::load_file_source_sync(button_platform& platform, const i_file_image_source& file_src)
+    {
+        if (platform.native == nullptr)
+        {
+            return;
+        }
+        as_button(platform.native).image = load_image_from_file(file_src.file());
+    }
+
+    void button_handler::apply_loaded_result(button_platform& platform, const image_source_result& result)
+    {
+        if (platform.native == nullptr)
+        {
+            return;
+        }
+        as_button(platform.native).image = result.loaded() ? (__bridge NSImage*)result.image() : nil;
+    }
+
+    void button_handler::clear_source_native(button_platform& platform)
+    {
+        if (platform.native == nullptr)
+        {
+            return;
+        }
+        as_button(platform.native).image = nil;
     }
 } // namespace maui::core

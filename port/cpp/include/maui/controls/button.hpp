@@ -15,17 +15,26 @@
 // Font, CharacterSpacing), Padding, and the i_button_stroke border (StrokeColor, StrokeThickness,
 // CornerRadius). The generic IView properties (Visibility/Opacity/transforms/…) gain their shared
 // ViewMapper at M3/M4 with the visual-element + layout work.
+//
+// ImageSource + ContentLayout (Button.cs) are added NARROW: Button stays an i_text_button (it is NOT
+// widened to i_image — PROFILE.md forbids the diamond i_text + i_image would create). The control owns
+// the ImageSource and the handler maps it through a handler-owned async image_source_loader (the
+// ImageButtonMapper keyed on the source); ContentLayout is stored + pushed (change → re-measure in C#),
+// but the text+image composition is deferred (no container infrastructure on any backend yet).
 
 #include <functional>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <utility>
 
+#include "maui/controls/button_content_layout.hpp"
 #include "maui/controls/view.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/event.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/i_button.hpp"
+#include "maui/core/i_image_source.hpp"
 #include "maui/core/i_text.hpp"
 #include "maui/core/i_text_button.hpp"
 #include "maui/core/move_only_function.hpp"
@@ -66,6 +75,15 @@ namespace maui::controls
         static const maui::core::bindable_property<maui::graphics::color>& stroke_color_property();
         static const maui::core::bindable_property<double>& stroke_thickness_property();
         static const maui::core::bindable_property<int>& corner_radius_property();
+        // Button.ImageSourceProperty (= ImageElement.ImageSourceProperty, default null) and
+        // Button.ContentLayoutProperty (default {Left, DefaultSpacing}). NARROW image support: the control
+        // OWNS the source as a property<shared_ptr<i_image_source>> (like image.hpp) so a change re-runs the
+        // handler's image mapper; ContentLayout is stored + pushed (change → InvalidateMeasureInternal in C#),
+        // but the actual text+image composition is deferred (no container infra). Button is NOT widened to
+        // i_image — see button_handler.hpp (the ImageButtonMapper is keyed on the source via the handler).
+        static const maui::core::bindable_property<std::shared_ptr<maui::core::i_image_source>>&
+        image_source_property();
+        static const maui::core::bindable_property<button_content_layout>& content_layout_property();
 
         // ---- i_text / i_text_style getters (read by the handler's mapper) ----
         [[nodiscard]] std::string_view text() const override
@@ -103,6 +121,34 @@ namespace maui::controls
             return corner_radius_.get();
         }
 
+        // ---- image surface (NARROW: own the source, read it through the handler's image mapper) ----
+        // Raw borrow into the owned shared_ptr (null when unset) — the i_text_button::image_source() read
+        // path the handler's image mapper calls (C# IImageSourcePart.Source => ImageSource). The control
+        // retains ownership.
+        [[nodiscard]] maui::core::i_image_source* image_source() const override
+        {
+            return image_source_.get().get();
+        }
+        [[nodiscard]] button_content_layout content_layout() const
+        {
+            return content_layout_.get();
+        }
+        // C# Button.IImageSourcePart.UpdateIsLoading (Button.cs:499-505) — the handler/loader pushes the
+        // in-flight loading state. NON-VIRTUAL: Button is not widened to i_image (narrow approach); the image
+        // mapper's loading callback calls this directly. Unlike ImageButton, Button has NO public IsLoading
+        // (C# Button.IImageElement.IsLoading => false); the only effect is the re-measure on a load FINISH:
+        // when the previous push was loading and this one is not, re-push ContentLayout (C# does
+        // Handler?.UpdateValue(nameof(ContentLayout))) so the text+image composition re-measures. The
+        // re-measure itself is deferred here (no container infra) — the UpdateValue call is the faithful seam.
+        void update_is_loading(bool loading)
+        {
+            if (!loading && was_image_loading_ && handler())
+            {
+                handler()->update_value("content_layout");
+            }
+            was_image_loading_ = loading;
+        }
+
         // ---- public setters (each drives the handler via on_property_changed → update_value) ----
         void set_text(std::string value)
         {
@@ -135,6 +181,16 @@ namespace maui::controls
         void set_corner_radius(int value)
         {
             corner_radius_.set(value);
+        }
+        // The control takes ownership of the source (a distinct instance fires the change → the image
+        // mapper re-runs). Mirrors image.hpp::set_source / C# Button.ImageSource setter.
+        void set_image_source(std::shared_ptr<maui::core::i_image_source> value)
+        {
+            image_source_.set(std::move(value));
+        }
+        void set_content_layout(button_content_layout value)
+        {
+            content_layout_.set(value);
         }
 
         // ---- i_button inbound channel (called by the handler on native touch events) ----
@@ -187,6 +243,11 @@ namespace maui::controls
         maui::core::property<maui::graphics::color> stroke_color_{*this, stroke_color_property()};
         maui::core::property<double> stroke_thickness_{*this, stroke_thickness_property()};
         maui::core::property<int> corner_radius_{*this, corner_radius_property()};
+        maui::core::property<std::shared_ptr<maui::core::i_image_source>> image_source_{*this, image_source_property()};
+        maui::core::property<button_content_layout> content_layout_{*this, content_layout_property()};
         bool is_pressed_ = false;
+        // C# Button._wasImageLoading — tracks the prior loading state so a load FINISH triggers the
+        // ContentLayout re-push (see update_is_loading). Not exposed; purely internal.
+        bool was_image_loading_ = false;
     };
 } // namespace maui::controls

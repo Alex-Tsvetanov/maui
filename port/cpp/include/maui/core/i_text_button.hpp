@@ -9,11 +9,25 @@
 // i_text_style only via i_text.
 
 #include "maui/core/i_button.hpp"
+#include "maui/core/i_image_source.hpp"
 #include "maui/core/i_text.hpp"
 
 namespace maui::core
 {
     class i_text_button : public i_button, public i_text
     {
+    public:
+        // The button's image source (C# Button.ImageSource, surfaced through IImage.Source for the
+        // cross-platform ImageButtonMapper). NARROW: rather than make Button an i_image (the diamond
+        // i_text + i_image would create — both derive i_view, forbidden by PROFILE.md), the single read
+        // the handler's image mapper needs lives here on i_text_button (the Button's own virtual-view
+        // type). A raw borrow: the control owns the source (a shared_ptr); null means "no image". The
+        // ContentLayout value stays control-side — its mapper only re-measures (deferred), so the handler
+        // never reads it (see button_handler::map_content_layout). Defaulted to null so the only concrete
+        // i_text_button (Button) opts in and no future implementer is forced to carry an image.
+        [[nodiscard]] virtual maui::core::i_image_source* image_source() const
+        {
+            return nullptr;
+        }
     };
 } // namespace maui::core

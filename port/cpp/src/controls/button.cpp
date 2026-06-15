@@ -3,12 +3,15 @@
 
 #include "maui/controls/button.hpp"
 
+#include <memory>
 #include <string>
 
+#include "maui/controls/button_content_layout.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/button_handler.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/handler_registry.hpp"
+#include "maui/core/i_image_source.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 
@@ -59,6 +62,25 @@ namespace maui::controls
     const maui::core::bindable_property<int>& button::corner_radius_property()
     {
         static const maui::core::bindable_property<int> descriptor{"corner_radius", 0};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<std::shared_ptr<maui::core::i_image_source>>& button::image_source_property()
+    {
+        // C# Button.ImageSourceProperty = ImageElement.ImageSourceProperty, default null. The key "source"
+        // matches button_handler's ImageButtonMapper entry ([Source] → map_image_source).
+        static const maui::core::bindable_property<std::shared_ptr<maui::core::i_image_source>> descriptor{"source"};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<button_content_layout>& button::content_layout_property()
+    {
+        // C# Button.ContentLayoutProperty default: new ButtonContentLayout(ImagePosition.Left, DefaultSpacing).
+        // The key "content_layout" matches button_handler's map_content_layout entry (stored + pushed; the
+        // text+image composition is deferred — no container infra).
+        static const maui::core::bindable_property<button_content_layout> descriptor{
+            "content_layout",
+            button_content_layout{button_content_layout::image_position::left, button_content_layout::default_spacing}};
         return descriptor;
     }
 } // namespace maui::controls

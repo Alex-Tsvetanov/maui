@@ -9,7 +9,10 @@
 #include <string>
 
 #include "maui/core/i_button.hpp"
+#include "maui/core/i_image_source.hpp"
 #include "maui/core/i_text_button.hpp"
+#include "maui/core/image_source_loader.hpp"
+#include "maui/core/image_source_result.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -131,5 +134,40 @@ namespace maui::core
     void button_handler::platform_arrange(const maui::graphics::rect& /*frame*/)
     {
         // Headless: no native layout to apply.
+    }
+
+    // ---- per-backend image-source primitives (the cross-platform map_image_source routes here) ----
+    // Headless records the source mirrors (kind/file/loaded) so tests observe the load; there is no
+    // display. Mirrors image_handler / image_button_handler's headless source primitives.
+
+    // Headless: leave the loader on its defaults (synchronous read_uri_bytes, disk layer off).
+    void button_handler::configure_loader(maui::core::image_source_loader& /*loader*/)
+    {
+    }
+
+    void button_handler::load_file_source_sync(button_platform& platform, const i_file_image_source& file_src)
+    {
+        platform.source_kind = "file";
+        platform.source_file = std::string(file_src.file());
+        platform.source_loaded = true;
+    }
+
+    void button_handler::apply_loaded_result(button_platform& platform, const image_source_result& result)
+    {
+        if (!result.loaded())
+        {
+            clear_source_native(platform);
+            return;
+        }
+        platform.source_kind = result.kind();
+        platform.source_file = result.detail();
+        platform.source_loaded = true;
+    }
+
+    void button_handler::clear_source_native(button_platform& platform)
+    {
+        platform.source_kind.clear();
+        platform.source_file.clear();
+        platform.source_loaded = false;
     }
 } // namespace maui::core

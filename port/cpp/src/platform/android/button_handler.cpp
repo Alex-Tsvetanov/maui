@@ -60,7 +60,10 @@
 #include "jni/jni_string.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/i_button.hpp"
+#include "maui/core/i_image_source.hpp"
 #include "maui/core/i_text_button.hpp"
+#include "maui/core/image_source_loader.hpp"
+#include "maui/core/image_source_result.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/core/view_platform_base.hpp"
 #include "maui/core/visibility.hpp"
@@ -977,5 +980,40 @@ namespace maui::core
         }
         env->CallVoidMethod(widget, layout, left, top, left + width, top + height);
         clear_pending(env.get());
+    }
+
+    // ---- per-backend image-source primitives (the cross-platform map_image_source routes here) ----
+    // The android Button is a TextView-derived widget whose icon support (CompoundDrawables / MaterialButton
+    // .Icon) is part of the deferred android backend (see port/STATUS.md — the trio is not yet built). The
+    // primitives update the shared headless-style mirrors (kind/file/loaded) so the android preset's pure-
+    // native cross-platform suite still observes the load; the real JNI drawable push is deferred.
+    void button_handler::configure_loader(maui::core::image_source_loader& /*loader*/)
+    {
+    }
+
+    void button_handler::load_file_source_sync(button_platform& platform, const i_file_image_source& file_src)
+    {
+        platform.source_kind = "file";
+        platform.source_file = std::string(file_src.file());
+        platform.source_loaded = true;
+    }
+
+    void button_handler::apply_loaded_result(button_platform& platform, const image_source_result& result)
+    {
+        if (!result.loaded())
+        {
+            clear_source_native(platform);
+            return;
+        }
+        platform.source_kind = result.kind();
+        platform.source_file = result.detail();
+        platform.source_loaded = true;
+    }
+
+    void button_handler::clear_source_native(button_platform& platform)
+    {
+        platform.source_kind.clear();
+        platform.source_file.clear();
+        platform.source_loaded = false;
     }
 } // namespace maui::core
