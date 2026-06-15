@@ -109,8 +109,14 @@ namespace maui::platform::ios
     // Whether the keyboard is a custom (flags-carrying) keyboard — used by UpdateKeyboard to decide whether
     // to additionally re-apply the IsTextPredictionEnabled / IsSpellCheckEnabled property pushes (C# does
     // this only for non-custom keyboards, since a custom keyboard's flags already drive those traits).
+    // C# `Keyboard.Plain` is `new CustomKeyboard(KeyboardFlags.None)` (Keyboard.cs:41), so the
+    // `if (keyboard is not CustomKeyboard)` gate in all three iOS UpdateKeyboard paths
+    // (TextFieldExtensions.cs:148, TextViewExtensions.cs, SearchBarExtensions.cs:374) is FALSE for `plain`
+    // too — the re-apply is skipped. `plain` carries its own `kind` here only to keep singleton identity
+    // distinct, so it must be treated as custom for this gate.
     [[nodiscard]] inline bool is_custom_keyboard(maui::core::keyboard keyboard)
     {
-        return keyboard.kind() == maui::core::keyboard::kind::custom;
+        return keyboard.kind() == maui::core::keyboard::kind::custom ||
+               keyboard.kind() == maui::core::keyboard::kind::plain;
     }
 } // namespace maui::platform::ios

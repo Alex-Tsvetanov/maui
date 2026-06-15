@@ -136,28 +136,60 @@ namespace maui::controls
         table_view_handler::describe_cell(realized, *source); // the per-cell-type content fields
     }
 
-    // The primary text + the per-cell-type native content (the C# per-cell renderers' GetCell):
+    // The primary text + the per-cell-type native content (the C# per-cell renderers' GetCell). The reuse
+    // id is TYPE-KEYED, so a dequeued cell already carries the matching accessory type — BUILD the accessory
+    // only on the !reused branch (tagged, mirroring the AppKit twin's 1002/1003/1004), then on reuse just
+    // rebind on/text/placeholder/image via viewWithTag:. Rebuilding on every reuse (the bug) churned the
+    // accessory object each time, defeating cell recycling and dropping in-progress edits.
     dequeued.textLabel.text = [NSString stringWithUTF8String:realized.text.c_str()];
     dequeued.detailTextLabel.text = [NSString stringWithUTF8String:realized.detail.c_str()];
-    // Reset any reused content to the default before re-binding the current cell's content.
-    dequeued.accessoryView = nil;
-    dequeued.imageView.image = nil;
+
+    if (!reused)
+    {
+        // First realization for this reuse id: build the per-cell-type accessory once. (image rides the
+        // cell's built-in imageView, which is recycled with the cell — no separate accessory needed.)
+        switch (realized.content)
+        {
+            case maui::controls::cell_content_kind::toggle: {
+                // SwitchCellRenderer: a UISwitch accessory bound to switch_cell.On.
+                UISwitch* const sw = [[UISwitch alloc] initWithFrame:CGRectZero];
+                sw.tag = 1002;
+                dequeued.accessoryView = sw;
+                break;
+            }
+            case maui::controls::cell_content_kind::entry: {
+                // EntryCellRenderer: a UITextField accessory bound to entry_cell.Text/Placeholder (the label
+                // rides textLabel via display_text → entry_cell.Label).
+                UITextField* const tf = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, 200, 30)];
+                tf.tag = 1003;
+                dequeued.accessoryView = tf;
+                break;
+            }
+            case maui::controls::cell_content_kind::image:
+            case maui::controls::cell_content_kind::text:
+            case maui::controls::cell_content_kind::view:
+            case maui::controls::cell_content_kind::none:
+                dequeued.accessoryView = nil;
+                break;
+        }
+    }
+
+    // Rebind the (possibly reused) accessory's value — for BOTH first realize and reuse.
     switch (realized.content)
     {
         case maui::controls::cell_content_kind::toggle: {
-            // SwitchCellRenderer: a UISwitch in the accessory view, bound to switch_cell.On.
-            UISwitch* const sw = [[UISwitch alloc] initWithFrame:CGRectZero];
-            sw.on = realized.toggle_on;
-            dequeued.accessoryView = sw;
+            if (auto* sw = (UISwitch*)[dequeued.accessoryView viewWithTag:1002])
+            {
+                sw.on = realized.toggle_on;
+            }
             break;
         }
         case maui::controls::cell_content_kind::entry: {
-            // EntryCellRenderer: a UITextField accessory bound to entry_cell.Text/Placeholder (the label
-            // rides textLabel via display_text → entry_cell.Label).
-            UITextField* const tf = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, 200, 30)];
-            tf.text = [NSString stringWithUTF8String:realized.entry_text.c_str()];
-            tf.placeholder = [NSString stringWithUTF8String:realized.entry_placeholder.c_str()];
-            dequeued.accessoryView = tf;
+            if (auto* tf = (UITextField*)[dequeued.accessoryView viewWithTag:1003])
+            {
+                tf.text = [NSString stringWithUTF8String:realized.entry_text.c_str()];
+                tf.placeholder = [NSString stringWithUTF8String:realized.entry_placeholder.c_str()];
+            }
             break;
         }
         case maui::controls::cell_content_kind::image: {
@@ -173,6 +205,10 @@ namespace maui::controls
                   [[UIColor grayColor] setFill];
                   [context fillRect:CGRectMake(0, 0, 24, 24)];
                 }];
+            }
+            else
+            {
+                dequeued.imageView.image = nil;
             }
             break;
         }

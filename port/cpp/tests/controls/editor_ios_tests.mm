@@ -235,6 +235,33 @@ namespace
         EXPECT_EQ(completes, 1);
     }
 
+    // End-edit ORDER (W8-53 regression): EditorHandler.iOS.cs OnEnded sets IsFocused=false BEFORE calling
+    // Completed(), so a Completed handler must already observe the unfocused state (and unfocused fires
+    // before completed). The previous order (Completed then IsFocused=false) would leak is_focused()==true.
+    TEST(ios_editor_seam, end_of_edit_unfocuses_before_completed)
+    {
+        editor control;
+        auto handler = std::make_shared<editor_handler>();
+        control.set_handler(handler);
+        UITextView* const text_view = native_text_view(handler);
+        // Focus first so the end-edit transition is observable.
+        [(id<UITextViewDelegate>)text_view.delegate textViewDidBeginEditing:text_view];
+        ASSERT_TRUE(control.is_focused());
+
+        bool focused_when_completed = true;
+        int unfocused_before_completed = -1;
+        int unfocused_count = 0;
+        control.unfocused.connect([&unfocused_count](bool) { ++unfocused_count; });
+        control.completed.connect([&] {
+            focused_when_completed = control.is_focused();
+            unfocused_before_completed = unfocused_count;
+        });
+
+        [(id<UITextViewDelegate>)text_view.delegate textViewDidEndEditing:text_view];
+        EXPECT_FALSE(focused_when_completed);     // is_focused() already false inside the completed handler
+        EXPECT_EQ(unfocused_before_completed, 1); // unfocused fired before completed
+    }
+
     TEST(ios_editor_seam, cursor_and_selection_move_the_native_range)
     {
         editor control;
@@ -279,6 +306,23 @@ namespace
 
         control.set_keyboard(keyboard::numeric());
         EXPECT_EQ(native_text_view(handler).keyboardType, UIKeyboardTypeDecimalPad);
+    }
+
+    // Keyboard.Plain (W8-53 regression): `Keyboard.Plain` is a CustomKeyboard(None), so UpdateKeyboard's
+    // `if (keyboard is not CustomKeyboard)` gate is FALSE — IsTextPrediction / IsSpellCheck are NOT
+    // re-applied. ApplyKeyboard's `case plain` leaves autocorrect=No / spellcheck=No, which must hold even
+    // though both control properties default to true.
+    TEST(ios_editor_seam, plain_keyboard_does_not_reapply_prediction_or_spellcheck)
+    {
+        editor control;
+        ASSERT_TRUE(control.is_text_prediction_enabled());
+        ASSERT_TRUE(control.is_spell_check_enabled());
+        control.set_keyboard(keyboard::plain());
+        auto handler = std::make_shared<editor_handler>();
+        control.set_handler(handler);
+        UITextView* const text_view = native_text_view(handler);
+        EXPECT_EQ(text_view.autocorrectionType, UITextAutocorrectionTypeNo);
+        EXPECT_EQ(text_view.spellCheckingType, UITextSpellCheckingTypeNo);
     }
 
     // AddMauiDoneAccessoryView: the text view carries a Done input-accessory toolbar.

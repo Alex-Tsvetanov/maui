@@ -243,6 +243,23 @@ namespace
         EXPECT_EQ(native_bar(handler).searchTextField.keyboardType, UIKeyboardTypeURL);
     }
 
+    // Keyboard.Plain (W8-53 regression): `Keyboard.Plain` is a CustomKeyboard(None), so UpdateKeyboard's
+    // `if (keyboard is not CustomKeyboard)` gate is FALSE — IsTextPrediction / IsSpellCheck are NOT
+    // re-applied. ApplyKeyboard's `case plain` leaves autocorrect=No / spellcheck=No on the search field,
+    // which must hold even though both control properties default to true.
+    TEST(ios_search_bar_seam, plain_keyboard_does_not_reapply_prediction_or_spellcheck)
+    {
+        search_bar control;
+        ASSERT_TRUE(control.is_text_prediction_enabled());
+        ASSERT_TRUE(control.is_spell_check_enabled());
+        control.set_keyboard(keyboard::plain());
+        auto handler = std::make_shared<search_bar_handler>();
+        control.set_handler(handler);
+        UISearchTextField* const editor = native_bar(handler).searchTextField;
+        EXPECT_EQ(editor.autocorrectionType, UITextAutocorrectionTypeNo);
+        EXPECT_EQ(editor.spellCheckingType, UITextSpellCheckingTypeNo);
+    }
+
     // Focus (W8-53): the begin/end editing delegate callbacks reflect IsFocused (firing Focused/Unfocused).
     TEST(ios_search_bar_seam, begin_end_editing_reflect_is_focused)
     {

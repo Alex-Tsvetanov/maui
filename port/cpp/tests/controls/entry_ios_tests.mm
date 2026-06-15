@@ -503,6 +503,24 @@ namespace
         EXPECT_EQ(field.autocorrectionType, UITextAutocorrectionTypeNo); // no Suggestions flag
     }
 
+    // Keyboard.Plain (W8-53 regression): C# `Keyboard.Plain` is a `CustomKeyboard(KeyboardFlags.None)`, so
+    // the `if (keyboard is not CustomKeyboard)` gate in UpdateKeyboard is FALSE — the IsTextPrediction /
+    // IsSpellCheck property pushes are NOT re-applied. ApplyKeyboard's `case plain` leaves the no-op
+    // defaults (autocorrect=No, spellcheck=No), so both must stay No even though IsTextPredictionEnabled
+    // and IsSpellCheckEnabled default to true (which would re-flip them to Yes if the gate misfired).
+    TEST(ios_entry_seam, plain_keyboard_does_not_reapply_prediction_or_spellcheck)
+    {
+        entry control;
+        ASSERT_TRUE(control.is_text_prediction_enabled()); // defaults that WOULD re-flip the traits to Yes
+        ASSERT_TRUE(control.is_spell_check_enabled());
+        control.set_keyboard(keyboard::plain());
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+        UITextField* const field = native_field(handler);
+        EXPECT_EQ(field.autocorrectionType, UITextAutocorrectionTypeNo);
+        EXPECT_EQ(field.spellCheckingType, UITextSpellCheckingTypeNo);
+    }
+
     // AddMauiDoneAccessoryView: the field carries a Done input-accessory toolbar.
     TEST(ios_entry_seam, has_done_input_accessory_toolbar)
     {
@@ -536,6 +554,31 @@ namespace
         send_control_event(field, UIControlEventEditingDidEnd);
         EXPECT_FALSE(control.is_focused());
         EXPECT_EQ(unfocused_count, 1);
+    }
+
+    // Begin-edit ORDER (W8-53 regression): EntryHandler.iOS.cs OnEditingBegan re-applies the cursor /
+    // selection FIRST, then sets IsFocused=true LAST — so a Focused handler already observes the restored
+    // cursor/selection. map_cursor_position/map_selection_length write the platform mirror unconditionally;
+    // resetting the mirror to a sentinel and checking it inside the focused handler proves the re-apply ran
+    // before set_is_focused fired Focused. (Previous order set IsFocused first, leaving the sentinel.)
+    TEST(ios_entry_seam, begin_edit_restores_cursor_before_focused)
+    {
+        entry control;
+        control.set_text("abcdef");
+        control.set_cursor_position(2);
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+        UITextField* const field = native_field(handler);
+
+        auto* const platform = handler->typed_platform_view();
+        platform->cursor_position = -1; // sentinel: re-applied to view.cursor_position() (2) before Focused
+
+        int cursor_when_focused = -99;
+        control.focused.connect([&](bool) { cursor_when_focused = platform->cursor_position; });
+
+        send_control_event(field, UIControlEventEditingDidBegin);
+        EXPECT_TRUE(control.is_focused());
+        EXPECT_EQ(cursor_when_focused, 2); // cursor mirror already restored when Focused fired
     }
 
     TEST(ios_entry_seam, clearing_handler_disconnects)

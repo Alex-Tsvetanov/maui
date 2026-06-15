@@ -144,11 +144,21 @@ namespace maui::core
         {
             return platform_view_.get();
         }
-        // The native handle the pimpl owns (e.g. button_platform::native, an NSView* on Apple). Platform
-        // structs expose it as a `void* native` member by convention; the requires-clause returns it when
-        // present and null otherwise (the headless mirror has no real native), so this stays generic.
+        // The native view to insert into the visual tree — C#'s ToPlatform() = ContainerView ?? PlatformView
+        // (ElementExtensions.cs:104-121): when the handler has wrapped its platform view in a container
+        // (NeedsContainer — e.g. the >101pt-a11y switch), the CONTAINER is what enters the tree, not the
+        // bare native. Otherwise the pimpl's `native` handle (an NSView* on Apple; null on headless / when
+        // the Platform has no `native` member). Layout/content/window/nav/shell/scroll/border/swipe/refresh
+        // all insert via this, so the container is correctly hosted only when has_container() is true.
         [[nodiscard]] void* native_view() const override
         {
+            // The container is owned by/alongside the platform view (released when platform_view_ is
+            // destroyed on disconnect), so gate the container path on a live platform_view_ too — otherwise
+            // a call after disconnect would hand back a dangling container pointer.
+            if (platform_view_ && has_container_ && container_view_ != nullptr)
+            {
+                return container_view_;
+            }
             if constexpr (requires(const Platform& p) { p.native; })
             {
                 return platform_view_ ? platform_view_->native : nullptr;

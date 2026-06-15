@@ -131,6 +131,29 @@ namespace
     }
 
     using maui::platform::ios::to_ui_color;
+
+    // C# SliderExtensions: thumbImage.ApplyTintColor(ThumbColor.ToPlatform()) — recolor the thumb image
+    // with the requested tint before SetThumbImage, so a tinted knob image renders in the tint (the bug
+    // was the iOS recipe ignoring ThumbColor entirely). Render the image into a graphics context with the
+    // color as the fill, preserving the alpha mask (the standard template-tint recolor).
+    UIImage* tint_image(UIImage* image, UIColor* color)
+    {
+        if (image == nil || color == nil)
+        {
+            return image;
+        }
+        const CGRect bounds = CGRectMake(0, 0, image.size.width, image.size.height);
+        UIGraphicsImageRendererFormat* const format = [UIGraphicsImageRendererFormat preferredFormat];
+        format.opaque = NO;
+        format.scale = image.scale;
+        UIGraphicsImageRenderer* const renderer = [[UIGraphicsImageRenderer alloc] initWithBounds:bounds format:format];
+        return [renderer imageWithActions:^(UIGraphicsImageRendererContext* ctx) {
+          // Draw the image as a template (alpha mask), then fill the mask with the tint color.
+          [image drawInRect:bounds];
+          [color set];
+          UIRectFillUsingBlendMode(bounds, kCGBlendModeSourceIn);
+        }];
+    }
 } // namespace
 
 namespace maui::core
@@ -305,7 +328,7 @@ namespace maui::core
         // suffices and keeps the slider handler free of the network dependency.)
     }
 
-    void slider_handler::apply_thumb_image(slider_platform& platform, const image_source_result& result)
+    void slider_handler::apply_thumb_image(slider_platform& platform, i_slider& view, const image_source_result& result)
     {
         if (platform.native == nullptr)
         {
@@ -315,9 +338,19 @@ namespace maui::core
         // SliderExtensions: "Clear the thumb color if we have a thumb image, so the slider doesn't clear
         // the image while sliding", then SetThumbImage for the Normal state.
         slider.thumbTintColor = nil;
-        UIImage* const image = result.loaded() ? (__bridge UIImage*)result.image() : nil;
+        UIImage* image = result.loaded() ? (__bridge UIImage*)result.image() : nil;
+        // SliderExtensions.UpdateThumbImageSourceAsync: when BOTH a thumb image and a ThumbColor are set,
+        // tint the image with the color (ApplyTintColor) before SetThumbImage. The default (collapsed-null)
+        // color leaves the image untinted — the `color{}` sentinel mirrors switch_handler's track_color.
+        if (image != nil && view.thumb_color() != maui::graphics::color{})
+        {
+            image = tint_image(image, maui::platform::ios::to_ui_color(view.thumb_color()));
+        }
         [slider setThumbImage:image forState:UIControlStateNormal];
         platform.thumb_image_set = image != nil;
+        // iOS 26+: SetThumbImage no longer triggers the layout pass that repositions the thumb. Call it
+        // unconditionally (harmless pre-26), matching this unit's other unconditional iOS-26 workarounds.
+        [slider setNeedsLayout];
     }
 
     void slider_handler::clear_thumb_image(slider_platform& platform, i_slider& view)
@@ -332,6 +365,8 @@ namespace maui::core
         [slider setThumbImage:nil forState:UIControlStateNormal];
         platform.thumb_image_set = false;
         slider.thumbTintColor = maui::platform::ios::to_ui_color(view.thumb_color());
+        // iOS 26+: SetThumbImage(nil) likewise needs an explicit layout pass (unconditional, harmless pre-26).
+        [slider setNeedsLayout];
     }
 
     // SliderHandler.MapUpdateOnTap: install (or remove) the tap-to-set UITapGestureRecognizer based on the

@@ -211,15 +211,16 @@ namespace
 
 - (void)textViewDidEndEditing:(UITextView*)textView
 {
-    // MauiTextViewEventProxy.OnEnded: one final text sync, then Completed, then IsFocused = false (it
-    // resigned first responder).
+    // MauiTextViewEventProxy.OnEnded: one final text sync, then IsFocused = false (it resigned first
+    // responder), then Completed — matching EditorHandler.iOS.cs OnEnded (IsFocused=false before
+    // Completed()), so a Completed handler already observes the unfocused state.
     [self mauiSyncTextFrom:(MauiIosEditorTextView*)textView];
     if (self.handler != nullptr)
     {
         if (auto* view = self.handler->virtual_view())
         {
-            view->send_completed();
             view->set_is_focused(false);
+            view->send_completed();
         }
     }
 }

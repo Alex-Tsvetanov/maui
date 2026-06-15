@@ -300,10 +300,10 @@ namespace
     {
         return;
     }
-    // OnEditingBegan: the field took first responder, so reflect IsFocused = true onto the virtual view
-    // (which fires Focused + ChangeVisualState through set_is_focused's funnel) — the native focus
-    // callback C# relies on. Then re-apply the virtual selection now that the field has an editing session.
-    view->set_is_focused(true);
+    // OnEditingBegan (EntryHandler.iOS.cs): the field took first responder. Re-apply the virtual
+    // selection/cursor FIRST now that the field has an editing session, THEN reflect IsFocused = true
+    // last (firing Focused + ChangeVisualState through set_is_focused's funnel). The order matters so a
+    // Focused handler already observes the restored cursor/selection — matching the C# ordering.
     if (view->selection_length() > 0)
     {
         maui::core::entry_handler::map_selection_length(*self.handler, *view);
@@ -312,6 +312,7 @@ namespace
     {
         maui::core::entry_handler::map_cursor_position(*self.handler, *view);
     }
+    view->set_is_focused(true);
 }
 
 - (void)onEditingDidEnd:(id)sender

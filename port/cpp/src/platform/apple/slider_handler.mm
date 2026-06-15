@@ -312,10 +312,12 @@ namespace maui::core
         // file/local source, which the default fetch resolves inline (no NSURLSession needed for the knob).
     }
 
-    void slider_handler::apply_thumb_image(slider_platform& platform, const image_source_result& /*result*/)
+    void slider_handler::apply_thumb_image(slider_platform& platform, i_slider& /*view*/,
+                                           const image_source_result& /*result*/)
     {
         // AppKit deviation: no NSSlider knob-image API — record that a thumb image is set (the loader has
-        // resolved the source; UISlider would call SetThumbImage here).
+        // resolved the source; UISlider would call SetThumbImage here). `view` is unused (the iOS recipe
+        // reads ThumbColor to tint the image — SliderExtensions ApplyTintColor — which has no NSSlider analog).
         platform.thumb_image_set = true;
     }
 

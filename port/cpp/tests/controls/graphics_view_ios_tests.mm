@@ -109,6 +109,13 @@ namespace
     }
 
     // ---- the touch plumbing (PlatformTouchGraphicsView, iOS) ----
+    //
+    // W8-56 fix (#9): pointsFromEvent: now builds its points from [event touchesForView:self] (C#'s
+    // UIViewExtensions.GetPointsInView(evt) → evt.TouchesForView(target)), not the per-callback `touches`
+    // NSSet and not event.allTouches. That path is NOT unit-testable here: a UIEvent with a populated
+    // touchesForView: set cannot be synthesized (UITouch/UIEvent have no public constructors — the
+    // documented compromise shared with the other ios suites), so the tests below exercise the notify*
+    // layer directly. Fix #9 is verified by oracle parity (PlatformTouchGraphicsView.cs:57/68/79).
 
     TEST(ios_graphics_view_seam, touch_events_drive_the_interaction_callbacks)
     {

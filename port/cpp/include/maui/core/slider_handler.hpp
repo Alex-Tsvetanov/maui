@@ -106,6 +106,15 @@ namespace maui::core
         void on_connect_handler(slider_platform& platform);
         static void on_disconnect_handler(slider_platform& platform);
 
+        // Instance-level disconnect (C# SliderHandler.DisconnectHandler teardown): the static
+        // on_disconnect_handler(slider_platform&) can't reach the member thumb_image_loader_, so cancel any
+        // in-flight thumb-image load HERE first — a queued (dispatcher-pending) apply closure captures the
+        // platform by raw pointer, and the base disconnect destroys that platform. update_source(nullptr,
+        // nullptr) cancels the load's token so the queued apply is gated out instead of dereferencing the
+        // freed platform (the UAF the review found). Then delegate to the base teardown. (C# is GC-safe
+        // because it captures the managed UISlider; the port must cancel explicitly.)
+        void disconnect_handler() override;
+
         // i_view_handler measure/arrange seam (platform-specific sizing).
         [[nodiscard]] maui::graphics::size get_desired_size(double width_constraint,
                                                             double height_constraint) const override;
@@ -138,7 +147,9 @@ namespace maui::core
     private:
         // Per-backend primitives map_thumb_image_source routes to: apply the decoded image to the native
         // thumb, or clear it (and re-apply the thumb color). Defined in src/platform/<backend>/slider_handler.*.
-        static void apply_thumb_image(slider_platform& platform, const image_source_result& result);
+        // `view` is passed to apply_thumb_image so the iOS recipe can tint the image with the ThumbColor when
+        // both are set (SliderExtensions.cs ApplyTintColor) — mirroring clear_thumb_image's view parameter.
+        static void apply_thumb_image(slider_platform& platform, i_slider& view, const image_source_result& result);
         static void clear_thumb_image(slider_platform& platform, i_slider& view);
         // Per-backend loader wiring (apple/ios: the NSURLSession async fetch + the cache directory; headless
         // leaves the loader on its synchronous defaults). Called once from the constructor.

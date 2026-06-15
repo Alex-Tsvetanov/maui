@@ -411,6 +411,32 @@ namespace
         EXPECT_EQ(handler->typed_platform_view()->thumb_color, color(1.0F, 0.0F, 0.0F));
     }
 
+    // W8-56 regression (#6, the UAF the review found): a thumb-image apply is queued on the dispatcher; the
+    // handler is DISCONNECTED before the pump (the base destroys the platform, but the loader is a handler
+    // member that survives). slider_handler::disconnect_handler() must cancel the in-flight load so the
+    // queued apply is gated out — without it, the apply dereferences the freed platform. Run under ASan
+    // (asan-ubsan preset): a clean pump here is the load-bearing assertion; the apply MUST NOT run onto the
+    // dead platform.
+    TEST(slider_seam, disconnect_cancels_pending_thumb_image_apply_no_uaf)
+    {
+        slider control;
+        auto handler = std::make_shared<slider_handler>();
+        manual_dispatcher disp;
+        control.set_handler(handler);
+        handler->thumb_image_loader().set_dispatcher(disp);
+
+        control.set_thumb_image_source(make_stream_source(4));
+        ASSERT_FALSE(handler->typed_platform_view()->thumb_image_set); // apply queued, not yet run
+
+        // Disconnect BEFORE pumping: destroys the platform, but cancels the queued apply in disconnect.
+        control.set_handler(nullptr);
+        ASSERT_EQ(handler->platform_view(), nullptr); // platform destroyed by the base disconnect
+
+        // Pump: the queued apply closure must bail on the cancelled token (no deref of the freed platform).
+        disp.run_pending(); // ASan would flag a use-after-free here without the fix
+        EXPECT_FALSE(handler->thumb_image_loader().is_loading()); // load cancelled, not applied
+    }
+
     // ---- UpdateOnTap (the iOSSpecific platform configuration) ----
 
     TEST(slider_seam, update_on_tap_defaults_false_and_maps_when_set)

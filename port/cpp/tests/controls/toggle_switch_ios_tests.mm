@@ -14,8 +14,10 @@
 #include <string>
 
 #include "maui/controls/toggle_switch.hpp"
+#include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/layout_handler.hpp"
 #include "maui/core/switch_handler.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
@@ -24,6 +26,7 @@
 namespace
 {
     using maui::controls::toggle_switch;
+    using maui::controls::vertical_stack_layout;
     using maui::core::i_element_handler;
     using maui::core::switch_handler;
 
@@ -175,6 +178,45 @@ namespace
         UISwitch* const view = native_switch(handler);
         EXPECT_EQ(view.superview, wrapper);
         EXPECT_EQ(wrapper.subviews.count, 1U);
+    }
+
+    // W8-56 regression (#7): native_view() is C#'s ToPlatform() = ContainerView ?? PlatformView, so a
+    // NeedsContainer switch must hand back its CONTAINER (not the bare UISwitch). Previously native_view()
+    // always returned the bare native, so the container never entered the visual tree.
+    TEST(ios_switch_seam, native_view_is_the_container_when_wrapped)
+    {
+        toggle_switch control;
+        auto handler = std::make_shared<switch_handler>();
+        control.set_handler(handler);
+
+        ASSERT_TRUE(handler->has_container());
+        auto* const view_handler = static_cast<maui::core::i_view_handler*>(handler.get());
+        EXPECT_EQ(view_handler->native_view(), handler->container_view());              // ToPlatform → container
+        EXPECT_NE(view_handler->native_view(), (__bridge void*)native_switch(handler)); // NOT the bare switch
+    }
+
+    // W8-56 regression (#7): a NeedsContainer switch added to a layout → the panel's child subview is the
+    // CONTAINER view (which holds the switch), not the bare switch. This is the end-to-end visual-tree path.
+    TEST(ios_switch_seam, needs_container_switch_inserts_container_into_layout)
+    {
+        vertical_stack_layout stack;
+        auto layout = std::make_shared<maui::core::layout_handler>();
+        stack.set_handler(layout);
+        UIView* const panel = (__bridge UIView*)layout->typed_platform_view()->native;
+
+        toggle_switch control;
+        auto handler = std::make_shared<switch_handler>();
+        control.set_handler(handler);
+        UIView* const wrapper = (__bridge UIView*)handler->container_view();
+        UISwitch* const view = native_switch(handler);
+        ASSERT_NE(wrapper, nil);
+
+        stack.add(control);
+
+        ASSERT_EQ(panel.subviews.count, 1U);
+        EXPECT_EQ(panel.subviews.firstObject, wrapper); // the container is the panel's subview
+        EXPECT_NE(panel.subviews.firstObject, view);    // NOT the bare switch
+        EXPECT_EQ(view.superview, wrapper);             // the switch still lives inside the container
     }
 
     TEST(ios_switch_seam, clearing_handler_disconnects)

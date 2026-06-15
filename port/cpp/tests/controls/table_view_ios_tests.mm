@@ -151,7 +151,9 @@ namespace
 
         UITableViewCell* const cell = cell_at(handler, 0, 0);
         ASSERT_TRUE([cell.accessoryView isKindOfClass:[UISwitch class]]);
-        EXPECT_TRUE(((UISwitch*)cell.accessoryView).on); // bound to switch_cell.On
+        EXPECT_TRUE(((UISwitch*)cell.accessoryView).on);       // bound to switch_cell.On
+        EXPECT_EQ(cell.accessoryView.tag, 1002);               // tagged so reuse can rebind via viewWithTag:
+        EXPECT_NE([cell.accessoryView viewWithTag:1002], nil); // the rebind hook the reuse path uses
         // The primary text is asserted through the cross-platform realized mirror (UITableViewCell.textLabel
         // is deprecated/unreliable on iOS 14+ — the C# renderer flags the same).
         EXPECT_EQ(handler->typed_platform_view()->realized[0].text, "Wi-Fi");
@@ -168,6 +170,7 @@ namespace
         UITextField* const field = (UITextField*)cell.accessoryView;
         EXPECT_TRUE([field.text isEqualToString:@"Ada"]);
         EXPECT_TRUE([field.placeholder isEqualToString:@"enter name"]);
+        EXPECT_EQ(cell.accessoryView.tag, 1003); // tagged so reuse can rebind via viewWithTag:
         EXPECT_EQ(handler->typed_platform_view()->realized[1].text, "Name"); // the label rides the primary text
     }
 
@@ -196,5 +199,82 @@ namespace
         // And the mirror records it for the cross-backend oracle.
         ASSERT_EQ(platform->section_headers.size(), 1U);
         EXPECT_EQ(platform->section_headers[0].title, "Settings");
+    }
+
+    // ---- cell reuse (W8-56 #11) ----
+
+    UIWindow* make_host_window()
+    {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        UIWindow* const window = [[UIWindow alloc] init]; // SDK-deprecated; see window_handler.mm precedent
+#pragma clang diagnostic pop
+        return window;
+    }
+
+    // A table of N switch cells (all the same type-keyed reuse id), each with a distinct on/off value.
+    [[nodiscard]] std::shared_ptr<table_view> make_switch_table(int rows)
+    {
+        auto table = std::make_shared<table_view>();
+        auto root = std::make_shared<table_root>();
+        auto section = std::make_shared<table_section>("Toggles");
+        for (int i = 0; i < rows; ++i)
+        {
+            auto sw = std::make_shared<switch_cell>();
+            sw->set_text("row" + std::to_string(i));
+            sw->set_on(i % 2 == 0); // alternating, so a misbound reuse is visible
+            section->add(sw);
+        }
+        root->add(section);
+        table->set_root(root);
+        return table;
+    }
+
+    // W8-56 regression (#11): a reused switch cell must KEEP its accessory object and just REBIND the value,
+    // not rebuild a fresh UISwitch every time (the bug). Mount in a small window so only a few rows fit, then
+    // scroll the whole source under the recycler: the count of DISTINCT UISwitch instances ever vended stays
+    // far below the row count (recycling happened), and every visible switch's `on` matches its rebound model
+    // value (rebind-on-reuse is correct). Run on a booted simulator.
+    TEST(table_view_ios_seam, switch_cell_reuses_accessory_instance_and_rebinds)
+    {
+        constexpr int rows = 40;
+        auto table = make_switch_table(rows);
+        auto handler = std::make_shared<table_view_handler>();
+        table->set_handler(handler);
+
+        UITableView* const native = (__bridge UITableView*)handler->typed_platform_view()->native;
+        UIWindow* const window = make_host_window();
+        native.frame = CGRectMake(0, 0, 320, 120); // ~2-3 rows visible → the recycler must reuse
+        [window addSubview:native];
+        [window makeKeyAndVisible];
+
+        NSMutableSet<NSValue*>* const switch_instances = [NSMutableSet set];
+        const auto sweep = [&] {
+            for (NSUInteger r = 0; r < rows; ++r)
+            {
+                NSIndexPath* const path = [NSIndexPath indexPathForRow:static_cast<NSInteger>(r) inSection:0];
+                [native scrollToRowAtIndexPath:path atScrollPosition:UITableViewScrollPositionTop animated:NO];
+                [native layoutIfNeeded];
+                for (UITableViewCell* const cell in native.visibleCells)
+                {
+                    NSIndexPath* const cellPath = [native indexPathForCell:cell];
+                    if (cellPath == nil)
+                    {
+                        continue;
+                    }
+                    auto* sw = (UISwitch*)[cell.accessoryView viewWithTag:1002];
+                    ASSERT_TRUE([sw isKindOfClass:[UISwitch class]]); // every switch row still has its accessory
+                    [switch_instances addObject:[NSValue valueWithNonretainedObject:sw]];
+                    EXPECT_EQ(sw.on, cellPath.row % 2 == 0); // rebound to THIS row's model value, not stale
+                }
+            }
+        };
+        sweep();
+        sweep(); // a second pass guarantees recycling pressure
+
+        // Recycling happened: far fewer distinct UISwitch objects than rows (a no-reuse build would vend a
+        // fresh switch per realize). A generous bound keeps the test robust across UIKit layout differences.
+        EXPECT_LT(switch_instances.count, static_cast<NSUInteger>(rows));
+        (void)window;
     }
 } // namespace

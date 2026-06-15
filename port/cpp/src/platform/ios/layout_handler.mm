@@ -38,9 +38,11 @@ namespace
         return (__bridge UIView*)native;
     }
 
-    // The child's native UIView, via its view-handler's native_view() (nil if the child is unattached or
-    // its handler has no native view). native_view() returns the real UIView the pimpl owns — not the
-    // pimpl pointer that platform_view() returns. Mirrors the apple twin's native_child helper.
+    // The child's native UIView to host, via its view-handler's native_view() (nil if the child is
+    // unattached or its handler has no native view). native_view() is C#'s ToPlatform() =
+    // ContainerView ?? PlatformView, so a NeedsContainer child (e.g. the switch) hands back its CONTAINER
+    // UIView here — not the bare native, and not the pimpl pointer that platform_view() returns. Mirrors
+    // the apple twin's native_child helper.
     UIView* native_child(maui::core::i_view& child)
     {
         auto* handler = dynamic_cast<maui::core::i_view_handler*>(child.handler().get());

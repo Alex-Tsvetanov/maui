@@ -118,8 +118,10 @@ namespace maui::core
     }
 
     // Headless: a loaded result is mirrored as "a thumb image is set" (the Apple/iOS builds set the real
-    // native thumb image instead). The thumb tint is conceptually cleared while an image is shown.
-    void slider_handler::apply_thumb_image(slider_platform& platform, const image_source_result& /*result*/)
+    // native thumb image instead). The thumb tint is conceptually cleared while an image is shown. `view` is
+    // unused here (the iOS recipe reads ThumbColor to tint the image — SliderExtensions ApplyTintColor).
+    void slider_handler::apply_thumb_image(slider_platform& platform, i_slider& /*view*/,
+                                           const image_source_result& /*result*/)
     {
         platform.thumb_image_set = true;
     }

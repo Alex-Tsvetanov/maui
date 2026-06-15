@@ -14,6 +14,7 @@
 
 #import <UIKit/UIKit.h>
 
+#include <cctype>
 #include <string>
 #include <utility>
 
@@ -72,6 +73,90 @@ namespace
             traits |= UIFontDescriptorTraitItalic;
         }
         return traits;
+    }
+
+    // True when GetFontAttributes would set the CONTINUOUS UIFontWeightTrait — i.e. the weight is neither
+    // Regular nor Bold (Bold is carried as the symbolic Bold trait, Regular carries no weight trait).
+    bool has_continuous_weight(maui::core::font value)
+    {
+        return value.weight() != maui::core::font_weight::regular && value.weight() != maui::core::font_weight::bold;
+    }
+
+    // C# GetFontAttributes' UIFontTraits.Weight/Slant branch for non-bold non-regular weights: add the
+    // continuous UIFontWeightTrait — together with any symbolic Italic/oblique trait — to a descriptor in a
+    // SINGLE UIFontDescriptorTraitsAttribute dict (mirroring C#'s one UIFontAttributes that holds both
+    // Traits.Weight and Traits.SymbolicTrait). This is what was DROPPED before — the symbolic-only path
+    // rendered medium/semibold/light/… as Regular. NOTE: calling fontDescriptorWithSymbolicTraits: FIRST and
+    // then adding the weight trait does NOT work (the symbolic-traits call resets the weight resolution) —
+    // both must go into one attributes addition, which is also closest to GetFontAttributes' shape.
+    UIFontDescriptor* descriptor_with_attributes(UIFontDescriptor* descriptor, maui::core::font value,
+                                                 UIFontDescriptorSymbolicTraits symbolic)
+    {
+        NSMutableDictionary* const trait_attrs = [NSMutableDictionary dictionary];
+        trait_attrs[UIFontWeightTrait] = @(to_ui_font_weight(value.weight()));
+        if (value.slant() == maui::core::font_slant::oblique)
+        {
+            trait_attrs[UIFontSlantTrait] = @(30.0); // C#'s GetFontAttributes Slant = 30.0f for oblique
+        }
+        if (symbolic != 0)
+        {
+            trait_attrs[UIFontSymbolicTrait] = @(symbolic); // the symbolic Italic flag (Bold is never set here)
+        }
+        return [descriptor fontDescriptorByAddingAttributes:@{UIFontDescriptorTraitsAttribute : trait_attrs}];
+    }
+
+    // Map a ".SFUI-<Weight>" family's trailing segment to a UIFontWeight, mirroring C#'s
+    // family.Split('-').Last() → Enum.TryParse<UIFontWeight>(…, ignoreCase: true) (Regular on no/blank/bad
+    // suffix). The enum names match UIFontWeight: ultralight/thin/light/regular/medium/semibold/bold/heavy/black.
+    UIFontWeight system_weight_from_family_suffix(const std::string& family)
+    {
+        const auto dash = family.find_last_of('-');
+        if (dash == std::string::npos || dash + 1 >= family.size())
+        {
+            return UIFontWeightRegular;
+        }
+        std::string suffix = family.substr(dash + 1);
+        for (char& c : suffix)
+        {
+            c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+        }
+        if (suffix == "ultralight")
+        {
+            return UIFontWeightUltraLight;
+        }
+        if (suffix == "thin")
+        {
+            return UIFontWeightThin;
+        }
+        if (suffix == "light")
+        {
+            return UIFontWeightLight;
+        }
+        if (suffix == "regular")
+        {
+            return UIFontWeightRegular;
+        }
+        if (suffix == "medium")
+        {
+            return UIFontWeightMedium;
+        }
+        if (suffix == "semibold")
+        {
+            return UIFontWeightSemibold;
+        }
+        if (suffix == "bold")
+        {
+            return UIFontWeightBold;
+        }
+        if (suffix == "heavy")
+        {
+            return UIFontWeightHeavy;
+        }
+        if (suffix == "black")
+        {
+            return UIFontWeightBlack;
+        }
+        return UIFontWeightRegular; // Enum.TryParse failure → Regular
     }
 
     bool family_is_available(NSString* family)
@@ -133,13 +218,26 @@ namespace maui::core
         if (ns_family != nil && ![ns_family isEqualToString:default_family])
         {
             // An installed family → a descriptor (with the trait attributes when the font has weight/slant).
+            // C#'s descriptor.CreateWithAttributes(GetFontAttributes(font)): the symbolic Bold/Italic flags
+            // PLUS the continuous UIFontWeightTrait for non-bold non-regular weights (which was dropped
+            // before — medium/semibold/light rendered as Regular).
             if (family_is_available(ns_family))
             {
                 UIFontDescriptor* descriptor =
                     [UIFontDescriptor fontDescriptorWithFontAttributes:@{UIFontDescriptorFamilyAttribute : ns_family}];
                 if (has_attributes)
                 {
-                    descriptor = [descriptor fontDescriptorWithSymbolicTraits:symbolic_traits(value)];
+                    if (has_continuous_weight(value))
+                    {
+                        // Non-bold non-regular: fold the continuous weight + any symbolic Italic into ONE
+                        // attributes addition (a separate fontDescriptorWithSymbolicTraits: call would reset
+                        // the weight). Bold is never reached here (it's the symbolic-only path below).
+                        descriptor = descriptor_with_attributes(descriptor, value, symbolic_traits(value));
+                    }
+                    else
+                    {
+                        descriptor = [descriptor fontDescriptorWithSymbolicTraits:symbolic_traits(value)];
+                    }
                 }
                 result = [UIFont fontWithDescriptor:descriptor size:size];
                 if (result != nil)
@@ -148,12 +246,13 @@ namespace maui::core
                 }
             }
 
-            // ".SFUI-*" — the system font, by the suffix weight if it parses, else regular (C#'s
-            // UIFont.SystemFontOfSize(size, weight); the suffix→UIFontWeight parse is reduced to the maui
-            // weight the font already carries — the port's font value already encodes the requested weight).
+            // ".SFUI-*" — the system font, by the suffix weight if it parses, else Regular. C# parses
+            // family.Split('-').Last() → Enum.TryParse<UIFontWeight> (FontManager.iOS.cs:134-151) and
+            // requests SystemFontOfSize(size, parsedWeight) — driven by the family NAME suffix, NOT
+            // value.weight(). (e.g. ".SFUI-Semibold" with weight=Regular → a semibold system font.)
             if ([ns_family.lowercaseString hasPrefix:@".sfui"])
             {
-                result = [UIFont systemFontOfSize:size weight:to_ui_font_weight(value.weight())];
+                result = [UIFont systemFontOfSize:size weight:system_weight_from_family_suffix(family)];
                 if (result != nil)
                 {
                     return make(result);
@@ -180,12 +279,21 @@ namespace maui::core
         }
 
         // No family (or it failed to resolve): the system font, with the weight/slant traits applied via a
-        // descriptor when the font has any (C#'s SystemFontOfSize(size).FontDescriptor.CreateWithAttributes).
+        // descriptor when the font has any (C#'s SystemFontOfSize(size).FontDescriptor.CreateWithAttributes
+        // (GetFontAttributes(font))). For non-bold non-regular weights GetFontAttributes sets the CONTINUOUS
+        // UIFontWeightTrait — start from the correctly-weighted system font so the weight is never dropped
+        // (the symbolic-only path rendered medium/semibold as Regular), then overlay any symbolic Italic.
         if (has_attributes)
         {
-            UIFont* const base = [UIFont systemFontOfSize:size];
-            UIFontDescriptor* const descriptor =
-                [base.fontDescriptor fontDescriptorWithSymbolicTraits:symbolic_traits(value)];
+            UIFont* const base = has_continuous_weight(value)
+                                     ? [UIFont systemFontOfSize:size weight:to_ui_font_weight(value.weight())]
+                                     : [UIFont systemFontOfSize:size];
+            const UIFontDescriptorSymbolicTraits symbolic = symbolic_traits(value);
+            if (symbolic == 0)
+            {
+                return make(base); // continuous weight already baked into `base`; no Bold/Italic to add
+            }
+            UIFontDescriptor* const descriptor = [base.fontDescriptor fontDescriptorWithSymbolicTraits:symbolic];
             UIFont* const traited = [UIFont fontWithDescriptor:descriptor size:size];
             return make(traited != nil ? traited : base);
         }

@@ -25,6 +25,16 @@ namespace
         return (__bridge NSFont*)handle;
     }
 
+    // The effective weight of a RESOLVED NSFont, as AppKit's coarse 0-15 weight scale
+    // (NSFontManager.weightOfFont). This reflects the font face actually selected — robust whether the weight
+    // came from the system-font weight path or a descriptor's NSFontWeightTrait (the latter is normalized
+    // into the resolved face, so reading it back off the descriptor is unreliable). Used to assert non-bold
+    // intermediate weights are not dropped to Regular.
+    NSInteger effective_weight(NSFont* font)
+    {
+        return [NSFontManager.sharedFontManager weightOfFont:font];
+    }
+
     class apple_font_manager : public ::testing::Test
     {
     protected:
@@ -71,6 +81,49 @@ namespace
         ASSERT_NE(bold, nil);
         const NSFontSymbolicTraits traits = bold.fontDescriptor.symbolicTraits;
         EXPECT_TRUE((traits & NSFontDescriptorTraitBold) != 0);
+    }
+
+    // W8-56 regression (#4): non-bold intermediate weights (medium/semibold) must NOT collapse to Regular.
+    // C# GetFontAttributes sets the CONTINUOUS UIFontWeightTrait for weight != Regular && != Bold; the port
+    // previously applied only the symbolic Bold/Italic traits, so medium/semibold rendered as Regular. The
+    // no-family system-font path: a semibold (and medium) system font must be heavier than Regular.
+    TEST_F(apple_font_manager, intermediate_weights_are_heavier_than_regular_system_font)
+    {
+        font_registrar registrar;
+        font_manager manager(registrar);
+        const double regular = effective_weight(as_font(manager.get_font(font::system_font_of_size(16))));
+        const double semibold = effective_weight(
+            as_font(manager.get_font(font::system_font_of_size(16, font_weight::semibold, font_slant::normal))));
+        const double medium = effective_weight(
+            as_font(manager.get_font(font::system_font_of_size(16, font_weight::medium, font_slant::normal))));
+        EXPECT_GT(semibold, regular);
+        EXPECT_GT(medium, regular);
+        EXPECT_GT(semibold, medium); // ordering preserved
+    }
+
+    // W8-56 regression (#4b): the INSTALLED-family branch must also carry the continuous weight. Helvetica at
+    // semibold must be heavier than Helvetica at Regular (previously dropped — symbolic-traits only).
+    TEST_F(apple_font_manager, installed_family_carries_intermediate_weight)
+    {
+        font_registrar registrar;
+        font_manager manager(registrar);
+        const double regular = effective_weight(as_font(manager.get_font(font::of_size("Helvetica", 18))));
+        const double semibold = effective_weight(
+            as_font(manager.get_font(font::of_size("Helvetica", 18, font_weight::semibold, font_slant::normal))));
+        EXPECT_GT(semibold, regular);
+    }
+
+    // W8-56 regression (#5): ".SFUI-<Weight>" resolves the weight from the family-name SUFFIX, not the font's
+    // weight. ".SFUI-Semibold" with weight=Regular must resolve to a semibold system font (heavier than a
+    // plain system font of the same Regular weight value).
+    TEST_F(apple_font_manager, sfui_suffix_drives_system_weight)
+    {
+        font_registrar registrar;
+        font_manager manager(registrar);
+        const double plain = effective_weight(as_font(manager.get_font(font::system_font_of_size(16))));
+        const double sfui_semibold = effective_weight(
+            as_font(manager.get_font(font::of_size(".SFUI-Semibold", 16, font_weight::regular, font_slant::normal))));
+        EXPECT_GT(sfui_semibold, plain);
     }
 
     TEST_F(apple_font_manager, caches_the_same_font)

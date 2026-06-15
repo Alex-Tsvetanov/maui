@@ -52,6 +52,17 @@ namespace maui::core
         configure_thumb_loader(thumb_image_loader_);
     }
 
+    // C# SliderHandler.DisconnectHandler teardown: cancel the in-flight thumb-image load BEFORE the base
+    // destroys the platform view, so a queued apply closure (which captured the platform by raw pointer)
+    // is gated out by the loader's cancelled token instead of dereferencing the freed platform. See the
+    // header note. update_source(nullptr, nullptr) calls begin_load() → cancels the previous token; the
+    // already-queued deliver() closure then bails on its `!token.is_cancelled()` recheck.
+    void slider_handler::disconnect_handler()
+    {
+        thumb_image_loader_.update_source(nullptr, nullptr);
+        view_handler::disconnect_handler();
+    }
+
     // SliderHandler.MapThumbImageSource / SliderExtensions.UpdateThumbImageSourceAsync: a null/empty
     // source clears the native thumb image and falls back to the thumb color (UpdateThumbColor's else
     // branch); a real source loads through the handler-owned loader and, when the result arrives and is
@@ -77,7 +88,7 @@ namespace maui::core
         handler.thumb_image_loader_.update_source(src, [platform, view_ptr](const image_source_result& result) {
             if (result.loaded())
             {
-                apply_thumb_image(*platform, result);
+                apply_thumb_image(*platform, *view_ptr, result);
             }
             else
             {

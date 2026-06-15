@@ -67,10 +67,13 @@
 }
 
 // ---- the PlatformTouchGraphicsView touch plumbing ----
-// C# GetPointsInView(evt): each touch's location in the host (the multi-touch point array).
-- (std::vector<maui::graphics::point_f>)pointsFromTouches:(NSSet<UITouch*>*)touches
+// C# UIViewExtensions.GetPointsInView(evt): the multi-touch point array built from the EVENT's touches FOR
+// THIS VIEW ([event touchesForView:self]) — NOT the per-callback `touches` NSSet and NOT event.allTouches
+// (which is event-global, spanning every view). Each touch's location is taken in the host's coordinates.
+- (std::vector<maui::graphics::point_f>)pointsFromEvent:(UIEvent*)event
 {
     std::vector<maui::graphics::point_f> points;
+    NSSet<UITouch*>* const touches = event != nil ? [event touchesForView:self] : nil;
     points.reserve(touches.count);
     for (UITouch* touch in touches)
     {
@@ -135,20 +138,20 @@
 
 - (void)touchesBegan:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event
 {
-    (void)event;
-    [self notifyStartInteraction:[self pointsFromTouches:touches]];
+    (void)touches; // C# uses GetPointsInView(evt) — the event's touches-for-this-view, not this NSSet
+    [self notifyStartInteraction:[self pointsFromEvent:event]];
 }
 
 - (void)touchesMoved:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event
 {
-    (void)event;
-    [self notifyDragInteraction:[self pointsFromTouches:touches]];
+    (void)touches;
+    [self notifyDragInteraction:[self pointsFromEvent:event]];
 }
 
 - (void)touchesEnded:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event
 {
-    (void)event;
-    [self notifyEndInteraction:[self pointsFromTouches:touches]];
+    (void)touches;
+    [self notifyEndInteraction:[self pointsFromEvent:event]];
 }
 
 - (void)touchesCancelled:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event

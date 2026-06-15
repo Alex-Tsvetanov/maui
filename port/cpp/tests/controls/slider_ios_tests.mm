@@ -70,6 +70,31 @@ namespace
         return (__bridge UISlider*)handler->typed_platform_view()->native;
     }
 
+    // Sample the top-left pixel of a UIImage as RGBA bytes (0-255). Used to verify the thumb image was
+    // tinted to the requested color rather than left in the source color.
+    struct rgba
+    {
+        unsigned char r, g, b, a;
+    };
+    rgba sample_top_left(UIImage* image)
+    {
+        rgba px{0, 0, 0, 0};
+        CGImageRef cg = image.CGImage;
+        if (cg == nullptr)
+        {
+            return px;
+        }
+        unsigned char buffer[4] = {0, 0, 0, 0};
+        CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB();
+        CGContextRef ctx =
+            CGBitmapContextCreate(buffer, 1, 1, 8, 4, space, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+        CGContextDrawImage(ctx, CGRectMake(0, 0, 1, 1), cg);
+        CGContextRelease(ctx);
+        CGColorSpaceRelease(space);
+        px = {buffer[0], buffer[1], buffer[2], buffer[3]};
+        return px;
+    }
+
     // Replicates -[UIControl sendActionsForControlEvents:]'s dispatch-table walk for one event (see
     // the header comment).
     void send_control_event(UIControl* control, UIControlEvents event)
@@ -195,6 +220,28 @@ namespace
         EXPECT_EQ([view thumbImageForState:UIControlStateNormal], nil);
         EXPECT_FALSE(handler->typed_platform_view()->thumb_image_set);
         EXPECT_NE(view.thumbTintColor, nil);
+    }
+
+    // W8-56 regression (#8): SliderExtensions ApplyTintColor — when BOTH a thumb image AND a ThumbColor are
+    // set, the image is TINTED with the color before SetThumbImage (previously ignored, so the source color
+    // showed through). The source PNG is solid RED; with a BLUE thumb color the applied thumb image's pixel
+    // must come out blue-dominant, not red.
+    TEST(ios_slider_seam, thumb_image_is_tinted_with_the_thumb_color)
+    {
+        slider control;
+        control.set_thumb_color(maui::graphics::color(0.0F, 0.0F, 1.0F)); // blue tint
+        auto handler = std::make_shared<slider_handler>();
+        control.set_handler(handler);
+
+        control.set_thumb_image_source(make_png_stream_source()); // a solid-red 2x2 PNG
+        UISlider* const view = native_slider(handler);
+        UIImage* const thumb = [view thumbImageForState:UIControlStateNormal];
+        ASSERT_NE(thumb, nil);
+
+        const rgba px = sample_top_left(thumb);
+        EXPECT_GT(px.b, px.r); // tinted blue — the source red was recolored
+        EXPECT_GT(px.b, 100);  // strongly blue
+        EXPECT_LT(px.r, 100);  // not the original red
     }
 
     // Count the tap recognizers the HANDLER added (UISlider carries its own built-in recognizers on
