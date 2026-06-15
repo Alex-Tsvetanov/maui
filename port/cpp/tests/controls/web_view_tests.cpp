@@ -460,7 +460,7 @@ namespace
     // read-back is the apple_shared .mm's real-native job).
     TEST(web_view_handler_seam, unset_user_agent_leaves_empty_mirror)
     {
-        seam s;
+        const seam s;
         EXPECT_EQ(s.platform->user_agent, "");
         EXPECT_EQ(s.control.user_agent(), "");
     }

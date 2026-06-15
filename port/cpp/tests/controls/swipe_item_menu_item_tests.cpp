@@ -109,13 +109,13 @@ namespace
         dark.set_background_color(maui::graphics::colors::red);
         const auto dark_color = maui::core::get_text_color(dark);
         ASSERT_TRUE(dark_color.has_value());
-        EXPECT_EQ(dark_color->to_uint(), maui::graphics::colors::white.to_uint());
+        EXPECT_EQ(dark_color.value_or(maui::graphics::color{}).to_uint(), maui::graphics::colors::white.to_uint());
 
         swipe_item light;
         light.set_background_color(maui::graphics::colors::white);
         const auto light_color = maui::core::get_text_color(light);
         ASSERT_TRUE(light_color.has_value());
-        EXPECT_EQ(light_color->to_uint(), maui::graphics::colors::black.to_uint());
+        EXPECT_EQ(light_color.value_or(maui::graphics::color{}).to_uint(), maui::graphics::colors::black.to_uint());
 
         swipe_item none;
         EXPECT_FALSE(maui::core::get_text_color(none).has_value());

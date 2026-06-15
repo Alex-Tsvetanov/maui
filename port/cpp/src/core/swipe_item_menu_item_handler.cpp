@@ -13,6 +13,7 @@
 #include <memory>
 #include <optional>
 #include <string_view>
+#include <utility>
 
 #include "maui/core/i_font_image_source.hpp"
 #include "maui/core/i_image_source.hpp"
@@ -36,15 +37,15 @@ namespace maui::core
         }
         const std::shared_ptr<maui::core::i_image_source> source = item.source();
         if (const auto* font_source = dynamic_cast<const maui::core::i_font_image_source*>(source.get());
-            font_source != nullptr && font_source->color().alpha > 0.0f)
+            font_source != nullptr && font_source->color().alpha > 0.0F)
         {
             return std::nullopt;
         }
 
         const maui::graphics::color background = paint->background_color();
         const float luminosity =
-            (0.2126f * background.red) + (0.7152f * background.green) + (0.0722f * background.blue);
-        return luminosity < 0.75f ? maui::graphics::colors::white : maui::graphics::colors::black;
+            (0.2126F * background.red) + (0.7152F * background.green) + (0.0722F * background.blue);
+        return luminosity < 0.75F ? maui::graphics::colors::white : maui::graphics::colors::black;
     }
 
     swipe_item_menu_item_handler::swipe_item_menu_item_handler() = default;
