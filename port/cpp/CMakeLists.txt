@@ -1570,6 +1570,7 @@ set(MAUI_ESSENTIALS_FEATURES
   text_to_speech
   screenshot
   media_picker
+  file_picker
   # --- Unit 27: comms (clipboard/share + communication email/sms/phone_dialer/contacts +
   # authentication web_authenticator + accessibility semantic_screen_reader) ---
   clipboard
@@ -1629,6 +1630,7 @@ add_library(maui_essentials STATIC
   src/essentials/text_to_speech.cpp
   src/essentials/screenshot.cpp
   src/essentials/media_picker.cpp
+  src/essentials/file_picker.cpp
   src/essentials/file_result.cpp
   # --- Unit 27: comms facades + shared logic ---
   src/essentials/clipboard.cpp
@@ -1668,6 +1670,7 @@ if(MAUI_BACKEND STREQUAL "ios")
   target_link_libraries(maui_essentials PUBLIC
     "-framework CoreMotion" "-framework CoreLocation" "-framework AVFoundation" "-framework AudioToolbox"
     "-framework Security" "-framework SafariServices"
+    "-framework UniformTypeIdentifiers" # U13: file_picker UTType (UIDocumentPickerViewController content types)
     "-framework Network" # W2-26: connectivity NWPathMonitor
     # Unit 27 comms: MessageUI (email MFMailComposeViewController + sms MFMessageComposeViewController),
     # Contacts (contacts CNContactStore + CNContactPickerViewController via ContactsUI, which MessageUI/
@@ -1749,6 +1752,7 @@ else()
     tests/essentials/text_to_speech_tests.cpp
     tests/essentials/screenshot_tests.cpp
     tests/essentials/media_picker_tests.cpp
+    tests/essentials/file_picker_tests.cpp
     tests/essentials/comms_tests.cpp) # Unit 27
 endif()
 target_include_directories(maui_essentials_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for src/... detail headers

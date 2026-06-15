@@ -15,6 +15,7 @@
 
 #include "maui/essentials/connectivity.hpp"
 #include "maui/essentials/feature_not_supported.hpp"
+#include "maui/essentials/file_picker.hpp"
 #include "maui/essentials/file_result.hpp"
 #include "maui/essentials/media_picker.hpp"
 #include "maui/essentials/screenshot.hpp"
@@ -91,5 +92,26 @@ namespace
         // No presenting view controller in the gtest process -> the service-seam error.
         EXPECT_THROW(media_picker::pick_photo_async([](const std::optional<file_result>&) {}), feature_not_supported);
         media_picker::set_default(nullptr);
+    }
+
+    // --- file_picker (service seam; UIDocumentPickerViewController needs a presenting VC) ---
+    TEST(essentials_media_ios, file_picker_pick_is_service_seam)
+    {
+        using namespace maui::storage;
+        file_picker::set_default(nullptr);
+        // No key window/root VC in the gtest process -> the service-seam error before presenting.
+        EXPECT_THROW(file_picker::pick_async([](const std::optional<file_result>&) {}), feature_not_supported);
+        EXPECT_THROW(file_picker::pick_multiple_async([](const std::vector<file_result>&) {}), feature_not_supported);
+        file_picker::set_default(nullptr);
+    }
+
+    // The iOS predefined FilePickerFileType statics carry real UTType identifiers (FilePicker.ios.cs).
+    TEST(essentials_media_ios, file_type_images_resolves_on_ios)
+    {
+        using namespace maui::storage;
+        const std::optional<std::vector<std::string>> ios_types =
+            file_picker_file_type::images.try_get(maui::devices::device_platform::ios());
+        ASSERT_TRUE(ios_types.has_value());
+        EXPECT_FALSE(ios_types->empty());
     }
 } // namespace

@@ -15,6 +15,7 @@
 
 #include "maui/essentials/connectivity.hpp"
 #include "maui/essentials/feature_not_supported.hpp"
+#include "maui/essentials/file_picker.hpp"
 #include "maui/essentials/file_result.hpp"
 #include "maui/essentials/media_picker.hpp"
 #include "maui/essentials/screenshot.hpp"
@@ -88,5 +89,15 @@ namespace
         EXPECT_THROW(media_picker::capture_photo_async([](const std::optional<file_result>&) {}),
                      feature_not_supported);
         media_picker::set_default(nullptr);
+    }
+
+    // --- file_picker (service seam; macOS has no native partial -> never drivable headlessly) ---
+    TEST(essentials_media_apple, file_picker_is_service_seam)
+    {
+        using namespace maui::storage;
+        file_picker::set_default(nullptr);
+        EXPECT_THROW(file_picker::pick_async([](const std::optional<file_result>&) {}), feature_not_supported);
+        EXPECT_THROW(file_picker::pick_multiple_async([](const std::vector<file_result>&) {}), feature_not_supported);
+        file_picker::set_default(nullptr);
     }
 } // namespace

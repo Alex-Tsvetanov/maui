@@ -37,6 +37,7 @@
 #include "maui/essentials/device_display.hpp"
 #include "maui/essentials/device_info.hpp"
 #include "maui/essentials/feature_not_supported.hpp"
+#include "maui/essentials/file_picker.hpp"
 #include "maui/essentials/file_result.hpp"
 #include "maui/essentials/flashlight.hpp"
 #include "maui/essentials/geocoding.hpp"
@@ -1066,3 +1067,71 @@ namespace maui::media
         std::optional<media_picker_options> last_options_;
     };
 } // namespace maui::media
+
+namespace maui::storage
+{
+    namespace headless_detail = maui::devices::headless_detail;
+
+    // FilePickerImplementation (netstandard): PlatformPickAsync throws - until configured. The
+    // SERVICE-SEAM fake (the media_picker twin): pick_async returns the staged single result (default
+    // empty = the user cancelled, the C# PickAsync null), pick_multiple_async the staged multi result
+    // (default empty = cancelled, the C# never-null empty collection), and the last requested kind +
+    // options are recorded so the seam can be asserted.
+    class headless_file_picker final : public i_file_picker
+    {
+    public:
+        enum class kind
+        {
+            pick_single,
+            pick_multiple,
+        };
+
+        void pick_async(const pick_options& options, file_result_callback on_complete) override
+        {
+            record(kind::pick_single, options);
+            on_complete(single_result_);
+        }
+        void pick_multiple_async(const pick_options& options, file_results_callback on_complete) override
+        {
+            record(kind::pick_multiple, options);
+            on_complete(multi_result_);
+        }
+
+        void set_single_result(std::optional<file_result> value)
+        {
+            configured_ = true;
+            single_result_ = std::move(value);
+        }
+        void set_multi_result(std::vector<file_result> value)
+        {
+            configured_ = true;
+            multi_result_ = std::move(value);
+        }
+
+        [[nodiscard]] std::optional<kind> last_kind() const
+        {
+            return last_kind_;
+        }
+        [[nodiscard]] std::optional<pick_options> last_options() const
+        {
+            return last_options_;
+        }
+
+    private:
+        void record(kind which, const pick_options& options)
+        {
+            if (!configured_)
+            {
+                headless_detail::throw_not_implemented();
+            }
+            last_kind_ = which;
+            last_options_ = options;
+        }
+
+        bool configured_ = false;
+        std::optional<file_result> single_result_;
+        std::vector<file_result> multi_result_;
+        std::optional<kind> last_kind_;
+        std::optional<pick_options> last_options_;
+    };
+} // namespace maui::storage
