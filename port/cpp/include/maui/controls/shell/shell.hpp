@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "maui/controls/shell/flyout_behavior.hpp"
+#include "maui/controls/shell/shell_appearance.hpp"
 #include "maui/controls/shell/shell_item.hpp"
 #include "maui/controls/shell/shell_navigated_event_args.hpp"
 #include "maui/controls/shell/shell_navigating_event_args.hpp"
@@ -181,6 +182,78 @@ namespace maui::controls
         [[nodiscard]] static std::shared_ptr<search_handler> get_search_handler_shared(
             const maui::core::bindable_object& target);
         static void remove_search_handler(const maui::core::bindable_object& target);
+
+        // ---- Shell appearance attached properties (Shell.<Color>Property, all attached) ----
+        // The ten chrome-color attached properties (Shell.BackgroundColor / ForegroundColor / TitleColor /
+        // DisabledColor / UnselectedColor + the five TabBar* counterparts) plus FlyoutWidth / FlyoutHeight.
+        // In C# these are BindableProperty.CreateAttached settable on ANY element of the shell tree (the
+        // page, a ShellContent, a ShellSection, a ShellItem, or the Shell). The port has no central
+        // attached-property store, so — exactly like routing's element-route side map and Shell.SearchHandler
+        // — each element's set values live in a process-wide side map keyed by the element pointer (with a
+        // weak liveness token so a dead entry self-prunes; see shell.cpp). The resolve walk
+        // (get_appearance_for_pivot) ingests these up the hierarchy.
+        //
+        // The per-element set values (the appearance attached-property bag for one element). Each color /
+        // double is std::nullopt when that element never set it (the C# attached-property "unset" / IsSet
+        // false). Public so shell_appearance::ingest can read a pivot's bag through values_of.
+        struct appearance_values
+        {
+            std::optional<maui::graphics::color> background_color;
+            std::optional<maui::graphics::color> disabled_color;
+            std::optional<maui::graphics::color> foreground_color;
+            std::optional<maui::graphics::color> tab_bar_background_color;
+            std::optional<maui::graphics::color> tab_bar_disabled_color;
+            std::optional<maui::graphics::color> tab_bar_foreground_color;
+            std::optional<maui::graphics::color> tab_bar_title_color;
+            std::optional<maui::graphics::color> tab_bar_unselected_color;
+            std::optional<maui::graphics::color> title_color;
+            std::optional<maui::graphics::color> unselected_color;
+            std::optional<double> flyout_width;
+            std::optional<double> flyout_height;
+            [[nodiscard]] bool any_set() const;
+        };
+
+        static void set_background_color(element& target, maui::graphics::color value);
+        static void set_disabled_color(element& target, maui::graphics::color value);
+        static void set_foreground_color(element& target, maui::graphics::color value);
+        static void set_tab_bar_background_color(element& target, maui::graphics::color value);
+        static void set_tab_bar_disabled_color(element& target, maui::graphics::color value);
+        static void set_tab_bar_foreground_color(element& target, maui::graphics::color value);
+        static void set_tab_bar_title_color(element& target, maui::graphics::color value);
+        static void set_tab_bar_unselected_color(element& target, maui::graphics::color value);
+        static void set_title_color(element& target, maui::graphics::color value);
+        static void set_unselected_color(element& target, maui::graphics::color value);
+        static void set_flyout_width(element& target, double value);
+        static void set_flyout_height(element& target, double value);
+
+        [[nodiscard]] static std::optional<maui::graphics::color> get_background_color(const element& target);
+        [[nodiscard]] static std::optional<maui::graphics::color> get_disabled_color(const element& target);
+        [[nodiscard]] static std::optional<maui::graphics::color> get_foreground_color(const element& target);
+        [[nodiscard]] static std::optional<maui::graphics::color> get_tab_bar_background_color(const element& target);
+        [[nodiscard]] static std::optional<maui::graphics::color> get_tab_bar_disabled_color(const element& target);
+        [[nodiscard]] static std::optional<maui::graphics::color> get_tab_bar_foreground_color(const element& target);
+        [[nodiscard]] static std::optional<maui::graphics::color> get_tab_bar_title_color(const element& target);
+        [[nodiscard]] static std::optional<maui::graphics::color> get_tab_bar_unselected_color(const element& target);
+        [[nodiscard]] static std::optional<maui::graphics::color> get_title_color(const element& target);
+        [[nodiscard]] static std::optional<maui::graphics::color> get_unselected_color(const element& target);
+        [[nodiscard]] static std::optional<double> get_flyout_width(const element& target);
+        [[nodiscard]] static std::optional<double> get_flyout_height(const element& target);
+
+        // The set values bag for `target` (an empty bag when the element set nothing). The reference is a
+        // by-value copy (the side map may rehash). shell_appearance::ingest reads it.
+        [[nodiscard]] static appearance_values values_of(const element& target);
+        // Side-map hygiene (the routing::remove_route precedent): drop an element's appearance bag. The weak
+        // token self-prunes a dead entry on access, so this is only an eager cleanup — optional to call.
+        static void remove_appearance_values(const element& target);
+
+        // Shell.GetAppearanceForPivot: the effective appearance for `pivot`. Walk DOWN from the pivot to the
+        // current page (WalkToPage), then back UP to the root shell, ingesting each level's set attached
+        // values (lowest level wins per slot). Returns nullopt when nothing in the line set any value
+        // (the C# null return → the chrome keeps its system defaults). See shell.cpp for the exact walk.
+        // STATIC: the C# method is an instance member but reads nothing off the shell — the walk runs entirely
+        // from the pivot up its own parent chain — so it is a pure function of `pivot` (callers resolve the
+        // shell only to find the pivot/current page; the resolution itself doesn't need it).
+        [[nodiscard]] static std::optional<shell_appearance> get_appearance_for_pivot(element& pivot);
 
         // ---- IShellController ----
         // ProposeNavigation: route the UI-initiated change through Navigating (cancel/defer).

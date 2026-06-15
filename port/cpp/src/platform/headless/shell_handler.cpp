@@ -40,6 +40,12 @@ namespace maui::core
         // is no native UISearchController / NSSearchField to install.
     }
 
+    void shell_handler::realize_appearance()
+    {
+        // Headless: the applied_appearance mirror IS the realized state (resolved by rebuild_appearance);
+        // there is no native UINavigationBar / UITabBar / NSToolbar to tint.
+    }
+
     void shell_handler::platform_arrange(const maui::graphics::rect& /*frame*/)
     {
         // Headless: no native container to position.

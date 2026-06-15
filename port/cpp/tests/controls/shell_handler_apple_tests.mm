@@ -13,8 +13,11 @@
 #include "maui/controls/shell/shell.hpp"
 #include "maui/controls/shell/shell_navigation_state.hpp"
 #include "maui/controls/shell_handler.hpp"
+#include "maui/graphics/colors.hpp"
 #include "tests/controls/shell_test_base.hpp"
 #include <gtest/gtest.h>
+
+#include "apple_conversions.hpp"
 
 namespace
 {
@@ -127,5 +130,43 @@ namespace
         sh.set_flyout_is_presented(false);
         EXPECT_TRUE(split.splitViewItems[0].collapsed);
         EXPECT_FALSE(handler->typed_platform_view()->tree.flyout_presented);
+    }
+
+    // Shell.BackgroundColor tints the content NSTabView's layer; EffectiveTabBarBackgroundColor tints the
+    // sidebar flyout list. AppKit deviation: no nav-bar / per-tab title colors (documented in the handler).
+    TEST_F(apple_shell_seam, appearance_tints_tab_host_and_sidebar)
+    {
+        namespace colors = maui::graphics::colors;
+        shell sh;
+        auto one = std::make_shared<shell_item>();
+        one->set_route("one");
+        one->add(make_simple_shell_section("tabone", "content"));
+        shell::set_background_color(*one, colors::red);
+        shell::set_tab_bar_background_color(*one, colors::blue);
+        sh.add_item(one);
+
+        auto handler = std::make_shared<shell_handler>();
+        sh.set_handler(handler);
+
+        // The mirror carries the resolved appearance.
+        auto* platform = handler->typed_platform_view();
+        ASSERT_TRUE(platform->tree.applied_appearance.has_value());
+        EXPECT_EQ(colors::red, *platform->tree.applied_appearance->background_color());
+
+        // The content NSTabView's layer background is the BackgroundColor.
+        NSTabView* const tabs = native_tab_host(handler);
+        ASSERT_NE(tabs.layer, nil);
+        ASSERT_NE(tabs.layer.backgroundColor, nullptr);
+        NSColor* const applied = [NSColor colorWithCGColor:tabs.layer.backgroundColor];
+        NSColor* const expected = maui::platform::apple::to_ns_color(colors::red);
+        EXPECT_TRUE([[applied colorUsingColorSpace:NSColorSpace.sRGBColorSpace]
+            isEqual:[expected colorUsingColorSpace:NSColorSpace.sRGBColorSpace]]);
+
+        // The sidebar flyout list background is the EffectiveTabBarBackgroundColor (the explicit tab-bar slot).
+        NSTableView* const flyout = (__bridge NSTableView*)platform->flyout_host;
+        NSColor* const sidebar = [flyout.backgroundColor colorUsingColorSpace:NSColorSpace.sRGBColorSpace];
+        NSColor* const expected_sidebar =
+            [maui::platform::apple::to_ns_color(colors::blue) colorUsingColorSpace:NSColorSpace.sRGBColorSpace];
+        EXPECT_TRUE([sidebar isEqual:expected_sidebar]);
     }
 } // namespace

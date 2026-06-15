@@ -17,8 +17,11 @@
 #include "maui/controls/shell/shell.hpp"
 #include "maui/controls/shell/shell_navigation_state.hpp"
 #include "maui/controls/shell_handler.hpp"
+#include "maui/graphics/colors.hpp"
 #include "tests/controls/shell_test_base.hpp"
 #include <gtest/gtest.h>
+
+#include "ios_conversions.hpp"
 
 namespace
 {
@@ -158,5 +161,39 @@ namespace
         sh.set_flyout_is_presented(false);
         EXPECT_EQ(split.preferredDisplayMode, UISplitViewControllerDisplayModeSecondaryOnly);
         EXPECT_FALSE(handler->typed_platform_view()->tree.flyout_presented);
+    }
+
+    // The resolved appearance is pushed onto the native chrome: BackgroundColor → each section's
+    // UINavigationBar standardAppearance.backgroundColor; EffectiveTabBarBackgroundColor → the UITabBar's
+    // standardAppearance.backgroundColor (ShellNavBarAppearanceTracker + ShellTabBarAppearanceTracker).
+    TEST_F(ios_shell_seam, appearance_tints_nav_bar_and_tab_bar)
+    {
+        namespace colors = maui::graphics::colors;
+        shell sh;
+        auto one = std::make_shared<shell_item>();
+        one->set_route("one");
+        one->add(make_simple_shell_section("tabone", "content"));
+        shell::set_background_color(*one, colors::red);          // nav bar background
+        shell::set_tab_bar_background_color(*one, colors::blue); // tab bar background
+        sh.add_item(one);
+
+        auto handler = std::make_shared<shell_handler>();
+        sh.set_handler(handler);
+
+        auto* platform = handler->typed_platform_view();
+        ASSERT_TRUE(platform->tree.applied_appearance.has_value());
+
+        UITabBarController* const tabs = native_tab_host(handler);
+        ASSERT_GE(tabs.viewControllers.count, 1U);
+        UINavigationController* const nav = (UINavigationController*)tabs.viewControllers[0];
+        ASSERT_TRUE([nav isKindOfClass:[UINavigationController class]]);
+
+        // The nav bar's standard appearance carries the BackgroundColor.
+        UIColor* const expected_nav = maui::platform::ios::to_ui_color(colors::red);
+        EXPECT_TRUE([nav.navigationBar.standardAppearance.backgroundColor isEqual:expected_nav]);
+
+        // The tab bar's standard appearance carries the EffectiveTabBarBackgroundColor.
+        UIColor* const expected_tab = maui::platform::ios::to_ui_color(colors::blue);
+        EXPECT_TRUE([tabs.tabBar.standardAppearance.backgroundColor isEqual:expected_tab]);
     }
 } // namespace

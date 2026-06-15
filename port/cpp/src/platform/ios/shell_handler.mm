@@ -30,18 +30,22 @@
 #import <UIKit/UIKit.h>
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/shell/search_handler.hpp"
 #include "maui/controls/shell/shell.hpp"
+#include "maui/controls/shell/shell_appearance.hpp"
 #include "maui/controls/shell_handler.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+
+#include "ios_conversions.hpp"
 
 // UIKit trampoline for the shell search box: the UISearchBar's text edits + search-button taps + the
 // bookmark (clear-placeholder) button route to the C++ search_handler model. Mirrors
@@ -287,6 +291,11 @@ namespace maui::core
         // both from the full rebuild AND from the flyout-only paths map_flyout_items / set_flyout_item_
         // template, which do not call rebuild_search_box, so reinstalling here keeps the box attached.)
         realize_search_box();
+
+        // Same reasoning for the appearance: fresh nav bars + tab bar default to the system colors, so re-push
+        // the resolved appearance from the mirror (the full-rebuild path also re-resolves it afterward via
+        // rebuild_appearance — re-applying here keeps the flyout-only realize_tree paths tinted too).
+        realize_appearance();
     }
 
     void shell_handler::update_flyout_presented(maui::controls::shell& host)
@@ -371,6 +380,91 @@ namespace maui::core
         {
             top.navigationItem.searchController = nil; // RemoveSearchController
         }
+    }
+
+    void shell_handler::realize_appearance()
+    {
+        // Push the resolved appearance (the applied_appearance mirror) onto the native chrome: the per-section
+        // UINavigationBar (each tab's nav controller) + the UITabBar of the tab host. Mirrors the compat
+        // ShellNavBarAppearanceTracker.SetAppearance (nav bar) + ShellTabBarAppearanceTracker.SetAppearance
+        // (tab bar). A missing color slot leaves that attribute on the system default (nil), exactly like the
+        // C# null-color path.
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->tab_host == nullptr)
+        {
+            return;
+        }
+        UITabBarController* const tabs = (__bridge UITabBarController*)platform->tab_host;
+        const std::optional<maui::controls::shell_appearance>& appearance = platform->tree.applied_appearance;
+
+        using maui::platform::ios::to_ui_color;
+        const auto ui = [](const std::optional<maui::graphics::color>& c) -> UIColor* {
+            return c.has_value() ? to_ui_color(*c) : nil;
+        };
+
+        // ---- the nav bar of every section's UINavigationController (ShellNavBarAppearanceTracker) ----
+        // BackgroundColor → barTintColor; ForegroundColor → tintColor (bar-button items); TitleColor →
+        // titleTextAttributes. A null appearance resets every attribute to the system default.
+        UIColor* const bar_background = appearance ? ui(appearance->background_color()) : nil;
+        UIColor* const bar_foreground = appearance ? ui(appearance->foreground_color()) : nil;
+        UIColor* const bar_title = appearance ? ui(appearance->title_color()) : nil;
+        for (UIViewController* const child in tabs.viewControllers)
+        {
+            UINavigationController* const nav =
+                [child isKindOfClass:[UINavigationController class]] ? (UINavigationController*)child : nil;
+            if (nav == nil)
+            {
+                continue;
+            }
+            UINavigationBar* const navbar = nav.navigationBar;
+            UINavigationBarAppearance* const bar_appearance = [[UINavigationBarAppearance alloc] init];
+            if (bar_background != nil)
+            {
+                [bar_appearance configureWithOpaqueBackground];
+                bar_appearance.backgroundColor = bar_background;
+            }
+            else
+            {
+                [bar_appearance configureWithDefaultBackground];
+            }
+            if (bar_title != nil)
+            {
+                NSDictionary<NSAttributedStringKey, id>* const title_attrs =
+                    @{NSForegroundColorAttributeName : bar_title};
+                bar_appearance.titleTextAttributes = title_attrs;
+                bar_appearance.largeTitleTextAttributes = title_attrs;
+            }
+            navbar.standardAppearance = bar_appearance;
+            navbar.scrollEdgeAppearance = bar_appearance;
+            navbar.tintColor = bar_foreground; // nil restores the default
+        }
+
+        // ---- the tab bar (ShellTabBarAppearanceTracker) ----
+        // EffectiveTabBarBackgroundColor → background; EffectiveTabBarTitleColor → item title text;
+        // EffectiveTabBarForegroundColor → tintColor (selected); EffectiveTabBarUnselectedColor →
+        // unselectedItemTintColor. "Effective" applies the TabBar* ?? base fallback (IShellAppearanceElement).
+        UITabBar* const bar = tabs.tabBar;
+        UITabBarAppearance* const tab_appearance = [[UITabBarAppearance alloc] init];
+        UIColor* const tab_background = appearance ? ui(appearance->effective_tab_bar_background_color()) : nil;
+        if (tab_background != nil)
+        {
+            [tab_appearance configureWithOpaqueBackground];
+            tab_appearance.backgroundColor = tab_background;
+        }
+        else
+        {
+            [tab_appearance configureWithDefaultBackground];
+        }
+        if (UIColor* const tab_title = appearance ? ui(appearance->effective_tab_bar_title_color()) : nil)
+        {
+            NSDictionary<NSAttributedStringKey, id>* const attrs = @{NSForegroundColorAttributeName : tab_title};
+            tab_appearance.stackedLayoutAppearance.normal.titleTextAttributes = attrs;
+            tab_appearance.stackedLayoutAppearance.selected.titleTextAttributes = attrs;
+        }
+        bar.standardAppearance = tab_appearance;
+        bar.scrollEdgeAppearance = tab_appearance;
+        bar.tintColor = appearance ? ui(appearance->effective_tab_bar_foreground_color()) : nil;
+        bar.unselectedItemTintColor = appearance ? ui(appearance->effective_tab_bar_unselected_color()) : nil;
     }
 
     void shell_handler::platform_arrange(const maui::graphics::rect& frame)

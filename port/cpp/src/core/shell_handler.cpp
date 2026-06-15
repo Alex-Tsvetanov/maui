@@ -9,6 +9,7 @@
 #include <any>
 #include <cstddef>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -19,6 +20,7 @@
 #include "maui/controls/shell/search_box_visibility.hpp"
 #include "maui/controls/shell/search_handler.hpp"
 #include "maui/controls/shell/shell.hpp"
+#include "maui/controls/shell/shell_appearance.hpp"
 #include "maui/controls/shell/shell_content.hpp"
 #include "maui/controls/shell/shell_item.hpp"
 #include "maui/controls/shell/shell_section.hpp"
@@ -168,6 +170,11 @@ namespace maui::core
         // (c) The current page's search box (Shell.SearchHandler) — a navigation may change the page, so
         // the box is re-resolved here (ShellPageRendererTracker.UpdateShellToMyPage on page set).
         rebuild_search_box(host);
+
+        // (d) The current page's effective appearance (Shell.GetAppearanceForPivot) — a navigation may
+        // change the current page (and so which Shell.* colors resolve), so the chrome tint is recomputed
+        // here (Shell.UpdateToolbarAppearanceFeatures + the IAppearanceObserver re-fire on a content change).
+        rebuild_appearance(host);
     }
 
     namespace
@@ -252,6 +259,28 @@ namespace maui::core
         }
         fill_search_box_mirror(box, *box.handler);
         realize_search_box();
+    }
+
+    void shell_handler::rebuild_appearance(maui::controls::shell& host)
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+
+        // Resolve the effective appearance for the CURRENT page (Shell.GetAppearanceForPivot of the visible
+        // page, the C# UpdateToolbarAppearanceFeatures pivot). With no current page (no resolvable content
+        // yet) the appearance resets to nullopt — the chrome reverts to its system defaults.
+        std::optional<maui::controls::shell_appearance> resolved;
+        if (maui::controls::content_page* const page = host.current_page())
+        {
+            resolved = maui::controls::shell::get_appearance_for_pivot(*page);
+        }
+        platform->tree.applied_appearance = std::move(resolved);
+
+        // Push the resolved colors onto the native chrome (no-op on headless; the real twins tint the bars).
+        realize_appearance();
     }
 
     void shell_handler::rebuild_flyout_rows(maui::controls::shell& host)

@@ -51,10 +51,12 @@
 #include <any>
 #include <cstddef>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
 
+#include "maui/controls/shell/shell_appearance.hpp"
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/event.hpp"
 #include "maui/core/i_view.hpp"
@@ -141,6 +143,12 @@ namespace maui::controls
         std::vector<shell_flyout_row> flyout_rows; // the flyout drawer rows (Shell.GetItems())
         bool flyout_presented = false;             // FlyoutIsPresented as realized
         shell_search_box search_box;               // the current page's search box (Shell.SearchHandler)
+        // The resolved appearance for the current page (Shell.GetAppearanceForPivot of the current page) —
+        // the colors the nav bar / tab bar / flyout chrome is tinted with. nullopt = nothing in the line set
+        // any value, so the chrome stays on its system defaults (the C# null appearance). Recomputed on every
+        // rebuild (a navigation may change the current page) and exposed as the headless-assertable mirror of
+        // what the native trackers pushed onto UINavigationBar/UITabBar (iOS) / NSToolbar/sidebar (apple).
+        std::optional<maui::controls::shell_appearance> applied_appearance;
     };
 } // namespace maui::controls
 
@@ -239,6 +247,21 @@ namespace maui::core
         // Materialize the native search box from the search_box mirror (per backend: headless no-op; iOS
         // installs a UISearchController into the nav item; AppKit installs an NSSearchField in the toolbar).
         void realize_search_box();
+
+        // Resolve the CURRENT page's effective appearance (Shell.GetAppearanceForPivot(current_page)) into
+        // the tree's applied_appearance mirror — the colors the nav bar / tab bar / flyout chrome is tinted
+        // with. CROSS-PLATFORM (shell_handler.cpp): the model→mirror resolution is identical on every
+        // backend; it then calls realize_appearance() so the real twins push the resolved colors onto the
+        // native chrome. Called from rebuild() — a navigation may change the current page (and so the
+        // effective appearance). Mirrors C# Shell.UpdateToolbarAppearanceFeatures + IAppearanceObserver
+        // .OnAppearanceChanged firing on a current-content change. When the current page is null (no content
+        // yet) the appearance resets to nullopt (the chrome reverts to its system defaults).
+        void rebuild_appearance(maui::controls::shell& host);
+        // Materialize the resolved appearance onto the native chrome from the applied_appearance mirror (per
+        // backend: headless no-op; iOS pushes barTint/tint/titleTextAttributes onto the section nav bars +
+        // the tab bar; AppKit pushes the sidebar/content background colors). The native trackers read the
+        // mirror so a missing slot leaves that chrome attribute on its default.
+        void realize_appearance();
 
         // The flyout item template (C# Shell.ItemTemplate) — the W1-09 data_template each flyout row is
         // built through. A null template falls back to a plain title label per item. Setting it rebuilds.

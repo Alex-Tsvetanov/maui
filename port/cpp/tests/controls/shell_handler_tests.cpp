@@ -9,6 +9,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "maui/controls/content_page.hpp"
@@ -20,6 +21,7 @@
 #include "maui/controls/shell/shell_section.hpp"
 #include "maui/controls/shell_handler.hpp"
 #include "maui/controls/templates/data_template.hpp"
+#include "maui/graphics/colors.hpp"
 #include "tests/controls/shell_test_base.hpp"
 #include <gtest/gtest.h>
 
@@ -211,5 +213,76 @@ namespace
         ASSERT_GE(item_renderer.selected_index, 0);
         EXPECT_EQ(item_renderer.sections[static_cast<std::size_t>(item_renderer.selected_index)].section,
                   sh.current_section());
+    }
+
+    // ---- the resolved appearance mirror (Shell.GetAppearanceForPivot pushed onto the chrome) ----
+
+    namespace colors = maui::graphics::colors;
+
+    // On connect, the handler resolves the current page's effective appearance into the tree mirror — the
+    // headless analog of the native trackers tinting the nav bar / tab bar. A color set on the current item
+    // surfaces in tree.applied_appearance.
+    TEST_F(shell_handler_test, connect_resolves_current_page_appearance)
+    {
+        shell sh;
+        auto item = create_shell_item<flyout_item>();
+        shell::set_background_color(*item, colors::red);
+        sh.add_item(item);
+
+        auto handler = std::make_shared<shell_handler>();
+        sh.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+
+        ASSERT_TRUE(platform->tree.applied_appearance.has_value());
+        // value_or with an empty default is the unchecked-access-clean read (presence asserted above).
+        EXPECT_EQ(platform->tree.applied_appearance.value_or(shell_appearance{}).background_color(),
+                  std::optional{colors::red});
+    }
+
+    // No appearance set anywhere → the mirror is nullopt (the chrome keeps its system defaults).
+    TEST_F(shell_handler_test, no_appearance_leaves_mirror_empty)
+    {
+        shell sh;
+        build_two_item_shell(sh);
+
+        auto handler = std::make_shared<shell_handler>();
+        sh.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+        EXPECT_FALSE(platform->tree.applied_appearance.has_value());
+    }
+
+    // A navigation that changes the current page recomputes the appearance: the two items carry different
+    // chrome colors, so navigating from //one to //two re-tints the mirror (Shell re-fires the appearance
+    // observer on a current-content change).
+    TEST_F(shell_handler_test, navigation_recomputes_appearance)
+    {
+        shell sh;
+        auto one = std::make_shared<shell_item>();
+        one->set_route("one");
+        one->add(make_simple_shell_section("tabone", "content"));
+        auto two = std::make_shared<shell_item>();
+        two->set_route("two");
+        two->add(make_simple_shell_section("tabtwo", "content"));
+        shell::set_background_color(*one, colors::red);
+        shell::set_background_color(*two, colors::blue);
+        sh.add_item(one);
+        sh.add_item(two);
+
+        auto handler = std::make_shared<shell_handler>();
+        sh.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+        ASSERT_TRUE(platform->tree.applied_appearance.has_value());
+        // //one is current (value_or with an empty default is the unchecked-access-clean read).
+        EXPECT_EQ(platform->tree.applied_appearance.value_or(shell_appearance{}).background_color(),
+                  std::optional{colors::red});
+
+        sh.go_to_async(shell_navigation_state{"//two/tabtwo/"});
+        ASSERT_TRUE(platform->tree.applied_appearance.has_value());
+        // Re-tinted to //two.
+        EXPECT_EQ(platform->tree.applied_appearance.value_or(shell_appearance{}).background_color(),
+                  std::optional{colors::blue});
     }
 } // namespace

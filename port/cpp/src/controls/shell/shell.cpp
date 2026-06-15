@@ -19,6 +19,7 @@
 #include "maui/controls/shell/route_request_builder.hpp"
 #include "maui/controls/shell/routing.hpp"
 #include "maui/controls/shell/search_handler.hpp"
+#include "maui/controls/shell/shell_appearance.hpp"
 #include "maui/controls/shell/shell_content.hpp"
 #include "maui/controls/shell/shell_navigated_event_args.hpp"
 #include "maui/controls/shell/shell_navigating_event_args.hpp"
@@ -30,6 +31,7 @@
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/event.hpp"
+#include "maui/graphics/color.hpp"
 
 namespace maui::controls
 {
@@ -54,6 +56,56 @@ namespace maui::controls
         {
             static std::unordered_map<const maui::core::bindable_object*, search_handler_entry> map;
             return map;
+        }
+
+        // The process-wide side map for the Shell.* appearance ATTACHED properties (the C# attached-property
+        // store the port lacks centrally), keyed by the TARGET element pointer. Same self-cleaning weak-token
+        // hygiene as search_handler_map: each entry captures the element's weak liveness token so a stale
+        // entry (the element died, the raw pointer possibly recycled) is pruned on access — no dtor hook or
+        // layer-inverting dependency on shell. Owned by a function-local static (spans every TU).
+        struct appearance_entry
+        {
+            std::weak_ptr<void> liveness;
+            shell::appearance_values values;
+        };
+
+        std::unordered_map<const element*, appearance_entry>& appearance_map()
+        {
+            static std::unordered_map<const element*, appearance_entry> map;
+            return map;
+        }
+
+        // The set-values bag for `target`, pruning a dead entry. Returns nullptr when nothing is set / stale.
+        shell::appearance_values* find_appearance_values(const element& target)
+        {
+            auto& map = appearance_map();
+            const auto it = map.find(&target);
+            if (it == map.end())
+            {
+                return nullptr;
+            }
+            if (it->second.liveness.expired())
+            {
+                map.erase(it);
+                return nullptr;
+            }
+            return &it->second.values;
+        }
+
+        // The mutable bag for `target`, creating it (capturing the liveness token) on first write.
+        shell::appearance_values& appearance_values_for_write(const element& target)
+        {
+            auto& map = appearance_map();
+            appearance_entry& entry = map[&target];
+            if (entry.liveness.expired())
+            {
+                // Fresh or RECYCLED slot: the raw pointer may have belonged to a now-dead element (its token
+                // expired). Start a clean bag for THIS element and (re)capture its live token so it
+                // self-prunes later — never inherit the recycled predecessor's values.
+                entry.values = shell::appearance_values{};
+                entry.liveness = target.weak_token();
+            }
+            return entry.values;
         }
     } // namespace
 
@@ -141,6 +193,212 @@ namespace maui::controls
     void shell::remove_search_handler(const maui::core::bindable_object& target)
     {
         search_handler_map().erase(&target);
+    }
+
+    // ---- Shell appearance attached properties + the resolution walk ----
+
+    bool shell::appearance_values::any_set() const
+    {
+        return background_color || disabled_color || foreground_color || tab_bar_background_color ||
+               tab_bar_disabled_color || tab_bar_foreground_color || tab_bar_title_color || tab_bar_unselected_color ||
+               title_color || unselected_color || flyout_width || flyout_height;
+    }
+
+    void shell::set_background_color(element& target, maui::graphics::color value)
+    {
+        appearance_values_for_write(target).background_color = value;
+    }
+    void shell::set_disabled_color(element& target, maui::graphics::color value)
+    {
+        appearance_values_for_write(target).disabled_color = value;
+    }
+    void shell::set_foreground_color(element& target, maui::graphics::color value)
+    {
+        appearance_values_for_write(target).foreground_color = value;
+    }
+    void shell::set_tab_bar_background_color(element& target, maui::graphics::color value)
+    {
+        appearance_values_for_write(target).tab_bar_background_color = value;
+    }
+    void shell::set_tab_bar_disabled_color(element& target, maui::graphics::color value)
+    {
+        appearance_values_for_write(target).tab_bar_disabled_color = value;
+    }
+    void shell::set_tab_bar_foreground_color(element& target, maui::graphics::color value)
+    {
+        appearance_values_for_write(target).tab_bar_foreground_color = value;
+    }
+    void shell::set_tab_bar_title_color(element& target, maui::graphics::color value)
+    {
+        appearance_values_for_write(target).tab_bar_title_color = value;
+    }
+    void shell::set_tab_bar_unselected_color(element& target, maui::graphics::color value)
+    {
+        appearance_values_for_write(target).tab_bar_unselected_color = value;
+    }
+    void shell::set_title_color(element& target, maui::graphics::color value)
+    {
+        appearance_values_for_write(target).title_color = value;
+    }
+    void shell::set_unselected_color(element& target, maui::graphics::color value)
+    {
+        appearance_values_for_write(target).unselected_color = value;
+    }
+    void shell::set_flyout_width(element& target, double value)
+    {
+        appearance_values_for_write(target).flyout_width = value;
+    }
+    void shell::set_flyout_height(element& target, double value)
+    {
+        appearance_values_for_write(target).flyout_height = value;
+    }
+
+    std::optional<maui::graphics::color> shell::get_background_color(const element& target)
+    {
+        const appearance_values* const v = find_appearance_values(target);
+        return v != nullptr ? v->background_color : std::nullopt;
+    }
+    std::optional<maui::graphics::color> shell::get_disabled_color(const element& target)
+    {
+        const appearance_values* const v = find_appearance_values(target);
+        return v != nullptr ? v->disabled_color : std::nullopt;
+    }
+    std::optional<maui::graphics::color> shell::get_foreground_color(const element& target)
+    {
+        const appearance_values* const v = find_appearance_values(target);
+        return v != nullptr ? v->foreground_color : std::nullopt;
+    }
+    std::optional<maui::graphics::color> shell::get_tab_bar_background_color(const element& target)
+    {
+        const appearance_values* const v = find_appearance_values(target);
+        return v != nullptr ? v->tab_bar_background_color : std::nullopt;
+    }
+    std::optional<maui::graphics::color> shell::get_tab_bar_disabled_color(const element& target)
+    {
+        const appearance_values* const v = find_appearance_values(target);
+        return v != nullptr ? v->tab_bar_disabled_color : std::nullopt;
+    }
+    std::optional<maui::graphics::color> shell::get_tab_bar_foreground_color(const element& target)
+    {
+        const appearance_values* const v = find_appearance_values(target);
+        return v != nullptr ? v->tab_bar_foreground_color : std::nullopt;
+    }
+    std::optional<maui::graphics::color> shell::get_tab_bar_title_color(const element& target)
+    {
+        const appearance_values* const v = find_appearance_values(target);
+        return v != nullptr ? v->tab_bar_title_color : std::nullopt;
+    }
+    std::optional<maui::graphics::color> shell::get_tab_bar_unselected_color(const element& target)
+    {
+        const appearance_values* const v = find_appearance_values(target);
+        return v != nullptr ? v->tab_bar_unselected_color : std::nullopt;
+    }
+    std::optional<maui::graphics::color> shell::get_title_color(const element& target)
+    {
+        const appearance_values* const v = find_appearance_values(target);
+        return v != nullptr ? v->title_color : std::nullopt;
+    }
+    std::optional<maui::graphics::color> shell::get_unselected_color(const element& target)
+    {
+        const appearance_values* const v = find_appearance_values(target);
+        return v != nullptr ? v->unselected_color : std::nullopt;
+    }
+    std::optional<double> shell::get_flyout_width(const element& target)
+    {
+        const appearance_values* const v = find_appearance_values(target);
+        return v != nullptr ? v->flyout_width : std::nullopt;
+    }
+    std::optional<double> shell::get_flyout_height(const element& target)
+    {
+        const appearance_values* const v = find_appearance_values(target);
+        return v != nullptr ? v->flyout_height : std::nullopt;
+    }
+
+    shell::appearance_values shell::values_of(const element& target)
+    {
+        const appearance_values* const v = find_appearance_values(target);
+        return v != nullptr ? *v : appearance_values{};
+    }
+
+    void shell::remove_appearance_values(const element& target)
+    {
+        appearance_map().erase(&target);
+    }
+
+    namespace
+    {
+        // Shell.WalkToPage: descend the selection chain to the leaf the appearance should resolve from.
+        //   Shell        -> CurrentItem (shell_item)
+        //   ShellItem    -> CurrentItem (shell_section)
+        //   ShellSection -> PresentedPage ?? itself (the section's top page; the C# "PresentedPage ?? element")
+        // Any other element (already a page / content) returns unchanged.
+        element* walk_to_page(element* node)
+        {
+            if (auto* host = dynamic_cast<shell*>(node))
+            {
+                return host->current_item();
+            }
+            if (auto* item = dynamic_cast<shell_item*>(node))
+            {
+                return item->current_item();
+            }
+            if (auto* section = dynamic_cast<shell_section*>(node))
+            {
+                content_page* const page = section->presented_page();
+                return page != nullptr ? static_cast<element*>(page) : static_cast<element*>(section);
+            }
+            return node;
+        }
+    } // namespace
+
+    std::optional<shell_appearance> shell::get_appearance_for_pivot(element& pivot)
+    {
+        // The C# GetAppearanceForPivot algorithm:
+        //  1) walk DOWN to the current page (walk_to_page),
+        //  2) walk UP to the root shell, ingesting each level's set attached values (lowest wins per slot),
+        //     plus — until a ShellContent has been seen — the current section's CurrentItem content (so the
+        //     ROOT content is honored even with a page pushed on top, the C# "minor deviation" comment),
+        //  3) return nullopt if nothing in the line set any value.
+        element* node = walk_to_page(&pivot);
+
+        bool found_shell_content = false;
+        bool any_set = false;
+        shell_appearance result;
+        while (node != nullptr)
+        {
+            if (dynamic_cast<shell_content*>(node) != nullptr)
+            {
+                found_shell_content = true;
+            }
+
+            if (!found_shell_content)
+            {
+                if (const auto* section = dynamic_cast<const shell_section*>(node))
+                {
+                    if (const shell_content* const current = section->current_item(); current != nullptr)
+                    {
+                        if (result.ingest(*current))
+                        {
+                            any_set = true;
+                        }
+                    }
+                }
+            }
+
+            if (result.ingest(*node))
+            {
+                any_set = true;
+            }
+
+            node = node->logical_parent();
+        }
+
+        if (any_set)
+        {
+            result.make_complete();
+            return result;
+        }
+        return std::nullopt;
     }
 
     // ---- Items ----

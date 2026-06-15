@@ -872,6 +872,9 @@ add_library(maui_controls STATIC
   # (W7-50/X2) the Shell SearchHandler model (BindableObject) + list_proxy; the Shell.SearchHandler
   # attached property lives in shell.cpp; the chrome's search-box wiring is in shell_handler.{cpp,mm}.
   src/controls/shell/search_handler.cpp
+  # (W7-51) the resolved Shell appearance value type (ShellAppearance.Ingest); the Shell.* color attached
+  # properties + the GetAppearanceForPivot resolution walk live in shell.cpp.
+  src/controls/shell/shell_appearance.cpp
   src/controls/shell/shell.cpp
   # (W3-32) the native shell chrome handler (cross-platform mapper KEYS + the model→render-tree rebuild);
   # the per-backend platform recipe is in src/platform/<backend>/shell_handler.{cpp,mm} (selected above).
@@ -1291,7 +1294,10 @@ else()
     # (W3-32) the native shell chrome handler — headless structure mapping + route→render-tree e2e.
     tests/controls/shell_handler_tests.cpp
     # (W7-50/X2) the Shell SearchHandler model + attached property + chrome search-box wiring.
-    tests/controls/search_handler_tests.cpp)
+    tests/controls/search_handler_tests.cpp
+    # (W7-51) the Shell appearance model: ShellAppearance value type + the Shell.* color attached
+    # properties + the GetAppearanceForPivot resolution walk.
+    tests/controls/shell_appearance_tests.cpp)
 endif()
 target_include_directories(maui_controls_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for tests/layouts/*.hpp
 # The apple .mm tests share the backend's text/visual op headers (apple_text_ops.hpp etc.), which live

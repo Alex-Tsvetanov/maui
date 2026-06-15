@@ -26,18 +26,22 @@
 #import <AppKit/AppKit.h>
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/shell/search_handler.hpp"
 #include "maui/controls/shell/shell.hpp"
+#include "maui/controls/shell/shell_appearance.hpp"
 #include "maui/controls/shell_handler.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+
+#include "apple_conversions.hpp"
 
 // AppKit trampoline for the shell search box: an NSSearchField's editing notifications + search action
 // route to the C++ search_handler model. AppKit DEVIATION (documented in shell_handler.hpp): macOS has no
@@ -306,6 +310,47 @@ namespace maui::core
             field.delegate = nil;
             field.stringValue = query != nil ? query : @"";
             field.delegate = saved;
+        }
+    }
+
+    void shell_handler::realize_appearance()
+    {
+        // Push the resolved appearance (the applied_appearance mirror) onto the AppKit chrome. AppKit has no
+        // UINavigationBar / UITabBar, so the surfaces available are the content NSTabView and the sidebar.
+        //
+        // VISUAL DEVIATIONS (documented, not stubbed — AppKit has no UIKit equivalents):
+        //   - NO nav-bar tint. macOS has no per-section navigation bar (the navigation_page_handler.mm
+        //     custom-container choice), so ForegroundColor / TitleColor have no nav-bar target here; the
+        //     resolved values are recorded in the mirror (assertable) but not pushed to a bar.
+        //   - NO per-item tab colors. A plain NSTabView exposes no per-tab title-color / selected-tint API
+        //     like UITabBar, so the EffectiveTabBar* title/foreground/unselected colors are not pushed.
+        //   - What IS applied: BackgroundColor → the content NSTabView's layer background (the closest macOS
+        //     analog of the shell chrome background) and EffectiveTabBarBackgroundColor → the sidebar (flyout)
+        //     background. A null appearance / unset slot clears the layer color (back to the system default).
+        auto* platform = typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        const std::optional<maui::controls::shell_appearance>& appearance = platform->tree.applied_appearance;
+        using maui::platform::apple::to_ns_color;
+
+        // Content background (Shell.BackgroundColor) → the tab host NSView's layer color.
+        if (platform->tab_host != nullptr)
+        {
+            NSTabView* const tabs = (__bridge NSTabView*)platform->tab_host;
+            tabs.wantsLayer = YES;
+            const std::optional<maui::graphics::color> bg = appearance ? appearance->background_color() : std::nullopt;
+            tabs.layer.backgroundColor = bg.has_value() ? to_ns_color(*bg).CGColor : nil;
+        }
+
+        // Sidebar / flyout background (EffectiveTabBarBackgroundColor) → the flyout list NSView's layer color.
+        if (platform->flyout_host != nullptr)
+        {
+            NSTableView* const flyout = (__bridge NSTableView*)platform->flyout_host;
+            const std::optional<maui::graphics::color> sidebar =
+                appearance ? appearance->effective_tab_bar_background_color() : std::nullopt;
+            flyout.backgroundColor = sidebar.has_value() ? to_ns_color(*sidebar) : NSColor.controlBackgroundColor;
         }
     }
 
