@@ -19,6 +19,7 @@
 #include "maui/core/font.hpp"
 #include "maui/core/i_label.hpp"
 #include "maui/core/label_run.hpp"
+#include "maui/core/line_break_mode.hpp"
 #include "maui/core/property.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/text_decorations.hpp"
@@ -48,6 +49,8 @@ namespace maui::controls
         static const maui::core::bindable_property<maui::core::text_alignment>& vertical_text_alignment_property();
         static const maui::core::bindable_property<maui::core::text_decorations>& text_decorations_property();
         static const maui::core::bindable_property<double>& line_height_property();
+        static const maui::core::bindable_property<maui::core::line_break_mode>& line_break_mode_property();
+        static const maui::core::bindable_property<int>& max_lines_property();
         // Label.FormattedTextProperty — the rich per-span text. Not a property<T> member: a heap-only,
         // non-copyable element can't live in the typed precedence store, so it is held directly and
         // notified by hand (set_formatted_text). The descriptor exists only for name cross-reference.
@@ -92,6 +95,14 @@ namespace maui::controls
         [[nodiscard]] double line_height() const override
         {
             return line_height_.get();
+        }
+        [[nodiscard]] maui::core::line_break_mode line_break_mode() const override
+        {
+            return line_break_mode_.get();
+        }
+        [[nodiscard]] int max_lines() const override
+        {
+            return max_lines_.get();
         }
 
         // ---- i_label: the resolved per-span runs (Label.FormattedText → ToNSAttributedString) ----
@@ -155,6 +166,14 @@ namespace maui::controls
         {
             line_height_.set(value);
         }
+        void set_line_break_mode(maui::core::line_break_mode value)
+        {
+            line_break_mode_.set(value);
+        }
+        void set_max_lines(int value)
+        {
+            max_lines_.set(value);
+        }
 
     private:
         // Re-resolve formatted_text_ into formatted_text_runs_ (the Span.ToNSAttributedString resolution:
@@ -173,6 +192,8 @@ namespace maui::controls
                                                                                   vertical_text_alignment_property()};
         maui::core::property<maui::core::text_decorations> text_decorations_{*this, text_decorations_property()};
         maui::core::property<double> line_height_{*this, line_height_property()};
+        maui::core::property<maui::core::line_break_mode> line_break_mode_{*this, line_break_mode_property()};
+        maui::core::property<int> max_lines_{*this, max_lines_property()};
 
         // FormattedText: the owned formatted_string (null = none), the resolved runs the handler reads, and
         // the §8 token on the formatted_string's `changed` signal (dropped before the old one is released).

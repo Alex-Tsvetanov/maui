@@ -9,6 +9,7 @@
 #include "maui/controls/label.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/label_handler.hpp"
+#include "maui/core/line_break_mode.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/text_decorations.hpp"
 #include "maui/core/thickness.hpp"
@@ -16,16 +17,18 @@
 #include <gtest/gtest.h>
 
 // The shape of the handler's MauiLabelCell (declared file-local in src/platform/apple/label_handler.mm):
-// the test reads the Padding insets back through this protocol after a respondsToSelector: probe (the
-// vertical-alignment property is reached the same way).
+// the test reads the Padding insets + the resolved numberOfLines back through this protocol after a
+// respondsToSelector: probe (the vertical-alignment property is reached the same way).
 @protocol MauiTestLabelCell <NSObject>
 @property(nonatomic) maui::core::thickness textInsets;
+@property(nonatomic) NSInteger numberOfLines;
 @end
 
 namespace
 {
     using maui::controls::label;
     using maui::core::label_handler;
+    using maui::core::line_break_mode;
     using maui::core::text_alignment;
     using maui::platform::apple::kerning_of;
     using maui::platform::apple::line_height_multiple_of;
@@ -225,5 +228,74 @@ namespace
         const maui::graphics::size wrapped = handler->get_desired_size(1.0e9, 1.0e9);
         EXPECT_GT(wrapped.height, single.height);     // grew past one line
         EXPECT_LT(wrapped.width, single.width / 2.0); // collapsed near the 80pt cap, far below single-line
+    }
+
+    // LabelHandler.MapLineBreakMode (AppKit twin of SetLineBreakMode): the LineBreakMode→NSLineBreakMode
+    // mapping reaches the NSTextFieldCell.lineBreakMode (the field forwards to its cell).
+    TEST_F(apple_label_seam, maps_line_break_mode_to_cell)
+    {
+        label control;
+        control.set_text("Test");
+        auto handler = std::make_shared<label_handler>();
+        control.set_handler(handler);
+        NSTextField* const view = native_label(handler);
+
+        // Default WordWrap mapped at connect.
+        EXPECT_EQ(view.cell.lineBreakMode, NSLineBreakByWordWrapping);
+
+        control.set_line_break_mode(line_break_mode::no_wrap);
+        EXPECT_EQ(view.cell.lineBreakMode, NSLineBreakByClipping);
+
+        control.set_line_break_mode(line_break_mode::character_wrap);
+        EXPECT_EQ(view.cell.lineBreakMode, NSLineBreakByCharWrapping);
+
+        control.set_line_break_mode(line_break_mode::head_truncation);
+        EXPECT_EQ(view.cell.lineBreakMode, NSLineBreakByTruncatingHead);
+
+        control.set_line_break_mode(line_break_mode::middle_truncation);
+        EXPECT_EQ(view.cell.lineBreakMode, NSLineBreakByTruncatingMiddle);
+
+        control.set_line_break_mode(line_break_mode::tail_truncation);
+        EXPECT_EQ(view.cell.lineBreakMode, NSLineBreakByTruncatingTail);
+    }
+
+    // SetLineBreakMode's numberOfLines half (the AppKit cell mirror of UILabel.Lines): MaxLines<0 → 0 for
+    // wrapping modes, 1 for TailTruncation; single-line modes (NoWrap/Head/MiddleTruncation) force 1; an
+    // explicit MaxLines wins under a wrapping mode.
+    TEST_F(apple_label_seam, maps_max_lines_to_cell)
+    {
+        label control;
+        control.set_text("Test");
+        auto handler = std::make_shared<label_handler>();
+        control.set_handler(handler);
+        NSTextField* const view = native_label(handler);
+        ASSERT_TRUE([view.cell respondsToSelector:@selector(numberOfLines)]);
+        id const any_cell = view.cell;
+        id<MauiTestLabelCell> const cell = any_cell;
+
+        // Default WordWrap + MaxLines -1 → 0 ("as many lines as needed").
+        EXPECT_EQ(cell.numberOfLines, 0);
+
+        // TailTruncation with MaxLines unset (-1) → 1.
+        control.set_line_break_mode(line_break_mode::tail_truncation);
+        EXPECT_EQ(cell.numberOfLines, 1);
+
+        // An explicit MaxLines under a wrapping mode wins.
+        control.set_line_break_mode(line_break_mode::word_wrap);
+        control.set_max_lines(3);
+        EXPECT_EQ(cell.numberOfLines, 3);
+
+        // Head/Middle/NoWrap force a single line even with MaxLines=3.
+        control.set_line_break_mode(line_break_mode::head_truncation);
+        EXPECT_EQ(cell.numberOfLines, 1);
+        control.set_line_break_mode(line_break_mode::middle_truncation);
+        EXPECT_EQ(cell.numberOfLines, 1);
+        control.set_line_break_mode(line_break_mode::no_wrap);
+        EXPECT_EQ(cell.numberOfLines, 1);
+        EXPECT_EQ(view.cell.lineBreakMode, NSLineBreakByClipping);
+
+        // Back to WordWrap with the explicit MaxLines=3 still set → 3.
+        control.set_line_break_mode(line_break_mode::word_wrap);
+        EXPECT_EQ(cell.numberOfLines, 3);
     }
 } // namespace

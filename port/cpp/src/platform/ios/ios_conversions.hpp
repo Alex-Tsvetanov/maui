@@ -8,6 +8,7 @@
 #include <string>
 
 #include "maui/core/font.hpp"
+#include "maui/core/line_break_mode.hpp"
 #include "maui/core/return_type.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/color.hpp"
@@ -74,6 +75,31 @@ namespace maui::platform::ios
                 return UIControlContentVerticalAlignmentTop;
         }
         return UIControlContentVerticalAlignmentTop;
+    }
+
+    // maui line_break_mode → NSLineBreakMode (the type behind UILabel.lineBreakMode — C#'s
+    // UILineBreakMode binding). Ports the LineBreakMode→UILineBreakMode mapping inside
+    // TextExtensions.SetLineBreakMode (NoWrap→Clip, WordWrap→WordWrapping, CharacterWrap→CharWrapping,
+    // *Truncation→TruncatingHead/Middle/Tail). The numberOfLines half of SetLineBreakMode is the
+    // handler's concern (it also needs MaxLines), so this helper is the wrap-mode half only.
+    inline NSLineBreakMode to_ns_line_break_mode(maui::core::line_break_mode value)
+    {
+        switch (value)
+        {
+            case maui::core::line_break_mode::no_wrap:
+                return NSLineBreakByClipping;
+            case maui::core::line_break_mode::word_wrap:
+                return NSLineBreakByWordWrapping;
+            case maui::core::line_break_mode::character_wrap:
+                return NSLineBreakByCharWrapping;
+            case maui::core::line_break_mode::head_truncation:
+                return NSLineBreakByTruncatingHead;
+            case maui::core::line_break_mode::middle_truncation:
+                return NSLineBreakByTruncatingMiddle;
+            case maui::core::line_break_mode::tail_truncation:
+                return NSLineBreakByTruncatingTail;
+        }
+        return NSLineBreakByWordWrapping; // unreachable for in-range values (enum is closed)
     }
 
     // maui return_type → UIReturnKeyType. Ports ReturnTypeExtensions.ToPlatform (REAL on iOS — the

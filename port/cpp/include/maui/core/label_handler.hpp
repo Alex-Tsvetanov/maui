@@ -17,6 +17,7 @@
 #include "maui/core/font.hpp"
 #include "maui/core/i_label.hpp"
 #include "maui/core/label_run.hpp"
+#include "maui/core/line_break_mode.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/text_decorations.hpp"
@@ -56,6 +57,12 @@ namespace maui::core
         double line_height = -1;
         maui::core::thickness padding;
         maui::core::text_decorations decorations = maui::core::text_decorations::none;
+        // Headless mirror of Label.LineBreakMode (default WordWrap) + Label.MaxLines (default -1 = unset).
+        // The Apple/iOS builds push these onto the UILabel.lineBreakMode + numberOfLines / NSTextFieldCell
+        // (SetLineBreakMode resolves the two into the platform wrap mode + line count); headless just keeps
+        // the raw view values so the cross-platform mapper contract is observable.
+        maui::core::line_break_mode line_break_mode_value = maui::core::line_break_mode::word_wrap;
+        int max_lines = -1;
         // Headless mirror of the resolved attributed runs (Label.FormattedText). Empty = plain text path.
         // The Apple/iOS builds turn these into an NSAttributedString instead; the headless build keeps the
         // run list so tests can assert per-span attributes flowed to the platform mirror.
@@ -127,5 +134,10 @@ namespace maui::core
         // branch. Non-empty runs build the native attributed string (NSAttributedString on apple/ios; the
         // headless run mirror); empty runs revert to the plain text path (clearing the attributed string).
         static void map_formatted_text(label_handler& handler, i_label& view);
+        // LabelHandler.MapLineBreakMode / MapMaxLines (Label.iOS.cs) — BOTH call UILabel.SetLineBreakMode
+        // (the wrap-mode + numberOfLines resolution from TextExtensions.SetLineBreakMode), so both port map
+        // fns delegate to the same platform refresh. Headless mirrors the raw view values.
+        static void map_line_break_mode(label_handler& handler, i_label& view);
+        static void map_max_lines(label_handler& handler, i_label& view);
     };
 } // namespace maui::core

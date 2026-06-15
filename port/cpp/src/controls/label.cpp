@@ -18,6 +18,7 @@
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/label_handler.hpp"
 #include "maui/core/label_run.hpp"
+#include "maui/core/line_break_mode.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/text_decorations.hpp"
 #include "maui/core/thickness.hpp"
@@ -79,6 +80,25 @@ namespace maui::controls
     const maui::core::bindable_property<double>& label::line_height_property()
     {
         static const maui::core::bindable_property<double> descriptor{"line_height", -1.0};
+        return descriptor;
+    }
+
+    // Label.LineBreakModeProperty: default WordWrap, propertyChanged = InvalidateMeasureIfLabelSizeable.
+    // The port's measure invalidation rides the generic on_property_changed → handler->update_value path
+    // (the map fn re-runs SetLineBreakMode and the visual element re-measures), the same as the sibling
+    // line_height / padding descriptors — so no explicit propertyChanged callback is needed here.
+    const maui::core::bindable_property<maui::core::line_break_mode>& label::line_break_mode_property()
+    {
+        static const maui::core::bindable_property<maui::core::line_break_mode> descriptor{
+            "line_break_mode", maui::core::line_break_mode::word_wrap};
+        return descriptor;
+    }
+
+    // Label.MaxLinesProperty: default -1 ("unset"), propertyChanged = InvalidateMeasureIfLabelSizeable
+    // (same generic measure-invalidation path as line_break_mode_property above).
+    const maui::core::bindable_property<int>& label::max_lines_property()
+    {
+        static const maui::core::bindable_property<int> descriptor{"max_lines", -1};
         return descriptor;
     }
 

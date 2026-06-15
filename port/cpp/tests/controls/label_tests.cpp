@@ -10,6 +10,7 @@
 #include "maui/core/i_label.hpp"
 #include "maui/core/i_text.hpp"
 #include "maui/core/label_handler.hpp"
+#include "maui/core/line_break_mode.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/text_decorations.hpp"
 #include "maui/core/thickness.hpp"
@@ -24,6 +25,7 @@ namespace
     using maui::core::i_label;
     using maui::core::i_text;
     using maui::core::label_handler;
+    using maui::core::line_break_mode;
     using maui::core::text_alignment;
 
     TEST(label, text_defaults_empty_and_is_settable)
@@ -112,6 +114,47 @@ namespace
         EXPECT_EQ(platform->padding.top, 8.0);
         EXPECT_EQ(platform->padding.right, 12.0);
         EXPECT_EQ(platform->padding.bottom, 16.0);
+    }
+
+    // line_break_mode + max_lines flow virtual→platform mirror (LabelHandler.Mapper LineBreakMode /
+    // MaxLines entries). The headless mirror keeps the raw view values; the SetLineBreakMode resolution
+    // (truncation forces a single line) lives in the native iOS/AppKit seams.
+    TEST(label_seam, line_break_mode_and_max_lines_map_to_platform)
+    {
+        label control;
+        auto handler = std::make_shared<label_handler>();
+        control.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+
+        // Defaults: Label.LineBreakMode WordWrap, Label.MaxLines -1 (unset).
+        EXPECT_EQ(control.line_break_mode(), line_break_mode::word_wrap);
+        EXPECT_EQ(control.max_lines(), -1);
+        EXPECT_EQ(platform->line_break_mode_value, line_break_mode::word_wrap);
+        EXPECT_EQ(platform->max_lines, -1);
+
+        control.set_line_break_mode(line_break_mode::tail_truncation);
+        EXPECT_EQ(platform->line_break_mode_value, line_break_mode::tail_truncation);
+        EXPECT_EQ(platform->max_lines, -1); // MaxLines untouched (the mirror co-mirrors both)
+
+        control.set_max_lines(3);
+        EXPECT_EQ(platform->max_lines, 3);
+        EXPECT_EQ(platform->line_break_mode_value, line_break_mode::tail_truncation);
+
+        control.set_line_break_mode(line_break_mode::no_wrap);
+        EXPECT_EQ(platform->line_break_mode_value, line_break_mode::no_wrap);
+        EXPECT_EQ(platform->max_lines, 3);
+    }
+
+    // line_break_mode + max_lines are reachable through the i_label contract (the two new virtuals).
+    TEST(label, line_break_mode_and_max_lines_through_interface)
+    {
+        label control;
+        control.set_line_break_mode(line_break_mode::middle_truncation);
+        control.set_max_lines(2);
+        i_label& as_label = control;
+        EXPECT_EQ(as_label.line_break_mode(), line_break_mode::middle_truncation);
+        EXPECT_EQ(as_label.max_lines(), 2);
     }
 
     // Padding inflates the desired size: MauiLabel.SizeThatFits subtracts the insets before measuring and

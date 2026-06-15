@@ -17,6 +17,7 @@
 #include "maui/core/dimension.hpp"
 #include "maui/core/i_label.hpp"
 #include "maui/core/label_handler.hpp"
+#include "maui/core/line_break_mode.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
@@ -32,9 +33,23 @@
 @interface MauiLabelCell : NSTextFieldCell
 @property(nonatomic) maui::core::text_alignment verticalAlignment;
 @property(nonatomic) maui::core::thickness textInsets;
+// Mirror of UILabel.numberOfLines (0 = "as many as needed"). AppKit's NSTextFieldCell has no direct
+// numberOfLines analog — SetLineBreakMode's UILabel.Lines half — so the cell carries the resolved line
+// count itself and drives NSCell.usesSingleLineMode at set time for the single-line modes.
+@property(nonatomic) NSInteger numberOfLines;
 @end
 
 @implementation MauiLabelCell
+// SetLineBreakMode's UILabel.Lines half on AppKit: 1 line => usesSingleLineMode (the cell collapses to a
+// single truncating/clipping line); 0 ("unset") or >1 leave the cell multi-line. NSCell.usesSingleLineMode
+// is the available analog (the cell has no maximumNumberOfLines on this SDK); the resolved count is kept on
+// the custom property so the handler/tests observe the faithful UILabel.Lines value.
+- (void)setNumberOfLines:(NSInteger)value
+{
+    _numberOfLines = value;
+    self.usesSingleLineMode = value == 1 ? YES : NO;
+}
+
 // Inset the bounds by the (RTL-flipped) Padding — the AppKit equivalent of MauiLabel.DrawText's
 // `insets.InsetRect(rect)`. The layout direction is read live from the control view at draw/measure time
 // (MauiLabel.DrawText reads EffectiveUserInterfaceLayoutDirection live), so a later flow-direction change
@@ -136,6 +151,30 @@ namespace
             maui::platform::apple::with_decorations(attributed, view.text_decorations());
         field.attributedStringValue = decorated != nil ? decorated : attributed;
         field.alignment = to_ns_text_alignment(view.horizontal_text_alignment());
+    }
+
+    // The AppKit twin of TextExtensions.SetLineBreakMode (the shared body MapLineBreakMode + MapMaxLines
+    // both invoke): set NSTextFieldCell.lineBreakMode from the LineBreakMode, and the resolved numberOfLines
+    // (computed exactly as the UIKit twin) onto the custom cell's numberOfLines:
+    //   maxLines = MaxLines<0 ? (TailTruncation ? 1 : 0) : MaxLines;  NoWrap/Head/MiddleTruncation force 1.
+    void refresh_line_break_mode(NSTextField* field, maui::core::line_break_mode mode, int max_lines)
+    {
+        using maui::core::line_break_mode;
+        NSInteger lines = max_lines;
+        if (max_lines < 0)
+        {
+            lines = mode == line_break_mode::tail_truncation ? 1 : 0;
+        }
+        if (mode == line_break_mode::no_wrap || mode == line_break_mode::head_truncation ||
+            mode == line_break_mode::middle_truncation)
+        {
+            lines = 1;
+        }
+        field.lineBreakMode = maui::platform::apple::to_ns_line_break_mode(mode);
+        if ([field.cell isKindOfClass:[MauiLabelCell class]])
+        {
+            ((MauiLabelCell*)field.cell).numberOfLines = lines;
+        }
     }
 } // namespace
 
@@ -325,6 +364,27 @@ namespace maui::core
             field.attributedStringValue = maui::platform::apple::attributed_from_runs(runs);
             // Re-apply the alignment: replacing the attributed value resets the field's paragraph alignment.
             field.alignment = to_ns_text_alignment(view.horizontal_text_alignment());
+        }
+    }
+
+    // LabelHandler.MapLineBreakMode / MapMaxLines (Label.iOS.cs, AppKit twin): both call the cell's
+    // SetLineBreakMode equivalent, so both port map fns delegate to the shared refresh_line_break_mode
+    // (the wrap mode + numberOfLines pair depends on BOTH LineBreakMode and MaxLines).
+    void label_handler::map_line_break_mode(label_handler& handler, i_label& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform != nullptr)
+        {
+            refresh_line_break_mode(as_label(platform->native), view.line_break_mode(), view.max_lines());
+        }
+    }
+
+    void label_handler::map_max_lines(label_handler& handler, i_label& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform != nullptr)
+        {
+            refresh_line_break_mode(as_label(platform->native), view.line_break_mode(), view.max_lines());
         }
     }
 

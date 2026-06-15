@@ -17,6 +17,7 @@
 #include "maui/core/i_text_alignment.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/label_run.hpp"
+#include "maui/core/line_break_mode.hpp"
 #include "maui/core/text_decorations.hpp"
 
 namespace maui::core
@@ -26,6 +27,13 @@ namespace maui::core
     public:
         [[nodiscard]] virtual maui::core::text_decorations text_decorations() const = 0;
         [[nodiscard]] virtual double line_height() const = 0;
+
+        // Label.LineBreakMode (wrap / truncation; default WordWrap) and Label.MaxLines (max visible lines;
+        // default -1 = "unset"). The two interact at the platform: truncation modes force a single line, and
+        // an unset MaxLines under TailTruncation also means one line — see SetLineBreakMode (the iOS/AppKit
+        // handlers fold both into one platform refresh, just as MapLineBreakMode/MapMaxLines both call it).
+        [[nodiscard]] virtual maui::core::line_break_mode line_break_mode() const = 0;
+        [[nodiscard]] virtual int max_lines() const = 0;
 
         // The label's FormattedText, RESOLVED into a flat list of attributed runs (Label.FormattedText →
         // ToNSAttributedString). Empty means "no formatted text" — the handler then maps the plain text()

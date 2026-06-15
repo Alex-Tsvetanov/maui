@@ -12,6 +12,7 @@
 #include "maui/controls/label.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/label_handler.hpp"
+#include "maui/core/line_break_mode.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/text_decorations.hpp"
 #include "maui/core/thickness.hpp"
@@ -32,6 +33,7 @@ namespace
 {
     using maui::controls::label;
     using maui::core::label_handler;
+    using maui::core::line_break_mode;
     using maui::core::text_alignment;
     using maui::core::text_decorations;
     using maui::platform::ios::kerning_of;
@@ -289,5 +291,75 @@ namespace
         const maui::graphics::size wrapped = handler->get_desired_size(1.0e9, 1.0e9);
         EXPECT_GT(wrapped.height, single.height);
         EXPECT_LE(wrapped.width, 80.0 + 1.0); // within the PreferredMaxLayoutWidth cap (allow rounding)
+    }
+
+    // LabelHandler.MapLineBreakMode → SetLineBreakMode's LineBreakMode→UILineBreakMode mapping reaches the
+    // real UILabel.lineBreakMode (NoWrap→Clip, WordWrap→WordWrapping, *Truncation→TruncatingHead/Middle/Tail).
+    TEST(ios_label_seam, maps_line_break_mode_to_uilabel)
+    {
+        label control;
+        control.set_text("Test");
+        auto handler = std::make_shared<label_handler>();
+        control.set_handler(handler);
+        UILabel* const view = native_label(handler);
+
+        // Default WordWrap mapped at connect.
+        EXPECT_EQ(view.lineBreakMode, NSLineBreakByWordWrapping);
+
+        control.set_line_break_mode(line_break_mode::no_wrap);
+        EXPECT_EQ(view.lineBreakMode, NSLineBreakByClipping);
+
+        control.set_line_break_mode(line_break_mode::character_wrap);
+        EXPECT_EQ(view.lineBreakMode, NSLineBreakByCharWrapping);
+
+        control.set_line_break_mode(line_break_mode::head_truncation);
+        EXPECT_EQ(view.lineBreakMode, NSLineBreakByTruncatingHead);
+
+        control.set_line_break_mode(line_break_mode::middle_truncation);
+        EXPECT_EQ(view.lineBreakMode, NSLineBreakByTruncatingMiddle);
+
+        control.set_line_break_mode(line_break_mode::tail_truncation);
+        EXPECT_EQ(view.lineBreakMode, NSLineBreakByTruncatingTail);
+    }
+
+    // SetLineBreakMode's numberOfLines half (UILabel.Lines) — MaxLines<0 resolves to 0 for the wrapping
+    // modes and 1 for TailTruncation; NoWrap/Head/MiddleTruncation force 1; an explicit MaxLines wins
+    // except where a single-line mode overrides it.
+    TEST(ios_label_seam, maps_max_lines_to_uilabel)
+    {
+        label control;
+        control.set_text("Test");
+        auto handler = std::make_shared<label_handler>();
+        control.set_handler(handler);
+        UILabel* const view = native_label(handler);
+
+        // Default WordWrap + MaxLines -1 → 0 ("as many lines as needed").
+        EXPECT_EQ(view.numberOfLines, 0);
+
+        // TailTruncation with MaxLines unset (-1) → 1 (the only mode the pre-switch branch clamps to 1).
+        control.set_line_break_mode(line_break_mode::tail_truncation);
+        EXPECT_EQ(view.numberOfLines, 1);
+
+        // An explicit MaxLines under a wrapping mode wins.
+        control.set_line_break_mode(line_break_mode::word_wrap);
+        control.set_max_lines(3);
+        EXPECT_EQ(view.numberOfLines, 3);
+
+        // A single-line truncation mode (Head) forces 1 even when MaxLines is 3.
+        control.set_line_break_mode(line_break_mode::head_truncation);
+        EXPECT_EQ(view.numberOfLines, 1);
+
+        // MiddleTruncation also forces 1.
+        control.set_line_break_mode(line_break_mode::middle_truncation);
+        EXPECT_EQ(view.numberOfLines, 1);
+
+        // NoWrap forces 1 (the wrap mode is Clip + a single line).
+        control.set_line_break_mode(line_break_mode::no_wrap);
+        EXPECT_EQ(view.numberOfLines, 1);
+        EXPECT_EQ(view.lineBreakMode, NSLineBreakByClipping);
+
+        // Back to WordWrap with the explicit MaxLines=3 still set → 3 (no single-line clamp).
+        control.set_line_break_mode(line_break_mode::word_wrap);
+        EXPECT_EQ(view.numberOfLines, 3);
     }
 } // namespace

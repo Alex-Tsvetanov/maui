@@ -9,10 +9,11 @@
 // UpdateVerticalTextAlignment (MauiLabel.VerticalAlignment — the DrawText offset) / UpdateTextDecorations
 // + UpdateCharacterSpacing (the attributed WithDecorations / WithCharacterSpacing passes) /
 // UpdateLineHeight + UpdatePadding (MauiLabel.TextInsets — DrawText insets, sizeThatFits folds them).
-// Not ported here (deferred with the cross-platform contract/mapper): the LineBreakMode/MaxLines pair
-// (not in i_label), MapBackground/NeedsContainer (no container infrastructure), and GetDesiredSize's
-// PreferredMaxLayoutWidth branch (needs the virtual Width; single-line UILabel default measure via
-// sizeThatFits, like the button recipe).
+// MapLineBreakMode + MapMaxLines (Label.iOS.cs) both call UILabel.SetLineBreakMode
+// (TextExtensions.SetLineBreakMode): the LineBreakMode→NSLineBreakMode wrap mode plus the numberOfLines
+// resolution (MaxLines<0 ? (TailTruncation ? 1 : 0) : MaxLines; NoWrap/Head/MiddleTruncation force 1).
+// Not ported here (deferred with the cross-platform contract/mapper): MapBackground/NeedsContainer (no
+// container infrastructure), and GetDesiredSize's single-line UILabel default measure via sizeThatFits.
 
 #import <UIKit/UIKit.h>
 
@@ -27,6 +28,7 @@
 #include "maui/core/dimension.hpp"
 #include "maui/core/i_label.hpp"
 #include "maui/core/label_handler.hpp"
+#include "maui/core/line_break_mode.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
@@ -126,6 +128,7 @@ namespace
         return (__bridge UILabel*)native;
     }
 
+    using maui::platform::ios::to_ns_line_break_mode;
     using maui::platform::ios::to_ns_text_alignment;
     using maui::platform::ios::to_ui_color;
     using maui::platform::ios::to_ui_control_content_vertical_alignment;
@@ -133,6 +136,28 @@ namespace
     using maui::platform::ios::with_character_spacing;
     using maui::platform::ios::with_decorations;
     using maui::platform::ios::with_line_height;
+
+    // TextExtensions.SetLineBreakMode — the shared body MapLineBreakMode + MapMaxLines both invoke. Sets
+    // UILabel.lineBreakMode from the LineBreakMode and UILabel.numberOfLines from the MaxLines×mode pair:
+    //   maxLines = MaxLines<0 ? (TailTruncation ? 1 : 0) : MaxLines     (the pre-switch line count)
+    //   NoWrap / HeadTruncation / MiddleTruncation then clamp maxLines = 1 (a truncating single line)
+    // (numberOfLines == 0 means "as many lines as needed"). Mirrors the C# switch verbatim.
+    void refresh_line_break_mode(UILabel* label, maui::core::line_break_mode mode, int max_lines)
+    {
+        using maui::core::line_break_mode;
+        NSInteger lines = max_lines;
+        if (max_lines < 0)
+        {
+            lines = mode == line_break_mode::tail_truncation ? 1 : 0;
+        }
+        label.lineBreakMode = to_ns_line_break_mode(mode);
+        if (mode == line_break_mode::no_wrap || mode == line_break_mode::head_truncation ||
+            mode == line_break_mode::middle_truncation)
+        {
+            lines = 1;
+        }
+        label.numberOfLines = lines;
+    }
 
     // LabelHandler.MapFormatting: "Update all of the attributed text formatting properties" — LineHeight
     // (LabelExtensions.UpdateLineHeight), then TextDecorations (UpdateTextDecorations), then
@@ -349,6 +374,27 @@ namespace maui::core
             label.attributedText =
                 maui::platform::ios::attributed_from_runs(runs, static_cast<double>(UIFont.labelFontSize));
             label.textAlignment = to_ns_text_alignment(view.horizontal_text_alignment());
+        }
+    }
+
+    // LabelHandler.MapLineBreakMode / MapMaxLines (Label.iOS.cs): both call UILabel.SetLineBreakMode, so
+    // both port map fns delegate to the shared refresh_line_break_mode (the wrap mode + numberOfLines pair
+    // depends on BOTH LineBreakMode and MaxLines, hence the single shared body).
+    void label_handler::map_line_break_mode(label_handler& handler, i_label& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform != nullptr)
+        {
+            refresh_line_break_mode(as_label(platform->native), view.line_break_mode(), view.max_lines());
+        }
+    }
+
+    void label_handler::map_max_lines(label_handler& handler, i_label& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform != nullptr)
+        {
+            refresh_line_break_mode(as_label(platform->native), view.line_break_mode(), view.max_lines());
         }
     }
 

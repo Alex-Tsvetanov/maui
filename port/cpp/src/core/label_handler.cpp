@@ -19,7 +19,9 @@ namespace maui::core
     // (underline/strikethrough on the attributed text — LabelHandler.Mapper's TextDecorations entry).
     // line_height (LabelHandler.Mapper LineHeight → UpdateLineHeight, a paragraph-style multiple) and
     // padding (LabelHandler.Mapper Padding → UpdatePadding, the native TextInsets / cell inset) round out
-    // the LabelHandler.Mapper coverage.
+    // the LabelHandler.Mapper coverage. line_break_mode + max_lines (LabelHandler.Mapper LineBreakMode /
+    // MaxLines → SetLineBreakMode) drive the UILabel wrap mode + numberOfLines (both map fns delegate to a
+    // shared platform refresh, matching MapLineBreakMode/MapMaxLines in Label.iOS.cs).
     property_mapper<i_label, label_handler>& label_handler::mapper()
     {
         static property_mapper<i_label, label_handler> table{
@@ -35,6 +37,8 @@ namespace maui::core
                 {"line_height", &label_handler::map_line_height},
                 {"padding", &label_handler::map_padding},
                 {"formatted_text", &label_handler::map_formatted_text},
+                {"line_break_mode", &label_handler::map_line_break_mode},
+                {"max_lines", &label_handler::map_max_lines},
             },
         };
         return table;

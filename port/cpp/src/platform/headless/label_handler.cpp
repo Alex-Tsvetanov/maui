@@ -106,6 +106,27 @@ namespace maui::core
         }
     }
 
+    // LabelHandler.MapLineBreakMode / MapMaxLines: headless keeps the raw view values (the native backends
+    // resolve them into UILabel.lineBreakMode + numberOfLines via SetLineBreakMode). Both mirror both
+    // fields so a test observing either key sees the current LineBreakMode + MaxLines pair.
+    void label_handler::map_line_break_mode(label_handler& handler, i_label& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->line_break_mode_value = view.line_break_mode();
+            platform->max_lines = view.max_lines();
+        }
+    }
+
+    void label_handler::map_max_lines(label_handler& handler, i_label& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->line_break_mode_value = view.line_break_mode();
+            platform->max_lines = view.max_lines();
+        }
+    }
+
     maui::graphics::size label_handler::get_desired_size(double width_constraint, double /*height_constraint*/) const
     {
         // Headless metric (~7pt per character, fixed line height). It mirrors the two cross-platform
