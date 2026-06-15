@@ -3,6 +3,9 @@
 
 #include "maui/controls/tabbed_page.hpp"
 
+#include <memory>
+
+#include "maui/controls/brushes/brush.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/tabbed_page_handler.hpp"
@@ -16,6 +19,15 @@ namespace maui::controls
     const maui::core::bindable_property<maui::graphics::color>& tabbed_page::bar_background_color_property()
     {
         static const maui::core::bindable_property<maui::graphics::color> descriptor{"bar_background_color"};
+        return descriptor;
+    }
+
+    // C# TabbedPage.BarBackgroundProperty (IBarElement.BarBackground, default(Brush) = null): a Brush fill
+    // for the bar. The default is a null brush; the bar_background_set_ flag distinguishes "never set" so
+    // the handler keeps the color-driven default (the BarBackgroundColor convention).
+    const maui::core::bindable_property<std::shared_ptr<brush>>& tabbed_page::bar_background_property()
+    {
+        static const maui::core::bindable_property<std::shared_ptr<brush>> descriptor{"bar_background"};
         return descriptor;
     }
 

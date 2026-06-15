@@ -12,8 +12,9 @@
 // The handler seam is maui::core::i_tabbed_view (see that header: C#'s empty ITabbedView widened with
 // the state the control-typed C# mappers read, since the reflection-free handler cannot reach this
 // controls type). on_tab_selected is the native→virtual selection sync — a user tab tap makes that
-// page current. BarBackground (Brush) and the Android/Windows platform-specifics are out of scope
-// (documented in STATUS.md).
+// page current. BarBackground (Brush — IBarElement.BarBackground) is a brush fill the bar overlays as a
+// CALayer (iOS paints; AppKit/headless mirror only); the Android/Windows platform-specifics are out of
+// scope (documented in STATUS.md).
 
 #include <cstddef>
 #include <memory>
@@ -21,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include "maui/controls/brushes/brush.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/multi_page.hpp"
 #include "maui/core/bindable_property.hpp"
@@ -41,6 +43,7 @@ namespace maui::controls
 
         // Shared bindable-property descriptors (one instance per type, like TabbedPage.*Property).
         static const maui::core::bindable_property<maui::graphics::color>& bar_background_color_property();
+        static const maui::core::bindable_property<std::shared_ptr<brush>>& bar_background_property();
         static const maui::core::bindable_property<maui::graphics::color>& bar_text_color_property();
         static const maui::core::bindable_property<maui::graphics::color>& selected_tab_color_property();
         static const maui::core::bindable_property<maui::graphics::color>& unselected_tab_color_property();
@@ -54,6 +57,24 @@ namespace maui::controls
         {
             bar_background_color_set_ = true;
             bar_background_color_.set(value);
+        }
+
+        // C# TabbedPage.BarBackground (IBarElement.BarBackground): the bar fill as a Brush. The control
+        // owns the brush (so it inherits this page's BindingContext — C#
+        // VisualElement.SetInheritedBindingContext(Background, …)); a borrowed pointer reaches the handler
+        // through tab_bar_background_brush(). Returns a raw borrow (the property owns the shared_ptr).
+        [[nodiscard]] brush* bar_background() const
+        {
+            return bar_background_.get().get();
+        }
+        void set_bar_background(std::shared_ptr<brush> value)
+        {
+            bar_background_set_ = value != nullptr;
+            if (value)
+            {
+                value->set_inherited_binding_context(this->raw_binding_context());
+            }
+            bar_background_.set(std::move(value));
         }
 
         [[nodiscard]] maui::graphics::color bar_text_color() const
@@ -138,6 +159,12 @@ namespace maui::controls
         {
             return unselected_tab_color_set_ ? std::optional{unselected_tab_color_.get()} : std::nullopt;
         }
+        [[nodiscard]] std::optional<brush*> tab_bar_background_brush() const override
+        {
+            // A borrowed pointer (the control owns the brush via bar_background_); nullopt when never set
+            // (C# default(Brush) = null) so the bar keeps its color-driven default.
+            return bar_background_set_ ? std::optional{bar_background_.get().get()} : std::nullopt;
+        }
 
     protected:
         // TabbedPage.CreateDefault: a plain page titled with the item's text.
@@ -153,10 +180,12 @@ namespace maui::controls
 
     private:
         maui::core::property<maui::graphics::color> bar_background_color_{*this, bar_background_color_property()};
+        maui::core::property<std::shared_ptr<brush>> bar_background_{*this, bar_background_property()};
         maui::core::property<maui::graphics::color> bar_text_color_{*this, bar_text_color_property()};
         maui::core::property<maui::graphics::color> selected_tab_color_{*this, selected_tab_color_property()};
         maui::core::property<maui::graphics::color> unselected_tab_color_{*this, unselected_tab_color_property()};
         bool bar_background_color_set_ = false;
+        bool bar_background_set_ = false;
         bool bar_text_color_set_ = false;
         bool selected_tab_color_set_ = false;
         bool unselected_tab_color_set_ = false;

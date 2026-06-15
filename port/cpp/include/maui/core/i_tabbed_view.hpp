@@ -22,6 +22,11 @@
 
 #include "maui/graphics/color.hpp"
 
+namespace maui::controls
+{
+    class brush; // the developer-facing fill the bar background is set to (owned by the control)
+} // namespace maui::controls
+
 namespace maui::core
 {
     class i_view;
@@ -51,6 +56,14 @@ namespace maui::core
         [[nodiscard]] virtual std::optional<maui::graphics::color> tab_bar_text_color() const = 0;
         [[nodiscard]] virtual std::optional<maui::graphics::color> tab_selected_color() const = 0;
         [[nodiscard]] virtual std::optional<maui::graphics::color> tab_unselected_color() const = 0;
+
+        // ---- the tab-bar background BRUSH (C# TabbedPage.BarBackground — IBarElement.BarBackground) ----
+        // The Brush the developer set as the bar fill (SolidColorBrush / LinearGradientBrush /
+        // RadialGradientBrush), as a BORROWED pointer — the control owns the brush; the handler must NOT
+        // retain it. nullopt when the developer never set it (C# default(Brush) = null), so the native bar
+        // keeps its color-driven default. Distinct from tab_bar_background_color above: BarBackground (a
+        // Brush) overlays a CALayer; the color path drives the appearance background.
+        [[nodiscard]] virtual std::optional<maui::controls::brush*> tab_bar_background_brush() const = 0;
 
     protected:
         i_tabbed_view() = default;

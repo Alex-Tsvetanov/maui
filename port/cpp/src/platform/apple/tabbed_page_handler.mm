@@ -16,11 +16,13 @@
 
 #include <cstddef>
 #include <memory>
-#include <utility>
+#include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
+#include "maui/controls/brushes/brush.hpp"
 #include "maui/core/i_tabbed_view.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
@@ -210,11 +212,19 @@ namespace maui::core
         }
         if (const auto* tabbed = dynamic_cast<i_tabbed_view*>(&view))
         {
-            // AppKit's tab chrome has no bar-color API — mirror-only here (header DEVIATION note).
+            // AppKit's tab chrome has no bar-color API — mirror-only here (header DEVIATION note). The
+            // BarBackground brush is mirrored too (a non-owning aliasing borrow) but not painted: AppKit
+            // has no tab-bar-fill API, so the iOS twin paints the real UITabBar while this captures only.
             platform->bar_background_color = tabbed->tab_bar_background_color();
             platform->bar_text_color = tabbed->tab_bar_text_color();
             platform->selected_tab_color = tabbed->tab_selected_color();
             platform->unselected_tab_color = tabbed->tab_unselected_color();
+
+            const std::optional<maui::controls::brush*> brush = tabbed->tab_bar_background_brush();
+            platform->bar_background_brush =
+                (brush.has_value() && *brush != nullptr)
+                    ? std::optional{std::shared_ptr<maui::controls::brush>{std::shared_ptr<void>{}, *brush}}
+                    : std::nullopt;
         }
     }
 

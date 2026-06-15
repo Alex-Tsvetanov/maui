@@ -25,11 +25,16 @@
 #include <vector>
 
 #include "ios_conversions.hpp"
+#include "ios_visual_ops.hpp" // apply_bar_background + k_bar_background_layer_name (the brush CALayer fill)
+#include "maui/controls/brushes/brush.hpp"
+#include "maui/controls/brushes/brush_paint_bridge.hpp"
+#include "maui/controls/brushes/gradient_brush.hpp"
 #include "maui/core/i_tabbed_view.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/tabbed_page_handler.hpp"
 #include "maui/core/visibility.hpp"
+#include "maui/graphics/paint.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -76,6 +81,23 @@ namespace
             return nil;
         }
         return (__bridge UIView*)handler->native_view();
+    }
+
+    // Paint (or clear) the tab bar's brush background — C# TabBar.UpdateBackground(brush) via
+    // BrushExtensions: remove the old layer, then (only for a non-empty brush) bridge the controls brush to
+    // the graphics paint the layer helper renders and install the bar-background CALayer at index 0. A null
+    // OR empty brush (Brush.IsNullOrEmpty — e.g. a SolidColorBrush with a null color, or a stop-less
+    // gradient) just clears the layer, matching C#'s `if (Brush.IsNullOrEmpty(brush)) return;` after the
+    // removal (a value-type solid_paint would otherwise paint opaque black for a null-color brush).
+    void paint_bar_background_brush(UITabBar* bar, maui::controls::brush* brush)
+    {
+        if (bar == nil)
+        {
+            return;
+        }
+        const std::shared_ptr<maui::graphics::paint> paint =
+            maui::controls::brush_is_null_or_empty_as_paint(brush) ? nullptr : maui::controls::to_paint(*brush);
+        maui::platform::ios::apply_bar_background(bar.layer, paint.get(), bar.layer.bounds);
     }
 } // namespace
 
@@ -163,7 +185,7 @@ namespace maui::core
         for (NSUInteger i = 0; i < previous.count; ++i)
         {
             [previous[i].viewIfLoaded removeFromSuperview]; // pull the page view out of the old chrome
-            previous[i].view = nil; // the discarded wrapper releases the page-view association
+            previous[i].view = nil;                         // the discarded wrapper releases the page-view association
         }
 
         // Rebuild the child view controllers: one wrapper UIViewController per page, its view the
@@ -264,6 +286,39 @@ namespace maui::core
         bar.unselectedItemTintColor = platform->unselected_tab_color.has_value()
                                           ? maui::platform::ios::to_ui_color(*platform->unselected_tab_color)
                                           : nil;
+
+        // BarBackground (Brush) — the TabbedRenderer UpdateBarBackground / TabBar.UpdateBackground pair.
+        // Unsubscribe the OLD gradient brush's InvalidateGradientBrushRequested, fetch the new brush, store
+        // a non-owning mirror, (re-)subscribe ONLY when the new brush is a gradient (subscribing on a
+        // solid/null brush would be wrong — and null has no event), then paint the bar's CALayer fill.
+        platform->bar_background_invalidate_token.reset(); // drop the prior subscription (idempotent)
+
+        const std::optional<maui::controls::brush*> brush_opt = tabbed->tab_bar_background_brush();
+        maui::controls::brush* const brush = (brush_opt.has_value()) ? *brush_opt : nullptr;
+        platform->bar_background_brush =
+            (brush != nullptr) ? std::optional{std::shared_ptr<maui::controls::brush>{std::shared_ptr<void>{}, brush}}
+                               : std::nullopt;
+
+        if (auto* const gradient = dynamic_cast<maui::controls::gradient_brush*>(brush))
+        {
+            // Repaint on every stop change (OnBarBackgroundChanged). The callback weakly captures `this`
+            // and re-reads the LIVE mirror, so it never paints a stale brush; the scoped_connection is
+            // dropped above before the next subscription and in the platform dtor (the control owns the
+            // brush and outlives the handler).
+            tabbed_page_handler* const self = this;
+            platform->bar_background_invalidate_token =
+                maui::core::connect_scoped(gradient->invalidate_gradient_brush_requested, [self]() {
+                    auto* const live = self->typed_platform_view();
+                    if (live == nullptr || live->controller == nullptr || !live->bar_background_brush.has_value())
+                    {
+                        return;
+                    }
+                    paint_bar_background_brush(as_controller(live->controller).tabBar,
+                                               live->bar_background_brush->get());
+                });
+        }
+
+        paint_bar_background_brush(bar, brush);
     }
 
     maui::graphics::size tabbed_page_handler::get_desired_size(double /*width_constraint*/,

@@ -22,6 +22,7 @@ namespace maui::core
                 {"items_source", &tabbed_page_handler::map_items_source},
                 {"current_page", &tabbed_page_handler::map_current_page},
                 {"bar_background_color", &tabbed_page_handler::map_bar},
+                {"bar_background", &tabbed_page_handler::map_bar},
                 {"bar_text_color", &tabbed_page_handler::map_bar},
                 {"selected_tab_color", &tabbed_page_handler::map_bar},
                 {"unselected_tab_color", &tabbed_page_handler::map_bar},

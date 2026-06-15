@@ -131,6 +131,11 @@ namespace maui::platform::ios
     // ViewExtensions.BackgroundLayerName. apply_background installs/removes it by this tag.
     inline NSString* const k_image_layer_name = @"maui.background.image";
 
+    // The name tagging the bar-background layer apply_bar_background installs — the analog of C#'s
+    // BrushExtensions.BackgroundLayer ("BackgroundLayer"), kept distinct from the generic-IView background
+    // tags so a tab bar's brush fill is found/replaced independently. (tabbed_page_handler.mm.)
+    inline NSString* const k_bar_background_layer_name = @"maui.bar.background";
+
     // Port of PaintExtensions.iOS.cs GetCAGradientLayerColors: the ordered stops' colors as CGColors. A
     // fully transparent stop (Colors.Transparent) borrows its neighbor's color at alpha 0 (so the gradient
     // fades to the adjacent hue rather than to black), exactly as C#.
@@ -239,6 +244,66 @@ namespace maui::platform::ios
     inline void remove_background_gradient_layer(CALayer* layer)
     {
         remove_background_named_layer(layer, k_gradient_layer_name);
+    }
+
+    // Port of BrushExtensions.UpdateBackground / GetBackgroundLayer (iOS — Controls/Platform): install a
+    // brush fill, expressed as a graphics::paint, as a CALayer at the BOTTOM (index 0) of `layer`. The old
+    // bar-background layer (k_bar_background_layer_name) is removed first so a kind switch (solid↔gradient)
+    // or a stop change never leaves a stale layer behind. A SolidPaint becomes a plain CALayer carrying
+    // backgroundColor; a Linear/Radial gradient becomes an axial/radial CAGradientLayer (colors+locations
+    // from the ordered stops); a null/empty paint just removes the layer (Brush.IsNullOrEmpty → return).
+    // The layer is sized to `frame` (the C# `Frame = control.Bounds`).
+    inline void apply_bar_background(CALayer* layer, const maui::graphics::paint* p, CGRect frame)
+    {
+        if (layer == nullptr)
+        {
+            return;
+        }
+        remove_background_named_layer(layer, k_bar_background_layer_name); // C# RemoveBackgroundLayer first
+
+        if (const auto* const gradient = dynamic_cast<const maui::graphics::gradient_paint*>(p))
+        {
+            CAGradientLayer* const gradient_layer = [CAGradientLayer layer];
+            gradient_layer.name = k_bar_background_layer_name;
+            gradient_layer.contentsGravity = kCAGravityResizeAspectFill;
+            gradient_layer.frame = frame;
+
+            if (const auto* const linear = dynamic_cast<const maui::graphics::linear_gradient_paint*>(gradient))
+            {
+                gradient_layer.type = kCAGradientLayerAxial;
+                gradient_layer.startPoint = CGPointMake(linear->start_point().x, linear->start_point().y);
+                gradient_layer.endPoint = CGPointMake(linear->end_point().x, linear->end_point().y);
+            }
+            else if (const auto* const radial = dynamic_cast<const maui::graphics::radial_gradient_paint*>(gradient))
+            {
+                gradient_layer.type = kCAGradientLayerRadial;
+                gradient_layer.startPoint = CGPointMake(radial->center().x, radial->center().y);
+                gradient_layer.endPoint = radial_gradient_end_point(radial->center(), radial->radius());
+                gradient_layer.cornerRadius = static_cast<CGFloat>(radial->radius());
+            }
+
+            const std::vector<maui::graphics::gradient_stop> ordered = gradient->get_sorted_stops();
+            if (!ordered.empty())
+            {
+                gradient_layer.colors = gradient_layer_colors(ordered);
+                gradient_layer.locations = gradient_layer_locations(ordered);
+            }
+            [layer insertSublayer:gradient_layer atIndex:0]; // C# InsertBackgroundLayer(..., index: 0)
+            return;
+        }
+
+        // A SolidPaint → a plain CALayer carrying the color (C# StaticCALayer { BackgroundColor = … }).
+        const auto* const solid = dynamic_cast<const maui::graphics::solid_paint*>(p);
+        if (solid == nullptr)
+        {
+            return; // null / empty / unsupported brush → only the removal above (Brush.IsNullOrEmpty path)
+        }
+        CALayer* const solid_layer = [CALayer layer];
+        solid_layer.name = k_bar_background_layer_name;
+        solid_layer.contentsGravity = kCAGravityResizeAspectFill;
+        solid_layer.frame = frame;
+        solid_layer.backgroundColor = to_ui_color(solid->color()).CGColor;
+        [layer insertSublayer:solid_layer atIndex:0];
     }
 
     // Install `source`'s image as the view's background layer (C# ViewExtensions.UpdateBackgroundImageSource

@@ -19,6 +19,7 @@
 #include <string_view>
 #include <vector>
 
+#include "maui/controls/brushes/solid_color_brush.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
@@ -33,6 +34,7 @@ namespace
 {
     using maui::controls::content_page;
     using maui::controls::data_template;
+    using maui::controls::solid_color_brush;
     using maui::controls::tabbed_page;
     using maui::core::collection_changed_action;
     using maui::core::collection_changed_args;
@@ -788,6 +790,37 @@ namespace
         EXPECT_EQ(platform->bar_text_color, std::optional(maui::graphics::colors::white));
         EXPECT_EQ(platform->selected_tab_color, std::optional(maui::graphics::colors::blue));
         EXPECT_EQ(platform->unselected_tab_color, std::optional(maui::graphics::colors::gray));
+    }
+
+    TEST(tabbed_page_handler_seam, bar_background_brush_mirrors_with_unset_as_nullopt)
+    {
+        content_page first;
+        // Declared AFTER its child pages: the subscriber disconnects first (§8).
+        tabbed_page tabs;
+        tabs.add(first);
+
+        auto handler = std::make_shared<tabbed_page_handler>();
+        tabs.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+
+        // Never set -> nullopt (C# default(Brush) = null).
+        EXPECT_FALSE(platform->bar_background_brush.has_value());
+        EXPECT_EQ(tabs.bar_background(), nullptr);
+
+        auto brush = std::make_shared<solid_color_brush>(maui::graphics::colors::red);
+        tabs.set_bar_background(brush);
+
+        // The headless mirror captures the brush (the backend captures, but does not paint). value_or
+        // reads the contained pointer without an unchecked optional access (the gtest ASSERT is invisible
+        // to the checker).
+        ASSERT_TRUE(platform->bar_background_brush.has_value());
+        EXPECT_EQ(platform->bar_background_brush.value_or(nullptr).get(), brush.get());
+        EXPECT_EQ(tabs.bar_background(), brush.get());
+
+        tabs.set_bar_background(nullptr);
+        EXPECT_FALSE(platform->bar_background_brush.has_value());
+        EXPECT_EQ(tabs.bar_background(), nullptr);
     }
 
     TEST(tabbed_page_handler_seam, items_source_path_hosts_template_pages)

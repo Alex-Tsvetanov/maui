@@ -8,7 +8,9 @@
 
 #include <cstddef>
 #include <memory>
+#include <optional>
 
+#include "maui/controls/brushes/brush.hpp"
 #include "maui/core/i_tabbed_view.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/graphics/rect.hpp"
@@ -78,6 +80,14 @@ namespace maui::core
             platform->bar_text_color = tabbed->tab_bar_text_color();
             platform->selected_tab_color = tabbed->tab_selected_color();
             platform->unselected_tab_color = tabbed->tab_unselected_color();
+
+            // The Brush bar fill: capture a NON-OWNING borrow (aliasing shared_ptr, empty owner — the
+            // control owns the brush). Headless mirrors only; there is no native tab bar to paint.
+            const std::optional<maui::controls::brush*> brush = tabbed->tab_bar_background_brush();
+            platform->bar_background_brush =
+                (brush.has_value() && *brush != nullptr)
+                    ? std::optional{std::shared_ptr<maui::controls::brush>{std::shared_ptr<void>{}, *brush}}
+                    : std::nullopt;
         }
     }
 

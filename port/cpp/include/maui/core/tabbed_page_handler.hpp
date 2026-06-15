@@ -31,6 +31,7 @@
 #include <vector>
 
 #include "maui/core/command_mapper.hpp"
+#include "maui/core/event.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/view_handler.hpp"
@@ -39,6 +40,11 @@
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+
+namespace maui::controls
+{
+    class brush; // the bar-background fill (owned by the control; the platform mirrors a non-owning borrow)
+} // namespace maui::controls
 
 namespace maui::core
 {
@@ -64,6 +70,15 @@ namespace maui::core
         std::optional<maui::graphics::color> bar_text_color;
         std::optional<maui::graphics::color> selected_tab_color;
         std::optional<maui::graphics::color> unselected_tab_color;
+        // C# TabbedPage.BarBackground (the Brush bar fill): a NON-OWNING borrow of the control's brush
+        // (the seam yields a borrowed pointer; the mirror is an aliasing shared_ptr with an empty owner so
+        // it observes pointer identity without retaining). nullopt when the developer never set it.
+        std::optional<std::shared_ptr<maui::controls::brush>> bar_background_brush;
+        // The InvalidateGradientBrushRequested subscription on the current GRADIENT bar background (so a
+        // stop change repaints). Held while a gradient brush is the bar fill; cleared when it changes to a
+        // non-gradient / null brush. Default-constructed = no subscription. Real backends (ios) re-subscribe
+        // in update_bar; headless / apple leave it empty (they capture but do not paint).
+        maui::core::scoped_connection bar_background_invalidate_token;
 
 #if defined(MAUI_PLATFORM_APPLE) || defined(MAUI_PLATFORM_IOS)
         // The retained native slots shared by the two real-native twins.
