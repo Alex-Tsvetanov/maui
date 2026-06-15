@@ -293,8 +293,8 @@ namespace maui::xaml
             // runtime-binding unit registers the real SetBinding port.
             if (const auto* request = std::any_cast<binding_request>(&value))
             {
-                current_xaml_binding_applier()(*env.properties, target, target_type, local_name, *request,
-                                               line_number, line_position);
+                current_xaml_binding_applier()(*env.properties, target, target_type, local_name, *request, line_number,
+                                               line_position);
                 return;
             }
 
@@ -612,6 +612,15 @@ namespace maui::xaml
                 {
                     continue;
                 }
+                // IReferenceProvider: the nearest enclosing element's name scope (the register_x_names
+                // pass already populated it). The first scope found wins (nearest-first walk) — the
+                // {x:Reference} resolution surface (ReferenceExtension.FindByName + the ParentObjects
+                // fallback collapse into one scope lookup here).
+                if (services.reference_provider == nullptr && ancestor_element->scope_ref() &&
+                    ancestor_element->scope_ref()->scope)
+                {
+                    services.reference_provider = ancestor_element->scope_ref()->scope.get();
+                }
                 const std::any* value = context.try_get_value(*ancestor_element);
                 if (const maui::controls::resource_dictionary* dictionary = as_dictionary(value))
                 {
@@ -724,8 +733,8 @@ namespace maui::xaml
 
             // Drop ignorable properties ("d:foo" attributes AND properties holding elements of an
             // ignorable namespace) — snapshot first, the map mutates.
-            const std::vector<std::pair<xml_name, std::shared_ptr<i_xaml_node>>> properties{
-                node.properties().begin(), node.properties().end()};
+            const std::vector<std::pair<xml_name, std::shared_ptr<i_xaml_node>>> properties{node.properties().begin(),
+                                                                                            node.properties().end()};
             for (const auto& [property_name, property_value] : properties)
             {
                 if (is_prefix_ignored(node, prefix_of(node, property_name.namespace_uri)))

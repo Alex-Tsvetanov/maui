@@ -9,8 +9,10 @@
 
 #include "maui/controls/horizontal_stack_layout.hpp"
 #include "maui/core/handler_registry.hpp"
+#include "maui/core/i_cross_platform_layout.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_layout.hpp"
+#include "maui/core/i_safe_area_view.hpp"
 #include "maui/core/i_stack_layout.hpp"
 #include "maui/core/layout_handler.hpp"
 #include "maui/core/thickness.hpp"
@@ -365,5 +367,56 @@ namespace
         EXPECT_EQ(platform->children[0], &a);
         EXPECT_EQ(platform->children[1], &b);
         EXPECT_EQ(platform->children[2], &c);
+    }
+
+    // ---- X4: the ICrossPlatformLayout / ISafeAreaView contracts on the layout base ----
+
+    TEST(layout_cross_platform, cross_platform_measure_matches_the_managers_measure)
+    {
+        vertical_stack_layout stack;
+        stack.set_spacing(13);
+        mock_view a;
+        mock_view b;
+        mock_view c;
+        a.configure({100, 100});
+        b.configure({100, 100});
+        c.configure({100, 100});
+        stack.add(a);
+        stack.add(b);
+        stack.add(c);
+
+        // CrossPlatformMeasure == LayoutManager.Measure == the control's own measure (Layout.cs).
+        auto& cross = static_cast<maui::core::i_cross_platform_layout&>(stack);
+        const size cross_measured = cross.cross_platform_measure(100, 1000);
+        EXPECT_EQ(cross_measured.height, 326.0);
+        EXPECT_EQ(cross_measured.width, 100.0);
+        EXPECT_EQ(cross_measured, stack.measure(100, 1000));
+    }
+
+    TEST(layout_cross_platform, cross_platform_arrange_positions_children)
+    {
+        vertical_stack_layout stack;
+        mock_view first;
+        mock_view second;
+        first.configure({100, 100});
+        second.configure({100, 100});
+        stack.add(first);
+        stack.add(second);
+
+        auto& cross = static_cast<maui::core::i_cross_platform_layout&>(stack);
+        (void)cross.cross_platform_measure(100, 1000);
+        cross.cross_platform_arrange(rect(0, 0, 100, 200));
+
+        EXPECT_EQ(first.last_arrange, rect(0, 0, 100, 100));
+        EXPECT_EQ(second.last_arrange, rect(0, 100, 100, 100));
+    }
+
+    TEST(layout_safe_area, ignore_safe_area_defaults_false_and_round_trips)
+    {
+        vertical_stack_layout stack;
+        auto& safe = static_cast<maui::core::i_safe_area_view&>(stack);
+        EXPECT_FALSE(safe.ignore_safe_area()); // Layout.IgnoreSafeArea default
+        stack.set_ignore_safe_area(true);
+        EXPECT_TRUE(safe.ignore_safe_area());
     }
 } // namespace

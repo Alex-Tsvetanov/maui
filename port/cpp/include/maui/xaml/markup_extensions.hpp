@@ -11,6 +11,14 @@
 //   {AppThemeBinding …}      <=  Microsoft.Maui.Controls.Xaml.AppThemeBindingExtension
 //   {Binding Path=… Mode=…}  <=  Microsoft.Maui.Controls.Xaml.BindingExtension
 //
+// The X4 tail adds six more (src/Controls/src/Xaml/MarkupExtensions/*):
+//   {x:Array Type=… }        <=  Microsoft.Maui.Controls.Xaml.ArrayExtension
+//   {x:Reference Name=… }    <=  Microsoft.Maui.Controls.Xaml.ReferenceExtension
+//   {FontImage …}            <=  Microsoft.Maui.Controls.Xaml.FontImageExtension
+//   {TemplateBinding …}      <=  Microsoft.Maui.Controls.Xaml.TemplateBindingExtension
+//   {RelativeSource …}       <=  Microsoft.Maui.Controls.Xaml.RelativeSourceExtension
+//   {DataTemplate …}         <=  Microsoft.Maui.Controls.Xaml.DataTemplateExtension
+//
 // The extension CLASSES are an implementation detail of markup_extensions.cpp (C# exposes them
 // publicly only because the XAML parser instantiates them by reflection; the port's loader minting
 // goes through markup_extension_registry factories, registered by register_standard_markup_extensions
@@ -46,10 +54,12 @@
 #include <any>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "maui/controls/dynamic_resource.hpp"
 #include "maui/core/app_theme.hpp"
 #include "maui/core/binding_mode.hpp"
+#include "maui/core/type_tag.hpp"
 
 namespace maui::controls
 {
@@ -124,10 +134,33 @@ namespace maui::xaml
         [[nodiscard]] const std::any& pick(maui::core::app_theme theme) const;
     };
 
-    // Register the nine v1 extensions in markup_extension_registry::instance() (under their markup
-    // names — "StaticResource", …, "x:Static" — plus the implicit "<name>Extension" aliases the
-    // registry adds) and seed xaml_static_registry::instance() with the port's standard statics (the
-    // named "Colors.*"). The explicit one-call setup, mirroring register_standard_xaml — called by
-    // the U3 loader once, and by tests. Idempotent (re-registration replaces).
+    // The {x:Array Type=… } ProvideValue result. C# ArrayExtension builds Array.CreateInstance(Type,
+    // Items.Count) and copies the items in; the reflection-free port has no runtime T[] synthesis
+    // (PROFILE §6), so the result is this marker carrying the element TYPE (the resolved type_tag — what
+    // {x:Type} produces) and the items in their source form (already-boxed values, or raw attribute
+    // strings boxed as std::string). APPLIER CONTRACT: a collection property whose element type matches
+    // element_type assigns the items one-by-one (the port has no native array type to box whole). The
+    // direct ProvideValue surface returns this so tests can assert the type + item contents (mirroring
+    // C# asserting `string[]` of length 2).
+    //
+    // DEVIATION (documented): C# returns a strongly-typed System.Array; the port returns a tagged
+    // std::vector<std::any> because no reflection-free way to mint a typed array of a runtime type
+    // exists. Items arriving in the curly form (the only loader-wired form here) come through the args'
+    // `values`/attributes; the element-children content form ({x:Array}'s nested <x:String> items) is a
+    // loader-side collection concern not wired into the markup-extension factory seam.
+    struct xaml_array
+    {
+        // The resolved {x:Type Type=…} identity (ArrayExtension.Type). type_tag has no default ctor, so
+        // it is seeded to of<void>() — always overwritten by the factory before the result is built.
+        maui::core::type_tag element_type = maui::core::type_tag::of<void>();
+        std::vector<std::any> items; // ArrayExtension.Items, in source form
+    };
+
+    // Register the standard extensions in markup_extension_registry::instance() (under their markup
+    // names — "StaticResource", …, "x:Static", "x:Array", "FontImage", … — plus the implicit
+    // "<name>Extension" aliases the registry adds) and seed xaml_static_registry::instance() with the
+    // port's standard statics (the named "Colors.*"). The explicit one-call setup, mirroring
+    // register_standard_xaml — called by the loader once, and by tests. Idempotent (re-registration
+    // replaces).
     void register_standard_markup_extensions();
 } // namespace maui::xaml

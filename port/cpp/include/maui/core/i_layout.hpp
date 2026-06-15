@@ -4,7 +4,10 @@
 // A view that positions + sizes child elements. Ported from src/Core/src/Core/ILayout.cs
 // (ILayout : IView, IContainer, ISafeAreaView, IPadding, ICrossPlatformLayout). Subset: IView +
 // IContainer + IPadding + ClipsToBounds — the surface the layout managers + handler consume.
-// ISafeAreaView and the ICrossPlatformLayout measure/arrange bridge remain deferred.
+// ISafeAreaView (i_safe_area_view.hpp) and ICrossPlatformLayout (i_cross_platform_layout.hpp) are NOT
+// folded into this minimal contract; the concrete layout<> base implements both as standalone mixins
+// (cross_platform_measure/arrange forward to its layout manager; ignore_safe_area is the obsolete
+// Layout.IgnoreSafeArea auto-property), so i_layout stays the surface the managers + handler consume.
 
 #include "maui/core/i_container.hpp"
 #include "maui/core/i_padding.hpp"

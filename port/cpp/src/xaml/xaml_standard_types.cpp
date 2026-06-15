@@ -60,8 +60,10 @@
 #include "maui/core/flow_direction.hpp"
 #include "maui/core/grid_length.hpp"
 #include "maui/core/i_view.hpp"
+#include "maui/core/keyboard.hpp"
 #include "maui/core/layout_alignment.hpp"
 #include "maui/core/return_type.hpp"
+#include "maui/core/safe_area_edges.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/text_decorations.hpp"
 #include "maui/core/thickness.hpp"
@@ -72,6 +74,8 @@
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 #include "maui/graphics/size_f.hpp"
+#include "maui/layouts/flex_basis.hpp"
+#include "maui/layouts/flex_enums.hpp"
 #include "maui/xaml/xaml_converter_registry.hpp"
 #include "maui/xaml/xaml_converters.hpp"
 #include "maui/xaml/xaml_parse_exception.hpp"
@@ -382,10 +386,24 @@ namespace maui::xaml
 
         // X1 — the Brush converter (BrushTypeConverter): a Brush-typed XAML attribute (e.g.
         // VisualElement.Background) parses a color name/hex/CSS-color or a linear-/radial-gradient string
-        // into a std::shared_ptr<maui::controls::brush>. Self-contained + appended so the sibling X4
-        // converter additions union-merge trivially.
+        // into a std::shared_ptr<maui::controls::brush>.
         converters.register_converter<std::shared_ptr<maui::controls::brush>>(
             registry_converter(&maui::controls::convert_brush));
+
+        // ---- X4 tail ---- Keyboard (KeyboardTypeConverter), the FlexEnumsConverters, FlexBasisTypeConverter,
+        // and SafeAreaEdgesTypeConverter — the per-property/attached-property converters the wave-1 table
+        // deferred until their value types were ported (Y1 keyboard, the flex layout, the safe-area
+        // primitives). registry_converter bridges each to xaml_parse_exception, like the rows above.
+        converters.register_converter<maui::core::keyboard>(registry_converter(&convert_keyboard));
+        converters.register_converter<maui::layouts::flex_direction>(registry_converter(&convert_flex_direction));
+        converters.register_converter<maui::layouts::flex_justify>(registry_converter(&convert_flex_justify));
+        converters.register_converter<maui::layouts::flex_align_items>(registry_converter(&convert_flex_align_items));
+        converters.register_converter<maui::layouts::flex_align_content>(
+            registry_converter(&convert_flex_align_content));
+        converters.register_converter<maui::layouts::flex_align_self>(registry_converter(&convert_flex_align_self));
+        converters.register_converter<maui::layouts::flex_wrap>(registry_converter(&convert_flex_wrap));
+        converters.register_converter<maui::layouts::flex_basis>(registry_converter(&convert_flex_basis));
+        converters.register_converter<maui::core::safe_area_edges>(registry_converter(&convert_safe_area_edges));
     }
 
     void register_standard_xaml(xaml_type_registry& types, xaml_property_registry& properties,

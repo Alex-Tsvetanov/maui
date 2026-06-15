@@ -48,10 +48,12 @@
 //    LayoutOptions.Expands flag has no representation in the port (the modern MAUI layout engine
 //    ignores it outside legacy Compatibility layouts, and the port's i_view carries only
 //    layout_alignment).
-//  - C# Keyboard is a class with named INSTANCES (KeyboardTypeConverter), not an enum; the port has
-//    no keyboard type yet, so its converter is deferred with it. The FlexEnumsConverters
-//    (FlexJustify/FlexDirection/…) and SafeAreaEdgesTypeConverter are deferred the same way — the
-//    flex layout and safe_area_regions types are unported (STATUS.md M7 deferrals).
+//  - C# Keyboard is a class with named INSTANCES (KeyboardTypeConverter), not an enum; convert_keyboard
+//    maps the C# static-property names onto the port's keyboard value type (the closed named set) — the
+//    name match is case-sensitive (C# reflects the static member by exact name). The FlexEnumsConverters
+//    (FlexJustify/FlexDirection/…) match member names case-INSENSITIVELY (Enum.TryParse ignoreCase: true)
+//    plus the CSS aliases, and FlexBasis/SafeAreaEdges follow their C# converters (see the per-function
+//    notes below). These all arrived with the X4 tail once the keyboard / flex / safe-area types landed.
 //  - EasingTypeConverter returns a NULL Easing for null/empty/whitespace input; the port's
 //    maui::animations::easing has no null form, so convert_easing throws xaml_convert_error there
 //    instead (everything else, including the case-insensitive names and the "Easing." qualifier,
@@ -79,8 +81,10 @@
 #include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/flow_direction.hpp"
 #include "maui/core/grid_length.hpp"
+#include "maui/core/keyboard.hpp"
 #include "maui/core/layout_alignment.hpp"
 #include "maui/core/return_type.hpp"
+#include "maui/core/safe_area_edges.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/text_decorations.hpp"
 #include "maui/core/thickness.hpp"
@@ -91,6 +95,8 @@
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 #include "maui/graphics/size_f.hpp"
+#include "maui/layouts/flex_basis.hpp"
+#include "maui/layouts/flex_enums.hpp"
 
 namespace maui::xaml
 {
@@ -258,4 +264,35 @@ namespace maui::xaml
     // FlowDirectionConverter: the enum names (via Enum.TryParse) plus the case-insensitive
     // "ltr" / "rtl" / "inherit" aliases (these aliases are NOT trimmed, matching C#).
     [[nodiscard]] maui::core::flow_direction convert_flow_direction(std::string_view text);
+
+    // ---- X4 tail: Keyboard / Flex enums + FlexBasis / SafeAreaEdges ----
+
+    // KeyboardTypeConverter.ConvertFrom: a single keyboard name ("Email") or the "Keyboard."-qualified
+    // form ("Keyboard.Email"); names match the C# static properties (Default/Plain/Chat/Email/Numeric/
+    // Telephone/Text/Url/Date/Time/Password). C# reflects the static field/property by EXACT name
+    // (case-sensitive); an unknown name throws (InvalidOperationException → xaml_convert_error here).
+    [[nodiscard]] maui::core::keyboard convert_keyboard(std::string_view text);
+
+    // The FlexEnumsConverters (src/Core/src/Converters/FlexEnumsConverters.cs): each does a
+    // case-INSENSITIVE Enum.TryParse over the C# member names plus that enum's CSS aliases
+    // (flex-start/flex-end → Start/End, space-between/space-around → SpaceBetween/SpaceAround,
+    // row-reverse/column-reverse → RowReverse/ColumnReverse, wrap-reverse → Reverse). A numeric token
+    // selects the matching defined enumerator (Enum.TryParse's numeric form). An unmatched value
+    // throws (InvalidOperationException → xaml_convert_error).
+    [[nodiscard]] maui::layouts::flex_direction convert_flex_direction(std::string_view text);
+    [[nodiscard]] maui::layouts::flex_justify convert_flex_justify(std::string_view text);
+    [[nodiscard]] maui::layouts::flex_align_items convert_flex_align_items(std::string_view text);
+    [[nodiscard]] maui::layouts::flex_align_content convert_flex_align_content(std::string_view text);
+    [[nodiscard]] maui::layouts::flex_align_self convert_flex_align_self(std::string_view text);
+    [[nodiscard]] maui::layouts::flex_wrap convert_flex_wrap(std::string_view text);
+
+    // FlexBasisTypeConverter.ConvertFrom: "auto" (case-insensitive) → FlexBasis.Auto; "N%" →
+    // FlexBasis(N/100, isRelative: true); a plain number → FlexBasis(N). The string is trimmed first.
+    [[nodiscard]] maui::layouts::flex_basis convert_flex_basis(std::string_view text);
+
+    // SafeAreaEdgesTypeConverter.ConvertFrom: a comma-separated list of region names (case-insensitive:
+    // All/None/Container/SoftInput/Default), 1 / 2 / 4 entries → uniform / horizontal,vertical /
+    // left,top,right,bottom. Any other count, or an unknown name, throws (FormatException →
+    // xaml_convert_error). The whole string is trimmed and each part is trimmed.
+    [[nodiscard]] maui::core::safe_area_edges convert_safe_area_edges(std::string_view text);
 } // namespace maui::xaml

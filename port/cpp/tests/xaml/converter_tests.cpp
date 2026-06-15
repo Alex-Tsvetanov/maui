@@ -31,8 +31,11 @@
 #include "maui/core/flow_direction.hpp"
 #include "maui/core/grid_length.hpp"
 #include "maui/core/grid_unit_type.hpp"
+#include "maui/core/keyboard.hpp"
 #include "maui/core/layout_alignment.hpp"
 #include "maui/core/return_type.hpp"
+#include "maui/core/safe_area_edges.hpp"
+#include "maui/core/safe_area_regions.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/text_decorations.hpp"
 #include "maui/core/thickness.hpp"
@@ -44,6 +47,8 @@
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 #include "maui/graphics/size_f.hpp"
+#include "maui/layouts/flex_basis.hpp"
+#include "maui/layouts/flex_enums.hpp"
 
 namespace
 {
@@ -604,5 +609,162 @@ namespace
                   maui::core::clear_button_visibility::while_editing);
         EXPECT_THROW((void)xaml::convert_clear_button_visibility("whileediting"), xaml_convert_error);
         EXPECT_THROW((void)xaml::convert_clear_button_visibility("Always"), xaml_convert_error);
+    }
+
+    // ---- Keyboard (KeyboardTypeConverter) ----
+
+    TEST(xaml_convert_keyboard, named_keyboards_resolve)
+    {
+        using maui::core::keyboard;
+        EXPECT_EQ(xaml::convert_keyboard("Default"), keyboard::default_keyboard());
+        EXPECT_EQ(xaml::convert_keyboard("Email"), keyboard::email());
+        EXPECT_EQ(xaml::convert_keyboard("Numeric"), keyboard::numeric());
+        EXPECT_EQ(xaml::convert_keyboard("Plain"), keyboard::plain());
+        EXPECT_EQ(xaml::convert_keyboard("Url"), keyboard::url());
+        EXPECT_EQ(xaml::convert_keyboard("Password"), keyboard::password());
+    }
+
+    TEST(xaml_convert_keyboard, the_keyboard_qualified_form_resolves)
+    {
+        using maui::core::keyboard;
+        EXPECT_EQ(xaml::convert_keyboard("Keyboard.Email"), keyboard::email());
+        EXPECT_EQ(xaml::convert_keyboard("Keyboard.Chat"), keyboard::chat());
+    }
+
+    TEST(xaml_convert_keyboard, invalid_throws)
+    {
+        EXPECT_THROW((void)xaml::convert_keyboard("email"), xaml_convert_error);     // case-sensitive
+        EXPECT_THROW((void)xaml::convert_keyboard("Nope"), xaml_convert_error);      // unknown name
+        EXPECT_THROW((void)xaml::convert_keyboard("Foo.Email"), xaml_convert_error); // wrong qualifier
+        EXPECT_THROW((void)xaml::convert_keyboard("a.b.c"), xaml_convert_error);     // too many parts
+        EXPECT_THROW((void)xaml::convert_keyboard(""), xaml_convert_error);
+    }
+
+    // ---- Flex enums (FlexEnumsConverters: case-insensitive names + CSS aliases) ----
+
+    TEST(xaml_convert_flex_direction, names_aliases_and_numeric)
+    {
+        using maui::layouts::flex_direction;
+        EXPECT_EQ(xaml::convert_flex_direction("Row"), flex_direction::row);
+        EXPECT_EQ(xaml::convert_flex_direction("row"), flex_direction::row); // ignoreCase: true
+        EXPECT_EQ(xaml::convert_flex_direction("ColumnReverse"), flex_direction::column_reverse);
+        EXPECT_EQ(xaml::convert_flex_direction("row-reverse"), flex_direction::row_reverse);
+        EXPECT_EQ(xaml::convert_flex_direction("column-reverse"), flex_direction::column_reverse);
+        EXPECT_THROW((void)xaml::convert_flex_direction("diagonal"), xaml_convert_error);
+    }
+
+    TEST(xaml_convert_flex_justify, names_and_css_aliases)
+    {
+        using maui::layouts::flex_justify;
+        EXPECT_EQ(xaml::convert_flex_justify("Start"), flex_justify::start);
+        EXPECT_EQ(xaml::convert_flex_justify("spacebetween"), flex_justify::space_between);
+        EXPECT_EQ(xaml::convert_flex_justify("flex-start"), flex_justify::start);
+        EXPECT_EQ(xaml::convert_flex_justify("flex-end"), flex_justify::end);
+        EXPECT_EQ(xaml::convert_flex_justify("space-between"), flex_justify::space_between);
+        EXPECT_EQ(xaml::convert_flex_justify("space-around"), flex_justify::space_around);
+        EXPECT_EQ(xaml::convert_flex_justify("SpaceEvenly"), flex_justify::space_evenly);
+        EXPECT_THROW((void)xaml::convert_flex_justify("space-evenly"), xaml_convert_error); // not a C# alias
+    }
+
+    TEST(xaml_convert_flex_align_items, names_and_aliases)
+    {
+        using maui::layouts::flex_align_items;
+        EXPECT_EQ(xaml::convert_flex_align_items("Stretch"), flex_align_items::stretch);
+        EXPECT_EQ(xaml::convert_flex_align_items("flex-start"), flex_align_items::start);
+        EXPECT_EQ(xaml::convert_flex_align_items("flex-end"), flex_align_items::end);
+        EXPECT_THROW((void)xaml::convert_flex_align_items("baseline"), xaml_convert_error); // commented out in C#
+    }
+
+    TEST(xaml_convert_flex_align_content, names_and_aliases)
+    {
+        using maui::layouts::flex_align_content;
+        EXPECT_EQ(xaml::convert_flex_align_content("Center"), flex_align_content::center);
+        EXPECT_EQ(xaml::convert_flex_align_content("flex-start"), flex_align_content::start);
+        EXPECT_EQ(xaml::convert_flex_align_content("space-around"), flex_align_content::space_around);
+    }
+
+    TEST(xaml_convert_flex_align_self, names_and_aliases)
+    {
+        using maui::layouts::flex_align_self;
+        EXPECT_EQ(xaml::convert_flex_align_self("Auto"), flex_align_self::auto_);
+        EXPECT_EQ(xaml::convert_flex_align_self("flex-start"), flex_align_self::start);
+        EXPECT_EQ(xaml::convert_flex_align_self("flex-end"), flex_align_self::end);
+    }
+
+    TEST(xaml_convert_flex_wrap, names_and_alias)
+    {
+        using maui::layouts::flex_wrap;
+        EXPECT_EQ(xaml::convert_flex_wrap("NoWrap"), flex_wrap::no_wrap);
+        EXPECT_EQ(xaml::convert_flex_wrap("wrap"), flex_wrap::wrap);
+        EXPECT_EQ(xaml::convert_flex_wrap("Reverse"), flex_wrap::reverse);
+        EXPECT_EQ(xaml::convert_flex_wrap("wrap-reverse"), flex_wrap::reverse);
+        EXPECT_THROW((void)xaml::convert_flex_wrap("nope"), xaml_convert_error);
+    }
+
+    // ---- FlexBasis (FlexBasisTypeConverter) ----
+
+    TEST(xaml_convert_flex_basis, auto_percent_and_absolute)
+    {
+        using maui::layouts::flex_basis;
+        EXPECT_EQ(xaml::convert_flex_basis("auto"), flex_basis::auto_value);
+        EXPECT_EQ(xaml::convert_flex_basis("AUTO"), flex_basis::auto_value);   // case-insensitive
+        EXPECT_EQ(xaml::convert_flex_basis(" auto "), flex_basis::auto_value); // trimmed
+
+        const flex_basis relative = xaml::convert_flex_basis("50%");
+        EXPECT_TRUE(relative.is_relative());
+        EXPECT_FLOAT_EQ(relative.length(), 0.5F);
+
+        const flex_basis absolute = xaml::convert_flex_basis("120");
+        EXPECT_FALSE(absolute.is_relative());
+        EXPECT_FALSE(absolute.is_auto());
+        EXPECT_FLOAT_EQ(absolute.length(), 120.0F);
+    }
+
+    TEST(xaml_convert_flex_basis, invalid_throws)
+    {
+        EXPECT_THROW((void)xaml::convert_flex_basis("nope"), xaml_convert_error);
+        EXPECT_THROW((void)xaml::convert_flex_basis("150%"), xaml_convert_error); // relative > 1 (1.5)
+        EXPECT_THROW((void)xaml::convert_flex_basis("-3"), xaml_convert_error);   // negative length
+        EXPECT_THROW((void)xaml::convert_flex_basis("x%"), xaml_convert_error);
+    }
+
+    // ---- SafeAreaEdges (SafeAreaEdgesTypeConverter) ----
+
+    TEST(xaml_convert_safe_area_edges, one_two_and_four_values)
+    {
+        using maui::core::safe_area_edges;
+        using maui::core::safe_area_regions;
+
+        const safe_area_edges uniform = xaml::convert_safe_area_edges("All");
+        EXPECT_EQ(uniform, safe_area_edges{safe_area_regions::all});
+
+        // "horizontal, vertical" -> left=right=h, top=bottom=v.
+        const safe_area_edges hv = xaml::convert_safe_area_edges("None, All");
+        EXPECT_EQ(hv.left(), safe_area_regions::none);
+        EXPECT_EQ(hv.right(), safe_area_regions::none);
+        EXPECT_EQ(hv.top(), safe_area_regions::all);
+        EXPECT_EQ(hv.bottom(), safe_area_regions::all);
+
+        // "left,top,right,bottom".
+        const safe_area_edges four = xaml::convert_safe_area_edges("None,SoftInput,Container,All");
+        EXPECT_EQ(four.left(), safe_area_regions::none);
+        EXPECT_EQ(four.top(), safe_area_regions::soft_input);
+        EXPECT_EQ(four.right(), safe_area_regions::container);
+        EXPECT_EQ(four.bottom(), safe_area_regions::all);
+    }
+
+    TEST(xaml_convert_safe_area_edges, case_insensitive_and_trimmed)
+    {
+        using maui::core::safe_area_edges;
+        using maui::core::safe_area_regions;
+        EXPECT_EQ(xaml::convert_safe_area_edges("  default  "), safe_area_edges{safe_area_regions::default_value});
+        EXPECT_EQ(xaml::convert_safe_area_edges("softinput"), safe_area_edges{safe_area_regions::soft_input});
+    }
+
+    TEST(xaml_convert_safe_area_edges, invalid_count_or_name_throws)
+    {
+        EXPECT_THROW((void)xaml::convert_safe_area_edges("All,None,All"), xaml_convert_error);          // 3 values
+        EXPECT_THROW((void)xaml::convert_safe_area_edges("All,None,All,None,All"), xaml_convert_error); // 5 values
+        EXPECT_THROW((void)xaml::convert_safe_area_edges("Nope"), xaml_convert_error);                  // unknown name
     }
 } // namespace

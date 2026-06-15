@@ -29,7 +29,9 @@
 #include "maui/controls/element.hpp"
 #include "maui/controls/view.hpp"
 #include "maui/core/bindable_property.hpp"
+#include "maui/core/i_cross_platform_layout.hpp"
 #include "maui/core/i_layout.hpp"
+#include "maui/core/i_safe_area_view.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/layout_handler.hpp"
@@ -47,7 +49,10 @@ namespace maui::controls
     // src/controls/layout.cpp. Default false (Layout.IsClippedToBoundsProperty).
     const maui::core::bindable_property<bool>& clips_to_bounds_property();
 
-    template <class LayoutInterface> class layout : public view<LayoutInterface>
+    template <class LayoutInterface>
+    class layout : public view<LayoutInterface>,
+                   public maui::core::i_cross_platform_layout,
+                   public maui::core::i_safe_area_view
     {
         static_assert(std::is_base_of_v<maui::core::i_layout, LayoutInterface>,
                       "LayoutInterface must derive maui::core::i_layout");
@@ -152,6 +157,34 @@ namespace maui::controls
             return ensure_manager().arrange_children(bounds); // position the children
         }
 
+        // ---- i_cross_platform_layout (Layout.CrossPlatformMeasure / CrossPlatformArrange) ----
+        // The cross-platform face a native host calls back into: measure/arrange the children through
+        // the layout manager, exactly as C# routes LayoutManager.Measure / ArrangeChildren. These are
+        // the pure cross-platform half — unlike arrange() above, cross_platform_arrange does NOT size
+        // the native host panel (the native side already owns its own frame when it calls this).
+        [[nodiscard]] maui::graphics::size cross_platform_measure(double width_constraint,
+                                                                  double height_constraint) override
+        {
+            return ensure_manager().measure(width_constraint, height_constraint);
+        }
+        maui::graphics::size cross_platform_arrange(const maui::graphics::rect& bounds) override
+        {
+            return ensure_manager().arrange_children(bounds);
+        }
+
+        // ---- i_safe_area_view (Layout.IgnoreSafeArea) ----
+        // C# Layout.IgnoreSafeArea is a plain auto-property defaulting to false (the obsolete
+        // pre-SafeAreaEdges knob). Honored by the Apple layout host only (a native deferral — the
+        // headless backend has no safe area); see i_safe_area_view.hpp.
+        [[nodiscard]] bool ignore_safe_area() const override
+        {
+            return ignore_safe_area_;
+        }
+        void set_ignore_safe_area(bool value)
+        {
+            ignore_safe_area_ = value;
+        }
+
     protected:
         explicit layout(const maui::core::bindable_property<maui::core::thickness>& padding_descriptor)
             : padding_(*this, padding_descriptor)
@@ -220,5 +253,6 @@ namespace maui::controls
         // Layout.IsClippedToBounds (default false). A change re-runs the handler's clips_to_bounds map.
         maui::core::property<bool> clips_to_bounds_{*this, clips_to_bounds_property()};
         std::unique_ptr<maui::layouts::i_layout_manager> manager_;
+        bool ignore_safe_area_ = false; // Layout.IgnoreSafeArea (the obsolete auto-property, default false)
     };
 } // namespace maui::controls

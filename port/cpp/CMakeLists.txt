@@ -533,6 +533,7 @@ add_executable(maui_core_tests
   tests/core/bindable_tests.cpp
   tests/core/primitives_tests.cpp
   tests/core/keyboard_tests.cpp # (W8-53) the keyboard value type + keyboard_flags
+  tests/core/safe_area_tests.cpp # (X4) safe_area_regions + safe_area_edges value types
   tests/core/date_time_tests.cpp
   tests/core/contracts_tests.cpp
   tests/core/handler_tests.cpp

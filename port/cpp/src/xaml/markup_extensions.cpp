@@ -17,18 +17,27 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 #include "maui/controls/application.hpp"
 #include "maui/controls/bindings/binding.hpp"
 #include "maui/controls/bindings/i_value_converter.hpp"
+#include "maui/controls/bindings/relative_binding_source.hpp"
 #include "maui/controls/dynamic_resource.hpp"
 #include "maui/controls/element.hpp"
+#include "maui/controls/file_image_source.hpp" // image_source::from_font ({FontImage})
+#include "maui/controls/font_image_source.hpp" // font_image_source::default_size
 #include "maui/controls/resource_dictionary.hpp"
+#include "maui/controls/templates/data_template.hpp"
 #include "maui/core/app_theme.hpp"
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/binding_mode.hpp"
+#include "maui/core/font.hpp"
+#include "maui/core/type_tag.hpp"
+#include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/xaml/i_markup_extension.hpp"
+#include "maui/xaml/name_scope.hpp" // {x:Reference} IReferenceProvider
 #include "maui/xaml/xaml_converters.hpp"
 #include "maui/xaml/xaml_node.hpp" // maui_uri / x2009_uri (the {x:Type} miss message)
 #include "maui/xaml/xaml_parse_exception.hpp"
@@ -548,6 +557,236 @@ namespace maui::xaml
             throw xaml_parse_exception(std::format("Cannot convert \"{}\" into BindingMode", text));
         }
 
+        // ---- {x:Array Type=… }  <=  Microsoft.Maui.Controls.Xaml.ArrayExtension ----
+        // C# ProvideValue requires Type (else "Type argument mandatory for x:Array extension") and
+        // builds Array.CreateInstance(Type, Items.Count). The reflection-free port returns an xaml_array
+        // marker carrying the resolved element type_tag + the items in source form (markup_extensions
+        // .hpp documents the deviation + the loader's curly-form-only item path). Type arrives as a
+        // PRE-RESOLVED {x:Type} value (a type_tag in the `values` map); a raw string has no
+        // string→type lookup at this seam (the type registry needs a namespace too — {x:Type} does it).
+        class array_extension final : public i_markup_extension
+        {
+        public:
+            array_extension(std::optional<maui::core::type_tag> element_type, std::vector<std::any> items)
+                : element_type_(element_type), items_(std::move(items))
+            {
+            }
+
+            [[nodiscard]] std::any provide_value(const xaml_service_provider& /*services*/) override
+            {
+                if (!element_type_.has_value())
+                {
+                    throw xaml_parse_exception("Type argument mandatory for x:Array extension");
+                }
+                return std::any{xaml_array{.element_type = *element_type_, .items = items_}};
+            }
+
+        private:
+            std::optional<maui::core::type_tag> element_type_;
+            std::vector<std::any> items_;
+        };
+
+        // ---- {x:Reference Name=… }  <=  Microsoft.Maui.Controls.Xaml.ReferenceExtension ----
+        // C# resolves Name via IReferenceProvider.FindByName, then falls back to walking ParentObjects
+        // for a BindableObject carrying a NameScope. The port collapses both into one lookup against
+        // the service provider's reference_provider (the nearest enclosing element's name scope, which
+        // the register_x_names pass populated before apply). A miss throws (the C# XamlParseException).
+        class reference_extension final : public i_markup_extension
+        {
+        public:
+            explicit reference_extension(std::optional<std::string> name) : name_(std::move(name))
+            {
+            }
+
+            [[nodiscard]] std::any provide_value(const xaml_service_provider& services) override
+            {
+                if (!name_.has_value() || name_->empty())
+                {
+                    // ContentProperty(nameof(Name)); an empty/absent Name finds nothing.
+                    throw xaml_parse_exception("Cannot find the object referenced by ``");
+                }
+                if (services.reference_provider != nullptr)
+                {
+                    if (const std::any* value = services.reference_provider->find_by_name(*name_))
+                    {
+                        return *value; // the registered object, in its stored form (a shared_ptr box)
+                    }
+                }
+                throw xaml_parse_exception(std::format("Cannot find the object referenced by `{}`", *name_));
+            }
+
+        private:
+            std::optional<std::string> name_;
+        };
+
+        // ---- {FontImage …}  <=  Microsoft.Maui.Controls.Xaml.FontImageExtension ----
+        // C# FontImageExtension IS a FontImageSource (obsolete subclass), so the markup builds one from
+        // Glyph (ContentProperty) / FontFamily / Size (default 30) / Color / FontAutoScalingEnabled.
+        // The port mints the same source via image_source::from_font, assembling the font from
+        // FontFamily + Size + auto-scaling exactly like the Y3 font_image_source tests.
+        class font_image_extension final : public i_markup_extension
+        {
+        public:
+            font_image_extension(std::string glyph, std::string font_family, double size, maui::graphics::color color,
+                                 bool auto_scaling)
+                : glyph_(std::move(glyph)), font_family_(std::move(font_family)), size_(size), color_(color),
+                  auto_scaling_(auto_scaling)
+            {
+            }
+
+            [[nodiscard]] std::any provide_value(const xaml_service_provider& /*services*/) override
+            {
+                // FontImageSource builds its Font from FontFamily + Size; auto-scaling folds in via
+                // WithAutoScaling. An empty FontFamily keeps the system family (font::of_size("") ).
+                maui::core::font font = maui::core::font::of_size(font_family_, size_).with_auto_scaling(auto_scaling_);
+                return std::any{maui::controls::image_source::from_font(glyph_, std::move(font), color_)};
+            }
+
+        private:
+            std::string glyph_;
+            std::string font_family_;
+            double size_ = maui::controls::font_image_source::default_size;
+            maui::graphics::color color_;
+            bool auto_scaling_ = false;
+        };
+
+        // ---- {TemplateBinding …}  <=  Microsoft.Maui.Controls.Xaml.TemplateBindingExtension ----
+        // C# returns `new Binding { Source = RelativeBindingSource.TemplatedParent, Path, Mode,
+        // Converter, ConverterParameter, StringFormat }`. The port builds the same maui::controls::
+        // binding with its source set to relative_binding_source::templated_parent() and carries it in a
+        // binding_request to the existing SetBinding applier (the same route {Binding} uses).
+        class template_binding_extension final : public i_markup_extension
+        {
+        public:
+            explicit template_binding_extension(binding_request request) : request_(std::move(request))
+            {
+            }
+
+            [[nodiscard]] std::any provide_value(const xaml_service_provider& /*services*/) override
+            {
+                return std::any{request_};
+            }
+
+        private:
+            binding_request request_;
+        };
+
+        // RelativeBindingSourceMode parsing — the [ContentProperty] Mode (Enum.Parse, case-sensitive
+        // names, the port's enumerator values for the numeric form).
+        [[nodiscard]] maui::controls::relative_binding_source_mode parse_relative_source_mode(const std::string& text)
+        {
+            using maui::controls::relative_binding_source_mode;
+            static constexpr std::array<enum_entry<relative_binding_source_mode>, 4> k_names{{
+                {.name = "TemplatedParent", .value = relative_binding_source_mode::templated_parent},
+                {.name = "Self", .value = relative_binding_source_mode::self},
+                {.name = "FindAncestor", .value = relative_binding_source_mode::find_ancestor},
+                {.name = "FindAncestorBindingContext",
+                 .value = relative_binding_source_mode::find_ancestor_binding_context},
+            }};
+            if (const auto parsed = try_parse_enum<relative_binding_source_mode>(text, k_names))
+            {
+                return *parsed;
+            }
+            throw xaml_parse_exception(std::format("Cannot convert \"{}\" into RelativeBindingSourceMode", text));
+        }
+
+        // ---- {RelativeSource …}  <=  Microsoft.Maui.Controls.Xaml.RelativeSourceExtension ----
+        // C# returns a RelativeBindingSource for Self / TemplatedParent, or one carrying AncestorType
+        // for FindAncestor[BindingContext]. The reflection-free port fully supports Self and
+        // TemplatedParent (the shared singletons, no type needed). FindAncestor[BindingContext] need a
+        // runtime type predicate the port cannot synthesize from a markup {x:Type} tag (relative_binding
+        // _source uses COMPILE-TIME find_ancestor<T> probes — PROFILE §6), so they are a loud deferral.
+        class relative_source_extension final : public i_markup_extension
+        {
+        public:
+            relative_source_extension(maui::controls::relative_binding_source_mode mode, bool has_ancestor_type)
+                : mode_(mode), has_ancestor_type_(has_ancestor_type)
+            {
+            }
+
+            [[nodiscard]] std::any provide_value(const xaml_service_provider& /*services*/) override
+            {
+                using maui::controls::relative_binding_source;
+                using maui::controls::relative_binding_source_mode;
+                if (has_ancestor_type_ || mode_ == relative_binding_source_mode::find_ancestor ||
+                    mode_ == relative_binding_source_mode::find_ancestor_binding_context)
+                {
+                    // C# permits AncestorType to drive the mode; the port can model neither without a
+                    // runtime type predicate (see the header note) — fail loudly rather than silently.
+                    throw xaml_parse_exception(
+                        "{RelativeSource} FindAncestor / FindAncestorBindingContext (and AncestorType) are not "
+                        "supported by the port: a runtime ancestor-type predicate needs reflection (STATUS.md M7 "
+                        "deferrals). Self and TemplatedParent are supported.");
+                }
+                if (mode_ == relative_binding_source_mode::self)
+                {
+                    return std::any{relative_binding_source::self()};
+                }
+                if (mode_ == relative_binding_source_mode::templated_parent)
+                {
+                    return std::any{relative_binding_source::templated_parent()};
+                }
+                throw xaml_parse_exception("Invalid Mode"); // C# RelativeSourceExtension's final else
+            }
+
+        private:
+            maui::controls::relative_binding_source_mode mode_;
+            bool has_ancestor_type_ = false;
+        };
+
+        // ---- {DataTemplate TypeName=… }  <=  Microsoft.Maui.Controls.Xaml.DataTemplateExtension ----
+        // C# resolves TypeName through IXamlTypeResolver and returns `new DataTemplate(type)`. The port
+        // resolves the markup name in the type registry (services-provided, else the default) and builds
+        // a data_template whose loader activates the type through the registry factory (the reflection-
+        // free Activator.CreateInstance analog). DEVIATION: the loader form does not carry the per-type
+        // recycle id_string the C# Type ctor does (no reflection type name) — documented.
+        class data_template_extension final : public i_markup_extension
+        {
+        public:
+            explicit data_template_extension(std::string type_name) : type_name_(std::move(type_name))
+            {
+            }
+
+            [[nodiscard]] std::any provide_value(const xaml_service_provider& services) override
+            {
+                if (type_name_.empty())
+                {
+                    throw xaml_parse_exception("TypeName isn't set."); // C# XamlParseException
+                }
+                std::string_view name = type_name_;
+                xaml_namespace ns = xaml_namespace::maui;
+                if (const auto colon = name.find(':'); colon != std::string_view::npos)
+                {
+                    const std::string_view prefix = name.substr(0, colon);
+                    name = name.substr(colon + 1);
+                    if (prefix == "x")
+                    {
+                        ns = xaml_namespace::x;
+                    }
+                    else
+                    {
+                        throw xaml_parse_exception(std::format("No xmlns declaration for prefix '{}'.", prefix));
+                    }
+                }
+                const xaml_type_registry& types =
+                    services.type_registry != nullptr ? *services.type_registry : default_xaml_type_registry();
+                const xaml_type_registry::registration* registration = types.find(name, ns);
+                if (registration == nullptr)
+                {
+                    // C#: "DataTemplateExtension: Could not locate type for {TypeName}."
+                    throw xaml_parse_exception(
+                        std::format("DataTemplateExtension: Could not locate type for {}.", type_name_));
+                }
+                // new DataTemplate(type): each created content activates the type via the registry
+                // factory (the no-reflection Activator.CreateInstance stand-in).
+                maui::controls::data_template::loader load = [factory = registration->create] { return factory(); };
+                return std::any{std::make_shared<maui::controls::data_template>(std::move(load))};
+            }
+
+        private:
+            std::string type_name_;
+        };
+
         // "alice_blue" → "AliceBlue": recover the C# PascalCase member name from the X-macro's
         // snake_case token (the names are plain ASCII [a-z_]).
         [[nodiscard]] std::string pascalize(std::string_view snake)
@@ -766,6 +1005,191 @@ namespace maui::xaml
             }
             request.instance = std::move(built);
             return std::make_unique<binding_extension>(std::move(request));
+        });
+
+        extensions.register_extension("x:Array", [](const markup_extension_arguments& args) {
+            static constexpr std::array<std::string_view, 3> k_known{"", "Type", "Items"};
+            require_known_attributes(args, "x:Array", k_known);
+            // Type: a PRE-RESOLVED {x:Type} value (a type_tag). A raw string has no string→type lookup
+            // at this seam (the type registry keys by name+namespace — {x:Type} owns that).
+            std::optional<maui::core::type_tag> element_type;
+            if (const std::any* value = find_value(args, "Type"))
+            {
+                if (const auto* tag = std::any_cast<maui::core::type_tag>(value))
+                {
+                    element_type = *tag;
+                }
+                else
+                {
+                    throw xaml_parse_exception("Property 'Type' of x:Array requires a type provided by {x:Type …}");
+                }
+            }
+            else if (find_attribute(args, "Type") != nullptr)
+            {
+                throw xaml_parse_exception("Property 'Type' of x:Array requires a markup extension "
+                                           "providing a type (e.g. {x:Type …})");
+            }
+            // Items (the [ContentProperty]): the loader's curly form passes a pre-resolved vector through
+            // `values` (the element-children content form is a loader-side collection concern — see
+            // markup_extensions.hpp). The positional "" piece is folded in behind a named Items.
+            std::vector<std::any> items;
+            if (auto content = any_argument(args, "Items"))
+            {
+                if (auto* vector = std::any_cast<std::vector<std::any>>(&*content))
+                {
+                    items = std::move(*vector);
+                }
+                else
+                {
+                    items.push_back(std::move(*content)); // a single pre-resolved item
+                }
+            }
+            return std::make_unique<array_extension>(element_type, std::move(items));
+        });
+
+        extensions.register_extension("x:Reference", [](const markup_extension_arguments& args) {
+            static constexpr std::array<std::string_view, 2> k_known{"", "Name"};
+            require_known_attributes(args, "x:Reference", k_known);
+            return std::make_unique<reference_extension>(string_content_argument(args, "Name", "x:Reference"));
+        });
+
+        extensions.register_extension("FontImage", [](const markup_extension_arguments& args) {
+            static constexpr std::array<std::string_view, 6> k_known{"",     "Glyph", "FontFamily",
+                                                                     "Size", "Color", "FontAutoScalingEnabled"};
+            require_known_attributes(args, "FontImage", k_known);
+            // Glyph is the [ContentProperty]; the others are plain string-typed attributes converted
+            // through the same converter functions the loader would use for these property types.
+            const std::string glyph = string_content_argument(args, "Glyph", "FontImage").value_or(std::string{});
+            const std::string font_family = string_argument(args, "FontFamily", "FontImage").value_or(std::string{});
+            double size = maui::controls::font_image_source::default_size;
+            if (const auto size_text = string_argument(args, "Size", "FontImage"))
+            {
+                try
+                {
+                    size = convert_double(*size_text);
+                }
+                catch (const xaml_convert_error& error)
+                {
+                    throw xaml_parse_exception(error.what());
+                }
+            }
+            maui::graphics::color color; // FontImageSource.Color default (transparent)
+            if (const auto color_text = string_argument(args, "Color", "FontImage"))
+            {
+                try
+                {
+                    color = convert_color(*color_text);
+                }
+                catch (const xaml_convert_error& error)
+                {
+                    throw xaml_parse_exception(error.what());
+                }
+            }
+            bool auto_scaling = false; // FontImageSource.FontAutoScalingEnabled default
+            if (const auto scaling_text = string_argument(args, "FontAutoScalingEnabled", "FontImage"))
+            {
+                try
+                {
+                    auto_scaling = convert_bool(*scaling_text);
+                }
+                catch (const xaml_convert_error& error)
+                {
+                    throw xaml_parse_exception(error.what());
+                }
+            }
+            return std::make_unique<font_image_extension>(glyph, font_family, size, color, auto_scaling);
+        });
+
+        extensions.register_extension("TemplateBinding", [](const markup_extension_arguments& args) {
+            static constexpr std::array<std::string_view, 6> k_known{
+                "", "Path", "Mode", "Converter", "ConverterParameter", "StringFormat"};
+            require_known_attributes(args, "TemplateBinding", k_known);
+            binding_request request;
+            if (auto path = string_content_argument(args, "Path", "TemplateBinding"))
+            {
+                request.path = std::move(*path); // [ContentProperty(nameof(Path))]; default SelfPath "."
+            }
+            if (const auto mode = string_argument(args, "Mode", "TemplateBinding"))
+            {
+                request.mode = parse_binding_mode(*mode);
+            }
+            std::shared_ptr<maui::controls::binding> built;
+            try
+            {
+                built = std::make_shared<maui::controls::binding>(request.path, request.mode);
+            }
+            catch (const std::invalid_argument& error)
+            {
+                throw xaml_parse_exception(error.what());
+            }
+            // C#: Source = RelativeBindingSource.TemplatedParent.
+            built->set_source(maui::controls::relative_binding_source::templated_parent());
+            if (auto format = string_argument(args, "StringFormat", "TemplateBinding"))
+            {
+                built->set_string_format(std::move(*format));
+            }
+            // Converter — a pre-resolved IValueConverter instance only (same rule as {Binding}).
+            if (const std::any* value = find_value(args, "Converter"))
+            {
+                std::shared_ptr<maui::controls::i_value_converter> converter;
+                if (const auto* direct = std::any_cast<std::shared_ptr<maui::controls::i_value_converter>>(value))
+                {
+                    converter = *direct;
+                }
+                else if (const auto* object = std::any_cast<std::shared_ptr<maui::core::bindable_object>>(value))
+                {
+                    converter = std::dynamic_pointer_cast<maui::controls::i_value_converter>(*object);
+                }
+                if (converter == nullptr)
+                {
+                    throw xaml_parse_exception(
+                        "Property 'Converter' of TemplateBinding requires an i_value_converter instance");
+                }
+                built->set_converter(std::move(converter));
+            }
+            else if (find_attribute(args, "Converter") != nullptr)
+            {
+                throw xaml_parse_exception("Property 'Converter' of TemplateBinding requires a markup extension "
+                                           "providing an i_value_converter (e.g. {StaticResource …})");
+            }
+            if (auto parameter = any_argument(args, "ConverterParameter"))
+            {
+                built->set_converter_parameter(std::move(*parameter));
+            }
+            request.instance = std::move(built);
+            return std::make_unique<template_binding_extension>(std::move(request));
+        });
+
+        extensions.register_extension("RelativeSource", [](const markup_extension_arguments& args) {
+            static constexpr std::array<std::string_view, 4> k_known{"", "Mode", "AncestorLevel", "AncestorType"};
+            require_known_attributes(args, "RelativeSource", k_known);
+            // Mode is the [ContentProperty]. C# RelativeBindingSourceMode's default is its 0 value (no
+            // enumerator), so an unset Mode WITHOUT AncestorType hits the extension's "Invalid Mode"
+            // else-throw — surfaced eagerly here. A named Mode is parsed; AncestorType (with or without a
+            // Mode) routes to the FindAncestor deferral in provide_value.
+            const auto mode_text = string_content_argument(args, "Mode", "RelativeSource");
+            const bool has_ancestor_type =
+                find_value(args, "AncestorType") != nullptr || find_attribute(args, "AncestorType") != nullptr;
+            maui::controls::relative_binding_source_mode mode =
+                maui::controls::relative_binding_source_mode::self; // placeholder; overwritten or rejected below
+            if (mode_text.has_value())
+            {
+                mode = parse_relative_source_mode(*mode_text);
+            }
+            else if (!has_ancestor_type)
+            {
+                // No Mode and no AncestorType — C# RelativeBindingSourceMode default is 0 (unused), which
+                // falls to the extension's "Invalid Mode" throw. Surface that here.
+                throw xaml_parse_exception("Invalid Mode");
+            }
+            return std::make_unique<relative_source_extension>(mode, has_ancestor_type);
+        });
+
+        extensions.register_extension("DataTemplate", [](const markup_extension_arguments& args) {
+            static constexpr std::array<std::string_view, 2> k_known{"", "TypeName"};
+            require_known_attributes(args, "DataTemplate", k_known);
+            return std::make_unique<data_template_extension>(
+                string_content_argument(args, "TypeName", "DataTemplate").value_or(std::string{}));
         });
 
         // ---- the standard {x:Static} members: the 147 named colors as "Colors.<Name>" ----

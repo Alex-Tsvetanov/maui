@@ -42,6 +42,7 @@ namespace maui::controls
 namespace maui::xaml
 {
     class xaml_type_registry;
+    class name_scope;
 
     // The services a ProvideValue call can consume (C# IServiceProvider + IProvideValueTarget +
     // the resource-lookup chain). All pointers are NON-owning borrows valid only during the call.
@@ -67,6 +68,12 @@ namespace maui::xaml
         // (StaticResourceExtension.TryGetApplicationLevelResource). The port has no process-wide
         // Application singleton, so the loader passes the app it loads under (null = no fallback).
         maui::controls::application* application = nullptr;
+        // IReferenceProvider: the name scope {x:Reference} resolves x:Name against (NameScope.FindByName).
+        // The loader threads the markup node's enclosing scope here (the register_x_names pass runs
+        // before apply_properties, so names are registered by the time provide_value runs). Null = the
+        // caller did not provide a scope; {x:Reference} then falls back to the parent_resources-style
+        // ancestor walk and finally throws (the C# ReferenceExtension fallback + miss). NON-owning.
+        const name_scope* reference_provider = nullptr;
     };
 
     class i_markup_extension

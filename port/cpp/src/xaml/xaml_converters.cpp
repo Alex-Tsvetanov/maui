@@ -32,8 +32,11 @@
 #include "maui/core/flow_direction.hpp"
 #include "maui/core/grid_length.hpp"
 #include "maui/core/grid_unit_type.hpp"
+#include "maui/core/keyboard.hpp"
 #include "maui/core/layout_alignment.hpp"
 #include "maui/core/return_type.hpp"
+#include "maui/core/safe_area_edges.hpp"
+#include "maui/core/safe_area_regions.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/text_decorations.hpp"
 #include "maui/core/thickness.hpp"
@@ -45,6 +48,8 @@
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 #include "maui/graphics/size_f.hpp"
+#include "maui/layouts/flex_basis.hpp"
+#include "maui/layouts/flex_enums.hpp"
 
 namespace maui::xaml
 {
@@ -116,6 +121,35 @@ namespace maui::xaml
                 }
             }
             return true;
+        }
+
+        // Enum.TryParse(str, ignoreCase: true) as the Flex converters use it: a case-INSENSITIVE name
+        // match over the member table, then the numeric form (a token whose value equals a defined
+        // enumerator). nullopt when nothing matches. The C# converters do NOT trim, so neither does
+        // this — the raw markup value is compared as-is.
+        template <class E>
+        [[nodiscard]] std::optional<E> try_parse_enum_ignore_case(std::string_view text,
+                                                                  std::span<const enum_entry<E>> names)
+        {
+            for (const auto& entry : names)
+            {
+                if (equals_ignore_case(entry.name, text))
+                {
+                    return entry.value;
+                }
+            }
+            long long numeric = 0;
+            if (detail::try_parse_enum_number(text, numeric))
+            {
+                for (const auto& entry : names)
+                {
+                    if (static_cast<long long>(entry.value) == numeric)
+                    {
+                        return entry.value;
+                    }
+                }
+            }
+            return std::nullopt;
         }
     } // namespace
 
@@ -784,5 +818,333 @@ namespace maui::xaml
             begin = end + 1;
         }
         return static_cast<text_decorations>(result);
+    }
+
+    // ---- X4 tail: Keyboard / Flex enums + FlexBasis / SafeAreaEdges ----
+
+    // KeyboardTypeConverter.ConvertFrom: split on '.', accept a single part or "Keyboard.<name>", and
+    // map the bare name to the matching static keyboard. C# reflects the static field/property by EXACT
+    // (case-sensitive) name; the named-keyboard accessors here are that closed set.
+    maui::core::keyboard convert_keyboard(std::string_view text)
+    {
+        using maui::core::keyboard;
+        const std::vector<std::string_view> parts = split_keep_empty(text, '.');
+        // parts.Length == 1, OR (Length == 2 AND parts[0] == "Keyboard"). Any other shape is unknown.
+        std::string_view name;
+        if (parts.size() == 1)
+        {
+            name = parts.front();
+        }
+        else if (parts.size() == 2 && parts.front() == "Keyboard")
+        {
+            name = parts.back();
+        }
+        else
+        {
+            throw_cannot_convert(text, "maui::core::keyboard");
+        }
+        // The C# Keyboard static members (case-sensitive name match — reflection by field/property name).
+        if (name == "Default")
+        {
+            return keyboard::default_keyboard();
+        }
+        if (name == "Plain")
+        {
+            return keyboard::plain();
+        }
+        if (name == "Chat")
+        {
+            return keyboard::chat();
+        }
+        if (name == "Email")
+        {
+            return keyboard::email();
+        }
+        if (name == "Numeric")
+        {
+            return keyboard::numeric();
+        }
+        if (name == "Telephone")
+        {
+            return keyboard::telephone();
+        }
+        if (name == "Text")
+        {
+            return keyboard::text();
+        }
+        if (name == "Url")
+        {
+            return keyboard::url();
+        }
+        if (name == "Date")
+        {
+            return keyboard::date();
+        }
+        if (name == "Time")
+        {
+            return keyboard::time();
+        }
+        if (name == "Password")
+        {
+            return keyboard::password();
+        }
+        throw_cannot_convert(text, "maui::core::keyboard");
+    }
+
+    maui::layouts::flex_direction convert_flex_direction(std::string_view text)
+    {
+        using maui::layouts::flex_direction;
+        static constexpr std::array<enum_entry<flex_direction>, 4> names{{
+            {.name = "Column", .value = flex_direction::column},
+            {.name = "ColumnReverse", .value = flex_direction::column_reverse},
+            {.name = "Row", .value = flex_direction::row},
+            {.name = "RowReverse", .value = flex_direction::row_reverse},
+        }};
+        if (const auto parsed = try_parse_enum_ignore_case<flex_direction>(text, names))
+        {
+            return *parsed;
+        }
+        if (equals_ignore_case(text, "row-reverse"))
+        {
+            return flex_direction::row_reverse;
+        }
+        if (equals_ignore_case(text, "column-reverse"))
+        {
+            return flex_direction::column_reverse;
+        }
+        throw_cannot_convert(text, "maui::layouts::flex_direction");
+    }
+
+    maui::layouts::flex_justify convert_flex_justify(std::string_view text)
+    {
+        using maui::layouts::flex_justify;
+        static constexpr std::array<enum_entry<flex_justify>, 6> names{{
+            {.name = "Start", .value = flex_justify::start},
+            {.name = "Center", .value = flex_justify::center},
+            {.name = "End", .value = flex_justify::end},
+            {.name = "SpaceBetween", .value = flex_justify::space_between},
+            {.name = "SpaceAround", .value = flex_justify::space_around},
+            {.name = "SpaceEvenly", .value = flex_justify::space_evenly},
+        }};
+        if (const auto parsed = try_parse_enum_ignore_case<flex_justify>(text, names))
+        {
+            return *parsed;
+        }
+        if (equals_ignore_case(text, "flex-start"))
+        {
+            return flex_justify::start;
+        }
+        if (equals_ignore_case(text, "flex-end"))
+        {
+            return flex_justify::end;
+        }
+        if (equals_ignore_case(text, "space-between"))
+        {
+            return flex_justify::space_between;
+        }
+        if (equals_ignore_case(text, "space-around"))
+        {
+            return flex_justify::space_around;
+        }
+        throw_cannot_convert(text, "maui::layouts::flex_justify");
+    }
+
+    maui::layouts::flex_align_items convert_flex_align_items(std::string_view text)
+    {
+        using maui::layouts::flex_align_items;
+        static constexpr std::array<enum_entry<flex_align_items>, 4> names{{
+            {.name = "Stretch", .value = flex_align_items::stretch},
+            {.name = "Center", .value = flex_align_items::center},
+            {.name = "Start", .value = flex_align_items::start},
+            {.name = "End", .value = flex_align_items::end},
+        }};
+        if (const auto parsed = try_parse_enum_ignore_case<flex_align_items>(text, names))
+        {
+            return *parsed;
+        }
+        if (equals_ignore_case(text, "flex-start"))
+        {
+            return flex_align_items::start;
+        }
+        if (equals_ignore_case(text, "flex-end"))
+        {
+            return flex_align_items::end;
+        }
+        throw_cannot_convert(text, "maui::layouts::flex_align_items");
+    }
+
+    maui::layouts::flex_align_content convert_flex_align_content(std::string_view text)
+    {
+        using maui::layouts::flex_align_content;
+        static constexpr std::array<enum_entry<flex_align_content>, 7> names{{
+            {.name = "Stretch", .value = flex_align_content::stretch},
+            {.name = "Center", .value = flex_align_content::center},
+            {.name = "Start", .value = flex_align_content::start},
+            {.name = "End", .value = flex_align_content::end},
+            {.name = "SpaceBetween", .value = flex_align_content::space_between},
+            {.name = "SpaceAround", .value = flex_align_content::space_around},
+            {.name = "SpaceEvenly", .value = flex_align_content::space_evenly},
+        }};
+        if (const auto parsed = try_parse_enum_ignore_case<flex_align_content>(text, names))
+        {
+            return *parsed;
+        }
+        if (equals_ignore_case(text, "flex-start"))
+        {
+            return flex_align_content::start;
+        }
+        if (equals_ignore_case(text, "flex-end"))
+        {
+            return flex_align_content::end;
+        }
+        if (equals_ignore_case(text, "space-between"))
+        {
+            return flex_align_content::space_between;
+        }
+        if (equals_ignore_case(text, "space-around"))
+        {
+            return flex_align_content::space_around;
+        }
+        throw_cannot_convert(text, "maui::layouts::flex_align_content");
+    }
+
+    maui::layouts::flex_align_self convert_flex_align_self(std::string_view text)
+    {
+        using maui::layouts::flex_align_self;
+        static constexpr std::array<enum_entry<flex_align_self>, 5> names{{
+            {.name = "Auto", .value = flex_align_self::auto_},
+            {.name = "Stretch", .value = flex_align_self::stretch},
+            {.name = "Center", .value = flex_align_self::center},
+            {.name = "Start", .value = flex_align_self::start},
+            {.name = "End", .value = flex_align_self::end},
+        }};
+        if (const auto parsed = try_parse_enum_ignore_case<flex_align_self>(text, names))
+        {
+            return *parsed;
+        }
+        if (equals_ignore_case(text, "flex-start"))
+        {
+            return flex_align_self::start;
+        }
+        if (equals_ignore_case(text, "flex-end"))
+        {
+            return flex_align_self::end;
+        }
+        throw_cannot_convert(text, "maui::layouts::flex_align_self");
+    }
+
+    maui::layouts::flex_wrap convert_flex_wrap(std::string_view text)
+    {
+        using maui::layouts::flex_wrap;
+        static constexpr std::array<enum_entry<flex_wrap>, 3> names{{
+            {.name = "NoWrap", .value = flex_wrap::no_wrap},
+            {.name = "Wrap", .value = flex_wrap::wrap},
+            {.name = "Reverse", .value = flex_wrap::reverse},
+        }};
+        if (const auto parsed = try_parse_enum_ignore_case<flex_wrap>(text, names))
+        {
+            return *parsed;
+        }
+        if (equals_ignore_case(text, "wrap-reverse"))
+        {
+            return flex_wrap::reverse;
+        }
+        throw_cannot_convert(text, "maui::layouts::flex_wrap");
+    }
+
+    // FlexBasisTypeConverter.ConvertFrom (the string path): trim, then "auto" / "N%" / "N".
+    maui::layouts::flex_basis convert_flex_basis(std::string_view text)
+    {
+        using maui::layouts::flex_basis;
+        const std::string_view trimmed = detail::trim(text);
+        if (equals_ignore_case(trimmed, "auto"))
+        {
+            return flex_basis::auto_value;
+        }
+        if (trimmed.ends_with('%'))
+        {
+            float percentage = 0.0F;
+            if (try_parse_component(trimmed.substr(0, trimmed.size() - 1), percentage))
+            {
+                // new FlexBasis(relflex / 100, isRelative: true) — the ctor validates [0,1].
+                try
+                {
+                    return flex_basis{percentage / 100.0F, /*is_relative=*/true};
+                }
+                catch (const std::invalid_argument&)
+                {
+                    throw_cannot_convert(text, "maui::layouts::flex_basis");
+                }
+            }
+            throw_cannot_convert(text, "maui::layouts::flex_basis");
+        }
+        float length = 0.0F;
+        if (try_parse_component(trimmed, length))
+        {
+            // new FlexBasis(flex) — the absolute-length ctor; validates length >= 0.
+            try
+            {
+                return flex_basis{length, /*is_relative=*/false};
+            }
+            catch (const std::invalid_argument&)
+            {
+                throw_cannot_convert(text, "maui::layouts::flex_basis");
+            }
+        }
+        throw_cannot_convert(text, "maui::layouts::flex_basis");
+    }
+
+    // SafeAreaEdgesTypeConverter.ConvertFrom: trim whole, split on ',', map each part (case-insensitive),
+    // then 1/2/4 parts -> uniform / horizontal,vertical / left,top,right,bottom.
+    maui::core::safe_area_edges convert_safe_area_edges(std::string_view text)
+    {
+        using maui::core::safe_area_edges;
+        using maui::core::safe_area_regions;
+        const std::string_view trimmed = detail::trim(text);
+        const std::vector<std::string_view> parts = split_keep_empty(trimmed, ',');
+        std::vector<safe_area_regions> regions;
+        regions.reserve(parts.size());
+        for (const std::string_view raw : parts)
+        {
+            const std::string_view part = detail::trim(raw);
+            if (equals_ignore_case(part, "All"))
+            {
+                regions.push_back(safe_area_regions::all);
+            }
+            else if (equals_ignore_case(part, "None"))
+            {
+                regions.push_back(safe_area_regions::none);
+            }
+            else if (equals_ignore_case(part, "Container"))
+            {
+                regions.push_back(safe_area_regions::container);
+            }
+            else if (equals_ignore_case(part, "SoftInput"))
+            {
+                regions.push_back(safe_area_regions::soft_input);
+            }
+            else if (equals_ignore_case(part, "Default"))
+            {
+                regions.push_back(safe_area_regions::default_value);
+            }
+            else
+            {
+                // C# FormatException names the offending PART, not the whole string.
+                throw_cannot_convert(part, "maui::core::safe_area_regions");
+            }
+        }
+        switch (regions.size())
+        {
+            case 1:
+                return safe_area_edges{regions[0]};
+            case 2:
+                return safe_area_edges{regions[0], regions[1]}; // horizontal, vertical
+            case 4:
+                return safe_area_edges{regions[0], regions[1], regions[2], regions[3]};
+            default:
+                // C#: "SafeAreaEdges must have 1, 2, or 4 values, but got {n}".
+                throw xaml_convert_error(
+                    std::format("SafeAreaEdges must have 1, 2, or 4 values, but got {}", regions.size()));
+        }
     }
 } // namespace maui::xaml
