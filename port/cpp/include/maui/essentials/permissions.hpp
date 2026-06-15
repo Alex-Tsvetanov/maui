@@ -13,11 +13,15 @@
 // surface becomes the library's callback convention (inline completion on every ported path).
 //
 // Backends (suffix oracle + the desktop auto-grant decision):
-//   * apple/macOS (Permissions.macos.cs): the DESKTOP AUTO-GRANT stub - every kind checks and
+//   * apple/macOS (Permissions.macos.cs): the DESKTOP AUTO-GRANT base - every kind checks and
 //     requests as granted, should_show_rationale is false, ensure_declared validates required
 //     Info.plist keys (none of the ported kinds require one on macOS - location's key is only
-//     "recommended" there, a console nudge in C#). The macOS LocationWhenInUse CoreLocation
-//     override is NOT ported (the auto-grant stub per this unit's scope; documented).
+//     "recommended" there, a console nudge in C#, so ensure_declared never throws).
+//     location_when_in_use OVERRIDES the auto-grant with the real CoreLocation STATUS QUERY
+//     (GetLocationStatus: services off -> disabled, else CLLocationManager.authorizationStatus ->
+//     permission_status; AuthorizedAlways/WhenInUse -> granted). request_async reports the queried
+//     status with NO interactive prompt (unlike iOS). location_always keeps the base auto-grant
+//     (its macOS partial is empty).
 //   * ios (Permissions.ios.tvos.watchos.cs + Permissions.ios.cs): the base is auto-grant +
 //     required-Info.plist-key enforcement; location_when_in_use carries the real STATUS-QUERY
 //     architecture (CLLocationManager.authorizationStatus -> permission_status). The interactive

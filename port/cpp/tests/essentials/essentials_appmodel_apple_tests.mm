@@ -231,8 +231,27 @@ namespace
     }
 
     // Permissions_Tests Check_Status/Request/Ensure_Declared: the desktop auto-grant stub.
-    TEST(appmodel_apple_permissions, desktop_auto_grant)
+    // A valid permission_status is any of the C# PermissionStatus enumerators the macOS
+    // GetLocationStatus can yield (the helper never returns limited - that is iOS-only).
+    bool is_valid_location_status(permission_status value)
     {
+        switch (value)
+        {
+            case permission_status::unknown:
+            case permission_status::denied:
+            case permission_status::disabled:
+            case permission_status::granted:
+            case permission_status::restricted:
+                return true;
+            case permission_status::limited:
+                return false;
+        }
+        return false;
+    }
+
+    TEST(appmodel_apple_permissions, location_queries_corelocation_others_auto_grant)
+    {
+        // NON-location permissions stay auto-granted (BasePlatformPermission), check and request.
         std::optional<permission_status> battery_status;
         permissions::check_status_async<permissions::battery>(
             [&battery_status](permission_status value) { battery_status = value; });
@@ -243,8 +262,33 @@ namespace
             [&network_status](permission_status value) { network_status = value; });
         EXPECT_EQ(network_status, permission_status::granted);
 
-        EXPECT_NO_THROW(permissions::ensure_declared<permissions::battery>());
+        // LocationAlways is an empty macOS partial - it keeps the base auto-grant (NOT routed
+        // through CoreLocation, mirroring Permissions.macos.cs).
+        std::optional<permission_status> location_always_status;
+        permissions::check_status_async<permissions::location_always>(
+            [&location_always_status](permission_status value) { location_always_status = value; });
+        EXPECT_EQ(location_always_status, permission_status::granted);
+
+        // macOS LocationWhenInUse overrides with real CoreLocation: the queried status is
+        // system-dependent (NotDetermined/Denied in the unbundled gtest process), so assert it is
+        // a VALID permission_status rather than a hardcoded grant. EnsureDeclared does NOT throw:
+        // macOS only RECOMMENDS the usage key (a Console nudge), unlike the iOS Required gate.
         EXPECT_NO_THROW(permissions::ensure_declared<permissions::location_when_in_use>());
+        std::optional<permission_status> location_status;
+        permissions::check_status_async<permissions::location_when_in_use>(
+            [&location_status](permission_status value) { location_status = value; });
+        ASSERT_TRUE(location_status.has_value());
+        EXPECT_TRUE(is_valid_location_status(location_status.value()));
+
+        // RequestAsync routes location through the same query (no interactive prompt on macOS):
+        // its result matches the check.
+        std::optional<permission_status> requested_status;
+        permissions::request_async<permissions::location_when_in_use>(
+            [&requested_status](permission_status value) { requested_status = value; });
+        ASSERT_TRUE(requested_status.has_value());
+        EXPECT_EQ(requested_status.value(), location_status.value());
+
+        EXPECT_NO_THROW(permissions::ensure_declared<permissions::battery>());
         EXPECT_FALSE(permissions::should_show_rationale<permissions::camera>());
     }
 } // namespace
