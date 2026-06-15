@@ -831,6 +831,18 @@ namespace
         EXPECT_DOUBLE_EQ(font_source->font().size(), maui::controls::font_image_source::default_size);
     }
 
+    TEST(font_image_extension, size_accepts_a_named_size)
+    {
+        // FontImageSource.Size carries [TypeConverter(FontSizeConverter)], so a NamedSize name is valid
+        // (not just a number). Regression: the extension previously parsed Size with convert_double,
+        // which threw on "Large"; it must route through the FontSizeConverter (convert_font_size).
+        const std::any result = provide("FontImage", {.attributes = {{"", "A"}, {"Size", "Large"}}});
+        const auto& source = std::any_cast<std::shared_ptr<maui::core::i_image_source>>(result);
+        const auto* font_source = dynamic_cast<const maui::core::i_font_image_source*>(source.get());
+        ASSERT_NE(font_source, nullptr);
+        EXPECT_DOUBLE_EQ(font_source->font().size(), 22.0); // NamedSize.Large
+    }
+
     TEST(font_image_extension, a_malformed_color_throws)
     {
         EXPECT_NE(parse_error_message([&] { return provide("FontImage", {.attributes = {{"Color", "not-a-color"}}}); }),

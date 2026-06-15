@@ -1066,7 +1066,10 @@ namespace maui::xaml
             {
                 try
                 {
-                    size = convert_double(*size_text);
+                    // FontImageSource.Size carries [TypeConverter(FontSizeConverter)] — so a NamedSize
+                    // (Large/Small/Body/…) is valid here, not just a number. Use the ported FontSizeConverter
+                    // (convert_font_size), the converter the loader itself applies to the Size property.
+                    size = convert_font_size(*size_text);
                 }
                 catch (const xaml_convert_error& error)
                 {
