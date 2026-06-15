@@ -4,6 +4,7 @@
 // the `ios` backend.
 #import <UIKit/UIKit.h>
 
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <utility>
@@ -357,6 +358,87 @@ namespace
         [delegate textViewDidEndEditing:text_view];
         EXPECT_FALSE(control.is_focused());
         EXPECT_EQ(unfocused_count, 1);
+    }
+
+    // MauiTextView.ShouldCenterVertically (MauiTextView.cs:196-207): give the text view a tall frame so
+    // there is vertical slack (availableSpace = Bounds.Height − ContentSize.Height*ZoomScale > 0), realize
+    // the layout (so contentSize is computed), then read the contentOffset the centering pass produced.
+    // Returns availableSpace so the test can assert the exact -Math.Max(1, ...) target.
+    CGFloat layout_for_centering(UITextView* text_view)
+    {
+        text_view.frame = CGRectMake(0, 0, 200, 400);
+        [text_view layoutIfNeeded];
+        return text_view.bounds.size.height - text_view.contentSize.height * text_view.zoomScale;
+    }
+
+    // VerticalTextAlignment Center → ContentOffset.y = -Math.Max(1, availableSpace/2).
+    TEST(ios_editor_seam, vertical_alignment_center_centers_content)
+    {
+        editor control;
+        control.set_text("short");
+        auto handler = std::make_shared<editor_handler>();
+        control.set_handler(handler);
+
+        UITextView* const text_view = native_text_view(handler);
+        const CGFloat available = layout_for_centering(text_view);
+        ASSERT_GT(available, 0); // a 400pt-tall view dwarfs a single line of content
+
+        control.set_vertical_text_alignment(text_alignment::center);
+        EXPECT_NEAR(text_view.contentOffset.y, -std::max<CGFloat>(1, available / 2), 0.5);
+    }
+
+    // VerticalTextAlignment End → ContentOffset.y = -Math.Max(1, availableSpace).
+    TEST(ios_editor_seam, vertical_alignment_end_aligns_bottom)
+    {
+        editor control;
+        control.set_text("short");
+        auto handler = std::make_shared<editor_handler>();
+        control.set_handler(handler);
+
+        UITextView* const text_view = native_text_view(handler);
+        const CGFloat available = layout_for_centering(text_view);
+        ASSERT_GT(available, 0);
+
+        control.set_vertical_text_alignment(text_alignment::end);
+        EXPECT_NEAR(text_view.contentOffset.y, -std::max<CGFloat>(1, available), 0.5);
+    }
+
+    // VerticalTextAlignment Start (the default) → CGPointZero (no offset).
+    TEST(ios_editor_seam, vertical_alignment_start_does_not_offset)
+    {
+        editor control;
+        control.set_text("short");
+        auto handler = std::make_shared<editor_handler>();
+        control.set_handler(handler);
+
+        UITextView* const text_view = native_text_view(handler);
+        const CGFloat available = layout_for_centering(text_view);
+        ASSERT_GT(available, 0);
+
+        control.set_vertical_text_alignment(text_alignment::start);
+        EXPECT_NEAR(text_view.contentOffset.y, 0, 0.5);
+    }
+
+    // ShouldCenterVertically re-runs after the content height changes: MauiTextView.LayoutSubviews
+    // re-centers on every layout, so a content-height change must re-adjust the Center offset.
+    TEST(ios_editor_seam, vertical_alignment_recalculates_on_text_change)
+    {
+        editor control;
+        control.set_text("short");
+        control.set_vertical_text_alignment(text_alignment::center);
+        auto handler = std::make_shared<editor_handler>();
+        control.set_handler(handler);
+
+        UITextView* const text_view = native_text_view(handler);
+        layout_for_centering(text_view); // lays out the tall frame → re-centers the short content
+        const CGFloat short_offset = text_view.contentOffset.y;
+        ASSERT_LT(short_offset, 0); // centered: content pulled toward the middle
+
+        // A much taller body shrinks availableSpace, so |offset| must drop (closer to 0).
+        control.set_text("line\nline\nline\nline\nline\nline\nline\nline");
+        [text_view layoutIfNeeded];
+        const CGFloat tall_offset = text_view.contentOffset.y;
+        EXPECT_GT(tall_offset, short_offset); // less slack → smaller centering pull (offset rises toward 0)
     }
 
     TEST(ios_editor_seam, clearing_handler_disconnects)

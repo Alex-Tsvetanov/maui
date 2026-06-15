@@ -31,12 +31,18 @@
 // KeyboardAutoManager.GoToNextResponderOrResign anywhere (a UITextView's return key inserts a newline by
 // design — only EntryHandler.iOS.cs's OnShouldReturn invokes the walk). Per the derive-not-invent rule,
 // no editor return-key wiring is added here (see the unit's deviation note).
-// Not ported here (deferred): MauiTextView's vertical-centering content-inset dance
-// (vertical_text_alignment keeps the mirror; an un-centered UITextView is the Start default).
+// Vertical centering (U05): MauiTextView.ShouldCenterVertically is ported as apply_vertical_text_alignment
+// — when the view is taller than its content, the contentOffset is nudged so the text sits Center / End /
+// Start within the slack (Center → -max(1, available/2); End → -max(1, available); Start → CGPointZero).
+// It runs from map_vertical_text_alignment (the VerticalTextAlignment setter) and from map_text (a
+// content-height change re-centers, as MauiTextView.LayoutSubviews does). The keyboard-aware cursor
+// adjustment that follows it in C# is deferred (it is not the gap core; see the keyboard-auto-manager note
+// above).
 
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
 
+#include <algorithm>
 #include <cmath>
 #include <memory>
 #include <string>
@@ -54,10 +60,20 @@
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
+// Re-runs MauiTextView.ShouldCenterVertically against the view's current bounds/content size (defined
+// below). Declared up here so the subclass's layoutSubviews can re-center on layout.
+namespace
+{
+    void apply_vertical_text_alignment_for(UITextView* text_view, maui::core::text_alignment alignment);
+} // namespace
+
 // MauiIosEditorTextView  <=  Microsoft.Maui.Platform.MauiTextView — the UITextView subclass carrying
-// the placeholder label (a UILabel hidden once text is present).
+// the placeholder label (a UILabel hidden once text is present) and the vertical alignment that drives
+// ShouldCenterVertically. `mauiVerticalTextAlignment` stores the enum as the raw underlying value so the
+// header (text_alignment.hpp) need not be imported into the @interface.
 @interface MauiIosEditorTextView : UITextView
 @property(nonatomic, strong) UILabel* placeholderLabel;
+@property(nonatomic) NSInteger mauiVerticalTextAlignment; // text_alignment, raw value (Start = 0)
 - (void)mauiUpdatePlaceholderVisibility;
 @end
 
@@ -87,9 +103,43 @@
 - (void)layoutSubviews
 {
     [super layoutSubviews];
-    [self mauiUpdatePlaceholderFrame]; // MauiTextView.LayoutSubviews
+    [self mauiUpdatePlaceholderFrame]; // MauiTextView.LayoutSubviews → UpdatePlaceholderLabelFrame
+    // ...then ShouldCenterVertically, so the content re-centers on every layout (a content-height or
+    // bounds change re-runs the centering math — MauiTextView.LayoutSubviews:146).
+    apply_vertical_text_alignment_for(self, static_cast<maui::core::text_alignment>(self.mauiVerticalTextAlignment));
 }
 @end
+
+// MauiTextView.ShouldCenterVertically (MauiTextView.cs:196-207): when the view is taller than its content
+// there is vertical slack, and the contentOffset is nudged so the text sits Center / End / Start within
+// that slack. availableSpace = Bounds.Height − ContentSize.Height*ZoomScale; a value <= 0 means the
+// content already fills (or overflows) the view, so the offset is left untouched. Center →
+// -Math.Max(1, availableSpace/2); End → -Math.Max(1, availableSpace); Start (and Justify) → CGPointZero.
+// (The C# keyboard-aware cursor adjustment that follows is deferred — see the file header.)
+namespace
+{
+    void apply_vertical_text_alignment_for(UITextView* text_view, maui::core::text_alignment alignment)
+    {
+        const CGFloat content_height = text_view.contentSize.height;
+        const CGFloat available_space = text_view.bounds.size.height - (content_height * text_view.zoomScale);
+        if (available_space <= 0)
+        {
+            return;
+        }
+        switch (alignment)
+        {
+            case maui::core::text_alignment::center:
+                text_view.contentOffset = CGPointMake(0, -std::max<CGFloat>(1, available_space / 2));
+                break;
+            case maui::core::text_alignment::end:
+                text_view.contentOffset = CGPointMake(0, -std::max<CGFloat>(1, available_space));
+                break;
+            default: // Start (the default) and Justify: top-aligned, no offset.
+                text_view.contentOffset = CGPointZero;
+                break;
+        }
+    }
+} // namespace
 
 // Obj-C trampoline: forwards the UITextView's delegate callbacks to the C++ handler's virtual view.
 // Ports EditorHandler.MauiTextViewEventProxy — and, like the entry proxy, tracks the previous string so
@@ -385,6 +435,10 @@ namespace maui::core
         apply_max_length(text_view, view);
         map_character_spacing(handler, view);
         text_view.textAlignment = to_ns_text_alignment(view.horizontal_text_alignment());
+        // The content height just changed, so re-run ShouldCenterVertically (MauiTextView.LayoutSubviews
+        // re-centers on every layout) to keep a Center/End editor aligned against the new content size.
+        text_view.mauiVerticalTextAlignment = static_cast<NSInteger>(view.vertical_text_alignment());
+        apply_vertical_text_alignment_for(text_view, view.vertical_text_alignment());
         // Keep the proxy's previous-value tracker in sync with programmatic text changes.
         if (auto* const proxy = (MauiIosEditorProxy*)objc_getAssociatedObject(text_view, &k_proxy_key))
         {
@@ -482,11 +536,15 @@ namespace maui::core
 
     void editor_handler::map_vertical_text_alignment(editor_handler& handler, i_editor& view)
     {
-        // MauiTextView centers via a content-inset dance keyed off ShouldCenterVertically; this cut keeps
-        // the mirror only (the Start default IS the natural UITextView top alignment) — documented.
+        // TextViewExtensions.UpdateVerticalTextAlignment → MauiTextView.VerticalTextAlignment setter, which
+        // fires ShouldCenterVertically: store the alignment (so layoutSubviews keeps re-centering against
+        // it), then re-center the content within the view now.
         if (auto* platform = handler.typed_platform_view())
         {
             platform->vertical_alignment = view.vertical_text_alignment();
+            MauiIosEditorTextView* const text_view = as_text_view(platform->native);
+            text_view.mauiVerticalTextAlignment = static_cast<NSInteger>(platform->vertical_alignment);
+            apply_vertical_text_alignment_for(text_view, platform->vertical_alignment);
         }
     }
 
