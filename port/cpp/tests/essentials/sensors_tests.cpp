@@ -182,6 +182,27 @@ namespace
         EXPECT_FALSE(compass::is_monitoring());
     }
 
+    // Compass.ShouldDisplayHeadingCalibration (Compass.shared.cs / Compass.ios.cs): defaults to
+    // false and round-trips get/set. The headless fake overrides the iOS-only IPlatformCompass
+    // member so the value can be steered for test control even though the OS overlay is iOS-only.
+    TEST_F(sensors_test, compass_should_display_heading_calibration)
+    {
+        auto fake = std::make_shared<headless_compass>();
+        compass::set_default(fake);
+
+        // Default is false (the C# auto-property's initializer).
+        EXPECT_FALSE(compass::should_display_heading_calibration());
+        EXPECT_FALSE(fake->should_display_heading_calibration());
+
+        compass::set_should_display_heading_calibration(true);
+        EXPECT_TRUE(compass::should_display_heading_calibration());
+        EXPECT_TRUE(fake->should_display_heading_calibration());
+
+        compass::set_should_display_heading_calibration(false);
+        EXPECT_FALSE(compass::should_display_heading_calibration());
+        EXPECT_FALSE(fake->should_display_heading_calibration());
+    }
+
     TEST_F(sensors_test, accelerometer_shake_detected_end_to_end)
     {
         auto fake = std::make_shared<headless_accelerometer>();

@@ -98,9 +98,24 @@ namespace maui::devices::sensors::detail
             return speed_ == sensor_speed::default_ || speed_ == sensor_speed::ui;
         }
 
+        // IPlatformCompass.ShouldDisplayHeadingCalibration backing store + accessors for the
+        // platform partials. Stored here (not on i_compass) so the value survives across start/stop
+        // cycles, exactly like the C# CompassImplementation auto-property. The iOS partial overrides
+        // the public i_compass virtuals to delegate here; non-iOS partials leave the i_compass base
+        // defaults (false getter / no-op setter) in place and never touch this field.
+        [[nodiscard]] bool platform_should_display_heading_calibration() const noexcept
+        {
+            return should_display_heading_calibration_;
+        }
+        void set_platform_should_display_heading_calibration(bool value) noexcept
+        {
+            should_display_heading_calibration_ = value;
+        }
+
     private:
         maui::core::event<compass_data> reading_changed_;
         bool is_monitoring_ = false;
         sensor_speed speed_ = sensor_speed::default_;
+        bool should_display_heading_calibration_ = false;
     };
 } // namespace maui::devices::sensors::detail

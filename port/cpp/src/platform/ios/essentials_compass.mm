@@ -2,10 +2,15 @@
 // CLLocationManager.headingAvailable; a CLLocationManager created per start with the per-speed
 // HeadingFilter / DesiredAccuracy pairs (Fastest .01/BestForNavigation, Game .5/BestForNavigation,
 // Default 1/Best, UI 2/Best - the angular-distance filters aligned with Windows); each heading
-// update raises CompassData(magneticHeading). ShouldDisplayHeadingCalibration stays the C# default
-// (false; IPlatformCompass is not ported). The applyLowPassFilter flag is Android-only and ignored
-// here, exactly like the C# partial. The SIMULATOR reports heading unavailable - lifecycle-only
-// on-simulator tests; readings via the headless fake.
+// update raises CompassData(magneticHeading). IPlatformCompass.ShouldDisplayHeadingCalibration is
+// ported: ios_compass tracks the bool (default false) and the listener's
+// -locationManagerShouldDisplayHeadingCalibration: returns it, mirroring the C#
+// LocationManagerShouldDisplayHeadingCalibration handler. The value is stored on the compass (base
+// field) so it survives across start/stop, and the listener queries it through a calibration block
+// torn down in platform_stop()/the destructor - same teardown discipline as headingHandler, so a
+// destroyed compass never gets the callback (no UAF). The applyLowPassFilter flag is Android-only
+// and ignored here, exactly like the C# partial. The SIMULATOR reports heading unavailable -
+// lifecycle/property-only on-simulator tests; readings via the headless fake.
 
 #import <CoreLocation/CoreLocation.h>
 #import <Foundation/Foundation.h>
@@ -17,9 +22,12 @@
 
 #include "src/essentials/detail/compass_base.hpp"
 
-// Forwards the CLLocationManager heading callbacks to the C++ partial.
+// Forwards the CLLocationManager heading callbacks to the C++ partial. Both blocks are cleared in
+// platform_stop() (which the destructor also runs) before the compass can be destroyed, so neither
+// callback can reach a dangling partial.
 @interface MauiIosCompassListener : NSObject <CLLocationManagerDelegate>
 @property(nonatomic, copy) void (^headingHandler)(double);
+@property(nonatomic, copy) BOOL (^calibrationProvider)(void);
 @end
 
 @implementation MauiIosCompassListener
@@ -32,7 +40,12 @@
 }
 - (BOOL)locationManagerShouldDisplayHeadingCalibration:(CLLocationManager*)manager
 {
-    return NO; // ShouldDisplayHeadingCalibration's C# default
+    // Mirrors C# LocationManagerShouldDisplayHeadingCalibration => ShouldDisplayHeadingCalibration.
+    if (self.calibrationProvider != nil)
+    {
+        return self.calibrationProvider();
+    }
+    return NO; // the C# default once the handler is torn down
 }
 @end
 
@@ -59,6 +72,17 @@ namespace maui::devices::sensors
             ios_compass& operator=(const ios_compass&) = delete;
             ios_compass& operator=(ios_compass&&) = delete;
 
+            // IPlatformCompass.ShouldDisplayHeadingCalibration get/set (Compass.ios.cs auto-prop),
+            // backed by the base field so it persists across start/stop like the C# partial.
+            [[nodiscard]] bool should_display_heading_calibration() const override
+            {
+                return platform_should_display_heading_calibration();
+            }
+            void set_should_display_heading_calibration(bool value) override
+            {
+                set_platform_should_display_heading_calibration(value);
+            }
+
         protected:
             [[nodiscard]] bool platform_is_supported() const override
             {
@@ -71,6 +95,11 @@ namespace maui::devices::sensors
                 listener_ = [[MauiIosCompassListener alloc] init];
                 listener_.headingHandler = ^(double magnetic_heading) {
                   this->raise_reading_changed(compass_data(magnetic_heading));
+                };
+                // The OS asks whether to show the calibration overlay during heading updates;
+                // answer from the cached ShouldDisplayHeadingCalibration (Compass.ios.cs).
+                listener_.calibrationProvider = ^BOOL {
+                  return this->should_display_heading_calibration() ? YES : NO;
                 };
                 switch (speed)
                 {
@@ -102,6 +131,7 @@ namespace maui::devices::sensors
                     return;
                 }
                 listener_.headingHandler = nil;
+                listener_.calibrationProvider = nil;
                 [location_manager_ stopUpdatingHeading];
                 location_manager_.delegate = nil;
                 location_manager_ = nil;

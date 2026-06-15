@@ -173,6 +173,22 @@ namespace
     {
         expect_sensor_lifecycle<compass>();
     }
+    // IPlatformCompass.ShouldDisplayHeadingCalibration (Compass.ios.cs): the real iOS partial tracks
+    // the bool independent of monitoring (heading is unavailable on the simulator, so this is a
+    // property-only check). Defaults to false and round-trips get/set on the facade.
+    TEST(essentials_ios, compass_should_display_heading_calibration_property)
+    {
+        const bool original = compass::should_display_heading_calibration();
+        EXPECT_FALSE(original);
+
+        compass::set_should_display_heading_calibration(true);
+        EXPECT_TRUE(compass::should_display_heading_calibration());
+
+        compass::set_should_display_heading_calibration(false);
+        EXPECT_FALSE(compass::should_display_heading_calibration());
+
+        compass::set_should_display_heading_calibration(original); // restore the shared default
+    }
     TEST(essentials_ios, barometer_lifecycle)
     {
         expect_sensor_lifecycle<barometer>();

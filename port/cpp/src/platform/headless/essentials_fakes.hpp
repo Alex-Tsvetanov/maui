@@ -563,6 +563,18 @@ namespace maui::devices::sensors
             return apply_low_pass_filter_;
         }
 
+        // IPlatformCompass.ShouldDisplayHeadingCalibration: the headless fake mirrors the iOS
+        // override so tests can steer the value (the real overlay is iOS-only). Backed by the
+        // base's field via its protected accessors - no separate storage.
+        [[nodiscard]] bool should_display_heading_calibration() const override
+        {
+            return platform_should_display_heading_calibration();
+        }
+        void set_should_display_heading_calibration(bool value) override
+        {
+            set_platform_should_display_heading_calibration(value);
+        }
+
     protected:
         [[nodiscard]] bool platform_is_supported() const override
         {

@@ -8,8 +8,13 @@
 // feature_not_supported when unsupported and is a no-op when not monitoring. ReadingChanged is
 // event<compass_data>. start(speed) forwards to start(speed, /*apply_low_pass_filter*/ true),
 // exactly like the C# overload; the filter flag is only consumed by the Android partial.
-// IPlatformCompass.ShouldDisplayHeadingCalibration (an iOS-only platform extra) is not ported -
-// the iOS partial pins it to the C# default (false).
+//
+// IPlatformCompass.ShouldDisplayHeadingCalibration (Compass.shared.cs / Compass.ios.cs, an iOS-only
+// platform extra) is ported as should_display_heading_calibration() get/set on i_compass: a bool
+// that defaults to false and, on iOS, feeds CLLocationManager's
+// -locationManagerShouldDisplayHeadingCalibration: delegate (whether the OS shows the calibration
+// overlay). The base returns false / ignores the setter (matching the C# facade's "false unless
+// Current is IPlatformCompass"); only the iOS partial overrides. macOS/headless keep the default.
 //
 // Backends (suffix oracle): ios REAL (Compass.ios.cs - CLLocationManager heading updates; the
 // simulator reports heading unavailable and delivers no data, so on-simulator tests cover the
@@ -39,6 +44,18 @@ namespace maui::devices::sensors
         // ICompass.Start(sensorSpeed, applyLowPassFilter) - the filter only matters on Android.
         virtual void start(sensor_speed speed, bool apply_low_pass_filter) = 0;
         virtual void stop() = 0;
+
+        // IPlatformCompass.ShouldDisplayHeadingCalibration (iOS-only). The base mirrors the C#
+        // facade for a non-IPlatformCompass Current: the getter returns false and the setter is a
+        // no-op. Only the iOS partial overrides to track the value and feed CLLocationManager's
+        // calibration-overlay delegate.
+        [[nodiscard]] virtual bool should_display_heading_calibration() const
+        {
+            return false;
+        }
+        virtual void set_should_display_heading_calibration(bool /*value*/)
+        {
+        }
 
     protected:
         i_compass() = default;
@@ -84,6 +101,18 @@ namespace maui::devices::sensors
         static void stop()
         {
             default_().stop();
+        }
+
+        // Compass.ShouldDisplayHeadingCalibration (Compass.shared.cs, iOS/MacCatalyst-gated). The
+        // C# getter returns false unless Current is IPlatformCompass; here the i_compass base
+        // default already returns false for the non-iOS impls, so the facade simply delegates.
+        [[nodiscard]] static bool should_display_heading_calibration()
+        {
+            return default_().should_display_heading_calibration();
+        }
+        static void set_should_display_heading_calibration(bool value)
+        {
+            default_().set_should_display_heading_calibration(value);
         }
 
         // Compass.Default (lazy platform default) + SetDefault (the test seam; nullptr resets).
