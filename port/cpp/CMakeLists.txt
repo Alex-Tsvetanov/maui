@@ -243,6 +243,9 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/font_manager.mm
     src/platform/apple/layout_handler.mm
     src/platform/apple/content_page_handler.mm
+    # (U04 hide-soft-input-on-tapped) AppKit setup_native hook (empty token — macOS has no soft keyboard);
+    # the cross-platform tracking is in src/core, the real wiring in the ios partial.
+    src/platform/apple/hide_soft_input_on_tapped_manager.cpp
     # (W1-07 containers) the NSView border host (CAShapeLayer stroke via apple_border_ops.hpp) and the
     # NSScrollView scroller (content_view reuses the content_page partial).
     src/platform/apple/border_handler.mm
@@ -313,6 +316,11 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     src/platform/ios/font_manager.mm
     src/platform/ios/layout_handler.mm
     src/platform/ios/content_page_handler.mm
+    # (U04 hide-soft-input-on-tapped) the iOS setup_native hook (HideSoftInputOnTappedChangedManager.iOS.cs
+    # SetupHideSoftInputOnTapped(UIView)) + the resign-first-responder tap recognizer it arms
+    # (ResignFirstResponderTouchGestureRecognizer.iOS.cs); the cross-platform tracking is in src/core.
+    src/platform/ios/hide_soft_input_on_tapped_manager.mm
+    src/platform/ios/resign_first_responder_touch_gesture_recognizer.mm
     # (W1-07 containers) the UIView border host (CAShapeLayer stroke via ios_border_ops.hpp) and the
     # UIScrollView scroller (content_view reuses the content_page partial).
     src/platform/ios/border_handler.mm
@@ -373,6 +381,9 @@ else()
     src/platform/headless/font_manager.cpp
     src/platform/headless/layout_handler.cpp
     src/platform/headless/content_page_handler.cpp
+    # (U04 hide-soft-input-on-tapped) headless setup_native hook (empty token — no soft keyboard off-
+    # device); the cross-platform tracking is in src/core, the real wiring in the ios partial.
+    src/platform/headless/hide_soft_input_on_tapped_manager.cpp
     src/platform/headless/border_handler.cpp
     # (W2-23 shapes) the op-recording graphics/shape drawing seats.
     src/platform/headless/graphics_view_handler.cpp
@@ -456,6 +467,10 @@ add_library(maui_core STATIC
   src/core/layout_handler.cpp
   src/core/layout_z_order.cpp
   src/core/content_page_handler.cpp
+  # (U04 hide-soft-input-on-tapped) the cross-platform HideSoftInputOnTapped tracking
+  # (HideSoftInputOnTappedChangedManager.Platform.cs); the native gesture wiring (setup_native) is the
+  # per-backend partial under src/platform/<backend>/hide_soft_input_on_tapped_manager.{cpp,mm}.
+  src/core/hide_soft_input_on_tapped_manager.cpp
   src/core/border_handler.cpp # (W1-07 containers)
   # (W2-23 shapes) the canvas-drawn + shape-rendering handlers and the shape drawable.
   src/core/shape_drawable.cpp

@@ -36,6 +36,27 @@ namespace maui::controls
         return descriptor;
     }
 
+    const maui::core::bindable_property<bool>& content_page::hide_soft_input_on_tapped_property()
+    {
+        // C# ContentPage.HideSoftInputOnTappedProperty default is false; the key matches the handler
+        // mapper entry "hide_soft_input_on_tapped" that on_property_changed → update_value drives.
+        static const maui::core::bindable_property<bool> descriptor{"hide_soft_input_on_tapped", false};
+        return descriptor;
+    }
+
+    // C# ContentPage.UpdateHideSoftInputOnTapped: re-run the HideSoftInputOnTapped mapping. C# resolves
+    // the manager via Handler.GetService<HideSoftInputOnTappedChangedManager>() and calls UpdatePage; the
+    // port keeps the manager on the handler, so it simply re-fires the property mapper key (which lands on
+    // content_page_handler::map_hide_soft_input_on_tapped → manager.update_page(this)). With no handler
+    // attached this is a no-op (C#'s GetService returns null on a detached handler — same early-out).
+    void content_page::update_hide_soft_input_on_tapped()
+    {
+        if (const auto& element_handler = handler())
+        {
+            element_handler->update_value("hide_soft_input_on_tapped");
+        }
+    }
+
     // C# LayoutExtensions.MeasureContent (this M4c cut omits the explicit Width/Height short-circuit, as
     // the control has no bindable WidthRequest/HeightRequest yet — the deferred VisualElement surface):
     // measure the content within the padding, then add the padding back. With no content, the measured

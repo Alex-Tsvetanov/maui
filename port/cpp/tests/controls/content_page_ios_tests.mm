@@ -14,10 +14,14 @@
 #include "ios_semantics_ops.hpp"
 #include "maui/controls/button.hpp"
 #include "maui/controls/content_page.hpp"
+#include "maui/controls/entry.hpp"
 #include "maui/core/button_handler.hpp"
 #include "maui/core/content_page_handler.hpp"
+#include "maui/core/entry_handler.hpp"
+#include "maui/core/i_view_handler.hpp"
 #include "maui/core/semantics.hpp"
 #include "maui/graphics/rect.hpp"
+#include "resign_first_responder_touch_gesture_recognizer.hpp" // U04 test seam (fire-for-testing)
 #include <gtest/gtest.h>
 
 namespace
@@ -225,5 +229,163 @@ namespace
         apply_semantics(view, nullptr); // null semantics -> no-op (properties left at UIKit defaults)
         EXPECT_EQ(view.accessibilityLabel, nil);
         SUCCEED();
+    }
+
+    // ---- U04: ContentPage.HideSoftInputOnTapped — the resign-first-responder tap recognizer ----
+    // (HideSoftInputOnTappedChangedManager.iOS.cs + ResignFirstResponderTouchGestureRecognizer.iOS.cs).
+    // These exercise the iOS manager + the gesture recognizer on a real UIWindow / UITextField. The
+    // tap itself is driven through the no-touch-synthesis seam resign_first_responder_fire_for_testing
+    // (UIGestureRecognizer cannot accept a synthesized UITouch from a unit test — the same constraint
+    // gesture_ios_tests works around with its fire_registered_target seam).
+
+    using maui::controls::entry;
+    using maui::core::entry_handler;
+    using maui::core::i_view_handler;
+    using maui::platform::ios::hide_soft_input_on_tapped_manager;
+    using maui::platform::ios::resign_first_responder_fire_for_testing;
+
+    // The number of resign-first-responder recognizers currently armed on `window`.
+    NSUInteger maui_resign_recognizer_count(UIWindow* window)
+    {
+        NSUInteger count = 0;
+        for (UIGestureRecognizer* const recognizer in window.gestureRecognizers)
+        {
+            // The subclass is file-private to the recognizer .mm; identify it by class name on-device.
+            if ([NSStringFromClass([recognizer class]) hasPrefix:@"MauiResignFirstResponder"])
+            {
+                ++count;
+            }
+        }
+        return count;
+    }
+
+    // The real UITextField behind an entry whose handler is attached.
+    UITextField* entry_field(const std::shared_ptr<entry_handler>& handler)
+    {
+        return (__bridge UITextField*)handler->native_view();
+    }
+
+    // A key window holding a root content view (the keyboard_auto_manager_ios_tests precedent). The window
+    // must be key+visible for becomeFirstResponder to take effect; [[UIWindow alloc] init] adopts a
+    // placeholder scene in the spawned test process (avoiding the iOS-26 initWithFrame: deprecation).
+    // Torn down at scope exit so each test starts clean.
+    struct key_window_scope
+    {
+        UIWindow* window;
+        UIView* root;
+
+        key_window_scope()
+        {
+            window = [[UIWindow alloc] init];
+            window.frame = CGRectMake(0, 0, 320, 480);
+            root = [[UIView alloc] initWithFrame:window.bounds];
+            UIViewController* const controller = [[UIViewController alloc] init];
+            controller.view = root;
+            window.rootViewController = controller;
+            [window makeKeyAndVisible];
+        }
+
+        key_window_scope(const key_window_scope&) = delete;
+        key_window_scope& operator=(const key_window_scope&) = delete;
+        key_window_scope(key_window_scope&&) = delete;
+        key_window_scope& operator=(key_window_scope&&) = delete;
+
+        ~key_window_scope()
+        {
+            [root endEditing:YES];
+            window.hidden = YES;
+            window.rootViewController = nil;
+        }
+    };
+
+    // Focusing a text input (already first responder, in a window) arms a tap recognizer on the window;
+    // firing the tap resigns the input (hiding the keyboard) and removes the recognizer.
+    TEST(content_page_ios_hide_soft_input, arms_recognizer_and_resigns_focused_input)
+    {
+        key_window_scope scope;
+
+        content_page page;
+        auto page_handler = std::make_shared<content_page_handler>();
+        page.set_handler(page_handler);
+        page.set_hide_soft_input_on_tapped(true);
+        page.send_appearing(); // has_navigated_to / FeatureEnabled gate
+
+        entry input;
+        auto input_handler = std::make_shared<entry_handler>();
+        input.set_handler(input_handler);
+        UITextField* const field = entry_field(input_handler);
+        ASSERT_NE(field, nil);
+        [scope.root addSubview:field];
+        ASSERT_TRUE([field becomeFirstResponder]);
+        input.set_is_focused(true); // mirror the xplat focus state the manager reads
+
+        hide_soft_input_on_tapped_manager& manager = page_handler->soft_input_manager();
+        manager.update_page(page);            // track the page (FeatureEnabled is now true)
+        manager.update_focus_for_view(input); // wire the gesture onto the window
+
+        EXPECT_EQ(maui_resign_recognizer_count(scope.window), 1U);
+        EXPECT_TRUE(field.isFirstResponder);
+
+        const int fired = resign_first_responder_fire_for_testing(scope.window); // simulate the page tap
+        EXPECT_EQ(fired, 1);
+        EXPECT_FALSE(field.isFirstResponder);                      // keyboard dismissed
+        EXPECT_EQ(maui_resign_recognizer_count(scope.window), 0U); // recognizer cleaned itself up
+    }
+
+    // The feature is gated: when the page does NOT have HideSoftInputOnTapped set, focusing the input
+    // does NOT arm a recognizer (FeatureEnabled is false → DisconnectFromPlatform / no setup).
+    TEST(content_page_ios_hide_soft_input, disabled_page_arms_nothing)
+    {
+        key_window_scope scope;
+
+        content_page page;
+        auto page_handler = std::make_shared<content_page_handler>();
+        page.set_handler(page_handler);
+        // flag left false (default)
+        page.send_appearing();
+
+        entry input;
+        auto input_handler = std::make_shared<entry_handler>();
+        input.set_handler(input_handler);
+        UITextField* const field = entry_field(input_handler);
+        [scope.root addSubview:field];
+        ASSERT_TRUE([field becomeFirstResponder]);
+        input.set_is_focused(true);
+
+        hide_soft_input_on_tapped_manager& manager = page_handler->soft_input_manager();
+        manager.update_page(page);
+        manager.update_focus_for_view(input);
+
+        EXPECT_EQ(maui_resign_recognizer_count(scope.window), 0U);
+        EXPECT_TRUE(field.isFirstResponder); // untouched
+    }
+
+    // Toggling the flag OFF after the recognizer is armed tears it down (UpdatePage removes the page →
+    // FeatureEnabled false → DisconnectFromPlatform clears the watching-for-taps token + recognizer).
+    TEST(content_page_ios_hide_soft_input, toggle_off_cleans_up_gesture)
+    {
+        key_window_scope scope;
+
+        content_page page;
+        auto page_handler = std::make_shared<content_page_handler>();
+        page.set_handler(page_handler);
+        page.set_hide_soft_input_on_tapped(true);
+        page.send_appearing();
+
+        entry input;
+        auto input_handler = std::make_shared<entry_handler>();
+        input.set_handler(input_handler);
+        UITextField* const field = entry_field(input_handler);
+        [scope.root addSubview:field];
+        ASSERT_TRUE([field becomeFirstResponder]);
+        input.set_is_focused(true);
+
+        hide_soft_input_on_tapped_manager& manager = page_handler->soft_input_manager();
+        manager.update_page(page);
+        manager.update_focus_for_view(input);
+        ASSERT_EQ(maui_resign_recognizer_count(scope.window), 1U);
+
+        page.set_hide_soft_input_on_tapped(false); // routes through the mapper → manager.update_page
+        EXPECT_EQ(maui_resign_recognizer_count(scope.window), 0U);
     }
 } // namespace

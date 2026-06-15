@@ -6,6 +6,7 @@
 
 #include <any>
 
+#include "maui/controls/content_page.hpp" // down-cast the i_content_view to the content_page for the manager
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/i_content_view.hpp"
 #include "maui/core/property_mapper.hpp"
@@ -25,6 +26,9 @@ namespace maui::core
             view_mapper(),
             {
                 {"content", &content_page_handler::map_content},
+                // C# ContentPage.RemapForControls: ReplaceMapping(nameof(HideSoftInputOnTapped), …). Runs
+                // on connect + on each change → manager.update_page (see map_hide_soft_input_on_tapped).
+                {"hide_soft_input_on_tapped", &content_page_handler::map_hide_soft_input_on_tapped},
                 // --- platform configuration (W2-24): the iOSSpecific Page knob nudges (see the hpp note).
                 {"ios.Page.PrefersStatusBarHidden", &content_page_handler::map_prefers_status_bar_hidden},
                 {"ios.Page.PrefersHomeIndicatorAutoHidden", &content_page_handler::map_home_indicator_auto_hidden},
@@ -61,5 +65,18 @@ namespace maui::core
                                                const std::any& /*args*/)
     {
         handler.set_content();
+    }
+
+    // C# ContentPage.MapHideSoftInputOnTapped → page.UpdateHideSoftInputOnTapped() →
+    // GetService<HideSoftInputOnTappedChangedManager>().UpdatePage(this). The port keeps the manager on
+    // this handler, so it routes the concrete content_page through it. Cross-platform: the manager body is
+    // backend-defined (headless no-op, iOS the real UIKit wiring). A non-content_page virtual view (none
+    // ship today, but the cast guards it) is left alone.
+    void content_page_handler::map_hide_soft_input_on_tapped(content_page_handler& handler, i_content_view& view)
+    {
+        if (auto* page = dynamic_cast<maui::controls::content_page*>(&view))
+        {
+            handler.soft_input_manager().update_page(*page);
+        }
     }
 } // namespace maui::core

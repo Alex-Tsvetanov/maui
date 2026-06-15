@@ -54,14 +54,23 @@ namespace maui::controls
     {
     public:
         // Declare the style TargetType so an implicit / class style targeting `content_page` matches it.
+        // C# ContentPage() hooks `NavigatedTo += (_, _) => UpdateHideSoftInputOnTapped()`; the port's
+        // nearest navigation-lifecycle signal is `appearing` (fired once the page is shown — has_appeared()
+        // is the HasNavigatedTo gate the manager re-checks), so the update fires on each appear.
         content_page()
         {
             this->set_style_target_type<content_page>();
+            appearing.connect([this] { update_hide_soft_input_on_tapped(); });
         }
 
         // Shared bindable-property descriptors (one instance per type, like ContentPage/Page.*Property).
         static const maui::core::bindable_property<maui::core::thickness>& padding_property();
         static const maui::core::bindable_property<std::string>& title_property();
+        // C# ContentPage.HideSoftInputOnTappedProperty (bool, default false): when true, tapping the page
+        // outside text-input controls dismisses the soft keyboard (iOS-only behavior — see
+        // hide_soft_input_on_tapped_manager). A change routes through on_property_changed →
+        // handler->update_value("hide_soft_input_on_tapped") → the handler's map_hide_soft_input_on_tapped.
+        static const maui::core::bindable_property<bool>& hide_soft_input_on_tapped_property();
 
         // ---- page lifecycle events (Page.Appearing / Page.Disappearing) ----
         // Fired by send_appearing()/send_disappearing(); carry no args (C# EventHandler with EventArgs.Empty).
@@ -150,6 +159,18 @@ namespace maui::controls
             title_.set(std::move(value));
         }
 
+        // ---- HideSoftInputOnTapped (control-only; ContentPage.HideSoftInputOnTapped) ----
+        // A change flows through on_property_changed → handler->update_value("hide_soft_input_on_tapped")
+        // (content_page_handler::map_hide_soft_input_on_tapped → manager.update_page(*this)).
+        [[nodiscard]] bool hide_soft_input_on_tapped() const
+        {
+            return hide_soft_input_on_tapped_.get();
+        }
+        void set_hide_soft_input_on_tapped(bool value)
+        {
+            hide_soft_input_on_tapped_.set(value);
+        }
+
         // ---- chrome (W1-11): the per-page chrome item collections (Page.ToolbarItems /
         // Page.MenuBarItems). Items added here are parented to this page (Page's collection-changed
         // parenting), surface through the window chrome via the toolbar/menu-bar trackers, and are
@@ -221,9 +242,17 @@ namespace maui::controls
             }
         }
 
+        // C# ContentPage.UpdateHideSoftInputOnTapped: re-run the HideSoftInputOnTapped mapping so the
+        // manager re-evaluates this page (the appearing hook + the bindable change both funnel here).
+        // Defined out-of-line (content_page.cpp) to keep the handler type out of this header.
+        void update_hide_soft_input_on_tapped();
+
         maui::core::i_view* content_ = nullptr; // NON-owning: the caller owns the content's lifetime
         maui::core::property<maui::core::thickness> padding_{*this, padding_property()};
         maui::core::property<std::string> title_{*this, title_property()};
+        // ContentPage.HideSoftInputOnTapped (default false); a change routes through on_property_changed →
+        // handler->update_value("hide_soft_input_on_tapped").
+        maui::core::property<bool> hide_soft_input_on_tapped_{*this, hide_soft_input_on_tapped_property()};
         // chrome (W1-11): the page's chrome item collections — items parent to this page on add and
         // un-parent on remove (Page's collection-changed parenting).
         menu_element_list<toolbar_item> toolbar_items_{[this](toolbar_item& item) { attach_logical_child(item); },

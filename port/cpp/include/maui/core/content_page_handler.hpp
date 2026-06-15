@@ -33,6 +33,7 @@
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+#include "maui/platform/ios/hide_soft_input_on_tapped_manager.hpp" // the per-handler HideSoftInputOnTapped manager
 
 namespace maui::core
 {
@@ -136,10 +137,27 @@ namespace maui::core
         static void map_prefers_status_bar_hidden(content_page_handler& handler, i_content_view& view);
         static void map_home_indicator_auto_hidden(content_page_handler& handler, i_content_view& view);
 
+        // C# ContentPage.MapHideSoftInputOnTapped → page.UpdateHideSoftInputOnTapped() →
+        // manager.UpdatePage(page). The port resolves the manager from this handler (see soft_input_manager
+        // below) instead of DI, then routes the content_page through it. Runs on connect AND on every
+        // HideSoftInputOnTapped change routed through the property path (key "hide_soft_input_on_tapped").
+        static void map_hide_soft_input_on_tapped(content_page_handler& handler, i_content_view& view);
+
+        // The per-handler HideSoftInputOnTapped manager (C#'s scoped HideSoftInputOnTappedChangedManager
+        // service). InputView focus changes (VisualElement.Focused/Unfocused → C# InputView.MapIsFocused)
+        // route through update_focus_for_view; the page mapper routes through update_page.
+        [[nodiscard]] maui::platform::ios::hide_soft_input_on_tapped_manager& soft_input_manager()
+        {
+            return soft_input_manager_;
+        }
+
         // C# OnConnectHandler/OnDisconnectHandler analog: the iOS twin wires the host UIView back to this
         // handler so safeAreaInsetsDidChange can push the realized insets through i_safe_area_view2
         // (MauiView.SafeAreaInsetsDidChange); headless/AppKit define both empty.
         void on_connect_handler(content_page_platform& platform);
         static void on_disconnect_handler(content_page_platform& platform);
+
+    private:
+        maui::platform::ios::hide_soft_input_on_tapped_manager soft_input_manager_;
     };
 } // namespace maui::core
