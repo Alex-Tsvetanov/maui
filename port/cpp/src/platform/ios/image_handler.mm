@@ -18,11 +18,12 @@
 //   - the file path: CGImageSource decode of the file bytes (animated-capable, the
 //     FileImageSourceService.iOS route) ?? UIImage.FromBundle(name-without-extension) — the
 //     GetPlatformImage fallback chain ("UIImage.FromBundle(bundleName) ?? UIImage.FromFile(file)";
-//     FromFile is subsumed by the byte decode). The @2x/@3x scaled-file probe is deferred (needs the
-//     display-density plumbing).
+//     FromFile is subsumed by the byte decode). The @2x/@3x scaled-file probe lives in the iOS file image
+//     service (image_source_services.mm get_scaled_file), which the loader routes file sources through.
 // IsOpaque → UIView.opaque (the same rendering hint the AppKit twin pushes to layer.opaque — UIView's
-// property IS the layer flag). MauiImageView's window-change reload (OnWindowChanged /
-// RequiresReload) is deferred with the resolution-reload machinery, as on the AppKit twin.
+// property IS the layer flag). MauiImageView's window-change reload is now implemented: on_window_changed()
+// asks the loader's RequiresReload (resolution-dependent + density changed → re-issue the source), and
+// query_display_scale() reads the view's trait-collection displayScale (the per-backend density seam).
 
 #import <UIKit/UIKit.h>
 
@@ -269,7 +270,8 @@ namespace maui::core
     {
         auto platform = std::make_unique<image_platform>();
         // CreatePlatformView returns a MauiImageView whose only addition is the window-change reload
-        // channel (deferred with the resolution-reload machinery) — a plain UIImageView carries the cut.
+        // channel; the port drives that through image_handler::on_window_changed() (the host calls it on a
+        // window/DPI change), so a plain UIImageView carries the native view.
         UIImageView* const view = [[UIImageView alloc] initWithFrame:CGRectZero];
         platform->native = (__bridge_retained void*)view; // the void* slot owns one reference
         return platform;
@@ -393,5 +395,19 @@ namespace maui::core
             return;
         }
         [as_image_view(platform->native) setFrame:CGRectMake(frame.x, frame.y, frame.width, frame.height)];
+    }
+
+    // C# uiContext.GetDisplayDensity() (UIKit): the view's trait-collection displayScale, falling back to
+    // the current trait collection when the view has no window yet (the iOS 26 replacement for the
+    // deprecated UIScreen.mainScreen; the same value the image services' screen_scale() reads). The basis
+    // for RequiresReload on a window/DPI change.
+    float image_handler::query_display_scale() const
+    {
+        const auto* platform = typed_platform_view();
+        UITraitCollection* const traits = (platform != nullptr && platform->native != nullptr)
+                                              ? as_image_view(platform->native).traitCollection
+                                              : UITraitCollection.currentTraitCollection;
+        const CGFloat scale = traits.displayScale;
+        return scale >= 1 ? static_cast<float>(scale) : 1.0F;
     }
 } // namespace maui::core

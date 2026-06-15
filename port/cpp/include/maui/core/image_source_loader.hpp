@@ -112,6 +112,13 @@ namespace maui::core
         {
             scale_ = scale;
         }
+        // The current display density the next load will capture (the value set by set_scale). The headless
+        // handler's query_display_scale() reads this back (no display → passthrough), so a test's set_scale
+        // survives map_source's refresh; apple/ios read the real screen DPI instead.
+        [[nodiscard]] float scale() const
+        {
+            return scale_;
+        }
         // The base directory for the on-disk uri cache (C# FileSystem.CacheDirectory root). Apple points
         // this at NSCachesDirectory; tests at a unique temp dir; empty leaves the disk layer off.
         void set_disk_cache_directory(std::string base_directory)

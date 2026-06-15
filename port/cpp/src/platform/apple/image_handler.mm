@@ -21,7 +21,9 @@
 // sets imageView.image from the decoded NSImage in the result (the loader's services produce it — see
 // src/platform/apple/image_source_services.mm). A null/empty source clears imageView.image. The
 // cross-platform routing lives in image_handler.cpp::map_source; only the three primitives below touch the
-// NSImageView. DEFERRED: font image sources, disk caching, resolution reload, the full DI service-provider.
+// NSImageView. Font image sources now rasterize through the FontManager (image_source_services.mm), disk
+// caching is on (configure_loader), and resolution reload is wired (on_window_changed + query_display_scale
+// below); the file fast-path probes the @2x/@3x sibling (apple_shared::get_scaled_file) for parity with iOS.
 
 #import <AppKit/AppKit.h>
 #import <Foundation/Foundation.h>
@@ -48,6 +50,7 @@
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+#include "scaled_file.hpp" // apple_shared::{scaled_file, get_scaled_file} — the @2x/@3x probe
 
 namespace
 {
@@ -71,18 +74,38 @@ namespace
         return NSImageScaleProportionallyUpOrDown;
     }
 
-    // Synchronous file load: AppKit's [[NSImage alloc] initWithContentsOfFile:] (returns nil if the file is
-    // missing or not a decodable image). The C# original tries FromBundle first; AppKit has no equivalent
-    // path split, so the file path is loaded directly.
+    // The current display scale (the AppKit analog of UIScreen.scale): the main screen's backing scale,
+    // floored to an integer (1/2/3) for the @Nx probe. An unresolved screen → 1 (no scaled probe).
+    int screen_scale()
+    {
+        NSScreen* const screen = NSScreen.mainScreen;
+        const CGFloat factor = screen != nil ? screen.backingScaleFactor : 1.0;
+        return factor >= 1 ? static_cast<int>(factor) : 1;
+    }
+
+    // Synchronous file load (the handler's file fast-path) with the @2x/@3x probe — parity with the iOS
+    // file service: probe the scaled sibling for the current screen scale (apple_shared::get_scaled_file),
+    // load it, and divide the NSImage's reported size by that scale so an @2x asset measures in logical
+    // POINTS. A missing scaled sibling falls back to the original at scale 1; nil on a failed decode. The C#
+    // original tries FromBundle first; AppKit has no equivalent path split, so the file path is loaded directly.
     NSImage* load_image_from_file(std::string_view path)
     {
-        const std::string file(path);
-        NSString* const ns_path = [NSString stringWithUTF8String:file.c_str()];
-        if (ns_path == nil)
+        const maui::platform::apple_shared::scaled_file scaled =
+            maui::platform::apple_shared::get_scaled_file(path, screen_scale());
+        NSString* const ns_path = [NSString stringWithUTF8String:scaled.path.c_str()];
+        NSImage* image = ns_path != nil ? [[NSImage alloc] initWithContentsOfFile:ns_path] : nil;
+        if (image == nil && scaled.scale != 1)
         {
-            return nil;
+            const std::string file(path);
+            NSString* const original = [NSString stringWithUTF8String:file.c_str()];
+            return original != nil ? [[NSImage alloc] initWithContentsOfFile:original] : nil;
         }
-        return [[NSImage alloc] initWithContentsOfFile:ns_path];
+        if (image != nil && scaled.scale > 1)
+        {
+            const NSSize pixels = image.size;
+            image.size = NSMakeSize(pixels.width / scaled.scale, pixels.height / scaled.scale);
+        }
+        return image;
     }
 
     // The platform cache root (C# FileSystem.CacheDirectory → NSCachesDirectory). Empty on the rare failure
@@ -314,6 +337,21 @@ namespace maui::core
             return;
         }
         [as_image_view(platform->native) setFrame:NSMakeRect(frame.x, frame.y, frame.width, frame.height)];
+    }
+
+    // C# uiContext.GetDisplayDensity() (AppKit): the view's window backing scale, falling back to the main
+    // screen's when the view is not yet in a window. The basis for RequiresReload on a window/DPI change.
+    float image_handler::query_display_scale() const
+    {
+        const auto* platform = typed_platform_view();
+        NSWindow* const window =
+            (platform != nullptr && platform->native != nullptr) ? as_image_view(platform->native).window : nil;
+        if (window != nil)
+        {
+            return static_cast<float>(window.backingScaleFactor);
+        }
+        NSScreen* const screen = NSScreen.mainScreen;
+        return screen != nil ? static_cast<float>(screen.backingScaleFactor) : 1.0F;
     }
 
     // Render transform + flow direction pushed to the native view via the shared apple_view_ops helpers

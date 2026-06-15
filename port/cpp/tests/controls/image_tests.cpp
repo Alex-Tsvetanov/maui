@@ -439,4 +439,58 @@ namespace
         EXPECT_FALSE(loader.is_resolution_dependent());
         EXPECT_FALSE(loader.requires_reload(3.0F)); // not resolution-dependent -> never reloads
     }
+
+    // ImageHandler.OnWindowChanged: when the loaded result was resolution-dependent AND the display density
+    // changed, on_window_changed re-issues the source (re-running map_source) and re-captures the new
+    // density. A no-op when the density is unchanged. The headless handler's query_display_scale() reads the
+    // loader's set scale back, so changing it here drives the reload deterministically.
+    TEST(image_seam, on_window_changed_reissues_a_resolution_dependent_source_on_density_change)
+    {
+        image control;
+        auto handler = std::make_shared<image_handler>();
+        manual_dispatcher disp;
+        control.set_handler(handler);
+        auto& loader = handler->source_loader();
+        loader.set_dispatcher(disp);
+        loader.set_scale(2.0F);
+
+        control.set_source(image_source::from_font("A", maui::core::font::of_size("F", 30),
+                                                   maui::graphics::color::from_rgb(255, 0, 0)));
+        disp.run_pending();
+        ASSERT_FLOAT_EQ(loader.current_resolution(), 2.0F);
+
+        // Density unchanged → no reload (current_resolution stays 2.0; nothing re-issued).
+        handler->on_window_changed();
+        disp.run_pending();
+        EXPECT_FLOAT_EQ(loader.current_resolution(), 2.0F);
+
+        // Density changes to @3x → on_window_changed re-issues the source, which re-captures 3.0.
+        loader.set_scale(3.0F);
+        handler->on_window_changed();
+        disp.run_pending();
+        EXPECT_FLOAT_EQ(loader.current_resolution(), 3.0F);
+    }
+
+    // on_window_changed never reissues a non-resolution-dependent source (RequiresReload short-circuits on
+    // IsResolutionDependent == false), regardless of density change.
+    TEST(image_seam, on_window_changed_ignores_a_non_resolution_dependent_source)
+    {
+        image control;
+        auto handler = std::make_shared<image_handler>();
+        manual_dispatcher disp;
+        control.set_handler(handler);
+        auto& loader = handler->source_loader();
+        loader.set_dispatcher(disp);
+        loader.set_scale(2.0F);
+
+        control.set_source(make_stream_source(4));
+        disp.run_pending();
+        ASSERT_FALSE(loader.is_resolution_dependent());
+
+        loader.set_scale(3.0F);
+        handler->on_window_changed();
+        disp.run_pending();
+        // Not resolution-dependent → no reissue; current_resolution stays at the original load-time 2.0.
+        EXPECT_FLOAT_EQ(loader.current_resolution(), 2.0F);
+    }
 } // namespace

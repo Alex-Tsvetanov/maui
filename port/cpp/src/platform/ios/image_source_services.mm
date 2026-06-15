@@ -27,12 +27,13 @@
 // font   — FontImageSourceService.iOS.cs GetImageAsync + ImageSourceExtensions.GetPlatformImage
 //          (IFontImageSource): the glyph is drawn (an NSAttributedString in the source's font + color,
 //          centered on its bounding rect) through a UIGraphicsImageRenderer. The result is
-//          RESOLUTION-DEPENDENT (C# passes true). DEVIATIONS: no IFontManager — the source's font value
-//          maps via ios_conversions (an unknown family → the system font; the empty-size default is
-//          UIFont.systemFontSize, C# FontManager.DefaultFontSize); the port's color is a concrete value,
-//          so C#'s null-color branch (Colors.White + UIImageRenderingModeAutomatic) is unreachable and
-//          the glyph keeps AlwaysOriginal; the renderer keeps its default scale (the main screen's —
-//          the value C#'s handler passes for `scale` in practice).
+//          RESOLUTION-DEPENDENT (C# passes true). The typeface is now resolved through the FontManager
+//          (default_font_manager().get_font — the registrar alias/embedded resolution + weight/slant
+//          traits + Dynamic Type scaling), matching C#'s FontImageSourceService(IFontManager); the
+//          empty-size default is the manager's DefaultFontSize (UIFont.systemFontSize). DEVIATIONS: the
+//          port's color is a concrete value, so C#'s null-color branch (Colors.White +
+//          UIImageRenderingModeAutomatic) is unreachable and the glyph keeps AlwaysOriginal; the renderer
+//          keeps its default scale (the main screen's — the value C#'s handler passes for `scale`).
 //
 // HANDOFF (image_handler.mm, owned by its own M6 fan-out unit): apply_loaded_result sets
 // UIImageView.image to the (possibly animated) UIImage carried by the result; map_is_animation_playing
@@ -57,6 +58,7 @@
 #include "maui/core/cancellation_token.hpp"
 #include "maui/core/file_image_source_service.hpp"
 #include "maui/core/font_image_source_service.hpp"
+#include "maui/core/font_manager.hpp"
 #include "maui/core/i_font_image_source.hpp"
 #include "maui/core/i_image_source.hpp"
 #include "maui/core/i_stream_image_source.hpp"
@@ -438,11 +440,12 @@ namespace maui::core
             on_result(image_source_result{}); // not a font source / empty glyph → nothing rendered
             return;
         }
-        // FontManager.GetFont + (Color ?? White).ToPlatform(): the port maps the source's font/color
-        // directly (DEVIATIONS in the header). The empty-size fallback is UIFont.systemFontSize —
-        // C# FontManager.DefaultFontSize on iOS.
-        UIFont* const ui_font =
-            maui::platform::ios::to_ui_font(font_src->font(), static_cast<double>(UIFont.systemFontSize));
+        // C# FontManager.GetFont + (Color ?? White).ToPlatform(): resolve the typeface through the manager
+        // (alias/embedded registry + weight/slant traits + Dynamic Type scaling), with the manager's
+        // DefaultFontSize (UIFont.systemFontSize) as the empty-size fallback. The handle is owned by the
+        // manager's cache (valid for this call); bridge it back to UIFont for the draw.
+        font_manager& fonts = default_font_manager();
+        auto* const ui_font = (__bridge UIFont*)fonts.get_font(font_src->font(), fonts.default_font_size());
         UIColor* const ui_color = maui::platform::ios::to_ui_color(font_src->color());
         UIImage* const image = image_from_glyph(font_src->glyph(), ui_font, ui_color);
         // Font results are RESOLUTION-DEPENDENT (the rasterized glyph depends on display density —

@@ -56,6 +56,27 @@ namespace maui::core
     // IsLoading lifecycle); the loading callback captures the view by pointer (the property change that
     // triggered map_source keeps the view alive for the synchronous start, and the loader's liveness token
     // guards the marshalled completion).
+    // C# ImageHandler.OnWindowChanged: SourceLoader.SourceManager.RequiresReload(PlatformView) → re-issue
+    // the source. The loader compares the current display density against the one captured at load time;
+    // when it differs and the last result was resolution-dependent (a font image), re-run map_source so the
+    // glyph re-rasterizes at the new density.
+    void image_handler::on_window_changed()
+    {
+        if (source_loader_.requires_reload(query_display_scale()))
+        {
+            if (auto* view = virtual_view())
+            {
+                map_source(*this, *view);
+            }
+        }
+    }
+
+    // Push the current display density into the loader (captured at complete_load into CurrentResolution).
+    void image_handler::refresh_display_scale()
+    {
+        source_loader_.set_scale(query_display_scale());
+    }
+
     void image_handler::map_source(image_handler& handler, i_image& view)
     {
         auto* platform = handler.typed_platform_view();
@@ -63,6 +84,10 @@ namespace maui::core
         {
             return;
         }
+
+        // Capture the current display density so the loader records it at complete_load (the basis for a
+        // later RequiresReload comparison — C#'s CompleteLoad reads uiContext.GetDisplayDensity()).
+        handler.refresh_display_scale();
 
         i_image* const view_ptr = &view;
         auto on_loading = [view_ptr](bool is_loading) { view_ptr->update_is_loading(is_loading); };

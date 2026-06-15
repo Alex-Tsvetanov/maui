@@ -17,9 +17,11 @@
 // autocorrection traits (ios_keyboard_ops.hpp), plus the Done input accessory toolbar
 // (AddMauiDoneAccessoryView → ios_done_accessory.hpp). Focus (W8-53): becomeFirstResponder /
 // resignFirstResponder via the shared view_command_mapper (view_focus_ops.mm), reflected onto IsFocused.
-// Not ported here (deferred): MapBackground's ImageSourcePaint branch (the shared view_mapper carries
-// background) and MauiTextView's vertical-centering content-inset dance (vertical_text_alignment keeps
-// the mirror; an un-centered UITextView is the Start default).
+// MapBackground's ImageSourcePaint branch (W8-55) is handled by the shared view_mapper → ios_visual_ops
+// apply_background (an image_source_paint installs the source's image as a named backing CALayer), so an
+// image-backed Background renders on the editor like any other view.
+// Not ported here (deferred): MauiTextView's vertical-centering content-inset dance
+// (vertical_text_alignment keeps the mirror; an un-centered UITextView is the Start default).
 
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>

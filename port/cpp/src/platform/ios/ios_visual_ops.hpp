@@ -30,9 +30,17 @@
 
 #include <algorithm>
 #include <cmath>
+#include <memory>
 #include <vector>
 
+#include "maui/core/cancellation_token.hpp"
+#include "maui/core/i_image_source.hpp"
+#include "maui/core/i_image_source_service.hpp"
 #include "maui/core/i_shadow.hpp"
+#include "maui/core/image_source_paint.hpp"
+#include "maui/core/image_source_result.hpp"
+#include "maui/core/image_source_service_registry.hpp"
+#include "maui/core/image_source_services.hpp"
 #include "maui/graphics/gradient_paint.hpp"
 #include "maui/graphics/gradient_stop.hpp"
 #include "maui/graphics/i_shape.hpp"
@@ -118,6 +126,10 @@ namespace maui::platform::ios
     // The name tagging the gradient sublayer apply_background installs, so a later call can find and
     // replace/remove it (CALayer.name is a plain string slot; the wrapper-view flow uses sublayers).
     inline NSString* const k_gradient_layer_name = @"maui.background.gradient";
+
+    // The name tagging the image-source background sublayer (an ImageSourcePaint fill) — C#'s
+    // ViewExtensions.BackgroundLayerName. apply_background installs/removes it by this tag.
+    inline NSString* const k_image_layer_name = @"maui.background.image";
 
     // Port of PaintExtensions.iOS.cs GetCAGradientLayerColors: the ordered stops' colors as CGColors. A
     // fully transparent stop (Colors.Transparent) borrows its neighbor's color at alpha 0 (so the gradient
@@ -207,8 +219,8 @@ namespace maui::platform::ios
         return CGPointMake(x, y);
     }
 
-    // Remove any gradient sublayer this helper previously installed (idempotent cleanup before re-applying).
-    inline void remove_background_gradient_layer(CALayer* layer)
+    // Remove any sublayer this helper previously installed under `name` (idempotent cleanup before re-apply).
+    inline void remove_background_named_layer(CALayer* layer, NSString* name)
     {
         // Snapshot the sublayers (a copy), then remove the tagged ones — mutating layer.sublayers under a
         // fast-enumeration would be unsafe; index iteration over the copy also keeps the loop variable
@@ -217,11 +229,68 @@ namespace maui::platform::ios
         for (NSUInteger i = 0; i < sublayers.count; i++)
         {
             CALayer* const sub = sublayers[i];
-            if ([sub.name isEqualToString:k_gradient_layer_name])
+            if ([sub.name isEqualToString:name])
             {
                 [sub removeFromSuperlayer];
             }
         }
+    }
+
+    inline void remove_background_gradient_layer(CALayer* layer)
+    {
+        remove_background_named_layer(layer, k_gradient_layer_name);
+    }
+
+    // Install `source`'s image as the view's background layer (C# ViewExtensions.UpdateBackgroundImageSource
+    // Async): a named sublayer whose contents is the source's CGImage, sized to the view bounds with resize
+    // gravity (C# StaticCALayer { ContentsGravity = GravityResize }). The base color is cleared (C#
+    // BackgroundColor = UIColor.Clear). Returns whether an image layer was installed (the caller skips the
+    // solid/gradient paths when it was). Ports GetRequiredImageSourceService + GetImageAsync + .CGImage (run
+    // synchronously — the apple/ios services produce their image on the calling thread; a fully-async refresh
+    // is the X1 brushes unit's concern).
+    //
+    // LIFETIME: the whole install runs INSIDE the load completion, while the image_source_result still owns
+    // the UIImage — `layer.contents = cgImage` retains the CGImage before the result is destroyed. UIImage's
+    // .CGImage is owned by the UIImage (NOT autoreleased), so extracting it and using it after the UIImage's
+    // CFRelease would be a UAF; installing it on-the-spot avoids that.
+    inline bool apply_image_source_background_layer(CALayer* layer, maui::core::i_image_source* source)
+    {
+        remove_background_named_layer(layer, k_image_layer_name);
+        if (source == nullptr || source->is_empty())
+        {
+            return false;
+        }
+        maui::core::image_source_service_registry& registry = maui::core::default_image_source_service_registry();
+        maui::core::register_default_image_source_services(registry);
+        const std::shared_ptr<maui::core::i_image_source_service> service = registry.resolve(*source);
+        if (!service)
+        {
+            return false;
+        }
+
+        bool installed = false;
+        const maui::core::cancellation_token token;
+        service->load(*source, token, [&installed, layer](maui::core::image_source_result result) {
+            if (!result.loaded() || result.image() == nullptr)
+            {
+                return;
+            }
+            UIImage* const image = (__bridge UIImage*)result.image();
+            CGImageRef const cg_image = image.CGImage;
+            if (cg_image == nullptr)
+            {
+                return;
+            }
+            CALayer* const image_layer = [CALayer layer];
+            image_layer.name = k_image_layer_name;
+            image_layer.contents = (__bridge id)cg_image; // retains the CGImage while the UIImage is alive
+            image_layer.frame = layer.bounds;
+            image_layer.contentsGravity = kCAGravityResize;
+            layer.backgroundColor = nil; // C# clears the solid background while the image layer is shown
+            [layer addSublayer:image_layer];
+            installed = true;
+        });
+        return installed;
     }
 
     inline void apply_background(void* native, const maui::graphics::paint* p)
@@ -232,6 +301,23 @@ namespace maui::platform::ios
         }
         auto* const view = (__bridge UIView*)native;
         CALayer* const layer = view.layer; // a UIView is always layer-backed (nonnull)
+
+        // An ImageSourcePaint installs the source's image as a backing sublayer (C# PageExtensions /
+        // ViewExtensions.UpdateBackgroundImageSourceAsync branch). Remove any stale gradient, then render
+        // the image; the base color is cleared by the helper. If installed, the solid/gradient paths below
+        // are skipped.
+        if (const auto* const image_paint = dynamic_cast<const maui::core::image_source_paint*>(p))
+        {
+            remove_background_gradient_layer(layer);
+            if (apply_image_source_background_layer(layer, image_paint->image_source()))
+            {
+                return;
+            }
+            layer.backgroundColor = nil; // no image resolved → clear (the image layer was already removed)
+            return;
+        }
+        // A non-image paint (incl. null) removes any previously-installed image sublayer.
+        remove_background_named_layer(layer, k_image_layer_name);
 
         // A gradient paint installs a CAGradientLayer sublayer (axial/radial) sized to the view bounds.
         const auto* const gradient = dynamic_cast<const maui::graphics::gradient_paint*>(p);

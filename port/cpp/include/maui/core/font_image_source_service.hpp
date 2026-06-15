@@ -9,15 +9,20 @@
 //
 // Partial-class split (PROFILE §5): declared here; load() defined per backend
 // (src/platform/headless/image_source_services.cpp mirrors kind="font"+detail=the glyph with no native
-// handle; src/platform/apple/image_source_services.mm draws the glyph into an NSImage).
+// handle; src/platform/{apple,ios}/image_source_services.mm draw the glyph into an NSImage/UIImage).
+//
+// The glyph's typeface is resolved through the FontManager (C#'s FontImageSourceService(IFontManager)):
+// the per-backend load() resolves default_font_manager().get_font(source.font, DefaultFontSize), so a
+// registered/aliased family renders in the right typeface (the registrar alias/embedded resolution +
+// weight/slant traits + Dynamic Type scaling). The process-wide manager is the no-DI seam (PROFILE §6),
+// matching how the loader resolves services against the process-wide registry.
 //
 // DEVIATIONS vs C#:
-//   * C#'s FontImageSourceService is constructed with an IFontManager that resolves a registered font by
-//     family name. The port has no font manager, so the service renders with the source's font value
-//     directly (apple converts font→NSFont via apple_conversions; an unresolved family falls back to the
-//     system font, exactly as to_ns_font already does). Documented, not stubbed.
-//   * The `scale` (display density) argument C#'s GetImageAsync takes is omitted (resolution-dependent
-//     reload is handled by the handler's scale seam, not the service).
+//   * The manager is resolved from the process-wide default_font_manager() rather than DI-injected into
+//     the service ctor (C++23 has no reflection/DI container — PROFILE §6). A host configures app fonts in
+//     default_font_registrar(); the manager reads them.
+//   * The `scale` (display density) argument C#'s GetImageAsync takes is omitted here; the result is marked
+//     resolution-dependent so the handler's scale seam re-issues the load on a density change (RequiresReload).
 
 #include "maui/core/i_image_source_service.hpp"
 

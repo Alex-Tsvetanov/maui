@@ -11,8 +11,10 @@
 //          supports that). Translated from UriImageSourceService.iOS.cs / StreamImageSourceService.iOS.cs.
 // font   — the glyph is drawn (an NSAttributedString in the source's font + color) into an NSImage sized to
 //          the glyph. The result is RESOLUTION-DEPENDENT (C# FontImageSourceService.iOS passes true).
-//          Translated from FontImageSourceService.iOS.cs (GetPlatformImage). DEVIATION: no IFontManager —
-//          the source's font value maps to NSFont via apple_conversions (an unknown family → system font).
+//          Translated from FontImageSourceService.iOS.cs (GetPlatformImage). The glyph's typeface is now
+//          resolved through the FontManager (default_font_manager()) — the registrar alias/embedded-font
+//          resolution + weight/slant traits — matching C#'s FontImageSourceService(IFontManager); the
+//          empty-size default is the manager's DefaultFontSize (NSFont.systemFontSize on apple).
 
 #import <AppKit/AppKit.h>
 #import <Foundation/Foundation.h>
@@ -27,6 +29,7 @@
 #include "maui/core/cancellation_token.hpp"
 #include "maui/core/file_image_source_service.hpp"
 #include "maui/core/font_image_source_service.hpp"
+#include "maui/core/font_manager.hpp"
 #include "maui/core/i_font_image_source.hpp"
 #include "maui/core/i_image_source.hpp"
 #include "maui/core/i_stream_image_source.hpp"
@@ -36,6 +39,7 @@
 #include "maui/core/stream_image_source_service.hpp"
 #include "maui/core/uri_bytes.hpp"
 #include "maui/core/uri_image_source_service.hpp"
+#include "scaled_file.hpp" // apple_shared::{scaled_file, get_scaled_file} — the @2x/@3x probe
 
 namespace
 {
@@ -89,15 +93,40 @@ namespace
         return [NSData dataWithBytes:bytes.data() length:static_cast<NSUInteger>(bytes.size())];
     }
 
+    // The current display scale (the AppKit analog of UIScreen.scale): the main screen's backing scale,
+    // floored to an integer (1/2/3) for the @Nx probe. An unresolved screen → 1 (no scaled probe).
+    int screen_scale()
+    {
+        NSScreen* const screen = NSScreen.mainScreen;
+        const CGFloat factor = screen != nil ? screen.backingScaleFactor : 1.0;
+        return factor >= 1 ? static_cast<int>(factor) : 1;
+    }
+
+    // File load with the @2x/@3x probe (parity with the iOS file service): probe the scaled sibling for the
+    // current screen scale (apple_shared::get_scaled_file), load it, and divide the NSImage's reported size
+    // by that scale so an @2x asset measures in logical POINTS (UIKit bakes this into UIImage.scale; AppKit's
+    // initWithContentsOfFile keeps pixel dimensions, so the port divides explicitly). A missing scaled
+    // sibling falls back to the original file at scale 1. Returns nil if neither decodes.
     NSImage* image_from_file(std::string_view path)
     {
-        const std::string file(path);
-        NSString* const ns_path = [NSString stringWithUTF8String:file.c_str()];
-        if (ns_path == nil)
+        const maui::platform::apple_shared::scaled_file scaled =
+            maui::platform::apple_shared::get_scaled_file(path, screen_scale());
+        NSString* const ns_path = [NSString stringWithUTF8String:scaled.path.c_str()];
+        NSImage* image = ns_path != nil ? [[NSImage alloc] initWithContentsOfFile:ns_path] : nil;
+        if (image == nil && scaled.scale != 1)
         {
-            return nil;
+            // The probe hit a sibling that failed to decode — fall back to the original (C#'s `?? GetPlatformImage`).
+            const std::string file(path);
+            NSString* const original = [NSString stringWithUTF8String:file.c_str()];
+            image = original != nil ? [[NSImage alloc] initWithContentsOfFile:original] : nil;
+            return image;
         }
-        return [[NSImage alloc] initWithContentsOfFile:ns_path];
+        if (image != nil && scaled.scale > 1)
+        {
+            const NSSize pixels = image.size;
+            image.size = NSMakeSize(pixels.width / scaled.scale, pixels.height / scaled.scale);
+        }
+        return image;
     }
 } // namespace
 
@@ -177,7 +206,11 @@ namespace maui::core
             on_result(image_source_result{}); // not a font source / empty glyph → nothing rendered
             return;
         }
-        NSFont* const ns_font = maui::platform::apple::to_ns_font(font_src->font());
+        // C# FontManager.GetFont: resolve the typeface through the manager (alias/embedded registry +
+        // weight/slant traits), with the manager's DefaultFontSize as the empty-size fallback. The handle
+        // is owned by the manager's cache (valid for this call); bridge it back to NSFont for the draw.
+        font_manager& fonts = default_font_manager();
+        auto* const ns_font = (__bridge NSFont*)fonts.get_font(font_src->font(), fonts.default_font_size());
         NSColor* const ns_color = maui::platform::apple::to_ns_color(font_src->color());
         NSImage* const image = image_from_glyph(font_src->glyph(), ns_font, ns_color);
         // Font results are RESOLUTION-DEPENDENT (the rasterized glyph depends on display density).

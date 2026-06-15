@@ -131,7 +131,26 @@ namespace maui::core
             return source_loader_;
         }
 
+        // C# ImageHandler.OnWindowChanged: when the loaded image was resolution-dependent (a font image)
+        // AND the display density has changed (e.g. the view moved to an @3x screen), re-issue the source
+        // so it re-rasterizes at the new density. The current density comes from the per-backend
+        // query_display_scale() seam; the loader's requires_reload() compares it against the load-time
+        // density. A no-op when the last result was not resolution-dependent (file/uri/stream). Drives the
+        // SAME map_source the property change does. Tests call this directly after changing the scale seam.
+        void on_window_changed();
+
+        // Push the current display density into the loader (C#'s uiContext.GetDisplayDensity(), captured at
+        // complete_load into CurrentResolution). Called from map_source before each load and from the
+        // per-backend window-change hook; tests set the scale directly to drive requires_reload
+        // deterministically. The per-backend query_display_scale() reads the real screen DPI (UIScreen /
+        // NSScreen); headless reports 1.0 (no display).
+        void refresh_display_scale();
+
     private:
+        // Per-backend screen-DPI seam: the current display density (apple: the view's window backing scale;
+        // ios: the trait-collection displayScale; headless: 1.0). Defined in the per-backend partial.
+        [[nodiscard]] float query_display_scale() const;
+
         // Per-backend source primitives map_source dispatches to (the routing — file fast-path vs the
         // async loader — lives once in the cross-platform map_source; only these touch the native view /
         // headless mirror). Defined in src/platform/<backend>/image_handler.{cpp,mm}.

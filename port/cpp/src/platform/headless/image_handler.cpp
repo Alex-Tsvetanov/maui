@@ -104,4 +104,12 @@ namespace maui::core
     {
         // Headless: no native layout to apply.
     }
+
+    // No display headless: pass the loader's currently-set scale back through (so map_source's
+    // refresh_display_scale is a no-op that preserves whatever a test set via source_loader().set_scale()).
+    // apple/ios read the real screen DPI instead — see their query_display_scale().
+    float image_handler::query_display_scale() const
+    {
+        return source_loader_.scale();
+    }
 } // namespace maui::core

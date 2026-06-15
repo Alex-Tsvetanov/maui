@@ -237,6 +237,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/image_handler.mm
     src/platform/apple/image_button_handler.mm
     src/platform/apple/image_source_services.mm
+    src/platform/apple/font_manager.mm
     src/platform/apple/layout_handler.mm
     src/platform/apple/content_page_handler.mm
     # (W1-07 containers) the NSView border host (CAShapeLayer stroke via apple_border_ops.hpp) and the
@@ -302,6 +303,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     src/platform/ios/image_handler.mm
     src/platform/ios/image_button_handler.mm
     src/platform/ios/image_source_services.mm
+    src/platform/ios/font_manager.mm
     src/platform/ios/layout_handler.mm
     src/platform/ios/content_page_handler.mm
     # (W1-07 containers) the UIView border host (CAShapeLayer stroke via ios_border_ops.hpp) and the
@@ -358,6 +360,7 @@ else()
     src/platform/headless/image_handler.cpp
     src/platform/headless/image_button_handler.cpp
     src/platform/headless/image_source_services.cpp
+    src/platform/headless/font_manager.cpp
     src/platform/headless/layout_handler.cpp
     src/platform/headless/content_page_handler.cpp
     src/platform/headless/border_handler.cpp
@@ -406,6 +409,9 @@ add_library(maui_core STATIC
   src/core/thickness.cpp
   src/core/font.cpp
   src/core/font_attributes.cpp
+  src/core/font_file.cpp
+  src/core/font_registrar.cpp
+  src/core/font_manager.cpp
   src/core/date_time.cpp
   src/core/property_mapper.cpp
   src/core/command_mapper.cpp
@@ -533,6 +539,7 @@ add_executable(maui_core_tests
   tests/core/binding_tests.cpp
   tests/core/property_path_tests.cpp
   tests/core/crc64_tests.cpp
+  tests/core/font_manager_tests.cpp
 )
 target_link_libraries(maui_core_tests PRIVATE
   maui_core
@@ -914,6 +921,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/image_apple_tests.mm
     tests/controls/image_button_apple_tests.mm
     tests/controls/font_image_source_apple_tests.mm
+    tests/controls/font_manager_apple_tests.mm
+    tests/controls/image_source_paint_apple_tests.mm
     tests/controls/layout_apple_tests.mm
     tests/controls/grid_apple_tests.mm
     tests/controls/content_page_apple_tests.mm
@@ -1022,6 +1031,8 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/image_apple_tests.mm
     tests/controls/image_button_apple_tests.mm
     tests/controls/font_image_source_apple_tests.mm
+    tests/controls/font_manager_apple_tests.mm
+    tests/controls/image_source_paint_apple_tests.mm
     tests/controls/layout_apple_tests.mm
     tests/controls/grid_apple_tests.mm
     tests/controls/content_page_apple_tests.mm
@@ -1073,6 +1084,8 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/image_ios_tests.mm
     tests/controls/image_button_ios_tests.mm
     tests/controls/font_image_source_ios_tests.mm
+    tests/controls/font_manager_ios_tests.mm
+    tests/controls/image_source_paint_ios_tests.mm
     tests/controls/image_sources_ios_tests.mm
     tests/controls/layout_ios_tests.mm
     tests/controls/grid_ios_tests.mm
@@ -1271,14 +1284,17 @@ else()
 endif()
 target_include_directories(maui_controls_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for tests/layouts/*.hpp
 # The apple .mm tests share the backend's text/visual op headers (apple_text_ops.hpp etc.), which live
-# beside the handler .mm sources; put that dir on the include path for the apple test exe only.
+# beside the handler .mm sources; put that dir on the include path for the apple test exe only. apple_shared
+# carries the cross-Apple helpers the visual/image op headers pull in (scaled_file.hpp).
 if(MAUI_BACKEND STREQUAL "apple")
   target_include_directories(maui_controls_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/apple)
+  target_include_directories(maui_controls_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/apple_shared)
 endif()
 # Same convention for the ios .mm tests (ios_text_ops.hpp / ios_conversions.hpp live beside the
-# UIKit handler sources).
+# UIKit handler sources); apple_shared carries scaled_file.hpp (ios_image_ops.hpp / ios_visual_ops.hpp pull it in).
 if(MAUI_BACKEND STREQUAL "ios")
   target_include_directories(maui_controls_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/ios)
+  target_include_directories(maui_controls_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/apple_shared)
 endif()
 target_link_libraries(maui_controls_tests PRIVATE
   maui_controls
