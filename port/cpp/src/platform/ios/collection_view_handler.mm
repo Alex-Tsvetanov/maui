@@ -34,12 +34,14 @@
 #import <UIKit/UIKit.h>
 
 #include <algorithm>
+#include <cmath>
 #include <memory>
 #include <string>
 #include <unordered_set>
 #include <vector>
 
 #include "maui/controls/items/boxed_item.hpp"
+#include "maui/controls/items/carousel_view.hpp"
 #include "maui/controls/items/collection_view_handler.hpp"
 #include "maui/controls/items/grid_items_layout.hpp"
 #include "maui/controls/items/groupable_items_view.hpp"
@@ -216,6 +218,11 @@ namespace maui::controls
                 platform != nullptr && platform->orientation == items_layout_orientation::horizontal;
             const int span = platform != nullptr ? std::max(1, platform->span) : 1;
             const double item_spacing = platform != nullptr ? platform->item_spacing : 0;
+            // CarouselViewHandler2.MapPeekAreaInsets → UpdateLayout: the peek is applied as the section's
+            // leading/trailing content insets so the adjacent items "peek" in and the first cell's frame
+            // shifts inward (the visible effect of the C# inset). Captured by value for the section block.
+            const maui::core::thickness peek =
+                platform != nullptr ? platform->peek_area_insets : maui::core::thickness{};
 
             const UICollectionViewScrollDirection scroll_direction =
                 horizontal ? UICollectionViewScrollDirectionHorizontal : UICollectionViewScrollDirectionVertical;
@@ -279,6 +286,18 @@ namespace maui::controls
 
                   NSCollectionLayoutSection* const section = [NSCollectionLayoutSection sectionWithGroup:group];
                   section.interGroupSpacing = item_spacing;
+                  // The peek shifts the section's content edges inward (leading/trailing on the scroll
+                  // axis), so the first item starts inset and adjacent items peek in (CarouselView).
+                  if (horizontal)
+                  {
+                      section.contentInsets = NSDirectionalEdgeInsetsMake(0, static_cast<CGFloat>(peek.left), 0,
+                                                                          static_cast<CGFloat>(peek.right));
+                  }
+                  else
+                  {
+                      section.contentInsets = NSDirectionalEdgeInsetsMake(static_cast<CGFloat>(peek.top), 0,
+                                                                          static_cast<CGFloat>(peek.bottom), 0);
+                  }
 
                   NSMutableArray<NSCollectionLayoutBoundarySupplementaryItem*>* const boundaries =
                       [NSMutableArray array];
@@ -606,6 +625,41 @@ namespace maui::controls
         return {};
     }
 
+    // ---- the carousel knobs on the native UICollectionView (CarouselViewHandler2.Map*) ----
+
+    void collection_view_handler::native_update_swipe_enabled()
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->controller == nullptr)
+        {
+            return;
+        }
+        auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
+        // CarouselViewHandler2.MapIsSwipeEnabled → CollectionView.ScrollEnabled (the MauiCollectionView
+        // SetSwipeEnabled wrapper is not ported; the port writes ScrollEnabled directly — the C# else).
+        controller.collectionView.scrollEnabled = platform->swipe_enabled ? YES : NO;
+    }
+
+    void collection_view_handler::native_update_bounce_enabled()
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->controller == nullptr)
+        {
+            return;
+        }
+        auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
+        // CarouselViewHandler2.MapIsBounceEnabled → CollectionView.Bounces.
+        controller.collectionView.bounces = platform->bounce_enabled ? YES : NO;
+    }
+
+    void collection_view_handler::native_update_peek_area_insets()
+    {
+        // CarouselViewHandler2.MapPeekAreaInsets → handler.UpdateLayout(): rebuild the compositional
+        // layout so the new section content insets (applied in build_compositional_layout from the peek
+        // mirror) take effect — the first cell's frame shifts inward and the adjacent items peek in.
+        native_rebuild_layout();
+    }
+
     // ---- creation + teardown ----
 
     collection_view_platform::~collection_view_platform()
@@ -810,6 +864,92 @@ namespace maui::controls
     }
     handler->simulate_deselect(maui::controls::index_path{.section = static_cast<int>(indexPath.section),
                                                           .item = static_cast<int>(indexPath.item)});
+}
+
+// ---- carousel scroll-end writeback (the UIScrollViewDelegate seam) ----
+//
+// CarouselViewController2 writes Position/CurrentItem back to the carousel after a scroll settles. The
+// port wires that here on the controller (which IS the UICollectionView's delegate): when a swipe ends
+// (deceleration finishes, or a drag ends with no deceleration), resolve the CENTERED item index from the
+// content offset (the carousel's snap alignment is Center) and write it back through the handler. The
+// suppress gate (set during a batch source update) drops spurious mid-update callbacks. The native
+// compositional path carries no phantom loop wrap, so the centered index maps straight to the item
+// ordinal (no LoopManager correction needed — documented W3-29 carry-over).
+
+// The item ordinal whose layout frame is centered in the current visible viewport, or -1 if none. The
+// carousel's snap alignment is Center, so the settled position is the visible item closest to the
+// viewport center along the scroll axis (the orientation comes from the handler's layout mirror).
+- (NSInteger)centeredItemIndex
+{
+    auto* handler = [self handler];
+    if (handler == nullptr || handler->typed_platform_view() == nullptr)
+    {
+        return -1;
+    }
+    UICollectionView* const collectionView = self.collectionView;
+    const BOOL isHorizontal =
+        handler->typed_platform_view()->orientation == maui::controls::items_layout_orientation::horizontal;
+    // The visible center along the scroll axis (contentInset shifts the offset frame, which UIKit folds
+    // into contentOffset, so the raw offset center is already inset-aware).
+    const CGFloat reference = isHorizontal ? collectionView.contentOffset.x + (collectionView.bounds.size.width / 2)
+                                           : collectionView.contentOffset.y + (collectionView.bounds.size.height / 2);
+
+    NSInteger best = -1;
+    CGFloat bestDistance = CGFLOAT_MAX;
+    for (NSIndexPath* const path in collectionView.indexPathsForVisibleItems)
+    {
+        if (path.section != 0)
+        {
+            continue; // the carousel is single-section
+        }
+        UICollectionViewLayoutAttributes* const attrs =
+            [collectionView.collectionViewLayout layoutAttributesForItemAtIndexPath:path];
+        if (attrs == nil)
+        {
+            continue;
+        }
+        const CGFloat cellCenter = isHorizontal ? CGRectGetMidX(attrs.frame) : CGRectGetMidY(attrs.frame);
+        const CGFloat distance = std::abs(cellCenter - reference);
+        if (distance < bestDistance)
+        {
+            bestDistance = distance;
+            best = path.item;
+        }
+    }
+    return best;
+}
+
+// Resolve the centered index and write Position + CurrentItem back (gated on the view being a carousel).
+- (void)writeBackCenteredPosition
+{
+    auto* handler = [self handler];
+    if (handler == nullptr || dynamic_cast<maui::controls::carousel_view*>(handler->virtual_view()) == nullptr)
+    {
+        return; // only the carousel writes scroll position back; a plain collection does not
+    }
+    const NSInteger centered = [self centeredItemIndex];
+    if (centered < 0)
+    {
+        return;
+    }
+    handler->set_position_from_scroll(static_cast<int>(centered));
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView*)scrollView
+{
+    (void)scrollView;
+    [self writeBackCenteredPosition];
+}
+
+- (void)scrollViewDidEndDragging:(UIScrollView*)scrollView willDecelerate:(BOOL)decelerate
+{
+    (void)scrollView;
+    // If the swipe will keep decelerating, defer to scrollViewDidEndDecelerating (the final resting
+    // position); only a drag that stops without deceleration settles here.
+    if (!decelerate)
+    {
+        [self writeBackCenteredPosition];
+    }
 }
 
 @end

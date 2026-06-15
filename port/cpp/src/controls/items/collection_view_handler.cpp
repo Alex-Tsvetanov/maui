@@ -28,6 +28,7 @@
 #include <vector>
 
 #include "maui/controls/items/boxed_item.hpp"
+#include "maui/controls/items/carousel_view.hpp"
 #include "maui/controls/items/grid_items_layout.hpp"
 #include "maui/controls/items/groupable_items_view.hpp"
 #include "maui/controls/items/i_items_view.hpp"
@@ -113,6 +114,11 @@ namespace maui::controls
                 {"group_header_template", &collection_view_handler::map_group_templates},
                 {"group_footer_template", &collection_view_handler::map_group_templates},
                 {"can_reorder_items", &collection_view_handler::map_can_reorder_items},
+                // CarouselViewHandler2.Mapper: the carousel reuses this handler, so its three extra
+                // knobs register here and reach carousel_view by dynamic_cast (no-ops for collection_view).
+                {"is_swipe_enabled", &collection_view_handler::map_is_swipe_enabled},
+                {"is_bounce_enabled", &collection_view_handler::map_is_bounce_enabled},
+                {"peek_area_insets", &collection_view_handler::map_peek_area_insets},
             },
         };
         return table;
@@ -401,6 +407,96 @@ namespace maui::controls
 #ifdef MAUI_PLATFORM_APPLE
         handler.native_update_can_reorder(); // C# MapCanReorderItems → UpdateCanReorderItems
 #endif
+    }
+
+    // CarouselViewHandler2.MapIsSwipeEnabled: CollectionView.ScrollEnabled = IsSwipeEnabled. The carousel
+    // reuses this handler, so it reaches the concrete carousel_view by dynamic_cast (no-op otherwise).
+    void collection_view_handler::map_is_swipe_enabled(collection_view_handler& handler, i_items_view& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        auto* carousel = dynamic_cast<carousel_view*>(&view);
+        if (platform == nullptr || carousel == nullptr)
+        {
+            return;
+        }
+        platform->swipe_enabled = carousel->is_swipe_enabled();
+#ifdef MAUI_PLATFORM_IOS
+        handler.native_update_swipe_enabled(); // CollectionView.ScrollEnabled
+#endif
+    }
+
+    // CarouselViewHandler2.MapIsBounceEnabled: CollectionView.Bounces = IsBounceEnabled.
+    void collection_view_handler::map_is_bounce_enabled(collection_view_handler& handler, i_items_view& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        auto* carousel = dynamic_cast<carousel_view*>(&view);
+        if (platform == nullptr || carousel == nullptr)
+        {
+            return;
+        }
+        platform->bounce_enabled = carousel->is_bounce_enabled();
+#ifdef MAUI_PLATFORM_IOS
+        handler.native_update_bounce_enabled(); // CollectionView.Bounces
+#endif
+    }
+
+    // CarouselViewHandler2.MapPeekAreaInsets: handler.UpdateLayout() — adjust the layout insets so the
+    // adjacent items "peek" in. The port records the inset on the mirror and pushes the native
+    // section/content insets on iOS (where a real UICollectionView applies them). On headless/appkit the
+    // mirror is the asserted surface — no native carousel inset realization (documented simplification).
+    void collection_view_handler::map_peek_area_insets(collection_view_handler& handler, i_items_view& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        auto* carousel = dynamic_cast<carousel_view*>(&view);
+        if (platform == nullptr || carousel == nullptr)
+        {
+            return;
+        }
+        platform->peek_area_insets = carousel->peek_area_insets();
+#ifdef MAUI_PLATFORM_IOS
+        handler.native_update_peek_area_insets(); // UpdateLayout → section/content insets
+#endif
+    }
+
+    // CarouselViewController2.SetPosition: write the settled scroll position BACK to the carousel
+    // (SetValueFromRenderer), then chain into SetCurrentItem (the C# SetPosition → SetCurrentItem order).
+    // The suppress gate (C# _isInternalCollectionUpdate) drops the writeback during a batch source
+    // update so spurious UIKit scroll callbacks can't clobber the position the update is computing.
+    void collection_view_handler::set_position_from_scroll(int position)
+    {
+        if (suppress_scroll_writeback_)
+        {
+            return;
+        }
+        auto* carousel = dynamic_cast<carousel_view*>(virtual_view());
+        if (carousel == nullptr || !source_ || source_->item_count() == 0)
+        {
+            return; // C# SetPosition guards: ItemsView is CarouselView, ItemsSource non-empty
+        }
+        if (position < 0 || position >= source_->item_count())
+        {
+            return; // C# `position == -1` early-out; reject out-of-range (source_->item would throw)
+        }
+        carousel->set_position(position);
+        set_current_item_from_scroll(position);
+    }
+
+    // CarouselViewController2.SetCurrentItem: resolve the item at `position` from the source and write it
+    // back (SetValueFromRenderer). Shares the suppress gate with set_position_from_scroll.
+    void collection_view_handler::set_current_item_from_scroll(int position)
+    {
+        if (suppress_scroll_writeback_)
+        {
+            return;
+        }
+        auto* carousel = dynamic_cast<carousel_view*>(virtual_view());
+        if (carousel == nullptr || !source_ || source_->item_count() == 0 || position < 0 ||
+            position >= source_->item_count())
+        {
+            return; // reject out-of-range (source_->item would throw out_of_range)
+        }
+        // The carousel is single-section (section 0); resolve the item at the centered ordinal.
+        carousel->set_current_item(source_->item(index_path{.section = 0, .item = position}));
     }
 
     // C# MapScrollTo (ItemsViewHandler.ScrollToRequested): resolve the request to an index path,

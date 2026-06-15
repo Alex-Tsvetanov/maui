@@ -27,6 +27,7 @@
 #include "maui/controls/items/item_collection.hpp"
 #include "maui/controls/scroll_to_position.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/thickness.hpp"
 #include "tests/support/run_loop_pump.hpp"
 #include <gtest/gtest.h>
 
@@ -138,6 +139,91 @@ namespace
         r.view.set_position(5);
         pump_run_loop(0.2);
         EXPECT_TRUE(r.view.loop());
+        (void)window;
+    }
+
+    // A simulated user scroll-and-settle writes Position + CurrentItem BACK to the carousel
+    // (CarouselViewController2.SetPosition/SetCurrentItem → SetValueFromRenderer, driven from the
+    // UIScrollViewDelegate scroll-end callback when the centered item changes). We push the native
+    // contentOffset to center a later item, then deliver the scroll-end callback the same way UIKit
+    // would after deceleration; the carousel's Position must follow.
+    TEST(carousel_view_ios, user_scroll_writes_position_and_current_item_back)
+    {
+        rig r;
+        r.view.set_is_scroll_animated(false);
+        UIWindow* const window = r.mount();
+        UICollectionView* const collection_view = native_collection_view(r.handler);
+        EXPECT_EQ(r.view.position(), 0);
+
+        // Scroll the native carousel so a later item is centered, then end deceleration (the user-gesture
+        // settle the delegate listens for). Center item 4 by scrolling it to the horizontal center.
+        NSIndexPath* const target = [NSIndexPath indexPathForItem:4 inSection:0];
+        [collection_view scrollToItemAtIndexPath:target
+                                atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally
+                                        animated:NO];
+        [collection_view layoutIfNeeded];
+        // Deliver the scroll-end callback (the UIScrollViewDelegate hook the controller now implements).
+        [(id<UIScrollViewDelegate>)collection_view.delegate scrollViewDidEndDecelerating:collection_view];
+        pump_until([&] { return r.view.position() == 4; });
+
+        EXPECT_EQ(r.view.position(), 4) << "a user scroll-and-settle should write Position back";
+        EXPECT_EQ(r.view.current_item().text(), "item-4") << "a user scroll-and-settle should write CurrentItem back";
+        (void)window;
+    }
+
+    // IsSwipeEnabled drives the native UICollectionView.scrollEnabled
+    // (CarouselViewHandler2.MapIsSwipeEnabled → CollectionView.ScrollEnabled).
+    TEST(carousel_view_ios, is_swipe_enabled_drives_native_scroll_enabled)
+    {
+        rig r;
+        UIWindow* const window = r.mount();
+        UICollectionView* const collection_view = native_collection_view(r.handler);
+
+        EXPECT_TRUE(collection_view.scrollEnabled); // default true
+        r.view.set_is_swipe_enabled(false);
+        EXPECT_FALSE(collection_view.scrollEnabled);
+        r.view.set_is_swipe_enabled(true);
+        EXPECT_TRUE(collection_view.scrollEnabled);
+        (void)window;
+    }
+
+    // IsBounceEnabled drives the native UICollectionView.bounces
+    // (CarouselViewHandler2.MapIsBounceEnabled → CollectionView.Bounces).
+    TEST(carousel_view_ios, is_bounce_enabled_drives_native_bounces)
+    {
+        rig r;
+        UIWindow* const window = r.mount();
+        UICollectionView* const collection_view = native_collection_view(r.handler);
+
+        EXPECT_TRUE(collection_view.bounces); // default true
+        r.view.set_is_bounce_enabled(false);
+        EXPECT_FALSE(collection_view.bounces);
+        r.view.set_is_bounce_enabled(true);
+        EXPECT_TRUE(collection_view.bounces);
+        (void)window;
+    }
+
+    // PeekAreaInsets non-zero adjusts the native layout insets so the first cell starts shifted in by
+    // the leading peek (CarouselViewHandler2.MapPeekAreaInsets → UpdateLayout → section/content insets).
+    // The carousel is horizontal, so the left peek inset shifts the first cell's origin rightward.
+    TEST(carousel_view_ios, peek_area_insets_shift_the_first_cell_origin)
+    {
+        rig r;
+        UIWindow* const window = r.mount();
+        UICollectionView* const collection_view = native_collection_view(r.handler);
+
+        NSIndexPath* const first = [NSIndexPath indexPathForItem:0 inSection:0];
+        UICollectionViewLayoutAttributes* const before = [collection_view layoutAttributesForItemAtIndexPath:first];
+        const CGFloat origin_before = before.frame.origin.x;
+
+        r.view.set_peek_area_insets(maui::core::thickness{40, 0, 40, 0}); // left/right peek
+        [collection_view layoutIfNeeded];
+        pump_run_loop(0.1);
+        UICollectionViewLayoutAttributes* const after = [collection_view layoutAttributesForItemAtIndexPath:first];
+        const CGFloat origin_after = after.frame.origin.x;
+
+        EXPECT_GT(origin_after, origin_before)
+            << "a non-zero left peek inset should shift the first cell's origin rightward";
         (void)window;
     }
 } // namespace

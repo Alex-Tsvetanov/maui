@@ -223,4 +223,64 @@ namespace
 
         EXPECT_EQ(carousel.position(), 0);
     }
+
+    // ---- the native-scroll writeback seam (CarouselViewController2.SetPosition/SetCurrentItem →
+    //      SetValueFromRenderer): the platform delegate's scroll-end callback resolves a centered index
+    //      and writes Position + CurrentItem back to the control. Exercised cross-platform through the
+    //      handler's set_position_from_scroll / set_current_item_from_scroll entry points. ----
+
+    TEST(carousel_view, set_position_from_scroll_writes_position_and_current_item_back)
+    {
+        std::shared_ptr<string_collection> const items =
+            std::make_shared<string_collection>(std::vector<std::string>{"A", "B", "C", "D", "E"}); // publisher FIRST
+        carousel_view carousel;
+        auto handler = std::make_shared<collection_view_handler>();
+        carousel.set_items_source(items);
+        carousel.set_handler(handler);
+        EXPECT_EQ(carousel.position(), 0);
+
+        handler->set_position_from_scroll(3);
+
+        EXPECT_EQ(carousel.position(), 3);
+        EXPECT_EQ(carousel.current_item().text(), "D"); // SetPosition → SetCurrentItem writeback
+    }
+
+    // The suppress-during-batch-update gate (C# _isInternalCollectionUpdate): while set, a scroll-driven
+    // writeback is dropped so a batch source update's spurious UIKit scroll callbacks can't clobber the
+    // Position the update is computing.
+    TEST(carousel_view, set_position_from_scroll_is_suppressed_during_batch_update)
+    {
+        std::shared_ptr<string_collection> const items =
+            std::make_shared<string_collection>(std::vector<std::string>{"A", "B", "C", "D", "E"});
+        carousel_view carousel;
+        auto handler = std::make_shared<collection_view_handler>();
+        carousel.set_items_source(items);
+        carousel.set_handler(handler);
+
+        handler->set_suppress_scroll_writeback(true);
+        handler->set_position_from_scroll(2);
+        EXPECT_EQ(carousel.position(), 0) << "writeback must be dropped while the batch-update gate is set";
+
+        handler->set_suppress_scroll_writeback(false);
+        handler->set_position_from_scroll(2);
+        EXPECT_EQ(carousel.position(), 2) << "writeback must resume once the gate is cleared";
+    }
+
+    // A writeback of the already-current position is idempotent (no spurious re-entrancy / no extra
+    // event beyond the value itself): writing position 0 onto a position-0 carousel changes nothing.
+    TEST(carousel_view, set_position_from_scroll_to_current_position_is_idempotent)
+    {
+        std::shared_ptr<string_collection> const items =
+            std::make_shared<string_collection>(std::vector<std::string>{"A", "B", "C"});
+        carousel_view carousel;
+        auto handler = std::make_shared<collection_view_handler>();
+        carousel.set_items_source(items);
+        carousel.set_handler(handler);
+
+        int count_fired = 0;
+        carousel.position_changed_command = [&count_fired] { ++count_fired; };
+        handler->set_position_from_scroll(0); // already at 0
+        EXPECT_EQ(carousel.position(), 0);
+        EXPECT_EQ(count_fired, 0) << "writing the current position back should not fire a change";
+    }
 } // namespace

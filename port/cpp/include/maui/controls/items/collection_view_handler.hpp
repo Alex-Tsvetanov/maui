@@ -51,6 +51,7 @@
 #include "maui/core/event.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/scroll_bar_visibility.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/core/view_handler.hpp"
 #include "maui/core/view_platform_base.hpp"
 #include "maui/graphics/rect.hpp"
@@ -175,6 +176,14 @@ namespace maui::controls
         bool grouped = false;
         bool can_reorder_items = false;
 
+        // ---- carousel mirrors (CarouselViewHandler2.MapIsSwipeEnabled / MapIsBounceEnabled /
+        //      MapPeekAreaInsets). Defaults match CarouselView (swipe/bounce true, no peek). On iOS the
+        //      mappers push straight to the native UICollectionView; these mirrors are the headless/appkit
+        //      state surface (no native carousel scroll-lock there — documented simplification). ----
+        bool swipe_enabled = true;
+        bool bounce_enabled = true;
+        maui::core::thickness peek_area_insets{};
+
         // ---- selection mirrors (UpdateSelectionMode / UpdatePlatformSelection) ----
         bool allows_selection = false;
         bool allows_multiple_selection = false;
@@ -224,6 +233,29 @@ namespace maui::controls
         void simulate_deselect(const index_path& path);
         void simulate_reorder_completed();
 
+        // ---- carousel scroll writeback (CarouselViewController2.SetPosition / SetCurrentItem →
+        //      SetValueFromRenderer). The platform's scroll-end delegate (the .mm's
+        //      scrollViewDidEndDecelerating/Dragging) resolves the centered item index and calls these to
+        //      write the settled scroll position BACK to the carousel's Position + CurrentItem. No-ops
+        //      unless the virtual view is a carousel_view (the carousel reuses this collection handler).
+        //      Guarded by suppress_scroll_writeback (the C# _isInternalCollectionUpdate gate) so the
+        //      spurious UIKit scroll callbacks fired during a batch source update can't clobber the
+        //      position the update is computing. set_position_from_scroll writes Position then chains into
+        //      set_current_item_from_scroll (the C# SetPosition → SetCurrentItem order); the latter
+        //      resolves the item at `position` from the source and writes it. ----
+        void set_position_from_scroll(int position);
+        void set_current_item_from_scroll(int position);
+        // C# CarouselViewController2._isInternalCollectionUpdate: while true, set_position_from_scroll /
+        // set_current_item_from_scroll are dropped (the batch-update suppression gate).
+        void set_suppress_scroll_writeback(bool suppress)
+        {
+            suppress_scroll_writeback_ = suppress;
+        }
+        [[nodiscard]] bool suppress_scroll_writeback() const
+        {
+            return suppress_scroll_writeback_;
+        }
+
         // ---- mapper entries ----
         static void map_items_source(collection_view_handler& handler, i_items_view& view);
         static void map_item_template(collection_view_handler& handler, i_items_view& view);
@@ -241,6 +273,18 @@ namespace maui::controls
         static void map_group_templates(collection_view_handler& handler, i_items_view& view);
         static void map_can_reorder_items(collection_view_handler& handler, i_items_view& view);
         static void map_scroll_to(collection_view_handler& handler, i_items_view& view, const std::any& args);
+
+        // ---- carousel-specific mapper entries (CarouselViewHandler2.Map* — the carousel reuses this
+        //      collapsed collection handler, so its three extra knobs register here and reach the concrete
+        //      carousel_view by dynamic_cast, exactly like map_selected_item reaches selectable_items_view.
+        //      No-ops when the virtual view is a plain collection_view). map_is_swipe_enabled →
+        //      CollectionView.ScrollEnabled; map_is_bounce_enabled → CollectionView.Bounces;
+        //      map_peek_area_insets → UpdateLayout (adjust the native section/content insets). On the
+        //      headless/appkit backends these update the platform mirrors only (no native carousel
+        //      scroll-lock surface — documented simplification). ----
+        static void map_is_swipe_enabled(collection_view_handler& handler, i_items_view& view);
+        static void map_is_bounce_enabled(collection_view_handler& handler, i_items_view& view);
+        static void map_peek_area_insets(collection_view_handler& handler, i_items_view& view);
 
 #ifdef MAUI_PLATFORM_IOS
         // ---- the iOS native bridge (W3-29) ----
@@ -274,6 +318,10 @@ namespace maui::controls
         // text mirror) — the test seam that proves a model reorder re-rendered the native cells. Empty
         // when the path is not realized.
         [[nodiscard]] std::string native_cell_text(const index_path& path) const;
+        // ---- the carousel knobs on the native UICollectionView (CarouselViewHandler2.Map*) ----
+        void native_update_swipe_enabled();    // CollectionView.ScrollEnabled = swipe_enabled
+        void native_update_bounce_enabled();   // CollectionView.Bounces = bounce_enabled
+        void native_update_peek_area_insets(); // UpdateLayout: apply the peek as content insets
 #endif
 
         // --- appkit (W3-30) ---
@@ -339,6 +387,11 @@ namespace maui::controls
         void realize_supplemental(realized_supplemental& slot, cell_element_kind element,
                                   const std::shared_ptr<data_template>& content_template, const boxed_item& value);
         [[nodiscard]] std::shared_ptr<maui::core::bindable_object> take_from_pool(const std::string& reuse_id);
+
+        // C# CarouselViewController2._isInternalCollectionUpdate: gates set_position_from_scroll /
+        // set_current_item_from_scroll so a batch source update's spurious UIKit scroll callbacks don't
+        // clobber the position the update is computing.
+        bool suppress_scroll_writeback_ = false;
 
         std::shared_ptr<i_items_view_source> source_;
         maui::core::scoped_connection source_updated_; // after source_ (§8)

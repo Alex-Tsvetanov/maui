@@ -23,9 +23,14 @@
 //     fills) has no headless analog and is OMITTED (documented — no virtualization realizes real
 //     child views in the port's simulator).
 //   - The handler registered is collection_view_handler (the carousel reuses the items virtualization
-//     wholesale). The carousel knobs the W3-29 collection handler does not natively own
-//     (PeekAreaInsets / IsSwipeEnabled / IsBounceEnabled) are control-side state pushed to the iOS
-//     compositional layout where the native carousel handler reads them (documented).
+//     wholesale). The carousel-only mapper keys (CarouselViewHandler2.MapIsSwipeEnabled /
+//     MapIsBounceEnabled / MapPeekAreaInsets, plus the SetPosition/SetCurrentItem scroll writeback)
+//     register on that shared collection handler's mapper and reach this concrete carousel_view by
+//     dynamic_cast — exactly the collapse the port already uses for the selectable/groupable keys (so
+//     they are no-ops for a plain collection_view). On iOS they push to the real UICollectionView
+//     (ScrollEnabled / Bounces / contentInset) and the controller's UIScrollViewDelegate writes the
+//     settled centered position back to Position + CurrentItem. See collection_view_handler.hpp
+//     (map_is_swipe_enabled / map_is_bounce_enabled / map_peek_area_insets / set_position_from_scroll).
 
 #include <memory>
 #include <utility>
