@@ -118,7 +118,7 @@ namespace maui::controls
         friend struct time_picker_descriptor_access;
 
         // TimePicker.HandleIsOpenChanged: raise Opened when the new value is true, else Closed.
-        void on_is_open_changed(bool new_value);
+        void on_is_open_changed(bool new_value) const;
 
         maui::core::property<std::string> format_{*this, format_property()};
         maui::core::property<std::optional<maui::core::time_span>> time_{*this, time_property()};

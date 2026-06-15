@@ -7,6 +7,7 @@
 // the FilePickerFileType platform registry (Value resolves the current platform's entry, throws when
 // the platform has no entry - the netstandard mirror).
 
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -120,20 +121,23 @@ namespace
 
         pick_options options;
         options.picker_title = "Choose a document";
-        file_picker_file_type custom(
-            {{device_platform::ios(), {"com.adobe.pdf"}}, {device_platform::mac_catalyst(), {"com.adobe.pdf"}}});
+        const file_picker_file_type custom({{.platform = device_platform::ios(), .types = {"com.adobe.pdf"}},
+                                            {.platform = device_platform::mac_catalyst(), .types = {"com.adobe.pdf"}}});
         options.file_types = custom;
 
         file_picker::pick_async(options, [](const std::optional<file_result>&) {});
 
         const std::optional<pick_options> recorded = fake->last_options();
         ASSERT_TRUE(recorded.has_value());
-        EXPECT_EQ(recorded->picker_title, "Choose a document");
-        ASSERT_TRUE(recorded->file_types.has_value());
-        const std::optional<std::vector<std::string>> ios_types = recorded->file_types->try_get(device_platform::ios());
+        const pick_options opts = recorded.value_or(pick_options{});
+        EXPECT_EQ(opts.picker_title, "Choose a document");
+        ASSERT_TRUE(opts.file_types.has_value());
+        const std::optional<std::vector<std::string>> ios_types =
+            opts.file_types.value_or(file_picker_file_type{}).try_get(device_platform::ios());
         ASSERT_TRUE(ios_types.has_value());
-        ASSERT_EQ(ios_types->size(), 1U);
-        EXPECT_EQ(ios_types->front(), "com.adobe.pdf");
+        const std::vector<std::string> ios_types_v = ios_types.value_or(std::vector<std::string>{});
+        ASSERT_EQ(ios_types_v.size(), 1U);
+        EXPECT_EQ(ios_types_v.front(), "com.adobe.pdf");
     }
 
     // PickOptions.Default: FileTypes is null (all file types selectable) and no picker title.
@@ -146,8 +150,9 @@ namespace
         file_picker::pick_async([](const std::optional<file_result>&) {}); // the default-options overload
         const std::optional<pick_options> recorded = fake->last_options();
         ASSERT_TRUE(recorded.has_value());
-        EXPECT_FALSE(recorded->file_types.has_value()); // null => all types
-        EXPECT_TRUE(recorded->picker_title.empty());
+        const pick_options opts = recorded.value_or(pick_options{});
+        EXPECT_FALSE(opts.file_types.has_value()); // null => all types
+        EXPECT_TRUE(opts.picker_title.empty());
     }
 
     // FilePickerFileType.Value resolves the entry for the current platform; a registry with no entry
@@ -158,12 +163,12 @@ namespace
         info->set_platform(device_platform::ios());
         maui::devices::device_info::set_current(info);
 
-        const file_picker_file_type with_ios({{device_platform::ios(), {"public.image"}}});
+        const file_picker_file_type with_ios({{.platform = device_platform::ios(), .types = {"public.image"}}});
         const std::vector<std::string> resolved = with_ios.value();
         ASSERT_EQ(resolved.size(), 1U);
         EXPECT_EQ(resolved.front(), "public.image");
 
-        const file_picker_file_type android_only({{device_platform::android(), {"image/*"}}});
+        const file_picker_file_type android_only({{.platform = device_platform::android(), .types = {"image/*"}}});
         EXPECT_THROW((void)android_only.value(), feature_not_supported);
     }
 

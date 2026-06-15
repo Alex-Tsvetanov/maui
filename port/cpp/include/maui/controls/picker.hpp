@@ -253,7 +253,7 @@ namespace maui::controls
 
         // Picker.HandleIsOpenChanged: raise Opened when the new value is true, else Closed (the value
         // is already stored, so a handler reading is_open() sees the transition's result).
-        void on_is_open_changed(bool new_value);
+        void on_is_open_changed(bool new_value) const;
 
         // Picker.GetSelectedIndex: re-derive the index from the selected item when one is set.
         [[nodiscard]] int get_selected_index() const;

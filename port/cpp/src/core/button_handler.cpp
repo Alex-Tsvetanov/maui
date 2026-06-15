@@ -3,8 +3,6 @@
 
 #include "maui/core/button_handler.hpp"
 
-#include <utility>
-
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/i_button.hpp"
 #include "maui/core/i_image_source.hpp"

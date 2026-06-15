@@ -417,7 +417,7 @@ namespace maui::controls
         }
     }
 
-    void picker::on_is_open_changed(bool new_value)
+    void picker::on_is_open_changed(bool new_value) const
     {
         // Picker.HandleIsOpenChanged: the value is already stored, so raise Opened when it turned true
         // and Closed when it turned false (a handler reading is_open() observes the transition result).

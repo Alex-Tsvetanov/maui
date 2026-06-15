@@ -142,7 +142,7 @@ namespace maui::controls
         friend struct date_picker_descriptor_access;
 
         // DatePicker.HandleIsOpenChanged: raise Opened when the new value is true, else Closed.
-        void on_is_open_changed(bool new_value);
+        void on_is_open_changed(bool new_value) const;
 
         maui::core::property<std::string> format_{*this, format_property()};
         maui::core::property<std::optional<maui::core::date_time>> date_{*this, date_property()};
