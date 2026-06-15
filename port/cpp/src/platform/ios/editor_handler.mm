@@ -47,6 +47,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include "ios_conversions.hpp"
 #include "ios_done_accessory.hpp"
@@ -344,7 +345,7 @@ namespace
     }
     const NSUInteger add_length = text != nil ? text.length : 0;
     const NSUInteger new_length = current_length + add_length - range.length;
-    return new_length <= static_cast<NSUInteger>(max_length) ? YES : NO;
+    return std::cmp_less_equal(new_length, max_length) ? YES : NO;
 }
 @end
 
