@@ -25,6 +25,75 @@ fakes on android), the **AndroidSpecific** platform-config wiring (stored-inert)
 **Hint** delegate. Windows/Tizen/GTK + BlazorWebView + Map + source-gen compiled bindings remain
 out-of-scope.
 
+## Known genuine iOS/macOS gaps — ⏸ DEFERRED (post-batch audit, 2026-06-15 @ `eee3c14e7a`)
+
+A 40-agent adversarial audit (each candidate verified against the C# oracle; faithful-to-C# items
+demoted) confirmed **34 genuine gaps** — things C# MAUI DOES on iOS/MacCatalyst that the port does NOT.
+**Severity: 0 high · 28 medium · 6 low** — none are rendering/data-correctness breakers; all are
+interaction / feature-completeness. These are DISTINCT from the FAITHFUL "not supported" set (macOS
+sensors/screenshot/app_actions `feature_not_supported`, AppKit no-soft-keyboard / hand-drawn page-control
+dots / no nav-bar tint, etc.) which is correctly absent and must STAY absent (completing it would diverge
+from MAUI). C# oracle in `()`. (Some collapse into shared work-items — the four picker `IsOpen` rows ≈ 1
+unit, the two KeyboardAutoManager rows ≈ 1 — so ~28 distinct fixes.)
+
+**Pickers — `IsOpen`/`Opened`/`Closed` + focus (4):**
+- [med] picker/date_picker/time_picker `IsOpen` + `Opened`/`Closed` + the EditingDidBegin/DidEnd→`IsFocused`/`IsOpen` dance — the focus primitives (`view_focus_ops`) already exist (`PickerHandler.iOS.cs:248`; `DatePickerHandler.iOS.cs:89`; `TimePickerHandler.iOS.cs:75`; `IPicker.cs:23`)
+- [med] picker `IsOpen` cross-platform mapper → `BecomeFirstResponder`/`ResignFirstResponder` (`PickerHandler.cs` MapIsOpen)
+- [med] date_picker `IsOpen` mapper (`DatePickerHandler.cs` + `.iOS.cs:89`)
+- [low] time_picker `IsOpen` mapper (`TimePickerHandler.*`)
+
+**iOS RTL (1):**
+- [med] base-level `FlowDirection`→`SemanticContentAttribute` push is mirror-only, so RTL mirroring is unrealized on native iOS views (only `progress_bar` does it; AppKit already does it for all) — `ViewExtensions.cs:119`; `StepperExtensions.cs:47`
+
+**Keyboard UX (3):**
+- [med] `KeyboardAutoManager` scroll-avoidance subsystem (ShouldReturn next-responder walk collapsed to resign) — `KeyboardAutoManagerScroll.cs`
+- [med] `KeyboardAutoManager` + `GoToNextResponder` next-responder walk (≈ dup of the above) — `KeyboardAutoManager.cs`
+- [med] `ContentPage.HideSoftInputOnTapped` — no iOS mapper (`HideSoftInputOnTappedChangedManager.iOS.cs`; `ContentPage.Mapper.cs`)
+
+**Text controls (2):**
+- [med] Editor `VerticalTextAlignment` native ContentOffset centering not applied on iOS (mirror-only) — `MauiTextView.cs:196`; `EditorHandler.iOS.cs:143`
+- [med] Label `LineBreakMode` + `MaxLines` not modeled — `Label.iOS.cs:29/:34`; `Label.cs:103/110`
+
+**Button image (2):**
+- [med] Button `ImageSource` + `ContentLayout` not modeled (no button image part) — `ButtonHandler.iOS.cs:150`; `Button.cs:99/:35`
+- [med] Button `Source` ImageButtonMapper deferred (≈ same image-on-button work) — `ButtonHandler.cs` ImageButtonMapper
+
+**CarouselView (4):**
+- [med] scroll does not write `Position`/`CurrentItem` back — `CarouselViewController2.cs:512-513`
+- [med] `IsSwipeEnabled` → `CollectionView.ScrollEnabled` (`CarouselViewHandler2.iOS.cs:83`)
+- [med] `PeekAreaInsets` → layout (`CarouselViewHandler2.iOS.cs:107`)
+- [low] `IsBounceEnabled` → `Bounces` (`CarouselViewHandler2.iOS.cs:95`)
+
+**SwipeView (2):**
+- [med] `SwipeItemMenuItem`/`SwipeItemView` have C# iOS handlers (UIButton / ContentView) but NO port platform handler → revealed swipe-item visuals not rendered — `SwipeItemMenuItemHandler.iOS.cs`; `SwipeItemViewHandler.iOS.cs`; `MauiSwipeView.cs`
+- [med] interactive drag-to-reveal pan gesture not wired — `Compatibility .../SwipeView/iOS` (MauiSwipeView `UIPanGestureRecognizer`)
+
+**Shell (3):**
+- [med] `FlyoutHeader`/`FlyoutFooter` (+templates) not rendered — `ShellHandler.cs`; `ShellFlyoutContentRenderer`/`ShellFlyoutHeaderContainer`
+- [med] `FlyoutWidth` / `FlyoutHeaderBehavior` not applied — `ShellHandler.cs`; `ShellFlyoutLayoutManager`
+- [med] SearchHandler *results* renderer deferred (the UISearchController results-controller showing `ItemsSource`) — `ShellPageRendererTracker`
+
+**WebView (2):**
+- [med] `UserAgent` not mapped — `WebViewHandler.iOS.cs:46` MapUserAgent
+- [med] `WKUIDelegate` JS alert/confirm/prompt dialogs not wired — `WebViewHandler.iOS.cs:25` MapWKUIDelegate
+
+**Graphics (1):**
+- [med] `ICanvas.DrawImage` + `Microsoft.Maui.Graphics.IImage` not ported — `ICanvas.cs:338`; `Platforms/MaciOS/PlatformCanvas.cs:658`
+
+**Essentials (5):**
+- [med] ⚠️ `FilePicker` essential **ENTIRELY ABSENT** — no interface, no iOS impl, no deferral note (a silent gap) — `FilePicker.ios.cs`
+- [med] `SecureStorage.DefaultAccessible` / `SetAsync(key,value,SecAccessible)` overload omitted — `SecureStorage.ios.…cs`; PublicAPI:919
+- [low] macOS `Permissions.LocationWhenInUse` CoreLocation status not ported (auto-granted instead) — `Permissions.macos.cs:103`
+- [low] `Compass.ShouldDisplayHeadingCalibration` / `IPlatformCompass` not ported (iOS) — `Compass.ios.cs`
+- [low] `Launcher` `WebUtils.GetNativeUrl` AbsoluteUri fallback not ported — `WebUtils.shared.cs:140`; `Launcher.macos.cs:12`
+
+**Other controls / chrome (5):**
+- [med] `TabbedPage.BarBackground` (Brush/gradient tab bars) not mapped — only solid `BarBackgroundColor` (`TabbedRenderer.cs:98/:253`)
+- [med] Switch foreground / trait-change color re-application observers not wired — `SwitchHandler.iOS.cs:95/:114`
+- [med] per-control `SafeAreaEdges` bindable + native inset application not ported — `iOSSpecific/Page.cs:120`; PublicAPI:4996
+- [med] Gesture `UIGestureRecognizerDelegate` (ShouldRecognizeSimultaneously / ShouldReceiveTouch) arbitration not installed — `GesturePlatformManager.iOS.cs:394…868`
+- [low] SearchBar `OnMovedToWindow` cancel-color re-fire + `IUIViewLifeCycleEvents.MovedToWindow` not wired — `MauiSearchBar.cs:130`; `SearchBarHandler.iOS.cs:176`
+
 ## Build & test (headless) — run from `port/cpp/`
 
 ```bash
