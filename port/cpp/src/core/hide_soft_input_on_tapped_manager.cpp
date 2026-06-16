@@ -10,11 +10,15 @@
 #include "maui/platform/ios/hide_soft_input_on_tapped_manager.hpp"
 
 #include <algorithm>
+#include <memory>
 #include <ranges>
 #include <utility>
 
 #include "maui/controls/content_page.hpp"
+#include "maui/controls/element.hpp"          // logical-parent walk to find the owning content_page
+#include "maui/core/content_page_handler.hpp" // resolve the page's soft_input_manager()
 #include "maui/core/event.hpp"
+#include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_view.hpp"
 
 namespace maui::platform::ios
@@ -127,6 +131,30 @@ namespace maui::platform::ios
             catch (...)
             {
             }
+        }
+    }
+
+    void route_input_view_focus(maui::core::i_view& view)
+    {
+        // C# InputView.MapIsFocused: route the focus change to the shared HideSoftInputOnTappedChangedManager.
+        // The manager lives on the owning content_page's handler here, so walk the logical-parent chain (cross-
+        // cast i_view → element, valid because every concrete view derives both) for the first content_page.
+        auto* node = dynamic_cast<maui::controls::element*>(&view);
+        for (; node != nullptr; node = node->logical_parent())
+        {
+            auto* page = dynamic_cast<maui::controls::content_page*>(node);
+            if (page == nullptr)
+            {
+                continue;
+            }
+            // Resolve the page's handler → its soft_input_manager(), mirroring C#'s
+            // handler?.GetService<HideSoftInputOnTappedChangedManager>()?.UpdateFocusForView(iv).
+            const std::shared_ptr<maui::core::i_element_handler>& element_handler = page->handler();
+            if (auto* page_handler = dynamic_cast<maui::core::content_page_handler*>(element_handler.get()))
+            {
+                page_handler->soft_input_manager().update_focus_for_view(view);
+            }
+            return; // first owning page handled (C# resolves one manager); stop the walk either way
         }
     }
 } // namespace maui::platform::ios

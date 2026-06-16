@@ -29,5 +29,13 @@ namespace maui::core
         {
             return nullptr;
         }
+
+        // C# Button.IImageSourcePart.UpdateIsLoading (Button.cs:499-505): the handler's image mapper pushes
+        // the loader's in-flight loading state here so a load FINISH re-pushes ContentLayout (re-measure).
+        // NARROW like image_source(): the seam lives on i_text_button rather than widening Button to i_image.
+        // Defaulted to a no-op so non-image i_text_button implementers need not carry it; Button overrides.
+        virtual void update_is_loading(bool /*is_loading*/)
+        {
+        }
     };
 } // namespace maui::core

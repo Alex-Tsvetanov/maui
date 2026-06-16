@@ -3,6 +3,8 @@
 
 #include "maui/core/button_handler.hpp"
 
+#include <utility> // std::move (the loading callback handed to the loader)
+
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/i_button.hpp"
 #include "maui/core/i_image_source.hpp"
@@ -74,10 +76,15 @@ namespace maui::core
             return;
         }
 
+        // Push the in-flight loading state back to the control so UpdateIsLoading re-pushes ContentLayout
+        // on completion (C# Button.cs:499-505 — IImageSourcePart.UpdateIsLoading). Mirror image_handler.
+        i_text_button* const view_ptr = &view;
+        auto on_loading = [view_ptr](bool is_loading) { view_ptr->update_is_loading(is_loading); };
+
         i_image_source* const src = view.image_source();
         if (src == nullptr || src->is_empty())
         {
-            handler.image_source_loader_.update_source(nullptr, nullptr);
+            handler.image_source_loader_.update_source(nullptr, nullptr, std::move(on_loading));
             clear_source_native(*platform);
             return;
         }
@@ -86,11 +93,13 @@ namespace maui::core
         {
             handler.image_source_loader_.update_source(nullptr, nullptr);
             load_file_source_sync(*platform, *file_src);
+            view.update_is_loading(false);
             return;
         }
 
         handler.image_source_loader_.update_source(
-            src, [platform](const image_source_result& result) { apply_loaded_result(*platform, result); });
+            src, [platform](const image_source_result& result) { apply_loaded_result(*platform, result); },
+            std::move(on_loading));
     }
 
     // ContentLayout (Button.Mapper.cs MapContentLayout → UpdateContentLayout): the port stores + pushes it

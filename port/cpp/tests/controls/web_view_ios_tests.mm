@@ -265,4 +265,22 @@ namespace
         ASSERT_TRUE(pump_until([&] { return completed; }));
         EXPECT_FALSE(result.has_value());
     }
+
+    // U11: a prompt() WITHOUT a default value still routes through the WKUIDelegate and auto-completes with
+    // Cancel (nil) when there is no root. The handler now adds the alert text field only when defaultText is
+    // non-nil (C# MauiWebViewUIDelegate.cs:116), so this no-default path must remain crash-free and complete.
+    TEST(web_view_ios, js_prompt_without_default_completes_without_root)
+    {
+        seam s;
+        ASSERT_TRUE(s.load_html_and_wait("<html><body><p>prompt host</p></body></html>", "https://demo.test/pn"));
+
+        bool completed = false;
+        std::optional<std::string> result{"sentinel"};
+        s.control.eval_js("prompt('name?')", [&](const std::optional<std::string>& value) {
+            completed = true;
+            result = value;
+        });
+        ASSERT_TRUE(pump_until([&] { return completed; }));
+        EXPECT_FALSE(result.has_value()); // no root → Cancel → JS null
+    }
 } // namespace

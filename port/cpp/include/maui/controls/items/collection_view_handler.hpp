@@ -256,6 +256,19 @@ namespace maui::controls
             return suppress_scroll_writeback_;
         }
 
+        // C# CarouselViewController2.InitialPositionSet (set true in UpdateInitialPosition once the view is
+        // loaded + laid out, reset in TearDown). The iOS partial flips it on the first carousel layout pass
+        // (native_force_layout); SetPosition then allows writeback. Exposed so backends (and the cross-
+        // platform writeback tests, which stand in for the layout pass) can establish the initial position.
+        void mark_initial_position_set()
+        {
+            initial_position_set_ = true;
+        }
+        [[nodiscard]] bool has_initial_position_set() const
+        {
+            return initial_position_set_;
+        }
+
         // ---- mapper entries ----
         static void map_items_source(collection_view_handler& handler, i_items_view& view);
         static void map_item_template(collection_view_handler& handler, i_items_view& view);
@@ -392,6 +405,13 @@ namespace maui::controls
         // set_current_item_from_scroll so a batch source update's spurious UIKit scroll callbacks don't
         // clobber the position the update is computing.
         bool suppress_scroll_writeback_ = false;
+
+        // C# CarouselViewController2.InitialPositionSet (declared line 199, reset in TearDown line 204):
+        // false until the carousel's initial layout/position is established, then guards SetPosition /
+        // SetCurrentItem (lines 507/536/562) so scroll callbacks firing BEFORE the first layout pass can't
+        // clobber a programmatically-set Position. The port flips it true at the end of the first carousel
+        // native_force_layout (its UpdateInitialPosition / view-loaded analog).
+        bool initial_position_set_ = false;
 
         std::shared_ptr<i_items_view_source> source_;
         maui::core::scoped_connection source_updated_; // after source_ (§8)

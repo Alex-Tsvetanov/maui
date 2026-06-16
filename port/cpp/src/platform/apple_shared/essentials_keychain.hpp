@@ -161,7 +161,10 @@ namespace maui::storage::apple_shared
             NSData* const data = CFBridgingRelease(result);
             NSString* const text = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
             const char* const utf8 = [text UTF8String];
-            return utf8 != nullptr ? std::optional<std::string>(utf8) : std::optional<std::string>(std::string());
+            // C# ValueForKey returns NSString.FromData(...), which is null when UTF8 decoding fails; mirror
+            // that with std::nullopt (NOT an empty string) so set_value_for_key's has_value() skip matches
+            // C#'s !string.IsNullOrEmpty(null) == false (the stale record is left for the add/retry path).
+            return utf8 != nullptr ? std::optional<std::string>(utf8) : std::nullopt;
         }
 
         // C# KeyChain.SetValueForKey over a per-call accessible (the C# `new KeyChain(accessible)`).

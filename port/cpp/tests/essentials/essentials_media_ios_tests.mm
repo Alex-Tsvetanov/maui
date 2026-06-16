@@ -114,4 +114,33 @@ namespace
         ASSERT_TRUE(ios_types.has_value());
         EXPECT_FALSE(ios_types->empty());
     }
+
+    // U13: FilePicker.ios.cs:19 evaluates `options?.FileTypes?.Value` (which THROWS feature_not_supported
+    // when FileTypes is set but has no iOS entry) before presenting — it must NOT silently fall back to the
+    // all-content default. A FileTypes carrying only a non-iOS (android) entry throws on pick.
+    TEST(essentials_media_ios, pick_with_non_ios_file_types_throws_not_supported)
+    {
+        using namespace maui::storage;
+        file_picker::set_default(nullptr);
+
+        pick_options options;
+        options.file_types =
+            file_picker_file_type({{maui::devices::device_platform::android(), {"application/pdf"}}}); // no iOS entry
+
+        bool threw_for_file_type = false;
+        try
+        {
+            file_picker::pick_async(options, [](const std::optional<file_result>&) {});
+        }
+        catch (const feature_not_supported& ex)
+        {
+            // The throw must originate from the FileTypes.Value mismatch (resolved before the presenter),
+            // not the no-host seam guard — distinguish by message.
+            threw_for_file_type = std::string_view(ex.what()).find("file type") != std::string_view::npos;
+        }
+        EXPECT_TRUE(threw_for_file_type)
+            << "a FileTypes without an iOS entry must throw feature_not_supported, not fall back to defaults";
+
+        file_picker::set_default(nullptr);
+    }
 } // namespace

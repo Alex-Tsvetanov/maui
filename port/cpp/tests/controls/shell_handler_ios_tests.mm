@@ -307,6 +307,46 @@ namespace
         EXPECT_NEAR(footer_container.frame.origin.y, expected_top, 0.5);
     }
 
+    // U10: C# ShellFlyoutContentRenderer:159 wires _footer.MeasureInvalidated → reposition. The port's
+    // faithful lighter equivalent observes the footer CONTENT view's bounds (KVO) so an intrinsic-size-only
+    // change reactively re-runs layout WITHOUT a parent layout pass. Changing the content's bounds must mark
+    // the container for layout (the OnFooterMeasureInvalidated → setNeedsLayout path).
+    TEST_F(ios_shell_seam, footer_content_size_change_marks_container_for_layout)
+    {
+        shell sh;
+        build_two_item_shell(sh);
+        auto footer = std::make_shared<label>();
+        auto footer_handler = std::make_shared<label_handler>();
+        footer->set_handler(footer_handler);
+        sh.set_flyout_footer(footer);
+
+        auto handler = std::make_shared<shell_handler>();
+        sh.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform->flyout_footer_container, nullptr);
+
+        UIView* const drawer = flyout_drawer_view(handler);
+        UIView* const footer_container = (__bridge UIView*)platform->flyout_footer_container;
+        UIView* const footer_content = (__bridge UIView*)footer_handler->native_view();
+        ASSERT_NE(footer_content, nil);
+
+        // Settle layout, then perturb the footer content's frame WITHOUT a parent layout pass. Without the
+        // reactive KVO hook the container would not relayout (UIKit doesn't relayout a superview when a
+        // subview's bounds change by direct assignment), so the content frame would stay perturbed.
+        drawer.frame = CGRectMake(0, 0, 320, 600);
+        footer_container.frame = CGRectMake(0, 0, 320, 44);
+        [footer_container layoutIfNeeded];
+        footer_content.frame = CGRectMake(10, 10, 100, 20); // perturb (an intrinsic-content-size change)
+
+        // The KVO hook (OnFooterMeasureInvalidated → setNeedsLayout) must have re-marked the container, so
+        // layoutIfNeeded re-runs the footer container's layoutSubviews and resets the content frame to fill
+        // the container's bounds — proving the reactive reposition fired (without it, needsLayout stays
+        // clear and layoutIfNeeded is a no-op, leaving the perturbed frame).
+        [footer_container layoutIfNeeded];
+        EXPECT_TRUE(CGRectEqualToRect(footer_content.frame, footer_container.bounds))
+            << "a footer content size change must reactively re-run the footer container's layout";
+    }
+
     // FlyoutWidth (a Shell attached property carried by the appearance walk) sizes the split VC's primary
     // (flyout) column; nothing set leaves it at the automatic dimension.
     TEST_F(ios_shell_seam, flyout_width_sizes_primary_column)

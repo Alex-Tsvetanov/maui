@@ -97,6 +97,13 @@ namespace
         }
         const std::shared_ptr<maui::graphics::paint> paint =
             maui::controls::brush_is_null_or_empty_as_paint(brush) ? nullptr : maui::controls::to_paint(*brush);
+        if (paint != nullptr)
+        {
+            // C# BrushExtensions.UpdateBackground:34 sets control.BackgroundColor = UIColor.Clear when a
+            // background layer is inserted, so the UITabBar's native fill does not show through the brush
+            // layer. Only on the non-empty-brush path (the empty path just removes the layer, no clear).
+            bar.backgroundColor = nil;
+        }
         maui::platform::ios::apply_bar_background(bar.layer, paint.get(), bar.layer.bounds);
     }
 } // namespace

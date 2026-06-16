@@ -134,13 +134,13 @@ namespace maui::controls
             return content_layout_.get();
         }
         // C# Button.IImageSourcePart.UpdateIsLoading (Button.cs:499-505) — the handler/loader pushes the
-        // in-flight loading state. NON-VIRTUAL: Button is not widened to i_image (narrow approach); the image
-        // mapper's loading callback calls this directly. Unlike ImageButton, Button has NO public IsLoading
-        // (C# Button.IImageElement.IsLoading => false); the only effect is the re-measure on a load FINISH:
-        // when the previous push was loading and this one is not, re-push ContentLayout (C# does
+        // in-flight loading state through the i_text_button seam (overrides the defaulted no-op there;
+        // narrow approach — Button is not widened to i_image). Unlike ImageButton, Button has NO public
+        // IsLoading (C# Button.IImageElement.IsLoading => false); the only effect is the re-measure on a load
+        // FINISH: when the previous push was loading and this one is not, re-push ContentLayout (C# does
         // Handler?.UpdateValue(nameof(ContentLayout))) so the text+image composition re-measures. The
         // re-measure itself is deferred here (no container infra) — the UpdateValue call is the faithful seam.
-        void update_is_loading(bool loading)
+        void update_is_loading(bool loading) override
         {
             if (!loading && was_image_loading_ && handler())
             {

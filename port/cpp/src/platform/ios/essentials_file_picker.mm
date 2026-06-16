@@ -56,25 +56,24 @@ namespace maui::storage
                 "headlessly.");
         }
 
-        // FilePicker.ios.cs: the allowed UTType list (the C# allowedUtis array, mapped to the modern
-        // UniformTypeIdentifiers UTType), or the all-content default when FileTypes is null. Identifiers
-        // the runtime does not recognise resolve to nil and are skipped (the picker treats an empty list
-        // as "all types", matching the C# fallback).
+        // FilePicker.ios.cs:19 — `options?.FileTypes?.Value?.ToArray() ?? defaults`. The all-content default
+        // applies only when FileTypes is null; when FileTypes is SET but has no iOS entry, C#'s .Value
+        // throws PlatformNotSupportedException (feature_not_supported here) rather than falling back. Call
+        // the throwing value() (not try_get) so that mismatch propagates to the service-seam boundary.
+        // Identifiers the runtime does not recognise resolve to nil and are skipped.
         NSArray<UTType*>* allowed_content_types(const pick_options& options)
         {
             NSMutableArray<UTType*>* types = [NSMutableArray array];
             if (options.file_types.has_value())
             {
-                if (auto ids = options.file_types->try_get(maui::devices::device_platform::ios()); ids.has_value())
+                const std::vector<std::string> ids =
+                    options.file_types->value(); // throws feature_not_supported on platform mismatch
+                for (const std::string& identifier : ids)
                 {
-                    for (const std::string& identifier : *ids)
+                    UTType* const type = [UTType typeWithIdentifier:[NSString stringWithUTF8String:identifier.c_str()]];
+                    if (type != nil)
                     {
-                        UTType* const type =
-                            [UTType typeWithIdentifier:[NSString stringWithUTF8String:identifier.c_str()]];
-                        if (type != nil)
-                        {
-                            [types addObject:type];
-                        }
+                        [types addObject:type];
                     }
                 }
             }
@@ -101,6 +100,11 @@ namespace maui::storage
         private:
             static void present(const pick_options& options, bool allow_multiple)
             {
+                // FilePicker.ios.cs:19 evaluates `options?.FileTypes?.Value` at the TOP of PlatformPickAsync,
+                // BEFORE obtaining a presenter — so a FileTypes-without-iOS mismatch throws feature_not_supported
+                // ahead of any host check. Resolve the allowed content types first to mirror that order.
+                NSArray<UTType*>* const content_types = allowed_content_types(options);
+
                 UIViewController* const host = current_view_controller();
                 if (host == nil)
                 {
@@ -113,7 +117,6 @@ namespace maui::storage
                 // TaskCompletionSource (+ FileSystemUtils.EnsurePhysicalFileResultsAsync), which is the
                 // service seam (see the header note) - it runs only inside a real app. Presenting a picker
                 // whose result cannot be delivered would orphan it, so the seam throws instead.
-                NSArray<UTType*>* const content_types = allowed_content_types(options);
                 UIDocumentPickerViewController* const picker =
                     [[UIDocumentPickerViewController alloc] initForOpeningContentTypes:content_types];
                 picker.allowsMultipleSelection = allow_multiple ? YES : NO;

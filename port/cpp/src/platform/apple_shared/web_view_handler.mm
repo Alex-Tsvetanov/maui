@@ -406,13 +406,18 @@ namespace
     UIAlertController* const controller = [UIAlertController alertControllerWithTitle:@(js_alert_title(webView).c_str())
                                                                               message:prompt
                                                                        preferredStyle:UIAlertControllerStyleAlert];
-    [controller addTextFieldWithConfigurationHandler:^(UITextField* textField) {
-      textField.text = defaultText;
-    }];
+    // C# MauiWebViewUIDelegate.PresentAlertController:116 adds the text field only when defaultText != null.
+    if (defaultText != nil)
+    {
+        [controller addTextFieldWithConfigurationHandler:^(UITextField* textField) {
+          textField.text = defaultText;
+        }];
+    }
     UIAlertAction* const ok = [UIAlertAction actionWithTitle:local_ok
                                                        style:UIAlertActionStyleDefault
                                                      handler:^(UIAlertAction* _Nonnull) {
-                                                       completionHandler(controller.textFields.firstObject.text);
+                                                       UITextField* const field = controller.textFields.firstObject;
+                                                       completionHandler(field != nil ? field.text : @"");
                                                      }];
     [controller addAction:ok];
     controller.preferredAction = ok;
@@ -491,12 +496,22 @@ namespace
     alert.informativeText = prompt;
     [alert addButtonWithTitle:NSLocalizedString(@"OK", nil)];
     [alert addButtonWithTitle:NSLocalizedString(@"Cancel", nil)];
-    NSTextField* const input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 250, 24)];
-    input.stringValue = defaultText != nil ? defaultText : @"";
-    alert.accessoryView = input;
+    // C# MauiWebViewUIDelegate.PresentAlertController:116 adds the input field only when defaultText != null.
+    NSTextField* input = nil;
+    if (defaultText != nil)
+    {
+        input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 250, 24)];
+        input.stringValue = defaultText;
+        alert.accessoryView = input;
+    }
     [alert beginSheetModalForWindow:window
                   completionHandler:^(NSModalResponse response) {
-                    completionHandler(response == NSAlertFirstButtonReturn ? input.stringValue : nil);
+                    if (response != NSAlertFirstButtonReturn)
+                    {
+                        completionHandler(nil); // Cancel
+                        return;
+                    }
+                    completionHandler(input != nil ? input.stringValue : @"");
                   }];
 }
 

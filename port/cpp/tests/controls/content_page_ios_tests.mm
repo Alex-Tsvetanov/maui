@@ -373,6 +373,45 @@ namespace
         EXPECT_EQ(maui_resign_recognizer_count(scope.window), 0U); // recognizer cleaned itself up
     }
 
+    // U04 PRODUCTION routing: with the InputView parented under the page, a plain IsFocused change
+    // (set_is_focused — the funnel the native editing-begin callback drives) must auto-arm the tap gesture
+    // WITHOUT any manual update_focus_for_view. This proves the is_focused mapper routes InputView focus
+    // changes to the page's HideSoftInputOnTapped manager (C# InputView.MapIsFocused), the gap U04 closed.
+    TEST(content_page_ios_hide_soft_input, focus_change_auto_arms_gesture_in_production)
+    {
+        key_window_scope scope;
+
+        // The page owns the input as its content (so the input's logical-parent chain reaches the page).
+        content_page page;
+        auto page_handler = std::make_shared<content_page_handler>();
+        entry input;
+        auto input_handler = std::make_shared<entry_handler>();
+        input.set_handler(input_handler);
+        page.set_content(input);
+        page.set_handler(page_handler);
+
+        // Enable the feature, then appear: the page's appearing hook re-runs UpdatePage with has_appeared()
+        // true, so the page is tracked (FeatureEnabled) — the production path, no manual update_page.
+        page.set_hide_soft_input_on_tapped(true);
+        page.send_appearing();
+
+        UITextField* const field = entry_field(input_handler);
+        ASSERT_NE(field, nil);
+        [scope.root addSubview:field];
+        ASSERT_TRUE([field becomeFirstResponder]);
+
+        ASSERT_EQ(maui_resign_recognizer_count(scope.window), 0U); // nothing armed before focus
+        input.set_is_focused(true);                                // the ONLY trigger — no manual update_focus_for_view
+
+        EXPECT_EQ(maui_resign_recognizer_count(scope.window), 1U)
+            << "an InputView focus change must auto-arm the tap gesture via the is_focused mapper";
+
+        // And a focus LOSS auto-disarms it (the same routing, view.is_focused() now false).
+        input.set_is_focused(false);
+        EXPECT_EQ(maui_resign_recognizer_count(scope.window), 0U)
+            << "an InputView focus loss must auto-disarm the tap gesture";
+    }
+
     // The feature is gated: when the page does NOT have HideSoftInputOnTapped set, focusing the input
     // does NOT arm a recognizer (FeatureEnabled is false → DisconnectFromPlatform / no setup).
     TEST(content_page_ios_hide_soft_input, disabled_page_arms_nothing)

@@ -229,12 +229,19 @@ namespace
 
         EXPECT_EQ(bar_background_layer(bar), nil); // nothing painted until a brush is set
 
+        // U18: a native tab-bar background color must be CLEARED when a brush layer is inserted (C#
+        // BrushExtensions.UpdateBackground sets control.BackgroundColor = UIColor.Clear), so it cannot show
+        // through the brush. Seed an opaque native color and confirm the brush apply clears it.
+        bar.backgroundColor = [UIColor greenColor];
+
         auto brush = std::make_shared<linear_gradient_brush>(
             std::vector<std::shared_ptr<gradient_stop>>{
                 std::make_shared<gradient_stop>(maui::graphics::colors::red, 0.0F),
                 std::make_shared<gradient_stop>(maui::graphics::colors::blue, 1.0F)},
             maui::graphics::point{0, 0}, maui::graphics::point{1, 1});
         tabs.set_bar_background(brush);
+
+        EXPECT_EQ(bar.backgroundColor, nil) << "applying a bar background brush must clear the UITabBar's native color";
 
         CALayer* const layer = bar_background_layer(bar);
         ASSERT_NE(layer, nil);

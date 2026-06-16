@@ -392,6 +392,14 @@ namespace maui::controls
                 unfocused.raise(false); // VisualElement.OnUnfocus → Unfocused(FocusEventArgs(this, false))
             }
             change_visual_state();
+            // C# Element.OnPropertyChanged → UpdateHandlerValue: every property change forwards to the
+            // handler's mapper. The IsFocused change drives the input handlers' MapIsFocused (Entry/Editor/
+            // SearchBar.Mapper.cs AppendToMapping(nameof(IsFocused), InputView.MapIsFocused)), which arms /
+            // disarms the HideSoftInputOnTapped tap gesture. A no-op for handlers without an is_focused key.
+            if (handler_)
+            {
+                handler_->update_value("is_focused");
+            }
         }
         // InputTransparent (bindable; flows through the chained view_mapper's map_input_transparent).
         [[nodiscard]] bool input_transparent() const override

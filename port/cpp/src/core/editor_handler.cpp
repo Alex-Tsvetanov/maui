@@ -9,6 +9,7 @@
 #include "maui/core/view_command_mapper.hpp"
 #include "maui/core/view_handler.hpp"
 #include "maui/core/view_mapper.hpp"
+#include "maui/platform/ios/hide_soft_input_on_tapped_manager.hpp" // is_focused → HideSoftInputOnTapped routing
 
 namespace maui::core
 {
@@ -41,6 +42,11 @@ namespace maui::core
                 {"keyboard", &editor_handler::map_keyboard},
                 {"cursor_position", &editor_handler::map_cursor_position},
                 {"selection_length", &editor_handler::map_selection_length},
+                // C# Editor.Mapper.cs: AppendToMapping(nameof(IsFocused), InputView.MapIsFocused) — an
+                // InputView focus change arms/disarms the page's HideSoftInputOnTapped tap gesture. The
+                // funnel (view::set_is_focused) calls update_value("is_focused") which fires this.
+                {"is_focused", [](editor_handler& /*handler*/,
+                                  i_editor& view) { maui::platform::ios::route_input_view_focus(view); }},
             },
         };
         return table;

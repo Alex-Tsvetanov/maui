@@ -512,6 +512,10 @@ namespace maui::controls
         UICollectionView* const collection_view = controller.collectionView;
         collection_view.frame = CGRectMake(0, 0, width, height);
         [collection_view layoutIfNeeded];
+        // C# CarouselViewController2.UpdateInitialPosition flips InitialPositionSet true once the view is
+        // loaded and laid out; this first layout pass is the port's analog. After it, scroll-end callbacks
+        // are allowed to write Position back (set_position_from_scroll's initial_position_set_ guard).
+        mark_initial_position_set();
         return static_cast<int>(collection_view.visibleCells.count);
     }
 

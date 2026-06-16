@@ -118,4 +118,12 @@ namespace maui::platform::ios
         // the native gesture token. Move-only std::function; run + cleared by disconnect_from_platform.
         std::function<void()> watching_for_taps_;
     };
+
+    // C# InputView.MapIsFocused (InputView.Platform.cs, #if ANDROID||IOS): an InputView's IsFocused change
+    // routes to handler.GetService<HideSoftInputOnTappedChangedManager>().UpdateFocusForView(iv). The port
+    // has no DI scope, so the manager lives on the containing content_page's handler: walk `view`'s logical-
+    // parent chain to the owning content_page, resolve its handler's soft_input_manager(), and forward the
+    // focus change. A no-op when the view is not under a content_page or the page has no attached handler
+    // (mirrors C#'s `handler?. ... ?.` null-conditional). The input handlers' is_focused mapper calls this.
+    void route_input_view_focus(maui::core::i_view& view);
 } // namespace maui::platform::ios

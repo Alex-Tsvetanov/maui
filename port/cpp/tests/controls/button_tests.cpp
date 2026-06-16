@@ -4,6 +4,7 @@
 // twin verified separately; here the headless button_platform lets the seam be unit-tested.
 #include "maui/controls/button.hpp"
 
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -12,11 +13,15 @@
 #include "maui/controls/button_content_layout.hpp"
 #include "maui/controls/file_image_source.hpp"
 #include "maui/core/button_handler.hpp"
+#include "maui/core/cancellation_token.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_button.hpp"
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/i_stream_image_source.hpp"
 #include "maui/core/i_text.hpp"
+#include "maui/core/image_source_loader.hpp"
+#include "maui/core/manual_dispatcher.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include <gtest/gtest.h>
@@ -30,6 +35,16 @@ namespace
     using maui::core::i_button;
     using maui::core::i_element_handler;
     using maui::core::i_text;
+    using maui::core::manual_dispatcher;
+
+    // A stream-backed image source (the async load path — the same shape image_tests uses). The bytes are
+    // never decoded here; only the loading lifecycle (UpdateIsLoading true→false) is exercised.
+    std::shared_ptr<maui::core::i_image_source> make_stream_source(std::size_t byte_count)
+    {
+        return image_source::from_stream([byte_count](const maui::core::cancellation_token&) {
+            return maui::core::image_bytes(byte_count, std::byte{0x7F});
+        });
+    }
 
     // ---- the control in isolation (no handler) ----
 
@@ -366,5 +381,28 @@ namespace
         const int before = platform->content_layout_push_count;
         control.update_is_loading(false);
         EXPECT_EQ(platform->content_layout_push_count, before);
+    }
+
+    // U07 regression: the handler's image mapper must pass the loading callback to update_source so an
+    // async load drives UpdateIsLoading(true→false). Before the fix the callback was omitted, so a load
+    // FINISH never re-pushed ContentLayout. Drive a real async (stream) load via a manual_dispatcher and
+    // assert the completion re-pushes — which only happens if the loading callback reached the control.
+    TEST(button_seam, async_image_load_drives_update_is_loading_and_re_pushes_content_layout)
+    {
+        button control;
+        auto handler = std::make_shared<button_handler>();
+        manual_dispatcher disp;
+        control.set_handler(handler);
+        handler->image_source_loader_ref().set_dispatcher(disp);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+
+        const int before = platform->content_layout_push_count;
+        control.set_image_source(make_stream_source(4)); // begin: UpdateIsLoading(true), no re-push yet
+        EXPECT_EQ(platform->content_layout_push_count, before) << "a load START must not re-push ContentLayout";
+
+        disp.run_pending(); // completion: UpdateIsLoading(false) → re-push ContentLayout
+        EXPECT_EQ(platform->content_layout_push_count, before + 1)
+            << "a load FINISH must re-push ContentLayout via the loading callback the handler now passes";
     }
 } // namespace

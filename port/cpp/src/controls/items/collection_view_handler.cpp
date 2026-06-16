@@ -473,6 +473,11 @@ namespace maui::controls
         {
             return; // C# SetPosition guards: ItemsView is CarouselView, ItemsSource non-empty
         }
+        if (!initial_position_set_)
+        {
+            return; // C# SetPosition:507 `if (!InitialPositionSet || position == -1) return;` — don't write
+                    // back before the initial layout/position is established (early scroll callbacks).
+        }
         if (position < 0 || position >= source_->item_count())
         {
             return; // C# `position == -1` early-out; reject out-of-range (source_->item would throw)

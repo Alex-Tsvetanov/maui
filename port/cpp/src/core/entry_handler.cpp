@@ -9,6 +9,7 @@
 #include "maui/core/view_command_mapper.hpp"
 #include "maui/core/view_handler.hpp"
 #include "maui/core/view_mapper.hpp"
+#include "maui/platform/ios/hide_soft_input_on_tapped_manager.hpp" // is_focused → HideSoftInputOnTapped routing
 
 namespace maui::core
 {
@@ -47,6 +48,11 @@ namespace maui::core
                 // iOS only); the port's table is core-owned, so the key (the namespaced knob name the
                 // store raises) lives here and the per-backend body reads the i_ios_entry_specifics face.
                 {"ios.Entry.CursorColor", &entry_handler::map_cursor_color},
+                // C# Entry.Mapper.cs: AppendToMapping(nameof(IsFocused), InputView.MapIsFocused) — an
+                // InputView focus change arms/disarms the page's HideSoftInputOnTapped tap gesture. The
+                // funnel (view::set_is_focused) calls update_value("is_focused") which fires this.
+                {"is_focused",
+                 [](entry_handler& /*handler*/, i_entry& view) { maui::platform::ios::route_input_view_focus(view); }},
             },
         };
         return table;

@@ -237,12 +237,34 @@ namespace
         auto handler = std::make_shared<collection_view_handler>();
         carousel.set_items_source(items);
         carousel.set_handler(handler);
+        handler->mark_initial_position_set(); // stand in for the layout pass (C# UpdateInitialPosition)
         EXPECT_EQ(carousel.position(), 0);
 
         handler->set_position_from_scroll(3);
 
         EXPECT_EQ(carousel.position(), 3);
         EXPECT_EQ(carousel.current_item().text(), "D"); // SetPosition → SetCurrentItem writeback
+    }
+
+    // U08: C# CarouselViewController2.SetPosition:507 `if (!InitialPositionSet || position == -1) return;`.
+    // A scroll-driven writeback BEFORE the initial layout/position is established must be dropped so it can't
+    // clobber a programmatically-set Position; once the initial position is set, writeback resumes.
+    TEST(carousel_view, set_position_from_scroll_is_dropped_until_initial_position_set)
+    {
+        std::shared_ptr<string_collection> const items =
+            std::make_shared<string_collection>(std::vector<std::string>{"A", "B", "C", "D", "E"});
+        carousel_view carousel;
+        auto handler = std::make_shared<collection_view_handler>();
+        carousel.set_items_source(items);
+        carousel.set_handler(handler);
+        ASSERT_FALSE(handler->has_initial_position_set());
+
+        handler->set_position_from_scroll(3);
+        EXPECT_EQ(carousel.position(), 0) << "writeback must be dropped before the initial position is set";
+
+        handler->mark_initial_position_set();
+        handler->set_position_from_scroll(3);
+        EXPECT_EQ(carousel.position(), 3) << "writeback must resume once the initial position is established";
     }
 
     // The suppress-during-batch-update gate (C# _isInternalCollectionUpdate): while set, a scroll-driven
@@ -256,6 +278,7 @@ namespace
         auto handler = std::make_shared<collection_view_handler>();
         carousel.set_items_source(items);
         carousel.set_handler(handler);
+        handler->mark_initial_position_set(); // stand in for the layout pass (C# UpdateInitialPosition)
 
         handler->set_suppress_scroll_writeback(true);
         handler->set_position_from_scroll(2);
@@ -276,6 +299,7 @@ namespace
         auto handler = std::make_shared<collection_view_handler>();
         carousel.set_items_source(items);
         carousel.set_handler(handler);
+        handler->mark_initial_position_set(); // stand in for the layout pass (C# UpdateInitialPosition)
 
         int count_fired = 0;
         carousel.position_changed_command = [&count_fired] { ++count_fired; };

@@ -629,7 +629,14 @@ namespace
         }
         else
         {
-            const CGFloat status_bar_height = window.windowScene.statusBarManager.statusBarFrame.size.height;
+            // Mirror C#'s `window.WindowScene?.StatusBarManager?.StatusBarFrame.Height ?? 0`.
+            // Deployment floor is iOS 26, so no pre-iOS-13 UIApplication.statusBarFrame fallback
+            // (deprecated; would be dead code). Just nil-guard the windowScene chain.
+            CGFloat status_bar_height = 0;
+            if (window.windowScene != nil && window.windowScene.statusBarManager != nil)
+            {
+                status_bar_height = window.windowScene.statusBarManager.statusBarFrame.size.height;
+            }
             navigation_bar_area_height = status_bar_height;
         }
 

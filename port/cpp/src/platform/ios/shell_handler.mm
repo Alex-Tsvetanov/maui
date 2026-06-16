@@ -125,9 +125,20 @@
 @end
 
 // The flyout FOOTER container: a clip-to-bounds UIView pinned to the BOTTOM of the flyout drawer's view. Its
-// layoutSubviews re-positions itself to the bottom (ReMeasure then UpdatePosition order from
-// ShellFlyoutContentRenderer.UpdateFooterPosition) and lays the footer content to fill it. A recursion guard
-// prevents the bottom-reposition (a frame change) from re-entering layout endlessly.
+// layoutSubviews re-positions itself to the bottom (UpdateFooterPosition order from ShellFlyoutContentRenderer)
+// and lays the footer content to fill it. A recursion guard prevents the bottom-reposition (a frame change)
+// from re-entering layout endlessly.
+//
+// REACTIVE reposition (U10): C# ShellFlyoutContentRenderer:159 wires `_footer.MeasureInvalidated +=
+// OnFooterMeasureInvalidated` so the footer repositions when the content's measured size changes WITHOUT a
+// parent layout pass. The port's cross-platform i_view has no MeasureInvalidated signal yet (invalidate_
+// measure is an M3 no-op), and adding one is a view-base contract change. The faithful lighter equivalent
+// (the bug note's "a setNeedsLayout-on-measure hook" option): KVO the content view's bounds — a content
+// size change updates its bounds, which fires the observer below → setNeedsLayout → the bottom reposition
+// re-runs reactively. The layoutSubviews path still covers parent-driven layout (the ViewWillLayoutSubviews
+// safety net). Footer HEIGHT stays frame-driven (the existing port contract — the caller sizes the container).
+static void* const kMauiFooterContentBoundsContext = (void*)&kMauiFooterContentBoundsContext;
+
 @interface MauiShellFlyoutFooterContainer : UIView
 @property(nonatomic, strong) UIView* contentView;
 @property(nonatomic, assign) BOOL repositioning;
@@ -149,13 +160,41 @@
     {
         return;
     }
+    // Drop the old content's bounds observation before swapping (the reactive re-measure hook).
+    [_contentView removeObserver:self forKeyPath:@"bounds" context:kMauiFooterContentBoundsContext];
     [_contentView removeFromSuperview];
     _contentView = contentView;
     if (_contentView != nil)
     {
         [self addSubview:_contentView];
+        // C# `_footer.MeasureInvalidated += OnFooterMeasureInvalidated` analog: a content intrinsic-size
+        // change updates its bounds → KVO fires → re-measure + reposition (ReMeasureFooter path).
+        [_contentView addObserver:self
+                       forKeyPath:@"bounds"
+                          options:NSKeyValueObservingOptionNew
+                          context:kMauiFooterContentBoundsContext];
     }
     [self setNeedsLayout];
+}
+
+- (void)observeValueForKeyPath:(NSString*)keyPath
+                      ofObject:(id)object
+                        change:(NSDictionary<NSKeyValueChangeKey, id>*)change
+                       context:(void*)context
+{
+    if (context == kMauiFooterContentBoundsContext)
+    {
+        // OnFooterMeasureInvalidated → ReMeasureFooter: the content's measured size changed; re-run our
+        // layout so the footer height tracks it and we reposition to the bottom.
+        [self setNeedsLayout];
+        return;
+    }
+    [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
+}
+
+- (void)dealloc
+{
+    [_contentView removeObserver:self forKeyPath:@"bounds" context:kMauiFooterContentBoundsContext];
 }
 
 - (void)layoutSubviews
