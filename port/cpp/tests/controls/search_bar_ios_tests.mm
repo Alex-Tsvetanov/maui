@@ -16,6 +16,7 @@
 #include "maui/core/search_bar_handler.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/color.hpp"
+#include "tests/support/run_loop_pump.hpp"
 #include <gtest/gtest.h>
 
 namespace
@@ -211,6 +212,85 @@ namespace
 
         control.set_text("");
         EXPECT_FALSE(native_bar(handler).showsCancelButton);
+    }
+
+    // The cancel UIButton is a descendant of the bar built by UIKit only once the control is in the
+    // window hierarchy — the same tree-walk the handler's UpdateCancelButton uses, with the C# predicate
+    // that excludes buttons inside the search field (the clear "x" button, not the cancel button).
+    bool button_has_text_field_ancestor(UIView* view)
+    {
+        for (UIView* parent = view.superview; parent != nil; parent = parent.superview)
+        {
+            if ([parent isKindOfClass:[UITextField class]])
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    UIButton* find_cancel_button(UIView* root)
+    {
+        for (UIView* subview in root.subviews)
+        {
+            if ([subview isKindOfClass:[UIButton class]] && !button_has_text_field_ancestor(subview))
+            {
+                return (UIButton*)subview;
+            }
+            if (UIButton* const nested = find_cancel_button(subview))
+            {
+                return nested;
+            }
+        }
+        return nil;
+    }
+
+    // MovedToWindow re-fire (MauiSearchBar.cs + SearchBarHandler.iOS.cs:227-235): the cancel button
+    // doesn't exist until the bar joins the window hierarchy, so a CancelButtonColor set earlier is
+    // lost. MauiSearchBar overrides the moved-to-window lifecycle and the proxy re-fires
+    // UpdateValue(CancelButtonColor) once the button is realized. Driving a real UIWindow exercises the
+    // genuine -didMoveToWindow path (rather than a direct call), so the re-fire must land the tint.
+    TEST(ios_search_bar_seam, moved_to_window_refires_cancel_button_color)
+    {
+        search_bar control;
+        control.set_text("query"); // ShouldShowCancelButton() — the cancel button is shown
+        control.set_cancel_button_color(maui::graphics::color(1.0F, 0.0F, 0.0F));
+        auto handler = std::make_shared<search_bar_handler>();
+        control.set_handler(handler);
+
+        UISearchBar* const bar = native_bar(handler);
+
+        // Place the bar in a real, key+visible window so UIKit runs a layout cycle and -didMoveToWindow
+        // fires — building the internal cancel-button hierarchy and triggering the re-fire. iOS 26
+        // deprecates the scene-less UIWindow initializer; mirror window_handler.mm's suppressed `init`.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        UIWindow* const window = [[UIWindow alloc] init];
+#pragma clang diagnostic pop
+        window.frame = CGRectMake(0, 0, 320, 64);
+        bar.frame = window.bounds;
+        [window addSubview:bar];
+        [window makeKeyAndVisible];
+        [bar layoutIfNeeded];
+        maui::tests::pump_until([&] { return find_cancel_button(bar) != nil; });
+
+        UIButton* const cancel = find_cancel_button(bar);
+        ASSERT_NE(cancel, nil);
+        // SearchBarExtensions.UpdateCancelButton tints the cancel button via its Normal-state title color
+        // on iOS (TintColor is the Mac-idiom path). The re-fire must have applied the explicit red.
+        UIColor* const title = [cancel titleColorForState:UIControlStateNormal];
+        ASSERT_NE(title, nil);
+        CGFloat red = 0;
+        CGFloat green = 0;
+        CGFloat blue = 0;
+        CGFloat alpha = 0;
+        [title getRed:&red green:&green blue:&blue alpha:&alpha];
+        EXPECT_NEAR(red, 1.0, 0.01);
+        EXPECT_NEAR(green, 0.0, 0.01);
+        EXPECT_NEAR(blue, 0.0, 0.01);
+
+        [bar removeFromSuperview];
+        window.hidden = YES;
     }
 
     TEST(ios_search_bar_seam, generic_iview_properties_reach_the_bar)

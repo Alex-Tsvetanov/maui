@@ -16,8 +16,12 @@
 // autocorrection traits onto the search field (ios_keyboard_ops.hpp). The Done input accessory is NOT
 // added (C# adds it only on Entry/Editor, not SearchBar). Focus (W8-53): the begin/end editing delegate
 // callbacks reflect IsFocused; the shared view_command_mapper drives becomeFirstResponder on the bar.
-// Not ported here (deferred): OnMovedToWindow's cancel-color re-fire (the cancel button is tinted
-// directly when visible), and the QueryEditor UITextPosition cursor arithmetic beyond the clamped-range
+// MovedToWindow re-fire (U22): MauiSearchBar : UISearchBar overrides the moved-to-window lifecycle and
+// the proxy re-fires UpdateValue(CancelButtonColor) — the descendant cancel UIButton doesn't exist until
+// UIKit builds the bar's internal hierarchy once it joins the window, so a color set earlier is lost and
+// must be re-applied. The port mirrors this with MauiIosSearchBar (a UISearchBar subclass overriding
+// -didMoveToWindow) firing a block into the handler, which calls update_value("cancel_button_color").
+// Not ported here (deferred): the QueryEditor UITextPosition cursor arithmetic beyond the clamped-range
 // write (the entry carries the full port).
 
 #import <UIKit/UIKit.h>
@@ -45,6 +49,16 @@
 @interface MauiIosSearchBarProxy : NSObject <UISearchBarDelegate>
 @property(nonatomic) maui::core::search_bar_handler* handler;
 @property(nonatomic, copy) NSString* previousText;
+@end
+
+// MauiSearchBar.cs: a UISearchBar subclass that fires when added to the window hierarchy. C# raises an
+// internal OnMovedToWindow event from MovedToWindow()/WillMoveToWindow(window != null); the port exposes
+// the moved-to-window signal as a block the handler installs (the analog of the C# event subscription).
+// Only the moved-to-window arm is ported — the descendant cancel button isn't built until UIKit places
+// the bar in the window, so this is the hook that re-fires the cancel-button color.
+@interface MauiIosSearchBar : UISearchBar
+// Fires once the bar has been added to a window (didMoveToWindow with a non-nil window).
+@property(nonatomic, copy) void (^onMovedToWindow)(void);
 @end
 
 namespace
@@ -92,18 +106,34 @@ namespace
                                             attributes:@{NSForegroundColorAttributeName : to_ui_color(color)}];
     }
 
+    // SearchBarExtensions.UpdateCancelButton's predicate: exclude any UIButton that descends from a
+    // UITextField — those are the clear ("x") button INSIDE the search field, not the cancel button
+    // OUTSIDE it. C# does `btn => btn.FindParent(v => v is UITextField) == null`.
+    bool has_text_field_ancestor(UIView* view)
+    {
+        for (UIView* parent = view.superview; parent != nil; parent = parent.superview)
+        {
+            if ([parent isKindOfClass:[UITextField class]])
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // SearchBarHandler.UpdateCancelButtonVisibility + SearchBarExtensions.UpdateCancelButton: the
     // cancel button shows while the bar has text; when visible and an explicit color is set, tint the
-    // cancel UIButton (C# finds the descendant UIButton the same way).
-    UIButton* find_descendant_button(UIView* root)
+    // cancel UIButton. Mirror C#'s FindDescendantView<UIButton> with the UITextField-exclusion predicate
+    // so the depth-first walk skips the search field's clear button and returns the genuine cancel button.
+    UIButton* find_cancel_button(UIView* root)
     {
         for (UIView* subview in root.subviews)
         {
-            if ([subview isKindOfClass:[UIButton class]])
+            if ([subview isKindOfClass:[UIButton class]] && !has_text_field_ancestor(subview))
             {
                 return (UIButton*)subview;
             }
-            if (UIButton* const nested = find_descendant_button(subview))
+            if (UIButton* const nested = find_cancel_button(subview))
             {
                 return nested;
             }
@@ -121,11 +151,18 @@ namespace
         {
             return;
         }
-        if (UIButton* const cancel = find_descendant_button(bar))
+        if (UIButton* const cancel = find_cancel_button(bar))
         {
+            // SearchBarExtensions.UpdateCancelButton: title color on Normal/Highlighted/Disabled, plus
+            // TintColor for the Mac idiom (the cancel button renders an icon there, so tint colors it).
             UIColor* const tint = to_ui_color(color);
-            cancel.tintColor = tint;
             [cancel setTitleColor:tint forState:UIControlStateNormal];
+            [cancel setTitleColor:tint forState:UIControlStateHighlighted];
+            [cancel setTitleColor:tint forState:UIControlStateDisabled];
+            if (cancel.traitCollection.userInterfaceIdiom == UIUserInterfaceIdiomMac)
+            {
+                cancel.tintColor = tint;
+            }
         }
     }
 
@@ -248,6 +285,20 @@ namespace
 }
 @end
 
+@implementation MauiIosSearchBar
+// MauiSearchBar.MovedToWindow()/WillMoveToWindow(window != null): once the bar joins a window UIKit has
+// built its internal hierarchy (the descendant cancel UIButton now exists). -didMoveToWindow runs during
+// that layout cycle, so firing here guarantees the re-fire walks a realized tree.
+- (void)didMoveToWindow
+{
+    [super didMoveToWindow];
+    if (self.window != nil && self.onMovedToWindow != nil)
+    {
+        self.onMovedToWindow();
+    }
+}
+@end
+
 namespace maui::core
 {
     search_bar_platform::~search_bar_platform()
@@ -286,8 +337,9 @@ namespace maui::core
     std::unique_ptr<search_bar_platform> search_bar_handler::create_platform_view()
     {
         auto platform = std::make_unique<search_bar_platform>();
-        // CreatePlatformView: new MauiSearchBar() { BarStyle = UIBarStyle.Default }.
-        UISearchBar* const bar = [[UISearchBar alloc] initWithFrame:CGRectZero];
+        // CreatePlatformView: new MauiSearchBar() { BarStyle = UIBarStyle.Default } — the moved-to-window
+        // subclass so the cancel-button color can re-fire once the bar joins the window hierarchy.
+        MauiIosSearchBar* const bar = [[MauiIosSearchBar alloc] initWithFrame:CGRectZero];
         bar.barStyle = UIBarStyleDefault;
         platform->native = (__bridge_retained void*)bar; // the void* slot owns one reference
         return platform;
@@ -301,11 +353,26 @@ namespace maui::core
         proxy.previousText = bar.text != nil ? bar.text : @"";
         bar.delegate = proxy; // weak, so the proxy is retained via an associated object
         objc_setAssociatedObject(bar, &k_proxy_key, proxy, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
+        // MauiSearchBarProxy.OnMovedToWindow: re-fire MapCancelButtonColor once the bar is in the window
+        // and the descendant cancel button exists. The handler owns the bar (handler → platform → native),
+        // so the raw `this` capture outlives the block; on_disconnect clears it before teardown.
+        if ([bar isKindOfClass:[MauiIosSearchBar class]])
+        {
+            search_bar_handler* const self = this;
+            ((MauiIosSearchBar*)bar).onMovedToWindow = ^{
+              self->update_value("cancel_button_color");
+            };
+        }
     }
 
     void search_bar_handler::on_disconnect_handler(search_bar_platform& platform)
     {
         UISearchBar* const bar = as_search_bar(platform.native);
+        if ([bar isKindOfClass:[MauiIosSearchBar class]])
+        {
+            ((MauiIosSearchBar*)bar).onMovedToWindow = nil;
+        }
         bar.delegate = nil;
         objc_setAssociatedObject(bar, &k_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     }
