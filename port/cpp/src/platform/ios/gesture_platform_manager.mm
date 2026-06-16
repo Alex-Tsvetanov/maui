@@ -171,6 +171,90 @@
 }
 @end
 
+namespace maui::controls
+{
+    // U21: the friend seam (declared in gesture_platform_manager.hpp) the arbitration delegate uses to
+    // resolve the manager's LIVE handler each callback — manager._handler?.VirtualView /
+    // .PlatformView. Returning null mirrors C#'s WeakReference-dead / handler-gone short-circuit.
+    struct gesture_arbitration_access
+    {
+        [[nodiscard]] static const maui::core::i_view* virtual_view(const gesture_platform_manager& manager)
+        {
+            return manager.handler_ != nullptr ? manager.handler_->virtual_view() : nullptr;
+        }
+        [[nodiscard]] static UIView* platform_view(const gesture_platform_manager& manager)
+        {
+            return manager.handler_ != nullptr ? (__bridge UIView*)manager.handler_->native_view() : nil;
+        }
+    };
+} // namespace maui::controls
+
+// The ShouldReceiveTouchProxy.cs port: the shared UIGestureRecognizerDelegate the bridge assigns to
+// EVERY native recognizer it attaches (C# reuses one `_proxy` across all recognizers; in Xamarin the
+// ShouldReceiveTouch / ShouldRecognizeSimultaneously block properties map onto exactly these two
+// delegate methods). A raw back-ref to the owning manager — invalidated on detach/destroy before the
+// manager dies, so it never dangles (the C# WeakReference's no-crash-on-dealloc guarantee).
+@interface MauiGestureArbitrationDelegate : NSObject <UIGestureRecognizerDelegate>
+- (instancetype)initWithManager:(maui::controls::gesture_platform_manager*)manager;
+- (void)invalidate;
+@end
+
+@implementation MauiGestureArbitrationDelegate
+{
+    maui::controls::gesture_platform_manager* _manager; // raw; cleared by -invalidate before manager dtor
+}
+
+- (instancetype)initWithManager:(maui::controls::gesture_platform_manager*)manager
+{
+    self = [super init];
+    if (self != nil)
+    {
+        _manager = manager;
+    }
+    return self;
+}
+
+- (void)invalidate
+{
+    _manager = nullptr;
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer*)gestureRecognizer shouldReceiveTouch:(UITouch*)touch
+{
+    if (_manager == nullptr)
+    {
+        return NO; // the WeakReference-dead guard
+    }
+    const maui::core::i_view* const virtual_view = maui::controls::gesture_arbitration_access::virtual_view(*_manager);
+    UIView* const platform_view = maui::controls::gesture_arbitration_access::platform_view(*_manager);
+    return maui::platform::ios::should_receive_touch(virtual_view, platform_view, touch.view) ? YES : NO;
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer*)gestureRecognizer
+    shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer*)other
+{
+    // Per-recognizer-kind ShouldRecognizeSimultaneously (CreatePan/Pinch/Swipe/Tap/PointerRecognizer):
+    if ([gestureRecognizer isKindOfClass:[UITapGestureRecognizer class]])
+    {
+        return maui::platform::ios::should_recognize_taps_together(gestureRecognizer, other) ? YES : NO;
+    }
+    if ([gestureRecognizer isKindOfClass:[UISwipeGestureRecognizer class]])
+    {
+        // CreateSwipeRecognizer: false when the other recognizer's view is a scroll view, else true.
+        return [other.view isKindOfClass:[UIScrollView class]] ? NO : YES;
+    }
+    if ([gestureRecognizer isKindOfClass:[UIHoverGestureRecognizer class]] ||
+        [gestureRecognizer isKindOfClass:[MauiPressGestureRecognizer class]])
+    {
+        return YES; // CreatePointerRecognizer: hover + custom-press → always true
+    }
+    // Pan: CreatePanRecognizer consults Application.GetPanGestureRecognizerShouldRecognizeSimultaneously
+    // (default false) — the app-config knob isn't wired yet, so default false (TBD). Pinch: no handler
+    // in C# → the UIKit default false. Everything else: false.
+    return NO;
+}
+@end
+
 namespace
 {
     using maui::platform::ios::gesture_target_key;
@@ -212,6 +296,12 @@ namespace maui::controls
     struct gesture_native_state
     {
         std::unordered_map<const gesture_recognizer*, std::unique_ptr<gesture_attachment>> attachments;
+        // U21: the shared arbitration delegate (C#'s `_proxy`) — created lazily once on the first
+        // attach, reused as the .delegate of EVERY native recognizer. Held strongly here (the
+        // recognizer's .delegate is a weak ref) until the manager is torn down. -invalidate (in the
+        // dtor / detach-all) clears its raw back-ref before this manager dies, so a recognizer UIKit
+        // still briefly retains can never call back into a freed manager.
+        MauiGestureArbitrationDelegate* arbitration_proxy = nil;
     };
 
     gesture_platform_manager::gesture_platform_manager() = default;
@@ -233,19 +323,28 @@ namespace maui::controls
             native_state_ = std::make_unique<gesture_native_state>();
         }
         gesture_native_state& state = *native_state_;
+        // U21: the shared arbitration delegate (C#'s `_proxy ??= new ShouldReceiveTouchProxy(this)`),
+        // created once and reused as the .delegate of every recognizer below.
+        if (state.arbitration_proxy == nil)
+        {
+            state.arbitration_proxy = [[MauiGestureArbitrationDelegate alloc] initWithManager:this];
+        }
+        MauiGestureArbitrationDelegate* const proxy = state.arbitration_proxy;
         auto attachment = std::make_unique<gesture_attachment>();
         attachment->recognizers = [NSMutableArray array];
         attachment->view = view;
         gesture_attachment* const att = attachment.get();
         element* const sender = sender_;
 
-        // Create one trampoline target, retain it via the associated object on the recognizer, and
-        // add the recognizer to the view.
-        const auto add_native = [att, view](UIGestureRecognizer* native,
-                                            std::function<void(UIGestureRecognizer*)> callback) {
+        // Create one trampoline target, retain it via the associated object on the recognizer, assign
+        // the shared arbitration delegate (ShouldReceiveTouch + ShouldRecognizeSimultaneously), and add
+        // the recognizer to the view.
+        const auto add_native = [att, view, proxy](UIGestureRecognizer* native,
+                                                   std::function<void(UIGestureRecognizer*)> callback) {
             MauiGestureTarget* const target = [[MauiGestureTarget alloc] initWithCallback:std::move(callback)];
             [native addTarget:target action:@selector(onGesture:)];
             objc_setAssociatedObject(native, gesture_target_key(), target, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            native.delegate = proxy; // C#: nativeRecognizer.ShouldReceiveTouch = _proxy.ShouldReceiveTouch
             [att->recognizers addObject:native];
             [view addGestureRecognizer:native];
         };
@@ -577,6 +676,11 @@ namespace maui::controls
             remove_native_attachment(*attachment);
         }
         native_state_->attachments.clear();
+        // U21: sever + release the shared arbitration delegate. -invalidate clears its raw back-ref
+        // first, so any recognizer UIKit still briefly retains (its .delegate is weak) decides NO
+        // rather than calling into a half-torn-down manager. A later re-attach mints a fresh proxy.
+        [native_state_->arbitration_proxy invalidate];
+        native_state_->arbitration_proxy = nil;
     }
 
     // --- drag&drop (W2-22): read the installed-interaction state off the backend table. ---

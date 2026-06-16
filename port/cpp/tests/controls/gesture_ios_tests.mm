@@ -413,6 +413,180 @@ namespace
         EXPECT_EQ(control.gesture_manager().attached_count(), 0U);
     }
 
+    // --- U21 gesture-delegate arbitration (ShouldReceiveTouchProxy + ShouldRecognizeSimultaneously) ---
+    // Every native recognizer the bridge attaches gets the shared arbitration delegate (the C#
+    // _proxy reused across all recognizers). Synthesizing a UITouch isn't supported by the spawned
+    // simulator lane (no UIApplication event loop to mint events), so the touch decision is unit-tested
+    // through the pure decision helper (should_receive_touch over a controlled touch-view), while the
+    // delegate ASSIGNMENT and the simultaneity arms are asserted against the real native recognizers. ---
+
+    TEST(gesture_ios_seam, attached_recognizer_gets_arbitration_delegate)
+    {
+        button control;
+        auto handler = std::make_shared<maui::core::button_handler>();
+        control.set_handler(handler);
+
+        control.gesture_recognizers().add(std::make_shared<tap_gesture_recognizer>());
+
+        UIGestureRecognizer* const native_tap = maui_recognizers(native_view(handler)).firstObject;
+        ASSERT_NE(native_tap, nil);
+        EXPECT_NE(native_tap.delegate, nil); // the shared ShouldReceiveTouchProxy delegate
+    }
+
+    TEST(gesture_ios_seam, should_receive_touch_blocks_input_transparent)
+    {
+        button control;
+        auto handler = std::make_shared<maui::core::button_handler>();
+        control.set_handler(handler);
+        control.set_input_transparent(true); // virtualView.InputTransparent → false
+
+        UIView* const view = native_view(handler);
+        EXPECT_FALSE(maui::platform::ios::should_receive_touch(&control, view, view));
+    }
+
+    TEST(gesture_ios_seam, should_receive_touch_blocks_disabled)
+    {
+        button control;
+        auto handler = std::make_shared<maui::core::button_handler>();
+        control.set_handler(handler);
+        control.set_is_enabled(false); // !virtualView.IsEnabled → false
+
+        UIView* const view = native_view(handler);
+        EXPECT_FALSE(maui::platform::ios::should_receive_touch(&control, view, view));
+    }
+
+    TEST(gesture_ios_seam, should_receive_touch_allows_own_view)
+    {
+        button control;
+        auto handler = std::make_shared<maui::core::button_handler>();
+        control.set_handler(handler);
+
+        UIView* const view = native_view(handler);
+        // touch.View == platformView → true (the first allow arm).
+        EXPECT_TRUE(maui::platform::ios::should_receive_touch(&control, view, view));
+        // A touch landing outside the platformView hierarchy → false (no descendant, no own view).
+        UIView* const outsider = [[UIView alloc] init];
+        EXPECT_FALSE(maui::platform::ios::should_receive_touch(&control, view, outsider));
+        // A null virtual view / null platform view → false (the WeakReference-dead guard).
+        EXPECT_FALSE(maui::platform::ios::should_receive_touch(nullptr, view, view));
+        EXPECT_FALSE(maui::platform::ios::should_receive_touch(&control, nil, view));
+    }
+
+    TEST(gesture_ios_seam, should_recognize_simultaneously_pointer_always_true)
+    {
+        button control;
+        auto handler = std::make_shared<maui::core::button_handler>();
+        control.set_handler(handler);
+        control.gesture_recognizers().add(std::make_shared<pointer_gesture_recognizer>());
+
+        UIView* const view = native_view(handler);
+        id<UIGestureRecognizerDelegate> const delegate =
+            (id<UIGestureRecognizerDelegate>)maui_recognizers(view).firstObject.delegate;
+        ASSERT_NE(delegate, nil);
+        ASSERT_TRUE([delegate
+            respondsToSelector:@selector(gestureRecognizer:shouldRecognizeSimultaneouslyWithGestureRecognizer:)]);
+        // UIHover and the CustomPress port both report true unconditionally (the C# pointer arms).
+        UIGestureRecognizer* const hover = maui_recognizers(view).firstObject;
+        UIGestureRecognizer* const press = maui_recognizers(view).lastObject;
+        UIGestureRecognizer* const other = [[UIPanGestureRecognizer alloc] init];
+        EXPECT_TRUE([delegate gestureRecognizer:hover shouldRecognizeSimultaneouslyWithGestureRecognizer:other]);
+        EXPECT_TRUE([delegate gestureRecognizer:press shouldRecognizeSimultaneouslyWithGestureRecognizer:other]);
+    }
+
+    TEST(gesture_ios_seam, should_recognize_simultaneously_tap_same_count)
+    {
+        button control;
+        auto handler = std::make_shared<maui::core::button_handler>();
+        control.set_handler(handler);
+        control.gesture_recognizers().add(std::make_shared<tap_gesture_recognizer>());
+
+        UIView* const view = native_view(handler);
+        auto* const native_tap = (UITapGestureRecognizer*)maui_recognizers(view).firstObject;
+        id<UIGestureRecognizerDelegate> const delegate = (id<UIGestureRecognizerDelegate>)native_tap.delegate;
+        ASSERT_NE(delegate, nil);
+
+        // Same taps + touches + view → simultaneous (ShouldRecognizeTapsTogether allows it). The tap is
+        // already on `view`; another tap added to the same view with matching counts is allowed together.
+        auto* const other_same = [[UITapGestureRecognizer alloc] init];
+        other_same.numberOfTapsRequired = native_tap.numberOfTapsRequired;
+        other_same.numberOfTouchesRequired = native_tap.numberOfTouchesRequired;
+        [view addGestureRecognizer:other_same];
+        EXPECT_TRUE([delegate gestureRecognizer:native_tap
+            shouldRecognizeSimultaneouslyWithGestureRecognizer:other_same]);
+
+        // A different tap count → not simultaneous.
+        auto* const other_diff = [[UITapGestureRecognizer alloc] init];
+        other_diff.numberOfTapsRequired = native_tap.numberOfTapsRequired + 1;
+        [view addGestureRecognizer:other_diff];
+        EXPECT_FALSE([delegate gestureRecognizer:native_tap
+            shouldRecognizeSimultaneouslyWithGestureRecognizer:other_diff]);
+
+        // A non-tap other → not simultaneous (the cast-to-tap guard).
+        auto* const non_tap = [[UIPanGestureRecognizer alloc] init];
+        EXPECT_FALSE([delegate gestureRecognizer:native_tap
+            shouldRecognizeSimultaneouslyWithGestureRecognizer:non_tap]);
+    }
+
+    TEST(gesture_ios_seam, should_recognize_simultaneously_swipe_scrollview_blocks)
+    {
+        button control;
+        auto handler = std::make_shared<maui::core::button_handler>();
+        control.set_handler(handler);
+        control.gesture_recognizers().add(std::make_shared<swipe_gesture_recognizer>());
+
+        UIView* const view = native_view(handler);
+        auto* const native_swipe = (UISwipeGestureRecognizer*)maui_recognizers(view).firstObject;
+        id<UIGestureRecognizerDelegate> const delegate = (id<UIGestureRecognizerDelegate>)native_swipe.delegate;
+        ASSERT_NE(delegate, nil);
+
+        // other.View is a UIScrollView → false (let the scroll view win); otherwise → true.
+        UIScrollView* const scroll = [[UIScrollView alloc] init];
+        auto* const scroll_gesture = [[UIPanGestureRecognizer alloc] init];
+        [scroll addGestureRecognizer:scroll_gesture];
+        EXPECT_FALSE([delegate gestureRecognizer:native_swipe
+            shouldRecognizeSimultaneouslyWithGestureRecognizer:scroll_gesture]);
+
+        UIView* const plain = [[UIView alloc] init];
+        auto* const plain_gesture = [[UIPanGestureRecognizer alloc] init];
+        [plain addGestureRecognizer:plain_gesture];
+        EXPECT_TRUE([delegate gestureRecognizer:native_swipe
+            shouldRecognizeSimultaneouslyWithGestureRecognizer:plain_gesture]);
+    }
+
+    TEST(gesture_ios_seam, should_recognize_simultaneously_pan_and_pinch_false)
+    {
+        button control;
+        auto handler = std::make_shared<maui::core::button_handler>();
+        control.set_handler(handler);
+        control.gesture_recognizers().add(std::make_shared<pan_gesture_recognizer>());
+        control.gesture_recognizers().add(std::make_shared<pinch_gesture_recognizer>());
+
+        UIView* const view = native_view(handler);
+        NSArray<UIGestureRecognizer*>* const attached = maui_recognizers(view);
+        UIGestureRecognizer* native_pan = nil;
+        UIGestureRecognizer* native_pinch = nil;
+        for (NSUInteger i = 0; i < attached.count; ++i)
+        {
+            UIGestureRecognizer* const recognizer = attached[i];
+            if ([recognizer isKindOfClass:[UIPanGestureRecognizer class]])
+            {
+                native_pan = recognizer;
+            }
+            else if ([recognizer isKindOfClass:[UIPinchGestureRecognizer class]])
+            {
+                native_pinch = recognizer;
+            }
+        }
+        ASSERT_NE(native_pan, nil);
+        ASSERT_NE(native_pinch, nil);
+        auto* const other = [[UIPanGestureRecognizer alloc] init];
+        // Pan: default false (Application config is TBD — documented). Pinch: no handler → false.
+        EXPECT_FALSE([(id<UIGestureRecognizerDelegate>)native_pan.delegate gestureRecognizer:native_pan
+                                          shouldRecognizeSimultaneouslyWithGestureRecognizer:other]);
+        EXPECT_FALSE([(id<UIGestureRecognizerDelegate>)native_pinch.delegate gestureRecognizer:native_pinch
+                                            shouldRecognizeSimultaneouslyWithGestureRecognizer:other]);
+    }
+
     // --- drag&drop (W2-22): attachment-only native install/remove (LoadRecognizers' AddInteraction /
     // RemoveInteraction). The proof is the UIDragInteraction / UIDropInteraction on the view's
     // interactions; driving a UIDrag/UIDropSession isn't possible on the spawned simulator lane (no

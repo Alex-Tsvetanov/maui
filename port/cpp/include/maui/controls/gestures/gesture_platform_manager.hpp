@@ -27,6 +27,19 @@
 // _gestureRecognizers dictionary keys are strong too), so a native recognizer's bridge never outlives
 // its port recognizer; handler / sender / collection are non-owning back-references into the owning
 // view, which outlives the manager (they are sibling members).
+//
+// Native arbitration (UIGestureRecognizerDelegate, iOS — GesturePlatformManager.iOS.cs's
+// ShouldReceiveTouchProxy + the per-recognizer ShouldRecognizeSimultaneously blocks): on backends with
+// a native delegate seam, EVERY attached native recognizer shares one arbitration delegate (created
+// lazily once, reused — C#'s `_proxy`):
+//   - ShouldReceiveTouch: false when the virtual view is gone / InputTransparent / disabled, or the
+//     touch lands outside the platform view's hierarchy; true for a touch on the platform view itself,
+//     or on a descendant when either the touch's view or the platform view already carries recognizers.
+//   - ShouldRecognizeSimultaneously, per recognizer kind: tap → together iff same taps/touches on the
+//     same view; swipe → true unless the OTHER recognizer's view is a scroll view; pointer (hover +
+//     custom-press) → always true; pan/pinch → false (pan consults an app-level config in C#, TBD
+//     here). The headless backend has no native arbitration (no delegate seam) — its synthetic
+//     pipeline routes through the same per-recognizer filters directly.
 
 #include <cstddef>
 #include <cstdint>
@@ -49,6 +62,13 @@ namespace maui::controls
     // into a build, and only that TU (where the type is complete) instantiates the unique_ptr's
     // destructor (the manager's dtor is declared here and defined there).
     struct gesture_native_state;
+
+    // U21 (iOS arbitration): the friend seam through which the ios backend's shared arbitration
+    // delegate (the ShouldReceiveTouchProxy port) reaches the manager's live handler to resolve
+    // manager._handler?.VirtualView / .PlatformView FRESH on each delegate callback (C# re-reads them
+    // every time; the WeakReference guard becomes a null-handler check here). Defined only in the ios
+    // partial — keeps UIKit out of this header and the manager's surface unchanged on every backend.
+    struct gesture_arbitration_access;
 
     // The synthetic pointer phases (the port-internal tag for which Send* a synthesized pointer event
     // routes to; C# has no equivalent enum — its bridges call the five Send* methods directly).
@@ -160,6 +180,12 @@ namespace maui::controls
                                buttons_mask button = buttons_mask::primary);
 
     private:
+        // U21 (iOS arbitration): grants the ios backend's arbitration delegate read access to handler_
+        // (see gesture_arbitration_access above) so its UIGestureRecognizerDelegate callbacks resolve
+        // the live virtual/platform view. A no-op on every other backend (the struct is only defined in
+        // the ios partial).
+        friend struct gesture_arbitration_access;
+
         // The backend partial (src/platform/<backend>/gesture_platform_manager.{cpp,mm}): attach /
         // detach the native recognizer(s) for one port recognizer on handler_->native_view().
         // native_state_ is the backend's opaque attachment table (headless leaves it null).
