@@ -42,6 +42,11 @@
 #include "maui/core/setter_specificity.hpp"
 #include "maui/core/type_tag.hpp"
 
+namespace maui::xaml
+{
+    class name_scope; // forward — the x:Name registry attached to an element (Setter/Trigger TargetName)
+} // namespace maui::xaml
+
 namespace maui::controls
 {
     class window;                    // forward — the host; element only holds a non-owning back-ref
@@ -142,6 +147,47 @@ namespace maui::controls
         // value is kept (C# only stops future updates).
         void remove_dynamic_resource(std::string_view name);
 
+        // ---- NameScope (x:Name registry) — NameScope.SetNameScope / GetNameScope + Element.FindByName ----
+        // The C# model attaches an INameScope to a BindableObject through NameScope.NameScopeProperty and has
+        // Element.GetNameScope walk RealParent for the nearest one. The reflection-free port has no central
+        // attached-property bag (PROFILE §7 removed it), so the scope is a first-class element slot here —
+        // this is the element-side scope the name_scope.hpp placement note deferred. NON-owning toward the
+        // CONTROLS it registers in the usual sense (the scope's shared_ptr<bindable_object> entries co-own the
+        // element tree, exactly like C#'s GC-rooted dictionary); the element owns its scope shared_ptr (a
+        // nested ControlTemplate scope and its outer scope are distinct objects, one per element that declares
+        // x:Name children — see name_scope_ref for the shared-ref case during a XAML load).
+        //
+        // NameScope.SetNameScope: attach `value` as THIS element's scope. C# only sets it when none is
+        // attached yet (GetValue(NameScopeProperty) == null) — the port mirrors that: a second set is ignored.
+        //
+        // OWNERSHIP CAVEAT (documented): a scope's shared_ptr<bindable_object> entries co-own the registered
+        // elements. The intended shape — a parent's scope registers its DESCENDANTS, and resolution walks UP
+        // (logical_parent_ is a raw back-ref) — is an acyclic graph. Registering an element in ITS OWN scope
+        // (or an ancestor's, where the ancestor also owns that scope) would form a shared_ptr cycle; C# is
+        // immune via GC but the port is not. The code-first Setter/Trigger TargetName path here only registers
+        // descendants, so no cycle arises. The XAML loader (M7), which is where root self-registration
+        // happens, still keeps its scopes on the load nodes/result (name_scope.hpp), not on elements — so this
+        // element-side slot does not change that path. If a future loader integration attaches scopes to
+        // elements, self/ancestor registrations must hold a weak entry to break the cycle.
+        void set_name_scope(std::shared_ptr<maui::xaml::name_scope> value);
+
+        // Element.GetNameScope: the nearest attached scope walking THIS element then up the logical-parent
+        // chain (C# walks RealParent). nullptr when no element in the chain carries a scope (C# returns null).
+        // Borrowed — valid while the owning element + its scope live.
+        [[nodiscard]] maui::xaml::name_scope* get_name_scope() const;
+
+        // Element.FindByName: resolve `name` against this element's effective namescope (GetNameScope) and
+        // return the registered object as a bindable_object*, or nullptr when there is no scope in the chain
+        // or the name is unregistered / not a control (C#'s FindByName returns null; the cast narrows it).
+        // Borrowed (the scope / element tree owns the target).
+        [[nodiscard]] maui::core::bindable_object* find_by_name(std::string_view name) const;
+
+        // Setter.FindTargetByName: the named-target resolution a Setter/Trigger TargetName uses. Try the
+        // standard FindByName first (own or inherited scope), then walk the logical-parent chain consulting
+        // EACH ancestor's own GetNameScope — this reaches a name registered in an OUTER scope when the
+        // element sits inside a nested ControlTemplate namescope (Maui3793). nullptr when unresolvable.
+        [[nodiscard]] maui::core::bindable_object* find_target_by_name(std::string_view name) const;
+
     protected:
         // Out-of-line (= default in element_templates.cpp): the inline form would instantiate the
         // unwind destructor of the forward-declared template_bindings_ vector. --- templates (W1-09) ---
@@ -206,8 +252,18 @@ namespace maui::controls
         // resolving each against the current chain. Used by both paths above.
         void apply_dynamic_resources(const std::vector<resource_change>* keys);
 
+        // INameScope.FindByName narrowed to a control (the shared_ptr<bindable_object> case): the stored
+        // object as a bindable_object*, or null on a miss / a non-control payload. Shared by find_by_name +
+        // find_target_by_name's parent walk.
+        [[nodiscard]] static maui::core::bindable_object* resolve_in_scope(const maui::xaml::name_scope& scope,
+                                                                           std::string_view name);
+
         window* window_ = nullptr;          // non-owning back-ref to the hosting window (VisualElement.Window)
         element* logical_parent_ = nullptr; // non-owning back-ref to the logical parent (Element.Parent)
+        // The attached x:Name registry (NameScope.NameScopeProperty), null until set_name_scope. Held as a
+        // shared_ptr because a XAML load shares one scope across the nodes of a scope (name_scope_ref); a
+        // code-first control simply owns its own. Entries co-own the registered controls (see set_name_scope).
+        std::shared_ptr<maui::xaml::name_scope> name_scope_;
         std::unique_ptr<resource_dictionary> resources_; // lazily created (IsResourcesCreated)
         maui::core::scoped_connection resources_token_;  // own-dictionary values_changed subscription
         // DynamicResource bindings: property-name → resource-key (Element.DynamicResources). Both strings are

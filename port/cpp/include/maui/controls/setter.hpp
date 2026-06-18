@@ -11,13 +11,19 @@
 // it is a plain (copyable) value type, not a template.
 //
 // Setter.TargetName retargets the assignment to a NAMED element rather than the trigger/style's own
-// target. C#'s XAML resolves the name via the namescope; the reflection-free, code-first port has no
-// namescope, so the retarget is given DIRECTLY as a bindable_object pointer (setter::of_for(target, …)).
-// When a retarget is set, apply/unapply ignore the passed target and route to the retarget instead — the
-// faithful behavioral equivalent (a named element is just a pointer once resolved). The retarget is
-// NON-owning (the element tree owns it) and must outlive any apply/unapply.
+// target. There are two ways to supply that target:
+//   - of_for(target, …): the retarget is given DIRECTLY as an already-resolved bindable_object pointer —
+//     the reflection-free shortcut for callers that already hold the element (NON-owning; it must outlive
+//     any apply/unapply).
+//   - of_named(…, name): the C#-faithful path — the TargetName STRING is stored and resolved at apply()
+//     time against the apply target's element namescope (Setter.FindTargetByName: Element.FindByName then
+//     the parent-chain namescope walk), exactly like C#'s XAML Setter. An unresolved name throws
+//     xaml_parse_exception, mirroring C#'s `?? throw new XamlParseException(...)`.
+// When either retarget channel is set, apply/unapply ignore the passed target and route to the resolved
+// element instead — a named element is just a pointer once resolved.
 
 #include <any>
+#include <string>
 #include <string_view>
 #include <utility>
 
@@ -34,25 +40,36 @@ namespace maui::controls
         // matching property<T> handle can unbox it on apply.
         template <class T> [[nodiscard]] static setter of(const maui::core::bindable_property<T>& descriptor, T value)
         {
-            return setter{descriptor.name(), std::any{std::move(value)}, nullptr};
+            return setter{descriptor.name(), std::any{std::move(value)}, nullptr, {}};
         }
 
-        // Create a retargeting setter (Setter.TargetName): apply/unapply route to `target` regardless of the
-        // object passed to apply()/unapply(). NON-owning — `target` must outlive the setter's use.
+        // Create a retargeting setter (Setter.TargetName) from an ALREADY-resolved element: apply/unapply
+        // route to `target` regardless of the object passed to apply()/unapply(). NON-owning — `target`
+        // must outlive the setter's use.
         template <class T>
         [[nodiscard]] static setter of_for(maui::core::bindable_object& target,
                                            const maui::core::bindable_property<T>& descriptor, T value)
         {
-            return setter{descriptor.name(), std::any{std::move(value)}, &target};
+            return setter{descriptor.name(), std::any{std::move(value)}, &target, {}};
+        }
+
+        // Create a retargeting setter from a TargetName STRING (Setter.TargetName as authored): the name is
+        // resolved at apply() time against the apply target's element namescope (see resolve_target). The
+        // common, C#-faithful channel — use this when the named element isn't yet known at setter-creation.
+        template <class T>
+        [[nodiscard]] static setter of_named(const maui::core::bindable_property<T>& descriptor, T value,
+                                             std::string target_name)
+        {
+            return setter{descriptor.name(), std::any{std::move(value)}, nullptr, std::move(target_name)};
         }
 
         void apply(maui::core::bindable_object& target, maui::core::setter_specificity specificity) const
         {
-            effective_target(target).apply_setter(property_name_, value_, specificity);
+            resolve_target(target).apply_setter(property_name_, value_, specificity);
         }
         void unapply(maui::core::bindable_object& target, maui::core::setter_specificity specificity) const
         {
-            effective_target(target).clear_setter(property_name_, specificity);
+            resolve_target(target).clear_setter(property_name_, specificity);
         }
 
         [[nodiscard]] std::string_view property_name() const
@@ -61,19 +78,36 @@ namespace maui::controls
         }
 
     private:
-        setter(std::string_view property_name, std::any value, maui::core::bindable_object* retarget)
-            : property_name_(property_name), value_(std::move(value)), retarget_(retarget)
+        setter(std::string_view property_name, std::any value, maui::core::bindable_object* retarget,
+               std::string target_name)
+            : property_name_(property_name), value_(std::move(value)), retarget_(retarget),
+              target_name_(std::move(target_name))
         {
         }
 
-        // The object the setter actually writes to: the retarget (TargetName) when set, else the passed one.
-        [[nodiscard]] maui::core::bindable_object& effective_target(maui::core::bindable_object& target) const
+        // The object the setter actually writes to (Setter.Apply's `targetObject`): the pre-resolved retarget
+        // when set, else the TargetName-resolved element when a name is stored, else the passed target. The
+        // name-resolution path is out-of-line (setter.cpp) so this header doesn't pull in element.hpp.
+        [[nodiscard]] maui::core::bindable_object& resolve_target(maui::core::bindable_object& target) const
         {
-            return retarget_ != nullptr ? *retarget_ : target;
+            if (retarget_ != nullptr)
+            {
+                return *retarget_;
+            }
+            if (!target_name_.empty())
+            {
+                return resolve_named_target(target);
+            }
+            return target;
         }
+
+        // Setter.FindTargetByName over the apply target (must be an element with a namescope). Throws
+        // xaml_parse_exception when the name does not resolve, like C#'s `?? throw new XamlParseException`.
+        [[nodiscard]] maui::core::bindable_object& resolve_named_target(maui::core::bindable_object& target) const;
 
         std::string_view property_name_;                  // the descriptor name (a string literal — stable/borrowed)
         std::any value_;                                  // the boxed value (storage stays typed in property<T>)
-        maui::core::bindable_object* retarget_ = nullptr; // Setter.TargetName retarget (NON-owning); null = self
+        maui::core::bindable_object* retarget_ = nullptr; // pre-resolved TargetName retarget (NON-owning); null = self
+        std::string target_name_;                         // Setter.TargetName (resolved at apply); empty = none
     };
 } // namespace maui::controls

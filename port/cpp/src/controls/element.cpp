@@ -20,6 +20,7 @@
 #include "maui/core/binding_mode.hpp"
 #include "maui/core/event.hpp"
 #include "maui/core/setter_specificity.hpp"
+#include "maui/xaml/name_scope.hpp" // the attached x:Name registry (Setter/Trigger TargetName resolution)
 
 // --- animations (W1-14) ---
 #include <algorithm>
@@ -197,6 +198,84 @@ namespace maui::controls
     {
         // C# only stops future updates (the already-applied value is kept), so just drop the binding.
         dynamic_resources_.erase(std::string{name});
+    }
+
+    // ---- NameScope (x:Name registry) — NameScope.SetNameScope / GetNameScope + Element.FindByName ----
+
+    void element::set_name_scope(std::shared_ptr<maui::xaml::name_scope> value)
+    {
+        // NameScope.SetNameScope: only attach when none is set yet (C# guards GetValue(NameScopeProperty)
+        // == null) — a XAML load can call SetNameScope more than once up the tree and the first wins.
+        if (name_scope_ == nullptr)
+        {
+            name_scope_ = std::move(value);
+        }
+    }
+
+    maui::xaml::name_scope* element::get_name_scope() const
+    {
+        // Element.GetNameScope: walk THIS element then RealParent for the nearest attached scope.
+        for (const element* current = this; current != nullptr; current = current->logical_parent_)
+        {
+            if (current->name_scope_ != nullptr)
+            {
+                return current->name_scope_.get();
+            }
+        }
+        return nullptr; // C# returns null when no element in the chain carries a scope.
+    }
+
+    maui::core::bindable_object* element::find_by_name(std::string_view name) const
+    {
+        // Element.FindByName: resolve against the effective namescope (C# uses GetNameScope() ??
+        // transientNamescope; the port has no transient slot — see name_scope.hpp). A null scope means the
+        // element is not in a namescope; C#'s FindByName throws InvalidOperationException there, but the only
+        // caller (Setter.FindTargetByName) treats a non-resolution as "not found and keep walking", so the
+        // port returns null and lets the setter's parent-walk + final throw mirror the user-facing behavior.
+        const maui::xaml::name_scope* scope = get_name_scope();
+        if (scope == nullptr)
+        {
+            return nullptr;
+        }
+        return resolve_in_scope(*scope, name);
+    }
+
+    maui::core::bindable_object* element::resolve_in_scope(const maui::xaml::name_scope& scope, std::string_view name)
+    {
+        // INameScope.FindByName returns the stored object; the control case is a shared_ptr<bindable_object>.
+        // A miss, or a non-control payload (e.g. an x:String resource), narrows to null (C#'s `as` cast).
+        const std::any* value = scope.find_by_name(name);
+        if (value == nullptr)
+        {
+            return nullptr;
+        }
+        const auto* object = std::any_cast<std::shared_ptr<maui::core::bindable_object>>(value);
+        return object != nullptr ? object->get() : nullptr;
+    }
+
+    maui::core::bindable_object* element::find_target_by_name(std::string_view name) const
+    {
+        // Setter.FindTargetByName: standard lookup first (own or inherited scope, via FindByName)...
+        if (maui::core::bindable_object* target = find_by_name(name); target != nullptr)
+        {
+            return target;
+        }
+        // ...then walk the parent tree consulting EACH ancestor's OWN scope (not GetNameScope, which would
+        // re-walk and re-find the same scopes) so a name in an OUTER ControlTemplate namescope resolves
+        // even though this element's own scope missed it (C# calls current.GetNameScope() per ancestor; the
+        // own-scope check is the meaningful step each ancestor adds beyond what FindByName already covered).
+        for (const element* current = logical_parent_; current != nullptr; current = current->logical_parent_)
+        {
+            if (current->name_scope_ != nullptr)
+            {
+                if (maui::core::bindable_object* target = resolve_in_scope(*current->name_scope_, name);
+                    target != nullptr)
+                {
+                    return target;
+                }
+            }
+        }
+        return nullptr;
     }
 
     void element::apply_dynamic_resources(const std::vector<resource_change>* keys)

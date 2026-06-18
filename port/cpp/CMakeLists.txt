@@ -744,6 +744,7 @@ endif()
 
 add_library(maui_controls STATIC
   src/controls/element.cpp
+  src/controls/setter.cpp # (U-TN) Setter.TargetName string resolution via the element-side namescope
   # (G3 effects) the abstract effect base + Resolve, the explicit effect registry, the routing_effect
   # wrapper, and the element-side Effects collection + attach/detach lifecycle (element_effects.cpp).
   src/controls/effect.cpp
@@ -1037,6 +1038,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/dynamic_resource_tests.cpp
     tests/controls/implicit_style_tests.cpp
     tests/controls/advanced_trigger_tests.cpp
+    tests/controls/setter_target_name_tests.cpp # (U-TN) Setter.TargetName resolution via element namescope
     tests/controls/behavior_tests.cpp # W1-15: Behavior/AttachedCollection (backend-agnostic)
     tests/controls/event_trigger_tests.cpp # W1-15: EventTrigger over the named-event seam
     tests/controls/state_trigger_tests.cpp # W1-15: StateTriggers driving visual states
@@ -1223,6 +1225,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/dynamic_resource_tests.cpp
     tests/controls/implicit_style_tests.cpp
     tests/controls/advanced_trigger_tests.cpp
+    tests/controls/setter_target_name_tests.cpp # (U-TN) Setter.TargetName resolution via element namescope
     tests/controls/behavior_tests.cpp # W1-15: Behavior/AttachedCollection (backend-agnostic)
     tests/controls/event_trigger_tests.cpp # W1-15: EventTrigger over the named-event seam
     tests/controls/state_trigger_tests.cpp # W1-15: StateTriggers driving visual states
@@ -1319,6 +1322,7 @@ else()
     tests/controls/dynamic_resource_tests.cpp
     tests/controls/implicit_style_tests.cpp
     tests/controls/advanced_trigger_tests.cpp
+    tests/controls/setter_target_name_tests.cpp # (U-TN) Setter.TargetName resolution via element namescope
     tests/controls/behavior_tests.cpp # W1-15: Behavior/AttachedCollection (backend-agnostic)
     tests/controls/event_trigger_tests.cpp # W1-15: EventTrigger over the named-event seam
     tests/controls/state_trigger_tests.cpp # W1-15: StateTriggers driving visual states
@@ -1514,7 +1518,8 @@ add_library(maui_xaml STATIC
   src/xaml/i_markup_extension.cpp
   # ---- M7 wave 2: hydration + markup extensions + visitors + loader ----
   src/xaml/hydration_context.cpp
-  src/xaml/name_scope.cpp
+  # (name_scope is now header-only — inlined in name_scope.hpp so the controls layer can use it for
+  #  element's attached scope + Setter/Trigger TargetName without a controls→xaml link cycle; U-TN)
   src/xaml/markup_extensions.cpp
   src/xaml/xaml_runtime_environment.cpp
   src/xaml/xaml_static_registry.cpp

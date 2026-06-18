@@ -23,9 +23,16 @@
 // ref->scope (CreateValuesVisitor does this when a load_into root already owns a scope) retargets the
 // whole scope's nodes at once.
 
+// LAYERING NOTE (U-TN): every method is defined INLINE here (no name_scope.cpp). The class is a trivial
+// map wrapper, and inlining lets the controls layer use it (element's attached scope + Setter/Trigger
+// TargetName resolution) WITHOUT linking the xaml library — maui_xaml links maui_controls PUBLIC, so a
+// controls→xaml link edge for these symbols would be a dependency cycle. C#'s NameScope likewise lives in
+// Microsoft.Maui.Controls.Internals (the controls assembly), so a controls-reachable definition is faithful.
+
 #include <any>
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 
@@ -39,11 +46,25 @@ namespace maui::xaml
         // INameScope.RegisterName: throws std::invalid_argument (C# ArgumentException(paramName:
         // "name")) when the name is already registered — the RegisterXNames visitor converts that
         // into the user-facing xaml_parse_exception, exactly like C#.
-        void register_name(std::string name, std::any scoped_element);
+        void register_name(std::string name, std::any scoped_element)
+        {
+            // NameScope.RegisterName: ArgumentException($"An element with the key '{name}' already
+            // exists in NameScope", nameof(name)).
+            if (names_.contains(name))
+            {
+                throw std::invalid_argument("An element with the key '" + name + "' already exists in NameScope");
+            }
+            names_.emplace(std::move(name), std::move(scoped_element));
+            // (C#'s reverse _values map exists only for the VS Live Visual Tree's NameOf — not ported.)
+        }
 
         // INameScope.FindByName: the stored value, or nullptr when unregistered (C# returns null).
         // The pointer is valid until the scope mutates.
-        [[nodiscard]] const std::any* find_by_name(std::string_view name) const;
+        [[nodiscard]] const std::any* find_by_name(std::string_view name) const
+        {
+            const auto found = names_.find(name);
+            return found != names_.end() ? &found->second : nullptr;
+        }
 
         // The common typed lookup: the registered control as TControl, or nullptr when the name is
         // unregistered, not a control, or a different control type (FindByName<T> as Element.cs's
@@ -61,7 +82,20 @@ namespace maui::xaml
 
         // INameScope.UnregisterName: throws std::invalid_argument on an empty or unregistered name
         // (C# ArgumentException; the null-name overload cannot arise — std::string is never null).
-        void unregister_name(std::string_view name);
+        void unregister_name(std::string_view name)
+        {
+            // NameScope.UnregisterName's guards, in C#'s order (the null-name case cannot arise here).
+            if (name.empty())
+            {
+                throw std::invalid_argument("name was provided as empty string.");
+            }
+            const auto found = names_.find(name);
+            if (found == names_.end())
+            {
+                throw std::invalid_argument("name provided had not been registered.");
+            }
+            names_.erase(found);
+        }
 
     private:
         std::map<std::string, std::any, std::less<>> names_;
