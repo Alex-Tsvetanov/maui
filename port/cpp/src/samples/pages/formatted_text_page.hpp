@@ -10,6 +10,7 @@
 //   - a second label set with plain Text (the exclusivity: setting FormattedText null-clears Text),
 //   - a button-free, display-only page (label is the only control), matching the W1-04 page convention.
 
+#include <cstdio>
 #include <memory>
 
 #include "maui/controls/content_page.hpp"
@@ -21,6 +22,9 @@
 #include "maui/core/font_attributes.hpp"
 #include "maui/core/text_decorations.hpp"
 #include "maui/graphics/color.hpp"
+#include "maui/hosting/maui_app.hpp"
+
+#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -66,6 +70,19 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
+        }
+
+        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
+        // tree built in the ctor (gallery_attach.hpp).
+        void attach_handlers(maui::hosting::maui_app& app)
+        {
+            gallery_attach_one(app, rich_, "rich_");
+            gallery_attach_one(app, plain_, "plain_");
+            gallery_attach_one(app, stack_, "stack_");
+            gallery_attach_one(app, page_, "page_");
+
+            gallery_rehost_layout(stack_);
+            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

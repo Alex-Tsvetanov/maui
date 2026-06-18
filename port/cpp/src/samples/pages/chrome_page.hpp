@@ -16,6 +16,7 @@
 //   - the button's context flyout offers Copy/Paste around a separator,
 //   - the button carries a tooltip ("Press or right-click me").
 
+#include <cstdio>
 #include <string>
 
 #include "maui/controls/button.hpp"
@@ -30,6 +31,9 @@
 #include "maui/controls/toolbar_item.hpp"
 #include "maui/controls/toolbar_item_order.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/hosting/maui_app.hpp"
+
+#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -91,6 +95,22 @@ namespace maui::samples
         {
             return page_;
         }
+
+        // Attach a handler to every OWNED view, BOTTOM-UP (the button + readout, then the stack, then the
+        // page), then re-host the tree built in the ctor. The toolbar_item / menu_bar_item / menu_flyout*
+        // members are NON-view items: they have no standalone handler, so they are deliberately excluded
+        // (attaching them would throw). (gallery_attach.hpp)
+        void attach_handlers(maui::hosting::maui_app& app)
+        {
+            gallery_attach_one(app, action_button_, "action_button_");
+            gallery_attach_one(app, readout_, "readout_");
+            gallery_attach_one(app, stack_, "stack_");
+            gallery_attach_one(app, page_, "page_");
+
+            gallery_rehost_layout(stack_);
+            gallery_rehost_content(page_);
+        }
+
         [[nodiscard]] maui::controls::label& readout()
         {
             return readout_;

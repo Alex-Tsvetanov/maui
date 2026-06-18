@@ -1,0 +1,81 @@
+#pragma once
+// gallery_host — the runnable demo-gallery host shared by the macOS + iOS gallery mains.
+//
+// The 11 curated demo pages (src/samples/pages/*.hpp) each OWN a self-contained element tree and expose
+// page() returning their root page (a content_page, except tabbed_flyout's flyout_page). They are
+// orphaned on their own — nothing builds or runs them. This header bridges that gap two ways:
+//
+//   - gallery_app<Page> is a maui::controls::application subclass (the use_maui_app<TApp> shape, like the
+//     sample_app in maui_app_sample.mm): it OWNS a Page member + a window, hosts the page in the window
+//     (window.set_content(page.page())), and overrides create_window() to return that window. The mains
+//     boot it through the maui_app_builder, attach the page's handlers (page.attach_handlers), attach the
+//     window handler, open_window, then measure/arrange + show the native window.
+//
+//   - MAUI_GALLERY_PAGES(X) single-sources the page list (name string ⇄ page type). The mains expand it
+//     against the MAUI_SAMPLE_PAGE env var to pick which gallery_app<PageType> to boot, so a new page is
+//     added in exactly one place. window.set_content and i_view::measure/arrange are reached through the
+//     page's element / i_view faces, so the same template deduces for both content_page and flyout_page
+//     roots.
+
+#include "maui/controls/application.hpp"
+#include "maui/controls/window.hpp"
+#include "maui/core/i_window.hpp"
+
+#include "pages/chrome_page.hpp"
+#include "pages/containers_page.hpp"
+#include "pages/formatted_text_page.hpp"
+#include "pages/input_controls_page.hpp"
+#include "pages/items_page.hpp"
+#include "pages/pickers_page.hpp"
+#include "pages/shapes_page.hpp"
+#include "pages/swipe_refresh_page.hpp"
+#include "pages/tabbed_flyout_page.hpp"
+#include "pages/value_controls_page.hpp"
+#include "pages/web_view_page.hpp"
+
+// The curated demo set, single-sourced. X(name_literal, page_type). The mains map the MAUI_SAMPLE_PAGE
+// env var onto these, and gallery READMEs/captures key off the same names.
+#define MAUI_GALLERY_PAGES(X)                                                                                          \
+    X("value_controls", value_controls_page)                                                                           \
+    X("input_controls", input_controls_page)                                                                           \
+    X("pickers", pickers_page)                                                                                         \
+    X("formatted_text", formatted_text_page) X("items", items_page) X("shapes", shapes_page)                           \
+        X("containers", containers_page) X("swipe_refresh", swipe_refresh_page) X("web_view", web_view_page)           \
+            X("chrome", chrome_page) X("tabbed_flyout", tabbed_flyout_page)
+
+namespace maui::samples
+{
+    // The application subclass the builder mints (use_maui_app<gallery_app<Page>>). It OWNS the demo page
+    // and the window, and hosts the page in the window (the C# Application.CreateWindow shape).
+    template <class Page> class gallery_app final : public maui::controls::application
+    {
+    public:
+        gallery_app()
+        {
+            window_.set_title("MAUI C++ — gallery");
+            window_.set_content(page_.page()); // the page root is an element (content_page / flyout_page)
+        }
+
+        [[nodiscard]] maui::core::i_window* create_window() override
+        {
+            return &window_;
+        }
+
+        // The owned demo page (for the main's page_.attach_handlers(maui_app)).
+        [[nodiscard]] Page& page_member()
+        {
+            return page_;
+        }
+        // The owned window (for the main's window-handler attach + native show).
+        [[nodiscard]] maui::controls::window& win()
+        {
+            return window_;
+        }
+
+    private:
+        // The page is declared BEFORE the window: the window holds a non-owning back-pointer to the page
+        // (set_content), so the page must outlive the window (destroyed in reverse declaration order).
+        Page page_;
+        maui::controls::window window_;
+    };
+} // namespace maui::samples

@@ -1397,6 +1397,13 @@ if(MAUI_BACKEND STREQUAL "apple")
   add_executable(maui_app_sample src/samples/maui_app_sample.mm)
   set_source_files_properties(src/samples/maui_app_sample.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
   target_link_libraries(maui_app_sample PRIVATE maui_hosting maui_sanitizers)
+
+  # The runnable demo gallery: one NSWindow hosting whichever of the 11 curated demo pages
+  # (src/samples/pages/*.hpp) the MAUI_SAMPLE_PAGE env var selects. Run e.g.
+  #   MAUI_SAMPLE_PAGE=pickers ./build/apple/maui_macos_gallery
+  add_executable(maui_macos_gallery src/samples/macos_gallery.mm)
+  set_source_files_properties(src/samples/macos_gallery.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+  target_link_libraries(maui_macos_gallery PRIVATE maui_hosting maui_sanitizers)
 endif()
 
 # ---- Sample app (iOS only): maui_app_sample's UIKit twin, a real UIApplicationMain app ----
@@ -1415,6 +1422,21 @@ if(MAUI_BACKEND STREQUAL "ios")
     MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/src/samples/ios_app_sample_info.plist.in"
     MACOSX_BUNDLE_BUNDLE_NAME "maui_ios_app_sample"
     MACOSX_BUNDLE_GUI_IDENTIFIER "dev.maui-cpp.ios-app-sample"
+    MACOSX_BUNDLE_BUNDLE_VERSION "1"
+    MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0")
+
+  # The runnable demo gallery — the UIKit twin of maui_macos_gallery (a real .app bundle, the same
+  # minimal Info.plist as maui_ios_app_sample). Run e.g.
+  #   xcrun simctl install booted build/ios/maui_ios_gallery.app
+  #   SIMCTL_CHILD_MAUI_SAMPLE_PAGE=pickers xcrun simctl launch booted dev.maui-cpp.ios-gallery
+  add_executable(maui_ios_gallery src/samples/ios_gallery.mm)
+  set_source_files_properties(src/samples/ios_gallery.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+  target_link_libraries(maui_ios_gallery PRIVATE maui_hosting maui_sanitizers)
+  set_target_properties(maui_ios_gallery PROPERTIES
+    MACOSX_BUNDLE TRUE
+    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/src/samples/ios_app_sample_info.plist.in"
+    MACOSX_BUNDLE_BUNDLE_NAME "maui_ios_gallery"
+    MACOSX_BUNDLE_GUI_IDENTIFIER "dev.maui-cpp.ios-gallery"
     MACOSX_BUNDLE_BUNDLE_VERSION "1"
     MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0")
 endif()
