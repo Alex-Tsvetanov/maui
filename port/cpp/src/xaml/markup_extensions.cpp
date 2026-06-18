@@ -904,10 +904,9 @@ namespace maui::xaml
         });
 
         extensions.register_extension("Binding", [](const markup_extension_arguments& args) {
-            // UpdateSourceEventName needs the (unported) reflective event wiring — still a loud
-            // deferral; everything else BindingExtension.ProvideValue forwards into `new Binding(…)`
-            // is honored below.
-            static constexpr std::array<std::string_view, 1> k_unsupported{"UpdateSourceEventName"};
+            // UpdateSourceEventName is now accepted and threaded into `new Binding(…)` (set below):
+            // the binding honors it for element targets via the reflection-free named-event seam
+            // (binding.hpp). everything else BindingExtension.ProvideValue forwards is honored below.
             static constexpr std::array<std::string_view, 10> k_known{"",
                                                                       "Path",
                                                                       "Mode",
@@ -918,7 +917,6 @@ namespace maui::xaml
                                                                       "UpdateSourceEventName",
                                                                       "TargetNullValue",
                                                                       "FallbackValue"};
-            reject_unsupported_attributes(args, "Binding", k_unsupported);
             require_known_attributes(args, "Binding", k_known);
             binding_request request;
             if (auto path = string_content_argument(args, "Path", "Binding"))
@@ -944,6 +942,12 @@ namespace maui::xaml
             if (auto format = string_argument(args, "StringFormat", "Binding"))
             {
                 built->set_string_format(std::move(*format));
+            }
+            // BindingExtension.ProvideValue assigns UpdateSourceEventName onto the new Binding (a plain
+            // string property). The port honors it for element targets (binding.hpp deviation note).
+            if (auto update_source_event = string_argument(args, "UpdateSourceEventName", "Binding"))
+            {
+                built->set_update_source_event_name(std::move(*update_source_event));
             }
             // Converter: an IValueConverter INSTANCE — only a nested extension can provide one
             // ({StaticResource …} hands back the boxed resource; a XAML-hydrated resource arrives as

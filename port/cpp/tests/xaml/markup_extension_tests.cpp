@@ -712,15 +712,16 @@ namespace
         EXPECT_EQ(std::any_cast<std::string>(built->fallback_value()), "missing");
     }
 
-    TEST(binding_extension, deferred_properties_are_rejected_loudly)
+    TEST(binding_extension, update_source_event_name_passes_through)
     {
-        // C# honors UpdateSourceEventName (reflective event lookup); the port rejects it instead of
-        // dropping it silently.
-        EXPECT_EQ(parse_error_message([&] {
-                      return provide("Binding", {.attributes = {{"", "Name"}, {"UpdateSourceEventName", "Completed"}}});
-                  }),
-                  "Property 'UpdateSourceEventName' of Binding is not supported by the port yet (STATUS.md M7 "
-                  "deferrals)");
+        // BindingExtension.ProvideValue assigns UpdateSourceEventName onto the new Binding. The port now
+        // accepts it (honored for element targets via the named-event seam — see binding.hpp) instead of
+        // rejecting it; threaded straight through to the built binding's property.
+        const std::any result =
+            provide("Binding", {.attributes = {{"", "Name"}, {"UpdateSourceEventName", "Completed"}}});
+        const std::shared_ptr<maui::controls::binding> built = built_binding(result);
+        ASSERT_NE(built, nullptr);
+        EXPECT_EQ(built->update_source_event_name(), "Completed");
     }
 
     TEST(binding_extension, an_unknown_attribute_throws)

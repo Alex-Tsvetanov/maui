@@ -167,6 +167,27 @@ namespace
         property<std::string> to_source{*this, target_to_source_prop()};
     };
 
+    // A target carrying a NAMED event channel ("completed") — the reflection-free analog of C#'s
+    // MockPlatformView with a public event named in Binding.UpdateSourceEventName (PlatformBindingTests'
+    // MockPlatformView.BazChanged / FireBazChanged). register_named_event mirrors C#'s GetRuntimeEvent
+    // resolution; fire_completed() is the FireBazChanged() trigger.
+    struct mock_event_bindable : mock_bindable
+    {
+        maui::core::event<> completed;
+
+        mock_event_bindable()
+        {
+            this->register_named_event("completed", [this](std::function<void()> handler) {
+                return maui::core::connect_scoped(completed, std::move(handler));
+            });
+        }
+
+        void fire_completed()
+        {
+            completed.raise();
+        }
+    };
+
     // A container element exposing logical children (the StackLayout stand-in for inheritance tests).
     struct mock_container : mock_bindable
     {
@@ -486,6 +507,87 @@ namespace
         EXPECT_EQ(vm->text.get(), "New Value in the other direction");
         EXPECT_EQ(target.text.get(), "New Value in the other direction");
         EXPECT_EQ(log.count(), 0U);
+    }
+
+    // ---- UpdateSourceEventName (Binding.UpdateSourceEventName) ----
+    // Ported from PlatformBindingTests.Set2WayBindingsWithUpdateSourceEvent{,InBindingObject} (which are
+    // [Fact(Skip="PlatformBindings aren't used")] upstream — native-view binding). The port has no native
+    // binding, so the faithful analog binds an `element` target carrying a registered named event: firing
+    // that event pushes target -> source, exactly like C#'s EventWrapper raising INPC(targetProperty).
+
+    TEST(binding_engine, update_source_event_drives_source_update)
+    {
+        // OneWayToSource so a source-side write does NOT flow back to the target (no auto-resync). That
+        // lets the two sides genuinely DIFFER at fire time, making the event-driven push observable: the
+        // fire re-pushes the target's value over the externally-changed source. C# FireBazChanged() =>
+        // vm.FFoo == platformView.Baz, the OWTS/TwoWay native-binding case.
+        failure_log const log;
+        auto vm = std::make_shared<mock_view_model>();
+        vm->text.set("Foo");
+        mock_event_bindable target;
+        target.set_binding_context(vm);
+
+        auto b = std::make_shared<binding>("text", binding_mode::one_way_to_source);
+        b->set_update_source_event_name("completed");
+        target.set_binding("to_source", b);
+
+        // Seed the target value; the OWTS auto-push (target property_changed) syncs it to the source.
+        target.to_source.set("oof");
+        EXPECT_EQ(vm->text.get(), "oof");
+
+        // Desync: write the source directly. OWTS doesn't pull, so the target keeps "oof" and no auto-push
+        // fires (the target property didn't change). The two sides now differ.
+        vm->text.set("source-changed-externally");
+        EXPECT_EQ(target.to_source.get(), "oof");
+        EXPECT_EQ(vm->text.get(), "source-changed-externally");
+
+        // Fire the named event: the ONLY thing that can re-push here. It overwrites the source with the
+        // target's current value.
+        target.fire_completed();
+        EXPECT_EQ(vm->text.get(), "oof");
+        EXPECT_EQ(target.to_source.get(), "oof");
+        EXPECT_EQ(log.count(), 0U);
+    }
+
+    TEST(binding_engine, update_source_event_name_is_copied_by_clone)
+    {
+        // C# Binding.Clone() copies UpdateSourceEventName.
+        auto b = std::make_shared<binding>("text", binding_mode::two_way);
+        b->set_update_source_event_name("completed");
+        const auto cloned = std::dynamic_pointer_cast<binding>(b->clone());
+        ASSERT_NE(cloned, nullptr);
+        EXPECT_EQ(cloned->update_source_event_name(), "completed");
+    }
+
+    TEST(binding_engine, update_source_event_name_set_after_apply_throws)
+    {
+        // C# UpdateSourceEventName setter calls ThrowIfApplied().
+        auto b = std::make_shared<binding>("text", binding_mode::two_way);
+        mock_event_bindable target;
+        target.set_binding_context(std::make_shared<mock_view_model>());
+        target.set_binding("text", b);
+        EXPECT_THROW(b->set_update_source_event_name("completed"), std::runtime_error);
+    }
+
+    TEST(binding_engine, update_source_event_unregistered_name_pushes_nothing)
+    {
+        // connect_named_event returns an empty connection for an unregistered name (C# logs a warning and
+        // attaches nothing): the binding never event-pushes, and firing the registered event does nothing
+        // for this binding. No failure is logged for the name miss.
+        failure_log const log;
+        auto vm = std::make_shared<mock_view_model>();
+        vm->text.set("Foo");
+        mock_event_bindable target;
+        target.set_binding_context(vm);
+
+        auto b = std::make_shared<binding>("text", binding_mode::one_way_to_source);
+        b->set_update_source_event_name("no_such_event");
+        target.set_binding("to_source", b);
+
+        target.to_source.set("oof");               // OWTS auto-push syncs source to "oof"
+        vm->text.set("still-source");              // desync; OWTS doesn't pull
+        target.fire_completed();                   // "completed" exists but this binding subscribed to "no_such_event"
+        EXPECT_EQ(vm->text.get(), "still-source"); // unchanged: no event push happened
     }
 
     TEST(binding_engine, value_updated_with_old_context_does_not_update)

@@ -68,6 +68,24 @@ namespace maui::controls
         }
         void set_converter_parameter(std::any value);
 
+        // C# Binding.UpdateSourceEventName ([EditorBrowsable(Never)]): the name of an event on the
+        // TARGET that drives a source update for TwoWay / OneWayToSource bindings. In C# this is the
+        // "native binding" knob — PlatformBindingHelpers.EventWrapper reflects the named CLR event off a
+        // raw platform view and raises INPC(targetProperty) when it fires; the engine (BindingExpression)
+        // never reads it. The port has no native-binding subsystem and no reflection, BUT it has the
+        // reflection-free named-event seam (element::register_named_event / connect_named_event, the
+        // EventTrigger channel). So this is honored for the case the port can support: when the target is
+        // an `element` carrying a registered event of this name, the binding subscribes to it and pushes
+        // target -> source (expression_->apply(from_target:true), itself mode-gated) on every raise.
+        // deviation: native-view targets and arbitrary non-`element` events are unreachable (no reflective
+        // event lookup); an unregistered name subscribes nothing (C# logs + attaches nothing) — see
+        // STATUS.md M7 and the report. Setting it after Apply throws (ThrowIfApplied), like every knob.
+        [[nodiscard]] const std::string& update_source_event_name() const
+        {
+            return update_source_event_name_;
+        }
+        void set_update_source_event_name(std::string value);
+
         // An explicit source object: walkable when X derives bindable_object; otherwise a value-only
         // source (usable by the self path / as a leaf). Pinned sources skip context re-application.
         template <class X>
@@ -136,10 +154,19 @@ namespace maui::controls
         void on_ancestor_parent_set(element& changed);
         void on_ancestor_binding_context_changed();
 
+        // C# PlatformBindingHelpers.EventWrapper: subscribe `update_source_event_name_` on the target
+        // element (when it is one and has registered that channel) so its raise pushes target -> source.
+        // A no-op when the name is empty, the target is not an element, or the channel is unregistered.
+        void subscribe_update_source_event(maui::core::bindable_object& target);
+
         std::string path_;
         std::unique_ptr<maui::core::binding_expression> expression_;
         std::shared_ptr<i_value_converter> converter_;
         std::any converter_parameter_;
+        std::string update_source_event_name_;
+        // RAII handle on the target's named-event channel (the C# EventWrapper's AddEventHandler);
+        // dropped on unapply / re-apply / destruction (token-based teardown, §8).
+        maui::core::scoped_connection update_source_event_connection_;
         maui::core::binding_source_node source_node_;
         std::shared_ptr<relative_binding_source> relative_source_;
         bool has_source_ = false;

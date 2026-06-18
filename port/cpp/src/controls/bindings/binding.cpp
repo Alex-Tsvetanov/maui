@@ -81,11 +81,18 @@ namespace maui::controls
         converter_parameter_ = std::move(value);
     }
 
+    void binding::set_update_source_event_name(std::string value)
+    {
+        throw_if_applied(); // C# Binding.UpdateSourceEventName setter: ThrowIfApplied()
+        update_source_event_name_ = std::move(value);
+    }
+
     std::shared_ptr<binding_base> binding::clone() const
     {
         auto clone = std::make_shared<binding>(path_, mode());
         clone->converter_ = converter_;
         clone->converter_parameter_ = converter_parameter_;
+        clone->update_source_event_name_ = update_source_event_name_; // C# Clone(): UpdateSourceEventName
         if (!string_format().empty())
         {
             clone->set_string_format(string_format());
@@ -135,6 +142,11 @@ namespace maui::controls
                 has_source_ ? source_node_ : maui::core::binding_source_node::from_context(context);
             expression_->apply(node, target, target_property, specificity, make_policy());
         }
+
+        // C# PlatformBindingHelpers.SetBinding: after the binding is wired, hook the named target event
+        // (if any) so its raise drives the source update. Re-subscribes per apply (the prior connection,
+        // held in the scoped handle, drops when reassigned) — covers a context-driven re-application.
+        subscribe_update_source_event(target);
     }
 
     void binding::apply(bool from_target)
@@ -153,6 +165,39 @@ namespace maui::controls
         binding_base::unapply(from_binding_context_changed);
         expression_->unapply();
         clear_ancestry_subscriptions();
+        update_source_event_connection_.reset(); // drop the named-event hook (C# EventWrapper teardown)
+    }
+
+    void binding::subscribe_update_source_event(maui::core::bindable_object& target)
+    {
+        // Reassigning the scoped handle drops any prior hook (move-assign resets it). Empty name =>
+        // nothing to do; C# only builds an EventWrapper when UpdateSourceEventName is non-empty.
+        update_source_event_connection_.reset();
+        if (update_source_event_name_.empty())
+        {
+            return;
+        }
+        // The named-event seam is element-only (register_named_event lives on element). A non-element
+        // target (or a value-only source binding whose target isn't an element) has no channel to hook —
+        // C#'s reflective lookup over an arbitrary platform view has no reflection-free analog here.
+        auto* const element_target = dynamic_cast<element*>(&target);
+        if (element_target == nullptr)
+        {
+            send_binding_failure("binding: UpdateSourceEventName is only honored on element targets in the "
+                                 "port (no reflective event lookup); ignoring '" +
+                                 update_source_event_name_ + "'");
+            return;
+        }
+        // C# EventWrapper.OnPropertyChanged raises INPC(targetProperty), which the proxy's mode-gated
+        // handler turns into a source update. The port's analog: on each raise, re-apply from the target —
+        // binding_expression::apply(from_target:true) is itself mode-gated (a no-op for OneWay/OneTime),
+        // so this matches C#'s "binding.Mode != OneWay" guard without re-checking it here.
+        // connect_named_event returns an EMPTY connection for an unregistered name (C# logs + attaches
+        // nothing); the binding then simply never pushes on that event.
+        update_source_event_connection_ = element_target->connect_named_event(update_source_event_name_, [this] {
+            expression_->apply(
+                /*from_target=*/true);
+        });
     }
 
     std::any binding::get_source_value(std::any value, maui::core::type_tag target_type) const
