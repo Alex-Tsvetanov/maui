@@ -6,6 +6,8 @@
 // binding_diagnostics failure handler.
 #include "maui/controls/bindings/binding.hpp"
 
+#include "maui/core/event.hpp"
+
 #include <any>
 #include <array>
 #include <cstddef>
@@ -182,7 +184,7 @@ namespace
             });
         }
 
-        void fire_completed()
+        void fire_completed() const
         {
             completed.raise();
         }

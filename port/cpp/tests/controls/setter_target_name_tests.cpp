@@ -11,6 +11,7 @@
 // the ancestor chain).
 #include "maui/controls/setter.hpp"
 
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -64,10 +65,14 @@ namespace
         {
             attach_logical_child(*child);
         }
+
+    protected:
         void for_each_logical_child(const std::function<void(element&)>& visit) const override
         {
             visit(*child);
         }
+
+    public:
         // Re-expose the protected attach hook for the nested-scope test (a presenter-like inner child).
         void add_child(element& grandchild)
         {
@@ -107,7 +112,7 @@ namespace
     {
         // No scope anywhere up the chain: GetNameScope is null and FindByName misses (C# returns null
         // from FindByName once the transient/attached scope is absent — the port has no transient slot).
-        mock_container root;
+        const mock_container root;
         EXPECT_EQ(root.get_name_scope(), nullptr);
         EXPECT_EQ(root.find_by_name("Child"), nullptr);
     }
