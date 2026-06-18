@@ -4,6 +4,47 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## Final-sweep audit + demo gallery — ✅ DONE (2026-06-18, gate `9a0600ba0d`)
+
+A user-requested "final sweep" to confirm (1) the abstract widget set, (2) macOS, (3) iOS, (4) all
+examples, (5) examples run + documented. Two workstreams:
+
+**(A) Fresh deep re-audit (items 1–3).** A 16-subsystem × 3-axis (abstraction / macOS / iOS) read-only
+multi-agent audit vs the C# `src/`, with an independent skeptical verifier per claimed gap. Verdict: the
+in-scope surface is **~98%** — substantially complete, **not literally 100%**. The verifier correctly
+*rejected* false positives (CoerceValue, geolocation-macOS, StringFormat, PropertyPath indexers, iOS
+pattern/image fills, Shell FlyoutWidth, Label.Background-macOS all verified present/faithful). Confirmed
+genuine, still-open gaps (mostly small; **offered as a follow-up closure batch, not yet done**):
+`SafeAreaEdges` on scroll_view/border/frame/content_view (present only on content_page); generic
+`StackLayout` control + `StackOrientation` (+ `AndExpandLayoutManager`); iOS `AdjustsFontSizeToFitWidth`
+(knob present, mapper absent); `Binding.UpdateSourceEventName`; Command/CommandParameter on gesture
+recognizers (no developer-facing `ICommand`); Trigger/Setter `TargetName` NameScope resolution;
+`ImagePaint`/`IPattern` graphics abstractions + macOS `FillWithImage`; `ImageButton.IsAnimationPlaying`
+re-push; `Picker.ItemDisplayBinding` (deliberately string-only). The audit's coverage critic produced
+**false negatives** (claimed MenuBar/MenuFlyout/ContentView/Application handlers "missing" — they exist
+under the port's snake_case structure).
+
+**(B) Runnable demo gallery + docs (items 4–5).** The 11 `src/samples/pages/*.hpp` demo pages were
+**orphaned** (no host ran them). Built `gallery_host.hpp` + `macos_gallery.mm` + `ios_gallery.mm`
+(page selected by `MAUI_SAMPLE_PAGE`), gave each page an `attach_handlers`, and captured every page on
+macOS + iOS with screenshots + GIF recordings + an index & per-example README under
+[`port/cpp/docs/examples/`](cpp/docs/examples/README.md) (macOS/iOS = demos; Windows/Linux/Android =
+TODO; a full 1:1 port of MAUI's ~282 sample pages is the roadmap). iOS render: 7/11 full,
+web_view/swipe_refresh/chrome partial (documented reasons), tabbed_flyout blank (gallery-host limitation,
+not a control bug).
+
+**🔴 Framework bug found + fixed (`44bf221e61`).** Making the gallery runnable exposed that
+`add_maui_controls_handlers` (the table `maui_app_builder` seeds its registry from) registered only **21
+of the 49** built-in control→handler pairs — the other **28** (slider, stepper, switch, check_box,
+activity_indicator, the 3 pickers, editor, search_bar, radio_button, image_button, scroll_view, border,
+frame, content_view, refresh_view, swipe_view/swipe_item_view, web_view, hybrid_web_view, indicator_view,
+carousel_view, table_view, shell, absolute/flex layouts) **threw "no handler registered" when resolved
+through the normal hosting path**. The controls + handlers all exist and pass their seam tests (which
+attach handlers directly), but were unreachable via `maui_app`. Completed the table to full 49-pair
+registrar parity.
+
+**Gate (unchanged by the fixes): headless 2944 / AppKit 2400 / iOS-on-simulator 2170 — 0 failures.**
+
 ## iOS/macOS-completion batch — ✅ DONE (2026-06-15, pushed `b27ca67e19`)
 
 Closed the cross-platform + iOS/macOS gaps a fresh disk-verified audit surfaced (8 units). **Gate (all
