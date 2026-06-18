@@ -9,8 +9,10 @@
 // send_drag_leave when it leaves, send_drop on release.
 //
 // Deviations (documented, port-wide):
-//   - Command/CommandParameter (DragOverCommand / DragLeaveCommand / DropCommand + their parameters) are
-//     not ported (no ICommand port yet — STATUS.md); each Send* collapses to raising its event.
+//   - Command/CommandParameter (DragOverCommand / DragLeaveCommand / DropCommand + their parameters) ARE
+//     ported (U-CMD): each command is an i_command held by a bindable property; each parameter is C#'s
+//     `object` (a plain std::any member, hand-notified — like RadioButton.Value). As on the drag side,
+//     C# calls `Command?.Execute(param)` with NO CanExecute gate, then raises the event — preserved here.
 //   - GetPosition(relativeTo) + PlatformArgs are dropped (see drag_gesture_recognizer.hpp).
 //   - SendDrop is `async Task` in C# (it awaits Data.GetTextAsync / GetImageAsync — both synchronously
 //     completed). The port's data_package_view exposes those synchronously, so send_drop is plain void.
@@ -19,10 +21,18 @@
 //     TimePicker/DatePicker injection is the documented gap there. The image-target injection
 //     (Parent is Image/ImageButton/Button → .Source) is included.
 
+#include <any>
+#include <memory>
+#include <string_view>
+#include <utility>
+
+#include "maui/controls/command.hpp"
 #include "maui/controls/data_package.hpp"
 #include "maui/controls/data_package_operation.hpp"
 #include "maui/controls/gestures/gesture_recognizer.hpp"
+#include "maui/controls/i_command.hpp"
 #include "maui/core/bindable_property.hpp"
+#include "maui/core/boxed_value.hpp"
 #include "maui/core/event.hpp"
 #include "maui/core/property.hpp"
 
@@ -101,6 +111,11 @@ namespace maui::controls
     public:
         // DropGestureRecognizer.AllowDropProperty (default true).
         static const maui::core::bindable_property<bool>& allow_drop_property();
+        // DropGestureRecognizer.DragOverCommandProperty / DragLeaveCommandProperty / DropCommandProperty
+        // (default null).
+        static const maui::core::bindable_property<std::shared_ptr<i_command>>& drag_over_command_property();
+        static const maui::core::bindable_property<std::shared_ptr<i_command>>& drag_leave_command_property();
+        static const maui::core::bindable_property<std::shared_ptr<i_command>>& drop_command_property();
 
         // Whether the element can accept dropped data (DropGestureRecognizer.AllowDrop).
         [[nodiscard]] bool allow_drop() const
@@ -112,21 +127,76 @@ namespace maui::controls
             allow_drop_.set(value);
         }
 
+        // DragOverCommand / DragLeaveCommand / DropCommand + their parameters (see the header note on
+        // ordering — no CanExecute gate on the drop side).
+        [[nodiscard]] const std::shared_ptr<i_command>& drag_over_command() const
+        {
+            return drag_over_command_.get();
+        }
+        void set_drag_over_command(std::shared_ptr<i_command> value)
+        {
+            drag_over_command_.set(std::move(value));
+        }
+        [[nodiscard]] const std::any& drag_over_command_parameter() const
+        {
+            return drag_over_command_parameter_;
+        }
+        void set_drag_over_command_parameter(std::any value)
+        {
+            set_command_parameter(drag_over_command_parameter_, std::move(value), "drag_over_command_parameter");
+        }
+
+        [[nodiscard]] const std::shared_ptr<i_command>& drag_leave_command() const
+        {
+            return drag_leave_command_.get();
+        }
+        void set_drag_leave_command(std::shared_ptr<i_command> value)
+        {
+            drag_leave_command_.set(std::move(value));
+        }
+        [[nodiscard]] const std::any& drag_leave_command_parameter() const
+        {
+            return drag_leave_command_parameter_;
+        }
+        void set_drag_leave_command_parameter(std::any value)
+        {
+            set_command_parameter(drag_leave_command_parameter_, std::move(value), "drag_leave_command_parameter");
+        }
+
+        [[nodiscard]] const std::shared_ptr<i_command>& drop_command() const
+        {
+            return drop_command_.get();
+        }
+        void set_drop_command(std::shared_ptr<i_command> value)
+        {
+            drop_command_.set(std::move(value));
+        }
+        [[nodiscard]] const std::any& drop_command_parameter() const
+        {
+            return drop_command_parameter_;
+        }
+        void set_drop_command_parameter(std::any value)
+        {
+            set_command_parameter(drop_command_parameter_, std::move(value), "drop_command_parameter");
+        }
+
         // DropGestureRecognizer.DragOver / DragLeave / Drop.
         maui::core::event<drag_event_args&> drag_over;
         maui::core::event<drag_event_args&> drag_leave;
         maui::core::event<drop_event_args&> drop;
 
-        // DropGestureRecognizer.SendDragOver / SendDragLeave: raise the event (the bridge reads
-        // args.AcceptedOperation back from drag_over). const — a drop drive mutates no recognizer state
-        // (event::raise is const; the args + the target control carry the effect), unlike the drag-side
-        // sends that latch _isDragActive.
+        // DropGestureRecognizer.SendDragOver / SendDragLeave: run the command (C#: `Command?.Execute(param)`
+        // — no CanExecute gate), then raise the event (the bridge reads args.AcceptedOperation back from
+        // drag_over). const — a drop drive mutates no recognizer state (executing a command through the
+        // shared_ptr does not touch the recognizer), unlike the drag-side sends that latch _isDragActive.
         void send_drag_over(drag_event_args& args) const
         {
+            run_command(drag_over_command(), drag_over_command_parameter_);
             drag_over.raise(args);
         }
         void send_drag_leave(drag_event_args& args) const
         {
+            run_command(drag_leave_command(), drag_leave_command_parameter_);
             drag_leave.raise(args);
         }
 
@@ -137,6 +207,34 @@ namespace maui::controls
         void send_drop(drop_event_args& args, element* parent = nullptr) const;
 
     private:
+        // C#'s `Command?.Execute(param)` — the drop side runs the command unconditionally when set (NO
+        // CanExecute gate, unlike Tap/Pointer's run_command). Shared by all three drop sends + send_drop.
+        static void run_command(const std::shared_ptr<i_command>& cmd, const std::any& parameter)
+        {
+            if (cmd)
+            {
+                cmd->execute(parameter);
+            }
+        }
+        // The hand-rolled CommandParameter change-notification (a plain std::any member, like
+        // RadioButton.Value / pointer_gesture_recognizer).
+        void set_command_parameter(std::any& slot, std::any value, std::string_view name)
+        {
+            if (maui::core::boxed_equals(slot, value))
+            {
+                return;
+            }
+            this->on_property_changing(name);
+            slot = std::move(value);
+            this->on_property_changed(name);
+        }
+
         maui::core::property<bool> allow_drop_{*this, allow_drop_property()};
+        maui::core::property<std::shared_ptr<i_command>> drag_over_command_{*this, drag_over_command_property()};
+        maui::core::property<std::shared_ptr<i_command>> drag_leave_command_{*this, drag_leave_command_property()};
+        maui::core::property<std::shared_ptr<i_command>> drop_command_{*this, drop_command_property()};
+        std::any drag_over_command_parameter_;
+        std::any drag_leave_command_parameter_;
+        std::any drop_command_parameter_;
     };
 } // namespace maui::controls

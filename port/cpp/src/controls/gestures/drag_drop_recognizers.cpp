@@ -19,6 +19,7 @@
 #include "maui/controls/element.hpp"
 #include "maui/controls/gestures/drag_gesture_recognizer.hpp"
 #include "maui/controls/gestures/drop_gesture_recognizer.hpp"
+#include "maui/controls/i_command.hpp" // (U-CMD) the *Command value type executed in the send_* bodies
 #include "maui/core/i_image_source.hpp"
 
 namespace maui::controls
@@ -44,7 +45,11 @@ namespace maui::controls
     {
         drag_starting_event_args args;
 
-        // DragStartingCommand?.Execute(...) — not ported (no ICommand; see the header).
+        // DragStartingCommand?.Execute(DragStartingCommandParameter) — no CanExecute gate (see the header).
+        if (const std::shared_ptr<i_command>& cmd = drag_starting_command())
+        {
+            cmd->execute(drag_starting_command_parameter());
+        }
         drag_starting.raise(args);
 
         // if (!args.Handled) args.Data.PropertiesInternal.Add("DragSource", element);
@@ -87,7 +92,11 @@ namespace maui::controls
         }
         is_drag_active_ = false;
 
-        // DropCompletedCommand?.Execute(...) — not ported.
+        // DropCompletedCommand?.Execute(DropCompletedCommandParameter) — no CanExecute gate (see header).
+        if (const std::shared_ptr<i_command>& cmd = drop_completed_command())
+        {
+            cmd->execute(drop_completed_command_parameter());
+        }
         drop_completed.raise(args);
     }
 
@@ -99,7 +108,11 @@ namespace maui::controls
             return;
         }
 
-        // DropCommand?.Execute(...) — not ported.
+        // DropCommand?.Execute(DropCommandParameter) — no CanExecute gate (see the header).
+        if (const std::shared_ptr<i_command>& cmd = drop_command())
+        {
+            cmd->execute(drop_command_parameter());
+        }
         drop.raise(args);
 
         if (args.handled())

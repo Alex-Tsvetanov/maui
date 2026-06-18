@@ -10,10 +10,11 @@
 // the drag ended.
 //
 // Deviations (documented, port-wide):
-//   - Command/CommandParameter (DragStartingCommand / DropCompletedCommand + their parameters) are not
-//     ported (no ICommand port yet — STATUS.md); each Send* collapses to raising its event. The C# tests
-//     that assert the command fired are therefore not portable (the event-raise + the data-package
-//     plumbing they also exercise IS pinned by the headless suite).
+//   - Command/CommandParameter (DragStartingCommand / DropCompletedCommand + their parameters) ARE ported
+//     (U-CMD): each command is an i_command held by a bindable property; each parameter is C#'s `object`
+//     (a plain std::any member, hand-notified — like RadioButton.Value). NOTE the drag/drop ordering
+//     differs from Tap/Pointer: C# calls `Command?.Execute(param)` with NO CanExecute gate (the command
+//     runs whenever it is set), then raises the event — preserved here.
 //   - DragStartingEventArgs.GetPosition(relativeTo) (an element-relative coordinate closure) and the
 //     PlatformArgs (the UIKit/Windows drag-session handles) are dropped — no headless coordinate seam,
 //     no synthetic native session (the no-synthetic-session deviation, also documented on the native
@@ -25,9 +26,17 @@
 //     one gap there (it needs .NET culture-default DateTime/TimeSpan ToString, which the port does not
 //     reproduce); documented in drag_drop_data.hpp.
 
+#include <any>
+#include <memory>
+#include <string_view>
+#include <utility>
+
+#include "maui/controls/command.hpp"
 #include "maui/controls/data_package.hpp"
 #include "maui/controls/gestures/gesture_recognizer.hpp"
+#include "maui/controls/i_command.hpp"
 #include "maui/core/bindable_property.hpp"
+#include "maui/core/boxed_value.hpp"
 #include "maui/core/event.hpp"
 #include "maui/core/property.hpp"
 
@@ -92,6 +101,9 @@ namespace maui::controls
     public:
         // DragGestureRecognizer.CanDragProperty (default true).
         static const maui::core::bindable_property<bool>& can_drag_property();
+        // DragGestureRecognizer.DragStartingCommandProperty / DropCompletedCommandProperty (default null).
+        static const maui::core::bindable_property<std::shared_ptr<i_command>>& drag_starting_command_property();
+        static const maui::core::bindable_property<std::shared_ptr<i_command>>& drop_completed_command_property();
 
         // Whether the attached element can be a drag source (DragGestureRecognizer.CanDrag).
         [[nodiscard]] bool can_drag() const
@@ -101,6 +113,43 @@ namespace maui::controls
         void set_can_drag(bool value)
         {
             can_drag_.set(value);
+        }
+
+        // DragStartingCommand / DropCompletedCommand + their parameters (see the header note on ordering).
+        [[nodiscard]] const std::shared_ptr<i_command>& drag_starting_command() const
+        {
+            return drag_starting_command_.get();
+        }
+        void set_drag_starting_command(std::shared_ptr<i_command> value)
+        {
+            drag_starting_command_.set(std::move(value));
+        }
+        [[nodiscard]] const std::any& drag_starting_command_parameter() const
+        {
+            return drag_starting_command_parameter_;
+        }
+        void set_drag_starting_command_parameter(std::any value)
+        {
+            set_command_parameter(drag_starting_command_parameter_, std::move(value),
+                                  "drag_starting_command_parameter");
+        }
+
+        [[nodiscard]] const std::shared_ptr<i_command>& drop_completed_command() const
+        {
+            return drop_completed_command_.get();
+        }
+        void set_drop_completed_command(std::shared_ptr<i_command> value)
+        {
+            drop_completed_command_.set(std::move(value));
+        }
+        [[nodiscard]] const std::any& drop_completed_command_parameter() const
+        {
+            return drop_completed_command_parameter_;
+        }
+        void set_drop_completed_command_parameter(std::any value)
+        {
+            set_command_parameter(drop_completed_command_parameter_, std::move(value),
+                                  "drop_completed_command_parameter");
         }
 
         // DragGestureRecognizer.DragStarting / DropCompleted.
@@ -121,7 +170,26 @@ namespace maui::controls
         void send_drop_completed(const drop_completed_event_args& args);
 
     private:
+        // The hand-rolled CommandParameter change-notification (a plain std::any member, like
+        // RadioButton.Value / pointer_gesture_recognizer).
+        void set_command_parameter(std::any& slot, std::any value, std::string_view name)
+        {
+            if (maui::core::boxed_equals(slot, value))
+            {
+                return;
+            }
+            this->on_property_changing(name);
+            slot = std::move(value);
+            this->on_property_changed(name);
+        }
+
         bool is_drag_active_ = false; // DragGestureRecognizer._isDragActive
         maui::core::property<bool> can_drag_{*this, can_drag_property()};
+        maui::core::property<std::shared_ptr<i_command>> drag_starting_command_{*this,
+                                                                                drag_starting_command_property()};
+        maui::core::property<std::shared_ptr<i_command>> drop_completed_command_{*this,
+                                                                                 drop_completed_command_property()};
+        std::any drag_starting_command_parameter_;
+        std::any drop_completed_command_parameter_;
     };
 } // namespace maui::controls

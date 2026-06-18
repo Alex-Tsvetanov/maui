@@ -13,6 +13,8 @@
 // recognizers), including each bridge filter (tap count + button mask, pan touch points + gesture ids,
 // the pinch IsPinching guards, the swipe threshold).
 
+#include <any>
+#include <functional>
 #include <limits>
 #include <memory>
 #include <optional>
@@ -22,6 +24,7 @@
 #include <vector>
 
 #include "maui/controls/button.hpp"
+#include "maui/controls/command.hpp"
 #include "maui/controls/gestures/buttons_mask.hpp"
 #include "maui/controls/gestures/gesture_platform_manager.hpp"
 #include "maui/controls/gestures/gesture_recognizer_collection.hpp"
@@ -39,6 +42,7 @@
 namespace
 {
     using maui::controls::buttons_mask;
+    using maui::controls::command;
     using maui::controls::i_pan_gesture_controller;
     using maui::controls::i_pinch_gesture_controller;
     using maui::controls::i_swipe_gesture_controller;
@@ -370,8 +374,83 @@ namespace
         const tap_gesture_recognizer tap;
         EXPECT_EQ(tap.number_of_taps_required(), 1);
         EXPECT_EQ(tap.buttons(), buttons_mask::primary);
-        // The C# Constructor test also pins Command/CommandParameter == null — ICommand is not ported
-        // (documented deviation), so there is nothing to pin here.
+        // TapGestureRecognizerTests.Constructor also pins Command/CommandParameter == null (U-CMD).
+        EXPECT_EQ(tap.command(), nullptr);
+        EXPECT_FALSE(tap.command_parameter().has_value()); // CommandParameter == null (empty std::any)
+    }
+
+    // TapGestureRecognizerTests.CallbackPassesParameter: the command runs on a tap and receives the
+    // recognizer's CommandParameter (and the parameter is echoed into the tapped args).
+    TEST(tap_gesture_recognizer_test, send_tapped_runs_command_with_parameter)
+    {
+        test_view view;
+        tap_gesture_recognizer tap;
+        tap.set_command_parameter(std::any{std::string("Hello")});
+
+        std::any result;
+        tap.set_command(std::make_shared<command>([&result](const std::any& o) { result = o; }));
+
+        std::any echoed;
+        tap.tapped.connect([&echoed](const tapped_event_args& e) { echoed = e.parameter; });
+
+        tap.send_tapped(view);
+        // Assert.Equal(result, tap.CommandParameter)
+        ASSERT_TRUE(result.has_value());
+        EXPECT_EQ(std::any_cast<std::string>(result), "Hello");
+        ASSERT_TRUE(echoed.has_value());
+        EXPECT_EQ(std::any_cast<std::string>(echoed), "Hello");
+    }
+
+    // CanExecute gating: a command whose can_execute is false does NOT run on a tap (the event still
+    // fires — the command gate guards only the command, per C# SendTapped).
+    TEST(tap_gesture_recognizer_test, send_tapped_skips_command_when_can_execute_false)
+    {
+        test_view view;
+        tap_gesture_recognizer tap;
+
+        bool executed = false;
+        tap.set_command(std::make_shared<command>(std::function<void()>{[&executed] { executed = true; }},
+                                                  std::function<bool()>{[] { return false; }}));
+
+        bool raised = false;
+        tap.tapped.connect([&raised](const tapped_event_args&) { raised = true; });
+
+        tap.send_tapped(view);
+        EXPECT_FALSE(executed); // can_execute == false → command skipped
+        EXPECT_TRUE(raised);    // …but the event still fires
+    }
+
+    // Command-before-event ordering (C# SendTapped runs the command, THEN raises Tapped).
+    TEST(tap_gesture_recognizer_test, send_tapped_runs_command_before_event)
+    {
+        test_view view;
+        tap_gesture_recognizer tap;
+
+        std::vector<std::string> order;
+        tap.set_command(std::make_shared<command>([&order](const std::any&) { order.emplace_back("command"); }));
+        tap.tapped.connect([&order](const tapped_event_args&) { order.emplace_back("event"); });
+
+        tap.send_tapped(view);
+        const std::vector<std::string> expected{"command", "event"};
+        EXPECT_EQ(order, expected);
+    }
+
+    // The command property notifies under "command"; CommandParameter under "command_parameter" (its
+    // hand-rolled notification). Set-same-value is a no-op for the parameter (boxed_equals), like
+    // RadioButton.Value.
+    TEST(tap_gesture_recognizer_test, command_and_parameter_raise_property_changed)
+    {
+        tap_gesture_recognizer tap;
+        std::vector<std::string> changed;
+        tap.property_changed.connect([&changed](std::string_view name) { changed.emplace_back(name); });
+
+        tap.set_command(std::make_shared<command>([](const std::any&) {}));
+        tap.set_command_parameter(std::any{42});
+        tap.set_command_parameter(std::any{42}); // same value → no notification
+
+        ASSERT_EQ(changed.size(), 2U);
+        EXPECT_EQ(changed[0], "command");
+        EXPECT_EQ(changed[1], "command_parameter");
     }
 
     TEST(tap_gesture_recognizer_test, send_tapped_raises_with_buttons_and_position)
@@ -477,6 +556,55 @@ namespace
 
         const std::vector<std::string> expected{"entered", "moved", "pressed", "released", "exited"};
         EXPECT_EQ(raised, expected);
+    }
+
+    // (U-CMD) Each Pointer*Command runs on its phase with its own CommandParameter, in C# order (command
+    // before event), and is gated by CanExecute — mirrors SendPointer* (cmd?.CanExecute(p) == true).
+    TEST(pointer_gesture_recognizer_test, send_methods_run_their_commands_with_parameters)
+    {
+        test_view view;
+        pointer_gesture_recognizer gesture;
+
+        std::vector<std::string> fired;
+        gesture.set_pointer_entered_command(std::make_shared<command>(
+            [&fired](const std::any& o) { fired.push_back("E:" + std::any_cast<std::string>(o)); }));
+        gesture.set_pointer_entered_command_parameter(std::any{std::string("in")});
+        gesture.set_pointer_pressed_command(std::make_shared<command>(
+            [&fired](const std::any& o) { fired.push_back("P:" + std::any_cast<std::string>(o)); }));
+        gesture.set_pointer_pressed_command_parameter(std::any{std::string("down")});
+
+        gesture.send_pointer_entered(view);
+        gesture.send_pointer_moved(view); // no command set on moved → nothing fires
+        gesture.send_pointer_pressed(view);
+
+        const std::vector<std::string> expected{"E:in", "P:down"};
+        EXPECT_EQ(fired, expected);
+    }
+
+    TEST(pointer_gesture_recognizer_test, send_pointer_entered_runs_command_before_event_and_gates_on_can_execute)
+    {
+        test_view view;
+        pointer_gesture_recognizer gesture;
+
+        // Ordering: command then event.
+        std::vector<std::string> order;
+        gesture.set_pointer_entered_command(
+            std::make_shared<command>([&order](const std::any&) { order.emplace_back("command"); }));
+        gesture.pointer_entered.connect([&order](const pointer_event_args&) { order.emplace_back("event"); });
+        gesture.send_pointer_entered(view);
+        const std::vector<std::string> expected{"command", "event"};
+        EXPECT_EQ(order, expected);
+
+        // CanExecute gate: a false predicate skips the command but the event still fires.
+        pointer_gesture_recognizer gated;
+        bool executed = false;
+        bool raised = false;
+        gated.set_pointer_exited_command(std::make_shared<command>(
+            std::function<void()>{[&executed] { executed = true; }}, std::function<bool()>{[] { return false; }}));
+        gated.pointer_exited.connect([&raised](const pointer_event_args&) { raised = true; });
+        gated.send_pointer_exited(view);
+        EXPECT_FALSE(executed);
+        EXPECT_TRUE(raised);
     }
 
     // PointerGestureRecognizerTests.ClearingGestureRecognizers, minus the PointerOver-VSM composite

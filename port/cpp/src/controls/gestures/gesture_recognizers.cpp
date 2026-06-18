@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <memory> // (U-CMD) std::shared_ptr in the *Command property descriptors
 
 #include "maui/controls/gestures/buttons_mask.hpp"
 #include "maui/controls/gestures/drag_gesture_recognizer.hpp" // --- drag&drop (W2-22) ---
@@ -14,12 +15,20 @@
 #include "maui/controls/gestures/pointer_gesture_recognizer.hpp"
 #include "maui/controls/gestures/swipe_gesture_recognizer.hpp"
 #include "maui/controls/gestures/tap_gesture_recognizer.hpp"
+#include "maui/controls/i_command.hpp" // (U-CMD) the *Command property value type
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/swipe_direction.hpp"
 
 namespace maui::controls
 {
     // ---- tap_gesture_recognizer ----
+    const maui::core::bindable_property<std::shared_ptr<i_command>>& tap_gesture_recognizer::command_property()
+    {
+        // TapGestureRecognizer.CommandProperty (default null — an unset shared_ptr).
+        static const maui::core::bindable_property<std::shared_ptr<i_command>> descriptor{"command", nullptr};
+        return descriptor;
+    }
+
     const maui::core::bindable_property<int>& tap_gesture_recognizer::number_of_taps_required_property()
     {
         // TapGestureRecognizer.NumberOfTapsRequiredProperty (default 1).
@@ -73,6 +82,44 @@ namespace maui::controls
         return descriptor;
     }
 
+    // The five Pointer*CommandProperty descriptors (PointerGestureRecognizer.Pointer*CommandProperty,
+    // default null — an unset shared_ptr).
+    const maui::core::bindable_property<std::shared_ptr<i_command>>& pointer_gesture_recognizer::
+        pointer_entered_command_property()
+    {
+        static const maui::core::bindable_property<std::shared_ptr<i_command>> descriptor{"pointer_entered_command",
+                                                                                          nullptr};
+        return descriptor;
+    }
+    const maui::core::bindable_property<std::shared_ptr<i_command>>& pointer_gesture_recognizer::
+        pointer_exited_command_property()
+    {
+        static const maui::core::bindable_property<std::shared_ptr<i_command>> descriptor{"pointer_exited_command",
+                                                                                          nullptr};
+        return descriptor;
+    }
+    const maui::core::bindable_property<std::shared_ptr<i_command>>& pointer_gesture_recognizer::
+        pointer_moved_command_property()
+    {
+        static const maui::core::bindable_property<std::shared_ptr<i_command>> descriptor{"pointer_moved_command",
+                                                                                          nullptr};
+        return descriptor;
+    }
+    const maui::core::bindable_property<std::shared_ptr<i_command>>& pointer_gesture_recognizer::
+        pointer_pressed_command_property()
+    {
+        static const maui::core::bindable_property<std::shared_ptr<i_command>> descriptor{"pointer_pressed_command",
+                                                                                          nullptr};
+        return descriptor;
+    }
+    const maui::core::bindable_property<std::shared_ptr<i_command>>& pointer_gesture_recognizer::
+        pointer_released_command_property()
+    {
+        static const maui::core::bindable_property<std::shared_ptr<i_command>> descriptor{"pointer_released_command",
+                                                                                          nullptr};
+        return descriptor;
+    }
+
     // --- drag&drop (W2-22) ---
     // ---- drag_gesture_recognizer ----
     const maui::core::bindable_property<bool>& drag_gesture_recognizer::can_drag_property()
@@ -82,11 +129,48 @@ namespace maui::controls
         return descriptor;
     }
 
+    // DragGestureRecognizer.DragStartingCommandProperty / DropCompletedCommandProperty (default null).
+    const maui::core::bindable_property<std::shared_ptr<i_command>>& drag_gesture_recognizer::
+        drag_starting_command_property()
+    {
+        static const maui::core::bindable_property<std::shared_ptr<i_command>> descriptor{"drag_starting_command",
+                                                                                          nullptr};
+        return descriptor;
+    }
+    const maui::core::bindable_property<std::shared_ptr<i_command>>& drag_gesture_recognizer::
+        drop_completed_command_property()
+    {
+        static const maui::core::bindable_property<std::shared_ptr<i_command>> descriptor{"drop_completed_command",
+                                                                                          nullptr};
+        return descriptor;
+    }
+
     // ---- drop_gesture_recognizer ----
     const maui::core::bindable_property<bool>& drop_gesture_recognizer::allow_drop_property()
     {
         // DropGestureRecognizer.AllowDropProperty (default true).
         static const maui::core::bindable_property<bool> descriptor{"allow_drop", true};
+        return descriptor;
+    }
+
+    // DropGestureRecognizer.DragOverCommandProperty / DragLeaveCommandProperty / DropCommandProperty
+    // (default null).
+    const maui::core::bindable_property<std::shared_ptr<i_command>>& drop_gesture_recognizer::
+        drag_over_command_property()
+    {
+        static const maui::core::bindable_property<std::shared_ptr<i_command>> descriptor{"drag_over_command", nullptr};
+        return descriptor;
+    }
+    const maui::core::bindable_property<std::shared_ptr<i_command>>& drop_gesture_recognizer::
+        drag_leave_command_property()
+    {
+        static const maui::core::bindable_property<std::shared_ptr<i_command>> descriptor{"drag_leave_command",
+                                                                                          nullptr};
+        return descriptor;
+    }
+    const maui::core::bindable_property<std::shared_ptr<i_command>>& drop_gesture_recognizer::drop_command_property()
+    {
+        static const maui::core::bindable_property<std::shared_ptr<i_command>> descriptor{"drop_command", nullptr};
         return descriptor;
     }
     // --- end drag&drop (W2-22) ---

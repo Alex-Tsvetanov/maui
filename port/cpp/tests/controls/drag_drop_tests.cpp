@@ -8,17 +8,21 @@
 //                                             raising; the AllowDrop guard; the TrySetValue text
 //                                             injection onto a target control; the Handled short-circuit)
 // plus the port's collection → gesture_platform_manager → recognizer wiring for the two new recognizers
-// (attachment diffing on collection changes; is_attached). The Command-fired assertions are not portable
-// (no ICommand port — the event-raise + data-package plumbing those tests also exercise IS pinned). The
-// TimePicker/DatePicker text theories are the documented seam gap (drag_drop_data.hpp) and are omitted.
+// (attachment diffing on collection changes; is_attached). The Command-fired assertions ARE now portable
+// (U-CMD): the drag/drop commands run via i_command — NOTE the drag/drop ordering is `Command?.Execute(p)`
+// with NO CanExecute gate (unlike Tap/Pointer), preserved + pinned below. The TimePicker/DatePicker text
+// theories are the documented seam gap (drag_drop_data.hpp) and are omitted.
 
 #include <any>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "maui/controls/button.hpp"
 #include "maui/controls/check_box.hpp"
+#include "maui/controls/command.hpp"
 #include "maui/controls/data_package.hpp"
 #include "maui/controls/data_package_operation.hpp"
 #include "maui/controls/drag_drop_data.hpp"
@@ -37,6 +41,7 @@
 namespace
 {
     using maui::controls::check_box;
+    using maui::controls::command;
     using maui::controls::data_package;
     using maui::controls::data_package_operation;
     using maui::controls::data_package_view;
@@ -257,6 +262,45 @@ namespace
         EXPECT_EQ(count, 0);
     }
 
+    // (U-CMD) SendDragStarting runs DragStartingCommand (with its parameter) BEFORE raising drag_starting,
+    // and — per C# — with NO CanExecute gate (the command runs whenever set; a false predicate is ignored).
+    TEST(drag_gesture_recognizer_test, send_drag_starting_runs_command_before_event_no_can_execute_gate)
+    {
+        drag_gesture_recognizer drag;
+        std::vector<std::string> order;
+        std::any seen;
+        drag.set_drag_starting_command(std::make_shared<command>(
+            std::function<void(const std::any&)>{[&order, &seen](const std::any& o) {
+                seen = o;
+                order.emplace_back("command");
+            }},
+            std::function<bool(const std::any&)>{[](const std::any&) { return false; }})); // gate ignored on drag side
+        drag.set_drag_starting_command_parameter(std::any{std::string("payload")});
+        drag.drag_starting.connect([&order](drag_starting_event_args&) { order.emplace_back("event"); });
+
+        label element;
+        (void)drag.send_drag_starting(element);
+
+        const std::vector<std::string> expected{"command", "event"};
+        EXPECT_EQ(order, expected); // command ran (despite can_execute==false) then the event
+        ASSERT_TRUE(seen.has_value());
+        EXPECT_EQ(std::any_cast<std::string>(seen), "payload");
+    }
+
+    // (U-CMD) SendDropCompleted runs DropCompletedCommand once per drag (latch-gated like the event).
+    TEST(drag_gesture_recognizer_test, send_drop_completed_runs_command_once_per_drag)
+    {
+        drag_gesture_recognizer drag;
+        int runs = 0;
+        drag.set_drop_completed_command(std::make_shared<command>([&runs](const std::any&) { ++runs; }));
+
+        label element;
+        (void)drag.send_drag_starting(element); // arms the latch
+        drag.send_drop_completed(drop_completed_event_args{});
+        drag.send_drop_completed(drop_completed_event_args{}); // latch disarmed → ignored
+        EXPECT_EQ(runs, 1);
+    }
+
     // ---- DropGestureRecognizerTests.cs ----
 
     TEST(drop_gesture_recognizer_test, allow_drop_default_is_true)
@@ -296,6 +340,62 @@ namespace
         drop_event_args args(data_package_view(package.clone()));
         drop.send_drop(args);
         EXPECT_TRUE(raised);
+    }
+
+    // (U-CMD) SendDragOver / SendDragLeave run their command BEFORE the event, with NO CanExecute gate.
+    TEST(drop_gesture_recognizer_test, send_drag_over_and_leave_run_commands_before_events)
+    {
+        drop_gesture_recognizer drop;
+        std::vector<std::string> order;
+        // can_execute == false is intentionally ignored on the drop side (command still runs).
+        drop.set_drag_over_command(
+            std::make_shared<command>(std::function<void()>{[&order] { order.emplace_back("over_cmd"); }},
+                                      std::function<bool()>{[] { return false; }}));
+        drop.set_drag_leave_command(
+            std::make_shared<command>([&order](const std::any&) { order.emplace_back("leave_cmd"); }));
+        drop.drag_over.connect([&order](drag_event_args&) { order.emplace_back("over_evt"); });
+        drop.drag_leave.connect([&order](drag_event_args&) { order.emplace_back("leave_evt"); });
+
+        data_package package;
+        drag_event_args args(package);
+        drop.send_drag_over(args);
+        drop.send_drag_leave(args);
+
+        const std::vector<std::string> expected{"over_cmd", "over_evt", "leave_cmd", "leave_evt"};
+        EXPECT_EQ(order, expected);
+    }
+
+    // (U-CMD) SendDrop runs DropCommand (with its parameter) BEFORE the event; suppressed with the event
+    // when !AllowDrop (the AllowDrop guard precedes the command, matching C#).
+    TEST(drop_gesture_recognizer_test, send_drop_runs_command_before_event_and_respects_allow_drop)
+    {
+        drop_gesture_recognizer drop;
+        std::vector<std::string> order;
+        std::any seen;
+        drop.set_drop_command(std::make_shared<command>([&order, &seen](const std::any& o) {
+            seen = o;
+            order.emplace_back("command");
+        }));
+        drop.set_drop_command_parameter(std::any{std::string("dropped")});
+        drop.drop.connect([&order](drop_event_args&) { order.emplace_back("event"); });
+
+        data_package package;
+        drop_event_args args(data_package_view(package.clone()));
+        drop.send_drop(args);
+        const std::vector<std::string> expected{"command", "event"};
+        EXPECT_EQ(order, expected);
+        ASSERT_TRUE(seen.has_value());
+        EXPECT_EQ(std::any_cast<std::string>(seen), "dropped");
+
+        // !AllowDrop short-circuits before the command runs.
+        drop_gesture_recognizer disallowed;
+        disallowed.set_allow_drop(false);
+        bool ran = false;
+        disallowed.set_drop_command(std::make_shared<command>([&ran](const std::any&) { ran = true; }));
+        data_package package2;
+        drop_event_args args2(data_package_view(package2.clone()));
+        disallowed.send_drop(args2);
+        EXPECT_FALSE(ran);
     }
 
     TEST(drop_gesture_recognizer_test, send_drop_is_noop_when_disallowed)

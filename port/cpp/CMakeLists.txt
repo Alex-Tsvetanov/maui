@@ -1015,6 +1015,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/window_overlay_tests.cpp # (G4) backend-agnostic: add/remove overlay + adorner list + invalidate->draw
     tests/controls/window_overlay_apple_tests.mm # (G4) the overlay draws through the real graphics host
     tests/controls/content_view_tests.cpp # (W1-07) backend-agnostic: the templated content host over mocks
+    tests/controls/command_tests.cpp # (U-CMD) the i_command / command primitive
     tests/controls/drag_drop_tests.cpp # (W2-22) backend-agnostic: data_package + drag/drop recognizers + wiring
     # (W1-11 chrome/menus) the backend-agnostic chrome suites (real natives behind the mirrors here).
     tests/controls/menu_item_tests.cpp
@@ -1214,6 +1215,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/tabbed_flyout_page_tests.cpp # the W1-10 demo page wiring (backend-agnostic)
     tests/controls/containers_page_tests.cpp # the W1-07 demo page wiring (backend-agnostic)
     tests/controls/content_view_tests.cpp # (W1-07) backend-agnostic: the templated content host over mocks
+    tests/controls/command_tests.cpp # (U-CMD) the i_command / command primitive
     tests/controls/drag_drop_tests.cpp # (W2-22) backend-agnostic: data_package + drag/drop recognizers + wiring
     tests/controls/pickers_page_tests.cpp # the W1-06 demo page wiring (backend-agnostic)
     tests/controls/shapes_tests.cpp # (W2-23 shapes) geometry/transform model + path markup parser
@@ -1260,6 +1262,7 @@ else()
   add_executable(maui_controls_tests
     tests/controls/button_tests.cpp
     tests/controls/gesture_recognizer_tests.cpp # the E1 gesture state machines + synthetic pipeline
+    tests/controls/command_tests.cpp # (U-CMD) the i_command / command primitive
     tests/controls/drag_drop_tests.cpp # (W2-22) data_package + drag/drop recognizers + wiring
     tests/controls/label_tests.cpp
     tests/controls/formatted_text_tests.cpp # G1: span + formatted_string + label.formatted_text mirror
