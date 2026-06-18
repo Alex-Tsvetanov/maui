@@ -62,14 +62,24 @@ namespace
 
         auto* const native_window = (__bridge UIWindow*)window_handler->typed_platform_view()->native;
 
-        // (4) Lay out the tree over the root view-controller's bounds (the window host does no auto-layout).
-        const CGRect bounds = native_window.rootViewController.view.bounds;
-        const auto width = static_cast<double>(bounds.size.width);
-        const auto height = static_cast<double>(bounds.size.height);
+        // (4) Lay out the tree over the root view-controller's SAFE-AREA rect (the window host does no
+        // auto-layout). A real app would inset via the page's SafeAreaEdges; the gallery host insets here
+        // so the demo content clears the status bar / Dynamic Island. Force a layout pass first so
+        // safeAreaInsets is populated; fall back to a status-bar-height top inset if it isn't yet.
+        UIView* const root_view = native_window.rootViewController.view;
+        [root_view layoutIfNeeded];
+        UIEdgeInsets insets = root_view.safeAreaInsets;
+        if (insets.top < 1.0)
+        {
+            insets.top = 59.0; // status bar + Dynamic Island fallback (no run-loop spin has happened yet)
+        }
+        const CGRect full = root_view.bounds;
+        const auto width = static_cast<double>(full.size.width - insets.left - insets.right);
+        const auto height = static_cast<double>(full.size.height - insets.top - insets.bottom);
         auto& root = static_cast<maui::core::i_view&>(app->page_member().page());
         root.measure(width, height);
-        root.arrange(maui::graphics::rect{0, 0, width, height});
-        os_log(OS_LOG_DEFAULT, "[gallery] laid out %g x %g", width, height);
+        root.arrange(maui::graphics::rect{insets.left, insets.top, width, height});
+        os_log(OS_LOG_DEFAULT, "[gallery] laid out %g x %g at inset top=%g", width, height, insets.top);
 
         return native_window;
     }
