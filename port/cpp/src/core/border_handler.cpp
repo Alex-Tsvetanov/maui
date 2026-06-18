@@ -37,6 +37,7 @@ namespace maui::core
                 {"stroke_dash_array", &border_handler::map_border_property},
                 {"stroke_dash_offset", &border_handler::map_border_property},
                 {"stroke_miter_limit", &border_handler::map_border_property},
+                {"safe_area_edges", &border_handler::map_safe_area_edges},
             },
         };
         return table;
@@ -115,5 +116,10 @@ namespace maui::core
     void border_handler::map_set_content(border_handler& handler, i_border_view& /*view*/, const std::any& /*args*/)
     {
         handler.set_content();
+    }
+
+    void border_handler::map_safe_area_edges(border_handler& /*handler*/, i_border_view& view)
+    {
+        view.invalidate_measure();
     }
 } // namespace maui::core

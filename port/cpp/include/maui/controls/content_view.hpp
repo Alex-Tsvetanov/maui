@@ -24,7 +24,7 @@
 //
 // measure/arrange are inherited from templated_view (MeasureContent/ArrangeContent over the
 // presented content within the padding — the C# ContentView inherits the same via TemplatedView's
-// ICrossPlatformLayout). Out of scope (documented, as on the base): SafeAreaEdges.
+// ICrossPlatformLayout).
 
 #include <memory>
 #include <utility>
@@ -34,11 +34,17 @@
 #include "maui/controls/templates/template_utilities.hpp"
 #include "maui/controls/templates/templated_view.hpp"
 #include "maui/core/bindable_object.hpp"
+#include "maui/core/bindable_property.hpp"
+#include "maui/core/i_safe_area_view.hpp"
 #include "maui/core/i_view.hpp"
+#include "maui/core/property.hpp"
+#include "maui/core/safe_area_edges.hpp"
+#include "maui/core/safe_area_regions.hpp"
+#include "maui/core/thickness.hpp"
 
 namespace maui::controls
 {
-    class content_view : public templated_view
+    class content_view : public templated_view, public maui::core::i_safe_area_view2
     {
     public:
         content_view()
@@ -106,6 +112,23 @@ namespace maui::controls
             }
         }
 
+        // maui::controls::content_view::safe_area_edges_property <=
+        // Microsoft.Maui.Controls.ContentView.SafeAreaEdgesProperty
+        static const maui::core::bindable_property<maui::core::safe_area_edges>& safe_area_edges_property();
+
+        // ---- SafeAreaEdges (control-only; ContentView.SafeAreaEdges) ----
+        [[nodiscard]] maui::core::safe_area_edges safe_area_edges() const
+        {
+            return safe_area_edges_.get();
+        }
+        void set_safe_area_edges(maui::core::safe_area_edges value)
+        {
+            safe_area_edges_.set(value);
+        }
+
+        void set_safe_area_insets(const maui::core::thickness& value) override;
+        [[nodiscard]] maui::core::safe_area_regions get_safe_area_regions_for_edge(int edge) const override;
+
     protected:
         // C# ContentView.SetChildInheritedBindingContext: ALWAYS propagate (TemplatedView suppresses
         // inheritance while templated; ContentView restores it so Content binds to the data context).
@@ -127,5 +150,6 @@ namespace maui::controls
 
     private:
         std::shared_ptr<element> content_; // ContentView.Content (co-owned; see header comment)
+        maui::core::property<maui::core::safe_area_edges> safe_area_edges_{*this, safe_area_edges_property()};
     };
 } // namespace maui::controls

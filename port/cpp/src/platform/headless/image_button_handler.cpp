@@ -83,6 +83,16 @@ namespace maui::core
         }
     }
 
+    // IsAnimationPlaying (headless mirror; the Apple/iOS twins push to the native button's image). The
+    // image_handler convention — ImageButton pins the value false, so the mirror stays false in practice.
+    void image_button_handler::map_is_animation_playing(image_button_handler& handler, i_image_button& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->animation_playing = view.is_animation_playing();
+        }
+    }
+
     void image_button_handler::map_padding(image_button_handler& handler, i_image_button& view)
     {
         if (auto* platform = handler.typed_platform_view())

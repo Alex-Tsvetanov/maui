@@ -26,6 +26,9 @@
 #include "maui/core/content_page_handler.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/i_safe_area_view.hpp"
+#include "maui/core/safe_area_edges.hpp"
+#include "maui/core/safe_area_regions.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
@@ -256,5 +259,30 @@ namespace
 
         view.set_content(nullptr);
         EXPECT_EQ(platform->hosted_content, view.content()); // still the template root
+    }
+
+    // ---- U-SA: SafeAreaEdges ----
+
+    TEST(content_view_safe_area, safe_area_edges_defaults_to_none)
+    {
+        const maui::controls::content_view cv;
+        EXPECT_EQ(cv.safe_area_edges(), maui::core::safe_area_edges::none());
+    }
+
+    TEST(content_view_safe_area, safe_area_edges_is_settable)
+    {
+        maui::controls::content_view cv;
+        cv.set_safe_area_edges(maui::core::safe_area_edges::all());
+        EXPECT_EQ(cv.safe_area_edges(), maui::core::safe_area_edges::all());
+    }
+
+    TEST(content_view_safe_area, get_regions_for_edge_translates_default_to_none)
+    {
+        maui::controls::content_view cv;
+        cv.set_safe_area_edges(maui::core::safe_area_edges::default_edges());
+        const maui::core::i_safe_area_view2& cv2 = cv;
+        EXPECT_EQ(cv2.get_safe_area_regions_for_edge(0), maui::core::safe_area_regions::none);
+        cv.set_safe_area_edges(maui::core::safe_area_edges::all());
+        EXPECT_EQ(cv2.get_safe_area_regions_for_edge(0), maui::core::safe_area_regions::all);
     }
 } // namespace

@@ -41,9 +41,12 @@
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/event.hpp"
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/i_safe_area_view.hpp"
 #include "maui/core/i_scroll_view.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/property.hpp"
+#include "maui/core/safe_area_edges.hpp"
+#include "maui/core/safe_area_regions.hpp"
 #include "maui/core/scroll_bar_visibility.hpp"
 #include "maui/core/scroll_orientation.hpp"
 #include "maui/core/scroll_to_request.hpp"
@@ -53,7 +56,7 @@
 
 namespace maui::controls
 {
-    class scroll_view : public view<maui::core::i_scroll_view>
+    class scroll_view : public view<maui::core::i_scroll_view>, public maui::core::i_safe_area_view2
     {
     public:
         scroll_view()
@@ -68,6 +71,23 @@ namespace maui::controls
         horizontal_scroll_bar_visibility_property();
         static const maui::core::bindable_property<maui::core::scroll_bar_visibility>&
         vertical_scroll_bar_visibility_property();
+
+        // maui::controls::scroll_view::safe_area_edges_property <=
+        // Microsoft.Maui.Controls.ScrollView.SafeAreaEdgesProperty
+        static const maui::core::bindable_property<maui::core::safe_area_edges>& safe_area_edges_property();
+
+        // ---- SafeAreaEdges (control-only; ScrollView.SafeAreaEdges) ----
+        [[nodiscard]] maui::core::safe_area_edges safe_area_edges() const
+        {
+            return safe_area_edges_.get();
+        }
+        void set_safe_area_edges(maui::core::safe_area_edges value)
+        {
+            safe_area_edges_.set(value);
+        }
+
+        void set_safe_area_insets(const maui::core::thickness& value) override;
+        [[nodiscard]] maui::core::safe_area_regions get_safe_area_regions_for_edge(int edge) const override;
 
         // ---- events ----
         // C# ScrollView.Scrolled (ScrolledEventArgs.ScrollX/ScrollY).
@@ -268,5 +288,6 @@ namespace maui::controls
             *this, horizontal_scroll_bar_visibility_property()};
         maui::core::property<maui::core::scroll_bar_visibility> vertical_scroll_bar_visibility_{
             *this, vertical_scroll_bar_visibility_property()};
+        maui::core::property<maui::core::safe_area_edges> safe_area_edges_{*this, safe_area_edges_property()};
     };
 } // namespace maui::controls

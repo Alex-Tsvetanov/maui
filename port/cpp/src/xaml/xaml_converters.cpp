@@ -27,6 +27,7 @@
 #include "maui/animations/easing.hpp"
 #include "maui/controls/column_definition.hpp"
 #include "maui/controls/row_definition.hpp"
+#include "maui/controls/stack_orientation.hpp"
 #include "maui/core/aspect.hpp"
 #include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/flow_direction.hpp"
@@ -644,6 +645,17 @@ namespace maui::xaml
             {.name = "Center", .value = aspect::center},
         }};
         return parse_enum<aspect>(text, names, "maui::core::aspect");
+    }
+
+    // Microsoft.Maui.Controls.StackOrientation.
+    maui::controls::stack_orientation convert_stack_orientation(std::string_view text)
+    {
+        using maui::controls::stack_orientation;
+        static constexpr std::array<enum_entry<stack_orientation>, 2> names{{
+            {.name = "Vertical", .value = stack_orientation::vertical},
+            {.name = "Horizontal", .value = stack_orientation::horizontal},
+        }};
+        return parse_enum<stack_orientation>(text, names, "maui::controls::stack_orientation");
     }
 
     // Microsoft.Maui.Visibility (the Core enum — distinct from convert_is_visible's string -> bool).

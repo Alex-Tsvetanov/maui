@@ -50,6 +50,7 @@
 #include "maui/controls/shell/shell.hpp"
 #include "maui/controls/shell_handler.hpp"
 #include "maui/controls/slider.hpp"
+#include "maui/controls/stack_layout.hpp"
 #include "maui/controls/stepper.hpp"
 #include "maui/controls/swipe_item_view.hpp"
 #include "maui/controls/swipe_view.hpp"
@@ -122,6 +123,7 @@ namespace maui::hosting
         handlers.add_handler<maui::controls::time_picker, maui::core::time_picker_handler>();
 
         // --- layouts (the layout controls share the one layout_handler; managers differ, not the panel) ---
+        handlers.add_handler<maui::controls::stack_layout, maui::core::layout_handler>();
         handlers.add_handler<maui::controls::vertical_stack_layout, maui::core::layout_handler>();
         handlers.add_handler<maui::controls::horizontal_stack_layout, maui::core::layout_handler>();
         handlers.add_handler<maui::controls::grid, maui::core::layout_handler>();

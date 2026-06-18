@@ -35,8 +35,11 @@
 #include "maui/controls/view.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/i_border_view.hpp"
+#include "maui/core/i_safe_area_view.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/property.hpp"
+#include "maui/core/safe_area_edges.hpp"
+#include "maui/core/safe_area_regions.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/i_shape.hpp"
 #include "maui/graphics/line_cap.hpp"
@@ -47,7 +50,7 @@
 
 namespace maui::controls
 {
-    class border : public view<maui::core::i_border_view>
+    class border : public view<maui::core::i_border_view>, public maui::core::i_safe_area_view2
     {
     public:
         border() : border(padding_property())
@@ -65,6 +68,23 @@ namespace maui::controls
         static const maui::core::bindable_property<maui::graphics::line_cap>& stroke_line_cap_property();
         static const maui::core::bindable_property<maui::graphics::line_join>& stroke_line_join_property();
         static const maui::core::bindable_property<double>& stroke_miter_limit_property();
+
+        // maui::controls::border::safe_area_edges_property <=
+        // Microsoft.Maui.Controls.Border.SafeAreaEdgesProperty
+        static const maui::core::bindable_property<maui::core::safe_area_edges>& safe_area_edges_property();
+
+        // ---- SafeAreaEdges (control-only; Border.SafeAreaEdges) ----
+        [[nodiscard]] maui::core::safe_area_edges safe_area_edges() const
+        {
+            return safe_area_edges_.get();
+        }
+        void set_safe_area_edges(maui::core::safe_area_edges value)
+        {
+            safe_area_edges_.set(value);
+        }
+
+        void set_safe_area_insets(const maui::core::thickness& value) override;
+        [[nodiscard]] maui::core::safe_area_regions get_safe_area_regions_for_edge(int edge) const override;
 
         // ---- Content (non-owning; Border.ContentChanged adds/removes the logical child) ----
         [[nodiscard]] maui::core::i_view* content() const override
@@ -235,5 +255,6 @@ namespace maui::controls
         maui::core::property<maui::graphics::line_cap> stroke_line_cap_{*this, stroke_line_cap_property()};
         maui::core::property<maui::graphics::line_join> stroke_line_join_{*this, stroke_line_join_property()};
         maui::core::property<double> stroke_miter_limit_{*this, stroke_miter_limit_property()};
+        maui::core::property<maui::core::safe_area_edges> safe_area_edges_{*this, safe_area_edges_property()};
     };
 } // namespace maui::controls

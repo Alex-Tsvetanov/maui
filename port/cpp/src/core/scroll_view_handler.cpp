@@ -28,6 +28,7 @@ namespace maui::core
                 {"horizontal_scroll_bar_visibility", &scroll_view_handler::map_horizontal_scroll_bar_visibility},
                 {"vertical_scroll_bar_visibility", &scroll_view_handler::map_vertical_scroll_bar_visibility},
                 {"orientation", &scroll_view_handler::map_orientation},
+                {"safe_area_edges", &scroll_view_handler::map_safe_area_edges},
             },
         };
         return table;
@@ -93,5 +94,10 @@ namespace maui::core
                                               const std::any& /*args*/)
     {
         handler.set_content();
+    }
+
+    void scroll_view_handler::map_safe_area_edges(scroll_view_handler& /*handler*/, i_scroll_view& view)
+    {
+        view.invalidate_measure();
     }
 } // namespace maui::core

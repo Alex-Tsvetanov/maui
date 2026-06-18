@@ -51,6 +51,8 @@
 #include "maui/controls/layout.hpp"
 #include "maui/controls/navigation_page.hpp"
 #include "maui/controls/row_definition.hpp"
+#include "maui/controls/stack_layout.hpp"
+#include "maui/controls/stack_orientation.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/controls/view.hpp"
 #include "maui/controls/window.hpp"
@@ -173,6 +175,7 @@ namespace maui::xaml
         types.register_type<controls::label>("Label");
         types.register_type<controls::entry>("Entry");
         types.register_type<controls::image>("Image");
+        types.register_type<controls::stack_layout>("StackLayout");
         types.register_type<controls::vertical_stack_layout>("VerticalStackLayout");
         types.register_type<controls::horizontal_stack_layout>("HorizontalStackLayout");
         types.register_type<controls::grid>("Grid");
@@ -252,6 +255,18 @@ namespace maui::xaml
                                                                controls::image::is_animation_playing_property());
 
         // ---- the stack layouts (StackBase Spacing; Layout Padding/IsClippedToBounds/Children) ----
+        // The generic StackLayout adds the bindable Orientation (StackOrientation, default Vertical).
+        register_view_properties<controls::stack_layout>(properties);
+        properties.register_bindable_property<controls::stack_layout>("Orientation",
+                                                                      controls::stack_layout::orientation_property());
+        properties.register_bindable_property<controls::stack_layout>("Spacing",
+                                                                      controls::stack_layout::spacing_property());
+        properties.register_bindable_property<controls::stack_layout>("Padding",
+                                                                      controls::stack_layout::padding_property());
+        properties.register_bindable_property<controls::stack_layout>("IsClippedToBounds",
+                                                                      controls::clips_to_bounds_property());
+        register_layout_children<controls::stack_layout>(properties);
+
         register_view_properties<controls::vertical_stack_layout>(properties);
         properties.register_bindable_property<controls::vertical_stack_layout>(
             "Spacing", controls::vertical_stack_layout::spacing_property());
@@ -377,6 +392,8 @@ namespace maui::xaml
         // Enums (incl. the [Flags] TextDecorations and the aliased FlowDirection).
         converters.register_converter<maui::core::text_alignment>(registry_converter(&convert_text_alignment));
         converters.register_converter<maui::core::aspect>(registry_converter(&convert_aspect));
+        converters.register_converter<maui::controls::stack_orientation>(
+            registry_converter(&convert_stack_orientation));
         converters.register_converter<maui::core::visibility>(registry_converter(&convert_visibility));
         converters.register_converter<maui::core::return_type>(registry_converter(&convert_return_type));
         converters.register_converter<maui::core::clear_button_visibility>(

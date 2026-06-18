@@ -215,6 +215,19 @@ namespace maui::core
         button.layer.opaque = static_cast<BOOL>(view.is_opaque());
     }
 
+    // IsAnimationPlaying — re-asserted by map_source after a load (the inherited ImageHandler.MapSource →
+    // UpdateValue(IsAnimationPlaying)). C# routes MapIsAnimationPlaying through handler.PlatformView, which
+    // for an ImageButton is the UIButton (not a UIImageView), and IImageSourcePart.IsAnimationPlaying is
+    // pinned false on ImageButton — so the C# call never starts native animation. An NSButton has no
+    // multi-frame .animates surface, so the AppKit twin mirrors the (always-false) flag and drives nothing.
+    void image_button_handler::map_is_animation_playing(image_button_handler& handler, i_image_button& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->animation_playing = view.is_animation_playing();
+        }
+    }
+
     void image_button_handler::map_padding(image_button_handler& handler, i_image_button& view)
     {
         // AppKit has no contentEdgeInsets; the maui padding is recorded on the mirror and folded into

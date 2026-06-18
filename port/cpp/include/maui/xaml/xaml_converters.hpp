@@ -77,6 +77,7 @@
 #include "maui/animations/easing.hpp"
 #include "maui/controls/column_definition.hpp"
 #include "maui/controls/row_definition.hpp"
+#include "maui/controls/stack_orientation.hpp"
 #include "maui/core/aspect.hpp"
 #include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/flow_direction.hpp"
@@ -258,6 +259,7 @@ namespace maui::xaml
     // Name tables for the enums the v1 control set exposes (C# member spellings).
     [[nodiscard]] maui::core::text_alignment convert_text_alignment(std::string_view text);
     [[nodiscard]] maui::core::aspect convert_aspect(std::string_view text);
+    [[nodiscard]] maui::controls::stack_orientation convert_stack_orientation(std::string_view text);
     [[nodiscard]] maui::core::visibility convert_visibility(std::string_view text);
     [[nodiscard]] maui::core::return_type convert_return_type(std::string_view text);
     [[nodiscard]] maui::core::clear_button_visibility convert_clear_button_visibility(std::string_view text);

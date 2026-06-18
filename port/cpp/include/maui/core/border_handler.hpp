@@ -144,6 +144,7 @@ namespace maui::core
         static void map_content(border_handler& handler, i_border_view& view);
         static void map_border_property(border_handler& handler, i_border_view& view);
         static void map_set_content(border_handler& handler, i_border_view& view, const std::any& args);
+        static void map_safe_area_edges(border_handler& handler, i_border_view& view);
 
     private:
         // C# BorderHandler._lastSize: re-push the (bounds-dependent) stroke only when the size changes.

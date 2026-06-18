@@ -28,6 +28,7 @@ namespace maui::core
             {
                 // ---- the ImageMapper chain (image_handler's keys, keyed on i_image_button) ----
                 {"aspect", &image_button_handler::map_aspect},
+                {"is_animation_playing", &image_button_handler::map_is_animation_playing},
                 {"is_opaque", &image_button_handler::map_is_opaque},
                 {"source", &image_button_handler::map_source},
                 // ---- ImageButtonHandler.Mapper's own keys ----
@@ -84,8 +85,19 @@ namespace maui::core
             return;
         }
 
+        // After the image is applied, the animation state is re-pushed so a freshly-loaded ANIMATED image
+        // starts cycling if IsAnimationPlaying is already set (the inherited ImageHandler.MapSource →
+        // UpdateValue(IsAnimationPlaying) — ImageHandler.iOS.cs:68 / .Android.cs:73). The apply closure
+        // captures the platform view + the handler/view by pointer (the loader is a handler member, so the
+        // liveness token guarding the marshalled apply also guarantees the handler/view outlive it) —
+        // image_handler::map_source's exact shape.
+        image_button_handler* const handler_ptr = &handler;
         handler.source_loader_.update_source(
-            src, [platform](const image_source_result& result) { apply_loaded_result(*platform, result); },
+            src,
+            [platform, handler_ptr, view_ptr](const image_source_result& result) {
+                apply_loaded_result(*platform, result);
+                map_is_animation_playing(*handler_ptr, *view_ptr);
+            },
             std::move(on_loading));
     }
 } // namespace maui::core

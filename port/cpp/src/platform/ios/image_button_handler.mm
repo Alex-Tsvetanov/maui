@@ -257,6 +257,19 @@ namespace maui::core
         }
     }
 
+    // IsAnimationPlaying — re-asserted by map_source after a load (the inherited ImageHandler.MapSource →
+    // UpdateValue(IsAnimationPlaying)). C# routes MapIsAnimationPlaying through handler.PlatformView, which
+    // for an ImageButton is the UIButton itself (not its UIImageView), and IImageSourcePart.IsAnimationPlaying
+    // is pinned false on ImageButton — so ImageViewExtensions.UpdateIsAnimationPlaying never fires/animates.
+    // The iOS twin mirrors the (always-false) flag and drives no native animation, matching C#.
+    void image_button_handler::map_is_animation_playing(image_button_handler& handler, i_image_button& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->animation_playing = view.is_animation_playing();
+        }
+    }
+
     void image_button_handler::map_padding(image_button_handler& handler, i_image_button& view)
     {
         auto* platform = handler.typed_platform_view();

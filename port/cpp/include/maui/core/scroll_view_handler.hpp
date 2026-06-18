@@ -138,5 +138,6 @@ namespace maui::core
         static void map_vertical_scroll_bar_visibility(scroll_view_handler& handler, i_scroll_view& view);
         static void map_request_scroll_to(scroll_view_handler& handler, i_scroll_view& view, const std::any& args);
         static void map_set_content(scroll_view_handler& handler, i_scroll_view& view, const std::any& args);
+        static void map_safe_area_edges(scroll_view_handler& handler, i_scroll_view& view);
     };
 } // namespace maui::core

@@ -12,14 +12,20 @@
 #include <utility>
 #include <vector>
 
+#include <cstddef>
+
 #include "maui/controls/file_image_source.hpp"
 #include "maui/controls/setter.hpp"
 #include "maui/controls/view.hpp"
 #include "maui/controls/visual_state_manager.hpp"
 #include "maui/core/aspect.hpp"
+#include "maui/core/cancellation_token.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/i_image_source.hpp"
+#include "maui/core/i_stream_image_source.hpp"
 #include "maui/core/image_button_handler.hpp"
+#include "maui/core/manual_dispatcher.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include <gtest/gtest.h>
@@ -29,8 +35,32 @@ namespace
     using maui::controls::image_button;
     using maui::controls::image_source;
     using maui::core::aspect;
+    using maui::core::cancellation_token;
     using maui::core::i_element_handler;
     using maui::core::image_button_handler;
+    using maui::core::image_bytes;
+    using maui::core::manual_dispatcher;
+
+    // A stream source that yields a fixed number of bytes (the image_tests convention — the byte COUNT
+    // distinguishes which source applied via the "<bytes:N>" detail; the value is irrelevant headless).
+    std::shared_ptr<maui::core::i_image_source> make_stream_source(std::size_t byte_count)
+    {
+        return image_source::from_stream(
+            [byte_count](const cancellation_token&) { return image_bytes(byte_count, std::byte{0x7F}); });
+    }
+
+    // image_button pins IImageSourcePart.IsAnimationPlaying to false (C# constant). To exercise the
+    // handler's post-load re-assertion in isolation, this override forces the flag true so the mirror
+    // observably flips when map_source re-pushes map_is_animation_playing after the async load — the
+    // headless analog of apple's animation_flag_set_before_load_plays_once_the_image_arrives.
+    class animating_image_button : public image_button
+    {
+    public:
+        [[nodiscard]] bool is_animation_playing() const override
+        {
+            return true;
+        }
+    };
 
     // ---- the control in isolation ----
 
@@ -270,5 +300,51 @@ namespace
         control.set_source(image_source::from_file("Registered.png"));
         control.set_handler(handler);
         EXPECT_EQ(resolved->typed_platform_view()->source_file, "Registered.png");
+    }
+
+    // ---- IsAnimationPlaying re-asserted after an async source load (the inherited ImageHandler.MapSource
+    // pipeline — ImageHandler.iOS.cs:68 / .Android.cs:73 → UpdateValue(IsAnimationPlaying)). Mirrors
+    // image_tests' is_animation_playing_defaults_false_and_maps + the apple before-load re-assert. ----
+
+    // The mapper carries the "is_animation_playing" key: mapping it pushes the view's flag to the mirror.
+    TEST(image_button_seam, is_animation_playing_maps_to_platform)
+    {
+        animating_image_button control; // overrides the pinned-false flag to true
+        auto handler = std::make_shared<image_button_handler>();
+        control.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+
+        image_button_handler::map_is_animation_playing(*handler, control);
+        EXPECT_TRUE(platform->animation_playing);
+    }
+
+    // A freshly-loaded animated source re-asserts the animation flag once the async load completes: the
+    // mirror starts false and flips true only after the pumped apply re-pushes map_is_animation_playing
+    // (the headless twin of apple's animation_flag_set_before_load_plays_once_the_image_arrives).
+    TEST(image_button_seam, async_load_reasserts_is_animation_playing)
+    {
+        animating_image_button control;
+        auto handler = std::make_shared<image_button_handler>();
+        manual_dispatcher disp;
+        control.set_handler(handler);
+        handler->source_loader().set_dispatcher(disp);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+
+        // Attaching the handler maps the initial properties, so the mirror already reflects the flag.
+        // Reset it to false so the re-push during the load is the sole cause of the later flip back.
+        platform->animation_playing = false;
+
+        // Set an async (stream) source: the apply is marshalled onto the dispatcher, so nothing — neither
+        // the image nor the re-asserted animation flag — applies until it is pumped.
+        control.set_source(make_stream_source(4));
+        EXPECT_FALSE(platform->source_loaded);
+        EXPECT_FALSE(platform->animation_playing);
+
+        const std::size_t ran = disp.run_pending();
+        EXPECT_GE(ran, 1U);
+        EXPECT_TRUE(platform->source_loaded);
+        EXPECT_TRUE(platform->animation_playing); // re-pushed by map_source after apply_loaded_result
     }
 } // namespace

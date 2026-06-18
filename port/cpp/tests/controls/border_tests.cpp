@@ -13,6 +13,9 @@
 #include "maui/core/border_handler.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/i_safe_area_view.hpp"
+#include "maui/core/safe_area_edges.hpp"
+#include "maui/core/safe_area_regions.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/line_cap.hpp"
@@ -210,5 +213,30 @@ namespace
             maui::core::default_handler_registry().create_handler<border>();
         ASSERT_NE(handler, nullptr);
         EXPECT_NE(dynamic_cast<border_handler*>(handler.get()), nullptr);
+    }
+
+    // ---- U-SA: SafeAreaEdges ----
+
+    TEST(border_safe_area, safe_area_edges_defaults_to_none)
+    {
+        const maui::controls::border b;
+        EXPECT_EQ(b.safe_area_edges(), maui::core::safe_area_edges::none());
+    }
+
+    TEST(border_safe_area, safe_area_edges_is_settable)
+    {
+        maui::controls::border b;
+        b.set_safe_area_edges(maui::core::safe_area_edges::all());
+        EXPECT_EQ(b.safe_area_edges(), maui::core::safe_area_edges::all());
+    }
+
+    TEST(border_safe_area, get_regions_for_edge_translates_default_to_none)
+    {
+        maui::controls::border b;
+        b.set_safe_area_edges(maui::core::safe_area_edges::default_edges());
+        const maui::core::i_safe_area_view2& b2 = b;
+        EXPECT_EQ(b2.get_safe_area_regions_for_edge(0), maui::core::safe_area_regions::none);
+        b.set_safe_area_edges(maui::core::safe_area_edges::all());
+        EXPECT_EQ(b2.get_safe_area_regions_for_edge(0), maui::core::safe_area_regions::all);
     }
 } // namespace

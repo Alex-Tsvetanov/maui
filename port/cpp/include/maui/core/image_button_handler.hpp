@@ -57,6 +57,9 @@ namespace maui::core
         std::string source_file;
         bool source_loaded = false;
         bool opaque = false;
+        // Headless mirror of IsAnimationPlaying (the image_platform convention; apple/ios drive native
+        // GIF frame cycling instead). ImageButton pins the value false, so this stays false in practice.
+        bool animation_playing = false;
         // Headless mirrors of the button surface (the button_platform convention).
         thickness padding;
         maui::graphics::color stroke_color;
@@ -118,6 +121,12 @@ namespace maui::core
         // twin over the image_button platform primitives.
         static void map_source(image_button_handler& handler, i_image_button& view);
         static void map_is_opaque(image_button_handler& handler, i_image_button& view);
+        // IsAnimationPlaying → start/stop native multi-frame playback (mirrors image_handler::
+        // map_is_animation_playing; headless mirrors the flag). Re-applied after a source load so a
+        // freshly-decoded animated image starts playing — ImageButton pins the value to false (C#
+        // IImageSourcePart.IsAnimationPlaying => false), but the re-push is part of the inherited
+        // ImageHandler.MapSource pipeline (ImageHandler.iOS.cs:68 / .Android.cs:73) so it is faithful here.
+        static void map_is_animation_playing(image_button_handler& handler, i_image_button& view);
 
         // ---- the button surface (ImageButtonHandler.Mapper's own keys) ----
         static void map_padding(image_button_handler& handler, i_image_button& view);

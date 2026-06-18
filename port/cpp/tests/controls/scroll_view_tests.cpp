@@ -20,6 +20,9 @@
 
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/i_safe_area_view.hpp"
+#include "maui/core/safe_area_edges.hpp"
+#include "maui/core/safe_area_regions.hpp"
 #include "maui/core/scroll_bar_visibility.hpp"
 #include "maui/core/scroll_orientation.hpp"
 #include "maui/core/scroll_to_request.hpp"
@@ -359,5 +362,39 @@ namespace
             maui::core::default_handler_registry().create_handler<scroll_view>();
         ASSERT_NE(handler, nullptr);
         EXPECT_NE(dynamic_cast<scroll_view_handler*>(handler.get()), nullptr);
+    }
+
+    // ---- U-SA: SafeAreaEdges ----
+
+    TEST(scroll_view_safe_area, safe_area_edges_defaults_to_default)
+    {
+        const maui::controls::scroll_view sv;
+        EXPECT_EQ(sv.safe_area_edges(), maui::core::safe_area_edges::default_edges());
+    }
+
+    TEST(scroll_view_safe_area, safe_area_edges_is_settable)
+    {
+        maui::controls::scroll_view sv;
+        sv.set_safe_area_edges(maui::core::safe_area_edges::none());
+        EXPECT_EQ(sv.safe_area_edges(), maui::core::safe_area_edges::none());
+    }
+
+    TEST(scroll_view_safe_area, get_regions_for_edge_returns_property_as_is)
+    {
+        maui::controls::scroll_view sv;
+        sv.set_safe_area_edges(maui::core::safe_area_edges::none());
+        const maui::core::i_safe_area_view2& sv2 = sv;
+        EXPECT_EQ(sv2.get_safe_area_regions_for_edge(0), maui::core::safe_area_regions::none);
+        sv.set_safe_area_edges(maui::core::safe_area_edges::default_edges());
+        EXPECT_EQ(sv2.get_safe_area_regions_for_edge(1), maui::core::safe_area_regions::default_value);
+    }
+
+    TEST(scroll_view_safe_area, set_safe_area_insets_is_noop)
+    {
+        maui::controls::scroll_view sv;
+        maui::core::i_safe_area_view2& sv2 = sv;
+        const maui::core::thickness t{1.0, 2.0, 3.0, 4.0};
+        sv2.set_safe_area_insets(t);
+        EXPECT_EQ(sv.safe_area_edges(), maui::core::safe_area_edges::default_edges());
     }
 } // namespace

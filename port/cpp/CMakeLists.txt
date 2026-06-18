@@ -794,6 +794,11 @@ add_library(maui_controls STATIC
   src/controls/image.cpp
   src/controls/image_button.cpp
   src/controls/file_image_source.cpp
+  # (U-SL) the generic StackLayout (runtime-flippable Orientation) + its orientation-dispatching
+  # manager (Controls-level: picks the vertical/horizontal Core manager per pass; needs the concrete
+  # stack_layout for Orientation, so it lives with the controls lib rather than maui_layouts).
+  src/controls/stack_layout.cpp
+  src/controls/stack_layout_manager.cpp
   src/controls/vertical_stack_layout.cpp
   src/controls/horizontal_stack_layout.cpp
   src/controls/grid.cpp
@@ -1468,6 +1473,8 @@ endif()
 add_executable(maui_layout_tests
   tests/layouts/vertical_stack_layout_manager_tests.cpp
   tests/layouts/horizontal_stack_layout_manager_tests.cpp
+  # (U-SL) generic StackLayout orientation dispatch + StackOrientation.
+  tests/layouts/stack_layout_tests.cpp
   tests/layouts/grid_layout_manager_tests.cpp
   tests/layouts/constraint_tests.cpp
   tests/layouts/z_index_tests.cpp

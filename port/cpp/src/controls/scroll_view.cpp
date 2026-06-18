@@ -17,6 +17,8 @@
 #include "maui/core/i_scroll_view.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
+#include "maui/core/safe_area_edges.hpp"
+#include "maui/core/safe_area_regions.hpp"
 #include "maui/core/scroll_bar_visibility.hpp"
 #include "maui/core/scroll_orientation.hpp"
 #include "maui/core/scroll_to_request.hpp"
@@ -62,6 +64,24 @@ namespace maui::controls
         static const maui::core::bindable_property<maui::core::scroll_bar_visibility> descriptor{
             "vertical_scroll_bar_visibility", maui::core::scroll_bar_visibility::default_};
         return descriptor;
+    }
+
+    const maui::core::bindable_property<maui::core::safe_area_edges>& scroll_view::safe_area_edges_property()
+    {
+        // C# ScrollView.SafeAreaEdgesProperty default is SafeAreaEdges.Default (all edges Default).
+        static const maui::core::bindable_property<maui::core::safe_area_edges> descriptor{
+            "safe_area_edges", maui::core::safe_area_edges::default_edges()};
+        return descriptor;
+    }
+
+    void scroll_view::set_safe_area_insets(const maui::core::thickness& value)
+    {
+        (void)value;
+    }
+
+    maui::core::safe_area_regions scroll_view::get_safe_area_regions_for_edge(int edge) const
+    {
+        return safe_area_edges_.get().edge(edge);
     }
 
     // ScrollView.OnHandlerChangedCore: flush a request pended while no handler was attached.

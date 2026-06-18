@@ -12,6 +12,8 @@
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
+#include "maui/core/safe_area_edges.hpp"
+#include "maui/core/safe_area_regions.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/i_shape.hpp"
 #include "maui/graphics/line_cap.hpp"
@@ -88,6 +90,29 @@ namespace maui::controls
         // C# Border.StrokeMiterLimitProperty default is 10.0.
         static const maui::core::bindable_property<double> descriptor{"stroke_miter_limit", 10.0};
         return descriptor;
+    }
+
+    const maui::core::bindable_property<maui::core::safe_area_edges>& border::safe_area_edges_property()
+    {
+        // C# Border.SafeAreaEdgesProperty default is SafeAreaEdges.None.
+        static const maui::core::bindable_property<maui::core::safe_area_edges> descriptor{
+            "safe_area_edges", maui::core::safe_area_edges::none()};
+        return descriptor;
+    }
+
+    void border::set_safe_area_insets(const maui::core::thickness& value)
+    {
+        (void)value;
+    }
+
+    maui::core::safe_area_regions border::get_safe_area_regions_for_edge(int edge) const
+    {
+        const auto r = safe_area_edges_.get().edge(edge);
+        if (r == maui::core::safe_area_regions::default_value)
+        {
+            return maui::core::safe_area_regions::none;
+        }
+        return r;
     }
 
     // C# Border.CrossPlatformMeasure: inset = Padding + StrokeThickness; LayoutExtensions.MeasureContent —
