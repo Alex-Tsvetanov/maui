@@ -272,6 +272,9 @@ namespace maui::controls
         // Defined in entry.cpp over the platform-spec store.
         [[nodiscard]] bool cursor_color_set() const override;
         [[nodiscard]] std::optional<maui::graphics::color> cursor_color() const override;
+        // The iOSSpecific Entry.AdjustsFontSizeToFitWidth face (no IsSet guard — TextExtensions.Update
+        // AdjustsFontSizeToFitWidth reads the value unconditionally; the knob's default is false).
+        [[nodiscard]] bool adjusts_font_size_to_fit_width() const override;
         // --- end platform configuration (W2-24) ---
 
     private:

@@ -48,6 +48,11 @@ namespace maui::core
                 // iOS only); the port's table is core-owned, so the key (the namespaced knob name the
                 // store raises) lives here and the per-backend body reads the i_ios_entry_specifics face.
                 {"ios.Entry.CursorColor", &entry_handler::map_cursor_color},
+                // Likewise Entry.Mapper.cs ReplaceMapping(AdjustsFontSizeToFitWidthProperty.PropertyName,
+                // MapAdjustsFontSizeToFitWidth) — iOS-only in C#; the key matches the knob name the store
+                // raises and each backend's body reads the i_ios_entry_specifics face (only iOS pushes to
+                // the field).
+                {"ios.Entry.AdjustsFontSizeToFitWidth", &entry_handler::map_adjusts_font_size_to_fit_width},
                 // C# Entry.Mapper.cs: AppendToMapping(nameof(IsFocused), InputView.MapIsFocused) — an
                 // InputView focus change arms/disarms the page's HideSoftInputOnTapped tap gesture. The
                 // funnel (view::set_is_focused) calls update_value("is_focused") which fires this.

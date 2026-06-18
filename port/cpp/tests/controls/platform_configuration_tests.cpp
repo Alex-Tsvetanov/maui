@@ -915,6 +915,24 @@ namespace
         EXPECT_EQ(platform->cursor_color, maui::graphics::colors::lime);
     }
 
+    TEST(platform_configuration_wired, entry_adjusts_font_size_to_fit_width_reaches_platform_mirror)
+    {
+        maui::controls::entry control;
+        auto handler = std::make_shared<maui::core::entry_handler>();
+        control.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+
+        // TextExtensions.UpdateAdjustsFontSizeToFitWidth pushes UNCONDITIONALLY (no IsSet guard): the
+        // initial update_properties pass already recorded the knob default (false).
+        EXPECT_FALSE(platform->adjusts_font_size_to_fit_width);
+
+        pc::ios_specific::entry::set_adjusts_font_size_to_fit_width(control, true);
+        EXPECT_TRUE(platform->adjusts_font_size_to_fit_width);
+        pc::ios_specific::entry::set_adjusts_font_size_to_fit_width(control, false);
+        EXPECT_FALSE(platform->adjusts_font_size_to_fit_width);
+    }
+
     TEST(platform_configuration_wired, navigation_bar_translucent_reaches_platform_mirror)
     {
         maui::controls::navigation_page page;

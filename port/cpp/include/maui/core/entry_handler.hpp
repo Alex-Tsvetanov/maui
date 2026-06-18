@@ -83,6 +83,11 @@ namespace maui::core
         // the knob is SET — TextExtensions.UpdateCursorColor's IsSet guard; every backend keeps this
         // mirror, the iOS twin additionally tints the UITextField). ---
         std::optional<maui::graphics::color> cursor_color;
+        // The realized iOSSpecific Entry.AdjustsFontSizeToFitWidth (BindableProperty default false).
+        // UpdateAdjustsFontSizeToFitWidth pushes UNCONDITIONALLY (no IsSet guard), so every backend
+        // records this mirror on every map run; the iOS twin additionally pushes
+        // UITextField.adjustsFontSizeToFitWidth.
+        bool adjusts_font_size_to_fit_width = false;
 
         // The last text the entry is known to hold, so an inbound edit can report the *old* value.
         std::string last_known_text;
@@ -162,5 +167,9 @@ namespace maui::core
         // --- platform configuration (W2-24): the iOSSpecific Entry.CursorColor map (the Entry.iOS.cs
         // MapCursorColor / TextExtensions.UpdateCursorColor port; reads the i_ios_entry_specifics face).
         static void map_cursor_color(entry_handler& handler, i_entry& view);
+        // The iOSSpecific Entry.AdjustsFontSizeToFitWidth map (Entry.iOS.cs MapAdjustsFontSizeToFitWidth /
+        // TextExtensions.UpdateAdjustsFontSizeToFitWidth port; reads the i_ios_entry_specifics face and
+        // pushes unconditionally — no IsSet guard).
+        static void map_adjusts_font_size_to_fit_width(entry_handler& handler, i_entry& view);
     };
 } // namespace maui::core

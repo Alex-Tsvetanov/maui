@@ -155,6 +155,13 @@ namespace maui::controls
     {
         return platform_configuration::ios_specific::entry::get_cursor_color(*this);
     }
+
+    // C# iOSSpecific.Entry.AdjustsFontSizeToFitWidth() — reads the bool knob (default false). No IsSet
+    // probe: TextExtensions.UpdateAdjustsFontSizeToFitWidth pushes the value unconditionally.
+    bool entry::adjusts_font_size_to_fit_width() const
+    {
+        return platform_configuration::ios_specific::entry::get_adjusts_font_size_to_fit_width(*this);
+    }
     // --- end platform configuration (W2-24) -----------------------------------------------------------
 } // namespace maui::controls
 

@@ -636,6 +636,21 @@ namespace maui::core
         platform->cursor_color = specifics->cursor_color();
     }
 
+    // --- platform configuration (W2-24): the iOSSpecific Entry.AdjustsFontSizeToFitWidth map — C# only
+    // maps this knob on iOS (NSTextField has no per-field "shrink font to fit width" equivalent matching
+    // UITextField.adjustsFontSizeToFitWidth), so the macOS twin keeps the cross-platform mirror only. Like
+    // TextExtensions.UpdateAdjustsFontSizeToFitWidth the record is UNCONDITIONAL (no IsSet guard).
+    void entry_handler::map_adjusts_font_size_to_fit_width(entry_handler& handler, i_entry& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        const auto* specifics = dynamic_cast<const i_ios_entry_specifics*>(&view);
+        if (platform == nullptr || specifics == nullptr)
+        {
+            return;
+        }
+        platform->adjusts_font_size_to_fit_width = specifics->adjusts_font_size_to_fit_width();
+    }
+
     maui::graphics::size entry_handler::get_desired_size(double /*width_constraint*/,
                                                          double /*height_constraint*/) const
     {

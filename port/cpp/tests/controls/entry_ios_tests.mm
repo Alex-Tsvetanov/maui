@@ -21,6 +21,7 @@
 
 #include "ios_text_ops.hpp"
 #include "maui/controls/entry.hpp"
+#include "maui/controls/platform_configuration/ios_specific/entry.hpp" // AdjustsFontSizeToFitWidth knob
 #include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/entry_handler.hpp"
 #include "maui/core/font.hpp"
@@ -591,5 +592,27 @@ namespace
         control.set_handler(nullptr);
         EXPECT_EQ(handler->platform_view(), nullptr);
         EXPECT_EQ(handler->virtual_view(), nullptr);
+    }
+
+    // TextExtensions.UpdateAdjustsFontSizeToFitWidth: the iOSSpecific Entry.AdjustsFontSizeToFitWidth knob
+    // drives UITextField.adjustsFontSizeToFitWidth. UNCONDITIONAL (no IsSet guard) — an untouched entry
+    // already reflects the knob default (false) on the field; enabling/disabling pushes the new value.
+    TEST(ios_entry_seam, adjusts_font_size_to_fit_width_maps_to_uitextfield)
+    {
+        namespace knob = maui::controls::platform_configuration::ios_specific::entry;
+        entry control;
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+
+        // Default (false) is the field's default too — the initial map pass pushed the unset knob value.
+        EXPECT_FALSE(native_field(handler).adjustsFontSizeToFitWidth);
+
+        knob::set_adjusts_font_size_to_fit_width(control, true);
+        EXPECT_TRUE(native_field(handler).adjustsFontSizeToFitWidth);
+        EXPECT_TRUE(handler->typed_platform_view()->adjusts_font_size_to_fit_width);
+
+        knob::set_adjusts_font_size_to_fit_width(control, false);
+        EXPECT_FALSE(native_field(handler).adjustsFontSizeToFitWidth);
+        EXPECT_FALSE(handler->typed_platform_view()->adjusts_font_size_to_fit_width);
     }
 } // namespace

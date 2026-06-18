@@ -212,6 +212,21 @@ namespace maui::core
         platform->cursor_color = specifics->cursor_color();
     }
 
+    // --- platform configuration (W2-24): the iOSSpecific Entry.AdjustsFontSizeToFitWidth map — headless
+    // keeps the mirror only. UNCONDITIONAL like TextExtensions.UpdateAdjustsFontSizeToFitWidth (no IsSet
+    // guard): the knob value (default false) is recorded on every map run. Crosses on the
+    // i_ios_entry_specifics face.
+    void entry_handler::map_adjusts_font_size_to_fit_width(entry_handler& handler, i_entry& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        const auto* specifics = dynamic_cast<const i_ios_entry_specifics*>(&view);
+        if (platform == nullptr || specifics == nullptr)
+        {
+            return;
+        }
+        platform->adjusts_font_size_to_fit_width = specifics->adjusts_font_size_to_fit_width();
+    }
+
     maui::graphics::size entry_handler::get_desired_size(double width_constraint, double /*height_constraint*/) const
     {
         // Headless placeholder metric (no real text layout): a single-line field ~150pt wide by default,

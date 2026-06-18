@@ -834,6 +834,24 @@ namespace maui::core
         }
     }
 
+    // --- platform configuration (W2-24): the iOSSpecific Entry.AdjustsFontSizeToFitWidth map — the
+    // DIRECT port of Controls' TextExtensions.UpdateAdjustsFontSizeToFitWidth (Entry.iOS.cs
+    // MapAdjustsFontSizeToFitWidth): UNCONDITIONAL — the knob value (default false) is pushed to
+    // UITextField.adjustsFontSizeToFitWidth on every map run, with no IsSet guard. The cross-platform
+    // mirror records the realized value for the seam tests.
+    void entry_handler::map_adjusts_font_size_to_fit_width(entry_handler& handler, i_entry& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        const auto* specifics = dynamic_cast<const i_ios_entry_specifics*>(&view);
+        if (platform == nullptr || specifics == nullptr)
+        {
+            return;
+        }
+        const bool value = specifics->adjusts_font_size_to_fit_width();
+        platform->adjusts_font_size_to_fit_width = value;
+        as_field(platform->native).adjustsFontSizeToFitWidth = value ? YES : NO;
+    }
+
     maui::graphics::size entry_handler::get_desired_size(double width_constraint, double height_constraint) const
     {
         const auto* platform = typed_platform_view();

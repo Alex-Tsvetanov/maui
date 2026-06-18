@@ -25,6 +25,12 @@ namespace maui::core
         // C# iOSSpecific.Entry.GetCursorColor — nullopt is C#'s null Color (UpdateCursorColor skips it).
         [[nodiscard]] virtual std::optional<maui::graphics::color> cursor_color() const = 0;
 
+        // C# iOSSpecific.Entry.AdjustsFontSizeToFitWidth() — the bool knob (BindableProperty default
+        // false). UpdateAdjustsFontSizeToFitWidth has NO IsSet guard (unlike cursor color): it pushes
+        // the value — false for an untouched entry — to UITextField.adjustsFontSizeToFitWidth every
+        // time the map runs, so the contract exposes only the value, no _set() probe.
+        [[nodiscard]] virtual bool adjusts_font_size_to_fit_width() const = 0;
+
     protected:
         i_ios_entry_specifics() = default;
         i_ios_entry_specifics(const i_ios_entry_specifics&) = default;
