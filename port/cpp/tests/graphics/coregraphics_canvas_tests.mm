@@ -13,12 +13,15 @@
 #include <vector>
 
 #include "coregraphics_canvas.hpp"
+#include "maui/graphics/abstract_pattern.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/font.hpp"
 #include "maui/graphics/i_canvas.hpp"
 #include "maui/graphics/i_graphics_image.hpp"
+#include "maui/graphics/image_paint.hpp"
 #include "maui/graphics/linear_gradient_paint.hpp"
 #include "maui/graphics/path_f.hpp"
+#include "maui/graphics/pattern_paint.hpp"
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/rect_f.hpp"
 #include "maui/graphics/size_f.hpp"
@@ -358,5 +361,107 @@ namespace
         canvas_.draw_image(image, 0, 0, 100, 100);
 
         EXPECT_FALSE(any_ink_in(0, 0, 100, 100)); // nothing drawn
+    }
+
+    // ---- ImagePaint fill (FillWithImage) ----
+
+    // C# SetFillPaint(ImagePaint) + FillRectangle tiles the image across the shape via a CGPattern
+    // (NoDistortion tiling). A uniform-red image sized to the fill rect tiles to a solid red fill. The
+    // pattern matrix flips Y so the bottom-up CGImage tiles upright (a missing flip would still fill, but
+    // this asserts the fill path is wired and the image color reaches the pixels).
+    TEST_F(coregraphics_canvas_pixels, image_paint_fill_tiles_the_image)
+    {
+        constexpr rgba red{.r = 255, .g = 0, .b = 0, .a = 255};
+        CGImageRef cg_image = make_two_tone_image(40, 40, red, red); // uniform red tile
+        coregraphics_image image(cg_image, 40, 40);
+        CGImageRelease(cg_image); // the wrapper retained it
+
+        maui::graphics::image_paint paint(&image);
+        canvas_.set_fill_paint(&paint, maui::graphics::rect_f{0, 0, 40, 40});
+        canvas_.fill_rectangle(0, 0, 40, 40);
+
+        // The fill rect is red.
+        const rgba inside = pixel_at(20, 20);
+        EXPECT_EQ(inside.r, 255);
+        EXPECT_EQ(inside.b, 0);
+        EXPECT_EQ(inside.a, 255);
+        // Outside the fill rect is untouched.
+        EXPECT_EQ(pixel_at(70, 70).a, 0);
+    }
+
+    // A two-tone image (red top / blue bottom) tiled into a 40x40 fill rect must land upright — red in the
+    // upper half, blue in the lower half — confirming the FillWithImage Y-flip matrix matches DrawImage.
+    TEST_F(coregraphics_canvas_pixels, image_paint_fill_is_upright)
+    {
+        constexpr rgba red{.r = 255, .g = 0, .b = 0, .a = 255};
+        constexpr rgba blue{.r = 0, .g = 0, .b = 255, .a = 255};
+        CGImageRef cg_image = make_two_tone_image(40, 40, red, blue);
+        coregraphics_image image(cg_image, 40, 40);
+        CGImageRelease(cg_image);
+
+        maui::graphics::image_paint paint(&image);
+        canvas_.set_fill_paint(&paint, maui::graphics::rect_f{0, 0, 40, 40});
+        canvas_.fill_rectangle(0, 0, 40, 40);
+
+        EXPECT_EQ(pixel_at(20, 8).r, 255); // upper half = image top = red
+        EXPECT_EQ(pixel_at(20, 8).b, 0);
+        EXPECT_EQ(pixel_at(20, 32).b, 255); // lower half = image bottom = blue
+        EXPECT_EQ(pixel_at(20, 32).r, 0);
+    }
+
+    // ---- PatternPaint fill (FillWithPattern) ----
+
+    // A pattern whose tile fills itself solid red. SetFillPaint(PatternPaint) + FillRectangle tiles it via
+    // a CGPattern (ConstantSpacing); the tile callback re-enters a nested canvas and runs the pattern's
+    // draw, so the fill rect comes out red across multiple tiles.
+    TEST_F(coregraphics_canvas_pixels, pattern_paint_fill_tiles_the_pattern)
+    {
+        class red_tile_pattern final : public maui::graphics::abstract_pattern
+        {
+        public:
+            red_tile_pattern() : abstract_pattern(20, 20, 20, 20)
+            {
+            }
+            void draw(maui::graphics::i_canvas& canvas) override
+            {
+                canvas.set_fill_color(colors::red); // pure #FF0000
+                canvas.fill_rectangle(0, 0, width(), height());
+            }
+        } pattern;
+
+        maui::graphics::pattern_paint paint;
+        paint.set_pattern(&pattern);
+        canvas_.set_fill_paint(&paint, maui::graphics::rect_f{0, 0, 60, 60});
+        canvas_.fill_rectangle(0, 0, 60, 60);
+
+        // Red ink lands across the tiled fill rect.
+        const rgba a = pixel_at(10, 10);
+        EXPECT_EQ(a.r, 255);
+        EXPECT_EQ(a.g, 0);
+        EXPECT_EQ(a.a, 255);
+        const rgba b = pixel_at(45, 45); // a second tile
+        EXPECT_EQ(b.r, 255);
+        EXPECT_EQ(b.a, 255);
+        // Outside the fill rect stays empty.
+        EXPECT_EQ(pixel_at(80, 80).a, 0);
+    }
+
+    // C# SetFillPaint clears any staged image fill when a later solid color is set (FillColor setter nulls
+    // _fillImage), so a subsequent fill is the flat color, not the image.
+    TEST_F(coregraphics_canvas_pixels, set_fill_color_clears_a_staged_image)
+    {
+        constexpr rgba red{.r = 255, .g = 0, .b = 0, .a = 255};
+        CGImageRef cg_image = make_two_tone_image(40, 40, red, red);
+        coregraphics_image image(cg_image, 40, 40);
+        CGImageRelease(cg_image);
+
+        maui::graphics::image_paint paint(&image);
+        canvas_.set_fill_paint(&paint, maui::graphics::rect_f{0, 0, 40, 40});
+
+        canvas_.set_fill_color(colors::blue); // clears the staged image
+        canvas_.fill_rectangle(0, 0, 40, 40);
+
+        EXPECT_EQ(pixel_at(20, 20).b, 255); // solid blue, no red image
+        EXPECT_EQ(pixel_at(20, 20).r, 0);
     }
 } // namespace

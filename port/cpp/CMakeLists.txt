@@ -124,6 +124,9 @@ add_library(maui_graphics STATIC
   src/graphics/gradient_paint.cpp
   src/graphics/linear_gradient_paint.cpp
   src/graphics/radial_gradient_paint.cpp
+  src/graphics/picture_pattern.cpp
+  src/graphics/paint_pattern.cpp
+  src/graphics/pattern_paint.cpp
   src/graphics/shapes/round_rectangle.cpp
   src/graphics/font.cpp
   src/graphics/canvas_state.cpp
@@ -176,6 +179,7 @@ add_executable(maui_graphics_tests
   tests/graphics/numerics_tests.cpp
   tests/graphics/round_rectangle_tests.cpp
   tests/graphics/gradient_paint_tests.cpp
+  tests/graphics/image_pattern_paint_tests.cpp
   tests/graphics/canvas_tests.cpp
   tests/graphics/attributed_text_tests.cpp
   ${MAUI_GRAPHICS_PLATFORM_TEST_SOURCES}

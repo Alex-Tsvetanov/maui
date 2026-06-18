@@ -14,9 +14,12 @@
 // fill-color/paint change, after each gradient draw, on restore_state and in the destructor).
 //
 // First-cut deviations (recorded in port/STATUS.md):
-//  - PatternPaint/ImagePaint fills are deferred — those paint kinds are not yet ported
-//    (FillWithPattern/FillWithImage land with them). DrawImage(IImage) IS ported (the drawing-layer
-//    i_graphics_image is in; its to_platform_image() returns the CGImageRef the blit needs).
+//  - PatternPaint/ImagePaint fills ARE now ported (unit U-IP): SetFillPaint detects them and the Fill*
+//    methods route through FillWithPattern (CGPattern + ConstantSpacing tiling, the tile callback
+//    re-enters a nested canvas to draw the pattern) / FillWithImage (CGPattern + NoDistortion tiling,
+//    the tile callback blits the image's CGImage). DrawImage(IImage) was already ported. This is the
+//    drawing-canvas (ICanvas Fill*) path; the view-background ImageBrush-as-Background path (the
+//    MauiCALayer equivalent) stays deferred — C# iOS faithfully throws there.
 //  - C#'s Func<CGColorSpace> getColorspace ctor knob is collapsed to DeviceRGB (the C# default).
 //  - SetShadow ports the UIKit/Catalyst branch (no MONOMAC height negation — modern MAUI does not
 //    define MONOMAC; hosts with flipped coordinates flip the CTM, not the shadow).
@@ -29,6 +32,7 @@
 #include <CoreGraphics/CoreGraphics.h>
 
 #include <functional>
+#include <memory>
 #include <string_view>
 #include <vector>
 
@@ -39,6 +43,7 @@
 #include "maui/graphics/font.hpp"
 #include "maui/graphics/horizontal_alignment.hpp"
 #include "maui/graphics/i_graphics_image.hpp"
+#include "maui/graphics/i_pattern.hpp"
 #include "maui/graphics/line_cap.hpp"
 #include "maui/graphics/line_join.hpp"
 #include "maui/graphics/matrix3x2.hpp"
@@ -173,6 +178,19 @@ namespace maui::platform::apple_shared
         void fill_with_gradient(const std::function<bool()>& add_shape);
         // C# PlatformCanvas.DrawGradient — paints and releases the staged gradient.
         void draw_gradient();
+        // C# PlatformCanvas.FillWithPattern(x, y, drawingAction) — install a CGPattern (ConstantSpacing
+        // tiling) whose tile callback re-enters fill_pattern_canvas_ and calls fill_pattern_->draw, then
+        // run the fill action under the pattern fill colorspace.
+        void fill_with_pattern(float x, float y, const std::function<void()>& drawing_action);
+        // C# PlatformCanvas.FillWithImage(x, y, drawingAction) — install a CGPattern (NoDistortion tiling)
+        // whose tile callback blits fill_image_'s CGImage, then run the fill action.
+        void fill_with_image(float x, float y, const std::function<void()>& drawing_action);
+        // C# PlatformCanvas.DrawPatternCallback — bind the nested canvas to the tile context and draw.
+        void draw_pattern_callback(CGContextRef tile_context, maui::graphics::i_pattern* fill_pattern);
+        // The CGPattern tile callbacks (C function pointers). Static members so they reach the private
+        // draw_pattern_callback / nested canvas; the per-tile payload arrives via the CGPattern `info`.
+        static void pattern_tile_callback(void* info, CGContextRef tile_context);
+        static void image_tile_callback(void* info, CGContextRef tile_context);
         void draw_string_at(std::string_view value, float x, float y);
 
         CGContextRef context_ = nullptr; // non-owning
@@ -189,5 +207,14 @@ namespace maui::platform::apple_shared
         maui::graphics::point gradient_center_{}; // radial: relative center
         double gradient_radius_ = 0;              // radial: relative radius
         float gradient_min_alpha_ = 1;            // min(StartColor.A, EndColor.A) for the shadow pre-fill
+
+        // C# _fillPattern / _fillImage — the staged pattern/image fill (non-owning; the paint's pattern
+        // or image is owned by the caller, read during the fill only). At most one of the three fill
+        // kinds (gradient / pattern / image) is active at a time, mirroring SetFillPaint.
+        maui::graphics::i_pattern* fill_pattern_ = nullptr;      // non-owning (the pattern_paint owns it)
+        maui::graphics::i_graphics_image* fill_image_ = nullptr; // non-owning (the caller owns the image)
+        // C# _fillPatternCanvas — the nested canvas the pattern tile callback draws into (lazily created,
+        // reused across tiles/fills). unique_ptr because coregraphics_canvas is non-movable + final.
+        std::unique_ptr<coregraphics_canvas> fill_pattern_canvas_;
     };
 } // namespace maui::platform::apple_shared

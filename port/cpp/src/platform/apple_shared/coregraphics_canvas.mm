@@ -25,10 +25,13 @@
 #include "maui/graphics/gradient_paint.hpp"
 #include "maui/graphics/gradient_stop.hpp"
 #include "maui/graphics/i_graphics_image.hpp"
+#include "maui/graphics/i_pattern.hpp"
+#include "maui/graphics/image_paint.hpp"
 #include "maui/graphics/linear_gradient_paint.hpp"
 #include "maui/graphics/paint.hpp"
 #include "maui/graphics/path_f.hpp"
 #include "maui/graphics/path_operation.hpp"
+#include "maui/graphics/pattern_paint.hpp"
 #include "maui/graphics/point_f.hpp"
 #include "maui/graphics/radial_gradient_paint.hpp"
 #include "maui/graphics/solid_paint.hpp"
@@ -582,10 +585,12 @@ namespace maui::platform::apple_shared
 
     void coregraphics_canvas::set_fill_color(const maui::graphics::color& value)
     {
-        // C# FillColor setter: install the color and clear any staged gradient/pattern paint.
+        // C# FillColor setter: install the color and clear any staged gradient / pattern / image fill.
         CGContextSetRGBFillColor(context_, value.red, value.green, value.blue, value.alpha);
         release_gradient();
         gradient_kind_ = staged_gradient::none;
+        fill_pattern_ = nullptr;
+        fill_image_ = nullptr;
     }
 
     void coregraphics_canvas::set_font_color(const maui::graphics::color& value)
@@ -689,13 +694,140 @@ namespace maui::platform::apple_shared
         gradient_kind_ = staged_gradient::none;
     }
 
+    namespace
+    {
+        // The info payload threaded through CGPattern's callbacks. CGPattern invokes the draw callback
+        // (immediately for bitmap/screen contexts) with this `info`; the structs are stack locals in the
+        // FillWith* methods that outlive the synchronous fill, so the release callback is a no-op.
+        struct pattern_callback_info
+        {
+            coregraphics_canvas* outer;
+            maui::graphics::i_pattern* pattern;
+        };
+
+        struct image_callback_info
+        {
+            maui::graphics::i_graphics_image* image;
+        };
+    } // namespace
+
+    // Pattern tile callback: re-enter the outer canvas's nested fill_pattern_canvas_ bound to the tile
+    // context, then call pattern->draw — mirrors C# DrawPatternCallback.
+    void coregraphics_canvas::pattern_tile_callback(void* info, CGContextRef tile_context)
+    {
+        auto* const payload = static_cast<pattern_callback_info*>(info);
+        payload->outer->draw_pattern_callback(tile_context, payload->pattern);
+    }
+
+    // Image tile callback: blit the image's CGImage into the tile rect (image logical Width x Height at
+    // the origin) — mirrors C# DrawImageCallback. The CTM flip lives in the pattern matrix, so the
+    // callback draws upright.
+    void coregraphics_canvas::image_tile_callback(void* info, CGContextRef tile_context)
+    {
+        auto* const payload = static_cast<image_callback_info*>(info);
+        auto* const cg_image = static_cast<CGImageRef>(payload->image->to_platform_image());
+        if (cg_image != nullptr)
+        {
+            const CGRect rect = CGRectMake(0, 0, payload->image->width(), payload->image->height());
+            CGContextDrawImage(tile_context, rect, cg_image);
+        }
+    }
+
+    void coregraphics_canvas::draw_pattern_callback(CGContextRef tile_context, maui::graphics::i_pattern* fill_pattern)
+    {
+        // C# DrawPatternCallback: reset the dash, (lazily) create the nested canvas, bind it to the tile
+        // context and replay the pattern's tile.
+        if (fill_pattern == nullptr)
+        {
+            return;
+        }
+        CGContextSetLineDash(tile_context, 0, nullptr, 0);
+        if (fill_pattern_canvas_ == nullptr)
+        {
+            fill_pattern_canvas_ = std::make_unique<coregraphics_canvas>();
+        }
+        fill_pattern_canvas_->set_context(tile_context);
+        fill_pattern->draw(*fill_pattern_canvas_);
+    }
+
+    void coregraphics_canvas::fill_with_pattern(float x, float y, const std::function<void()>& drawing_action)
+    {
+        // C# FillWithPattern (PlatformCanvas.cs:708-743). The pattern colorspace is base-less
+        // (CreatePattern(null)) — the pattern is colored, supplying its own colors.
+        CGContextSaveGState(context_);
+        CGContextSetPatternPhase(context_, CGSizeZero); // start the tile at the fill origin
+
+        CGColorSpaceRef colorspace = CGColorSpaceCreatePattern(nullptr);
+        CGContextSetFillColorSpace(context_, colorspace);
+
+        const CGRect pattern_rect = CGRectMake(0, 0, fill_pattern_->width(), fill_pattern_->height());
+
+        const maui::graphics::matrix3x2& m = current_state().transform();
+        const CGAffineTransform current_transform = CGAffineTransformMake(m.m11, m.m12, m.m21, m.m22, m.m31, m.m32);
+        const CGAffineTransform transform =
+            CGAffineTransformConcat(CGAffineTransformMakeTranslation(x, y), current_transform);
+
+        pattern_callback_info info{.outer = this, .pattern = fill_pattern_};
+        const CGPatternCallbacks callbacks{.version = 0, .drawPattern = &pattern_tile_callback, .releaseInfo = nullptr};
+        CGPatternRef pattern =
+            CGPatternCreate(&info, pattern_rect, transform, fill_pattern_->step_x(), fill_pattern_->step_y(),
+                            kCGPatternTilingConstantSpacing, /*isColored*/ true, &callbacks);
+
+        const std::array<CGFloat, 1> alpha{1};
+        CGContextSetFillPattern(context_, pattern, alpha.data());
+        drawing_action();
+
+        CGPatternRelease(pattern);
+        CGColorSpaceRelease(colorspace);
+        CGContextRestoreGState(context_);
+    }
+
+    void coregraphics_canvas::fill_with_image(float x, float y, const std::function<void()>& drawing_action)
+    {
+        // C# FillWithImage (PlatformCanvas.cs:745-777). The pattern colorspace wraps the base DeviceRGB
+        // (the collapsed getColorspace default); the tile matrix flips Y so the bottom-up CGImage tiles
+        // upright.
+        CGContextSaveGState(context_);
+        CGContextSetPatternPhase(context_, CGSizeZero);
+
+        CGColorSpaceRef base_colorspace = CGColorSpaceCreateDeviceRGB();
+        CGColorSpaceRef colorspace = CGColorSpaceCreatePattern(base_colorspace);
+        CGContextSetFillColorSpace(context_, colorspace);
+
+        const CGRect pattern_rect = CGRectMake(0, 0, fill_image_->width(), fill_image_->height());
+
+        const maui::graphics::matrix3x2& m = current_state().transform();
+        const CGAffineTransform current_transform = CGAffineTransformMake(m.m11, m.m12, m.m21, m.m22, m.m31, m.m32);
+        CGAffineTransform transform =
+            CGAffineTransformConcat(CGAffineTransformMakeTranslation(x, y), current_transform);
+        transform = CGAffineTransformConcat(transform, CGAffineTransformMake(1.0F, 0.0F, 0.0F, -1.0F, 0.0F, 0.0F));
+
+        image_callback_info info{.image = fill_image_};
+        const CGPatternCallbacks callbacks{.version = 0, .drawPattern = &image_tile_callback, .releaseInfo = nullptr};
+        CGPatternRef pattern =
+            CGPatternCreate(&info, pattern_rect, transform, fill_image_->width(), fill_image_->height(),
+                            kCGPatternTilingNoDistortion, /*isColored*/ true, &callbacks);
+
+        const std::array<CGFloat, 1> alpha{1};
+        CGContextSetFillPattern(context_, pattern, alpha.data());
+        drawing_action();
+
+        CGPatternRelease(pattern);
+        CGColorSpaceRelease(colorspace);
+        CGColorSpaceRelease(base_colorspace);
+        CGContextRestoreGState(context_);
+    }
+
     void coregraphics_canvas::set_fill_paint(const maui::graphics::paint* fill_paint,
                                              const maui::graphics::rect_f& rectangle)
     {
         gradient_rectangle_ = rectangle;
 
+        // C# SetFillPaint clears the staged gradient + _fillPattern + _fillImage up front.
         release_gradient();
         gradient_kind_ = staged_gradient::none;
+        fill_pattern_ = nullptr;
+        fill_image_ = nullptr;
 
         // C# SetFillPaint(null) -> Colors.White.AsPaint() (a solid white fill).
         if (fill_paint == nullptr)
@@ -757,8 +889,21 @@ namespace maui::platform::apple_shared
             return;
         }
 
-        // C#'s final else: FillColor = paint.BackgroundColor (PatternPaint/ImagePaint are
-        // documented-deferred — see the header note).
+        // C# `else if (paint is PatternPaint patternPaint) _fillPattern = patternPaint.Pattern;`.
+        if (const auto* const pattern = dynamic_cast<const maui::graphics::pattern_paint*>(fill_paint))
+        {
+            fill_pattern_ = pattern->pattern();
+            return;
+        }
+
+        // C# `else if (paint is ImagePaint imagePaint) _fillImage = imagePaint.Image;`.
+        if (const auto* const image = dynamic_cast<const maui::graphics::image_paint*>(fill_paint))
+        {
+            fill_image_ = image->image();
+            return;
+        }
+
+        // C#'s final else: FillColor = paint.BackgroundColor (an unrecognized paint kind).
         set_fill_color(fill_paint->background_color());
     }
 
@@ -889,18 +1034,30 @@ namespace maui::platform::apple_shared
 
         if (width == height)
         {
+            const auto add_arc = [&] {
+                CGContextAddArc(context_, CGRectGetMidX(rect), CGRectGetMidY(rect), rect.size.width / 2,
+                                start_angle_in_radians, end_angle_in_radians, static_cast<int>(!clockwise));
+            };
             if (gradient_kind_ != staged_gradient::none)
             {
                 fill_with_gradient([&] {
-                    CGContextAddArc(context_, CGRectGetMidX(rect), CGRectGetMidY(rect), rect.size.width / 2,
-                                    start_angle_in_radians, end_angle_in_radians, static_cast<int>(!clockwise));
+                    add_arc();
                     return true;
                 });
             }
+            else if (fill_pattern_ != nullptr)
+            {
+                add_arc();
+                fill_with_pattern(x, y, [&] { CGContextFillPath(context_); });
+            }
+            else if (fill_image_ != nullptr)
+            {
+                add_arc();
+                fill_with_image(x, y, [&] { CGContextFillPath(context_); });
+            }
             else
             {
-                CGContextAddArc(context_, CGRectGetMidX(rect), CGRectGetMidY(rect), rect.size.width / 2,
-                                start_angle_in_radians, end_angle_in_radians, static_cast<int>(!clockwise));
+                add_arc();
                 CGContextFillPath(context_);
             }
         }
@@ -921,6 +1078,16 @@ namespace maui::platform::apple_shared
                     CGContextAddPath(context_, path);
                     return true;
                 });
+            }
+            else if (fill_pattern_ != nullptr)
+            {
+                CGContextAddPath(context_, path);
+                fill_with_pattern(x, y, [&] { CGContextFillPath(context_); });
+            }
+            else if (fill_image_ != nullptr)
+            {
+                CGContextAddPath(context_, path);
+                fill_with_image(x, y, [&] { CGContextFillPath(context_); });
             }
             else
             {
@@ -956,6 +1123,14 @@ namespace maui::platform::apple_shared
                 return true;
             });
         }
+        else if (fill_pattern_ != nullptr)
+        {
+            fill_with_pattern(x, y, [&] { CGContextFillRect(context_, rect); });
+        }
+        else if (fill_image_ != nullptr)
+        {
+            fill_with_image(x, y, [&] { CGContextFillRect(context_, rect); });
+        }
         else
         {
             CGContextFillRect(context_, rect);
@@ -983,6 +1158,16 @@ namespace maui::platform::apple_shared
                 return true;
             });
         }
+        else if (fill_pattern_ != nullptr)
+        {
+            add_rounded_rectangle(context_, x, y, width, height, radius);
+            fill_with_pattern(x, y, [&] { CGContextFillPath(context_); });
+        }
+        else if (fill_image_ != nullptr)
+        {
+            add_rounded_rectangle(context_, x, y, width, height, radius);
+            fill_with_image(x, y, [&] { CGContextFillPath(context_); });
+        }
         else
         {
             add_rounded_rectangle(context_, x, y, width, height, radius);
@@ -1005,6 +1190,14 @@ namespace maui::platform::apple_shared
                 CGContextAddEllipseInRect(context_, rect);
                 return true;
             });
+        }
+        else if (fill_pattern_ != nullptr)
+        {
+            fill_with_pattern(x, y, [&] { CGContextFillEllipseInRect(context_, rect); });
+        }
+        else if (fill_image_ != nullptr)
+        {
+            fill_with_image(x, y, [&] { CGContextFillEllipseInRect(context_, rect); });
         }
         else
         {
@@ -1098,12 +1291,13 @@ namespace maui::platform::apple_shared
     void coregraphics_canvas::fill_path(const maui::graphics::path_f& path, maui::graphics::winding_mode winding)
     {
         CGPathRef platform_path = path_to_cg_path(path);
+        const bool even_odd = winding == maui::graphics::winding_mode::even_odd;
 
         if (gradient_kind_ != staged_gradient::none)
         {
             fill_with_gradient([&] {
                 CGContextAddPath(context_, platform_path);
-                if (winding == maui::graphics::winding_mode::even_odd)
+                if (even_odd)
                 {
                     CGContextEOClip(context_);
                     return false;
@@ -1111,10 +1305,36 @@ namespace maui::platform::apple_shared
                 return true;
             });
         }
+        else if (fill_pattern_ != nullptr || fill_image_ != nullptr)
+        {
+            // C# uses the path's bounding-box origin as the pattern/image phase, not (0, 0).
+            const CGRect bounding_box = CGPathGetBoundingBox(platform_path);
+            const auto origin_x = static_cast<float>(bounding_box.origin.x);
+            const auto origin_y = static_cast<float>(bounding_box.origin.y);
+            const auto fill_action = [&] {
+                if (even_odd)
+                {
+                    CGContextEOFillPath(context_);
+                }
+                else
+                {
+                    CGContextFillPath(context_);
+                }
+            };
+            CGContextAddPath(context_, platform_path);
+            if (fill_pattern_ != nullptr)
+            {
+                fill_with_pattern(origin_x, origin_y, fill_action);
+            }
+            else
+            {
+                fill_with_image(origin_x, origin_y, fill_action);
+            }
+        }
         else
         {
             CGContextAddPath(context_, platform_path);
-            if (winding == maui::graphics::winding_mode::even_odd)
+            if (even_odd)
             {
                 CGContextEOFillPath(context_);
             }
@@ -1307,6 +1527,8 @@ namespace maui::platform::apple_shared
 
         release_gradient();
         gradient_kind_ = staged_gradient::none;
+        fill_pattern_ = nullptr;
+        fill_image_ = nullptr;
         CGContextRestoreGState(context_);
 
         return success;
@@ -1318,6 +1540,8 @@ namespace maui::platform::apple_shared
 
         release_gradient();
         gradient_kind_ = staged_gradient::none;
+        fill_pattern_ = nullptr;
+        fill_image_ = nullptr;
 
         font_color_ = maui::graphics::colors::black;
     }
