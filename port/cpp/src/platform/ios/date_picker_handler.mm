@@ -33,6 +33,7 @@
 #include "ios_conversions.hpp"
 #include "ios_done_accessory.hpp"
 #include "ios_text_ops.hpp"
+#include "ios_visual_ops.hpp"
 #include "maui/core/date_picker_handler.hpp"
 #include "maui/core/date_time.hpp"
 #include "maui/core/i_date_picker.hpp"
@@ -41,6 +42,7 @@
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+#include "maui/graphics/solid_paint.hpp"
 
 // Obj-C trampoline for the Done accessory tap — MauiDatePicker's DoneClicked feeding
 // DatePickerHandler.OnDoneClicked → SetVirtualViewDate.
@@ -194,6 +196,28 @@ namespace maui::core
         const std::string id(value);
         NSString* const raw = [NSString stringWithUTF8String:id.c_str()];
         as_field(native).accessibilityIdentifier = raw != nil ? raw : @"";
+    }
+
+    void date_picker_platform::update_background(const maui::graphics::paint* value)
+    {
+        // The MauiDatePicker is a RoundedRect UITextField. A solid BackgroundColor must go to the UIView
+        // backgroundColor PROPERTY (not the backing layer): the rounded-rect bezel is drawn over a layer
+        // fill (so it peeks only at the corners), whereas the view property suppresses the bezel and fills
+        // the field flat — matching MAUI's solid DatePicker fill. Gradient/image paints use the shared
+        // layer machinery; a null paint clears the override back to the system default.
+        UITextField* const field = as_field(native);
+        if (const auto* const solid = dynamic_cast<const maui::graphics::solid_paint*>(value))
+        {
+            field.backgroundColor = maui::platform::ios::to_ui_color(solid->color());
+        }
+        else if (value != nullptr)
+        {
+            maui::platform::ios::apply_background(native, value);
+        }
+        else
+        {
+            field.backgroundColor = nil;
+        }
     }
 
     std::unique_ptr<date_picker_platform> date_picker_handler::create_platform_view()

@@ -80,6 +80,10 @@ namespace maui::core
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
+        // BackgroundColor IS pushed to the MauiDatePicker (a RoundedRect UITextField): a solid fill goes to
+        // the UIView backgroundColor property (flat fill, bezel suppressed, like MAUI); gradient/image use
+        // the shared backing-layer helper. Mirrors the picker handler's update_background.
+        void update_background(const maui::graphics::paint* value) override;
 #endif
     };
 

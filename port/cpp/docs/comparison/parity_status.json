@@ -245,9 +245,9 @@
   },
   "date_picker": {
     "dark": "diff",
-    "dark_note": "Same as light: C++ shows bordered boxes + \"6/19/2026\" format + missing colored Background fills (MAUI shows the solid/gradient fills), and the C++ shot is rendered at a much larger zoom/scale so controls span nearly full width.",
+    "dark_note": "IMPROVED: solid BackgroundColor=Blue now renders flat blue matching MAUI dark; text colors fine (white default, red explicit). Residuals: 2 gradient Background fills still missing (gradient-layer-resize hook needed); invariant US date format (deliberate deviation w/ tests) vs MAUI device-locale; vertical rhythm.",
     "light": "diff",
-    "light_note": "C++ wraps every DatePicker in a visible rounded-rect bordered box (MAUI is borderless), uses M/d/yyyy \"6/19/2026\" vs MAUI's dd.MM.yyyy \"19.06.2026\", and renders NO background fills for the BackgroundColor/Background/gradient rows (MAUI shows solid-blue, yellow-green, and blue gradient fills)."
+    "light_note": "IMPROVED: solid BackgroundColor=Blue now renders as a flat blue fill matching MAUI (added iOS update_background -> UITextField backgroundColor property, like the picker). Residuals: the two gradient Background rows still show no fill (the CAGradientLayer is sized to layer.bounds=0 at apply-time and needs a layoutSubviews resize hook \u2014 affects all UITextField-based controls); date text is invariant US M/d/yyyy (a DELIBERATE port deviation with iOS test coverage) vs MAUI device-locale dd.MM.yyyy; C++ more compact vertical rhythm."
   },
   "device": {
     "dark": "blank",
