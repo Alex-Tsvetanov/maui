@@ -57,6 +57,7 @@
 #include "maui/controls/tabbed_page.hpp"
 #include "maui/controls/table_view.hpp"
 #include "maui/controls/table_view_handler.hpp"
+#include "maui/controls/templates/content_presenter.hpp"
 #include "maui/controls/time_picker.hpp"
 #include "maui/controls/toggle_switch.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
@@ -136,6 +137,10 @@ namespace maui::hosting
         handlers.add_handler<maui::controls::border, maui::core::border_handler>();
         handlers.add_handler<maui::controls::frame, maui::core::border_handler>();
         handlers.add_handler<maui::controls::content_view, maui::core::content_page_handler>();
+        // content_presenter (a ControlTemplate's content placeholder) is an IContentView host too, so it
+        // resolves the SAME content_page_handler — this is what mounts a templated control's packed
+        // developer content as a native subview (mirrors its MAUI_REGISTER_HANDLER pair).
+        handlers.add_handler<maui::controls::content_presenter, maui::core::content_page_handler>();
 
         // --- pages / nav ---
         handlers.add_handler<maui::controls::content_page, maui::core::content_page_handler>();

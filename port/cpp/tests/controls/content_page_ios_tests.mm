@@ -16,6 +16,7 @@
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/entry.hpp"
 #include "maui/controls/platform_configuration/ios_specific/page.hpp" // U20: use_safe_area legacy fallback
+#include "maui/controls/templates/content_presenter.hpp"
 #include "maui/core/button_handler.hpp"
 #include "maui/core/content_page_handler.hpp"
 #include "maui/core/entry_handler.hpp"
@@ -129,6 +130,39 @@ namespace
         EXPECT_EQ(frame.origin.y, 10.0);
         EXPECT_EQ(frame.size.width, 200.0);
         EXPECT_EQ(frame.size.height, 120.0);
+    }
+
+    // A content_presenter resolves the SAME content_page_handler and hosts its packed content as a native
+    // subview (the ControlTemplate-presenter path the templated_view gallery page exercises). Critically,
+    // when the presenter is at a NON-ZERO arrange origin (a deeply-nested template scope), the content is
+    // framed HOST-RELATIVE (origin ~0 inside the presenter's host), NOT at the absolute page position —
+    // the double-offset that pushed templated card bodies off-screen before the content_presenter::arrange
+    // fix. Mirrors the content_page seam tests; the content here is a button (it owns a real UIButton).
+    TEST(ios_content_presenter_seam, hosts_and_frames_packed_content_host_relative)
+    {
+        maui::controls::content_presenter presenter;
+        auto handler = std::make_shared<content_page_handler>();
+        presenter.set_handler(handler);
+
+        auto child = std::make_shared<button>();
+        auto child_handler = std::make_shared<button_handler>();
+        child->set_handler(child_handler);
+        UIView* const child_native = (__bridge UIView*)child_handler->native_view();
+        ASSERT_NE(child_native, nil);
+
+        presenter.set_content(child); // -> invoke("set_content") -> the child becomes a host subview
+        EXPECT_EQ(native_host(handler).subviews.count, 1U);
+        EXPECT_EQ(child_native.superview, native_host(handler));
+
+        presenter.arrange(maui::graphics::rect(40, 80, 200, 50)); // a nested, non-zero-origin frame
+        // The host takes the absolute frame...
+        EXPECT_EQ(native_host(handler).frame.origin.x, 40.0);
+        EXPECT_EQ(native_host(handler).frame.origin.y, 80.0);
+        // ...but the content is arranged host-relative (no padding -> ~origin), never re-offset to (40,80).
+        EXPECT_LT(child_native.frame.origin.x, 1.0);
+        EXPECT_LT(child_native.frame.origin.y, 1.0);
+        EXPECT_EQ(child_native.frame.size.width, 200.0);
+        EXPECT_EQ(child_native.frame.size.height, 50.0);
     }
 
     // U20: setting SafeAreaEdges changes ISafeAreaView2.GetSafeAreaRegionsForEdge results without error,

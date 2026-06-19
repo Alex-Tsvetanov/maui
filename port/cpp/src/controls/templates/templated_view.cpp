@@ -95,9 +95,15 @@ namespace maui::controls
         }
         if (auto* presented = content())
         {
+            // The presented content is hosted as a SUBVIEW of the content host (ContentViewHandler.
+            // UpdateContent), which platform_arrange framed at `bounds`. A native subview's frame is
+            // expressed in its superview's (the host's) coordinate space, whose origin is (0,0) — so the
+            // content is arranged HOST-RELATIVE: the padding inset from the host's top-left, with
+            // `bounds.x/bounds.y` dropped. Carrying the absolute page origin here would double-offset the
+            // content (host frame origin + the same origin again). See border::arrange for the full
+            // rationale — these two single-content hosts stay consistent.
             const maui::core::thickness inset = padding();
-            presented->arrange({bounds.x + inset.left, bounds.y + inset.top,
-                                bounds.width - inset.horizontal_thickness(),
+            presented->arrange({inset.left, inset.top, bounds.width - inset.horizontal_thickness(),
                                 bounds.height - inset.vertical_thickness()});
         }
         return {bounds.width, bounds.height};

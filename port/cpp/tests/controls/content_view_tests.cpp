@@ -19,6 +19,7 @@
 #include <memory>
 #include <string>
 
+#include "maui/controls/horizontal_stack_layout.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/content_presenter.hpp"
 #include "maui/controls/templates/control_template.hpp"
@@ -216,6 +217,83 @@ namespace
         view.set_binding_context(context);
 
         EXPECT_EQ(child->binding_context<std::string>(), context);
+    }
+
+    // A template whose ContentPresenter is nested TWO layouts deep (root hstack -> column vstack ->
+    // presenter), mirroring the templated_view gallery page's CardViewCompressed template. Catches the
+    // depth-2 regression the depth-1 simple_template can't (the presenter pull + measure/arrange must
+    // recurse through the intervening layout, not just a direct template-root child).
+    class nested_template : public maui::controls::horizontal_stack_layout
+    {
+    public:
+        nested_template()
+        {
+            icon_ = std::make_shared<mock_view>();
+            icon_->configure({100, 100});
+            heading_ = std::make_shared<mock_view>();
+            heading_->configure({80, 20});
+            presenter_ = std::make_shared<content_presenter>();
+            column_.add(*heading_);
+            column_.add(*presenter_);
+            add(*icon_);
+            add(column_);
+        }
+
+        [[nodiscard]] content_presenter* presenter() const
+        {
+            return presenter_.get();
+        }
+
+    private:
+        std::shared_ptr<mock_view> icon_;
+        std::shared_ptr<mock_view> heading_;
+        maui::controls::vertical_stack_layout column_;
+        std::shared_ptr<content_presenter> presenter_;
+    };
+
+    TEST(content_view, nested_presenter_packs_the_content) // depth-2 analog of PacksContent
+    {
+        content_view view;
+        auto body = std::make_shared<mock_view>();
+        body->configure({120, 40});
+
+        view.set_control_template(control_template::of<nested_template>());
+        view.set_content(body);
+
+        auto* root = dynamic_cast<nested_template*>(view.internal_children()[0].get());
+        ASSERT_NE(root, nullptr);
+        // The deeply-nested presenter still resolves the templated parent and packs the developer
+        // content (find_templated_parent walks past the intervening column + hstack to the card).
+        EXPECT_EQ(root->presenter()->content_element(), body.get());
+    }
+
+    TEST(content_view, nested_presenter_content_contributes_to_measure_and_arrange)
+    {
+        content_view view;
+        auto body = std::make_shared<mock_view>();
+        body->configure({120, 40});
+
+        view.set_control_template(control_template::of<nested_template>());
+        view.set_content(body);
+
+        auto* root = dynamic_cast<nested_template*>(view.internal_children()[0].get());
+        ASSERT_NE(root, nullptr);
+
+        // The card measures through the template root: the column (heading 20 + spacing? + body 40) sits
+        // beside the 100-tall icon, so the row is at least the 100-tall icon high and the body was
+        // measured (its content is reachable through the presenter).
+        const size measured = view.measure(1000, 1000);
+        EXPECT_GE(measured.height, 100.0);
+        EXPECT_GT(body->measure_count, 0) << "the nested presenter must measure its packed content";
+
+        view.arrange(rect(0, 0, measured.width, measured.height));
+        // The body is hosted as a SUBVIEW of the presenter's native host, so it must be arranged
+        // HOST-RELATIVE (a small offset from the presenter's origin), NOT at the body's absolute page
+        // position — otherwise it double-offsets off-screen (the content_presenter::arrange fix).
+        EXPECT_LT(body->last_arrange.x, 50.0)
+            << "nested presenter content must arrange host-relative, not at its absolute page x";
+        EXPECT_LT(body->last_arrange.y, 50.0)
+            << "nested presenter content must arrange host-relative, not at its absolute page y";
     }
 
     // ---- the handler seam: the same content_page_handler hosts PresentedContent ----

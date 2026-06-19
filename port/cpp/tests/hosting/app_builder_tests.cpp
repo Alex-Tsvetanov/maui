@@ -18,8 +18,10 @@
 #include "maui/controls/application.hpp"
 #include "maui/controls/button.hpp"
 #include "maui/controls/label.hpp"
+#include "maui/controls/templates/content_presenter.hpp"
 #include "maui/controls/window.hpp"
 #include "maui/core/button_handler.hpp"
+#include "maui/core/content_page_handler.hpp"
 #include "maui/core/dispatcher.hpp"
 #include "maui/core/i_application.hpp"
 #include "maui/core/i_element.hpp"
@@ -102,6 +104,18 @@ namespace
         EXPECT_TRUE(app->handlers().is_registered(type_tag::of<maui::controls::label>()));
         EXPECT_TRUE(app->handlers().is_registered(type_tag::of<maui::controls::window>()));
         EXPECT_NE(app->handlers().create_handler<maui::controls::button>(), nullptr);
+    }
+
+    // Regression: a ControlTemplate's content_presenter must resolve through the builder-seeded table
+    // (add_maui_controls_handlers), not just the global MAUI_REGISTER_HANDLER registrars — otherwise a
+    // hosting-booted app (the gallery) can't host a templated control's packed content (the presenter
+    // gets no handler, no native view). content_presenter is an IContentView host → content_page_handler.
+    TEST(app_builder, seeds_the_content_presenter_handler)
+    {
+        const auto app = maui::hosting::maui_app::create_builder().build();
+        ASSERT_TRUE(app->handlers().is_registered(type_tag::of<maui::controls::content_presenter>()));
+        const auto handler = app->handlers().create_handler<maui::controls::content_presenter>();
+        EXPECT_NE(dynamic_cast<maui::core::content_page_handler*>(handler.get()), nullptr);
     }
 
     TEST(app_builder, configure_handlers_add_handler_replaces_a_default)

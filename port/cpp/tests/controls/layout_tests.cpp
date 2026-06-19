@@ -119,6 +119,38 @@ namespace
         EXPECT_EQ(second.last_arrange, rect(0, 100, 100, 100));
     }
 
+    // Regression (nested-layout overlap): a layout nested inside another layout sits at a non-zero offset
+    // within its parent (here the inner stack lands at y=40, below the header). Its OWN children must be
+    // arranged relative to the inner panel's 0-origin — NOT at the inner stack's absolute parent coords.
+    // Before the host-relative arrange convention reached the layout managers, arrange_children received the
+    // inner stack's absolute frame and re-added its origin, double-offsetting the inner children (box0 would
+    // land at y=40 instead of y=0), so later siblings overlapped the nested section. The outer stack arranges
+    // at origin (0,0), so its own direct children are unaffected — the bug only surfaces one level down.
+    TEST(layout_control, nested_layout_arranges_inner_children_host_relative)
+    {
+        vertical_stack_layout outer;
+        mock_view header;
+        header.configure({100, 40});
+        vertical_stack_layout inner;
+        mock_view box0;
+        mock_view box1;
+        box0.configure({100, 30});
+        box1.configure({100, 30});
+        inner.add(box0);
+        inner.add(box1);
+        outer.add(header);
+        outer.add(inner);
+
+        const size measured = outer.measure(100, 1000);
+        outer.arrange(rect(0, 0, measured.width, measured.height));
+
+        // The inner stack itself is positioned below the header, relative to the outer panel.
+        EXPECT_EQ(inner.frame(), rect(0, 40, 100, 60));
+        // Its children are arranged HOST-RELATIVE to the inner panel (0-origin) — NOT shifted by inner's y=40.
+        EXPECT_EQ(box0.last_arrange, rect(0, 0, 100, 30));
+        EXPECT_EQ(box1.last_arrange, rect(0, 30, 100, 30));
+    }
+
     TEST(layout_control, measure_accounts_for_padding)
     {
         vertical_stack_layout stack;

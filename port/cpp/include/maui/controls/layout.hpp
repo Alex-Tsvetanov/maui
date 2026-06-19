@@ -157,7 +157,20 @@ namespace maui::controls
             {
                 view_handler->platform_arrange(this->frame_); // size/position the host panel to the frame
             }
-            return ensure_manager().arrange_children(this->frame_); // position the children within the frame
+            // Position the children WITHIN the native host panel, whose origin is (0,0) in its own
+            // coordinate space — the host was framed at `frame_` (relative to the PARENT host) by
+            // platform_arrange above, and a native subview's frame is expressed relative to its superview's
+            // 0-origin bounds. So the children are arranged HOST-RELATIVE: `frame_`'s absolute origin is
+            // dropped, exactly mirroring C#'s native LayoutSubviews, which hands the layout manager its own
+            // 0-origin Bounds. Carrying `frame_`'s origin into arrange_children would double-offset every
+            // child (host frame origin + the same origin re-added by the manager's `bounds.Left/Top` term),
+            // which is the nested-layout overlap bug: a layout sitting at a non-zero offset inside another
+            // layout pushed its children down/right by that offset. Mirrors the single-content sibling hosts
+            // border::arrange / templated_view::arrange (which likewise arrange their content host-relative).
+            // (cross_platform_arrange below keeps the raw bounds — the native-driven path passes the host's
+            // own already-0-origin bounds, so it must not be flattened.)
+            const maui::graphics::rect host_relative{0, 0, this->frame_.width, this->frame_.height};
+            return ensure_manager().arrange_children(host_relative); // position the children within the host
         }
 
         // ---- i_cross_platform_layout (Layout.CrossPlatformMeasure / CrossPlatformArrange) ----

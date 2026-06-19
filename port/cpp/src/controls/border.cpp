@@ -141,6 +141,17 @@ namespace maui::controls
     // C# Border.CrossPlatformArrange: inset the bounds by StrokeThickness (Rect.Inset), then
     // ArrangeContent applies the Padding within it. The handler is framed first so the native host (and
     // its bounds-dependent stroke layer) is sized before the content lands (the content_page order).
+    //
+    // The content is hosted as a SUBVIEW of the border host (BorderHandler.UpdateContent), and that host
+    // is framed at `bounds` by platform_arrange above. A native subview's frame is expressed in its
+    // superview's coordinate space — which, for the host, starts at the host's own origin (0,0), not the
+    // page origin. So the content is arranged HOST-RELATIVE: the stroke+padding inset measured from the
+    // host's top-left, with `bounds.x/bounds.y` dropped. Carrying the absolute page origin here would
+    // double-offset the content (host frame origin + the same origin again) and push it outside the host's
+    // shape-clip mask — invisible on iOS/AppKit. (In C# the native LayoutSubviews passes each container its
+    // own 0-origin Bounds, so the absolute origin never enters the child rect; the port drives arrange
+    // top-down with absolute coordinates, so the container subtracts its origin instead.) Mirrors
+    // templated_view::arrange (content_view), the sibling single-content host.
     maui::graphics::size border::arrange(const maui::graphics::rect& bounds)
     {
         frame_ = bounds;
@@ -152,7 +163,7 @@ namespace maui::controls
         {
             const double stroke_inset = stroke_thickness();
             const maui::core::thickness pad = padding();
-            const maui::graphics::rect target{bounds.x + stroke_inset + pad.left, bounds.y + stroke_inset + pad.top,
+            const maui::graphics::rect target{stroke_inset + pad.left, stroke_inset + pad.top,
                                               bounds.width - (2 * stroke_inset) - pad.horizontal_thickness(),
                                               bounds.height - (2 * stroke_inset) - pad.vertical_thickness()};
             content_->arrange(target);

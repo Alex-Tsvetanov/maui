@@ -11,7 +11,10 @@
 #include "maui/controls/templates/template_binding.hpp"
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/bindable_property.hpp"
+#include "maui/core/content_page_handler.hpp"
 #include "maui/core/event.hpp"
+#include "maui/core/handler_registry.hpp"
+#include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/thickness.hpp"
@@ -61,6 +64,15 @@ namespace maui::controls
         {
             attach_logical_child(*content_);
         }
+        // Tell the handler to re-host the (changed) presented content. C# ContentPresenter is a
+        // Compatibility.Layout whose ContentViewHandler hosts IContentView.PresentedContent (the
+        // packed developer content) as a native subview; the port routes that re-host through the
+        // same "set_content" command its sibling content hosts use (content_view / content_page). A
+        // no-op when no handler is attached yet (the connect-time "content" property map then hosts).
+        if (const auto& element_handler = handler())
+        {
+            element_handler->invoke("set_content");
+        }
     }
 
     maui::graphics::size content_presenter::measure(double width_constraint, double height_constraint)
@@ -87,11 +99,24 @@ namespace maui::controls
         }
         if (auto* presented = content())
         {
+            // The presented content is hosted as a SUBVIEW of the presenter's native host (which
+            // platform_arrange framed at `bounds`). A subview's frame is expressed in its superview's
+            // coordinate space, whose origin is (0,0) — so the content is arranged HOST-RELATIVE: the
+            // padding inset from the host's top-left, with `bounds.x/bounds.y` dropped. Carrying the
+            // absolute origin here would double-offset the content (host frame origin + the same origin
+            // again), pushing a deeply-nested presenter's content off-screen. See templated_view::arrange
+            // / border::arrange — these single-content hosts share the convention.
             const maui::core::thickness inset = padding();
-            presented->arrange({bounds.x + inset.left, bounds.y + inset.top,
-                                bounds.width - inset.horizontal_thickness(),
+            presented->arrange({inset.left, inset.top, bounds.width - inset.horizontal_thickness(),
                                 bounds.height - inset.vertical_thickness()});
         }
         return {bounds.width, bounds.height};
     }
 } // namespace maui::controls
+
+// Self-register the default handler for content_presenter (opt-in, PROFILE §6). C# ContentPresenter
+// (a Compatibility.Layout implementing IContentView) renders its single PresentedContent the same way
+// ContentView does, so the port hosts it through the SAME content_page_handler (the ContentViewHandler
+// port) its i_content_view siblings use — this is what lets a ControlTemplate's presenter actually
+// mount the packed developer content as a native subview.
+MAUI_REGISTER_HANDLER(maui::controls::content_presenter, maui::core::content_page_handler)
