@@ -16,13 +16,11 @@
 //     carrying the same text; the StaticResource Headline style is a markup-era resource (XAML, layer 6,
 //     deferred), so it is reproduced as the label text only (best-effort — see note).
 //
-// note: the ONLY thing distinguishing the four sections in the XAML is HorizontalOptions
-//       (Start/Center/End/Fill) on both the headline Label and the Border. The M2 view surface hardcodes
-//       horizontal_layout_alignment()/vertical_layout_alignment() to Fill and exposes NO HorizontalOptions
-//       setter yet (deferred to the layout-options milestone), so all four bordered sections render
-//       identically here — the page faithfully reproduces the four bordered controls + their labels, and
-//       the alignment differentiation is best-effort pending the options surface. Each section label is
-//       suffixed with its intended alignment so the demo still reads as the four-way showcase.
+// note: each section sets View.HorizontalOptions (Start/Center/End/Fill) via
+//       set_horizontal_layout_alignment — now settable + honored at view::arrange. The headline
+//       labels visibly align; the bordered cells fill the width because a Border sizes to its
+//       content and the blue grid fills (faithful content-sizing). The Headline StaticResource
+//       style is markup-era (deferred) — reproduced as the label text.
 //
 // HEADLESS-SAFE maui:: API only; the page owns its whole element tree and re-hosts it bottom-up via the
 // shared gallery_attach helpers (each Border is a single-content host → gallery_rehost_content).
@@ -34,6 +32,7 @@
 #include "maui/controls/grid.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
@@ -73,6 +72,15 @@ namespace maui::samples
 
                 sec.cell.add(sec.caption);
                 sec.bordered.set_content(sec.cell);
+
+                // The XAML's per-section HorizontalOptions (Start / Center / End / Fill) — the alignment IS
+                // the whole point of this page. Now settable on the view surface, so the four bordered
+                // sections actually align differently within the stack's width (was hardcoded Fill before).
+                static constexpr std::array<maui::core::layout_alignment, kSectionCount> kAligns{
+                    maui::core::layout_alignment::start, maui::core::layout_alignment::center,
+                    maui::core::layout_alignment::end, maui::core::layout_alignment::fill};
+                sec.headline.set_horizontal_layout_alignment(kAligns[i]);
+                sec.bordered.set_horizontal_layout_alignment(kAligns[i]);
 
                 stack_.add(sec.headline);
                 stack_.add(sec.bordered);
