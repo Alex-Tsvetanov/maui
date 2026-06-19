@@ -24,8 +24,12 @@
 //     command (C# wires the event to the handler in ConnectHandler; the port collapses that
 //     subscription into the command seam — the scroll_view RequestScrollTo precedent). DismissScroll
 //     (no handler or no ItemsSource → no-op) is preserved.
-//   - The OnMeasure screen-clamp lives in the handler's get_desired_size (the port's measure seam);
-//     the C# 40x40 minimum SizeRequest has no port analog (documented).
+//   - Measure: the modern seam (IView.Measure → MeasureOverride → ComputeDesiredSize →
+//     handler.GetDesiredSize) reports the collection's CONTENT size (the native SizeThatFits /
+//     Controller.GetSize), so the handler's get_desired_size returns the flat layout model's content
+//     extent clamped to the constraint — NOT the obsolete ItemsView.OnMeasure scaled-screen clamp
+//     (dead on this path) and NOT the C# 40x40 minimum SizeRequest (no port analog). This is what lets
+//     an embedded CollectionView stack non-overlapping inside a vertical_stack_layout.
 
 #include <memory>
 #include <utility>

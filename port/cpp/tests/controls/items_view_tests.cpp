@@ -105,28 +105,45 @@ namespace
     };
 
     // ---- ItemsViewTests.cs ----
+    //
+    // DEVIATION from C# ItemsViewTests.VerticalListMeasurement / HorizontalListMeasurement: those C#
+    // tests call the OBSOLETE 3-arg VisualElement.Measure(w, h, MeasureFlags.None) overload, which
+    // routes to the legacy ItemsView.OnMeasure (the scaled-screen clamp → 960x540 here). That obsolete
+    // path is DEAD on the modern measure seam every layout actually uses: IView.Measure(w, h) →
+    // MeasureOverride → ComputeDesiredSize → handler.GetDesiredSize, which on iOS reports the native
+    // UICollectionView's CONTENT size (Controller.GetSize), NOT the screen. The C++ port has a single
+    // measure seam — view::measure → handler.get_desired_size — and it IS the modern one (it is what the
+    // stack/grid layout managers call). So the port's measure contract is the content-size one; reporting
+    // the screen here is what produced the embedded-CollectionView overlap bug (a CV claiming the whole
+    // viewport instead of its content height). These tests therefore assert the content-size contract,
+    // not the obsolete OnMeasure screen clamp. (The 960x540 screen mock is left in place to prove the
+    // measure no longer leaks the screen size into the modern path.)
 
-    TEST_F(items_view_test, vertical_list_measurement)
+    TEST_F(items_view_test, vertical_list_measurement_reports_content_not_the_screen)
     {
         structured_items_view view;
         view.set_handler(std::make_shared<collection_view_handler>());
+        view.set_items_source(std::vector<std::string>{"A", "B", "C"}); // 3 rows × extent 100 → 300
 
-        const maui::graphics::size request = view.measure(infinity, infinity);
+        const maui::graphics::size request = view.measure(400, infinity);
 
-        EXPECT_DOUBLE_EQ(request.width, 960);
-        EXPECT_DOUBLE_EQ(request.height, 540);
+        // The main (height) axis reports the content extent — NOT the 540 scaled screen height.
+        EXPECT_DOUBLE_EQ(request.height, 300);
+        EXPECT_DOUBLE_EQ(request.width, 400); // a vertical list fills the finite cross (width) constraint
     }
 
-    TEST_F(items_view_test, horizontal_list_measurement)
+    TEST_F(items_view_test, horizontal_list_measurement_reports_content_not_the_screen)
     {
         structured_items_view view;
         view.set_handler(std::make_shared<collection_view_handler>());
         view.set_items_layout(linear_items_layout::create_horizontal_default());
+        view.set_items_source(std::vector<std::string>{"A", "B", "C"}); // 3 cols × extent 100 → 300
 
-        const maui::graphics::size request = view.measure(infinity, infinity);
+        const maui::graphics::size request = view.measure(infinity, 400);
 
-        EXPECT_DOUBLE_EQ(request.width, 960);
-        EXPECT_DOUBLE_EQ(request.height, 540);
+        // The main (width) axis reports the content extent — NOT the 960 scaled screen width.
+        EXPECT_DOUBLE_EQ(request.width, 300);
+        EXPECT_DOUBLE_EQ(request.height, 400); // fills the finite cross (height) constraint
     }
 
     TEST_F(items_view_test, binding_context_propagates_layouts)

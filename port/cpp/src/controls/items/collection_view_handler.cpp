@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <any>
+#include <cmath>
 #include <cstddef>
 #include <memory>
 #include <optional>
@@ -54,7 +55,6 @@
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/view_handler.hpp"
 #include "maui/core/view_mapper.hpp"
-#include "maui/essentials/device_display.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -160,16 +160,57 @@ namespace maui::controls
 #endif
     }
 
-    // ItemsView.OnMeasure: clamp to the scaled screen size (the C# 40x40 minimum SizeRequest has no
-    // port analog — header note in items_view.hpp).
+    // ItemsViewHandler.GetDesiredSize (the iOS measure path, NOT the obsolete ItemsView.OnMeasure):
+    // report the collection's CONTENT size — `min(Controller.GetSize(), constraint)` per dimension —
+    // resolved against this view's own size requests. The legacy OnMeasure (scaled-screen clamp) is
+    // dead on the modern measure seam: IView.Measure routes through MeasureOverride → ComputeDesiredSize
+    // → handler.GetDesiredSize (= the native UICollectionView's SizeThatFits content size), not OnMeasure.
+    // Reporting the screen (or, with the headless 0x0 fake display, ZERO) made an embedded CollectionView
+    // claim the whole viewport / zero height, so a parent vertical_stack_layout stacked siblings at
+    // overlapping Y offsets (the visual-parity overlap bug). The simulator's flat layout model IS the
+    // headless Controller.GetSize(): build_entries() sums the row extents synchronously (the Items2
+    // GetDesiredSize forces the same layout pass when the view is not yet mounted).
+    //
+    // Cross axis: a list/grid fills the cross constraint exactly like SizeThatFits returns the content
+    // width a vertical UICollectionView was given; when the cross constraint is infinite the viewport's
+    // cross extent is the fallback. ResolveConstraints (Width/Minimum*/Maximum*) runs in view::measure.
     maui::graphics::size collection_view_handler::get_desired_size(double width_constraint,
                                                                    double height_constraint) const
     {
-        const maui::devices::display_info info = maui::devices::device_display::main_display_info();
-        const double density = info.density > 0 ? info.density : 1.0;
-        const double scaled_width = info.width / density;
-        const double scaled_height = info.height / density;
-        return {std::min(scaled_width, width_constraint), std::min(scaled_height, height_constraint)};
+        const auto* platform = typed_platform_view();
+        if (platform == nullptr)
+        {
+            return {0, 0};
+        }
+
+        // Controller.GetSize(): the main-axis content extent (sum of row extents + inter-row spacing)
+        // from the flat layout model, independent of the current viewport/scroll (build_entries is the
+        // full content, not just the realized window).
+        const std::vector<layout_entry> entries = build_entries();
+        double main_content = 0;
+        for (const layout_entry& entry : entries)
+        {
+            main_content = std::max(main_content, entry.start + entry.extent);
+        }
+
+        // Map (main, cross) onto (width, height) by the scroll orientation, then clamp each dimension to
+        // its constraint exactly like C# (`content <= constraint ? content : constraint`). A non-finite
+        // constraint (the infinite axis a stack layout passes) leaves the content unclamped.
+        auto clamp_to_constraint = [](double content, double constraint) {
+            return content <= constraint ? content : constraint;
+        };
+
+        if (platform->orientation == items_layout_orientation::vertical)
+        {
+            const double cross_content =
+                std::isfinite(width_constraint) ? width_constraint : platform->viewport_cross_extent;
+            return {clamp_to_constraint(cross_content, width_constraint),
+                    clamp_to_constraint(main_content, height_constraint)};
+        }
+        const double cross_content =
+            std::isfinite(height_constraint) ? height_constraint : platform->viewport_cross_extent;
+        return {clamp_to_constraint(main_content, width_constraint),
+                clamp_to_constraint(cross_content, height_constraint)};
     }
 
     void collection_view_handler::platform_arrange(const maui::graphics::rect& frame)

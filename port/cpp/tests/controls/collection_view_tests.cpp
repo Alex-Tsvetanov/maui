@@ -8,11 +8,13 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <limits>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "maui/controls/button.hpp"
 #include "maui/controls/items/boxed_item.hpp"
 #include "maui/controls/items/collection_view.hpp"
 #include "maui/controls/items/collection_view_handler.hpp"
@@ -28,13 +30,20 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/scroll_to_position.hpp"
 #include "maui/controls/templates/data_template.hpp"
+#include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/button_handler.hpp"
 #include "maui/core/event.hpp"
+#include "maui/core/label_handler.hpp"
+#include "maui/core/layout_handler.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/graphics/rect.hpp"
+#include "maui/graphics/size.hpp"
 #include <gtest/gtest.h>
 
 namespace
 {
     using maui::controls::boxed_item;
+    using maui::controls::button;
     using maui::controls::cell_element_kind;
     using maui::controls::cell_event;
     using maui::controls::cell_event_kind;
@@ -53,7 +62,13 @@ namespace
     using maui::controls::realized_cell;
     using maui::controls::selection_mode;
     using maui::controls::source_update_kind;
+    using maui::controls::vertical_stack_layout;
+    using maui::core::button_handler;
+    using maui::core::label_handler;
+    using maui::core::layout_handler;
     using maui::core::observable_collection;
+    using maui::graphics::rect;
+    using maui::graphics::size;
 
     using string_collection = observable_collection<std::string>;
 
@@ -606,5 +621,114 @@ namespace
         EXPECT_EQ(rig.platform->source_updates[0].kind, source_update_kind::insert_items);
         EXPECT_EQ(rig.platform->source_updates[1].kind, source_update_kind::delete_items);
         EXPECT_EQ(rig.platform->source_updates[2].kind, source_update_kind::reload_data);
+    }
+
+    // ---- measure: the embedded-CollectionView content-size contract (the visual-parity overlap bug) ----
+    //
+    // Oracle: ItemsViewHandler.GetDesiredSize (iOS) reports `min(Controller.GetSize(), constraint)` per
+    // dimension — the native UICollectionView's content size, NOT the obsolete ItemsView.OnMeasure
+    // scaled-screen clamp. The modern measure seam (IView.Measure → MeasureOverride → ComputeDesiredSize
+    // → handler.GetDesiredSize) is the only path a vertical_stack_layout uses; the obsolete OnMeasure is
+    // dead there. The headless flat layout model IS Controller.GetSize: 10 items × extent 100 → 1000.
+
+    constexpr double cv_inf = std::numeric_limits<double>::infinity();
+
+    TEST(collection_view_measure, reports_content_height_not_the_screen_when_height_is_unbounded)
+    {
+        sim rig; // 10 items, item_extent 100, span 1, spacing 0 → content extent 1000
+        ASSERT_DOUBLE_EQ(rig.platform->content_extent, 1000);
+
+        // The stack-layout measure: a finite width, an INFINITE height (what a vertical_stack_layout
+        // passes its children). The CV must report its CONTENT height (1000), never 0 and never the
+        // screen — otherwise the parent stacks siblings at overlapping Y offsets.
+        const size measured = rig.view.measure(400, cv_inf);
+        EXPECT_DOUBLE_EQ(measured.height, 1000); // content extent, the iOS Controller.GetSize() height
+        EXPECT_DOUBLE_EQ(rig.view.desired_size().height, 1000);
+        EXPECT_DOUBLE_EQ(measured.width, 400); // a vertical list fills the cross (width) constraint
+    }
+
+    TEST(collection_view_measure, content_height_is_clamped_to_a_finite_height_constraint)
+    {
+        sim rig; // content extent 1000
+        // When the height constraint is finite and smaller than the content, the CV reports the
+        // constraint (min(contentSize, constraint)) — the scrollable region is capped to its viewport.
+        const size measured = rig.view.measure(400, 300);
+        EXPECT_DOUBLE_EQ(measured.height, 300);
+        // A finite height larger than the content reports the content (it does not over-claim).
+        EXPECT_DOUBLE_EQ(rig.view.measure(400, 5000).height, 1000);
+    }
+
+    TEST(collection_view_measure, empty_source_reports_zero_content_height)
+    {
+        sim rig(std::vector<std::string>{}); // no items → no rows → content extent 0
+        EXPECT_DOUBLE_EQ(rig.view.measure(400, cv_inf).height, 0);
+    }
+
+    TEST(collection_view_measure, horizontal_layout_reports_content_on_the_width_axis)
+    {
+        sim rig; // 10 items, extent 100
+        rig.view.set_items_layout(maui::controls::linear_items_layout::create_horizontal_default());
+        // A horizontal list: content lives on the WIDTH axis; the height fills the cross constraint.
+        const size measured = rig.view.measure(cv_inf, 400);
+        EXPECT_DOUBLE_EQ(measured.width, 1000); // 10 × 100 along the main (horizontal) axis
+        EXPECT_DOUBLE_EQ(measured.height, 400); // fills the cross (height) constraint
+    }
+
+    // The integration repro: a real collection_view between a label and a button inside a real
+    // vertical_stack_layout. Before the fix the CV measured to 0 (headless) / the screen, so the button
+    // landed ON TOP of the list. After the fix every sibling stacks sequentially with no overlap.
+    TEST(collection_view_measure, stacks_without_overlapping_siblings_in_a_vertical_stack_layout)
+    {
+        sim rig; // the CV (rig.view) already has a handler + 10 items (content extent 1000)
+
+        label heading;
+        heading.set_text("Pick items");
+        heading.set_handler(std::make_shared<label_handler>());
+
+        button go;
+        go.set_text("Go");
+        go.set_handler(std::make_shared<button_handler>());
+
+        vertical_stack_layout stack;
+        stack.set_handler(std::make_shared<layout_handler>());
+        stack.add(heading);
+        stack.add(rig.view); // the CollectionView shares the column with the label + button
+        stack.add(go);
+
+        // Measure with a finite width and the page's available height, then arrange in that space.
+        const size measured = stack.measure(400, 2000);
+        stack.arrange(rect(0, 0, 400, std::max(measured.height, 2000.0)));
+
+        const rect heading_frame = heading.frame();
+        const rect list_frame = rig.view.frame();
+        const rect go_frame = go.frame();
+
+        // The CollectionView reports a finite, content-bounded height (NOT zero, NOT the whole page).
+        EXPECT_GT(list_frame.height, 0);
+        EXPECT_DOUBLE_EQ(list_frame.height, 1000);
+
+        // Siblings stack strictly in sequence: each child starts at-or-below the previous child's bottom
+        // (no overlap). This is the exact invariant the overlap bug violated.
+        EXPECT_GE(list_frame.y, heading_frame.y + heading_frame.height);
+        EXPECT_GE(go_frame.y, list_frame.y + list_frame.height);
+
+        // And the button has its own non-zero height (it did not collapse behind the full-bleed list).
+        EXPECT_GT(go_frame.height, 0);
+    }
+
+    // Regression guard: the measure change must NOT disturb the standalone virtualization — a CV that is
+    // NOT in a stack still realizes only its visible window, reports the same content extent, and scrolls.
+    TEST(collection_view_measure, standalone_virtualization_is_unchanged_by_the_measure_fix)
+    {
+        sim rig; // viewport 400 / extent 100 → items 0..3 realized; content extent 1000
+        EXPECT_DOUBLE_EQ(rig.platform->content_extent, 1000);
+        EXPECT_EQ(rig.realized_item_paths().size(), 4U); // only the visible window is realized
+
+        // Measuring the standalone CV does not realize extra cells or change the content extent.
+        const long realized_before = rig.realized_event_count();
+        (void)rig.view.measure(400, cv_inf);
+        EXPECT_EQ(rig.realized_item_paths().size(), 4U);
+        EXPECT_EQ(rig.realized_event_count(), realized_before); // measure is side-effect free
+        EXPECT_DOUBLE_EQ(rig.platform->content_extent, 1000);
     }
 } // namespace
