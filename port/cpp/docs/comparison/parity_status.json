@@ -1,9 +1,9 @@
 {
   "absolute_layout": {
-    "dark": "diff",
-    "dark_note": "MAUI dark: blue rect lower (~y520), green/red bars centered vertically (~y1040), \"Centered text\" at mid, selected blue-highlighted \"AutoSized\" label just below center; C++ dark: blue rect higher (~y310), green/red bars shifted lower (~y1185), \"Centered text\" missing/absent in C++ region while plain unhighlighted \"AutoSized\" sits far lower (~y1520) — elements are vertically mis-positioned and the \"AutoSized\" label lacks the blue selection background.",
-    "light": "diff",
-    "light_note": "MAUI light: gray rounded content card inset within safe area, blue rect + \"Centered text\" + green/red side bars + selected \"AutoSized\" label + a dark bottom button, all positioned inside the card; C++ light: white full-bleed background (no card), blue rect higher up, \"Centered text\" higher, NO \"AutoSized\" label, NO bottom dark button, plus a navigation bar (\"MauiCompare\" back) + Dynamic Island the MAUI shot lacks — different layout origin/insets, missing controls."
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "FIXED label background on iOS (update_background was deferred to the no-op base mirror): the \"AutoSized\" white-on-blue label now renders (was invisible white-on-white). All 6 children correct: 4 edge-pinned bars (proportional pos + absolute size), centered text, auto-sized blue label at 0.2,0.7. Matches C#; residual is the maui-compare gray container card (harness artifact, port uses plain page bg).",
+    "dark_note": "Same fix: AutoSized label now shows its blue background (was white text only on black). All children positioned correctly. Matches C#."
   },
   "activity_indicator": {
     "dark": "minor",

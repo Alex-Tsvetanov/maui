@@ -19,6 +19,7 @@
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/size.hpp"
+#include "maui/graphics/solid_paint.hpp"
 #include <gtest/gtest.h>
 
 // The shape of the handler's MauiIosLabel (declared in src/platform/ios/label_handler.mm): the test
@@ -95,6 +96,30 @@ namespace
 
         control.set_horizontal_text_alignment(text_alignment::center);
         EXPECT_EQ(view.textAlignment, NSTextAlignmentCenter);
+    }
+
+    // MapBackground: a SolidPaint background paints the UILabel's backing layer (the AbsoluteLayout
+    // "AutoSized" demo is white text on a blue box). Before update_background was wired on iOS the paint
+    // fell through to the no-op view_platform_base mirror and the label rendered transparent — invisible on
+    // a light page. The CGColor round-trips back through UIColor to read its components.
+    TEST(ios_label_seam, solid_background_paints_the_backing_layer)
+    {
+        label control;
+        auto handler = std::make_shared<label_handler>();
+        control.set_handler(handler);
+        UILabel* const view = native_label(handler);
+
+        control.set_background(std::make_shared<maui::graphics::solid_paint>(maui::graphics::color(0.0F, 0.0F, 1.0F)));
+        ASSERT_NE(view.layer.backgroundColor, nullptr);
+        UIColor* const bg = [UIColor colorWithCGColor:view.layer.backgroundColor];
+        CGFloat red = 0;
+        CGFloat green = 0;
+        CGFloat blue = 0;
+        CGFloat alpha = 0;
+        ASSERT_TRUE([bg getRed:&red green:&green blue:&blue alpha:&alpha]);
+        EXPECT_NEAR(red, 0.0, 0.01);
+        EXPECT_NEAR(blue, 1.0, 0.01);
+        EXPECT_NEAR(alpha, 1.0, 0.01);
     }
 
     // Ports LabelHandlerTests.iOS CharacterSpacingInitializesCorrectly: the kerning on the attributed

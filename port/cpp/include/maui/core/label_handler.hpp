@@ -97,6 +97,11 @@ namespace maui::core
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
+        // MapBackground (LabelHandler is a VisualElement → a Label CAN carry a Background, e.g. the
+        // AbsoluteLayout "AutoSized" demo paints white-on-blue): push the solid/gradient/image paint onto
+        // the UILabel's backing layer via apply_background. Without it the paint fell through to the no-op
+        // view_platform_base mirror and never rendered (a transparent label, invisible on a light page).
+        void update_background(const maui::graphics::paint* value) override;
 #endif
     };
 

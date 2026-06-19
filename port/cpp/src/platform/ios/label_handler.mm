@@ -25,6 +25,7 @@
 
 #include "ios_conversions.hpp"
 #include "ios_text_ops.hpp"
+#include "ios_visual_ops.hpp"
 #include "maui/core/dimension.hpp"
 #include "maui/core/i_label.hpp"
 #include "maui/core/label_handler.hpp"
@@ -118,6 +119,16 @@
     const CGFloat width = MIN(requested.width, size.width) + insets.left + insets.right;
     const CGFloat height = MIN(requested.height, size.height) + insets.top + insets.bottom;
     return CGSizeMake(width, height);
+}
+
+// Keep a gradient/image background sublayer (installed by apply_background) sized to the label's CURRENT
+// bounds — apply_background runs at map time, before layout, when layer.bounds is still zero. The same
+// resize_background_layers pattern the value-control MauiIos* subclasses use; a solid background paints
+// layer.backgroundColor directly and needs no resize.
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    maui::platform::ios::resize_background_layers((__bridge void*)self);
 }
 @end
 
@@ -218,6 +229,14 @@ namespace maui::core
         const std::string id(value);
         NSString* const raw = [NSString stringWithUTF8String:id.c_str()];
         as_label(native).accessibilityIdentifier = raw != nil ? raw : @"";
+    }
+
+    // MapBackground: paint the solid/gradient/image onto the UILabel's backing layer (PaintExtensions).
+    // A solid sets layer.backgroundColor directly; a gradient/image installs a sublayer kept sized by the
+    // MauiIosLabel layoutSubviews above. Null clears the override.
+    void label_platform::update_background(const maui::graphics::paint* value)
+    {
+        maui::platform::ios::apply_background(native, value);
     }
 
     std::unique_ptr<label_platform> label_handler::create_platform_view()
