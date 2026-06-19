@@ -21,9 +21,11 @@
 //   note: the C# Path Aspect→Stretch mapping is reproduced by maui::core::path_aspect exactly as
 //         shape.hpp documents the IShapeView.Aspect collapse: None→none, Fill→stretch,
 //         Uniform→aspect_fit, UniformToFill→aspect_fill.
-//   note: the C# <Style TargetType="Path"> sets HorizontalOptions="Start". HorizontalOptions is not in
-//         the ported view surface, so it is omitted (no observable layout difference for these
-//         fixed-100x100 paths in a vertical stack — deferred, not invented).
+//   note: the C# <Style TargetType="Path"> sets HorizontalOptions="Start". This IS in the ported view
+//         surface (View.HorizontalOptions -> set_horizontal_layout_alignment, honored at arrange time
+//         by LayoutExtensions.ComputeFrame), so style_path sets layout_alignment::start on every Path —
+//         matching the C# style. Without it the port default (Fill) on a 100-wide Path leaves the Path
+//         CENTERED in the stack band instead of LEFT-aligned (the visual-parity divergence this fixes).
 //   note: the C# Path FontSize="9" captions use Label.FontSize, which is not in the ported label
 //         surface; the captions are plain labels with the same text (FontSize deferred).
 //   note: BackgroundColor="LightGray" → set_background(solid_paint(colors::light_gray)); Stroke="Yellow"
@@ -42,6 +44,7 @@
 #include "maui/controls/shapes/path_geometry.hpp"
 #include "maui/controls/shapes/path_markup_parser.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/core/path_aspect.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
@@ -173,6 +176,9 @@ namespace maui::samples
             maui::controls::shapes::parse_path_figure_collection(geometry->figures(), aspect_geometry_data);
             shape.set_data(std::move(geometry));
             shape.set_aspect(aspect);
+            // C# <Style TargetType="Path"> Setter: HorizontalOptions="Start" — left-align each Path at
+            // its 100px width (honored by view::arrange -> compute_frame), not the Fill default.
+            shape.set_horizontal_layout_alignment(maui::core::layout_alignment::start);
             shape.set_background(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::light_gray));
             shape.set_stroke(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::yellow));
             shape.set_fill(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::red));

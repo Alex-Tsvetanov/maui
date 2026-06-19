@@ -25,10 +25,13 @@
 #include "maui/controls/shapes/polygon.hpp"
 #include "maui/controls/shapes/polyline.hpp"
 #include "maui/controls/shapes/rectangle.hpp"
+#include "maui/controls/shapes/shape.hpp"
 #include "maui/controls/shapes/translate_transform.hpp"
+#include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_shape_view.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/core/path_aspect.hpp"
 #include "maui/core/shape_view_handler.hpp"
 #include "maui/graphics/color.hpp"
@@ -412,5 +415,122 @@ namespace
             maui::core::default_handler_registry().create_handler<shapes::path>();
         ASSERT_NE(path_handler, nullptr);
         EXPECT_NE(dynamic_cast<shape_view_handler*>(path_handler.get()), nullptr);
+    }
+
+    // ---- alignment fidelity: a shape inside a vertical stack honors HorizontalOptions via the
+    // inherited view<>::arrange -> compute_frame (LayoutExtensions.ComputeFrame), exactly like a plain
+    // view. These pin the path_aspect_gallery / auto_size_shapes visual-parity behavior: a shape does
+    // NOT bypass ComputeFrame, so its arranged FRAME (which drives PathForBounds/TransformPathForBounds)
+    // is alignment-reduced. The stack passes the FULL band width to child.arrange (VerticalStackLayout-
+    // Manager.ArrangeChildren); the child reduces it. ----
+
+    // Drive one shape through a single-child vertical stack arranged into `band`, return the shape frame.
+    maui::graphics::rect arrange_shape_in_stack(shapes::shape& s, const maui::graphics::rect& band)
+    {
+        maui::controls::vertical_stack_layout stack;
+        stack.add(s);
+        stack.measure(band.width, band.height);
+        stack.arrange(band);
+        return s.frame();
+    }
+
+    TEST(shape_alignment, start_shape_in_vertical_stack_is_left_at_desired_width)
+    {
+        // A 100-wide Start rectangle in a 300-wide band: frame at x=0, width=100 (NOT the full band).
+        // This is the path_aspect_gallery contract (the C# <Style TargetType="Path"> sets Start).
+        shapes::rectangle r;
+        r.set_width_request(100);
+        r.set_height_request(100);
+        r.set_horizontal_layout_alignment(maui::core::layout_alignment::start);
+        const maui::graphics::rect frame = arrange_shape_in_stack(r, maui::graphics::rect(0, 0, 300, 100));
+        EXPECT_EQ(frame.x, 0);
+        EXPECT_EQ(frame.width, 100);
+    }
+
+    TEST(shape_alignment, center_shape_in_vertical_stack_is_centered_at_desired_width)
+    {
+        shapes::rectangle r;
+        r.set_width_request(100);
+        r.set_height_request(100);
+        r.set_horizontal_layout_alignment(maui::core::layout_alignment::center);
+        const maui::graphics::rect frame = arrange_shape_in_stack(r, maui::graphics::rect(0, 0, 300, 100));
+        EXPECT_EQ(frame.x, 100); // (300 - 100) / 2
+        EXPECT_EQ(frame.width, 100);
+    }
+
+    TEST(shape_alignment, end_shape_in_vertical_stack_is_right_aligned_at_desired_width)
+    {
+        shapes::rectangle r;
+        r.set_width_request(100);
+        r.set_height_request(100);
+        r.set_horizontal_layout_alignment(maui::core::layout_alignment::end);
+        const maui::graphics::rect frame = arrange_shape_in_stack(r, maui::graphics::rect(0, 0, 300, 100));
+        EXPECT_EQ(frame.x, 200); // 300 - 100
+        EXPECT_EQ(frame.width, 100);
+    }
+
+    TEST(shape_alignment, fill_shape_with_no_explicit_width_fills_the_band)
+    {
+        // The common default + the auto_size_shapes contract: a Fill ellipse with NO width request
+        // consumes the whole band (LayoutExtensions: Fill && !IsExplicitSet -> min(bounds, MaxWidth)).
+        shapes::ellipse e;
+        const maui::graphics::rect frame = arrange_shape_in_stack(e, maui::graphics::rect(0, 0, 300, 100));
+        EXPECT_EQ(frame.x, 0);
+        EXPECT_EQ(frame.width, 300);
+    }
+
+    TEST(shape_alignment, fill_shape_with_explicit_width_centers_at_that_width)
+    {
+        // C# AlignHorizontal: Fill + an explicit width is treated as Center over the space it "fills".
+        shapes::rectangle r;
+        r.set_width_request(100);
+        r.set_height_request(100);
+        // HorizontalOptions left at the Fill default.
+        const maui::graphics::rect frame = arrange_shape_in_stack(r, maui::graphics::rect(0, 0, 300, 100));
+        EXPECT_EQ(frame.x, 100); // centered, NOT stretched to 300
+        EXPECT_EQ(frame.width, 100);
+    }
+
+    // The arranged FRAME drives TransformPathForBounds: a Start rectangle's stretched geometry is
+    // confined to the 100-wide frame (NOT the 300-wide band) when rendered through PathForBounds(frame).
+    TEST(shape_alignment, frame_drives_transform_path_for_bounds)
+    {
+        shapes::rectangle r; // aspect = Stretch.Fill default
+        r.set_width_request(100);
+        r.set_height_request(80);
+        r.set_stroke_thickness(0); // no inset, so the path exactly matches the frame
+        r.set_horizontal_layout_alignment(maui::core::layout_alignment::start);
+        const maui::graphics::rect frame = arrange_shape_in_stack(r, maui::graphics::rect(0, 0, 300, 80));
+        ASSERT_EQ(frame.width, 100);
+
+        // Render through the production contract: PathForBounds(frame) — the dirty rect IS the frame
+        // (the native host is sized to the frame by arrange_native, drawRect's bounds == frame size).
+        const path_f rendered = r.path_for_bounds(frame);
+        const rect_f flat = rendered.get_bounds_by_flattening(1);
+        EXPECT_NEAR(static_cast<double>(flat.width), 100.0, 0.5); // confined to the 100-wide frame
+        EXPECT_NEAR(static_cast<double>(flat.height), 80.0, 0.5);
+    }
+
+    // The Fill render twin (auto_size_shapes — a Fill shape must STILL fill). A Fill ellipse with no
+    // explicit size, given a DEFINITE cell (the way a Grid star cell arranges its child — measure with a
+    // finite height, arrange into the cell), fills the cell and its rendered geometry spans the whole
+    // cell. This is the auto_size_shapes pipeline (Ellipse in a star-sized Grid cell), NOT a vertical
+    // stack (which would stack by the child's degenerate desired height under an infinite constraint).
+    TEST(shape_alignment, fill_shape_in_a_definite_cell_renders_across_the_full_frame)
+    {
+        shapes::ellipse e;
+        e.set_stroke_thickness(0);
+        // A star Grid cell measures the child against the cell extent and arranges it into the cell.
+        e.measure(300, 100);
+        e.arrange(maui::graphics::rect(0, 0, 300, 100));
+        const maui::graphics::rect frame = e.frame();
+        EXPECT_EQ(frame.x, 0);
+        EXPECT_EQ(frame.width, 300); // Fill consumes the cell width (NOT the intrinsic circle width)
+        EXPECT_EQ(frame.height, 100);
+
+        const path_f rendered = e.path_for_bounds(frame);
+        const rect_f flat = rendered.get_bounds_by_flattening(1);
+        EXPECT_NEAR(static_cast<double>(flat.width), 300.0, 0.5);
+        EXPECT_NEAR(static_cast<double>(flat.height), 100.0, 0.5);
     }
 } // namespace
