@@ -32,6 +32,16 @@
 #include "pages/tabbed_flyout_page.hpp"
 #include "pages/value_controls_page.hpp"
 #include "pages/web_view_page.hpp"
+// --- batch 16 (PlatformSpecifics/iOS) ---
+#include "pages/ios_blur_effect_page.hpp"
+#include "pages/ios_date_picker_page.hpp"
+#include "pages/ios_entry_page.hpp"
+#include "pages/ios_picker_page.hpp"
+#include "pages/ios_safe_area_page.hpp"
+#include "pages/ios_scroll_view_page.hpp"
+#include "pages/ios_search_bar_page.hpp"
+#include "pages/ios_slider_update_on_tap_page.hpp"
+#include "pages/ios_time_picker_page.hpp"
 // --- batch 15 (CollectionView/Carousel tail) ---
 #include "pages/carousel_page.hpp"
 #include "pages/empty_view_selector_page.hpp"
@@ -331,7 +341,16 @@
     X("empty_view_swap", empty_view_swap_page)                                                                         \
     X("empty_view_view", empty_view_view_page)                                                                         \
     X("empty_view_selector", empty_view_selector_page)                                                                 \
-    X("grouping_no_templates", grouping_no_templates_page)
+    X("grouping_no_templates", grouping_no_templates_page)                                                             \
+    X("ios_entry", ios_entry_page)                                                                                     \
+    X("ios_date_picker", ios_date_picker_page)                                                                         \
+    X("ios_picker", ios_picker_page)                                                                                   \
+    X("ios_slider_update_on_tap", ios_slider_update_on_tap_page)                                                       \
+    X("ios_scroll_view", ios_scroll_view_page)                                                                         \
+    X("ios_search_bar", ios_search_bar_page)                                                                           \
+    X("ios_time_picker", ios_time_picker_page)                                                                         \
+    X("ios_safe_area", ios_safe_area_page)                                                                             \
+    X("ios_blur_effect", ios_blur_effect_page)
 
 namespace maui::samples
 {

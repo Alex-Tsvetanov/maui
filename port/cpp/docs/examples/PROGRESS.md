@@ -52,6 +52,17 @@ LayoutIsEnabled · RelativeLayout · ScrollView · StackLayout · TemplatedView 
 - [x] ChatExample → `chat_example_page`
 - ⚠ NOTE: custom-struct item cells donE28099t render in the gallery yet (chrome+API do); framework fix in flight.
 
+## Batch 16 — PlatformSpecifics/iOS (9) — platform-configuration surface
+- [x] iOSEntryPage → `ios_entry_page` (AdjustsFontSizeToFitWidth + CursorColor)
+- [x] iOSDatePickerPage → `ios_date_picker_page` (UpdateMode)
+- [x] iOSPickerPage → `ios_picker_page` (UpdateMode)
+- [x] iOSSliderUpdateOnTapPage → `ios_slider_update_on_tap_page`
+- [x] iOSScrollViewPage → `ios_scroll_view_page` (ShouldDelayContentTouches)
+- [x] iOSSearchBarPage → `ios_search_bar_page` (SearchBarStyle)
+- [x] iOSTimePickerPage → `ios_time_picker_page` (UpdateMode)
+- [x] iOSSafeAreaPage → `ios_safe_area_page` (SafeAreaEdges + UseSafeArea)
+- [x] iOSBlurEffectPage → `ios_blur_effect_page` (BlurEffect)
+
 ## Batch 15 — CollectionView/Carousel tail (9)
 - [x] StaggeredLayout → `staggered_layout_page` (approx — C# unshipped)
 - [x] NestedCollectionViewGallery → `nested_collection_page` (CV inside a data_template)
