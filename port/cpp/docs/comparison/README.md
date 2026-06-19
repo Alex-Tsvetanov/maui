@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 0 / 172 🟢 matched** · 16 🟡 minor · 52 🔴 diff · 104 ⬜ pending
+**Progress: 0 / 172 🟢 matched** · 16 🟡 minor · 53 🔴 diff · 103 ⬜ pending
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.
 
@@ -28,7 +28,7 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 14 | Progress Bar | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/progress_bar.png) | ![](cpp_ios_light/progress_bar.png) | ![](csharp_ios_dark/progress_bar.png) | ![](cpp_ios_dark/progress_bar.png) |
 | 15 | Activity Indicator | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/activity_indicator.png) | ![](cpp_ios_light/activity_indicator.png) | ![](csharp_ios_dark/activity_indicator.png) | ![](cpp_ios_dark/activity_indicator.png) |
 | 16 | Indicator | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/indicator.png) | ![](cpp_ios_light/indicator.png) | ![](csharp_ios_dark/indicator.png) | ![](cpp_ios_dark/indicator.png) |
-| 17 | Image | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/image.png) | ![](cpp_ios_light/image.png) | ![](csharp_ios_dark/image.png) | ![](cpp_ios_dark/image.png) |
+| 17 | Image | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/image.png) | ![](cpp_ios_light/image.png) | ![](csharp_ios_dark/image.png) | ![](cpp_ios_dark/image.png) |
 | 18 | Image Button | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/image_button.png) | ![](cpp_ios_light/image_button.png) | ![](csharp_ios_dark/image_button.png) | ![](cpp_ios_dark/image_button.png) |
 | 19 | Box View | 🔴<br>L:minor<br>D:diff | ![](csharp_ios_light/box_view.png) | ![](cpp_ios_light/box_view.png) | ![](csharp_ios_dark/box_view.png) | ![](cpp_ios_dark/box_view.png) |
 | 20 | Content View | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/content_view.png) | ![](cpp_ios_light/content_view.png) | ![](csharp_ios_dark/content_view.png) | ![](cpp_ios_dark/content_view.png) |

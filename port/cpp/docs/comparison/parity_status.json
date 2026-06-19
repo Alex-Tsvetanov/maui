@@ -408,8 +408,10 @@
     "light": "pending"
   },
   "image": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "diff",
+    "dark_note": "Same as light: UriSource renders; FileSource/gif/Font-Image blank \u2014 the gallery bundles no image/font assets (gallery .app = Info.plist + binary only). The iOS loader uses [UIImage imageNamed:] which needs the asset bundled. Gallery asset-bundling flagged as task_e9f31e49.",
+    "light": "diff",
+    "light_note": "UriSource (remote https image) renders identically to MAUI (the Microsoft-campus photo). But FileSource (purple .NET bot), the animated gif, and the Font Image Source rows are all blank because the C++ gallery .app bundles NO resource assets (only Info.plist + binary) \u2014 every from_file()/from_font() source fails to load. C# bundles its own dotnet_bot.png etc. Needs gallery asset-bundling (CMake RESOURCE + the asset files); flagged as task_e9f31e49. dotnet_bot.png available in ~/maui-compare; gif + icon-font not readily available."
   },
   "image_button": {
     "dark": "pending",
