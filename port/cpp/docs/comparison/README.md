@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 0 / 172 🟢 matched** · 2 🟡 minor · 58 🔴 diff · 112 ⬜ pending
+**Progress: 0 / 172 🟢 matched** · 3 🟡 minor · 58 🔴 diff · 111 ⬜ pending
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.
 
@@ -14,7 +14,7 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | --: | --- | :---: | --- | --- | --- | --- |
 | 1 | Label | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/label.png) | ![](cpp_ios_light/label.png) | ![](csharp_ios_dark/label.png) | ![](cpp_ios_dark/label.png) |
 | 2 | Button | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/button.png) | ![](cpp_ios_light/button.png) | ![](csharp_ios_dark/button.png) | ![](cpp_ios_dark/button.png) |
-| 3 | Entry | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/entry.png) | ![](cpp_ios_light/entry.png) | ![](csharp_ios_dark/entry.png) | ![](cpp_ios_dark/entry.png) |
+| 3 | Entry | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/entry.png) | ![](cpp_ios_light/entry.png) | ![](csharp_ios_dark/entry.png) | ![](cpp_ios_dark/entry.png) |
 | 4 | Editor | 🔴<br>L:minor<br>D:diff | ![](csharp_ios_light/editor.png) | ![](cpp_ios_light/editor.png) | ![](csharp_ios_dark/editor.png) | ![](cpp_ios_dark/editor.png) |
 | 5 | Search Bar | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/search_bar.png) | ![](cpp_ios_light/search_bar.png) | ![](csharp_ios_dark/search_bar.png) | ![](cpp_ios_dark/search_bar.png) |
 | 6 | Picker | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/picker.png) | ![](cpp_ios_light/picker.png) | ![](csharp_ios_dark/picker.png) | ![](cpp_ios_dark/picker.png) |

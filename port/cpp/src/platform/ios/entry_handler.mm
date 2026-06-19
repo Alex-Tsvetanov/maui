@@ -635,10 +635,14 @@ namespace maui::core
         auto* platform = handler.typed_platform_view();
         if (platform != nullptr)
         {
-            // TextFieldExtensions.UpdateTextColor's non-null branch; the TextColor == null fallback to
-            // the theme label color has no analog (non-nullable color value type, the same collapse as
-            // the AppKit twin). UpdateClearButtonColor (private clearButton KVC tint) is not ported.
-            as_field(platform->native).textColor = to_ui_color(view.text_color());
+            // TextFieldExtensions.UpdateTextColor. Non-null sets the explicit color; the TextColor == null
+            // default falls back to the dynamic system label color (UIColor.labelColor) which adapts to
+            // light/dark — the port treats the default-constructed (unset) color as that null, so unstyled
+            // entry text is visible in both appearances (was black-on-black in dark).
+            // (UpdateClearButtonColor — private clearButton KVC tint — is not ported.)
+            const maui::graphics::color text_color = view.text_color();
+            as_field(platform->native).textColor =
+                text_color != maui::graphics::color{} ? to_ui_color(text_color) : UIColor.labelColor;
         }
     }
 

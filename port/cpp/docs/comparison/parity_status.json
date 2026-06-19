@@ -318,8 +318,10 @@
     "light": "pending"
   },
   "entry": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "dark_note": "FIXED dark text: unset entry text now uses the dynamic system label color (white in dark, was black-on-black). Matches C# (white text, gray placeholders, purple explicit). Minor spacing only.",
+    "light": "minor",
+    "light_note": "Near-match: same fields, placeholders, explicit purple text, password dots, end-alignment. Minor: slightly tighter inter-field spacing + entry border rendering vs C#."
   },
   "filter_collection": {
     "dark": "pending",
