@@ -35,6 +35,7 @@
 #include "ios_done_accessory.hpp"
 #include "ios_semantics_ops.hpp"
 #include "ios_text_ops.hpp"
+#include "ios_visual_ops.hpp"
 #include "maui/core/i_picker.hpp"
 #include "maui/core/picker_handler.hpp"
 #include "maui/core/text_alignment.hpp"
@@ -43,6 +44,7 @@
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+#include "maui/graphics/solid_paint.hpp"
 
 // MauiPickerSource  <=  Microsoft.Maui.Handlers.PickerSource (UIPickerViewModel): the wheel's data
 // source + delegate, reading rows through the virtual view's i_item_delegate face and tracking the
@@ -274,6 +276,28 @@ namespace maui::core
     void picker_platform::update_automation_id(std::string_view value)
     {
         as_field(native).accessibilityIdentifier = to_ns_string(value);
+    }
+
+    void picker_platform::update_background(const maui::graphics::paint* value)
+    {
+        // The MauiPicker is a UITextField with BorderStyle = RoundedRect. A solid BackgroundColor must be
+        // pushed to the UIView's backgroundColor PROPERTY, not the backing layer: the rounded-rect bezel is
+        // drawn ON TOP of layer.backgroundColor (so a layer fill peeks only at the corners), whereas setting
+        // the view property suppresses the bezel and fills the field flat — matching MAUI's solid picker
+        // background. Gradient/image paints still need the layer machinery; a null paint clears the override.
+        UITextField* const field = as_field(native);
+        if (const auto* const solid = dynamic_cast<const maui::graphics::solid_paint*>(value))
+        {
+            field.backgroundColor = maui::platform::ios::to_ui_color(solid->color());
+        }
+        else if (value != nullptr)
+        {
+            maui::platform::ios::apply_background(native, value);
+        }
+        else
+        {
+            field.backgroundColor = nil;
+        }
     }
 
     std::unique_ptr<picker_platform> picker_handler::create_platform_view()

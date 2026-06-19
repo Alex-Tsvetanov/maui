@@ -84,6 +84,9 @@ namespace maui::core
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
+        // BackgroundColor IS pushed to the UITextField (it respects backgroundColor directly, unlike a
+        // UIButton): the MauiPicker is a plain UIView, so the shared apply_background paints its layer.
+        void update_background(const maui::graphics::paint* value) override;
 #endif
     };
 

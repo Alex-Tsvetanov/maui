@@ -554,8 +554,10 @@
     "light": "pending"
   },
   "picker": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "dark_note": "Matches: all query text white (handler already left system default), blue title, gray placeholders; BackgroundColor=Yellow/Green now render as full flat fills matching MAUI dark (FIXED via UITextField backgroundColor property). Residual: vertical rhythm (C# taller rows).",
+    "light": "minor",
+    "light_note": "Matches: text colors (black query, blue TitleColor, gray placeholders) + BackgroundColor fills now render \u2014 Yellow/Green pickers show full flat fills (FIXED: iOS picker now pushes solid BackgroundColor to the UITextField backgroundColor property, suppressing the RoundedRect bezel like MAUI). Residual: C++ more compact vertical rhythm (fits more rows than MAUI) + top nav-bar blob (harness artifact)."
   },
   "pickers": {
     "dark": "pending",
