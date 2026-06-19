@@ -191,9 +191,9 @@
   },
   "containers": {
     "dark": "diff",
-    "dark_note": "C++ border + frame boxes are empty (missing \"Inside a border\"/\"Inside a frame\" labels) AND the \"Inside a content_view\" text is absent entirely, whereas MAUI dark renders all three labels.",
+    "dark_note": "IMPROVED (was fully-blank labels): readout + Inside-a-content_view labels render via the dark-text cascade; border/frame strokes render. Residual BUG: Border/Frame do not present their content label (clipped by the border host) \u2014 task_a2bdde9d.",
     "light": "diff",
-    "light_note": "C++ border + frame boxes render empty \u2014 missing their \"Inside a border\"/\"Inside a frame\" labels (MAUI shows both); \"Inside a content_view\" sits far lower; C++ nav bar has a black title-bar artifact blob."
+    "light_note": "IMPROVED: the standalone labels (Scrolled-to readout, Inside a content_view) render. The border (blue dashed) + frame (red) boxes render their stroke/outline correctly. Residual BUG: the Border and Frame do NOT show their content child (\"Inside a border\"/\"Inside a frame\" labels) \u2014 the content subview is clipped/mispositioned by the border host (content_view works; border-specific native-hosting bug). Flagged as task_a2bdde9d."
   },
   "content_view": {
     "dark": "minor",
