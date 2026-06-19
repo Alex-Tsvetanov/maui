@@ -52,6 +52,17 @@ LayoutIsEnabled · RelativeLayout · ScrollView · StackLayout · TemplatedView 
 - [x] ChatExample → `chat_example_page`
 - ⚠ NOTE: custom-struct item cells donE28099t render in the gallery yet (chrome+API do); framework fix in flight.
 
+## Batch 17 — CollectionView tail + Pan gesture (9)
+- [x] VisualStatesGallery → `cv_visual_states_page`
+- [x] SwitchGrouping → `switch_grouping_page`
+- [x] GroupingPlusSelection → `grouping_plus_selection_page`
+- [x] ItemsUpdatingScrollModeGallery → `items_updating_scroll_mode_page`
+- [x] MeasureFirstStrategy → `measure_first_strategy_page`
+- [x] ScrollModeTestGallery → `scroll_mode_test_page`
+- [x] FooterOnlyString → `footer_only_string_page`
+- [x] HeaderFooterGridHorizontal → `header_footer_grid_horizontal_page`
+- [x] PanGestureEventsGallery → `pan_gesture_events_page`
+
 ## Batch 16 — PlatformSpecifics/iOS (9) — platform-configuration surface
 - [x] iOSEntryPage → `ios_entry_page` (AdjustsFontSizeToFitWidth + CursorColor)
 - [x] iOSDatePickerPage → `ios_date_picker_page` (UpdateMode)

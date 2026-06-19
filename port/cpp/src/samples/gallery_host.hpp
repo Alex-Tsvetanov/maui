@@ -32,6 +32,16 @@
 #include "pages/tabbed_flyout_page.hpp"
 #include "pages/value_controls_page.hpp"
 #include "pages/web_view_page.hpp"
+// --- batch 17 (CV tail + pan gesture) ---
+#include "pages/cv_visual_states_page.hpp"
+#include "pages/footer_only_string_page.hpp"
+#include "pages/grouping_plus_selection_page.hpp"
+#include "pages/header_footer_grid_horizontal_page.hpp"
+#include "pages/items_updating_scroll_mode_page.hpp"
+#include "pages/measure_first_strategy_page.hpp"
+#include "pages/pan_gesture_events_page.hpp"
+#include "pages/scroll_mode_test_page.hpp"
+#include "pages/switch_grouping_page.hpp"
 // --- batch 16 (PlatformSpecifics/iOS) ---
 #include "pages/ios_blur_effect_page.hpp"
 #include "pages/ios_date_picker_page.hpp"
@@ -350,7 +360,16 @@
     X("ios_search_bar", ios_search_bar_page)                                                                           \
     X("ios_time_picker", ios_time_picker_page)                                                                         \
     X("ios_safe_area", ios_safe_area_page)                                                                             \
-    X("ios_blur_effect", ios_blur_effect_page)
+    X("ios_blur_effect", ios_blur_effect_page)                                                                         \
+    X("cv_visual_states", cv_visual_states_page)                                                                       \
+    X("switch_grouping", switch_grouping_page)                                                                         \
+    X("grouping_plus_selection", grouping_plus_selection_page)                                                         \
+    X("items_updating_scroll_mode", items_updating_scroll_mode_page)                                                   \
+    X("measure_first_strategy", measure_first_strategy_page)                                                           \
+    X("scroll_mode_test", scroll_mode_test_page)                                                                       \
+    X("footer_only_string", footer_only_string_page)                                                                   \
+    X("header_footer_grid_horizontal", header_footer_grid_horizontal_page)                                             \
+    X("pan_gesture_events", pan_gesture_events_page)
 
 namespace maui::samples
 {
