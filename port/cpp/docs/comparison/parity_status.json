@@ -36,10 +36,10 @@
     "light_note": "C++ label is flat/left-aligned (not rotated like MAUI's curved bot label), all three buttons render plain black enabled text vs MAUI's blue buttons with greyed-out disabled \"Cancel Animation\"; C++ also has a stray black blob in the title bar."
   },
   "app_theme_binding": {
-    "dark": "diff",
-    "dark_note": "C++ dark renders only the green and orange paragraph labels on a plain black screen \u2014 the \"AppThemeBinding\" heading, the \"Using AppThemeBinding in a ResourceDictionary\" label, the centered \"Toggle theme (Light/Dark)\" button, the \"Theme: Light...\" status label, and MAUI's white content surface are all missing.",
+    "dark": "minor",
+    "dark_note": "FIXED (was diff): all labels now render (dark-text cascade) \u2014 heading, green + orange AppThemeBinding paragraphs, Toggle button, Theme:Light status \u2014 matching the C# content exactly (BOTH apps show LIGHT values here: the pages theme is driven by its own toggle which defaults to Light, so MAUI_THEME/MAUI_APPEARANCE do not flip the AppThemeBinding). Residual: the page SURFACE differs \u2014 C# shows a white Light surface while C++ shows black, because the gallery force-darkens the WINDOW (overrideUserInterfaceStyle=dark) while the AppThemeBinding page resolves to Light (a window-vs-app-theme mismatch specific to AppThemeBinding demos).",
     "light": "minor",
-    "light_note": "Same controls/order/colors (green, orange, blue toggle, status); C++ wraps text wider (e.g. \"Using AppThemeBinding in a ResourceDictionary\" fits one line vs MAUI's two) and has slightly larger inter-row spacing \u2014 minor spacing/wrapping only."
+    "light_note": "Matches MAUI: heading, the green AppThemeBinding paragraph, the orange ResourceDictionary paragraph, the blue Toggle-theme button, and the Theme:Light status all render with correct colors/order. Residual: C++ wraps some lines wider (one line vs MAUI two) + slightly larger inter-row spacing."
   },
   "application_control": {
     "dark": "blank",
