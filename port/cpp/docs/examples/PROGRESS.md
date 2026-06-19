@@ -52,6 +52,17 @@ LayoutIsEnabled · RelativeLayout · ScrollView · StackLayout · TemplatedView 
 - [x] ChatExample → `chat_example_page`
 - ⚠ NOTE: custom-struct item cells donE28099t render in the gallery yet (chrome+API do); framework fix in flight.
 
+## Batch 10 — ShapesGalleries: transforms / clip / mutation (9) — natively rendered
+- [x] TransformPlaygroundGallery → `transform_playground_page`
+- [x] PathTransformStringGallery → `path_transform_string_page`
+- [x] ShapeAppThemeGallery → `shape_app_theme_page`
+- [x] ClipGallery → `clip_gallery_page`
+- [x] ClipViewsGallery → `clip_views_page` (Clip on every view kind)
+- [x] ClipCornerRadiusGallery → `clip_corner_radius_page`
+- [x] AutoSizeShapesGallery → `auto_size_shapes_page`
+- [x] InvalidateBrushGallery → `invalidate_brush_page`
+- [x] UpdatePathDataGallery → `update_path_data_page`
+
 ## Batch 8 — ShapesGalleries (9) — natively-rendered shape/geometry demos
 - [x] EllipseGallery → `ellipse_gallery_page`
 - [x] RectangleGallery → `rectangle_gallery_page`
