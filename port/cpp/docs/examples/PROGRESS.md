@@ -52,6 +52,17 @@ LayoutIsEnabled · RelativeLayout · ScrollView · StackLayout · TemplatedView 
 - [x] ChatExample → `chat_example_page`
 - ⚠ NOTE: custom-struct item cells donE28099t render in the gallery yet (chrome+API do); framework fix in flight.
 
+## Batch 18 — final renderable tail: CV selection/empty edge + iOS specifics (9)
+- [x] FilterSelection → `filter_selection_page`
+- [x] SelectionSynchronization → `selection_synchronization_page`
+- [x] PreselectedItemGallery → `preselected_item_page`
+- [x] EmptyViewNullGallery → `empty_view_null_page`
+- [x] EmptyViewLoadSimulateGallery → `empty_view_load_simulate_page`
+- [x] EmptyViewRTLGallery → `empty_view_rtl_page` (native flow_direction)
+- [x] iOSFirstResponderPage → `ios_first_responder_page`
+- [x] iOSPanGestureRecognizerPage → `ios_pan_gesture_page`
+- [x] iOSSwipeViewTransitionModePage → `ios_swipe_transition_page`
+
 ## Batch 17 — CollectionView tail + Pan gesture (9)
 - [x] VisualStatesGallery → `cv_visual_states_page`
 - [x] SwitchGrouping → `switch_grouping_page`

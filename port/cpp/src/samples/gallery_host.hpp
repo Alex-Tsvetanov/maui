@@ -32,6 +32,16 @@
 #include "pages/tabbed_flyout_page.hpp"
 #include "pages/value_controls_page.hpp"
 #include "pages/web_view_page.hpp"
+// --- batch 18 (final tail: CV selection/empty edge + iOS specifics) ---
+#include "pages/empty_view_load_simulate_page.hpp"
+#include "pages/empty_view_null_page.hpp"
+#include "pages/empty_view_rtl_page.hpp"
+#include "pages/filter_selection_page.hpp"
+#include "pages/ios_first_responder_page.hpp"
+#include "pages/ios_pan_gesture_page.hpp"
+#include "pages/ios_swipe_transition_page.hpp"
+#include "pages/preselected_item_page.hpp"
+#include "pages/selection_synchronization_page.hpp"
 // --- batch 17 (CV tail + pan gesture) ---
 #include "pages/cv_visual_states_page.hpp"
 #include "pages/footer_only_string_page.hpp"
@@ -369,7 +379,16 @@
     X("scroll_mode_test", scroll_mode_test_page)                                                                       \
     X("footer_only_string", footer_only_string_page)                                                                   \
     X("header_footer_grid_horizontal", header_footer_grid_horizontal_page)                                             \
-    X("pan_gesture_events", pan_gesture_events_page)
+    X("pan_gesture_events", pan_gesture_events_page)                                                                   \
+    X("filter_selection", filter_selection_page)                                                                       \
+    X("selection_synchronization", selection_synchronization_page)                                                     \
+    X("preselected_item", preselected_item_page)                                                                       \
+    X("empty_view_null", empty_view_null_page)                                                                         \
+    X("empty_view_load_simulate", empty_view_load_simulate_page)                                                       \
+    X("empty_view_rtl", empty_view_rtl_page)                                                                           \
+    X("ios_first_responder", ios_first_responder_page)                                                                 \
+    X("ios_pan_gesture", ios_pan_gesture_page)                                                                         \
+    X("ios_swipe_transition", ios_swipe_transition_page)
 
 namespace maui::samples
 {
