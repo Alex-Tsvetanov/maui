@@ -52,6 +52,17 @@ LayoutIsEnabled · RelativeLayout · ScrollView · StackLayout · TemplatedView 
 - [x] ChatExample → `chat_example_page`
 - ⚠ NOTE: custom-struct item cells donE28099t render in the gallery yet (chrome+API do); framework fix in flight.
 
+## Batch 13 — SwipeView galleries (9)
+- [x] BasicSwipeGallery → `basic_swipe_page`
+- [x] SwipeItemPositionGallery → `swipe_item_position_page`
+- [x] SwipeViewShadowGallery → `swipe_view_shadow_page`
+- [x] CustomSwipeItemViewGallery → `custom_swipe_item_view_page`
+- [x] SwipeItemSizeGallery → `swipe_item_size_page`
+- [x] SwipeViewMarginGallery → `swipe_view_margin_page`
+- [x] CustomSizeSwipeViewGallery → `custom_size_swipe_page`
+- [x] SwipeViewGestureRecognizerGallery → `swipe_gesture_page`
+- [x] HorizontalSwipeThresholdGallery → `swipe_threshold_page`
+
 ## Batch 12 — RadioButton + Shadow galleries (9)
 - [x] RadioButtonGroupGallery → `radio_button_group_page`
 - [x] RadioButtonGroupBindingGallery → `radio_button_group_binding_page`
