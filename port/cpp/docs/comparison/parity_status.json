@@ -332,8 +332,10 @@
     "light": "pending"
   },
   "flex_layout": {
-    "dark": "pending",
-    "light": "pending"
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "Near-exact match to C#. The full holy-grail flex renders: outer column HEADER(aqua)/BODY/FOOTER(pink), body row with CONTENT(gray, Grow=1) + nav(blue, Basis=50, Order=-1 forces front) + aside(green, Basis=50). The aqua/gray/pink LABEL backgrounds render thanks to the iOS label MapBackground fix (1d442d2451). Theme-aware text (black light). Residual: maui-compare wraps the page in a card (harness artifact); C++ fills edge-to-edge.",
+    "dark_note": "Same near-exact match in dark: white-on-color headings, all flex children + Grow/Basis/Order correct. Residual is the harness card framing only."
   },
   "focus": {
     "dark": "pending",
