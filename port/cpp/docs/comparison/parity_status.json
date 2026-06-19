@@ -404,8 +404,10 @@
     "light": "pending"
   },
   "horizontal_stack": {
-    "dark": "pending",
-    "light": "pending"
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "C++ faithfully ports the full HorizontalStackLayout.xaml (heading + 6 rainbow box_views left-to-right, 12px padding); the maui-compare reference is a stub showing only the heading. Layout correct; label abuts the first box (default Spacing=0, faithful MAUI behavior). Black-on-white. Not a port bug.",
+    "dark_note": "Same demo divergence in dark theme: C++ renders the full left-to-right rainbow + white-on-black heading correctly; reference stub shows heading only."
   },
   "hybrid_web_view": {
     "dark": "pending",
