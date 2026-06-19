@@ -676,8 +676,10 @@
     "light": "pending"
   },
   "semantics": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "dark_note": "Near-exact match on dark: all SemanticProperties showcase rows render with correct colors (white labels, blue buttons) matching MAUI dark. Residual: minor vertical rhythm. (C# ref was blank \u2014 re-captured.)",
+    "light": "minor",
+    "light_note": "Near-exact match: the full SemanticProperties showcase renders matching MAUI \u2014 intro + readout labels, Label text TH/DH, blue Button text TH/DH, Entry/Editor text DTH, Search bar text DH, and the HeadingLevel labels + focus button, same content/order/colors. Residual: C++ slightly more compact vertical rhythm. (C# ref was a blank capture \u2014 re-captured.)"
   },
   "shadow_playground": {
     "dark": "pending",
