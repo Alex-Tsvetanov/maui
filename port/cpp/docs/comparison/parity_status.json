@@ -196,10 +196,10 @@
     "light_note": "C++ border + frame boxes render empty \u2014 missing their \"Inside a border\"/\"Inside a frame\" labels (MAUI shows both); \"Inside a content_view\" sits far lower; C++ nav bar has a black title-bar artifact blob."
   },
   "content_view": {
-    "dark": "blank",
-    "dark_note": "C++ dark is fully blank (only status bar) while MAUI dark shows \"ContentView\", two \"Content\" labels, and the blue \"Swap content\" button.",
-    "light": "diff",
-    "light_note": "C++ light is missing the blue \"Swap content\" button entirely, places labels higher/top-aligned instead of vertically centered, and renders a stray black rounded pill in the title bar; MAUI shows all three labels centered plus the button."
+    "dark": "minor",
+    "dark_note": "FIXED (was blank): the white labels render via the dark-text cascade and the blue Swap-content button now renders (added to the gallery page). All three labels + the button present, matching MAUI dark. Residual: minor vertical rhythm.",
+    "light": "minor",
+    "light_note": "FIXED: the blue Swap-content button now renders (the gallery content_view page had the swap logic but never added a button to trigger it \u2014 added a maui::controls::button wired to show_alternate_content()). Now matches MAUI: ContentView header, the wrapper Content label, the swap Content label, and the blue Swap-content button. Residual: minor vertical rhythm / centering."
   },
   "context_flyout": {
     "dark": "diff",

@@ -23,6 +23,7 @@
 
 #include <memory>
 
+#include "maui/controls/button.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/content_view.hpp"
 #include "maui/controls/label.hpp"
@@ -55,9 +56,15 @@ namespace maui::samples
             wrapper_.set_padding(maui::core::thickness(12));
             wrapper_.set_content(wrapped_text_);
 
+            // The "Swap content" button — tapping it re-presents the wrapper's content (the C# XAML's
+            // Button bound to a swap command). Mirrors ContentViewPage's interactive control.
+            swap_button_.set_text("Swap content");
+            swap_button_.clicked.connect([this] { show_alternate_content(); });
+
             stack_.add(default_header_);
             stack_.add(wrapper_);
             stack_.add(swap_header_);
+            stack_.add(swap_button_);
 
             scroller_.set_content(stack_);
             page_.set_content(scroller_);
@@ -89,6 +96,7 @@ namespace maui::samples
             }
             gallery_attach_one(app, wrapper_, "wrapper_");
             gallery_attach_one(app, swap_header_, "swap_header_");
+            gallery_attach_one(app, swap_button_, "swap_button_");
             gallery_attach_one(app, stack_, "stack_");
             gallery_attach_one(app, scroller_, "scroller_");
             gallery_attach_one(app, page_, "page_");
@@ -119,6 +127,7 @@ namespace maui::samples
         maui::controls::vertical_stack_layout stack_;
         maui::controls::label default_header_;
         maui::controls::label swap_header_;
+        maui::controls::button swap_button_;
         maui::controls::content_view wrapper_;
         std::shared_ptr<maui::controls::label> wrapped_text_;   // content_view co-owns its content
         std::shared_ptr<maui::controls::label> alternate_text_; // the swapped-in content (created on demand)
