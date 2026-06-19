@@ -1,0 +1,594 @@
+#pragma once
+// maui::samples::border_playground_page — ports BorderPlayground.xaml (+ BorderPlayground.xaml.cs)
+//
+// A self-contained, code-first interactive Border playground. It mirrors the C# gallery page
+// (Pages/Core/BorderGalleries/BorderPlayground.xaml): a 2-row Grid whose top row is a single live Border
+// (x:Name="BorderView") and whose bottom row is a ScrollView of controls that drive every facet of that
+// border — its content, stroke shape, background brush, content background, stroke brush, stroke width,
+// dash array, dash offset, line join, line cap, and per-corner radii. Dragging/typing any control re-runs
+// the corresponding C# Update* method and the border re-renders.
+//
+// The C# code-behind seeds the controls (content=Label, shape=RoundRectangle, join=Miter, cap=Butt) and
+// calls UpdateBackground/UpdateContentBackground/UpdateBorder/UpdateCornerRadius. This port reproduces that
+// pipeline 1:1: each control's change event invokes the same update_* method, which rebuilds the border's
+// background linear-gradient, stroke linear-gradient, stroke shape (rectangle / round_rectangle(per-corner
+// radii) / ellipse), thickness, dash array (parsed from the entry), dash offset, line join and line cap —
+// exactly the C# UpdateBorder body.
+//
+// The page OWNS its whole element tree (the gallery_page pattern). It is backend-agnostic — a sample main
+// attaches handlers bottom-up via the hosting layer and hosts page() in a window; the headless/apple/ios
+// test trees exercise the same wiring directly.
+//
+// PORT NOTES (faithful best-effort, never invented):
+//   note: the C# views:BasePage base (a navigation host) is reproduced as a plain content_page — the page
+//         chrome BasePage adds is out of scope; the playground tree is identical.
+//   note: the C# Grid RowDefinitions Height="200"/"*" lay the border over the scrollable controls;
+//         reproduced as a 200-absolute row + a star row (grid_page.hpp pattern).
+//   note: the C# {Binding ... StringFormat} live readout labels for each slider (Border Width / Dash Offset
+//         / each Corner Radius) are element-source bindings (a deferred layer-6 XAML facility); reproduced
+//         imperatively — each slider's value_changed refreshes its caption label with the live value.
+//   note: the C# Color resolution Color.FromArgb(text) over the hex Entries is reproduced via
+//         maui::graphics::color::from_argb (empty/invalid → transparent, matching GetColorFromString).
+//   note: the content "Image" option's Source="oasis.jpg" is wired as a file_image_source("oasis.jpg")
+//         (the bundled asset is host-provided); with no asset present the image is simply blank — the same
+//         best-effort the C# sample shows on a missing resource (never invented).
+//   note: the C# DoubleCollectionConverter on the dash-array Entry is reproduced by parsing the comma/space
+//         separated doubles directly into the border's stroke_dash_array (the documented vector form;
+//         border.hpp records the DoubleCollection collapse).
+//   note: the content-background checkbox sets the content view's background to #99FF0000 / transparent via
+//         set_background(solid_paint) — the view base exposes the background as a paint (view.hpp).
+//   note: the C# CornerRadiusLayout.IsVisible toggle (corner sliders shown only for RoundRectangle) is
+//         reproduced via set_is_visible on the corner-radius section.
+
+#include <cctype>
+#include <cstdio>
+#include <memory>
+#include <string>
+#include <string_view>
+#include <vector>
+
+#include "maui/controls/border.hpp"
+#include "maui/controls/check_box.hpp"
+#include "maui/controls/content_page.hpp"
+#include "maui/controls/entry.hpp"
+#include "maui/controls/file_image_source.hpp"
+#include "maui/controls/grid.hpp"
+#include "maui/controls/image.hpp"
+#include "maui/controls/label.hpp"
+#include "maui/controls/observable_collection.hpp"
+#include "maui/controls/picker.hpp"
+#include "maui/controls/scroll_view.hpp"
+#include "maui/controls/slider.hpp"
+#include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/aspect.hpp"
+#include "maui/core/grid_length.hpp"
+#include "maui/core/visibility.hpp"
+#include "maui/graphics/color.hpp"
+#include "maui/graphics/colors.hpp"
+#include "maui/graphics/corner_radius.hpp"
+#include "maui/graphics/gradient_stop.hpp"
+#include "maui/graphics/line_cap.hpp"
+#include "maui/graphics/line_join.hpp"
+#include "maui/graphics/linear_gradient_paint.hpp"
+#include "maui/graphics/point.hpp"
+#include "maui/graphics/shapes/ellipse.hpp"
+#include "maui/graphics/shapes/rectangle.hpp"
+#include "maui/graphics/shapes/round_rectangle.hpp"
+#include "maui/graphics/solid_paint.hpp"
+#include "maui/hosting/maui_app.hpp"
+
+#include "gallery_attach.hpp"
+
+namespace maui::samples
+{
+    class border_playground_page
+    {
+    public:
+        border_playground_page()
+        {
+            page_.set_title("Borders");
+
+            // Grid: a 200-unit border row over a star row of scrollable controls.
+            grid_.add_row_definition(maui::core::grid_length{200.0});
+            grid_.add_row_definition(maui::core::grid_length::star());
+
+            // --- the live border (BorderView) + its initial Label content.
+            border_content_label_.set_text("Just a Label");
+            border_view_.set_content(border_content_label_);
+            grid_.add(border_view_);
+            grid_.set_row(border_view_, 0);
+
+            build_controls();
+
+            scroller_.set_content(controls_);
+            grid_.add(scroller_);
+            grid_.set_row(scroller_, 1);
+            page_.set_content(grid_);
+
+            // C# ctor: seed the pickers + run the four initial Update* passes.
+            content_picker_.set_selected_index(0);   // Label
+            shape_picker_.set_selected_index(1);     // RoundRectangle
+            line_join_picker_.set_selected_index(0); // Miter
+            line_cap_picker_.set_selected_index(0);  // Butt
+            update_background();
+            update_content_background();
+            update_border();
+            update_corner_radius();
+        }
+
+        [[nodiscard]] maui::controls::content_page& page()
+        {
+            return page_;
+        }
+
+        // Attach a handler to every OWNED view, BOTTOM-UP (the border's content + every control first, then
+        // the controls stack, the border, the scroll_view, the grid, the page) so each parent can host its
+        // child's native view, then re-host the tree built in the ctor (gallery_attach.hpp). The generic
+        // lambda preserves each member's concrete static type — attach_handler keys on the static type.
+        void attach_handlers(maui::hosting::maui_app& app)
+        {
+            gallery_attach_one(app, border_content_label_, "border_content_label_");
+            gallery_attach_one(app, border_content_image_, "border_content_image_");
+            gallery_attach_one(app, border_view_, "border_view_");
+
+            gallery_attach_one(app, content_caption_, "content_caption_");
+            gallery_attach_one(app, content_picker_, "content_picker_");
+            gallery_attach_one(app, shape_caption_, "shape_caption_");
+            gallery_attach_one(app, shape_picker_, "shape_picker_");
+            gallery_attach_one(app, background_caption_, "background_caption_");
+            gallery_attach_one(app, bg_start_caption_, "bg_start_caption_");
+            gallery_attach_one(app, bg_start_entry_, "bg_start_entry_");
+            gallery_attach_one(app, bg_end_caption_, "bg_end_caption_");
+            gallery_attach_one(app, bg_end_entry_, "bg_end_entry_");
+            gallery_attach_one(app, content_bg_caption_, "content_bg_caption_");
+            gallery_attach_one(app, content_bg_check_, "content_bg_check_");
+            gallery_attach_one(app, content_bg_label_, "content_bg_label_");
+            gallery_attach_one(app, border_caption_, "border_caption_");
+            gallery_attach_one(app, border_start_caption_, "border_start_caption_");
+            gallery_attach_one(app, border_start_entry_, "border_start_entry_");
+            gallery_attach_one(app, border_end_caption_, "border_end_caption_");
+            gallery_attach_one(app, border_end_entry_, "border_end_entry_");
+            gallery_attach_one(app, width_caption_, "width_caption_");
+            gallery_attach_one(app, width_slider_, "width_slider_");
+            gallery_attach_one(app, dash_array_caption_, "dash_array_caption_");
+            gallery_attach_one(app, dash_array_entry_, "dash_array_entry_");
+            gallery_attach_one(app, dash_offset_caption_, "dash_offset_caption_");
+            gallery_attach_one(app, dash_offset_slider_, "dash_offset_slider_");
+            gallery_attach_one(app, line_join_caption_, "line_join_caption_");
+            gallery_attach_one(app, line_join_picker_, "line_join_picker_");
+            gallery_attach_one(app, line_cap_caption_, "line_cap_caption_");
+            gallery_attach_one(app, line_cap_picker_, "line_cap_picker_");
+            gallery_attach_one(app, corner_caption_, "corner_caption_");
+            gallery_attach_one(app, top_left_caption_, "top_left_caption_");
+            gallery_attach_one(app, top_left_slider_, "top_left_slider_");
+            gallery_attach_one(app, top_right_caption_, "top_right_caption_");
+            gallery_attach_one(app, top_right_slider_, "top_right_slider_");
+            gallery_attach_one(app, bottom_left_caption_, "bottom_left_caption_");
+            gallery_attach_one(app, bottom_left_slider_, "bottom_left_slider_");
+            gallery_attach_one(app, bottom_right_caption_, "bottom_right_caption_");
+            gallery_attach_one(app, bottom_right_slider_, "bottom_right_slider_");
+            gallery_attach_one(app, corner_layout_, "corner_layout_");
+
+            gallery_attach_one(app, controls_, "controls_");
+            gallery_attach_one(app, scroller_, "scroller_");
+            gallery_attach_one(app, grid_, "grid_");
+            gallery_attach_one(app, page_, "page_");
+
+            // Replay the host commands now (the tree was built before any handler existed).
+            gallery_rehost_content(border_view_); // border hosts its content view
+            gallery_rehost_layout(corner_layout_);
+            gallery_rehost_layout(controls_);  // controls stack hosts every control
+            gallery_rehost_content(scroller_); // scroll hosts the controls stack
+            gallery_rehost_layout(grid_);      // grid hosts the border + scroll
+            gallery_rehost_content(page_);     // page hosts the grid
+        }
+
+        // The owned controls, exposed for the hosting main's bottom-up handler attachment.
+        [[nodiscard]] maui::controls::border& border_view()
+        {
+            return border_view_;
+        }
+        [[nodiscard]] maui::controls::grid& grid()
+        {
+            return grid_;
+        }
+        [[nodiscard]] maui::controls::picker& shape_picker()
+        {
+            return shape_picker_;
+        }
+        [[nodiscard]] maui::controls::slider& width_slider()
+        {
+            return width_slider_;
+        }
+
+    private:
+        // Build the bottom-row controls panel and wire each to its C# Update* handler.
+        void build_controls()
+        {
+            controls_.set_spacing(2);
+
+            // Border Content picker (Label / Image).
+            content_caption_.set_text("Border Content");
+            controls_.add(content_caption_);
+            content_picker_.set_items_source(make_items({"Label", "Image"}));
+            content_picker_.selected_index_changed.connect([this] {
+                update_border_content();
+                update_border();
+            });
+            controls_.add(content_picker_);
+
+            // Border Shape picker (Rectangle / RoundRectangle / Ellipse).
+            shape_caption_.set_text("Border Shape");
+            controls_.add(shape_caption_);
+            shape_picker_.set_items_source(make_items({"Rectangle", "RoundRectangle", "Ellipse"}));
+            shape_picker_.selected_index_changed.connect([this] { update_border_shape(); });
+            controls_.add(shape_picker_);
+
+            // Background gradient color entries.
+            background_caption_.set_text("Background");
+            controls_.add(background_caption_);
+            bg_start_caption_.set_text("Background Start Color");
+            controls_.add(bg_start_caption_);
+            bg_start_entry_.set_text("#00B4DB");
+            bg_start_entry_.set_placeholder("Background Start Color Hex");
+            bg_start_entry_.text_changed.connect([this](std::string, std::string) { update_background(); });
+            controls_.add(bg_start_entry_);
+            bg_end_caption_.set_text("Background End Color");
+            controls_.add(bg_end_caption_);
+            bg_end_entry_.set_text("#0083B0");
+            bg_end_entry_.set_placeholder("Background End Color Hex");
+            bg_end_entry_.text_changed.connect([this](std::string, std::string) { update_background(); });
+            controls_.add(bg_end_entry_);
+
+            // Content background toggle.
+            content_bg_caption_.set_text("Content Background");
+            controls_.add(content_bg_caption_);
+            content_bg_check_.checked_changed.connect([this](bool) { update_content_background(); });
+            controls_.add(content_bg_check_);
+            content_bg_label_.set_text("Show Content Background");
+            controls_.add(content_bg_label_);
+
+            // Border gradient color entries.
+            border_caption_.set_text("Border");
+            controls_.add(border_caption_);
+            border_start_caption_.set_text("Border Start Color");
+            controls_.add(border_start_caption_);
+            border_start_entry_.set_text("#CAC531");
+            border_start_entry_.set_placeholder("Border Start Color Hex");
+            border_start_entry_.text_changed.connect([this](std::string, std::string) { update_border(); });
+            controls_.add(border_start_entry_);
+            border_end_caption_.set_text("Border End Color");
+            controls_.add(border_end_caption_);
+            border_end_entry_.set_text("#F3F9A7");
+            border_end_entry_.set_placeholder("Border End Color Hex");
+            border_end_entry_.text_changed.connect([this](std::string, std::string) { update_border(); });
+            controls_.add(border_end_entry_);
+
+            // Border width slider (Maximum 20, Minimum 0, Value 5) + live readout.
+            controls_.add(width_caption_);
+            width_slider_.set_minimum(0);
+            width_slider_.set_maximum(20);
+            width_slider_.set_value(5);
+            width_slider_.value_changed.connect([this](double, double v) {
+                set_caption(width_caption_, "Border Width: ", v);
+                update_border();
+            });
+            controls_.add(width_slider_);
+            set_caption(width_caption_, "Border Width: ", 5);
+
+            // Dash array entry ("1, 1").
+            dash_array_caption_.set_text("Border Dash Array:");
+            controls_.add(dash_array_caption_);
+            dash_array_entry_.set_text("1, 1");
+            dash_array_entry_.text_changed.connect([this](std::string, std::string) { update_border(); });
+            controls_.add(dash_array_entry_);
+
+            // Dash offset slider (Maximum 2, Minimum 0, Value 1) + live readout.
+            controls_.add(dash_offset_caption_);
+            dash_offset_slider_.set_minimum(0);
+            dash_offset_slider_.set_maximum(2);
+            dash_offset_slider_.set_value(1);
+            dash_offset_slider_.value_changed.connect([this](double, double v) {
+                set_caption(dash_offset_caption_, "Border Dash Offset: ", v);
+                update_border();
+            });
+            controls_.add(dash_offset_slider_);
+            set_caption(dash_offset_caption_, "Border Dash Offset: ", 1);
+
+            // Line join picker (Miter / Round / Bevel).
+            line_join_caption_.set_text("Border LineJoin");
+            controls_.add(line_join_caption_);
+            line_join_picker_.set_items_source(make_items({"Miter", "Round", "Bevel"}));
+            line_join_picker_.selected_index_changed.connect([this] { update_border_shape(); });
+            controls_.add(line_join_picker_);
+
+            // Line cap picker (Butt / Round / Square).
+            line_cap_caption_.set_text("Border LineCap");
+            controls_.add(line_cap_caption_);
+            line_cap_picker_.set_items_source(make_items({"Butt", "Round", "Square"}));
+            line_cap_picker_.selected_index_changed.connect([this] { update_border_shape(); });
+            controls_.add(line_cap_picker_);
+
+            build_corner_section();
+            controls_.add(corner_layout_);
+        }
+
+        // The corner-radius section (CornerRadiusLayout): four 0..60 sliders + live readouts.
+        void build_corner_section()
+        {
+            corner_layout_.set_spacing(2);
+            corner_caption_.set_text("Corner Radius");
+            corner_layout_.add(corner_caption_);
+
+            wire_corner(top_left_caption_, top_left_slider_, "Top Left Corner Radius: ", 20);
+            wire_corner(top_right_caption_, top_right_slider_, "Top Right Corner Radius: ", 0);
+            wire_corner(bottom_left_caption_, bottom_left_slider_, "Bottom Left Corner Radius: ", 0);
+            wire_corner(bottom_right_caption_, bottom_right_slider_, "Bottom Right Corner Radius: ", 12);
+        }
+
+        // Wire one corner slider (0..60 at `seed`) + its readout caption into the corner section.
+        void wire_corner(maui::controls::label& caption, maui::controls::slider& slider, const char* prefix,
+                         double seed)
+        {
+            corner_layout_.add(caption);
+            slider.set_minimum(0);
+            slider.set_maximum(60);
+            slider.set_value(seed);
+            std::string label_prefix = prefix;
+            slider.value_changed.connect([this, &caption, label_prefix](double, double v) {
+                set_caption(caption, label_prefix.c_str(), v);
+                update_corner_radius();
+            });
+            corner_layout_.add(slider);
+            set_caption(caption, prefix, seed);
+        }
+
+        // ---- the C# Update* pipeline -----------------------------------------------------------------
+
+        // C# UpdateBackground: a left-to-right linear gradient from the two background-color entries.
+        void update_background()
+        {
+            const auto start = color_from_string(bg_start_entry_.text());
+            const auto end = color_from_string(bg_end_entry_.text());
+            border_view_.set_background(make_gradient(start, end));
+        }
+
+        // C# UpdateContentBackground: tint the content view #99FF0000 while checked, else transparent.
+        void update_content_background()
+        {
+            auto* content = border_view_.content();
+            if (content == nullptr)
+            {
+                return;
+            }
+            const auto tint = content_bg_check_.is_checked() ? maui::graphics::color::from_argb("#99FF0000")
+                                                             : maui::graphics::colors::transparent;
+            // The content is one of the two owned views; set its background directly.
+            if (content == &border_content_label_)
+            {
+                border_content_label_.set_background(std::make_shared<maui::graphics::solid_paint>(tint));
+            }
+            else if (content == &border_content_image_)
+            {
+                border_content_image_.set_background(std::make_shared<maui::graphics::solid_paint>(tint));
+            }
+        }
+
+        // C# UpdateBorderContent: swap the border's content between the Label and the Image.
+        void update_border_content()
+        {
+            if (content_picker_.selected_index() == 1)
+            {
+                border_content_image_.set_aspect(maui::core::aspect::aspect_fill);
+                border_content_image_.set_source(std::make_shared<maui::controls::file_image_source>("oasis.jpg"));
+                border_view_.set_content(border_content_image_);
+            }
+            else
+            {
+                border_view_.set_content(border_content_label_);
+            }
+            update_content_background();
+        }
+
+        // C# UpdateBorderShape: the corner sliders are visible only for RoundRectangle, then UpdateBorder.
+        void update_border_shape()
+        {
+            corner_layout_.set_visibility(shape_picker_.selected_index() == 1 ? maui::core::visibility::visible
+                                                                              : maui::core::visibility::collapsed);
+            update_border();
+        }
+
+        // C# UpdateCornerRadius simply re-runs UpdateBorder.
+        void update_corner_radius()
+        {
+            update_border();
+        }
+
+        // C# UpdateBorder: rebuild the stroke shape, stroke gradient, thickness, dash array/offset, join, cap.
+        void update_border()
+        {
+            // Stroke shape from the shape picker.
+            switch (shape_picker_.selected_index())
+            {
+                case 0:
+                    border_view_.set_stroke_shape(std::make_shared<maui::graphics::shapes::rectangle>());
+                    break;
+                case 2:
+                    border_view_.set_stroke_shape(std::make_shared<maui::graphics::shapes::ellipse>());
+                    break;
+                case 1:
+                default:
+                    border_view_.set_stroke_shape(std::make_shared<maui::graphics::shapes::round_rectangle>(
+                        maui::graphics::corner_radius(top_left_slider_.value(), top_right_slider_.value(),
+                                                      bottom_left_slider_.value(), bottom_right_slider_.value())));
+                    break;
+            }
+
+            // Stroke linear gradient from the two border-color entries.
+            const auto start = color_from_string(border_start_entry_.text());
+            const auto end = color_from_string(border_end_entry_.text());
+            border_view_.set_stroke(make_gradient(start, end));
+
+            // Thickness, dash array (parsed from the entry), dash offset.
+            border_view_.set_stroke_thickness(width_slider_.value());
+            border_view_.set_stroke_dash_array(parse_dash_array(dash_array_entry_.text()));
+            border_view_.set_stroke_dash_offset(dash_offset_slider_.value());
+
+            // Line join.
+            switch (line_join_picker_.selected_index())
+            {
+                case 1:
+                    border_view_.set_stroke_line_join(maui::graphics::line_join::round);
+                    break;
+                case 2:
+                    border_view_.set_stroke_line_join(maui::graphics::line_join::bevel);
+                    break;
+                default:
+                    border_view_.set_stroke_line_join(maui::graphics::line_join::miter);
+                    break;
+            }
+
+            // Line cap (C# Butt → Flat → butt).
+            switch (line_cap_picker_.selected_index())
+            {
+                case 1:
+                    border_view_.set_stroke_line_cap(maui::graphics::line_cap::round);
+                    break;
+                case 2:
+                    border_view_.set_stroke_line_cap(maui::graphics::line_cap::square);
+                    break;
+                default:
+                    border_view_.set_stroke_line_cap(maui::graphics::line_cap::butt);
+                    break;
+            }
+        }
+
+        // ---- helpers ---------------------------------------------------------------------------------
+
+        // C# GetColorFromString: empty/invalid hex → transparent, else Color.FromArgb.
+        static maui::graphics::color color_from_string(std::string_view value)
+        {
+            if (value.empty())
+            {
+                return maui::graphics::colors::transparent;
+            }
+            maui::graphics::color parsed;
+            if (maui::graphics::color::try_parse(value, parsed))
+            {
+                return parsed;
+            }
+            return maui::graphics::colors::transparent;
+        }
+
+        // A left-to-right linear gradient (start offset 0.0, end offset 0.9) — the C# UpdateBackground/Border
+        // gradient brush.
+        static std::shared_ptr<maui::graphics::linear_gradient_paint> make_gradient(maui::graphics::color start,
+                                                                                    maui::graphics::color end)
+        {
+            std::vector<maui::graphics::gradient_stop> stops{maui::graphics::gradient_stop(0.0F, start),
+                                                             maui::graphics::gradient_stop(0.9F, end)};
+            return std::make_shared<maui::graphics::linear_gradient_paint>(
+                std::move(stops), maui::graphics::point(0, 0), maui::graphics::point(1, 0));
+        }
+
+        // C# DoubleCollectionConverter over the dash-array entry: parse comma/space-separated doubles
+        // (empty → an empty pattern, matching the C# branch).
+        static std::vector<double> parse_dash_array(std::string_view text)
+        {
+            std::vector<double> dashes;
+            std::string token;
+            for (char ch : text)
+            {
+                if (ch == ',' || std::isspace(static_cast<unsigned char>(ch)) != 0)
+                {
+                    if (!token.empty())
+                    {
+                        dashes.push_back(std::stod(token));
+                        token.clear();
+                    }
+                }
+                else
+                {
+                    token.push_back(ch);
+                }
+            }
+            if (!token.empty())
+            {
+                dashes.push_back(std::stod(token));
+            }
+            return dashes;
+        }
+
+        // Refresh a slider's live readout caption ("<prefix><value>") — the C# {Binding StringFormat} echo.
+        static void set_caption(maui::controls::label& caption, const char* prefix, double value)
+        {
+            char text[64];
+            std::snprintf(text, sizeof(text), "%s%g", prefix, value);
+            caption.set_text(text);
+        }
+
+        // A picker items source from a list of strings.
+        static std::shared_ptr<maui::controls::observable_collection<std::string>> make_items(
+            std::vector<std::string> values)
+        {
+            auto source = std::make_shared<maui::controls::observable_collection<std::string>>();
+            for (auto& value : values)
+            {
+                source->add(std::move(value));
+            }
+            return source;
+        }
+
+        maui::controls::content_page page_;
+        maui::controls::grid grid_;
+
+        // The live border + its two candidate content views (Label / Image).
+        maui::controls::border border_view_;
+        maui::controls::label border_content_label_;
+        maui::controls::image border_content_image_;
+
+        // The scrollable controls panel.
+        maui::controls::scroll_view scroller_;
+        maui::controls::vertical_stack_layout controls_;
+
+        maui::controls::label content_caption_;
+        maui::controls::picker content_picker_;
+        maui::controls::label shape_caption_;
+        maui::controls::picker shape_picker_;
+        maui::controls::label background_caption_;
+        maui::controls::label bg_start_caption_;
+        maui::controls::entry bg_start_entry_;
+        maui::controls::label bg_end_caption_;
+        maui::controls::entry bg_end_entry_;
+        maui::controls::label content_bg_caption_;
+        maui::controls::check_box content_bg_check_;
+        maui::controls::label content_bg_label_;
+        maui::controls::label border_caption_;
+        maui::controls::label border_start_caption_;
+        maui::controls::entry border_start_entry_;
+        maui::controls::label border_end_caption_;
+        maui::controls::entry border_end_entry_;
+        maui::controls::label width_caption_;
+        maui::controls::slider width_slider_;
+        maui::controls::label dash_array_caption_;
+        maui::controls::entry dash_array_entry_;
+        maui::controls::label dash_offset_caption_;
+        maui::controls::slider dash_offset_slider_;
+        maui::controls::label line_join_caption_;
+        maui::controls::picker line_join_picker_;
+        maui::controls::label line_cap_caption_;
+        maui::controls::picker line_cap_picker_;
+
+        // The corner-radius section (CornerRadiusLayout).
+        maui::controls::vertical_stack_layout corner_layout_;
+        maui::controls::label corner_caption_;
+        maui::controls::label top_left_caption_;
+        maui::controls::slider top_left_slider_;
+        maui::controls::label top_right_caption_;
+        maui::controls::slider top_right_slider_;
+        maui::controls::label bottom_left_caption_;
+        maui::controls::slider bottom_left_slider_;
+        maui::controls::label bottom_right_caption_;
+        maui::controls::slider bottom_right_slider_;
+    };
+} // namespace maui::samples

@@ -52,6 +52,17 @@ LayoutIsEnabled · RelativeLayout · ScrollView · StackLayout · TemplatedView 
 - [x] ChatExample → `chat_example_page`
 - ⚠ NOTE: custom-struct item cells donE28099t render in the gallery yet (chrome+API do); framework fix in flight.
 
+## Batch 11 — BorderGalleries (9) — natively rendered Border control
+- [x] BorderStyles → `border_styles_page`
+- [x] BorderStroke → `border_stroke_page`
+- [x] BorderPlayground → `border_playground_page`
+- [x] BorderLayout → `border_layout_page`
+- [x] BorderAlignment → `border_alignment_page` (HorizontalOptions deferred — see README)
+- [x] BorderClipPlayground → `border_clip_playground_page`
+- [x] Borderless → `borderless_page`
+- [x] BorderResizeContent → `border_resize_content_page`
+- [x] RadioButtonBorder → `radio_button_border_page`
+
 ## Batch 10 — ShapesGalleries: transforms / clip / mutation (9) — natively rendered
 - [x] TransformPlaygroundGallery → `transform_playground_page`
 - [x] PathTransformStringGallery → `path_transform_string_page`
