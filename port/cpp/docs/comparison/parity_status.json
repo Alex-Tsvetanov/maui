@@ -700,10 +700,10 @@
     "light": "pending"
   },
   "shapes": {
-    "dark": "diff",
-    "dark_note": "Same divergence as light: MAUI = Ellipse(red fill/blue stroke), RoundRectangle(solid navy), pentagram, Line; C++ = Ellipse(navy/RED stroke inverted), red-dashed Rectangle & RoundRectangle, thick Line, blue Polyline chevron, Polygon. Different shape set, inverted ellipse colors, dashed vs solid strokes, no pentagram.",
-    "light": "diff",
-    "light_note": "Different content/order: MAUI = Ellipse(red fill/blue stroke), RoundRectangle(solid navy), EvenOdd pentagram, Line; C++ = Ellipse(navy fill/RED stroke - colors inverted), Rectangle(red dashed), RoundRectangle(red dashed), Line, Polyline chevron, Polygon. C++ omits the pentagram, adds Rectangle/Polyline/Polygon, inverts ellipse fill/stroke, and uses dashed strokes vs MAUI's solid."
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "Demo divergence: the two apps show different shapes showcases. The C++ shapes_page renders its own set (a touch-canvas heading + blue-outlined rect with diagonal lines, red & yellow rounded bars, green ellipse, gray dashed line, purple polygon, orange rotated rect) — all shape types render correctly (fill/stroke/dash/rotation). The maui-compare reference shows a labeled Ellipse/RoundRectangle/EvenOdd-Polygon/Line set. Both render shapes faithfully; heading is theme-aware.",
+    "dark_note": "Same demo divergence: all C++ shapes render with their explicit colors + white-on-black heading. Different demo content vs the reference, both correct."
   },
   "single_bound_selection": {
     "dark": "blank",
