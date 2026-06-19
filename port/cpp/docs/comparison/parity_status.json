@@ -686,10 +686,10 @@
     "light_note": "Same text content, but C++ uses much larger font/line-height: instruction wraps differently (ends \"...this\" vs \"...not,\") and the 5 country labels are widely spaced apart vs MAUI's tight single-line-spaced list; C++ also shows a stray black pill in the nav-bar area."
   },
   "slider": {
-    "dark": "diff",
-    "dark_note": "C++ dark is nearly blank \u2014 only a thin pink line and one orange pill near the bottom render; all labels and the other ~9 sliders are missing, whereas MAUI shows the full labeled slider list with native white thumbs and colored fills.",
-    "light": "diff",
-    "light_note": "C++ draws wrong slider chrome \u2014 a thick solid black full-width track with an oversized black pill thumb at left; MAUI shows native iOS thin tracks with a small white circular thumb and colored minimum-track fills (blue/gradient/etc.)."
+    "dark": "minor",
+    "dark_note": "FIXED: native white pill thumbs + gray tracks now render on dark (unset tints -> nil); BackgroundColor=Blue + Background=gradient bands render behind the track (new update_background + gradient-resize hook); MaximumTrackColor=Pink + ThumbColor=Orange + disabled gray match MAUI dark. Residual: minor vertical rhythm.",
+    "light": "minor",
+    "light_note": "FIXED (was broken): every slider now renders the native thumb + track. Two fixes \u2014 (1) unset Thumb/Min/MaxTrackColor now leave the UISlider native default (nil) instead of a transparent tint that hid the default white thumb + gray track; (2) added iOS update_background so BackgroundColor=Blue shows a flat blue band and Background=gradient shows the gradient band behind the track (MauiIosSlider.layoutSubviews resizes the gradient via resize_background_layers). MinTrack/MaxTrack/Thumb explicit colors + disabled gray all match MAUI. Residual: minor vertical rhythm."
   },
   "some_empty_groups": {
     "dark": "pending",

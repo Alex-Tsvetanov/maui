@@ -23,6 +23,7 @@
 #include <string_view>
 
 #include "ios_conversions.hpp"
+#include "ios_visual_ops.hpp"
 #include "maui/core/i_image_source.hpp"
 #include "maui/core/i_ios_slider_specifics.hpp"
 #include "maui/core/i_slider.hpp"
@@ -32,6 +33,21 @@
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+
+// MauiIosSlider — the UISlider the handler presents. Its layoutSubviews override re-sizes any gradient/
+// image background sublayer apply_background installed (a solid BackgroundColor needs no resize — it is the
+// backing layer's backgroundColor), so a Background brush fills the band behind the track and tracks bounds.
+// apply_background runs before arrange, when bounds is zero, so without this hook a gradient stays invisible.
+@interface MauiIosSlider : UISlider
+@end
+
+@implementation MauiIosSlider
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    maui::platform::ios::resize_background_layers((__bridge void*)self);
+}
+@end
 
 // Obj-C trampoline: forwards the UISlider's control events to the C++ handler's virtual view — the
 // SliderProxy port (ValueChanged / TouchDown / TouchUp).
@@ -190,10 +206,18 @@ namespace maui::core
         as_slider(native).accessibilityIdentifier = raw != nil ? raw : @"";
     }
 
+    void slider_platform::update_background(const maui::graphics::paint* value)
+    {
+        // A UISlider has no bezel, so its BackgroundColor / Background brush shows as a band behind the
+        // track: the shared helper paints a solid color onto the backing layer or installs a gradient/image
+        // sublayer (MauiIosSlider.layoutSubviews re-sizes the gradient to bounds). A null paint clears it.
+        maui::platform::ios::apply_background(native, value);
+    }
+
     std::unique_ptr<slider_platform> slider_handler::create_platform_view()
     {
         auto platform = std::make_unique<slider_platform>();
-        UISlider* const native = [[UISlider alloc] initWithFrame:CGRectZero];
+        UISlider* const native = [[MauiIosSlider alloc] initWithFrame:CGRectZero];
         native.continuous = YES;                            // CreatePlatformView: new UISlider { Continuous = true }
         platform->native = (__bridge_retained void*)native; // the void* slot owns one reference
         return platform;
@@ -264,8 +288,12 @@ namespace maui::core
     {
         if (auto* platform = handler.typed_platform_view())
         {
-            // SliderExtensions.UpdateMinimumTrackColor (the null guard collapses).
-            as_slider(platform->native).minimumTrackTintColor = to_ui_color(view.minimum_track_color());
+            // SliderExtensions.UpdateMinimumTrackColor: an unset (default-constructed) color must leave the
+            // UISlider's native default tint, NOT force a transparent fill — to_ui_color(unset) is a clear
+            // color that hides the track. nil restores the system default (the C# null branch is a no-op).
+            const maui::graphics::color color = view.minimum_track_color();
+            as_slider(platform->native).minimumTrackTintColor =
+                color != maui::graphics::color{} ? to_ui_color(color) : nil;
         }
     }
 
@@ -273,16 +301,20 @@ namespace maui::core
     {
         if (auto* platform = handler.typed_platform_view())
         {
-            // SliderExtensions.UpdateMaximumTrackColor (the null guard collapses).
-            as_slider(platform->native).maximumTrackTintColor = to_ui_color(view.maximum_track_color());
+            // SliderExtensions.UpdateMaximumTrackColor: unset leaves the native default gray track (nil),
+            // not a transparent fill (to_ui_color(unset) would hide it).
+            const maui::graphics::color color = view.maximum_track_color();
+            as_slider(platform->native).maximumTrackTintColor =
+                color != maui::graphics::color{} ? to_ui_color(color) : nil;
         }
     }
 
     void slider_handler::map_thumb_color(slider_handler& handler, i_slider& view)
     {
         // SliderExtensions.UpdateThumbColor: when a ThumbImageSource is set, the image wins (re-run the
-        // image map so the thumb image — not the tint — is applied); otherwise push the color tint (the
-        // null guard collapses — non-nullable color). Mirrors C#'s UpdateThumbColor branch.
+        // image map so the thumb image — not the tint — is applied); otherwise push the color tint. An unset
+        // ThumbColor must leave the native default thumb (the white pill), so map it to nil rather than a
+        // transparent tint (to_ui_color(unset) would make the thumb invisible).
         if (view.thumb_image_source() != nullptr && !view.thumb_image_source()->is_empty())
         {
             map_thumb_image_source(handler, view);
@@ -290,7 +322,8 @@ namespace maui::core
         }
         if (auto* platform = handler.typed_platform_view())
         {
-            as_slider(platform->native).thumbTintColor = to_ui_color(view.thumb_color());
+            const maui::graphics::color color = view.thumb_color();
+            as_slider(platform->native).thumbTintColor = color != maui::graphics::color{} ? to_ui_color(color) : nil;
         }
     }
 
@@ -364,7 +397,10 @@ namespace maui::core
         UISlider* const slider = as_slider(platform.native);
         [slider setThumbImage:nil forState:UIControlStateNormal];
         platform.thumb_image_set = false;
-        slider.thumbTintColor = maui::platform::ios::to_ui_color(view.thumb_color());
+        // Restore the thumb color (UpdateThumbColor): an unset color leaves the native default white thumb
+        // (nil), not a transparent tint that would make it invisible.
+        const maui::graphics::color thumb = view.thumb_color();
+        slider.thumbTintColor = thumb != maui::graphics::color{} ? maui::platform::ios::to_ui_color(thumb) : nil;
         // iOS 26+: SetThumbImage(nil) likewise needs an explicit layout pass (unconditional, harmless pre-26).
         [slider setNeedsLayout];
     }
