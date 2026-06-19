@@ -10,6 +10,7 @@
 #include "maui/controls/templates/element_template.hpp"
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/setter_specificity.hpp"
+#include "maui/core/type_tag.hpp"
 
 namespace maui::controls
 {
@@ -42,9 +43,9 @@ namespace maui::controls
         id_string_ = "maui::controls::data_template" + std::to_string(id_);
     }
 
-    data_template::data_template(loader load_template, std::string id_string)
+    data_template::data_template(loader load_template, std::string id_string, maui::core::type_tag content_type)
         : element_template(std::move(load_template), /*can_recycle=*/true), id_(next_id()),
-          id_string_(std::move(id_string))
+          id_string_(std::move(id_string)), content_type_(content_type)
     {
     }
 

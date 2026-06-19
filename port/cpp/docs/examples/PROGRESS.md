@@ -40,7 +40,7 @@ swipe_refresh · web_view · chrome · tabbed_flyout — see the per-example REA
 AbsoluteLayout · ClippingPage · ContentView · CustomLayout · FlexLayout · Grid · HorizontalStackLayout ·
 LayoutIsEnabled · RelativeLayout · ScrollView · StackLayout · TemplatedView · VerticalStackLayout · ZIndex
 
-## Batch 9 — CollectionView galleries (9) — API+chrome (item-cell render fix in flight)
+## Batch 9 — CollectionView galleries (9) — full render (struct-cell fix landed)
 - [x] FilterCollectionView → `filter_collection_page`
 - [x] BasicGrouping → `basic_grouping_page`
 - [x] SelectionModeGallery → `selection_mode_page`

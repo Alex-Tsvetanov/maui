@@ -30,6 +30,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -38,6 +39,7 @@
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/setter_specificity.hpp"
+#include "maui/core/type_tag.hpp"
 
 namespace maui::controls
 {
@@ -52,13 +54,16 @@ namespace maui::controls
         explicit data_template(loader load_template);
 
         // DataTemplate(Type) — the reflection-free stand-in: load via make_shared<TControl>, mark
-        // recyclable, and share one id_string per TControl (C# type.FullName).
+        // recyclable, and share one id_string per TControl (C# type.FullName). Also captures the
+        // TControl type_tag (content_type()) so a native cell can create_handler<TControl>() and host
+        // the realized content's native view — the reflection-free analog of the C# Type ctor letting
+        // TemplatedCell2 do `CreateContent(...) as View` then `view.ToPlatform(mauiContext)`.
         template <class TControl> [[nodiscard]] static std::shared_ptr<data_template> of()
         {
             static const std::string type_id_string = make_type_id_string();
             return std::shared_ptr<data_template>(new data_template(
                 [] { return std::static_pointer_cast<maui::core::bindable_object>(std::make_shared<TControl>()); },
-                type_id_string));
+                type_id_string, maui::core::type_tag::of<TControl>()));
         }
 
         // ---- IDataTemplateController ----
@@ -69,6 +74,16 @@ namespace maui::controls
         [[nodiscard]] const std::string& id_string() const
         {
             return id_string_;
+        }
+
+        // The TControl type_tag of a type-activated template (of<TControl>()), or nullopt for a
+        // loader-only / selector template. A native backend uses it to create_handler<TControl>() and
+        // realize the created content's native view inside a cell (the C# `view.ToPlatform(mauiContext)`
+        // step). Loader-only templates carry no static control type, so the native cell falls back to
+        // the item text mirror (as before) — documented, and exercised only by type-activated templates.
+        [[nodiscard]] const std::optional<maui::core::type_tag>& content_type() const
+        {
+            return content_type_;
         }
 
         // ---- Values (DataTemplate.SetValue / the Values dictionary) ----
@@ -124,8 +139,9 @@ namespace maui::controls
         // A staged binding: applied once to each created content.
         using binding_applier = std::function<void(maui::core::bindable_object&)>;
 
-        // The type-activated ctor used by of<TControl>().
-        data_template(loader load_template, std::string id_string);
+        // The type-activated ctor used by of<TControl>() — also records the TControl type_tag so a
+        // native cell can resolve the matching handler for the realized content.
+        data_template(loader load_template, std::string id_string, maui::core::type_tag content_type);
         [[nodiscard]] static int next_id();
         [[nodiscard]] static std::string make_type_id_string();
 
@@ -155,6 +171,9 @@ namespace maui::controls
 
         int id_;                // DataTemplate._id (idCounter starts at 100; first id is 101)
         std::string id_string_; // DataTemplate._idString (the recycling reuse-identifier)
+        // The static control type of a type-activated template (of<TControl>()), used by a native cell
+        // to create the matching handler for the realized content (nullopt for loader-only templates).
+        std::optional<maui::core::type_tag> content_type_;
         // Ordered (std::map) so create_content applies deterministically; keys are descriptor names.
         std::map<std::string, std::any, std::less<>> values_;
         std::map<std::string, binding_applier, std::less<>> bindings_;

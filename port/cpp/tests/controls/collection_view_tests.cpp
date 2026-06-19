@@ -57,12 +57,31 @@ namespace
 
     using string_collection = observable_collection<std::string>;
 
+    // A NON-string custom item type (the selection_mode gallery's photo_item shape): the templated cell
+    // binds a label to its `title` field, exercising the struct → BindingContext → typed-selector path
+    // (boxed_item::of<photo_item>'s type_tag-checked context vs the std::string built-in text mirror).
+    struct photo_item
+    {
+        std::string title;
+        bool operator==(const photo_item&) const = default;
+    };
+    using photo_collection = observable_collection<photo_item>;
+
     // A recyclable (type-activated) label template whose Text binds to the string item itself.
     std::shared_ptr<data_template> make_label_template()
     {
         auto tmpl = data_template::of<label>();
         tmpl->set_binding<std::string, std::string>(label::text_property(),
                                                     [](const std::string& value) { return value; });
+        return tmpl;
+    }
+
+    // A label template whose Text binds to a custom struct's `title` field (the non-std::string path).
+    std::shared_ptr<data_template> make_photo_title_template()
+    {
+        auto tmpl = data_template::of<label>();
+        tmpl->set_binding<std::string, photo_item>(label::text_property(),
+                                                   [](const photo_item& item) { return item.title; });
         return tmpl;
     }
 
@@ -156,6 +175,35 @@ namespace
             ASSERT_NE(content, nullptr);
             EXPECT_EQ(content->text(), rig.items->at(static_cast<std::size_t>(cell.path.item)));
         }
+    }
+
+    // The struct twin of template_cells_bind_the_item_as_context: a collection_view over a
+    // observable_collection<photo_item> (a NON-std::string item) with a label template bound to the
+    // struct's `title` field must realize N cells whose template-bound content text equals the field.
+    // Guards the regression where a custom-struct item rendered blank because the realized cell never
+    // resolved its BindingContext against the struct's type (only string/arithmetic items have a
+    // built-in text mirror; a struct must bind through the template).
+    TEST(collection_view_sim, struct_template_cells_bind_the_struct_field)
+    {
+        std::shared_ptr<photo_collection> const items = std::make_shared<photo_collection>(
+            std::vector<photo_item>{{.title = "Aurora"}, {.title = "Basalt"}, {.title = "Cirrus"}});
+        collection_view view;
+        auto const handler = std::make_shared<collection_view_handler>();
+        view.set_item_template(make_photo_title_template());
+        view.set_items_source(items);
+        view.set_handler(handler);
+
+        auto* const platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+        ASSERT_FALSE(platform->realized.empty());
+        for (const realized_cell& cell : platform->realized)
+        {
+            const auto content = std::dynamic_pointer_cast<label>(cell.content);
+            ASSERT_NE(content, nullptr);
+            EXPECT_EQ(content->text(), items->at(static_cast<std::size_t>(cell.path.item)).title);
+        }
+        // The first realized cell binds "Aurora" (proves the struct field, not an empty text mirror).
+        EXPECT_EQ(std::dynamic_pointer_cast<label>(platform->realized.front().content)->text(), "Aurora");
     }
 
     TEST(collection_view_sim, recycling_reuses_pooled_template_content)

@@ -37,7 +37,11 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/scroll_to_position.hpp"
 #include "maui/controls/templates/data_template.hpp"
+#include "maui/core/handler_registry.hpp"
+#include "maui/core/i_maui_context.hpp"
+#include "maui/core/label_handler.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/service_registry.hpp"
 #include "tests/support/run_loop_pump.hpp"
 #include <gtest/gtest.h>
 
@@ -82,17 +86,42 @@ namespace
         return window;
     }
 
+    // A minimal i_maui_context with the label handler registered, so a templated cell can realize the
+    // label template's native view (the C# view.ToPlatform(mauiContext) step). Implemented inline (no
+    // hosting-library dependency) — only the two accessors the handler uses are real. Owned by the rig
+    // so it outlives the handler that references it (§8). label is the only control the templates use.
+    struct test_context final : maui::core::i_maui_context
+    {
+        maui::core::service_registry services_;
+        maui::core::handler_registry handlers_;
+        test_context()
+        {
+            handlers_.register_handler<maui::controls::label, maui::core::label_handler>();
+        }
+        [[nodiscard]] maui::core::service_registry& services() override
+        {
+            return services_;
+        }
+        [[nodiscard]] maui::core::handler_registry& handlers() override
+        {
+            return handlers_;
+        }
+    };
+
     // A rig: 30 string items so the visible window is a small fraction of the source (so the recycler
-    // has something to recycle). The collection (publisher) is declared FIRST (§8).
+    // has something to recycle). The collection (publisher) is declared FIRST (§8); the context precedes
+    // the handler (the handler holds a back-pointer into it).
     struct rig
     {
         std::shared_ptr<string_collection> items; // publisher FIRST (§8)
+        test_context ctx;                         // before the handler (back-pointer target)
         collection_view view;
         std::shared_ptr<collection_view_handler> handler = std::make_shared<collection_view_handler>();
 
         explicit rig(std::vector<std::string> initial = make_alphabet(30))
             : items(std::make_shared<string_collection>(std::move(initial)))
         {
+            handler->set_maui_context(&ctx);
             view.set_items_source(items);
             view.set_handler(handler);
         }
@@ -109,6 +138,59 @@ namespace
         }
 
         // Mount the native scroll view in a host window and pump a layout pass so items realize.
+        NSWindow* mount(double width = 200, double height = 400) const
+        {
+            NSWindow* const window = make_host_window();
+            NSScrollView* const scroll = native_scroll(handler);
+            window.contentView = scroll;
+            [window makeKeyAndOrderFront:nil];
+            handler->native_force_layout(width, height);
+            pump_until([&] { return handler->native_visible_cell_count() > 0; });
+            return window;
+        }
+    };
+
+    // A NON-string custom item type — the selection_mode gallery's photo_item shape. A templated cell
+    // over a collection of these binds a label to a struct FIELD (not item.text(), which is empty for a
+    // struct), so the native cell must realize the template's content to render anything.
+    struct photo_item
+    {
+        std::string title;
+        bool operator==(const photo_item&) const = default;
+    };
+    using photo_collection = observable_collection<photo_item>;
+
+    // The struct twin of `rig`: a collection_view over observable_collection<photo_item> with a label
+    // template bound to the struct's `title`. Shares the test_context (label handler registered).
+    struct struct_rig
+    {
+        std::shared_ptr<photo_collection> items; // publisher FIRST (§8)
+        test_context ctx;
+        collection_view view;
+        std::shared_ptr<collection_view_handler> handler = std::make_shared<collection_view_handler>();
+
+        struct_rig() : items(std::make_shared<photo_collection>(make_photos(30)))
+        {
+            auto tmpl = data_template::of<label>();
+            tmpl->set_binding<std::string, photo_item>(label::text_property(),
+                                                       [](const photo_item& item) { return item.title; });
+            handler->set_maui_context(&ctx);
+            view.set_item_template(tmpl);
+            view.set_items_source(items);
+            view.set_handler(handler);
+        }
+
+        static std::vector<photo_item> make_photos(int count)
+        {
+            std::vector<photo_item> values;
+            values.reserve(static_cast<std::size_t>(count));
+            for (int i = 0; i < count; ++i)
+            {
+                values.push_back({.title = "photo-" + std::to_string(i)});
+            }
+            return values;
+        }
+
         NSWindow* mount(double width = 200, double height = 400) const
         {
             NSWindow* const window = make_host_window();
@@ -183,6 +265,20 @@ namespace
         NSWindow* const window = r.mount();
         EXPECT_GT(r.handler->native_visible_cell_count(), 0);
         EXPECT_EQ(r.handler->native_cell_text({.section = 0, .item = 0}), "item-0");
+        (void)window;
+    }
+
+    // A collection_view over a custom-struct source with a label template bound to a struct FIELD must
+    // realize cells whose native content renders the bound field — the regression where struct items
+    // rendered blank because the native cell only mirrored item.text() (empty for a non-string struct)
+    // and never realized the template's content. The text is read off the realized label's NSTextField.
+    TEST(collection_view_appkit, struct_item_template_binds_and_renders)
+    {
+        struct_rig r;
+        NSWindow* const window = r.mount();
+        EXPECT_GT(r.handler->native_visible_cell_count(), 0);
+        EXPECT_EQ(r.handler->native_cell_text({.section = 0, .item = 0}), "photo-0");
+        EXPECT_EQ(r.handler->native_cell_text({.section = 0, .item = 1}), "photo-1");
         (void)window;
     }
 

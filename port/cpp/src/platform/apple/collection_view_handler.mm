@@ -52,6 +52,12 @@
 #include "maui/controls/scroll_to_position.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/templates/data_template_selector.hpp"
+#include "maui/core/bindable_object.hpp"
+#include "maui/core/handler_registry.hpp"
+#include "maui/core/i_element.hpp"
+#include "maui/core/i_element_handler.hpp"
+#include "maui/core/i_maui_context.hpp"
+#include "maui/core/i_view_handler.hpp"
 
 namespace
 {
@@ -74,9 +80,22 @@ namespace
 @property(nonatomic, strong) NSView* templatedContent; // the realized data_template native view, if any
 - (void)showText:(NSString*)text;
 - (void)showTemplatedContent:(NSView*)content;
+// Host the realized template content's native view AND retain the C++ content (which owns its handler +
+// native view) for as long as this cell displays it — the C# TemplatedCell2 holding its PlatformHandler.
+- (void)showTemplatedContent:(NSView*)content retainingRealized:(std::shared_ptr<maui::core::bindable_object>)realized;
+// The text actually on screen: the realized template content's first NSTextField when templated,
+// otherwise the default-cell label. The test seam (native_cell_text) reads this so a template-bound
+// label reports its bound value, not the cell's hidden default label.
+- (NSString*)displayedText;
 @end
 
 @implementation MauiCollectionViewItem
+{
+    // The realized data_template content (owns its attached handler + native view). Held so the hosted
+    // native view outlives this method call; released on reuse/replacement (the C# cell drops its
+    // PlatformHandler + VirtualView when it re-binds).
+    std::shared_ptr<maui::core::bindable_object> _realizedContent;
+}
 
 // NSCollectionViewItem builds its view lazily; supply a flat container so we can host either surface.
 - (void)loadView
@@ -94,6 +113,7 @@ namespace
 {
     [_templatedContent removeFromSuperview];
     _templatedContent = nil;
+    _realizedContent.reset();
     _label.hidden = NO;
     _label.stringValue = text;
 }
@@ -115,13 +135,52 @@ namespace
     }
 }
 
+- (void)showTemplatedContent:(NSView*)content retainingRealized:(std::shared_ptr<maui::core::bindable_object>)realized
+{
+    // Retain the realized content FIRST (it owns the handler that owns `content`) so replacing the
+    // previous content never frees the incoming native view mid-swap.
+    _realizedContent = std::move(realized);
+    [self showTemplatedContent:content];
+}
+
 - (void)prepareForReuse
 {
     [super prepareForReuse];
-    // The recycler hands this instance back; clear the templated content so a fresh bind re-hosts.
+    // The recycler hands this instance back; clear the templated content so a fresh bind re-hosts, and
+    // drop the realized content (its handler + native view) — the C# cell dropping its PlatformHandler.
     [_templatedContent removeFromSuperview];
     _templatedContent = nil;
+    _realizedContent.reset();
     _label.hidden = NO;
+}
+
+// Depth-first search for the first NSTextField in a view subtree (the realized label's native field).
++ (NSTextField*)firstTextFieldIn:(NSView*)root
+{
+    if ([root isKindOfClass:[NSTextField class]])
+    {
+        return (NSTextField*)root;
+    }
+    for (NSView* const sub in root.subviews)
+    {
+        if (NSTextField* const found = [MauiCollectionViewItem firstTextFieldIn:sub])
+        {
+            return found;
+        }
+    }
+    return nil;
+}
+
+- (NSString*)displayedText
+{
+    if (_templatedContent != nil)
+    {
+        if (NSTextField* const field = [MauiCollectionViewItem firstTextFieldIn:_templatedContent])
+        {
+            return field.stringValue;
+        }
+    }
+    return _label.stringValue;
 }
 @end
 
@@ -292,6 +351,62 @@ namespace maui::controls
                     want_footer ? NSMakeSize(supplementary_cross, k_supplementary_extent) : NSZeroSize;
             }
             return layout;
+        }
+
+        // Resolve a possibly-selector item template against one item (DataTemplateSelector.SelectTemplate;
+        // the container is the items view itself, like C# passes the ItemsView). Mirrors the cross-platform
+        // resolve_template in collection_view_handler.cpp (kept local — that one is .cpp-internal).
+        std::shared_ptr<data_template> resolve_item_template(const std::shared_ptr<data_template>& candidate,
+                                                             const boxed_item& item,
+                                                             maui::core::bindable_object* container)
+        {
+            if (auto selector = std::dynamic_pointer_cast<data_template_selector>(candidate))
+            {
+                return selector->select_template(item.context_box(), container);
+            }
+            return candidate;
+        }
+
+        // Realize a type-activated template's content into a native NSView (the C# TemplatedCell2.Bind:
+        // `CreateContent(...) as View` → set BindingContext → `view.ToPlatform(mauiContext)`). Returns the
+        // realized content (which OWNS its attached handler + native view — the caller keeps it alive for
+        // the cell's lifetime) and, out-param, its native NSView. Yields {nullptr, nil} when the template
+        // is loader-only (no static control type) or no handler is registered for that type — the cell
+        // then falls back to the item-text mirror, exactly as before.
+        std::shared_ptr<maui::core::bindable_object> realize_template_content(
+            collection_view_handler& handler, const std::shared_ptr<data_template>& tmpl, const boxed_item& value,
+            NSView** out_native)
+        {
+            *out_native = nil;
+            maui::core::i_maui_context* const context = handler.maui_context();
+            if (tmpl == nullptr || context == nullptr || !tmpl->content_type().has_value())
+            {
+                return nullptr;
+            }
+            std::shared_ptr<maui::core::bindable_object> content = tmpl->create_content();
+            if (!content)
+            {
+                return nullptr;
+            }
+            // BindingContext = the item (so the template's staged bindings resolve against it). Set BEFORE
+            // attaching the handler so the first mapper pass already sees the bound property values.
+            content->set_binding_context_box(value.context_box());
+
+            std::shared_ptr<maui::core::i_element_handler> child_handler =
+                context->handlers().create_handler(*tmpl->content_type());
+            auto* element = dynamic_cast<maui::core::i_element*>(content.get());
+            if (!child_handler || element == nullptr)
+            {
+                return nullptr; // no registered handler (or non-element content) — fall back to text
+            }
+            child_handler->set_maui_context(context);
+            element->set_handler(child_handler); // creates the platform view + runs the mapper
+
+            if (auto* view_handler = dynamic_cast<maui::core::i_view_handler*>(child_handler.get()))
+            {
+                *out_native = (__bridge NSView*)view_handler->native_view();
+            }
+            return content;
         }
     } // namespace
 
@@ -610,7 +725,7 @@ namespace maui::controls
         if (auto* const maui_item = (MauiCollectionViewItem*)item;
             [maui_item isKindOfClass:[MauiCollectionViewItem class]])
         {
-            const char* const utf8 = maui_item.label.stringValue.UTF8String;
+            const char* const utf8 = [maui_item displayedText].UTF8String;
             return utf8 != nullptr ? std::string(utf8) : std::string();
         }
         return {};
@@ -756,13 +871,28 @@ namespace maui::controls
                                           .item = static_cast<int>(indexPath.item)};
     const maui::controls::boxed_item value = source->item(path);
 
-    // Whether an ItemTemplate is set (TemplatedCell2) or not (DefaultCell2), the item's visible surface
-    // is its NSTextField mirroring item.text(): for the apple seam suite a label template binding-to-`.`
-    // resolves to the item's own text, and the realized data_template content record lives in the
-    // cross-platform simulator (which this backend still runs as the state mirror). Hosting the realized
-    // native template view inside the item is the documented simplification (see the file-header note) —
-    // the reuse / selection / grouping / reorder / scroll semantics are the asserted, faithful surface.
-    [item showText:maui::controls::to_nsstring(value.text())];
+    // TemplatedCell2 vs DefaultCell2 (the C# split): with an ItemTemplate set, realize the template's
+    // content as a real native view bound to the item (so a struct item renders its template-bound
+    // fields, not just item.text() — which is empty for non-string items); with no template, the default
+    // cell's NSTextField mirrors item.text(). The realized content is retained on the cell for as long as
+    // it hosts it (the C# cell holding its PlatformHandler), released on reuse.
+    auto* itemsView = handler->virtual_view();
+    const std::shared_ptr<maui::controls::data_template> tmpl =
+        itemsView != nullptr
+            ? maui::controls::resolve_item_template(itemsView->item_template(), value,
+                                                    dynamic_cast<maui::core::bindable_object*>(itemsView))
+            : nullptr;
+    NSView* templated = nil;
+    std::shared_ptr<maui::core::bindable_object> realized =
+        maui::controls::realize_template_content(*handler, tmpl, value, &templated);
+    if (realized != nullptr && templated != nil)
+    {
+        [item showTemplatedContent:templated retainingRealized:std::move(realized)];
+    }
+    else
+    {
+        [item showText:maui::controls::to_nsstring(value.text())];
+    }
     return item;
 }
 
