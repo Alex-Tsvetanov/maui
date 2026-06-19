@@ -66,10 +66,10 @@
     "light_note": "C++ rows are much taller (only ~3 fit vs 5 in MAUI), row labels sit below the grey box instead of vertically centered, and the \"Swipe a row...\" footer label is mispositioned (overlaps the middle row) instead of below the last row; stray black pill in status bar."
   },
   "behaviors": {
-    "dark": "diff",
-    "dark_note": "Same as light: C++ title is a small single-line label at top with Entry immediately below, while MAUI shows a large bold two-line heading and the Entry positioned much lower (~y=825). Title font size and vertical layout differ.",
-    "light": "diff",
-    "light_note": "C++ renders the title \"Red when the number isn't valid\" as a small single-line label at the top (~y=300) with the Entry directly under it; MAUI shows it as a large bold two-line heading with the Entry lower (~y=850). C++ also has a stray black pill in the nav bar."
+    "dark": "minor",
+    "dark_note": "FIXED (was diff): the headline now renders large two-line (FontSize 32) matching MAUI dark, with the validation Entry below. Residual: minor vertical rhythm.",
+    "light": "minor",
+    "light_note": "FIXED: the title \"Red when the number isnt valid\" now renders as a large two-line Headline (FontSize 32) above the Entry, matching MAUI (was a small single-line label \u2014 the gallery set the text but not the Headline-style font size). The validation behavior (Entry turns red on invalid double) is demonstrated. Residual: minor vertical position (C++ a touch higher)."
   },
   "border": {
     "dark": "diff",

@@ -29,6 +29,7 @@
 #include "maui/controls/entry.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/font.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/hosting/maui_app.hpp"
 
@@ -94,8 +95,11 @@ namespace maui::samples
             page_.set_title("Behaviors");
             stack_.set_spacing(12);
 
-            // Label Text="Red when the number isn't valid" Style="Headline".
+            // Label Text="Red when the number isn't valid" Style="Headline". The port has no app-level
+            // Headline resource, so size it inline to match MAUI's Headline style (FontSize 32) — the C#
+            // page shows this as a large two-line heading above the Entry.
             headline_.set_text("Red when the number isn't valid");
+            headline_.set_font(maui::core::font::system_font_of_size(32.0));
 
             // Entry Placeholder="Enter a System.Double" with the NumericValidationBehavior attached.
             value_entry_.set_placeholder("Enter a System.Double");
