@@ -102,8 +102,12 @@ namespace maui::core
     {
         if (auto* platform = handler.typed_platform_view())
         {
-            // ProgressBarExtensions.UpdateProgressColor (the nullable collapse — see the header).
-            as_bar(platform->native).progressTintColor = to_ui_color(view.progress_color());
+            // ProgressBarExtensions.UpdateProgressColor: an unset (default-constructed) ProgressColor must
+            // leave the UIProgressView's native default tint (the system blue), NOT a transparent fill —
+            // to_ui_color(unset) is a clear color that hides the progress fill. nil restores the default
+            // (C# calls ResetProgressTintColor in the null branch).
+            const maui::graphics::color color = view.progress_color();
+            as_bar(platform->native).progressTintColor = color != maui::graphics::color{} ? to_ui_color(color) : nil;
         }
     }
 

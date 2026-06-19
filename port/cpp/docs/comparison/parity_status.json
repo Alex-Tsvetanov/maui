@@ -588,8 +588,10 @@
     "light_note": "C++ renders a 4-column grid with no selection highlight and a non-bold header; MAUI shows a 3-column grid with gray preselected-item backgrounds (photo.jpg 2 / Fruits.jpg 4 / FlowerBuds.jpg 5) and a bold header."
   },
   "progress_bar": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "dark_note": "FIXED: Default/Disabled blue fills render (unset ProgressColor -> nil native default, was transparent); orange ProgressColor + gray tracks all match MAUI dark, full-width below each label. The earlier apparent layout offset was the invisible fill, now resolved. Residual: bold labels in the C# demo (demo difference).",
+    "light": "minor",
+    "light_note": "FIXED: the Default/Disabled bars now show their blue default fill (unset ProgressColor was forced to a transparent tint, hiding the fill and making the bar look mis-positioned/right-aligned; now unset -> nil restores the native blue, C# ResetProgressTintColor). All bars now render full-width below their label matching MAUI \u2014 blue default + orange ProgressColor + gray tracks + empty ProgressTo. Residual: C# demo styles labels bold vs the port regular weight (demo difference)."
   },
   "radio_button_border": {
     "dark": "pending",
