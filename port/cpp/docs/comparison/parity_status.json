@@ -726,8 +726,10 @@
     "light_note": "FIXED: BackgroundColor=Red now renders (added iOS update_background -> apply_background; MauiIosStepper.layoutSubviews keeps a gradient fill sized). Labels + blue Enable-Stepper link render (dark-text cascade). Residual: the C# stepper-page demo styles section labels bold/larger + lays the BackgroundColor stepper full-width (a wide red band) while the C++ gallery demo uses regular labels + an intrinsic-width red pill \u2014 a demo-layout/styling difference between the two apps (the port renders BackgroundColor correctly into the stepper frame)."
   },
   "styles": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "dark_note": "FIXED: the Style-Me button now has a light-gray fill so its dark text is readable on dark (was invisible \u2014 near-black text, no fill); matches MAUI light-fill + yellow border + dark text. The 3 label styles (gray base / pink derived / white default) render correctly via the style mechanism. Residual: vertical rhythm.",
+    "light": "minor",
+    "light_note": "Matches MAUI: the 3 label styles render correctly (base SubtitleStyle gray, derived custom style PINK wins, no-explicit-style default), and the Style-Me button shows a light-gray fill + yellow border + dark text. FIXED: gave the styled button a light BackgroundColor brush (it was a near-black TextColor with no fill \u2014 fine on light, invisible on dark) so it matches MAUI both themes; BackgroundColor is not a setter-targetable descriptor (flows through set_background_brush), the multi-setter Style still drives TextColor/CornerRadius/Stroke. Residual: minor vertical rhythm + button height/text-wrap."
   },
   "swipe_gesture": {
     "dark": "pending",

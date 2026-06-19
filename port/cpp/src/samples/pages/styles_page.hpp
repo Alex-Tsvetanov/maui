@@ -34,6 +34,7 @@
 #include <memory>
 #include <string>
 
+#include "maui/controls/brushes/solid_color_brush.hpp"
 #include "maui/controls/button.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/label.hpp"
@@ -41,6 +42,7 @@
 #include "maui/controls/style.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/graphics/color.hpp"
+#include "maui/graphics/colors.hpp"
 #include "maui/hosting/maui_app.hpp"
 
 #include "gallery_attach.hpp"
@@ -95,6 +97,12 @@ namespace maui::samples
 
             styled_button_.set_text("Style Me");
             button_style_->apply(styled_button_);
+            // C#'s ButtonStyle sets BackgroundColor (a light fill that keeps the dark TextColor readable in
+            // BOTH themes). BackgroundColor is not a setter-targetable descriptor here (it flows through
+            // set_background_brush, see the header note), so the demo applies the matching light fill
+            // directly — the multi-setter Style above still drives TextColor / CornerRadius / Stroke.
+            styled_button_.set_background_brush(
+                std::make_shared<maui::controls::solid_color_brush>(maui::graphics::colors::light_gray));
 
             stack_.add(base_styled_label_);
             stack_.add(custom_styled_label_);
