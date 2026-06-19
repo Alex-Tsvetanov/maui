@@ -1,0 +1,690 @@
+{
+  "absolute_layout": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "activity_indicator": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "adaptive_collection": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "alerts": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "alignment": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "animation": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "app_theme_binding": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "application_control": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "auto_size_shapes": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "basic_grouping": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "basic_swipe": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "behaviors": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "border": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "border_clip_playground": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "border_layout": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "border_playground": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "border_resize_content": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "border_stroke": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "borderless": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "box_view": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "button": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "carousel_page": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "chat_example": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "check_box": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "chrome": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "clip": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "clip_corner_radius": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "clip_gallery": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "clip_views": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "clipping": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "collectionview": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "composition_gallery": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "containers": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "content_view": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "context_flyout": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "controls_stack": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "custom_layout": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "custom_size_swipe": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "custom_swipe_item_view": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "cv_visual_states": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "data_template_selector": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "date_picker": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "device": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "dispatcher": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "drag_drop": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "editor": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "effects": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "ellipse_gallery": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "empty_view": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "empty_view_load_simulate": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "empty_view_null": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "empty_view_rtl": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "empty_view_selector": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "empty_view_swap": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "empty_view_template": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "empty_view_view": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "entry": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "filter_collection": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "filter_selection": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "flex_layout": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "focus": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "fonts": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "footer_only_string": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "formatted_text": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "gestures": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "gradient": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "grid": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "grid_grouping": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "grouping_no_templates": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "grouping_plus_selection": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "header_footer": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "header_footer_grid": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "header_footer_grid_horizontal": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "header_footer_template": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "header_footer_view": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "hit_testing": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "horizontal_stack": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "hybrid_web_view": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "image": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "image_button": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "indicator": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "input_controls": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "input_transparent": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "invalidate_brush": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "invalidate_shadow_host": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "ios_blur_effect": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "ios_date_picker": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "ios_entry": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "ios_first_responder": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "ios_pan_gesture": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "ios_picker": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "ios_safe_area": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "ios_scroll_view": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "ios_search_bar": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "ios_slider_update_on_tap": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "ios_swipe_transition": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "ios_time_picker": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "items": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "items_updating_scroll_mode": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "label": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "layout_is_enabled": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "line_gallery": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "line_join_gallery": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "measure_first_strategy": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "menu_bar": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "modal": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "multiple_bound_selection": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "navigation_gallery": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "nested_collection": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "pan_gesture_events": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "path_aspect_gallery": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "path_gallery": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "path_transform_string": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "picker": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "pickers": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "pointer_gesture": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "polygon_gallery": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "polyline_gallery": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "preselected_item": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "preselected_items": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "progress_bar": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "radio_button_border": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "radio_button_content": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "radio_button_group": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "radio_button_group_binding": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "radio_button_group_gallery": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "radio_content_properties": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "radio_template_from_style": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "rectangle_gallery": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "refresh_view": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "relative_layout": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "scattered_radio_button": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "scroll_mode_test": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "scroll_to_group": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "scroll_view": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "search_bar": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "selection_command_param": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "selection_synchronization": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "semantics": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "shadow_playground": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "shape_app_theme": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "shapes": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "single_bound_selection": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "slider": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "some_empty_groups": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "stack_layout": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "staggered_layout": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "stepper": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "styles": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "swipe_gesture": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "swipe_item_position": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "swipe_item_size": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "swipe_refresh": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "swipe_threshold": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "swipe_view_margin": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "swipe_view_shadow": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "switch": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "switch_grouping": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "tabbed_flyout": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "templated_view": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "time_picker": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "title_bar": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "toolbar": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "transform_playground": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "transformations": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "triggers": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "update_path_data": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "varied_size_selector": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "vertical_stack": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "visual_states": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "web_view": {
+    "dark": "pending",
+    "light": "pending"
+  },
+  "z_index": {
+    "dark": "pending",
+    "light": "pending"
+  }
+}
