@@ -32,6 +32,16 @@
 #include "pages/tabbed_flyout_page.hpp"
 #include "pages/value_controls_page.hpp"
 #include "pages/web_view_page.hpp"
+// --- batch 3 (Pages/Layouts) ---
+#include "pages/absolute_layout_page.hpp"
+#include "pages/content_view_page.hpp"
+#include "pages/flex_layout_page.hpp"
+#include "pages/grid_page.hpp"
+#include "pages/horizontal_stack_layout_page.hpp"
+#include "pages/scroll_view_page.hpp"
+#include "pages/stack_layout_page.hpp"
+#include "pages/vertical_stack_layout_page.hpp"
+#include "pages/z_index_page.hpp"
 // --- Tier-1 per-control sample pages (MAUI Controls.Sample/Pages/Controls) ---
 #include "pages/button_page.hpp"
 #include "pages/check_box_page.hpp"
@@ -63,15 +73,21 @@
     X("items", items_page)                                                                                             \
     X("shapes", shapes_page)                                                                                           \
     X("containers", containers_page)                                                                                   \
-    X("swipe_refresh", swipe_refresh_page) X("web_view", web_view_page) X("chrome", chrome_page)                       \
-        X("tabbed_flyout", tabbed_flyout_page) X("button", button_page) X("label", label_page) X("image", image_page)  \
-            X("entry", entry_page) X("editor", editor_page) X("search_bar", search_bar_page)                           \
-                X("check_box", check_box_page) X("switch", switch_page) X("slider", slider_page)                       \
-                    X("stepper", stepper_page) X("progress_bar", progress_bar_page)                                    \
-                        X("activity_indicator", activity_indicator_page) X("box_view", box_view_page)                  \
-                            X("date_picker", date_picker_page) X("time_picker", time_picker_page)                      \
-                                X("picker", picker_page) X("image_button", image_button_page)                          \
-                                    X("refresh_view", refresh_view_page)
+    X("swipe_refresh", swipe_refresh_page)                                                                             \
+    X("web_view", web_view_page)                                                                                       \
+    X("chrome", chrome_page) X("tabbed_flyout", tabbed_flyout_page) X("button", button_page) X("label", label_page)    \
+        X("image", image_page) X("entry", entry_page) X("editor", editor_page) X("search_bar", search_bar_page)        \
+            X("check_box", check_box_page) X("switch", switch_page) X("slider", slider_page)                           \
+                X("stepper", stepper_page) X("progress_bar", progress_bar_page)                                        \
+                    X("activity_indicator", activity_indicator_page) X("box_view", box_view_page)                      \
+                        X("date_picker", date_picker_page) X("time_picker", time_picker_page) X("picker", picker_page) \
+                            X("image_button", image_button_page) X("refresh_view", refresh_view_page)                  \
+                                X("absolute_layout", absolute_layout_page) X("grid", grid_page)                        \
+                                    X("flex_layout", flex_layout_page) X("stack_layout", stack_layout_page)            \
+                                        X("vertical_stack", vertical_stack_layout_page)                                \
+                                            X("horizontal_stack", horizontal_stack_layout_page)                        \
+                                                X("scroll_view", scroll_view_page)                                     \
+                                                    X("content_view", content_view_page) X("z_index", z_index_page)
 
 namespace maui::samples
 {
