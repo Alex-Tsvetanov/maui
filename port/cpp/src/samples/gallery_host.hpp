@@ -32,6 +32,16 @@
 #include "pages/tabbed_flyout_page.hpp"
 #include "pages/value_controls_page.hpp"
 #include "pages/web_view_page.hpp"
+// --- batch 15 (CollectionView/Carousel tail) ---
+#include "pages/carousel_page.hpp"
+#include "pages/empty_view_selector_page.hpp"
+#include "pages/empty_view_swap_page.hpp"
+#include "pages/empty_view_view_page.hpp"
+#include "pages/grouping_no_templates_page.hpp"
+#include "pages/nested_collection_page.hpp"
+#include "pages/scroll_to_group_page.hpp"
+#include "pages/staggered_layout_page.hpp"
+#include "pages/varied_size_selector_page.hpp"
 // --- batch 14 (more CollectionView galleries) ---
 #include "pages/empty_view_template_page.hpp"
 #include "pages/grid_grouping_page.hpp"
@@ -312,7 +322,16 @@
     X("preselected_items", preselected_items_page)                                                                     \
     X("grid_grouping", grid_grouping_page)                                                                             \
     X("some_empty_groups", some_empty_groups_page)                                                                     \
-    X("empty_view_template", empty_view_template_page)
+    X("empty_view_template", empty_view_template_page)                                                                 \
+    X("staggered_layout", staggered_layout_page)                                                                       \
+    X("nested_collection", nested_collection_page)                                                                     \
+    X("varied_size_selector", varied_size_selector_page)                                                               \
+    X("scroll_to_group", scroll_to_group_page)                                                                         \
+    X("carousel_page", carousel_page)                                                                                  \
+    X("empty_view_swap", empty_view_swap_page)                                                                         \
+    X("empty_view_view", empty_view_view_page)                                                                         \
+    X("empty_view_selector", empty_view_selector_page)                                                                 \
+    X("grouping_no_templates", grouping_no_templates_page)
 
 namespace maui::samples
 {

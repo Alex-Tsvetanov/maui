@@ -52,6 +52,17 @@ LayoutIsEnabled · RelativeLayout · ScrollView · StackLayout · TemplatedView 
 - [x] ChatExample → `chat_example_page`
 - ⚠ NOTE: custom-struct item cells donE28099t render in the gallery yet (chrome+API do); framework fix in flight.
 
+## Batch 15 — CollectionView/Carousel tail (9)
+- [x] StaggeredLayout → `staggered_layout_page` (approx — C# unshipped)
+- [x] NestedCollectionViewGallery → `nested_collection_page` (CV inside a data_template)
+- [x] VariedSizeDataTemplateSelectorGallery → `varied_size_selector_page`
+- [x] ScrollToGroup → `scroll_to_group_page`
+- [x] CarouselViewPage → `carousel_page`
+- [x] EmptyViewSwapGallery → `empty_view_swap_page`
+- [x] EmptyViewViewGallery → `empty_view_view_page`
+- [x] EmptyViewWithDataTemplateSelector → `empty_view_selector_page`
+- [x] GroupingNoTemplates → `grouping_no_templates_page`
+
 ## Batch 14 — more CollectionView galleries (9) — full render (post struct-cell fix)
 - [x] HeaderFooterGrid → `header_footer_grid_page`
 - [x] HeaderFooterTemplate → `header_footer_template_page`
