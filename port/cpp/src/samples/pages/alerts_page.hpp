@@ -22,6 +22,7 @@
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/hosting/maui_app.hpp"
 
 #include "gallery_attach.hpp"
@@ -35,8 +36,7 @@ namespace maui::samples
         {
             page_.set_title("Alerts");
             stack_.set_spacing(8);
-            // note: the XAML Margin="12" is presentational only; margin has no setter in the port
-            // (view::margin() returns {} — a deferred VisualElement layout knob), so it is omitted.
+            stack_.set_margin(maui::core::thickness(12)); // the XAML Margin="12" (uniform) on the content stack
 
             readout_.set_text("OnAppearing: Alert — Welcome to the Alerts Page [Hello!]");
 

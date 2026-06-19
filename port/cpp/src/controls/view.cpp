@@ -24,6 +24,7 @@
 #include "maui/core/i_shadow.hpp"
 #include "maui/core/layout_alignment.hpp"
 #include "maui/core/semantics.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/i_shape.hpp"
 #include "maui/graphics/paint.hpp"
@@ -251,6 +252,19 @@ namespace maui::controls
     {
         static const maui::core::bindable_property<maui::core::layout_alignment> descriptor{
             "vertical_layout_alignment", maui::core::layout_alignment::fill};
+        return descriptor;
+    }
+
+    // ---- margin (View.Margin) ----
+    // C# View.MarginProperty: BindableProperty.Create(nameof(Margin), typeof(Thickness), typeof(View),
+    // default(Thickness), propertyChanged: MarginPropertyChanged → InvalidateMeasureInternal(MarginChanged)).
+    // Default is Thickness.Zero (the single-arg bindable_property ctor default-constructs the value). Like
+    // the layout-alignment descriptors, there is NO native mapper keyed "margin" — margin is a layout-only
+    // property the measure/arrange seam consumes (ComputeDesiredSize adds it, ComputeFrame subtracts it), so
+    // on_property_changed's update_value("margin") is a harmless no-op; the change drives invalidate_measure.
+    const maui::core::bindable_property<maui::core::thickness>& margin_property()
+    {
+        static const maui::core::bindable_property<maui::core::thickness> descriptor{"margin"};
         return descriptor;
     }
 } // namespace maui::controls

@@ -1071,6 +1071,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/event_trigger_tests.cpp # W1-15: EventTrigger over the named-event seam
     tests/controls/state_trigger_tests.cpp # W1-15: StateTriggers driving visual states
     tests/controls/size_request_tests.cpp # backend-agnostic; the VisualElement size-request surface
+    tests/controls/margin_tests.cpp # backend-agnostic; the View.Margin measure/arrange seam on view<>
     tests/controls/lifecycle_tests.cpp
     tests/controls/data_template_tests.cpp    # backend-agnostic (W1-09 templates)
     # (W2-19 items core) backend-agnostic: the items hierarchy + sources + the simulator + demo page.
@@ -1259,6 +1260,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/event_trigger_tests.cpp # W1-15: EventTrigger over the named-event seam
     tests/controls/state_trigger_tests.cpp # W1-15: StateTriggers driving visual states
     tests/controls/size_request_tests.cpp # backend-agnostic (compares against the handler's own size)
+    tests/controls/margin_tests.cpp # backend-agnostic; the View.Margin measure/arrange seam on view<>
     tests/controls/lifecycle_tests.cpp
     tests/controls/effect_tests.cpp # (G3) effects (backend-agnostic): registry + resolve + element attach/detach
     tests/controls/data_template_tests.cpp    # backend-agnostic (W1-09 templates)
@@ -1290,6 +1292,7 @@ else()
     tests/controls/label_tests.cpp
     tests/controls/formatted_text_tests.cpp # G1: span + formatted_string + label.formatted_text mirror
     tests/controls/view_mapper_tests.cpp
+    tests/controls/is_enabled_cascade_tests.cpp # IsEnabled parent->child cascade (VisualElement.IsEnabledCore)
     tests/controls/entry_tests.cpp
     tests/controls/toggle_switch_tests.cpp
     tests/controls/check_box_tests.cpp
@@ -1357,6 +1360,7 @@ else()
     tests/controls/event_trigger_tests.cpp # W1-15: EventTrigger over the named-event seam
     tests/controls/state_trigger_tests.cpp # W1-15: StateTriggers driving visual states
     tests/controls/size_request_tests.cpp # the VisualElement size-request surface (view<> IView mapping)
+    tests/controls/margin_tests.cpp # backend-agnostic; the View.Margin measure/arrange seam on view<>
     tests/controls/view_extensions_tests.cpp # (W1-14) the animation surface over the manual ticker
     tests/controls/lifecycle_tests.cpp
     tests/controls/effect_tests.cpp # (G3) effects: registry + resolve + element attach/detach + routing/platform

@@ -49,9 +49,8 @@
 // note: the EmptyView Labels carry FontAttributes (Bold / Italic) + FontSize, mapped via set_font onto a
 //       core::font (weight bold / slant italic, of_size). HorizontalTextAlignment="Center" maps to
 //       set_horizontal_text_alignment(center); HorizontalOptions="Fill" maps to
-//       set_horizontal_layout_alignment(fill). The XAML Margin="10,25,10,10" has no port analog —
-//       view::margin() is a fixed {} stub in the headless port (no settable margin) — so it is omitted
-//       (documented; not visible-text-affecting).
+//       set_horizontal_layout_alignment(fill). The XAML Margin="10,25,10,10" on the primary Label maps to
+//       set_margin(thickness(10, 25, 10, 10)) — the VisualElement/View.Margin seam.
 //
 // The page OWNS its whole element tree (the items_page pattern); attach_handlers wires handlers bottom-up
 // (including the EmptyView StackLayout + its Labels) then re-hosts the grid + page.
@@ -77,6 +76,7 @@
 #include "maui/core/layout_alignment.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/hosting/maui_app.hpp"
 
 #include "gallery_attach.hpp"
@@ -132,6 +132,7 @@ namespace maui::samples
             empty_label_primary_.set_font(maui::core::font::of_size("", 18, maui::core::font_weight::bold));
             empty_label_primary_.set_horizontal_text_alignment(maui::core::text_alignment::center);
             empty_label_primary_.set_horizontal_layout_alignment(maui::core::layout_alignment::fill);
+            empty_label_primary_.set_margin(maui::core::thickness(10, 25, 10, 10)); // XAML Margin="10,25,10,10"
             // Label 2: Italic, 12pt, centered — "Maybe try a broader filter?"
             empty_label_secondary_.set_text("Maybe try a broader filter?");
             empty_label_secondary_.set_font(

@@ -20,9 +20,9 @@
 //   - the stepper rewrites Label 5's ZIndex at runtime, restacking it (the C# ValueChanged handler),
 //   - the readout label echoes Label 5's current z-index.
 //
-// note: the C# per-label Margin (n*15 cascade) has no view-level set_margin in this port (VisualElement
-// Margin is not yet a settable seam here), so the cascade offset is omitted; the cycling BackgroundColor
-// + the differing z-index still make the overlap order visible. The colors mirror the C# _colors cycle
+// The per-label Margin (the n*15 top-left cascade) is reproduced via view::set_margin (the VisualElement/
+// View.Margin seam), so the ten labels step diagonally as in real .NET MAUI; the cycling BackgroundColor
+// + the differing z-index make the overlap order visible. The colors mirror the C# _colors cycle
 // (Aquamarine, Orange, MediumOrchid, Red, Green, Blue) via color::from_rgb.
 
 #include <array>
@@ -36,6 +36,7 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/stepper.hpp"
 #include "maui/core/grid_length.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
@@ -73,7 +74,8 @@ namespace maui::samples
                 label->set_width_request(200);  // C# WidthRequest = 200
                 label->set_height_request(100); // C# HeightRequest = 100
                 label->set_background(std::make_shared<maui::graphics::solid_paint>(pick_color(n)));
-                // note: C# also sets Margin = new Thickness(n*15, n*15, 0, 0) — no set_margin seam here.
+                // C# Margin = new Thickness(n*15, n*15, 0, 0): the diagonal cascade (top-left offset only).
+                label->set_margin(maui::core::thickness(n * 15, n * 15, 0, 0));
 
                 if (n == 5)
                 {

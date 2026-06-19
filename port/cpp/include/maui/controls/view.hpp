@@ -133,6 +133,16 @@ namespace maui::controls
     const maui::core::bindable_property<maui::core::layout_alignment>& horizontal_layout_alignment_property();
     const maui::core::bindable_property<maui::core::layout_alignment>& vertical_layout_alignment_property();
 
+    // View.Margin (a Thickness, default zero): the space reserved AROUND this view, outside its frame.
+    // NON-template shared free-function descriptor named "margin". Margin is a LAYOUT-ONLY property —
+    // there is no native handler mapper for it (C# ViewHandler has no MapMargin); it is consumed purely by
+    // the measure/arrange seam (ComputeDesiredSize adds it to the reported size, ComputeFrame subtracts it
+    // back out and offsets the frame), exactly like the two layout-alignment descriptors above. A change
+    // re-runs no mapper (update_value is a harmless no-op for "margin") but invalidates measure so the
+    // parent re-lays-out — see view<>::on_property_changed (C# View.MarginPropertyChanged →
+    // InvalidateMeasureInternal(MarginChanged)). Default thickness{} mirrors C#'s default(Thickness).
+    const maui::core::bindable_property<maui::core::thickness>& margin_property();
+
     // chrome (W1-11): every view is a tool-tip + context-flyout element, exactly as C# VisualElement
     // implements IToolTipElement + IContextFlyoutElement (the shared view_mapper discovers both by
     // dynamic_cast, like C#'s `view is IToolTipElement` checks in ViewHandler.MapToolTip/MapContextFlyout).
@@ -384,7 +394,28 @@ namespace maui::controls
         {
             opacity_.set(value);
         }
+        // VisualElement.IsEnabledCore / IView.IsEnabled — the EFFECTIVE (coerced) enabled state, which is
+        // what the handler is pushed (the view_mapper's map_is_enabled reads THIS). An explicitly disabled
+        // view is disabled no matter what (the C# `_isEnabledExplicit == false` short-circuit); otherwise it
+        // inherits its parent's effective enabled (parent.IsEnabled, itself already coerced — so a single
+        // immediate-parent check cascades the whole logical-parent chain). The raw developer-set value is
+        // is_explicitly_enabled().
         [[nodiscard]] bool is_enabled() const override
+        {
+            if (!is_enabled_.get())
+            {
+                return false; // explicitly disabled — nothing else matters (C# IsEnabledCore short-circuit)
+            }
+            if (auto* parent_view = dynamic_cast<maui::core::i_view*>(this->logical_parent()))
+            {
+                return parent_view->is_enabled(); // the parent's coerced value (recurses up the chain)
+            }
+            return true;
+        }
+        // VisualElement.IsExplicitlyEnabled (_isEnabledExplicit): the developer-set IsEnabled, BEFORE the
+        // parent-chain coercion is_enabled() applies. set_is_enabled writes this raw value; the cascade
+        // (refresh_is_enabled_subtree) re-coerces it against the changed ancestor chain.
+        [[nodiscard]] bool is_explicitly_enabled() const
         {
             return is_enabled_.get();
         }
@@ -523,9 +554,18 @@ namespace maui::controls
         {
             maximum_height_request_.set(value);
         }
+        // View.Margin (bindable; default zero). Consumed by the measure/arrange seam: measure adds it to the
+        // reported desired size (C# LayoutExtensions.ComputeDesiredSize) and compute_frame subtracts it back
+        // out and offsets the frame by margin.left/top (ComputeFrame), so the margin is reserved space around
+        // the view's frame. Setting it invalidates measure (on_property_changed), mirroring C#
+        // View.MarginPropertyChanged → InvalidateMeasureInternal(MarginChanged).
         [[nodiscard]] maui::core::thickness margin() const override
         {
-            return {};
+            return margin_.get();
+        }
+        void set_margin(maui::core::thickness value)
+        {
+            margin_.set(value);
         }
         [[nodiscard]] maui::graphics::size desired_size() const override
         {
@@ -556,20 +596,31 @@ namespace maui::controls
             }
             return frame_.size();
         }
-        // The leaf-control measure seam (C# View.MeasureOverride → the handler's GetDesiredSizeFromHandler):
+        // The leaf-control measure seam (C# View.MeasureOverride → LayoutExtensions.ComputeDesiredSize):
         // ask the handler for the content size, then resolve it against this view's OWN size requests so the
         // reported desired size honors WidthRequest/Minimum*/Maximum* — the per-child clamp the layout
-        // managers rely on (ViewHandlerExtensions.ResolveConstraints). With no handler the desired size is
+        // managers rely on (ViewHandlerExtensions.ResolveConstraints). With no handler the content size is
         // zero, still resolved against the requests so an explicit Width/Height request is reported.
+        //
+        // ComputeDesiredSize folds the Margin in symmetrically with the arrange-side ComputeFrame
+        // (compute_frame below): the margin is EXCLUDED from the content measurement (the constraints shrink
+        // by it, so a wrapping child gets its true available space) and ADDED back into the reported desired
+        // size, marking the margin as reserved space. compute_frame then subtracts it back out, so the frame
+        // is the margin-inset extent — measure adds, arrange subtracts, and they balance to zero net at zero
+        // margin (the prior behavior).
         maui::graphics::size measure(double width_constraint, double height_constraint) override
         {
+            const maui::core::thickness view_margin = this->margin();
             maui::graphics::size content{};
             if (auto* view_handler = dynamic_cast<maui::core::i_view_handler*>(handler_.get()))
             {
-                content = view_handler->get_desired_size(width_constraint, height_constraint);
+                content = view_handler->get_desired_size(width_constraint - view_margin.horizontal_thickness(),
+                                                         height_constraint - view_margin.vertical_thickness());
             }
-            desired_size_ = {resolve_size_request(content.width, width(), minimum_width(), maximum_width()),
-                             resolve_size_request(content.height, height(), minimum_height(), maximum_height())};
+            desired_size_ = {resolve_size_request(content.width, width(), minimum_width(), maximum_width()) +
+                                 view_margin.horizontal_thickness(),
+                             resolve_size_request(content.height, height(), minimum_height(), maximum_height()) +
+                                 view_margin.vertical_thickness()};
             return desired_size_;
         }
         void invalidate_measure() override
@@ -687,9 +738,29 @@ namespace maui::controls
         virtual void change_visual_state()
         {
             using common = maui::controls::common_states;
+            // The disabled state reflects the EFFECTIVE (coerced) IsEnabled, so a child of a disabled parent
+            // is visually disabled too (C# ChangeVisualState reads IsEnabled, which is IsEnabledCore).
             const std::string_view target =
-                !is_enabled_.get() ? common::disabled : (is_focused_ ? common::focused : common::normal);
+                !is_enabled() ? common::disabled : (is_focused_ ? common::focused : common::normal);
             visual_states_.go_to_state(*this, target);
+        }
+
+        // C# IsEnabled cascade hook (element::refresh_is_enabled_subtree): an ancestor's IsEnabled changed,
+        // so re-push THIS view's now-recomputed effective IsEnabled (map_is_enabled re-reads is_enabled())
+        // and re-run ChangeVisualState, then recurse into the logical children so the whole subtree settles.
+        // The walk is strictly top-down over the finite logical tree, so it always terminates (no infinite
+        // recursion); a null handler is skipped. The re-push is unconditional and idempotent — C# prunes via
+        // the IsEnabled bindable's own change-detection, but re-reading the coerced value here is
+        // observationally identical (map_is_enabled and go_to_state are both idempotent) and avoids a stale
+        // coerced-state cache.
+        void refresh_is_enabled_subtree() override
+        {
+            if (handler_)
+            {
+                handler_->update_value("is_enabled");
+            }
+            change_visual_state();
+            for_each_logical_child([](maui::controls::element& child) { child.refresh_is_enabled_subtree(); });
         }
 
         // --- gestures (W1-12) ---------------------------------------------------------------------------
@@ -779,10 +850,25 @@ namespace maui::controls
             if (name == "is_enabled")
             {
                 change_visual_state();
+                // C# OnIsEnabledPropertyChanged → PropagatePropertyChanged(IsEnabledProperty.PropertyName):
+                // the new effective state cascades to every descendant, each re-coercing against this (now-
+                // changed) ancestor and re-pushing to its handler. THIS element was already pushed by the
+                // generic update_value(name) above, so the cascade only descends into the logical children.
+                for_each_logical_child([](maui::controls::element& child) { child.refresh_is_enabled_subtree(); });
             }
             if (name == "z_index")
             {
                 update_z_order();
+            }
+            // C# View.MarginPropertyChanged → InvalidateMeasureInternal(InvalidationTrigger.MarginChanged):
+            // a margin change re-runs no native mapper (the update_value above is a harmless no-op — margin
+            // is a layout-only property, like the layout alignments) but invalidates measure so the parent
+            // re-lays-out with the new reserved space. invalidate_measure is the M3 no-op seam today (see
+            // below), so the structure is faithful and future-proof — the moment real measure-invalidation
+            // propagation lands, a margin change participates.
+            if (name == "margin")
+            {
+                this->invalidate_measure();
             }
         }
 
@@ -908,9 +994,9 @@ namespace maui::controls
         // and subtracting the margin. DesiredSize already INCLUDES the margin (ComputeDesiredSize adds it),
         // so the consumed extent starts from desired_size() and the frame size subtracts the margin back out;
         // a Fill view without an explicit width/height instead consumes min(bounds, maximum). The X/Y come
-        // from align_in_axis (AlignHorizontal/AlignVertical). Margin is currently always zero in the port
-        // (view<>::margin() returns {}), but the algorithm is written in full so it stays correct the moment
-        // a real Margin lands. Port of the static ComputeFrame + AlignHorizontal + AlignVertical.
+        // from align_in_axis (AlignHorizontal/AlignVertical). margin() is now a real bindable View.Margin
+        // (measure adds it in ComputeDesiredSize), so this subtraction/offset balances it back out. Port of
+        // the static ComputeFrame + AlignHorizontal + AlignVertical.
         [[nodiscard]] maui::graphics::rect compute_frame(const maui::graphics::rect& bounds) const
         {
             const maui::core::thickness view_margin = this->margin();
@@ -1059,6 +1145,10 @@ namespace maui::controls
         // The z-order within the parent layout (VisualElement.ZIndex). A change routes to the parent
         // layout's handler so the native panel re-stacks this child (see on_property_changed).
         maui::core::property<int> z_index_{*this, z_index_property()};
+        // View.Margin (the space reserved around this view; default zero). Layout-only — no native mapper;
+        // consumed by measure (ComputeDesiredSize) + compute_frame (ComputeFrame). A change invalidates
+        // measure so the parent re-lays-out (see on_property_changed). Shared NON-template descriptor.
+        maui::core::property<maui::core::thickness> margin_{*this, margin_property()};
         // chrome (W1-11): the attached ToolTip text (bindable; is_set() distinguishes "never set") and
         // the attached ContextFlyout (non-owning; the element face is cached for tree/context plumbing).
         maui::core::property<std::string> tool_tip_text_{*this, tool_tip_text_property()};
