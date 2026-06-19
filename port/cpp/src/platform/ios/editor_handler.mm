@@ -488,7 +488,12 @@ namespace maui::core
         auto* platform = handler.typed_platform_view();
         if (platform != nullptr)
         {
-            as_text_view(platform->native).textColor = to_ui_color(view.text_color());
+            // An unset TextColor (default-constructed sentinel) must resolve to the dynamic system
+            // label color so text stays legible in dark mode — mirrors EditorHandler.iOS's reliance on
+            // the platform's default label color rather than forcing opaque black. Explicit colors win.
+            const maui::graphics::color text_color = view.text_color();
+            as_text_view(platform->native).textColor =
+                text_color != maui::graphics::color{} ? to_ui_color(text_color) : UIColor.labelColor;
         }
     }
 

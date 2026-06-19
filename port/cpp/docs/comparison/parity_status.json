@@ -268,10 +268,10 @@
     "light_note": "C++ swatches are much thinner/tighter-spaced and the \"Rainbow:\" label overlaps onto the purple swatch (vs MAUI's clean separated rows); C++ also renders a full drag-status text block (Self X:0 Y:0, Receiving layout X:10 Y:10, Move: swatch dropped...) that MAUI doesn't show, so overall vertical layout/sizing diverges."
   },
   "editor": {
-    "dark": "diff",
-    "dark_note": "C++ dark is missing most rows: only \"Type here...\", \"Text\", \"Placeholder\", \"Grows as you type...\" render \u2014 LENGTH:0, FontSize (Large), \"I am read only\", \"123\", \"This should be on the bottom\", and AUTOSIZE LENGTH:0 are all absent (large empty gaps), while MAUI dark shows the full set.",
+    "dark": "minor",
+    "dark_note": "FIXED: unset TextColor now resolves to UIColor.labelColor, so all rows render white on dark \u2014 LENGTH:0, FontSize (Large), \"I am read only\", \"123\", \"This should be on the bottom\", AUTOSIZE LENGTH:0 all legible, matching MAUI dark; placeholders gray, explicit purple preserved. Residual: vertical rhythm slightly looser than MAUI.",
     "light": "minor",
-    "light_note": "Same controls/order/text/colors; C++ has a black rounded nav-bar blob instead of the \"MauiCompare\" back title, and rows sit a few px higher with text flush to the left edge vs MAUI's left inset."
+    "light_note": "Same controls/order/text/colors; rows sit a few px higher with text flush to the left edge vs MAUI's left inset (vertical rhythm)."
   },
   "effects": {
     "dark": "diff",
