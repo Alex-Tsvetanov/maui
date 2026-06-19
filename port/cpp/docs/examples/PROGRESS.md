@@ -40,6 +40,17 @@ swipe_refresh · web_view · chrome · tabbed_flyout — see the per-example REA
 AbsoluteLayout · ClippingPage · ContentView · CustomLayout · FlexLayout · Grid · HorizontalStackLayout ·
 LayoutIsEnabled · RelativeLayout · ScrollView · StackLayout · TemplatedView · VerticalStackLayout · ZIndex
 
+## Batch 6 — Core feature demos (9)
+- [x] AlertsPage → `alerts_page` (synthesized results; native dialog deferred)
+- [x] SemanticsPage → `semantics_page`
+- [x] FocusPage → `focus_page`
+- [x] DispatcherPage → `dispatcher_page` (manual_dispatcher virtual clock)
+- [x] DevicePage → `device_page`
+- [x] AppThemeBindingPage → `app_theme_binding_page`
+- [x] ToolbarPage → `toolbar_page` (ToolbarItems need nav chrome — exercised programmatically)
+- [x] EffectsPage → `effects_page`
+- [x] InputTransparentPage → `input_transparent_page`
+
 ## Batch 5 — UserInterface + Core feature demos (9) — proves the framework subsystems
 - [x] BrushesPage → `brushes_page` (Brush family over graphics::paint)
 - [x] TransformationsPage → `transformations_page`
