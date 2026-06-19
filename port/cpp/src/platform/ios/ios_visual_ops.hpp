@@ -246,6 +246,34 @@ namespace maui::platform::ios
         remove_background_named_layer(layer, k_gradient_layer_name);
     }
 
+    // Resize the named gradient / image background sublayers that apply_background installed to the view's
+    // CURRENT layer bounds — the layout-time counterpart to apply_background's install-time
+    // `gradient_layer.frame = layer.bounds` / `image_layer.frame = layer.bounds`. apply_background runs at
+    // property-sync time, before the view has been arranged, so for a view that is NOT continuously laid
+    // out by a parent the fill layer would be left zero-sized (invisible). Native MAUI views re-sync their
+    // background layer on layoutSubviews (MauiView/MauiPicker etc.); call this from a view's layoutSubviews
+    // override so a gradient/image fill tracks the bounds. Only `frame` is touched — colors / locations /
+    // type / start+endPoint / contents / contentsGravity carry the fill and are set at install time
+    // (CAGradientLayer start/endPoint are unit-square fractions and need no rescale).
+    inline void resize_background_layers(void* native)
+    {
+        if (native == nullptr)
+        {
+            return;
+        }
+        auto* const view = (__bridge UIView*)native;
+        CALayer* const layer = view.layer;                           // a UIView is always layer-backed (nonnull)
+        NSArray<CALayer*>* const sublayers = [layer.sublayers copy]; // snapshot, as remove_background_named_layer
+        for (NSUInteger i = 0; i < sublayers.count; i++)
+        {
+            CALayer* const sub = sublayers[i];
+            if ([sub.name isEqualToString:k_gradient_layer_name] || [sub.name isEqualToString:k_image_layer_name])
+            {
+                sub.frame = layer.bounds;
+            }
+        }
+    }
+
     // Port of BrushExtensions.UpdateBackground / GetBackgroundLayer (iOS — Controls/Platform): install a
     // brush fill, expressed as a graphics::paint, as a CALayer at the BOTTOM (index 0) of `layer`. The old
     // bar-background layer (k_bar_background_layer_name) is removed first so a kind switch (solid↔gradient)

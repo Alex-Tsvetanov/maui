@@ -44,6 +44,22 @@
 #include "maui/graphics/size.hpp"
 #include "maui/graphics/solid_paint.hpp"
 
+// MauiIosDatePicker  <=  Microsoft.Maui.Platform.MauiDatePicker — the UITextField the date picker presents.
+// Its layoutSubviews override re-sizes any gradient/image background sublayer apply_background installed to
+// the field's current bounds: apply_background runs before arrange, so without this a gradient/image
+// BackgroundColor would be left zero-sized and invisible (a solid color needs no resize — it is the UIView
+// backgroundColor property). Mirrors MauiDatePicker re-syncing its background on layout.
+@interface MauiIosDatePicker : UITextField
+@end
+
+@implementation MauiIosDatePicker
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    maui::platform::ios::resize_background_layers((__bridge void*)self);
+}
+@end
+
 // Obj-C trampoline for the Done accessory tap — MauiDatePicker's DoneClicked feeding
 // DatePickerHandler.OnDoneClicked → SetVirtualViewDate.
 @interface MauiIosDatePickerDoneTarget : NSObject
@@ -225,7 +241,7 @@ namespace maui::core
         auto platform = std::make_unique<date_picker_platform>();
         // MauiDatePicker(): RoundedRect field; UIDatePicker { Mode = Date, TimeZone = UTC, Wheels }
         // as the inputView; Button accessibility traits.
-        UITextField* const field = [[UITextField alloc] initWithFrame:CGRectZero];
+        UITextField* const field = [[MauiIosDatePicker alloc] initWithFrame:CGRectZero];
         field.borderStyle = UITextBorderStyleRoundedRect;
         UIDatePicker* const dialog = [[UIDatePicker alloc] initWithFrame:CGRectZero];
         dialog.datePickerMode = UIDatePickerModeDate;

@@ -46,6 +46,22 @@
 #include "maui/graphics/size.hpp"
 #include "maui/graphics/solid_paint.hpp"
 
+// MauiIosPicker  <=  Microsoft.Maui.Platform.MauiPicker — the UITextField the picker presents. Its only
+// addition over a stock field is a layoutSubviews override that re-sizes any gradient/image background
+// sublayer apply_background installed to the field's current bounds: apply_background runs before arrange,
+// so without this a gradient/image BackgroundColor would be left zero-sized and invisible (a solid color
+// needs no resize — it is the UIView backgroundColor property). Mirrors MauiPicker re-syncing on layout.
+@interface MauiIosPicker : UITextField
+@end
+
+@implementation MauiIosPicker
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    maui::platform::ios::resize_background_layers((__bridge void*)self);
+}
+@end
+
 // MauiPickerSource  <=  Microsoft.Maui.Handlers.PickerSource (UIPickerViewModel): the wheel's data
 // source + delegate, reading rows through the virtual view's i_item_delegate face and tracking the
 // pending (not yet committed) row.
@@ -305,7 +321,7 @@ namespace maui::core
         auto platform = std::make_unique<picker_platform>();
         // CreatePlatformView: new MauiPicker(new UIPickerView()) { BorderStyle = RoundedRect,
         // InputView = pickerView, InputAccessoryView = MauiDoneAccessoryView, Button traits }.
-        UITextField* const field = [[UITextField alloc] initWithFrame:CGRectZero];
+        UITextField* const field = [[MauiIosPicker alloc] initWithFrame:CGRectZero];
         field.borderStyle = UITextBorderStyleRoundedRect;
         UIPickerView* const wheel = [[UIPickerView alloc] initWithFrame:CGRectZero];
         field.inputView = wheel;

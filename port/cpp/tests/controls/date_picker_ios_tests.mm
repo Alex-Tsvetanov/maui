@@ -4,18 +4,23 @@
 // formatted text renders into the field (the invariant/en-US date_time formatter), and the Done
 // commit (SetVirtualViewDate) flows back through the portable on_done channel, clamped by the
 // control's coercion. Compiled as Objective-C++ with ARC.
+#import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
 
 #include <memory>
 #include <optional>
 #include <string>
 
+#include "ios_visual_ops.hpp"
 #include "maui/controls/date_picker.hpp"
 #include "maui/core/date_picker_handler.hpp"
 #include "maui/core/date_time.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/visibility.hpp"
+#include "maui/graphics/colors.hpp"
+#include "maui/graphics/gradient_stop.hpp"
+#include "maui/graphics/linear_gradient_paint.hpp"
 #include <gtest/gtest.h>
 
 namespace
@@ -231,5 +236,45 @@ namespace
             maui::core::default_handler_registry().create_handler<date_picker>();
         ASSERT_NE(handler, nullptr);
         EXPECT_NE(dynamic_cast<date_picker_handler*>(handler.get()), nullptr);
+    }
+
+    // Regression: a gradient BackgroundColor must track the field's bounds. apply_background installs the
+    // gradient sublayer at the field's CURRENT bounds — which is CGRectZero at property-sync time (before
+    // arrange) — so without a layout-time resize the fill stays zero-sized and invisible. MauiIosDatePicker's
+    // layoutSubviews calls resize_background_layers, which re-syncs the named sublayer to the new bounds.
+    TEST(ios_date_picker_seam, gradient_background_resizes_with_the_field_on_layout)
+    {
+        using maui::graphics::gradient_stop;
+        using maui::graphics::linear_gradient_paint;
+
+        date_picker control;
+        auto handler = std::make_shared<date_picker_handler>();
+        control.set_handler(handler);
+
+        UITextField* const field = native_field(handler);
+        ASSERT_NE(field, nil);
+
+        const linear_gradient_paint gradient(std::vector<gradient_stop>{
+            gradient_stop(0.0F, maui::graphics::colors::green), gradient_stop(1.0F, maui::graphics::colors::blue)});
+        maui::platform::ios::apply_background((__bridge void*)field, &gradient); // installs at bounds == zero
+
+        CALayer* gradient_layer = nil;
+        for (CALayer* const sub in field.layer.sublayers)
+        {
+            if ([sub.name isEqualToString:maui::platform::ios::k_gradient_layer_name])
+            {
+                gradient_layer = sub;
+            }
+        }
+        ASSERT_NE(gradient_layer, nil);
+        EXPECT_TRUE(CGRectEqualToRect(gradient_layer.frame, CGRectZero)); // zero-sized before any layout
+
+        // Arrange gives the field a real frame; layoutSubviews must re-sync the gradient sublayer to it.
+        field.frame = CGRectMake(0, 0, 200, 40);
+        [field setNeedsLayout];
+        [field layoutIfNeeded];
+
+        EXPECT_TRUE(CGRectEqualToRect(gradient_layer.frame, field.bounds));
+        EXPECT_FALSE(CGRectEqualToRect(gradient_layer.frame, CGRectZero));
     }
 } // namespace

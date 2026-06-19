@@ -42,6 +42,22 @@
 #include "maui/graphics/size.hpp"
 #include "maui/graphics/solid_paint.hpp"
 
+// MauiIosTimePicker  <=  Microsoft.Maui.Platform.MauiTimePicker — the UITextField the time picker presents.
+// Its layoutSubviews override re-sizes any gradient/image background sublayer apply_background installed to
+// the field's current bounds: apply_background runs before arrange, so without this a gradient/image
+// BackgroundColor would be left zero-sized and invisible (a solid color needs no resize — it is the UIView
+// backgroundColor property). Mirrors MauiTimePicker re-syncing its background on layout.
+@interface MauiIosTimePicker : UITextField
+@end
+
+@implementation MauiIosTimePicker
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    maui::platform::ios::resize_background_layers((__bridge void*)self);
+}
+@end
+
 // Obj-C trampoline for the Done accessory tap — MauiTimePicker's dateSelected callback feeding
 // SetVirtualViewTime.
 @interface MauiIosTimePickerDoneTarget : NSObject
@@ -211,7 +227,7 @@ namespace maui::core
         auto platform = std::make_unique<time_picker_platform>();
         // MauiTimePicker(): RoundedRect field; UIDatePicker { Mode = Time, TimeZone = UTC, Wheels }
         // as the inputView; Button accessibility traits.
-        UITextField* const field = [[UITextField alloc] initWithFrame:CGRectZero];
+        UITextField* const field = [[MauiIosTimePicker alloc] initWithFrame:CGRectZero];
         field.borderStyle = UITextBorderStyleRoundedRect;
         UIDatePicker* const wheel = [[UIDatePicker alloc] initWithFrame:CGRectZero];
         wheel.datePickerMode = UIDatePickerModeTime;
