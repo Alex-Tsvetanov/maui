@@ -4,6 +4,29 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## Audit-gap closure batch — ✅ DONE (2026-06-19, gate `b8ff9b9919`)
+
+The ~9 genuine gaps the 2026-06-18 re-audit confirmed (the tail recorded in the section below) are **all
+closed** — 8 units, agent-per-gap via worktree `code-changes` agents + coordinator cherry-pick/gate.
+**Final gate: headless 3012 / AppKit 2457 / iOS-on-sim 2228 / ASan 3012 / TSan 3012 / clang-tidy 0
+(clean build).** Units:
+- **U-SA** `SafeAreaEdges` (ISafeAreaElement) on scroll_view / border(→frame) / content_view (mirrors content_page).
+- **U-SL** generic `maui::controls::stack_layout` + `stack_orientation` enum + `stack_layout_manager` (+AndExpand), registered in the handler table + XAML types.
+- **U-IB** `image_button` `IsAnimationPlaying` re-push after async load (mirrors image_handler).
+- **U-TN** Setter/Trigger `TargetName` resolution via element-side NameScope (`element::find_by_name`/`find_target_by_name`; `name_scope` made header-only to avoid a controls→xaml cycle).
+- **U-AFS** iOS Entry `AdjustsFontSizeToFitWidth` mapper → `UITextField.adjustsFontSizeToFitWidth` (iOS-only, faithful).
+- **U-USE** `Binding.UpdateSourceEventName` over the reflection-free named-event seam (element targets; C#'s reflective native-view case has no analog — documented deviation).
+- **U-IP** `image_paint` + `i_pattern`/`pattern_paint`/`picture_pattern` abstractions + CoreGraphics `fill_with_image`/`fill_with_pattern` (shared apple+ios canvas; the drawing-canvas path only — the view-background ImageBrush path stays faithfully deferred on iOS).
+- **U-CMD** `i_command` primitive + `command` + Command/CommandParameter on Tap/Pointer/Drag/Drop recognizers (Tap/Pointer gate on CanExecute, Drag/Drop don't — per C#; `Command<T>`/WeakEventManager omitted per the port's no-RTTI/RAII doctrine — documented).
+
+Process notes: **U-SL/U-IB were prior-session uncommitted WIP** found in the checkout (salvaged + verified,
+not re-implemented). A **mid-batch macOS TCC revocation on `~/Documents`** blocked all repo I/O for a
+stretch — U-TN/U-AFS/U-USE finished + self-verified but couldn't commit until access was restored, then
+were committed-in-worktree + cherry-picked. Per-integration clean clang-tidy again caught what the agents'
+warm-build tidy missed (6 wave-2 nits, hand-fixed). **This takes the audited in-scope surface from ~98%
+to effectively complete** (remaining: the documented faithful deviations + the deliberately string-only
+`Picker.ItemDisplayBinding`, left out by design).
+
 ## Final-sweep audit + demo gallery — ✅ DONE (2026-06-18, gate `9a0600ba0d`)
 
 A user-requested "final sweep" to confirm (1) the abstract widget set, (2) macOS, (3) iOS, (4) all
@@ -14,7 +37,8 @@ multi-agent audit vs the C# `src/`, with an independent skeptical verifier per c
 in-scope surface is **~98%** — substantially complete, **not literally 100%**. The verifier correctly
 *rejected* false positives (CoerceValue, geolocation-macOS, StringFormat, PropertyPath indexers, iOS
 pattern/image fills, Shell FlyoutWidth, Label.Background-macOS all verified present/faithful). Confirmed
-genuine, still-open gaps (mostly small; **offered as a follow-up closure batch, not yet done**):
+genuine, still-open gaps (mostly small; **all closed in the 2026-06-19 gap-closure batch — see the
+section above**):
 `SafeAreaEdges` on scroll_view/border/frame/content_view (present only on content_page); generic
 `StackLayout` control + `StackOrientation` (+ `AndExpandLayoutManager`); iOS `AdjustsFontSizeToFitWidth`
 (knob present, mapper absent); `Binding.UpdateSourceEventName`; Command/CommandParameter on gesture
