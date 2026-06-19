@@ -30,11 +30,11 @@ swipe_refresh · web_view · chrome · tabbed_flyout — see the per-example REA
 - [x] TimePickerPage → `time_picker_page`
 - [x] PickerPage → `picker_page`
 - [x] ImageButtonPage → `image_button_page`
-- [ ] IndicatorPage → `indicator_page`
+- [x] IndicatorPage → `indicator_page`
 - [x] RefreshViewPage → `refresh_view_page`
-- [ ] ShapesPage → `shapes_demo_page`
-- [ ] TitleBarPage → `title_bar_page` *(partial — TitleBar is Windows-mapped)*
-- [ ] HybridWebViewPage → `hybrid_web_view_page` *(partial — JS→.NET deferred)*
+- [x] ShapesPage → `shapes_demo_page`
+- [x] TitleBarPage → `title_bar_page` *(partial — TitleBar is Windows-mapped)*
+- [x] HybridWebViewPage → `hybrid_web_view_page` *(partial — JS→.NET deferred)*
 
 ## Tier 2 — Pages/Layouts (14)
 AbsoluteLayout · ClippingPage · ContentView · CustomLayout · FlexLayout · Grid · HorizontalStackLayout ·
