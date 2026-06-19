@@ -560,8 +560,10 @@
     "light_note": "Matches: text colors (black query, blue TitleColor, gray placeholders) + BackgroundColor fills now render \u2014 Yellow/Green pickers show full flat fills (FIXED: iOS picker now pushes solid BackgroundColor to the UITextField backgroundColor property, suppressing the RoundedRect bezel like MAUI). Residual: C++ more compact vertical rhythm (fits more rows than MAUI) + top nav-bar blob (harness artifact)."
   },
   "pickers": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "dark_note": "Near-exact match in dark: all text white/legible, placeholder gray, time \"09:00\" and readout label match MAUI exactly. Sole residual: DatePicker field invariant US 6/19/2026 (deliberate deviation) vs MAUI 19.06.2026; minor vertical rhythm.",
+    "light": "minor",
+    "light_note": "Near-exact match: picker placeholder \"Pick a room\", time field \"09:00\" (explicit HH:mm format), and the bound readout label \"No room on 6/19/2026 at 09:00\" all match; rounded field borders match. Sole residual: the DatePicker field shows invariant US 6/19/2026 (deliberate port deviation w/ iOS tests) vs MAUI device-locale 19.06.2026; minor top vertical-rhythm offset."
   },
   "pointer_gesture": {
     "dark": "pending",
