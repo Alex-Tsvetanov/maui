@@ -9,7 +9,6 @@
 #include "maui/controls/view.hpp"
 
 #include <limits>
-#include <memory>
 
 #include "maui/controls/grid.hpp"
 #include "maui/core/grid_length.hpp"
@@ -60,7 +59,7 @@ namespace
 
     TEST(layout_alignment, defaults_to_fill)
     {
-        aligned_view view;
+        const aligned_view view;
         const maui::core::i_view& as_view = view;
         EXPECT_EQ(as_view.horizontal_layout_alignment(), layout_alignment::fill);
         EXPECT_EQ(as_view.vertical_layout_alignment(), layout_alignment::fill);
