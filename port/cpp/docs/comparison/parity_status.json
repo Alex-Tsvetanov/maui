@@ -350,8 +350,10 @@
     "light": "pending"
   },
   "formatted_text": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "dark_note": "Near-exact match on dark: bold-red / italic-underlined / kerned spans + plain label all render with correct styling matching MAUI (the formatted_string feature + dark-text cascade make every span visible). Residual: minor vertical position offset.",
+    "light": "minor",
+    "light_note": "Near-exact match: the FormattedString renders all spans with correct per-span styling \u2014 \"Bold red\" (bold + red), \"italic underlined\" (italic + underline), \"kerned\" (character-spacing), then a plain text label. Same spans, colors, decorations and order as MAUI. Residual: minor vertical position (C++ stack sits a few px higher / less top inset)."
   },
   "gestures": {
     "dark": "pending",
