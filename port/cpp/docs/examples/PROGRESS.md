@@ -40,6 +40,18 @@ swipe_refresh · web_view · chrome · tabbed_flyout — see the per-example REA
 AbsoluteLayout · ClippingPage · ContentView · CustomLayout · FlexLayout · Grid · HorizontalStackLayout ·
 LayoutIsEnabled · RelativeLayout · ScrollView · StackLayout · TemplatedView · VerticalStackLayout · ZIndex
 
+## Batch 9 — CollectionView galleries (9) — API+chrome (item-cell render fix in flight)
+- [x] FilterCollectionView → `filter_collection_page`
+- [x] BasicGrouping → `basic_grouping_page`
+- [x] SelectionModeGallery → `selection_mode_page`
+- [x] HeaderFooterString → `header_footer_page`
+- [x] EmptyViewStringGallery → `empty_view_page`
+- [x] DataTemplateSelectorGallery → `data_template_selector_page`
+- [x] AdaptiveCollectionView → `adaptive_collection_page`
+- [x] SingleBoundSelection → `single_bound_selection_page`
+- [x] ChatExample → `chat_example_page`
+- ⚠ NOTE: custom-struct item cells donE28099t render in the gallery yet (chrome+API do); framework fix in flight.
+
 ## Batch 8 — ShapesGalleries (9) — natively-rendered shape/geometry demos
 - [x] EllipseGallery → `ellipse_gallery_page`
 - [x] RectangleGallery → `rectangle_gallery_page`
