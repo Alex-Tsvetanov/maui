@@ -22,6 +22,7 @@
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/flow_direction.hpp"
 #include "maui/core/i_shadow.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/core/semantics.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/i_shape.hpp"
