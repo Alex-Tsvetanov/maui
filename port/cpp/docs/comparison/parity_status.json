@@ -713,9 +713,9 @@
   },
   "stack_layout": {
     "dark": "diff",
-    "dark_note": "MAUI dark shows ONLY white \"Vertical\"/\"Horizontal\" text on black; C++ additionally renders the full rainbow vertical color stack and bottom horizontal color strip \u2014 the colored stack content is missing on the MAUI side.",
+    "dark_note": "Same as light: the C# stack_layout is a minimal text demo vs the C++ rainbow nesting demo, AND the C++ outer stack overlaps the Horizontal section onto the vertical rainbow stack (nested-layout arrange/measure bug \u2014 task_aa5dddae).",
     "light": "diff",
-    "light_note": "MAUI light shows ONLY \"Vertical\"/\"Horizontal\" text labels in a white card; C++ additionally renders the full rainbow VerticalStackLayout (red/yellow/blue/green/orange/purple bars), a bottom horizontal color strip, and an extra rounded black blob near the status bar \u2014 the colored stack content is missing on the MAUI side."
+    "light_note": "Two issues: (1) demo divergence \u2014 the C# compare stack_layout page is minimal (just Vertical/Horizontal text labels in a white card), while the C++ gallery page is a rainbow demo (an outer vertical stack nesting an inner vertical stack of 6 colored boxes + an inner horizontal stack). (2) BUG: the outer stack mispositions the nested inner stacks \u2014 the Horizontal label + horizontal strip overlap the vertical rainbow stack instead of stacking below it (a nested-layout arrange/measure issue; the inner stacks arrange their own children fine). Flagged as task_aa5dddae (the layout-manager counterpart to the border arrange-coordinate fix)."
   },
   "staggered_layout": {
     "dark": "pending",
