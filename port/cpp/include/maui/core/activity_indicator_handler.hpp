@@ -71,6 +71,10 @@ namespace maui::core
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_automation_id(std::string_view value) override;
+        // BackgroundColor / Background brush IS pushed to the UIActivityIndicatorView — the band behind the
+        // spinner (the shared apply_background; MauiIosActivityIndicator.layoutSubviews keeps a gradient
+        // fill sized to bounds).
+        void update_background(const maui::graphics::paint* value) override;
 #endif
     };
 

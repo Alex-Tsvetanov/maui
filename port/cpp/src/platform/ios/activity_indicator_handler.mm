@@ -19,6 +19,7 @@
 #include <string_view>
 
 #include "ios_conversions.hpp"
+#include "ios_visual_ops.hpp"
 #include "maui/core/activity_indicator_handler.hpp"
 #include "maui/core/i_activity_indicator.hpp"
 #include "maui/core/visibility.hpp"
@@ -34,6 +35,22 @@ namespace
 
     using maui::platform::ios::to_ui_color;
 } // namespace
+
+// MauiIosActivityIndicator — the UIActivityIndicatorView the handler presents. Its layoutSubviews override
+// re-sizes any gradient/image background sublayer apply_background installed (a solid BackgroundColor needs
+// no resize — it is the backing layer's backgroundColor), so a Background brush fills the band behind the
+// spinner and tracks bounds. apply_background runs before arrange, when bounds is zero, so the hook is
+// needed for gradients.
+@interface MauiIosActivityIndicator : UIActivityIndicatorView
+@end
+
+@implementation MauiIosActivityIndicator
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    maui::platform::ios::resize_background_layers((__bridge void*)self);
+}
+@end
 
 namespace maui::core
 {
@@ -66,12 +83,20 @@ namespace maui::core
         as_spinner(native).accessibilityIdentifier = raw != nil ? raw : @"";
     }
 
+    void activity_indicator_platform::update_background(const maui::graphics::paint* value)
+    {
+        // BackgroundColor / Background brush fills the band behind the spinner (it has no bezel): the shared
+        // helper paints a solid color onto the backing layer or installs a gradient/image sublayer
+        // (MauiIosActivityIndicator.layoutSubviews keeps it sized to bounds). A null paint clears it.
+        maui::platform::ios::apply_background(native, value);
+    }
+
     std::unique_ptr<activity_indicator_platform> activity_indicator_handler::create_platform_view()
     {
         auto platform = std::make_unique<activity_indicator_platform>();
         // ActivityIndicatorHandler.iOS.CreatePlatformView: the Medium style (the >= 13 branch).
         UIActivityIndicatorView* const native =
-            [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
+            [[MauiIosActivityIndicator alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
         platform->native = (__bridge_retained void*)native; // the void* slot owns one reference
         return platform;
     }
@@ -106,8 +131,12 @@ namespace maui::core
     {
         if (auto* platform = handler.typed_platform_view())
         {
-            // ActivityIndicatorExtensions.UpdateColor (the nullable collapse — see the header).
-            as_spinner(platform->native).color = to_ui_color(view.color());
+            // ActivityIndicatorExtensions.UpdateColor: an unset (default-constructed) Color must leave the
+            // UIActivityIndicatorView's native default tint (a dynamic system color, visible on light AND
+            // dark), NOT a transparent fill — to_ui_color(unset) is a clear color that makes the spinner
+            // invisible. nil restores the default (the C# null branch leaves the platform default).
+            const maui::graphics::color color = view.color();
+            as_spinner(platform->native).color = color != maui::graphics::color{} ? to_ui_color(color) : nil;
         }
     }
 

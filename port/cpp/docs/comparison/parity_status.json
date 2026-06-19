@@ -6,10 +6,10 @@
     "light_note": "MAUI light: gray rounded content card inset within safe area, blue rect + \"Centered text\" + green/red side bars + selected \"AutoSized\" label + a dark bottom button, all positioned inside the card; C++ light: white full-bleed background (no card), blue rect higher up, \"Centered text\" higher, NO \"AutoSized\" label, NO bottom dark button, plus a navigation bar (\"MauiCompare\" back) + Dynamic Island the MAUI shot lacks \u2014 different layout origin/insets, missing controls."
   },
   "activity_indicator": {
-    "dark": "blank",
-    "dark_note": "C++ dark is essentially blank \u2014 black screen with only the status bar and one small blue spinner centered \u2014 while MAUI dark renders all labels (Default/Styled.../Larger/Smaller), all spinners, and the yellow background band.",
-    "light": "diff",
-    "light_note": "Same labels/spinners/order, but C++ omits the yellow BackgroundColor band (no yellow rendered) that MAUI shows behind the third spinner, has a large black pill artifact at top-center, and adds extra trailing \"Not Running\"/\"- End of page -\" content; \"Smaller\" label wraps 1 line vs MAUI's 2."
+    "dark": "minor",
+    "dark_note": "FIXED (was blank): default spinners now visible (unset Color -> nil native default, was transparent) and the BackgroundColor=Yellow full-width band renders (update_background). Labels + all spinners + yellow band match MAUI dark. Residual: minor spinner positions.",
+    "light": "minor",
+    "light_note": "FIXED two issues: (1) the Default/Larger/Smaller spinners now render \u2014 an unset Color was forced to a transparent tint that made them invisible; now unset -> nil restores the native default (a dynamic system color, visible). (2) BackgroundColor=Yellow now renders as a full-width band behind the spinner (added iOS update_background -> apply_background; MauiIosActivityIndicator.layoutSubviews keeps a gradient fill sized). All labels + spinners + the yellow band now match MAUI. Residual: minor spinner spacing/positions + a faint not-running spinner."
   },
   "adaptive_collection": {
     "dark": "blank",
