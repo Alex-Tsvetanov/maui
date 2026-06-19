@@ -340,8 +340,10 @@
     "light": "pending"
   },
   "fonts": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "dark_note": "Font rendering faithful on dark (white text via cascade): bold/italic/named-sizes/character-spacing all render with correct styles matching the shared C# rows. Diff is demo content/order \u2014 the C++ gallery fonts page shows more named sizes + section headers and a different order than the C# compare page (authoring difference, not a port bug).",
+    "light": "minor",
+    "light_note": "Font rendering is faithful: the shared samples render with matching styles in both \u2014 named sizes (Title large / Subtitle / Header / Body / Caption), Bold/Italic/Bold+Italic attributes, and Character-spacing 4.0 (kerned). Difference is demo content + order: the C++ gallery fonts page is MORE comprehensive (adds EnableScaling + Font-attributes/Named-sizes section headers + Default/Micro/Small/Medium/Large) and groups attributes-then-sizes, vs the C# compare page (sizes-then-attributes, fewer rows). A gallery-vs-compare authoring difference, not a port bug."
   },
   "footer_only_string": {
     "dark": "pending",
