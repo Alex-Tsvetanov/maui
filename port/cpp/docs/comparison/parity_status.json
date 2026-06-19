@@ -644,8 +644,10 @@
     "light": "pending"
   },
   "search_bar": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "dark_note": "FIXED: unset TextColor now resolves to UIColor.labelColor, so query text renders white on dark, matching MAUI dark (green/pink explicit preserved, gray placeholders). Residual: search-bar row height differs (C# taller). (C# dark reference was a blank/black broken capture \u2014 re-captured.)",
+    "light": "minor",
+    "light_note": "Matches: same controls/order/text/colors (green/pink explicit, gray placeholders, black query text). Residual: C++ has a black rounded nav-bar blob at top (harness artifact), and C# search bars are taller (more vertical padding) so C# shows ~4 rows where C++ fits 7. (C# light reference was a blank/black broken capture \u2014 re-captured.)"
   },
   "selection_command_param": {
     "dark": "pending",

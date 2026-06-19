@@ -441,7 +441,12 @@ namespace maui::core
         auto* platform = handler.typed_platform_view();
         if (platform != nullptr)
         {
-            query_editor(platform->native).textColor = to_ui_color(view.text_color());
+            // An unset TextColor (default-constructed sentinel) must resolve to the dynamic system label
+            // color so the query text stays legible in dark mode — SearchBarHandler.iOS relies on the
+            // search field's default label color rather than forcing opaque black. Explicit colors win.
+            const maui::graphics::color text_color = view.text_color();
+            query_editor(platform->native).textColor =
+                text_color != maui::graphics::color{} ? to_ui_color(text_color) : UIColor.labelColor;
         }
     }
 
