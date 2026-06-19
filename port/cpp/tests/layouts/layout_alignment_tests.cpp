@@ -11,6 +11,7 @@
 #include <limits>
 
 #include "maui/controls/grid.hpp"
+#include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/grid_length.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/layout_alignment.hpp"
@@ -283,5 +284,81 @@ namespace
         g.arrange(rect(0, 0, 200, 200));
 
         EXPECT_EQ(child.frame(), rect(0, 0, 200, 200)); // fills the cell
+    }
+
+    // Regression for the scroll_to_group layout: two 3-auto-row x 2-star-col grids + a readout in a vertical
+    // stack must arrange sequentially without overlap — each grid reserves its FULL measured height in the
+    // stack (a grid child's desired height is honored, mirroring C# StackLayout over a GridLayout).
+    void make_three_auto_two_star(maui::controls::grid& g)
+    {
+        g.add_row_definition(maui::core::grid_length::automatic());
+        g.add_row_definition(maui::core::grid_length::automatic());
+        g.add_row_definition(maui::core::grid_length::automatic());
+        g.add_column_definition(maui::core::grid_length::star());
+        g.add_column_definition(maui::core::grid_length::star());
+    }
+
+    TEST(scroll_to_group_repro, two_auto_row_grids_stack_without_overlap)
+    {
+        maui::controls::vertical_stack_layout root;
+        root.set_spacing(12);
+
+        grid g1;
+        make_three_auto_two_star(g1);
+        aligned_view a0;
+        aligned_view a1;
+        aligned_view a2;
+        for (auto* v : {&a0, &a1, &a2})
+        {
+            v->set_desired_size({80, 30});
+        }
+        g1.add(a0);
+        g1.set_row(a0, 0);
+        g1.set_column(a0, 0);
+        g1.add(a1);
+        g1.set_row(a1, 1);
+        g1.set_column(a1, 0);
+        g1.add(a2);
+        g1.set_row(a2, 2);
+        g1.set_column(a2, 0);
+
+        grid g2;
+        make_three_auto_two_star(g2);
+        aligned_view b0;
+        aligned_view b1;
+        aligned_view b2;
+        for (auto* v : {&b0, &b1, &b2})
+        {
+            v->set_desired_size({80, 30});
+        }
+        g2.add(b0);
+        g2.set_row(b0, 0);
+        g2.set_column(b0, 0);
+        g2.add(b1);
+        g2.set_row(b1, 1);
+        g2.set_column(b1, 0);
+        g2.add(b2);
+        g2.set_row(b2, 2);
+        g2.set_column(b2, 0);
+
+        aligned_view readout;
+        readout.set_desired_size({200, 20});
+
+        root.add(g1);
+        root.add(g2);
+        root.add(readout);
+
+        const size m = root.measure(400, inf);
+        root.arrange(rect(0, 0, 400, m.height));
+
+        // Each grid is 3 auto rows x 30 = 90 tall; stack spacing 12: 90 + 12 + 90 + 12 + 20 = 224.
+        EXPECT_EQ(m.height, 224);
+        EXPECT_EQ(g1.frame().y, 0);
+        EXPECT_EQ(g1.frame().height, 90);
+        EXPECT_EQ(g2.frame().y, 102); // 90 + 12 spacing — below g1
+        EXPECT_EQ(g2.frame().height, 90);
+        EXPECT_EQ(readout.frame().y, 204);                              // 192 + 12 — below g2
+        EXPECT_GE(g2.frame().y, g1.frame().y + g1.frame().height);      // no overlap: g2 below g1
+        EXPECT_GE(readout.frame().y, g2.frame().y + g2.frame().height); // no overlap: readout below g2
     }
 } // namespace
