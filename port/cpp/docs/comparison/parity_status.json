@@ -846,7 +846,9 @@
     "light": "pending"
   },
   "z_index": {
-    "dark": "pending",
-    "light": "pending"
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "The ZIndex feature works: the visible label is correctly the highest-z-index one (Label 9, red) painted on top, and its background renders (label MapBackground fix 1d442d2451). The controls bar (readout + stepper) renders correctly. Documented deviation: C# cascades each label by Margin=n*15 so all 10 fan out diagonally; the port has no settable VisualElement.Margin yet (margin() is hardcoded {}), so the 10 labels stack at the same spot and only the top is visible. Margin flagged for implementation (the arrange half already honors it).",
+    "dark_note": "Same: z-index ordering + label background render correctly; the missing Margin cascade (flagged) is why only the top label shows instead of the 10-label diagonal fan."
   }
 }
