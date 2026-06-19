@@ -209,9 +209,9 @@
   },
   "controls_stack": {
     "dark": "diff",
-    "dark_note": "C++ dark renders almost empty (content pushed up under notch): only a stepper, faint progress line, an OFF switch and a blue ring \u2014 missing title, button, entry, editor, searchbar, checkbox, green switch and slider that MAUI shows; control set and ordering wholly diverge.",
+    "dark_note": "MAPPING DIVERGENCE: C++ controls_stack falls back to value_controls (no dedicated page) \u2014 different controls than the C# controls_stack. The value controls render correctly on dark now (slider/progress/switch/checkbox/spinner tints all fixed this session). Pixel-match needs a matching gallery page authored.",
     "light": "diff",
-    "light_note": "C++ light shows a completely different/broken stack: missing the \"Controls\" title, \"A Button\", \"An Entry\", \"An Editor\" and \"A SearchBar\"; instead shows \"Value: 25/100\" label, black-tinted slider, stepper, black progress bar, OFF switch, blue activity ring + spinner \u2014 wrong control set, wrong order, wrong colors (black vs MAUI's blue/green tint)."
+    "light_note": "MAPPING DIVERGENCE (not a rendering bug): the C++ gallery has no dedicated controls_stack page, so MAUI_SAMPLE_PAGE=controls_stack falls back to the value_controls page \u2014 a different control SET than the C# controls_stack (which shows a Controls title + Button/Entry/Editor/SearchBar/checkbox/switch/slider). The value controls the C++ page does show (Value label, slider with blue fill + white thumb, stepper, blue progress bar, switch, checkbox ring, spinner) all render correctly now via this sessions tint + dark-text fixes. To pixel-match would require authoring a C++ gallery controls_stack page mirroring the C# control set."
   },
   "custom_layout": {
     "dark": "blank",
