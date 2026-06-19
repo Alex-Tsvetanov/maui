@@ -32,6 +32,16 @@
 #include "pages/tabbed_flyout_page.hpp"
 #include "pages/value_controls_page.hpp"
 #include "pages/web_view_page.hpp"
+// --- batch 14 (more CollectionView galleries) ---
+#include "pages/empty_view_template_page.hpp"
+#include "pages/grid_grouping_page.hpp"
+#include "pages/header_footer_grid_page.hpp"
+#include "pages/header_footer_template_page.hpp"
+#include "pages/header_footer_view_page.hpp"
+#include "pages/multiple_bound_selection_page.hpp"
+#include "pages/preselected_items_page.hpp"
+#include "pages/selection_command_param_page.hpp"
+#include "pages/some_empty_groups_page.hpp"
 // --- batch 13 (SwipeView galleries) ---
 #include "pages/basic_swipe_page.hpp"
 #include "pages/custom_size_swipe_page.hpp"
@@ -293,7 +303,16 @@
     X("swipe_view_margin", swipe_view_margin_page)                                                                     \
     X("custom_size_swipe", custom_size_swipe_page)                                                                     \
     X("swipe_gesture", swipe_gesture_page)                                                                             \
-    X("swipe_threshold", swipe_threshold_page)
+    X("swipe_threshold", swipe_threshold_page)                                                                         \
+    X("header_footer_grid", header_footer_grid_page)                                                                   \
+    X("header_footer_template", header_footer_template_page)                                                           \
+    X("header_footer_view", header_footer_view_page)                                                                   \
+    X("multiple_bound_selection", multiple_bound_selection_page)                                                       \
+    X("selection_command_param", selection_command_param_page)                                                         \
+    X("preselected_items", preselected_items_page)                                                                     \
+    X("grid_grouping", grid_grouping_page)                                                                             \
+    X("some_empty_groups", some_empty_groups_page)                                                                     \
+    X("empty_view_template", empty_view_template_page)
 
 namespace maui::samples
 {

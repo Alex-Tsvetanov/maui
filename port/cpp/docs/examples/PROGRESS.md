@@ -52,6 +52,17 @@ LayoutIsEnabled · RelativeLayout · ScrollView · StackLayout · TemplatedView 
 - [x] ChatExample → `chat_example_page`
 - ⚠ NOTE: custom-struct item cells donE28099t render in the gallery yet (chrome+API do); framework fix in flight.
 
+## Batch 14 — more CollectionView galleries (9) — full render (post struct-cell fix)
+- [x] HeaderFooterGrid → `header_footer_grid_page`
+- [x] HeaderFooterTemplate → `header_footer_template_page`
+- [x] HeaderFooterView → `header_footer_view_page`
+- [x] MultipleBoundSelection → `multiple_bound_selection_page`
+- [x] SelectionChangedCommandParameter → `selection_command_param_page`
+- [x] PreselectedItemsGallery → `preselected_items_page`
+- [x] GridGrouping → `grid_grouping_page`
+- [x] SomeEmptyGroups → `some_empty_groups_page`
+- [x] EmptyViewTemplateGallery → `empty_view_template_page`
+
 ## Batch 13 — SwipeView galleries (9)
 - [x] BasicSwipeGallery → `basic_swipe_page`
 - [x] SwipeItemPositionGallery → `swipe_item_position_page`
