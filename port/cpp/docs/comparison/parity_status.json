@@ -648,8 +648,10 @@
     "light": "pending"
   },
   "relative_layout": {
-    "dark": "pending",
-    "light": "pending"
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "Documented deviation: RelativeLayout is Compatibility/legacy (out of scope), so the port reproduces the scene with absolute_layout + proportional flags. Renders correctly in both apps: 4 corner boxes (red TL/green TR/blue BL/yellow BR) + silver center box + small black box at its origin. C# ref re-captured (was a stale blank). Residuals: the black box approximates a sibling-relative constraint (absolute_layout cannot reference a sibling — noted in the page), the silver-box proportion differs slightly from the maui-compare demo, and the harness card framing.",
+    "dark_note": "Same in dark: both render the 4 corners + silver + black scene. C++ silver is exactly 0.33x0.33 of the parent; the maui-compare demo sizes it a bit smaller. Residual is the documented sibling-reference deviation + demo proportions + harness card."
   },
   "scattered_radio_button": {
     "dark": "pending",
