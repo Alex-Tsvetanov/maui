@@ -409,15 +409,15 @@
   },
   "image": {
     "dark": "diff",
-    "dark_note": "Same as light: UriSource renders; FileSource/gif/Font-Image blank \u2014 the gallery bundles no image/font assets (gallery .app = Info.plist + binary only). The iOS loader uses [UIImage imageNamed:] which needs the asset bundled. Gallery asset-bundling flagged as task_e9f31e49.",
+    "dark_note": "Same as light: the FileSource purple .NET-bot now renders (was blank) \u2014 dotnet_bot.png bundled into the gallery .app, ionicons.ttf registered via UIAppFonts. UriSource matches. Residual: the FileSource image sizes/positions differently from MAUI's full-width purple band (layout/measure, not assets); Font Image Source rows are below the parity-shot fold in both shots.",
     "light": "diff",
-    "light_note": "UriSource (remote https image) renders identically to MAUI (the Microsoft-campus photo). But FileSource (purple .NET bot), the animated gif, and the Font Image Source rows are all blank because the C++ gallery .app bundles NO resource assets (only Info.plist + binary) \u2014 every from_file()/from_font() source fails to load. C# bundles its own dotnet_bot.png etc. Needs gallery asset-bundling (CMake RESOURCE + the asset files); flagged as task_e9f31e49. dotnet_bot.png available in ~/maui-compare; gif + icon-font not readily available."
+    "light_note": "FIXED (assets now bundled): the FileSource purple .NET-bot RENDERS (was entirely blank). The gallery .app now bundles dotnet_bot.png at its root and the iOS loader's [UIImage imageNamed:] fallback finds it; ionicons.ttf is bundled + registered via UIAppFonts (family 'Ionicons', glyph U+F30C present). UriSource still matches MAUI. Residual is LAYOUT/SIZING, not assets: the C++ FileSource image renders smaller & lower than MAUI's full-width AspectFit purple band (an image horizontal-fill/measure diff), and the Font Image Source rows sit below the parity-shot fold in BOTH shots (the C# reference does not show the rendered glyph either). cog.png-style SVG-only assets remain unrasterizable (see resources/README.md)."
   },
   "image_button": {
     "dark": "minor",
-    "dark_note": "FIXED: ImageButton BackgroundColor (green/purple) + borders + corner radii render matching MAUI dark (added iOS update_background as a per-state backgroundImage, the ButtonHandler recipe). Residual: the unbundled cog icon (task_e9f31e49), also not visible in the C# shot.",
+    "dark_note": "FIXED: ImageButton BackgroundColor (green/purple) + borders + corner radii render matching MAUI dark, and the 'Custom Size' resize button now renders the purple dotnet_bot.png (assets bundled). Residual: the cog.png icon is still absent \u2014 original is SVG-only and the iOS loader cannot decode raw SVG (no faithful raster; documented in src/samples/resources/README.md), also not visible in the C# shot.",
     "light": "minor",
-    "light_note": "FIXED: the ImageButton BackgroundColor now renders \u2014 every button shows its green/purple fill matching MAUI (AspectFit/AspectFill/Fill green boxes; the BorderColor+BorderWidth button is green with a red border; the CornerRadius buttons are purple with rounded corners). Root cause: the iOS image_button deferred update_background; a system UIButton ignores backgroundColor, so it is now drawn as a per-state backgroundImage (the ButtonHandler recipe). Residual: the cog.png icon inside the buttons is not visible (asset not bundled, task_e9f31e49) \u2014 but C# also shows no visible cog (the fill dominates)."
+    "light_note": "FIXED: the ImageButton BackgroundColor fills render (green/purple per the ButtonHandler recipe) AND the 'Custom Size' resize button now shows the purple dotnet_bot.png (gallery assets bundled). Residual: the cog.png icon inside the cog buttons is still absent \u2014 the MAUI original is SVG-only (Resizetizer rasterizes cog.svg at build), and the iOS loader cannot decode raw SVG with no rasterizer available, so no faithful raster could be produced (documented, not fabricated \u2014 see src/samples/resources/README.md). C# likewise shows no prominent cog (the fill dominates)."
   },
   "indicator": {
     "dark": "minor",
@@ -426,8 +426,10 @@
     "light_note": "Dot indicators render matching MAUI \u2014 Basic/Shape/MaximumVisible(7-of-10)/Colors all show the right dot patterns; Colors now renders on a full-width yellow band (FIXED: added iOS update_background -> apply_background, reusing MauiPageControl with a layoutSubviews resize hook for gradients). Residual: the Indicator Size demo dots scale much larger in C++ than in the C# shot (real MAUI does not visibly resize UIPageControl dots on iOS 26 while the port scale=size/6 applies) \u2014 a scaling-fidelity nuance; carousel-with-indicator at the bottom."
   },
   "input_controls": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "dark_note": "FIXED: radios now visible on dark (unset TextColor -> labelColor tints the circle + title white; was clear/black = invisible) and the selected-radio white box removed (UIButtonTypeCustom). Filled/empty circles + white labels match MAUI dark. Residual: radio group centering vs left-align. Cascades to all radio pages.",
+    "light": "minor",
+    "light_note": "FIXED: the radio button group (UPPER/lower) now renders \u2014 an unset TextColor was forced to a clear/black tint that hid BOTH the title AND the SF-symbol circle indicator; now unset -> UIColor.labelColor (visible light+dark). Also switched the radio UIButton from System to Custom so the iOS-26 selected-state tint fill (a white box behind the selected radio) no longer appears. LENGTH label + Entry + SearchBar + the radios all match MAUI. Residual: the C++ radio group is center-aligned vs MAUI left-aligned (minor). Cascades to all radio_button pages."
   },
   "input_transparent": {
     "dark": "pending",

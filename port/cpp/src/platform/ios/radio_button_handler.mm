@@ -70,7 +70,9 @@ namespace
             [button setAttributedTitle:nil forState:UIControlStateNormal];
             return;
         }
-        UIColor* const foreground = to_ui_color(view.text_color());
+        const maui::graphics::color text_color = view.text_color();
+        UIColor* const foreground =
+            text_color != maui::graphics::color{} ? to_ui_color(text_color) : UIColor.labelColor;
         NSString* const plain_title = [button titleForState:UIControlStateNormal];
         [button setAttributedTitle:maui::platform::ios::kern_attributed(plain_title, spacing, foreground)
                           forState:UIControlStateNormal];
@@ -114,7 +116,10 @@ namespace maui::core
     std::unique_ptr<radio_button_platform> radio_button_handler::create_platform_view()
     {
         auto platform = std::make_unique<radio_button_platform>();
-        UIButton* const button = [UIButton buttonWithType:UIButtonTypeSystem];
+        // Custom (not System): the iOS-26 system button paints a tint-colored fill behind the SELECTED
+        // state (a white box once the tint is the dynamic label color), which MAUI's templated radio has
+        // no analog for. A custom button still tints the template SF-symbol indicators via tintColor.
+        UIButton* const button = [UIButton buttonWithType:UIButtonTypeCustom];
         // The DefaultTemplate's indicator pair, as SF symbols riding UIButton's state machinery: the
         // empty ring while unselected, the filled ring while selected (the CheckedIndicator's opacity
         // flip, collapsed onto UIButton.selected).
@@ -181,9 +186,12 @@ namespace maui::core
             return;
         }
         // The ButtonExtensions.UpdateTextColor recipe; the tintColor also tints the SF-symbol
-        // indicator, the fallback's stand-in for the template's themed Ellipse strokes.
+        // indicator, the fallback's stand-in for the template's themed Ellipse strokes. An unset
+        // (default-constructed) TextColor must resolve to the dynamic system label color, NOT a clear/
+        // opaque-black tint that hides BOTH the title AND the circle on dark backgrounds. Explicit wins.
         UIButton* const button = as_button(platform->native);
-        UIColor* const color = to_ui_color(view.text_color());
+        const maui::graphics::color text_color = view.text_color();
+        UIColor* const color = text_color != maui::graphics::color{} ? to_ui_color(text_color) : UIColor.labelColor;
         [button setTitleColor:color forState:UIControlStateNormal];
         [button setTitleColor:color forState:UIControlStateHighlighted];
         [button setTitleColor:color forState:UIControlStateDisabled];
