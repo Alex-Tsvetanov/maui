@@ -40,6 +40,17 @@ swipe_refresh · web_view · chrome · tabbed_flyout — see the per-example REA
 AbsoluteLayout · ClippingPage · ContentView · CustomLayout · FlexLayout · Grid · HorizontalStackLayout ·
 LayoutIsEnabled · RelativeLayout · ScrollView · StackLayout · TemplatedView · VerticalStackLayout · ZIndex
 
+## Batch 5 — UserInterface + Core feature demos (9) — proves the framework subsystems
+- [x] BrushesPage → `brushes_page` (Brush family over graphics::paint)
+- [x] TransformationsPage → `transformations_page`
+- [x] GesturesPage → `gestures_page` (recognizer family)
+- [x] AnimationPage → `animation_page`
+- [x] StylesPage → `styles_page`
+- [x] TriggersPage → `triggers_page`
+- [x] BehaviorsPage → `behaviors_page`
+- [x] VisualStatesPage → `visual_states_page`
+- [x] FontsPage → `fonts_page`
+
 ## Tier 3 — selected Gallery pages (Shapes / Border / CollectionView / Swipe families) — later
 ## Tier 4 — PlatformSpecifics/iOS (platform-config demos) — later
 ## Out of scope (won't port): Compatibility/*, Maps, Windows-only pages

@@ -32,6 +32,16 @@
 #include "pages/tabbed_flyout_page.hpp"
 #include "pages/value_controls_page.hpp"
 #include "pages/web_view_page.hpp"
+// --- batch 5 (UserInterface + Core feature demos) ---
+#include "pages/animation_page.hpp"
+#include "pages/behaviors_page.hpp"
+#include "pages/brushes_page.hpp"
+#include "pages/fonts_page.hpp"
+#include "pages/gestures_page.hpp"
+#include "pages/styles_page.hpp"
+#include "pages/transformations_page.hpp"
+#include "pages/triggers_page.hpp"
+#include "pages/visual_states_page.hpp"
 // --- batch 4 (Tier-1/Tier-2 tail) ---
 #include "pages/clipping_page.hpp"
 #include "pages/custom_layout_page.hpp"
@@ -87,25 +97,25 @@
     X("web_view", web_view_page)                                                                                       \
     X("chrome", chrome_page)                                                                                           \
     X("tabbed_flyout", tabbed_flyout_page)                                                                             \
-    X("button", button_page) X("label", label_page) X("image", image_page) X("entry", entry_page)                      \
-        X("editor", editor_page) X("search_bar", search_bar_page) X("check_box", check_box_page)                       \
-            X("switch", switch_page) X("slider", slider_page) X("stepper", stepper_page)                               \
-                X("progress_bar", progress_bar_page) X("activity_indicator", activity_indicator_page) X(               \
-                    "box_view", box_view_page) X("date_picker", date_picker_page) X("time_picker", time_picker_page)   \
-                    X("picker", picker_page) X("image_button", image_button_page) X("refresh_view", refresh_view_page) \
-                        X("absolute_layout", absolute_layout_page) X("grid", grid_page)                                \
-                            X("flex_layout", flex_layout_page) X("stack_layout", stack_layout_page)                    \
-                                X("vertical_stack", vertical_stack_layout_page)                                        \
-                                    X("horizontal_stack", horizontal_stack_layout_page)                                \
-                                        X("scroll_view", scroll_view_page) X("content_view", content_view_page)        \
-                                            X("z_index", z_index_page) X("indicator", indicator_page)                  \
-                                                X("shapes_demo", shapes_demo_page) X("title_bar", title_bar_page)      \
-                                                    X("clipping", clipping_page)                                       \
-                                                        X("templated_view", templated_view_page)                       \
-                                                            X("layout_is_enabled", layout_is_enabled_page)             \
-                                                                X("custom_layout", custom_layout_page)                 \
-                                                                    X("hybrid_web_view", hybrid_web_view_page)         \
-                                                                        X("relative_layout", relative_layout_page)
+    X("button", button_page)                                                                                           \
+    X("label", label_page)                                                                                             \
+    X("image", image_page) X("entry", entry_page) X("editor", editor_page) X("search_bar", search_bar_page)            \
+        X("check_box", check_box_page) X("switch", switch_page) X("slider", slider_page) X("stepper", stepper_page) X( \
+            "progress_bar", progress_bar_page) X("activity_indicator", activity_indicator_page)                        \
+            X("box_view", box_view_page) X("date_picker", date_picker_page) X("time_picker", time_picker_page) X(      \
+                "picker", picker_page) X("image_button", image_button_page) X("refresh_view", refresh_view_page)       \
+                X("absolute_layout", absolute_layout_page) X("grid", grid_page) X("flex_layout", flex_layout_page) X(  \
+                    "stack_layout", stack_layout_page) X("vertical_stack", vertical_stack_layout_page)                 \
+                    X("horizontal_stack", horizontal_stack_layout_page) X("scroll_view", scroll_view_page) X(          \
+                        "content_view", content_view_page) X("z_index", z_index_page) X("indicator", indicator_page)   \
+                        X("shapes_demo", shapes_demo_page) X("title_bar", title_bar_page) X("clipping", clipping_page) \
+                            X("templated_view", templated_view_page) X("layout_is_enabled", layout_is_enabled_page)    \
+                                X("custom_layout", custom_layout_page) X("hybrid_web_view", hybrid_web_view_page)      \
+                                    X("relative_layout", relative_layout_page) X("brushes", brushes_page)              \
+                                        X("transformations", transformations_page) X("gestures", gestures_page)        \
+                                            X("animation", animation_page) X("styles", styles_page)                    \
+                                                X("triggers", triggers_page) X("behaviors", behaviors_page)            \
+                                                    X("visual_states", visual_states_page) X("fonts", fonts_page)
 
 namespace maui::samples
 {
