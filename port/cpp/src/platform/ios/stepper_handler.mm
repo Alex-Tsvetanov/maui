@@ -24,6 +24,7 @@
 #include <string_view>
 
 #include "ios_view_ops.hpp"
+#include "ios_visual_ops.hpp"
 #include "maui/core/flow_direction.hpp"
 #include "maui/core/i_stepper.hpp"
 #include "maui/core/stepper_handler.hpp"
@@ -145,6 +146,21 @@ namespace
 }
 @end
 
+// MauiIosStepper — the UIStepper the handler presents. Its layoutSubviews override re-sizes any gradient/
+// image background sublayer apply_background installed (a solid BackgroundColor needs no resize — it is the
+// backing layer's backgroundColor), so a Background brush fills the band behind the −|+ buttons and tracks
+// bounds. apply_background runs before arrange, when bounds is zero, so the hook is needed for gradients.
+@interface MauiIosStepper : UIStepper
+@end
+
+@implementation MauiIosStepper
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    maui::platform::ios::resize_background_layers((__bridge void*)self);
+}
+@end
+
 namespace
 {
     // Key for the associated MauiStepperEventProxy kept alive by the UIStepper (UIControl does not
@@ -186,10 +202,19 @@ namespace maui::core
         as_stepper(native).accessibilityIdentifier = raw != nil ? raw : @"";
     }
 
+    void stepper_platform::update_background(const maui::graphics::paint* value)
+    {
+        // BackgroundColor / Background brush fills the stepper's frame behind the −|+ buttons (MAUI paints
+        // it full-width when the stepper is laid out Fill). The shared helper paints a solid color onto the
+        // backing layer or installs a gradient/image sublayer (MauiIosStepper.layoutSubviews keeps it sized);
+        // a null paint clears it.
+        maui::platform::ios::apply_background(native, value);
+    }
+
     std::unique_ptr<stepper_platform> stepper_handler::create_platform_view()
     {
         auto platform = std::make_unique<stepper_platform>();
-        UIStepper* const native = [[UIStepper alloc] initWithFrame:CGRectZero];
+        UIStepper* const native = [[MauiIosStepper alloc] initWithFrame:CGRectZero];
         platform->native = (__bridge_retained void*)native; // the void* slot owns one reference
         return platform;
     }

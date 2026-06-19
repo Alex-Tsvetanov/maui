@@ -706,10 +706,10 @@
     "light": "pending"
   },
   "stepper": {
-    "dark": "diff",
-    "dark_note": "C++ shows only seven bare dark stepper pills on black \u2014 all section labels (\"Default\", \"Disabled\", etc.), the blue \"Enable Stepper\" link, and the red BackgroundColor bar are missing, whereas MAUI dark shows white labels, the blue link, and the red bar.",
-    "light": "diff",
-    "light_note": "C++ omits the red BackgroundColor bar behind that stepper, renders \"Enable Stepper\" as plain centered black text instead of MAUI's blue tappable link, and uses tighter vertical spacing/different scroll position; otherwise same labels and pill steppers."
+    "dark": "minor",
+    "dark_note": "FIXED: labels + blue link render white on dark; BackgroundColor=Red now fills the stepper (update_background). Residual: demo difference \u2014 C# bold labels + full-width red band vs C++ regular labels + intrinsic-width red pill (port rendering is correct; the gallery demo lays the stepper intrinsic, not Fill).",
+    "light": "minor",
+    "light_note": "FIXED: BackgroundColor=Red now renders (added iOS update_background -> apply_background; MauiIosStepper.layoutSubviews keeps a gradient fill sized). Labels + blue Enable-Stepper link render (dark-text cascade). Residual: the C# stepper-page demo styles section labels bold/larger + lays the BackgroundColor stepper full-width (a wide red band) while the C++ gallery demo uses regular labels + an intrinsic-width red pill \u2014 a demo-layout/styling difference between the two apps (the port renders BackgroundColor correctly into the stepper frame)."
   },
   "styles": {
     "dark": "pending",

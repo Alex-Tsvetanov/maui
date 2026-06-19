@@ -85,6 +85,9 @@ namespace maui::core
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
+        // BackgroundColor / Background brush IS pushed to the UIStepper — the band behind the −|+ buttons
+        // (the shared apply_background; MauiIosStepper.layoutSubviews keeps a gradient/image fill sized).
+        void update_background(const maui::graphics::paint* value) override;
         // FlowDirection is NOT a platform-struct update_* override here: the handler mapper's
         // "flow_direction" key (map_flow_direction) overrides the shared view_mapper's generic push, so
         // it resolves the direction and applies it (via ios_view_ops::apply_flow_direction) directly —
