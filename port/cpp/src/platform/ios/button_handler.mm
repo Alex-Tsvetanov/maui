@@ -304,14 +304,26 @@ namespace maui::core
             return;
         }
         UIButton* const button = as_button(platform->native);
-        // ButtonExtensions.UpdateTextColor's non-null branch: the three seeded states + TintColor. The
-        // TextColor == null branch (clear the per-state overrides, adopt the window's tint) has no
-        // analog — the port's color is a non-nullable value type (same collapse as the AppKit twin).
-        UIColor* const color = to_ui_color(view.text_color());
-        [button setTitleColor:color forState:UIControlStateNormal];
-        [button setTitleColor:color forState:UIControlStateHighlighted];
-        [button setTitleColor:color forState:UIControlStateDisabled];
-        button.tintColor = color;
+        // ButtonExtensions.UpdateTextColor. Non-null branch: seed the three states + TintColor with the
+        // explicit color. Null branch (MAUI default): clear the per-state overrides and adopt the window's
+        // tint (the system accent, which adapts to light/dark) — the port treats the default-constructed
+        // (unset) color as that null, so an unstyled button shows the iOS tint, not black-on-black in dark.
+        const maui::graphics::color text_color = view.text_color();
+        if (text_color != maui::graphics::color{})
+        {
+            UIColor* const color = to_ui_color(text_color);
+            [button setTitleColor:color forState:UIControlStateNormal];
+            [button setTitleColor:color forState:UIControlStateHighlighted];
+            [button setTitleColor:color forState:UIControlStateDisabled];
+            button.tintColor = color;
+        }
+        else
+        {
+            [button setTitleColor:nil forState:UIControlStateNormal];
+            [button setTitleColor:nil forState:UIControlStateHighlighted];
+            [button setTitleColor:nil forState:UIControlStateDisabled];
+            button.tintColor = nil; // inherit the system/window tint (adapts light/dark)
+        }
         // A kerned (attributed) title carries its own color, so re-apply it (the C# MapTextColor relies
         // on the next MapFormatting pass; the port refreshes eagerly, like its map_text).
         refresh_button_title_formatting(button, view);

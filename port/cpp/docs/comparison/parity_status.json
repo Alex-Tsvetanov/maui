@@ -119,9 +119,9 @@
   },
   "button": {
     "dark": "diff",
-    "dark_note": "C++ is almost entirely wrong: no \"Taps: 0\", none of MAUI's colored filled button bars (blue/red/green/purple), buttons shown as plain white text; content/order differs (adds \"settings\"\u00d72, \"Decrease/Increase Spacing\", letter-spaced pink \"B u t t o n\") \u2014 different page, not just style.",
+    "dark_note": "Default button text now uses the system tint (visible in dark, was black-on-black). Same remaining BackgroundColor-fill gap as light.",
     "light": "diff",
-    "light_note": "C++ drops nearly all button chrome: MAUI's blue/red/green/purple/pink filled+bordered+rounded button bars render as plain unstyled text (or vanish); only a red-bordered empty box survives, plus a stray black nav-bar pill, letter-spaced pink \"B u t t o n\", and an extra \"BorderWidth Changing\" Slider not in MAUI."
+    "light_note": "Default/interactive button text now renders in the iOS tint (blue), matching MAUI (was forced black). REMAINING: buttons with an explicit BackgroundColor are not filled \u2014 UIButtonTypeSystem ignores backgroundColor; needs a per-state backgroundImage from the color (like MAUI ButtonHandler.MapBackground). Scoped follow-up."
   },
   "carousel_page": {
     "dark": "blank",
