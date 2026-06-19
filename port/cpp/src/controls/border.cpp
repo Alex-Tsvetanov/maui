@@ -131,8 +131,11 @@ namespace maui::controls
         }
         const maui::graphics::size measured{content_size.width + inset.horizontal_thickness(),
                                             content_size.height + inset.vertical_thickness()};
-        desired_size_ = measured;
-        return measured;
+        // Border : View — reconcile the measured inset against this view's own Width/HeightRequest
+        // (clamped by Min/Max), the IView desired-size resolution every leaf measure runs.
+        desired_size_ = {resolve_size_request(measured.width, width(), minimum_width(), maximum_width()),
+                         resolve_size_request(measured.height, height(), minimum_height(), maximum_height())};
+        return desired_size_;
     }
 
     // C# Border.CrossPlatformArrange: inset the bounds by StrokeThickness (Rect.Inset), then

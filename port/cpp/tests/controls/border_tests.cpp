@@ -117,6 +117,90 @@ namespace
         EXPECT_EQ(measured.height, 30.0);
     }
 
+    // ---- the view's own size requests reconcile the measured inset (Border : View; the IView
+    // desired-size resolution that ViewHandlerExtensions.ResolveConstraints runs in every leaf measure) ----
+
+    TEST(border, measure_honors_explicit_height_request)
+    {
+        // A Border with an explicit HeightRequest must report that height, not collapse to its small
+        // content. (Regression: measure used to return content+inset only.)
+        border view;
+        view.set_height_request(60);
+        mock_view child;
+        child.configure({100, 10}); // tiny content
+        view.set_content(child);
+
+        // stroke_thickness defaults to 1 -> horizontal/vertical inset 2; width follows content+inset (102),
+        // height is overridden by the 60 request (not the 12 content+inset would otherwise give).
+        const size measured = view.measure(1000, 1000);
+        EXPECT_EQ(measured.height, 60.0);
+        EXPECT_EQ(measured.width, 102.0);
+    }
+
+    TEST(border, measure_honors_explicit_width_request)
+    {
+        border view;
+        view.set_width_request(200);
+        mock_view child;
+        child.configure({10, 40});
+        view.set_content(child);
+
+        const size measured = view.measure(1000, 1000);
+        EXPECT_EQ(measured.width, 200.0); // request overrides the 12 content+inset
+        EXPECT_EQ(measured.height, 42.0); // height follows content (40) + inset (2)
+    }
+
+    TEST(border, measure_caps_at_maximum_height)
+    {
+        // A maximum below the content+inset clamps the measured height down.
+        border view;
+        view.set_maximum_height_request(20);
+        mock_view child;
+        child.configure({40, 100}); // content+inset height would be 102
+        view.set_content(child);
+
+        EXPECT_EQ(view.measure(1000, 1000).height, 20.0);
+    }
+
+    TEST(border, measure_floors_at_minimum_height)
+    {
+        // A minimum above the content+inset floors the measured height up.
+        border view;
+        view.set_minimum_height_request(80);
+        mock_view child;
+        child.configure({40, 10}); // content+inset height would be 12
+        view.set_content(child);
+
+        EXPECT_EQ(view.measure(1000, 1000).height, 80.0);
+    }
+
+    TEST(border, measure_minimum_beats_maximum)
+    {
+        // ResolveConstraints applies max first, then min — so min wins when they conflict.
+        border view;
+        view.set_minimum_height_request(80);
+        view.set_maximum_height_request(50);
+        mock_view child;
+        child.configure({40, 10});
+        view.set_content(child);
+
+        EXPECT_EQ(view.measure(1000, 1000).height, 80.0);
+    }
+
+    TEST(border, measure_without_a_request_is_unchanged) // regression: still content + inset
+    {
+        border view;
+        view.set_padding(thickness(10));
+        view.set_stroke_thickness(5);
+        mock_view child;
+        child.configure({100, 40});
+        view.set_content(child);
+
+        const size measured = view.measure(1000, 1000);
+        EXPECT_EQ(measured.width, 130.0);
+        EXPECT_EQ(measured.height, 70.0);
+    }
+
     TEST(border, arrange_places_content_within_stroke_then_padding)
     {
         border view;
