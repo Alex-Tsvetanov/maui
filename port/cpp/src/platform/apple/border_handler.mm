@@ -3,8 +3,10 @@
 // CAShapeLayer stroke built by apple_border_ops.hpp (the MauiCALayer recipe over stock layers; the
 // ops header documents the adaptation). Translated from BorderHandler.iOS.cs (CreatePlatformView →
 // the ContentView host; UpdateContent → clear + re-parent the content's native view) + the
-// StrokeExtensions funnel (every stroke map → one UpdateMauiCALayer refresh → update_border here).
-// Compiled as Objective-C++ with ARC for the `apple` backend.
+// StrokeExtensions funnel (every stroke map → one UpdateMauiCALayer refresh → update_border here). The
+// host is a FLIPPED NSView (create_flipped_host: isFlipped=YES, top-left origin) so the content's
+// top-down arrange renders top-down (matching iOS), like the content_page host. Compiled as
+// Objective-C++ with ARC for the `apple` backend.
 
 #import <AppKit/AppKit.h>
 
@@ -16,6 +18,7 @@
 #include "apple_semantics_ops.hpp"
 #include "apple_view_ops.hpp"
 #include "apple_visual_ops.hpp"
+#include "flipped_container.hpp"
 #include "maui/core/border_handler.hpp"
 #include "maui/core/i_border_view.hpp"
 #include "maui/core/i_view.hpp"
@@ -108,8 +111,8 @@ namespace maui::core
     std::unique_ptr<border_platform> border_handler::create_platform_view()
     {
         auto platform = std::make_unique<border_platform>();
-        NSView* const host = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)];
-        platform->native = (__bridge_retained void*)host; // the void* slot owns one reference
+        // A flipped (top-left origin) host so the content's top-down arrange renders top-down.
+        platform->native = maui::platform::apple::create_flipped_host(); // retained — the void* slot owns one ref
         return platform;
     }
 

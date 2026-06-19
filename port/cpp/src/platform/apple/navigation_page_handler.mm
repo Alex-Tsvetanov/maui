@@ -1,8 +1,11 @@
-// navigation_page_handler — Apple (AppKit / macOS) platform recipe: an NSView CONTAINER that stacks a
-// CUSTOM navigation BAR (an NSView with an NSTextField title + a back NSButton) above a CONTENT area, and
-// hosts the navigation stack's current (top-most) page as the content area's single subview, swapping it
-// on each push/pop. A SEPARATE modal OVERLAY (an NSView covering the whole container) presents the top
-// modal. The real-native twin of the headless partial.
+// navigation_page_handler — Apple (AppKit / macOS) platform recipe: a FLIPPED NSView CONTAINER
+// (create_flipped_host: isFlipped=YES, top-left origin) that stacks a CUSTOM navigation BAR (an NSView
+// with an NSTextField title + a back NSButton) above a CONTENT area, and hosts the navigation stack's
+// current (top-most) page as the content area's single subview, swapping it on each push/pop. A SEPARATE
+// modal OVERLAY (an NSView covering the whole container) presents the top modal. Because the container is
+// flipped (top-left origin, like UIKit), the bar pins to y = 0 (the TOP) and the content fills below it
+// at y = k_bar_height — identical to the iOS twin (navigation_page_handler.iOS.cs). The real-native twin
+// of the headless partial.
 //
 // AppKit has NO UINavigationController (iOS's host, which supplies the bar + push/pop transitions), so:
 //   - the bar is built here (host_current's update_bar reads the view's chrome state — title +
@@ -32,6 +35,7 @@
 
 #include "apple_conversions.hpp"
 #include "apple_view_ops.hpp"
+#include "flipped_container.hpp"
 #include "maui/core/i_stack_navigation.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
@@ -184,7 +188,12 @@ namespace maui::core
     std::unique_ptr<navigation_page_platform> navigation_page_handler::create_platform_view()
     {
         auto platform = std::make_unique<navigation_page_platform>();
-        NSView* const container = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)];
+        // A flipped (top-left origin) container so the bar pins to the top (y=0) and the page content
+        // fills below it (y=k_bar_height), matching the iOS twin's top-down layout. The factory returns a
+        // RETAINED handle: store it straight into the void* slot (which owns the one reference) and borrow
+        // a non-owning NSView* for the local wiring below.
+        platform->native = maui::platform::apple::create_flipped_host(); // the void* slot owns one reference
+        NSView* const container = (__bridge NSView*)platform->native;
 
         // The custom navigation bar (an NSView pinned to the top) holding the title + back button.
         NSView* const bar = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 0, k_bar_height)];
@@ -203,8 +212,7 @@ namespace maui::core
         [bar addSubview:title];
         [container addSubview:bar];
 
-        platform->native = (__bridge_retained void*)container; // each void* slot owns one reference
-        platform->bar = (__bridge_retained void*)bar;
+        platform->bar = (__bridge_retained void*)bar; // each remaining void* slot owns one reference
         platform->title_field = (__bridge_retained void*)title;
         platform->back_button = (__bridge_retained void*)back;
         return platform;
@@ -413,11 +421,11 @@ namespace maui::core
         NSView* const container = as_container(platform->native);
         [container setFrame:NSMakeRect(frame.x, frame.y, frame.width, frame.height)];
 
-        // AppKit's default NSView coordinate space is bottom-left origin: the bar pins to the TOP (y =
-        // height - bar_height) and the content fills the remaining area below it.
+        // The container is flipped (top-left origin, like UIKit): the bar pins to the TOP (y = 0) and the
+        // content fills the remaining area below it — identical to the iOS twin.
         const double content_height = frame.height > k_bar_height ? frame.height - k_bar_height : 0.0;
         NSView* const bar = as_view(platform->bar);
-        [bar setFrame:NSMakeRect(0, content_height, frame.width, k_bar_height)];
+        [bar setFrame:NSMakeRect(0, 0, frame.width, k_bar_height)];
         // Lay the bar's title + back button: back on the left, title filling the rest.
         const double title_width = frame.width > 80 ? frame.width - 80 : 0;
         as_button(platform->back_button).frame = NSMakeRect(0, 0, 80, k_bar_height);
@@ -429,12 +437,16 @@ namespace maui::core
             [as_view(platform->title_view_host) setFrame:title_frame];
         }
 
-        // The current page fills the content area below the bar (origin 0,0 in the container's space).
+        // The current page fills the content area below the bar (y = bar_height in the container's space)
+        // — or the WHOLE container when the bar is translucent (the content extends under the bar), like
+        // the iOS twin.
         if (platform->hosted_page != nullptr)
         {
             if (NSView* const subview = native_child(*platform->hosted_page))
             {
-                [subview setFrame:NSMakeRect(0, 0, frame.width, content_height)];
+                const double content_y = platform->bar_translucent ? 0.0 : k_bar_height;
+                const double page_height = platform->bar_translucent ? frame.height : content_height;
+                [subview setFrame:NSMakeRect(0, content_y, frame.width, page_height)];
             }
         }
         // The modal overlay (if presented) fills the WHOLE container, covering the bar + content.

@@ -3,8 +3,10 @@
 // ContentViewHandler.iOS.cs (UIKit's ContentView : MauiView → a plain AppKit NSView host — no
 // NSViewController, kept minimal): set_content clears the host's subviews and re-parents the content's
 // native view (C#'s UpdateContent: ClearSubviews + AddSubview(content.ToPlatform())). The control frames
-// the content within the padding via the content's own platform_arrange; the host itself is framed by
-// platform_arrange. Compiled as Objective-C++ with ARC for the `apple` backend.
+// the content within the padding via the content's own platform_arrange (TOP-DOWN coords), so the host
+// is a FLIPPED NSView (create_flipped_host: isFlipped=YES, top-left origin) — otherwise the content would
+// render bottom-up vs iOS. The host itself is framed by platform_arrange. Compiled as Objective-C++ with
+// ARC for the `apple` backend.
 
 #import <AppKit/AppKit.h>
 
@@ -15,6 +17,7 @@
 #include "apple_semantics_ops.hpp"
 #include "apple_view_ops.hpp"
 #include "apple_visual_ops.hpp"
+#include "flipped_container.hpp"
 #include "maui/core/content_page_handler.hpp"
 #include "maui/core/i_content_view.hpp"
 #include "maui/core/i_view.hpp"
@@ -77,8 +80,8 @@ namespace maui::core
     std::unique_ptr<content_page_platform> content_page_handler::create_platform_view()
     {
         auto platform = std::make_unique<content_page_platform>();
-        NSView* const host = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)];
-        platform->native = (__bridge_retained void*)host; // the void* slot owns one reference
+        // A flipped (top-left origin) host so the content's top-down arrange renders top-down.
+        platform->native = maui::platform::apple::create_flipped_host(); // retained — the void* slot owns one ref
         return platform;
     }
 

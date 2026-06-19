@@ -30,6 +30,7 @@
 #include "apple_semantics_ops.hpp"
 #include "apple_view_ops.hpp"
 #include "apple_visual_ops.hpp"
+#include "flipped_container.hpp"
 #include "maui/core/i_scroll_view.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
@@ -164,6 +165,9 @@ namespace maui::core
         scroller.hasVerticalScroller = YES; // the Vertical default; update_scrollers refines on connect
         scroller.autohidesScrollers = YES;
         platform->native = (__bridge_retained void*)scroller; // the void* slot owns one reference
+        // A flipped clip view so the content lays out / scrolls top-down (top-left origin) regardless of
+        // the document view's own flippedness — the UIScrollView top-left contentOffset analog.
+        maui::platform::apple::install_flipped_clip_view(platform->native);
         return platform;
     }
 

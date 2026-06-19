@@ -49,9 +49,12 @@ namespace maui::application_model::data_transfer
                 return;
             }
             const auto& bounds = request.presentation_source_bounds;
-            // The C# flips Y to AppKit's bottom-left origin (view.Bounds.Height - rect.Bottom).
-            const NSRect rect =
-                NSMakeRect(bounds.x, view.bounds.size.height - (bounds.y + bounds.height), bounds.width, bounds.height);
+            // showRelativeToRect:ofView: interprets the rect in the view's own coordinate space (it
+            // respects isFlipped). The MAUI bounds are TOP-DOWN: a flipped content view (the MAUI page
+            // host) takes them directly; only an unflipped view needs the Y flip to AppKit's bottom-left
+            // origin (view.Bounds.Height - rect.Bottom).
+            const double origin_y = view.isFlipped ? bounds.y : view.bounds.size.height - (bounds.y + bounds.height);
+            const NSRect rect = NSMakeRect(bounds.x, origin_y, bounds.width, bounds.height);
             NSSharingServicePicker* const picker = [[NSSharingServicePicker alloc] initWithItems:items];
             [picker showRelativeToRect:rect ofView:view preferredEdge:NSRectEdgeMinY];
         }

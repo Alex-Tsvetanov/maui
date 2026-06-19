@@ -300,17 +300,18 @@ namespace
         EXPECT_EQ(container_frame.size.width, 200.0);
         EXPECT_EQ(container_frame.size.height, 120.0);
 
-        // The bar pins to the top (bottom-left origin: y = height - bar_height = 120 - 44 = 76), full width.
+        // The container is flipped (top-left origin, like UIKit): the bar pins to the TOP at y = 0, full
+        // width — matching the iOS twin.
         const NSRect bar_frame = native_bar(handler).frame;
         EXPECT_EQ(bar_frame.origin.x, 0.0);
-        EXPECT_EQ(bar_frame.origin.y, 76.0);
+        EXPECT_EQ(bar_frame.origin.y, 0.0);
         EXPECT_EQ(bar_frame.size.width, 200.0);
         EXPECT_EQ(bar_frame.size.height, 44.0);
 
-        // The current page fills the content area below the bar (origin 0,0; height = 120 - 44 = 76).
+        // The current page fills the content area below the bar (y = bar_height = 44; height = 120 - 44 = 76).
         const NSRect page_frame = root_native.frame;
         EXPECT_EQ(page_frame.origin.x, 0.0);
-        EXPECT_EQ(page_frame.origin.y, 0.0);
+        EXPECT_EQ(page_frame.origin.y, 44.0);
         EXPECT_EQ(page_frame.size.width, 200.0);
         EXPECT_EQ(page_frame.size.height, 76.0);
     }

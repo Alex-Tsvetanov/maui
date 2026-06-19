@@ -245,6 +245,9 @@ if(MAUI_BACKEND STREQUAL "apple")
     src/platform/apple/image_button_handler.mm
     src/platform/apple/image_source_services.mm
     src/platform/apple/font_manager.mm
+    # The shared flipped (top-left origin) child-hosting NSView reused by every container/host below, so
+    # MAUI's top-down child frames render top-down (matching iOS / C# Mac Catalyst). One Obj-C class TU.
+    src/platform/apple/flipped_container.mm
     src/platform/apple/layout_handler.mm
     src/platform/apple/content_page_handler.mm
     # (U04 hide-soft-input-on-tapped) AppKit setup_native hook (empty token — macOS has no soft keyboard);

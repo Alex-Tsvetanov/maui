@@ -2,11 +2,12 @@
 // Content as a subview, plus the swipe state machine driven by the shared cross-platform
 // maui::core::swipe_machine. AppKit has NO built-in swipe-to-reveal control (the iOS MauiSwipeView is a
 // UIPanGestureRecognizer-driven custom view), so the AppKit reveal is a DOCUMENTED DEVIATION: the host
-// is a plain NSView, the content is hosted as on content_page, and the machine is driven by the
-// programmatic open/close + the cross-platform synthetic offsets (the same begin/swipe/end entry points
-// the headless backend uses; a future NSPanGestureRecognizer can call them to add the real drag visual).
-// The generic-IView property pushes mirror content_page_handler.mm. Compiled as Objective-C++ with ARC
-// for the `apple` backend.
+// is a FLIPPED NSView host (create_flipped_host: isFlipped=YES, top-left origin — like content_page, so
+// the content's top-down arrange renders top-down), the content is hosted as on content_page, and the
+// machine is driven by the programmatic open/close + the cross-platform synthetic offsets (the same
+// begin/swipe/end entry points the headless backend uses; a future NSPanGestureRecognizer can call them
+// to add the real drag visual). The generic-IView property pushes mirror content_page_handler.mm.
+// Compiled as Objective-C++ with ARC for the `apple` backend.
 
 #import <AppKit/AppKit.h>
 
@@ -17,6 +18,7 @@
 #include "apple_semantics_ops.hpp"
 #include "apple_view_ops.hpp"
 #include "apple_visual_ops.hpp"
+#include "flipped_container.hpp"
 #include "maui/core/i_swipe_view.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
@@ -115,8 +117,8 @@ namespace maui::core
     std::unique_ptr<swipe_view_platform> swipe_view_handler::create_platform_view()
     {
         auto platform = std::make_unique<swipe_view_platform>();
-        NSView* const host = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)];
-        platform->native = (__bridge_retained void*)host; // the void* slot owns one reference
+        // A flipped (top-left origin) host so the content's top-down arrange renders top-down.
+        platform->native = maui::platform::apple::create_flipped_host(); // retained — the void* slot owns one ref
         return platform;
     }
 

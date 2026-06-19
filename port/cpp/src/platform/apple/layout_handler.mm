@@ -1,9 +1,11 @@
 // layout_handler — Apple (AppKit / macOS) platform recipe: a plain NSView container that hosts the
 // arranged children. The real-native twin of the headless partial. Translated from LayoutHandler.iOS.cs
-// (UIKit's LayoutView → a plain AppKit NSView): the panel only HOSTS — each child is positioned by the
-// layout_manager via the child's own platform_arrange; the panel just manages the subview list. AppKit's
-// origin is lower-left, which the manager's rects already assume (the headless geometry is shared).
-// Compiled as Objective-C++ with ARC for the `apple` backend.
+// (UIKit's LayoutView → an AppKit NSView): the panel only HOSTS — each child is positioned by the
+// layout_manager via the child's own platform_arrange; the panel just manages the subview list. The
+// layout_manager's arrange rects are TOP-DOWN (the shared headless geometry, the UIKit convention), so
+// the panel is a FLIPPED NSView (create_flipped_host: isFlipped=YES, top-left origin) — otherwise the
+// children would render bottom-up / inverted vs iOS. Compiled as Objective-C++ with ARC for the `apple`
+// backend.
 
 #import <AppKit/AppKit.h>
 
@@ -17,6 +19,7 @@
 #include "apple_semantics_ops.hpp"
 #include "apple_view_ops.hpp"
 #include "apple_visual_ops.hpp"
+#include "flipped_container.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_layout.hpp"
 #include "maui/core/i_view.hpp"
@@ -105,8 +108,8 @@ namespace maui::core
     std::unique_ptr<layout_platform> layout_handler::create_platform_view()
     {
         auto platform = std::make_unique<layout_platform>();
-        NSView* const panel = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)];
-        platform->native = (__bridge_retained void*)panel; // the void* slot owns one reference
+        // A flipped (top-left origin) panel so the layout_manager's top-down child frames render top-down.
+        platform->native = maui::platform::apple::create_flipped_host(); // retained — the void* slot owns one ref
         return platform;
     }
 

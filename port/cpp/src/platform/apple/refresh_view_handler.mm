@@ -3,9 +3,10 @@
 // DOCUMENTED DEVIATION: IsRefreshing drives a stored spinner-overlay flag on the host (the platform
 // mirror — a real NSProgressIndicator overlay can be layered later); the spinner color + enabled flag are
 // stored mirrors; request_refresh() still writes IsRefreshing=true back through the virtual view (the
-// MauiRefreshViewProxy.OnRefresh twin) so the programmatic/test path matches every backend. The
-// generic-IView property pushes mirror content_page_handler.mm. Compiled as Objective-C++ with ARC for
-// the `apple` backend.
+// MauiRefreshViewProxy.OnRefresh twin) so the programmatic/test path matches every backend. The host is
+// a FLIPPED NSView (create_flipped_host: isFlipped=YES, top-left origin — like content_page, so the
+// content's top-down arrange renders top-down). The generic-IView property pushes mirror
+// content_page_handler.mm. Compiled as Objective-C++ with ARC for the `apple` backend.
 
 #import <AppKit/AppKit.h>
 
@@ -16,6 +17,7 @@
 #include "apple_semantics_ops.hpp"
 #include "apple_view_ops.hpp"
 #include "apple_visual_ops.hpp"
+#include "flipped_container.hpp"
 #include "maui/core/i_refresh_view.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
@@ -112,8 +114,8 @@ namespace maui::core
     std::unique_ptr<refresh_view_platform> refresh_view_handler::create_platform_view()
     {
         auto platform = std::make_unique<refresh_view_platform>();
-        NSView* const host = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 0, 0)];
-        platform->native = (__bridge_retained void*)host; // the void* slot owns one reference
+        // A flipped (top-left origin) host so the content's top-down arrange renders top-down.
+        platform->native = maui::platform::apple::create_flipped_host(); // retained — the void* slot owns one ref
         return platform;
     }
 
