@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 0 / 172 🟢 matched** · 0 🟡 minor · 0 🔴 diff · 172 ⬜ pending
+**Progress: 0 / 172 🟢 matched** · 0 🟡 minor · 59 🔴 diff · 113 ⬜ pending
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.
 
@@ -10,54 +10,54 @@ Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable
 
 | Page | Status | .NET MAUI (light) | C++ (light) | .NET MAUI (dark) | C++ (dark) |
 | --- | :---: | --- | --- | --- | --- |
-| Absolute Layout | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/absolute_layout.png) | ![](cpp_ios_light/absolute_layout.png) | ![](csharp_ios_dark/absolute_layout.png) | ![](cpp_ios_dark/absolute_layout.png) |
-| Activity Indicator | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/activity_indicator.png) | ![](cpp_ios_light/activity_indicator.png) | ![](csharp_ios_dark/activity_indicator.png) | ![](cpp_ios_dark/activity_indicator.png) |
-| Adaptive Collection | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/adaptive_collection.png) | ![](cpp_ios_light/adaptive_collection.png) | ![](csharp_ios_dark/adaptive_collection.png) | ![](cpp_ios_dark/adaptive_collection.png) |
-| Alerts | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/alerts.png) | ![](cpp_ios_light/alerts.png) | ![](csharp_ios_dark/alerts.png) | ![](cpp_ios_dark/alerts.png) |
-| Layout alignment (Start/Center/End/Fill) | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/alignment.png) | ![](cpp_ios_light/alignment.png) | ![](csharp_ios_dark/alignment.png) | ![](cpp_ios_dark/alignment.png) |
-| Animation | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/animation.png) | ![](cpp_ios_light/animation.png) | ![](csharp_ios_dark/animation.png) | ![](cpp_ios_dark/animation.png) |
-| App Theme Binding | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/app_theme_binding.png) | ![](cpp_ios_light/app_theme_binding.png) | ![](csharp_ios_dark/app_theme_binding.png) | ![](cpp_ios_dark/app_theme_binding.png) |
-| Application Control | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/application_control.png) | ![](cpp_ios_light/application_control.png) | ![](csharp_ios_dark/application_control.png) | ![](cpp_ios_dark/application_control.png) |
-| Auto Size Shapes | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/auto_size_shapes.png) | ![](cpp_ios_light/auto_size_shapes.png) | ![](csharp_ios_dark/auto_size_shapes.png) | ![](cpp_ios_dark/auto_size_shapes.png) |
-| Basic Grouping | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/basic_grouping.png) | ![](cpp_ios_light/basic_grouping.png) | ![](csharp_ios_dark/basic_grouping.png) | ![](cpp_ios_dark/basic_grouping.png) |
-| Basic Swipe | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/basic_swipe.png) | ![](cpp_ios_light/basic_swipe.png) | ![](csharp_ios_dark/basic_swipe.png) | ![](cpp_ios_dark/basic_swipe.png) |
-| Behaviors | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/behaviors.png) | ![](cpp_ios_light/behaviors.png) | ![](csharp_ios_dark/behaviors.png) | ![](cpp_ios_dark/behaviors.png) |
-| Border | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/border.png) | ![](cpp_ios_light/border.png) | ![](csharp_ios_dark/border.png) | ![](cpp_ios_dark/border.png) |
-| Border Clip Playground | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/border_clip_playground.png) | ![](cpp_ios_light/border_clip_playground.png) | ![](csharp_ios_dark/border_clip_playground.png) | ![](cpp_ios_dark/border_clip_playground.png) |
-| Border Layout | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/border_layout.png) | ![](cpp_ios_light/border_layout.png) | ![](csharp_ios_dark/border_layout.png) | ![](cpp_ios_dark/border_layout.png) |
-| Border Playground | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/border_playground.png) | ![](cpp_ios_light/border_playground.png) | ![](csharp_ios_dark/border_playground.png) | ![](cpp_ios_dark/border_playground.png) |
-| Border Resize Content | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/border_resize_content.png) | ![](cpp_ios_light/border_resize_content.png) | ![](csharp_ios_dark/border_resize_content.png) | ![](cpp_ios_dark/border_resize_content.png) |
-| Border Stroke | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/border_stroke.png) | ![](cpp_ios_light/border_stroke.png) | ![](csharp_ios_dark/border_stroke.png) | ![](cpp_ios_dark/border_stroke.png) |
+| Absolute Layout | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/absolute_layout.png) | ![](cpp_ios_light/absolute_layout.png) | ![](csharp_ios_dark/absolute_layout.png) | ![](cpp_ios_dark/absolute_layout.png) |
+| Activity Indicator | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/activity_indicator.png) | ![](cpp_ios_light/activity_indicator.png) | ![](csharp_ios_dark/activity_indicator.png) | ![](cpp_ios_dark/activity_indicator.png) |
+| Adaptive Collection | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/adaptive_collection.png) | ![](cpp_ios_light/adaptive_collection.png) | ![](csharp_ios_dark/adaptive_collection.png) | ![](cpp_ios_dark/adaptive_collection.png) |
+| Alerts | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/alerts.png) | ![](cpp_ios_light/alerts.png) | ![](csharp_ios_dark/alerts.png) | ![](cpp_ios_dark/alerts.png) |
+| Layout alignment (Start/Center/End/Fill) | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/alignment.png) | ![](cpp_ios_light/alignment.png) | ![](csharp_ios_dark/alignment.png) | ![](cpp_ios_dark/alignment.png) |
+| Animation | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/animation.png) | ![](cpp_ios_light/animation.png) | ![](csharp_ios_dark/animation.png) | ![](cpp_ios_dark/animation.png) |
+| App Theme Binding | 🔴<br>L:minor<br>D:diff | ![](csharp_ios_light/app_theme_binding.png) | ![](cpp_ios_light/app_theme_binding.png) | ![](csharp_ios_dark/app_theme_binding.png) | ![](cpp_ios_dark/app_theme_binding.png) |
+| Application Control | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/application_control.png) | ![](cpp_ios_light/application_control.png) | ![](csharp_ios_dark/application_control.png) | ![](cpp_ios_dark/application_control.png) |
+| Auto Size Shapes | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/auto_size_shapes.png) | ![](cpp_ios_light/auto_size_shapes.png) | ![](csharp_ios_dark/auto_size_shapes.png) | ![](cpp_ios_dark/auto_size_shapes.png) |
+| Basic Grouping | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/basic_grouping.png) | ![](cpp_ios_light/basic_grouping.png) | ![](csharp_ios_dark/basic_grouping.png) | ![](cpp_ios_dark/basic_grouping.png) |
+| Basic Swipe | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/basic_swipe.png) | ![](cpp_ios_light/basic_swipe.png) | ![](csharp_ios_dark/basic_swipe.png) | ![](cpp_ios_dark/basic_swipe.png) |
+| Behaviors | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/behaviors.png) | ![](cpp_ios_light/behaviors.png) | ![](csharp_ios_dark/behaviors.png) | ![](cpp_ios_dark/behaviors.png) |
+| Border | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/border.png) | ![](cpp_ios_light/border.png) | ![](csharp_ios_dark/border.png) | ![](cpp_ios_dark/border.png) |
+| Border Clip Playground | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/border_clip_playground.png) | ![](cpp_ios_light/border_clip_playground.png) | ![](csharp_ios_dark/border_clip_playground.png) | ![](cpp_ios_dark/border_clip_playground.png) |
+| Border Layout | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/border_layout.png) | ![](cpp_ios_light/border_layout.png) | ![](csharp_ios_dark/border_layout.png) | ![](cpp_ios_dark/border_layout.png) |
+| Border Playground | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/border_playground.png) | ![](cpp_ios_light/border_playground.png) | ![](csharp_ios_dark/border_playground.png) | ![](cpp_ios_dark/border_playground.png) |
+| Border Resize Content | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/border_resize_content.png) | ![](cpp_ios_light/border_resize_content.png) | ![](csharp_ios_dark/border_resize_content.png) | ![](cpp_ios_dark/border_resize_content.png) |
+| Border Stroke | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/border_stroke.png) | ![](cpp_ios_light/border_stroke.png) | ![](csharp_ios_dark/border_stroke.png) | ![](cpp_ios_dark/border_stroke.png) |
 | Borderless | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/borderless.png) | ![](cpp_ios_light/borderless.png) | ![](csharp_ios_dark/borderless.png) | ![](cpp_ios_dark/borderless.png) |
-| Box View | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/box_view.png) | ![](cpp_ios_light/box_view.png) | ![](csharp_ios_dark/box_view.png) | ![](cpp_ios_dark/box_view.png) |
-| Button | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/button.png) | ![](cpp_ios_light/button.png) | ![](csharp_ios_dark/button.png) | ![](cpp_ios_dark/button.png) |
-| Carousel Page | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/carousel_page.png) | ![](cpp_ios_light/carousel_page.png) | ![](csharp_ios_dark/carousel_page.png) | ![](cpp_ios_dark/carousel_page.png) |
-| Chat Example | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/chat_example.png) | ![](cpp_ios_light/chat_example.png) | ![](csharp_ios_dark/chat_example.png) | ![](cpp_ios_dark/chat_example.png) |
-| Check Box | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/check_box.png) | ![](cpp_ios_light/check_box.png) | ![](csharp_ios_dark/check_box.png) | ![](cpp_ios_dark/check_box.png) |
-| Chrome | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/chrome.png) | ![](cpp_ios_light/chrome.png) | ![](csharp_ios_dark/chrome.png) | ![](cpp_ios_dark/chrome.png) |
-| Clip | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/clip.png) | ![](cpp_ios_light/clip.png) | ![](csharp_ios_dark/clip.png) | ![](cpp_ios_dark/clip.png) |
-| Clip Corner Radius | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/clip_corner_radius.png) | ![](cpp_ios_light/clip_corner_radius.png) | ![](csharp_ios_dark/clip_corner_radius.png) | ![](cpp_ios_dark/clip_corner_radius.png) |
-| Clip Gallery | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/clip_gallery.png) | ![](cpp_ios_light/clip_gallery.png) | ![](csharp_ios_dark/clip_gallery.png) | ![](cpp_ios_dark/clip_gallery.png) |
-| Clip Views | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/clip_views.png) | ![](cpp_ios_light/clip_views.png) | ![](csharp_ios_dark/clip_views.png) | ![](cpp_ios_dark/clip_views.png) |
-| Clipping | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/clipping.png) | ![](cpp_ios_light/clipping.png) | ![](csharp_ios_dark/clipping.png) | ![](cpp_ios_dark/clipping.png) |
-| CollectionView | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/collectionview.png) | ![](cpp_ios_light/collectionview.png) | ![](csharp_ios_dark/collectionview.png) | ![](cpp_ios_dark/collectionview.png) |
-| Composition Gallery | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/composition_gallery.png) | ![](cpp_ios_light/composition_gallery.png) | ![](csharp_ios_dark/composition_gallery.png) | ![](cpp_ios_dark/composition_gallery.png) |
-| Containers | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/containers.png) | ![](cpp_ios_light/containers.png) | ![](csharp_ios_dark/containers.png) | ![](cpp_ios_dark/containers.png) |
-| Content View | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/content_view.png) | ![](cpp_ios_light/content_view.png) | ![](csharp_ios_dark/content_view.png) | ![](cpp_ios_dark/content_view.png) |
-| Context Flyout | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/context_flyout.png) | ![](cpp_ios_light/context_flyout.png) | ![](csharp_ios_dark/context_flyout.png) | ![](cpp_ios_dark/context_flyout.png) |
-| Control stack | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/controls_stack.png) | ![](cpp_ios_light/controls_stack.png) | ![](csharp_ios_dark/controls_stack.png) | ![](cpp_ios_dark/controls_stack.png) |
-| Custom Layout | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/custom_layout.png) | ![](cpp_ios_light/custom_layout.png) | ![](csharp_ios_dark/custom_layout.png) | ![](cpp_ios_dark/custom_layout.png) |
-| Custom Size Swipe | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/custom_size_swipe.png) | ![](cpp_ios_light/custom_size_swipe.png) | ![](csharp_ios_dark/custom_size_swipe.png) | ![](cpp_ios_dark/custom_size_swipe.png) |
-| Custom Swipe Item View | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/custom_swipe_item_view.png) | ![](cpp_ios_light/custom_swipe_item_view.png) | ![](csharp_ios_dark/custom_swipe_item_view.png) | ![](cpp_ios_dark/custom_swipe_item_view.png) |
-| Cv Visual States | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/cv_visual_states.png) | ![](cpp_ios_light/cv_visual_states.png) | ![](csharp_ios_dark/cv_visual_states.png) | ![](cpp_ios_dark/cv_visual_states.png) |
-| Data Template Selector | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/data_template_selector.png) | ![](cpp_ios_light/data_template_selector.png) | ![](csharp_ios_dark/data_template_selector.png) | ![](cpp_ios_dark/data_template_selector.png) |
-| Date Picker | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/date_picker.png) | ![](cpp_ios_light/date_picker.png) | ![](csharp_ios_dark/date_picker.png) | ![](cpp_ios_dark/date_picker.png) |
-| Device | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/device.png) | ![](cpp_ios_light/device.png) | ![](csharp_ios_dark/device.png) | ![](cpp_ios_dark/device.png) |
-| Dispatcher | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/dispatcher.png) | ![](cpp_ios_light/dispatcher.png) | ![](csharp_ios_dark/dispatcher.png) | ![](cpp_ios_dark/dispatcher.png) |
-| Drag Drop | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/drag_drop.png) | ![](cpp_ios_light/drag_drop.png) | ![](csharp_ios_dark/drag_drop.png) | ![](cpp_ios_dark/drag_drop.png) |
-| Editor | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/editor.png) | ![](cpp_ios_light/editor.png) | ![](csharp_ios_dark/editor.png) | ![](cpp_ios_dark/editor.png) |
-| Effects | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/effects.png) | ![](cpp_ios_light/effects.png) | ![](csharp_ios_dark/effects.png) | ![](cpp_ios_dark/effects.png) |
-| Ellipse Gallery | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/ellipse_gallery.png) | ![](cpp_ios_light/ellipse_gallery.png) | ![](csharp_ios_dark/ellipse_gallery.png) | ![](cpp_ios_dark/ellipse_gallery.png) |
+| Box View | 🔴<br>L:minor<br>D:diff | ![](csharp_ios_light/box_view.png) | ![](cpp_ios_light/box_view.png) | ![](csharp_ios_dark/box_view.png) | ![](cpp_ios_dark/box_view.png) |
+| Button | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/button.png) | ![](cpp_ios_light/button.png) | ![](csharp_ios_dark/button.png) | ![](cpp_ios_dark/button.png) |
+| Carousel Page | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/carousel_page.png) | ![](cpp_ios_light/carousel_page.png) | ![](csharp_ios_dark/carousel_page.png) | ![](cpp_ios_dark/carousel_page.png) |
+| Chat Example | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/chat_example.png) | ![](cpp_ios_light/chat_example.png) | ![](csharp_ios_dark/chat_example.png) | ![](cpp_ios_dark/chat_example.png) |
+| Check Box | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/check_box.png) | ![](cpp_ios_light/check_box.png) | ![](csharp_ios_dark/check_box.png) | ![](cpp_ios_dark/check_box.png) |
+| Chrome | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/chrome.png) | ![](cpp_ios_light/chrome.png) | ![](csharp_ios_dark/chrome.png) | ![](cpp_ios_dark/chrome.png) |
+| Clip | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/clip.png) | ![](cpp_ios_light/clip.png) | ![](csharp_ios_dark/clip.png) | ![](cpp_ios_dark/clip.png) |
+| Clip Corner Radius | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/clip_corner_radius.png) | ![](cpp_ios_light/clip_corner_radius.png) | ![](csharp_ios_dark/clip_corner_radius.png) | ![](cpp_ios_dark/clip_corner_radius.png) |
+| Clip Gallery | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/clip_gallery.png) | ![](cpp_ios_light/clip_gallery.png) | ![](csharp_ios_dark/clip_gallery.png) | ![](cpp_ios_dark/clip_gallery.png) |
+| Clip Views | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/clip_views.png) | ![](cpp_ios_light/clip_views.png) | ![](csharp_ios_dark/clip_views.png) | ![](cpp_ios_dark/clip_views.png) |
+| Clipping | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/clipping.png) | ![](cpp_ios_light/clipping.png) | ![](csharp_ios_dark/clipping.png) | ![](cpp_ios_dark/clipping.png) |
+| CollectionView | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/collectionview.png) | ![](cpp_ios_light/collectionview.png) | ![](csharp_ios_dark/collectionview.png) | ![](cpp_ios_dark/collectionview.png) |
+| Composition Gallery | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/composition_gallery.png) | ![](cpp_ios_light/composition_gallery.png) | ![](csharp_ios_dark/composition_gallery.png) | ![](cpp_ios_dark/composition_gallery.png) |
+| Containers | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/containers.png) | ![](cpp_ios_light/containers.png) | ![](csharp_ios_dark/containers.png) | ![](cpp_ios_dark/containers.png) |
+| Content View | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/content_view.png) | ![](cpp_ios_light/content_view.png) | ![](csharp_ios_dark/content_view.png) | ![](cpp_ios_dark/content_view.png) |
+| Context Flyout | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/context_flyout.png) | ![](cpp_ios_light/context_flyout.png) | ![](csharp_ios_dark/context_flyout.png) | ![](cpp_ios_dark/context_flyout.png) |
+| Control stack | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/controls_stack.png) | ![](cpp_ios_light/controls_stack.png) | ![](csharp_ios_dark/controls_stack.png) | ![](cpp_ios_dark/controls_stack.png) |
+| Custom Layout | ⬛<br>L:blank<br>D:blank | ![](csharp_ios_light/custom_layout.png) | ![](cpp_ios_light/custom_layout.png) | ![](csharp_ios_dark/custom_layout.png) | ![](cpp_ios_dark/custom_layout.png) |
+| Custom Size Swipe | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/custom_size_swipe.png) | ![](cpp_ios_light/custom_size_swipe.png) | ![](csharp_ios_dark/custom_size_swipe.png) | ![](cpp_ios_dark/custom_size_swipe.png) |
+| Custom Swipe Item View | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/custom_swipe_item_view.png) | ![](cpp_ios_light/custom_swipe_item_view.png) | ![](csharp_ios_dark/custom_swipe_item_view.png) | ![](cpp_ios_dark/custom_swipe_item_view.png) |
+| Cv Visual States | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/cv_visual_states.png) | ![](cpp_ios_light/cv_visual_states.png) | ![](csharp_ios_dark/cv_visual_states.png) | ![](cpp_ios_dark/cv_visual_states.png) |
+| Data Template Selector | ⬛<br>L:minor<br>D:blank | ![](csharp_ios_light/data_template_selector.png) | ![](cpp_ios_light/data_template_selector.png) | ![](csharp_ios_dark/data_template_selector.png) | ![](cpp_ios_dark/data_template_selector.png) |
+| Date Picker | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/date_picker.png) | ![](cpp_ios_light/date_picker.png) | ![](csharp_ios_dark/date_picker.png) | ![](cpp_ios_dark/date_picker.png) |
+| Device | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/device.png) | ![](cpp_ios_light/device.png) | ![](csharp_ios_dark/device.png) | ![](cpp_ios_dark/device.png) |
+| Dispatcher | ⬛<br>L:minor<br>D:blank | ![](csharp_ios_light/dispatcher.png) | ![](cpp_ios_light/dispatcher.png) | ![](csharp_ios_dark/dispatcher.png) | ![](cpp_ios_dark/dispatcher.png) |
+| Drag Drop | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/drag_drop.png) | ![](cpp_ios_light/drag_drop.png) | ![](csharp_ios_dark/drag_drop.png) | ![](cpp_ios_dark/drag_drop.png) |
+| Editor | 🔴<br>L:minor<br>D:diff | ![](csharp_ios_light/editor.png) | ![](cpp_ios_light/editor.png) | ![](csharp_ios_dark/editor.png) | ![](cpp_ios_dark/editor.png) |
+| Effects | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/effects.png) | ![](cpp_ios_light/effects.png) | ![](csharp_ios_dark/effects.png) | ![](cpp_ios_dark/effects.png) |
+| Ellipse Gallery | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/ellipse_gallery.png) | ![](cpp_ios_light/ellipse_gallery.png) | ![](csharp_ios_dark/ellipse_gallery.png) | ![](cpp_ios_dark/ellipse_gallery.png) |
 | Empty View | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/empty_view.png) | ![](cpp_ios_light/empty_view.png) | ![](csharp_ios_dark/empty_view.png) | ![](cpp_ios_dark/empty_view.png) |
 | Empty View Load Simulate | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/empty_view_load_simulate.png) | ![](cpp_ios_light/empty_view_load_simulate.png) | ![](csharp_ios_dark/empty_view_load_simulate.png) | ![](cpp_ios_dark/empty_view_load_simulate.png) |
 | Empty View Null | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/empty_view_null.png) | ![](cpp_ios_light/empty_view_null.png) | ![](csharp_ios_dark/empty_view_null.png) | ![](cpp_ios_dark/empty_view_null.png) |
@@ -115,11 +115,11 @@ Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable
 | Line Join Gallery | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/line_join_gallery.png) | ![](cpp_ios_light/line_join_gallery.png) | ![](csharp_ios_dark/line_join_gallery.png) | ![](cpp_ios_dark/line_join_gallery.png) |
 | Measure First Strategy | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/measure_first_strategy.png) | ![](cpp_ios_light/measure_first_strategy.png) | ![](csharp_ios_dark/measure_first_strategy.png) | ![](cpp_ios_dark/measure_first_strategy.png) |
 | Menu Bar | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/menu_bar.png) | ![](cpp_ios_light/menu_bar.png) | ![](csharp_ios_dark/menu_bar.png) | ![](cpp_ios_dark/menu_bar.png) |
-| Modal | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/modal.png) | ![](cpp_ios_light/modal.png) | ![](csharp_ios_dark/modal.png) | ![](cpp_ios_dark/modal.png) |
+| Modal | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/modal.png) | ![](cpp_ios_light/modal.png) | ![](csharp_ios_dark/modal.png) | ![](cpp_ios_dark/modal.png) |
 | Multiple Bound Selection | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/multiple_bound_selection.png) | ![](cpp_ios_light/multiple_bound_selection.png) | ![](csharp_ios_dark/multiple_bound_selection.png) | ![](cpp_ios_dark/multiple_bound_selection.png) |
 | Navigation Gallery | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/navigation_gallery.png) | ![](cpp_ios_light/navigation_gallery.png) | ![](csharp_ios_dark/navigation_gallery.png) | ![](cpp_ios_dark/navigation_gallery.png) |
 | Nested Collection | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/nested_collection.png) | ![](cpp_ios_light/nested_collection.png) | ![](csharp_ios_dark/nested_collection.png) | ![](cpp_ios_dark/nested_collection.png) |
-| Pan Gesture Events | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/pan_gesture_events.png) | ![](cpp_ios_light/pan_gesture_events.png) | ![](csharp_ios_dark/pan_gesture_events.png) | ![](cpp_ios_dark/pan_gesture_events.png) |
+| Pan Gesture Events | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/pan_gesture_events.png) | ![](cpp_ios_light/pan_gesture_events.png) | ![](csharp_ios_dark/pan_gesture_events.png) | ![](cpp_ios_dark/pan_gesture_events.png) |
 | Path Aspect Gallery | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/path_aspect_gallery.png) | ![](cpp_ios_light/path_aspect_gallery.png) | ![](csharp_ios_dark/path_aspect_gallery.png) | ![](cpp_ios_dark/path_aspect_gallery.png) |
 | Path Gallery | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/path_gallery.png) | ![](cpp_ios_light/path_gallery.png) | ![](csharp_ios_dark/path_gallery.png) | ![](cpp_ios_dark/path_gallery.png) |
 | Path Transform String | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/path_transform_string.png) | ![](cpp_ios_light/path_transform_string.png) | ![](csharp_ios_dark/path_transform_string.png) | ![](cpp_ios_dark/path_transform_string.png) |
@@ -129,7 +129,7 @@ Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable
 | Polygon Gallery | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/polygon_gallery.png) | ![](cpp_ios_light/polygon_gallery.png) | ![](csharp_ios_dark/polygon_gallery.png) | ![](cpp_ios_dark/polygon_gallery.png) |
 | Polyline Gallery | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/polyline_gallery.png) | ![](cpp_ios_light/polyline_gallery.png) | ![](csharp_ios_dark/polyline_gallery.png) | ![](cpp_ios_dark/polyline_gallery.png) |
 | Preselected Item | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/preselected_item.png) | ![](cpp_ios_light/preselected_item.png) | ![](csharp_ios_dark/preselected_item.png) | ![](cpp_ios_dark/preselected_item.png) |
-| Preselected Items | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/preselected_items.png) | ![](cpp_ios_light/preselected_items.png) | ![](csharp_ios_dark/preselected_items.png) | ![](cpp_ios_dark/preselected_items.png) |
+| Preselected Items | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/preselected_items.png) | ![](cpp_ios_light/preselected_items.png) | ![](csharp_ios_dark/preselected_items.png) | ![](cpp_ios_dark/preselected_items.png) |
 | Progress Bar | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/progress_bar.png) | ![](cpp_ios_light/progress_bar.png) | ![](csharp_ios_dark/progress_bar.png) | ![](cpp_ios_dark/progress_bar.png) |
 | Radio Button Border | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/radio_button_border.png) | ![](cpp_ios_light/radio_button_border.png) | ![](csharp_ios_dark/radio_button_border.png) | ![](cpp_ios_dark/radio_button_border.png) |
 | Radio Button Content | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/radio_button_content.png) | ![](cpp_ios_light/radio_button_content.png) | ![](csharp_ios_dark/radio_button_content.png) | ![](cpp_ios_dark/radio_button_content.png) |
@@ -151,25 +151,25 @@ Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable
 | Semantics | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/semantics.png) | ![](cpp_ios_light/semantics.png) | ![](csharp_ios_dark/semantics.png) | ![](cpp_ios_dark/semantics.png) |
 | Shadow Playground | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/shadow_playground.png) | ![](cpp_ios_light/shadow_playground.png) | ![](csharp_ios_dark/shadow_playground.png) | ![](cpp_ios_dark/shadow_playground.png) |
 | Shape App Theme | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/shape_app_theme.png) | ![](cpp_ios_light/shape_app_theme.png) | ![](csharp_ios_dark/shape_app_theme.png) | ![](cpp_ios_dark/shape_app_theme.png) |
-| Shapes | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/shapes.png) | ![](cpp_ios_light/shapes.png) | ![](csharp_ios_dark/shapes.png) | ![](cpp_ios_dark/shapes.png) |
-| Single Bound Selection | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/single_bound_selection.png) | ![](cpp_ios_light/single_bound_selection.png) | ![](csharp_ios_dark/single_bound_selection.png) | ![](cpp_ios_dark/single_bound_selection.png) |
-| Slider | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/slider.png) | ![](cpp_ios_light/slider.png) | ![](csharp_ios_dark/slider.png) | ![](cpp_ios_dark/slider.png) |
+| Shapes | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/shapes.png) | ![](cpp_ios_light/shapes.png) | ![](csharp_ios_dark/shapes.png) | ![](cpp_ios_dark/shapes.png) |
+| Single Bound Selection | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/single_bound_selection.png) | ![](cpp_ios_light/single_bound_selection.png) | ![](csharp_ios_dark/single_bound_selection.png) | ![](cpp_ios_dark/single_bound_selection.png) |
+| Slider | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/slider.png) | ![](cpp_ios_light/slider.png) | ![](csharp_ios_dark/slider.png) | ![](cpp_ios_dark/slider.png) |
 | Some Empty Groups | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/some_empty_groups.png) | ![](cpp_ios_light/some_empty_groups.png) | ![](csharp_ios_dark/some_empty_groups.png) | ![](cpp_ios_dark/some_empty_groups.png) |
-| Stack Layout | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/stack_layout.png) | ![](cpp_ios_light/stack_layout.png) | ![](csharp_ios_dark/stack_layout.png) | ![](cpp_ios_dark/stack_layout.png) |
+| Stack Layout | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/stack_layout.png) | ![](cpp_ios_light/stack_layout.png) | ![](csharp_ios_dark/stack_layout.png) | ![](cpp_ios_dark/stack_layout.png) |
 | Staggered Layout | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/staggered_layout.png) | ![](cpp_ios_light/staggered_layout.png) | ![](csharp_ios_dark/staggered_layout.png) | ![](cpp_ios_dark/staggered_layout.png) |
-| Stepper | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/stepper.png) | ![](cpp_ios_light/stepper.png) | ![](csharp_ios_dark/stepper.png) | ![](cpp_ios_dark/stepper.png) |
+| Stepper | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/stepper.png) | ![](cpp_ios_light/stepper.png) | ![](csharp_ios_dark/stepper.png) | ![](cpp_ios_dark/stepper.png) |
 | Styles | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/styles.png) | ![](cpp_ios_light/styles.png) | ![](csharp_ios_dark/styles.png) | ![](cpp_ios_dark/styles.png) |
 | Swipe Gesture | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/swipe_gesture.png) | ![](cpp_ios_light/swipe_gesture.png) | ![](csharp_ios_dark/swipe_gesture.png) | ![](cpp_ios_dark/swipe_gesture.png) |
 | Swipe Item Position | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/swipe_item_position.png) | ![](cpp_ios_light/swipe_item_position.png) | ![](csharp_ios_dark/swipe_item_position.png) | ![](cpp_ios_dark/swipe_item_position.png) |
-| Swipe Item Size | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/swipe_item_size.png) | ![](cpp_ios_light/swipe_item_size.png) | ![](csharp_ios_dark/swipe_item_size.png) | ![](cpp_ios_dark/swipe_item_size.png) |
+| Swipe Item Size | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/swipe_item_size.png) | ![](cpp_ios_light/swipe_item_size.png) | ![](csharp_ios_dark/swipe_item_size.png) | ![](cpp_ios_dark/swipe_item_size.png) |
 | Swipe Refresh | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/swipe_refresh.png) | ![](cpp_ios_light/swipe_refresh.png) | ![](csharp_ios_dark/swipe_refresh.png) | ![](cpp_ios_dark/swipe_refresh.png) |
 | Swipe Threshold | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/swipe_threshold.png) | ![](cpp_ios_light/swipe_threshold.png) | ![](csharp_ios_dark/swipe_threshold.png) | ![](cpp_ios_dark/swipe_threshold.png) |
 | Swipe View Margin | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/swipe_view_margin.png) | ![](cpp_ios_light/swipe_view_margin.png) | ![](csharp_ios_dark/swipe_view_margin.png) | ![](cpp_ios_dark/swipe_view_margin.png) |
 | Swipe View Shadow | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/swipe_view_shadow.png) | ![](cpp_ios_light/swipe_view_shadow.png) | ![](csharp_ios_dark/swipe_view_shadow.png) | ![](cpp_ios_dark/swipe_view_shadow.png) |
 | Switch | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/switch.png) | ![](cpp_ios_light/switch.png) | ![](csharp_ios_dark/switch.png) | ![](cpp_ios_dark/switch.png) |
-| Switch Grouping | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/switch_grouping.png) | ![](cpp_ios_light/switch_grouping.png) | ![](csharp_ios_dark/switch_grouping.png) | ![](cpp_ios_dark/switch_grouping.png) |
+| Switch Grouping | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/switch_grouping.png) | ![](cpp_ios_light/switch_grouping.png) | ![](csharp_ios_dark/switch_grouping.png) | ![](cpp_ios_dark/switch_grouping.png) |
 | Tabbed Flyout | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/tabbed_flyout.png) | ![](cpp_ios_light/tabbed_flyout.png) | ![](csharp_ios_dark/tabbed_flyout.png) | ![](cpp_ios_dark/tabbed_flyout.png) |
-| Templated View | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/templated_view.png) | ![](cpp_ios_light/templated_view.png) | ![](csharp_ios_dark/templated_view.png) | ![](cpp_ios_dark/templated_view.png) |
+| Templated View | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/templated_view.png) | ![](cpp_ios_light/templated_view.png) | ![](csharp_ios_dark/templated_view.png) | ![](cpp_ios_dark/templated_view.png) |
 | Time Picker | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/time_picker.png) | ![](cpp_ios_light/time_picker.png) | ![](csharp_ios_dark/time_picker.png) | ![](cpp_ios_dark/time_picker.png) |
 | Title Bar | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/title_bar.png) | ![](cpp_ios_light/title_bar.png) | ![](csharp_ios_dark/title_bar.png) | ![](cpp_ios_dark/title_bar.png) |
 | Toolbar | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/toolbar.png) | ![](cpp_ios_light/toolbar.png) | ![](csharp_ios_dark/toolbar.png) | ![](cpp_ios_dark/toolbar.png) |
@@ -177,7 +177,7 @@ Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable
 | Transformations | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/transformations.png) | ![](cpp_ios_light/transformations.png) | ![](csharp_ios_dark/transformations.png) | ![](cpp_ios_dark/transformations.png) |
 | Triggers | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/triggers.png) | ![](cpp_ios_light/triggers.png) | ![](csharp_ios_dark/triggers.png) | ![](cpp_ios_dark/triggers.png) |
 | Update Path Data | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/update_path_data.png) | ![](cpp_ios_light/update_path_data.png) | ![](csharp_ios_dark/update_path_data.png) | ![](cpp_ios_dark/update_path_data.png) |
-| Varied Size Selector | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/varied_size_selector.png) | ![](cpp_ios_light/varied_size_selector.png) | ![](csharp_ios_dark/varied_size_selector.png) | ![](cpp_ios_dark/varied_size_selector.png) |
+| Varied Size Selector | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/varied_size_selector.png) | ![](cpp_ios_light/varied_size_selector.png) | ![](csharp_ios_dark/varied_size_selector.png) | ![](cpp_ios_dark/varied_size_selector.png) |
 | Vertical Stack | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/vertical_stack.png) | ![](cpp_ios_light/vertical_stack.png) | ![](csharp_ios_dark/vertical_stack.png) | ![](cpp_ios_dark/vertical_stack.png) |
 | Visual States | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/visual_states.png) | ![](cpp_ios_light/visual_states.png) | ![](csharp_ios_dark/visual_states.png) | ![](cpp_ios_dark/visual_states.png) |
 | Web View | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/web_view.png) | ![](cpp_ios_light/web_view.png) | ![](csharp_ios_dark/web_view.png) | ![](cpp_ios_dark/web_view.png) |
