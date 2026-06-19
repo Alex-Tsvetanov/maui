@@ -133,9 +133,13 @@ emitting any code.** Operating rules that override/extend the generic workflow a
   teardown in destructors. Do not defer ownership decisions.
 - **No reflection.** Use explicit registration (`PROFILE.md §6`): `register_handler<…>()`, static
   property registrars, a type-keyed service registry. **Defer XAML (layer 6)** behind the code-first API.
-- **Tooling commands** (once `port/cpp/` is scaffolded): configure with a CMake preset
-  (`cmake --preset headless`), build with Ninja, test with `ctest --preset headless`. Port C# tests
-  (`src/**/tests`) into GoogleTest `TEST`/`TEST_P` cases — they remain the behavioral oracle.
+- **Tooling commands** — fast inner loop: `tools/dev.sh [regex]` (incremental Ninja rebuild + `ctest -R`
+  on one preset, seconds). Full pre-push gate (all backends + sanitizers + clang-tidy): `tools/gate.sh`
+  (`--fast` subset / `--clean` from-scratch). Both use `ccache` and `ctest -j`; **do not run all presets
+  for routine iteration**, and never wipe a `build/<preset>` dir to "be safe" (Ninja is incremental).
+  Raw form: `cmake --preset headless && cmake --build --preset headless && ctest --preset headless -j`.
+  See `STATUS.md` "Build & test" for the performance model. Port C# tests (`src/**/tests`) into GoogleTest
+  `TEST`/`TEST_P` cases — they remain the behavioral oracle.
 - **Property system & handler infra:** implement per the sketches in `PROFILE.md §7` (bindable_property
   with value precedence) and `§5` (CRTP `view_handler` + non-generic `i_view_handler`). Verify property
   precedence against the ported `src/Controls/tests/Core.UnitTests` BindableProperty/Binding tests.

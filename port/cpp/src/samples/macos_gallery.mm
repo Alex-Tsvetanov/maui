@@ -21,7 +21,10 @@
 //   MAUI_SAMPLE_PAGE=pickers ./build/apple/maui_macos_gallery
 // Traces go to the unified log (os_log). Compiled as Objective-C++ with ARC.
 #import <AppKit/AppKit.h>
+#import <CoreText/CoreText.h>
 #import <os/log.h>
+
+#include <unistd.h>
 
 #include <algorithm>
 #include <cstdlib>
@@ -109,8 +112,48 @@ namespace
         return 0;
     }
 
+    // Make the bundled demo assets resolvable. The gallery binary is a PLAIN executable (not a .app), so
+    // the macOS image loader resolves from_file() paths against the process CWD and a non-bundle binary
+    // cannot use Info.plist ATSApplicationFontsPath. The CMake POST_BUILD step copies the assets next to
+    // the binary: chdir there so "dotnet_bot.png" etc. resolve, and register the bundled ionicons.ttf
+    // with CoreText so the Image page's "Font Image Source" rows find the "Ionicons" family (the port has
+    // no runtime font-registration seam — the iOS twin gets the same via UIAppFonts). Best-effort: a
+    // missing dir / already-registered font just leaves the corresponding sources unresolved, as before.
+    void prepare_gallery_resources()
+    {
+        NSString* const exe = [[NSBundle mainBundle] executablePath];
+        NSString* const dir = exe.stringByDeletingLastPathComponent;
+        if (dir.length == 0)
+        {
+            return;
+        }
+        if (chdir(dir.fileSystemRepresentation) != 0)
+        {
+            os_log_error(OS_LOG_DEFAULT, "[gallery] could not chdir to %{public}s (assets may not resolve)",
+                         dir.fileSystemRepresentation);
+        }
+
+        NSString* const font_path = [dir stringByAppendingPathComponent:@"ionicons.ttf"];
+        if (![NSFileManager.defaultManager fileExistsAtPath:font_path])
+        {
+            return;
+        }
+        CFErrorRef error = nullptr;
+        if (!CTFontManagerRegisterFontsForURL((__bridge CFURLRef)[NSURL fileURLWithPath:font_path],
+                                              kCTFontManagerScopeProcess, &error))
+        {
+            os_log(OS_LOG_DEFAULT, "[gallery] ionicons.ttf not newly registered (already present or in use)");
+        }
+        if (error != nullptr)
+        {
+            CFRelease(error);
+        }
+    }
+
     int run_gallery()
     {
+        prepare_gallery_resources();
+
         NSApplication* const ns_app = [NSApplication sharedApplication];
         [ns_app setActivationPolicy:NSApplicationActivationPolicyRegular];
 

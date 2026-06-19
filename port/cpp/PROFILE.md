@@ -24,7 +24,7 @@
 
 | Concern | Choice | Notes |
 |---|---|---|
-| Build system | **CMake ≥ 3.28** + **Ninja**, with `CMakePresets.json` | one preset per backend (`headless`, `apple`, `windows`, `android`, `linux`). |
+| Build system | **CMake ≥ 3.28** + **Ninja** + **ccache**, with `CMakePresets.json` | one preset per backend (`headless`, `apple`, `windows`, `android`, `linux`); ccache auto-wired in `CMakeLists.txt` (the lanes share no objects, so it is what keeps the multi-preset gate affordable). Inner loop `tools/dev.sh`, full gate `tools/gate.sh` — see `STATUS.md` "Build & test". |
 | Test framework | **GoogleTest + GMock** (via `ctest`) | port the C# unit tests (NUnit/xUnit) into GoogleTest `TEST`/`TEST_P` cases; GMock covers the handler / native-view seam at M1+. (Catch2 was the original default; superseded.) |
 | Benchmarks | **Google Benchmark** | migrate the C# BenchmarkDotNet benchmarks (`src/**/tests/*.Benchmarks`). |
 | Dependency mgmt | **vcpkg** (manifest mode, `vcpkg.json`) | keep deps minimal: `gtest`, `benchmark`; `fmt` only if `<format>` gaps appear. |

@@ -14,6 +14,9 @@ The original C# `src/`, the `vault/` (API contract + conceptual docs), and `grap
 (dependency graph) are **read-only reference** — never modify them. Behavior is derived from the
 C# source and its tests, never invented.
 
-The port lives in `port/cpp/`. Build & test the headless backend with:
-`cmake --preset headless && cmake --build --preset headless && ctest --preset headless`
-(requires `VCPKG_ROOT` set; see `port/STATUS.md`).
+The port lives in `port/cpp/`. **Inner loop (fast — seconds):** `port/cpp/tools/dev.sh [regex]`
+incrementally rebuilds the headless backend and runs the matching tests (`ctest -R`). **Full gate
+(slow — all backends + sanitizers + clang-tidy):** `port/cpp/tools/gate.sh` (`--fast` for a quick
+pre-commit subset, `--clean` for a from-scratch run). Both require `VCPKG_ROOT` set and use `ccache`
+(`brew install ccache`) — see the "Build & test" section of `port/STATUS.md` for the raw commands and
+the rationale. Do NOT run all presets for routine iteration; reserve the gate for pre-push verification.

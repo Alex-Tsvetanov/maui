@@ -8,6 +8,26 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# ---- Compiler cache (ccache) — see STATUS.md "Build & test" ----
+# Every preset lives in its own build/<preset> dir (headless / tidy / asan-ubsan / tsan / apple / ios /
+# android), and those trees share NO object files — so the gate otherwise recompiles the same ~860 TUs
+# up to six times. ccache makes the 2nd..Nth build of an unchanged TU a cache hit: within one gate the
+# `headless` and `tidy` lanes compile with identical flags (tidy adds a *separate* clang-tidy pass, not
+# a compile flag), so once headless is built tidy's compiles are free; across runs, every clean rebuild,
+# branch switch, and worktree-agent build is mostly hits. Auto-detected; disable with -DMAUI_USE_CCACHE=OFF.
+# Set as the launcher for BOTH CXX and OBJCXX (the apple/ios .mm partials) before any target is defined.
+option(MAUI_USE_CCACHE "Use ccache as the compiler launcher when found" ON)
+if(MAUI_USE_CCACHE AND NOT CMAKE_CXX_COMPILER_LAUNCHER)
+  find_program(MAUI_CCACHE_EXE NAMES ccache)
+  if(MAUI_CCACHE_EXE)
+    set(CMAKE_CXX_COMPILER_LAUNCHER "${MAUI_CCACHE_EXE}")
+    set(CMAKE_OBJCXX_COMPILER_LAUNCHER "${MAUI_CCACHE_EXE}")
+    message(STATUS "ccache: ${MAUI_CCACHE_EXE} (compiler launcher; clang-tidy analysis still runs uncached)")
+  else()
+    message(STATUS "ccache: not found — builds run uncached (`brew install ccache` to speed up the gate)")
+  endif()
+endif()
+
 # ---- Backend selection (headless first; macOS/iOS done, Windows/Android/Linux later) ----
 set(MAUI_BACKEND "headless" CACHE STRING "Native backend: headless|apple|ios|windows|android|linux")
 set_property(CACHE MAUI_BACKEND PROPERTY STRINGS headless apple ios windows android linux)
@@ -1402,6 +1422,22 @@ if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     OBJCXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
 
+# ---- Demo-gallery resource assets ----
+# The runnable galleries otherwise ship only Info.plist + the binary, so every from_file()/from_font()
+# source in src/samples/pages/*.hpp failed to load. These faithful copies of the original .NET MAUI
+# sample assets (provenance in src/samples/resources/README.md) are bundled into each gallery .app /
+# next to the macOS binary by the POST_BUILD steps below. cog.png / thumb_image.png are intentionally
+# absent — the originals are SVG-only and the loaders cannot decode raw SVG (see the README).
+set(MAUI_GALLERY_RESOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/samples/resources")
+set(MAUI_GALLERY_RESOURCES
+  "${MAUI_GALLERY_RESOURCE_DIR}/dotnet_bot.png"
+  "${MAUI_GALLERY_RESOURCE_DIR}/animated_heart.gif"
+  "${MAUI_GALLERY_RESOURCE_DIR}/settings.png"
+  "${MAUI_GALLERY_RESOURCE_DIR}/coffee.png"
+  "${MAUI_GALLERY_RESOURCE_DIR}/oasis.jpg"
+  "${MAUI_GALLERY_RESOURCE_DIR}/cover1.jpg"
+  "${MAUI_GALLERY_RESOURCE_DIR}/ionicons.ttf")
+
 # ---- Sample apps (macOS only) ----
 # (M-L hosting-app-builder) Both samples now boot through maui_app_builder (maui_hosting, defined
 # below — CMake resolves link targets at generate time, so the forward reference is fine).
@@ -1423,6 +1459,13 @@ if(MAUI_BACKEND STREQUAL "apple")
   add_executable(maui_macos_gallery src/samples/macos_gallery.mm)
   set_source_files_properties(src/samples/macos_gallery.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
   target_link_libraries(maui_macos_gallery PRIVATE maui_hosting maui_sanitizers)
+  # maui_macos_gallery is a PLAIN executable (not a .app), and its image loader resolves from_file()
+  # paths against the CWD. Copy the demo assets next to the binary; macos_gallery.mm chdir's there at
+  # startup (and runtime-registers ionicons.ttf via CoreText) so the same sources render as on iOS.
+  add_custom_command(TARGET maui_macos_gallery POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${MAUI_GALLERY_RESOURCES}
+            "$<TARGET_FILE_DIR:maui_macos_gallery>"
+    COMMENT "Copying demo gallery assets next to maui_macos_gallery")
 endif()
 
 # ---- Sample app (iOS only): maui_app_sample's UIKit twin, a real UIApplicationMain app ----
@@ -1451,13 +1494,23 @@ if(MAUI_BACKEND STREQUAL "ios")
   add_executable(maui_ios_gallery src/samples/ios_gallery.mm)
   set_source_files_properties(src/samples/ios_gallery.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
   target_link_libraries(maui_ios_gallery PRIVATE maui_hosting maui_sanitizers)
+  # The gallery's own Info.plist adds UIAppFonts (ionicons.ttf) so the bundled icon font registers at
+  # launch — the Image page's "Font Image Source" rows need the "Ionicons" family installed (the port
+  # has no runtime font-registration seam). maui_ios_app_sample keeps the plain plist (no font).
   set_target_properties(maui_ios_gallery PROPERTIES
     MACOSX_BUNDLE TRUE
-    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/src/samples/ios_app_sample_info.plist.in"
+    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/src/samples/ios_gallery_info.plist.in"
     MACOSX_BUNDLE_BUNDLE_NAME "maui_ios_gallery"
     MACOSX_BUNDLE_GUI_IDENTIFIER "dev.maui-cpp.ios-gallery"
     MACOSX_BUNDLE_BUNDLE_VERSION "1"
     MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0")
+  # Bundle the demo assets into the .app ROOT (iOS bundles are flat — that is where the loader's
+  # [UIImage imageNamed:] fallback and UIAppFonts both look). A POST_BUILD copy is generator-agnostic
+  # (the RESOURCE property lands files in a Resources/ subdir under Ninja, which imageNamed: would miss).
+  add_custom_command(TARGET maui_ios_gallery POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${MAUI_GALLERY_RESOURCES}
+            "$<TARGET_BUNDLE_CONTENT_DIR:maui_ios_gallery>"
+    COMMENT "Bundling demo gallery assets into maui_ios_gallery.app")
 endif()
 
 # ======================================================================

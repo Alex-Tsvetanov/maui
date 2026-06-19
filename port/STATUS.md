@@ -181,19 +181,41 @@ These were DISTINCT from the FAITHFUL "not supported" set (macOS sensors/screens
 `feature_not_supported`, AppKit no-soft-keyboard / hand-drawn page-control dots / no nav-bar tint, etc.)
 which remains correctly absent (completing it would diverge from MAUI).
 
-## Build & test (headless) — run from `port/cpp/`
+## Build & test — run from `port/cpp/`
 
+**Performance model (read this before "the gate is slow").** "ctest for all presets" is not one build —
+it is ~6 INDEPENDENT builds of the same ~860 TUs, each in its own `build/<preset>/` tree that shares no
+objects (headless / tidy / asan-ubsan / tsan / apple / ios), two of them deliberately expensive (`tidy`
+runs clang-tidy on every TU; the sanitizer lanes recompile instrumented). Three things keep it sane —
+all wired in:
+- **ccache** (`brew install ccache`; auto-detected in `CMakeLists.txt`, disable with `-DMAUI_USE_CCACHE=OFF`)
+  makes the 2nd..Nth build of an unchanged TU a cache hit — across runs (clean rebuilds, branch switches,
+  worktree-agent builds) and within a gate (`headless`→`tidy` share object cache; only the clang-tidy
+  pass re-runs). This is the single biggest win for the full gate.
+- **Incremental by default.** Ninja recompiles only changed TUs — never wipe a `build/<preset>` dir to
+  "be safe". Only clean-build for a true from-scratch gate.
+- **`ctest -j`** — huge for the device lanes (ios on a simulator: ~8 min serial → ~2 min `-j 8`).
+
+**Two scripts encode the tiers** (don't run all presets for routine iteration):
+```bash
+tools/dev.sh [regex]        # INNER LOOP (seconds): incremental headless build + ctest -R <regex> -j
+tools/dev.sh -p apple Btn   #   …on another backend; -t <target> to build just one test target
+tools/gate.sh               # FULL GATE: headless tidy asan-ubsan tsan apple ios — configure+build+ctest -j
+tools/gate.sh --fast        #   quick pre-commit subset (headless tidy apple); --clean for from-scratch
+```
+
+Raw commands (what the scripts run; `-j` = cores):
 ```bash
 export VCPKG_ROOT="$HOME/vcpkg"          # registry clone; brew's vcpkg binary alone lacks the toolchain file
 cmake --preset headless && cmake --build --preset headless
-ctest --preset headless                  # all ported tests (graphics + core + controls + xaml + hosting: 775 cases, green)
+ctest --preset headless -j               # all ported tests (graphics + core + controls + xaml + hosting: 775 cases, green)
 ./build/headless/maui_graphics_benchmarks --benchmark_min_time=0.02s   # Google Benchmark (not a ctest test)
 ```
 
 **macOS / AppKit backend** (real NSViews; Obj-C++ `.mm` + ARC):
 
 ```bash
-cmake --preset apple && cmake --build --preset apple && ctest --preset apple   # 702 cases incl. real NSButton tap + NSWindow host + GCD dispatcher
+cmake --preset apple && cmake --build --preset apple && ctest --preset apple -j   # 702 cases incl. real NSButton tap + NSWindow host + GCD dispatcher
 ./build/apple/maui_button_sample                                                # button sample window (Ctrl-C / close to quit) — builder boot (M-L)
 ./build/apple/maui_app_sample                                                   # full app→window→page→button sample — builder boot (M-L)
 ```
@@ -202,7 +224,7 @@ cmake --preset apple && cmake --build --preset apple && ctest --preset apple   #
 
 ```bash
 cmake --preset ios && cmake --build --preset ios   # cross-compile for the arm64 iphonesimulator (vcpkg overlay triplet arm64-ios-simulator)
-ctest --preset ios                                 # 549 cases run ON a booted simulator via tools/ios-sim-run.sh (tip: -j 8 ≈ 2 min; serial ≈ 8 min)
+ctest --preset ios -j 8                             # 549 cases run ON a booted simulator via tools/ios-sim-run.sh (-j 8 ≈ 2 min; serial ≈ 8 min — ALWAYS pass -j)
 ```
 
 Needs Xcode with an iOS-simulator SDK + at least one available iPhone simulator (the runner boots the

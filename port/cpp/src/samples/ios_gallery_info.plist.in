@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Info.plist for the iOS demo gallery .app (maui_ios_gallery). Same minimal, no-scene shape as
+     ios_app_sample_info.plist.in (see that file's note), but with UIAppFonts so the bundled
+     ionicons.ttf is registered with the font system at launch — that is what makes the Image page's
+     "Font Image Source" rows resolve the "Ionicons" family (the port has no runtime font-registration
+     seam; FontManager.create_font only consults already-installed families). The font file is copied
+     into the .app root by the target's POST_BUILD step in CMakeLists.txt. -->
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleExecutable</key>
+	<string>@MACOSX_BUNDLE_EXECUTABLE_NAME@</string>
+	<key>CFBundleIdentifier</key>
+	<string>@MACOSX_BUNDLE_GUI_IDENTIFIER@</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>@MACOSX_BUNDLE_BUNDLE_NAME@</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>@MACOSX_BUNDLE_SHORT_VERSION_STRING@</string>
+	<key>CFBundleVersion</key>
+	<string>@MACOSX_BUNDLE_BUNDLE_VERSION@</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>ionicons.ttf</string>
+	</array>
+</dict>
+</plist>
