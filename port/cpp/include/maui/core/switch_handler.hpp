@@ -91,6 +91,9 @@ namespace maui::core
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
+        // BackgroundColor / Background brush IS pushed to the UISwitch — the band behind the switch (the
+        // shared apply_background; MauiIosSwitch.layoutSubviews keeps a gradient/image fill sized to bounds).
+        void update_background(const maui::graphics::paint* value) override;
 
         // SwitchProxy's color-re-application observers (SwitchHandler.iOS.cs). Held as void* (retained)
         // so the cross-platform struct stays Obj-C-free, matching window_platform::notification_trampoline;

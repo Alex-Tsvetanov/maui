@@ -746,8 +746,10 @@
     "light": "pending"
   },
   "switch": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "dark_note": "FIXED: BackgroundColor=Blue + Background=gradient bands render behind the switch on dark matching MAUI (update_background + gradient-resize hook); labels white (dark-text cascade); Disabled grayed. Residuals: bold labels in the C# demo (demo difference); ThumbColor orange (C++) vs white (C# off-state) \u2014 ambiguous.",
+    "light": "minor",
+    "light_note": "FIXED: BackgroundColor=Blue band + Background=gradient band now render behind the switch (added iOS update_background -> apply_background; MauiIosSwitch.layoutSubviews resizes the gradient), matching MAUI. Default/Disabled/OnColor switches + ThumbColor match the native control. Residuals: C# demo styles labels bold/larger (demo difference; port labels are regular like the slider page); the ThumbColor=Orange thumb renders orange in C++ vs white in the C# shot (off-state thumbTintColor \u2014 ambiguous, possibly a MAUI-iOS26 quirk)."
   },
   "switch_grouping": {
     "dark": "diff",

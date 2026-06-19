@@ -29,6 +29,7 @@
 #include <string_view>
 
 #include "ios_conversions.hpp"
+#include "ios_visual_ops.hpp"
 #include "maui/core/i_switch.hpp"
 #include "maui/core/switch_handler.hpp"
 #include "maui/core/visibility.hpp"
@@ -55,6 +56,21 @@
     {
         view->set_is_on(native.on);
     }
+}
+@end
+
+// MauiIosSwitch — the UISwitch the handler presents. Its layoutSubviews override re-sizes any gradient/
+// image background sublayer apply_background installed (a solid BackgroundColor needs no resize — it is the
+// backing layer's backgroundColor), so a Background brush fills the band behind the switch and tracks bounds.
+// apply_background runs before arrange, when bounds is zero, so the hook is needed for gradients.
+@interface MauiIosSwitch : UISwitch
+@end
+
+@implementation MauiIosSwitch
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    maui::platform::ios::resize_background_layers((__bridge void*)self);
 }
 @end
 
@@ -224,10 +240,18 @@ namespace maui::core
         as_switch(native).accessibilityIdentifier = raw != nil ? raw : @"";
     }
 
+    void switch_platform::update_background(const maui::graphics::paint* value)
+    {
+        // BackgroundColor / Background brush fills the band behind the UISwitch (it has no bezel): the shared
+        // helper paints a solid color onto the backing layer or installs a gradient/image sublayer
+        // (MauiIosSwitch.layoutSubviews keeps it sized to bounds). A null paint clears it.
+        maui::platform::ios::apply_background(native, value);
+    }
+
     std::unique_ptr<switch_platform> switch_handler::create_platform_view()
     {
         auto platform = std::make_unique<switch_platform>();
-        UISwitch* const native = [[UISwitch alloc] initWithFrame:CGRectZero];
+        UISwitch* const native = [[MauiIosSwitch alloc] initWithFrame:CGRectZero];
         platform->native = (__bridge_retained void*)native; // the void* slot owns one reference
         return platform;
     }
