@@ -112,10 +112,10 @@
     "light": "pending"
   },
   "box_view": {
-    "dark": "diff",
-    "dark_note": "C++ dark omits the white section labels (\"Default\"/\"Using Color\"/\"Background\") that MAUI shows, and centers the boxes with extra top offset; boxes/colors match but text labels are missing.",
+    "dark": "minor",
+    "dark_note": "FIXED (was diff): the white section labels (Default/Using Color/Background) now render via the dark-text cascade; blue + purple boxes + the gradient Background box all render matching MAUI dark. Residual: the gradient Background box renders full-height in C++ vs a thin line in the C# demo (sizing/demo difference); minor vertical rhythm.",
     "light": "minor",
-    "light_note": "Same 4 BoxView samples, same colors/order/labels; C++ stack sits a few px higher with slightly tighter vertical spacing and a touch more top inset \u2014 sub-control positional only."
+    "light_note": "Same 4 BoxView samples, same colors/order/labels (Default blue, Using-Color purple, Background gradient, CornerRadius green-rounded). Residual: minor vertical rhythm (C++ stack a few px higher) and the Background-brush box renders at full height in C++ vs a thin collapsed line in the C# demo (a sizing/demo difference on the gradient box)."
   },
   "button": {
     "dark": "minor",
