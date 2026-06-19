@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 0 / 172 🟢 matched** · 35 🟡 minor · 46 🔴 diff · 91 ⬜ pending
+**Progress: 0 / 172 🟢 matched** · 36 🟡 minor · 45 🔴 diff · 91 ⬜ pending
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.
 
@@ -49,7 +49,7 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 35 | Absolute Layout | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/absolute_layout.png) | ![](cpp_ios_light/absolute_layout.png) | ![](csharp_ios_dark/absolute_layout.png) | ![](cpp_ios_dark/absolute_layout.png) |
 | 36 | Flex Layout | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/flex_layout.png) | ![](cpp_ios_light/flex_layout.png) | ![](csharp_ios_dark/flex_layout.png) | ![](cpp_ios_dark/flex_layout.png) |
 | 37 | Relative Layout | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/relative_layout.png) | ![](cpp_ios_light/relative_layout.png) | ![](csharp_ios_dark/relative_layout.png) | ![](cpp_ios_dark/relative_layout.png) |
-| 38 | Layout alignment (Start/Center/End/Fill) | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/alignment.png) | ![](cpp_ios_light/alignment.png) | ![](csharp_ios_dark/alignment.png) | ![](cpp_ios_dark/alignment.png) |
+| 38 | Layout alignment (Start/Center/End/Fill) | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/alignment.png) | ![](cpp_ios_light/alignment.png) | ![](csharp_ios_dark/alignment.png) | ![](cpp_ios_dark/alignment.png) |
 | 39 | Z Index | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/z_index.png) | ![](cpp_ios_light/z_index.png) | ![](csharp_ios_dark/z_index.png) | ![](cpp_ios_dark/z_index.png) |
 | 40 | Layout Is Enabled | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/layout_is_enabled.png) | ![](cpp_ios_light/layout_is_enabled.png) | ![](csharp_ios_dark/layout_is_enabled.png) | ![](cpp_ios_dark/layout_is_enabled.png) |
 | 41 | Shapes | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/shapes.png) | ![](cpp_ios_light/shapes.png) | ![](csharp_ios_dark/shapes.png) | ![](cpp_ios_dark/shapes.png) |

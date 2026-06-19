@@ -24,10 +24,10 @@
     "light_note": "C++ renders the six interactive items (Alert Simple/Yes-No, ActionSheet Simple/Cancel-Delete, Question 1/2) in plain BLACK text while MAUI renders them as blue (iOS tint) buttons; C++ also compresses vertical row spacing (content ends ~640px vs MAUI spread to ~975px)."
   },
   "alignment": {
-    "dark": "diff",
-    "dark_note": "C++ shows only 4 empty red-outlined full-width rectangles with no blue fill, no button text, and section header labels (Start/Center/End/Fill) entirely missing; MAUI shows filled blue buttons with white centered text, per-row alignment, and white bold headers.",
-    "light": "diff",
-    "light_note": "C++ buttons render as empty red-outlined full-width rectangles (no blue fill, no white text) ignoring Start/Center/End alignment; section headers are thin and mispositioned (right-aligned) vs MAUI's filled blue buttons with white centered text, correct H-alignment, and bold left-aligned headers."
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "FIXED: authored the missing alignment gallery page (the key fell back to value-controls before). Demonstrates LayoutOptions Start/Center/End/Fill via set_horizontal_layout_alignment — each blue/red button lands left/center/right/full-width exactly like C#, proving the arrange-time ComputeFrame (align_horizontal) honors HorizontalOptions. Theme-aware headers. Residual: the port button is content-sized; C#/maui-compare buttons carry larger default iOS padding + min-width (taller/wider) — a button-metrics styling difference, not an alignment bug.",
+    "dark_note": "Same: new alignment page renders Start/Center/End/Fill correctly with white-on-black headers. Residual is the button-metrics styling difference (content-sized vs C# padded buttons)."
   },
   "animation": {
     "dark": "blank",

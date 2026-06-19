@@ -102,6 +102,8 @@
 #include "pages/radio_template_from_style_page.hpp"
 #include "pages/scattered_radio_button_page.hpp"
 #include "pages/shadow_playground_page.hpp"
+// --- layout alignment (LayoutOptions Start/Center/End/Fill) ---
+#include "pages/alignment_page.hpp"
 // --- batch 11 (BorderGalleries) ---
 #include "pages/border_alignment_page.hpp"
 #include "pages/border_clip_playground_page.hpp"
@@ -321,6 +323,7 @@
     X("border_stroke", border_stroke_page)                                                                             \
     X("border_playground", border_playground_page)                                                                     \
     X("border_layout", border_layout_page)                                                                             \
+    X("alignment", alignment_page)                                                                                     \
     X("border_alignment", border_alignment_page)                                                                       \
     X("border_clip_playground", border_clip_playground_page)                                                           \
     X("borderless", borderless_page)                                                                                   \
