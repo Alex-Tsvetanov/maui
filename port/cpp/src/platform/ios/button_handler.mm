@@ -26,6 +26,7 @@
 
 #include "ios_conversions.hpp"
 #include "ios_text_ops.hpp"
+#include "ios_visual_ops.hpp"
 #include "maui/core/button_handler.hpp"
 #include "maui/core/i_button.hpp"
 #include "maui/core/i_image_source.hpp"
@@ -36,6 +37,7 @@
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+#include "maui/graphics/solid_paint.hpp"
 
 // Obj-C trampoline: forwards the UIButton's touch target-actions to the C++ handler's virtual view.
 // Ports ButtonHandler.ButtonEventProxy — including the Released-before-Clicked order on TouchUpInside.
@@ -197,6 +199,49 @@ namespace maui::core
         const std::string id(value);
         NSString* const raw = [NSString stringWithUTF8String:id.c_str()];
         as_button(native).accessibilityIdentifier = raw != nil ? raw : @"";
+    }
+
+    namespace
+    {
+        // A 1×1 image of a solid color. A UIButton(UIButtonType.System) ignores backgroundColor for its
+        // fill, so MAUI's ButtonHandler.MapBackground draws the BackgroundColor as a per-state
+        // backgroundImage — this mints that image.
+        UIImage* solid_color_image(UIColor* color)
+        {
+            UIGraphicsImageRenderer* const renderer = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(1, 1)];
+            return [renderer imageWithActions:^(UIGraphicsImageRendererContext* context) {
+              CGContextSetFillColorWithColor(context.CGContext, color.CGColor);
+              CGContextFillRect(context.CGContext, CGRectMake(0, 0, 1, 1));
+            }];
+        }
+    } // namespace
+
+    // ButtonExtensions.UpdateBackground: a system UIButton draws its BackgroundColor as a per-state
+    // backgroundImage (plain backgroundColor is ignored by the button's own drawing). A solid paint becomes
+    // a 1×1 colored image for every control state; a gradient/image paint defers to the shared layer-based
+    // apply_background; a null paint clears the override.
+    void button_platform::update_background(const maui::graphics::paint* value)
+    {
+        UIButton* const button = as_button(native);
+        if (const auto* const solid = dynamic_cast<const maui::graphics::solid_paint*>(value))
+        {
+            UIImage* const image = solid_color_image(maui::platform::ios::to_ui_color(solid->color()));
+            for (const UIControlState state : k_control_states)
+            {
+                [button setBackgroundImage:image forState:state];
+            }
+        }
+        else if (value != nullptr)
+        {
+            maui::platform::ios::apply_background(native, value);
+        }
+        else
+        {
+            for (const UIControlState state : k_control_states)
+            {
+                [button setBackgroundImage:nil forState:state];
+            }
+        }
     }
 
     namespace

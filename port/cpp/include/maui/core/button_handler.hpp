@@ -101,13 +101,15 @@ namespace maui::core
 #ifdef MAUI_PLATFORM_IOS
         // iOS backend (M6 scaffold): push the four fundamental IView properties to the UIButton
         // (defined in src/platform/ios/button_handler.mm). The remaining generic-IView pushes —
-        // transform / flow_direction / background / shadow / clip / semantics / input_transparent —
-        // deliberately keep the view_platform_base mirrors for now; the M6 fan-out units port the
-        // shared ios view/visual/semantics op helpers and override them here (see port/STATUS.md).
+        // transform / flow_direction / shadow / clip / semantics / input_transparent — deliberately keep
+        // the view_platform_base mirrors for now; the M6 fan-out units port the shared ios view/visual/
+        // semantics op helpers and override them here (see port/STATUS.md). background IS overridden: a
+        // UIButton's BackgroundColor must be drawn as a per-state backgroundImage (ButtonHandler.MapBackground).
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
 #endif
 
 #ifdef MAUI_PLATFORM_ANDROID

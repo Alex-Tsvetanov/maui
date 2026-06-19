@@ -118,10 +118,10 @@
     "light_note": "Same 4 BoxView samples, same colors/order/labels; C++ stack sits a few px higher with slightly tighter vertical spacing and a touch more top inset \u2014 sub-control positional only."
   },
   "button": {
-    "dark": "diff",
-    "dark_note": "Default button text now uses the system tint (visible in dark, was black-on-black). Same remaining BackgroundColor-fill gap as light.",
-    "light": "diff",
-    "light_note": "Default/interactive button text now renders in the iOS tint (blue), matching MAUI (was forced black). REMAINING: buttons with an explicit BackgroundColor are not filled \u2014 UIButtonTypeSystem ignores backgroundColor; needs a per-state backgroundImage from the color (like MAUI ButtonHandler.MapBackground). Scoped follow-up."
+    "dark": "minor",
+    "dark_note": "FIXED: tint text visible + colored fills render in dark too. Same remaining corner-rounding/spacing minor as light.",
+    "light": "minor",
+    "light_note": "FIXED: unset text -> iOS tint; explicit BackgroundColor now fills (per-state backgroundImage). Remaining minor: MAUI default buttons have rounded corners + inter-button spacing; the explicit CornerRadius button should clip to a pill (masksToBounds); C++ bars are square + flush."
   },
   "carousel_page": {
     "dark": "blank",
