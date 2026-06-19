@@ -32,6 +32,16 @@
 #include "pages/tabbed_flyout_page.hpp"
 #include "pages/value_controls_page.hpp"
 #include "pages/web_view_page.hpp"
+// --- Tier-1 per-control sample pages (MAUI Controls.Sample/Pages/Controls) ---
+#include "pages/button_page.hpp"
+#include "pages/check_box_page.hpp"
+#include "pages/editor_page.hpp"
+#include "pages/entry_page.hpp"
+#include "pages/image_page.hpp"
+#include "pages/label_page.hpp"
+#include "pages/search_bar_page.hpp"
+#include "pages/slider_page.hpp"
+#include "pages/switch_page.hpp"
 
 // The curated demo set, single-sourced. X(name_literal, page_type). The mains map the MAUI_SAMPLE_PAGE
 // env var onto these, and gallery READMEs/captures key off the same names.
@@ -39,9 +49,13 @@
     X("value_controls", value_controls_page)                                                                           \
     X("input_controls", input_controls_page)                                                                           \
     X("pickers", pickers_page)                                                                                         \
-    X("formatted_text", formatted_text_page) X("items", items_page) X("shapes", shapes_page)                           \
-        X("containers", containers_page) X("swipe_refresh", swipe_refresh_page) X("web_view", web_view_page)           \
-            X("chrome", chrome_page) X("tabbed_flyout", tabbed_flyout_page)
+    X("formatted_text", formatted_text_page)                                                                           \
+    X("items", items_page)                                                                                             \
+    X("shapes", shapes_page) X("containers", containers_page) X("swipe_refresh", swipe_refresh_page)                   \
+        X("web_view", web_view_page) X("chrome", chrome_page) X("tabbed_flyout", tabbed_flyout_page)                   \
+            X("button", button_page) X("label", label_page) X("image", image_page) X("entry", entry_page)              \
+                X("editor", editor_page) X("search_bar", search_bar_page) X("check_box", check_box_page)               \
+                    X("switch", switch_page) X("slider", slider_page)
 
 namespace maui::samples
 {

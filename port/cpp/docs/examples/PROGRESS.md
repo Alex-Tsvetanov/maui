@@ -13,15 +13,15 @@ value_controls · input_controls · pickers · formatted_text · items · shapes
 swipe_refresh · web_view · chrome · tabbed_flyout — see the per-example READMEs in this folder.
 
 ## Tier 1 — Pages/Controls (per-control demos, 22)
-- [ ] ButtonPage → `button_page`  *(batch 1)*
-- [ ] LabelPage → `label_page`  *(batch 1)*
-- [ ] ImagePage → `image_page`  *(batch 1)*
-- [ ] EntryPage → `entry_page`  *(batch 1)*
-- [ ] EditorPage → `editor_page`  *(batch 1)*
-- [ ] SearchBarPage → `search_bar_page`  *(batch 1)*
-- [ ] CheckBoxPage → `check_box_page`  *(batch 1)*
-- [ ] SwitchPage → `switch_page`  *(batch 1)*
-- [ ] SliderPage → `slider_page`  *(batch 1)*
+- [x] ButtonPage → `button_page`  *(batch 1)*
+- [x] LabelPage → `label_page`  *(batch 1)*
+- [x] ImagePage → `image_page`  *(batch 1)*
+- [x] EntryPage → `entry_page`  *(batch 1)*
+- [x] EditorPage → `editor_page`  *(batch 1)*
+- [x] SearchBarPage → `search_bar_page`  *(batch 1)*
+- [x] CheckBoxPage → `check_box_page`  *(batch 1)*
+- [x] SwitchPage → `switch_page`  *(batch 1)*
+- [x] SliderPage → `slider_page`  *(batch 1)*
 - [ ] StepperPage → `stepper_page`
 - [ ] ProgressBarPage → `progress_bar_page`
 - [ ] ActivityIndicatorPage → `activity_indicator_page`

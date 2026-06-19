@@ -81,6 +81,22 @@ namespace
         [ns_window center];
         [ns_window makeKeyAndOrderFront:nil];
         [NSApp activateIgnoringOtherApps:YES];
+
+        // Self-screenshot mode (for the doc-capture loop): if MAUI_SHOT_PATH is set, spin the run loop
+        // briefly so the native controls render, snapshot the content view to a PNG, and exit — a clean,
+        // deterministic, window-only capture with no external screen-capture tool or TCC permission.
+        const char* const shot = std::getenv("MAUI_SHOT_PATH");
+        if (shot != nullptr && std::strlen(shot) > 0)
+        {
+            [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.7]];
+            NSView* const view = ns_window.contentView;
+            NSBitmapImageRep* const rep = [view bitmapImageRepForCachingDisplayInRect:view.bounds];
+            [view cacheDisplayInRect:view.bounds toBitmapImageRep:rep];
+            NSData* const png = [rep representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
+            [png writeToFile:@(shot) atomically:YES];
+            os_log(OS_LOG_DEFAULT, "[gallery] wrote shot %{public}s", shot);
+            return 0;
+        }
         [NSApp run];
         return 0;
     }
