@@ -62,6 +62,14 @@ namespace
 
         auto* const native_window = (__bridge UIWindow*)window_handler->typed_platform_view()->native;
 
+        // Appearance toggle for the parity-comparison capture loop: MAUI_APPEARANCE=dark|light forces the
+        // window's interface style so native UIKit controls render in the requested theme (default: light).
+        // Set on the window so it propagates to the root view controller + every native child.
+        const char* const appearance = std::getenv("MAUI_APPEARANCE");
+        native_window.overrideUserInterfaceStyle = (appearance != nullptr && std::strcmp(appearance, "dark") == 0)
+                                                       ? UIUserInterfaceStyleDark
+                                                       : UIUserInterfaceStyleLight;
+
         // (4) Lay out the tree over the root view-controller's SAFE-AREA rect (the window host does no
         // auto-layout). A real app would inset via the page's SafeAreaEdges; the gallery host insets here
         // so the demo content clears the status bar / Dynamic Island. Force a layout pass first so

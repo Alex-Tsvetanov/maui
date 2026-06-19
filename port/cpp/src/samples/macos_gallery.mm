@@ -77,6 +77,14 @@ namespace
 
         // (5) Show the NSWindow centered + frontmost.
         auto* const ns_window = (__bridge NSWindow*)window_handler->typed_platform_view()->native;
+
+        // Appearance toggle for the parity-comparison capture loop: MAUI_APPEARANCE=dark|light forces the
+        // window's NSAppearance so native AppKit controls render in the requested theme (default: light/Aqua).
+        // Set on the window so it propagates to the content view + every native child before the snapshot.
+        const char* const appearance = std::getenv("MAUI_APPEARANCE");
+        const bool dark = appearance != nullptr && std::strcmp(appearance, "dark") == 0;
+        ns_window.appearance = [NSAppearance appearanceNamed:(dark ? NSAppearanceNameDarkAqua : NSAppearanceNameAqua)];
+
         [ns_window setContentSize:NSMakeSize(k_window_width, content_height)];
         [ns_window center];
         [ns_window makeKeyAndOrderFront:nil];
