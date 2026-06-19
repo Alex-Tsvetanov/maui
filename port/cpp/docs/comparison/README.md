@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 0 / 172 🟢 matched** · 0 🟡 minor · 59 🔴 diff · 113 ⬜ pending
+**Progress: 0 / 172 🟢 matched** · 1 🟡 minor · 59 🔴 diff · 112 ⬜ pending
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.
 
@@ -109,7 +109,7 @@ Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable
 | Ios Time Picker | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/ios_time_picker.png) | ![](cpp_ios_light/ios_time_picker.png) | ![](csharp_ios_dark/ios_time_picker.png) | ![](cpp_ios_dark/ios_time_picker.png) |
 | Items | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/items.png) | ![](cpp_ios_light/items.png) | ![](csharp_ios_dark/items.png) | ![](cpp_ios_dark/items.png) |
 | Items Updating Scroll Mode | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/items_updating_scroll_mode.png) | ![](cpp_ios_light/items_updating_scroll_mode.png) | ![](csharp_ios_dark/items_updating_scroll_mode.png) | ![](cpp_ios_dark/items_updating_scroll_mode.png) |
-| Label | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/label.png) | ![](cpp_ios_light/label.png) | ![](csharp_ios_dark/label.png) | ![](cpp_ios_dark/label.png) |
+| Label | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/label.png) | ![](cpp_ios_light/label.png) | ![](csharp_ios_dark/label.png) | ![](cpp_ios_dark/label.png) |
 | Layout Is Enabled | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/layout_is_enabled.png) | ![](cpp_ios_light/layout_is_enabled.png) | ![](csharp_ios_dark/layout_is_enabled.png) | ![](cpp_ios_dark/layout_is_enabled.png) |
 | Line Gallery | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/line_gallery.png) | ![](cpp_ios_light/line_gallery.png) | ![](csharp_ios_dark/line_gallery.png) | ![](cpp_ios_dark/line_gallery.png) |
 | Line Join Gallery | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/line_join_gallery.png) | ![](cpp_ios_light/line_join_gallery.png) | ![](csharp_ios_dark/line_join_gallery.png) | ![](cpp_ios_dark/line_join_gallery.png) |

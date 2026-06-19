@@ -490,8 +490,10 @@
     "light": "pending"
   },
   "label": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "dark_note": "FIXED dark text: unset labels now use the dynamic system label color (white in dark) instead of black-on-black. Residual: same missing gray BackgroundColor boxes as light.",
+    "light": "minor",
+    "light_note": "Text + layout match; C# fills several alignment-demo labels with a gray BackgroundColor box that the C++ port doesn't render \u2014 label background-fill diff only."
   },
   "layout_is_enabled": {
     "dark": "pending",

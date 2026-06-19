@@ -253,10 +253,14 @@ namespace maui::core
         auto* platform = handler.typed_platform_view();
         if (platform != nullptr)
         {
-            // LabelExtensions.UpdateTextColor — ToPlatform(LabelColor); the TextColor == null fallback to
-            // the theme label color has no analog (the port's color is a non-nullable value type, the
-            // same collapse as the button twin).
-            as_label(platform->native).textColor = to_ui_color(view.text_color());
+            // LabelExtensions.UpdateTextColor — ToPlatform(LabelColor). MAUI's Label.TextColor defaults to
+            // null → the dynamic system label color (UIColor.labelColor), which adapts to light/dark. The
+            // port's color is a non-nullable value type, so treat the default-constructed (unset) color as
+            // "use the platform default" — mirroring the editor placeholder pattern — so an unstyled label is
+            // visible in BOTH appearances; an explicitly-set color still wins.
+            const maui::graphics::color text_color = view.text_color();
+            as_label(platform->native).textColor =
+                text_color != maui::graphics::color{} ? to_ui_color(text_color) : UIColor.labelColor;
         }
     }
 
