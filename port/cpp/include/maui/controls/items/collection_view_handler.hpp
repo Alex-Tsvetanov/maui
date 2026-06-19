@@ -220,6 +220,14 @@ namespace maui::controls
                                                             double height_constraint) const override;
         void platform_arrange(const maui::graphics::rect& frame) override;
 
+        // Frame the native view (the backend half of platform_arrange — the per-backend `.mm`/`.cpp`
+        // half), mirroring every other handler's platform_arrange (e.g. table_view_handler / border_
+        // handler::arrange_native). The cross-platform platform_arrange calls this FIRST, then updates the
+        // viewport-extent mirror and re-realizes. Without it an embedded CollectionView keeps its
+        // creation-time native frame — on iOS a UICollectionViewController vends a FULL-SCREEN collectionView
+        // with flexible autoresizing, so it paints full-bleed over its stack siblings. Headless: no-op.
+        void arrange_native(const maui::graphics::rect& frame);
+
         // The handler-side items source (what the wave-3 controllers will consume too).
         [[nodiscard]] const std::shared_ptr<i_items_view_source>& items_view_source() const
         {

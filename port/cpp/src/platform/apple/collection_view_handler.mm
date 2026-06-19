@@ -593,6 +593,42 @@ namespace maui::controls
         [collection_view layoutSubtreeIfNeeded];
     }
 
+    void collection_view_handler::arrange_native(const maui::graphics::rect& frame)
+    {
+        auto* platform = typed_platform_view();
+        NSCollectionView* const collection_view = collection_view_of(*this);
+        if (platform == nullptr || collection_view == nil || platform->scroll == nullptr)
+        {
+            return;
+        }
+        NSScrollView* const scroll = (__bridge NSScrollView*)platform->scroll;
+        // Frame the composed NSScrollView to the arranged (bounded) rect — the backend half of
+        // platform_arrange that table_view_handler/border_handler do inline. The shared platform_arrange
+        // re-sets the viewport mirror + re-realizes after this returns; mirror the new viewport here FIRST
+        // and rebuild the flow layout for it BEFORE resizing, the same order native_force_layout uses, so
+        // the resize never runs a flow-layout pass with a stale (larger) item size against an already-
+        // shrunk collection-view width (the flow-layout "item width must be less than the collection
+        // width" diagnostic).
+        if (platform->orientation == items_layout_orientation::vertical)
+        {
+            platform->viewport_main_extent = frame.height;
+            platform->viewport_cross_extent = frame.width;
+        }
+        else
+        {
+            platform->viewport_main_extent = frame.width;
+            platform->viewport_cross_extent = frame.height;
+        }
+        native_rebuild_layout();
+        scroll.frame = NSMakeRect(frame.x, frame.y, frame.width, frame.height);
+        [scroll layoutSubtreeIfNeeded];
+        [collection_view layoutSubtreeIfNeeded];
+        // The first rebuild sized the item from the pre-resize live width; now that the collection view has
+        // its new bounds, rebuild once more so the item cross-extent matches exactly (native_force_layout's
+        // two-pass settle).
+        native_rebuild_layout();
+    }
+
     int collection_view_handler::native_force_layout(double width, double height)
     {
         auto* platform = typed_platform_view();

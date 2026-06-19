@@ -36,9 +36,11 @@
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_maui_context.hpp"
+#include "maui/core/i_view.hpp"
 #include "maui/core/label_handler.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/service_registry.hpp"
+#include "maui/graphics/rect.hpp"
 #include "tests/support/run_loop_pump.hpp"
 #include <gtest/gtest.h>
 
@@ -444,6 +446,51 @@ namespace
         // A 2-column grid still realizes a window of cells; the section reports the full item count.
         EXPECT_GT(r.handler->native_visible_cell_count(), 0);
         EXPECT_EQ([native_collection_view(r.handler) numberOfItemsInSection:0], 30);
+        (void)window;
+    }
+
+    // ---- platform_arrange frames the native view (the embedded-stack overlap fix) ----
+
+    // The real layout seam is view::arrange → handler::platform_arrange. Every other handler frames its
+    // native view there; collection_view_handler must too, or an embedded CollectionView keeps its
+    // creation-time native frame (a UICollectionViewController vends a FULL-SCREEN collectionView) and
+    // paints over its stack siblings. After arranging to a bounded sub-rect, the native frame must equal
+    // that rect — NOT the screen.
+    TEST(collection_view_ios, arrange_frames_the_native_view_to_the_bounded_rect)
+    {
+        rig r;
+        UIWindow* const window = r.mount();
+        UICollectionView* const collection_view = native_collection_view(r.handler);
+
+        // Arrange the view into a bounded slot well inside the screen — the slot a vertical stack would
+        // hand an embedded CollectionView below its labels.
+        auto& as_view = static_cast<maui::core::i_view&>(r.view);
+        const maui::graphics::rect slot{0, 120, 200, 220};
+        as_view.arrange(slot);
+        pump_run_loop(0.1);
+
+        const CGRect native = collection_view.frame;
+        EXPECT_DOUBLE_EQ(native.origin.x, slot.x);
+        EXPECT_DOUBLE_EQ(native.origin.y, slot.y);
+        EXPECT_DOUBLE_EQ(native.size.width, slot.width);
+        EXPECT_DOUBLE_EQ(native.size.height, slot.height);
+        (void)window;
+    }
+
+    // The full-screen autoresizing mask the controller vends would re-stretch the collection view to the
+    // panel on the next UIKit layout pass (re-introducing the overlap). arrange_native clears it so MAUI's
+    // arrange owns the frame.
+    TEST(collection_view_ios, arrange_clears_the_autoresizing_mask_so_uikit_does_not_re_stretch)
+    {
+        rig r;
+        UIWindow* const window = r.mount();
+        UICollectionView* const collection_view = native_collection_view(r.handler);
+
+        auto& as_view = static_cast<maui::core::i_view&>(r.view);
+        as_view.arrange(maui::graphics::rect{0, 120, 200, 220});
+        pump_run_loop(0.1);
+
+        EXPECT_EQ(collection_view.autoresizingMask, UIViewAutoresizingNone);
         (void)window;
     }
 } // namespace

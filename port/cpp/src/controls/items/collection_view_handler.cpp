@@ -220,6 +220,12 @@ namespace maui::controls
         {
             return;
         }
+        // Frame the native view to the arranged (bounded) rect FIRST — the per-backend half every other
+        // handler does inline in its own platform_arrange. Reporting a bounded get_desired_size (61bdcc4595)
+        // gives the parent stack a bounded SLOT, but the native UICollectionView must also be moved into
+        // that slot or it keeps its creation-time frame (iOS: a full-screen, flex-autoresizing
+        // collectionView) and paints over its siblings. AppKit frames the NSScrollView the same way.
+        arrange_native(frame);
         if (platform->orientation == items_layout_orientation::vertical)
         {
             platform->viewport_main_extent = frame.height;

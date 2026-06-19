@@ -39,9 +39,11 @@
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_maui_context.hpp"
+#include "maui/core/i_view.hpp"
 #include "maui/core/label_handler.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/service_registry.hpp"
+#include "maui/graphics/rect.hpp"
 #include "tests/support/run_loop_pump.hpp"
 #include <gtest/gtest.h>
 
@@ -443,6 +445,30 @@ namespace
         EXPECT_GT(r.handler->native_visible_cell_count(), 0);
         auto* layout = (NSCollectionViewFlowLayout*)native_collection_view(r.handler).collectionViewLayout;
         EXPECT_EQ(layout.scrollDirection, NSCollectionViewScrollDirectionHorizontal);
+        (void)window;
+    }
+
+    // ---- platform_arrange frames the native view (the embedded-stack overlap fix, AppKit twin) ----
+
+    // The real layout seam is view::arrange → handler::platform_arrange. Like table_view_handler, the
+    // collection_view_handler must frame its composed NSScrollView to the arranged (bounded) rect so an
+    // embedded CollectionView occupies its stack slot rather than its static default frame.
+    TEST(collection_view_appkit, arrange_frames_the_native_scroll_view_to_the_bounded_rect)
+    {
+        rig r;
+        NSWindow* const window = r.mount();
+        NSScrollView* const scroll = native_scroll(r.handler);
+
+        auto& as_view = static_cast<maui::core::i_view&>(r.view);
+        const maui::graphics::rect slot{0, 120, 200, 220};
+        as_view.arrange(slot);
+        pump_run_loop(0.1);
+
+        const NSRect native = scroll.frame;
+        EXPECT_DOUBLE_EQ(native.origin.x, slot.x);
+        EXPECT_DOUBLE_EQ(native.origin.y, slot.y);
+        EXPECT_DOUBLE_EQ(native.size.width, slot.width);
+        EXPECT_DOUBLE_EQ(native.size.height, slot.height);
         (void)window;
     }
 } // namespace

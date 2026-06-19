@@ -615,6 +615,24 @@ namespace maui::controls
         }
     }
 
+    void collection_view_handler::arrange_native(const maui::graphics::rect& frame)
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->native == nullptr)
+        {
+            return;
+        }
+        // `native` is the controller's collectionView (create_platform_view). A UICollectionViewController
+        // vends it at FULL SCREEN with UIViewAutoresizingFlexibleWidth|FlexibleHeight, so once it is added
+        // as a stack-sibling subview it re-stretches to the panel on every UIKit layout pass and paints
+        // over its siblings. Clear the autoresizing mask so MAUI's arrange owns the frame (the C# cross-
+        // platform layout frames the platform view; UIKit does not re-impose its own), then set the frame
+        // to the arranged (bounded) rect — exactly like every other handler's platform_arrange.
+        UICollectionView* const collection_view = (__bridge UICollectionView*)platform->native;
+        collection_view.autoresizingMask = UIViewAutoresizingNone;
+        collection_view.frame = CGRectMake(frame.x, frame.y, frame.width, frame.height);
+    }
+
     int collection_view_handler::native_force_layout(double width, double height)
     {
         auto* platform = typed_platform_view();
