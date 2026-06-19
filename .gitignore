@@ -399,3 +399,9 @@ docs-maui-src/
 
 # Claude Code agent worktrees (local orchestration state, never committed)
 .claude/worktrees/
+.claude/agents/code-changes.md
+port/cpp/SystemPrompt.md
+vault/.obsidian/app.json
+vault/.obsidian/appearance.json
+vault/.obsidian/core-plugins.json
+vault/.obsidian/workspace.json
