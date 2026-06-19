@@ -52,6 +52,17 @@ LayoutIsEnabled · RelativeLayout · ScrollView · StackLayout · TemplatedView 
 - [x] ChatExample → `chat_example_page`
 - ⚠ NOTE: custom-struct item cells donE28099t render in the gallery yet (chrome+API do); framework fix in flight.
 
+## Batch 12 — RadioButton + Shadow galleries (9)
+- [x] RadioButtonGroupGallery → `radio_button_group_page`
+- [x] RadioButtonGroupBindingGallery → `radio_button_group_binding_page`
+- [x] ScatteredRadioButtonGallery → `scattered_radio_button_page`
+- [x] RadioButtonContentGallery → `radio_button_content_page`
+- [x] ContentProperties → `radio_content_properties_page`
+- [x] TemplateFromStyle → `radio_template_from_style_page`
+- [x] ShadowPlaygroundPage → `shadow_playground_page`
+- [x] InvalidateShadowHostPage → `invalidate_shadow_host_page`
+- [x] RadioButtonGroupGalleryPage → `radio_button_group_gallery_page`
+
 ## Batch 11 — BorderGalleries (9) — natively rendered Border control
 - [x] BorderStyles → `border_styles_page`
 - [x] BorderStroke → `border_stroke_page`
