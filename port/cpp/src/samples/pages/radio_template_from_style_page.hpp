@@ -121,6 +121,28 @@ namespace maui::samples
             return presenter_;
         }
 
+        // Attach a handler to every view in this MINTED template subtree (the page holds no member for
+        // these — it only has the content_view tile, reaching the template root through it), then re-host
+        // each intermediate host whose "add"/"set_content" commands fired in this ctor before any handler
+        // existed. The presenter's PACKED content (the tile label) is owned + attached + re-hosted by the
+        // page (gallery_attach.hpp). The template root is a border (a content host), not a layout.
+        void attach_handlers(maui::hosting::maui_app& app)
+        {
+            gallery_attach_one(app, ring_, "calendar_ring_");
+            gallery_attach_one(app, check_, "calendar_check_");
+            gallery_attach_one(app, indicator_grid_, "calendar_indicator_grid_");
+            gallery_attach_one(app, *presenter_, "calendar_presenter_");
+            gallery_attach_one(app, tile_grid_, "calendar_tile_grid_");
+            // The template root IS a border subclass; attach it via that REGISTERED base type (the handler
+            // registry keys on the exact static type — there is no handler for the subclass; border_handler
+            // drives it through the content-host interface regardless).
+            gallery_attach_one(app, static_cast<maui::controls::border&>(*this), "calendar_template_root_");
+
+            gallery_rehost_layout(indicator_grid_); // the indicator grid hosts the ring + check ellipses
+            gallery_rehost_layout(tile_grid_);      // the outer grid hosts the indicator grid + the presenter
+            gallery_rehost_content(*this);          // the border hosts the outer grid (its "set_content")
+        }
+
     private:
         maui::controls::grid tile_grid_;
         maui::controls::grid indicator_grid_;
@@ -168,17 +190,34 @@ namespace maui::samples
         {
             auto one = [&app](auto& view, const char* name) { gallery_attach_one(app, view, name); };
 
+            // The tile labels each calendar template's content_presenter packs (attach BEFORE the tiles so
+            // the presenter has a hostable child when it re-hosts below).
             for (const auto& label : tile_labels_)
             {
                 one(*label, "tile_label");
             }
+            // Each tile, then its MINTED calendar template subtree (border -> grid -> ellipses + presenter),
+            // reached through the tile's template_root() — the page holds no direct member for it.
             for (const auto& tile : tiles_)
             {
                 one(*tile, "tile");
+                if (auto* tmpl = dynamic_cast<calendar_radio_template*>(tile->template_root()))
+                {
+                    tmpl->attach_handlers(app);
+                }
             }
             one(stack_, "stack_");
             one(page_, "page_");
 
+            // Replay the host commands bottom-up: each presenter packs its tile label, then each tile hosts
+            // its presented content (the template root border).
+            for (const auto& tile : tiles_)
+            {
+                if (auto* tmpl = dynamic_cast<calendar_radio_template*>(tile->template_root()))
+                {
+                    gallery_rehost_content(*tmpl->presenter()); // the presenter packs the tile label
+                }
+            }
             for (const auto& tile : tiles_)
             {
                 gallery_rehost_content(*tile);
