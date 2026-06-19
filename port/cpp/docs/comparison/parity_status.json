@@ -1,21 +1,21 @@
 {
   "absolute_layout": {
     "dark": "diff",
-    "dark_note": "MAUI dark: blue rect lower (~y520), green/red bars centered vertically (~y1040), \"Centered text\" at mid, selected blue-highlighted \"AutoSized\" label just below center; C++ dark: blue rect higher (~y310), green/red bars shifted lower (~y1185), \"Centered text\" missing/absent in C++ region while plain unhighlighted \"AutoSized\" sits far lower (~y1520) \u2014 elements are vertically mis-positioned and the \"AutoSized\" label lacks the blue selection background.",
+    "dark_note": "MAUI dark: blue rect lower (~y520), green/red bars centered vertically (~y1040), \"Centered text\" at mid, selected blue-highlighted \"AutoSized\" label just below center; C++ dark: blue rect higher (~y310), green/red bars shifted lower (~y1185), \"Centered text\" missing/absent in C++ region while plain unhighlighted \"AutoSized\" sits far lower (~y1520) — elements are vertically mis-positioned and the \"AutoSized\" label lacks the blue selection background.",
     "light": "diff",
-    "light_note": "MAUI light: gray rounded content card inset within safe area, blue rect + \"Centered text\" + green/red side bars + selected \"AutoSized\" label + a dark bottom button, all positioned inside the card; C++ light: white full-bleed background (no card), blue rect higher up, \"Centered text\" higher, NO \"AutoSized\" label, NO bottom dark button, plus a navigation bar (\"MauiCompare\" back) + Dynamic Island the MAUI shot lacks \u2014 different layout origin/insets, missing controls."
+    "light_note": "MAUI light: gray rounded content card inset within safe area, blue rect + \"Centered text\" + green/red side bars + selected \"AutoSized\" label + a dark bottom button, all positioned inside the card; C++ light: white full-bleed background (no card), blue rect higher up, \"Centered text\" higher, NO \"AutoSized\" label, NO bottom dark button, plus a navigation bar (\"MauiCompare\" back) + Dynamic Island the MAUI shot lacks — different layout origin/insets, missing controls."
   },
   "activity_indicator": {
     "dark": "minor",
     "dark_note": "FIXED (was blank): default spinners now visible (unset Color -> nil native default, was transparent) and the BackgroundColor=Yellow full-width band renders (update_background). Labels + all spinners + yellow band match MAUI dark. Residual: minor spinner positions.",
     "light": "minor",
-    "light_note": "FIXED two issues: (1) the Default/Larger/Smaller spinners now render \u2014 an unset Color was forced to a transparent tint that made them invisible; now unset -> nil restores the native default (a dynamic system color, visible). (2) BackgroundColor=Yellow now renders as a full-width band behind the spinner (added iOS update_background -> apply_background; MauiIosActivityIndicator.layoutSubviews keeps a gradient fill sized). All labels + spinners + the yellow band now match MAUI. Residual: minor spinner spacing/positions + a faint not-running spinner."
+    "light_note": "FIXED two issues: (1) the Default/Larger/Smaller spinners now render — an unset Color was forced to a transparent tint that made them invisible; now unset -> nil restores the native default (a dynamic system color, visible). (2) BackgroundColor=Yellow now renders as a full-width band behind the spinner (added iOS update_background -> apply_background; MauiIosActivityIndicator.layoutSubviews keeps a gradient fill sized). All labels + spinners + the yellow band now match MAUI. Residual: minor spinner spacing/positions + a faint not-running spinner."
   },
   "adaptive_collection": {
     "dark": "blank",
     "dark_note": "C++ dark is entirely blank/black (only status bar) while MAUI dark renders the full header + center-aligned Item 1-7 list.",
     "light": "diff",
-    "light_note": "MAUI center-aligns each item with large ~145px row spacing (only ~6.5 items visible); C++ left-aligns items with tight ~100px spacing (all 8 visible) and renders a stray black navbar pill at top \u2014 item alignment and row spacing differ."
+    "light_note": "MAUI center-aligns each item with large ~145px row spacing (only ~6.5 items visible); C++ left-aligns items with tight ~100px spacing (all 8 visible) and renders a stray black navbar pill at top — item alignment and row spacing differ."
   },
   "alerts": {
     "dark": "blank",
@@ -37,7 +37,7 @@
   },
   "app_theme_binding": {
     "dark": "minor",
-    "dark_note": "FIXED (was diff): all labels now render (dark-text cascade) \u2014 heading, green + orange AppThemeBinding paragraphs, Toggle button, Theme:Light status \u2014 matching the C# content exactly (BOTH apps show LIGHT values here: the pages theme is driven by its own toggle which defaults to Light, so MAUI_THEME/MAUI_APPEARANCE do not flip the AppThemeBinding). Residual: the page SURFACE differs \u2014 C# shows a white Light surface while C++ shows black, because the gallery force-darkens the WINDOW (overrideUserInterfaceStyle=dark) while the AppThemeBinding page resolves to Light (a window-vs-app-theme mismatch specific to AppThemeBinding demos).",
+    "dark_note": "FIXED (was diff): all labels now render (dark-text cascade) — heading, green + orange AppThemeBinding paragraphs, Toggle button, Theme:Light status — matching the C# content exactly (BOTH apps show LIGHT values here: the pages theme is driven by its own toggle which defaults to Light, so MAUI_THEME/MAUI_APPEARANCE do not flip the AppThemeBinding). Residual: the page SURFACE differs — C# shows a white Light surface while C++ shows black, because the gallery force-darkens the WINDOW (overrideUserInterfaceStyle=dark) while the AppThemeBinding page resolves to Light (a window-vs-app-theme mismatch specific to AppThemeBinding demos).",
     "light": "minor",
     "light_note": "Matches MAUI: heading, the green AppThemeBinding paragraph, the orange ResourceDictionary paragraph, the blue Toggle-theme button, and the Theme:Light status all render with correct colors/order. Residual: C++ wraps some lines wider (one line vs MAUI two) + slightly larger inter-row spacing."
   },
@@ -57,7 +57,7 @@
     "dark": "blank",
     "dark_note": "C++ dark is fully blank/black (only status bar) while MAUI dark renders the complete grouped list with title, green headers, members, and orange footers.",
     "light": "diff",
-    "light_note": "C++ omits the \"This is a header\" title, all green group-header labels (Avengers/Fantastic Four/Defenders), and all orange \"Total members:\" footers \u2014 rendering only flat member rows with ~3x larger row spacing; MAUI shows full grouped list (headers+footers, tight spacing)."
+    "light_note": "C++ omits the \"This is a header\" title, all green group-header labels (Avengers/Fantastic Four/Defenders), and all orange \"Total members:\" footers — rendering only flat member rows with ~3x larger row spacing; MAUI shows full grouped list (headers+footers, tight spacing)."
   },
   "basic_swipe": {
     "dark": "diff",
@@ -69,7 +69,7 @@
     "dark": "minor",
     "dark_note": "FIXED (was diff): the headline now renders large two-line (FontSize 32) matching MAUI dark, with the validation Entry below. Residual: minor vertical rhythm.",
     "light": "minor",
-    "light_note": "FIXED: the title \"Red when the number isnt valid\" now renders as a large two-line Headline (FontSize 32) above the Entry, matching MAUI (was a small single-line label \u2014 the gallery set the text but not the Headline-style font size). The validation behavior (Entry turns red on invalid double) is demonstrated. Residual: minor vertical position (C++ a touch higher)."
+    "light_note": "FIXED: the title \"Red when the number isnt valid\" now renders as a large two-line Headline (FontSize 32) above the Entry, matching MAUI (was a small single-line label — the gallery set the text but not the Headline-style font size). The validation behavior (Entry turns red on invalid double) is demonstrated. Residual: minor vertical position (C++ a touch higher)."
   },
   "border": {
     "dark": "diff",
@@ -79,15 +79,15 @@
   },
   "border_clip_playground": {
     "dark": "diff",
-    "dark_note": "Same layout defect as light: C++ red Border is full-width stretched vs MAUI's compact square, and inflated vertical spacing pushes nearly all content off-screen \u2014 only the RoundRectangle entry shows near the bottom, while MAUI dark shows the full stack (entry, Border label, Border Width slider, Corner Radius sliders).",
+    "dark_note": "Same layout defect as light: C++ red Border is full-width stretched vs MAUI's compact square, and inflated vertical spacing pushes nearly all content off-screen — only the RoundRectangle entry shows near the bottom, while MAUI dark shows the full stack (entry, Border label, Border Width slider, Corner Radius sliders).",
     "light": "diff",
     "light_note": "C++ stretches the red Border to full width (~900px) instead of MAUI's compact ~190px square; layout spacing is hugely inflated so most controls (Border Width + Corner Radius sliders) are pushed off-screen, plus an extra black pill renders in the title bar and title text differs (MauiCompare vs maui_ios_gallery)."
   },
   "border_layout": {
     "dark": "diff",
-    "dark_note": "C++ shows only an empty white rounded Border outline \u2014 missing the colored segments and \"Center\" text, AND missing the entire \"Stroke thickness: 5/40\" label and Slider that MAUI renders above it (top of page is blank).",
+    "dark_note": "C++ shows only an empty white rounded Border outline — missing the colored segments and \"Center\" text, AND missing the entire \"Stroke thickness: 5/40\" label and Slider that MAUI renders above it (top of page is blank).",
     "light": "diff",
-    "light_note": "C++ Border renders as an empty white rounded rect \u2014 missing the red/green/blue/green colored segments and the \"Center\" text MAUI shows inside it; C++ Slider is also wrong chrome (thick black line + black pill thumb vs MAUI's blue track + white circular thumb)."
+    "light_note": "C++ Border renders as an empty white rounded rect — missing the red/green/blue/green colored segments and the \"Center\" text MAUI shows inside it; C++ Slider is also wrong chrome (thick black line + black pill thumb vs MAUI's blue track + white circular thumb)."
   },
   "border_playground": {
     "dark": "diff",
@@ -99,11 +99,11 @@
     "dark": "diff",
     "dark_note": "Same shape mismatch as light: MAUI dark shows red+blue circles, squares, triangles with blue \"+\" glyphs and Content Text/Entry/FontSize rows; C++ dark shows light-blue ellipses and wide rectangles (no red-fill column, no \"+\" content), different scroll offset cutting off the Entry, so controls, fill colors, and shape geometry all differ.",
     "light": "diff",
-    "light_note": "C++ renders the shapes wrong: left-column shapes are circles/squares/triangle with red fill + blue \"+\" content in MAUI, but C++ draws stretched ellipses and wide rectangles, both columns light-blue (red fill column missing), and exposes extra Slider + \"Image Scale\" + Slider rows MAUI doesn't show \u2014 scroll/layout and shape aspect differ markedly."
+    "light_note": "C++ renders the shapes wrong: left-column shapes are circles/squares/triangle with red fill + blue \"+\" content in MAUI, but C++ draws stretched ellipses and wide rectangles, both columns light-blue (red fill column missing), and exposes extra Slider + \"Image Scale\" + Slider rows MAUI doesn't show — scroll/layout and shape aspect differ markedly."
   },
   "border_stroke": {
     "dark": "diff",
-    "dark_note": "Same structural failure as light: C++ shows only red stroke outlines with empty (black) fills \u2014 orange Border content and \"1/5/10\" labels missing; slider/track absent, section title gone, and the two text labels overlap the top red box, versus MAUI's correctly filled orange bordered boxes, slider, and laid-out labels.",
+    "dark_note": "Same structural failure as light: C++ shows only red stroke outlines with empty (black) fills — orange Border content and \"1/5/10\" labels missing; slider/track absent, section title gone, and the two text labels overlap the top red box, versus MAUI's correctly filled orange bordered boxes, slider, and laid-out labels.",
     "light": "diff",
     "light_note": "C++ fails to render the three StrokeThickness Border boxes and the height Border boxes: orange fills + \"1/5/10\" labels are missing, only red stroke outlines with white/empty fills remain; first section title gone, slider is a plain black bar with no track fill at wrong Y, and \"Updating the Content Height\"/\"Content height: 60\" text overlaps the red boxes."
   },
@@ -127,11 +127,11 @@
     "dark": "blank",
     "dark_note": "C++ dark is entirely blank (only status bar) while MAUI dark shows the \"Basic Horizontal Carousel\" label and large centered \"Item 1\"; no carousel content renders at all in C++ dark.",
     "light": "diff",
-    "light_note": "C++ renders carousel as a static top-left wrapped text stack (Item 1/2/3 side by side) plus an extra \"Position 0 \u2014 current: Item 1\" status line; MAUI shows a single full-screen paged item card with large centered \"Item 1\" \u2014 carousel paging/item-sizing is broken."
+    "light_note": "C++ renders carousel as a static top-left wrapped text stack (Item 1/2/3 side by side) plus an extra \"Position 0 — current: Item 1\" status line; MAUI shows a single full-screen paged item card with large centered \"Item 1\" — carousel paging/item-sizing is broken."
   },
   "chat_example": {
     "dark": "blank",
-    "dark_note": "C++ dark is entirely blank (only status bar) while MAUI dark shows the green \"Hi there!\" bubble (right) and blue \"Hello \u2014 how can I help you today?\" bubble (left).",
+    "dark_note": "C++ dark is entirely blank (only status bar) while MAUI dark shows the green \"Hi there!\" bubble (right) and blue \"Hello — how can I help you today?\" bubble (left).",
     "light": "diff",
     "light_note": "C++ drops both message bubbles: no green/blue rounded backgrounds, \"Hi there!\" not right-aligned, both lines are plain left-aligned black text starting at the left edge; also a stray black rounded navbar pill artifact at top-center absent in MAUI."
   },
@@ -139,7 +139,7 @@
     "dark": "minor",
     "dark_note": "Labels render white (dark-text cascade); checkbox circles/colors/checked-states all match MAUI dark. Residual: ~1.2x row spacing (checkbox 44pt min vs label height) clips the last row; bold labels in the C# demo (demo difference).",
     "light": "minor",
-    "light_note": "Labels now render (dark-text cascade); all checkboxes match MAUI \u2014 same circle shape, colors (blue/magenta), checked states (filled purple/red with check), and label-left/checkbox-right grid layout. Residuals: C++ row pitch is ~1.2x taller than MAUI (the checkbox measures to its 44pt minimum vs the tighter label height), which pushes the last \"Is green? False\" row toward the bottom; C# demo labels are bold vs the port regular weight (demo difference); top nav-bar pill (harness artifact)."
+    "light_note": "Labels now render (dark-text cascade); all checkboxes match MAUI — same circle shape, colors (blue/magenta), checked states (filled purple/red with check), and label-left/checkbox-right grid layout. Residuals: C++ row pitch is ~1.2x taller than MAUI (the checkbox measures to its 44pt minimum vs the tighter label height), which pushes the last \"Is green? False\" row toward the bottom; C# demo labels are bold vs the port regular weight (demo difference); top nav-bar pill (harness artifact)."
   },
   "chrome": {
     "dark": "blank",
@@ -151,7 +151,7 @@
     "dark": "blank",
     "dark_note": "C++ dark is entirely blank (only the status bar) while MAUI dark shows the \"Image\" + \"Clipped Image using RectangleGeometry\" headers and their submarine images on black.",
     "light": "diff",
-    "light_note": "C++ light renders the three text headers but ALL images are missing (blank white slots) \u2014 the submarine/clipped images that MAUI shows never appear; also a stray black rounded-rect artifact sits in the nav-bar area."
+    "light_note": "C++ light renders the three text headers but ALL images are missing (blank white slots) — the submarine/clipped images that MAUI shows never appear; also a stray black rounded-rect artifact sits in the nav-bar area."
   },
   "clip_corner_radius": {
     "dark": "diff",
@@ -173,13 +173,13 @@
   },
   "clipping": {
     "dark": "diff",
-    "dark_note": "Identical set of failures to the light pair: full-bleed orange (no rounded container), collapsed \"12345678\" numbers, missing orange-red square (only a thin red bar), missing purple/light-blue bands, and only 2 black \"Hey\" labels instead of 4 cyan ones \u2014 layout/clipping/spacing all wrong.",
+    "dark_note": "Identical set of failures to the light pair: full-bleed orange (no rounded container), collapsed \"12345678\" numbers, missing orange-red square (only a thin red bar), missing purple/light-blue bands, and only 2 black \"Hey\" labels instead of 4 cyan ones — layout/clipping/spacing all wrong.",
     "light": "diff",
     "light_note": "C++ orange fills full screen (no rounded container/margins); numbers collapse to \"12345678\" with no spacing/blue color; the large orange-red overflow square is missing (replaced by a thin full-width red bar); only 2 black \"Hey\" labels shown vs 4 cyan ones on a purple band; purple/light-blue bands absent; button not blue-styled."
   },
   "collectionview": {
     "dark": "diff",
-    "dark_note": "C++ shows only the \"None\" box and \"This is the header\" text \u2014 the entire 3-column CollectionView item grid is missing/blank, whereas MAUI renders the full grid (items 0-23).",
+    "dark_note": "C++ shows only the \"None\" box and \"This is the header\" text — the entire 3-column CollectionView item grid is missing/blank, whereas MAUI renders the full grid (items 0-23).",
     "light": "diff",
     "light_note": "C++ adds extra chrome MAUI lacks: a \"None\" box + 3 \"Selection/Previous (event/command): [none]\" labels above the header; both then show the 3-col item grid, but C++ renders many more rows (0-41+ vs 0-23)."
   },
@@ -191,15 +191,15 @@
   },
   "containers": {
     "dark": "diff",
-    "dark_note": "IMPROVED (was fully-blank labels): readout + Inside-a-content_view labels render via the dark-text cascade; border/frame strokes render. Residual BUG: Border/Frame do not present their content label (clipped by the border host) \u2014 task_a2bdde9d.",
+    "dark_note": "IMPROVED (was fully-blank labels): readout + Inside-a-content_view labels render via the dark-text cascade; border/frame strokes render. Residual BUG: Border/Frame do not present their content label (clipped by the border host) — task_a2bdde9d.",
     "light": "diff",
-    "light_note": "IMPROVED: the standalone labels (Scrolled-to readout, Inside a content_view) render. The border (blue dashed) + frame (red) boxes render their stroke/outline correctly. Residual BUG: the Border and Frame do NOT show their content child (\"Inside a border\"/\"Inside a frame\" labels) \u2014 the content subview is clipped/mispositioned by the border host (content_view works; border-specific native-hosting bug). Flagged as task_a2bdde9d."
+    "light_note": "IMPROVED: the standalone labels (Scrolled-to readout, Inside a content_view) render. The border (blue dashed) + frame (red) boxes render their stroke/outline correctly. Residual BUG: the Border and Frame do NOT show their content child (\"Inside a border\"/\"Inside a frame\" labels) — the content subview is clipped/mispositioned by the border host (content_view works; border-specific native-hosting bug). Flagged as task_a2bdde9d."
   },
   "content_view": {
     "dark": "minor",
     "dark_note": "FIXED (was blank): the white labels render via the dark-text cascade and the blue Swap-content button now renders (added to the gallery page). All three labels + the button present, matching MAUI dark. Residual: minor vertical rhythm.",
     "light": "minor",
-    "light_note": "FIXED: the blue Swap-content button now renders (the gallery content_view page had the swap logic but never added a button to trigger it \u2014 added a maui::controls::button wired to show_alternate_content()). Now matches MAUI: ContentView header, the wrapper Content label, the swap Content label, and the blue Swap-content button. Residual: minor vertical rhythm / centering."
+    "light_note": "FIXED: the blue Swap-content button now renders (the gallery content_view page had the swap logic but never added a button to trigger it — added a maui::controls::button wired to show_alternate_content()). Now matches MAUI: ContentView header, the wrapper Content label, the swap Content label, and the blue Swap-content button. Residual: minor vertical rhythm / centering."
   },
   "context_flyout": {
     "dark": "diff",
@@ -209,9 +209,9 @@
   },
   "controls_stack": {
     "dark": "diff",
-    "dark_note": "MAPPING DIVERGENCE: C++ controls_stack falls back to value_controls (no dedicated page) \u2014 different controls than the C# controls_stack. The value controls render correctly on dark now (slider/progress/switch/checkbox/spinner tints all fixed this session). Pixel-match needs a matching gallery page authored.",
+    "dark_note": "MAPPING DIVERGENCE: C++ controls_stack falls back to value_controls (no dedicated page) — different controls than the C# controls_stack. The value controls render correctly on dark now (slider/progress/switch/checkbox/spinner tints all fixed this session). Pixel-match needs a matching gallery page authored.",
     "light": "diff",
-    "light_note": "MAPPING DIVERGENCE (not a rendering bug): the C++ gallery has no dedicated controls_stack page, so MAUI_SAMPLE_PAGE=controls_stack falls back to the value_controls page \u2014 a different control SET than the C# controls_stack (which shows a Controls title + Button/Entry/Editor/SearchBar/checkbox/switch/slider). The value controls the C++ page does show (Value label, slider with blue fill + white thumb, stepper, blue progress bar, switch, checkbox ring, spinner) all render correctly now via this sessions tint + dark-text fixes. To pixel-match would require authoring a C++ gallery controls_stack page mirroring the C# control set."
+    "light_note": "MAPPING DIVERGENCE (not a rendering bug): the C++ gallery has no dedicated controls_stack page, so MAUI_SAMPLE_PAGE=controls_stack falls back to the value_controls page — a different control SET than the C# controls_stack (which shows a Controls title + Button/Entry/Editor/SearchBar/checkbox/switch/slider). The value controls the C++ page does show (Value label, slider with blue fill + white thumb, stepper, blue progress bar, switch, checkbox ring, spinner) all render correctly now via this sessions tint + dark-text fixes. To pixel-match would require authoring a C++ gallery controls_stack page mirroring the C# control set."
   },
   "custom_layout": {
     "dark": "blank",
@@ -221,7 +221,7 @@
   },
   "custom_size_swipe": {
     "dark": "diff",
-    "dark_note": "Same inversion: MAUI shows green content block (white+blue text) then status label below; C++ shows the \"RightItems revealed\" status label clipped at top of the green band with no SwipeView content text rendered below \u2014 order/positions transposed and content text missing.",
+    "dark_note": "Same inversion: MAUI shows green content block (white+blue text) then status label below; C++ shows the \"RightItems revealed\" status label clipped at top of the green band with no SwipeView content text rendered below — order/positions transposed and content text missing.",
     "light": "diff",
     "light_note": "Layout order inverted: MAUI shows green SwipeView content block first then \"RightItems revealed\" label below; C++ puts \"RightItems revealed\" label at top (overlapping/clipping the green status band) and the SwipeView content text far lower, detached."
   },
@@ -233,9 +233,9 @@
   },
   "cv_visual_states": {
     "dark": "diff",
-    "dark_note": "C++ dark renders correctly: both headers plus all item rows (Item 1-3, Item 1-4) in white. MAUI dark is broken \u2014 item areas render as solid white/black opaque blocks with no visible item text, so the two stacks diverge notably (C++ is the more complete one here).",
+    "dark_note": "C++ dark renders correctly: both headers plus all item rows (Item 1-3, Item 1-4) in white. MAUI dark is broken — item areas render as solid white/black opaque blocks with no visible item text, so the two stacks diverge notably (C++ is the more complete one here).",
     "light": "diff",
-    "light_note": "MAUI light shows all CollectionView items (Single: Item 1-3; Multi: Item 1-4) as text; C++ light renders both section headers (\"Single Selection\"/\"Multi Selection\") but the item rows between/after them are blank/missing \u2014 C++ omits the CollectionView item content."
+    "light_note": "MAUI light shows all CollectionView items (Single: Item 1-3; Multi: Item 1-4) as text; C++ light renders both section headers (\"Single Selection\"/\"Multi Selection\") but the item rows between/after them are blank/missing — C++ omits the CollectionView item content."
   },
   "data_template_selector": {
     "dark": "blank",
@@ -251,25 +251,25 @@
   },
   "device": {
     "dark": "blank",
-    "dark_note": "MAUI shows the three centered text lines (Platform/Idiom/Version); C++ dark is entirely blank apart from the status bar \u2014 content missing.",
+    "dark_note": "MAUI shows the three centered text lines (Platform/Idiom/Version); C++ dark is entirely blank apart from the status bar — content missing.",
     "light": "diff",
     "light_note": "MAUI shows text H+V-centered inside a white rounded modal card; C++ has no card and the text is top-left aligned (not centered), plus a stray black pill artifact in the nav bar."
   },
   "dispatcher": {
     "dark": "blank",
-    "dark_note": "C++ dark is blank \u2014 only the status bar renders, the entire text content area is empty black, while MAUI dark shows the full body text and blue links.",
+    "dark_note": "C++ dark is blank — only the status bar renders, the entire text content area is empty black, while MAUI dark shows the full body text and blue links.",
     "light": "minor",
     "light_note": "Body text + blue centered links (\"Fail Access\"/\"Access\"/\"3 Seconds Later\") match in content/position/color; differences are nav-bar chrome (C++ shows black rounded pill + \"MauiCompare\" back vs MAUI's translucent bar + \"maui_ios_gallery\") and slightly tighter line-wrapping in C++ that reveals more content below the fold."
   },
   "drag_drop": {
     "dark": "diff",
-    "dark_note": "C++ pushes the swatch stack far lower (large empty top gap ~575px), swatches are thinner/differently proportioned, \"Rainbow:\" label overlaps onto the purple swatch instead of sitting in its own black-gap row, and only a red sliver shows at bottom \u2014 vertical positioning and swatch sizing differ markedly from MAUI's evenly spaced layout.",
+    "dark_note": "C++ pushes the swatch stack far lower (large empty top gap ~575px), swatches are thinner/differently proportioned, \"Rainbow:\" label overlaps onto the purple swatch instead of sitting in its own black-gap row, and only a red sliver shows at bottom — vertical positioning and swatch sizing differ markedly from MAUI's evenly spaced layout.",
     "light": "diff",
     "light_note": "C++ swatches are much thinner/tighter-spaced and the \"Rainbow:\" label overlaps onto the purple swatch (vs MAUI's clean separated rows); C++ also renders a full drag-status text block (Self X:0 Y:0, Receiving layout X:10 Y:10, Move: swatch dropped...) that MAUI doesn't show, so overall vertical layout/sizing diverges."
   },
   "editor": {
     "dark": "minor",
-    "dark_note": "FIXED: unset TextColor now resolves to UIColor.labelColor, so all rows render white on dark \u2014 LENGTH:0, FontSize (Large), \"I am read only\", \"123\", \"This should be on the bottom\", AUTOSIZE LENGTH:0 all legible, matching MAUI dark; placeholders gray, explicit purple preserved. Residual: vertical rhythm slightly looser than MAUI.",
+    "dark_note": "FIXED: unset TextColor now resolves to UIColor.labelColor, so all rows render white on dark — LENGTH:0, FontSize (Large), \"I am read only\", \"123\", \"This should be on the bottom\", AUTOSIZE LENGTH:0 all legible, matching MAUI dark; placeholders gray, explicit purple preserved. Residual: vertical rhythm slightly looser than MAUI.",
     "light": "minor",
     "light_note": "Same controls/order/text/colors; rows sit a few px higher with text flush to the left edge vs MAUI's left inset (vertical rhythm)."
   },
@@ -341,9 +341,9 @@
   },
   "fonts": {
     "dark": "minor",
-    "dark_note": "Font rendering faithful on dark (white text via cascade): bold/italic/named-sizes/character-spacing all render with correct styles matching the shared C# rows. Diff is demo content/order \u2014 the C++ gallery fonts page shows more named sizes + section headers and a different order than the C# compare page (authoring difference, not a port bug).",
+    "dark_note": "Font rendering faithful on dark (white text via cascade): bold/italic/named-sizes/character-spacing all render with correct styles matching the shared C# rows. Diff is demo content/order — the C++ gallery fonts page shows more named sizes + section headers and a different order than the C# compare page (authoring difference, not a port bug).",
     "light": "minor",
-    "light_note": "Font rendering is faithful: the shared samples render with matching styles in both \u2014 named sizes (Title large / Subtitle / Header / Body / Caption), Bold/Italic/Bold+Italic attributes, and Character-spacing 4.0 (kerned). Difference is demo content + order: the C++ gallery fonts page is MORE comprehensive (adds EnableScaling + Font-attributes/Named-sizes section headers + Default/Micro/Small/Medium/Large) and groups attributes-then-sizes, vs the C# compare page (sizes-then-attributes, fewer rows). A gallery-vs-compare authoring difference, not a port bug."
+    "light_note": "Font rendering is faithful: the shared samples render with matching styles in both — named sizes (Title large / Subtitle / Header / Body / Caption), Bold/Italic/Bold+Italic attributes, and Character-spacing 4.0 (kerned). Difference is demo content + order: the C++ gallery fonts page is MORE comprehensive (adds EnableScaling + Font-attributes/Named-sizes section headers + Default/Micro/Small/Medium/Large) and groups attributes-then-sizes, vs the C# compare page (sizes-then-attributes, fewer rows). A gallery-vs-compare authoring difference, not a port bug."
   },
   "footer_only_string": {
     "dark": "pending",
@@ -353,7 +353,7 @@
     "dark": "minor",
     "dark_note": "Near-exact match on dark: bold-red / italic-underlined / kerned spans + plain label all render with correct styling matching MAUI (the formatted_string feature + dark-text cascade make every span visible). Residual: minor vertical position offset.",
     "light": "minor",
-    "light_note": "Near-exact match: the FormattedString renders all spans with correct per-span styling \u2014 \"Bold red\" (bold + red), \"italic underlined\" (italic + underline), \"kerned\" (character-spacing), then a plain text label. Same spans, colors, decorations and order as MAUI. Residual: minor vertical position (C++ stack sits a few px higher / less top inset)."
+    "light_note": "Near-exact match: the FormattedString renders all spans with correct per-span styling — \"Bold red\" (bold + red), \"italic underlined\" (italic + underline), \"kerned\" (character-spacing), then a plain text label. Same spans, colors, decorations and order as MAUI. Residual: minor vertical position (C++ stack sits a few px higher / less top inset)."
   },
   "gestures": {
     "dark": "pending",
@@ -413,27 +413,27 @@
   },
   "image": {
     "dark": "diff",
-    "dark_note": "Same as light: the FileSource purple .NET-bot now renders (was blank) \u2014 dotnet_bot.png bundled into the gallery .app, ionicons.ttf registered via UIAppFonts. UriSource matches. Residual: the FileSource image sizes/positions differently from MAUI's full-width purple band (layout/measure, not assets); Font Image Source rows are below the parity-shot fold in both shots.",
+    "dark_note": "Same as light: the FileSource purple .NET-bot now renders (was blank) — dotnet_bot.png bundled into the gallery .app, ionicons.ttf registered via UIAppFonts. UriSource matches. Residual: the FileSource image sizes/positions differently from MAUI's full-width purple band (layout/measure, not assets); Font Image Source rows are below the parity-shot fold in both shots.",
     "light": "diff",
     "light_note": "FIXED (assets now bundled): the FileSource purple .NET-bot RENDERS (was entirely blank). The gallery .app now bundles dotnet_bot.png at its root and the iOS loader's [UIImage imageNamed:] fallback finds it; ionicons.ttf is bundled + registered via UIAppFonts (family 'Ionicons', glyph U+F30C present). UriSource still matches MAUI. Residual is LAYOUT/SIZING, not assets: the C++ FileSource image renders smaller & lower than MAUI's full-width AspectFit purple band (an image horizontal-fill/measure diff), and the Font Image Source rows sit below the parity-shot fold in BOTH shots (the C# reference does not show the rendered glyph either). cog.png-style SVG-only assets remain unrasterizable (see resources/README.md)."
   },
   "image_button": {
     "dark": "minor",
-    "dark_note": "FIXED: ImageButton BackgroundColor (green/purple) + borders + corner radii render matching MAUI dark, and the 'Custom Size' resize button now renders the purple dotnet_bot.png (assets bundled). Residual: the cog.png icon is still absent \u2014 original is SVG-only and the iOS loader cannot decode raw SVG (no faithful raster; documented in src/samples/resources/README.md), also not visible in the C# shot.",
+    "dark_note": "FIXED: ImageButton BackgroundColor (green/purple) + borders + corner radii render matching MAUI dark, and the 'Custom Size' resize button now renders the purple dotnet_bot.png (assets bundled). Residual: the cog.png icon is still absent — original is SVG-only and the iOS loader cannot decode raw SVG (no faithful raster; documented in src/samples/resources/README.md), also not visible in the C# shot.",
     "light": "minor",
-    "light_note": "FIXED: the ImageButton BackgroundColor fills render (green/purple per the ButtonHandler recipe) AND the 'Custom Size' resize button now shows the purple dotnet_bot.png (gallery assets bundled). Residual: the cog.png icon inside the cog buttons is still absent \u2014 the MAUI original is SVG-only (Resizetizer rasterizes cog.svg at build), and the iOS loader cannot decode raw SVG with no rasterizer available, so no faithful raster could be produced (documented, not fabricated \u2014 see src/samples/resources/README.md). C# likewise shows no prominent cog (the fill dominates)."
+    "light_note": "FIXED: the ImageButton BackgroundColor fills render (green/purple per the ButtonHandler recipe) AND the 'Custom Size' resize button now shows the purple dotnet_bot.png (gallery assets bundled). Residual: the cog.png icon inside the cog buttons is still absent — the MAUI original is SVG-only (Resizetizer rasterizes cog.svg at build), and the iOS loader cannot decode raw SVG with no rasterizer available, so no faithful raster could be produced (documented, not fabricated — see src/samples/resources/README.md). C# likewise shows no prominent cog (the fill dominates)."
   },
   "indicator": {
     "dark": "minor",
     "dark_note": "Dots + colored indicators + the Colors yellow band all render matching MAUI dark (update_background added). Residual: Indicator Size dots scale larger than the C# shot (iOS-26 UIPageControl dot-resize fidelity nuance).",
     "light": "minor",
-    "light_note": "Dot indicators render matching MAUI \u2014 Basic/Shape/MaximumVisible(7-of-10)/Colors all show the right dot patterns; Colors now renders on a full-width yellow band (FIXED: added iOS update_background -> apply_background, reusing MauiPageControl with a layoutSubviews resize hook for gradients). Residual: the Indicator Size demo dots scale much larger in C++ than in the C# shot (real MAUI does not visibly resize UIPageControl dots on iOS 26 while the port scale=size/6 applies) \u2014 a scaling-fidelity nuance; carousel-with-indicator at the bottom."
+    "light_note": "Dot indicators render matching MAUI — Basic/Shape/MaximumVisible(7-of-10)/Colors all show the right dot patterns; Colors now renders on a full-width yellow band (FIXED: added iOS update_background -> apply_background, reusing MauiPageControl with a layoutSubviews resize hook for gradients). Residual: the Indicator Size demo dots scale much larger in C++ than in the C# shot (real MAUI does not visibly resize UIPageControl dots on iOS 26 while the port scale=size/6 applies) — a scaling-fidelity nuance; carousel-with-indicator at the bottom."
   },
   "input_controls": {
     "dark": "minor",
     "dark_note": "FIXED: radios now visible on dark (unset TextColor -> labelColor tints the circle + title white; was clear/black = invisible) and the selected-radio white box removed (UIButtonTypeCustom). Filled/empty circles + white labels match MAUI dark. Residual: radio group centering vs left-align. Cascades to all radio pages.",
     "light": "minor",
-    "light_note": "FIXED: the radio button group (UPPER/lower) now renders \u2014 an unset TextColor was forced to a clear/black tint that hid BOTH the title AND the SF-symbol circle indicator; now unset -> UIColor.labelColor (visible light+dark). Also switched the radio UIButton from System to Custom so the iOS-26 selected-state tint fill (a white box behind the selected radio) no longer appears. LENGTH label + Entry + SearchBar + the radios all match MAUI. Residual: the C++ radio group is center-aligned vs MAUI left-aligned (minor). Cascades to all radio_button pages."
+    "light_note": "FIXED: the radio button group (UPPER/lower) now renders — an unset TextColor was forced to a clear/black tint that hid BOTH the title AND the SF-symbol circle indicator; now unset -> UIColor.labelColor (visible light+dark). Also switched the radio UIButton from System to Custom so the iOS-26 selected-state tint fill (a white box behind the selected radio) no longer appears. LENGTH label + Entry + SearchBar + the radios all match MAUI. Residual: the C++ radio group is center-aligned vs MAUI left-aligned (minor). Cascades to all radio_button pages."
   },
   "input_transparent": {
     "dark": "pending",
@@ -507,7 +507,7 @@
     "dark": "minor",
     "dark_note": "FIXED dark text: unset labels now use the dynamic system label color (white in dark) instead of black-on-black. Residual: same missing gray BackgroundColor boxes as light.",
     "light": "minor",
-    "light_note": "Text + layout match; C# fills several alignment-demo labels with a gray BackgroundColor box that the C++ port doesn't render \u2014 label background-fill diff only."
+    "light_note": "Text + layout match; C# fills several alignment-demo labels with a gray BackgroundColor box that the C++ port doesn't render — label background-fill diff only."
   },
   "layout_is_enabled": {
     "dark": "pending",
@@ -569,7 +569,7 @@
     "dark": "minor",
     "dark_note": "Matches: all query text white (handler already left system default), blue title, gray placeholders; BackgroundColor=Yellow/Green now render as full flat fills matching MAUI dark (FIXED via UITextField backgroundColor property). Residual: vertical rhythm (C# taller rows).",
     "light": "minor",
-    "light_note": "Matches: text colors (black query, blue TitleColor, gray placeholders) + BackgroundColor fills now render \u2014 Yellow/Green pickers show full flat fills (FIXED: iOS picker now pushes solid BackgroundColor to the UITextField backgroundColor property, suppressing the RoundedRect bezel like MAUI). Residual: C++ more compact vertical rhythm (fits more rows than MAUI) + top nav-bar blob (harness artifact)."
+    "light_note": "Matches: text colors (black query, blue TitleColor, gray placeholders) + BackgroundColor fills now render — Yellow/Green pickers show full flat fills (FIXED: iOS picker now pushes solid BackgroundColor to the UITextField backgroundColor property, suppressing the RoundedRect bezel like MAUI). Residual: C++ more compact vertical rhythm (fits more rows than MAUI) + top nav-bar blob (harness artifact)."
   },
   "pickers": {
     "dark": "minor",
@@ -595,7 +595,7 @@
   },
   "preselected_items": {
     "dark": "blank",
-    "dark_note": "C++ dark is effectively blank \u2014 only \"This is the header\" on black, no description text or CollectionView items; MAUI dark shows the full 3-column grid with gray-highlighted preselected items.",
+    "dark_note": "C++ dark is effectively blank — only \"This is the header\" on black, no description text or CollectionView items; MAUI dark shows the full 3-column grid with gray-highlighted preselected items.",
     "light": "diff",
     "light_note": "C++ renders a 4-column grid with no selection highlight and a non-bold header; MAUI shows a 3-column grid with gray preselected-item backgrounds (photo.jpg 2 / Fruits.jpg 4 / FlowerBuds.jpg 5) and a bold header."
   },
@@ -603,7 +603,7 @@
     "dark": "minor",
     "dark_note": "FIXED: Default/Disabled blue fills render (unset ProgressColor -> nil native default, was transparent); orange ProgressColor + gray tracks all match MAUI dark, full-width below each label. The earlier apparent layout offset was the invisible fill, now resolved. Residual: bold labels in the C# demo (demo difference).",
     "light": "minor",
-    "light_note": "FIXED: the Default/Disabled bars now show their blue default fill (unset ProgressColor was forced to a transparent tint, hiding the fill and making the bar look mis-positioned/right-aligned; now unset -> nil restores the native blue, C# ResetProgressTintColor). All bars now render full-width below their label matching MAUI \u2014 blue default + orange ProgressColor + gray tracks + empty ProgressTo. Residual: C# demo styles labels bold vs the port regular weight (demo difference)."
+    "light_note": "FIXED: the Default/Disabled bars now show their blue default fill (unset ProgressColor was forced to a transparent tint, hiding the fill and making the bar look mis-positioned/right-aligned; now unset -> nil restores the native blue, C# ResetProgressTintColor). All bars now render full-width below their label matching MAUI — blue default + orange ProgressColor + gray tracks + empty ProgressTo. Residual: C# demo styles labels bold vs the port regular weight (demo difference)."
   },
   "radio_button_border": {
     "dark": "pending",
@@ -663,9 +663,9 @@
   },
   "search_bar": {
     "dark": "minor",
-    "dark_note": "FIXED: unset TextColor now resolves to UIColor.labelColor, so query text renders white on dark, matching MAUI dark (green/pink explicit preserved, gray placeholders). Residual: search-bar row height differs (C# taller). (C# dark reference was a blank/black broken capture \u2014 re-captured.)",
+    "dark_note": "FIXED: unset TextColor now resolves to UIColor.labelColor, so query text renders white on dark, matching MAUI dark (green/pink explicit preserved, gray placeholders). Residual: search-bar row height differs (C# taller). (C# dark reference was a blank/black broken capture — re-captured.)",
     "light": "minor",
-    "light_note": "Matches: same controls/order/text/colors (green/pink explicit, gray placeholders, black query text). Residual: C++ has a black rounded nav-bar blob at top (harness artifact), and C# search bars are taller (more vertical padding) so C# shows ~4 rows where C++ fits 7. (C# light reference was a blank/black broken capture \u2014 re-captured.)"
+    "light_note": "Matches: same controls/order/text/colors (green/pink explicit, gray placeholders, black query text). Residual: C++ has a black rounded nav-bar blob at top (harness artifact), and C# search bars are taller (more vertical padding) so C# shows ~4 rows where C++ fits 7. (C# light reference was a blank/black broken capture — re-captured.)"
   },
   "selection_command_param": {
     "dark": "pending",
@@ -677,9 +677,9 @@
   },
   "semantics": {
     "dark": "minor",
-    "dark_note": "Near-exact match on dark: all SemanticProperties showcase rows render with correct colors (white labels, blue buttons) matching MAUI dark. Residual: minor vertical rhythm. (C# ref was blank \u2014 re-captured.)",
+    "dark_note": "Near-exact match on dark: all SemanticProperties showcase rows render with correct colors (white labels, blue buttons) matching MAUI dark. Residual: minor vertical rhythm. (C# ref was blank — re-captured.)",
     "light": "minor",
-    "light_note": "Near-exact match: the full SemanticProperties showcase renders matching MAUI \u2014 intro + readout labels, Label text TH/DH, blue Button text TH/DH, Entry/Editor text DTH, Search bar text DH, and the HeadingLevel labels + focus button, same content/order/colors. Residual: C++ slightly more compact vertical rhythm. (C# ref was a blank capture \u2014 re-captured.)"
+    "light_note": "Near-exact match: the full SemanticProperties showcase renders matching MAUI — intro + readout labels, Label text TH/DH, blue Button text TH/DH, Entry/Editor text DTH, Search bar text DH, and the HeadingLevel labels + focus button, same content/order/colors. Residual: C++ slightly more compact vertical rhythm. (C# ref was a blank capture — re-captured.)"
   },
   "shadow_playground": {
     "dark": "pending",
@@ -705,7 +705,7 @@
     "dark": "minor",
     "dark_note": "FIXED: native white pill thumbs + gray tracks now render on dark (unset tints -> nil); BackgroundColor=Blue + Background=gradient bands render behind the track (new update_background + gradient-resize hook); MaximumTrackColor=Pink + ThumbColor=Orange + disabled gray match MAUI dark. Residual: minor vertical rhythm.",
     "light": "minor",
-    "light_note": "FIXED (was broken): every slider now renders the native thumb + track. Two fixes \u2014 (1) unset Thumb/Min/MaxTrackColor now leave the UISlider native default (nil) instead of a transparent tint that hid the default white thumb + gray track; (2) added iOS update_background so BackgroundColor=Blue shows a flat blue band and Background=gradient shows the gradient band behind the track (MauiIosSlider.layoutSubviews resizes the gradient via resize_background_layers). MinTrack/MaxTrack/Thumb explicit colors + disabled gray all match MAUI. Residual: minor vertical rhythm."
+    "light_note": "FIXED (was broken): every slider now renders the native thumb + track. Two fixes — (1) unset Thumb/Min/MaxTrackColor now leave the UISlider native default (nil) instead of a transparent tint that hid the default white thumb + gray track; (2) added iOS update_background so BackgroundColor=Blue shows a flat blue band and Background=gradient shows the gradient band behind the track (MauiIosSlider.layoutSubviews resizes the gradient via resize_background_layers). MinTrack/MaxTrack/Thumb explicit colors + disabled gray all match MAUI. Residual: minor vertical rhythm."
   },
   "some_empty_groups": {
     "dark": "pending",
@@ -713,9 +713,9 @@
   },
   "stack_layout": {
     "dark": "diff",
-    "dark_note": "Same as light: the C# stack_layout is a minimal text demo vs the C++ rainbow nesting demo, AND the C++ outer stack overlaps the Horizontal section onto the vertical rainbow stack (nested-layout arrange/measure bug \u2014 task_aa5dddae).",
+    "dark_note": "Same as light: the C# stack_layout is a minimal text demo vs the C++ rainbow nesting demo, AND the C++ outer stack overlaps the Horizontal section onto the vertical rainbow stack (nested-layout arrange/measure bug — task_aa5dddae).",
     "light": "diff",
-    "light_note": "Two issues: (1) demo divergence \u2014 the C# compare stack_layout page is minimal (just Vertical/Horizontal text labels in a white card), while the C++ gallery page is a rainbow demo (an outer vertical stack nesting an inner vertical stack of 6 colored boxes + an inner horizontal stack). (2) BUG: the outer stack mispositions the nested inner stacks \u2014 the Horizontal label + horizontal strip overlap the vertical rainbow stack instead of stacking below it (a nested-layout arrange/measure issue; the inner stacks arrange their own children fine). Flagged as task_aa5dddae (the layout-manager counterpart to the border arrange-coordinate fix)."
+    "light_note": "Two issues: (1) demo divergence — the C# compare stack_layout page is minimal (just Vertical/Horizontal text labels in a white card), while the C++ gallery page is a rainbow demo (an outer vertical stack nesting an inner vertical stack of 6 colored boxes + an inner horizontal stack). (2) BUG: the outer stack mispositions the nested inner stacks — the Horizontal label + horizontal strip overlap the vertical rainbow stack instead of stacking below it (a nested-layout arrange/measure issue; the inner stacks arrange their own children fine). Flagged as task_aa5dddae (the layout-manager counterpart to the border arrange-coordinate fix)."
   },
   "staggered_layout": {
     "dark": "pending",
@@ -723,15 +723,15 @@
   },
   "stepper": {
     "dark": "minor",
-    "dark_note": "FIXED: labels + blue link render white on dark; BackgroundColor=Red now fills the stepper (update_background). Residual: demo difference \u2014 C# bold labels + full-width red band vs C++ regular labels + intrinsic-width red pill (port rendering is correct; the gallery demo lays the stepper intrinsic, not Fill).",
+    "dark_note": "FIXED: labels + blue link render white on dark; BackgroundColor=Red now fills the stepper (update_background). Residual: demo difference — C# bold labels + full-width red band vs C++ regular labels + intrinsic-width red pill (port rendering is correct; the gallery demo lays the stepper intrinsic, not Fill).",
     "light": "minor",
-    "light_note": "FIXED: BackgroundColor=Red now renders (added iOS update_background -> apply_background; MauiIosStepper.layoutSubviews keeps a gradient fill sized). Labels + blue Enable-Stepper link render (dark-text cascade). Residual: the C# stepper-page demo styles section labels bold/larger + lays the BackgroundColor stepper full-width (a wide red band) while the C++ gallery demo uses regular labels + an intrinsic-width red pill \u2014 a demo-layout/styling difference between the two apps (the port renders BackgroundColor correctly into the stepper frame)."
+    "light_note": "FIXED: BackgroundColor=Red now renders (added iOS update_background -> apply_background; MauiIosStepper.layoutSubviews keeps a gradient fill sized). Labels + blue Enable-Stepper link render (dark-text cascade). Residual: the C# stepper-page demo styles section labels bold/larger + lays the BackgroundColor stepper full-width (a wide red band) while the C++ gallery demo uses regular labels + an intrinsic-width red pill — a demo-layout/styling difference between the two apps (the port renders BackgroundColor correctly into the stepper frame)."
   },
   "styles": {
     "dark": "minor",
-    "dark_note": "FIXED: the Style-Me button now has a light-gray fill so its dark text is readable on dark (was invisible \u2014 near-black text, no fill); matches MAUI light-fill + yellow border + dark text. The 3 label styles (gray base / pink derived / white default) render correctly via the style mechanism. Residual: vertical rhythm.",
+    "dark_note": "FIXED: the Style-Me button now has a light-gray fill so its dark text is readable on dark (was invisible — near-black text, no fill); matches MAUI light-fill + yellow border + dark text. The 3 label styles (gray base / pink derived / white default) render correctly via the style mechanism. Residual: vertical rhythm.",
     "light": "minor",
-    "light_note": "Matches MAUI: the 3 label styles render correctly (base SubtitleStyle gray, derived custom style PINK wins, no-explicit-style default), and the Style-Me button shows a light-gray fill + yellow border + dark text. FIXED: gave the styled button a light BackgroundColor brush (it was a near-black TextColor with no fill \u2014 fine on light, invisible on dark) so it matches MAUI both themes; BackgroundColor is not a setter-targetable descriptor (flows through set_background_brush), the multi-setter Style still drives TextColor/CornerRadius/Stroke. Residual: minor vertical rhythm + button height/text-wrap."
+    "light_note": "Matches MAUI: the 3 label styles render correctly (base SubtitleStyle gray, derived custom style PINK wins, no-explicit-style default), and the Style-Me button shows a light-gray fill + yellow border + dark text. FIXED: gave the styled button a light BackgroundColor brush (it was a near-black TextColor with no fill — fine on light, invisible on dark) so it matches MAUI both themes; BackgroundColor is not a setter-targetable descriptor (flows through set_background_brush), the multi-setter Style still drives TextColor/CornerRadius/Stroke. Residual: minor vertical rhythm + button height/text-wrap."
   },
   "swipe_gesture": {
     "dark": "pending",
@@ -743,7 +743,7 @@
   },
   "swipe_item_size": {
     "dark": "diff",
-    "dark_note": "C++ content badly mis-laid-out: shows only a clipped \"12x512 Icon\" label plus bare gray boxes with NO \"Swipe to Left\" text and NO headers, huge empty black gaps \u2014 versus MAUI's correct compact list of labeled centered-text swipe rows.",
+    "dark_note": "C++ content badly mis-laid-out: shows only a clipped \"12x512 Icon\" label plus bare gray boxes with NO \"Swipe to Left\" text and NO headers, huge empty black gaps — versus MAUI's correct compact list of labeled centered-text swipe rows.",
     "light": "diff",
     "light_note": "C++ swipe rows mis-sized/detached from their labels (128x128 & 256x256 boxes collapsed/invisible, gray box overlaps \"512x512 Icon\" and clips \"Swipe to Left\" text); section headers not bold (MAUI bold); stray nav-bar pill artifact."
   },
@@ -765,13 +765,13 @@
   },
   "switch": {
     "dark": "minor",
-    "dark_note": "FIXED: BackgroundColor=Blue + Background=gradient bands render behind the switch on dark matching MAUI (update_background + gradient-resize hook); labels white (dark-text cascade); Disabled grayed. Residuals: bold labels in the C# demo (demo difference); ThumbColor orange (C++) vs white (C# off-state) \u2014 ambiguous.",
+    "dark_note": "FIXED: BackgroundColor=Blue + Background=gradient bands render behind the switch on dark matching MAUI (update_background + gradient-resize hook); labels white (dark-text cascade); Disabled grayed. Residuals: bold labels in the C# demo (demo difference); ThumbColor orange (C++) vs white (C# off-state) — ambiguous.",
     "light": "minor",
-    "light_note": "FIXED: BackgroundColor=Blue band + Background=gradient band now render behind the switch (added iOS update_background -> apply_background; MauiIosSwitch.layoutSubviews resizes the gradient), matching MAUI. Default/Disabled/OnColor switches + ThumbColor match the native control. Residuals: C# demo styles labels bold/larger (demo difference; port labels are regular like the slider page); the ThumbColor=Orange thumb renders orange in C++ vs white in the C# shot (off-state thumbTintColor \u2014 ambiguous, possibly a MAUI-iOS26 quirk)."
+    "light_note": "FIXED: BackgroundColor=Blue band + Background=gradient band now render behind the switch (added iOS update_background -> apply_background; MauiIosSwitch.layoutSubviews resizes the gradient), matching MAUI. Default/Disabled/OnColor switches + ThumbColor match the native control. Residuals: C# demo styles labels bold/larger (demo difference; port labels are regular like the slider page); the ThumbColor=Orange thumb renders orange in C++ vs white in the C# shot (off-state thumbTintColor — ambiguous, possibly a MAUI-iOS26 quirk)."
   },
   "switch_grouping": {
     "dark": "diff",
-    "dark_note": "C++ dark is nearly empty \u2014 only a single OFF Switch floats mid-screen with no \"Is Grouped:\" label and no list content, whereas MAUI dark shows the full grouped member list with green headers and orange footers.",
+    "dark_note": "C++ dark is nearly empty — only a single OFF Switch floats mid-screen with no \"Is Grouped:\" label and no list content, whereas MAUI dark shows the full grouped member list with green headers and orange footers.",
     "light": "diff",
     "light_note": "C++ shows ungrouped flat list (no green section headers, no orange \"Total members\" footers), Switch is OFF and overlaps the \"Thor\" row, and rows have huge vertical spacing; MAUI shows a proper grouped list with ON switch."
   },
@@ -783,7 +783,7 @@
     "dark": "diff",
     "dark_note": "Same as light: C++ shows only the two red labels while MAUI shows the standard CardView (Slavko Vlasic) plus the templated Compact cards with gray images and names; the ControlTemplate/CardView body is entirely missing in C++.",
     "light": "diff",
-    "light_note": "C++ renders only the two red label blocks; all CardView content is missing \u2014 the standard card (Slavko Vlasic + body) and every Compact-card templated item (gray image + Carolina Pena/Wade Blanks/Colette Quint + descriptions) that MAUI shows are absent, leaving the page blank below the labels."
+    "light_note": "C++ renders only the two red label blocks; all CardView content is missing — the standard card (Slavko Vlasic + body) and every Compact-card templated item (gray image + Carolina Pena/Wade Blanks/Colette Quint + descriptions) that MAUI shows are absent, leaving the page blank below the labels."
   },
   "time_picker": {
     "dark": "minor",
@@ -811,7 +811,7 @@
     "dark": "minor",
     "dark_note": "Matches MAUI dark: header + instruction + validation Entry + Highlight-off label + blue Toggle-highlight button all render correctly (dark-text cascade). Residual: bold-vs-regular header weight (demo difference) + vertical rhythm.",
     "light": "minor",
-    "light_note": "Matches MAUI: the trigger demo renders the instruction label, the validation Entry (Enter a System.Double, turns red on invalid via the data/property trigger), the Highlight-off label, and the blue Toggle-highlight button \u2014 same controls/order/colors. Residual: the Triggers header is bold/larger in the C# demo vs regular weight in the C++ gallery (recurring bold-header demo difference) + minor vertical rhythm."
+    "light_note": "Matches MAUI: the trigger demo renders the instruction label, the validation Entry (Enter a System.Double, turns red on invalid via the data/property trigger), the Highlight-off label, and the blue Toggle-highlight button — same controls/order/colors. Residual: the Triggers header is bold/larger in the C# demo vs regular weight in the C++ gallery (recurring bold-header demo difference) + minor vertical rhythm."
   },
   "update_path_data": {
     "dark": "pending",
@@ -821,11 +821,13 @@
     "dark": "blank",
     "dark_note": "C++ dark is entirely blank (black, only status bar) while MAUI dark renders the full colored variable-height cell list plus buttons, Index label, and entries.",
     "light": "diff",
-    "light_note": "C++ shows only 6 plain text labels (incl. extra Milk4/Coffee5) on white; MAUI shows variable-height colored cells (Coffee0/Milk1/Coffee2/Coffee3) plus Insert/Add/Remove buttons, an \"Index\" label, and two entries (\"1\", \"Latte\") \u2014 cell coloring, row sizing, and the entire button/entry control row are missing in C++."
+    "light_note": "C++ shows only 6 plain text labels (incl. extra Milk4/Coffee5) on white; MAUI shows variable-height colored cells (Coffee0/Milk1/Coffee2/Coffee3) plus Insert/Add/Remove buttons, an \"Index\" label, and two entries (\"1\", \"Latte\") — cell coloring, row sizing, and the entire button/entry control row are missing in C++."
   },
   "vertical_stack": {
-    "dark": "pending",
-    "light": "pending"
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "C++ faithfully ports the full VerticalStackLayoutPage.xaml (heading + 6 rainbow box_views, 12px padding); the maui-compare reference is a stub showing only the heading. Layout correct (flat stack), black-on-white. Not a port bug.",
+    "dark_note": "Same demo divergence in dark theme: C++ renders the full rainbow + white-on-black heading correctly; reference stub shows heading only."
   },
   "visual_states": {
     "dark": "pending",
