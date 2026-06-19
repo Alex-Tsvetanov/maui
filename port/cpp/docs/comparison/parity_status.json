@@ -716,10 +716,10 @@
     "light": "pending"
   },
   "stack_layout": {
-    "dark": "diff",
-    "dark_note": "Same as light: the C# stack_layout is a minimal text demo vs the C++ rainbow nesting demo, AND the C++ outer stack overlaps the Horizontal section onto the vertical rainbow stack (nested-layout arrange/measure bug — task_aa5dddae).",
-    "light": "diff",
-    "light_note": "Two issues: (1) demo divergence — the C# compare stack_layout page is minimal (just Vertical/Horizontal text labels in a white card), while the C++ gallery page is a rainbow demo (an outer vertical stack nesting an inner vertical stack of 6 colored boxes + an inner horizontal stack). (2) BUG: the outer stack mispositions the nested inner stacks — the Horizontal label + horizontal strip overlap the vertical rainbow stack instead of stacking below it (a nested-layout arrange/measure issue; the inner stacks arrange their own children fine). Flagged as task_aa5dddae (the layout-manager counterpart to the border arrange-coordinate fix)."
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "Nested-layout overlap FIXED (404dc2afca host-relative arrange): the Horizontal section now correctly stacks BELOW the Vertical rainbow instead of overlapping it. C++ faithfully ports StackLayoutPage.xaml (Vertical label + 6-box vstack, Horizontal label + 6-box hstack); the maui-compare reference is a minimal text stub. Renders correctly, black-on-white. Not a port bug.",
+    "dark_note": "Same: nested overlap fixed, both sections render stacked correctly with white-on-black headings; reference is a stub."
   },
   "staggered_layout": {
     "dark": "pending",
