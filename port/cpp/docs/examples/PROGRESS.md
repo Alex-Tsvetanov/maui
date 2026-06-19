@@ -40,6 +40,17 @@ swipe_refresh · web_view · chrome · tabbed_flyout — see the per-example REA
 AbsoluteLayout · ClippingPage · ContentView · CustomLayout · FlexLayout · Grid · HorizontalStackLayout ·
 LayoutIsEnabled · RelativeLayout · ScrollView · StackLayout · TemplatedView · VerticalStackLayout · ZIndex
 
+## Batch 8 — ShapesGalleries (9) — natively-rendered shape/geometry demos
+- [x] EllipseGallery → `ellipse_gallery_page`
+- [x] RectangleGallery → `rectangle_gallery_page`
+- [x] LineGallery → `line_gallery_page`
+- [x] PolygonGallery → `polygon_gallery_page` (EvenOdd vs Nonzero rendered exactly)
+- [x] PolylineGallery → `polyline_gallery_page`
+- [x] PathGallery → `path_gallery_page` (markup + programmatic geometry)
+- [x] LineJoinGallery → `line_join_gallery_page`
+- [x] PathAspectGallery → `path_aspect_gallery_page`
+- [x] CompositionGallery → `composition_gallery_page`
+
 ## Batch 7 — Core tail + HitTesting (9)
 - [x] ClipPage → `clip_page` (geometry clip)
 - [x] ContextFlyoutPage → `context_flyout_page` (chrome-only menu exercised programmatically)

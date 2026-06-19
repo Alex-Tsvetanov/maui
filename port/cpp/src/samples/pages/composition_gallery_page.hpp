@@ -1,0 +1,207 @@
+#pragma once
+// maui::samples::composition_gallery_page — ports CompositionGallery.xaml
+//
+// A self-contained, code-first port of the MAUI Shapes sub-gallery
+// Pages/Controls/ShapesGalleries/CompositionGallery.xaml: a StackLayout holding two Beige 250x250 Grids
+// (Margin 12) that compose multiple overlapping shapes in the same cell to show layering / blending.
+//
+//   Grid 1 — four half-transparent (Opacity 0.5) shapes stacked in one cell:
+//     - Path "M100 100 200 200": a blue diagonal stroke (thickness 5);
+//     - Line (100,100)->(200,200): a thick red diagonal (thickness 20) over the same diagonal;
+//     - Polygon (100,100 200,100 100,200): a green filled right-triangle;
+//     - Path with an EllipseGeometry (center 150,150, r 50): a yellow filled circle on top.
+//     With 0.5 opacity each, the overlaps blend (the composition demo's point).
+//
+//   Grid 2 — three default-stroked Lines meeting at (100,100):
+//     - red   (100,100)->(200,200);
+//     - blue  (0,0)->(100,100);
+//     - green (100,0)->(100,100).
+//
+// The page OWNS its whole element tree (the shapes_demo_page pattern). It is backend-agnostic — a
+// sample main attaches handlers bottom-up via the hosting layer and hosts page() in a window; the
+// headless/apple/ios test trees exercise the same wiring directly.
+//
+// PORT NOTES (faithful best-effort, never invented):
+//   note: the C# Grids HorizontalOptions="Start". HorizontalOptions is not in the ported view surface,
+//         so it is omitted (the fixed 250x250 size is preserved; deferred, not invented).
+//   note: the C# Grids' Margin="12" uses View.Margin, which is not in the ported view surface, so it is
+//         omitted (deferred). BackgroundColor="Beige" → set_background(solid_paint(colors::beige)).
+//   note: the first Path's Data "M100 100 200 200" is a move-to (100,100) + implicit line-to (200,200)
+//         per the WPF abbreviated-geometry grammar — parsed via parse_path_figure_collection.
+//   note: the ellipse Path uses an EllipseGeometry (center 150,150, radii 50) directly as the Path.Data
+//         — the C# <Path.Data><EllipseGeometry/></Path.Data> composition, no markup parsing needed.
+//   note: named brushes Blue/Red/Green/Yellow → solid_paint over colors:: (the brush → paint bridge);
+//         C# "green" (lower-case, Grid 2) resolves to the same Green named color.
+//   note: Grid 2's three Lines keep the base Aspect/StrokeThickness defaults (the C# elements set only
+//         X1/Y1/X2/Y2 + Stroke), so they render as 1px default-thickness hairlines, as in C#.
+
+#include <memory>
+#include <string_view>
+
+#include "maui/controls/content_page.hpp"
+#include "maui/controls/grid.hpp"
+#include "maui/controls/shapes/ellipse_geometry.hpp"
+#include "maui/controls/shapes/line.hpp"
+#include "maui/controls/shapes/path.hpp"
+#include "maui/controls/shapes/path_geometry.hpp"
+#include "maui/controls/shapes/path_markup_parser.hpp"
+#include "maui/controls/shapes/polygon.hpp"
+#include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/graphics/colors.hpp"
+#include "maui/graphics/point.hpp"
+#include "maui/graphics/solid_paint.hpp"
+#include "maui/hosting/maui_app.hpp"
+
+#include "gallery_attach.hpp"
+
+namespace maui::samples
+{
+    class composition_gallery_page
+    {
+    public:
+        composition_gallery_page()
+        {
+            page_.set_title("Composition Gallery");
+
+            // ---------------- Grid 1: four overlapping half-transparent shapes ----------------
+            grid_one_.set_background(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::beige));
+            grid_one_.set_width_request(250);
+            grid_one_.set_height_request(250);
+
+            // Path "M100 100 200 200" — blue diagonal stroke, thickness 5, opacity .5.
+            auto diagonal_geometry = std::make_shared<maui::controls::shapes::path_geometry>();
+            maui::controls::shapes::parse_path_figure_collection(diagonal_geometry->figures(), "M100 100 200 200");
+            diagonal_path_.set_data(std::move(diagonal_geometry));
+            diagonal_path_.set_stroke(solid(maui::graphics::colors::blue));
+            diagonal_path_.set_stroke_thickness(5);
+            diagonal_path_.set_opacity(0.5);
+            grid_one_.add(diagonal_path_);
+
+            // Line (100,100)->(200,200) — red, thickness 20, opacity .5.
+            thick_line_.set_x1(100);
+            thick_line_.set_y1(100);
+            thick_line_.set_x2(200);
+            thick_line_.set_y2(200);
+            thick_line_.set_stroke(solid(maui::graphics::colors::red));
+            thick_line_.set_stroke_thickness(20);
+            thick_line_.set_opacity(0.5);
+            grid_one_.add(thick_line_);
+
+            // Polygon (100,100 200,100 100,200) — green fill, opacity .5.
+            triangle_.set_points({{100, 100}, {200, 100}, {100, 200}});
+            triangle_.set_fill(solid(maui::graphics::colors::green));
+            triangle_.set_opacity(0.5);
+            grid_one_.add(triangle_);
+
+            // Path with EllipseGeometry (center 150,150, r 50) — yellow fill, opacity .5.
+            circle_.set_data(std::make_shared<maui::controls::shapes::ellipse_geometry>(maui::graphics::point{150, 150},
+                                                                                        50.0, 50.0));
+            circle_.set_fill(solid(maui::graphics::colors::yellow));
+            circle_.set_opacity(0.5);
+            grid_one_.add(circle_);
+
+            stack_.add(grid_one_);
+
+            // ---------------- Grid 2: three default-stroked lines meeting at (100,100) -------------
+            grid_two_.set_background(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::beige));
+            grid_two_.set_width_request(250);
+            grid_two_.set_height_request(250);
+
+            red_line_.set_x1(100);
+            red_line_.set_y1(100);
+            red_line_.set_x2(200);
+            red_line_.set_y2(200);
+            red_line_.set_stroke(solid(maui::graphics::colors::red));
+            grid_two_.add(red_line_);
+
+            blue_line_.set_x1(0);
+            blue_line_.set_y1(0);
+            blue_line_.set_x2(100);
+            blue_line_.set_y2(100);
+            blue_line_.set_stroke(solid(maui::graphics::colors::blue));
+            grid_two_.add(blue_line_);
+
+            green_line_.set_x1(100);
+            green_line_.set_y1(0);
+            green_line_.set_x2(100);
+            green_line_.set_y2(100);
+            green_line_.set_stroke(solid(maui::graphics::colors::green));
+            grid_two_.add(green_line_);
+
+            stack_.add(grid_two_);
+
+            page_.set_content(stack_);
+        }
+
+        [[nodiscard]] maui::controls::content_page& page()
+        {
+            return page_;
+        }
+
+        // Attach a handler to every OWNED view, BOTTOM-UP (each grid's children first in add()-order, then
+        // the grid; then the stack, then the page), then re-host the tree built in the ctor
+        // (gallery_attach.hpp).
+        void attach_handlers(maui::hosting::maui_app& app)
+        {
+            gallery_attach_one(app, diagonal_path_, "diagonal_path_");
+            gallery_attach_one(app, thick_line_, "thick_line_");
+            gallery_attach_one(app, triangle_, "triangle_");
+            gallery_attach_one(app, circle_, "circle_");
+            gallery_attach_one(app, grid_one_, "grid_one_");
+            gallery_attach_one(app, red_line_, "red_line_");
+            gallery_attach_one(app, blue_line_, "blue_line_");
+            gallery_attach_one(app, green_line_, "green_line_");
+            gallery_attach_one(app, grid_two_, "grid_two_");
+            gallery_attach_one(app, stack_, "stack_");
+            gallery_attach_one(app, page_, "page_");
+
+            gallery_rehost_layout(grid_one_); // grid 1 hosts its four shapes
+            gallery_rehost_layout(grid_two_); // grid 2 hosts its three lines
+            gallery_rehost_layout(stack_);    // stack hosts the two grids
+            gallery_rehost_content(page_);    // page hosts the stack
+        }
+
+        // The owned controls, exposed for the hosting main / tests.
+        [[nodiscard]] maui::controls::vertical_stack_layout& stack()
+        {
+            return stack_;
+        }
+        [[nodiscard]] maui::controls::grid& grid_one()
+        {
+            return grid_one_;
+        }
+        [[nodiscard]] maui::controls::grid& grid_two()
+        {
+            return grid_two_;
+        }
+        [[nodiscard]] maui::controls::shapes::path& circle()
+        {
+            return circle_;
+        }
+        [[nodiscard]] maui::controls::shapes::polygon& triangle()
+        {
+            return triangle_;
+        }
+
+    private:
+        // One solid_paint over a color (the C# named-Brush → Paint bridge).
+        static std::shared_ptr<maui::graphics::solid_paint> solid(maui::graphics::color value)
+        {
+            return std::make_shared<maui::graphics::solid_paint>(value);
+        }
+
+        maui::controls::content_page page_;
+        maui::controls::vertical_stack_layout stack_;
+        // Grid 1 — overlapping half-transparent shapes.
+        maui::controls::grid grid_one_;
+        maui::controls::shapes::path diagonal_path_;
+        maui::controls::shapes::line thick_line_;
+        maui::controls::shapes::polygon triangle_;
+        maui::controls::shapes::path circle_;
+        // Grid 2 — three default lines.
+        maui::controls::grid grid_two_;
+        maui::controls::shapes::line red_line_;
+        maui::controls::shapes::line blue_line_;
+        maui::controls::shapes::line green_line_;
+    };
+} // namespace maui::samples
