@@ -136,10 +136,10 @@
     "light_note": "C++ drops both message bubbles: no green/blue rounded backgrounds, \"Hi there!\" not right-aligned, both lines are plain left-aligned black text starting at the left edge; also a stray black rounded navbar pill artifact at top-center absent in MAUI."
   },
   "check_box": {
-    "dark": "diff",
-    "dark_note": "Same checkboxes/colors/order, but C++ row spacing is greatly enlarged (rows ~2x apart) and the text labels (Default/Colored/Disabled/etc.) are not rendered beside the checkboxes; content overflows so \"Is green? False\" is clipped at the bottom edge, whereas MAUI fits everything compactly with bold labels.",
-    "light": "diff",
-    "light_note": "Same controls/colors/order, but C++ row spacing is far larger (rows nearly double-spaced) pushing \"Is green? False\" off the bottom edge; C++ title labels are regular weight vs MAUI bold; C++ also shows a spurious black rounded nav-bar pill at top."
+    "dark": "minor",
+    "dark_note": "Labels render white (dark-text cascade); checkbox circles/colors/checked-states all match MAUI dark. Residual: ~1.2x row spacing (checkbox 44pt min vs label height) clips the last row; bold labels in the C# demo (demo difference).",
+    "light": "minor",
+    "light_note": "Labels now render (dark-text cascade); all checkboxes match MAUI \u2014 same circle shape, colors (blue/magenta), checked states (filled purple/red with check), and label-left/checkbox-right grid layout. Residuals: C++ row pitch is ~1.2x taller than MAUI (the checkbox measures to its 44pt minimum vs the tighter label height), which pushes the last \"Is green? False\" row toward the bottom; C# demo labels are bold vs the port regular weight (demo difference); top nav-bar pill (harness artifact)."
   },
   "chrome": {
     "dark": "blank",
