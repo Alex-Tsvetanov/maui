@@ -414,8 +414,10 @@
     "light_note": "UriSource (remote https image) renders identically to MAUI (the Microsoft-campus photo). But FileSource (purple .NET bot), the animated gif, and the Font Image Source rows are all blank because the C++ gallery .app bundles NO resource assets (only Info.plist + binary) \u2014 every from_file()/from_font() source fails to load. C# bundles its own dotnet_bot.png etc. Needs gallery asset-bundling (CMake RESOURCE + the asset files); flagged as task_e9f31e49. dotnet_bot.png available in ~/maui-compare; gif + icon-font not readily available."
   },
   "image_button": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "dark_note": "FIXED: ImageButton BackgroundColor (green/purple) + borders + corner radii render matching MAUI dark (added iOS update_background as a per-state backgroundImage, the ButtonHandler recipe). Residual: the unbundled cog icon (task_e9f31e49), also not visible in the C# shot.",
+    "light": "minor",
+    "light_note": "FIXED: the ImageButton BackgroundColor now renders \u2014 every button shows its green/purple fill matching MAUI (AspectFit/AspectFill/Fill green boxes; the BorderColor+BorderWidth button is green with a red border; the CornerRadius buttons are purple with rounded corners). Root cause: the iOS image_button deferred update_background; a system UIButton ignores backgroundColor, so it is now drawn as a per-state backgroundImage (the ButtonHandler recipe). Residual: the cog.png icon inside the buttons is not visible (asset not bundled, task_e9f31e49) \u2014 but C# also shows no visible cog (the fill dominates)."
   },
   "indicator": {
     "dark": "minor",

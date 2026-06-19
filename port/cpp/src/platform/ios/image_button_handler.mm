@@ -19,12 +19,14 @@
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
 
+#include <array>
 #include <cmath>
 #include <memory>
 #include <string>
 #include <string_view>
 
 #include "ios_conversions.hpp"
+#include "ios_visual_ops.hpp"
 #include "maui/core/aspect.hpp"
 #include "maui/core/i_image_button.hpp"
 #include "maui/core/i_image_source.hpp"
@@ -35,6 +37,7 @@
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+#include "maui/graphics/solid_paint.hpp"
 
 // Obj-C trampoline: forwards the UIButton's touch events to the C++ handler's virtual view. Ports
 // ImageButtonHandler.ImageButtonProxy — including the Released-before-Clicked order on TouchUpInside.
@@ -154,6 +157,21 @@ namespace
         }
         return UIViewContentModeScaleAspectFit;
     }
+
+    // The control states whose backgroundImage carries the BackgroundColor fill (mirrors button_handler).
+    constexpr std::array<UIControlState, 3> k_control_states{UIControlStateNormal, UIControlStateHighlighted,
+                                                             UIControlStateDisabled};
+
+    // A 1×1 image of a solid color. A UIButton(System) ignores backgroundColor for its fill, so MAUI draws
+    // the BackgroundColor as a per-state backgroundImage (ImageButtonHandler shares ButtonHandler's recipe).
+    UIImage* solid_color_image(UIColor* color)
+    {
+        UIGraphicsImageRenderer* const renderer = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(1, 1)];
+        return [renderer imageWithActions:^(UIGraphicsImageRendererContext* context) {
+          CGContextSetFillColorWithColor(context.CGContext, color.CGColor);
+          CGContextFillRect(context.CGContext, CGRectMake(0, 0, 1, 1));
+        }];
+    }
 } // namespace
 
 namespace maui::core
@@ -188,6 +206,33 @@ namespace maui::core
         const std::string id(value);
         NSString* const raw = [NSString stringWithUTF8String:id.c_str()];
         as_button(native).accessibilityIdentifier = raw != nil ? raw : @"";
+    }
+
+    void image_button_platform::update_background(const maui::graphics::paint* value)
+    {
+        // ImageButton is a system UIButton: it ignores backgroundColor for its fill, so a solid
+        // BackgroundColor must be drawn as a per-state backgroundImage (the ButtonHandler recipe). A
+        // gradient/image paint defers to the shared layer-based apply_background; a null paint clears it.
+        UIButton* const button = as_button(native);
+        if (const auto* const solid = dynamic_cast<const maui::graphics::solid_paint*>(value))
+        {
+            UIImage* const image = solid_color_image(maui::platform::ios::to_ui_color(solid->color()));
+            for (const UIControlState state : k_control_states)
+            {
+                [button setBackgroundImage:image forState:state];
+            }
+        }
+        else if (value != nullptr)
+        {
+            maui::platform::ios::apply_background(native, value);
+        }
+        else
+        {
+            for (const UIControlState state : k_control_states)
+            {
+                [button setBackgroundImage:nil forState:state];
+            }
+        }
     }
 
     std::unique_ptr<image_button_platform> image_button_handler::create_platform_view()
