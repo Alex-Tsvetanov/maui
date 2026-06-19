@@ -6,6 +6,8 @@
 
 #include <memory>
 
+#include "maui/graphics/rect.hpp"
+
 namespace maui::controls
 {
     collection_view_platform::~collection_view_platform() = default;
