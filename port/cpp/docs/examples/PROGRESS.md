@@ -22,16 +22,16 @@ swipe_refresh · web_view · chrome · tabbed_flyout — see the per-example REA
 - [x] CheckBoxPage → `check_box_page`  *(batch 1)*
 - [x] SwitchPage → `switch_page`  *(batch 1)*
 - [x] SliderPage → `slider_page`  *(batch 1)*
-- [ ] StepperPage → `stepper_page`
-- [ ] ProgressBarPage → `progress_bar_page`
-- [ ] ActivityIndicatorPage → `activity_indicator_page`
-- [ ] BoxViewPage → `box_view_page`
-- [ ] DatePickerPage → `date_picker_page`
-- [ ] TimePickerPage → `time_picker_page`
-- [ ] PickerPage → `picker_page`
-- [ ] ImageButtonPage → `image_button_page`
+- [x] StepperPage → `stepper_page`
+- [x] ProgressBarPage → `progress_bar_page`
+- [x] ActivityIndicatorPage → `activity_indicator_page`
+- [x] BoxViewPage → `box_view_page`
+- [x] DatePickerPage → `date_picker_page`
+- [x] TimePickerPage → `time_picker_page`
+- [x] PickerPage → `picker_page`
+- [x] ImageButtonPage → `image_button_page`
 - [ ] IndicatorPage → `indicator_page`
-- [ ] RefreshViewPage → `refresh_view_page`
+- [x] RefreshViewPage → `refresh_view_page`
 - [ ] ShapesPage → `shapes_demo_page`
 - [ ] TitleBarPage → `title_bar_page` *(partial — TitleBar is Windows-mapped)*
 - [ ] HybridWebViewPage → `hybrid_web_view_page` *(partial — JS→.NET deferred)*
