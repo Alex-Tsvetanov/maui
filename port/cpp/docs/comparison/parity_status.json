@@ -806,8 +806,10 @@
     "light": "pending"
   },
   "triggers": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "dark_note": "Matches MAUI dark: header + instruction + validation Entry + Highlight-off label + blue Toggle-highlight button all render correctly (dark-text cascade). Residual: bold-vs-regular header weight (demo difference) + vertical rhythm.",
+    "light": "minor",
+    "light_note": "Matches MAUI: the trigger demo renders the instruction label, the validation Entry (Enter a System.Double, turns red on invalid via the data/property trigger), the Highlight-off label, and the blue Toggle-highlight button \u2014 same controls/order/colors. Residual: the Triggers header is bold/larger in the C# demo vs regular weight in the C++ gallery (recurring bold-header demo difference) + minor vertical rhythm."
   },
   "update_path_data": {
     "dark": "pending",
