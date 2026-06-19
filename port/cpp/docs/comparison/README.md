@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 0 / 172 🟢 matched** · 6 🟡 minor · 57 🔴 diff · 109 ⬜ pending
+**Progress: 0 / 172 🟢 matched** · 6 🟡 minor · 58 🔴 diff · 108 ⬜ pending
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.
 
@@ -19,7 +19,7 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 5 | Search Bar | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/search_bar.png) | ![](cpp_ios_light/search_bar.png) | ![](csharp_ios_dark/search_bar.png) | ![](cpp_ios_dark/search_bar.png) |
 | 6 | Picker | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/picker.png) | ![](cpp_ios_light/picker.png) | ![](csharp_ios_dark/picker.png) | ![](cpp_ios_dark/picker.png) |
 | 7 | Date Picker | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/date_picker.png) | ![](cpp_ios_light/date_picker.png) | ![](csharp_ios_dark/date_picker.png) | ![](cpp_ios_dark/date_picker.png) |
-| 8 | Time Picker | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/time_picker.png) | ![](cpp_ios_light/time_picker.png) | ![](csharp_ios_dark/time_picker.png) | ![](cpp_ios_dark/time_picker.png) |
+| 8 | Time Picker | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/time_picker.png) | ![](cpp_ios_light/time_picker.png) | ![](csharp_ios_dark/time_picker.png) | ![](cpp_ios_dark/time_picker.png) |
 | 9 | Pickers | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/pickers.png) | ![](cpp_ios_light/pickers.png) | ![](csharp_ios_dark/pickers.png) | ![](cpp_ios_dark/pickers.png) |
 | 10 | Slider | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/slider.png) | ![](cpp_ios_light/slider.png) | ![](csharp_ios_dark/slider.png) | ![](cpp_ios_dark/slider.png) |
 | 11 | Stepper | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/stepper.png) | ![](cpp_ios_light/stepper.png) | ![](csharp_ios_dark/stepper.png) | ![](cpp_ios_dark/stepper.png) |

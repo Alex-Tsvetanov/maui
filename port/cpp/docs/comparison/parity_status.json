@@ -764,8 +764,10 @@
     "light_note": "C++ renders only the two red label blocks; all CardView content is missing \u2014 the standard card (Slavko Vlasic + body) and every Compact-card templated item (gray image + Carolina Pena/Wade Blanks/Colette Quint + descriptions) that MAUI shows are absent, leaving the page blank below the labels."
   },
   "time_picker": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "diff",
+    "dark_note": "IMPROVED: solid BackgroundColor=Blue now flat blue matching MAUI dark; text colors fine (white default, green explicit TextColor). Residuals: 2 gradient Background fills missing (gradient-layer-resize, task_3b94b991); invariant US 12h time format vs MAUI 24h device-locale; vertical rhythm.",
+    "light": "diff",
+    "light_note": "IMPROVED: solid BackgroundColor=Blue now renders a flat blue fill matching MAUI (added iOS update_background -> UITextField backgroundColor property, like picker/date_picker). Residuals: 2 gradient Background rows still show no fill (shared gradient-layer-resize gap, task_3b94b991); time text is invariant US 12h \"12:00 AM\" (deliberate port deviation w/ tests) vs MAUI device-locale 24h \"0:00\"; compact vertical rhythm. (C# light ref was blank \u2014 re-captured.)"
   },
   "title_bar": {
     "dark": "pending",
