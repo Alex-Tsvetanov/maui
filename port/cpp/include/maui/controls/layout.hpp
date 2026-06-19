@@ -138,9 +138,12 @@ namespace maui::controls
         // frame_; measure/arrange below delegate to the layout's own manager (a layout sizes itself).
 
         // ---- layout pass: the layout computes its OWN geometry via its manager (unlike a leaf control,
-        // which delegates measure/arrange to its handler). arrange additionally sizes the native host
-        // panel to its bounds (C# VisualElement.ArrangeOverride: Frame = bounds; Handler.PlatformArrange)
-        // and positions the children via the manager (C# Layout.CrossPlatformArrange).
+        // which delegates measure/arrange to its handler). arrange resolves the layout's own FRAME within the
+        // allotted bounds — compute_frame honors THIS layout's HorizontalOptions/VerticalOptions so a nested
+        // Start/Center/End layout is positioned within its parent's cell, exactly as C# VisualElement.
+        // ArrangeOverride (Frame = ComputeFrame(bounds); Handler.PlatformArrange(Frame)) does before the
+        // handler's CrossPlatformArrange runs — then sizes the native host panel to that frame and positions
+        // the children into it via the manager (C# Layout.CrossPlatformArrange(Frame)).
         maui::graphics::size measure(double width_constraint, double height_constraint) override
         {
             const maui::graphics::size measured = ensure_manager().measure(width_constraint, height_constraint);
@@ -149,12 +152,12 @@ namespace maui::controls
         }
         maui::graphics::size arrange(const maui::graphics::rect& bounds) override
         {
-            this->frame_ = bounds;
+            this->frame_ = this->compute_frame(bounds);
             if (auto* view_handler = dynamic_cast<maui::core::i_view_handler*>(this->handler().get()))
             {
-                view_handler->platform_arrange(bounds); // size/position the host panel
+                view_handler->platform_arrange(this->frame_); // size/position the host panel to the frame
             }
-            return ensure_manager().arrange_children(bounds); // position the children
+            return ensure_manager().arrange_children(this->frame_); // position the children within the frame
         }
 
         // ---- i_cross_platform_layout (Layout.CrossPlatformMeasure / CrossPlatformArrange) ----

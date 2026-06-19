@@ -1492,6 +1492,8 @@ add_executable(maui_layout_tests
   # (G2) absolute + flex layout manager measure/arrange tests.
   tests/layouts/absolute_layout_manager_tests.cpp
   tests/layouts/flex_layout_manager_tests.cpp
+  # LayoutOptions: HorizontalOptions/VerticalOptions -> ComputeFrame alignment (Start/Center/End/Fill).
+  tests/layouts/layout_alignment_tests.cpp
 )
 target_include_directories(maui_layout_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for tests/layouts/*.hpp
 target_link_libraries(maui_layout_tests PRIVATE

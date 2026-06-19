@@ -227,4 +227,29 @@ namespace maui::controls
         static const maui::core::bindable_property<std::string> descriptor{"tool_tip"};
         return descriptor;
     }
+
+    // ---- layout alignment (View.HorizontalOptions / VerticalOptions) ----
+    // C# View.HorizontalOptionsProperty / VerticalOptionsProperty: BindableProperty.Create with type
+    // LayoutOptions and DEFAULT LayoutOptions.Fill (a propertyChanged that calls InvalidateMeasure). The
+    // port's i_view surface is the resolved Primitives.LayoutAlignment (C#'s IView.HorizontalLayoutAlignment
+    // => HorizontalOptions.ToCore()), and the legacy StackLayout-only Expands bit is NOT part of the IView
+    // contract, so the bindable here stores the layout_alignment directly — default fill — and binding /
+    // styles / setters flow through it exactly as for every other view property. The names are distinct
+    // from the IView width/height/... mapper keys (there is no native mapper for alignment — it is a
+    // layout-only property, consumed by view<>::arrange's ComputeFrame, never pushed to the platform view,
+    // matching C# where alignment is not a handler-mapped property); on_property_changed's update_value is
+    // a harmless no-op for them, like width_request / z_index before they reach a layout.
+    const maui::core::bindable_property<maui::core::layout_alignment>& horizontal_layout_alignment_property()
+    {
+        static const maui::core::bindable_property<maui::core::layout_alignment> descriptor{
+            "horizontal_layout_alignment", maui::core::layout_alignment::fill};
+        return descriptor;
+    }
+
+    const maui::core::bindable_property<maui::core::layout_alignment>& vertical_layout_alignment_property()
+    {
+        static const maui::core::bindable_property<maui::core::layout_alignment> descriptor{
+            "vertical_layout_alignment", maui::core::layout_alignment::fill};
+        return descriptor;
+    }
 } // namespace maui::controls

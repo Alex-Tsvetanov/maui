@@ -14,6 +14,7 @@
 // ViewInterface (which derives i_view) and supplies the i_view method bodies; the control supplies the
 // interface-specific members.
 
+#include <algorithm>
 #include <any>
 #include <memory>
 #include <optional>
@@ -122,6 +123,15 @@ namespace maui::controls
     // chrome (W1-11): the attached ToolTipProperties.Text storage (the per-instance store of the C#
     // attached BindableProperty). Shared NON-template descriptor named "tool_tip" — the view_mapper key.
     const maui::core::bindable_property<std::string>& tool_tip_text_property();
+
+    // The per-axis layout alignment (View.HorizontalOptions / VerticalOptions, both defaulting to
+    // LayoutOptions.Fill). NON-template shared free-function descriptors, one per axis, defaulting to
+    // layout_alignment::fill. i_view::horizontal_layout_alignment()/vertical_layout_alignment() return the
+    // stored value (no longer a hardcoded fill), so a developer's Start/Center/End is honored by the
+    // arrange-time ComputeFrame (view<>::arrange / layout::arrange) the same way C# View.HorizontalOptions
+    // feeds IView.HorizontalLayoutAlignment → LayoutExtensions.ComputeFrame.
+    const maui::core::bindable_property<maui::core::layout_alignment>& horizontal_layout_alignment_property();
+    const maui::core::bindable_property<maui::core::layout_alignment>& vertical_layout_alignment_property();
 
     // chrome (W1-11): every view is a tool-tip + context-flyout element, exactly as C# VisualElement
     // implements IToolTipElement + IContextFlyoutElement (the shared view_mapper discovers both by
@@ -271,13 +281,28 @@ namespace maui::controls
         {
             flow_direction_.set(value);
         }
+        // View.HorizontalOptions / VerticalOptions (bindable; default Fill). C# exposes the LayoutOptions
+        // struct (alignment + the legacy StackLayout-only Expands bit); the IView contract — and thus the
+        // port — surfaces only the resolved Primitives.LayoutAlignment (HorizontalOptions.ToCore()). A set
+        // flows through on_property_changed (so binding/styles/setters apply) and is consumed at arrange
+        // time by compute_frame; there is no native mapper for it (alignment is layout-only, not a handler
+        // property in C#), so update_value is a harmless no-op for the "horizontal_/vertical_layout_alignment"
+        // keys.
         [[nodiscard]] maui::core::layout_alignment horizontal_layout_alignment() const override
         {
-            return maui::core::layout_alignment::fill;
+            return horizontal_layout_alignment_.get();
+        }
+        void set_horizontal_layout_alignment(maui::core::layout_alignment value)
+        {
+            horizontal_layout_alignment_.set(value);
         }
         [[nodiscard]] maui::core::layout_alignment vertical_layout_alignment() const override
         {
-            return maui::core::layout_alignment::fill;
+            return vertical_layout_alignment_.get();
+        }
+        void set_vertical_layout_alignment(maui::core::layout_alignment value)
+        {
+            vertical_layout_alignment_.set(value);
         }
         // Accessibility metadata (bindable; the control owns the semantics object). i_view hands back the
         // raw borrow; the chained view_mapper's map_semantics pushes it to the platform base.
@@ -516,16 +541,20 @@ namespace maui::controls
         {
             z_index_.set(value);
         }
-        // The measure/arrange seam delegates to the view handler (C# IViewHandler.GetDesiredSize /
-        // PlatformArrange), the cross-platform layout calling into the platform view.
+        // The measure/arrange seam (C# VisualElement.ArrangeOverride): resolve this view's FRAME within the
+        // allotted `bounds` via compute_frame (the LayoutExtensions.ComputeFrame port — it honors this view's
+        // HorizontalLayoutAlignment / VerticalLayoutAlignment and excludes the margin), store it, then push
+        // that frame to the platform view (IViewHandler.PlatformArrange). The returned size is the frame's
+        // size (C# `return Frame.Size`), not the raw bounds — so a Start/Center/End child reports its aligned
+        // extent. A leaf control with no handler still computes + stores the aligned frame.
         maui::graphics::size arrange(const maui::graphics::rect& bounds) override
         {
-            frame_ = bounds;
+            frame_ = compute_frame(bounds);
             if (auto* view_handler = dynamic_cast<maui::core::i_view_handler*>(handler_.get()))
             {
-                view_handler->platform_arrange(bounds);
+                view_handler->platform_arrange(frame_);
             }
-            return {bounds.width, bounds.height};
+            return frame_.size();
         }
         // The leaf-control measure seam (C# View.MeasureOverride → the handler's GetDesiredSizeFromHandler):
         // ask the handler for the content size, then resolve it against this view's OWN size requests so the
@@ -874,6 +903,107 @@ namespace maui::controls
             return resolved;
         }
 
+        // C# LayoutExtensions.ComputeFrame(this IView view, Rect bounds): resolve this view's final frame
+        // within the parent-allotted `bounds`, honoring HorizontalLayoutAlignment / VerticalLayoutAlignment
+        // and subtracting the margin. DesiredSize already INCLUDES the margin (ComputeDesiredSize adds it),
+        // so the consumed extent starts from desired_size() and the frame size subtracts the margin back out;
+        // a Fill view without an explicit width/height instead consumes min(bounds, maximum). The X/Y come
+        // from align_in_axis (AlignHorizontal/AlignVertical). Margin is currently always zero in the port
+        // (view<>::margin() returns {}), but the algorithm is written in full so it stays correct the moment
+        // a real Margin lands. Port of the static ComputeFrame + AlignHorizontal + AlignVertical.
+        [[nodiscard]] maui::graphics::rect compute_frame(const maui::graphics::rect& bounds) const
+        {
+            const maui::core::thickness view_margin = this->margin();
+            const maui::graphics::size desired = this->desired_size();
+
+            // consumedWidth: DesiredSize.Width, unless filling without an explicit width — then
+            // min(bounds.Width, MaximumWidth) (MaximumWidth is +inf when the developer set no maximum).
+            double consumed_width = desired.width;
+            if (horizontal_layout_alignment() == maui::core::layout_alignment::fill &&
+                !maui::core::dimension::is_explicit_set(this->width()))
+            {
+                consumed_width = std::min(bounds.width, this->maximum_width());
+            }
+            const double frame_width = std::max(0.0, consumed_width - view_margin.horizontal_thickness());
+
+            double consumed_height = desired.height;
+            if (vertical_layout_alignment() == maui::core::layout_alignment::fill &&
+                !maui::core::dimension::is_explicit_set(this->height()))
+            {
+                consumed_height = std::min(bounds.height, this->maximum_height());
+            }
+            const double frame_height = std::max(0.0, consumed_height - view_margin.vertical_thickness());
+
+            const double frame_x = align_horizontal(bounds, view_margin);
+            const double frame_y = align_vertical(bounds, view_margin);
+
+            return {frame_x, frame_y, frame_width, frame_height};
+        }
+
+        // C# LayoutExtensions.AlignHorizontal: the X edge for this view's frame. A Fill view with an
+        // explicit width (or a finite MaximumWidth) is treated as Center over the space it "fills", with the
+        // desired width clamped to min(bounds, maximum) when not explicitly set. Start = left, Center =
+        // centered, End = right-aligned. desiredWidth is DesiredSize.Width (margin-inclusive), matching C#.
+        [[nodiscard]] double align_horizontal(const maui::graphics::rect& bounds,
+                                              const maui::core::thickness& view_margin) const
+        {
+            maui::core::layout_alignment alignment = horizontal_layout_alignment();
+            double desired_width = this->desired_size().width;
+            const double explicit_width = this->width();
+            if (alignment == maui::core::layout_alignment::fill &&
+                (maui::core::dimension::is_explicit_set(explicit_width) ||
+                 maui::core::dimension::is_maximum_set(this->maximum_width())))
+            {
+                alignment = maui::core::layout_alignment::center;
+                desired_width = maui::core::dimension::is_explicit_set(explicit_width)
+                                    ? desired_width
+                                    : std::min(bounds.width, this->maximum_width());
+            }
+            return align_in_axis(bounds.x, view_margin.left, bounds.width, desired_width, alignment);
+        }
+
+        // C# LayoutExtensions.AlignVertical — the Y twin of align_horizontal.
+        [[nodiscard]] double align_vertical(const maui::graphics::rect& bounds,
+                                            const maui::core::thickness& view_margin) const
+        {
+            maui::core::layout_alignment alignment = vertical_layout_alignment();
+            double desired_height = this->desired_size().height;
+            const double explicit_height = this->height();
+            if (alignment == maui::core::layout_alignment::fill &&
+                (maui::core::dimension::is_explicit_set(explicit_height) ||
+                 maui::core::dimension::is_maximum_set(this->maximum_height())))
+            {
+                alignment = maui::core::layout_alignment::center;
+                desired_height = maui::core::dimension::is_explicit_set(explicit_height)
+                                     ? desired_height
+                                     : std::min(bounds.height, this->maximum_height());
+            }
+            return align_in_axis(bounds.y, view_margin.top, bounds.height, desired_height, alignment);
+        }
+
+        // C# LayoutExtensions.AlignHorizontal(startX, startMargin, …) — the shared scalar positioner used
+        // for both axes: Start keeps the leading edge (start + startMargin), Center adds half the slack,
+        // End adds all the slack (bounds − desired). Fill resolves to Start here (its size already spans
+        // the bounds), matching C#'s switch with no Fill case.
+        [[nodiscard]] static double align_in_axis(double start, double start_margin, double bounds_length,
+                                                  double desired_length, maui::core::layout_alignment alignment)
+        {
+            double edge = start + start_margin;
+            switch (alignment)
+            {
+                case maui::core::layout_alignment::center:
+                    edge += (bounds_length - desired_length) / 2.0;
+                    break;
+                case maui::core::layout_alignment::end:
+                    edge += bounds_length - desired_length;
+                    break;
+                case maui::core::layout_alignment::fill:
+                case maui::core::layout_alignment::start:
+                    break;
+            }
+            return edge;
+        }
+
         std::shared_ptr<maui::core::i_element_handler> handler_;
         std::weak_ptr<maui::core::i_element> parent_;
         maui::graphics::rect frame_;
@@ -899,6 +1029,12 @@ namespace maui::controls
         maui::core::property<double> anchor_x_{*this, anchor_x_property()};
         maui::core::property<double> anchor_y_{*this, anchor_y_property()};
         maui::core::property<maui::core::flow_direction> flow_direction_{*this, flow_direction_property()};
+        // The per-axis layout alignment (View.HorizontalOptions / VerticalOptions, default fill). Shared
+        // NON-template descriptors; consumed at arrange time by compute_frame (no native mapper).
+        maui::core::property<maui::core::layout_alignment> horizontal_layout_alignment_{
+            *this, horizontal_layout_alignment_property()};
+        maui::core::property<maui::core::layout_alignment> vertical_layout_alignment_{
+            *this, vertical_layout_alignment_property()};
         // The visual-layer properties (Background / Shadow / Clip). The control owns each object; a set
         // re-runs the chained view_mapper's map_background / map_shadow / map_clip. Shared descriptors.
         maui::core::property<std::shared_ptr<maui::graphics::paint>> background_{*this, background_property()};

@@ -150,11 +150,21 @@ namespace
 
     TEST(size_request, frame_is_independent_of_request)
     {
-        // IView.Width reflects the REQUEST; the arranged frame is separate (set by Arrange).
+        // IView.Width reflects the REQUEST; the arranged frame is separate (set by Arrange via
+        // VisualElement.ArrangeOverride -> LayoutExtensions.ComputeFrame). With an explicit WidthRequest the
+        // frame consumes the (measured) desired size, NOT the raw arrange bounds: an explicit width wins over
+        // the default Fill so the view is sized to 120 and CENTERED within the 200-wide bounds (C#'s
+        // "width overrides fill from center"). The request reported by IView.Width is unchanged.
         label control;
         control.set_width_request(120);
+        control.set_height_request(30);
+        auto handler = std::make_shared<label_handler>();
+        control.set_handler(handler);
+        control.measure(inf, inf); // populate DesiredSize (120 x 30 after the request clamp)
+
         control.arrange(maui::graphics::rect(0, 0, 200, 30));
-        EXPECT_EQ(control.frame().width, 200);                       // arranged frame
-        EXPECT_EQ(static_cast<const i_view&>(control).width(), 120); // request, not frame
+        EXPECT_EQ(control.frame().width, 120); // sized to the request, not the 200 bounds
+        EXPECT_EQ(control.frame().x, 40);      // (200 - 120) / 2 — fill-with-explicit-width centers
+        EXPECT_EQ(static_cast<const i_view&>(control).width(), 120); // IView.Width still reports the request
     }
 } // namespace

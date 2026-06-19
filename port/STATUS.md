@@ -4,6 +4,32 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## LayoutOptions gap — ✅ DONE (2026-06-19)
+
+`View.HorizontalOptions` / `VerticalOptions` are now **settable + honored**. Previously
+`view<>::horizontal_layout_alignment()` / `vertical_layout_alignment()` were hardcoded `return fill`
+with no setter/storage, so every view always reported Fill (the contract getters + the
+`layout_alignment` enum already existed). Fix (storage + arrange):
+- **Storage/surface** — two shared NON-template bindable descriptors (`horizontal_layout_alignment_property()`
+  / `vertical_layout_alignment_property()`, default `fill`) + `set_horizontal_layout_alignment` /
+  `set_vertical_layout_alignment` on `view<>`; the getters now return the stored value. Bindable, so
+  binding/styles/setters apply (C# `View.HorizontalOptionsProperty`/`VerticalOptionsProperty`, default
+  `LayoutOptions.Fill`; the legacy StackLayout-only `Expands` bit is **not** in the IView contract, so
+  the port stores the resolved `Primitives.LayoutAlignment` directly — `HorizontalOptions.ToCore()`).
+- **Arrange honors it** — `view<>::arrange` now resolves the frame via a new `compute_frame` helper (a
+  faithful port of `LayoutExtensions.ComputeFrame` + `AlignHorizontal` / `AlignVertical`), mirroring C#
+  `VisualElement.ArrangeOverride` (`Frame = ComputeFrame(bounds); PlatformArrange(Frame)`). The layout
+  managers were **already correct** (they pass the full cell/slot bounds to `child.arrange`, exactly as
+  C# does — alignment is applied by the child's own arrange, not the manager). `layout::arrange` uses
+  the same helper so a nested Start/Center/End layout is positioned within its parent cell.
+- **Tests** — `tests/layouts/layout_alignment_tests.cpp` (18 cases: the `LayoutExtensionTests`
+  Start/Center/End/Fill + offset + explicit-width/max-overrides-fill-from-center oracle, plus grid-cell
+  + default-fill integration). `size_request.frame_is_independent_of_request` updated to the true
+  ComputeFrame result (explicit-width child is sized to the request and centered, not stretched to raw
+  bounds — the old assertion encoded the pre-ComputeFrame passthrough).
+
+Gate: **headless 3031 / AppKit 2477 / iOS-on-sim 2248 — 0 failures; clang-tidy 0 (fresh build).**
+
 ## Audit-gap closure batch — ✅ DONE (2026-06-19, gate `b8ff9b9919`)
 
 The ~9 genuine gaps the 2026-06-18 re-audit confirmed (the tail recorded in the section below) are **all
