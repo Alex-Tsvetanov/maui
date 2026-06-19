@@ -40,6 +40,17 @@ swipe_refresh · web_view · chrome · tabbed_flyout — see the per-example REA
 AbsoluteLayout · ClippingPage · ContentView · CustomLayout · FlexLayout · Grid · HorizontalStackLayout ·
 LayoutIsEnabled · RelativeLayout · ScrollView · StackLayout · TemplatedView · VerticalStackLayout · ZIndex
 
+## Batch 7 — Core tail + HitTesting (9)
+- [x] ClipPage → `clip_page` (geometry clip)
+- [x] ContextFlyoutPage → `context_flyout_page` (chrome-only menu exercised programmatically)
+- [x] MenuBarPage → `menu_bar_page` (chrome-only, body renders)
+- [x] NavigationGallery → `navigation_gallery_page`
+- [x] ModalPage → `modal_page`
+- [x] ApplicationControlPage → `application_control_page`
+- [x] PointerGestureGalleryPage → `pointer_gesture_page`
+- [x] DragAndDropBetweenLayouts → `drag_drop_page`
+- [x] HitTestingPage → `hit_testing_page` (top-level Pages)
+
 ## Batch 6 — Core feature demos (9)
 - [x] AlertsPage → `alerts_page` (synthesized results; native dialog deferred)
 - [x] SemanticsPage → `semantics_page`
