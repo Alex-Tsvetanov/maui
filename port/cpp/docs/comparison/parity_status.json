@@ -364,8 +364,10 @@
     "light": "pending"
   },
   "grid": {
-    "dark": "pending",
-    "light": "pending"
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "Different demos: C++ faithfully ports GridPage.xaml (3 rows 2*/*/100, 2 star cols, green/blue/teal/purple cells + red bottom row spanning both cols, centered captions, fills page). The maui-compare reference shows its own \"Grid (2 cols x rows)\" demo (2x2 fixed boxes). C++ grid layout correct: star-sizing (2* row twice the * row), fixed 100-unit row, working ColumnSpan. Not a port bug.",
+    "dark_note": "Same demo divergence in dark theme: C++ renders the full star grid + span + white-on-color captions correctly; reference shows its 2x2 fixed-box grid demo."
   },
   "grid_grouping": {
     "dark": "pending",
@@ -404,10 +406,10 @@
     "light": "pending"
   },
   "horizontal_stack": {
-    "light": "minor",
     "dark": "minor",
-    "light_note": "C++ faithfully ports the full HorizontalStackLayout.xaml (heading + 6 rainbow box_views left-to-right, 12px padding); the maui-compare reference is a stub showing only the heading. Layout correct; label abuts the first box (default Spacing=0, faithful MAUI behavior). Black-on-white. Not a port bug.",
-    "dark_note": "Same demo divergence in dark theme: C++ renders the full left-to-right rainbow + white-on-black heading correctly; reference stub shows heading only."
+    "dark_note": "Same demo divergence in dark theme: C++ renders the full left-to-right rainbow + white-on-black heading correctly; reference stub shows heading only.",
+    "light": "minor",
+    "light_note": "C++ faithfully ports the full HorizontalStackLayout.xaml (heading + 6 rainbow box_views left-to-right, 12px padding); the maui-compare reference is a stub showing only the heading. Layout correct; label abuts the first box (default Spacing=0, faithful MAUI behavior). Black-on-white. Not a port bug."
   },
   "hybrid_web_view": {
     "dark": "pending",
@@ -782,10 +784,10 @@
     "light": "pending"
   },
   "templated_view": {
-    "dark": "diff",
-    "dark_note": "Same as light: C++ shows only the two red labels while MAUI shows the standard CardView (Slavko Vlasic) plus the templated Compact cards with gray images and names; the ControlTemplate/CardView body is entirely missing in C++.",
-    "light": "diff",
-    "light_note": "C++ renders only the two red label blocks; all CardView content is missing — the standard card (Slavko Vlasic + body) and every Compact-card templated item (gray image + Carolina Pena/Wade Blanks/Colette Quint + descriptions) that MAUI shows are absent, leaving the page blank below the labels."
+    "dark": "minor",
+    "dark_note": "Structure now matches MAUI: the standard CardView (Slavko Vlasic + Lorem body) and the three templated Compact cards (SlateGray image block + 'Compact card'/name/description via the ControlTemplate's ContentPresenter) all render. Residual is the recurring system-font rendering difference shared by every page.",
+    "light": "minor",
+    "light_note": "Structure now matches MAUI: the standard CardView (Slavko Vlasic + Lorem body) and the three templated Compact cards (SlateGray image block + 'Compact card'/name/description via the ControlTemplate's ContentPresenter) all render. Residual is the recurring system-font rendering difference shared by every page."
   },
   "time_picker": {
     "dark": "minor",
@@ -826,10 +828,10 @@
     "light_note": "C++ shows only 6 plain text labels (incl. extra Milk4/Coffee5) on white; MAUI shows variable-height colored cells (Coffee0/Milk1/Coffee2/Coffee3) plus Insert/Add/Remove buttons, an \"Index\" label, and two entries (\"1\", \"Latte\") — cell coloring, row sizing, and the entire button/entry control row are missing in C++."
   },
   "vertical_stack": {
-    "light": "minor",
     "dark": "minor",
-    "light_note": "C++ faithfully ports the full VerticalStackLayoutPage.xaml (heading + 6 rainbow box_views, 12px padding); the maui-compare reference is a stub showing only the heading. Layout correct (flat stack), black-on-white. Not a port bug.",
-    "dark_note": "Same demo divergence in dark theme: C++ renders the full rainbow + white-on-black heading correctly; reference stub shows heading only."
+    "dark_note": "Same demo divergence in dark theme: C++ renders the full rainbow + white-on-black heading correctly; reference stub shows heading only.",
+    "light": "minor",
+    "light_note": "C++ faithfully ports the full VerticalStackLayoutPage.xaml (heading + 6 rainbow box_views, 12px padding); the maui-compare reference is a stub showing only the heading. Layout correct (flat stack), black-on-white. Not a port bug."
   },
   "visual_states": {
     "dark": "pending",
