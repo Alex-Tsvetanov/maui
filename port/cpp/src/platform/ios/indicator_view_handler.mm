@@ -19,6 +19,7 @@
 #include <string_view>
 
 #include "ios_conversions.hpp"
+#include "ios_visual_ops.hpp"
 #include "maui/core/i_indicator_view.hpp"
 #include "maui/core/indicator_view_handler.hpp"
 #include "maui/core/visibility.hpp"
@@ -60,6 +61,14 @@
         view->set_position(static_cast<int>(self.currentPage)); // IIndicatorView.Position (FromHandler)
     }
 }
+
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    // Keep any gradient/image background sublayer apply_background installed sized to the current bounds
+    // (a solid BackgroundColor needs no resize — it is the backing layer's backgroundColor).
+    maui::platform::ios::resize_background_layers((__bridge void*)self);
+}
 @end
 
 namespace
@@ -98,6 +107,14 @@ namespace maui::core
         const std::string id(value);
         NSString* const raw = [NSString stringWithUTF8String:id.c_str()];
         as_page_control(native).accessibilityIdentifier = raw != nil ? raw : @"";
+    }
+
+    void indicator_view_platform::update_background(const maui::graphics::paint* value)
+    {
+        // BackgroundColor / Background brush fills the band behind the dots (the UIPageControl has no bezel):
+        // the shared helper paints a solid color onto the backing layer or installs a gradient/image
+        // sublayer (MauiPageControl.layoutSubviews keeps it sized). A null paint clears it.
+        maui::platform::ios::apply_background(native, value);
     }
 
     std::unique_ptr<indicator_view_platform> indicator_view_handler::create_platform_view()

@@ -416,8 +416,10 @@
     "light": "pending"
   },
   "indicator": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "dark_note": "Dots + colored indicators + the Colors yellow band all render matching MAUI dark (update_background added). Residual: Indicator Size dots scale larger than the C# shot (iOS-26 UIPageControl dot-resize fidelity nuance).",
+    "light": "minor",
+    "light_note": "Dot indicators render matching MAUI \u2014 Basic/Shape/MaximumVisible(7-of-10)/Colors all show the right dot patterns; Colors now renders on a full-width yellow band (FIXED: added iOS update_background -> apply_background, reusing MauiPageControl with a layoutSubviews resize hook for gradients). Residual: the Indicator Size demo dots scale much larger in C++ than in the C# shot (real MAUI does not visibly resize UIPageControl dots on iOS 26 while the port scale=size/6 applies) \u2014 a scaling-fidelity nuance; carousel-with-indicator at the bottom."
   },
   "input_controls": {
     "dark": "pending",
