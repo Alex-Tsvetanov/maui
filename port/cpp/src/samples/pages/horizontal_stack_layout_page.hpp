@@ -45,6 +45,15 @@ namespace maui::samples
             orange_.set_color(maui::graphics::color(1.0F, 0.65F, 0.0F));  // Orange
             purple_.set_color(maui::graphics::color(0.50F, 0.0F, 0.50F)); // Purple
 
+            // Give every BoxView an explicit 40x40 size: a modern MAUI BoxView with no size request
+            // measures to 0 and collapses (the maui-compare reference does the same), so both sides set the
+            // SAME size to keep the demo visible AND matching (the harness-parity choice).
+            for (auto* box : {&red_, &yellow_, &blue_, &green_, &orange_, &purple_})
+            {
+                box->set_width_request(40);
+                box->set_height_request(40);
+            }
+
             stack_.add(heading_);
             stack_.add(red_);
             stack_.add(yellow_);

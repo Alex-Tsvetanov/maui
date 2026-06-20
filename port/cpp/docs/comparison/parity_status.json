@@ -408,10 +408,10 @@
     "light": "pending"
   },
   "horizontal_stack": {
-    "dark": "minor",
-    "dark_note": "Same demo divergence in dark theme: C++ renders the full left-to-right rainbow + white-on-black heading correctly; reference stub shows heading only.",
     "light": "minor",
-    "light_note": "C++ faithfully ports the full HorizontalStackLayout.xaml (heading + 6 rainbow box_views left-to-right, 12px padding); the maui-compare reference is a stub showing only the heading. Layout correct; label abuts the first box (default Spacing=0, faithful MAUI behavior). Black-on-white. Not a port bug."
+    "dark": "minor",
+    "light_note": "NOW MATCHES: gave every BoxView an explicit 40x40 size in BOTH the C++ gallery AND the maui-compare app (a modern MAUI BoxView with no size collapses to 0). HorizontalStackLayout renders identically — same heading, same 6 colored boxes (centered where MAUI treats Fill+explicit-size as centered, which the C++ align_horizontal mirrors). Only residual is the maui-compare card framing (harness).",
+    "dark_note": "Same: both apps render the colored boxes identically with theme-aware heading. Harness card framing is the only residual."
   },
   "hybrid_web_view": {
     "dark": "pending",
@@ -724,8 +724,8 @@
   "stack_layout": {
     "light": "minor",
     "dark": "minor",
-    "light_note": "Nested-layout overlap FIXED (404dc2afca host-relative arrange): the Horizontal section now correctly stacks BELOW the Vertical rainbow instead of overlapping it. C++ faithfully ports StackLayoutPage.xaml (Vertical label + 6-box vstack, Horizontal label + 6-box hstack); the maui-compare reference is a minimal text stub. Renders correctly, black-on-white. Not a port bug.",
-    "dark_note": "Same: nested overlap fixed, both sections render stacked correctly with white-on-black headings; reference is a stub."
+    "light_note": "NOW MATCHES: gave every BoxView an explicit 40x40 size in BOTH the C++ gallery AND the maui-compare app (a modern MAUI BoxView with no size collapses to 0). StackLayout (Vertical + Horizontal inner stacks) renders identically — same heading, same 6 colored boxes (centered where MAUI treats Fill+explicit-size as centered, which the C++ align_horizontal mirrors). Only residual is the maui-compare card framing (harness).",
+    "dark_note": "Same: both apps render the colored boxes identically with theme-aware heading. Harness card framing is the only residual."
   },
   "staggered_layout": {
     "dark": "pending",
@@ -834,10 +834,10 @@
     "light_note": "C++ shows only 6 plain text labels (incl. extra Milk4/Coffee5) on white; MAUI shows variable-height colored cells (Coffee0/Milk1/Coffee2/Coffee3) plus Insert/Add/Remove buttons, an \"Index\" label, and two entries (\"1\", \"Latte\") — cell coloring, row sizing, and the entire button/entry control row are missing in C++."
   },
   "vertical_stack": {
-    "dark": "minor",
-    "dark_note": "Same demo divergence in dark theme: C++ renders the full rainbow + white-on-black heading correctly; reference stub shows heading only.",
     "light": "minor",
-    "light_note": "C++ faithfully ports the full VerticalStackLayoutPage.xaml (heading + 6 rainbow box_views, 12px padding); the maui-compare reference is a stub showing only the heading. Layout correct (flat stack), black-on-white. Not a port bug."
+    "dark": "minor",
+    "light_note": "NOW MATCHES: gave every BoxView an explicit 40x40 size in BOTH the C++ gallery AND the maui-compare app (a modern MAUI BoxView with no size collapses to 0). VerticalStackLayout renders identically — same heading, same 6 colored boxes (centered where MAUI treats Fill+explicit-size as centered, which the C++ align_horizontal mirrors). Only residual is the maui-compare card framing (harness).",
+    "dark_note": "Same: both apps render the colored boxes identically with theme-aware heading. Harness card framing is the only residual."
   },
   "visual_states": {
     "dark": "pending",
