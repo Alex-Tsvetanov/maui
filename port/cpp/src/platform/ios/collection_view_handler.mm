@@ -342,6 +342,13 @@ namespace maui::controls
             auto* view = handler.virtual_view();
             const bool horizontal =
                 platform != nullptr && platform->orientation == items_layout_orientation::horizontal;
+            // LayoutFactory2.CreateCarouselLayout vs CreateListLayout: the carousel sizes each item to the
+            // FULL viewport on the scroll axis (one item per page, swipeable one-at-a-time) — itemWidth =
+            // FractionalWidth(1)/itemHeight = FractionalHeight(1) with a full-viewport group — whereas a
+            // plain (horizontal) CollectionView flows items at their intrinsic estimated extent. Detect the
+            // carousel via the virtual view type (same predicate the scroll-end writeback uses) so the
+            // section block can pick the carousel item/group sizes below. Do NOT change the regular CV path.
+            const bool is_carousel = dynamic_cast<maui::controls::carousel_view*>(view) != nullptr;
             const int span = platform != nullptr ? std::max(1, platform->span) : 1;
             const double item_spacing = platform != nullptr ? platform->item_spacing : 0;
             // CarouselViewHandler2.MapPeekAreaInsets → UpdateLayout: the peek is applied as the section's
@@ -424,26 +431,48 @@ namespace maui::controls
 
             UICollectionViewCompositionalLayout* const layout = [[UICollectionViewCompositionalLayout alloc]
                 initWithSectionProvider:^NSCollectionLayoutSection*(NSInteger /*sectionIndex*/,
-                                                                    id<NSCollectionLayoutEnvironment> /*environment*/) {
+                                                                    id<NSCollectionLayoutEnvironment> environment) {
                   // Item: along the cross axis it gets 1/span of the group; along the scroll axis it is
-                  // estimated (the C# CreateEstimated(30f)).
+                  // estimated (the C# CreateEstimated(30f)). A CAROUSEL instead fills the page on BOTH axes
+                  // — LayoutFactory2.CreateCarouselLayout uses itemWidth = FractionalWidth(1) and
+                  // itemHeight = FractionalHeight(1) so each item is one full viewport (minus peek), the
+                  // one-item-per-page snap shape — independent of orientation.
                   NSCollectionLayoutDimension* const item_width =
-                      horizontal ? [NSCollectionLayoutDimension estimatedDimension:k_estimated_item_extent]
-                                 : [NSCollectionLayoutDimension fractionalWidthDimension:1.0 / span];
+                      is_carousel  ? [NSCollectionLayoutDimension fractionalWidthDimension:1.0]
+                      : horizontal ? [NSCollectionLayoutDimension estimatedDimension:k_estimated_item_extent]
+                                   : [NSCollectionLayoutDimension fractionalWidthDimension:1.0 / span];
                   NSCollectionLayoutDimension* const item_height =
-                      horizontal ? [NSCollectionLayoutDimension fractionalHeightDimension:1.0 / span]
-                                 : [NSCollectionLayoutDimension estimatedDimension:k_estimated_item_extent];
+                      is_carousel  ? [NSCollectionLayoutDimension fractionalHeightDimension:1.0]
+                      : horizontal ? [NSCollectionLayoutDimension fractionalHeightDimension:1.0 / span]
+                                   : [NSCollectionLayoutDimension estimatedDimension:k_estimated_item_extent];
                   NSCollectionLayoutSize* const item_size = [NSCollectionLayoutSize sizeWithWidthDimension:item_width
                                                                                            heightDimension:item_height];
                   NSCollectionLayoutItem* const item = [NSCollectionLayoutItem itemWithLayoutSize:item_size];
 
-                  // Group: full cross extent, estimated scroll extent; span items per row (grid).
+                  // Group: full cross extent, estimated scroll extent; span items per row (grid). A CAROUSEL
+                  // group fills the viewport on the SCROLL axis too so the single item it carries is one full
+                  // page. LayoutFactory2.CreateCarouselLayout sizes the scroll axis to
+                  // ABSOLUTE(environment.Container.ContentSize - peekAreaInsets.{Horizontal,Vertical}Thickness)
+                  // so the page narrows by the full peek (the adjacent items peek in by peek/2 on each side,
+                  // realized here by the section's leading/trailing content insets below). The cross axis
+                  // stays FractionalWidth/Height(1). Fall back to fractional-1 when no environment (defensive).
+                  const CGSize container_size = environment != nil ? environment.container.contentSize : CGSizeZero;
                   NSCollectionLayoutDimension* const group_width =
-                      horizontal ? [NSCollectionLayoutDimension estimatedDimension:k_estimated_item_extent]
-                                 : [NSCollectionLayoutDimension fractionalWidthDimension:1.0];
+                      is_carousel   ? (horizontal && container_size.width > 0
+                                           ? [NSCollectionLayoutDimension
+                                                 absoluteDimension:container_size.width -
+                                                                   static_cast<CGFloat>(peek.left + peek.right)]
+                                           : [NSCollectionLayoutDimension fractionalWidthDimension:1.0])
+                      : !horizontal ? [NSCollectionLayoutDimension fractionalWidthDimension:1.0]
+                                    : [NSCollectionLayoutDimension estimatedDimension:k_estimated_item_extent];
                   NSCollectionLayoutDimension* const group_height =
-                      horizontal ? [NSCollectionLayoutDimension fractionalHeightDimension:1.0]
-                                 : [NSCollectionLayoutDimension estimatedDimension:k_estimated_item_extent];
+                      is_carousel  ? (!horizontal && container_size.height > 0
+                                          ? [NSCollectionLayoutDimension
+                                                absoluteDimension:container_size.height -
+                                                                  static_cast<CGFloat>(peek.top + peek.bottom)]
+                                          : [NSCollectionLayoutDimension fractionalHeightDimension:1.0])
+                      : horizontal ? [NSCollectionLayoutDimension fractionalHeightDimension:1.0]
+                                   : [NSCollectionLayoutDimension estimatedDimension:k_estimated_item_extent];
                   NSCollectionLayoutSize* const group_size =
                       [NSCollectionLayoutSize sizeWithWidthDimension:group_width heightDimension:group_height];
                   NSCollectionLayoutGroup* const group =

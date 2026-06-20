@@ -23,8 +23,11 @@
 #include <vector>
 
 #include "maui/controls/items/carousel_view.hpp"
+#include "maui/controls/items/collection_view.hpp"
 #include "maui/controls/items/collection_view_handler.hpp"
 #include "maui/controls/items/item_collection.hpp"
+#include "maui/controls/items/items_layout_orientation.hpp"
+#include "maui/controls/items/linear_items_layout.hpp"
 #include "maui/controls/scroll_to_position.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/thickness.hpp"
@@ -34,7 +37,10 @@
 namespace
 {
     using maui::controls::carousel_view;
+    using maui::controls::collection_view;
     using maui::controls::collection_view_handler;
+    using maui::controls::items_layout_orientation;
+    using maui::controls::linear_items_layout;
     using maui::core::observable_collection;
     using maui::tests::pump_run_loop;
     using maui::tests::pump_until;
@@ -224,6 +230,77 @@ namespace
 
         EXPECT_GT(origin_after, origin_before)
             << "a non-zero left peek inset should shift the first cell's origin rightward";
+        (void)window;
+    }
+
+    // THE CAROUSEL ITEM-SIZING CONTRACT (LayoutFactory2.CreateCarouselLayout, the gap this slice closes):
+    // each item fills the carousel VIEWPORT on the scroll axis — one full-width item per page, swipeable
+    // one-at-a-time — NOT its intrinsic label width laid side-by-side. The horizontal carousel's first
+    // cell frame width must equal the viewport width (no peek here), proving the full-viewport item.
+    TEST(carousel_view_ios, item_fills_the_viewport_width_one_per_page)
+    {
+        const rig r;
+        const CGFloat viewport_width = 300;
+        UIWindow* const window = r.mount(viewport_width, 200);
+        UICollectionView* const collection_view = native_collection_view(r.handler);
+
+        NSIndexPath* const first = [NSIndexPath indexPathForItem:0 inSection:0];
+        UICollectionViewLayoutAttributes* const attrs = [collection_view layoutAttributesForItemAtIndexPath:first];
+        ASSERT_NE(attrs, nil);
+        EXPECT_NEAR(attrs.frame.size.width, viewport_width, 0.5)
+            << "a carousel item must fill the full viewport width (one item per page), not its intrinsic "
+               "label width";
+    }
+
+    // With a non-zero peek the carousel item fills viewport-MINUS-peek (the adjacent items peek in). The
+    // section's leading+trailing peek insets shrink the page, so the full-viewport item narrows to match.
+    TEST(carousel_view_ios, item_fills_the_viewport_minus_peek)
+    {
+        rig r;
+        const CGFloat viewport_width = 300;
+        const CGFloat peek = 40; // left + right (CarouselViewHandler2.MapPeekAreaInsets)
+        UIWindow* const window = r.mount(viewport_width, 200);
+        UICollectionView* const collection_view = native_collection_view(r.handler);
+
+        r.view.set_peek_area_insets(maui::core::thickness{peek, 0, peek, 0});
+        [collection_view layoutIfNeeded];
+        pump_run_loop(0.1);
+
+        NSIndexPath* const first = [NSIndexPath indexPathForItem:0 inSection:0];
+        UICollectionViewLayoutAttributes* const attrs = [collection_view layoutAttributesForItemAtIndexPath:first];
+        ASSERT_NE(attrs, nil);
+        EXPECT_NEAR(attrs.frame.size.width, viewport_width - (peek * 2), 0.5)
+            << "a carousel item must fill the viewport minus the leading+trailing peek";
+        (void)window;
+    }
+
+    // GUARD (no regression): a REGULAR horizontal collection_view must keep INTRINSIC-width items (the
+    // CreateListLayout estimated extent), NOT full-viewport — only the carousel snaps one-item-per-page.
+    // The default cells mirror short item text, so an intrinsic-width cell is far narrower than the 300pt
+    // viewport. Mirrors the carousel rig but over a plain collection_view with a horizontal linear layout.
+    TEST(carousel_view_ios, regular_horizontal_collection_keeps_intrinsic_width_items)
+    {
+        auto items = std::make_shared<string_collection>(make_alphabet(12)); // publisher FIRST (§8)
+        collection_view plain;
+        auto plain_handler = std::make_shared<collection_view_handler>();
+        plain.set_items_layout(std::make_shared<linear_items_layout>(items_layout_orientation::horizontal));
+        plain.set_items_source(items);
+        plain.set_handler(plain_handler);
+
+        const CGFloat viewport_width = 300;
+        UIWindow* const window = make_host_window();
+        UICollectionView* const collection_view = (__bridge UICollectionView*)plain_handler->native_view();
+        [window addSubview:collection_view];
+        [window makeKeyAndVisible];
+        plain_handler->native_force_layout(viewport_width, 200);
+        pump_until([&] { return plain_handler->native_visible_cell_count() > 0; });
+
+        NSIndexPath* const first = [NSIndexPath indexPathForItem:0 inSection:0];
+        UICollectionViewLayoutAttributes* const attrs = [collection_view layoutAttributesForItemAtIndexPath:first];
+        ASSERT_NE(attrs, nil);
+        EXPECT_LT(attrs.frame.size.width, viewport_width - 1)
+            << "a regular horizontal collection_view item must keep its intrinsic width, NOT fill the "
+               "viewport like a carousel";
         (void)window;
     }
 } // namespace
