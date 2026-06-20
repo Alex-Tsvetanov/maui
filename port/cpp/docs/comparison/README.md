@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 0 / 172 🟢 matched** · 100 🟡 minor · 18 🔴 diff · 54 ⬜ pending
+**Progress: 0 / 172 🟢 matched** · 104 🟡 minor · 17 🔴 diff · 51 ⬜ pending
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.
 
@@ -96,19 +96,19 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 82 | Filter Selection | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/filter_selection.png) | ![](cpp_ios_light/filter_selection.png) | ![](csharp_ios_dark/filter_selection.png) | ![](cpp_ios_dark/filter_selection.png) |
 | 83 | Header Footer | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/header_footer.png) | ![](cpp_ios_light/header_footer.png) | ![](csharp_ios_dark/header_footer.png) | ![](cpp_ios_dark/header_footer.png) |
 | 84 | Header Footer Grid | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/header_footer_grid.png) | ![](cpp_ios_light/header_footer_grid.png) | ![](csharp_ios_dark/header_footer_grid.png) | ![](cpp_ios_dark/header_footer_grid.png) |
-| 85 | Header Footer Grid Horizontal | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/header_footer_grid_horizontal.png) | ![](cpp_ios_light/header_footer_grid_horizontal.png) | ![](csharp_ios_dark/header_footer_grid_horizontal.png) | ![](cpp_ios_dark/header_footer_grid_horizontal.png) |
+| 85 | Header Footer Grid Horizontal | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/header_footer_grid_horizontal.png) | ![](cpp_ios_light/header_footer_grid_horizontal.png) | ![](csharp_ios_dark/header_footer_grid_horizontal.png) | ![](cpp_ios_dark/header_footer_grid_horizontal.png) |
 | 86 | Header Footer Template | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/header_footer_template.png) | ![](cpp_ios_light/header_footer_template.png) | ![](csharp_ios_dark/header_footer_template.png) | ![](cpp_ios_dark/header_footer_template.png) |
 | 87 | Header Footer View | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/header_footer_view.png) | ![](cpp_ios_light/header_footer_view.png) | ![](csharp_ios_dark/header_footer_view.png) | ![](cpp_ios_dark/header_footer_view.png) |
 | 88 | Footer Only String | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/footer_only_string.png) | ![](cpp_ios_light/footer_only_string.png) | ![](csharp_ios_dark/footer_only_string.png) | ![](cpp_ios_dark/footer_only_string.png) |
 | 89 | Basic Grouping | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/basic_grouping.png) | ![](cpp_ios_light/basic_grouping.png) | ![](csharp_ios_dark/basic_grouping.png) | ![](cpp_ios_dark/basic_grouping.png) |
 | 90 | Grid Grouping | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/grid_grouping.png) | ![](cpp_ios_light/grid_grouping.png) | ![](csharp_ios_dark/grid_grouping.png) | ![](cpp_ios_dark/grid_grouping.png) |
-| 91 | Grouping No Templates | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/grouping_no_templates.png) | ![](cpp_ios_light/grouping_no_templates.png) | ![](csharp_ios_dark/grouping_no_templates.png) | ![](cpp_ios_dark/grouping_no_templates.png) |
+| 91 | Grouping No Templates | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/grouping_no_templates.png) | ![](cpp_ios_light/grouping_no_templates.png) | ![](csharp_ios_dark/grouping_no_templates.png) | ![](cpp_ios_dark/grouping_no_templates.png) |
 | 92 | Grouping Plus Selection | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/grouping_plus_selection.png) | ![](cpp_ios_light/grouping_plus_selection.png) | ![](csharp_ios_dark/grouping_plus_selection.png) | ![](cpp_ios_dark/grouping_plus_selection.png) |
 | 93 | Switch Grouping | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/switch_grouping.png) | ![](cpp_ios_light/switch_grouping.png) | ![](csharp_ios_dark/switch_grouping.png) | ![](cpp_ios_dark/switch_grouping.png) |
 | 94 | Some Empty Groups | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/some_empty_groups.png) | ![](cpp_ios_light/some_empty_groups.png) | ![](csharp_ios_dark/some_empty_groups.png) | ![](cpp_ios_dark/some_empty_groups.png) |
 | 95 | Scroll To Group | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/scroll_to_group.png) | ![](cpp_ios_light/scroll_to_group.png) | ![](csharp_ios_dark/scroll_to_group.png) | ![](cpp_ios_dark/scroll_to_group.png) |
-| 96 | Scroll Mode Test | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/scroll_mode_test.png) | ![](cpp_ios_light/scroll_mode_test.png) | ![](csharp_ios_dark/scroll_mode_test.png) | ![](cpp_ios_dark/scroll_mode_test.png) |
-| 97 | Adaptive Collection | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/adaptive_collection.png) | ![](cpp_ios_light/adaptive_collection.png) | ![](csharp_ios_dark/adaptive_collection.png) | ![](cpp_ios_dark/adaptive_collection.png) |
+| 96 | Scroll Mode Test | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/scroll_mode_test.png) | ![](cpp_ios_light/scroll_mode_test.png) | ![](csharp_ios_dark/scroll_mode_test.png) | ![](cpp_ios_dark/scroll_mode_test.png) |
+| 97 | Adaptive Collection | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/adaptive_collection.png) | ![](cpp_ios_light/adaptive_collection.png) | ![](csharp_ios_dark/adaptive_collection.png) | ![](cpp_ios_dark/adaptive_collection.png) |
 | 98 | Staggered Layout | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/staggered_layout.png) | ![](cpp_ios_light/staggered_layout.png) | ![](csharp_ios_dark/staggered_layout.png) | ![](cpp_ios_dark/staggered_layout.png) |
 | 99 | Varied Size Selector | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/varied_size_selector.png) | ![](cpp_ios_light/varied_size_selector.png) | ![](csharp_ios_dark/varied_size_selector.png) | ![](cpp_ios_dark/varied_size_selector.png) |
 | 100 | Nested Collection | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/nested_collection.png) | ![](cpp_ios_light/nested_collection.png) | ![](csharp_ios_dark/nested_collection.png) | ![](cpp_ios_dark/nested_collection.png) |

@@ -12,10 +12,10 @@
     "light_note": "FIXED two issues: (1) the Default/Larger/Smaller spinners now render — an unset Color was forced to a transparent tint that made them invisible; now unset -> nil restores the native default (a dynamic system color, visible). (2) BackgroundColor=Yellow now renders as a full-width band behind the spinner (added iOS update_background -> apply_background; MauiIosActivityIndicator.layoutSubviews keeps a gradient fill sized). All labels + spinners + the yellow band now match MAUI. Residual: minor spinner spacing/positions + a faint not-running spinner."
   },
   "adaptive_collection": {
-    "dark": "blank",
-    "dark_note": "C++ dark is entirely blank/black (only status bar) while MAUI dark renders the full header + center-aligned Item 1-7 list.",
-    "light": "diff",
-    "light_note": "MAUI center-aligns each item with large ~145px row spacing (only ~6.5 items visible); C++ left-aligns items with tight ~100px spacing (all 8 visible) and renders a stray black navbar pill at top — item alignment and row spacing differ."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now renders maui-compare AdaptiveCollection: Layout: Linear (single column) + Item 1-8 (was a stale 🔴 with blank dark). Minor: the adaptive layout-switch control + exact item layout vs MAUI to spot-check.",
+    "dark_note": "Now renders (was stale blank): Linear layout + items."
   },
   "alerts": {
     "dark": "blank",
@@ -386,8 +386,10 @@
     "dark_note": "Now matches (grouped-CV supplementary fix landed): group headers/footers render."
   },
   "grouping_no_templates": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare GroupingNoTemplates: a grouped CollectionView with NO group header/footer templates renders the flat item rows (Thor/Captain America/.../Namor) with no group headers — same as MAUI. Minor: looser row spacing.",
+    "dark_note": "Matches: flat grouped items, no headers (no templates)."
   },
   "grouping_plus_selection": {
     "dark": "minor",
@@ -408,8 +410,10 @@
     "dark_note": "Matches: grid CV with header/footer."
   },
   "header_footer_grid_horizontal": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare HeaderFooterGridHorizontal: Toggle Header / Toggle Footer buttons + a horizontal grid CollectionView of cover1/oasis/photo/Vegetables/... items. Minor.",
+    "dark_note": "Matches: horizontal grid CV + toggle buttons."
   },
   "header_footer_template": {
     "dark": "minor",
@@ -708,8 +712,10 @@
     "light": "pending"
   },
   "scroll_mode_test": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare ScrollModeTest (ItemsUpdatingScrollMode): the mode buttons (KeepItemsInView/KeepScrollOffset) + Scroll To Middle / Add Item Above/Below/To End + Mode: KeepItemsInView - Items: 20 readout + the item list. Minor.",
+    "dark_note": "Matches: scroll-mode controls + item list."
   },
   "scroll_to_group": {
     "dark": "pending",
