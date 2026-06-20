@@ -7,6 +7,7 @@
 #import <UIKit/UIKit.h>
 
 #include <memory>
+#include <vector>
 
 #include "ios_border_ops.hpp"
 #include "maui/controls/border.hpp"
@@ -15,7 +16,11 @@
 #include "maui/core/border_handler.hpp"
 #include "maui/core/label_handler.hpp"
 #include "maui/graphics/color.hpp"
+#include "maui/graphics/gradient_stop.hpp"
+#include "maui/graphics/linear_gradient_paint.hpp"
+#include "maui/graphics/point.hpp"
 #include "maui/graphics/rect.hpp"
+#include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include <gtest/gtest.h>
 
@@ -27,8 +32,11 @@ namespace
     using maui::core::border_handler;
     using maui::core::label_handler;
     using maui::graphics::color;
+    using maui::graphics::gradient_stop;
+    using maui::graphics::linear_gradient_paint;
     using maui::graphics::rect;
     using maui::graphics::solid_paint;
+    using maui::graphics::shapes::round_rectangle;
 
     UIView* native_host(const std::shared_ptr<border_handler>& handler)
     {
@@ -38,6 +46,22 @@ namespace
     CAShapeLayer* stroke_layer(const std::shared_ptr<border_handler>& handler)
     {
         return maui::platform::ios::find_border_layer(native_host(handler).layer);
+    }
+
+    // The CAGradientLayer apply_background installs as a tagged background sublayer, or nil.
+    CAGradientLayer* gradient_layer(UIView* host)
+    {
+        NSArray<CALayer*>* const sublayers = host.layer.sublayers;
+        for (NSUInteger i = 0; i < sublayers.count; i++)
+        {
+            CALayer* const sub = sublayers[i];
+            if ([sub isKindOfClass:[CAGradientLayer class]] &&
+                [sub.name isEqualToString:maui::platform::ios::k_gradient_layer_name])
+            {
+                return (CAGradientLayer*)sub;
+            }
+        }
+        return nil;
     }
 
     TEST(ios_border_seam, host_is_a_uiview_with_no_stroke_by_default)
@@ -140,5 +164,68 @@ namespace
         CAShapeLayer* const layer = stroke_layer(handler);
         ASSERT_NE(layer, nil);
         EXPECT_EQ(layer.lineWidth, 2.0); // the facade's fixed 1px border, doubled by the recipe
+    }
+
+    // Regression for the invisible-gradient bug: apply_background installs the CAGradientLayer at map
+    // time, BEFORE the host is arranged, so its frame is the then-zero bounds. Without the MauiIosBorder
+    // layoutSubviews hook the sublayer stays zero-sized → the gradient never shows. After arranging to a
+    // non-zero rect and pumping layout, the gradient sublayer frame must match the host bounds.
+    TEST(ios_border_seam, gradient_background_resizes_to_bounds_on_layout)
+    {
+        border view;
+        // Set the gradient background BEFORE arrange — bounds are still zero here (the bug condition).
+        view.set_background(std::make_shared<linear_gradient_paint>(
+            std::vector<gradient_stop>{gradient_stop(0.0F, color(1.0F, 0.0F, 0.0F, 1.0F)),
+                                       gradient_stop(1.0F, color(0.0F, 0.0F, 1.0F, 1.0F))},
+            maui::graphics::point(0, 0), maui::graphics::point(1, 1)));
+
+        auto handler = std::make_shared<border_handler>();
+        view.set_handler(handler);
+
+        UIView* const host = native_host(handler);
+        CAGradientLayer* const gradient = gradient_layer(host);
+        ASSERT_NE(gradient, nil);
+        EXPECT_DOUBLE_EQ(gradient.frame.size.width, 0.0); // installed at the zero bounds (the latent bug)
+
+        view.arrange(rect(0, 0, 200, 120));
+        [host setNeedsLayout];
+        [host layoutIfNeeded]; // fire MauiIosBorder.layoutSubviews → resize_background_layers
+
+        EXPECT_DOUBLE_EQ(gradient.frame.size.width, 200.0);
+        EXPECT_DOUBLE_EQ(gradient.frame.size.height, 120.0);
+    }
+
+    // A UIKit-driven re-layout that does NOT route through the handler's platform_arrange (e.g. autoresize
+    // / rotation) must still re-stroke + re-mask against the new bounds, so the gradient stays clipped to
+    // the shape. Drive that by resizing the host bounds directly and pumping layout (no view.arrange).
+    TEST(ios_border_seam, layout_only_resize_repushes_stroke_and_mask)
+    {
+        border view;
+        view.set_stroke(std::make_shared<solid_paint>(color(0.0F, 1.0F, 0.0F)));
+        view.set_stroke_thickness(2);
+        view.set_stroke_shape(std::make_shared<round_rectangle>(8.0));
+        view.set_background(std::make_shared<linear_gradient_paint>(
+            std::vector<gradient_stop>{gradient_stop(0.0F, color(1.0F, 0.0F, 0.0F, 1.0F)),
+                                       gradient_stop(1.0F, color(0.0F, 0.0F, 1.0F, 1.0F))},
+            maui::graphics::point(0, 0), maui::graphics::point(1, 1)));
+
+        auto handler = std::make_shared<border_handler>();
+        view.set_handler(handler);
+        view.arrange(rect(0, 0, 100, 50));
+
+        CAShapeLayer* const stroke = stroke_layer(handler);
+        ASSERT_NE(stroke, nil);
+        EXPECT_EQ(stroke.frame.size.width, 100.0);
+        EXPECT_NE(native_host(handler).layer.mask, nil);
+
+        // Resize the host bounds WITHOUT a handler arrange, then pump layout: layoutSubviews must re-stroke.
+        UIView* const host = native_host(handler);
+        [host setFrame:CGRectMake(0, 0, 220, 90)];
+        [host setNeedsLayout];
+        [host layoutIfNeeded];
+
+        EXPECT_EQ(stroke_layer(handler).frame.size.width, 220.0);
+        EXPECT_EQ(stroke_layer(handler).frame.size.height, 90.0);
+        EXPECT_DOUBLE_EQ(gradient_layer(host).frame.size.width, 220.0); // gradient tracked too
     }
 } // namespace

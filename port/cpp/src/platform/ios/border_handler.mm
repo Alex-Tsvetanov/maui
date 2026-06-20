@@ -22,6 +22,40 @@
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 
+// MauiIosBorder — the UIView host the border handler presents. Its layoutSubviews override does the
+// bounds-dependent re-sync the handler's property/arrange path cannot do on its own: (1) re-sizes any
+// gradient/image Background sublayer apply_background installed (a solid BackgroundColor needs no resize
+// — it is the backing layer's backgroundColor), and (2) re-runs the border-stroke + shape-mask refresh
+// against the CURRENT bounds. apply_background and the stroke are first applied at property-sync time,
+// before the host has been arranged, when layer.bounds is still zero — so without this hook a
+// gradient/image fill would stay zero-sized (invisible) and a UIKit-driven re-layout (autoresize /
+// rotation) that bypasses the handler's platform_arrange would leave the mask clipping to the old size.
+// The same resize_background_layers pattern the value-control MauiIos* subclasses use, plus the
+// border_refresh block the handler installs in update_border so layoutSubviews can re-stroke without a
+// back-reference to the C++ handler. (No C# MauiIosBorder analog — C# iOS hosts the border in a
+// MauiCALayer-backed ContentView that re-draws in DrawInContext; the port rebuilds the equivalent from
+// stock layers, so this layoutSubviews is the stock-layer stand-in for that redraw.)
+@interface MauiIosBorder : UIView
+// Re-applies the bounds-dependent border stroke + shape mask; set by border_handler::update_border to
+// capture the current border spec. nil before the first stroke push (no stroke → nothing to re-apply).
+@property(nonatomic, copy) void (^borderRefresh)(void);
+@end
+
+@implementation MauiIosBorder
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    // Re-size the gradient/image Background sublayer to the new bounds (the invisible-gradient fix), then
+    // re-stroke + re-mask the shape against those bounds (keeps the gradient clipped after a UIKit-driven
+    // resize that did not route through the handler's platform_arrange / update_border).
+    maui::platform::ios::resize_background_layers((__bridge void*)self);
+    if (self.borderRefresh != nil)
+    {
+        self.borderRefresh();
+    }
+}
+@end
+
 namespace
 {
     UIView* as_host(void* native)
@@ -97,7 +131,9 @@ namespace maui::core
     std::unique_ptr<border_platform> border_handler::create_platform_view()
     {
         auto platform = std::make_unique<border_platform>();
-        UIView* const host = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
+        // A MauiIosBorder (not a plain UIView) so layoutSubviews can re-sync the bounds-dependent
+        // gradient/image Background fill + the stroke/mask after layout (see the subclass doc-comment).
+        MauiIosBorder* const host = [[MauiIosBorder alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
         platform->native = (__bridge_retained void*)host; // the void* slot owns one reference
         return platform;
     }
@@ -137,10 +173,26 @@ namespace maui::core
         // Mirror the resolved stroke surface, then push it onto the host's layer (the bounds-dependent
         // stroke path uses the view's LOCAL bounds, like the update_clip callers).
         platform->border = make_border_stroke_spec(*virtual_view());
-        const CGRect bounds = as_host(platform->native).bounds;
+        void* const native = platform->native;
+        const CGRect bounds = as_host(native).bounds;
         maui::platform::ios::apply_border_stroke(
-            platform->native, platform->border,
+            native, platform->border,
             maui::graphics::rect{bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height});
+
+        // Install the layoutSubviews re-stroke: a UIKit-driven re-layout (autoresize / rotation) that does
+        // NOT route through the handler's platform_arrange must still re-apply the stroke + shape mask to
+        // the new bounds, so the gradient background stays clipped to the shape. Capture the just-resolved
+        // spec by value; the shape is a non-owning borrow the control keeps alive (re-read every
+        // update_border, so the block is always current).
+        if ([as_host(native) isKindOfClass:[MauiIosBorder class]])
+        {
+            const maui::core::border_stroke_spec spec = platform->border;
+            ((MauiIosBorder*)as_host(native)).borderRefresh = ^{
+              const CGRect b = as_host(native).bounds;
+              maui::platform::ios::apply_border_stroke(
+                  native, spec, maui::graphics::rect{b.origin.x, b.origin.y, b.size.width, b.size.height});
+            };
+        }
     }
 
     void border_handler::arrange_native(const maui::graphics::rect& frame)
