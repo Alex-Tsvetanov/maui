@@ -54,10 +54,10 @@
     "dark_note": "Same: ellipse fills the top half over orange; aspect difference is the harness card framing reducing available height."
   },
   "basic_grouping": {
-    "dark": "blank",
-    "dark_note": "Same: grouped-CV CV-header + group headers/footers do not render on iOS (only flat item rows). Framework gap.",
-    "light": "diff",
-    "light_note": "iOS grouped-CollectionView supplementary gap: the page correctly sets is_grouped + group_header_template (green) + group_footer_template (orange Total members: N) + CV Header/Footer, but on iOS NONE of the supplementary views render — only the flat grouped item rows show (with gaps where headers/footers belong). The non-grouped items page DOES render its CV header/footer, so grouping specifically breaks supplementary rendering. C# shows This is a header + green Avengers/Fantastic Four/Defenders group headers + orange Total members footers. Genuine framework gap (affects the whole grouping cluster)."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare after the iOS grouped-CV supplementary fix (f40c64ec67): CV header + green group headers (Avengers/Fantastic Four/Defenders) + orange Total members: N group footers all render, bound to the group key. Was the grouped-CV supplementary gap. Minor: row spacing.",
+    "dark_note": "Now matches (grouped-CV supplementary fix landed): group headers/footers render."
   },
   "basic_swipe": {
     "dark": "diff",
@@ -378,16 +378,20 @@
     "dark_note": "Same: header + 2x2 colored grid render identically, theme-aware header. Faithful reproduction of GridPage()."
   },
   "grid_grouping": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare GridGrouping after the iOS grouped-CV supplementary fix (f40c64ec67): CV header + green group headers + orange Total members footers wrap a 2-column member grid per group. Minor.",
+    "dark_note": "Now matches (grouped-CV supplementary fix landed): group headers/footers render."
   },
   "grouping_no_templates": {
     "dark": "pending",
     "light": "pending"
   },
   "grouping_plus_selection": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare GroupingPlusSelection after the grouped-CV supplementary fix (f40c64ec67): green group headers + orange Total members footers + grouped selectable rows. Minor.",
+    "dark_note": "Now matches (grouped-CV supplementary fix landed): group headers/footers render."
   },
   "header_footer": {
     "dark": "pending",
@@ -746,8 +750,10 @@
     "light_note": "FIXED (was broken): every slider now renders the native thumb + track. Two fixes — (1) unset Thumb/Min/MaxTrackColor now leave the UISlider native default (nil) instead of a transparent tint that hid the default white thumb + gray track; (2) added iOS update_background so BackgroundColor=Blue shows a flat blue band and Background=gradient shows the gradient band behind the track (MauiIosSlider.layoutSubviews resizes the gradient via resize_background_layers). MinTrack/MaxTrack/Thumb explicit colors + disabled gray all match MAUI. Residual: minor vertical rhythm."
   },
   "some_empty_groups": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare SomeEmptyGroups after the grouped-CV supplementary fix (f40c64ec67): group headers/footers render (incl. for empty groups). Minor.",
+    "dark_note": "Now matches (grouped-CV supplementary fix landed): group headers/footers render."
   },
   "stack_layout": {
     "light": "minor",
@@ -808,10 +814,10 @@
     "light_note": "FIXED: BackgroundColor=Blue band + Background=gradient band now render behind the switch (added iOS update_background -> apply_background; MauiIosSwitch.layoutSubviews resizes the gradient), matching MAUI. Default/Disabled/OnColor switches + ThumbColor match the native control. Residuals: C# demo styles labels bold/larger (demo difference; port labels are regular like the slider page); the ThumbColor=Orange thumb renders orange in C++ vs white in the C# shot (off-state thumbTintColor — ambiguous, possibly a MAUI-iOS26 quirk)."
   },
   "switch_grouping": {
-    "dark": "diff",
-    "dark_note": "C++ dark is nearly empty — only a single OFF Switch floats mid-screen with no \"Is Grouped:\" label and no list content, whereas MAUI dark shows the full grouped member list with green headers and orange footers.",
-    "light": "diff",
-    "light_note": "C++ shows ungrouped flat list (no green section headers, no orange \"Total members\" footers), Switch is OFF and overlaps the \"Thor\" row, and rows have huge vertical spacing; MAUI shows a proper grouped list with ON switch."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare SwitchGrouping after the grouped-CV supplementary fix (f40c64ec67): the Is Grouped: switch (on) + green group headers + orange Total members footers + grouped member rows. Minor.",
+    "dark_note": "Now matches (grouped-CV supplementary fix landed): group headers/footers render."
   },
   "tabbed_flyout": {
     "dark": "pending",
