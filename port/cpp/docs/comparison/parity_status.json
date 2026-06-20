@@ -18,10 +18,10 @@
     "dark_note": "Now renders (was stale blank): Linear layout + items."
   },
   "alerts": {
-    "dark": "blank",
-    "dark_note": "C++ dark is completely blank (status bar only, no labels or buttons) while MAUI dark shows the full page (white labels + blue interactive items).",
-    "light": "diff",
-    "light_note": "C++ renders the six interactive items (Alert Simple/Yes-No, ActionSheet Simple/Cancel-Delete, Question 1/2) in plain BLACK text while MAUI renders them as blue (iOS tint) buttons; C++ also compresses vertical row spacing (content ends ~640px vs MAUI spread to ~975px)."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare Alerts (was stale 🔴): OnAppearing: Alert — Welcome to the Alerts Page [Hello!] + Display Alert (Alert Simple/Alert Yes/No) + Display ActionSheet (ActionSheet Simple/Cancel-Delete) + Display Prompt (Question 1/Question 2) buttons — identical to MAUI. The actual native UIAlertController dialogs are triggered by the buttons and are not shown in an at-rest screenshot (both apps). Minor.",
+    "dark_note": "Now matches (stale diff cleared): alerts page buttons + OnAppearing status (native dialogs uncapturable)."
   },
   "alignment": {
     "light": "minor",
@@ -458,8 +458,10 @@
     "dark_note": "Same: both apps render the colored boxes identically with theme-aware heading. Harness card framing is the only residual."
   },
   "hybrid_web_view": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare HybridWebView: the HybridWebView (JS<->C# message bridge) demo renders its content + controls. Minor.",
+    "dark_note": "Matches: hybrid webview demo renders."
   },
   "image": {
     "light": "minor",
@@ -588,8 +590,10 @@
     "dark_note": "Same: shapes render identically, theme-aware captions. Matches C#."
   },
   "measure_first_strategy": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare MeasureFirstStrategy: the CollectionView MeasureFirst item-sizing strategy demo renders. Minor.",
+    "dark_note": "Matches: measure-first CV demo renders."
   },
   "menu_bar": {
     "dark": "pending",
@@ -764,8 +768,10 @@
     "dark_note": "Matches: scroll-to-group controls + grouped list with header."
   },
   "scroll_view": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare ScrollView: Scrolled to: 0 / 0 (done) status + the Row 0..40 scrollable list. Minor.",
+    "dark_note": "Matches: scroll status + row list."
   },
   "search_bar": {
     "dark": "minor",
@@ -964,8 +970,10 @@
     "light": "pending"
   },
   "web_view": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare WebView and renders MORE: the C++ WKWebView actually displays the static HtmlWebViewSource content (Welcome heading + Served from a static HtmlWebViewSource.) and shows new_page -> https://demo.test/welcome, while the C# ref captured before navigating (blank web area + No navigation yet). Same Page A/Page B/Back/Forward/Reload/Eval 1+1 controls + Eval result readout. Minor (nav-state capture-timing difference; the WebView renders correctly).",
+    "dark_note": "Matches: WKWebView renders the static HTML + nav controls (C# captured pre-navigation)."
   },
   "z_index": {
     "light": "minor",
