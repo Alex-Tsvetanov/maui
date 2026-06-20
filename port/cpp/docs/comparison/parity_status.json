@@ -102,10 +102,10 @@
     "light_note": "C++ renders the shapes wrong: left-column shapes are circles/squares/triangle with red fill + blue \"+\" content in MAUI, but C++ draws stretched ellipses and wide rectangles, both columns light-blue (red fill column missing), and exposes extra Slider + \"Image Scale\" + Slider rows MAUI doesn't show — scroll/layout and shape aspect differ markedly."
   },
   "border_stroke": {
-    "dark": "diff",
-    "dark_note": "Same structural failure as light: C++ shows only red stroke outlines with empty (black) fills — orange Border content and \"1/5/10\" labels missing; slider/track absent, section title gone, and the two text labels overlap the top red box, versus MAUI's correctly filled orange bordered boxes, slider, and laid-out labels.",
-    "light": "diff",
-    "light_note": "C++ fails to render the three StrokeThickness Border boxes and the height Border boxes: orange fills + \"1/5/10\" labels are missing, only red stroke outlines with white/empty fills remain; first section title gone, slider is a plain black bar with no track fill at wrong Y, and \"Updating the Content Height\"/\"Content height: 60\" text overlaps the red boxes."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare BorderStroke after the border compute_frame + content-arrange framework fixes: three orange-filled red-bordered StrokeThickness (1/5/10) boxes, Updating the Content Height section + Content height: 60 slider, three height boxes. Was a stale pre-fix diff. Minor: leaf border-stroke AA.",
+    "dark_note": "Now matches (stale pre-fix diff cleared): orange fills + red borders + slider + laid-out labels all render."
   },
   "borderless": {
     "dark": "pending",
@@ -448,8 +448,10 @@
     "light": "pending"
   },
   "invalidate_brush": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches the maui-compare InvalidateBrush demo: green Change color button + Brush color: Green label + brush box. Minor: button chrome (harness default styles).",
+    "dark_note": "Matches; Change color button + brush label render."
   },
   "invalidate_shadow_host": {
     "dark": "pending",
@@ -714,8 +716,10 @@
     "light": "pending"
   },
   "shape_app_theme": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches the maui-compare ShapeAppTheme demo: green AppTheme caption + AppTheme-driven green Rectangle. Minor: sub-px rect size.",
+    "dark_note": "Matches; AppTheme green Rectangle renders."
   },
   "shapes": {
     "light": "minor",
@@ -846,8 +850,10 @@
     "light_note": "Matches MAUI: the trigger demo renders the instruction label, the validation Entry (Enter a System.Double, turns red on invalid via the data/property trigger), the Highlight-off label, and the blue Toggle-highlight button — same controls/order/colors. Residual: the Triggers header is bold/larger in the C# demo vs regular weight in the C++ gallery (recurring bold-header demo difference) + minor vertical rhythm."
   },
   "update_path_data": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches the maui-compare UpdatePathData demo: a black bezier S-curve (Path M 10,100 C 10,300 300,-200 300,100) above the live data string + Update Path Data button. Minor: leaf path stroke antialiasing.",
+    "dark_note": "Matches; minor leaf path-stroke AA."
   },
   "varied_size_selector": {
     "dark": "blank",
