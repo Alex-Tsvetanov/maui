@@ -174,10 +174,10 @@
     "dark_note": "Now matches (leaf-control clip fix landed): all 7 controls clip to the diagonal shape."
   },
   "clipping": {
-    "dark": "diff",
-    "dark_note": "Same: C++ horizontal-stack overflow layout differs from MAUI (no spread numbers / no overflow square / no blue overflow band).",
-    "light": "diff",
-    "light_note": "Horizontal-stack overflow + clip-toggle demo diverges: MAUI spreads numbers 2-8 across the full width with a large orange overflow square extending beyond the right edge + a light-blue overflow band under the purple Hey box (unclipped state); the C++ bunches 12345678 at top-left with a red full-width bar and shows no horizontal overflow. The unclipped horizontal-stack overflow layout differs (measure/arrange of an over-wide HorizontalStackLayout). Keep diff."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare Clipping after the clipping_page.hpp 1:1 rewrite (0c9202c7a4): the 8 numbered buttons spread across the 2-column Grid (400x200) with the translucent-red (opacity 0.5) overflow BoxView in the right column, the width-100 purple Hey row over its LightBlue background, and the coffee-image row over LightBlue. Was a stale page-fidelity divergence (flat red bar, no grid/lightblue). Minor.",
+    "dark_note": "Now matches (page rewrite): grid + opacity-0.5 red overflow square + LightBlue rows + coffee row."
   },
   "collectionview": {
     "light": "minor",
