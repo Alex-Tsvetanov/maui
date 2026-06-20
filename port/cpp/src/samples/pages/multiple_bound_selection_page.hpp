@@ -39,6 +39,7 @@
 #include <string>
 #include <vector>
 
+#include "maui/controls/button.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/items/boxed_item.hpp"
 #include "maui/controls/items/collection_view.hpp"
@@ -112,9 +113,21 @@ namespace maui::samples
 
             update_readout(); // initial "Selected: Item 1, Item 2" (the seeded VM selection)
 
+            // The three action buttons (C# ClearAndAdd / ResetClicked / DirectUpdateClicked), each driving
+            // the matching mutation path so the view selection and the "Selected:" readout stay in lockstep.
+            clear_and_add_btn_.set_text("Clear VM selection and add Items 1 and 2");
+            clear_and_add_btn_.clicked.connect([this] { clear_and_add(); });
+            reset_btn_.set_text("Set VM selection to new list");
+            reset_btn_.clicked.connect([this] { reset_selection(); });
+            direct_update_btn_.set_text("Clear CV selection and add Items 0 and 3");
+            direct_update_btn_.clicked.connect([this] { direct_update(); });
+
             stack_.add(instructions_);
             stack_.add(readout_);
             stack_.add(list_);
+            stack_.add(clear_and_add_btn_); // C# order: instructions, readout, list, then the three buttons
+            stack_.add(reset_btn_);
+            stack_.add(direct_update_btn_);
             page_.set_content(stack_);
         }
 
@@ -164,6 +177,9 @@ namespace maui::samples
             gallery_attach_one(app, list_, "list_");
             gallery_attach_one(app, readout_, "readout_");
             gallery_attach_one(app, instructions_, "instructions_");
+            gallery_attach_one(app, clear_and_add_btn_, "clear_and_add_btn_");
+            gallery_attach_one(app, reset_btn_, "reset_btn_");
+            gallery_attach_one(app, direct_update_btn_, "direct_update_btn_");
             gallery_attach_one(app, stack_, "stack_");
             gallery_attach_one(app, page_, "page_");
 
@@ -221,5 +237,8 @@ namespace maui::samples
         maui::controls::label instructions_;
         maui::controls::label readout_;
         maui::controls::collection_view list_;
+        maui::controls::button clear_and_add_btn_; // C# ClearAndAdd
+        maui::controls::button reset_btn_;         // C# ResetClicked
+        maui::controls::button direct_update_btn_; // C# DirectUpdateClicked
     };
 } // namespace maui::samples

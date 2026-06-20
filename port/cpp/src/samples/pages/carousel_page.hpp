@@ -45,7 +45,9 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/font.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/text_alignment.hpp"
 #include "maui/hosting/maui_app.hpp"
 
 #include "gallery_attach.hpp"
@@ -64,12 +66,22 @@ namespace maui::samples
 
             headline_.set_text("Basic Horizontal Carousel"); // the Headline Label
 
-            // ItemTemplate: a centered Label bound to {Binding} — the item string itself (identity bind).
+            // ItemTemplate: a centered Large Label bound to {Binding} — the item string itself (identity
+            // bind). The C# cell centers the Label in its Grid and styles it Large; stage both on the cell
+            // so each carousel item reads as a big, centered caption rather than small top-left text.
             auto cell = maui::controls::data_template::of<maui::controls::label>();
             cell->set_binding<std::string, std::string>(maui::controls::label::text_property(),
                                                         [](const std::string& value) { return value; });
+            cell->set_value(maui::controls::label::horizontal_text_alignment_property(),
+                            maui::core::text_alignment::center);
+            cell->set_value(maui::controls::label::vertical_text_alignment_property(),
+                            maui::core::text_alignment::center);
+            cell->set_value(maui::controls::label::font_property(), maui::core::font::system_font_of_size(28));
             carousel_.set_item_template(cell);
             carousel_.set_items_source(items_);
+            // Give the carousel a finite, tall viewport so it fills the stack's remaining height instead of
+            // collapsing to its content's minimum size.
+            carousel_.set_height_request(400);
 
             // CurrentItem readout: track the settled item as Position changes.
             carousel_.current_item_changed.connect(

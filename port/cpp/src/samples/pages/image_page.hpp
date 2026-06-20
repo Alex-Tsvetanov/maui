@@ -34,6 +34,7 @@
 #include "maui/controls/file_image_source.hpp"
 #include "maui/controls/image.hpp"
 #include "maui/controls/label.hpp"
+#include "maui/controls/scroll_view.hpp"
 #include "maui/controls/toggle_switch.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/cancellation_token.hpp"
@@ -137,7 +138,8 @@ namespace maui::samples
             stack_.add(animated_gif_);
             stack_.add(start_stop_button_);
             stack_.add(use_online_button_);
-            page_.set_content(stack_);
+            scroll_.set_content(stack_); // the stack overflows the viewport — wrap it in a scroll_view
+            page_.set_content(scroll_);
         }
 
         [[nodiscard]] maui::controls::content_page& page()
@@ -169,10 +171,12 @@ namespace maui::samples
             gallery_attach_one(app, start_stop_button_, "start_stop_button_");
             gallery_attach_one(app, use_online_button_, "use_online_button_");
             gallery_attach_one(app, stack_, "stack_");
+            gallery_attach_one(app, scroll_, "scroll_");
             gallery_attach_one(app, page_, "page_");
 
             gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
+            gallery_rehost_content(scroll_); // scroll_view hosts the stack
+            gallery_rehost_content(page_);   // page hosts the scroll_view
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / tests.
@@ -207,6 +211,7 @@ namespace maui::samples
 
     private:
         maui::controls::content_page page_;
+        maui::controls::scroll_view scroll_;
         maui::controls::vertical_stack_layout stack_;
         maui::controls::label uri_caption_;
         maui::controls::image uri_image_;

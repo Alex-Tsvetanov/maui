@@ -20,6 +20,7 @@
 #include "maui/controls/refresh_view.hpp"
 #include "maui/controls/swipe_item.hpp"
 #include "maui/controls/swipe_view.hpp"
+#include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/open_swipe_item.hpp"
 #include "maui/core/swipe_mode.hpp"
 #include "maui/core/swipe_view_requests.hpp"
@@ -53,7 +54,9 @@ namespace maui::samples
                 readout_.set_text(text);
             });
 
-            // The refresh host wraps the swipe row.
+            // The refresh host wraps a column holding BOTH the swipe row and the readout, so the readout
+            // stays visible (a refresh_view hosts a single content, so the bare swipe would otherwise be the
+            // whole content and the readout would be lost).
             refresh_.set_command([this] {
                 ++refresh_count_;
                 char text[48];
@@ -61,7 +64,10 @@ namespace maui::samples
                 readout_.set_text(text);
                 refresh_.set_is_refreshing(false); // end the spinner (the gallery convention)
             });
-            refresh_.set_content(swipe_);
+            column_.set_spacing(8);
+            column_.add(swipe_);
+            column_.add(readout_);
+            refresh_.set_content(column_);
 
             page_.set_content(refresh_);
         }
@@ -80,11 +86,13 @@ namespace maui::samples
             gallery_attach_one(app, row_, "row_");
             gallery_attach_one(app, readout_, "readout_");
             gallery_attach_one(app, swipe_, "swipe_");
+            gallery_attach_one(app, column_, "column_");
             gallery_attach_one(app, refresh_, "refresh_");
             gallery_attach_one(app, page_, "page_");
 
             gallery_rehost_content(swipe_);   // swipe_view hosts the row
-            gallery_rehost_content(refresh_); // refresh_view hosts the swipe_view
+            gallery_rehost_layout(column_);   // column hosts the swipe_view + the readout
+            gallery_rehost_content(refresh_); // refresh_view hosts the column
             gallery_rehost_content(page_);    // page hosts the refresh_view
         }
 
@@ -92,6 +100,10 @@ namespace maui::samples
         [[nodiscard]] maui::controls::refresh_view& refresh()
         {
             return refresh_;
+        }
+        [[nodiscard]] maui::controls::vertical_stack_layout& column()
+        {
+            return column_;
         }
         [[nodiscard]] maui::controls::swipe_view& swipe()
         {
@@ -117,6 +129,7 @@ namespace maui::samples
     private:
         maui::controls::content_page page_;
         maui::controls::refresh_view refresh_;
+        maui::controls::vertical_stack_layout column_; // hosts the swipe_view + the readout (refresh content)
         maui::controls::swipe_view swipe_;
         maui::controls::swipe_item delete_item_; // owned: the swipe collection is non-owning
         maui::controls::label row_;

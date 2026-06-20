@@ -60,6 +60,9 @@ namespace maui::samples
             stack_.set_spacing(8);
 
             menu_label_.set_text("You clicked on ToolbarItem: {none}");
+            // The status readout is the FIRST child of the visible stack, matching the C# layout order
+            // (label, then the six runtime-mutator buttons added by add_button below).
+            stack_.add(menu_label_);
 
             // ---- the toolbar items (Page.ToolbarItems) ------------------------------------------------
             // Two primary items.

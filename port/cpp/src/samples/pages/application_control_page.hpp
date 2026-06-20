@@ -97,6 +97,13 @@ namespace maui::samples
 
             app_ = &app; // the hosting maui_app (its open_window/close_window route the lifecycle)
             application_ = app.application().get(); // the minted controls::application (may be null if unconfigured)
+            // The window opens AFTER attach_handlers runs, so an immediate refresh() reads "Windows open: 0".
+            // Re-run refresh() once the application raises `started` (post-open) so the readout reflects the
+            // real window count.
+            if (application_ != nullptr)
+            {
+                application_->started.connect([this] { refresh(); });
+            }
             refresh();
         }
 

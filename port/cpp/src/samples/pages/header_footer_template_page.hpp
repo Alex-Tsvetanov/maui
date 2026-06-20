@@ -44,6 +44,7 @@
 //       The item PhotoTemplate is the caption Label only (no per-row Image), as in the sibling demos.
 
 #include <chrono>
+#include <cstdio>
 #include <ctime>
 #include <memory>
 #include <string>
@@ -59,6 +60,7 @@
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/colors.hpp"
+#include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
 
 #include "gallery_attach.hpp"
@@ -94,17 +96,25 @@ namespace maui::samples
         {
             page_.set_title("Header/Footer (template)");
 
-            // The PhotoTemplate caption Label: Text binds to the item's caption (C# Binding("Caption")).
+            // The PhotoTemplate caption Label: Text binds to the item's caption (C# Binding("Caption")),
+            // styled as the C# PhotoTemplate's blue caption (a blue background paint, centered text).
             auto cell = maui::controls::data_template::of<maui::controls::label>();
             cell->set_binding<std::string, demo_item>(maui::controls::label::text_property(),
                                                       [](const demo_item& item) { return item.caption; });
+            cell->set_value(maui::controls::label::background_property(),
+                            std::static_pointer_cast<maui::graphics::paint>(
+                                std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::blue)));
+            cell->set_value(maui::controls::label::horizontal_text_alignment_property(),
+                            maui::core::text_alignment::center);
             list_.set_item_template(cell);
             list_.set_items_source(items_);
 
             // ---- the HeaderTemplate / FooterTemplate: a bold AntiqueWhite centered Label bound to the
-            // model's CurrentTime (the {Binding CurrentTime} Label, the live bound text) ----
-            list_.set_header_template(make_time_template(36)); // header Label FontSize=36
-            list_.set_footer_template(make_time_template(20)); // footer Label FontSize=20
+            // model's CurrentTime (the {Binding CurrentTime} Label, the live bound text), with the static
+            // "This Is A Header/Footer" Label folded onto the bound time (a single-root cell renders one
+            // control, so the static caption is appended on a second line of the same Label) ----
+            list_.set_header_template(make_time_template(36, "\nThis Is A Header")); // header Label FontSize=36
+            list_.set_footer_template(make_time_template(20, "\nThis Is A Footer")); // footer Label FontSize=20
 
             // ---- the Header / Footer VALUE = the model itself (`{Binding .}`) ----
             list_.set_header(maui::controls::boxed_item::of(model_));
@@ -174,7 +184,9 @@ namespace maui::samples
             return rows;
         }
 
-        // DateTime.Now, formatted (the CurrentTime the Label shows). A stable, locale-independent stamp.
+        // DateTime.Now, formatted as C#'s DateTime.ToString() does for en-US: "M/d/yyyy h:mm:ss tt"
+        // (no leading zeros on month/day/hour, 12-hour clock with an AM/PM designator). Built by hand so the
+        // stamp is locale-independent (strftime's %p/%I are locale-dependent and zero-pad the hour).
         [[nodiscard]] static std::string now_string()
         {
             const auto now = std::chrono::system_clock::now();
@@ -185,8 +197,16 @@ namespace maui::samples
 #else
             ::localtime_r(&t, &tm_buf);
 #endif
-            char buf[32] = {};
-            std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm_buf);
+            const int hour24 = tm_buf.tm_hour;
+            const char* const meridiem = hour24 < 12 ? "AM" : "PM";
+            int hour12 = hour24 % 12;
+            if (hour12 == 0)
+            {
+                hour12 = 12; // midnight / noon read as 12, not 0 (en-US 12-hour clock)
+            }
+            char buf[40] = {};
+            std::snprintf(buf, sizeof(buf), "%d/%d/%d %d:%02d:%02d %s", tm_buf.tm_mon + 1, tm_buf.tm_mday,
+                          tm_buf.tm_year + 1900, hour12, tm_buf.tm_min, tm_buf.tm_sec, meridiem);
             return std::string{buf};
         }
 
@@ -201,12 +221,16 @@ namespace maui::samples
         }
 
         // A HeaderTemplate/FooterTemplate: a bold AntiqueWhite centered Label whose Text binds to the
-        // model's CurrentTime ({Binding CurrentTime}), at the given font size (header 36 / footer 20).
-        [[nodiscard]] static std::shared_ptr<maui::controls::data_template> make_time_template(double font_size)
+        // model's CurrentTime ({Binding CurrentTime}), at the given font size (header 36 / footer 20), with
+        // the static "This Is A Header/Footer" caption appended (`static_suffix`) so the C# template's static
+        // Label content surfaces in the single-root cell.
+        [[nodiscard]] static std::shared_ptr<maui::controls::data_template> make_time_template(
+            double font_size, std::string static_suffix)
         {
             auto tmpl = maui::controls::data_template::of<maui::controls::label>();
-            tmpl->set_binding<std::string, header_model>(maui::controls::label::text_property(),
-                                                         [](const header_model& m) { return m.current_time; });
+            tmpl->set_binding<std::string, header_model>(
+                maui::controls::label::text_property(),
+                [suffix = std::move(static_suffix)](const header_model& m) { return m.current_time + suffix; });
             tmpl->set_value(maui::controls::label::text_color_property(), maui::graphics::colors::antique_white);
             tmpl->set_value(maui::controls::label::horizontal_text_alignment_property(),
                             maui::core::text_alignment::center);

@@ -36,6 +36,7 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/stepper.hpp"
 #include "maui/core/grid_length.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/solid_paint.hpp"
@@ -73,6 +74,11 @@ namespace maui::samples
                 label->set_z_index(n);          // VisualElement.ZIndex — the feature under test
                 label->set_width_request(200);  // C# WidthRequest = 200
                 label->set_height_request(100); // C# HeightRequest = 100
+                // Anchor each label top-left in its grid cell so the fixed 200x100 box does not stretch to
+                // fill the Star row — otherwise every label would cover the whole cell and the diagonal
+                // cascade would be invisible.
+                label->set_horizontal_layout_alignment(maui::core::layout_alignment::start);
+                label->set_vertical_layout_alignment(maui::core::layout_alignment::start);
                 label->set_background(std::make_shared<maui::graphics::solid_paint>(pick_color(n)));
                 // C# Margin = new Thickness(n*15, n*15, 0, 0): the diagonal cascade (top-left offset only).
                 label->set_margin(maui::core::thickness(n * 15, n * 15, 0, 0));

@@ -15,7 +15,12 @@ namespace
     {
         swipe_refresh_page demo;
         EXPECT_EQ(demo.page().content(), &demo.refresh());
-        EXPECT_EQ(demo.refresh().content(), &demo.swipe());
+        // The refresh_view now hosts a column holding BOTH the swipe row and the readout (so the readout
+        // stays visible), instead of the bare swipe_view.
+        EXPECT_EQ(demo.refresh().content(), &demo.column());
+        EXPECT_EQ(demo.column().count(), 2);
+        EXPECT_EQ(&demo.column().at(0), &demo.swipe());
+        EXPECT_EQ(&demo.column().at(1), &demo.readout());
         EXPECT_EQ(demo.swipe().content(), &demo.row());
         EXPECT_EQ(demo.swipe().right_items_collection().count(), 1U);
         EXPECT_EQ(demo.swipe().right_items_collection().mode(), maui::core::swipe_mode::execute);
