@@ -1,40 +1,34 @@
 #pragma once
-// shapes_page — a self-contained demo page for the W2-23 drawing set: a vertical stack hosting a
-// graphics_view (a custom drawable painting through the canvas stack), a box_view (color + corner
-// radius), and the shape family — a rounded rectangle, an ellipse, a dashed line, a star polygon
-// (EvenOdd fill rule) and a path built from markup ("M…") with a render transform — plus a readout
-// label echoing the graphics_view interactions (the C# gallery-page convention, code-first).
+// shapes_page — a faithful reproduction of the maui-compare "shapes" demo (ComparePages.Shapes()), the
+// shipped-.NET-MAUI reference for the visual-parity comparison: a ScrollView over a vertical stack of four
+// LABELLED shapes, each bold-captioned and Start-aligned at a fixed request size:
+//   - Ellipse  (Fill Red, Stroke DarkBlue, StrokeThickness 4, 150x60),
+//   - RoundRectangle  (a Rectangle, Fill DarkBlue, RadiusX 12, RadiusY 24, 150x60),
+//   - EvenOdd Polygon (pentagram)  (Points {(10,100),(50,0),(90,100),(0,35),(100,35)}, Fill Blue, Stroke
+//     Red, StrokeThickness 2, FillRule EvenOdd, 100x100),
+//   - Line  (X1 40 Y1 0 -> X2 0 Y2 80, Stroke Purple, StrokeThickness 2, 120x80).
+// Kept 1:1 with the C# reference (same shapes, fills, strokes, sizes, captions, order) so the side-by-side
+// gallery comparison is apples-to-apples.
 //
-// The page OWNS its whole element tree (the containers_page pattern). It is backend-agnostic — a
-// sample main attaches handlers bottom-up via the hosting layer and hosts page() in a window; the
-// headless/apple/ios test trees exercise the same wiring directly.
+// The page OWNS its whole element tree (the containers_page pattern). It is backend-agnostic — a sample
+// main attaches handlers bottom-up via the hosting layer and hosts page() in a window; the headless/apple/
+// ios test trees exercise the same wiring directly.
 
-#include <array>
-#include <cstdio>
 #include <memory>
-#include <string>
-#include <utility>
-#include <vector>
 
-#include "maui/controls/box_view.hpp"
 #include "maui/controls/content_page.hpp"
-#include "maui/controls/graphics_view.hpp"
 #include "maui/controls/label.hpp"
+#include "maui/controls/scroll_view.hpp"
 #include "maui/controls/shapes/ellipse.hpp"
 #include "maui/controls/shapes/fill_rule.hpp"
 #include "maui/controls/shapes/line.hpp"
-#include "maui/controls/shapes/path.hpp"
-#include "maui/controls/shapes/path_markup_parser.hpp"
 #include "maui/controls/shapes/polygon.hpp"
 #include "maui/controls/shapes/rectangle.hpp"
-#include "maui/controls/shapes/rotate_transform.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
-#include "maui/graphics/color.hpp"
-#include "maui/graphics/corner_radius.hpp"
-#include "maui/graphics/i_canvas.hpp"
-#include "maui/graphics/i_drawable.hpp"
-#include "maui/graphics/point_f.hpp"
-#include "maui/graphics/rect_f.hpp"
+#include "maui/core/font.hpp"
+#include "maui/core/layout_alignment.hpp"
+#include "maui/core/thickness.hpp"
+#include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
 
@@ -42,93 +36,81 @@
 
 namespace maui::samples
 {
-    // The demo drawable: a framed diagonal cross (every op flows through the W1-13 canvas core).
-    class cross_drawable final : public maui::graphics::i_drawable
-    {
-    public:
-        void draw(maui::graphics::i_canvas& canvas, const maui::graphics::rect_f& dirty_rect) override
-        {
-            canvas.set_stroke_size(2);
-            canvas.set_stroke_color(maui::graphics::color(0.16F, 0.50F, 0.73F));
-            canvas.draw_rectangle(dirty_rect.x, dirty_rect.y, dirty_rect.width, dirty_rect.height);
-            canvas.draw_line(dirty_rect.left(), dirty_rect.top(), dirty_rect.right(), dirty_rect.bottom());
-            canvas.draw_line(dirty_rect.left(), dirty_rect.bottom(), dirty_rect.right(), dirty_rect.top());
-        }
-    };
-
     class shapes_page
     {
+        static constexpr maui::core::layout_alignment k_start = maui::core::layout_alignment::start;
+
+        static std::shared_ptr<maui::graphics::solid_paint> paint(const maui::graphics::color& color)
+        {
+            return std::make_shared<maui::graphics::solid_paint>(color);
+        }
+
     public:
         shapes_page()
         {
             page_.set_title("Shapes");
-            stack_.set_spacing(12);
+            stack_.set_spacing(16);
+            stack_.set_padding(maui::core::thickness(16)); // ComparePages: Padding=16, Spacing=16.
 
-            readout_.set_text("Touch the canvas");
+            // Each caption is a bold Label (FontAttributes.Bold), at the default system size.
+            const auto bold = maui::core::font::system_font_of_weight(maui::core::font_weight::bold);
 
-            // graphics_view — a custom drawable + the interaction events into the readout.
-            canvas_.set_drawable(std::make_shared<cross_drawable>());
-            canvas_.set_height_request(120);
-            canvas_.start_interaction.connect([this](const std::vector<maui::graphics::point_f>& points) {
-                if (!points.empty())
-                {
-                    std::array<char, 64> buffer{};
-                    (void)std::snprintf(buffer.data(), buffer.size(), "Touched at %.0f, %.0f",
-                                        static_cast<double>(points[0].x), static_cast<double>(points[0].y));
-                    readout_.set_text(buffer.data());
-                }
-            });
+            // --- Ellipse: Fill Red, Stroke DarkBlue (4), 150x60, Start. ---
+            ellipse_label_.set_text("Ellipse");
+            ellipse_label_.set_font(bold);
+            ellipse_.set_fill(paint(maui::graphics::colors::red));
+            ellipse_.set_stroke(paint(maui::graphics::colors::dark_blue));
+            ellipse_.set_stroke_thickness(4);
+            ellipse_.set_width_request(150);
+            ellipse_.set_height_request(60);
+            ellipse_.set_horizontal_layout_alignment(k_start);
 
-            // box_view — a rounded solid block.
-            box_.set_color(maui::graphics::color(0.86F, 0.20F, 0.27F));
-            box_.set_corner_radius(maui::graphics::corner_radius(8));
-            box_.set_height_request(40);
+            // --- RoundRectangle: a Rectangle, Fill DarkBlue, RadiusX 12 / RadiusY 24, 150x60, Start. ---
+            rect_label_.set_text("RoundRectangle");
+            rect_label_.set_font(bold);
+            rect_.set_fill(paint(maui::graphics::colors::dark_blue));
+            rect_.set_radius_x(12);
+            rect_.set_radius_y(24);
+            rect_.set_width_request(150);
+            rect_.set_height_request(60);
+            rect_.set_horizontal_layout_alignment(k_start);
 
-            // rectangle — rounded, filled + stroked.
-            rounded_rect_.set_radius_x(10);
-            rounded_rect_.set_radius_y(10);
-            rounded_rect_.set_fill(
-                std::make_shared<maui::graphics::solid_paint>(maui::graphics::color(1.0F, 0.76F, 0.03F)));
-            rounded_rect_.set_stroke(
-                std::make_shared<maui::graphics::solid_paint>(maui::graphics::color(0.13F, 0.13F, 0.13F)));
-            rounded_rect_.set_stroke_thickness(2);
-            rounded_rect_.set_height_request(60);
+            // --- EvenOdd Polygon (pentagram): Fill Blue, Stroke Red (2), EvenOdd, 100x100, Start. ---
+            poly_label_.set_text("EvenOdd Polygon (pentagram)");
+            poly_label_.set_font(bold);
+            poly_.set_points({{10, 100}, {50, 0}, {90, 100}, {0, 35}, {100, 35}});
+            poly_.set_fill(paint(maui::graphics::colors::blue));
+            poly_.set_stroke(paint(maui::graphics::colors::red));
+            poly_.set_stroke_thickness(2);
+            poly_.set_fill_rule(maui::controls::shapes::fill_rule::even_odd);
+            poly_.set_width_request(100);
+            poly_.set_height_request(100);
+            poly_.set_horizontal_layout_alignment(k_start);
 
-            // ellipse — filled only.
-            blob_.set_fill(std::make_shared<maui::graphics::solid_paint>(maui::graphics::color(0.18F, 0.65F, 0.41F)));
-            blob_.set_height_request(60);
+            // --- Line: (40,0)->(0,80), Stroke Purple (2), 120x80, Start. ---
+            line_label_.set_text("Line");
+            line_label_.set_font(bold);
+            line_.set_x1(40);
+            line_.set_y1(0);
+            line_.set_x2(0);
+            line_.set_y2(80);
+            line_.set_stroke(paint(maui::graphics::colors::purple));
+            line_.set_stroke_thickness(2);
+            line_.set_width_request(120);
+            line_.set_height_request(80);
+            line_.set_horizontal_layout_alignment(k_start);
 
-            // line — dashed stroke.
-            divider_.set_x2(240);
-            divider_.set_stroke(
-                std::make_shared<maui::graphics::solid_paint>(maui::graphics::color(0.45F, 0.45F, 0.45F)));
-            divider_.set_stroke_thickness(2);
-            divider_.set_stroke_dash_array({4.0, 2.0});
+            stack_.add(ellipse_label_);
+            stack_.add(ellipse_);
+            stack_.add(rect_label_);
+            stack_.add(rect_);
+            stack_.add(poly_label_);
+            stack_.add(poly_);
+            stack_.add(line_label_);
+            stack_.add(line_);
 
-            // polygon — the classic five-point star, EvenOdd so the core stays open.
-            star_.set_points({{96, 0}, {153, 192}, {0, 72}, {192, 72}, {39, 192}});
-            star_.set_fill_rule(maui::controls::shapes::fill_rule::even_odd);
-            star_.set_fill(std::make_shared<maui::graphics::solid_paint>(maui::graphics::color(0.55F, 0.36F, 0.80F)));
-            star_.set_height_request(80);
-
-            // path — geometry from markup + a render transform.
-            auto geometry = std::make_shared<maui::controls::shapes::path_geometry>();
-            maui::controls::shapes::parse_path_figure_collection(geometry->figures(),
-                                                                 "M0,0 L60,0 C70,10 70,30 60,40 L0,40 Z");
-            marker_.set_data(std::move(geometry));
-            marker_.set_render_transform(std::make_shared<maui::controls::shapes::rotate_transform>(8.0));
-            marker_.set_fill(std::make_shared<maui::graphics::solid_paint>(maui::graphics::color(0.95F, 0.55F, 0.20F)));
-            marker_.set_height_request(60);
-
-            stack_.add(readout_);
-            stack_.add(canvas_);
-            stack_.add(box_);
-            stack_.add(rounded_rect_);
-            stack_.add(blob_);
-            stack_.add(divider_);
-            stack_.add(star_);
-            stack_.add(marker_);
-            page_.set_content(stack_);
+            scroller_.set_content(stack_);
+            page_.set_content(scroller_);
         }
 
         [[nodiscard]] maui::controls::content_page& page()
@@ -137,72 +119,59 @@ namespace maui::samples
         }
 
         // Attach a handler to every OWNED view, BOTTOM-UP (the stack's children first in add()-order, then
-        // the stack, then the page), then re-host the tree built in the ctor (gallery_attach.hpp).
+        // the stack, the scroll_view, then the page), then re-host the tree built in the ctor.
         void attach_handlers(maui::hosting::maui_app& app)
         {
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, canvas_, "canvas_");
-            gallery_attach_one(app, box_, "box_");
-            gallery_attach_one(app, rounded_rect_, "rounded_rect_");
-            gallery_attach_one(app, blob_, "blob_");
-            gallery_attach_one(app, divider_, "divider_");
-            gallery_attach_one(app, star_, "star_");
-            gallery_attach_one(app, marker_, "marker_");
+            gallery_attach_one(app, ellipse_label_, "ellipse_label_");
+            gallery_attach_one(app, ellipse_, "ellipse_");
+            gallery_attach_one(app, rect_label_, "rect_label_");
+            gallery_attach_one(app, rect_, "rect_");
+            gallery_attach_one(app, poly_label_, "poly_label_");
+            gallery_attach_one(app, poly_, "poly_");
+            gallery_attach_one(app, line_label_, "line_label_");
+            gallery_attach_one(app, line_, "line_");
             gallery_attach_one(app, stack_, "stack_");
+            gallery_attach_one(app, scroller_, "scroller_");
             gallery_attach_one(app, page_, "page_");
 
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
+            gallery_rehost_layout(stack_);     // the stack hosts the captions + shapes
+            gallery_rehost_content(scroller_); // the scroll_view hosts the stack
+            gallery_rehost_content(page_);     // the page hosts the scroll_view
         }
 
-        // The owned controls, exposed for the hosting main's bottom-up handler attachment.
+        // The owned controls, exposed for tests / the hosting main's bottom-up attachment.
         [[nodiscard]] maui::controls::vertical_stack_layout& stack()
         {
             return stack_;
         }
-        [[nodiscard]] maui::controls::label& readout()
+        [[nodiscard]] maui::controls::shapes::ellipse& ellipse()
         {
-            return readout_;
+            return ellipse_;
         }
-        [[nodiscard]] maui::controls::graphics_view& canvas()
+        [[nodiscard]] maui::controls::shapes::rectangle& rect()
         {
-            return canvas_;
+            return rect_;
         }
-        [[nodiscard]] maui::controls::box_view& box()
+        [[nodiscard]] maui::controls::shapes::polygon& polygon()
         {
-            return box_;
+            return poly_;
         }
-        [[nodiscard]] maui::controls::shapes::rectangle& rounded_rect()
+        [[nodiscard]] maui::controls::shapes::line& line()
         {
-            return rounded_rect_;
-        }
-        [[nodiscard]] maui::controls::shapes::ellipse& blob()
-        {
-            return blob_;
-        }
-        [[nodiscard]] maui::controls::shapes::line& divider()
-        {
-            return divider_;
-        }
-        [[nodiscard]] maui::controls::shapes::polygon& star()
-        {
-            return star_;
-        }
-        [[nodiscard]] maui::controls::shapes::path& marker()
-        {
-            return marker_;
+            return line_;
         }
 
     private:
         maui::controls::content_page page_;
+        maui::controls::scroll_view scroller_;
         maui::controls::vertical_stack_layout stack_;
-        maui::controls::label readout_;
-        maui::controls::graphics_view canvas_;
-        maui::controls::box_view box_;
-        maui::controls::shapes::rectangle rounded_rect_;
-        maui::controls::shapes::ellipse blob_;
-        maui::controls::shapes::line divider_;
-        maui::controls::shapes::polygon star_;
-        maui::controls::shapes::path marker_;
+        maui::controls::label ellipse_label_;
+        maui::controls::shapes::ellipse ellipse_;
+        maui::controls::label rect_label_;
+        maui::controls::shapes::rectangle rect_;
+        maui::controls::label poly_label_;
+        maui::controls::shapes::polygon poly_;
+        maui::controls::label line_label_;
+        maui::controls::shapes::line line_;
     };
 } // namespace maui::samples

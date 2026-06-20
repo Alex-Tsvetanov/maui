@@ -702,8 +702,8 @@
   "shapes": {
     "light": "minor",
     "dark": "minor",
-    "light_note": "Demo divergence: the two apps show different shapes showcases. The C++ shapes_page renders its own set (a touch-canvas heading + blue-outlined rect with diagonal lines, red & yellow rounded bars, green ellipse, gray dashed line, purple polygon, orange rotated rect) — all shape types render correctly (fill/stroke/dash/rotation). The maui-compare reference shows a labeled Ellipse/RoundRectangle/EvenOdd-Polygon/Line set. Both render shapes faithfully; heading is theme-aware.",
-    "dark_note": "Same demo divergence: all C++ shapes render with their explicit colors + white-on-black heading. Different demo content vs the reference, both correct."
+    "light_note": "FIXED to faithfully reproduce maui-compare Shapes(): ScrollView of 4 bold-captioned Start-aligned shapes — Ellipse (red fill, dark-blue stroke 4, 150x60), RoundRectangle (a Rectangle, navy fill, RadiusX 12/RadiusY 24, 150x60), EvenOdd Polygon pentagram (blue fill, red stroke 2, 100x100), Line (40,0->0,80, purple 2, 120x80). Matches C# 1:1 in both themes; only residual is the maui-compare card framing (harness).",
+    "dark_note": "Same: all 4 shapes render identically with white-on-black bold captions. Faithful reproduction of Shapes()."
   },
   "single_bound_selection": {
     "dark": "blank",
@@ -850,7 +850,7 @@
   "z_index": {
     "light": "minor",
     "dark": "minor",
-    "light_note": "The ZIndex feature works: the visible label is correctly the highest-z-index one (Label 9, red) painted on top, and its background renders (label MapBackground fix 1d442d2451). The controls bar (readout + stepper) renders correctly. Documented deviation: C# cascades each label by Margin=n*15 so all 10 fan out diagonally; the port has no settable VisualElement.Margin yet (margin() is hardcoded {}), so the 10 labels stack at the same spot and only the top is visible. Margin flagged for implementation (the arrange half already honors it).",
-    "dark_note": "Same: z-index ordering + label background render correctly; the missing Margin cascade (flagged) is why only the top label shows instead of the 10-label diagonal fan."
+    "light_note": "FIXED: View.Margin landed (9bc9b11f0c), so the per-label Margin=n*15 cascade now renders — the 10 colored labels fan out diagonally exactly like real .NET MAUI (was a single stacked label before). ZIndex paint order correct (Label 9 red on top), label backgrounds render, readout + stepper bar correct. Residual: maui-compare card framing (harness).",
+    "dark_note": "Same: the 10-label diagonal Margin cascade renders, z-order correct, theme-aware. Matches the C# diagonal fan."
   }
 }
