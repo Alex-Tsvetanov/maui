@@ -41,7 +41,10 @@
 #include "maui/controls/swipe_item_view.hpp"
 #include "maui/controls/swipe_view.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/font.hpp"
+#include "maui/core/grid_length.hpp"
 #include "maui/core/open_swipe_item.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/solid_paint.hpp"
@@ -90,15 +93,57 @@ namespace maui::samples
             swipe_.right_items_collection().add(delete_item_view_);
 
             // ---- The SwipeView Content: the white "message" card (Title / Date / SubTitle / Description) ----
+            // Oracle: a Grid (RowSpacing="0") with columns [*, Auto] and rows [Auto, Auto, *]. Title and Date
+            // share row 0 (title in the * column, date right in the Auto column); SubTitle (row 1) and
+            // Description (row 2) each span both columns. Without these definitions + cell placement all four
+            // labels land in row 0 / column 0 and render stacked on top of each other. The XAML Title/Date/
+            // SubTitle resource styles are inlined here (font size + colour + margin) for visual parity.
             card_.set_background(solid(maui::graphics::colors::white));
+            card_.set_row_spacing(0);
+            card_.add_column_definition(maui::core::grid_length::star());      // col 0: *
+            card_.add_column_definition(maui::core::grid_length::automatic()); // col 1: Auto
+            card_.add_row_definition(maui::core::grid_length::automatic());    // row 0: Auto (Title / Date)
+            card_.add_row_definition(maui::core::grid_length::automatic());    // row 1: Auto (SubTitle)
+            card_.add_row_definition(maui::core::grid_length::star());         // row 2: *    (Description)
+
+            // TitleStyle: FontSize 14, TextColor Black, Margin 6,0,6,6.
             title_.set_text("Welcome to .NET MAUI!");
+            title_.set_font(maui::core::font::system_font_of_size(14));
+            title_.set_text_color(maui::graphics::colors::black);
+            title_.set_margin(maui::core::thickness{6, 0, 6, 6});
+
+            // DateStyle: FontSize 10, TextColor DarkGray, Margin 6,0,6,6.
             date_.set_text("June 2026");
+            date_.set_font(maui::core::font::system_font_of_size(10));
+            date_.set_text_color(maui::graphics::colors::dark_gray);
+            date_.set_margin(maui::core::thickness{6, 0, 6, 6});
+
+            // SubTitleStyle: FontSize 12, TextColor DarkGray, Margin 6,0.
             subtitle_.set_text("A SwipeView with gesture recognizers");
+            subtitle_.set_font(maui::core::font::system_font_of_size(12));
+            subtitle_.set_text_color(maui::graphics::colors::dark_gray);
+            subtitle_.set_margin(maui::core::thickness{6, 0});
+
+            // Description shares SubTitleStyle.
             description_.set_text("Double-tap the card, or swipe to Favourite / Delete.");
+            description_.set_font(maui::core::font::system_font_of_size(12));
+            description_.set_text_color(maui::graphics::colors::dark_gray);
+            description_.set_margin(maui::core::thickness{6, 0});
+
             card_.add(title_);
             card_.add(date_);
             card_.add(subtitle_);
             card_.add(description_);
+            card_.set_column(title_, 0);
+            card_.set_row(title_, 0);
+            card_.set_column(date_, 1);
+            card_.set_row(date_, 0);
+            card_.set_column(subtitle_, 0);
+            card_.set_column_span(subtitle_, 2);
+            card_.set_row(subtitle_, 1);
+            card_.set_column(description_, 0);
+            card_.set_column_span(description_, 2);
+            card_.set_row(description_, 2);
             swipe_.set_content(card_);
 
             root_.add(banner_);

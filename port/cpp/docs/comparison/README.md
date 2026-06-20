@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 0 / 172 🟢 matched** · 86 🟡 minor · 19 🔴 diff · 67 ⬜ pending
+**Progress: 0 / 172 🟢 matched** · 90 🟡 minor · 19 🔴 diff · 63 ⬜ pending
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.
 
@@ -133,12 +133,12 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 119 | Radio Content Properties | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/radio_content_properties.png) | ![](cpp_ios_light/radio_content_properties.png) | ![](csharp_ios_dark/radio_content_properties.png) | ![](cpp_ios_dark/radio_content_properties.png) |
 | 120 | Radio Template From Style | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/radio_template_from_style.png) | ![](cpp_ios_light/radio_template_from_style.png) | ![](csharp_ios_dark/radio_template_from_style.png) | ![](cpp_ios_dark/radio_template_from_style.png) |
 | 121 | Scattered Radio Button | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/scattered_radio_button.png) | ![](cpp_ios_light/scattered_radio_button.png) | ![](csharp_ios_dark/scattered_radio_button.png) | ![](cpp_ios_dark/scattered_radio_button.png) |
-| 122 | Swipe Gesture | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/swipe_gesture.png) | ![](cpp_ios_light/swipe_gesture.png) | ![](csharp_ios_dark/swipe_gesture.png) | ![](cpp_ios_dark/swipe_gesture.png) |
+| 122 | Swipe Gesture | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/swipe_gesture.png) | ![](cpp_ios_light/swipe_gesture.png) | ![](csharp_ios_dark/swipe_gesture.png) | ![](cpp_ios_dark/swipe_gesture.png) |
 | 123 | Swipe Item Position | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/swipe_item_position.png) | ![](cpp_ios_light/swipe_item_position.png) | ![](csharp_ios_dark/swipe_item_position.png) | ![](cpp_ios_dark/swipe_item_position.png) |
 | 124 | Swipe Item Size | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/swipe_item_size.png) | ![](cpp_ios_light/swipe_item_size.png) | ![](csharp_ios_dark/swipe_item_size.png) | ![](cpp_ios_dark/swipe_item_size.png) |
-| 125 | Swipe Threshold | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/swipe_threshold.png) | ![](cpp_ios_light/swipe_threshold.png) | ![](csharp_ios_dark/swipe_threshold.png) | ![](cpp_ios_dark/swipe_threshold.png) |
-| 126 | Swipe View Margin | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/swipe_view_margin.png) | ![](cpp_ios_light/swipe_view_margin.png) | ![](csharp_ios_dark/swipe_view_margin.png) | ![](cpp_ios_dark/swipe_view_margin.png) |
-| 127 | Swipe View Shadow | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/swipe_view_shadow.png) | ![](cpp_ios_light/swipe_view_shadow.png) | ![](csharp_ios_dark/swipe_view_shadow.png) | ![](cpp_ios_dark/swipe_view_shadow.png) |
+| 125 | Swipe Threshold | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/swipe_threshold.png) | ![](cpp_ios_light/swipe_threshold.png) | ![](csharp_ios_dark/swipe_threshold.png) | ![](cpp_ios_dark/swipe_threshold.png) |
+| 126 | Swipe View Margin | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/swipe_view_margin.png) | ![](cpp_ios_light/swipe_view_margin.png) | ![](csharp_ios_dark/swipe_view_margin.png) | ![](cpp_ios_dark/swipe_view_margin.png) |
+| 127 | Swipe View Shadow | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/swipe_view_shadow.png) | ![](cpp_ios_light/swipe_view_shadow.png) | ![](csharp_ios_dark/swipe_view_shadow.png) | ![](cpp_ios_dark/swipe_view_shadow.png) |
 | 128 | Swipe Refresh | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/swipe_refresh.png) | ![](cpp_ios_light/swipe_refresh.png) | ![](csharp_ios_dark/swipe_refresh.png) | ![](cpp_ios_dark/swipe_refresh.png) |
 | 129 | Refresh View | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/refresh_view.png) | ![](cpp_ios_light/refresh_view.png) | ![](csharp_ios_dark/refresh_view.png) | ![](cpp_ios_dark/refresh_view.png) |
 | 130 | Custom Size Swipe | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/custom_size_swipe.png) | ![](cpp_ios_light/custom_size_swipe.png) | ![](csharp_ios_dark/custom_size_swipe.png) | ![](cpp_ios_dark/custom_size_swipe.png) |

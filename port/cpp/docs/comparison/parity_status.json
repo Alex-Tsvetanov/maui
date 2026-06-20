@@ -782,10 +782,10 @@
     "light_note": "Matches MAUI: the 3 label styles render correctly (base SubtitleStyle gray, derived custom style PINK wins, no-explicit-style default), and the Style-Me button shows a light-gray fill + yellow border + dark text. FIXED: gave the styled button a light BackgroundColor brush (it was a near-black TextColor with no fill — fine on light, invisible on dark) so it matches MAUI both themes; BackgroundColor is not a setter-targetable descriptor (flows through set_background_brush), the multi-setter Style still drives TextColor/CornerRadius/Stroke. Residual: minor vertical rhythm + button height/text-wrap."
   },
   "swipe_gesture": {
-    "dark": "pending",
-    "light": "pending",
-    "light_note": "C++ swipe_gesture (the synthetic SwipeViewGestureRecognizer readout page) renders the intro text + TapCommand (double-tap) caption but the readout labels OVERLAP on one line (garbled) — the stacked readout labels are not getting distinct Y positions (swipe content collapses / label stacking). iOS SwipeView-in-stack layout issue, same family as basic_swipe. Flagged.",
-    "dark_note": "Same: readout labels overlap/garble (iOS swipe-host layout). Flagged."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare SwipeViewGestureRecognizer after the swipe arrange fix + the card-grid row-definition page fix: the white message card lays out Welcome to .NET MAUI! (title) / June 2026 (date, right) / A SwipeView with gesture recognizers (subtitle) / Double-tap the card... (description) in their proper rows (was: all 4 labels overlapping), + the TapCommand (double-tap) readout. Minor.",
+    "dark_note": "Now matches (swipe arrange + card row-defs): card labels in proper rows."
   },
   "swipe_item_position": {
     "dark": "pending",
@@ -802,16 +802,22 @@
     "light": "pending"
   },
   "swipe_threshold": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare SwipeThreshold after the swipe arrange fix: the Threshold only on Android/iOS banner + Default/Custom Threshold (Reveal+Execute Mode) purple SwipeView boxes with the threshold sliders + Reveal/Execute threshold=80 readout. Minor.",
+    "dark_note": "Matches (swipe arrange fix): threshold boxes + sliders render."
   },
   "swipe_view_margin": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare SwipeViewMargin after the swipe arrange fix: Horizontal items revealed + the Modify the SwipeView Margin and Padding banner + Content Margin/Padding sliders + Horizontal/Vertical SwipeItems gray boxes. Minor.",
+    "dark_note": "Matches (swipe arrange fix): margin/padding demo renders."
   },
   "swipe_view_shadow": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare SwipeViewShadow after the swipe arrange fix: Shadow in SwipeView Content + SwipeItems Content box (shadowed) + SwipeItemViews Content box (shadowed). Minor.",
+    "dark_note": "Matches (swipe arrange fix): shadowed swipe content renders."
   },
   "switch": {
     "dark": "minor",
