@@ -190,10 +190,10 @@
     "light_note": "C++ first canvas is a tall narrow portrait rect (~580x1180) with the triangle/circle/bars group jammed top-right and overflowing; MAUI canvas is near-square full-width with the group centered. Second line-canvas also mis-sized: C++ lines unbounded, red line runs off-screen."
   },
   "containers": {
-    "dark": "diff",
-    "dark_note": "IMPROVED (was fully-blank labels): readout + Inside-a-content_view labels render via the dark-text cascade; border/frame strokes render. Residual BUG: Border/Frame do not present their content label (clipped by the border host) — task_a2bdde9d.",
-    "light": "diff",
-    "light_note": "IMPROVED: the standalone labels (Scrolled-to readout, Inside a content_view) render. The border (blue dashed) + frame (red) boxes render their stroke/outline correctly. Residual BUG: the Border and Frame do NOT show their content child (\"Inside a border\"/\"Inside a frame\" labels) — the content subview is clipped/mispositioned by the border host (content_view works; border-specific native-hosting bug). Flagged as task_a2bdde9d."
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "NOW MATCHES (stale diff cleared by the border/frame arrange-coordinate fix): the \"Inside a border\" (blue dashed) / \"Inside a frame\" (red border, light-gray fill) / \"Inside a content_view\" all render their content correctly (was invisible before). Scrolled readout + all three containers match C#. Residual: maui-compare card framing.",
+    "dark_note": "Same: border/frame/content_view content renders, theme-aware. Matches C#."
   },
   "content_view": {
     "dark": "minor",
@@ -420,10 +420,10 @@
     "light": "pending"
   },
   "image": {
-    "dark": "diff",
-    "dark_note": "Same as light: the FileSource purple .NET-bot now renders (was blank) — dotnet_bot.png bundled into the gallery .app, ionicons.ttf registered via UIAppFonts. UriSource matches. Residual: the FileSource image sizes/positions differently from MAUI's full-width purple band (layout/measure, not assets); Font Image Source rows are below the parity-shot fold in both shots.",
-    "light": "diff",
-    "light_note": "FIXED (assets now bundled): the FileSource purple .NET-bot RENDERS (was entirely blank). The gallery .app now bundles dotnet_bot.png at its root and the iOS loader's [UIImage imageNamed:] fallback finds it; ionicons.ttf is bundled + registered via UIAppFonts (family 'Ionicons', glyph U+F30C present). UriSource still matches MAUI. Residual is LAYOUT/SIZING, not assets: the C++ FileSource image renders smaller & lower than MAUI's full-width AspectFit purple band (an image horizontal-fill/measure diff), and the Font Image Source rows sit below the parity-shot fold in BOTH shots (the C# reference does not show the rendered glyph either). cog.png-style SVG-only assets remain unrasterizable (see resources/README.md)."
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "IMPROVED (asset-bundling fix): both UriSource (Microsoft building, from URL) and FileSource (purple dotnet_bot) now render (FileSource was blank before). Residual: the FileSource image sizes/positions differently from MAUI’s full-width AspectFit band (a documented iOS image measure deviation), and the Font Image Source row is below the fold. cog/thumb stay SVG-only (no rasterizer) — documented.",
+    "dark_note": "Same: UriSource + FileSource render; FileSource AspectFit sizing is the documented measure deviation."
   },
   "image_button": {
     "dark": "minor",
