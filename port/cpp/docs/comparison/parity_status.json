@@ -157,9 +157,9 @@
   },
   "clip_corner_radius": {
     "dark": "diff",
-    "dark_note": "Blank gray Image (oasis.jpg iOS load issue) + leaf-control clip gap (agent dispatched).",
+    "dark_note": "Clip now applies but oasis.jpg Image still renders blank gray (iOS sized-image render gap).",
     "light": "diff",
-    "light_note": "TWO issues: (1) the oasis.jpg Image renders as a blank LightGray square though oasis.jpg IS bundled in the app — an iOS image-load/decode issue (the clip page dotnet_bot.png renders fine; jpg-specific, separate from clip); (2) the RoundRectangleGeometry Clip on the Image is a no-op on iOS (image_handler leaf-control update_clip gap, covered by agent ad31b95a1d). Sliders + title match."
+    "light_note": "The RoundRectangleGeometry Clip is now applied to the Image (leaf-control clip fix 7947839a4f), but the page still shows a blank LightGray square because the oasis.jpg Image itself does not render on iOS (bundled but loads gray; the clip page dotnet_bot.png renders fine). Remaining issue = the iOS sized-Image render gap (same as clip_gallery), separate from clip. Sliders + title match."
   },
   "clip_gallery": {
     "dark": "blank",
@@ -168,10 +168,10 @@
     "light_note": "C++ image slots render blank/collapsed; the C# ref shows LightGray placeholder boxes (the image source loads as gray in neither app, but MAUI reserves a sized gray container the C++ collapses to nothing). Captions (Image / Clipped Image using Rectangle/RoundRectangle/Ellipse Geometry) match. Root cause: sized images in fixed-size containers (AspectFill) do not render on iOS — same family as clip_corner_radius oasis.jpg; SEPARATE from the leaf-control clip-mask gap (agent ad31b95a1d). Defer the image-render fix until that agent lands (it edits image_handler.mm)."
   },
   "clip_views": {
-    "dark": "diff",
-    "dark_note": "Same iOS leaf-control Clip gap; fix agent dispatched.",
-    "light": "diff",
-    "light_note": "iOS Clip gap: VisualElement.Clip is honored only by container handlers; leaf native controls (entry/editor/search_bar/button/image/pickers/value-controls) omit update_clip in their MAUI_PLATFORM_IOS partial -> fall to the view_platform_base no-op mirror, so the diagonal clip applies to the Grid/layout only (MAUI skews all 7 controls). Background agent ad31b95a1d dispatched to add iOS update_clip (apply_clip + layoutSubviews re-clip) to the leaf controls."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare ClipViews after the iOS leaf-control Clip fix (7947839a4f): the diagonal Clip geometry now applies to Button, DatePicker (6/20/2026), Entry, Editor, Grid, SearchBar, TimePicker (12:00 AM) — all render the red skewed shape (was: only the Grid/layout clipped, leaf controls flat). Minor: invariant date/time format + leaf chrome.",
+    "dark_note": "Now matches (leaf-control clip fix landed): all 7 controls clip to the diagonal shape."
   },
   "clipping": {
     "dark": "diff",
