@@ -563,7 +563,9 @@
   },
   "multiple_bound_selection": {
     "dark": "pending",
-    "light": "pending"
+    "light": "pending",
+    "light_note": "iOS CV selection-highlight gap: the Selected: Item 1, Item 2 label binds correctly + header + Item 0-3 render, but the selected items (Item 1, Item 2) are not visually highlighted (MAUI gray selection background). Same missing-selectedBackgroundView gap as preselected_items.",
+    "dark_note": "Same selection-highlight gap (label binds; cells not highlighted)."
   },
   "navigation_gallery": {
     "dark": "pending",
@@ -631,9 +633,9 @@
   },
   "preselected_items": {
     "dark": "blank",
-    "dark_note": "C++ dark is effectively blank — only \"This is the header\" on black, no description text or CollectionView items; MAUI dark shows the full 3-column grid with gray-highlighted preselected items.",
+    "dark_note": "Same: preselected cells not visually highlighted (missing iOS cell selectedBackgroundView). Framework gap.",
     "light": "diff",
-    "light_note": "C++ renders a 4-column grid with no selection highlight and a non-bold header; MAUI shows a 3-column grid with gray preselected-item backgrounds (photo.jpg 2 / Fruits.jpg 4 / FlowerBuds.jpg 5) and a bold header."
+    "light_note": "iOS CollectionView selection-highlight gap: the Preselected: photo.jpg 2 / Fruits.jpg 4 / FlowerBuds.jpg 5 readout + header + 2-col item grid all render, and the cells ARE selected in the UICollectionView model (selectItemAtIndexPath runs), but the selected cells show NO visual highlight. MAUI highlights them with a gray selection background (default selectedBackgroundView). The port cell lacks a selectedBackgroundView. Genuine framework gap (affects all selection demos)."
   },
   "progress_bar": {
     "dark": "minor",
@@ -788,8 +790,10 @@
     "dark_note": "Now matches (swipe arrange + card row-defs): card labels in proper rows."
   },
   "swipe_item_position": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare SwipeItemPosition at rest after the swipe arrange fix: the Reveal SwipeView content box + Swipe in any direction caption. Minor (swipe interaction not capturable statically).",
+    "dark_note": "Matches (swipe arrange fix): Reveal box + caption."
   },
   "swipe_item_size": {
     "dark": "minor",
@@ -798,8 +802,10 @@
     "dark_note": "Matches (swipe arrange fix): sized swipe boxes render."
   },
   "swipe_refresh": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare SwipeRefresh at rest: the Swipe left to delete, pull to refresh caption above the CollectionView. Minor (swipe/pull interaction not capturable statically).",
+    "dark_note": "Matches: swipe+refresh caption renders."
   },
   "swipe_threshold": {
     "dark": "minor",
