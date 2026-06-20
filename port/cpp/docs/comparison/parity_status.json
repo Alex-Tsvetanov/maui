@@ -156,16 +156,16 @@
     "dark_note": "Now matches (images render; C# dark ref re-captured from the stale blank)."
   },
   "clip_corner_radius": {
-    "dark": "diff",
-    "dark_note": "Clip now applies but oasis.jpg Image still renders blank gray (iOS sized-image render gap).",
-    "light": "diff",
-    "light_note": "The RoundRectangleGeometry Clip is now applied to the Image (leaf-control clip fix 7947839a4f), but the page still shows a blank LightGray square because the oasis.jpg Image itself does not render on iOS (bundled but loads gray; the clip page dotnet_bot.png renders fine). Remaining issue = the iOS sized-Image render gap (same as clip_gallery), separate from clip. Sliders + title match."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "C++ now renders the oasis.jpg photo clipped by the RoundRectangleGeometry inside the LightGray container (both the JPEG image-load fix e672a14b24 AND the leaf-control clip fix 7947839a4f landed); the four per-corner sliders + title match. C# ref gray (maui-compare lacks oasis.jpg, being added). Minor.",
+    "dark_note": "C++ renders oasis.jpg clipped (JPEG + clip fixes); C# ref gray (asset being added to maui-compare)."
   },
   "clip_gallery": {
-    "dark": "blank",
-    "dark_note": "C++ image slots blank vs C# gray placeholder boxes; sized-image render issue (defer until clip agent lands).",
-    "light": "diff",
-    "light_note": "C++ image slots render blank/collapsed; the C# ref shows LightGray placeholder boxes (the image source loads as gray in neither app, but MAUI reserves a sized gray container the C++ collapses to nothing). Captions (Image / Clipped Image using Rectangle/RoundRectangle/Ellipse Geometry) match. Root cause: sized images in fixed-size containers (AspectFill) do not render on iOS — same family as clip_corner_radius oasis.jpg; SEPARATE from the leaf-control clip-mask gap (agent ad31b95a1d). Defer the image-render fix until that agent lands (it edits image_handler.mm)."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "C++ now correctly renders the oasis.jpg photo in all clip variants (Image / Rectangle / RoundRectangle / Ellipse / GeometryGroup) after the iOS JPEG file-image fix (e672a14b24). The maui-compare C# ref shows GRAY placeholder boxes because that harness app bundles only dotnet_bot.png (no oasis.jpg) — the C++ is the more-faithful-to-real-MAUI render. oasis.jpg added to maui-compare + rebuild queued to upgrade the C# ref to a true match. Minor: clip-geometry crop is approximate.",
+    "dark_note": "C++ renders the oasis.jpg photo (JPEG fix); C# ref gray (maui-compare missing asset, being added)."
   },
   "clip_views": {
     "dark": "minor",

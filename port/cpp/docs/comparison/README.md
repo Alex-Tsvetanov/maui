@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 0 / 172 🟢 matched** · 69 🟡 minor · 29 🔴 diff · 74 ⬜ pending
+**Progress: 0 / 172 🟢 matched** · 71 🟡 minor · 27 🔴 diff · 74 ⬜ pending
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.
 
@@ -79,8 +79,8 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 65 | Borderless | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/borderless.png) | ![](cpp_ios_light/borderless.png) | ![](csharp_ios_dark/borderless.png) | ![](cpp_ios_dark/borderless.png) |
 | 66 | Clip | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/clip.png) | ![](cpp_ios_light/clip.png) | ![](csharp_ios_dark/clip.png) | ![](cpp_ios_dark/clip.png) |
 | 67 | Clip Views | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/clip_views.png) | ![](cpp_ios_light/clip_views.png) | ![](csharp_ios_dark/clip_views.png) | ![](cpp_ios_dark/clip_views.png) |
-| 68 | Clip Corner Radius | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/clip_corner_radius.png) | ![](cpp_ios_light/clip_corner_radius.png) | ![](csharp_ios_dark/clip_corner_radius.png) | ![](cpp_ios_dark/clip_corner_radius.png) |
-| 69 | Clip Gallery | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/clip_gallery.png) | ![](cpp_ios_light/clip_gallery.png) | ![](csharp_ios_dark/clip_gallery.png) | ![](cpp_ios_dark/clip_gallery.png) |
+| 68 | Clip Corner Radius | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/clip_corner_radius.png) | ![](cpp_ios_light/clip_corner_radius.png) | ![](csharp_ios_dark/clip_corner_radius.png) | ![](cpp_ios_dark/clip_corner_radius.png) |
+| 69 | Clip Gallery | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/clip_gallery.png) | ![](cpp_ios_light/clip_gallery.png) | ![](csharp_ios_dark/clip_gallery.png) | ![](cpp_ios_dark/clip_gallery.png) |
 | 70 | Clipping | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/clipping.png) | ![](cpp_ios_light/clipping.png) | ![](csharp_ios_dark/clipping.png) | ![](cpp_ios_dark/clipping.png) |
 | 71 | Shadow Playground | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/shadow_playground.png) | ![](cpp_ios_light/shadow_playground.png) | ![](csharp_ios_dark/shadow_playground.png) | ![](cpp_ios_dark/shadow_playground.png) |
 | 72 | Invalidate Shadow Host | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/invalidate_shadow_host.png) | ![](cpp_ios_light/invalidate_shadow_host.png) | ![](csharp_ios_dark/invalidate_shadow_host.png) | ![](cpp_ios_dark/invalidate_shadow_host.png) |
