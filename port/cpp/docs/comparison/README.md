@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 0 / 172 🟢 matched** · 121 🟡 minor · 15 🔴 diff · 36 ⬜ pending
+**Progress: 0 / 172 🟢 matched** · 126 🟡 minor · 13 🔴 diff · 33 ⬜ pending
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.
 
@@ -140,14 +140,14 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 126 | Swipe View Margin | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/swipe_view_margin.png) | ![](cpp_ios_light/swipe_view_margin.png) | ![](csharp_ios_dark/swipe_view_margin.png) | ![](cpp_ios_dark/swipe_view_margin.png) |
 | 127 | Swipe View Shadow | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/swipe_view_shadow.png) | ![](cpp_ios_light/swipe_view_shadow.png) | ![](csharp_ios_dark/swipe_view_shadow.png) | ![](cpp_ios_dark/swipe_view_shadow.png) |
 | 128 | Swipe Refresh | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/swipe_refresh.png) | ![](cpp_ios_light/swipe_refresh.png) | ![](csharp_ios_dark/swipe_refresh.png) | ![](cpp_ios_dark/swipe_refresh.png) |
-| 129 | Refresh View | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/refresh_view.png) | ![](cpp_ios_light/refresh_view.png) | ![](csharp_ios_dark/refresh_view.png) | ![](cpp_ios_dark/refresh_view.png) |
+| 129 | Refresh View | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/refresh_view.png) | ![](cpp_ios_light/refresh_view.png) | ![](csharp_ios_dark/refresh_view.png) | ![](cpp_ios_dark/refresh_view.png) |
 | 130 | Custom Size Swipe | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/custom_size_swipe.png) | ![](cpp_ios_light/custom_size_swipe.png) | ![](csharp_ios_dark/custom_size_swipe.png) | ![](cpp_ios_dark/custom_size_swipe.png) |
 | 131 | Custom Swipe Item View | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/custom_swipe_item_view.png) | ![](cpp_ios_light/custom_swipe_item_view.png) | ![](csharp_ios_dark/custom_swipe_item_view.png) | ![](cpp_ios_dark/custom_swipe_item_view.png) |
 | 132 | Basic Swipe | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/basic_swipe.png) | ![](cpp_ios_light/basic_swipe.png) | ![](csharp_ios_dark/basic_swipe.png) | ![](cpp_ios_dark/basic_swipe.png) |
-| 133 | Gestures | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/gestures.png) | ![](cpp_ios_light/gestures.png) | ![](csharp_ios_dark/gestures.png) | ![](cpp_ios_dark/gestures.png) |
-| 134 | Pan Gesture Events | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/pan_gesture_events.png) | ![](cpp_ios_light/pan_gesture_events.png) | ![](csharp_ios_dark/pan_gesture_events.png) | ![](cpp_ios_dark/pan_gesture_events.png) |
-| 135 | Pointer Gesture | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/pointer_gesture.png) | ![](cpp_ios_light/pointer_gesture.png) | ![](csharp_ios_dark/pointer_gesture.png) | ![](cpp_ios_dark/pointer_gesture.png) |
-| 136 | Drag Drop | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/drag_drop.png) | ![](cpp_ios_light/drag_drop.png) | ![](csharp_ios_dark/drag_drop.png) | ![](cpp_ios_dark/drag_drop.png) |
+| 133 | Gestures | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/gestures.png) | ![](cpp_ios_light/gestures.png) | ![](csharp_ios_dark/gestures.png) | ![](cpp_ios_dark/gestures.png) |
+| 134 | Pan Gesture Events | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/pan_gesture_events.png) | ![](cpp_ios_light/pan_gesture_events.png) | ![](csharp_ios_dark/pan_gesture_events.png) | ![](cpp_ios_dark/pan_gesture_events.png) |
+| 135 | Pointer Gesture | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/pointer_gesture.png) | ![](cpp_ios_light/pointer_gesture.png) | ![](csharp_ios_dark/pointer_gesture.png) | ![](cpp_ios_dark/pointer_gesture.png) |
+| 136 | Drag Drop | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/drag_drop.png) | ![](cpp_ios_light/drag_drop.png) | ![](csharp_ios_dark/drag_drop.png) | ![](cpp_ios_dark/drag_drop.png) |
 | 137 | Hit Testing | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/hit_testing.png) | ![](cpp_ios_light/hit_testing.png) | ![](csharp_ios_dark/hit_testing.png) | ![](cpp_ios_dark/hit_testing.png) |
 | 138 | Input Transparent | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/input_transparent.png) | ![](cpp_ios_light/input_transparent.png) | ![](csharp_ios_dark/input_transparent.png) | ![](cpp_ios_dark/input_transparent.png) |
 | 139 | Focus | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/focus.png) | ![](cpp_ios_light/focus.png) | ![](csharp_ios_dark/focus.png) | ![](cpp_ios_dark/focus.png) |

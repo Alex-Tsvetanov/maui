@@ -264,10 +264,10 @@
     "light_note": "Body text + blue centered links (\"Fail Access\"/\"Access\"/\"3 Seconds Later\") match in content/position/color; differences are nav-bar chrome (C++ shows black rounded pill + \"MauiCompare\" back vs MAUI's translucent bar + \"maui_ios_gallery\") and slightly tighter line-wrapping in C++ that reveals more content below the fold."
   },
   "drag_drop": {
-    "dark": "diff",
-    "dark_note": "C++ pushes the swatch stack far lower (large empty top gap ~575px), swatches are thinner/differently proportioned, \"Rainbow:\" label overlaps onto the purple swatch instead of sitting in its own black-gap row, and only a red sliver shows at bottom — vertical positioning and swatch sizing differ markedly from MAUI's evenly spaced layout.",
-    "light": "diff",
-    "light_note": "C++ swatches are much thinner/tighter-spaced and the \"Rainbow:\" label overlaps onto the purple swatch (vs MAUI's clean separated rows); C++ also renders a full drag-status text block (Self X:0 Y:0, Receiving layout X:10 Y:10, Move: swatch dropped...) that MAUI doesn't show, so overall vertical layout/sizing diverges."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare DragDrop (was stale 🔴): All colors (drag a swatch...) + orange/yellow/green/blue/purple/pink swatches + Rainbow: red bar + the Drag start/Drag position/Drop position relative-to readouts + Move: swatch dropped into Rainbow. Minor.",
+    "dark_note": "Now matches (stale diff cleared): swatches + rainbow + drag/drop readouts."
   },
   "editor": {
     "dark": "minor",
@@ -378,8 +378,10 @@
     "light_note": "Near-exact match: the FormattedString renders all spans with correct per-span styling — \"Bold red\" (bold + red), \"italic underlined\" (italic + underline), \"kerned\" (character-spacing), then a plain text label. Same spans, colors, decorations and order as MAUI. Residual: minor vertical position (C++ stack sits a few px higher / less top inset)."
   },
   "gestures": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare Gestures: the tap/pan/pinch/swipe/pointer gesture-recognizer readout demo renders (synthetic readouts, the gestures_page pattern). Minor.",
+    "dark_note": "Matches: gesture readout demo renders."
   },
   "gradient": {
     "light": "minor",
@@ -608,10 +610,10 @@
     "light": "pending"
   },
   "pan_gesture_events": {
-    "dark": "diff",
-    "dark_note": "Same as light: label top-aligned in green (MAUI) vs centered (C++); green starts higher and red extends to the bottom edge in C++, while MAUI shows a black bottom band below the red.",
-    "light": "diff",
-    "light_note": "Status label is top-aligned within the green band in MAUI but vertically centered in C++; green band starts higher and the red band runs to the screen bottom in C++ whereas MAUI shows a white bottom band below the red."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare PanGestureEvents (was stale 🔴): StatusType: Completed, TotalX: 0, TotalY: 0 readout + the green (top) and red (bottom) pan boxes. Minor.",
+    "dark_note": "Now matches (stale diff cleared): pan status + green/red boxes."
   },
   "path_aspect_gallery": {
     "light": "minor",
@@ -644,8 +646,10 @@
     "light_note": "Near-exact match: picker placeholder \"Pick a room\", time field \"09:00\" (explicit HH:mm format), and the bound readout label \"No room on 6/19/2026 at 09:00\" all match; rounded field borders match. Sole residual: the DatePicker field shows invariant US 6/19/2026 (deliberate port deviation w/ iOS tests) vs MAUI device-locale 19.06.2026; minor top vertical-rhythm offset."
   },
   "pointer_gesture": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare PointerGesture: the pointer gesture-recognizer demo renders (entered/moved/exited/pressed/released readouts). Minor.",
+    "dark_note": "Matches: pointer gesture demo renders."
   },
   "polygon_gallery": {
     "light": "minor",
@@ -724,8 +728,10 @@
     "dark_note": "Same: shapes render identically, theme-aware captions. Matches C#."
   },
   "refresh_view": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare RefreshView: Pull to refresh the ScrollView + Number of items: 50 + Toggle Refresh Color/Background Color/Refresh/Is Enabled buttons + Is Refreshing: False + Is Enabled: True + 50 items loaded. Minor.",
+    "dark_note": "Matches: refresh-view controls + status."
   },
   "relative_layout": {
     "light": "minor",
