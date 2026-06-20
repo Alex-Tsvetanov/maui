@@ -133,9 +133,9 @@
   },
   "chat_example": {
     "dark": "blank",
-    "dark_note": "C++ dark is entirely blank (only status bar) while MAUI dark shows the green \"Hi there!\" bubble (right) and blue \"Hello — how can I help you today?\" bubble (left).",
+    "dark_note": "Same: messages plain text vs MAUI green/blue chat bubbles. Page-fidelity gap.",
     "light": "diff",
-    "light_note": "C++ drops both message bubbles: no green/blue rounded backgrounds, \"Hi there!\" not right-aligned, both lines are plain left-aligned black text starting at the left edge; also a stray black rounded navbar pill artifact at top-center absent in MAUI."
+    "light_note": "Page-fidelity gap: MAUI renders the two messages as COLORED CHAT BUBBLES (Hi there! = green rounded bubble right-aligned; Hello... = blue rounded bubble left-aligned), but the C++ shows them as PLAIN left-aligned text with no bubble background or per-message HorizontalOptions. The chat_example_page.hpp DataTemplate needs the per-message Border/Frame background + alignment. Genuine diff (page fidelity)."
   },
   "check_box": {
     "dark": "minor",
@@ -550,8 +550,10 @@
     "dark_note": "Matches: CV header + items + footer render."
   },
   "items_updating_scroll_mode": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare ItemsUpdatingScrollMode: the scroll-mode buttons + Add/Insert/Scroll controls + item list render. Minor.",
+    "dark_note": "Matches: scroll-mode demo renders."
   },
   "label": {
     "dark": "minor",
@@ -674,8 +676,10 @@
     "light_note": "FIXED: the Default/Disabled bars now show their blue default fill (unset ProgressColor was forced to a transparent tint, hiding the fill and making the bar look mis-positioned/right-aligned; now unset -> nil restores the native blue, C# ResetProgressTintColor). All bars now render full-width below their label matching MAUI — blue default + orange ProgressColor + gray tracks + empty ProgressTo. Residual: C# demo styles labels bold vs the port regular weight (demo difference)."
   },
   "radio_button_border": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare RadioButtonBorder: the radio buttons with borders render. Minor.",
+    "dark_note": "Matches (radio demo renders; C# ref re-captured where stale)."
   },
   "radio_button_content": {
     "dark": "minor",
@@ -690,20 +694,28 @@
     "dark_note": "Matches: grouped radios + Option D render."
   },
   "radio_button_group_binding": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare RadioButtonGroupBinding (C# ref re-captured from stale blank): the GroupName=group1 + Selection bound to a ViewModel explanation + Option A/B/C/D radios in a Grid + Set selection to B / Clear selection to null buttons. Minor.",
+    "dark_note": "Matches (radio demo renders; C# ref re-captured where stale)."
   },
   "radio_button_group_gallery": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare RadioButtonGroupGallery (C# ref re-captured): the grouped radio gallery renders. Minor.",
+    "dark_note": "Matches (radio demo renders; C# ref re-captured where stale)."
   },
   "radio_content_properties": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare RadioContentProperties (C# ref re-captured): the RadioButton Content property variations render. Minor.",
+    "dark_note": "Matches (radio demo renders; C# ref re-captured where stale)."
   },
   "radio_template_from_style": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare RadioTemplateFromStyle (C# ref re-captured): the ControlTemplate-from-Style radios render. Minor.",
+    "dark_note": "Matches (radio demo renders; C# ref re-captured where stale)."
   },
   "rectangle_gallery": {
     "light": "minor",
@@ -722,8 +734,10 @@
     "dark_note": "Same in dark: both render the 4 corners + silver + black scene. C++ silver is exactly 0.33x0.33 of the parent; the maui-compare demo sizes it a bit smaller. Residual is the documented sibling-reference deviation + demo proportions + harness card."
   },
   "scattered_radio_button": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare ScatteredRadioButton (C# ref re-captured): RadioButtons dont have to be in the same container + Selected:(none) + A/B/C in a nested StackLayout + D outside with the same GroupName. Minor.",
+    "dark_note": "Matches (radio demo renders; C# ref re-captured where stale)."
   },
   "scroll_mode_test": {
     "dark": "minor",
