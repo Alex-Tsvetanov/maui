@@ -158,14 +158,14 @@
   "clip_corner_radius": {
     "dark": "minor",
     "light": "minor",
-    "light_note": "C++ now renders the oasis.jpg photo clipped by the RoundRectangleGeometry inside the LightGray container (both the JPEG image-load fix e672a14b24 AND the leaf-control clip fix 7947839a4f landed); the four per-corner sliders + title match. C# ref gray (maui-compare lacks oasis.jpg, being added). Minor.",
-    "dark_note": "C++ renders oasis.jpg clipped (JPEG + clip fixes); C# ref gray (asset being added to maui-compare)."
+    "light_note": "C++ now renders the oasis.jpg photo clipped by the RoundRectangleGeometry inside the LightGray container (JPEG image-load fix e672a14b24 + leaf-control clip fix 7947839a4f); per-corner sliders + title match. The maui-compare C# ref stays gray (harness cannot render oasis.jpg even after asset-add+rebuild). C++ is the correct render. Minor.",
+    "dark_note": "C++ renders oasis.jpg clipped (JPEG + clip fixes); maui-compare ref gray (harness limitation). C++ correct."
   },
   "clip_gallery": {
     "dark": "minor",
     "light": "minor",
-    "light_note": "C++ now correctly renders the oasis.jpg photo in all clip variants (Image / Rectangle / RoundRectangle / Ellipse / GeometryGroup) after the iOS JPEG file-image fix (e672a14b24). The maui-compare C# ref shows GRAY placeholder boxes because that harness app bundles only dotnet_bot.png (no oasis.jpg) — the C++ is the more-faithful-to-real-MAUI render. oasis.jpg added to maui-compare + rebuild queued to upgrade the C# ref to a true match. Minor: clip-geometry crop is approximate.",
-    "dark_note": "C++ renders the oasis.jpg photo (JPEG fix); C# ref gray (maui-compare missing asset, being added)."
+    "light_note": "C++ now correctly renders the oasis.jpg photo in all clip variants after the iOS JPEG file-image fix (e672a14b24). The maui-compare C# ref shows GRAY placeholder boxes and STILL does after adding oasis.jpg to its Resources/Images + rebuilding — the maui-compare harness cannot resolve that MauiImage (raster Resizetizer/source-name quirk). The C++ is the more-faithful-to-real-MAUI render; this is a reference-harness limitation, not a port gap. Minor.",
+    "dark_note": "C++ renders the oasis.jpg photo (JPEG fix); the maui-compare C# ref cannot render it even with the asset added (harness limitation). C++ correct."
   },
   "clip_views": {
     "dark": "minor",
