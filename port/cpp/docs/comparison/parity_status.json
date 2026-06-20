@@ -506,8 +506,10 @@
     "dark_note": "Matches: Update Host Size + sliders + green host box. Minor host height."
   },
   "ios_blur_effect": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare iOSBlurEffect: the photo + No Blur / Extra Light Blur / Light Blur / Dark Blur buttons + BlurEffect: ExtraLight status (the JPEG image renders after the file-image fix). Minor.",
+    "dark_note": "Matches (iOS platform-specific demo renders)."
   },
   "ios_date_picker": {
     "dark": "minor",
@@ -522,12 +524,16 @@
     "dark_note": "Matches: iOS entry demo renders."
   },
   "ios_first_responder": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare iOSFirstResponder: the two Entry+OK keyboard/first-responder demo + Focus First/Second buttons + First/Second IsFocused + CanBecomeFirstResponder readouts. Minor.",
+    "dark_note": "Matches (iOS platform-specific demo renders)."
   },
   "ios_pan_gesture": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare iOSPanGesture: the iOS pan-gesture platform-specific demo renders. Minor.",
+    "dark_note": "Matches (iOS platform-specific demo renders)."
   },
   "ios_picker": {
     "dark": "minor",
@@ -542,24 +548,34 @@
     "dark_note": "Matches: safe-area text + toggle."
   },
   "ios_scroll_view": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "diff",
+    "light": "diff",
+    "light_note": "iOS render gap: the ios_scroll_view page renders essentially BLANK — only a navigation back-chevron at top-left, no scroll content (MAUI shows the scroll-view platform-specifics content). Likely a nav-pushed scroll sub-page not laying out its content on iOS. Low-priority iOS-specific page; kept as diff.",
+    "dark_note": "Blank (only nav back button); scroll content not rendering. Kept diff."
   },
   "ios_search_bar": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare iOSSearchBar: Enter search term SearchBar + Toggle SearchBar Style + Toggle Background buttons. Minor.",
+    "dark_note": "Matches (iOS platform-specific demo renders)."
   },
   "ios_slider_update_on_tap": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare iOSSliderUpdateOnTap: the slider with UpdateOnTap platform-specific + controls render. Minor.",
+    "dark_note": "Matches (iOS platform-specific demo renders)."
   },
   "ios_swipe_transition": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare iOSSwipeTransition: the iOS swipe-transition-mode demo renders. Minor.",
+    "dark_note": "Matches (iOS platform-specific demo renders)."
   },
   "ios_time_picker": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare iOSTimePicker: the iOS time-picker platform-specifics demo renders. Minor.",
+    "dark_note": "Matches (iOS platform-specific demo renders)."
   },
   "items": {
     "dark": "minor",
