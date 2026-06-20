@@ -84,6 +84,10 @@ namespace maui::core
         // the UIView backgroundColor property (flat fill, bezel suppressed, like MAUI); gradient/image use
         // the shared backing-layer helper. Mirrors the picker handler's update_background.
         void update_background(const maui::graphics::paint* value) override;
+        // Clip IS pushed: WrapperView.SetClip masks the MauiIosDatePicker (UITextField)'s layer (the shared
+        // apply_and_store_clip; MauiIosDatePicker.layoutSubviews re-frames the mask to the live bounds, the
+        // 0×0-at-map-time fix).
+        void update_clip(const maui::graphics::i_shape* value) override;
 #endif
     };
 

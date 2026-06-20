@@ -12,6 +12,7 @@
 // responder) need a UIWindow + UIApplication, so the live selectedTextRange paths are exercised by the
 // app-bundle test-host lane (deferred with the scaffold); here the cursor/selection maps record their
 // mirrors, exactly like the AppKit twin without a field editor.
+#import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
 
 #include <memory>
@@ -31,6 +32,8 @@
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
+#include "maui/graphics/shapes/rectangle.hpp"
+#include "maui/graphics/shapes/round_rectangle.hpp"
 #include <gtest/gtest.h>
 
 namespace
@@ -614,5 +617,57 @@ namespace
         knob::set_adjusts_font_size_to_fit_width(control, false);
         EXPECT_FALSE(native_field(handler).adjustsFontSizeToFitWidth);
         EXPECT_FALSE(handler->typed_platform_view()->adjusts_font_size_to_fit_width);
+    }
+
+    // VisualElement.Clip on a leaf entry: ViewHandler.MapClip masks the UITextField's layer with a
+    // CAShapeLayer whose path covers the laid-out bounds; a null clip removes the mask (WrapperView.SetClip).
+    // This is the gap that was silently ignored on every iOS leaf control before this fix.
+    TEST(ios_entry_seam, clip_installs_and_removes_the_shape_mask)
+    {
+        entry control;
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+        UITextField* const field = native_field(handler);
+        [field setFrame:CGRectMake(0, 0, 120, 36)]; // non-zero bounds before the clip push
+
+        control.set_clip(std::make_shared<maui::graphics::shapes::rectangle>());
+        ASSERT_NE(field.layer.mask, nil);
+        CAShapeLayer* const mask = static_cast<CAShapeLayer*>(field.layer.mask);
+        ASSERT_TRUE([mask isKindOfClass:[CAShapeLayer class]]);
+        ASSERT_NE(mask.path, nullptr);
+        const CGRect box = CGPathGetBoundingBox(mask.path);
+        EXPECT_NEAR(box.size.width, 120.0, 1e-3);
+        EXPECT_NEAR(box.size.height, 36.0, 1e-3);
+
+        control.set_clip(nullptr);
+        EXPECT_EQ(field.layer.mask, nil);
+    }
+
+    // The 0×0-at-map-time guard: a clip set BEFORE the field is laid out installs the mask against the
+    // then-zero bounds; MauiIosTextField.layoutSubviews must re-frame it to the real bounds once UIKit lays
+    // the field out (the leaf-control analog of WrapperView.LayoutSubviews re-running SetClip).
+    TEST(ios_entry_seam, clip_mask_reframes_to_bounds_on_layout)
+    {
+        entry control;
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+        UITextField* const field = native_field(handler);
+
+        // Bounds are still zero here (the bug condition) — set the clip before any layout.
+        control.set_clip(std::make_shared<maui::graphics::shapes::round_rectangle>(6.0));
+        ASSERT_NE(field.layer.mask, nil);
+        CAShapeLayer* const mask = static_cast<CAShapeLayer*>(field.layer.mask);
+        EXPECT_NEAR(CGPathGetBoundingBox(mask.path).size.width, 0.0, 1e-3); // masked at zero bounds (latent)
+
+        // A pure UIKit relayout (no handler arrange) must re-frame the mask to the new bounds.
+        [field setFrame:CGRectMake(0, 0, 140, 40)];
+        [field setNeedsLayout];
+        [field layoutIfNeeded]; // fire MauiIosTextField.layoutSubviews → reapply_clip
+
+        ASSERT_NE(field.layer.mask, nil);
+        auto* const reframed = static_cast<CAShapeLayer*>(field.layer.mask);
+        const CGRect box = CGPathGetBoundingBox(reframed.path);
+        EXPECT_NEAR(box.size.width, 140.0, 1e-3);
+        EXPECT_NEAR(box.size.height, 40.0, 1e-3);
     }
 } // namespace

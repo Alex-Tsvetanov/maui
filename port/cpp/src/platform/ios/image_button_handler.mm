@@ -235,6 +235,18 @@ namespace maui::core
         }
     }
 
+    // ViewHandler.MapClip → WrapperView.SetClip: mask the UIButton's layer to the clip geometry, sized to
+    // its CURRENT bounds (0×0 before the first layout — platform_arrange re-frames it). The UIButton has no
+    // MauiIos* subclass, so the re-frame on a UIKit-driven resize rides the handler's platform_arrange;
+    // apply_and_store_clip stashes the borrow for that re-frame.
+    void image_button_platform::update_clip(const maui::graphics::i_shape* value)
+    {
+        const CGRect bounds = as_button(native).bounds;
+        maui::platform::ios::apply_and_store_clip(
+            native, value,
+            maui::graphics::rect{bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height});
+    }
+
     std::unique_ptr<image_button_platform> image_button_handler::create_platform_view()
     {
         auto platform = std::make_unique<image_button_platform>();
@@ -412,5 +424,8 @@ namespace maui::core
             return;
         }
         [as_button(platform->native) setFrame:CGRectMake(frame.x, frame.y, frame.width, frame.height)];
+        // Re-frame the clip mask to the just-set bounds (WrapperView.LayoutSubviews re-runs SetClip): the
+        // mask was sized at map time, before any layout, when bounds was 0×0. No-op when no clip is set.
+        maui::platform::ios::reapply_clip(platform->native);
     }
 } // namespace maui::core

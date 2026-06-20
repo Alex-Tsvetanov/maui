@@ -92,6 +92,10 @@ namespace maui::core
         // "flow_direction" key (map_flow_direction) overrides the shared view_mapper's generic push, so
         // it resolves the direction and applies it (via ios_view_ops::apply_flow_direction) directly —
         // the same shape as the iOS progress_bar twin, which likewise omits an update_flow_direction.
+        // Clip IS pushed: WrapperView.SetClip masks the MauiIosStepper (UIStepper)'s layer (the shared
+        // apply_and_store_clip; MauiIosStepper.layoutSubviews re-frames the mask to the live bounds, the
+        // 0×0-at-map-time fix).
+        void update_clip(const maui::graphics::i_shape* value) override;
 #endif
     };
 

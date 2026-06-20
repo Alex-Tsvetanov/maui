@@ -87,6 +87,10 @@ namespace maui::core
         // BackgroundColor IS pushed to the UITextField (it respects backgroundColor directly, unlike a
         // UIButton): the MauiPicker is a plain UIView, so the shared apply_background paints its layer.
         void update_background(const maui::graphics::paint* value) override;
+        // Clip IS pushed: WrapperView.SetClip masks the MauiIosPicker (UITextField)'s layer (the shared
+        // apply_and_store_clip; MauiIosPicker.layoutSubviews re-frames the mask to the live bounds, the
+        // 0×0-at-map-time fix).
+        void update_clip(const maui::graphics::i_shape* value) override;
 #endif
     };
 

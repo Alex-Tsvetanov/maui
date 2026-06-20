@@ -113,6 +113,10 @@ namespace maui::core
         // Teardown (on_disconnect_handler + dtor) sets it false, so a block already in flight when the
         // handler is destroyed bails BEFORE dereferencing the freed handler (the battery alive_ pattern).
         std::shared_ptr<std::atomic<bool>> reapply_alive = std::make_shared<std::atomic<bool>>(true);
+        // Clip IS pushed: WrapperView.SetClip masks the MauiIosSwitch (UISwitch)'s layer (the shared
+        // apply_and_store_clip; MauiIosSwitch.layoutSubviews re-frames the mask to the live bounds, the
+        // 0×0-at-map-time fix).
+        void update_clip(const maui::graphics::i_shape* value) override;
 #endif
     };
 

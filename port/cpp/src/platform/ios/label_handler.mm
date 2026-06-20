@@ -129,6 +129,10 @@
 {
     [super layoutSubviews];
     maui::platform::ios::resize_background_layers((__bridge void*)self);
+    // Re-frame the clip mask to the new bounds (WrapperView.LayoutSubviews re-runs SetClip): a
+    // UIKit-driven resize / rotation that bypasses the handler would otherwise leave the mask sized
+    // to the old (or 0×0 map-time) bounds. No-op when no clip is set.
+    maui::platform::ios::reapply_clip((__bridge void*)self);
 }
 @end
 
@@ -229,6 +233,17 @@ namespace maui::core
         const std::string id(value);
         NSString* const raw = [NSString stringWithUTF8String:id.c_str()];
         as_label(native).accessibilityIdentifier = raw != nil ? raw : @"";
+    }
+
+    // ViewHandler.MapClip → WrapperView.SetClip: mask the native view's layer to the clip
+    // geometry, sized to the view's CURRENT bounds (0×0 before the first layout — the layout hook
+    // re-frames it). apply_and_store_clip both applies and stashes the borrow for that re-frame.
+    void label_platform::update_clip(const maui::graphics::i_shape* value)
+    {
+        const CGRect bounds = ((__bridge UIView*)native).bounds;
+        maui::platform::ios::apply_and_store_clip(
+            native, value,
+            maui::graphics::rect{bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height});
     }
 
     // MapBackground: paint the solid/gradient/image onto the UILabel's backing layer (PaintExtensions).

@@ -102,6 +102,10 @@ namespace maui::core
         // the UILabel's backing layer via apply_background. Without it the paint fell through to the no-op
         // view_platform_base mirror and never rendered (a transparent label, invisible on a light page).
         void update_background(const maui::graphics::paint* value) override;
+        // Clip IS pushed: WrapperView.SetClip masks the MauiIosLabel (UILabel)'s layer (the shared
+        // apply_and_store_clip; MauiIosLabel.layoutSubviews re-frames the mask to the live bounds, the
+        // 0×0-at-map-time fix).
+        void update_clip(const maui::graphics::i_shape* value) override;
 #endif
     };
 

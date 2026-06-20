@@ -35,6 +35,8 @@
 #include <string_view>
 #include <utility>
 
+#include "ios_visual_ops.hpp"
+
 #include "maui/core/aspect.hpp"
 #include "maui/core/cancellation_token.hpp"
 #include "maui/core/i_image.hpp"
@@ -266,6 +268,18 @@ namespace maui::core
         as_image_view(native).accessibilityIdentifier = raw != nil ? raw : @"";
     }
 
+    // ViewHandler.MapClip → WrapperView.SetClip: mask the UIImageView's layer to the clip geometry, sized
+    // to its CURRENT bounds (0×0 before the first layout — platform_arrange re-frames it). A UIImageView
+    // has no MauiIos* subclass, so the re-frame on a UIKit-driven resize rides the handler's
+    // platform_arrange; apply_and_store_clip stashes the borrow for that re-frame.
+    void image_platform::update_clip(const maui::graphics::i_shape* value)
+    {
+        const CGRect bounds = as_image_view(native).bounds;
+        maui::platform::ios::apply_and_store_clip(
+            native, value,
+            maui::graphics::rect{bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height});
+    }
+
     std::unique_ptr<image_platform> image_handler::create_platform_view()
     {
         auto platform = std::make_unique<image_platform>();
@@ -395,6 +409,9 @@ namespace maui::core
             return;
         }
         [as_image_view(platform->native) setFrame:CGRectMake(frame.x, frame.y, frame.width, frame.height)];
+        // Re-frame the clip mask to the just-set bounds (WrapperView.LayoutSubviews re-runs SetClip): the
+        // mask was sized at map time, before any layout, when bounds was 0×0. No-op when no clip is set.
+        maui::platform::ios::reapply_clip(platform->native);
     }
 
     // C# uiContext.GetDisplayDensity() (UIKit): the view's trait-collection displayScale, falling back to

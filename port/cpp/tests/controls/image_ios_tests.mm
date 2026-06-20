@@ -6,6 +6,7 @@
 // MAUI_BACKEND=ios (executed ON the iOS simulator via tools/ios-sim-run.sh); mirrors the AppKit twin's
 // coverage (image_apple_tests.mm). Compiled as Objective-C++ with ARC.
 #import <ImageIO/ImageIO.h>
+#import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
 
 #include <cstddef>
@@ -20,6 +21,9 @@
 #include "maui/core/i_stream_image_source.hpp"
 #include "maui/core/image_handler.hpp"
 #include "maui/core/visibility.hpp"
+#include "maui/graphics/rect.hpp"
+#include "maui/graphics/shapes/rectangle.hpp"
+#include "maui/graphics/shapes/round_rectangle.hpp"
 #include <gtest/gtest.h>
 
 namespace
@@ -392,5 +396,53 @@ namespace
 
         control.set_automation_id("hero_image");
         EXPECT_EQ(to_std_string(view.accessibilityIdentifier), "hero_image");
+    }
+
+    // VisualElement.Clip on a leaf image: ViewHandler.MapClip masks the UIImageView's layer with a
+    // CAShapeLayer covering the laid-out bounds; a null clip removes the mask (WrapperView.SetClip). The
+    // UIImageView has no MauiIos* subclass — this is the subclass-less leaf path.
+    TEST(ios_image_seam, clip_installs_and_removes_the_shape_mask)
+    {
+        image control;
+        auto handler = std::make_shared<image_handler>();
+        control.set_handler(handler);
+        UIImageView* const view = native_image_view(handler);
+        [view setFrame:CGRectMake(0, 0, 90, 60)]; // non-zero bounds before the clip push
+
+        control.set_clip(std::make_shared<maui::graphics::shapes::rectangle>());
+        ASSERT_NE(view.layer.mask, nil);
+        CAShapeLayer* const mask = static_cast<CAShapeLayer*>(view.layer.mask);
+        ASSERT_TRUE([mask isKindOfClass:[CAShapeLayer class]]);
+        ASSERT_NE(mask.path, nullptr);
+        const CGRect box = CGPathGetBoundingBox(mask.path);
+        EXPECT_NEAR(box.size.width, 90.0, 1e-3);
+        EXPECT_NEAR(box.size.height, 60.0, 1e-3);
+
+        control.set_clip(nullptr);
+        EXPECT_EQ(view.layer.mask, nil);
+    }
+
+    // The 0×0-at-map-time guard for a subclass-less leaf: the clip set before layout masks at zero bounds;
+    // the handler's platform_arrange re-frames the mask to the arranged bounds (the UIImageView has no
+    // layoutSubviews hook, so the re-frame rides the handler's arrange — image_handler::platform_arrange).
+    TEST(ios_image_seam, clip_mask_reframes_to_bounds_on_arrange)
+    {
+        image control;
+        auto handler = std::make_shared<image_handler>();
+        control.set_handler(handler);
+        UIImageView* const view = native_image_view(handler);
+
+        control.set_clip(std::make_shared<maui::graphics::shapes::round_rectangle>(8.0));
+        ASSERT_NE(view.layer.mask, nil);
+        CAShapeLayer* const mask = static_cast<CAShapeLayer*>(view.layer.mask);
+        EXPECT_NEAR(CGPathGetBoundingBox(mask.path).size.width, 0.0, 1e-3); // masked at zero bounds (latent)
+
+        control.arrange(maui::graphics::rect(0, 0, 160, 100)); // routes to image_handler::platform_arrange
+
+        ASSERT_NE(view.layer.mask, nil);
+        auto* const reframed = static_cast<CAShapeLayer*>(view.layer.mask);
+        const CGRect box = CGPathGetBoundingBox(reframed.path);
+        EXPECT_NEAR(box.size.width, 160.0, 1e-3);
+        EXPECT_NEAR(box.size.height, 100.0, 1e-3);
     }
 } // namespace

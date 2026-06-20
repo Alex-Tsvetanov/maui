@@ -97,6 +97,10 @@ namespace maui::core
         // fill becomes a 1×1 colored image; gradient/image defers to apply_background) — the ButtonHandler
         // recipe; plain backgroundColor is ignored by the button's own drawing.
         void update_background(const maui::graphics::paint* value) override;
+        // Clip IS pushed: WrapperView.SetClip masks the UIButton's layer (the shared
+        // apply_and_store_clip; the handler's platform_arrange re-frames the mask to the live bounds, the
+        // 0×0-at-map-time fix).
+        void update_clip(const maui::graphics::i_shape* value) override;
 #endif
     };
 

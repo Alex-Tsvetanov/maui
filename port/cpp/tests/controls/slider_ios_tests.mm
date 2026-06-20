@@ -7,6 +7,7 @@
 // NATIVE EVENT INJECTION: as in button_ios_tests.mm, -[UIControl sendActionsForControlEvents:] needs a
 // UIApplication this spawned test process cannot create, so send_control_event replicates UIControl's
 // documented dispatch walk over the REAL registrations the handler made on the REAL UISlider.
+#import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
 
 #include <cstring>
@@ -23,6 +24,8 @@
 #include "maui/core/slider_handler.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
+#include "maui/graphics/shapes/rectangle.hpp"
+#include "maui/graphics/shapes/round_rectangle.hpp"
 #include <gtest/gtest.h>
 
 namespace
@@ -318,5 +321,53 @@ namespace
         slider control(0, 10, 7);
         control.set_handler(handler);
         EXPECT_EQ(((__bridge UISlider*)resolved->typed_platform_view()->native).value, 7.0F);
+    }
+
+    // VisualElement.Clip on a value control (slider): ViewHandler.MapClip masks the UISlider's layer with a
+    // CAShapeLayer covering the laid-out bounds; a null clip removes the mask (WrapperView.SetClip).
+    TEST(ios_slider_seam, clip_installs_and_removes_the_shape_mask)
+    {
+        slider control;
+        auto handler = std::make_shared<slider_handler>();
+        control.set_handler(handler);
+        UISlider* const view = native_slider(handler);
+        [view setFrame:CGRectMake(0, 0, 200, 30)]; // non-zero bounds before the clip push
+
+        control.set_clip(std::make_shared<maui::graphics::shapes::rectangle>());
+        ASSERT_NE(view.layer.mask, nil);
+        CAShapeLayer* const mask = static_cast<CAShapeLayer*>(view.layer.mask);
+        ASSERT_TRUE([mask isKindOfClass:[CAShapeLayer class]]);
+        ASSERT_NE(mask.path, nullptr);
+        const CGRect box = CGPathGetBoundingBox(mask.path);
+        EXPECT_NEAR(box.size.width, 200.0, 1e-3);
+        EXPECT_NEAR(box.size.height, 30.0, 1e-3);
+
+        control.set_clip(nullptr);
+        EXPECT_EQ(view.layer.mask, nil);
+    }
+
+    // The 0×0-at-map-time guard: a clip set before layout masks at the then-zero bounds;
+    // MauiIosSlider.layoutSubviews must re-frame the mask to the real bounds on the next layout pass.
+    TEST(ios_slider_seam, clip_mask_reframes_to_bounds_on_layout)
+    {
+        slider control;
+        auto handler = std::make_shared<slider_handler>();
+        control.set_handler(handler);
+        UISlider* const view = native_slider(handler);
+
+        control.set_clip(std::make_shared<maui::graphics::shapes::round_rectangle>(4.0));
+        ASSERT_NE(view.layer.mask, nil);
+        CAShapeLayer* const mask = static_cast<CAShapeLayer*>(view.layer.mask);
+        EXPECT_NEAR(CGPathGetBoundingBox(mask.path).size.width, 0.0, 1e-3); // masked at zero bounds (latent)
+
+        [view setFrame:CGRectMake(0, 0, 220, 28)];
+        [view setNeedsLayout];
+        [view layoutIfNeeded]; // fire MauiIosSlider.layoutSubviews → reapply_clip
+
+        ASSERT_NE(view.layer.mask, nil);
+        auto* const reframed = static_cast<CAShapeLayer*>(view.layer.mask);
+        const CGRect box = CGPathGetBoundingBox(reframed.path);
+        EXPECT_NEAR(box.size.width, 220.0, 1e-3);
+        EXPECT_NEAR(box.size.height, 28.0, 1e-3);
     }
 } // namespace

@@ -27,6 +27,7 @@
 
 #import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
+#import <objc/runtime.h>
 
 #include <algorithm>
 #include <cmath>
@@ -512,5 +513,62 @@ namespace maui::platform::ios
         mask.path = cg;
         CGPathRelease(cg);
         layer.mask = mask;
+    }
+
+    // Bounds-dependent clip re-application (the leaf-control twin of resize_background_layers).
+    //
+    // apply_clip sizes the CAShapeLayer mask to the view bounds AT PUSH TIME — which for a leaf control
+    // is map time, before the first layout, when layer.bounds is still 0×0 (the mask would clip the whole
+    // view away). C# never hits this because WrapperView.SetClip is re-run from WrapperView.LayoutSubviews
+    // against the live frame on every pass (WrapperView.cs:118). The port has no per-control WrapperView,
+    // so each leaf handler re-applies the mask itself from its layout hook. To re-stroke without a back-
+    // reference to the C++ handler (a UIKit-driven autoresize / rotation never routes through the handler),
+    // store_clip_shape stashes the clip geometry — a NON-owning borrow the control keeps alive, refreshed
+    // on every update_clip incl. the null clear, exactly like MauiIosBorder.borderRefresh captures its
+    // spec — and reapply_clip re-runs apply_clip against the view's CURRENT bounds.
+    namespace detail
+    {
+        // Associated-object key (its address is the key) holding an NSValue box of the const i_shape*
+        // borrow. NSValue retains the box, not the C++ object; the control owns the shape's lifetime.
+        inline const char k_clip_shape_key = 0;
+    } // namespace detail
+
+    inline void store_clip_shape(void* native, const maui::graphics::i_shape* shape)
+    {
+        if (native == nullptr)
+        {
+            return;
+        }
+        UIView* const view = (__bridge UIView*)native;
+        // A null shape clears the stash (no re-application on later layouts), matching the null-clip path.
+        NSValue* const boxed = shape == nullptr ? nil : [NSValue valueWithPointer:static_cast<const void*>(shape)];
+        objc_setAssociatedObject(view, &detail::k_clip_shape_key, boxed, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+
+    inline void reapply_clip(void* native)
+    {
+        if (native == nullptr)
+        {
+            return;
+        }
+        UIView* const view = (__bridge UIView*)native;
+        NSValue* const boxed = objc_getAssociatedObject(view, &detail::k_clip_shape_key);
+        if (boxed == nil)
+        {
+            return; // no clip stashed → nothing to re-frame (and never touch an unmasked view)
+        }
+        const auto* const shape = static_cast<const maui::graphics::i_shape*>([boxed pointerValue]);
+        const CGRect bounds = view.bounds; // WrapperView.SetClip's RectF(0, 0, frame.Width, frame.Height)
+        apply_clip(native, shape,
+                   maui::graphics::rect{bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height});
+    }
+
+    // The combined push a leaf handler's update_clip calls: re-mask against the CURRENT bounds AND stash
+    // the geometry so the control's layout hook (MauiIos*.layoutSubviews / platform_arrange) can re-frame
+    // it after the real layout pass. `bounds` is the view's live bounds at map time (0×0 before layout).
+    inline void apply_and_store_clip(void* native, const maui::graphics::i_shape* shape, maui::graphics::rect bounds)
+    {
+        apply_clip(native, shape, bounds);
+        store_clip_shape(native, shape);
     }
 } // namespace maui::platform::ios

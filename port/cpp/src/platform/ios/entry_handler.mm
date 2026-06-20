@@ -48,6 +48,7 @@
 #include "ios_keyboard_manager_ops.hpp" // W7 keyboard-automanager: the next-responder walk
 #include "ios_keyboard_ops.hpp"
 #include "ios_text_ops.hpp"
+#include "ios_visual_ops.hpp"
 #include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/entry_handler.hpp"
 #include "maui/core/i_entry.hpp"
@@ -94,6 +95,15 @@
     {
         [self.mauiProxy mauiSelectionChangedFrom:self];
     }
+}
+
+// Re-frame the clip mask to the new bounds (WrapperView.LayoutSubviews re-runs SetClip): apply_clip sizes
+// the mask at map time, before the first layout, when bounds is 0×0 — and a UIKit-driven resize / rotation
+// never routes through the handler. No-op when no clip is set.
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    maui::platform::ios::reapply_clip((__bridge void*)self);
 }
 @end
 
@@ -472,6 +482,17 @@ namespace maui::core
         const std::string id(value);
         NSString* const raw = [NSString stringWithUTF8String:id.c_str()];
         as_field(native).accessibilityIdentifier = raw != nil ? raw : @"";
+    }
+
+    // ViewHandler.MapClip → WrapperView.SetClip: mask the native view's layer to the clip
+    // geometry, sized to the view's CURRENT bounds (0×0 before the first layout — the layout hook
+    // re-frames it). apply_and_store_clip both applies and stashes the borrow for that re-frame.
+    void entry_platform::update_clip(const maui::graphics::i_shape* value)
+    {
+        const CGRect bounds = ((__bridge UIView*)native).bounds;
+        maui::platform::ios::apply_and_store_clip(
+            native, value,
+            maui::graphics::rect{bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height});
     }
 
     std::unique_ptr<entry_platform> entry_handler::create_platform_view()
