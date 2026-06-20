@@ -132,10 +132,10 @@
     "dark_note": "Now matches (carousel item-sizing fix): one full-viewport item per page; minor label alignment within the cell."
   },
   "chat_example": {
-    "dark": "blank",
-    "dark_note": "Same: messages plain text vs MAUI green/blue chat bubbles. Page-fidelity gap.",
-    "light": "diff",
-    "light_note": "Page-fidelity gap: MAUI renders the two messages as COLORED CHAT BUBBLES (Hi there! = green rounded bubble right-aligned; Hello... = blue rounded bubble left-aligned), but the C++ shows them as PLAIN left-aligned text with no bubble background or per-message HorizontalOptions. The chat_example_page.hpp DataTemplate needs the per-message Border/Frame background + alignment. Genuine diff (page fidelity)."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Improved (95d572c90c): the two messages now render with the oracle COLORS — Hi there! = green rgb(198,234,198) (local), Hello... = blue rgb(198,219,244) (remote) — with the correct padding/margin/text color. Residual (struct-cell DataTemplate framework limitation, documented): the bubbles render as FULL-WIDTH SQUARE bands rather than MAUIs compact, rounded (CornerRadius 12), right/left-aligned bubbles — the port struct-cell template seam stages setters on a single Label root only (no nested border->label) and the CV cell stretches the Label to fill width (HorizontalOptions end/start has no compacting effect). Colors match; bubble shape/alignment is the residual. Minor.",
+    "dark_note": "Colors now match (green local / blue remote); bubbles are full-width square bands vs MAUI compact rounded aligned (struct-cell template limitation). Minor."
   },
   "check_box": {
     "dark": "minor",
