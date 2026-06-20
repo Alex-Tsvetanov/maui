@@ -362,8 +362,10 @@
     "light": "pending"
   },
   "gradient": {
-    "dark": "pending",
-    "light": "pending"
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "FIXED: authored the missing gradient gallery page reproducing maui-compare Gradient() 1:1 (the key fell back to value-controls) — two bold-captioned 60px BoxViews: a LinearGradientBrush (Yellow->Green, horizontal) and a RadialGradientBrush (Red->DarkBlue, center 0.5/0.5, radius 0.7). Both gradients + bold captions render identically to C# (bold via the to_ui_font fix). Residual: maui-compare card framing.",
+    "dark_note": "Same: linear + radial gradient boxes + bold captions render, theme-aware. Faithful reproduction of Gradient()."
   },
   "grid": {
     "light": "minor",
