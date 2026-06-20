@@ -1,15 +1,21 @@
 #pragma once
 // maui::samples::chat_example_page — ports ChatExample.xaml (+ .xaml.cs)
-//   (Maui.Controls.Sample.Pages.CollectionViewGalleries.ItemSizeGalleries.ChatExample).
+//   (Maui.Controls.Sample.Pages.CollectionViewGalleries.ItemSizeGalleries.ChatExample), tracking the
+//   maui-compare reference demo ~/maui-compare/Pages/ChatExamplePage.cs (the visual-parity oracle).
 //
 // The C# page is the variable-height-items demo: a ChatExampleViewModel holds an
 // ObservableCollection<ChatMessage>, each message a { Text, IsLocal }. A ChatTemplateSelector picks one of
-// two DataTemplates per message — Local (a green, right-aligned bubble in the right 2/3 of a 1*/2* Grid)
-// or Remote (a blue, left-aligned bubble in the left 2/3 of a 2*/1* Grid). The CollectionView uses
-// ItemSizingStrategy="MeasureAllItems" and a LinearItemsLayout(Vertical, ItemSpacing=5) so every bubble is
-// measured at its own height — the messages are random-length Lorem substrings, so cells differ in height.
-// Three buttons drive it: Append Random Message, Clear, and "Add 1000 Messages" (which swaps in a fresh VM
-// of 1000 messages).
+// two DataTemplates per message — Local (a green, RIGHT-aligned bubble) or Remote (a blue, LEFT-aligned
+// bubble). The CollectionView uses ItemSizingStrategy="MeasureAllItems" and a LinearItemsLayout(Vertical,
+// ItemSpacing=5) so every bubble is measured at its own height — the messages are random-length Lorem
+// substrings, so cells differ in height.
+//
+// The oracle's bubble template (ChatExamplePage.MakeBubbleTemplate) is a corner-radiused Border —
+// BackgroundColor = the per-side color, StrokeThickness 0, Padding 0, Margin (8,2), HorizontalOptions =
+// Start/End, StrokeShape = RoundRectangle{CornerRadius=12} — wrapping a Label (TextColor=Black,
+// Padding (10,6)) bound to message.Text. The two colors are:
+//   - Local  (right, green): Color.FromRgb((int)(0.78*255), (int)(0.92*255), (int)(0.78*255)) = rgb(198,234,198)
+//   - Remote (left,  blue):  Color.FromRgb((int)(0.78*255), (int)(0.86*255), (int)(0.96*255)) = rgb(198,219,244)
 //
 // This headless port owns its whole tree and reproduces all of that code-first:
 //   - a chat_message { text, is_local } model and an observable_collection<chat_message> source;
@@ -21,13 +27,19 @@
 //   - append_random_message() / clear_messages() / add_lots(n) mirror the three C# buttons (the deterministic
 //     pseudo-random length generator stands in for the C# Random so the demo is reproducible headless).
 //
-// note: the C# Local/Remote DataTemplates wrap the Label in a colored, corner-radiused Frame inside a 1*/2*
-//   (or 2*/1*) Grid for the left/right bubble alignment; that geometry + color is cosmetic chrome the
-//   headless sim does not render, so each template here is the bound Label (the displayable signal the sim
-//   measures). The TWO distinct templates are preserved (a selector really chooses between them per item),
-//   which is the behavior this gallery page demonstrates. The C# "Add 1000 Messages" rebuilds the VM and
-//   re-points BindingContext; the port mutates the live observable source instead (add_range), the
-//   equivalent reload under the items source seam — same 1000 variable-height cells.
+// SINGLE-ROOT REDUCTION (documented, not stubbed) — same as the sibling CollectionView pages:
+//   The port's struct-cell template seam stages only bindable_property setters on ONE root view per cell
+//   (data_template::set_value / set_binding); it exposes no per-instance hook to nest a child (Border ->
+//   Label) inside a created cell. So each bubble template here is a single Label root carrying every
+//   bubble property a Label CAN own as a bindable_property: the per-side Background (the exact oracle
+//   color, staged the way varied_size_selector_page stages its Border color onto the cell label),
+//   HorizontalOptions (Start/End — the per-message alignment), Padding (10,6) and Margin (8,2), and
+//   TextColor=Black, with Text bound to message.text. The two distinct templates are preserved (a
+//   selector really chooses between them per item), giving colored, side-aligned chat bubbles.
+//   RESIDUAL: the Border's RoundRectangle CornerRadius=12 has no Label analog (corner radius is a
+//   border-only StrokeShape), so the bubbles are square-cornered — the one cosmetic deviation from the
+//   oracle. The C# "Add 1000 Messages" rebuilds the VM and re-points BindingContext; the port mutates the
+//   live observable source instead (add_range), the equivalent reload — same 1000 variable-height cells.
 
 #include <cstddef>
 #include <memory>
@@ -42,8 +54,15 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/templates/data_template_selector.hpp"
+#include "maui/controls/view.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/core/type_tag.hpp"
+#include "maui/graphics/color.hpp"
+#include "maui/graphics/colors.hpp"
+#include "maui/graphics/paint.hpp"
+#include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
 
 #include "gallery_attach.hpp"
@@ -86,9 +105,14 @@ namespace maui::samples
         {
             page_.set_title("Chat Example");
 
-            // The Local + Remote DataTemplates: each a Label bound to message.Text (the bubble's text).
-            selector_.local_template = make_bubble_template();
-            selector_.remote_template = make_bubble_template();
+            // The Local + Remote DataTemplates: each a Label bound to message.Text, styled as the
+            // per-side chat bubble (color + alignment from the oracle's MakeBubbleTemplate).
+            //   - Local  (right-aligned, green rgb(198,234,198)).
+            //   - Remote (left-aligned,  blue  rgb(198,219,244)).
+            selector_.local_template =
+                make_bubble_template(maui::graphics::color::from_rgb(198, 234, 198), maui::core::layout_alignment::end);
+            selector_.remote_template = make_bubble_template(maui::graphics::color::from_rgb(198, 219, 244),
+                                                             maui::core::layout_alignment::start);
 
             // ItemTemplate = the ChatTemplateSelector (a data_template_selector IS a data_template, so it
             // slots straight into set_item_template; the handler resolves it per item).
@@ -100,8 +124,8 @@ namespace maui::samples
 
             // Seed a couple of messages so the page is not empty on first appear (the C# page starts empty
             // and is filled via the buttons; one local + one remote shows both templates immediately).
-            messages_->add({"Hi there!", true});
-            messages_->add({"Hello — how can I help you today?", false});
+            messages_->add({.text = "Hi there!", .is_local = true});
+            messages_->add({.text = "Hello — how can I help you today?", .is_local = false});
 
             page_.set_content(list_);
         }
@@ -157,13 +181,29 @@ namespace maui::samples
         }
 
     private:
-        // One bubble template: a Label whose Text = message.text (the C# Frame/Grid bubble chrome is
-        // cosmetic — see the header note).
-        [[nodiscard]] static std::shared_ptr<maui::controls::data_template> make_bubble_template()
+        // One bubble template: a Label whose Text = message.text, carrying the bubble's per-side
+        // Background color and HorizontalOptions (Start/End) plus the oracle's Padding (10,6) / Margin
+        // (8,2) and TextColor=Black. The Border's RoundRectangle corner radius has no Label analog
+        // (single-root reduction — see the header note), so the bubble is square-cornered.
+        [[nodiscard]] static std::shared_ptr<maui::controls::data_template> make_bubble_template(
+            maui::graphics::color background, maui::core::layout_alignment horizontal)
         {
             auto bubble = maui::controls::data_template::of<maui::controls::label>();
             bubble->set_binding<std::string, chat_message>(maui::controls::label::text_property(),
                                                            [](const chat_message& value) { return value.text; });
+            // The bubble fill (the C# Border.BackgroundColor) staged as the cell label's own Background —
+            // a solid_paint of the per-side color (the varied_size_selector_page single-root idiom).
+            bubble->set_value(maui::controls::background_property(),
+                              std::static_pointer_cast<maui::graphics::paint>(
+                                  std::make_shared<maui::graphics::solid_paint>(background)));
+            // The per-message alignment (C# Border.HorizontalOptions = Start/End) — what slides the bubble
+            // to the left (remote) or right (local) edge.
+            bubble->set_value(maui::controls::horizontal_layout_alignment_property(), horizontal);
+            // The text inset (C# Label.Padding (10,6)) and the inter-bubble gap (C# Border.Margin (8,2)).
+            bubble->set_value(maui::controls::label::padding_property(), maui::core::thickness(10, 6));
+            bubble->set_value(maui::controls::margin_property(), maui::core::thickness(8, 2));
+            // C# Label.TextColor = Black.
+            bubble->set_value(maui::controls::label::text_color_property(), maui::graphics::colors::black);
             return bubble;
         }
 
@@ -188,10 +228,10 @@ namespace maui::samples
                 "esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt "
                 "in culpa qui officia deserunt mollit anim id est laborum.";
 
-            rng_ = rng_ * 1103515245U + 12345U; // glibc LCG step (deterministic)
+            rng_ = (rng_ * 1103515245U) + 12345U; // glibc LCG step (deterministic)
             const bool is_local = ((rng_ >> 16) & 1U) == 1U;
-            const std::size_t length = static_cast<std::size_t>((rng_ >> 8) % (lorem.size()));
-            return {lorem.substr(0, length), is_local};
+            const auto length = static_cast<std::size_t>((rng_ >> 8) % (lorem.size()));
+            return {.text = lorem.substr(0, length), .is_local = is_local};
         }
 
         std::shared_ptr<maui::core::observable_collection<chat_message>> messages_; // publisher first (§8)
