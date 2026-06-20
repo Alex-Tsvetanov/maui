@@ -90,10 +90,10 @@
     "dark_note": "Now matches (stale pre-fix diff cleared): colored segments + Center text render inside the green Border."
   },
   "border_playground": {
-    "dark": "diff",
-    "light": "diff",
-    "light_note": "C++ Border renders the yellow dashed RoundRectangle stroke + Just a Label content correctly, but its interior is EMPTY/white — the cyan LinearGradientBrush Background (#00B4DB->#0083B0) MAUI fills the Border with is invisible. Root cause: the iOS border host is a plain UIView with no layoutSubviews->resize_background_layers, so the gradient sublayer stays sized 0x0 from setup-time and never reframes post-layout (the solid + stroke paths work; only the gradient/image Background is affected). Background agent ab0d65f7b5 dispatched to add a MauiIosBorder subclass mirroring the value-control resize pattern. Form section below (Border Content/Shape/Background entries) renders correctly.",
-    "dark_note": "Same as light: cyan gradient Background invisible (white/black interior) — border gradient sublayer not resized post-layout on iOS; fix agent dispatched."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare BorderPlayground after the iOS MauiIosBorder gradient-Background fix (91ded3650b): the Border fills with the cyan LinearGradientBrush (#00B4DB->#0083B0, left-to-right) under the yellow dashed RoundRectangle stroke + Just a Label content; the form section (Border Content/Shape/Background/color entries) renders below. Minor: slightly more vertical gap between the Border and the form than MAUI.",
+    "dark_note": "Now matches (gradient-Background fix landed): cyan gradient fills the dashed Border. Minor: vertical spacing to the form."
   },
   "border_resize_content": {
     "dark": "diff",
