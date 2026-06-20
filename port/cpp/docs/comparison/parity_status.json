@@ -518,10 +518,10 @@
     "light_note": "Text + layout match; C# fills several alignment-demo labels with a gray BackgroundColor box that the C++ port doesn't render — label background-fill diff only."
   },
   "layout_is_enabled": {
-    "light": "diff",
-    "dark": "diff",
-    "light_note": "Structure/colors/captions all render correctly and DIRECTLY-set IsEnabled works (Disabled buttons gray correctly). GAP: IsEnabled does NOT cascade from a disabled parent to its children — the right column (right_layout starts disabled) and the \"disabled because layout is disabled\" pink sub-stacks show ENABLED (blue) buttons in the port vs DISABLED (gray) in MAUI. Root cause: is_enabled() returns the raw value, not the coerced IsEnabledCore (C# factors in the parent chain + RefreshIsEnabledProperty propagation). Flagged for implementation; this is the page’s central feature.",
-    "dark_note": "Same: directly-disabled buttons gray correctly, but the parent->child IsEnabled cascade is missing, so disabled-parent sub-stacks + the whole right column render enabled instead of grayed. Flagged (IsEnabledCore)."
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "NOW MATCHES (the IsEnabledCore parent->child cascade is implemented — view<>::is_enabled() coerces against the ancestor chain + refresh_is_enabled_subtree re-pushes on change). The right column (right_layout starts disabled) and the \"disabled because layout is disabled\" pink sub-stacks render GRAYED, exactly like C# (was the stale diff). Directly-set states correct too. Residual: maui-compare card framing.",
+    "dark_note": "Same: parent-disabled cascade grays the right column + disabled-parent sub-stacks, theme-aware. Matches C#."
   },
   "line_gallery": {
     "dark": "pending",
