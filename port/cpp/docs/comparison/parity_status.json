@@ -524,8 +524,10 @@
     "dark_note": "Same: parent-disabled cascade grays the right column + disabled-parent sub-stacks, theme-aware. Matches C#."
   },
   "line_gallery": {
-    "dark": "pending",
-    "light": "pending"
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "MATCHES: 3 lines: basic purple, orange dash, thick StrokeThickness render identically to maui-compare. The maui-compare line_gallery (FromReflection page) does NOT set HorizontalOptions=Start, so the C++ centering (Fill+explicit-width) already matches — no code change. Residual: harness card framing. (C# rectangle ref re-captured from a stale blank.)",
+    "dark_note": "Same: shapes render identically, theme-aware captions. Matches C#."
   },
   "line_join_gallery": {
     "dark": "pending",
@@ -592,8 +594,10 @@
     "light": "pending"
   },
   "polygon_gallery": {
-    "dark": "pending",
-    "light": "pending"
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "MATCHES: 4 polygons: basic + dash green triangle, EvenOdd + NonZero pentagram stars render identically to maui-compare. The maui-compare polygon_gallery (FromReflection page) does NOT set HorizontalOptions=Start, so the C++ centering (Fill+explicit-width) already matches — no code change. Residual: harness card framing. (C# rectangle ref re-captured from a stale blank.)",
+    "dark_note": "Same: shapes render identically, theme-aware captions. Matches C#."
   },
   "polyline_gallery": {
     "dark": "pending",
@@ -644,8 +648,10 @@
     "light": "pending"
   },
   "rectangle_gallery": {
-    "dark": "pending",
-    "light": "pending"
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "MATCHES: 5 rectangles: basic red, square, stroke, stroke-dash, curved-corners render identically to maui-compare. The maui-compare rectangle_gallery (FromReflection page) does NOT set HorizontalOptions=Start, so the C++ centering (Fill+explicit-width) already matches — no code change. Residual: harness card framing. (C# rectangle ref re-captured from a stale blank.)",
+    "dark_note": "Same: shapes render identically, theme-aware captions. Matches C#."
   },
   "refresh_view": {
     "dark": "pending",
