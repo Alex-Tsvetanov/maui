@@ -86,10 +86,27 @@ TITLE = {
 }
 EMOJI = {"match": "🟢", "minor": "🟡", "diff": "🔴", "blank": "⬛", "pending": "⬜"}
 LABEL = {"match": "match", "minor": "minor", "diff": "diff", "blank": "blank", "pending": "pending"}
+# Per-page flags (orthogonal to the light/dark status): the .NET MAUI REFERENCE capture is itself broken
+# (black/home-screen/garbled — needs a re-shoot before a fair comparison), and the page demonstrates MOTION
+# or a transient EFFECT a single still frame can't fairly capture (needs an animated GIF to judge parity).
+FLAG_EMOJI = {"maui_broken": "⚠️", "needs_gif": "🎬"}
+FLAG_DESC = {"maui_broken": "MAUI reference capture broken — re-shoot needed",
+             "needs_gif": "motion/effect — needs an animated GIF to judge"}
 
 
 def title(k):
     return TITLE.get(k, k.replace("_", " ").title())
+
+
+def flags_of(st):
+    """Normalize the optional flag carriers in a status entry into a flag-key list."""
+    out = []
+    raw = st.get("flags") or []
+    if st.get("maui_capture_suspect") or "maui_broken" in raw:
+        out.append("maui_broken")
+    if st.get("needs_motion_gif") or "needs_gif" in raw:
+        out.append("needs_gif")
+    return out
 
 
 def load_status():
@@ -118,8 +135,11 @@ def combined(st):
 def main():
     status = load_status()
     counts = {s: 0 for s in EMOJI}
+    flag_counts = {f: 0 for f in FLAG_EMOJI}
     for k in KEYS:
         counts[combined(status[k])] += 1
+        for f in flags_of(status[k]):
+            flag_counts[f] += 1
     total = len(KEYS)
     o = []
     o.append("# C++ port vs .NET MAUI — iOS pixel-parity tracker")
@@ -133,8 +153,14 @@ def main():
     o.append(f"**Progress: {counts['match']} / {total} 🟢 matched** "
              f"· {counts['minor']} 🟡 minor · {counts['diff'] + counts['blank']} 🔴 diff · {counts['pending']} ⬜ pending")
     o.append("")
+    o.append(f"**Flags: {flag_counts['maui_broken']} ⚠️ broken MAUI reference captures (re-shoot needed) "
+             f"· {flag_counts['needs_gif']} 🎬 motion/effect pages needing an animated GIF to judge.**")
+    o.append("")
     o.append("Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · "
-             "⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.")
+             "⬛ C++ renders blank · ⬜ not yet reviewed · ⚠️ MAUI reference capture itself is broken "
+             "(re-shoot needed) · 🎬 motion/effect page — a still frame can't judge it; needs a GIF. Per-theme "
+             "verdicts + per-page notes in `parity_status.json`; the **Per-page findings** section below lists "
+             "every non-matching page's concrete diffs.")
     o.append("")
     o.append("> macOS / Mac Catalyst 4-way comparison is **Phase 2** (pending: aligning the gallery window size "
              "to the C# window). The earlier 2-way macOS grid + notes live in [PARITY_FINDINGS.md](PARITY_FINDINGS.md).")
@@ -148,13 +174,48 @@ def main():
     for i, k in enumerate(KEYS, start=1):
         st = status[k]
         c = combined(st)
-        badge = f"{EMOJI[c]}<br>L:{LABEL[st.get('light','pending')]}<br>D:{LABEL[st.get('dark','pending')]}"
+        fl = "".join(FLAG_EMOJI[f] for f in flags_of(st))
+        badge = f"{EMOJI[c]}{fl}<br>L:{LABEL[st.get('light','pending')]}<br>D:{LABEL[st.get('dark','pending')]}"
         o.append(
             f"| {i} | {title(k)} | {badge} "
             f"| ![](csharp_ios_light/{k}.png) | ![](cpp_ios_light/{k}.png) "
             f"| ![](csharp_ios_dark/{k}.png) | ![](cpp_ios_dark/{k}.png) |"
         )
     o.append("")
+
+    # ---- Per-page findings: concrete notes for every page that is not a clean both-themes match. ----
+    o.append("## Per-page findings")
+    o.append("")
+    o.append("Concrete, per-theme notes for every page with a diff, a broken reference, or a motion/effect "
+             "caveat. Clean both-theme matches with no note are omitted. Numbers match the grid above.")
+    o.append("")
+    any_finding = False
+    for i, k in enumerate(KEYS, start=1):
+        st = status[k]
+        c = combined(st)
+        fl = flags_of(st)
+        ln = (st.get("light_note") or "").strip()
+        dn = (st.get("dark_note") or "").strip()
+        # Skip clean matches that carry no note and no flag.
+        if c == "match" and not ln and not dn and not fl:
+            continue
+        any_finding = True
+        flag_md = ("  " + " ".join(f"{FLAG_EMOJI[f]} _{FLAG_DESC[f]}_" for f in fl)) if fl else ""
+        o.append(f"### {i}. {title(k)} — {EMOJI[c]} (L:{LABEL[st.get('light','pending')]} / "
+                 f"D:{LABEL[st.get('dark','pending')]}){flag_md}")
+        if ln and dn and ln == dn:
+            o.append(f"- **Both themes:** {ln}")
+        else:
+            if ln:
+                o.append(f"- **Light:** {ln}")
+            if dn:
+                o.append(f"- **Dark:** {dn}")
+        if not ln and not dn:
+            o.append("- _(no note recorded)_")
+        o.append("")
+    if not any_finding:
+        o.append("_All pages are clean matches with no recorded notes._")
+        o.append("")
     open(os.path.join(HERE, "README.md"), "w").write("\n".join(o))
     print(f"README: {total} pages — {counts['match']} matched, {counts['minor']} minor, "
           f"{counts['diff'] + counts['blank']} diff, {counts['pending']} pending")
