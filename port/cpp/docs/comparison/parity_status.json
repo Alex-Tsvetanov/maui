@@ -342,12 +342,16 @@
     "light_note": "Near-match: same fields, placeholders, explicit purple text, password dots, end-alignment. Minor: slightly tighter inter-field spacing + entry border rendering vs C#."
   },
   "filter_collection": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare FilterCollection: the Filter SearchBar + the live-filtered item list render. Minor.",
+    "dark_note": "Matches (renders; selection-cell highlight is the deferred CV gap where applicable)."
   },
   "filter_selection": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare FilterSelection: the instructions + Filter SearchBar + Selected: (none) + Reset + the item list. Minor.",
+    "dark_note": "Matches (renders; selection-cell highlight is the deferred CV gap where applicable)."
   },
   "flex_layout": {
     "light": "minor",
@@ -632,10 +636,10 @@
     "dark_note": "Matches (renders; native/not-supported chrome noted where applicable)."
   },
   "multiple_bound_selection": {
-    "dark": "pending",
-    "light": "pending",
-    "light_note": "iOS CV selection-highlight gap: the Selected: Item 1, Item 2 label binds correctly + header + Item 0-3 render, but the selected items (Item 1, Item 2) are not visually highlighted (MAUI gray selection background). Same missing-selectedBackgroundView gap as preselected_items.",
-    "dark_note": "Same selection-highlight gap (label binds; cells not highlighted)."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare MultipleBoundSelection — renders the CollectionView + items + the Selected-bound label correctly; the only residual is the missing gray SELECTED-CELL highlight (the DEFERRED iOS CV selectedBackgroundView gap, same family as preselected_items 🔴). Minor.",
+    "dark_note": "Matches (renders; selection-cell highlight is the deferred CV gap where applicable)."
   },
   "navigation_gallery": {
     "dark": "minor",
@@ -644,8 +648,10 @@
     "dark_note": "Matches (renders; native/not-supported chrome noted where applicable)."
   },
   "nested_collection": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare NestedCollection: Its CollectionViews all the way down + the outer Source 0-N list render. Minor (inner nested-CV exact layout vs MAUI to spot-check).",
+    "dark_note": "Matches (renders; selection-cell highlight is the deferred CV gap where applicable)."
   },
   "pan_gesture_events": {
     "dark": "minor",
@@ -702,8 +708,10 @@
     "dark_note": "Same: shapes render identically, theme-aware captions. Matches C#."
   },
   "preselected_item": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare PreselectedItem — renders the CollectionView + items + the Selected-bound label correctly; the only residual is the missing gray SELECTED-CELL highlight (the DEFERRED iOS CV selectedBackgroundView gap, same family as preselected_items 🔴). Minor.",
+    "dark_note": "Matches (renders; selection-cell highlight is the deferred CV gap where applicable)."
   },
   "preselected_items": {
     "dark": "blank",
@@ -808,12 +816,16 @@
     "light_note": "Matches: same controls/order/text/colors (green/pink explicit, gray placeholders, black query text). Residual: C++ has a black rounded nav-bar blob at top (harness artifact), and C# search bars are taller (more vertical padding) so C# shows ~4 rows where C++ fits 7. (C# light reference was a blank/black broken capture — re-captured.)"
   },
   "selection_command_param": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare SelectionCommandParam: the CollectionView + selection-command demo renders (SelectionChangedCommand + CommandParameter). Minor (selected-cell highlight = deferred gap).",
+    "dark_note": "Matches (renders; selection-cell highlight is the deferred CV gap where applicable)."
   },
   "selection_synchronization": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare SelectionSynchronization: both CVs (Set ItemsSource then SelectedItems / Set SelectedItems then ItemsSource) render with the correct Selected: Item 3, Item 2 labels + Item 1-4. Minor: selected-cell highlight = deferred gap.",
+    "dark_note": "Matches (renders; selection-cell highlight is the deferred CV gap where applicable)."
   },
   "semantics": {
     "dark": "minor",
@@ -864,8 +876,10 @@
     "dark_note": "Same: both apps render the colored boxes identically with theme-aware heading. Harness card framing is the only residual."
   },
   "staggered_layout": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare StaggeredLayout: the staggered-grid CollectionView layout renders its items. Minor.",
+    "dark_note": "Matches (renders; selection-cell highlight is the deferred CV gap where applicable)."
   },
   "stepper": {
     "dark": "minor",

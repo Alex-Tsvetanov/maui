@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 0 / 172 🟢 matched** · 161 🟡 minor · 3 🔴 diff · 8 ⬜ pending
+**Progress: 0 / 172 🟢 matched** · 169 🟡 minor · 3 🔴 diff · 0 ⬜ pending
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.
 
@@ -87,13 +87,13 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 73 | CollectionView | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/collectionview.png) | ![](cpp_ios_light/collectionview.png) | ![](csharp_ios_dark/collectionview.png) | ![](cpp_ios_dark/collectionview.png) |
 | 74 | Items | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/items.png) | ![](cpp_ios_light/items.png) | ![](csharp_ios_dark/items.png) | ![](cpp_ios_dark/items.png) |
 | 75 | Single Bound Selection | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/single_bound_selection.png) | ![](cpp_ios_light/single_bound_selection.png) | ![](csharp_ios_dark/single_bound_selection.png) | ![](cpp_ios_dark/single_bound_selection.png) |
-| 76 | Multiple Bound Selection | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/multiple_bound_selection.png) | ![](cpp_ios_light/multiple_bound_selection.png) | ![](csharp_ios_dark/multiple_bound_selection.png) | ![](cpp_ios_dark/multiple_bound_selection.png) |
-| 77 | Preselected Item | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/preselected_item.png) | ![](cpp_ios_light/preselected_item.png) | ![](csharp_ios_dark/preselected_item.png) | ![](cpp_ios_dark/preselected_item.png) |
+| 76 | Multiple Bound Selection | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/multiple_bound_selection.png) | ![](cpp_ios_light/multiple_bound_selection.png) | ![](csharp_ios_dark/multiple_bound_selection.png) | ![](cpp_ios_dark/multiple_bound_selection.png) |
+| 77 | Preselected Item | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/preselected_item.png) | ![](cpp_ios_light/preselected_item.png) | ![](csharp_ios_dark/preselected_item.png) | ![](cpp_ios_dark/preselected_item.png) |
 | 78 | Preselected Items | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/preselected_items.png) | ![](cpp_ios_light/preselected_items.png) | ![](csharp_ios_dark/preselected_items.png) | ![](cpp_ios_dark/preselected_items.png) |
-| 79 | Selection Command Param | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/selection_command_param.png) | ![](cpp_ios_light/selection_command_param.png) | ![](csharp_ios_dark/selection_command_param.png) | ![](cpp_ios_dark/selection_command_param.png) |
-| 80 | Selection Synchronization | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/selection_synchronization.png) | ![](cpp_ios_light/selection_synchronization.png) | ![](csharp_ios_dark/selection_synchronization.png) | ![](cpp_ios_dark/selection_synchronization.png) |
-| 81 | Filter Collection | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/filter_collection.png) | ![](cpp_ios_light/filter_collection.png) | ![](csharp_ios_dark/filter_collection.png) | ![](cpp_ios_dark/filter_collection.png) |
-| 82 | Filter Selection | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/filter_selection.png) | ![](cpp_ios_light/filter_selection.png) | ![](csharp_ios_dark/filter_selection.png) | ![](cpp_ios_dark/filter_selection.png) |
+| 79 | Selection Command Param | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/selection_command_param.png) | ![](cpp_ios_light/selection_command_param.png) | ![](csharp_ios_dark/selection_command_param.png) | ![](cpp_ios_dark/selection_command_param.png) |
+| 80 | Selection Synchronization | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/selection_synchronization.png) | ![](cpp_ios_light/selection_synchronization.png) | ![](csharp_ios_dark/selection_synchronization.png) | ![](cpp_ios_dark/selection_synchronization.png) |
+| 81 | Filter Collection | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/filter_collection.png) | ![](cpp_ios_light/filter_collection.png) | ![](csharp_ios_dark/filter_collection.png) | ![](cpp_ios_dark/filter_collection.png) |
+| 82 | Filter Selection | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/filter_selection.png) | ![](cpp_ios_light/filter_selection.png) | ![](csharp_ios_dark/filter_selection.png) | ![](cpp_ios_dark/filter_selection.png) |
 | 83 | Header Footer | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/header_footer.png) | ![](cpp_ios_light/header_footer.png) | ![](csharp_ios_dark/header_footer.png) | ![](cpp_ios_dark/header_footer.png) |
 | 84 | Header Footer Grid | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/header_footer_grid.png) | ![](cpp_ios_light/header_footer_grid.png) | ![](csharp_ios_dark/header_footer_grid.png) | ![](cpp_ios_dark/header_footer_grid.png) |
 | 85 | Header Footer Grid Horizontal | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/header_footer_grid_horizontal.png) | ![](cpp_ios_light/header_footer_grid_horizontal.png) | ![](csharp_ios_dark/header_footer_grid_horizontal.png) | ![](cpp_ios_dark/header_footer_grid_horizontal.png) |
@@ -109,9 +109,9 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 95 | Scroll To Group | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/scroll_to_group.png) | ![](cpp_ios_light/scroll_to_group.png) | ![](csharp_ios_dark/scroll_to_group.png) | ![](cpp_ios_dark/scroll_to_group.png) |
 | 96 | Scroll Mode Test | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/scroll_mode_test.png) | ![](cpp_ios_light/scroll_mode_test.png) | ![](csharp_ios_dark/scroll_mode_test.png) | ![](cpp_ios_dark/scroll_mode_test.png) |
 | 97 | Adaptive Collection | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/adaptive_collection.png) | ![](cpp_ios_light/adaptive_collection.png) | ![](csharp_ios_dark/adaptive_collection.png) | ![](cpp_ios_dark/adaptive_collection.png) |
-| 98 | Staggered Layout | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/staggered_layout.png) | ![](cpp_ios_light/staggered_layout.png) | ![](csharp_ios_dark/staggered_layout.png) | ![](cpp_ios_dark/staggered_layout.png) |
+| 98 | Staggered Layout | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/staggered_layout.png) | ![](cpp_ios_light/staggered_layout.png) | ![](csharp_ios_dark/staggered_layout.png) | ![](cpp_ios_dark/staggered_layout.png) |
 | 99 | Varied Size Selector | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/varied_size_selector.png) | ![](cpp_ios_light/varied_size_selector.png) | ![](csharp_ios_dark/varied_size_selector.png) | ![](cpp_ios_dark/varied_size_selector.png) |
-| 100 | Nested Collection | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/nested_collection.png) | ![](cpp_ios_light/nested_collection.png) | ![](csharp_ios_dark/nested_collection.png) | ![](cpp_ios_dark/nested_collection.png) |
+| 100 | Nested Collection | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/nested_collection.png) | ![](cpp_ios_light/nested_collection.png) | ![](csharp_ios_dark/nested_collection.png) | ![](cpp_ios_dark/nested_collection.png) |
 | 101 | Data Template Selector | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/data_template_selector.png) | ![](cpp_ios_light/data_template_selector.png) | ![](csharp_ios_dark/data_template_selector.png) | ![](cpp_ios_dark/data_template_selector.png) |
 | 102 | Cv Visual States | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/cv_visual_states.png) | ![](cpp_ios_light/cv_visual_states.png) | ![](csharp_ios_dark/cv_visual_states.png) | ![](cpp_ios_dark/cv_visual_states.png) |
 | 103 | Empty View | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/empty_view.png) | ![](cpp_ios_light/empty_view.png) | ![](csharp_ios_dark/empty_view.png) | ![](cpp_ios_dark/empty_view.png) |
