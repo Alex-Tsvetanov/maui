@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 0 / 172 🟢 matched** · 38 🟡 minor · 45 🔴 diff · 89 ⬜ pending
+**Progress: 0 / 172 🟢 matched** · 39 🟡 minor · 44 🔴 diff · 89 ⬜ pending
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.
 
@@ -33,7 +33,7 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 19 | Box View | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/box_view.png) | ![](cpp_ios_light/box_view.png) | ![](csharp_ios_dark/box_view.png) | ![](cpp_ios_dark/box_view.png) |
 | 20 | Content View | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/content_view.png) | ![](cpp_ios_light/content_view.png) | ![](csharp_ios_dark/content_view.png) | ![](cpp_ios_dark/content_view.png) |
 | 21 | Containers | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/containers.png) | ![](cpp_ios_light/containers.png) | ![](csharp_ios_dark/containers.png) | ![](cpp_ios_dark/containers.png) |
-| 22 | Control stack | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/controls_stack.png) | ![](cpp_ios_light/controls_stack.png) | ![](csharp_ios_dark/controls_stack.png) | ![](cpp_ios_dark/controls_stack.png) |
+| 22 | Control stack | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/controls_stack.png) | ![](cpp_ios_light/controls_stack.png) | ![](csharp_ios_dark/controls_stack.png) | ![](cpp_ios_dark/controls_stack.png) |
 | 23 | Input Controls | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/input_controls.png) | ![](cpp_ios_light/input_controls.png) | ![](csharp_ios_dark/input_controls.png) | ![](cpp_ios_dark/input_controls.png) |
 | 24 | Fonts | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/fonts.png) | ![](cpp_ios_light/fonts.png) | ![](csharp_ios_dark/fonts.png) | ![](cpp_ios_dark/fonts.png) |
 | 25 | Formatted Text | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/formatted_text.png) | ![](cpp_ios_light/formatted_text.png) | ![](csharp_ios_dark/formatted_text.png) | ![](cpp_ios_dark/formatted_text.png) |

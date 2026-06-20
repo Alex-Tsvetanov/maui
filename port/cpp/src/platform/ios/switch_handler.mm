@@ -394,14 +394,20 @@ namespace maui::core
         {
             return;
         }
-        UIColor* const track_color = to_ui_color(view.track_color());
+        const bool has_track_color = view.track_color() != maui::graphics::color{};
         if (view.is_on())
         {
-            // The ON branch drives both the OnTintColor and the live track subview.
-            native.onTintColor = track_color;
-            track.backgroundColor = track_color;
+            // SwitchExtensions.UpdateTrackColor (ON): an explicit OnColor drives both onTintColor and the
+            // live track subview. An UNSET OnColor must restore the system DEFAULT onTintColor (the iOS
+            // green) — to_ui_color of the collapsed-null color wrongly paints the on-track opaque black, and
+            // leaving the track subview alone lets UISwitch draw its own green track.
+            native.onTintColor = has_track_color ? to_ui_color(view.track_color()) : nil;
+            if (has_track_color)
+            {
+                track.backgroundColor = to_ui_color(view.track_color());
+            }
         }
-        else if (view.track_color() == maui::graphics::color{})
+        else if (!has_track_color)
         {
             // The DEFAULT (collapsed-null) color keeps C#'s off-state fallback: SecondarySystemFill
             // (the Light/Dark-aware equivalent of the pre-13 RGBA 120,120,128,40).
@@ -409,7 +415,7 @@ namespace maui::core
         }
         else
         {
-            track.backgroundColor = track_color;
+            track.backgroundColor = to_ui_color(view.track_color());
         }
     }
 

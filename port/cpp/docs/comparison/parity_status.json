@@ -208,10 +208,10 @@
     "light_note": "Core controls (Increment btn, switch, labels, Entry, COOL ImageButton) match in order/text, but C++ renders an extra full Microsoft Bing web page (logo, search bar, creator chips, castle photo, copyright) below the COOL button that MAUI has not; MAUI also has a gray fill bar behind the Increment button that C++ lacks."
   },
   "controls_stack": {
-    "dark": "diff",
-    "dark_note": "MAPPING DIVERGENCE: C++ controls_stack falls back to value_controls (no dedicated page) — different controls than the C# controls_stack. The value controls render correctly on dark now (slider/progress/switch/checkbox/spinner tints all fixed this session). Pixel-match needs a matching gallery page authored.",
-    "light": "diff",
-    "light_note": "MAPPING DIVERGENCE (not a rendering bug): the C++ gallery has no dedicated controls_stack page, so MAUI_SAMPLE_PAGE=controls_stack falls back to the value_controls page — a different control SET than the C# controls_stack (which shows a Controls title + Button/Entry/Editor/SearchBar/checkbox/switch/slider). The value controls the C++ page does show (Value label, slider with blue fill + white thumb, stepper, blue progress bar, switch, checkbox ring, spinner) all render correctly now via this sessions tint + dark-text fixes. To pixel-match would require authoring a C++ gallery controls_stack page mirroring the C# control set."
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "FIXED: authored the missing controls_stack gallery page reproducing maui-compare ControlsStack() 1:1 (the key fell back to value-controls before) — bold FontSize-22 \"Controls\" header, Button \"A Button\", Entry/Editor/SearchBar placeholders, a [CheckBox checked, Switch on, ActivityIndicator running] row, Slider(40), Stepper(3), ProgressBar(0.6). Also fixed the iOS Switch on-tint: an unset OnColor wrongly painted the on-track black (to_ui_color of the collapsed-null color); now restores the system default green. Matches C#; residual is the maui-compare card framing.",
+    "dark_note": "Same: full Controls showcase renders with theme-aware text, green switch. Faithful reproduction of ControlsStack()."
   },
   "custom_layout": {
     "dark": "blank",
