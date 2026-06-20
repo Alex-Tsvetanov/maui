@@ -126,10 +126,10 @@
     "light_note": "FIXED: unset text -> iOS tint; explicit BackgroundColor now fills (per-state backgroundImage). Remaining minor: MAUI default buttons have rounded corners + inter-button spacing; the explicit CornerRadius button should clip to a pill (masksToBounds); C++ bars are square + flush."
   },
   "carousel_page": {
-    "dark": "blank",
-    "dark_note": "Same: carousel items not sized to viewport (all shown small at top-left vs one full-width page).",
-    "light": "diff",
-    "light_note": "iOS CarouselView item-sizing gap: MAUI shows ONE item (large, centered Item 1) filling the carousel viewport (one item per page, swipeable); the C++ shows Item 1/Item 2/Item 3 crammed small at top-left — carousel items are not sized to the viewport width (rendered at intrinsic size in a row instead of full-width pages). The Prev/Next nav + Position 0 — current: Item 1 tracking works, so only the item layout/sizing is wrong."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare after the iOS carousel item-sizing fix (9c5208d7eb): one item (Item 1) fills the full carousel viewport per page (was: Item 1/2/3 crammed small side-by-side); Prev/Next + Position 0 — current: Item 1 work. Minor: the item label sits top-left in its full-width cell vs MAUI centering it (label-alignment detail in the cell template).",
+    "dark_note": "Now matches (carousel item-sizing fix): one full-viewport item per page; minor label alignment within the cell."
   },
   "chat_example": {
     "dark": "blank",
