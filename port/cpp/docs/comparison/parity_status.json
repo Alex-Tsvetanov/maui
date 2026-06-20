@@ -235,9 +235,9 @@
   },
   "cv_visual_states": {
     "dark": "diff",
-    "dark_note": "C++ dark renders correctly: both headers plus all item rows (Item 1-3, Item 1-4) in white. MAUI dark is broken — item areas render as solid white/black opaque blocks with no visible item text, so the two stacks diverge notably (C++ is the more complete one here).",
+    "dark_note": "Same: section labels render but CV items missing (cell VSM realization gap).",
     "light": "diff",
-    "light_note": "MAUI light shows all CollectionView items (Single: Item 1-3; Multi: Item 1-4) as text; C++ light renders both section headers (\"Single Selection\"/\"Multi Selection\") but the item rows between/after them are blank/missing — C++ omits the CollectionView item content."
+    "light_note": "iOS gap: the Single Selection / Multi Selection section labels render but the two CollectionViews between them show NO ITEMS (MAUI shows Item 1-3 and Item 1-4). The CVs take vertical space but the cells do not realize — a cell-realization gap on a CV whose DataTemplate carries VisualStateManager Selected/Normal states (likely the same cell-VSM machinery the in-flight selection-highlight agent touches). Genuine diff."
   },
   "data_template_selector": {
     "dark": "blank",
@@ -718,8 +718,10 @@
     "dark_note": "Matches: scroll-mode controls + item list."
   },
   "scroll_to_group": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare ScrollToGroup: Group:/Item: index entries + Go, Group Name:/Item Name: entries + Go, No scroll requested yet readout, then the grouped list with the green Avengers group header + members. Minor.",
+    "dark_note": "Matches: scroll-to-group controls + grouped list with header."
   },
   "scroll_view": {
     "dark": "pending",
@@ -906,10 +908,10 @@
     "dark_note": "Matches; minor leaf path-stroke AA."
   },
   "varied_size_selector": {
-    "dark": "blank",
-    "dark_note": "C++ dark is entirely blank (black, only status bar) while MAUI dark renders the full colored variable-height cell list plus buttons, Index label, and entries.",
-    "light": "diff",
-    "light_note": "C++ shows only 6 plain text labels (incl. extra Milk4/Coffee5) on white; MAUI shows variable-height colored cells (Coffee0/Milk1/Coffee2/Coffee3) plus Insert/Add/Remove buttons, an \"Index\" label, and two entries (\"1\", \"Latte\") — cell coloring, row sizing, and the entire button/entry control row are missing in C++."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now renders maui-compare VariedSizeSelector (was stale 🔴/blank-dark): the data-template-selector items with varied backgrounds (Coffee# brown / Milk# tan) + Insert/Add/Remove buttons + Index/Latte entries. Minor.",
+    "dark_note": "Now renders (was stale blank): colored selector items + insert/add/remove controls."
   },
   "vertical_stack": {
     "light": "minor",
