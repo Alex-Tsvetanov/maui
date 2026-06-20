@@ -134,6 +134,17 @@ namespace maui::controls
             return logical_parent_;
         }
 
+        // C# VisualElement IsEnabled cascade (IPropertyPropagationController.PropagatePropertyChanged for
+        // IsEnabledProperty / RefreshIsEnabledProperty): an ANCESTOR's IsEnabled changed, so re-push THIS
+        // element's now-recomputed effective (coerced) IsEnabled to its handler + re-run ChangeVisualState,
+        // then recurse into the logical children so the whole subtree re-coerces. Default no-op — a non-view
+        // element has no IsEnabled (the cascade stops at it, exactly as a non-VisualElement Parent breaks
+        // C#'s chain). Public so a parent's propagation can invoke it through a base element& reference;
+        // view<> overrides it (the actual coerce + handler re-push live there).
+        virtual void refresh_is_enabled_subtree()
+        {
+        }
+
         // Resolve `key` against this element's resources then each ancestor's (ResourcesExtensions
         // .TryGetResource). Returns the borrowed stored value or nullptr. The reference is valid until the
         // owning dictionary mutates.

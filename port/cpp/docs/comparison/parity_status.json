@@ -368,8 +368,8 @@
   "grid": {
     "light": "minor",
     "dark": "minor",
-    "light_note": "Different demos: C++ faithfully ports GridPage.xaml (3 rows 2*/*/100, 2 star cols, green/blue/teal/purple cells + red bottom row spanning both cols, centered captions, fills page). The maui-compare reference shows its own \"Grid (2 cols x rows)\" demo (2x2 fixed boxes). C++ grid layout correct: star-sizing (2* row twice the * row), fixed 100-unit row, working ColumnSpan. Not a port bug.",
-    "dark_note": "Same demo divergence in dark theme: C++ renders the full star grid + span + white-on-color captions correctly; reference shows its 2x2 fixed-box grid demo."
+    "light_note": "FIXED to faithfully reproduce maui-compare GridPage(): a Grid (Padding 16, spacing 6) with rows Auto/80/80 and two star columns, a bold \"Grid (2 cols x rows)\" header spanning both columns, and Red/Green/Blue/Orange boxes filling the fixed-80 cells (Red+Green row 1, Blue+Orange row 2). Matches C# 1:1; only residual is the maui-compare card framing (harness).",
+    "dark_note": "Same: header + 2x2 colored grid render identically, theme-aware header. Faithful reproduction of GridPage()."
   },
   "grid_grouping": {
     "dark": "pending",
