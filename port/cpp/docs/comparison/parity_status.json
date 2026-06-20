@@ -78,22 +78,22 @@
     "dark_note": "Same: centered red/round/light-yellow border + centered caption, theme-aware. Faithful reproduction of BorderPage()."
   },
   "border_clip_playground": {
-    "dark": "diff",
-    "dark_note": "Same layout defect as light: C++ red Border is full-width stretched vs MAUI's compact square, and inflated vertical spacing pushes nearly all content off-screen — only the RoundRectangle entry shows near the bottom, while MAUI dark shows the full stack (entry, Border label, Border Width slider, Corner Radius sliders).",
-    "light": "diff",
-    "light_note": "C++ stretches the red Border to full width (~900px) instead of MAUI's compact ~190px square; layout spacing is hugely inflated so most controls (Border Width + Corner Radius sliders) are pushed off-screen, plus an extra black pill renders in the title bar and title text differs (MauiCompare vs maui_ios_gallery)."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare BorderClipPlayground after the border compute_frame fix: compact red RoundRectangle Border with asymmetric per-corner radius (Top Left 60, others 0) + Border Width 5 / Corner Radius sliders below. Was a stale pre-fix diff (full-width ~900px stretched Border). Minor: leaf stroke AA.",
+    "dark_note": "Now matches (stale pre-fix diff cleared): compact red per-corner-radius Border, sliders laid out."
   },
   "border_layout": {
-    "dark": "diff",
-    "dark_note": "C++ shows only an empty white rounded Border outline — missing the colored segments and \"Center\" text, AND missing the entire \"Stroke thickness: 5/40\" label and Slider that MAUI renders above it (top of page is blank).",
-    "light": "diff",
-    "light_note": "C++ Border renders as an empty white rounded rect — missing the red/green/blue/green colored segments and the \"Center\" text MAUI shows inside it; C++ Slider is also wrong chrome (thick black line + black pill thumb vs MAUI's blue track + white circular thumb)."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare BorderLayout after the border compute_frame + content-arrange fixes: green-filled rounded Border with red/blue colored child segments + Center label; Stroke thickness: 5/40 slider above. Was a stale pre-fix diff (empty white Border). Minor: slider thumb chrome + leaf segment AA.",
+    "dark_note": "Now matches (stale pre-fix diff cleared): colored segments + Center text render inside the green Border."
   },
   "border_playground": {
     "dark": "diff",
-    "dark_note": "Same as light: MAUI shows cyan-gradient-filled rounded Border plus the form section below; C++ shows an empty black-interior dashed-yellow rectangle with no gradient fill and none of the form controls.",
     "light": "diff",
-    "light_note": "MAUI: Border has cyan gradient fill, RoundRectangle shape with dashed yellow stroke, and a form (Border Content/Shape/Background entries + color picker) below; C++: Border is unfilled (white interior, square-ish corners) with a thinner dashed yellow stroke and NO form controls below it."
+    "light_note": "C++ Border renders the yellow dashed RoundRectangle stroke + Just a Label content correctly, but its interior is EMPTY/white — the cyan LinearGradientBrush Background (#00B4DB->#0083B0) MAUI fills the Border with is invisible. Root cause: the iOS border host is a plain UIView with no layoutSubviews->resize_background_layers, so the gradient sublayer stays sized 0x0 from setup-time and never reframes post-layout (the solid + stroke paths work; only the gradient/image Background is affected). Background agent ab0d65f7b5 dispatched to add a MauiIosBorder subclass mirroring the value-control resize pattern. Form section below (Border Content/Shape/Background entries) renders correctly.",
+    "dark_note": "Same as light: cyan gradient Background invisible (white/black interior) — border gradient sublayer not resized post-layout on iOS; fix agent dispatched."
   },
   "border_resize_content": {
     "dark": "diff",
@@ -108,8 +108,10 @@
     "dark_note": "Now matches (stale pre-fix diff cleared): orange fills + red borders + slider + laid-out labels all render."
   },
   "borderless": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare Borderless: Style: borderless (StrokeThickness 0) caption + a switch + a borderless yellow-background Border. Minor: switch chrome.",
+    "dark_note": "Matches: borderless yellow Border + switch render."
   },
   "box_view": {
     "dark": "minor",
