@@ -18,11 +18,9 @@
 // headless/apple/ios test trees exercise the same wiring directly.
 //
 // PORT NOTES (faithful best-effort, never invented):
-//   note: the C# <Style TargetType="Ellipse"> sets HorizontalOptions="Start" on every ellipse. The
-//         port's public view surface has no per-view HorizontalOptions setter (horizontal_layout_-
-//         alignment is fixed to Fill on view<>), so the Start alignment is not reproduced — each shape
-//         still pins its own WidthRequest/HeightRequest, so the visual ellipse sizes are faithful; only
-//         the in-stack horizontal alignment differs.
+//   note: the C# <Style TargetType="Ellipse"> sets HorizontalOptions="Start" on every ellipse —
+//         reproduced via set_horizontal_layout_alignment(start) (the view surface now exposes it), so the
+//         ellipses left-align like maui-compare instead of centering (the Fill+explicit-width default).
 //   note: the first caption text really is "A basic Rectangle" in the C# XAML (a copy/paste artifact
 //         from RectangleGallery) — preserved verbatim for fidelity rather than corrected.
 //   note: the C# fill/stroke colors are named brushes ("Red", "DarkBlue"); the port wraps each in a
@@ -36,6 +34,7 @@
 #include "maui/controls/scroll_view.hpp"
 #include "maui/controls/shapes/ellipse.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
@@ -94,6 +93,13 @@ namespace maui::samples
             dash_ellipse_.set_width_request(150);
             dash_ellipse_.set_height_request(50);
             stack_.add(dash_ellipse_);
+
+            // maui-compare EllipseGalleryPage left-aligns each shape (HorizontalOptions=Start), not the
+            // Fill+explicit-width center default — match it so the side-by-side comparison is apples-to-apples.
+            for (auto* shape : {&ellipse_, &circle_, &stroke_ellipse_, &filled_stroke_ellipse_, &dash_ellipse_})
+            {
+                shape->set_horizontal_layout_alignment(maui::core::layout_alignment::start);
+            }
 
             scroll_.set_content(stack_);
             page_.set_content(scroll_);

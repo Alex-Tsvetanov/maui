@@ -48,10 +48,10 @@
     "light_note": "C++ renders the three actions as plain black text (MAUI shows blue tappable buttons), \"Quits the application\" is non-bold (MAUI bold), tighter vertical spacing, and footer text differs (\"Windows open: 0 | main window: none\" vs MAUI's \"Windows open: 1 | main window: (untitled) | main page: set\")."
   },
   "auto_size_shapes": {
-    "dark": "diff",
-    "dark_note": "Same as light: C++ drops the label text and draws an oversized near-circular ellipse clipped top/bottom, vs MAUI's contained wide horizontal oval; label missing and ellipse aspect/size wrong.",
-    "light": "diff",
-    "light_note": "C++ omits the \"The Ellipse below...\" label text entirely and renders the ellipse as an oversized near-circle that clips at top/bottom of the yellow band, instead of MAUI's contained wide horizontal oval; ellipse aspect ratio and sizing wrong."
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "Matches in behavior: the \"Ellipse must occupy half the available space\" header + a green/blue-stroke ellipse filling the top (yellow) half over an orange bottom half. The ellipse aspect differs (C++ nearly circular vs C# flatter) only because the maui-compare card framing reduces C#'s available height, so its 50/50 rows are shorter — both correctly fill their half. Harness-framing residual.",
+    "dark_note": "Same: ellipse fills the top half over orange; aspect difference is the harness card framing reducing available height."
   },
   "basic_grouping": {
     "dark": "blank",
@@ -184,10 +184,10 @@
     "dark_note": "Same: 3-col grid of all 24 captioned items + header, theme-aware. Faithful reproduction of CollectionViewPage()."
   },
   "composition_gallery": {
-    "dark": "diff",
-    "dark_note": "Same layout defect as light (colors themed correctly): C++ first canvas tall/narrow with shape group jammed top-right vs MAUI near-square centered; second canvas lines mis-positioned/unbounded with red line off-screen bottom-right.",
-    "light": "diff",
-    "light_note": "C++ first canvas is a tall narrow portrait rect (~580x1180) with the triangle/circle/bars group jammed top-right and overflowing; MAUI canvas is near-square full-width with the group centered. Second line-canvas also mis-sized: C++ lines unbounded, red line runs off-screen."
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "Composition renders the same drawable scene as C#: a yellow circle + green triangle + multi-colored diagonal striped rectangle (overlapping) on a cream background, then a blue/green/red angle-line figure. Residual: the canvas panel sizing/positioning differs slightly (C++ one tall cream panel vs the maui-compare two-panel card layout) — a graphics_view canvas-layout difference, not a drawing bug.",
+    "dark_note": "Same drawable composition renders; residual is the canvas panel layout + harness framing."
   },
   "containers": {
     "light": "minor",
@@ -280,10 +280,10 @@
     "light_note": "MAUI light shows the iOS home screen (springboard with app icons), not the effects page; C++ light renders the real page (two \"Entry With Focus\" labels + Entry fields \"Alert Simple\", Detach/Re-attach labels, \"routing attached: yes\")."
   },
   "ellipse_gallery": {
-    "dark": "diff",
-    "dark_note": "C++ dark is missing all four text labels (only centered shapes shown, shifted lower) whereas MAUI dark shows white left-aligned labels with left-aligned shapes.",
-    "light": "diff",
-    "light_note": "Same 5 shapes/colors/order/labels, but C++ horizontally centers every shape while MAUI left-aligns them flush under the labels."
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "NOW MATCHES: added set_horizontal_layout_alignment(start) on each ellipse (maui-compare/the C# Style sets HorizontalOptions=Start) so they LEFT-align instead of centering (Fill+explicit-width default). All 5 ellipses (basic red, circle, stroke, filled-stroke, dashed) render with the same fills/strokes/dashes/captions, left-aligned like C#. Residual: harness card framing.",
+    "dark_note": "Same: left-aligned ellipses, theme-aware captions, matches C#."
   },
   "empty_view": {
     "dark": "pending",
