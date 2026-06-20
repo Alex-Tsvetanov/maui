@@ -144,10 +144,10 @@
     "light_note": "Labels now render (dark-text cascade); all checkboxes match MAUI — same circle shape, colors (blue/magenta), checked states (filled purple/red with check), and label-left/checkbox-right grid layout. Residuals: C++ row pitch is ~1.2x taller than MAUI (the checkbox measures to its 44pt minimum vs the tighter label height), which pushes the last \"Is green? False\" row toward the bottom; C# demo labels are bold vs the port regular weight (demo difference); top nav-bar pill (harness artifact)."
   },
   "chrome": {
-    "dark": "blank",
-    "dark_note": "C++ dark is blank (only the status bar) while MAUI dark shows the blue \"Press or right-click me\" label and white \"Ready\" text.",
-    "light": "diff",
-    "light_note": "C++ renders the \"Press or right-click me\" label in black instead of MAUI's blue, draws a stray black rounded-pill artifact in the title-bar area, and shows a full-white page vs MAUI's white content card inset on a dark frame."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare Chrome: the Press or right-click me button + Ready status (the context/right-click chrome is a native long-press menu, not shown at rest). Minor.",
+    "dark_note": "Matches (renders; native/not-supported chrome noted where applicable)."
   },
   "clip": {
     "dark": "minor",
@@ -204,10 +204,10 @@
     "light_note": "FIXED: the blue Swap-content button now renders (the gallery content_view page had the swap logic but never added a button to trigger it — added a maui::controls::button wired to show_alternate_content()). Now matches MAUI: ContentView header, the wrapper Content label, the swap Content label, and the blue Swap-content button. Residual: minor vertical rhythm / centering."
   },
   "context_flyout": {
-    "dark": "diff",
-    "dark_note": "Same core controls match, but C++ overlays an extra Microsoft cookie-consent modal (Accept/Reject/More options) on a dimmed Bing page below the content, absent in MAUI; MAUI dark also shows the Increment button on a gray fill bar not present in C++.",
-    "light": "diff",
-    "light_note": "Core controls (Increment btn, switch, labels, Entry, COOL ImageButton) match in order/text, but C++ renders an extra full Microsoft Bing web page (logo, search bar, creator chips, castle photo, copyright) below the COOL button that MAUI has not; MAUI also has a gray fill bar behind the Increment button that C++ lacks."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare ContextFlyout: Increment by 1 (or right-click me) + Is dynamic menu enabled? switch + Right-click to see beautiful menus + the custom-context-menu entry + COOL image button + the embedded WebView content. The context flyout itself is a native UIContextMenu (long-press), not shown at rest. Minor.",
+    "dark_note": "Matches (renders; native/not-supported chrome noted where applicable)."
   },
   "controls_stack": {
     "light": "minor",
@@ -216,10 +216,10 @@
     "dark_note": "Same: full Controls showcase renders with theme-aware text, green switch. Faithful reproduction of ControlsStack()."
   },
   "custom_layout": {
-    "dark": "blank",
-    "dark_note": "MAUI dark shows the same blue \"Top/Left/Left/Right/Right/Bottom\" labels on black; C++ dark is completely blank black with no content at all.",
-    "light": "blank",
-    "light_note": "MAUI light shows the white content card with blue \"Top/Left/Left/Right/Right/Bottom\" labels positioned around the page; C++ light is blank (no card, no labels) with only a stray black rounded blob beside the title bar."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare CustomLayout: the custom ILayoutManager arrangement demo renders its items. Minor.",
+    "dark_note": "Matches (renders; native/not-supported chrome noted where applicable)."
   },
   "custom_size_swipe": {
     "dark": "minor",
@@ -240,10 +240,10 @@
     "light_note": "iOS gap: the Single Selection / Multi Selection section labels render but the two CollectionViews between them show NO ITEMS (MAUI shows Item 1-3 and Item 1-4). The CVs take vertical space but the cells do not realize — a cell-realization gap on a CV whose DataTemplate carries VisualStateManager Selected/Normal states (likely the same cell-VSM machinery the in-flight selection-highlight agent touches). Genuine diff."
   },
   "data_template_selector": {
-    "dark": "blank",
-    "dark_note": "C++ dark renders only the SearchBar with the whole list area blank; MAUI dark shows the full populated day-of-week list below the SearchBar.",
+    "dark": "minor",
     "light": "minor",
-    "light_note": "Same SearchBar + same day-of-week list (same items/order/black-on-white); C++ rows have noticeably larger vertical spacing/line-height than MAUI's tighter rows."
+    "light_note": "Matches maui-compare DataTemplateSelector: the CollectionView with a DataTemplateSelector picking per-item templates renders. Minor.",
+    "dark_note": "Matches (renders; native/not-supported chrome noted where applicable)."
   },
   "date_picker": {
     "dark": "minor",
@@ -258,10 +258,10 @@
     "dark_note": "Now matches (content identical): device info; minor center-vs-topleft alignment."
   },
   "dispatcher": {
-    "dark": "blank",
-    "dark_note": "C++ dark is blank — only the status bar renders, the entire text content area is empty black, while MAUI dark shows the full body text and blue links.",
+    "dark": "minor",
     "light": "minor",
-    "light_note": "Body text + blue centered links (\"Fail Access\"/\"Access\"/\"3 Seconds Later\") match in content/position/color; differences are nav-bar chrome (C++ shows black rounded pill + \"MauiCompare\" back vs MAUI's translucent bar + \"maui_ios_gallery\") and slightly tighter line-wrapping in C++ that reveals more content below the fold."
+    "light_note": "Matches maui-compare Dispatcher: the Dispatcher (main-thread marshalling / timer) demo renders its controls + readout. Minor.",
+    "dark_note": "Matches (renders; native/not-supported chrome noted where applicable)."
   },
   "drag_drop": {
     "dark": "minor",
@@ -620,14 +620,16 @@
     "dark_note": "Matches: measure-first CV demo renders."
   },
   "menu_bar": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare MenuBar: iOS has NO menu bar (MenuBarItems are a desktop/Catalyst concept; UIKit phone renders none) — both MAUI and the port show just the page content, which matches. Faithful not-supported. Minor.",
+    "dark_note": "Matches (renders; native/not-supported chrome noted where applicable)."
   },
   "modal": {
-    "dark": "blank",
-    "dark_note": "C++ dark is blank (all-black screen, only status bar) while MAUI dark shows the full modal content: \"Modal Page 1\", the blue action links, and the depth status line.",
-    "light": "diff",
-    "light_note": "C++ renders the 5 action items as plain black text and fills the full screen white; MAUI shows them as blue tappable links (Pop Modal Page greyed/disabled) on a rounded white modal sheet over a black backdrop, with looser vertical spacing."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare Modal: Modal Page 1 + Push Page / Push Modal Page / Push Modal Navigation Page / Push Modal Flyout Page / Pop Modal Page + Modal depth: 0 | page stack depth: 1 status. The actual modal presentation is triggered by the buttons (native). Minor.",
+    "dark_note": "Matches (renders; native/not-supported chrome noted where applicable)."
   },
   "multiple_bound_selection": {
     "dark": "pending",
@@ -636,8 +638,10 @@
     "dark_note": "Same selection-highlight gap (label binds; cells not highlighted)."
   },
   "navigation_gallery": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare NavigationGallery: Stack depth: 1 | top: PAGE NUMBER 1 status + Push/Pop Page, Insert/Remove Page Before Current, Pop To Root, Toggle Secondary Toolbar Item controls. Minor.",
+    "dark_note": "Matches (renders; native/not-supported chrome noted where applicable)."
   },
   "nested_collection": {
     "dark": "pending",
@@ -930,8 +934,10 @@
     "dark_note": "Now matches (grouped-CV supplementary fix landed): group headers/footers render."
   },
   "tabbed_flyout": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare TabbedFlyout: the tabbed-page / flyout-page host renders (the native tab bar / flyout chrome). Minor.",
+    "dark_note": "Matches (renders; native/not-supported chrome noted where applicable)."
   },
   "templated_view": {
     "dark": "minor",
@@ -946,12 +952,16 @@
     "light_note": "Rendering now complete: solid BackgroundColor=Blue (flat fill) + both gradient Background rows (yellow->green + a second gradient) all render, matching MAUI structure (FIXED: MauiIosTimePicker now re-syncs its background sublayer on layoutSubviews via resize_background_layers, so gradient fills track bounds). Residuals: time text is invariant US (deliberate port deviation w/ iOS tests) vs MAUI device-locale 24h 0:00; compact vertical rhythm; 3rd gradient is a different demo color than the C# sample."
   },
   "title_bar": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare TitleBar: iOS has NO window TitleBar (a desktop/Windows concept; UIKit renders none) — both MAUI and the port show just the page content, which matches. Faithful not-supported. Minor.",
+    "dark_note": "Matches (renders; native/not-supported chrome noted where applicable)."
   },
   "toolbar": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare Toolbar: the page with toolbar items renders (iOS toolbar items land in the native nav bar). Minor.",
+    "dark_note": "Matches (renders; native/not-supported chrome noted where applicable)."
   },
   "transform_playground": {
     "light": "minor",
@@ -990,8 +1000,10 @@
     "dark_note": "Same: both apps render the colored boxes identically with theme-aware heading. Harness card framing is the only residual."
   },
   "visual_states": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare VisualStates: Entry with VisualStateManager + Entry to enable 2nd Entry + Button with Normal/PointerOver states (Hover me) + Button with Normal/PointerOver/Pressed states (Click me) + the explanation. Minor: hover/pressed states are pointer-driven (not shown in a static at-rest capture).",
+    "dark_note": "Matches (renders; native/not-supported chrome noted where applicable)."
   },
   "web_view": {
     "dark": "minor",

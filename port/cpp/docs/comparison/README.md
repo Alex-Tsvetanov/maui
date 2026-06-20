@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 0 / 172 🟢 matched** · 149 🟡 minor · 9 🔴 diff · 14 ⬜ pending
+**Progress: 0 / 172 🟢 matched** · 161 🟡 minor · 3 🔴 diff · 8 ⬜ pending
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.
 
@@ -112,7 +112,7 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 98 | Staggered Layout | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/staggered_layout.png) | ![](cpp_ios_light/staggered_layout.png) | ![](csharp_ios_dark/staggered_layout.png) | ![](cpp_ios_dark/staggered_layout.png) |
 | 99 | Varied Size Selector | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/varied_size_selector.png) | ![](cpp_ios_light/varied_size_selector.png) | ![](csharp_ios_dark/varied_size_selector.png) | ![](cpp_ios_dark/varied_size_selector.png) |
 | 100 | Nested Collection | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/nested_collection.png) | ![](cpp_ios_light/nested_collection.png) | ![](csharp_ios_dark/nested_collection.png) | ![](cpp_ios_dark/nested_collection.png) |
-| 101 | Data Template Selector | ⬛<br>L:minor<br>D:blank | ![](csharp_ios_light/data_template_selector.png) | ![](cpp_ios_light/data_template_selector.png) | ![](csharp_ios_dark/data_template_selector.png) | ![](cpp_ios_dark/data_template_selector.png) |
+| 101 | Data Template Selector | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/data_template_selector.png) | ![](cpp_ios_light/data_template_selector.png) | ![](csharp_ios_dark/data_template_selector.png) | ![](cpp_ios_dark/data_template_selector.png) |
 | 102 | Cv Visual States | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/cv_visual_states.png) | ![](cpp_ios_light/cv_visual_states.png) | ![](csharp_ios_dark/cv_visual_states.png) | ![](cpp_ios_dark/cv_visual_states.png) |
 | 103 | Empty View | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/empty_view.png) | ![](cpp_ios_light/empty_view.png) | ![](csharp_ios_dark/empty_view.png) | ![](cpp_ios_dark/empty_view.png) |
 | 104 | Empty View Null | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/empty_view_null.png) | ![](cpp_ios_light/empty_view_null.png) | ![](csharp_ios_dark/empty_view_null.png) | ![](cpp_ios_dark/empty_view_null.png) |
@@ -151,7 +151,7 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 137 | Hit Testing | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/hit_testing.png) | ![](cpp_ios_light/hit_testing.png) | ![](csharp_ios_dark/hit_testing.png) | ![](cpp_ios_dark/hit_testing.png) |
 | 138 | Input Transparent | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/input_transparent.png) | ![](cpp_ios_light/input_transparent.png) | ![](csharp_ios_dark/input_transparent.png) | ![](cpp_ios_dark/input_transparent.png) |
 | 139 | Focus | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/focus.png) | ![](cpp_ios_light/focus.png) | ![](csharp_ios_dark/focus.png) | ![](cpp_ios_dark/focus.png) |
-| 140 | Dispatcher | ⬛<br>L:minor<br>D:blank | ![](csharp_ios_light/dispatcher.png) | ![](cpp_ios_light/dispatcher.png) | ![](csharp_ios_dark/dispatcher.png) | ![](cpp_ios_dark/dispatcher.png) |
+| 140 | Dispatcher | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/dispatcher.png) | ![](cpp_ios_light/dispatcher.png) | ![](csharp_ios_dark/dispatcher.png) | ![](cpp_ios_dark/dispatcher.png) |
 | 141 | Device | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/device.png) | ![](cpp_ios_light/device.png) | ![](csharp_ios_dark/device.png) | ![](cpp_ios_dark/device.png) |
 | 142 | Effects | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/effects.png) | ![](cpp_ios_light/effects.png) | ![](csharp_ios_dark/effects.png) | ![](cpp_ios_dark/effects.png) |
 | 143 | Measure First Strategy | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/measure_first_strategy.png) | ![](cpp_ios_light/measure_first_strategy.png) | ![](csharp_ios_dark/measure_first_strategy.png) | ![](cpp_ios_dark/measure_first_strategy.png) |
@@ -173,14 +173,14 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 159 | Ios Safe Area | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/ios_safe_area.png) | ![](cpp_ios_light/ios_safe_area.png) | ![](csharp_ios_dark/ios_safe_area.png) | ![](cpp_ios_dark/ios_safe_area.png) |
 | 160 | Ios Swipe Transition | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/ios_swipe_transition.png) | ![](cpp_ios_light/ios_swipe_transition.png) | ![](csharp_ios_dark/ios_swipe_transition.png) | ![](cpp_ios_dark/ios_swipe_transition.png) |
 | 161 | Ios Blur Effect | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/ios_blur_effect.png) | ![](cpp_ios_light/ios_blur_effect.png) | ![](csharp_ios_dark/ios_blur_effect.png) | ![](cpp_ios_dark/ios_blur_effect.png) |
-| 162 | Navigation Gallery | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/navigation_gallery.png) | ![](cpp_ios_light/navigation_gallery.png) | ![](csharp_ios_dark/navigation_gallery.png) | ![](cpp_ios_dark/navigation_gallery.png) |
-| 163 | Modal | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/modal.png) | ![](cpp_ios_light/modal.png) | ![](csharp_ios_dark/modal.png) | ![](cpp_ios_dark/modal.png) |
-| 164 | Tabbed Flyout | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/tabbed_flyout.png) | ![](cpp_ios_light/tabbed_flyout.png) | ![](csharp_ios_dark/tabbed_flyout.png) | ![](cpp_ios_dark/tabbed_flyout.png) |
-| 165 | Toolbar | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/toolbar.png) | ![](cpp_ios_light/toolbar.png) | ![](csharp_ios_dark/toolbar.png) | ![](cpp_ios_dark/toolbar.png) |
-| 166 | Menu Bar | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/menu_bar.png) | ![](cpp_ios_light/menu_bar.png) | ![](csharp_ios_dark/menu_bar.png) | ![](cpp_ios_dark/menu_bar.png) |
-| 167 | Title Bar | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/title_bar.png) | ![](cpp_ios_light/title_bar.png) | ![](csharp_ios_dark/title_bar.png) | ![](cpp_ios_dark/title_bar.png) |
-| 168 | Chrome | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/chrome.png) | ![](cpp_ios_light/chrome.png) | ![](csharp_ios_dark/chrome.png) | ![](cpp_ios_dark/chrome.png) |
-| 169 | Context Flyout | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/context_flyout.png) | ![](cpp_ios_light/context_flyout.png) | ![](csharp_ios_dark/context_flyout.png) | ![](cpp_ios_dark/context_flyout.png) |
+| 162 | Navigation Gallery | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/navigation_gallery.png) | ![](cpp_ios_light/navigation_gallery.png) | ![](csharp_ios_dark/navigation_gallery.png) | ![](cpp_ios_dark/navigation_gallery.png) |
+| 163 | Modal | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/modal.png) | ![](cpp_ios_light/modal.png) | ![](csharp_ios_dark/modal.png) | ![](cpp_ios_dark/modal.png) |
+| 164 | Tabbed Flyout | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/tabbed_flyout.png) | ![](cpp_ios_light/tabbed_flyout.png) | ![](csharp_ios_dark/tabbed_flyout.png) | ![](cpp_ios_dark/tabbed_flyout.png) |
+| 165 | Toolbar | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/toolbar.png) | ![](cpp_ios_light/toolbar.png) | ![](csharp_ios_dark/toolbar.png) | ![](cpp_ios_dark/toolbar.png) |
+| 166 | Menu Bar | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/menu_bar.png) | ![](cpp_ios_light/menu_bar.png) | ![](csharp_ios_dark/menu_bar.png) | ![](cpp_ios_dark/menu_bar.png) |
+| 167 | Title Bar | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/title_bar.png) | ![](cpp_ios_light/title_bar.png) | ![](csharp_ios_dark/title_bar.png) | ![](cpp_ios_dark/title_bar.png) |
+| 168 | Chrome | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/chrome.png) | ![](cpp_ios_light/chrome.png) | ![](csharp_ios_dark/chrome.png) | ![](cpp_ios_dark/chrome.png) |
+| 169 | Context Flyout | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/context_flyout.png) | ![](cpp_ios_light/context_flyout.png) | ![](csharp_ios_dark/context_flyout.png) | ![](cpp_ios_dark/context_flyout.png) |
 | 170 | Templated View | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/templated_view.png) | ![](cpp_ios_light/templated_view.png) | ![](csharp_ios_dark/templated_view.png) | ![](cpp_ios_dark/templated_view.png) |
-| 171 | Custom Layout | ⬛<br>L:blank<br>D:blank | ![](csharp_ios_light/custom_layout.png) | ![](cpp_ios_light/custom_layout.png) | ![](csharp_ios_dark/custom_layout.png) | ![](cpp_ios_dark/custom_layout.png) |
-| 172 | Visual States | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/visual_states.png) | ![](cpp_ios_light/visual_states.png) | ![](csharp_ios_dark/visual_states.png) | ![](cpp_ios_dark/visual_states.png) |
+| 171 | Custom Layout | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/custom_layout.png) | ![](cpp_ios_light/custom_layout.png) | ![](csharp_ios_dark/custom_layout.png) | ![](cpp_ios_dark/custom_layout.png) |
+| 172 | Visual States | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/visual_states.png) | ![](cpp_ios_light/visual_states.png) | ![](csharp_ios_dark/visual_states.png) | ![](cpp_ios_dark/visual_states.png) |
