@@ -25,7 +25,7 @@
 #include "maui/controls/time_picker.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/date_time.hpp" // time_span
-#include "maui/core/thickness.hpp" // padding inset (margin stand-in)
+#include "maui/core/thickness.hpp"
 #include "maui/hosting/maui_app.hpp"
 
 #include "gallery_attach.hpp"
@@ -40,9 +40,7 @@ namespace maui::samples
             namespace ios_tp = maui::controls::platform_configuration::ios_specific::time_picker;
 
             page_.set_title("TimePicker UpdateMode");
-            // note: StackLayout Margin="10" — set_margin is out of the layout-option scope at this layer
-            // (see basic_swipe_page), so the inset is best-effort as the stack's padding.
-            stack_.set_padding(maui::core::thickness(10));
+            stack_.set_margin(maui::core::thickness(10)); // C# StackLayout Margin="10"
             stack_.set_spacing(12);
 
             // TimePicker Time="14:00:00".

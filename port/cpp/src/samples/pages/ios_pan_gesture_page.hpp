@@ -40,6 +40,7 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/gesture_status.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/hosting/maui_app.hpp"
 
 #include "maui/controls/application.hpp"
@@ -56,7 +57,7 @@ namespace maui::samples
         ios_pan_gesture_page()
         {
             page_.set_title("Pan Gesture Recognizer");
-            // note: the XAML StackLayout Margin="20" is NOT ported (set_margin out of layout-option scope).
+            stack_.set_margin(maui::core::thickness(20)); // XAML StackLayout Margin="20"
             stack_.set_spacing(12);
 
             // C# _messageLabel (FontAttributes="Bold") — the readout the pan + toggle both write into.

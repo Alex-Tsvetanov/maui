@@ -37,9 +37,8 @@
 //         live binding is left as best-effort + this note, never invented.
 //   note: the "Headline" StaticResource caption style (a shared FontSize/weight) is applied as a plain
 //         caption label — the headless-safe equivalent of the StaticResource label style.
-//   note: the C# StackLayout Margin="12" is a layout-options/margin facility the port's view base does not
-//         expose; the spacing (12) is reproduced, the outer margin is omitted (the same note grid_page.hpp
-//         records for HorizontalOptions). HeightRequest/Padding/StrokeThickness all map 1:1.
+//   note: the C# StackLayout Margin="12" maps to set_margin(thickness(12)) (the View.Margin seam); the
+//         spacing (12) is reproduced too. HeightRequest/Padding/StrokeThickness all map 1:1.
 
 #include <algorithm>
 #include <cstdio>
@@ -68,7 +67,8 @@ namespace maui::samples
         border_styles_page()
         {
             page_.set_title("Border using Styles");
-            stack_.set_spacing(12); // C# StackLayout Spacing="12" (Margin="12" — see note)
+            stack_.set_spacing(12);                       // C# StackLayout Spacing="12"
+            stack_.set_margin(maui::core::thickness(12)); // C# StackLayout Margin="12"
 
             // --- "RoundRectangle 10,10,10,10" — the C# BorderStyle.
             caption(style_caption_, "RoundRectangle 10,10,10,10");

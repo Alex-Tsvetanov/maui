@@ -30,9 +30,10 @@
 //   note: the Delete SwipeItem's IconImageSource="calculator.png" is carried as a file_image_source exactly
 //         as the XAML names it; the headless backend resolves no bitmap, so it is an inert reference (the
 //         item still shows its "Delete" text), matching the inert-source contract.
-//   note: the SwipeView's BackgroundColor / the row's HorizontalOptions="Center" / Margin are NOT ported
-//         (out of layout-option scope, the basic_swipe_page convention). The Grid HeightRequest=60/
-//         WidthRequest=300 + the swipe item BackgroundColor LightPink ARE set where the XAML names them.
+//   note: the SwipeView's BackgroundColor / the selector row's HorizontalOptions="Center" are NOT ported
+//         (a separate layout-option deferral). The outer StackLayout Margin="20" IS ported (set_margin);
+//         the Grid HeightRequest=60/WidthRequest=300 + the swipe item BackgroundColor LightPink ARE set
+//         where the XAML names them.
 //
 // Self-contained: the page OWNS its whole element tree, exposes page() and attach_handlers(maui_app).
 
@@ -50,6 +51,7 @@
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/open_swipe_item.hpp"
 #include "maui/core/swipe_transition_mode.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
@@ -64,7 +66,7 @@ namespace maui::samples
         ios_swipe_transition_page()
         {
             page_.set_title("SwipeView SwipeTransitionMode");
-            // note: the XAML StackLayout Margin="20" is NOT ported (set_margin out of layout-option scope).
+            stack_.set_margin(maui::core::thickness(20)); // XAML StackLayout Margin="20"
             stack_.set_spacing(12);
 
             // ---- the "SwipeTransitionMode:" row + the Reveal/Drag selector (stands in for the EnumPicker) --

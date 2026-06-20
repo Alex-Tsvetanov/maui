@@ -30,6 +30,7 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/app_theme.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/hosting/maui_app.hpp"
@@ -45,9 +46,7 @@ namespace maui::samples
         {
             page_.set_title("AppThemeBinding");
             stack_.set_spacing(8);
-            // note: AppThemeBindingPage.xaml sets StackLayout Margin="12", but view exposes no margin
-            // setter at this layer (margin() is a fixed {} override), so the margin is deferred rather
-            // than invented. The demonstrated AppThemeBinding color resolution below is unaffected.
+            stack_.set_margin(maui::core::thickness(12)); // AppThemeBindingPage.xaml StackLayout Margin="12"
 
             // Headline + the inline {AppThemeBinding Light=Green, Dark=Red} label.
             headline_a_.set_text("AppThemeBinding");

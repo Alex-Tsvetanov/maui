@@ -20,15 +20,14 @@
 // attaches handlers bottom-up via the hosting layer and hosts page() in a window; the headless/apple/ios
 // test trees exercise the same wiring directly.
 //
-// note: the C# StackLayout carries Margin="20"; the port's view base has no margin setter
-//       (view<>::margin() is inert), so the outer spacing is approximated with the layout's spacing and
-//       the margin hint is left unported.
+// note: the C# StackLayout Margin="20" is ported via set_margin (the View.Margin seam).
 
 #include "maui/controls/button.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/slider.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/thickness.hpp"
 
 #include "maui/controls/platform_configuration/configuration.hpp"
 #include "maui/controls/platform_configuration/ios_specific/slider.hpp"
@@ -47,6 +46,7 @@ namespace maui::samples
 
             page_.set_title("Slider Update on Tap");
             stack_.set_spacing(12);
+            stack_.set_margin(maui::core::thickness(20)); // C# StackLayout Margin="20"
 
             // The instructional label (the C# Label.Text).
             hint_.set_text("Tap on the Slider bar to move the thumb.");

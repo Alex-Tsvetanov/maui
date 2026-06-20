@@ -39,11 +39,11 @@
 //
 // note: the items are plain std::string ("Item N"), matching the C# string source; selection equality is
 //   string value equality (boxed_item::of<std::string> uses operator==). The C# Style sets HeightRequest 250
-//   (ported via set_height_request) plus Margin (visual chrome the headless view base does not expose a setter
-//   for — view<>::margin() is fixed {} — so the margins are dropped). The per-cell "selected" visual state has
-//   no headless analog, so each CV's selection is surfaced through its readout instead. The C# model carries
-//   the not-in-source selections as separate properties so each can be wired into the right CV; the port mirrors
-//   that by seeding each CV from the corresponding fixed values directly.
+//   (ported via set_height_request) plus Margin="5,2,5,5" (ported via set_margin), and the cell Label's
+//   Margin="0,3,0,3" is set on the template. The per-cell "selected" visual state has no headless analog, so
+//   each CV's selection is surfaced through its readout instead. The C# model carries the not-in-source
+//   selections as separate properties so each can be wired into the right CV; the port mirrors that by seeding
+//   each CV from the corresponding fixed values directly.
 
 #include <memory>
 #include <string>
@@ -61,6 +61,7 @@
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/hosting/maui_app.hpp"
 
 #include "gallery_attach.hpp"
@@ -205,13 +206,16 @@ namespace maui::samples
             auto cell = maui::controls::data_template::of<maui::controls::label>();
             cell->set_binding<std::string, std::string>(maui::controls::label::text_property(),
                                                         [](const std::string& value) { return value; });
+            cell->set_value(maui::controls::margin_property(),
+                            maui::core::thickness(0, 3, 0, 3)); // the cell Label's Margin="0,3,0,3"
             return cell;
         }
 
         // Apply the "CV" style essentials a headless CV honors: HeightRequest 250 + the Caption cell template.
         void style_cv(maui::controls::collection_view& cv)
         {
-            cv.set_height_request(250); // Style Setter HeightRequest="250" (Margin is visual chrome — see note)
+            cv.set_height_request(250);                       // Style Setter HeightRequest="250"
+            cv.set_margin(maui::core::thickness(5, 2, 5, 5)); // Style Setter Margin="5,2,5,5"
             cv.set_item_template(caption_cell());
         }
 

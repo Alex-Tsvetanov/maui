@@ -37,6 +37,7 @@
 #include "maui/controls/horizontal_stack_layout.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/hosting/maui_app.hpp"
 
 #include "maui/controls/platform_configuration/configuration.hpp"
@@ -55,8 +56,7 @@ namespace maui::samples
             namespace ios_ve = pc::ios_specific::visual_element;
 
             page_.set_title("VisualElement first responder");
-            // note: the XAML StackLayout Margin="10" is NOT ported — the port's layout base does not expose
-            // set_margin at this layer (out of the layout-option scope, per the basic_swipe_page convention).
+            stack_.set_margin(maui::core::thickness(10)); // XAML StackLayout Margin="10"
             stack_.set_spacing(10);
 
             // ---- First block: explanatory label + First Entry + plain OK button ----

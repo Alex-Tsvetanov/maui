@@ -15,17 +15,16 @@
 // Interactions demonstrated:
 //   - the PaddingSlider drives BOTH content grids' Padding (the MAUI Padding="{x:Reference PaddingSlider}"
 //     binding, mirrored code-first via slider value_changed → grid.set_padding).
-//   - the MarginSlider updates the readout with its value (see the note below).
+//   - the MarginSlider drives BOTH content grids' Margin (mirroring the Padding wiring) and the readout.
 //   - attach_handlers() synthetically OPENS swipe_view #1's left items so the static capture shows the
 //     revealed Favourite item, and reports the open via open_requested → readout.
 //
 // The page OWNS its whole element tree; it is backend-agnostic. A sample main attaches handlers bottom-up
 // and hosts page() in a window; the headless/apple/ios trees exercise the same wiring.
 //
-// note: MAUI's Margin="{x:Reference MarginSlider}" binding cannot be mirrored by a setter — the port's
-// view::margin() is a read-only contract value (no settable Margin bindable at this layer), so the
-// MarginSlider drives only the readout. The Padding binding IS settable (layout::set_padding) and is
-// wired through. The MAUI slider track/thumb colors (LightGray/Gray/DarkGray) are applied where the port
+// note: MAUI's Margin="{x:Reference MarginSlider}" binding is mirrored code-first via the MarginSlider's
+// value_changed → grid.set_margin (the View.Margin seam), exactly like the Padding binding (layout::
+// set_padding). The MAUI slider track/thumb colors (LightGray/Gray/DarkGray) are applied where the port
 // exposes them (minimum/maximum track + thumb color).
 
 #include <cstdio>
@@ -71,8 +70,12 @@ namespace maui::samples
 
             // ---- the two sliders (0..48, value 12; LightGray/Gray track + DarkGray thumb) ----
             configure_slider(margin_slider_);
-            margin_slider_.value_changed.connect(
-                [this](double /*old_value*/, double new_value) { update_readout("Margin", new_value); });
+            margin_slider_.value_changed.connect([this](double /*old_value*/, double new_value) {
+                const maui::core::thickness inset{new_value};
+                horizontal_grid_.set_margin(inset);
+                vertical_grid_.set_margin(inset);
+                update_readout("Margin", new_value);
+            });
 
             configure_slider(padding_slider_);
             padding_slider_.value_changed.connect([this](double /*old_value*/, double new_value) {
@@ -92,7 +95,8 @@ namespace maui::samples
             horizontal_label_.set_horizontal_text_alignment(maui::core::text_alignment::center);
             horizontal_label_.set_vertical_text_alignment(maui::core::text_alignment::center);
             horizontal_grid_.set_height_request(100);
-            horizontal_grid_.set_padding(maui::core::thickness{12}); // the slider's initial value
+            horizontal_grid_.set_padding(maui::core::thickness{12}); // the padding slider's initial value
+            horizontal_grid_.set_margin(maui::core::thickness{12});  // the margin slider's initial value
             horizontal_grid_.set_background(
                 std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::gray));
             horizontal_grid_.add(horizontal_label_);
@@ -117,6 +121,7 @@ namespace maui::samples
             vertical_label_.set_vertical_text_alignment(maui::core::text_alignment::center);
             vertical_grid_.set_height_request(100);
             vertical_grid_.set_padding(maui::core::thickness{12});
+            vertical_grid_.set_margin(maui::core::thickness{12});
             vertical_grid_.set_background(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::gray));
             vertical_grid_.add(vertical_label_);
 

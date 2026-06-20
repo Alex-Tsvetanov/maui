@@ -25,7 +25,7 @@
 #include "maui/controls/platform_configuration/ios_specific/blur_effect_style.hpp"
 #include "maui/controls/platform_configuration/ios_specific/visual_element.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
-#include "maui/core/thickness.hpp" // padding inset (margin stand-in)
+#include "maui/core/thickness.hpp"
 #include "maui/hosting/maui_app.hpp"
 
 #include "gallery_attach.hpp"
@@ -40,9 +40,7 @@ namespace maui::samples
             using blur_effect_style = maui::controls::platform_configuration::ios_specific::blur_effect_style;
 
             page_.set_title("Blur Effect");
-            // note: StackLayout Margin="20" — set_margin is out of the layout-option scope at this layer
-            // (see basic_swipe_page), so the inset is best-effort as the stack's padding.
-            stack_.set_padding(maui::core::thickness(20));
+            stack_.set_margin(maui::core::thickness(20)); // C# StackLayout Margin="20"
             stack_.set_spacing(12);
 
             // Image Source="oasis.jpg" — mint a file image source (the gallery resource the C# sample

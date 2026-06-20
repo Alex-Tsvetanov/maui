@@ -29,10 +29,9 @@
 //   note: the icon images (coffee.png / ic_flag.png / calculator.png) are carried as file_image_source
 //         exactly as the XAML IconImageSource names them; the headless backend resolves no bitmap, so they
 //         are inert references (the swipe item still shows its Text), matching the inert-source contract.
-//   note: VisualElement HorizontalOptions/VerticalOptions="Center" and Margin="12" on each SwipeView are
-//         NOT ported — the port's view base does not expose set_horizontal_options / set_vertical_options
-//         / set_margin (out of the layout-option scope at this layer). The vertical stack still lays the
-//         five views out top-to-bottom as the XAML StackLayout does.
+//   note: each SwipeView's Margin="12" is ported via set_margin (the View.Margin seam). The
+//         HorizontalOptions/VerticalOptions="Center" are left at the stack's default fill (a minor visual
+//         deferral). The vertical stack still lays the five views out top-to-bottom as the XAML StackLayout does.
 //   note: SwipeItems Mode="Execute"/"Reveal" maps to swipe_items::set_mode(swipe_mode::execute/reveal);
 //         the readable Grid HeightRequest/WidthRequest are set where the XAML names them.
 
@@ -47,6 +46,7 @@
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/open_swipe_item.hpp"
 #include "maui/core/swipe_mode.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
@@ -79,6 +79,7 @@ namespace maui::samples
             bottom_swipe_.bottom_items_collection().set_mode(maui::core::swipe_mode::execute);
             bottom_swipe_.bottom_items_collection().add(bottom_delete_);
             bottom_swipe_.set_content(bottom_content_);
+            bottom_swipe_.set_margin(maui::core::thickness(12)); // XAML SwipeView Margin="12"
             stack_.add(bottom_swipe_);
 
             // ---- 2. TopItems, Reveal: View / Test (Ajg) (ic_flag.png) / Delete (coffee.png, Invoked) ----
@@ -104,6 +105,7 @@ namespace maui::samples
             top_swipe_.set_height_request(60);
             top_swipe_.set_width_request(300);
             top_swipe_.set_content(top_content_);
+            top_swipe_.set_margin(maui::core::thickness(12)); // XAML SwipeView Margin="12"
             stack_.add(top_swipe_);
 
             // ---- 3. LeftItems, Reveal: Test (Ajg) / Test (Ajg) (calculator.png) / Delete (coffee, Invoked) -
@@ -129,6 +131,7 @@ namespace maui::samples
             left_swipe_.set_height_request(60);
             left_swipe_.set_width_request(300);
             left_swipe_.set_content(left_content_);
+            left_swipe_.set_margin(maui::core::thickness(12)); // XAML SwipeView Margin="12"
             stack_.add(left_swipe_);
 
             // ---- 4. RightItems, Execute: one red Delete (coffee.png, Invoked) ----
@@ -147,6 +150,7 @@ namespace maui::samples
             right_swipe_.set_height_request(60);
             right_swipe_.set_width_request(300);
             right_swipe_.set_content(right_content_);
+            right_swipe_.set_margin(maui::core::thickness(12)); // XAML SwipeView Margin="12"
             stack_.add(right_swipe_);
 
             // ---- 5. all four directions, each Reveal with one red Invoked item ----
@@ -184,6 +188,7 @@ namespace maui::samples
             any_swipe_.set_height_request(60);
             any_swipe_.set_width_request(300);
             any_swipe_.set_content(any_content_);
+            any_swipe_.set_margin(maui::core::thickness(12)); // XAML SwipeView Margin="12"
             stack_.add(any_swipe_);
 
             stack_.add(readout_);
