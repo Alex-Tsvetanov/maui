@@ -294,32 +294,46 @@
     "dark_note": "Matches: Filter bar + populated list render."
   },
   "empty_view_load_simulate": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare EmptyViewLoadSimulate: the load/empty state (Nothing to display) renders. Minor.",
+    "dark_note": "Matches (empty-view demo renders)."
   },
   "empty_view_null": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare EmptyViewNull: the CollectionView empty state shows Nothing to display. Minor.",
+    "dark_note": "Matches (empty-view demo renders)."
   },
   "empty_view_rtl": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare EmptyViewRtl: the RTL CollectionView empty-view variant renders. Minor.",
+    "dark_note": "Matches (empty-view demo renders)."
   },
   "empty_view_selector": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare EmptyViewSelector: the filter instructions + Filter SearchBar + items (Baboon - Africa & Asia ...). Minor.",
+    "dark_note": "Matches (empty-view demo renders)."
   },
   "empty_view_swap": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare EmptyViewSwap: populated grid + Filter (the empty-view swaps when filtered empty). Minor.",
+    "dark_note": "Matches (empty-view demo renders)."
   },
   "empty_view_template": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare EmptyViewTemplate: the populated 3-column grid (cover1/oasis/photo.jpg...) + Filter SearchBar; the empty-view template shows only when filtered to empty. Minor.",
+    "dark_note": "Matches (empty-view demo renders)."
   },
   "empty_view_view": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare EmptyViewView: populated 3-column grid + Filter SearchBar (empty View shows when filtered empty). Minor.",
+    "dark_note": "Matches (empty-view demo renders)."
   },
   "entry": {
     "dark": "minor",

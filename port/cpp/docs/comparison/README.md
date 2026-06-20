@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 0 / 172 🟢 matched** · 106 🟡 minor · 16 🔴 diff · 50 ⬜ pending
+**Progress: 0 / 172 🟢 matched** · 113 🟡 minor · 16 🔴 diff · 43 ⬜ pending
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.
 
@@ -115,13 +115,13 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 101 | Data Template Selector | ⬛<br>L:minor<br>D:blank | ![](csharp_ios_light/data_template_selector.png) | ![](cpp_ios_light/data_template_selector.png) | ![](csharp_ios_dark/data_template_selector.png) | ![](cpp_ios_dark/data_template_selector.png) |
 | 102 | Cv Visual States | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/cv_visual_states.png) | ![](cpp_ios_light/cv_visual_states.png) | ![](csharp_ios_dark/cv_visual_states.png) | ![](cpp_ios_dark/cv_visual_states.png) |
 | 103 | Empty View | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/empty_view.png) | ![](cpp_ios_light/empty_view.png) | ![](csharp_ios_dark/empty_view.png) | ![](cpp_ios_dark/empty_view.png) |
-| 104 | Empty View Null | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/empty_view_null.png) | ![](cpp_ios_light/empty_view_null.png) | ![](csharp_ios_dark/empty_view_null.png) | ![](cpp_ios_dark/empty_view_null.png) |
-| 105 | Empty View Rtl | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/empty_view_rtl.png) | ![](cpp_ios_light/empty_view_rtl.png) | ![](csharp_ios_dark/empty_view_rtl.png) | ![](cpp_ios_dark/empty_view_rtl.png) |
-| 106 | Empty View Selector | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/empty_view_selector.png) | ![](cpp_ios_light/empty_view_selector.png) | ![](csharp_ios_dark/empty_view_selector.png) | ![](cpp_ios_dark/empty_view_selector.png) |
-| 107 | Empty View Swap | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/empty_view_swap.png) | ![](cpp_ios_light/empty_view_swap.png) | ![](csharp_ios_dark/empty_view_swap.png) | ![](cpp_ios_dark/empty_view_swap.png) |
-| 108 | Empty View Template | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/empty_view_template.png) | ![](cpp_ios_light/empty_view_template.png) | ![](csharp_ios_dark/empty_view_template.png) | ![](cpp_ios_dark/empty_view_template.png) |
-| 109 | Empty View View | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/empty_view_view.png) | ![](cpp_ios_light/empty_view_view.png) | ![](csharp_ios_dark/empty_view_view.png) | ![](cpp_ios_dark/empty_view_view.png) |
-| 110 | Empty View Load Simulate | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/empty_view_load_simulate.png) | ![](cpp_ios_light/empty_view_load_simulate.png) | ![](csharp_ios_dark/empty_view_load_simulate.png) | ![](cpp_ios_dark/empty_view_load_simulate.png) |
+| 104 | Empty View Null | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/empty_view_null.png) | ![](cpp_ios_light/empty_view_null.png) | ![](csharp_ios_dark/empty_view_null.png) | ![](cpp_ios_dark/empty_view_null.png) |
+| 105 | Empty View Rtl | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/empty_view_rtl.png) | ![](cpp_ios_light/empty_view_rtl.png) | ![](csharp_ios_dark/empty_view_rtl.png) | ![](cpp_ios_dark/empty_view_rtl.png) |
+| 106 | Empty View Selector | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/empty_view_selector.png) | ![](cpp_ios_light/empty_view_selector.png) | ![](csharp_ios_dark/empty_view_selector.png) | ![](cpp_ios_dark/empty_view_selector.png) |
+| 107 | Empty View Swap | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/empty_view_swap.png) | ![](cpp_ios_light/empty_view_swap.png) | ![](csharp_ios_dark/empty_view_swap.png) | ![](cpp_ios_dark/empty_view_swap.png) |
+| 108 | Empty View Template | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/empty_view_template.png) | ![](cpp_ios_light/empty_view_template.png) | ![](csharp_ios_dark/empty_view_template.png) | ![](cpp_ios_dark/empty_view_template.png) |
+| 109 | Empty View View | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/empty_view_view.png) | ![](cpp_ios_light/empty_view_view.png) | ![](csharp_ios_dark/empty_view_view.png) | ![](cpp_ios_dark/empty_view_view.png) |
+| 110 | Empty View Load Simulate | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/empty_view_load_simulate.png) | ![](cpp_ios_light/empty_view_load_simulate.png) | ![](csharp_ios_dark/empty_view_load_simulate.png) | ![](cpp_ios_dark/empty_view_load_simulate.png) |
 | 111 | Carousel Page | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/carousel_page.png) | ![](cpp_ios_light/carousel_page.png) | ![](csharp_ios_dark/carousel_page.png) | ![](cpp_ios_dark/carousel_page.png) |
 | 112 | Chat Example | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/chat_example.png) | ![](cpp_ios_light/chat_example.png) | ![](csharp_ios_dark/chat_example.png) | ![](cpp_ios_dark/chat_example.png) |
 | 113 | Items Updating Scroll Mode | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/items_updating_scroll_mode.png) | ![](cpp_ios_light/items_updating_scroll_mode.png) | ![](csharp_ios_dark/items_updating_scroll_mode.png) | ![](cpp_ios_dark/items_updating_scroll_mode.png) |
