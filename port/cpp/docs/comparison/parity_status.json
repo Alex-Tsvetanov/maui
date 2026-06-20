@@ -552,10 +552,10 @@
     "dark_note": "Matches: safe-area text + toggle."
   },
   "ios_scroll_view": {
-    "dark": "diff",
-    "light": "diff",
-    "light_note": "iOS render gap: the ios_scroll_view page renders essentially BLANK — only a navigation back-chevron at top-left, no scroll content (MAUI shows the scroll-view platform-specifics content). Likely a nav-pushed scroll sub-page not laying out its content on iOS. Low-priority iOS-specific page; kept as diff.",
-    "dark_note": "Blank (only nav back button); scroll content not rendering. Kept diff."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "FIXED: the page is a FlyoutPage whose DETAIL pane content (a Slider + 'Toggle ScrollView DelayContentTouches' + 'Return to Platform-Specifics List') rendered blank because flyout_page did not override arrange — the inherited content_page::arrange arranged the unused content_ slot (null on a flyout page) and never reached the flyout_/detail_ panes. Added flyout_page::arrange to frame the page, size the split-VC host, then arrange BOTH panes host-relative ({0,0,w,h}). The slider + both buttons now render and match C#. Residual minor: the maui-compare reference wraps the detail in a white card with extra inter-control spacing; the port arranges the controls flush below the nav chevron (no card chrome).",
+    "dark_note": "FIXED via flyout_page::arrange (detail-pane arrange). Slider + Toggle + Return buttons render, matching C#. Residual minor = harness white-card wrapper + spacing only."
   },
   "ios_search_bar": {
     "dark": "minor",

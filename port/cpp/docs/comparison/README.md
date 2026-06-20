@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 0 / 172 🟢 matched** · 171 🟡 minor · 1 🔴 diff · 0 ⬜ pending
+**Progress: 0 / 172 🟢 matched** · 172 🟡 minor · 0 🔴 diff · 0 ⬜ pending
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.
 
@@ -166,7 +166,7 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 152 | Ios Time Picker | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/ios_time_picker.png) | ![](cpp_ios_light/ios_time_picker.png) | ![](csharp_ios_dark/ios_time_picker.png) | ![](cpp_ios_dark/ios_time_picker.png) |
 | 153 | Ios Picker | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/ios_picker.png) | ![](cpp_ios_light/ios_picker.png) | ![](csharp_ios_dark/ios_picker.png) | ![](cpp_ios_dark/ios_picker.png) |
 | 154 | Ios Search Bar | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/ios_search_bar.png) | ![](cpp_ios_light/ios_search_bar.png) | ![](csharp_ios_dark/ios_search_bar.png) | ![](cpp_ios_dark/ios_search_bar.png) |
-| 155 | Ios Scroll View | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/ios_scroll_view.png) | ![](cpp_ios_light/ios_scroll_view.png) | ![](csharp_ios_dark/ios_scroll_view.png) | ![](cpp_ios_dark/ios_scroll_view.png) |
+| 155 | Ios Scroll View | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/ios_scroll_view.png) | ![](cpp_ios_light/ios_scroll_view.png) | ![](csharp_ios_dark/ios_scroll_view.png) | ![](cpp_ios_dark/ios_scroll_view.png) |
 | 156 | Ios Slider Update On Tap | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/ios_slider_update_on_tap.png) | ![](cpp_ios_light/ios_slider_update_on_tap.png) | ![](csharp_ios_dark/ios_slider_update_on_tap.png) | ![](cpp_ios_dark/ios_slider_update_on_tap.png) |
 | 157 | Ios First Responder | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/ios_first_responder.png) | ![](cpp_ios_light/ios_first_responder.png) | ![](csharp_ios_dark/ios_first_responder.png) | ![](cpp_ios_dark/ios_first_responder.png) |
 | 158 | Ios Pan Gesture | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/ios_pan_gesture.png) | ![](cpp_ios_light/ios_pan_gesture.png) | ![](csharp_ios_dark/ios_pan_gesture.png) | ![](cpp_ios_dark/ios_pan_gesture.png) |

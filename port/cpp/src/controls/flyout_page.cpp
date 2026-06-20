@@ -14,8 +14,11 @@
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/flyout_page_handler.hpp"
 #include "maui/core/handler_registry.hpp"
+#include "maui/core/i_view_handler.hpp"
 #include "maui/essentials/device_display.hpp"
 #include "maui/essentials/device_info.hpp"
+#include "maui/graphics/rect.hpp"
+#include "maui/graphics/size.hpp"
 
 namespace maui::controls
 {
@@ -244,6 +247,32 @@ namespace maui::controls
             detail_->send_disappearing();
         }
         content_page::send_disappearing();
+    }
+
+    maui::graphics::size flyout_page::arrange(const maui::graphics::rect& bounds)
+    {
+        // Frame this page + size the native split-view host (the flyout handler's platform_arrange), exactly
+        // as content_page::arrange — but then arrange the two PANES, which content_page::arrange SKIPS (it
+        // only knows the inherited content_, null on a flyout page). Without this the detail pane's content
+        // (scroll view + controls) never gets a frame and renders blank. Each pane arranges HOST-RELATIVE
+        // ({0,0,w,h}): its native view is a subview of the split VC's column (UIKit positions the column),
+        // so the pane content must start at its column origin — the host-relative arrange convention. On a
+        // collapsed phone the detail column fills the screen; in split mode the split VC clips each pane.
+        frame_ = bounds;
+        if (auto* view_handler = dynamic_cast<maui::core::i_view_handler*>(handler().get()))
+        {
+            view_handler->platform_arrange(bounds);
+        }
+        const maui::graphics::rect pane_bounds{0, 0, bounds.width, bounds.height};
+        if (detail_ != nullptr)
+        {
+            detail_->arrange(pane_bounds);
+        }
+        if (flyout_ != nullptr)
+        {
+            flyout_->arrange(pane_bounds);
+        }
+        return {bounds.width, bounds.height};
     }
 
     void flyout_page::on_property_changed(std::string_view name)

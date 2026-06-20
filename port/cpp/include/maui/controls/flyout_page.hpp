@@ -142,6 +142,13 @@ namespace maui::controls
         void send_appearing() override;
         void send_disappearing() override;
 
+        // FlyoutPage hosts its two PANES (flyout_/detail_), NOT the inherited content() surface — so the
+        // base content_page::arrange (which arranges content_, null here) never reaches the panes and the
+        // detail pane's content renders blank. Override to arrange both panes within this page's frame
+        // (host-relative {0,0,w,h}: the native split VC positions the columns, and on a collapsed phone the
+        // detail fills the screen, so each pane's content arranges from its column origin).
+        maui::graphics::size arrange(const maui::graphics::rect& bounds) override;
+
         // ---- i_flyout_view (the handler's seam) ----
         [[nodiscard]] maui::core::i_view* flyout_view() const override
         {
