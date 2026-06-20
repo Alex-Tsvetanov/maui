@@ -27,16 +27,35 @@ namespace maui::platform::ios
     inline UIFont* to_ui_font(const maui::core::font& value, double default_size)
     {
         const double size = value.size() > 0 ? value.size() : default_size;
+        UIFont* base = nil;
         if (!value.family().empty())
         {
             NSString* const name = [NSString stringWithUTF8String:value.family().c_str()];
-            UIFont* const named = name != nil ? [UIFont fontWithName:name size:size] : nil;
-            if (named != nil)
-            {
-                return named;
-            }
+            base = name != nil ? [UIFont fontWithName:name size:size] : nil;
         }
-        return [UIFont systemFontOfSize:size];
+        if (base == nil)
+        {
+            base = [UIFont systemFontOfSize:size];
+        }
+        // Fold the font's weight + slant into the UIFont symbolic traits (Font.ToUIFont's WithAttributes
+        // path): Bold → Trait Bold, Italic → Trait Italic. Without this a Label/Button/Entry/etc. with
+        // FontAttributes=Bold/Italic rendered REGULAR (the traits were applied only to attributed runs).
+        UIFontDescriptorSymbolicTraits traits = 0;
+        if (value.weight() == maui::core::font_weight::bold)
+        {
+            traits |= UIFontDescriptorTraitBold;
+        }
+        if (value.slant() != maui::core::font_slant::normal)
+        {
+            traits |= UIFontDescriptorTraitItalic;
+        }
+        if (traits == 0)
+        {
+            return base;
+        }
+        UIFontDescriptor* const descriptor =
+            [base.fontDescriptor fontDescriptorWithSymbolicTraits:(base.fontDescriptor.symbolicTraits | traits)];
+        return descriptor != nil ? [UIFont fontWithDescriptor:descriptor size:size] : base;
     }
 
     // maui text_alignment → NSTextAlignment (the type behind UIKit's textAlignment — C#'s
