@@ -26,8 +26,8 @@
   "alignment": {
     "light": "minor",
     "dark": "minor",
-    "light_note": "FIXED: authored the missing alignment gallery page (the key fell back to value-controls before). Demonstrates LayoutOptions Start/Center/End/Fill via set_horizontal_layout_alignment — each blue/red button lands left/center/right/full-width exactly like C#, proving the arrange-time ComputeFrame (align_horizontal) honors HorizontalOptions. Theme-aware headers. Residual: the port button is content-sized; C#/maui-compare buttons carry larger default iOS padding + min-width (taller/wider) — a button-metrics styling difference, not an alignment bug.",
-    "dark_note": "Same: new alignment page renders Start/Center/End/Fill correctly with white-on-black headers. Residual is the button-metrics styling difference (content-sized vs C# padded buttons)."
+    "light_note": "NOW MATCHES maui-compare Alignment(): rewrote the C++ page to use a Border (red 5pt stroke, RoundRectangle CR=5, FIXED 160x40) wrapping a centered blue/white Label, per HorizontalOptions Start/Center/End/Fill, headers FontSize=20 bold — exactly the C# reference. Also fixed a framework bug: border::arrange filled the cell instead of computing its aligned/size-requested frame (compute_frame), so a Border with WidthRequest + non-Fill alignment now lands 160-wide Start(left)/Center+Fill(centered)/End(right) like MAUI. Residual: maui-compare card framing.",
+    "dark_note": "Same: 160-wide aligned borders + white-on-black bold headers, matches C#. Border WidthRequest + alignment now honored (border::arrange compute_frame fix)."
   },
   "animation": {
     "dark": "blank",

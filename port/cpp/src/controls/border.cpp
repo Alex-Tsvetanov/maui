@@ -154,21 +154,29 @@ namespace maui::controls
     // templated_view::arrange (content_view), the sibling single-content host.
     maui::graphics::size border::arrange(const maui::graphics::rect& bounds)
     {
-        frame_ = bounds;
+        // Border : View — resolve this view's own aligned, size-requested FRAME within the allotted
+        // `bounds`, the same LayoutExtensions.ComputeFrame the leaf view<>::arrange runs: it honors this
+        // Border's WidthRequest/HeightRequest (+ Min/Max) and HorizontalOptions/VerticalOptions. Without it
+        // a Border with an explicit Width and a non-Fill alignment filled the whole cell (e.g. the
+        // alignment demo's 160-wide Start/Center/End borders all stretched edge-to-edge). A Fill border
+        // with no explicit size still resolves to `bounds` (compute_frame returns it), so the common case
+        // is unchanged. The native host + its bounds-dependent stroke layer are then framed to that frame.
+        const maui::graphics::rect frame = compute_frame(bounds);
+        frame_ = frame;
         if (auto* view_handler = dynamic_cast<maui::core::i_view_handler*>(handler().get()))
         {
-            view_handler->platform_arrange(bounds);
+            view_handler->platform_arrange(frame);
         }
         if (content_ != nullptr)
         {
             const double stroke_inset = stroke_thickness();
             const maui::core::thickness pad = padding();
             const maui::graphics::rect target{stroke_inset + pad.left, stroke_inset + pad.top,
-                                              bounds.width - (2 * stroke_inset) - pad.horizontal_thickness(),
-                                              bounds.height - (2 * stroke_inset) - pad.vertical_thickness()};
+                                              frame.width - (2 * stroke_inset) - pad.horizontal_thickness(),
+                                              frame.height - (2 * stroke_inset) - pad.vertical_thickness()};
             content_->arrange(target);
         }
-        return {bounds.width, bounds.height};
+        return {frame.width, frame.height};
     }
 } // namespace maui::controls
 
