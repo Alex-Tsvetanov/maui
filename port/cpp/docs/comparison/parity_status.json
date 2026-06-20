@@ -127,9 +127,9 @@
   },
   "carousel_page": {
     "dark": "blank",
-    "dark_note": "C++ dark is entirely blank (only status bar) while MAUI dark shows the \"Basic Horizontal Carousel\" label and large centered \"Item 1\"; no carousel content renders at all in C++ dark.",
+    "dark_note": "Same: carousel items not sized to viewport (all shown small at top-left vs one full-width page).",
     "light": "diff",
-    "light_note": "C++ renders carousel as a static top-left wrapped text stack (Item 1/2/3 side by side) plus an extra \"Position 0 — current: Item 1\" status line; MAUI shows a single full-screen paged item card with large centered \"Item 1\" — carousel paging/item-sizing is broken."
+    "light_note": "iOS CarouselView item-sizing gap: MAUI shows ONE item (large, centered Item 1) filling the carousel viewport (one item per page, swipeable); the C++ shows Item 1/Item 2/Item 3 crammed small at top-left — carousel items are not sized to the viewport width (rendered at intrinsic size in a row instead of full-width pages). The Prev/Next nav + Position 0 — current: Item 1 tracking works, so only the item layout/sizing is wrong."
   },
   "chat_example": {
     "dark": "blank",
@@ -646,12 +646,16 @@
     "light": "pending"
   },
   "radio_button_content": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare RadioButtonContent: the string-Content options (Option A/C), the View-Content fallback (Cant use View..., so just plain old text), the coffee.png string fallback, and the weird custom ControlTemplate group rendering the coffee-cup icons (black/red lines + cup). Content variations + custom templates render. Minor.",
+    "dark_note": "Matches: Content string/View/template variations + coffee-cup custom templates render."
   },
   "radio_button_group": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare RadioButtonGroup: the GroupName=foo explanation + Selected: (none) + Option A/B/C radios in the StackLayout + the This RadioButton is inside a Grid / Option D row. Radio circles render. Minor: radio chrome.",
+    "dark_note": "Matches: grouped radios + Option D render."
   },
   "radio_button_group_binding": {
     "dark": "pending",

@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 0 / 172 🟢 matched** · 79 🟡 minor · 24 🔴 diff · 69 ⬜ pending
+**Progress: 0 / 172 🟢 matched** · 81 🟡 minor · 24 🔴 diff · 67 ⬜ pending
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.
 
@@ -125,11 +125,11 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 111 | Carousel Page | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/carousel_page.png) | ![](cpp_ios_light/carousel_page.png) | ![](csharp_ios_dark/carousel_page.png) | ![](cpp_ios_dark/carousel_page.png) |
 | 112 | Chat Example | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/chat_example.png) | ![](cpp_ios_light/chat_example.png) | ![](csharp_ios_dark/chat_example.png) | ![](cpp_ios_dark/chat_example.png) |
 | 113 | Items Updating Scroll Mode | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/items_updating_scroll_mode.png) | ![](cpp_ios_light/items_updating_scroll_mode.png) | ![](csharp_ios_dark/items_updating_scroll_mode.png) | ![](cpp_ios_dark/items_updating_scroll_mode.png) |
-| 114 | Radio Button Group | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/radio_button_group.png) | ![](cpp_ios_light/radio_button_group.png) | ![](csharp_ios_dark/radio_button_group.png) | ![](cpp_ios_dark/radio_button_group.png) |
+| 114 | Radio Button Group | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/radio_button_group.png) | ![](cpp_ios_light/radio_button_group.png) | ![](csharp_ios_dark/radio_button_group.png) | ![](cpp_ios_dark/radio_button_group.png) |
 | 115 | Radio Button Group Binding | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/radio_button_group_binding.png) | ![](cpp_ios_light/radio_button_group_binding.png) | ![](csharp_ios_dark/radio_button_group_binding.png) | ![](cpp_ios_dark/radio_button_group_binding.png) |
 | 116 | Radio Button Group Gallery | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/radio_button_group_gallery.png) | ![](cpp_ios_light/radio_button_group_gallery.png) | ![](csharp_ios_dark/radio_button_group_gallery.png) | ![](cpp_ios_dark/radio_button_group_gallery.png) |
 | 117 | Radio Button Border | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/radio_button_border.png) | ![](cpp_ios_light/radio_button_border.png) | ![](csharp_ios_dark/radio_button_border.png) | ![](cpp_ios_dark/radio_button_border.png) |
-| 118 | Radio Button Content | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/radio_button_content.png) | ![](cpp_ios_light/radio_button_content.png) | ![](csharp_ios_dark/radio_button_content.png) | ![](cpp_ios_dark/radio_button_content.png) |
+| 118 | Radio Button Content | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/radio_button_content.png) | ![](cpp_ios_light/radio_button_content.png) | ![](csharp_ios_dark/radio_button_content.png) | ![](cpp_ios_dark/radio_button_content.png) |
 | 119 | Radio Content Properties | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/radio_content_properties.png) | ![](cpp_ios_light/radio_content_properties.png) | ![](csharp_ios_dark/radio_content_properties.png) | ![](cpp_ios_dark/radio_content_properties.png) |
 | 120 | Radio Template From Style | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/radio_template_from_style.png) | ![](cpp_ios_light/radio_template_from_style.png) | ![](csharp_ios_dark/radio_template_from_style.png) | ![](cpp_ios_dark/radio_template_from_style.png) |
 | 121 | Scattered Radio Button | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/scattered_radio_button.png) | ![](cpp_ios_light/scattered_radio_button.png) | ![](csharp_ios_dark/scattered_radio_button.png) | ![](cpp_ios_dark/scattered_radio_button.png) |
