@@ -234,10 +234,10 @@
     "dark_note": "Matches (swipe arrange fix): custom swipe item view renders."
   },
   "cv_visual_states": {
-    "dark": "diff",
-    "dark_note": "Same: section labels render but CV items missing (cell VSM realization gap).",
-    "light": "diff",
-    "light_note": "iOS gap: the Single Selection / Multi Selection section labels render but the two CollectionViews between them show NO ITEMS (MAUI shows Item 1-3 and Item 1-4). The CVs take vertical space but the cells do not realize — a cell-realization gap on a CV whose DataTemplate carries VisualStateManager Selected/Normal states (likely the same cell-VSM machinery the in-flight selection-highlight agent touches). Genuine diff."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare VisualStates: the Single Selection (Item 1-3) and Multi Selection (Item 1-4) CollectionView items RENDER (was a page bug: the cell label staged TextColor=white -> white text on the white cell = invisible items; now uses the default adaptive label color). The Selected=>Yellow per-cell CommonStates VSM recolor is the documented struct-cell-template limit; the default gray selection highlight now works via the cell selectedBackgroundView fix. Minor.",
+    "dark_note": "Now matches: items render (white-on-white page bug fixed)."
   },
   "data_template_selector": {
     "dark": "minor",
@@ -638,8 +638,8 @@
   "multiple_bound_selection": {
     "dark": "minor",
     "light": "minor",
-    "light_note": "Matches maui-compare MultipleBoundSelection — renders the CollectionView + items + the Selected-bound label correctly; the only residual is the missing gray SELECTED-CELL highlight (the DEFERRED iOS CV selectedBackgroundView gap, same family as preselected_items 🔴). Minor.",
-    "dark_note": "Matches (renders; selection-cell highlight is the deferred CV gap where applicable)."
+    "light_note": "Now matches maui-compare MultipleBoundSelection after the iOS CV selection-highlight fix (selectedBackgroundView + re-apply-after-reload): the preselected Item 1/Item 2 cells show the gray selected-cell highlight + the Selected: Item 1, Item 2 label binds. Minor.",
+    "dark_note": "Now matches: selected cells highlighted + Selected label."
   },
   "navigation_gallery": {
     "dark": "minor",
@@ -714,10 +714,10 @@
     "dark_note": "Matches (renders; selection-cell highlight is the deferred CV gap where applicable)."
   },
   "preselected_items": {
-    "dark": "blank",
-    "dark_note": "Same: preselected cells not visually highlighted (missing iOS cell selectedBackgroundView). Framework gap.",
-    "light": "diff",
-    "light_note": "iOS CollectionView selection-highlight gap: the Preselected: photo.jpg 2 / Fruits.jpg 4 / FlowerBuds.jpg 5 readout + header + 2-col item grid all render, and the cells ARE selected in the UICollectionView model (selectItemAtIndexPath runs), but the selected cells show NO visual highlight. MAUI highlights them with a gray selection background (default selectedBackgroundView). The port cell lacks a selectedBackgroundView. Genuine framework gap (affects all selection demos)."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare PreselectedItems after the iOS CV selection-highlight fix: the preselected cells (photo.jpg 2 / Fruits.jpg 4 / FlowerBuds.jpg 5) show the gray selected-cell highlight, matching MAUI. Fix = a selectedBackgroundView (systemGray4) on MauiCollectionViewCell + re-applying the selection mirror after reloadData (a preselected selection set before the ItemsSource maps was lost; reloadData now re-applies it). Minor.",
+    "dark_note": "Now matches (selection-highlight fix): preselected cells show the gray highlight."
   },
   "progress_bar": {
     "dark": "minor",

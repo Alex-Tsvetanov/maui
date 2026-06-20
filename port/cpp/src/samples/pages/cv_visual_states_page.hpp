@@ -56,7 +56,6 @@
 #include "maui/core/font.hpp"
 #include "maui/core/line_break_mode.hpp"
 #include "maui/core/observable_collection.hpp"
-#include "maui/graphics/colors.hpp"
 #include "maui/hosting/maui_app.hpp"
 
 #include "gallery_attach.hpp"
@@ -190,8 +189,13 @@ namespace maui::samples
             // FontSize="Large" + LineBreakMode="NoWrap".
             cell->set_value(maui::controls::label::font_property(), maui::core::font::system_font_of_size(20));
             cell->set_value(maui::controls::label::line_break_mode_property(), maui::core::line_break_mode::no_wrap);
-            // The base look (Grid BackgroundColor=White, mapped to TextColor=White-base — see header note).
-            cell->set_value(maui::controls::label::text_color_property(), maui::graphics::colors::white);
+            // C# Normal state = the cell's Grid BackgroundColor=White with the Label's DEFAULT text color
+            // (black in light / white in dark), so the item text is VISIBLE on the white cell. The port
+            // leaves the cell label's text color at the system default (UILabel.labelColor — adaptive +
+            // visible) rather than staging an explicit white (which had rendered white-on-white = the items
+            // looked missing). The Selected=>Yellow recolor is the per-cell CommonStates VSM (system-driven);
+            // staging that group per cell is the documented struct-cell-template limit (see header note), so
+            // only the visible Normal/base look is reproduced here.
             list.set_item_template(cell);
 
             list.set_selection_mode(mode);

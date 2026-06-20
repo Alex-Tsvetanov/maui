@@ -106,6 +106,16 @@ namespace
         _label = [[UILabel alloc] initWithFrame:self.contentView.bounds];
         _label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         [self.contentView addSubview:_label];
+
+        // Selected-cell visual state (the C# CollectionView default selection highlight). UIKit shows
+        // selectedBackgroundView automatically while the cell isSelected; the handler only ever selects a
+        // cell when SelectionMode != None (selectItemAtIndexPath runs from the selection-sync /
+        // programmatic-select paths), so a None-mode cell never highlights. systemGray4 is the adaptive
+        // light-gray fill iOS uses for selected backgrounds (light + dark), matching MAUI's gray default.
+        UIView* const selectedBg = [[UIView alloc] initWithFrame:self.contentView.bounds];
+        selectedBg.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        selectedBg.backgroundColor = [UIColor systemGray4Color];
+        self.selectedBackgroundView = selectedBg;
     }
     return self;
 }
@@ -629,6 +639,12 @@ namespace maui::controls
         auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
         controller.cppHandler = this; // wire the back-pointer lazily (create_platform_view is static)
         [controller.collectionView reloadData];
+        // Re-apply the selection mirror AFTER reloadData: a PRESELECTED selection (set on the control before
+        // its ItemsSource was mapped to the native view) selects index paths that don't exist yet, so the
+        // initial select is a no-op and the cells render unselected. reloadData drops all selection, so any
+        // reload must restore platform->selected_paths (mirrors MAUI re-selecting after ReloadData) — this is
+        // what makes preselected_items / multiple-bound preselection show the selected-cell highlight.
+        native_update_platform_selection();
     }
 
     void collection_view_handler::native_rebuild_layout()
