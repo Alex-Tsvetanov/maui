@@ -462,8 +462,10 @@
     "dark_note": "Matches; Change color button + brush label render."
   },
   "invalidate_shadow_host": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare InvalidateShadowHost: Host + Update Host Size button + Shadow Offset X/Offset Y/Radius/Opacity sliders + the green-bordered host box. Minor: the C++ host box is taller than MAUIs default host height.",
+    "dark_note": "Matches: Update Host Size + sliders + green host box. Minor host height."
   },
   "ios_blur_effect": {
     "dark": "pending",
@@ -728,8 +730,10 @@
     "light_note": "Near-exact match: the full SemanticProperties showcase renders matching MAUI — intro + readout labels, Label text TH/DH, blue Button text TH/DH, Entry/Editor text DTH, Search bar text DH, and the HeadingLevel labels + focus button, same content/order/colors. Residual: C++ slightly more compact vertical rhythm. (C# ref was a blank capture — re-captured.)"
   },
   "shadow_playground": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Renders the maui-compare ShadowPlayground: cyan #00B4DB box with a red Shadow (offset 10,10 / radius 10) + Background/Shadow Color/Offset X/Offset Y/Radius controls. C# ref re-captured (was a stale blank). RESIDUAL/gap: the Label with a Shadow text itself shows a red Shadow in MAUI but NOT in the C++ — the iOS LABEL does not render its Shadow (leaf-control update_shadow gap, analogous to the Clip gap; the box shadow path works). Minor.",
+    "dark_note": "Renders (C# ref re-captured from stale blank). Gap: label-text shadow missing on iOS (leaf-control shadow)."
   },
   "shape_app_theme": {
     "dark": "minor",
