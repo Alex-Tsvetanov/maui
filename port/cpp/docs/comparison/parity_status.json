@@ -178,10 +178,10 @@
     "light_note": "C++ orange fills full screen (no rounded container/margins); numbers collapse to \"12345678\" with no spacing/blue color; the large orange-red overflow square is missing (replaced by a thin full-width red bar); only 2 black \"Hey\" labels shown vs 4 cyan ones on a purple band; purple/light-blue bands absent; button not blue-styled."
   },
   "collectionview": {
-    "dark": "diff",
-    "dark_note": "C++ shows only the \"None\" box and \"This is the header\" text — the entire 3-column CollectionView item grid is missing/blank, whereas MAUI renders the full grid (items 0-23).",
-    "light": "diff",
-    "light_note": "C++ adds extra chrome MAUI lacks: a \"None\" box + 3 \"Selection/Previous (event/command): [none]\" labels above the header; both then show the 3-col item grid, but C++ renders many more rows (0-41+ vs 0-23)."
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "FIXED: authored the missing collectionview gallery page reproducing maui-compare CollectionViewPage() 1:1 (the key fell back to value-controls) — a CollectionView over 24 captioned items (\"cover1.jpg, 0\"..\"Vegetables.jpg, 23\"), a string Header \"This is the header\", SelectionMode.Single, GridItemsLayout(3, Vertical), DataTemplate Label(Margin 6) bound to the caption. Renders the same 3-col grid + header + items as C#. Residual: the maui-compare string header renders slightly bolder, + the card framing.",
+    "dark_note": "Same: 3-col grid of all 24 captioned items + header, theme-aware. Faithful reproduction of CollectionViewPage()."
   },
   "composition_gallery": {
     "dark": "diff",

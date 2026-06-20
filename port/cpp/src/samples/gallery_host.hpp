@@ -108,6 +108,8 @@
 #include "pages/controls_stack_page.hpp"
 // --- single centered Border (maui-compare BorderPage reproduction) ---
 #include "pages/border_page.hpp"
+// --- 3-col grid CollectionView (maui-compare CollectionViewPage reproduction) ---
+#include "pages/collectionview_page.hpp"
 // --- batch 11 (BorderGalleries) ---
 #include "pages/border_alignment_page.hpp"
 #include "pages/border_clip_playground_page.hpp"
@@ -330,6 +332,7 @@
     X("alignment", alignment_page)                                                                                     \
     X("controls_stack", controls_stack_page)                                                                           \
     X("border", border_page)                                                                                           \
+    X("collectionview", collectionview_page)                                                                           \
     X("border_alignment", border_alignment_page)                                                                       \
     X("border_clip_playground", border_clip_playground_page)                                                           \
     X("borderless", borderless_page)                                                                                   \
