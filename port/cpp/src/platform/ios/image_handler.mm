@@ -15,7 +15,9 @@
 //     as Image = Images[0] + AnimationImages/AnimationDuration; a still image clears the animation
 //     pair; then IsAnimationPlaying is re-asserted so a freshly-loaded GIF starts cycling.
 //   - UpdateIsAnimationPlaying: StartAnimating / StopAnimating, guarded by IsAnimating.
-//   - the file path: CGImageSource decode of the file bytes (animated-capable, the
+//   - the file path: resolve the name against the app bundle (PlatformGetFullAppPackageFilePath —
+//     NSBundle.mainBundle.bundlePath / filename, flat on iOS), then CGImageSource decode of the file bytes
+//     (animated-capable, any format CoreGraphics knows — so bundled non-PNG files like .jpg load — the
 //     FileImageSourceService.iOS route) ?? UIImage.FromBundle(name-without-extension) — the
 //     GetPlatformImage fallback chain ("UIImage.FromBundle(bundleName) ?? UIImage.FromFile(file)";
 //     FromFile is subsumed by the byte decode). The @2x/@3x scaled-file probe lives in the iOS file image
@@ -30,9 +32,11 @@
 #include <cmath>
 #include <cstddef>
 #include <cstring>
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <utility>
 
 #include "ios_visual_ops.hpp"
@@ -135,14 +139,32 @@ namespace
         return bytes;
     }
 
-    // The synchronous file load (FileImageSourceService.iOS GetImageAsync's chain): decode the file's
-    // bytes through the shared CGImageSource decode (animated-capable; covers UIImage.FromFile), then
+    // Resolve a file image's name to a full path inside the app package, porting
+    // FileSystemUtils.PlatformGetFullAppPackageFilePath (FileSystem.ios.tvos.watchos.macos.cs):
+    // Path.Combine(NSBundle.MainBundle.BundlePath, filename), no "Contents/Resources" on iOS (flat bundle).
+    // std::filesystem's `/` mirrors Path.Combine's absolute-right-hand rule, so an already-absolute path is
+    // returned unchanged; a bare bundled name ("oasis.jpg") becomes "<MainBundle>/oasis.jpg". Without this
+    // step a bundled non-PNG file (e.g. .jpg) never resolved on disk and only the extension-less FromBundle
+    // fallback fired — which resolves .png assets but not .jpg, leaving the image blank.
+    std::string resolve_app_package_path(std::string_view path)
+    {
+        const char* const bundle_path = [[[NSBundle mainBundle] bundlePath] UTF8String];
+        const std::filesystem::path root(bundle_path != nullptr ? bundle_path : "");
+        return (root / std::filesystem::path(std::string(path))).string();
+    }
+
+    // The synchronous file load (FileImageSourceService.iOS GetImageAsync's chain): resolve the name against
+    // the app bundle (PlatformGetFullAppPackageFilePath), decode the file's bytes through the shared
+    // CGImageSource decode (animated-capable; covers UIImage.FromFile + any format CoreGraphics knows), then
     // fall back to the bundle lookup with the extension-less base name (UIImage.FromBundle — "MauiImage
     // assets are flattened into the app bundle root").
     UIImage* load_image_from_file(std::string_view path)
     {
         const std::string file(path);
-        NSString* const ns_path = [NSString stringWithUTF8String:file.c_str()];
+        std::error_code ec;
+        const std::string resolved = resolve_app_package_path(path);
+        const std::string on_disk = std::filesystem::exists(resolved, ec) ? resolved : file;
+        NSString* const ns_path = [NSString stringWithUTF8String:on_disk.c_str()];
         if (ns_path == nil)
         {
             return nil;

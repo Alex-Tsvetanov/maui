@@ -89,6 +89,13 @@ namespace
         return to_bytes(UIImagePNGRepresentation(make_solid_image(pixels, UIColor.redColor)));
     }
 
+    // Encoded JPEG bytes for a tiny `pixels` x `pixels` image (no checked-in fixture) — the format the
+    // gallery's oasis.jpg uses, decodable by CoreGraphics exactly like PNG. Empty on failure.
+    image_bytes make_jpeg_bytes(CGFloat pixels = 2)
+    {
+        return to_bytes(UIImageJPEGRepresentation(make_solid_image(pixels, UIColor.blueColor), 1.0));
+    }
+
     // Encoded bytes of a 2-frame animated GIF (two 2x2 frames, 0.1s delay each) packed via ImageIO's
     // CGImageDestination — the encoder twin of the CGImageSource decode under test. Empty on failure.
     image_bytes make_animated_gif_bytes()
@@ -223,6 +230,68 @@ namespace
         maui::core::file_image_source_service service;
         maui::controls::file_image_source source{"/tmp/does-not-exist-maui-ios.png"};
         EXPECT_FALSE(load_via(service, source).loaded());
+    }
+
+    // Regression: a JPEG given by ABSOLUTE path decodes through the file service exactly like a PNG.
+    // CoreGraphics decodes every format it knows once the path resolves; the earlier blank-.jpg bug was a
+    // path-RESOLUTION failure (bundled non-PNG names never reached the decoder), not a decode failure.
+    TEST(ios_image_sources, file_service_loads_jpeg_file_into_uiimage)
+    {
+        const std::string path = temp_path(@"maui_ios_file", @".jpg");
+        ASSERT_TRUE(write_bytes(path, make_jpeg_bytes()));
+
+        maui::core::file_image_source_service service;
+        maui::controls::file_image_source source{path};
+        const image_source_result result = load_via(service, source);
+
+        ASSERT_TRUE(result.loaded());
+        UIImage* const image = result_image(result);
+        ASSERT_NE(image, nil);
+        EXPECT_DOUBLE_EQ(image.size.width, 2.0);
+        EXPECT_DOUBLE_EQ(image.size.height, 2.0);
+
+        remove_file(path);
+    }
+
+    // The bundled-image path that was the actual gap: the gallery loads file_image_source("oasis.jpg") — a
+    // BARE filename, not an absolute path — and on iOS that name must resolve against the app bundle
+    // (FileSystemUtils.PlatformGetFullAppPackageFilePath → NSBundle.mainBundle.bundlePath / name). Before the
+    // fix the bare name never resolved on disk, so only the extension-less FromBundle fallback fired —
+    // [UIImage imageNamed:@"oasis"] finds .png assets but never .jpg, so the JPEG rendered blank. Write a
+    // real JPEG into the bundle root (the simulator-spawned test's bundlePath is the writable staging dir),
+    // then load it by BARE name and assert it decodes. A .png written the same way must keep loading — the
+    // working path is not regressed.
+    TEST(ios_image_sources, file_service_resolves_bare_bundled_jpeg_name)
+    {
+        NSString* const bundle_root = [[NSBundle mainBundle] bundlePath];
+        ASSERT_NE(bundle_root, nil);
+
+        NSString* const jpg_name = [NSString stringWithFormat:@"maui_ios_bundled_%@.jpg", [[NSUUID UUID] UUIDString]];
+        NSString* const png_name = [NSString stringWithFormat:@"maui_ios_bundled_%@.png", [[NSUUID UUID] UUIDString]];
+        const std::string jpg_path = to_std_string([bundle_root stringByAppendingPathComponent:jpg_name]);
+        const std::string png_path = to_std_string([bundle_root stringByAppendingPathComponent:png_name]);
+        ASSERT_TRUE(write_bytes(jpg_path, make_jpeg_bytes()));
+        ASSERT_TRUE(write_bytes(png_path, make_png_bytes()));
+
+        maui::core::file_image_source_service service;
+
+        // The JPEG: bare name → resolved under the bundle → decoded (the bug: this used to be unloaded).
+        maui::controls::file_image_source jpg_source{to_std_string(jpg_name)};
+        const image_source_result jpg_result = load_via(service, jpg_source);
+        ASSERT_TRUE(jpg_result.loaded());
+        UIImage* const jpg_image = result_image(jpg_result);
+        ASSERT_NE(jpg_image, nil);
+        EXPECT_DOUBLE_EQ(jpg_image.size.width, 2.0);
+        EXPECT_DOUBLE_EQ(jpg_image.size.height, 2.0);
+
+        // The PNG by bare name still resolves and decodes — the previously-working path is intact.
+        maui::controls::file_image_source png_source{to_std_string(png_name)};
+        const image_source_result png_result = load_via(service, png_source);
+        ASSERT_TRUE(png_result.loaded());
+        ASSERT_NE(result_image(png_result), nil);
+
+        remove_file(jpg_path);
+        remove_file(png_path);
     }
 
     // The pure @2x/@3x probe (ImageSourceExtensions.GetScaledFile): highest available scale <= the

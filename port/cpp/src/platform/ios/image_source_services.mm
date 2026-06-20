@@ -12,12 +12,15 @@
 //          EXIF orientation; a multi-frame source (an animated GIF) expands its frames by the GCD of
 //          the per-frame delays into [UIImage animatedImageWithImages:duration:] — the port of
 //          ImageAnimationHelper.cs (FFImageLoading's GifDecoder lineage).
-// file   — FileImageSourceService.iOS.cs GetImageAsync: probe the @2x/@3x sibling for the current
-//          screen scale (ImageSourceExtensions.GetScaledFile → ios_image_ops.hpp), decode through
-//          CGImageSource at the loaded scale, then fall back to [UIImage imageWithContentsOfFile:]
-//          (C#'s `?? imageSource.GetPlatformImage()`). DEVIATION: no app-bundle probe (UIImage.FromBundle
-//          / PlatformGetFullAppPackageFilePath) — the port's process has no MauiImage bundle, so paths
-//          are used as given (the apple twin documents the same reduction).
+// file   — FileImageSourceService.iOS.cs GetImageAsync → ImageSourceExtensions.GetPlatformImageSource:
+//          resolve the name against the app bundle (FileSystemUtils.PlatformGetFullAppPackageFilePath —
+//          NSBundle.mainBundle.bundlePath / filename, no Contents/Resources on iOS), probe the @2x/@3x
+//          sibling for the current screen scale (ImageSourceExtensions.GetScaledFile → ios_image_ops.hpp)
+//          on the resolved path, decode through CGImageSource at the loaded scale — so any format
+//          CoreGraphics knows (jpg/jpeg/png/gif/…) and any BUNDLED non-PNG file loads, not just .png —
+//          then fall back to [UIImage imageWithContentsOfFile:] ?? [UIImage imageNamed:stem] (C#'s
+//          `?? imageSource.GetPlatformImage()` = FromBundle ?? FromFile). An already-absolute path is used
+//          as given (std::filesystem `/` mirrors .NET Path.Combine's absolute-right-hand rule).
 // stream — StreamImageSourceService.iOS.cs: the source's bytes → NSData → the CGImageSource decode.
 // uri    — UriImageSourceService.iOS.cs: file:// bytes are read cross-platform (read_uri_bytes) then
 //          decoded; http(s) is fetched via NSData(contentsOfURL:) (synchronous, mirroring the apple
@@ -48,8 +51,10 @@
 
 #include <cstddef>
 #include <cstring>
+#include <filesystem>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <utility>
 #include <vector>
 
@@ -296,31 +301,67 @@ namespace
         return scale >= 1 ? static_cast<int>(scale) : 1;
     }
 
-    // File load (FileImageSourceService.iOS GetImageAsync): the @2x/@3x probe for the CURRENT screen
-    // scale, the CGImageSource decode at the loaded scale — so an @2x asset reports half its pixel size
-    // in points, the behavior the loader's set_scale/requires_reload seam expects — then the
-    // imageWithContentsOfFile fallback.
+    // Resolve a file image's name to a full path inside the app package. Ports
+    // FileSystemUtils.PlatformGetFullAppPackageFilePath (FileSystem.ios.tvos.watchos.macos.cs):
+    // Path.Combine(NSBundle.MainBundle.BundlePath, filename) — no "Contents/Resources" tail (that is the
+    // MACCATALYST || MACOS branch; iOS app bundles are flat). std::filesystem's `/` matches Path.Combine's
+    // absolute-right-hand rule — an already-absolute `filename` (the test fixtures' /tmp paths) is returned
+    // unchanged; a bare bundled name ("oasis.jpg") becomes "<MainBundle>/oasis.jpg". This is the step the
+    // earlier cut dropped, which left non-PNG bundled files (e.g. .jpg) unresolved → only the extension-less
+    // FromBundle fallback fired, and that resolves .png assets but never .jpg.
+    std::string resolve_app_package_path(std::string_view path)
+    {
+        const char* const bundle_path = [[[NSBundle mainBundle] bundlePath] UTF8String];
+        const std::filesystem::path root(bundle_path != nullptr ? bundle_path : "");
+        return (root / std::filesystem::path(std::string(path))).string();
+    }
+
+    // Decode a single file path through a CGImageSource at `scale`; nil on a missing/undecodable file.
+    UIImage* decode_file_at(const std::string& path, int scale)
+    {
+        NSString* const ns_path = [NSString stringWithUTF8String:path.c_str()];
+        if (ns_path == nil)
+        {
+            return nil;
+        }
+        NSURL* const url = [NSURL fileURLWithPath:ns_path];
+        const cf_ref<CGImageSourceRef> source{CGImageSourceCreateWithURL((__bridge CFURLRef)url, nullptr)};
+        return source ? image_from_cg_source(source.get(), scale) : nil;
+    }
+
+    // File load (FileImageSourceService.iOS GetImageAsync → ImageSourceExtensions.GetPlatformImageSource):
+    // resolve the name against the app bundle (PlatformGetFullAppPackageFilePath), run the @2x/@3x probe for
+    // the CURRENT screen scale on the resolved path, then decode whichever the C# `File.Exists(bundle) ?
+    // url(bundle) : url(filename)` selects — so an @2x asset reports half its pixel size in points (the
+    // behavior the loader's set_scale/requires_reload seam expects). The decode handles every format
+    // CoreGraphics knows (jpg/jpeg/png/gif/…). The final fallback is C#'s `?? imageSource.GetPlatformImage()`
+    // = UIImage.FromBundle(stem) ?? UIImage.FromFile(file), in that order: the extension-less imageNamed
+    // (FromBundle) catches a name that lives in an asset catalog rather than on disk, then imageWith
+    // ContentsOfFile (FromFile) is the last resort for a path the CGImageSource decode could not open.
     UIImage* image_from_file(std::string_view path)
     {
-        const maui::platform::ios::scaled_file scaled = maui::platform::ios::get_scaled_file(path, screen_scale());
-        NSString* const scaled_path = [NSString stringWithUTF8String:scaled.path.c_str()];
-        if (scaled_path != nil)
+        const std::string resolved = resolve_app_package_path(path);
+        std::error_code ec;
+        const bool resolved_exists = std::filesystem::exists(resolved, ec);
+        const std::string base = resolved_exists ? resolved : std::string(path);
+
+        const maui::platform::ios::scaled_file scaled = maui::platform::ios::get_scaled_file(base, screen_scale());
+        if (UIImage* const image = decode_file_at(scaled.path, scaled.scale); image != nil)
         {
-            NSURL* const url = [NSURL fileURLWithPath:scaled_path];
-            const cf_ref<CGImageSourceRef> source{CGImageSourceCreateWithURL((__bridge CFURLRef)url, nullptr)};
-            if (source)
-            {
-                UIImage* const image = image_from_cg_source(source.get(), scaled.scale);
-                if (image != nil)
-                {
-                    return image;
-                }
-            }
+            return image;
         }
-        // C#'s `?? imageSource.GetPlatformImage()` (FromBundle ?? FromFile) — the direct file load
-        // stands in for both (no app bundle in the port's process; see the header DEVIATION note).
+
+        // C#'s `?? imageSource.GetPlatformImage()` → UIImage.FromBundle(stem) ?? UIImage.FromFile(file).
         const std::string file(path);
-        NSString* const original = [NSString stringWithUTF8String:file.c_str()];
+        const std::string stem = std::filesystem::path(file).stem().string();
+        NSString* const bundle_name = [NSString stringWithUTF8String:stem.c_str()];
+        if (UIImage* const from_bundle =
+                (bundle_name != nil && bundle_name.length > 0) ? [UIImage imageNamed:bundle_name] : nil;
+            from_bundle != nil)
+        {
+            return from_bundle;
+        }
+        NSString* const original = [NSString stringWithUTF8String:base.c_str()];
         return original != nil ? [UIImage imageWithContentsOfFile:original] : nil;
     }
 
