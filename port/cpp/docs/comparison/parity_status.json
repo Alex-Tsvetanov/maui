@@ -60,10 +60,10 @@
     "dark_note": "Now matches (grouped-CV supplementary fix landed): group headers/footers render."
   },
   "basic_swipe": {
-    "dark": "diff",
-    "dark_note": "Same: correct box content but ~150px inter-row gaps (iOS swipe-host over-height). Flagged.",
-    "light": "diff",
-    "light_note": "Content matches maui-compare BasicSwipe (the 5 gray SwipeView boxes: Swipe Up/Down/Right/Left (Execute/Reveal) + Swipe in any direction + the Swipe a row, then invoke Delete caption), but the C++ over-spaces the rows: each SwipeView box is ~60px (correct) yet separated by ~150px gaps vs MAUIs compact rows. The SwipeView cross-platform measure() returns 60 and the page sets height_request(60) on every swipe+content, so the over-height is a native iOS swipe-host arrange issue (host taller than its content). Flagged for a focused SwipeView-layout investigation."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare BasicSwipe after the iOS swipe arrange-host-relative fix (5198718b6f): the 5 gray SwipeView boxes (Swipe Up/Down/Right/Left + any direction) stack COMPACTLY (60px + spacing) instead of ~150px over-spaced. Root cause was swipe_view::arrange placing content at absolute coords → double-offset (same arrange-convention family as border/templated_view). Minor.",
+    "dark_note": "Now matches (swipe arrange fix): compact rows."
   },
   "behaviors": {
     "dark": "minor",
@@ -222,16 +222,16 @@
     "light_note": "MAUI light shows the white content card with blue \"Top/Left/Left/Right/Right/Bottom\" labels positioned around the page; C++ light is blank (no card, no labels) with only a stray black rounded blob beside the title bar."
   },
   "custom_size_swipe": {
-    "dark": "diff",
-    "dark_note": "Same inversion: MAUI shows green content block (white+blue text) then status label below; C++ shows the \"RightItems revealed\" status label clipped at top of the green band with no SwipeView content text rendered below — order/positions transposed and content text missing.",
-    "light": "diff",
-    "light_note": "Layout order inverted: MAUI shows green SwipeView content block first then \"RightItems revealed\" label below; C++ puts \"RightItems revealed\" label at top (overlapping/clipping the green status band) and the SwipeView content text far lower, detached."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare CustomSizeSwipe after the swipe arrange fix (5198718b6f): green This is the SwipeView Content box + Test Click from Content link + RightItems revealed (open=1, threshold=0) readout, laid out compactly. Minor.",
+    "dark_note": "Matches (swipe arrange fix)."
   },
   "custom_swipe_item_view": {
-    "dark": "diff",
-    "dark_note": "Same as light: C++ blue Frame renders as an empty rectangle (labels missing), positioned lower and taller than MAUI's filled card; C++ also omits the \"Right items revealed (Favourite)\" heading shown in MAUI.",
-    "light": "diff",
-    "light_note": "C++ blue Frame is empty (missing \"Welcome to .NET MAUI\" / \"June 19, 2026\" labels), sits lower, is taller, and has square-ish corners vs MAUI's rounded labeled card; C++ also shows a stray black pill in the nav bar and \"MauiCompare\" title vs \"maui_ios_gallery\"."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare CustomSwipeItemView after the swipe arrange fix (5198718b6f): the custom swipe item view (Welcome to .NET MAUI card) renders in the revealed state. Minor.",
+    "dark_note": "Matches (swipe arrange fix): custom swipe item view renders."
   },
   "cv_visual_states": {
     "dark": "diff",
@@ -792,10 +792,10 @@
     "light": "pending"
   },
   "swipe_item_size": {
-    "dark": "diff",
-    "dark_note": "C++ content badly mis-laid-out: shows only a clipped \"12x512 Icon\" label plus bare gray boxes with NO \"Swipe to Left\" text and NO headers, huge empty black gaps — versus MAUI's correct compact list of labeled centered-text swipe rows.",
-    "light": "diff",
-    "light_note": "C++ swipe rows mis-sized/detached from their labels (128x128 & 256x256 boxes collapsed/invisible, gray box overlaps \"512x512 Icon\" and clips \"Swipe to Left\" text); section headers not bold (MAUI bold); stray nav-bar pill artifact."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare SwipeItemSize after the swipe arrange fix (5198718b6f): Different icon sizes (128/256/512 Swipe to Left rows) + Different SwipeView sizes (128/256-Height rows, correctly taller). Minor.",
+    "dark_note": "Matches (swipe arrange fix): sized swipe boxes render."
   },
   "swipe_refresh": {
     "dark": "pending",
