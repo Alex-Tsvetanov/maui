@@ -157,27 +157,27 @@
   },
   "clip_corner_radius": {
     "dark": "diff",
-    "dark_note": "C++ shows only a gray image placeholder + 4 thumbless gray slider tracks; all text (title + corner labels) and the photo are missing, whereas MAUI dark renders white title/labels, the clipped photo, and sliders with white thumbs.",
+    "dark_note": "Blank gray Image (oasis.jpg iOS load issue) + leaf-control clip gap (agent dispatched).",
     "light": "diff",
-    "light_note": "C++ renders the clipped image as a blank gray square (no purple-robot photo) where MAUI shows the actual rounded-corner-clipped image; title text and sliders otherwise match."
+    "light_note": "TWO issues: (1) the oasis.jpg Image renders as a blank LightGray square though oasis.jpg IS bundled in the app — an iOS image-load/decode issue (the clip page dotnet_bot.png renders fine; jpg-specific, separate from clip); (2) the RoundRectangleGeometry Clip on the Image is a no-op on iOS (image_handler leaf-control update_clip gap, covered by agent ad31b95a1d). Sliders + title match."
   },
   "clip_gallery": {
     "dark": "blank",
-    "dark_note": "C++ dark is entirely blank (only the status bar shows) while MAUI dark renders the \"Image\" and \"Clipped Image using RectangleGeometry\" labels plus their two gray image squares.",
+    "dark_note": "C++ image slots blank vs C# gray placeholder boxes; sized-image render issue (defer until clip agent lands).",
     "light": "diff",
-    "light_note": "C++ renders the section labels (Image / RectangleGeometry / RoundRectangleGeometry) but ALL gray image placeholders are missing (no images drawn), labels are spread far apart vertically instead of MAUI's compact image+label stacking, and there is a stray black rounded-pill artifact in the navigation/title bar; MAUI shows the two gray image squares directly under their labels."
+    "light_note": "C++ image slots render blank/collapsed; the C# ref shows LightGray placeholder boxes (the image source loads as gray in neither app, but MAUI reserves a sized gray container the C++ collapses to nothing). Captions (Image / Clipped Image using Rectangle/RoundRectangle/Ellipse Geometry) match. Root cause: sized images in fixed-size containers (AspectFill) do not render on iOS — same family as clip_corner_radius oasis.jpg; SEPARATE from the leaf-control clip-mask gap (agent ad31b95a1d). Defer the image-render fix until that agent lands (it edits image_handler.mm)."
   },
   "clip_views": {
     "dark": "diff",
-    "dark_note": "Same defect as light: MAUI clips all 7 controls into the red skewed shape; C++ clips only the Editor row red and renders the rest as default-chrome (clear DatePicker/Entry/Editor, plain SearchBar, TimePicker), and date/time text differs (6/19/2026 & 12:00 AM vs 19.06.2026 & 0:00).",
+    "dark_note": "Same iOS leaf-control Clip gap; fix agent dispatched.",
     "light": "diff",
-    "light_note": "C++ applies the red diagonal Clip to only ONE element (Editor/Grid row); MAUI applies it to all 7 controls (Button, DatePicker, Entry, Editor, Grid, SearchBar, TimePicker) all rendered as the red skewed shape. C++ shows plain default chrome instead, plus differing date/time text (6/19/2026 & 12:00 AM vs 19.06.2026 & 0:00)."
+    "light_note": "iOS Clip gap: VisualElement.Clip is honored only by container handlers; leaf native controls (entry/editor/search_bar/button/image/pickers/value-controls) omit update_clip in their MAUI_PLATFORM_IOS partial -> fall to the view_platform_base no-op mirror, so the diagonal clip applies to the Grid/layout only (MAUI skews all 7 controls). Background agent ad31b95a1d dispatched to add iOS update_clip (apply_clip + layoutSubviews re-clip) to the leaf controls."
   },
   "clipping": {
     "dark": "diff",
-    "dark_note": "Identical set of failures to the light pair: full-bleed orange (no rounded container), collapsed \"12345678\" numbers, missing orange-red square (only a thin red bar), missing purple/light-blue bands, and only 2 black \"Hey\" labels instead of 4 cyan ones — layout/clipping/spacing all wrong.",
+    "dark_note": "Same: C++ horizontal-stack overflow layout differs from MAUI (no spread numbers / no overflow square / no blue overflow band).",
     "light": "diff",
-    "light_note": "C++ orange fills full screen (no rounded container/margins); numbers collapse to \"12345678\" with no spacing/blue color; the large orange-red overflow square is missing (replaced by a thin full-width red bar); only 2 black \"Hey\" labels shown vs 4 cyan ones on a purple band; purple/light-blue bands absent; button not blue-styled."
+    "light_note": "Horizontal-stack overflow + clip-toggle demo diverges: MAUI spreads numbers 2-8 across the full width with a large orange overflow square extending beyond the right edge + a light-blue overflow band under the purple Hey box (unclipped state); the C++ bunches 12345678 at top-left with a red full-width bar and shows no horizontal overflow. The unclipped horizontal-stack overflow layout differs (measure/arrange of an over-wide HorizontalStackLayout). Keep diff."
   },
   "collectionview": {
     "light": "minor",
