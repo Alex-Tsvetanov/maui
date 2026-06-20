@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 0 / 172 🟢 matched** · 126 🟡 minor · 13 🔴 diff · 33 ⬜ pending
+**Progress: 0 / 172 🟢 matched** · 131 🟡 minor · 11 🔴 diff · 30 ⬜ pending
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.
 
@@ -148,12 +148,12 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 134 | Pan Gesture Events | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/pan_gesture_events.png) | ![](cpp_ios_light/pan_gesture_events.png) | ![](csharp_ios_dark/pan_gesture_events.png) | ![](cpp_ios_dark/pan_gesture_events.png) |
 | 135 | Pointer Gesture | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/pointer_gesture.png) | ![](cpp_ios_light/pointer_gesture.png) | ![](csharp_ios_dark/pointer_gesture.png) | ![](cpp_ios_dark/pointer_gesture.png) |
 | 136 | Drag Drop | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/drag_drop.png) | ![](cpp_ios_light/drag_drop.png) | ![](csharp_ios_dark/drag_drop.png) | ![](cpp_ios_dark/drag_drop.png) |
-| 137 | Hit Testing | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/hit_testing.png) | ![](cpp_ios_light/hit_testing.png) | ![](csharp_ios_dark/hit_testing.png) | ![](cpp_ios_dark/hit_testing.png) |
-| 138 | Input Transparent | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/input_transparent.png) | ![](cpp_ios_light/input_transparent.png) | ![](csharp_ios_dark/input_transparent.png) | ![](cpp_ios_dark/input_transparent.png) |
-| 139 | Focus | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/focus.png) | ![](cpp_ios_light/focus.png) | ![](csharp_ios_dark/focus.png) | ![](cpp_ios_dark/focus.png) |
+| 137 | Hit Testing | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/hit_testing.png) | ![](cpp_ios_light/hit_testing.png) | ![](csharp_ios_dark/hit_testing.png) | ![](cpp_ios_dark/hit_testing.png) |
+| 138 | Input Transparent | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/input_transparent.png) | ![](cpp_ios_light/input_transparent.png) | ![](csharp_ios_dark/input_transparent.png) | ![](cpp_ios_dark/input_transparent.png) |
+| 139 | Focus | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/focus.png) | ![](cpp_ios_light/focus.png) | ![](csharp_ios_dark/focus.png) | ![](cpp_ios_dark/focus.png) |
 | 140 | Dispatcher | ⬛<br>L:minor<br>D:blank | ![](csharp_ios_light/dispatcher.png) | ![](cpp_ios_light/dispatcher.png) | ![](csharp_ios_dark/dispatcher.png) | ![](cpp_ios_dark/dispatcher.png) |
-| 141 | Device | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/device.png) | ![](cpp_ios_light/device.png) | ![](csharp_ios_dark/device.png) | ![](cpp_ios_dark/device.png) |
-| 142 | Effects | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/effects.png) | ![](cpp_ios_light/effects.png) | ![](csharp_ios_dark/effects.png) | ![](cpp_ios_dark/effects.png) |
+| 141 | Device | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/device.png) | ![](cpp_ios_light/device.png) | ![](csharp_ios_dark/device.png) | ![](cpp_ios_dark/device.png) |
+| 142 | Effects | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/effects.png) | ![](cpp_ios_light/effects.png) | ![](csharp_ios_dark/effects.png) | ![](cpp_ios_dark/effects.png) |
 | 143 | Measure First Strategy | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/measure_first_strategy.png) | ![](cpp_ios_light/measure_first_strategy.png) | ![](csharp_ios_dark/measure_first_strategy.png) | ![](cpp_ios_dark/measure_first_strategy.png) |
 | 144 | Scroll View | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/scroll_view.png) | ![](cpp_ios_light/scroll_view.png) | ![](csharp_ios_dark/scroll_view.png) | ![](cpp_ios_dark/scroll_view.png) |
 | 145 | Web View | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/web_view.png) | ![](cpp_ios_light/web_view.png) | ![](csharp_ios_dark/web_view.png) | ![](cpp_ios_dark/web_view.png) |

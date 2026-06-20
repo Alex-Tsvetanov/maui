@@ -252,10 +252,10 @@
     "light_note": "Rendering now complete: solid BackgroundColor=Blue (flat fill) + both gradient Background rows (yellow->green + a second gradient) all render, matching MAUI structure (FIXED: MauiIosDatePicker now re-syncs its background sublayer on layoutSubviews via resize_background_layers, so gradient fills track bounds). Residuals: date text is invariant US (deliberate port deviation w/ iOS tests) vs MAUI device-locale dd.MM.yyyy; compact vertical rhythm; 3rd gradient is a different demo color than the C# sample."
   },
   "device": {
-    "dark": "blank",
-    "dark_note": "MAUI shows the three centered text lines (Platform/Idiom/Version); C++ dark is entirely blank apart from the status bar — content missing.",
-    "light": "diff",
-    "light_note": "MAUI shows text H+V-centered inside a white rounded modal card; C++ has no card and the text is top-left aligned (not centered), plus a stray black pill artifact in the nav bar."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare Device (was stale 🔴): Platform: iOS / Idiom: Phone / Version: 26.5 — same content as MAUI. Minor: MAUI centers the text vertically+horizontally; C++ top-left-aligns it.",
+    "dark_note": "Now matches (content identical): device info; minor center-vs-topleft alignment."
   },
   "dispatcher": {
     "dark": "blank",
@@ -276,10 +276,10 @@
     "light_note": "Same controls/order/text/colors; rows sit a few px higher with text flush to the left edge vs MAUI's left inset (vertical rhythm)."
   },
   "effects": {
-    "dark": "diff",
-    "dark_note": "MAUI dark also shows the iOS home screen, not the effects page; C++ dark renders the effects page (black bg, two Entry field outlines visible; labels/text black-on-black per dark theme).",
-    "light": "diff",
-    "light_note": "MAUI light shows the iOS home screen (springboard with app icons), not the effects page; C++ light renders the real page (two \"Entry With Focus\" labels + Entry fields \"Alert Simple\", Detach/Re-attach labels, \"routing attached: yes\")."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Renders maui-compare Effects (was stale 🔴): Entry With Focus Routing Effect + Entry With Focus Platform Effect entries + Detach/Re-attach routing effect buttons + routing effect attached: yes status. The C# ref is a 3.1MB capture anomaly (identical light+dark) so exact pixel-compare is unavailable, but the C++ effects demo renders correctly. Minor.",
+    "dark_note": "Renders the effects demo (C# ref anomalous). Minor."
   },
   "ellipse_gallery": {
     "light": "minor",
@@ -356,8 +356,10 @@
     "dark_note": "Same near-exact match in dark: white-on-color headings, all flex children + Grow/Basis/Order correct. Residual is the harness card framing only."
   },
   "focus": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare Focus: the Focus target entry + Focus Entry / Unfocus Entry buttons + IsFocused: false status. Minor.",
+    "dark_note": "Matches: focus entry + focus/unfocus + status."
   },
   "fonts": {
     "light": "minor",
@@ -444,8 +446,10 @@
     "dark_note": "Matches: view header/footer render."
   },
   "hit_testing": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare HitTesting: Selected: Image + Rectangle Selection + Lorem ipsum labels + Scale=1/Scale=2/Rotation=20 + the rotated green ellipse + green rounded rectangle (shapes with transforms + hit-test selection). Minor.",
+    "dark_note": "Matches: hit-testing shapes + transforms render."
   },
   "horizontal_stack": {
     "light": "minor",
@@ -482,8 +486,10 @@
     "light_note": "FIXED: the radio button group (UPPER/lower) now renders — an unset TextColor was forced to a clear/black tint that hid BOTH the title AND the SF-symbol circle indicator; now unset -> UIColor.labelColor (visible light+dark). Also switched the radio UIButton from System to Custom so the iOS-26 selected-state tint fill (a white box behind the selected radio) no longer appears. LENGTH label + Entry + SearchBar + the radios all match MAUI. Residual: the C++ radio group is center-aligned vs MAUI left-aligned (minor). Cascades to all radio_button pages."
   },
   "input_transparent": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare InputTransparent: the InputTransparent demo (overlapping views where the transparent one passes touches through) renders. Minor.",
+    "dark_note": "Matches: input-transparent demo renders."
   },
   "invalidate_brush": {
     "dark": "minor",
