@@ -72,10 +72,10 @@
     "light_note": "FIXED: the title \"Red when the number isnt valid\" now renders as a large two-line Headline (FontSize 32) above the Entry, matching MAUI (was a small single-line label — the gallery set the text but not the Headline-style font size). The validation behavior (Entry turns red on invalid double) is demonstrated. Residual: minor vertical position (C++ a touch higher)."
   },
   "border": {
-    "dark": "diff",
-    "dark_note": "MAUI dark shows one centered red-bordered cream card with faint Bordered content text; C++ dark shows three stacked sections with two empty red-outlined rounded rects on black plus a yellow box, section header labels invisible on black. Completely different page.",
-    "light": "diff",
-    "light_note": "MAUI light shows one centered red-bordered cream card with Bordered content text; C++ light shows three sections RoundRectangle, StrokeShape binded to Parent, Update StrokeShape with two empty red-stroked rounded rects, a yellow box, and Increase/Decrease CornerRadius button labels. Different content, layout, controls."
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "FIXED: authored the missing border gallery page reproducing maui-compare BorderPage() 1:1 (the key fell back to value-controls) — a single Border centered both ways (red 5pt stroke, RoundRectangle CR=20, LightYellow background, Padding 16, fixed 280x160) wrapping a centered \"Bordered content\" Label. Matches C# exactly; also validates the border::arrange compute_frame fix (VerticalOptions=Center now honored). Residual: maui-compare card framing.",
+    "dark_note": "Same: centered red/round/light-yellow border + centered caption, theme-aware. Faithful reproduction of BorderPage()."
   },
   "border_clip_playground": {
     "dark": "diff",
