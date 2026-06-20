@@ -186,14 +186,32 @@ namespace
 @end
 
 // ---- the unified supplementary view (group/section header & footer) ----
+// <= *SupplementaryView2 / *DefaultSupplementalView2: the TemplatedCell2 twin for supplementaries —
+// hosts a group/CV header/footer template's realized native content when a template is set (the C#
+// TemplatedSupplementaryView Bind path), else mirrors the boxed item's text (the DefaultSupplemental
+// label / C# DefaultCell2.Label.Text = obj?.ToString()).
 @interface MauiCollectionReusableView : UICollectionReusableView
 @property(nonatomic, strong) UILabel* label;
 @property(nonatomic, strong) UIView* templatedContent;
 - (void)showText:(NSString*)text;
 - (void)showTemplatedContent:(UIView*)content;
+// Host the realized template content's native view AND retain the C++ content (which owns its handler +
+// native view) for as long as this supplementary displays it — the C# TemplatedCell2 (used as a
+// supplementary) holding its PlatformHandler. Mirrors the item cell's retaining overload.
+- (void)showTemplatedContent:(UIView*)content retainingRealized:(std::shared_ptr<maui::core::bindable_object>)realized;
+// The text actually on screen: the realized template content's first UILabel when templated, otherwise
+// the default-supplemental label. The test seam (native_supplementary_text) reads this so a
+// template-bound group header reports its bound value, not the hidden default label.
+- (NSString*)displayedText;
 @end
 
 @implementation MauiCollectionReusableView
+{
+    // The realized header/footer template content (owns its attached handler + native view). Held so the
+    // hosted native view outlives this method call; released on reuse/replacement (the C# supplementary
+    // cell dropping its PlatformHandler).
+    std::shared_ptr<maui::core::bindable_object> _realizedContent;
+}
 - (instancetype)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
@@ -210,6 +228,7 @@ namespace
 {
     [_templatedContent removeFromSuperview];
     _templatedContent = nil;
+    _realizedContent.reset();
     _label.hidden = NO;
     _label.text = text;
 }
@@ -229,6 +248,54 @@ namespace
         content.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         [self addSubview:content];
     }
+}
+
+- (void)showTemplatedContent:(UIView*)content retainingRealized:(std::shared_ptr<maui::core::bindable_object>)realized
+{
+    // Retain the realized content FIRST (it owns the handler that owns `content`) so replacing the
+    // previous content never frees the incoming native view mid-swap.
+    _realizedContent = std::move(realized);
+    [self showTemplatedContent:content];
+}
+
+- (void)prepareForReuse
+{
+    [super prepareForReuse];
+    // The recycler hands this instance back; clear the templated content so a fresh bind re-hosts, and
+    // drop the realized content (its handler + native view) — the C# supplementary dropping its handler.
+    [_templatedContent removeFromSuperview];
+    _templatedContent = nil;
+    _realizedContent.reset();
+    _label.hidden = NO;
+}
+
+// Depth-first search for the first UILabel in a view subtree (the realized label's native field).
++ (UILabel*)firstLabelIn:(UIView*)root
+{
+    if ([root isKindOfClass:[UILabel class]])
+    {
+        return (UILabel*)root;
+    }
+    for (UIView* const sub in root.subviews)
+    {
+        if (UILabel* const found = [MauiCollectionReusableView firstLabelIn:sub])
+        {
+            return found;
+        }
+    }
+    return nil;
+}
+
+- (NSString*)displayedText
+{
+    if (_templatedContent != nil)
+    {
+        if (UILabel* const found = [MauiCollectionReusableView firstLabelIn:_templatedContent])
+        {
+            return found.text != nil ? found.text : @"";
+        }
+    }
+    return _label.text != nil ? _label.text : @"";
 }
 @end
 
@@ -286,30 +353,74 @@ namespace maui::controls
             const UICollectionViewScrollDirection scroll_direction =
                 horizontal ? UICollectionViewScrollDirectionHorizontal : UICollectionViewScrollDirectionVertical;
 
-            // Grouped header/footer (per-section boundary supplementary items).
+            // LayoutFactory2.CreateSupplementaryItems: the CV-level (whole-collection) Header/Footer are
+            // GLOBAL boundary items on the compositional layout's configuration, while the per-GROUP
+            // header/footer are PER-SECTION boundary items on each section. Both can coexist (a grouped
+            // CollectionView can carry a CV header/footer AND per-group headers/footers), exactly as the
+            // C# CreateListLayout sets layoutConfiguration.BoundarySupplementaryItems (global, from the
+            // LayoutHeaderFooterInfo) and section.BoundarySupplementaryItems (per-section, from the
+            // LayoutGroupingInfo). Earlier the grouped path dropped the CV header/footer and put nothing
+            // on the config, so "This is a header"/"Hey, a footer." never appeared on a grouped CV.
             const bool grouped = platform != nullptr && platform->grouped;
+            // Per-section group header/footer: only on the grouped path, only when their template is set.
             bool group_header = false;
             bool group_footer = false;
-            // Structured (global) header/footer.
-            bool section_header = false;
-            bool section_footer = false;
             if (auto* groupable = dynamic_cast<groupable_items_view*>(view); groupable != nullptr && grouped)
             {
                 group_header = groupable->group_header_template() != nullptr;
                 group_footer = groupable->group_footer_template() != nullptr;
             }
+            // CV-level (global) header/footer: the StructuredItemsView Header/Footer (value or template),
+            // independent of grouping (LayoutHeaderFooterInfo feeds the global config in both shapes).
+            bool cv_header = false;
+            bool cv_footer = false;
             if (auto* structured = dynamic_cast<structured_items_view*>(view); structured != nullptr)
             {
-                section_header = structured->header().has_value() || structured->header_template() != nullptr;
-                section_footer = structured->footer().has_value() || structured->footer_template() != nullptr;
+                cv_header = structured->header().has_value() || structured->header_template() != nullptr;
+                cv_footer = structured->footer().has_value() || structured->footer_template() != nullptr;
             }
-
-            const bool want_header = grouped ? group_header : section_header;
-            const bool want_footer = grouped ? group_footer : section_footer;
 
             UICollectionViewCompositionalLayoutConfiguration* const config =
                 [[UICollectionViewCompositionalLayoutConfiguration alloc] init];
             config.scrollDirection = scroll_direction;
+
+            // The supplementary boundary item size: full cross extent, estimated scroll extent (mirrors the
+            // C# group width/height passed to CreateSupplementaryItems — the same dimensions the section's
+            // group uses below). Recomputed here so the global config items (added before the section block
+            // runs) are sized identically to the per-section ones.
+            NSCollectionLayoutDimension* const boundary_cross =
+                horizontal ? [NSCollectionLayoutDimension estimatedDimension:k_estimated_item_extent]
+                           : [NSCollectionLayoutDimension fractionalWidthDimension:1.0];
+            NSCollectionLayoutDimension* const boundary_main =
+                horizontal ? [NSCollectionLayoutDimension fractionalHeightDimension:1.0]
+                           : [NSCollectionLayoutDimension estimatedDimension:k_estimated_item_extent];
+            NSCollectionLayoutSize* const boundary_size = [NSCollectionLayoutSize sizeWithWidthDimension:boundary_cross
+                                                                                         heightDimension:boundary_main];
+
+            // Global (CV-level) boundary supplementary items on the layout configuration (C#
+            // layoutConfiguration.BoundarySupplementaryItems). UIKit hands these a length-1 index path,
+            // which viewForSupplementaryElementOfKind uses to bind them to the CV Header/Footer.
+            NSMutableArray<NSCollectionLayoutBoundarySupplementaryItem*>* const global_boundaries =
+                [NSMutableArray array];
+            if (cv_header)
+            {
+                [global_boundaries
+                    addObject:[NSCollectionLayoutBoundarySupplementaryItem
+                                  boundarySupplementaryItemWithLayoutSize:boundary_size
+                                                              elementKind:UICollectionElementKindSectionHeader
+                                                                alignment:horizontal ? NSRectAlignmentLeading
+                                                                                     : NSRectAlignmentTop]];
+            }
+            if (cv_footer)
+            {
+                [global_boundaries
+                    addObject:[NSCollectionLayoutBoundarySupplementaryItem
+                                  boundarySupplementaryItemWithLayoutSize:boundary_size
+                                                              elementKind:UICollectionElementKindSectionFooter
+                                                                alignment:horizontal ? NSRectAlignmentTrailing
+                                                                                     : NSRectAlignmentBottom]];
+            }
+            config.boundarySupplementaryItems = global_boundaries;
 
             UICollectionViewCompositionalLayout* const layout = [[UICollectionViewCompositionalLayout alloc]
                 initWithSectionProvider:^NSCollectionLayoutSection*(NSInteger /*sectionIndex*/,
@@ -358,11 +469,14 @@ namespace maui::controls
                                                                           static_cast<CGFloat>(peek.bottom), 0);
                   }
 
+                  // Per-section (group) boundary supplementary items (C# section.BoundarySupplementaryItems
+                  // from the LayoutGroupingInfo). UIKit hands these a length-2 index path {section,0}, which
+                  // viewForSupplementaryElementOfKind uses to bind them to the group key's template.
                   NSMutableArray<NSCollectionLayoutBoundarySupplementaryItem*>* const boundaries =
                       [NSMutableArray array];
                   NSCollectionLayoutSize* const supplementary_size =
                       [NSCollectionLayoutSize sizeWithWidthDimension:group_width heightDimension:group_height];
-                  if (want_header)
+                  if (group_header)
                   {
                       [boundaries
                           addObject:[NSCollectionLayoutBoundarySupplementaryItem
@@ -371,7 +485,7 @@ namespace maui::controls
                                                                       alignment:horizontal ? NSRectAlignmentLeading
                                                                                            : NSRectAlignmentTop]];
                   }
-                  if (want_footer)
+                  if (group_footer)
                   {
                       [boundaries
                           addObject:[NSCollectionLayoutBoundarySupplementaryItem
@@ -442,6 +556,35 @@ namespace maui::controls
                 *out_native = (__bridge UIView*)view_handler->native_view();
             }
             return content;
+        }
+    } // namespace
+
+    namespace
+    {
+        // Bind a header/footer supplementary view, mirroring the C# *ItemsViewController2
+        // Update{Templated,Default}SupplementaryView split: with a template set, realize the template's
+        // content bound to `context` (the group key for a group header/footer, the CV Header/Footer object
+        // for a global one) and host it (the TemplatedCell2.Bind path); otherwise mirror the context's text
+        // (the DefaultCell2.Label.Text = obj?.ToString() path). Kept as a free helper so both the grouped
+        // (per-section) and structured (global) branches share one realization path.
+        void bind_supplementary_view(collection_view_handler& handler, MauiCollectionReusableView* view,
+                                     const std::shared_ptr<data_template>& tmpl, const boxed_item& context)
+        {
+            if (tmpl != nullptr)
+            {
+                const std::shared_ptr<data_template> resolved = resolve_item_template(
+                    tmpl, context, dynamic_cast<maui::core::bindable_object*>(handler.virtual_view()));
+                UIView* templated = nil;
+                std::shared_ptr<maui::core::bindable_object> realized =
+                    realize_template_content(handler, resolved, context, &templated);
+                if (realized != nullptr && templated != nil)
+                {
+                    [view showTemplatedContent:templated retainingRealized:std::move(realized)];
+                    return;
+                }
+            }
+            // No template (or a loader-only template / no registered handler): mirror the context's text.
+            [view showText:to_nsstring(context.text())];
         }
     } // namespace
 
@@ -684,6 +827,53 @@ namespace maui::controls
         auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
         NSString* const kind = header ? UICollectionElementKindSectionHeader : UICollectionElementKindSectionFooter;
         return static_cast<int>([controller.collectionView visibleSupplementaryViewsOfKind:kind].count);
+    }
+
+    std::string collection_view_handler::native_supplementary_text(int section, bool header) const
+    {
+        const auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->controller == nullptr)
+        {
+            return {};
+        }
+        auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
+        UICollectionView* const collection_view = controller.collectionView;
+        NSString* const kind = header ? UICollectionElementKindSectionHeader : UICollectionElementKindSectionFooter;
+
+        MauiCollectionReusableView* found = nil;
+        if (section < 0)
+        {
+            // CV-level (global) supplementary: it carries a length-1 index path. Scan the visible
+            // supplementaries of this kind for the first such one.
+            for (UICollectionReusableView* const supplementary in
+                 [collection_view visibleSupplementaryViewsOfKind:kind])
+            {
+                NSIndexPath* const path = [collection_view indexPathForSupplementaryView:supplementary];
+                if ((path == nil || path.length < 2) &&
+                    [supplementary isKindOfClass:[MauiCollectionReusableView class]])
+                {
+                    found = (MauiCollectionReusableView*)supplementary;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            // Per-group supplementary at {section, 0}.
+            NSIndexPath* const index_path_ns = [NSIndexPath indexPathForItem:0 inSection:section];
+            UICollectionReusableView* const supplementary =
+                [collection_view supplementaryViewForElementKind:kind atIndexPath:index_path_ns];
+            if ([supplementary isKindOfClass:[MauiCollectionReusableView class]])
+            {
+                found = (MauiCollectionReusableView*)supplementary;
+            }
+        }
+        if (found == nil)
+        {
+            return {};
+        }
+        const char* const utf8 = [found displayedText].UTF8String;
+        return utf8 != nullptr ? std::string(utf8) : std::string();
     }
 
     int collection_view_handler::native_selected_count() const
@@ -976,20 +1166,35 @@ namespace maui::controls
         return view;
     }
     auto* itemsView = handler->virtual_view();
-    const maui::controls::index_path path{.section = static_cast<int>(indexPath.section), .item = -1};
 
-    if (auto* groupable = dynamic_cast<maui::controls::groupable_items_view*>(itemsView);
-        groupable != nullptr && groupable->is_grouped())
+    // C# GroupableItemsViewController2.GetViewForSupplementaryElement: a GLOBAL (whole-collection)
+    // Header/Footer supplementary gets a length-1 index path, a PER-GROUP one gets {section, 0}. When the
+    // path is per-group AND a group header/footer template is set, bind that template to the group key;
+    // otherwise it's the CV-level Header/Footer (the structured branch, the C# `base` fall-through).
+    auto* groupable = dynamic_cast<maui::controls::groupable_items_view*>(itemsView);
+    const bool is_grouped = groupable != nullptr && groupable->is_grouped();
+    const std::shared_ptr<maui::controls::data_template> group_tmpl =
+        groupable != nullptr ? (isHeader ? groupable->group_header_template() : groupable->group_footer_template())
+                             : nullptr;
+    const bool is_group_supplementary = is_grouped && indexPath.length >= 2 && group_tmpl != nullptr;
+
+    if (is_group_supplementary)
     {
-        // Grouped: the supplementary's context is the group KEY object.
+        // Per-group header/footer: bind the group template against the group KEY object (the C#
+        // UpdateTemplatedSupplementaryView: cell.Bind(template, ItemsSource.Group(indexPath), ItemsView)).
+        const maui::controls::index_path path{.section = static_cast<int>(indexPath.section), .item = -1};
         const maui::controls::boxed_item group = source->group(path);
-        [view showText:maui::controls::to_nsstring(group.text())];
+        maui::controls::bind_supplementary_view(*handler, view, group_tmpl, group);
     }
     else if (auto* structured = dynamic_cast<maui::controls::structured_items_view*>(itemsView); structured != nullptr)
     {
-        // Structured: the global header/footer object.
+        // CV-level (global) header/footer: bind the structured Header/Footer object against its template
+        // (the C# StructuredItemsViewController2 Update*SupplementaryView path). A grouped CollectionView
+        // reaches here too, for its whole-collection Header/Footer (the C# `base` fall-through).
         const maui::controls::boxed_item& value = isHeader ? structured->header() : structured->footer();
-        [view showText:maui::controls::to_nsstring(value.text())];
+        const std::shared_ptr<maui::controls::data_template>& tmpl =
+            isHeader ? structured->header_template() : structured->footer_template();
+        maui::controls::bind_supplementary_view(*handler, view, tmpl, value);
     }
     return view;
 }

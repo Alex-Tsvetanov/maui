@@ -331,6 +331,30 @@ namespace
         (void)window;
     }
 
+    // ---- flat (non-grouped) CV header/footer ----
+
+    // The plain Items page: a non-grouped CollectionView with a view-level Header + Footer renders them
+    // as the global boundary supplementaries (the C# LayoutHeaderFooterInfo on the layout configuration),
+    // bound to their boxed strings. This guards the fix's move of the CV header/footer onto the global
+    // config (away from the section) — the flat path must keep working.
+    TEST(collection_view_ios, flat_cv_header_footer_render_as_global_supplementaries)
+    {
+        // Few items + a tall window so BOTH the global header and footer sit on-screen at once.
+        rig r{rig::make_alphabet(3)};
+        r.view.set_header(boxed_item::of(std::string{"Today"}));
+        r.view.set_footer(boxed_item::of(std::string{"Pick a task"}));
+        UIWindow* const window = r.mount(200, 600);
+        [native_collection_view(r.handler) layoutIfNeeded];
+
+        EXPECT_EQ([native_collection_view(r.handler) numberOfSections], 1);
+        EXPECT_GT(r.handler->native_visible_supplementary_count(/*header=*/true), 0);
+        EXPECT_GT(r.handler->native_visible_supplementary_count(/*header=*/false), 0);
+        // The global (CV-level) header/footer mirror their boxed strings (section < 0 reads the global).
+        EXPECT_EQ(r.handler->native_supplementary_text(/*section=*/-1, /*header=*/true), "Today");
+        EXPECT_EQ(r.handler->native_supplementary_text(/*section=*/-1, /*header=*/false), "Pick a task");
+        (void)window;
+    }
+
     // ---- grouping supplementaries ----
 
     TEST(collection_view_ios, grouped_sections_show_supplementary_headers_and_footers)
@@ -359,6 +383,89 @@ namespace
         EXPECT_EQ([native_collection_view(handler) numberOfSections], 2);
         EXPECT_GT(handler->native_visible_supplementary_count(/*header=*/true), 0);
         EXPECT_GT(handler->native_visible_supplementary_count(/*header=*/false), 0);
+        (void)window;
+    }
+
+    // The reflection-free Team KEY of the BasicGrouping gallery page: Name (group header) + Count (group
+    // footer). The group header/footer templates bind against this struct, not a string — so the group
+    // supplementaries must REALIZE their template, not just mirror the key's (empty) text.
+    struct team_key
+    {
+        std::string name;
+        int count = 0;
+        bool operator==(const team_key&) const = default;
+    };
+
+    // Build the gallery's grouped CollectionView: a CV-level Header + Footer, a green group-header
+    // template bound to team_key.name, an orange group-footer template bound to team_key.count, over a
+    // struct-keyed grouped source. `ctx` outlives the handler (§8 — caller owns both).
+    template <class Rig> void wire_basic_grouping(Rig& r)
+    {
+        auto avengers =
+            std::make_shared<observable_collection<std::string>>(std::vector<std::string>{"Thor", "Iron Man"});
+        auto ff = std::make_shared<observable_collection<std::string>>(std::vector<std::string>{"The Thing"});
+        r.groups = std::make_shared<observable_collection<grouping_ptr>>();
+        r.groups->add(
+            std::make_shared<grouping>(boxed_item::of(team_key{"Avengers", 2}), make_item_collection(avengers)));
+        r.groups->add(
+            std::make_shared<grouping>(boxed_item::of(team_key{"Fantastic Four", 1}), make_item_collection(ff)));
+
+        auto group_header = data_template::of<label>();
+        group_header->set_binding<std::string, team_key>(label::text_property(),
+                                                         [](const team_key& key) { return key.name; });
+        auto group_footer = data_template::of<label>();
+        group_footer->set_binding<std::string, team_key>(
+            label::text_property(), [](const team_key& key) { return "Total members: " + std::to_string(key.count); });
+
+        r.handler->set_maui_context(&r.ctx);
+        r.view.set_group_header_template(group_header);
+        r.view.set_group_footer_template(group_footer);
+        r.view.set_is_grouped(true);
+        r.view.set_header(boxed_item::of(std::string{"This is a header"}));
+        r.view.set_footer(boxed_item::of(std::string{"Hey, a footer."}));
+        r.view.set_items_source(make_item_collection(r.groups));
+        r.view.set_handler(r.handler);
+    }
+
+    // A grouped CollectionView with per-group header/footer TEMPLATES (bound to a struct group key) AND a
+    // CV-level Header/Footer renders ALL of its supplementaries: a CV header + footer (one each, global),
+    // and a green group-header + orange group-footer per section, bound to their group key. This is the
+    // BasicGrouping gallery: earlier the grouped path dropped the CV header/footer entirely and bound the
+    // group supplementaries only to the key's (empty, for a struct) text, so nothing displayed.
+    TEST(collection_view_ios, grouped_supplementaries_bind_group_templates_and_cv_header_footer)
+    {
+        struct local_rig
+        {
+            std::shared_ptr<observable_collection<grouping_ptr>> groups; // publisher FIRST (§8)
+            test_context ctx;                                            // before the handler (back-pointer)
+            collection_view view;
+            std::shared_ptr<collection_view_handler> handler = std::make_shared<collection_view_handler>();
+        } r;
+        wire_basic_grouping(r);
+
+        UIWindow* const window = make_host_window();
+        [window addSubview:native_collection_view(r.handler)];
+        [window makeKeyAndVisible];
+        r.handler->native_force_layout(200, 600);
+        pump_until([&] { return r.handler->native_visible_cell_count() > 0; });
+
+        // Two groups → two sections, plus the CV-level header/footer.
+        EXPECT_EQ([native_collection_view(r.handler) numberOfSections], 2);
+
+        // A supplementary header AND footer are visible (regression guard: the bug rendered zero).
+        EXPECT_GT(r.handler->native_visible_supplementary_count(/*header=*/true), 0);
+        EXPECT_GT(r.handler->native_visible_supplementary_count(/*header=*/false), 0);
+
+        // The per-group header binds the green Label to the group key's name; the footer binds the orange
+        // Label to "Total members: N". (Section 0 = Avengers/2, section 1 = Fantastic Four/1.)
+        EXPECT_EQ(r.handler->native_supplementary_text(/*section=*/0, /*header=*/true), "Avengers");
+        EXPECT_EQ(r.handler->native_supplementary_text(/*section=*/0, /*header=*/false), "Total members: 2");
+        EXPECT_EQ(r.handler->native_supplementary_text(/*section=*/1, /*header=*/true), "Fantastic Four");
+        EXPECT_EQ(r.handler->native_supplementary_text(/*section=*/1, /*header=*/false), "Total members: 1");
+
+        // The CV-level (global) Header + Footer render their boxed strings (section < 0 reads the global).
+        EXPECT_EQ(r.handler->native_supplementary_text(/*section=*/-1, /*header=*/true), "This is a header");
+        EXPECT_EQ(r.handler->native_supplementary_text(/*section=*/-1, /*header=*/false), "Hey, a footer.");
         (void)window;
     }
 

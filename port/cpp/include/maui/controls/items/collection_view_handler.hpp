@@ -330,7 +330,12 @@ namespace maui::controls
         [[nodiscard]] int native_visible_cell_count() const;                     // CollectionView.VisibleCells.Length
         [[nodiscard]] int native_distinct_cell_instances() const;                // unique cell pointers ever seen
         [[nodiscard]] int native_visible_supplementary_count(bool header) const; // group/section supplementals
-        [[nodiscard]] int native_selected_count() const;                         // GetIndexPathsForSelectedItems.Length
+        // The text a realized supplementary view at `section` currently displays (the group/CV header or
+        // footer label / its bound template's first label), so a test can assert a group header bound its
+        // key. `section < 0` reads a CV-level (global) supplementary; otherwise the per-group one for that
+        // section. Empty when no such supplementary is realized.
+        [[nodiscard]] std::string native_supplementary_text(int section, bool header) const;
+        [[nodiscard]] int native_selected_count() const; // GetIndexPathsForSelectedItems.Length
         // Simulate a user tap selecting/deselecting the cell at `path` on the native collection view
         // (the delegate's ItemSelected/ItemDeselected path — fans back to the control).
         void native_select(const index_path& path);
