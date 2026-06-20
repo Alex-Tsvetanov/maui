@@ -352,8 +352,10 @@
     "dark_note": "Same: 9 labels at the right sizes + bold/italic now render, theme-aware. Faithful reproduction of Fonts()."
   },
   "footer_only_string": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare FooterOnlyString: the cover1/oasis/photo/Vegetables/Fruits/... item list renders with a string footer below the fold. Minor.",
+    "dark_note": "Matches: item list + string footer."
   },
   "formatted_text": {
     "dark": "minor",
@@ -394,24 +396,32 @@
     "dark_note": "Now matches (grouped-CV supplementary fix landed): group headers/footers render."
   },
   "header_footer": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare HeaderFooter: Just a string as a header + cover1/oasis/photo.jpg items + This footer is also a string. Minor: MAUI renders the bare-string CV header/footer in a larger bold default font; C++ uses regular weight.",
+    "dark_note": "Matches: string header + items + string footer. Minor bold default on the string header/footer."
   },
   "header_footer_grid": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare HeaderFooterGrid: CV grid layout with header + footer + items render (the grouped-CV supplementary + grid-layout machinery). Minor.",
+    "dark_note": "Matches: grid CV with header/footer."
   },
   "header_footer_grid_horizontal": {
     "dark": "pending",
     "light": "pending"
   },
   "header_footer_template": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare HeaderFooterTemplate: a templated date/time header (peach) + cover1/oasis/photo.jpg items + templated date/time footer. Minor.",
+    "dark_note": "Matches: templated header/footer render."
   },
   "header_footer_view": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare HeaderFooterView: CV with a View header/footer + items render. Minor.",
+    "dark_note": "Matches: view header/footer render."
   },
   "hit_testing": {
     "dark": "pending",
