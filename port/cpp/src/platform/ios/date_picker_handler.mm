@@ -95,6 +95,28 @@ namespace
         return [field.inputView isKindOfClass:[UIDatePicker class]] ? (UIDatePicker*)field.inputView : nil;
     }
 
+    // DatePickerExtensions.iOS renders the default / "d" / "D" date through NSDateFormatter in the DEVICE
+    // locale (NOT the invariant en-US pattern format_date_time produces): "D" → NSDateFormatterFullStyle,
+    // empty/"d" → SetLocalizedDateFormatFromTemplate("yMd") (the locale's short date forced to a 4-digit
+    // year). TimeZone is pinned to GMT0 so the stored-UTC calendar day maps without a zone shift. This is
+    // the device-locale parity fix — custom patterns (the else branches in update_date) still go through
+    // the invariant format_date_time, matching C#'s ToString(format, InvariantCulture) for '/'-patterns.
+    std::string localized_default_date(const maui::core::date_time& value, bool full_style)
+    {
+        NSDateFormatter* const formatter = [[NSDateFormatter alloc] init];
+        formatter.timeZone = [NSTimeZone timeZoneForSecondsFromGMT:0];
+        if (full_style)
+        {
+            formatter.dateStyle = NSDateFormatterFullStyle;
+        }
+        else
+        {
+            [formatter setLocalizedDateFormatFromTemplate:@"yMd"];
+        }
+        NSString* const text = [formatter stringFromDate:maui::platform::apple_shared::to_ns_date(value)];
+        return text != nil ? std::string(text.UTF8String) : std::string{};
+    }
+
     // SetVirtualViewDate: VirtualView.Date = DatePickerDialog.Date.ToDateTime() (truncated to the
     // calendar day; the control's coercion clamps into [MinimumDate, MaximumDate]).
     void commit_date(maui::core::date_picker_handler& handler)
@@ -140,10 +162,13 @@ namespace
         std::string text;
         if (format.empty() || format == "d" || format == "D")
         {
-            text = maui::core::format_date_time(*date, format == "D" ? "D" : "d");
+            // Device-locale render (DatePickerExtensions.iOS): empty/"d" → localized "yMd", "D" → Full style.
+            text = localized_default_date(*date, format == "D");
         }
         else
         {
+            // Custom pattern: the invariant/en-US formatter (C#: ToString(format, InvariantCulture) for the
+            // '/'-patterns; locale-agnostic letters otherwise).
             text = maui::core::format_date_time(*date, format);
         }
         field.text = [NSString stringWithUTF8String:text.c_str()];

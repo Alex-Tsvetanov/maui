@@ -89,6 +89,20 @@ namespace
         return result != nil ? result : NSDate.distantPast;
     }
 
+    // The DEVICE-locale time string the handler now produces for the default/empty/"t" (Short style) case —
+    // see time_picker_handler.mm localized_default_time. Asserting against the SAME NSDateFormatter makes the
+    // test independent of the simulator's region (the field text is whatever the device locale renders) while
+    // still proving the handler routes through the localized formatter rather than the invariant en-US pattern.
+    std::string expected_localized_time(NSDate* date, NSDateFormatterStyle style)
+    {
+        NSDateFormatter* const formatter = [[NSDateFormatter alloc] init];
+        formatter.timeZone = [NSTimeZone timeZoneForSecondsFromGMT:0];
+        formatter.dateStyle = NSDateFormatterNoStyle;
+        formatter.timeStyle = style;
+        NSString* const text = [formatter stringFromDate:date];
+        return text != nil ? std::string(text.UTF8String) : std::string{};
+    }
+
     TEST(ios_time_picker_seam, attaching_handler_maps_time_and_text)
     {
         time_picker control;
@@ -107,7 +121,9 @@ namespace
         NSDateComponents* const components = utc_components(wheel.date);
         EXPECT_EQ(components.hour, 17);
         EXPECT_EQ(components.minute, 30);
-        EXPECT_EQ(to_std_string(field.text), "5:30 PM"); // the "t" default in the en-US lean
+        EXPECT_EQ(
+            to_std_string(field.text),
+            expected_localized_time(utc_time(17, 30, 0), NSDateFormatterShortStyle)); // "t" default, DEVICE locale
     }
 
     TEST(ios_time_picker_seam, format_change_rerenders_the_field_text)
@@ -151,7 +167,8 @@ namespace
 
         EXPECT_EQ(control.time(), std::optional<time_span>(time_span(9, 45, 0))); // seconds dropped
         EXPECT_EQ(selected, 1);
-        EXPECT_EQ(to_std_string(field.text), "9:45 AM");
+        EXPECT_EQ(to_std_string(field.text),
+                  expected_localized_time(utc_time(9, 45, 0), NSDateFormatterShortStyle)); // "t" default, DEVICE locale
     }
 
     TEST(ios_time_picker_seam, generic_iview_properties_reach_the_field)

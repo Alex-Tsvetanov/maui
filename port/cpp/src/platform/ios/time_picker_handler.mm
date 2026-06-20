@@ -88,6 +88,23 @@ namespace
         return (__bridge UITextField*)native;
     }
 
+    // Real MAUI (net10.0-iOS) renders the STANDARD time specifiers in the DEVICE locale via NSDateFormatter:
+    // the default/empty/"t" short time → 24h "14:00" on a 24h-locale device (NOT the en-US "2:00 PM" the
+    // invariant format_time_span would produce), and "T" → the medium (with-seconds) style. Verified against
+    // the maui-compare reference (ios_time_picker shows "14:00", the main time_picker "Default" shows "0:00").
+    // Custom patterns ("hh:mm", "HH:mm", …) keep format_time_span — their letters are locale-agnostic. The
+    // formatter's locale defaults to currentLocale; TimeZone is pinned to GMT0 to match how the wheel maps the
+    // time-of-day (UTC) — the analogue of the date handler's localized_default_date.
+    std::string localized_default_time(const maui::core::time_span& value, NSDateFormatterStyle style)
+    {
+        NSDateFormatter* const formatter = [[NSDateFormatter alloc] init];
+        formatter.timeZone = [NSTimeZone timeZoneForSecondsFromGMT:0];
+        formatter.dateStyle = NSDateFormatterNoStyle;
+        formatter.timeStyle = style;
+        NSString* const text = [formatter stringFromDate:maui::platform::apple_shared::to_ns_date(value)];
+        return text != nil ? std::string(text.UTF8String) : std::string{};
+    }
+
     UIDatePicker* wheel_of(UITextField* field)
     {
         return [field.inputView isKindOfClass:[UIDatePicker class]] ? (UIDatePicker*)field.inputView : nil;
@@ -131,7 +148,22 @@ namespace
             field.text = @"";
             return;
         }
-        const std::string text = maui::core::format_time_span(*time, view.format());
+        // Standard specifiers (empty/"t"/"T") → device-locale via NSDateFormatter, matching real MAUI; custom
+        // patterns keep the invariant format_time_span (their letters are locale-agnostic).
+        const std::string_view format = view.format();
+        std::string text;
+        if (format.empty() || format == "t")
+        {
+            text = localized_default_time(*time, NSDateFormatterShortStyle);
+        }
+        else if (format == "T")
+        {
+            text = localized_default_time(*time, NSDateFormatterMediumStyle);
+        }
+        else
+        {
+            text = maui::core::format_time_span(*time, format);
+        }
         field.text = [NSString stringWithUTF8String:text.c_str()];
     }
 } // namespace

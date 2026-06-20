@@ -26,7 +26,9 @@
 #include <memory>
 #include <string>
 
+#include "maui/controls/application.hpp"
 #include "maui/controls/window.hpp"
+#include "maui/core/app_theme.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/window_handler.hpp"
 #include "maui/hosting/maui_app.hpp"
@@ -52,6 +54,17 @@ namespace
         maui_app = maui::hosting::maui_app::create_builder().use_maui_app<app_type>().build();
         auto* const app = maui_app->application_as<app_type>().get();
 
+        // Appearance: read MAUI_APPEARANCE BEFORE attaching handlers and seed the cross-platform application
+        // theme. The iOS host has no AppInfo singleton, so nothing else sets it — application::requested_theme()
+        // would stay `unspecified`, and theme-reactive pages (e.g. shape_app_theme) would render their LIGHT
+        // slot even in a dark capture. Seeding here means the page reads the correct slot at attach;
+        // set_platform_app_theme also fires requested_theme_changed so a subscribed page re-applies. The native
+        // UIWindow interface style is forced from the same flag below.
+        const char* const appearance = std::getenv("MAUI_APPEARANCE");
+        const bool dark_appearance = appearance != nullptr && std::strcmp(appearance, "dark") == 0;
+        maui_app->application()->set_platform_app_theme(dark_appearance ? maui::core::app_theme::dark
+                                                                        : maui::core::app_theme::light);
+
         // (2) Attach handlers bottom-up: the page's owned controls first, the window LAST.
         app->page_member().attach_handlers(*maui_app);
         const auto window_handler =
@@ -64,11 +77,10 @@ namespace
 
         // Appearance toggle for the parity-comparison capture loop: MAUI_APPEARANCE=dark|light forces the
         // window's interface style so native UIKit controls render in the requested theme (default: light).
-        // Set on the window so it propagates to the root view controller + every native child.
-        const char* const appearance = std::getenv("MAUI_APPEARANCE");
-        native_window.overrideUserInterfaceStyle = (appearance != nullptr && std::strcmp(appearance, "dark") == 0)
-                                                       ? UIUserInterfaceStyleDark
-                                                       : UIUserInterfaceStyleLight;
+        // Set on the window so it propagates to the root view controller + every native child. Uses the same
+        // dark_appearance flag that seeded the cross-platform theme above.
+        native_window.overrideUserInterfaceStyle =
+            dark_appearance ? UIUserInterfaceStyleDark : UIUserInterfaceStyleLight;
 
         // (4) Lay out the tree over the root view-controller's SAFE-AREA rect (the window host does no
         // auto-layout). A real app would inset via the page's SafeAreaEdges; the gallery host insets here

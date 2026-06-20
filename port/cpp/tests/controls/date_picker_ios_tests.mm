@@ -91,6 +91,27 @@ namespace
         return result != nil ? result : NSDate.distantPast;
     }
 
+    // The DEVICE-locale date string the handler now produces for the default/"d" (localized "yMd" template)
+    // and "D" (Full style) cases — see date_picker_handler.mm localized_default_date. Asserting against the
+    // SAME NSDateFormatter makes the test independent of the simulator's region (the field text is whatever
+    // the device locale renders) while still proving the handler routes through the localized formatter
+    // rather than the invariant en-US pattern.
+    std::string expected_localized_date(NSDate* date, bool full_style)
+    {
+        NSDateFormatter* const formatter = [[NSDateFormatter alloc] init];
+        formatter.timeZone = [NSTimeZone timeZoneForSecondsFromGMT:0];
+        if (full_style)
+        {
+            formatter.dateStyle = NSDateFormatterFullStyle;
+        }
+        else
+        {
+            [formatter setLocalizedDateFormatFromTemplate:@"yMd"];
+        }
+        NSString* const text = [formatter stringFromDate:date];
+        return text != nil ? std::string(text.UTF8String) : std::string{};
+    }
+
     TEST(ios_date_picker_seam, attaching_handler_maps_date_bounds_and_text)
     {
         date_picker control;
@@ -112,7 +133,8 @@ namespace
         EXPECT_EQ(components.day, 5);
         EXPECT_TRUE([dialog.minimumDate isEqualToDate:utc_date(1900, 1, 1)]);
         EXPECT_TRUE([dialog.maximumDate isEqualToDate:utc_date(2100, 12, 31)]);
-        EXPECT_EQ(to_std_string(field.text), "5/5/2008"); // the "d" default, invariant short date
+        EXPECT_EQ(to_std_string(field.text),
+                  expected_localized_date(utc_date(2008, 5, 5), false)); // the "d" default, DEVICE-locale short date
     }
 
     TEST(ios_date_picker_seam, format_change_rerenders_the_field_text)
@@ -123,10 +145,11 @@ namespace
         control.set_handler(handler);
 
         control.set_format("D");
-        EXPECT_EQ(to_std_string(native_field(handler).text), "Monday, May 5, 2008");
+        EXPECT_EQ(to_std_string(native_field(handler).text),
+                  expected_localized_date(utc_date(2008, 5, 5), true)); // "D" → DEVICE-locale Full style
 
         control.set_format("yyyy-MM-dd");
-        EXPECT_EQ(to_std_string(native_field(handler).text), "2008-05-05");
+        EXPECT_EQ(to_std_string(native_field(handler).text), "2008-05-05"); // custom pattern stays invariant
     }
 
     TEST(ios_date_picker_seam, null_date_renders_empty_and_falls_back_to_today)
@@ -164,7 +187,7 @@ namespace
 
         EXPECT_TRUE(selected);
         EXPECT_EQ(control.date(), std::optional<date_time>(date_time(2020, 6, 15)));
-        EXPECT_EQ(to_std_string(field.text), "6/15/2020");
+        EXPECT_EQ(to_std_string(field.text), expected_localized_date(utc_date(2020, 6, 15), false));
     }
 
     TEST(ios_date_picker_seam, generic_iview_properties_reach_the_field)

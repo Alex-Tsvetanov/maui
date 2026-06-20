@@ -311,14 +311,12 @@ namespace maui::samples
         void attach_handlers(maui::hosting::maui_app& app)
         {
             // dock_layout is a brand-new user type, so its default handler isn't registered the way the
-            // built-in controls self-register. Register layout_handler for it once (idempotent) so
-            // attach_handler(dock_) resolves the same panel host every built-in layout uses.
-            static const bool registered = [] {
-                maui::core::register_handler<dock_layout, maui::core::layout_handler>(
-                    maui::core::default_handler_registry());
-                return true;
-            }();
-            (void)registered;
+            // built-in controls self-register. Register layout_handler for it into THIS APP's registry
+            // (idempotent) — maui_app resolves handlers via its own per-app handler_registry seeded from
+            // add_maui_controls_handlers, which has NO fallback to the global default registry, so a global
+            // registration would leave dock_layout handler-less (attach_handler throws → blank page). The
+            // registry tolerates re-registration, so doing it per attach is safe.
+            maui::core::register_handler<dock_layout, maui::core::layout_handler>(app.handlers());
 
             auto one = [&app](auto& v, const char* n) {
                 try
