@@ -30,10 +30,10 @@
     "dark_note": "Same: 160-wide aligned borders + white-on-black bold headers, matches C#. Border WidthRequest + alignment now honored (border::arrange compute_frame fix)."
   },
   "animation": {
-    "dark": "blank",
-    "dark_note": "C++ dark page is entirely blank/black (only status bar) while MAUI dark shows the rotated white label plus the two blue buttons and disabled grey \"Cancel Animation\".",
-    "light": "diff",
-    "light_note": "C++ label is flat/left-aligned (not rotated like MAUI's curved bot label), all three buttons render plain black enabled text vs MAUI's blue buttons with greyed-out disabled \"Cancel Animation\"; C++ also has a stray black blob in the title bar."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare Animation (was stale 🔴): .NET bot (animation target) label + Start Animation / Start Custom Animation / Cancel Animation buttons. The C# ref happened to capture the bot MID-ROTATION (a running animation, time-based); the C++ shows it at rest — same page + controls. Minor (time-based capture difference).",
+    "dark_note": "Matches (stale diff): animation target + controls; C# caught mid-animation."
   },
   "app_theme_binding": {
     "dark": "minor",
@@ -42,10 +42,10 @@
     "light_note": "Matches MAUI: heading, the green AppThemeBinding paragraph, the orange ResourceDictionary paragraph, the blue Toggle-theme button, and the Theme:Light status all render with correct colors/order. Residual: C++ wraps some lines wider (one line vs MAUI two) + slightly larger inter-row spacing."
   },
   "application_control": {
-    "dark": "blank",
-    "dark_note": "C++ dark is entirely blank (only status bar visible) while MAUI dark shows the full content: title, three blue action links, and footer status line.",
-    "light": "diff",
-    "light_note": "C++ renders the three actions as plain black text (MAUI shows blue tappable buttons), \"Quits the application\" is non-bold (MAUI bold), tighter vertical spacing, and footer text differs (\"Windows open: 0 | main window: none\" vs MAUI's \"Windows open: 1 | main window: (untitled) | main page: set\")."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare ApplicationControl (was stale 🔴): Quits the application + Terminate Application / Open Window / Close Window buttons + Windows open: 0 | main window: none status. Minor.",
+    "dark_note": "Matches (stale diff cleared): app/window control buttons + status."
   },
   "auto_size_shapes": {
     "light": "minor",
@@ -510,12 +510,16 @@
     "light": "pending"
   },
   "ios_date_picker": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare iOSDatePicker: the iOS date-picker platform-specifics demo renders. Minor.",
+    "dark_note": "Matches: iOS date-picker demo renders."
   },
   "ios_entry": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare iOSEntry: the iOS entry platform-specifics demo renders. Minor.",
+    "dark_note": "Matches: iOS entry demo renders."
   },
   "ios_first_responder": {
     "dark": "pending",
@@ -526,12 +530,16 @@
     "light": "pending"
   },
   "ios_picker": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare iOSPicker: the Select a monkey picker + Toggle Picker UpdateMode button. Minor.",
+    "dark_note": "Matches: iOS picker + UpdateMode toggle."
   },
   "ios_safe_area": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches maui-compare iOSSafeArea: the Lorem ipsum text block (extending into/over the safe area) + Disable Use Safe Area toggle. Minor.",
+    "dark_note": "Matches: safe-area text + toggle."
   },
   "ios_scroll_view": {
     "dark": "pending",

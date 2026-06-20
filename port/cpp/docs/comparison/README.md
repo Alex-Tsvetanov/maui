@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 0 / 172 🟢 matched** · 136 🟡 minor · 10 🔴 diff · 26 ⬜ pending
+**Progress: 0 / 172 🟢 matched** · 142 🟡 minor · 8 🔴 diff · 22 ⬜ pending
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.
 
@@ -159,18 +159,18 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 145 | Web View | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/web_view.png) | ![](cpp_ios_light/web_view.png) | ![](csharp_ios_dark/web_view.png) | ![](cpp_ios_dark/web_view.png) |
 | 146 | Hybrid Web View | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/hybrid_web_view.png) | ![](cpp_ios_light/hybrid_web_view.png) | ![](csharp_ios_dark/hybrid_web_view.png) | ![](cpp_ios_dark/hybrid_web_view.png) |
 | 147 | Alerts | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/alerts.png) | ![](cpp_ios_light/alerts.png) | ![](csharp_ios_dark/alerts.png) | ![](cpp_ios_dark/alerts.png) |
-| 148 | Animation | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/animation.png) | ![](cpp_ios_light/animation.png) | ![](csharp_ios_dark/animation.png) | ![](cpp_ios_dark/animation.png) |
-| 149 | Application Control | 🔴<br>L:diff<br>D:blank | ![](csharp_ios_light/application_control.png) | ![](cpp_ios_light/application_control.png) | ![](csharp_ios_dark/application_control.png) | ![](cpp_ios_dark/application_control.png) |
-| 150 | Ios Entry | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/ios_entry.png) | ![](cpp_ios_light/ios_entry.png) | ![](csharp_ios_dark/ios_entry.png) | ![](cpp_ios_dark/ios_entry.png) |
-| 151 | Ios Date Picker | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/ios_date_picker.png) | ![](cpp_ios_light/ios_date_picker.png) | ![](csharp_ios_dark/ios_date_picker.png) | ![](cpp_ios_dark/ios_date_picker.png) |
+| 148 | Animation | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/animation.png) | ![](cpp_ios_light/animation.png) | ![](csharp_ios_dark/animation.png) | ![](cpp_ios_dark/animation.png) |
+| 149 | Application Control | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/application_control.png) | ![](cpp_ios_light/application_control.png) | ![](csharp_ios_dark/application_control.png) | ![](cpp_ios_dark/application_control.png) |
+| 150 | Ios Entry | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/ios_entry.png) | ![](cpp_ios_light/ios_entry.png) | ![](csharp_ios_dark/ios_entry.png) | ![](cpp_ios_dark/ios_entry.png) |
+| 151 | Ios Date Picker | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/ios_date_picker.png) | ![](cpp_ios_light/ios_date_picker.png) | ![](csharp_ios_dark/ios_date_picker.png) | ![](cpp_ios_dark/ios_date_picker.png) |
 | 152 | Ios Time Picker | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/ios_time_picker.png) | ![](cpp_ios_light/ios_time_picker.png) | ![](csharp_ios_dark/ios_time_picker.png) | ![](cpp_ios_dark/ios_time_picker.png) |
-| 153 | Ios Picker | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/ios_picker.png) | ![](cpp_ios_light/ios_picker.png) | ![](csharp_ios_dark/ios_picker.png) | ![](cpp_ios_dark/ios_picker.png) |
+| 153 | Ios Picker | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/ios_picker.png) | ![](cpp_ios_light/ios_picker.png) | ![](csharp_ios_dark/ios_picker.png) | ![](cpp_ios_dark/ios_picker.png) |
 | 154 | Ios Search Bar | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/ios_search_bar.png) | ![](cpp_ios_light/ios_search_bar.png) | ![](csharp_ios_dark/ios_search_bar.png) | ![](cpp_ios_dark/ios_search_bar.png) |
 | 155 | Ios Scroll View | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/ios_scroll_view.png) | ![](cpp_ios_light/ios_scroll_view.png) | ![](csharp_ios_dark/ios_scroll_view.png) | ![](cpp_ios_dark/ios_scroll_view.png) |
 | 156 | Ios Slider Update On Tap | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/ios_slider_update_on_tap.png) | ![](cpp_ios_light/ios_slider_update_on_tap.png) | ![](csharp_ios_dark/ios_slider_update_on_tap.png) | ![](cpp_ios_dark/ios_slider_update_on_tap.png) |
 | 157 | Ios First Responder | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/ios_first_responder.png) | ![](cpp_ios_light/ios_first_responder.png) | ![](csharp_ios_dark/ios_first_responder.png) | ![](cpp_ios_dark/ios_first_responder.png) |
 | 158 | Ios Pan Gesture | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/ios_pan_gesture.png) | ![](cpp_ios_light/ios_pan_gesture.png) | ![](csharp_ios_dark/ios_pan_gesture.png) | ![](cpp_ios_dark/ios_pan_gesture.png) |
-| 159 | Ios Safe Area | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/ios_safe_area.png) | ![](cpp_ios_light/ios_safe_area.png) | ![](csharp_ios_dark/ios_safe_area.png) | ![](cpp_ios_dark/ios_safe_area.png) |
+| 159 | Ios Safe Area | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/ios_safe_area.png) | ![](cpp_ios_light/ios_safe_area.png) | ![](csharp_ios_dark/ios_safe_area.png) | ![](cpp_ios_dark/ios_safe_area.png) |
 | 160 | Ios Swipe Transition | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/ios_swipe_transition.png) | ![](cpp_ios_light/ios_swipe_transition.png) | ![](csharp_ios_dark/ios_swipe_transition.png) | ![](cpp_ios_dark/ios_swipe_transition.png) |
 | 161 | Ios Blur Effect | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/ios_blur_effect.png) | ![](cpp_ios_light/ios_blur_effect.png) | ![](csharp_ios_dark/ios_blur_effect.png) | ![](cpp_ios_dark/ios_blur_effect.png) |
 | 162 | Navigation Gallery | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/navigation_gallery.png) | ![](cpp_ios_light/navigation_gallery.png) | ![](csharp_ios_dark/navigation_gallery.png) | ![](cpp_ios_dark/navigation_gallery.png) |
