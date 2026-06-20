@@ -236,20 +236,32 @@ namespace maui::controls
         return desired_size_;
     }
 
-    // ArrangeContent: frame this view, arrange the content within the Padding, and size the native host.
+    // ArrangeContent: frame this view (size the native host to `bounds`, as C# ContentView's ArrangeOverride
+    // does), then arrange the single content within the Padding.
+    //
+    // The content is hosted as a SUBVIEW of the swipe host (SwipeViewHandler.UpdateContent), and that host is
+    // framed at `bounds` by platform_arrange below. A native subview's frame is expressed in its superview's
+    // coordinate space — which, for the host, starts at the host's own origin (0,0), not the page origin. So
+    // the content is arranged HOST-RELATIVE: the Padding inset measured from the host's top-left, with
+    // `bounds.x`/`bounds.y` dropped. Carrying the absolute page origin here would DOUBLE-OFFSET the content
+    // (host frame origin + the same origin re-added by the content rect) — the swipe-in-a-stack bug where
+    // each row's content was pushed down by the row's own Y (a SwipeView at y=72 in a stack rendered its
+    // content at y=144). In C# the native LayoutSubviews hands each container its own 0-origin Bounds, so the
+    // absolute origin never enters the child rect; the port drives arrange top-down with absolute coordinates,
+    // so the host subtracts its origin instead. Mirrors border::arrange / templated_view::arrange, the sibling
+    // single-content hosts. The host is framed FIRST so its bounds are set before the content lands.
     maui::graphics::size swipe_view::arrange(const maui::graphics::rect& bounds)
     {
         frame_ = bounds;
-        if (content_ != nullptr)
-        {
-            const maui::core::thickness inset = padding();
-            content_->arrange({bounds.x + inset.left, bounds.y + inset.top,
-                               std::max(0.0, bounds.width - inset.horizontal_thickness()),
-                               std::max(0.0, bounds.height - inset.vertical_thickness())});
-        }
         if (auto* view_handler = dynamic_cast<maui::core::i_view_handler*>(handler().get()))
         {
             view_handler->platform_arrange(bounds);
+        }
+        if (content_ != nullptr)
+        {
+            const maui::core::thickness inset = padding();
+            content_->arrange({inset.left, inset.top, std::max(0.0, bounds.width - inset.horizontal_thickness()),
+                               std::max(0.0, bounds.height - inset.vertical_thickness())});
         }
         return {bounds.width, bounds.height};
     }

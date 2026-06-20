@@ -10,17 +10,21 @@
 #include <memory>
 
 #include "maui/controls/button.hpp"
+#include "maui/controls/grid.hpp"
 #include "maui/controls/refresh_view.hpp"
 #include "maui/controls/swipe_item.hpp"
 #include "maui/controls/swipe_items.hpp"
 #include "maui/controls/swipe_view.hpp"
+#include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/button_handler.hpp"
+#include "maui/core/layout_handler.hpp"
 #include "maui/core/open_swipe_item.hpp"
 #include "maui/core/refresh_view_handler.hpp"
 #include "maui/core/swipe_direction.hpp"
 #include "maui/core/swipe_mode.hpp"
 #include "maui/core/swipe_view_handler.hpp"
 #include "maui/core/swipe_view_handler_state.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/rect.hpp"
 #include <gtest/gtest.h>
@@ -68,6 +72,116 @@ namespace
 
         view.arrange(maui::graphics::rect(0, 0, 200, 120));
         EXPECT_EQ(swipe_host(handler).frame.size.width, 200.0);
+    }
+
+    // A SwipeView in a vertical stack must arrange to its CONTENT height (not an inflated value), and its
+    // content's native view (a subview of the swipe host) must land HOST-RELATIVE — at the host's own
+    // 0-origin, NOT at the row's absolute Y. Regression for the basic_swipe over-spacing bug: the swipe
+    // arranged its content in ABSOLUTE page coordinates, so a row at y=72 in the stack drew its content at
+    // y=144 (host origin + the same origin re-added), garbling the rows. Two stacked 60px-content swipes
+    // are arranged through the cross-platform stack manager; assert both host heights, the inter-row gap
+    // (= content 60 + spacing 12 = 72), and that the deeper row's content sits at the host's local origin.
+    TEST(ios_swipe_refresh_seam, swipe_in_a_stack_arranges_to_content_height_host_relative)
+    {
+        using maui::controls::grid;
+        using maui::controls::vertical_stack_layout;
+        using maui::core::layout_handler;
+
+        vertical_stack_layout stack;
+        stack.set_spacing(12);
+        auto stack_handler = std::make_shared<layout_handler>();
+
+        grid g1;
+        g1.set_height_request(60);
+        g1.set_width_request(300);
+        auto g1_handler = std::make_shared<layout_handler>();
+        swipe_view s1;
+        s1.set_height_request(60);
+        auto s1_handler = std::make_shared<swipe_view_handler>();
+
+        grid g2;
+        g2.set_height_request(60);
+        g2.set_width_request(300);
+        auto g2_handler = std::make_shared<layout_handler>();
+        swipe_view s2;
+        s2.set_height_request(60);
+        auto s2_handler = std::make_shared<swipe_view_handler>();
+
+        // Attach handlers FIRST (bottom-up), then wire the tree through the control API so each add hosts
+        // the native subview AND records the logical child the layout manager measures.
+        g1.set_handler(g1_handler);
+        g2.set_handler(g2_handler);
+        s1.set_handler(s1_handler);
+        s2.set_handler(s2_handler);
+        stack.set_handler(stack_handler);
+        s1.set_content(g1);
+        s2.set_content(g2);
+        stack.add(s1);
+        stack.add(s2);
+
+        stack.measure(402, 778);
+        stack.arrange(maui::graphics::rect(0, 0, 402, 778));
+
+        UIView* const h1 = swipe_host(s1_handler);
+        UIView* const h2 = swipe_host(s2_handler);
+
+        // Each swipe host arranges to its 60px content (NOT an inflated value).
+        EXPECT_EQ(h1.frame.size.height, 60.0);
+        EXPECT_EQ(h2.frame.size.height, 60.0);
+        // Stacked compactly: row 2 begins 72px below row 1 (content 60 + spacing 12), not ~150px.
+        EXPECT_EQ(h2.frame.origin.y - h1.frame.origin.y, 72.0);
+
+        // The deeper row's content (a subview of the swipe host at y=72) must sit at the host's LOCAL
+        // origin, not re-offset by the row's absolute Y. The double-offset bug put it at y=72 within its
+        // own host. Padding is 0 here, so host-relative y is 0.
+        ASSERT_EQ(h2.subviews.count, 1U);
+        UIView* const content2 = h2.subviews.firstObject;
+        EXPECT_EQ(content2.frame.origin.y, 0.0);
+        EXPECT_EQ(content2.frame.size.height, 60.0);
+    }
+
+    // Guard: a plain box (a grid) in the SAME vertical stack alongside a SwipeView still arranges normally —
+    // the host-relative content fix must not perturb non-swipe children.
+    TEST(ios_swipe_refresh_seam, plain_box_beside_a_swipe_in_a_stack_is_unaffected)
+    {
+        using maui::controls::grid;
+        using maui::controls::vertical_stack_layout;
+        using maui::core::layout_handler;
+
+        vertical_stack_layout stack;
+        stack.set_spacing(12);
+        auto stack_handler = std::make_shared<layout_handler>();
+
+        grid content;
+        content.set_height_request(60);
+        content.set_width_request(300);
+        auto content_handler = std::make_shared<layout_handler>();
+        swipe_view s1;
+        s1.set_height_request(60);
+        auto s1_handler = std::make_shared<swipe_view_handler>();
+
+        grid box; // a plain box, no swipe wrapper
+        box.set_height_request(60);
+        box.set_width_request(300);
+        auto box_handler = std::make_shared<layout_handler>();
+
+        content.set_handler(content_handler);
+        s1.set_handler(s1_handler);
+        box.set_handler(box_handler);
+        stack.set_handler(stack_handler);
+        s1.set_content(content);
+        stack.add(s1);
+        stack.add(box);
+
+        stack.measure(402, 778);
+        stack.arrange(maui::graphics::rect(0, 0, 402, 778));
+
+        UIView* const swipe_native = swipe_host(s1_handler);
+        auto* const box_native = (__bridge UIView*)box_handler->typed_platform_view()->native;
+        EXPECT_EQ(swipe_native.frame.size.height, 60.0);
+        EXPECT_EQ(box_native.frame.size.height, 60.0);
+        // The plain box sits 72px below the swipe (content 60 + spacing 12) — unchanged by the swipe fix.
+        EXPECT_EQ(box_native.frame.origin.y - swipe_native.frame.origin.y, 72.0);
     }
 
     TEST(ios_swipe_refresh_seam, programmatic_open_drives_the_state_machine)
