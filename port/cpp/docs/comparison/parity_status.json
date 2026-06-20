@@ -568,8 +568,10 @@
     "light_note": "Status label is top-aligned within the green band in MAUI but vertically centered in C++; green band starts higher and the red band runs to the screen bottom in C++ whereas MAUI shows a white bottom band below the red."
   },
   "path_aspect_gallery": {
-    "dark": "pending",
-    "light": "pending"
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "MATCHES: the heart/EKG Path at four Aspect modes (None/Fill/Uniform/UniformToFill) scaling correctly render identically to maui-compare. No code change. Residual: harness card framing (C++ fills full height) + a minor slider-value number format (\"1.0\" vs \"1\").",
+    "dark_note": "Same: renders identically, theme-aware. Matches C#."
   },
   "path_gallery": {
     "light": "minor",
@@ -578,8 +580,10 @@
     "dark_note": "Same: shapes render identically, theme-aware captions. Matches C#."
   },
   "path_transform_string": {
-    "dark": "pending",
-    "light": "pending"
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "MATCHES: Without/With RenderTransform variants of a path-string shape render identically to maui-compare. No code change. Residual: harness card framing (C++ fills full height) + a minor slider-value number format (\"1.0\" vs \"1\").",
+    "dark_note": "Same: renders identically, theme-aware. Matches C#."
   },
   "picker": {
     "dark": "minor",
@@ -824,12 +828,16 @@
     "light": "pending"
   },
   "transform_playground": {
-    "dark": "pending",
-    "light": "pending"
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "MATCHES: a red/blue square in a gray box + Rotate/Scale/Skew transform sliders render identically to maui-compare. No code change. Residual: harness card framing (C++ fills full height) + a minor slider-value number format (\"1.0\" vs \"1\").",
+    "dark_note": "Same: renders identically, theme-aware. Matches C#."
   },
   "transformations": {
-    "dark": "pending",
-    "light": "pending"
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "MATCHES: the \"SCALE AND ROTATE\" Scale/ScaleX/ScaleY/Rotation/Rotation X/Y sliders + Anchor steppers + Translation sliders render identically to maui-compare. No code change. Residual: harness card framing (C++ fills full height) + a minor slider-value number format (\"1.0\" vs \"1\").",
+    "dark_note": "Same: renders identically, theme-aware. Matches C#."
   },
   "triggers": {
     "dark": "minor",
