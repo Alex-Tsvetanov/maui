@@ -55,9 +55,9 @@
   },
   "basic_grouping": {
     "dark": "blank",
-    "dark_note": "C++ dark is fully blank/black (only status bar) while MAUI dark renders the complete grouped list with title, green headers, members, and orange footers.",
+    "dark_note": "Same: grouped-CV CV-header + group headers/footers do not render on iOS (only flat item rows). Framework gap.",
     "light": "diff",
-    "light_note": "C++ omits the \"This is a header\" title, all green group-header labels (Avengers/Fantastic Four/Defenders), and all orange \"Total members:\" footers — rendering only flat member rows with ~3x larger row spacing; MAUI shows full grouped list (headers+footers, tight spacing)."
+    "light_note": "iOS grouped-CollectionView supplementary gap: the page correctly sets is_grouped + group_header_template (green) + group_footer_template (orange Total members: N) + CV Header/Footer, but on iOS NONE of the supplementary views render — only the flat grouped item rows show (with gaps where headers/footers belong). The non-grouped items page DOES render its CV header/footer, so grouping specifically breaks supplementary rendering. C# shows This is a header + green Avengers/Fantastic Four/Defenders group headers + orange Total members footers. Genuine framework gap (affects the whole grouping cluster)."
   },
   "basic_swipe": {
     "dark": "diff",
@@ -288,8 +288,10 @@
     "dark_note": "Same: left-aligned ellipses, theme-aware captions, matches C#."
   },
   "empty_view": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches the maui-compare EmptyView CollectionView at load: a Filter SearchBar atop the populated item list (cover1.jpg/oasis.jpg/... with index). The empty view shows only once the filter clears the list. Minor.",
+    "dark_note": "Matches: Filter bar + populated list render."
   },
   "empty_view_load_simulate": {
     "dark": "pending",
@@ -508,8 +510,10 @@
     "light": "pending"
   },
   "items": {
-    "dark": "pending",
-    "light": "pending"
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches the maui-compare Items CollectionView: Today header + the three task rows (Water the plants / Review the port / Ship wave 2) + Pick a task footer. CV header/footer render correctly (non-grouped). Minor: row spacing.",
+    "dark_note": "Matches: CV header + items + footer render."
   },
   "items_updating_scroll_mode": {
     "dark": "pending",
@@ -730,10 +734,10 @@
     "dark_note": "Same: all 4 shapes render identically with white-on-black bold captions. Faithful reproduction of Shapes()."
   },
   "single_bound_selection": {
-    "dark": "blank",
-    "dark_note": "C++ dark is fully blank (black screen, status bar only) while MAUI dark renders the full instruction text, \"Selected: (none)\", and all 5 country labels.",
-    "light": "diff",
-    "light_note": "Same text content, but C++ uses much larger font/line-height: instruction wraps differently (ends \"...this\" vs \"...not,\") and the 5 country labels are widely spaced apart vs MAUI's tight single-line-spaced list; C++ also shows a stray black pill in the nav-bar area."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Matches the maui-compare SingleBoundSelection CollectionView: the instructional text + Selected: (none) label (correct initial state) + the country list (United States/Canada/Mexico/Brazil/Argentina). Selection-binding demo renders. Minor.",
+    "dark_note": "Matches: instruction + Selected label + country list render."
   },
   "slider": {
     "dark": "minor",
