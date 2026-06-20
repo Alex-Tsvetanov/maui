@@ -96,10 +96,10 @@
     "dark_note": "Now matches (gradient-Background fix landed): cyan gradient fills the dashed Border. Minor: vertical spacing to the form."
   },
   "border_resize_content": {
-    "dark": "diff",
-    "dark_note": "Same shape mismatch as light: MAUI dark shows red+blue circles, squares, triangles with blue \"+\" glyphs and Content Text/Entry/FontSize rows; C++ dark shows light-blue ellipses and wide rectangles (no red-fill column, no \"+\" content), different scroll offset cutting off the Entry, so controls, fill colors, and shape geometry all differ.",
-    "light": "diff",
-    "light_note": "C++ renders the shapes wrong: left-column shapes are circles/squares/triangle with red fill + blue \"+\" content in MAUI, but C++ draws stretched ellipses and wide rectangles, both columns light-blue (red fill column missing), and exposes extra Slider + \"Image Scale\" + Slider rows MAUI doesn't show — scroll/layout and shape aspect differ markedly."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare BorderResizeContent after the border compute_frame fix: left column red-filled circle/square/triangle Borders with green stroke + blue + content, right column light-blue shapes; Content Text entry + Content Text FontSize + Image Scale sliders below (the real resize-demo controls). Was a stale pre-fix diff (stretched ellipses/wide rects, red column missing). Minor: leaf shape AA.",
+    "dark_note": "Now matches (stale pre-fix diff cleared): correct shapes, both columns distinct."
   },
   "border_stroke": {
     "dark": "minor",
@@ -150,10 +150,10 @@
     "light_note": "C++ renders the \"Press or right-click me\" label in black instead of MAUI's blue, draws a stray black rounded-pill artifact in the title-bar area, and shows a full-white page vs MAUI's white content card inset on a dark frame."
   },
   "clip": {
-    "dark": "blank",
-    "dark_note": "C++ dark is entirely blank (only the status bar) while MAUI dark shows the \"Image\" + \"Clipped Image using RectangleGeometry\" headers and their submarine images on black.",
-    "light": "diff",
-    "light_note": "C++ light renders the three text headers but ALL images are missing (blank white slots) — the submarine/clipped images that MAUI shows never appear; also a stray black rounded-rect artifact sits in the nav-bar area."
+    "dark": "minor",
+    "light": "minor",
+    "light_note": "Now matches maui-compare Clip after the gallery asset-bundling fix: the purple submarine Image + the RectangleGeometry / EllipseGeometry / GeometryGroup clipped variants all render (was all-blank white slots — images never loaded). C# dark ref re-captured (was a stale blank). Minor: clip-geometry crop is approximate + the unclipped Image lacks MAUI gray letterbox bg.",
+    "dark_note": "Now matches (images render; C# dark ref re-captured from the stale blank)."
   },
   "clip_corner_radius": {
     "dark": "diff",
