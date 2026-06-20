@@ -61,9 +61,9 @@
   },
   "basic_swipe": {
     "dark": "diff",
-    "dark_note": "Same layout breakage as light (oversized rows, labels below boxes, mispositioned footer label now clipped at left reading \"a row...\"); additionally C++ row labels render low-contrast grey-on-grey vs MAUI's clear white text.",
+    "dark_note": "Same: correct box content but ~150px inter-row gaps (iOS swipe-host over-height). Flagged.",
     "light": "diff",
-    "light_note": "C++ rows are much taller (only ~3 fit vs 5 in MAUI), row labels sit below the grey box instead of vertically centered, and the \"Swipe a row...\" footer label is mispositioned (overlaps the middle row) instead of below the last row; stray black pill in status bar."
+    "light_note": "Content matches maui-compare BasicSwipe (the 5 gray SwipeView boxes: Swipe Up/Down/Right/Left (Execute/Reveal) + Swipe in any direction + the Swipe a row, then invoke Delete caption), but the C++ over-spaces the rows: each SwipeView box is ~60px (correct) yet separated by ~150px gaps vs MAUIs compact rows. The SwipeView cross-platform measure() returns 60 and the page sets height_request(60) on every swipe+content, so the over-height is a native iOS swipe-host arrange issue (host taller than its content). Flagged for a focused SwipeView-layout investigation."
   },
   "behaviors": {
     "dark": "minor",
@@ -783,7 +783,9 @@
   },
   "swipe_gesture": {
     "dark": "pending",
-    "light": "pending"
+    "light": "pending",
+    "light_note": "C++ swipe_gesture (the synthetic SwipeViewGestureRecognizer readout page) renders the intro text + TapCommand (double-tap) caption but the readout labels OVERLAP on one line (garbled) — the stacked readout labels are not getting distinct Y positions (swipe content collapses / label stacking). iOS SwipeView-in-stack layout issue, same family as basic_swipe. Flagged.",
+    "dark_note": "Same: readout labels overlap/garble (iOS swipe-host layout). Flagged."
   },
   "swipe_item_position": {
     "dark": "pending",
