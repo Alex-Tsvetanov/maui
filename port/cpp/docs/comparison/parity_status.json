@@ -530,8 +530,10 @@
     "dark_note": "Same: shapes render identically, theme-aware captions. Matches C#."
   },
   "line_join_gallery": {
-    "dark": "pending",
-    "light": "pending"
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "MATCHES: three cyan chevrons with Miter(default)/Bevel/Round line joins render identically to maui-compare. Shapes draw correctly; residual is harness card framing (C++ fills full height so it shows more below the fold than the maui-compare card). No code change.",
+    "dark_note": "Same: shapes render identically, theme-aware captions. Matches C#."
   },
   "measure_first_strategy": {
     "dark": "pending",
@@ -570,8 +572,10 @@
     "light": "pending"
   },
   "path_gallery": {
-    "dark": "pending",
-    "light": "pending"
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "MATCHES: PathGeometry shapes: LineSegment, triangle, Cubic Bezier wave, composite concentric circles, overlapping-rectangles, EllipseGeometry render identically to maui-compare. Shapes draw correctly; residual is harness card framing (C++ fills full height so it shows more below the fold than the maui-compare card). No code change.",
+    "dark_note": "Same: shapes render identically, theme-aware captions. Matches C#."
   },
   "path_transform_string": {
     "dark": "pending",
@@ -600,8 +604,10 @@
     "dark_note": "Same: shapes render identically, theme-aware captions. Matches C#."
   },
   "polyline_gallery": {
-    "dark": "pending",
-    "light": "pending"
+    "light": "minor",
+    "dark": "minor",
+    "light_note": "MATCHES: a basic + a dashed red polyline render identically to maui-compare. Shapes draw correctly; residual is harness card framing (C++ fills full height so it shows more below the fold than the maui-compare card). No code change.",
+    "dark_note": "Same: shapes render identically, theme-aware captions. Matches C#."
   },
   "preselected_item": {
     "dark": "pending",

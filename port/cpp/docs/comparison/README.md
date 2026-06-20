@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 0 / 172 🟢 matched** · 51 🟡 minor · 36 🔴 diff · 85 ⬜ pending
+**Progress: 0 / 172 🟢 matched** · 54 🟡 minor · 36 🔴 diff · 82 ⬜ pending
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬜ not yet reviewed. Per-theme verdicts in `parity_status.json`.
 
@@ -56,10 +56,10 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 42 | Ellipse Gallery | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/ellipse_gallery.png) | ![](cpp_ios_light/ellipse_gallery.png) | ![](csharp_ios_dark/ellipse_gallery.png) | ![](cpp_ios_dark/ellipse_gallery.png) |
 | 43 | Rectangle Gallery | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/rectangle_gallery.png) | ![](cpp_ios_light/rectangle_gallery.png) | ![](csharp_ios_dark/rectangle_gallery.png) | ![](cpp_ios_dark/rectangle_gallery.png) |
 | 44 | Line Gallery | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/line_gallery.png) | ![](cpp_ios_light/line_gallery.png) | ![](csharp_ios_dark/line_gallery.png) | ![](cpp_ios_dark/line_gallery.png) |
-| 45 | Line Join Gallery | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/line_join_gallery.png) | ![](cpp_ios_light/line_join_gallery.png) | ![](csharp_ios_dark/line_join_gallery.png) | ![](cpp_ios_dark/line_join_gallery.png) |
+| 45 | Line Join Gallery | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/line_join_gallery.png) | ![](cpp_ios_light/line_join_gallery.png) | ![](csharp_ios_dark/line_join_gallery.png) | ![](cpp_ios_dark/line_join_gallery.png) |
 | 46 | Polygon Gallery | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/polygon_gallery.png) | ![](cpp_ios_light/polygon_gallery.png) | ![](csharp_ios_dark/polygon_gallery.png) | ![](cpp_ios_dark/polygon_gallery.png) |
-| 47 | Polyline Gallery | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/polyline_gallery.png) | ![](cpp_ios_light/polyline_gallery.png) | ![](csharp_ios_dark/polyline_gallery.png) | ![](cpp_ios_dark/polyline_gallery.png) |
-| 48 | Path Gallery | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/path_gallery.png) | ![](cpp_ios_light/path_gallery.png) | ![](csharp_ios_dark/path_gallery.png) | ![](cpp_ios_dark/path_gallery.png) |
+| 47 | Polyline Gallery | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/polyline_gallery.png) | ![](cpp_ios_light/polyline_gallery.png) | ![](csharp_ios_dark/polyline_gallery.png) | ![](cpp_ios_dark/polyline_gallery.png) |
+| 48 | Path Gallery | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/path_gallery.png) | ![](cpp_ios_light/path_gallery.png) | ![](csharp_ios_dark/path_gallery.png) | ![](cpp_ios_dark/path_gallery.png) |
 | 49 | Path Aspect Gallery | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/path_aspect_gallery.png) | ![](cpp_ios_light/path_aspect_gallery.png) | ![](csharp_ios_dark/path_aspect_gallery.png) | ![](cpp_ios_dark/path_aspect_gallery.png) |
 | 50 | Path Transform String | ⬜<br>L:pending<br>D:pending | ![](csharp_ios_light/path_transform_string.png) | ![](cpp_ios_light/path_transform_string.png) | ![](csharp_ios_dark/path_transform_string.png) | ![](cpp_ios_dark/path_transform_string.png) |
 | 51 | Composition Gallery | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/composition_gallery.png) | ![](cpp_ios_light/composition_gallery.png) | ![](csharp_ios_dark/composition_gallery.png) | ![](cpp_ios_dark/composition_gallery.png) |
