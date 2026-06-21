@@ -1248,11 +1248,11 @@
   "severity": "minor"
  },
  "visual_states": {
-  "dark": "diff",
-  "dark_note": "Same missing-fill bug in dark theme: MAUI renders the 'Entry with VisualStateManager:' entry as bright green, while the C++ port shows it as a plain dark/empty entry with no green VSM background. All other elements (second entry placeholder, two blue buttons, description text) match.",
-  "light": "diff",
-  "light_note": "Real discrepancy: the first field, 'Entry with VisualStateManager:', is rendered as a BRIGHT GREEN filled entry in the MAUI ground truth (the VSM has applied its green-state background), but in the C++ port that same entry has NO green fill — it renders as a plain empty/white entry box. The VisualStateManager background color is missing. Everything else matches: 'Entry to enable 2nd Entry' placeholder field, the 'Hover me to see the state change' and 'Click me to see the state change and revert' blue buttons, and the descriptive labels.",
-  "severity": "major"
+  "dark": "match",
+  "dark_note": "VSM background now renders: the 'Entry with VisualStateManager' shows the Normal-state Lime green BackgroundColor, matching MAUI (fix: VSM setters now target background_property() with a solid_paint instead of the old text_color stand-in; entry rests in Normal — MAUI's DataTrigger IsEnabled=False does not visually swap to the Disabled Pink at startup). Both state-change buttons + enabler entry match. Only the harness wrapper inset/crop differs (exempt, policy #2).",
+  "light": "match",
+  "light_note": "VSM background now renders: the 'Entry with VisualStateManager' shows the Normal-state Lime green BackgroundColor, matching MAUI (fix: VSM setters now target background_property() with a solid_paint instead of the old text_color stand-in; entry rests in Normal — MAUI's DataTrigger IsEnabled=False does not visually swap to the Disabled Pink at startup). Both state-change buttons + enabler entry match. Only the harness wrapper inset/crop differs (exempt, policy #2).",
+  "severity": "match"
  },
  "web_view": {
   "dark": "minor",

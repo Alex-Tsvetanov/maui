@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 48 / 172 🟢 matched** · 103 🟡 minor · 21 🔴 diff · 0 ⬜ pending
+**Progress: 49 / 172 🟢 matched** · 103 🟡 minor · 20 🔴 diff · 0 ⬜ pending
 
 **Flags: 9 ⚠️ broken MAUI reference captures (re-shoot needed) · 14 🎬 motion/effect pages needing an animated GIF to judge.**
 
@@ -187,7 +187,7 @@ The **AI review** column is an independent automated second opinion (Gemini by d
 | 169 | Context Flyout | 🔴<br>L:diff<br>D:diff | 🔴<br>L:diff<br>D:diff<br>_diff_<br><sub>gemini-3.1-flash-lite</sub> | <img src="csharp_ios_light/context_flyout.png" height="360"> | <img src="cpp_ios_light/context_flyout.png" height="360"> | <img src="csharp_ios_dark/context_flyout.png" height="360"> | <img src="cpp_ios_dark/context_flyout.png" height="360"> |
 | 170 | Templated View | 🟡<br>L:minor<br>D:minor | 🟡<br>L:minor<br>D:minor<br>_minor_<br><sub>gemini-3.1-flash-lite</sub> | <img src="csharp_ios_light/templated_view.png" height="360"> | <img src="cpp_ios_light/templated_view.png" height="360"> | <img src="csharp_ios_dark/templated_view.png" height="360"> | <img src="cpp_ios_dark/templated_view.png" height="360"> |
 | 171 | Custom Layout | 🟢<br>L:match<br>D:match | 🟢<br>L:match<br>D:match<br>_match_<br><sub>gemini-3.1-flash-lite</sub> | <img src="csharp_ios_light/custom_layout.png" height="360"> | <img src="cpp_ios_light/custom_layout.png" height="360"> | <img src="csharp_ios_dark/custom_layout.png" height="360"> | <img src="cpp_ios_dark/custom_layout.png" height="360"> |
-| 172 | Visual States | 🔴<br>L:diff<br>D:diff | 🔴<br>L:diff<br>D:diff<br>_diff_<br><sub>gemini-3.1-flash-lite</sub> | <img src="csharp_ios_light/visual_states.png" height="360"> | <img src="cpp_ios_light/visual_states.png" height="360"> | <img src="csharp_ios_dark/visual_states.png" height="360"> | <img src="cpp_ios_dark/visual_states.png" height="360"> |
+| 172 | Visual States | 🟢<br>L:match<br>D:match | 🔴<br>L:diff<br>D:diff<br>_diff_<br><sub>gemini-3.1-flash-lite</sub> | <img src="csharp_ios_light/visual_states.png" height="360"> | <img src="cpp_ios_light/visual_states.png" height="360"> | <img src="csharp_ios_dark/visual_states.png" height="360"> | <img src="cpp_ios_dark/visual_states.png" height="360"> |
 
 ## Per-page findings
 
@@ -876,6 +876,5 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Light:** Match. The custom layout positions blue labels identically: 'Top' centered near the top, a middle row of 'Left  Left ........ Right  Right', and 'Bottom' centered near the bottom. Same blue text color, same anchoring and spacing in both. Only differences are harness-only (nav pill, clock).
 - **Dark:** Match in dark theme too: 'Top' / 'Left Left ... Right Right' / 'Bottom' blue labels at the same positions on a black background, identical between MAUI and C++.
 
-### 172. Visual States — 🔴 (L:diff / D:diff)
-- **Light:** Real discrepancy: the first field, 'Entry with VisualStateManager:', is rendered as a BRIGHT GREEN filled entry in the MAUI ground truth (the VSM has applied its green-state background), but in the C++ port that same entry has NO green fill — it renders as a plain empty/white entry box. The VisualStateManager background color is missing. Everything else matches: 'Entry to enable 2nd Entry' placeholder field, the 'Hover me to see the state change' and 'Click me to see the state change and revert' blue buttons, and the descriptive labels.
-- **Dark:** Same missing-fill bug in dark theme: MAUI renders the 'Entry with VisualStateManager:' entry as bright green, while the C++ port shows it as a plain dark/empty entry with no green VSM background. All other elements (second entry placeholder, two blue buttons, description text) match.
+### 172. Visual States — 🟢 (L:match / D:match)
+- **Both themes:** VSM background now renders: the 'Entry with VisualStateManager' shows the Normal-state Lime green BackgroundColor, matching MAUI (fix: VSM setters now target background_property() with a solid_paint instead of the old text_color stand-in; entry rests in Normal — MAUI's DataTrigger IsEnabled=False does not visually swap to the Disabled Pink at startup). Both state-change buttons + enabler entry match. Only the harness wrapper inset/crop differs (exempt, policy #2).

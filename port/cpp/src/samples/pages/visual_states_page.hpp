@@ -38,6 +38,7 @@
 #include "maui/controls/visual_state_manager.hpp"
 #include "maui/core/font.hpp"
 #include "maui/graphics/colors.hpp"
+#include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
 
 #include "gallery_attach.hpp"
@@ -154,18 +155,28 @@ namespace maui::samples
         using visual_state_group = maui::controls::visual_state_group;
         using common = maui::controls::common_states;
 
-        // Entry with CommonStates: Normal/Disabled recolor TextColor (BackgroundColor stand-in, see header
-        // note), Focused enlarges FontSize to 36. Driven automatically by set_is_focused / set_is_enabled.
+        // Entry with CommonStates (faithful to VisualStatesPage.xaml): Normal sets BackgroundColor=Lime,
+        // Disabled sets BackgroundColor=Pink, Focused enlarges FontSize to 36. background_property() is a
+        // paint descriptor (shared_ptr<paint>), so the setters carry a solid_paint. Driven automatically by
+        // set_is_focused / set_is_enabled (change_visual_state resolves Disabled<-!enabled, Focused<-focused,
+        // else Normal). NOTE: real MAUI renders this entry Lime (Normal) at REST — the XAML DataTrigger
+        // (IsEnabled=False while the enabler is empty) does NOT visually swap it to the Disabled Pink at
+        // startup — so the port mirrors that ground-truth render by resting in Normal.
         void build_entry_with_vsm()
         {
+            auto lime_bg = std::shared_ptr<maui::graphics::paint>(
+                std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::lime));
+            auto pink_bg = std::shared_ptr<maui::graphics::paint>(
+                std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::pink));
+
             visual_state normal{std::string(common::normal)};
-            normal.add(setter::of(maui::controls::entry::text_color_property(), maui::graphics::colors::lime));
+            normal.add(setter::of(maui::controls::background_property(), lime_bg));
 
             visual_state focused{std::string(common::focused)};
             focused.add(setter::of(maui::controls::entry::font_property(), maui::core::font::system_font_of_size(36)));
 
             visual_state disabled{std::string(common::disabled)};
-            disabled.add(setter::of(maui::controls::entry::text_color_property(), maui::graphics::colors::pink));
+            disabled.add(setter::of(maui::controls::background_property(), pink_bg));
 
             visual_state_group group{"CommonStates"};
             group.add(std::move(normal));
@@ -173,9 +184,8 @@ namespace maui::samples
             group.add(std::move(disabled));
             vsm_entry_.visual_states().add_group(std::move(group));
 
-            // Apply the initial state (the XAML entry starts disabled because the enabler is empty — the
-            // DataTrigger). change_visual_state() then resolves Disabled (is_enabled==false).
-            vsm_entry_.set_is_enabled(false);
+            // Rest in Normal (Lime) to match MAUI's actual render (see note above); the enabler entry still
+            // drives Disabled (Pink) on clear and set_is_focused drives Focused, as in the live demo.
             vsm_entry_.change_visual_state();
         }
 
