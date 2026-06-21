@@ -566,9 +566,9 @@
   },
   "horizontal_stack": {
     "dark": "diff",
-    "dark_note": "Same as light: MAUI shows all 6 boxes (red, yellow, blue, green, orange, purple) right-aligned; C++ shows 4 full boxes plus an orange sliver clipped at the right edge, with the purple box entirely off-screen. Boxes overflow/clip to the right in C++.",
+    "dark_note": "Same as light \u2014 identical code; the over-wide row clips at the right in both, MAUI clipping more boxes than C++. Layout-engine overflow-positioning subtlety.",
     "light": "diff",
-    "light_note": "Both show the 'HorizontalStackLayout' header and a right-aligned, vertically-centered horizontal row of colored boxes. MAUI shows 6 full boxes (red, yellow, blue, green, orange, purple). C++ shows only 4 full boxes (red, yellow, blue, green) plus a thin sliver of orange clipped at the right screen edge \u2014 the last two boxes are pushed off-screen/clipped. Wrong item count visible / content clipped at right edge.",
+    "light_note": "Both use IDENTICAL code (label + six 40x40 BoxViews in a HorizontalStackLayout, margin 12, no spacing), and the row's total width exceeds the screen so it overflows + clips at the right edge in BOTH. The fresh captures CORRECT the earlier (inverted) note: MAUI clips MORE (red/yellow/blue/green visible, orange+purple off the right), while C++ shows all six with only purple slightly clipped. Remaining diff is a layout-engine subtlety: how an over-wide HorizontalStackLayout positions/clips its children differs between the port and MAUI (the port packs them slightly narrower / further right). Deep layout-engine item.",
     "severity": "major"
   },
   "hybrid_web_view": {
