@@ -88,9 +88,12 @@ namespace maui::samples
             rectangle_select_check_.checked_changed.connect([this](bool checked) { rectangle_mode_ = checked; });
 
             // ---- the varied, overlapping view set (each given a representative frame for the hit walk) --
-            // Two aligned labels (Start / End horizontal options in the C# — here distinct x positions).
+            // Two aligned labels (Start / End horizontal options in the C#): the first hugs the leading
+            // edge, the second the trailing edge — matching MAUI's HorizontalOptions Start/End.
             left_label_.set_text("Lorem ipsum dolor sit ame");
+            left_label_.set_horizontal_layout_alignment(maui::core::layout_alignment::start);
             right_label_.set_text("Lorem ipsum dolor sit ame");
+            right_label_.set_horizontal_layout_alignment(maui::core::layout_alignment::end);
 
             // Three buttons: Scale=1, Scale=2 (overlaps its neighbors when scaled), Rotation=20.
             scale1_btn_.set_text("Scale = 1");
