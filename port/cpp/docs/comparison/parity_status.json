@@ -63,9 +63,9 @@
   },
   "auto_size_shapes": {
     "dark": "diff",
-    "dark_note": "Same ellipse-shape diff in dark theme: MAUI's green ellipse is wide-and-flat within a shorter yellow band, while C++'s is a near-circle within a taller yellow band. Orange band and label match; the ellipse aspect ratio / yellow-band height differ.",
+    "dark_note": "Same as light \u2014 ellipse aspect differs (flat in MAUI / round in C++) because MAUI's harness crops the available height shorter; the ellipse fills half its (taller) available space in the port. Pending quirk ruling per policy #3.",
     "light": "diff",
-    "light_note": "Both show the label 'The Ellipse below must occupy half of the available space.', a yellow band with a green/blue-outlined ellipse, and an orange band below. The ELLIPSE ASPECT differs: MAUI draws a true wide-and-flat ellipse (wider than tall, filling the yellow band's width but short), whereas C++ draws a near-CIRCLE (almost as tall as wide); the C++ yellow band is correspondingly taller. Shape sizing visibly differs.",
+    "light_note": "PENDING QUIRK RULING (wrapper-induced relative-sizing). The Ellipse correctly occupies HALF the available vertical space in BOTH \u2014 but the ASPECT differs: MAUI shows a wide-and-FLAT ellipse, C++ a near-CIRCLE. Cause: MAUI's harness wrapper crops the page much shorter (big black top/bottom bands), so its 'half' is short\u2192flat; the port shows more of the page (modest padding) so its 'half' is taller\u2192round. This sits between policy rulings: ruling #2 exempts the wrapper + says 'the port may show more of the page' (\u2192 exempt), but also says the wrapper 'never changes a control's size' (\u2192 port_diff). Flagged per ruling #3; kept as diff pending the user's ruling on whether wrapper-induced relative-sizing differences are exempt.",
     "severity": "major"
   },
   "basic_grouping": {
