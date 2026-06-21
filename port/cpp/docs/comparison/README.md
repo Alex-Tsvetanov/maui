@@ -12,7 +12,9 @@ Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable
 
 Rows are in **fix order** (top → bottom): foundational single controls first (their fixes cascade), then layouts, shapes, borders/clip, collection-views, radio, swipe, gestures, scroll/web, combos, iOS-specifics, and chrome/host pages last.
 
-The **AI review** column is an independent automated second opinion (Gemini by default, Claude vision on quota fallback) from `tools/parity/run_parity.py` — it does not drive the board. 0/172 pages reviewed; **—** = not yet judged.
+The **AI review** column is an independent automated second opinion (Gemini by default, Claude vision on quota fallback) from `tools/parity/run_parity.py` — it does not drive the board. 0/172 pages Gemini-reviewed; **—** = not yet judged by Gemini.
+
+> ⏳ **Gemini sweep pending for 172 page(s).** The free-tier daily quota was exhausted on the last run; the **—** pages are queued for a later Gemini pass when the quota resets. Meanwhile the **Status** column (the human/Claude-reviewed board) is authoritative and drives fixes.
 
 | # | Page | Status | AI review | .NET MAUI (light) | C++ (light) | .NET MAUI (dark) | C++ (dark) |
 | --: | --- | :---: | :---: | :---: | :---: | :---: | :---: |

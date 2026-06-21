@@ -221,7 +221,13 @@ def main():
     reviewed = sum(1 for k in KEYS if k in review)
     o.append(f"The **AI review** column is an independent automated second opinion (Gemini by default, Claude "
              f"vision on quota fallback) from `tools/parity/run_parity.py` — it does not drive the board. "
-             f"{reviewed}/{total} pages reviewed; **—** = not yet judged.")
+             f"{reviewed}/{total} pages Gemini-reviewed; **—** = not yet judged by Gemini.")
+    if reviewed < total:
+        o.append("")
+        o.append(f"> ⏳ **Gemini sweep pending for {total - reviewed} page(s).** The free-tier daily quota was "
+                 f"exhausted on the last run; the **—** pages are queued for a later Gemini pass when the quota "
+                 f"resets. Meanwhile the **Status** column (the human/Claude-reviewed board) is authoritative and "
+                 f"drives fixes.")
     o.append("")
     o.append("| # | Page | Status | AI review | .NET MAUI (light) | C++ (light) | .NET MAUI (dark) | C++ (dark) |")
     o.append("| --: | --- | :---: | :---: | :---: | :---: | :---: | :---: |")
