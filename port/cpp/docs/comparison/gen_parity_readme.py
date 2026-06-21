@@ -11,6 +11,14 @@ import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 STATUS_PATH = os.path.join(HERE, "parity_status.json")
+# The Gemini/Claude visual-review verdicts (produced by tools/parity/run_parity.py, review-only). Rendered
+# as an extra column alongside the human-tracked board (parity_status.json) — they are independent: the board
+# is the curated source of truth; the review column is the latest automated second opinion.
+REVIEW_PATH = os.path.join(HERE, "parity_review.json")
+# A row height (px) forced on every screenshot so .NET MAUI and C++ render at the SAME height in the GitHub
+# preview and can be compared directly (the raw captures differ in pixel height / aspect).
+IMG_HEIGHT = 360
+IMG_DIRS = ("csharp_ios_light", "cpp_ios_light", "csharp_ios_dark", "cpp_ios_dark")
 
 # The order pages are tackled (top→bottom). Strategy: foundational single controls first — their handler
 # fixes CASCADE to every page that uses them — then layouts, shapes, borders/clip, collection-views, radio,
@@ -94,6 +102,46 @@ FLAG_DESC = {"maui_broken": "MAUI reference capture broken — re-shoot needed",
              "needs_gif": "motion/effect — needs an animated GIF to judge"}
 
 
+# The review column uses the same status vocabulary plus the tool's per-side blank verdicts.
+REVIEW_EMOJI = {"match": "🟢", "minor": "🟡", "diff": "🔴", "cpp_blank": "⬛", "cs_blank": "◻️", "pending": "⬜"}
+
+
+def load_review():
+    """Map page-key -> review verdict from parity_review.json (empty if the sweep hasn't run)."""
+    if not os.path.exists(REVIEW_PATH):
+        return {}
+    data = json.load(open(REVIEW_PATH))
+    return {v["key"]: v for v in data.get("verdicts", []) if isinstance(v, dict) and v.get("key")}
+
+
+def review_combined(v):
+    pair = (v.get("light", "pending"), v.get("dark", "pending"))
+    for worst in ("diff", "cpp_blank", "cs_blank", "minor"):
+        if worst in pair:
+            return worst
+    return "match" if pair == ("match", "match") else "pending"
+
+
+def review_cell(v):
+    """A compact badge for the Gemini/Claude review column ('—' when a page hasn't been judged yet)."""
+    if not v:
+        return "—"
+    rc = review_combined(v)
+    sev = v.get("severity")
+    src = v.get("source")  # 'gemini' | 'claude' when the tool/fallback records it
+    out = f"{REVIEW_EMOJI.get(rc, '⬜')}<br>L:{v.get('light', 'pending')}<br>D:{v.get('dark', 'pending')}"
+    if sev:
+        out += f"<br>_{sev}_"
+    if src:
+        out += f"<br><sub>{src}</sub>"
+    return out
+
+
+def img(rel):
+    """A fixed-height <img> so MAUI and C++ captures line up at the same height in the GitHub preview."""
+    return f'<img src="{rel}" height="{IMG_HEIGHT}">'
+
+
 def title(k):
     return TITLE.get(k, k.replace("_", " ").title())
 
@@ -134,6 +182,7 @@ def combined(st):
 
 def main():
     status = load_status()
+    review = load_review()
     counts = {s: 0 for s in EMOJI}
     flag_counts = {f: 0 for f in FLAG_EMOJI}
     for k in KEYS:
@@ -169,17 +218,22 @@ def main():
              "cascade), then layouts, shapes, borders/clip, collection-views, radio, swipe, gestures, "
              "scroll/web, combos, iOS-specifics, and chrome/host pages last.")
     o.append("")
-    o.append("| # | Page | Status | .NET MAUI (light) | C++ (light) | .NET MAUI (dark) | C++ (dark) |")
-    o.append("| --: | --- | :---: | --- | --- | --- | --- |")
+    reviewed = sum(1 for k in KEYS if k in review)
+    o.append(f"The **AI review** column is an independent automated second opinion (Gemini by default, Claude "
+             f"vision on quota fallback) from `tools/parity/run_parity.py` — it does not drive the board. "
+             f"{reviewed}/{total} pages reviewed; **—** = not yet judged.")
+    o.append("")
+    o.append("| # | Page | Status | AI review | .NET MAUI (light) | C++ (light) | .NET MAUI (dark) | C++ (dark) |")
+    o.append("| --: | --- | :---: | :---: | :---: | :---: | :---: | :---: |")
     for i, k in enumerate(KEYS, start=1):
         st = status[k]
         c = combined(st)
         fl = "".join(FLAG_EMOJI[f] for f in flags_of(st))
         badge = f"{EMOJI[c]}{fl}<br>L:{LABEL[st.get('light','pending')]}<br>D:{LABEL[st.get('dark','pending')]}"
         o.append(
-            f"| {i} | {title(k)} | {badge} "
-            f"| ![](csharp_ios_light/{k}.png) | ![](cpp_ios_light/{k}.png) "
-            f"| ![](csharp_ios_dark/{k}.png) | ![](cpp_ios_dark/{k}.png) |"
+            f"| {i} | {title(k)} | {badge} | {review_cell(review.get(k))} "
+            f"| {img(f'csharp_ios_light/{k}.png')} | {img(f'cpp_ios_light/{k}.png')} "
+            f"| {img(f'csharp_ios_dark/{k}.png')} | {img(f'cpp_ios_dark/{k}.png')} |"
         )
     o.append("")
 
