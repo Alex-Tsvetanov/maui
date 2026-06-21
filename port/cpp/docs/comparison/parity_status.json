@@ -1001,11 +1001,11 @@
     "severity": "match"
   },
   "selection_command_param": {
-    "dark": "diff",
-    "dark_note": "Same defect: MAUI shows two-line cells (Item N + 'This is item N') while C++ shows only the single 'Item N' line per cell; the 'This is item N' detail text is missing from every cell. Header weight also differs.",
-    "light": "diff",
-    "light_note": "C++ is missing the second line of every cell. MAUI renders each cell as two lines: a title 'Item N' followed by a detail line 'This is item N' (e.g. 'Item 0' then 'This is item 0', for N=0..9). C++ renders ONLY the title 'Item N' on each cell \u2014 the 'This is item N' detail line is absent from all 10 cells. Header 'This is the header' bold in MAUI vs regular in C++ as well.",
-    "severity": "major"
+    "dark": "minor",
+    "dark_note": "Same as light; two-line cells in dark.",
+    "light": "minor",
+    "light_note": "FIXED: each cell now renders two lines ('Item N' + 'This is item N') matching MAUI's title+detail DataTemplate (was title-only \u2014 the single-root struct cell now binds text+description on two lines). Header 'This is the header' + the Pending/Success status present.",
+    "severity": "minor"
   },
   "selection_synchronization": {
     "dark": "minor",

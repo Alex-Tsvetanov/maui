@@ -77,11 +77,13 @@ namespace maui::samples
 
             result_.set_text("Pending..."); // Label x:Name="Result" Text="Pending..."
 
-            // The cell: Text + Description labels (the C# DataTemplate's two labels). The headless cell is
-            // a single Text label (the primary bound signal); Description rides on the model.
+            // The cell: the C# DataTemplate has two labels (Text + Description). The single-root struct cell
+            // renders both on two lines in one label ("Item N\nThis is item N") so the cell visually matches
+            // MAUI's two-line cell (title + detail).
             auto cell = maui::controls::data_template::of<maui::controls::label>();
-            cell->set_binding<std::string, item>(maui::controls::label::text_property(),
-                                                 [](const item& value) { return value.text; });
+            cell->set_binding<std::string, item>(maui::controls::label::text_property(), [](const item& value) {
+                return value.text + "\n" + value.description;
+            });
             list_.set_item_template(cell);
             list_.set_header(maui::controls::boxed_item::of(std::string{"This is the header"})); // Header=…
             list_.set_selection_mode(maui::controls::selection_mode::single);                    // Single

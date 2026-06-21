@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 48 / 172 🟢 matched** · 90 🟡 minor · 34 🔴 diff · 0 ⬜ pending
+**Progress: 48 / 172 🟢 matched** · 91 🟡 minor · 33 🔴 diff · 0 ⬜ pending
 
 **Flags: 7 ⚠️ broken MAUI reference captures (re-shoot needed) · 14 🎬 motion/effect pages needing an animated GIF to judge.**
 
@@ -92,7 +92,7 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 76 | Multiple Bound Selection | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/multiple_bound_selection.png) | ![](cpp_ios_light/multiple_bound_selection.png) | ![](csharp_ios_dark/multiple_bound_selection.png) | ![](cpp_ios_dark/multiple_bound_selection.png) |
 | 77 | Preselected Item | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/preselected_item.png) | ![](cpp_ios_light/preselected_item.png) | ![](csharp_ios_dark/preselected_item.png) | ![](cpp_ios_dark/preselected_item.png) |
 | 78 | Preselected Items | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/preselected_items.png) | ![](cpp_ios_light/preselected_items.png) | ![](csharp_ios_dark/preselected_items.png) | ![](cpp_ios_dark/preselected_items.png) |
-| 79 | Selection Command Param | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/selection_command_param.png) | ![](cpp_ios_light/selection_command_param.png) | ![](csharp_ios_dark/selection_command_param.png) | ![](cpp_ios_dark/selection_command_param.png) |
+| 79 | Selection Command Param | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/selection_command_param.png) | ![](cpp_ios_light/selection_command_param.png) | ![](csharp_ios_dark/selection_command_param.png) | ![](cpp_ios_dark/selection_command_param.png) |
 | 80 | Selection Synchronization | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/selection_synchronization.png) | ![](cpp_ios_light/selection_synchronization.png) | ![](csharp_ios_dark/selection_synchronization.png) | ![](cpp_ios_dark/selection_synchronization.png) |
 | 81 | Filter Collection | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/filter_collection.png) | ![](cpp_ios_light/filter_collection.png) | ![](csharp_ios_dark/filter_collection.png) | ![](cpp_ios_dark/filter_collection.png) |
 | 82 | Filter Selection | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/filter_selection.png) | ![](cpp_ios_light/filter_selection.png) | ![](csharp_ios_dark/filter_selection.png) | ![](cpp_ios_dark/filter_selection.png) |
@@ -503,9 +503,9 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Light:** Matches: instruction text, 'Preselected: photo.jpg, 2, Fruits.jpg, 4, FlowerBuds.jpg, 5', header 'This is the header', and a 3-column grid with exactly photo.jpg/2, Fruits.jpg/4, FlowerBuds.jpg/5 highlighted. Cosmetic diffs only: header bold in MAUI vs regular in C++, and the light MAUI capture appears at a slightly smaller/zoomed-out scale, but item layout, order and the 3 highlighted cells are identical.
 - **Dark:** Same as light: identical preselection of the 3 items in the grid, same header and instruction text. Only the header weight and minor scale differ. Selection correct.
 
-### 79. Selection Command Param — 🔴 (L:diff / D:diff)
-- **Light:** C++ is missing the second line of every cell. MAUI renders each cell as two lines: a title 'Item N' followed by a detail line 'This is item N' (e.g. 'Item 0' then 'This is item 0', for N=0..9). C++ renders ONLY the title 'Item N' on each cell — the 'This is item N' detail line is absent from all 10 cells. Header 'This is the header' bold in MAUI vs regular in C++ as well.
-- **Dark:** Same defect: MAUI shows two-line cells (Item N + 'This is item N') while C++ shows only the single 'Item N' line per cell; the 'This is item N' detail text is missing from every cell. Header weight also differs.
+### 79. Selection Command Param — 🟡 (L:minor / D:minor)
+- **Light:** FIXED: each cell now renders two lines ('Item N' + 'This is item N') matching MAUI's title+detail DataTemplate (was title-only — the single-root struct cell now binds text+description on two lines). Header 'This is the header' + the Pending/Success status present.
+- **Dark:** Same as light; two-line cells in dark.
 
 ### 80. Selection Synchronization — 🟡 (L:minor / D:minor)
 - **Light:** Matches: instruction paragraph, two CollectionView sections ('Set ItemsSource then SelectedItems...' and 'Set SelectedItems then ItemsSource...'), each with 'Selected: Item 3, Item 2' and Item 1-4 where Item 2 and Item 3 are correctly highlighted. Cosmetic diff: C++ uses larger inter-item spacing, so it fits both full sections on screen while MAUI shows the first section's list plus only the start of the second section. Selection state correct in both.
