@@ -346,14 +346,14 @@
     "severity": "match"
   },
   "effects": {
-    "dark": "diff",
+    "dark": "minor",
     "dark_note": "MAUI reference is again the iOS home screen/springboard (capture failure). C++ renders the same correct dark-theme page. Cannot compare due to broken MAUI ref.",
     "flags": [
       "maui_broken"
     ],
-    "light": "diff",
+    "light": "minor",
     "light_note": "MAUI reference capture is broken \u2014 it shows the iOS home screen / springboard (Fitness, Watch, Contacts, Files, app icons) instead of the page, so no valid comparison. The C++ port renders the page correctly: 'Entry With Focus Routing Effect' + Alert Simple entry, 'Entry With Focus Platform Effect' + Alert Simple entry, 'Detach routing effect' / 'Re-attach routing effect' blue buttons, 'routing effect attached \u2014 routing attached: yes'. Not a C++ bug.",
-    "severity": "match"
+    "severity": "minor"
   },
   "ellipse_gallery": {
     "dark": "match",
@@ -628,15 +628,15 @@
     "severity": "minor"
   },
   "ios_blur_effect": {
-    "dark": "diff",
+    "dark": "minor",
     "dark_note": "Same as light: the MAUI DARK reference shows only the four buttons + 'BlurEffect: ExtraLight' label and NO image, while the C++ port shows the dog photo plus the buttons. MAUI reference is missing the image content; cannot fairly compare blur fidelity from a still.",
     "flags": [
       "maui_broken",
       "needs_gif"
     ],
-    "light": "diff",
+    "light": "minor",
     "light_note": "This is a blur-effect demo whose subject is an image. The MAUI reference (LIGHT) shows ONLY the four buttons (No Blur / Extra Light Blur / Light Blur / Dark Blur) and the 'BlurEffect: ExtraLight' label, with NO image rendered at all. The C++ port correctly shows the source photo (a black pug in a sweater) at the top with the buttons below. So C++ renders MORE content than MAUI here; MAUI's reference appears to be missing the image entirely. The actual blur strength is a transient effect a still frame cannot fully judge.",
-    "severity": "major"
+    "severity": "minor"
   },
   "ios_date_picker": {
     "dark": "match",

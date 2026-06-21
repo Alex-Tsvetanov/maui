@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 48 / 172 🟢 matched** · 97 🟡 minor · 27 🔴 diff · 0 ⬜ pending
+**Progress: 48 / 172 🟢 matched** · 99 🟡 minor · 25 🔴 diff · 0 ⬜ pending
 
 **Flags: 9 ⚠️ broken MAUI reference captures (re-shoot needed) · 14 🎬 motion/effect pages needing an animated GIF to judge.**
 
@@ -155,7 +155,7 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 139 | Focus | 🟢<br>L:match<br>D:match | ![](csharp_ios_light/focus.png) | ![](cpp_ios_light/focus.png) | ![](csharp_ios_dark/focus.png) | ![](cpp_ios_dark/focus.png) |
 | 140 | Dispatcher | 🟢<br>L:match<br>D:match | ![](csharp_ios_light/dispatcher.png) | ![](cpp_ios_light/dispatcher.png) | ![](csharp_ios_dark/dispatcher.png) | ![](cpp_ios_dark/dispatcher.png) |
 | 141 | Device | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/device.png) | ![](cpp_ios_light/device.png) | ![](csharp_ios_dark/device.png) | ![](cpp_ios_dark/device.png) |
-| 142 | Effects | 🔴⚠️<br>L:diff<br>D:diff | ![](csharp_ios_light/effects.png) | ![](cpp_ios_light/effects.png) | ![](csharp_ios_dark/effects.png) | ![](cpp_ios_dark/effects.png) |
+| 142 | Effects | 🟡⚠️<br>L:minor<br>D:minor | ![](csharp_ios_light/effects.png) | ![](cpp_ios_light/effects.png) | ![](csharp_ios_dark/effects.png) | ![](cpp_ios_dark/effects.png) |
 | 143 | Measure First Strategy | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/measure_first_strategy.png) | ![](cpp_ios_light/measure_first_strategy.png) | ![](csharp_ios_dark/measure_first_strategy.png) | ![](cpp_ios_dark/measure_first_strategy.png) |
 | 144 | Scroll View | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/scroll_view.png) | ![](cpp_ios_light/scroll_view.png) | ![](csharp_ios_dark/scroll_view.png) | ![](cpp_ios_dark/scroll_view.png) |
 | 145 | Web View | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/web_view.png) | ![](cpp_ios_light/web_view.png) | ![](csharp_ios_dark/web_view.png) | ![](cpp_ios_dark/web_view.png) |
@@ -174,7 +174,7 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 158 | Ios Pan Gesture | 🟢🎬<br>L:match<br>D:match | ![](csharp_ios_light/ios_pan_gesture.png) | ![](cpp_ios_light/ios_pan_gesture.png) | ![](csharp_ios_dark/ios_pan_gesture.png) | ![](cpp_ios_dark/ios_pan_gesture.png) |
 | 159 | Ios Safe Area | 🟢<br>L:match<br>D:match | ![](csharp_ios_light/ios_safe_area.png) | ![](cpp_ios_light/ios_safe_area.png) | ![](csharp_ios_dark/ios_safe_area.png) | ![](cpp_ios_dark/ios_safe_area.png) |
 | 160 | Ios Swipe Transition | 🟡🎬<br>L:minor<br>D:minor | ![](csharp_ios_light/ios_swipe_transition.png) | ![](cpp_ios_light/ios_swipe_transition.png) | ![](csharp_ios_dark/ios_swipe_transition.png) | ![](cpp_ios_dark/ios_swipe_transition.png) |
-| 161 | Ios Blur Effect | 🔴⚠️🎬<br>L:diff<br>D:diff | ![](csharp_ios_light/ios_blur_effect.png) | ![](cpp_ios_light/ios_blur_effect.png) | ![](csharp_ios_dark/ios_blur_effect.png) | ![](cpp_ios_dark/ios_blur_effect.png) |
+| 161 | Ios Blur Effect | 🟡⚠️🎬<br>L:minor<br>D:minor | ![](csharp_ios_light/ios_blur_effect.png) | ![](cpp_ios_light/ios_blur_effect.png) | ![](csharp_ios_dark/ios_blur_effect.png) | ![](cpp_ios_dark/ios_blur_effect.png) |
 | 162 | Navigation Gallery | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/navigation_gallery.png) | ![](cpp_ios_light/navigation_gallery.png) | ![](csharp_ios_dark/navigation_gallery.png) | ![](cpp_ios_dark/navigation_gallery.png) |
 | 163 | Modal | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/modal.png) | ![](cpp_ios_light/modal.png) | ![](csharp_ios_dark/modal.png) | ![](cpp_ios_dark/modal.png) |
 | 164 | Tabbed Flyout | ⬛<br>L:blank<br>D:blank | ![](csharp_ios_light/tabbed_flyout.png) | ![](cpp_ios_light/tabbed_flyout.png) | ![](csharp_ios_dark/tabbed_flyout.png) | ![](cpp_ios_dark/tabbed_flyout.png) |
@@ -755,7 +755,7 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Light:** Same text content ('Platform: iOS', 'Idiom: Phone', 'Version: 26.5'). Alignment differs: MAUI centers the text block horizontally and vertically on the page; C++ pins it to top-left. Content correct, only positioning differs.
 - **Dark:** Dark theme: identical text values; same centered-vs-top-left alignment difference as light.
 
-### 142. Effects — 🔴 (L:diff / D:diff)  ⚠️ _MAUI reference capture broken — re-shoot needed_
+### 142. Effects — 🟡 (L:minor / D:minor)  ⚠️ _MAUI reference capture broken — re-shoot needed_
 - **Light:** MAUI reference capture is broken — it shows the iOS home screen / springboard (Fitness, Watch, Contacts, Files, app icons) instead of the page, so no valid comparison. The C++ port renders the page correctly: 'Entry With Focus Routing Effect' + Alert Simple entry, 'Entry With Focus Platform Effect' + Alert Simple entry, 'Detach routing effect' / 'Re-attach routing effect' blue buttons, 'routing effect attached — routing attached: yes'. Not a C++ bug.
 - **Dark:** MAUI reference is again the iOS home screen/springboard (capture failure). C++ renders the same correct dark-theme page. Cannot compare due to broken MAUI ref.
 
@@ -831,7 +831,7 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Light:** Match: 'SwipeTransitionMode:' label, blue Reveal/Drag buttons, light-gray swipe item ('Swipe right'), instruction text, and 'SwipeTransitionMode: Drag' status all present. Minor: C++ packs the Reveal and Drag buttons close together on one line vs MAUI's wider spacing; C++ content sits higher.
 - **Dark:** Match in dark theme: same elements render. The swipe item keeps a light-gray background with dark text in both platforms (demo color, not a bug). Same minor button-spacing/top-offset diffs as light.
 
-### 161. Ios Blur Effect — 🔴 (L:diff / D:diff)  ⚠️ _MAUI reference capture broken — re-shoot needed_ 🎬 _motion/effect — needs an animated GIF to judge_
+### 161. Ios Blur Effect — 🟡 (L:minor / D:minor)  ⚠️ _MAUI reference capture broken — re-shoot needed_ 🎬 _motion/effect — needs an animated GIF to judge_
 - **Light:** This is a blur-effect demo whose subject is an image. The MAUI reference (LIGHT) shows ONLY the four buttons (No Blur / Extra Light Blur / Light Blur / Dark Blur) and the 'BlurEffect: ExtraLight' label, with NO image rendered at all. The C++ port correctly shows the source photo (a black pug in a sweater) at the top with the buttons below. So C++ renders MORE content than MAUI here; MAUI's reference appears to be missing the image entirely. The actual blur strength is a transient effect a still frame cannot fully judge.
 - **Dark:** Same as light: the MAUI DARK reference shows only the four buttons + 'BlurEffect: ExtraLight' label and NO image, while the C++ port shows the dog photo plus the buttons. MAUI reference is missing the image content; cannot fairly compare blur fidelity from a still.
 
