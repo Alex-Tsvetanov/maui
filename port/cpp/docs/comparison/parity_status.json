@@ -467,7 +467,7 @@
     "dark": "diff",
     "dark_note": "Same as light: C++'s excessive row spacing pushes the 'This is a footer' string off-screen (only items 0-17 visible) whereas MAUI shows all 20 items plus the bold footer string.",
     "light": "diff",
-    "light_note": "Items render correctly, but C++ uses much wider row spacing: MAUI fits all 20 items (index 0-19) plus the bold 'This is a footer' string on screen; C++ only shows through index 17 and the 'This is a footer' footer string \u2014 the page's whole point \u2014 is pushed below the fold and NOT visible. MAUI also renders the footer string in bold.",
+    "light_note": "Items render correctly but CV row spacing is too WIDE: C++ shows only through index 17 (the 'This is a footer' string is pushed below the fold) where MAUI fits all 20 items + the footer. The concurrent CV-cell HorizontalOptions fix addressed width/alignment, NOT row height/spacing \u2014 same per-cell-height residual as varied_size_selector. Footer string also needs the bold default style (see header_footer).",
     "severity": "major"
   },
   "formatted_text": {
@@ -524,9 +524,9 @@
   },
   "header_footer": {
     "dark": "diff",
-    "dark_note": "Same as light: header 'Just a string as a header' and footer 'This footer is also a string' are bold/larger in MAUI but plain same-size text in C++; plus wider row spacing.",
+    "dark_note": "Same as light \u2014 default string header/footer render regular-weight in C++ vs MAUI's bold+larger. Board diff confirmed (Gemini missed).",
     "light": "diff",
-    "light_note": "Items match (cover1.jpg 0, oasis.jpg 1, photo.jpg 2) and both string header/footer texts are present. BUT in MAUI the header 'Just a string as a header' and footer 'This footer is also a string' render in a LARGER BOLD style; in C++ they render in the same regular weight/size as the body items (no bold/large header-footer styling). C++ also adds extra row spacing.",
+    "light_note": "Board CONFIRMED diff over Gemini (Gemini said match \u2014 it missed this). On-sim: MAUI renders the default string Header ('Just a string as a header') and Footer ('This footer is also a string') in a LARGER BOLD font; the C++ port renders them in regular item-weight/size. Items match. Fix = the CV's default string-header/footer Label needs MAUI's bold+larger default style (in the iOS collection_view_handler supplementary path).",
     "severity": "major"
   },
   "header_footer_grid": {

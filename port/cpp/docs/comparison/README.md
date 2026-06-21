@@ -522,8 +522,8 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Dark:** Same as light: identical content and controls; only difference is C++'s wider inter-row spacing. Cosmetic.
 
 ### 83. Header Footer — 🔴 (L:diff / D:diff)
-- **Light:** Items match (cover1.jpg 0, oasis.jpg 1, photo.jpg 2) and both string header/footer texts are present. BUT in MAUI the header 'Just a string as a header' and footer 'This footer is also a string' render in a LARGER BOLD style; in C++ they render in the same regular weight/size as the body items (no bold/large header-footer styling). C++ also adds extra row spacing.
-- **Dark:** Same as light: header 'Just a string as a header' and footer 'This footer is also a string' are bold/larger in MAUI but plain same-size text in C++; plus wider row spacing.
+- **Light:** Board CONFIRMED diff over Gemini (Gemini said match — it missed this). On-sim: MAUI renders the default string Header ('Just a string as a header') and Footer ('This footer is also a string') in a LARGER BOLD font; the C++ port renders them in regular item-weight/size. Items match. Fix = the CV's default string-header/footer Label needs MAUI's bold+larger default style (in the iOS collection_view_handler supplementary path).
+- **Dark:** Same as light — default string header/footer render regular-weight in C++ vs MAUI's bold+larger. Board diff confirmed (Gemini missed).
 
 ### 84. Header Footer Grid — 🔴 (L:diff / D:diff)
 - **Light:** The 3-column item grid renders, but the templated HEADER ('This Is A Header' large styled text + an 'Add Content' button) and the templated FOOTER ('This Is A Footer' + 'Add Content' button) are BOTH entirely missing in C++ — MAUI shows both. Also the 'Toggle Header' and 'Toggle Footer' buttons run together with no gap ('Toggle HeaderToggle Footer') in C++ vs spaced in MAUI.
@@ -542,7 +542,7 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Dark:** Same as light: C++ is a fully blank black page (status bar only); MAUI shows 'This Is A Header', 'This Is A Footer', and the 'Add 2 Items'/'Clear All Items' buttons. Nothing renders in C++.
 
 ### 88. Footer Only String — 🔴 (L:diff / D:diff)
-- **Light:** Items render correctly, but C++ uses much wider row spacing: MAUI fits all 20 items (index 0-19) plus the bold 'This is a footer' string on screen; C++ only shows through index 17 and the 'This is a footer' footer string — the page's whole point — is pushed below the fold and NOT visible. MAUI also renders the footer string in bold.
+- **Light:** Items render correctly but CV row spacing is too WIDE: C++ shows only through index 17 (the 'This is a footer' string is pushed below the fold) where MAUI fits all 20 items + the footer. The concurrent CV-cell HorizontalOptions fix addressed width/alignment, NOT row height/spacing — same per-cell-height residual as varied_size_selector. Footer string also needs the bold default style (see header_footer).
 - **Dark:** Same as light: C++'s excessive row spacing pushes the 'This is a footer' string off-screen (only items 0-17 visible) whereas MAUI shows all 20 items plus the bold footer string.
 
 ### 89. Basic Grouping — 🟡 (L:minor / D:minor)
