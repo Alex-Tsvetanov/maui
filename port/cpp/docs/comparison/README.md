@@ -2,9 +2,9 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 48 / 172 🟢 matched** · 93 🟡 minor · 31 🔴 diff · 0 ⬜ pending
+**Progress: 48 / 172 🟢 matched** · 95 🟡 minor · 29 🔴 diff · 0 ⬜ pending
 
-**Flags: 7 ⚠️ broken MAUI reference captures (re-shoot needed) · 14 🎬 motion/effect pages needing an animated GIF to judge.**
+**Flags: 9 ⚠️ broken MAUI reference captures (re-shoot needed) · 14 🎬 motion/effect pages needing an animated GIF to judge.**
 
 Status legend: 🟢 pixel-match (both themes) · 🟡 minor diff · 🔴 notable diff to fix · ⬛ C++ renders blank · ⬜ not yet reviewed · ⚠️ MAUI reference capture itself is broken (re-shoot needed) · 🎬 motion/effect page — a still frame can't judge it; needs a GIF. Per-theme verdicts + per-page notes in `parity_status.json`; the **Per-page findings** section below lists every non-matching page's concrete diffs.
 
@@ -76,8 +76,8 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 60 | Border Stroke | 🟢<br>L:match<br>D:match | ![](csharp_ios_light/border_stroke.png) | ![](cpp_ios_light/border_stroke.png) | ![](csharp_ios_dark/border_stroke.png) | ![](cpp_ios_dark/border_stroke.png) |
 | 61 | Border Layout | 🟢<br>L:match<br>D:match | ![](csharp_ios_light/border_layout.png) | ![](cpp_ios_light/border_layout.png) | ![](csharp_ios_dark/border_layout.png) | ![](cpp_ios_dark/border_layout.png) |
 | 62 | Border Playground | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/border_playground.png) | ![](cpp_ios_light/border_playground.png) | ![](csharp_ios_dark/border_playground.png) | ![](cpp_ios_dark/border_playground.png) |
-| 63 | Border Clip Playground | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/border_clip_playground.png) | ![](cpp_ios_light/border_clip_playground.png) | ![](csharp_ios_dark/border_clip_playground.png) | ![](cpp_ios_dark/border_clip_playground.png) |
-| 64 | Border Resize Content | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/border_resize_content.png) | ![](cpp_ios_light/border_resize_content.png) | ![](csharp_ios_dark/border_resize_content.png) | ![](cpp_ios_dark/border_resize_content.png) |
+| 63 | Border Clip Playground | 🟡⚠️<br>L:minor<br>D:minor | ![](csharp_ios_light/border_clip_playground.png) | ![](cpp_ios_light/border_clip_playground.png) | ![](csharp_ios_dark/border_clip_playground.png) | ![](cpp_ios_dark/border_clip_playground.png) |
+| 64 | Border Resize Content | 🟡⚠️<br>L:minor<br>D:minor | ![](csharp_ios_light/border_resize_content.png) | ![](cpp_ios_light/border_resize_content.png) | ![](csharp_ios_dark/border_resize_content.png) | ![](cpp_ios_dark/border_resize_content.png) |
 | 65 | Borderless | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/borderless.png) | ![](cpp_ios_light/borderless.png) | ![](csharp_ios_dark/borderless.png) | ![](cpp_ios_dark/borderless.png) |
 | 66 | Clip | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/clip.png) | ![](cpp_ios_light/clip.png) | ![](csharp_ios_dark/clip.png) | ![](cpp_ios_dark/clip.png) |
 | 67 | Clip Views | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/clip_views.png) | ![](cpp_ios_light/clip_views.png) | ![](csharp_ios_dark/clip_views.png) | ![](cpp_ios_dark/clip_views.png) |
@@ -439,13 +439,13 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Light:** Both render the dashed-yellow border with cyan-to-blue gradient fill and 'Just a Label' text, plus the form: 'Border Content'/Label, 'Border Shape'/RoundRectangle, 'Background'/Background Start Color #00B4DB/End Color #0083B0. Cosmetic diffs only: the C++ box is positioned higher and the form scrolls to show more fields (End Color, Content Background, checkbox, 'Show Content Background', 'Border'), while MAUI shows the box lower with more whitespace and fewer fields above the fold. C++ section headers ('Border Content', 'Border Shape', 'Background') render in regular weight vs MAUI's bold.
 - **Dark:** Same content as light — dashed border, gradient fill, 'Just a Label', and form fields all present. Differences are cosmetic: C++ packs the box higher and exposes more form rows; MAUI positions the box lower with extra whitespace. Header weight differs (regular in C++ vs bold in MAUI).
 
-### 63. Border Clip Playground — 🔴 (L:diff / D:diff)
-- **Light:** Real content discrepancy: MAUI (ground truth) shows ONLY an empty red rounded-rectangle border OUTLINE at top (RoundRectangle, top-left corner radius 60, no inner content). The C++ port renders a PHOTO OF A DOG (pug) clipped to the same rounded shape inside the red border. The form below ('Border Shape'/RoundRectangle, 'Border Width: 5'+slider, 'Top Left Corner Radius: 60', 'Top Right Corner Radius: 0', 'Bottom Left Corner Radius') matches.
-- **Dark:** Same as light: MAUI shows an empty red rounded-rectangle outline (no content), while C++ clips a dog photo into the shape. The clip-shape geometry and all form controls below match — only the presence of the image content differs.
+### 63. Border Clip Playground — 🟡 (L:minor / D:minor)  ⚠️ _MAUI reference capture broken — re-shoot needed_
+- **Light:** NOT a port bug — the MAUI reference is broken (the maui-compare app does not bundle oasis.jpg, so its Border shows an EMPTY red outline). The C# XAML places <Image Source="oasis.jpg" Aspect="AspectFill"> inside the Border; the C++ port correctly resolves a bundled stand-in JPEG and clips it into the StrokeShape with the LIVE per-corner radius (top-left 60, top-right 0 both honored). Clip-into-shape + red stroke + corner-radius sliders all work. Residual: the gallery bundles a different photo than oasis.jpg (asset packaging, not a framework diff).
+- **Dark:** Same as light — MAUI ref empty (missing oasis.jpg asset); the port correctly clips a bundled image into the rounded border. Not a port rendering diff.
 
-### 64. Border Resize Content — 🔴 (L:diff / D:diff)
-- **Light:** Six green-bordered shapes in a 3x2 grid. Left column matches (red-filled circle/square/triangle each with a blue '+'). Real diff in the RIGHT column: MAUI (ground truth) fills the right circle/square/triangle with a solid LIGHT-BLUE color, while the C++ port clips a DOG PHOTO (pug) into each of those three shapes. Same image-vs-solid-fill discrepancy as border_clip_playground. Form below ('Content Text'/+, 'Content Text FontSize'+slider, 'Image Scale'+slider) matches.
-- **Dark:** Same as light: left-column red shapes with '+' match; the right-column circle/square/triangle are a solid light-blue fill in MAUI but show a clipped dog photo in C++. Controls below match.
+### 64. Border Resize Content — 🟡 (L:minor / D:minor)  ⚠️ _MAUI reference capture broken — re-shoot needed_
+- **Light:** NOT a port bug — MAUI reference is broken. The C# XAML's right-column borders contain <Image Source="oasis.jpg">; the maui-compare app does not bundle oasis.jpg, so MAUI shows only the LightBlue style background. The C++ port correctly clips a bundled stand-in image into the circle/round-rect/triangle StrokeShapes (left column red shapes with '+' match exactly). Residual: the gallery bundles a different photo than oasis.jpg (asset packaging, not a framework diff).
+- **Dark:** Same as light — right-column image borders show the LightBlue style bg in MAUI (missing oasis.jpg) vs a correctly-clipped bundled image in C++. Left column matches. Not a port rendering diff.
 
 ### 65. Borderless — 🟡 (L:minor / D:minor)
 - **Light:** Both show the same yellow borderless container, the label 'Style: borderless (StrokeThickness 0)', and a switch with a yellow track. Only difference: MAUI insets the yellow region inside a black rounded card (black margin visible top and bottom), while C++ renders the yellow edge-to-edge with no surrounding black inset. Content, label, switch state and colors all match.

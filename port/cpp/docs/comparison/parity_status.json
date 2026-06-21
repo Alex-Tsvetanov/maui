@@ -97,11 +97,14 @@
     "severity": "match"
   },
   "border_clip_playground": {
-    "dark": "diff",
-    "dark_note": "Same as light: MAUI shows an empty red rounded-rectangle outline (no content), while C++ clips a dog photo into the shape. The clip-shape geometry and all form controls below match \u2014 only the presence of the image content differs.",
-    "light": "diff",
-    "light_note": "Real content discrepancy: MAUI (ground truth) shows ONLY an empty red rounded-rectangle border OUTLINE at top (RoundRectangle, top-left corner radius 60, no inner content). The C++ port renders a PHOTO OF A DOG (pug) clipped to the same rounded shape inside the red border. The form below ('Border Shape'/RoundRectangle, 'Border Width: 5'+slider, 'Top Left Corner Radius: 60', 'Top Right Corner Radius: 0', 'Bottom Left Corner Radius') matches.",
-    "severity": "major"
+    "dark": "minor",
+    "dark_note": "Same as light \u2014 MAUI ref empty (missing oasis.jpg asset); the port correctly clips a bundled image into the rounded border. Not a port rendering diff.",
+    "flags": [
+      "maui_broken"
+    ],
+    "light": "minor",
+    "light_note": "NOT a port bug \u2014 the MAUI reference is broken (the maui-compare app does not bundle oasis.jpg, so its Border shows an EMPTY red outline). The C# XAML places <Image Source=\"oasis.jpg\" Aspect=\"AspectFill\"> inside the Border; the C++ port correctly resolves a bundled stand-in JPEG and clips it into the StrokeShape with the LIVE per-corner radius (top-left 60, top-right 0 both honored). Clip-into-shape + red stroke + corner-radius sliders all work. Residual: the gallery bundles a different photo than oasis.jpg (asset packaging, not a framework diff).",
+    "severity": "minor"
   },
   "border_layout": {
     "dark": "match",
@@ -118,11 +121,14 @@
     "severity": "minor"
   },
   "border_resize_content": {
-    "dark": "diff",
-    "dark_note": "Same as light: left-column red shapes with '+' match; the right-column circle/square/triangle are a solid light-blue fill in MAUI but show a clipped dog photo in C++. Controls below match.",
-    "light": "diff",
-    "light_note": "Six green-bordered shapes in a 3x2 grid. Left column matches (red-filled circle/square/triangle each with a blue '+'). Real diff in the RIGHT column: MAUI (ground truth) fills the right circle/square/triangle with a solid LIGHT-BLUE color, while the C++ port clips a DOG PHOTO (pug) into each of those three shapes. Same image-vs-solid-fill discrepancy as border_clip_playground. Form below ('Content Text'/+, 'Content Text FontSize'+slider, 'Image Scale'+slider) matches.",
-    "severity": "major"
+    "dark": "minor",
+    "dark_note": "Same as light \u2014 right-column image borders show the LightBlue style bg in MAUI (missing oasis.jpg) vs a correctly-clipped bundled image in C++. Left column matches. Not a port rendering diff.",
+    "flags": [
+      "maui_broken"
+    ],
+    "light": "minor",
+    "light_note": "NOT a port bug \u2014 MAUI reference is broken. The C# XAML's right-column borders contain <Image Source=\"oasis.jpg\">; the maui-compare app does not bundle oasis.jpg, so MAUI shows only the LightBlue style background. The C++ port correctly clips a bundled stand-in image into the circle/round-rect/triangle StrokeShapes (left column red shapes with '+' match exactly). Residual: the gallery bundles a different photo than oasis.jpg (asset packaging, not a framework diff).",
+    "severity": "minor"
   },
   "border_stroke": {
     "dark": "match",
