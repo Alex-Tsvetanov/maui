@@ -61,6 +61,8 @@ namespace maui::samples
 
             // The "Change color" button — each tap advances the shared brush color and repaints both.
             change_color_.set_text("Change color");
+            change_color_.set_horizontal_layout_alignment(
+                maui::core::layout_alignment::start); // C# HorizontalOptions=Start
             change_color_.clicked.connect([this]() {
                 advance_color();
                 apply_brush();

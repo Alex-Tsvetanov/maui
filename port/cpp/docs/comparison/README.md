@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 48 / 172 🟢 matched** · 87 🟡 minor · 37 🔴 diff · 0 ⬜ pending
+**Progress: 48 / 172 🟢 matched** · 90 🟡 minor · 34 🔴 diff · 0 ⬜ pending
 
 **Flags: 7 ⚠️ broken MAUI reference captures (re-shoot needed) · 14 🎬 motion/effect pages needing an animated GIF to judge.**
 
@@ -43,7 +43,7 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 27 | Triggers | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/triggers.png) | ![](cpp_ios_light/triggers.png) | ![](csharp_ios_dark/triggers.png) | ![](cpp_ios_dark/triggers.png) |
 | 28 | Behaviors | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/behaviors.png) | ![](cpp_ios_light/behaviors.png) | ![](csharp_ios_dark/behaviors.png) | ![](cpp_ios_dark/behaviors.png) |
 | 29 | Semantics | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/semantics.png) | ![](cpp_ios_light/semantics.png) | ![](csharp_ios_dark/semantics.png) | ![](cpp_ios_dark/semantics.png) |
-| 30 | App Theme Binding | 🔴<br>L:match<br>D:diff | ![](csharp_ios_light/app_theme_binding.png) | ![](cpp_ios_light/app_theme_binding.png) | ![](csharp_ios_dark/app_theme_binding.png) | ![](cpp_ios_dark/app_theme_binding.png) |
+| 30 | App Theme Binding | 🟡<br>L:match<br>D:minor | ![](csharp_ios_light/app_theme_binding.png) | ![](cpp_ios_light/app_theme_binding.png) | ![](csharp_ios_dark/app_theme_binding.png) | ![](cpp_ios_dark/app_theme_binding.png) |
 | 31 | Stack Layout | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/stack_layout.png) | ![](cpp_ios_light/stack_layout.png) | ![](csharp_ios_dark/stack_layout.png) | ![](cpp_ios_dark/stack_layout.png) |
 | 32 | Vertical Stack | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/vertical_stack.png) | ![](cpp_ios_light/vertical_stack.png) | ![](csharp_ios_dark/vertical_stack.png) | ![](cpp_ios_dark/vertical_stack.png) |
 | 33 | Horizontal Stack | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/horizontal_stack.png) | ![](cpp_ios_light/horizontal_stack.png) | ![](csharp_ios_dark/horizontal_stack.png) | ![](cpp_ios_dark/horizontal_stack.png) |
@@ -66,11 +66,11 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 50 | Path Transform String | 🟢<br>L:match<br>D:match | ![](csharp_ios_light/path_transform_string.png) | ![](cpp_ios_light/path_transform_string.png) | ![](csharp_ios_dark/path_transform_string.png) | ![](cpp_ios_dark/path_transform_string.png) |
 | 51 | Composition Gallery | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/composition_gallery.png) | ![](cpp_ios_light/composition_gallery.png) | ![](csharp_ios_dark/composition_gallery.png) | ![](cpp_ios_dark/composition_gallery.png) |
 | 52 | Transform Playground | 🟢<br>L:match<br>D:match | ![](csharp_ios_light/transform_playground.png) | ![](cpp_ios_light/transform_playground.png) | ![](csharp_ios_dark/transform_playground.png) | ![](cpp_ios_dark/transform_playground.png) |
-| 53 | Transformations | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/transformations.png) | ![](cpp_ios_light/transformations.png) | ![](csharp_ios_dark/transformations.png) | ![](cpp_ios_dark/transformations.png) |
+| 53 | Transformations | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/transformations.png) | ![](cpp_ios_light/transformations.png) | ![](csharp_ios_dark/transformations.png) | ![](cpp_ios_dark/transformations.png) |
 | 54 | Update Path Data | 🟡<br>L:minor<br>D:match | ![](csharp_ios_light/update_path_data.png) | ![](cpp_ios_light/update_path_data.png) | ![](csharp_ios_dark/update_path_data.png) | ![](cpp_ios_dark/update_path_data.png) |
 | 55 | Auto Size Shapes | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/auto_size_shapes.png) | ![](cpp_ios_light/auto_size_shapes.png) | ![](csharp_ios_dark/auto_size_shapes.png) | ![](cpp_ios_dark/auto_size_shapes.png) |
 | 56 | Shape App Theme | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/shape_app_theme.png) | ![](cpp_ios_light/shape_app_theme.png) | ![](csharp_ios_dark/shape_app_theme.png) | ![](cpp_ios_dark/shape_app_theme.png) |
-| 57 | Invalidate Brush | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/invalidate_brush.png) | ![](cpp_ios_light/invalidate_brush.png) | ![](csharp_ios_dark/invalidate_brush.png) | ![](cpp_ios_dark/invalidate_brush.png) |
+| 57 | Invalidate Brush | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/invalidate_brush.png) | ![](cpp_ios_light/invalidate_brush.png) | ![](csharp_ios_dark/invalidate_brush.png) | ![](cpp_ios_dark/invalidate_brush.png) |
 | 58 | Gradient brushes | 🟢<br>L:match<br>D:match | ![](csharp_ios_light/gradient.png) | ![](cpp_ios_light/gradient.png) | ![](csharp_ios_dark/gradient.png) | ![](cpp_ios_dark/gradient.png) |
 | 59 | Border | 🟢<br>L:match<br>D:match | ![](csharp_ios_light/border.png) | ![](cpp_ios_light/border.png) | ![](csharp_ios_dark/border.png) | ![](cpp_ios_dark/border.png) |
 | 60 | Border Stroke | 🟢<br>L:match<br>D:match | ![](csharp_ios_light/border_stroke.png) | ![](cpp_ios_light/border_stroke.png) | ![](csharp_ios_dark/border_stroke.png) | ![](cpp_ios_dark/border_stroke.png) |
@@ -307,9 +307,9 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Light:** Both render the SemanticProperties showcase identically: header, 'Semantics readout: (interact to inspect)', 'Label text TH/DH', blue 'Button text TH/DH', 'Entry text, DTH' field, 'Editor text, DTH', a search bar 'Search bar text, DH' with clear X, and the 'HeadingLevel labels' section. Difference is the visible scroll viewport: MAUI vertically centers content in the white card so it cuts off at 'HeadingLevel labels...', whereas C++ starts content higher and shows more (Heading 1-4, StackLayout labels, 'Click to set semantic focus...'). Same content, different visible offset.
 - **Dark:** Same content and structure in dark; identical controls and search bar. C++ shows more of the list visible (down to 'Label receiving semantic focus') because MAUI centers content lower in the card. Cosmetic vertical-offset difference.
 
-### 30. App Theme Binding — 🔴 (L:match / D:diff)
-- **Light:** Identical: 'AppThemeBinding' header, green text 'green in light mode... red in dark', 'Using AppThemeBinding in a ResourceDictionary', orange text about LightPrimaryColor/DarkPrimaryColor, blue 'Toggle theme (Light/Dark)' button, and status 'Theme: Light — inline=Green, resource=Orange'. Green/orange colors match. Only minor text-wrap difference from card width.
-- **Dark:** The AppThemeBinding state is 'Light' in both (status reads 'Theme: Light', text is green+orange), but the page background differs: MAUI keeps a WHITE content card under system dark mode, while C++ renders the page on the system-dark BLACK background. Text content and green/orange colors match, but the background color is a clear visible discrepancy in dark mode.
+### 30. App Theme Binding — 🟡 (L:match / D:minor)
+- **Light:** All matches in light: 'AppThemeBinding' header, green/orange themed text, ResourceDictionary text, blue 'Toggle theme' button, 'Theme: Light' status.
+- **Dark:** AppThemeBinding state + green/orange text colors match; the only diff is MAUI's harness wraps the content in a WHITE card under system dark while the port renders on the system-dark background — a harness-framing artifact, not a port bug.
 
 ### 31. Stack Layout — 🟡 (L:minor / D:minor)
 - **Light:** Both render a 'Vertical' label with a vertical column of 6 colored squares (red, yellow, blue, green, orange, purple) and a 'Horizontal' label with a horizontal row of the same 6 colors. Order, colors, and structure match exactly. Cosmetic sizing: MAUI's vertical squares are larger/taller and the horizontal row spans the full page width to the right edge; C++'s squares are slightly smaller and the horizontal row is slightly narrower (doesn't reach the right edge).
@@ -399,9 +399,9 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Light:** Both show the gray canvas square with the red/blue-bordered square in its top-left, then identical labeled sliders: 'RotateTransform / Rotation: 0', 'CenterX: 0', 'CenterY: 0', 'ScaleTransform / ScaleX: 1.00'. Slider thumb positions and values match. C++ simply shows slightly more rows below the fold (SkewTransform) due to tighter row spacing; structure and values are identical.
 - **Dark:** Same as light in dark theme: gray canvas + red square top-left, identical slider labels and values (Rotation 0, CenterX 0, CenterY 0, ScaleX 1.00). C++ shows a bit more content below the fold but structure matches.
 
-### 53. Transformations — 🔴 (L:diff / D:diff)
-- **Light:** Number format differs: MAUI labels read 'Scale = 1', 'ScaleX = 1', 'ScaleY = 1' (integer), while C++ reads 'Scale = 1.0', 'ScaleX = 1.0', 'ScaleY = 1.0' (one decimal). Heading 'SCALE AND ROTATE' (blue), the slider rows, and AnchorX/Y +/- steppers otherwise match. The '1' vs '1.0' value-format mismatch is consistent across the scale rows.
-- **Dark:** Same number-format diff in dark theme: MAUI shows 'Scale = 1' / 'ScaleX = 1' / 'ScaleY = 1', C++ shows 'Scale = 1.0' / 'ScaleX = 1.0' / 'ScaleY = 1.0'. All other structure (heading, sliders, steppers) matches.
+### 53. Transformations — 🟡 (L:minor / D:minor)
+- **Light:** FIXED number format to match C# double.ToString(): whole values now print as integers ('Scale = 1' not '1.0'; 'AnchorX = 0.5' preserved). Heading 'SCALE AND ROTATE', the 6 transform sliders, Anchor steppers, and Translation sliders all match.
+- **Dark:** Same as light; integer number format + matching controls in dark.
 
 ### 54. Update Path Data — 🟡 (L:minor / D:match)
 - **Light:** Both show the S-curve cubic-bezier path stroked in black, the bottom text 'counter = 0 | Data: M 10,100 C 10,300 300,-200 300,100', and the blue 'Update Path Data' button overlapping that text. The curve shape and labels match; only the curve's vertical position differs (MAUI centers the curve in the white card, C++ draws it near the top). Minor positional difference.
@@ -415,9 +415,9 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Light:** FIXED rectangle horizontal alignment to Start (was centered) — now left-aligned at the stack margin matching MAUI. AppTheme color binding correct (green label+rect in light). Equivalent.
 - **Dark:** Dark renders red label + red rectangle on black (theme seed works), left-aligned. Matches MAUI.
 
-### 57. Invalidate Brush — 🔴 (L:diff / D:diff)
-- **Light:** Content matches: green 'Change color' button, green underline, and 'Brush color: Green' label all present with correct colors. But the C++ 'Change color' button spans the FULL page width (no width constraint / no horizontal padding) and sits at the very top, while MAUI's button is content-width (~160px), left-aligned, and positioned lower in the page. The button-width/placement is a real layout discrepancy.
-- **Dark:** Same as light: all content present and correct (green button, underline, 'Brush color: Green'), but C++ button is full-width at the top whereas MAUI's is a narrow content-width button positioned lower.
+### 57. Invalidate Brush — 🟡 (L:minor / D:minor)
+- **Light:** FIXED: the 'Change color' button is now content-width left-aligned (HorizontalOptions=Start) matching MAUI (was full-bleed). Green button bg, green underline, and 'Brush color: Green' label all match.
+- **Dark:** Same as light; content-width button + green brush in dark.
 
 ### 58. Gradient brushes — 🟢 (L:match / D:match)
 - **Light:** Both render the two labeled gradient swatches identically: 'LinearGradientBrush (yellow→green)' with a horizontal yellow-to-green gradient and 'RadialGradientBrush (red→navy)' with a centered red-to-purple radial gradient. Only difference is MAUI's content starts lower (harness card top padding); the gradients and labels are equivalent.

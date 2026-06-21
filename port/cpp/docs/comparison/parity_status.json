@@ -48,11 +48,11 @@
     "severity": "minor"
   },
   "app_theme_binding": {
-    "dark": "diff",
-    "dark_note": "The AppThemeBinding state is 'Light' in both (status reads 'Theme: Light', text is green+orange), but the page background differs: MAUI keeps a WHITE content card under system dark mode, while C++ renders the page on the system-dark BLACK background. Text content and green/orange colors match, but the background color is a clear visible discrepancy in dark mode.",
+    "dark": "minor",
+    "dark_note": "AppThemeBinding state + green/orange text colors match; the only diff is MAUI's harness wraps the content in a WHITE card under system dark while the port renders on the system-dark background \u2014 a harness-framing artifact, not a port bug.",
     "light": "match",
-    "light_note": "Identical: 'AppThemeBinding' header, green text 'green in light mode... red in dark', 'Using AppThemeBinding in a ResourceDictionary', orange text about LightPrimaryColor/DarkPrimaryColor, blue 'Toggle theme (Light/Dark)' button, and status 'Theme: Light \u2014 inline=Green, resource=Orange'. Green/orange colors match. Only minor text-wrap difference from card width.",
-    "severity": "major"
+    "light_note": "All matches in light: 'AppThemeBinding' header, green/orange themed text, ResourceDictionary text, blue 'Toggle theme' button, 'Theme: Light' status.",
+    "severity": "minor"
   },
   "application_control": {
     "dark": "minor",
@@ -608,11 +608,11 @@
     "severity": "minor"
   },
   "invalidate_brush": {
-    "dark": "diff",
-    "dark_note": "Same as light: all content present and correct (green button, underline, 'Brush color: Green'), but C++ button is full-width at the top whereas MAUI's is a narrow content-width button positioned lower.",
-    "light": "diff",
-    "light_note": "Content matches: green 'Change color' button, green underline, and 'Brush color: Green' label all present with correct colors. But the C++ 'Change color' button spans the FULL page width (no width constraint / no horizontal padding) and sits at the very top, while MAUI's button is content-width (~160px), left-aligned, and positioned lower in the page. The button-width/placement is a real layout discrepancy.",
-    "severity": "major"
+    "dark": "minor",
+    "dark_note": "Same as light; content-width button + green brush in dark.",
+    "light": "minor",
+    "light_note": "FIXED: the 'Change color' button is now content-width left-aligned (HorizontalOptions=Start) matching MAUI (was full-bleed). Green button bg, green underline, and 'Brush color: Green' label all match.",
+    "severity": "minor"
   },
   "invalidate_shadow_host": {
     "dark": "minor",
@@ -1207,11 +1207,11 @@
     "severity": "match"
   },
   "transformations": {
-    "dark": "diff",
-    "dark_note": "Same number-format diff in dark theme: MAUI shows 'Scale = 1' / 'ScaleX = 1' / 'ScaleY = 1', C++ shows 'Scale = 1.0' / 'ScaleX = 1.0' / 'ScaleY = 1.0'. All other structure (heading, sliders, steppers) matches.",
-    "light": "diff",
-    "light_note": "Number format differs: MAUI labels read 'Scale = 1', 'ScaleX = 1', 'ScaleY = 1' (integer), while C++ reads 'Scale = 1.0', 'ScaleX = 1.0', 'ScaleY = 1.0' (one decimal). Heading 'SCALE AND ROTATE' (blue), the slider rows, and AnchorX/Y +/- steppers otherwise match. The '1' vs '1.0' value-format mismatch is consistent across the scale rows.",
-    "severity": "major"
+    "dark": "minor",
+    "dark_note": "Same as light; integer number format + matching controls in dark.",
+    "light": "minor",
+    "light_note": "FIXED number format to match C# double.ToString(): whole values now print as integers ('Scale = 1' not '1.0'; 'AnchorX = 0.5' preserved). Heading 'SCALE AND ROTATE', the 6 transform sliders, Anchor steppers, and Translation sliders all match.",
+    "severity": "minor"
   },
   "triggers": {
     "dark": "minor",

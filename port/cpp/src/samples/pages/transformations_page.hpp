@@ -239,9 +239,21 @@ namespace maui::samples
         // Set `label` to "<name> = <value with `decimals` digits>" (the XAML StringFormat rows).
         static void update_readout(maui::controls::label& label, const char* name, double value, int decimals)
         {
-            char text[64];
-            (void)std::snprintf(text, sizeof(text), "%s = %.*f", name, decimals, value);
-            label.set_text(text);
+            // Match C#'s double.ToString() (the XAML StringFormat default): minimal representation — a whole
+            // value prints WITHOUT a decimal point ('1', not '1.0'). Format with `decimals`, then strip
+            // trailing zeros and any dangling '.'.
+            char num[32];
+            (void)std::snprintf(num, sizeof(num), "%.*f", decimals, value);
+            std::string s{num};
+            if (s.find('.') != std::string::npos)
+            {
+                s.erase(s.find_last_not_of('0') + 1);
+                if (!s.empty() && s.back() == '.')
+                {
+                    s.pop_back();
+                }
+            }
+            label.set_text(std::string(name) + " = " + s);
         }
 
         maui::controls::content_page page_;
