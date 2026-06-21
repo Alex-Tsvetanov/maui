@@ -217,11 +217,11 @@
     "severity": "match"
   },
   "clip_views": {
-    "dark": "diff",
-    "dark_note": "Same diffs as light: Entry and Editor rows lack the red clip fill in C++ (present in MAUI), C++ red swoosh clips are narrower than MAUI's full-width clips, and the SearchBar clip fill is missing/gray in C++ vs red-tinted in MAUI.",
-    "light": "diff",
-    "light_note": "Row of controls each with a red swoosh clip. Two real diffs: (1) the 'Entry' and 'Editor' rows have a solid red clip fill in MAUI but in C++ they render as plain text fields with NO red fill (just a faint underline); (2) the red swoosh clips are noticeably narrower in C++ (~75% width) vs nearly full width in MAUI. The SearchBar clip is pink/red-filled in MAUI but transparent/gray in C++. Date format matches (DD.MM.YYYY device locale); the day differs only due to capture date.",
-    "severity": "major"
+    "dark": "minor",
+    "dark_note": "Same as light \u2014 Entry/Editor red fills now render clipped to the swoosh. Residual minor: faint SearchBar bar fill (iOS 26 UISearchBar chrome, faithful code path) + slightly narrower clip width.",
+    "light": "minor",
+    "light_note": "FIXED (iOS entry/editor/search_bar now push VisualElement.Background): the Entry and Editor rows now show their solid RED fill clipped to the swoosh (Entry tints the UITextField's RoundedRect via the UIView backgroundColor; Editor via the layer). Button/DatePicker/Grid/TimePicker already red. Residual minor: the SearchBar bar fill renders faint on iOS 26 (UISearchBar chrome \u2014 the port sets backgroundColor exactly as MAUI's UpdateBackground does), and the ellipse clip is slightly narrower (~75% width) than MAUI's.",
+    "severity": "minor"
   },
   "clipping": {
     "dark": "diff",

@@ -105,6 +105,10 @@ namespace maui::core
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
+        // Background IS pushed: VisualElement.Background paints the UITextView layer (solid backgroundColor /
+        // gradient or image sublayer) via the shared apply_background — clip_views' red editor fills under the
+        // clip mask, and the image-backed Background described above renders.
+        void update_background(const maui::graphics::paint* value) override;
         // Clip IS pushed: WrapperView.SetClip masks the MauiIosEditorTextView (UITextView)'s layer (the shared
         // apply_and_store_clip; MauiIosEditorTextView.layoutSubviews re-frames the mask to the live bounds, the
         // 0×0-at-map-time fix).

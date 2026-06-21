@@ -108,6 +108,10 @@ namespace maui::core
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
+        // Background IS pushed: VisualElement.Background paints the UISearchBar layer (solid backgroundColor /
+        // gradient or image sublayer) via the shared apply_background — clip_views' red search bar fills under
+        // the clip mask, mirroring the apple backend.
+        void update_background(const maui::graphics::paint* value) override;
         // Clip IS pushed: WrapperView.SetClip masks the MauiIosSearchBar (UISearchBar)'s layer (the shared
         // apply_and_store_clip; MauiIosSearchBar.layoutSubviews re-frames the mask to the live bounds, the
         // 0×0-at-map-time fix).

@@ -455,6 +455,10 @@ namespace maui::platform::ios
         remove_background_gradient_layer(layer);
 
         // A SolidPaint maps to the backing layer's backgroundColor; anything else (incl. null) clears it.
+        // NOTE: this sets layer.backgroundColor (not the UIView property) deliberately — some native hosts
+        // (the layout container view) mis-render when their UIView.backgroundColor is set directly. Controls
+        // that draw their own chrome (UITextField RoundedRect, UISearchBar) need the UIView property to tint;
+        // those handlers override update_background to set the native control's backgroundColor for solids.
         const auto* const solid = dynamic_cast<const maui::graphics::solid_paint*>(p);
         if (solid == nullptr)
         {

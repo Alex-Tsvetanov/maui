@@ -58,8 +58,10 @@
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
+#include "maui/graphics/paint.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+#include "maui/graphics/solid_paint.hpp"
 
 // Obj-C trampoline: forwards the UITextField's editing events + delegate callbacks to the C++ handler's
 // virtual view. Ports EntryHandler.MauiTextFieldProxy — and, like the AppKit twin's delegate, tracks the
@@ -482,6 +484,23 @@ namespace maui::core
         const std::string id(value);
         NSString* const raw = [NSString stringWithUTF8String:id.c_str()];
         as_field(native).accessibilityIdentifier = raw != nil ? raw : @"";
+    }
+
+    // ViewHandler.MapBackground. A UITextField with UITextBorderStyle.RoundedRect draws its own chrome over
+    // layer.backgroundColor, so a SOLID Background must tint the UIView's backgroundColor (the C#
+    // ViewExtensions.UpdateBackground path) to fill the RoundedRect — clip_views' red entry then fills under
+    // the clip mask. Gradient/image paints route through the shared layer applier (a sublayer above the field).
+    void entry_platform::update_background(const maui::graphics::paint* value)
+    {
+        if (const auto* const solid = dynamic_cast<const maui::graphics::solid_paint*>(value))
+        {
+            as_field(native).backgroundColor = maui::platform::ios::to_ui_color(solid->color());
+        }
+        else
+        {
+            as_field(native).backgroundColor = nil;
+            maui::platform::ios::apply_background(native, value);
+        }
     }
 
     // ViewHandler.MapClip → WrapperView.SetClip: mask the native view's layer to the clip

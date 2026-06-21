@@ -124,6 +124,9 @@ namespace maui::core
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
+        // Background IS pushed: VisualElement.Background paints the UITextField layer's backgroundColor
+        // (the shared apply_background), so a clipped red field (clip_views) fills under the clip mask.
+        void update_background(const maui::graphics::paint* value) override;
         // Clip IS pushed: WrapperView.SetClip masks the UITextField's layer (the shared apply_and_store_clip;
         // MauiIosTextField.layoutSubviews re-frames the mask to the live bounds, the 0×0-at-map-time fix).
         void update_clip(const maui::graphics::i_shape* value) override;

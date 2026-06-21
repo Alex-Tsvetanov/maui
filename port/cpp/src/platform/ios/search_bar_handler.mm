@@ -42,8 +42,10 @@
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
+#include "maui/graphics/paint.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+#include "maui/graphics/solid_paint.hpp"
 
 // Obj-C trampoline: forwards the UISearchBar's delegate callbacks to the C++ handler's virtual view.
 // Ports SearchBarHandler.MauiSearchBarProxy — tracking the previous string for the (old, new) pair.
@@ -342,6 +344,23 @@ namespace maui::core
         const std::string id(value);
         NSString* const raw = [NSString stringWithUTF8String:id.c_str()];
         as_search_bar(native).accessibilityIdentifier = raw != nil ? raw : @"";
+    }
+
+    // ViewHandler.MapBackground. A UISearchBar draws its own bar chrome over layer.backgroundColor, so a
+    // SOLID Background tints the UIView's backgroundColor (the C# ViewExtensions.UpdateBackground path) to
+    // fill the bar — clip_views' red search bar then fills under the clip mask. Gradient/image paints route
+    // through the shared layer applier.
+    void search_bar_platform::update_background(const maui::graphics::paint* value)
+    {
+        if (const auto* const solid = dynamic_cast<const maui::graphics::solid_paint*>(value))
+        {
+            as_search_bar(native).backgroundColor = maui::platform::ios::to_ui_color(solid->color());
+        }
+        else
+        {
+            as_search_bar(native).backgroundColor = nil;
+            maui::platform::ios::apply_background(native, value);
+        }
     }
 
     // ViewHandler.MapClip → WrapperView.SetClip: mask the native view's layer to the clip
