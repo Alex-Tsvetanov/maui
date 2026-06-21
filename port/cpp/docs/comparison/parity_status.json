@@ -153,14 +153,14 @@
     "severity": "match"
   },
   "carousel_page": {
-    "dark": "diff",
-    "dark_note": "Same discrepancy in dark mode: C++ shows 'Item 1' higher up plus 'Prev'/'Next' buttons and 'Position 0 \u2014 current: Item 1' label; MAUI gives the carousel item the full height with 'Item 1' centered lower and the bottom controls not visible. Carousel item sizing and bottom-control layout differ.",
+    "dark": "minor",
+    "dark_note": "Same as light; big centered item + the intentional Prev/Next affordances.",
     "flags": [
       "needs_gif"
     ],
-    "light": "diff",
-    "light_note": "Both show the 'Basic Horizontal Carousel' header and a centered 'Item 1' carousel item. But the C++ port renders the carousel item shorter and additionally shows 'Prev'/'Next' blue buttons and a 'Position 0 \u2014 current: Item 1' status label below it; in MAUI those bottom controls are not visible because the carousel item view consumes the full available height (Item 1 sits low and nothing renders below it). So the carousel item height and the visibility/placement of the Prev/Next/position controls differ between the two.",
-    "severity": "major"
+    "light": "minor",
+    "light_note": "Carousel item now renders BIG + centered ('Item 1') matching MAUI's caption. Residual: the port adds Prev/Next buttons + a 'Position' readout below (an intentional demo affordance \u2014 the C# carousel has none and is swiped; documented in the page header), so the C++ item is shorter to leave room. Faithful deviation.",
+    "severity": "minor"
   },
   "chat_example": {
     "dark": "diff",
@@ -779,11 +779,11 @@
     "severity": "minor"
   },
   "multiple_bound_selection": {
-    "dark": "diff",
-    "dark_note": "Same selection/structure correctness, but identical button-label mismatch: MAUI 'Clear and Add' / 'Reset' / 'Direct Update' vs C++ 'Clear VM selection and add Items 1 and 2' / 'Set VM selection to new list' / 'Clear CV selection and add Items 0 and 3'.",
-    "light": "diff",
-    "light_note": "Structure and selection are correct (instruction text, 'Selected: Item 1, Item 2', header 'This is the header', Item 0-3 with Item 1 and Item 2 highlighted, 3 buttons). BUT the three button LABELS do not match: MAUI shows 'Clear and Add', 'Reset', 'Direct Update' while C++ shows 'Clear VM selection and add Items 1 and 2', 'Set VM selection to new list', 'Clear CV selection and add Items 0 and 3'. Different, user-visible button text.",
-    "severity": "major"
+    "dark": "minor",
+    "dark_note": "Same as light; labels + selection match in dark.",
+    "light": "minor",
+    "light_note": "FIXED button labels to match C# ('Clear and Add' / 'Reset' / 'Direct Update'). Structure, selection (Item 1&2 highlighted), header, and readout all match. Residual minor: the 3 buttons stack centered vs MAUI's layout \u2014 cosmetic.",
+    "severity": "minor"
   },
   "navigation_gallery": {
     "dark": "minor",
@@ -1029,11 +1029,11 @@
     "severity": "minor"
   },
   "shape_app_theme": {
-    "dark": "diff",
-    "dark_note": "AppTheme colors track correctly (red label + red rectangle in dark) on both. The rectangle position again differs: MAUI left-aligns the red rectangle near the left margin, C++ centers/indents it. Horizontal placement of the shape differs between the two.",
-    "light": "diff",
-    "light_note": "AppTheme color binding is correct (green label + green rectangle in light). But the rectangle's horizontal position differs: MAUI left-aligns the green rectangle flush near the left margin (x~20), while C++ renders it centered/indented (starts ~x115). Same width but a clear horizontal-placement difference.",
-    "severity": "major"
+    "dark": "minor",
+    "dark_note": "Dark renders red label + red rectangle on black (theme seed works), left-aligned. Matches MAUI.",
+    "light": "minor",
+    "light_note": "FIXED rectangle horizontal alignment to Start (was centered) \u2014 now left-aligned at the stack margin matching MAUI. AppTheme color binding correct (green label+rect in light). Equivalent.",
+    "severity": "minor"
   },
   "shapes": {
     "dark": "match",

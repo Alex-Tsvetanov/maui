@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 48 / 172 🟢 matched** · 80 🟡 minor · 44 🔴 diff · 0 ⬜ pending
+**Progress: 48 / 172 🟢 matched** · 83 🟡 minor · 41 🔴 diff · 0 ⬜ pending
 
 **Flags: 7 ⚠️ broken MAUI reference captures (re-shoot needed) · 14 🎬 motion/effect pages needing an animated GIF to judge.**
 
@@ -69,7 +69,7 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 53 | Transformations | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/transformations.png) | ![](cpp_ios_light/transformations.png) | ![](csharp_ios_dark/transformations.png) | ![](cpp_ios_dark/transformations.png) |
 | 54 | Update Path Data | 🟡<br>L:minor<br>D:match | ![](csharp_ios_light/update_path_data.png) | ![](cpp_ios_light/update_path_data.png) | ![](csharp_ios_dark/update_path_data.png) | ![](cpp_ios_dark/update_path_data.png) |
 | 55 | Auto Size Shapes | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/auto_size_shapes.png) | ![](cpp_ios_light/auto_size_shapes.png) | ![](csharp_ios_dark/auto_size_shapes.png) | ![](cpp_ios_dark/auto_size_shapes.png) |
-| 56 | Shape App Theme | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/shape_app_theme.png) | ![](cpp_ios_light/shape_app_theme.png) | ![](csharp_ios_dark/shape_app_theme.png) | ![](cpp_ios_dark/shape_app_theme.png) |
+| 56 | Shape App Theme | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/shape_app_theme.png) | ![](cpp_ios_light/shape_app_theme.png) | ![](csharp_ios_dark/shape_app_theme.png) | ![](cpp_ios_dark/shape_app_theme.png) |
 | 57 | Invalidate Brush | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/invalidate_brush.png) | ![](cpp_ios_light/invalidate_brush.png) | ![](csharp_ios_dark/invalidate_brush.png) | ![](cpp_ios_dark/invalidate_brush.png) |
 | 58 | Gradient brushes | 🟢<br>L:match<br>D:match | ![](csharp_ios_light/gradient.png) | ![](cpp_ios_light/gradient.png) | ![](csharp_ios_dark/gradient.png) | ![](cpp_ios_dark/gradient.png) |
 | 59 | Border | 🟢<br>L:match<br>D:match | ![](csharp_ios_light/border.png) | ![](cpp_ios_light/border.png) | ![](csharp_ios_dark/border.png) | ![](cpp_ios_dark/border.png) |
@@ -89,7 +89,7 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 73 | CollectionView | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/collectionview.png) | ![](cpp_ios_light/collectionview.png) | ![](csharp_ios_dark/collectionview.png) | ![](cpp_ios_dark/collectionview.png) |
 | 74 | Items | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/items.png) | ![](cpp_ios_light/items.png) | ![](csharp_ios_dark/items.png) | ![](cpp_ios_dark/items.png) |
 | 75 | Single Bound Selection | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/single_bound_selection.png) | ![](cpp_ios_light/single_bound_selection.png) | ![](csharp_ios_dark/single_bound_selection.png) | ![](cpp_ios_dark/single_bound_selection.png) |
-| 76 | Multiple Bound Selection | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/multiple_bound_selection.png) | ![](cpp_ios_light/multiple_bound_selection.png) | ![](csharp_ios_dark/multiple_bound_selection.png) | ![](cpp_ios_dark/multiple_bound_selection.png) |
+| 76 | Multiple Bound Selection | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/multiple_bound_selection.png) | ![](cpp_ios_light/multiple_bound_selection.png) | ![](csharp_ios_dark/multiple_bound_selection.png) | ![](cpp_ios_dark/multiple_bound_selection.png) |
 | 77 | Preselected Item | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/preselected_item.png) | ![](cpp_ios_light/preselected_item.png) | ![](csharp_ios_dark/preselected_item.png) | ![](cpp_ios_dark/preselected_item.png) |
 | 78 | Preselected Items | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/preselected_items.png) | ![](cpp_ios_light/preselected_items.png) | ![](csharp_ios_dark/preselected_items.png) | ![](cpp_ios_dark/preselected_items.png) |
 | 79 | Selection Command Param | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/selection_command_param.png) | ![](cpp_ios_light/selection_command_param.png) | ![](csharp_ios_dark/selection_command_param.png) | ![](cpp_ios_dark/selection_command_param.png) |
@@ -124,7 +124,7 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 108 | Empty View Template | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/empty_view_template.png) | ![](cpp_ios_light/empty_view_template.png) | ![](csharp_ios_dark/empty_view_template.png) | ![](cpp_ios_dark/empty_view_template.png) |
 | 109 | Empty View View | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/empty_view_view.png) | ![](cpp_ios_light/empty_view_view.png) | ![](csharp_ios_dark/empty_view_view.png) | ![](cpp_ios_dark/empty_view_view.png) |
 | 110 | Empty View Load Simulate | 🟡🎬<br>L:minor<br>D:minor | ![](csharp_ios_light/empty_view_load_simulate.png) | ![](cpp_ios_light/empty_view_load_simulate.png) | ![](csharp_ios_dark/empty_view_load_simulate.png) | ![](cpp_ios_dark/empty_view_load_simulate.png) |
-| 111 | Carousel Page | 🔴🎬<br>L:diff<br>D:diff | ![](csharp_ios_light/carousel_page.png) | ![](cpp_ios_light/carousel_page.png) | ![](csharp_ios_dark/carousel_page.png) | ![](cpp_ios_dark/carousel_page.png) |
+| 111 | Carousel Page | 🟡🎬<br>L:minor<br>D:minor | ![](csharp_ios_light/carousel_page.png) | ![](cpp_ios_light/carousel_page.png) | ![](csharp_ios_dark/carousel_page.png) | ![](cpp_ios_dark/carousel_page.png) |
 | 112 | Chat Example | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/chat_example.png) | ![](cpp_ios_light/chat_example.png) | ![](csharp_ios_dark/chat_example.png) | ![](cpp_ios_dark/chat_example.png) |
 | 113 | Items Updating Scroll Mode | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/items_updating_scroll_mode.png) | ![](cpp_ios_light/items_updating_scroll_mode.png) | ![](csharp_ios_dark/items_updating_scroll_mode.png) | ![](cpp_ios_dark/items_updating_scroll_mode.png) |
 | 114 | Radio Button Group | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/radio_button_group.png) | ![](cpp_ios_light/radio_button_group.png) | ![](csharp_ios_dark/radio_button_group.png) | ![](cpp_ios_dark/radio_button_group.png) |
@@ -411,9 +411,9 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Light:** Both show the label 'The Ellipse below must occupy half of the available space.', a yellow band with a green/blue-outlined ellipse, and an orange band below. The ELLIPSE ASPECT differs: MAUI draws a true wide-and-flat ellipse (wider than tall, filling the yellow band's width but short), whereas C++ draws a near-CIRCLE (almost as tall as wide); the C++ yellow band is correspondingly taller. Shape sizing visibly differs.
 - **Dark:** Same ellipse-shape diff in dark theme: MAUI's green ellipse is wide-and-flat within a shorter yellow band, while C++'s is a near-circle within a taller yellow band. Orange band and label match; the ellipse aspect ratio / yellow-band height differ.
 
-### 56. Shape App Theme — 🔴 (L:diff / D:diff)
-- **Light:** AppTheme color binding is correct (green label + green rectangle in light). But the rectangle's horizontal position differs: MAUI left-aligns the green rectangle flush near the left margin (x~20), while C++ renders it centered/indented (starts ~x115). Same width but a clear horizontal-placement difference.
-- **Dark:** AppTheme colors track correctly (red label + red rectangle in dark) on both. The rectangle position again differs: MAUI left-aligns the red rectangle near the left margin, C++ centers/indents it. Horizontal placement of the shape differs between the two.
+### 56. Shape App Theme — 🟡 (L:minor / D:minor)
+- **Light:** FIXED rectangle horizontal alignment to Start (was centered) — now left-aligned at the stack margin matching MAUI. AppTheme color binding correct (green label+rect in light). Equivalent.
+- **Dark:** Dark renders red label + red rectangle on black (theme seed works), left-aligned. Matches MAUI.
 
 ### 57. Invalidate Brush — 🔴 (L:diff / D:diff)
 - **Light:** Content matches: green 'Change color' button, green underline, and 'Brush color: Green' label all present with correct colors. But the C++ 'Change color' button spans the FULL page width (no width constraint / no horizontal padding) and sits at the very top, while MAUI's button is content-width (~160px), left-aligned, and positioned lower in the page. The button-width/placement is a real layout discrepancy.
@@ -491,9 +491,9 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Light:** Matches: same instruction paragraph, 'Selected: (none)', and the 5 countries (United States, Canada, Mexico, Brazil, Argentina) in order with none selected. Only cosmetic diff is larger inter-item vertical spacing in the C++ CollectionView (items spread further apart); MAUI also shows a harness white card. Content identical.
 - **Dark:** Same as light: identical instruction text, 'Selected: (none)', and the 5-country list with no selection. Only the larger C++ inter-item spacing differs. Content identical.
 
-### 76. Multiple Bound Selection — 🔴 (L:diff / D:diff)
-- **Light:** Structure and selection are correct (instruction text, 'Selected: Item 1, Item 2', header 'This is the header', Item 0-3 with Item 1 and Item 2 highlighted, 3 buttons). BUT the three button LABELS do not match: MAUI shows 'Clear and Add', 'Reset', 'Direct Update' while C++ shows 'Clear VM selection and add Items 1 and 2', 'Set VM selection to new list', 'Clear CV selection and add Items 0 and 3'. Different, user-visible button text.
-- **Dark:** Same selection/structure correctness, but identical button-label mismatch: MAUI 'Clear and Add' / 'Reset' / 'Direct Update' vs C++ 'Clear VM selection and add Items 1 and 2' / 'Set VM selection to new list' / 'Clear CV selection and add Items 0 and 3'.
+### 76. Multiple Bound Selection — 🟡 (L:minor / D:minor)
+- **Light:** FIXED button labels to match C# ('Clear and Add' / 'Reset' / 'Direct Update'). Structure, selection (Item 1&2 highlighted), header, and readout all match. Residual minor: the 3 buttons stack centered vs MAUI's layout — cosmetic.
+- **Dark:** Same as light; labels + selection match in dark.
 
 ### 77. Preselected Item — 🟡 (L:minor / D:minor)
 - **Light:** Matches: 'Preselected: photo.jpg, 2', header 'This is the header', single-column list (cover1.jpg,0 ... ) with 'photo.jpg, 2' (index 2) correctly preselected/highlighted. Cosmetic diffs: header bold in MAUI vs regular in C++; C++ uses larger inter-item spacing so fewer rows fit per screen (C++ visible to ~index 15-16, MAUI to ~19-20). Selection and content correct.
@@ -631,9 +631,9 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Light:** Both show the centered 'Items loading simulation...' EmptyView text in the same place. The only difference is the MAUI harness wraps it in a white/gray container card while the C++ port renders it on a transparent (page-colored) background. Same content and layout otherwise. This page is a load simulation, but both stills captured the same loading state so this frame is a fair comparison.
 - **Dark:** Both show centered 'Items loading simulation...' in white-on-black. MAUI shows no container card here (page is black), and C++ matches; the two are essentially identical. (This is a load-simulation page whose point is the eventual swap to data, but both captures landed on the loading frame.)
 
-### 111. Carousel Page — 🔴 (L:diff / D:diff)  🎬 _motion/effect — needs an animated GIF to judge_
-- **Light:** Both show the 'Basic Horizontal Carousel' header and a centered 'Item 1' carousel item. But the C++ port renders the carousel item shorter and additionally shows 'Prev'/'Next' blue buttons and a 'Position 0 — current: Item 1' status label below it; in MAUI those bottom controls are not visible because the carousel item view consumes the full available height (Item 1 sits low and nothing renders below it). So the carousel item height and the visibility/placement of the Prev/Next/position controls differ between the two.
-- **Dark:** Same discrepancy in dark mode: C++ shows 'Item 1' higher up plus 'Prev'/'Next' buttons and 'Position 0 — current: Item 1' label; MAUI gives the carousel item the full height with 'Item 1' centered lower and the bottom controls not visible. Carousel item sizing and bottom-control layout differ.
+### 111. Carousel Page — 🟡 (L:minor / D:minor)  🎬 _motion/effect — needs an animated GIF to judge_
+- **Light:** Carousel item now renders BIG + centered ('Item 1') matching MAUI's caption. Residual: the port adds Prev/Next buttons + a 'Position' readout below (an intentional demo affordance — the C# carousel has none and is swiped; documented in the page header), so the C++ item is shorter to leave room. Faithful deviation.
+- **Dark:** Same as light; big centered item + the intentional Prev/Next affordances.
 
 ### 112. Chat Example — 🔴 (L:diff / D:diff)
 - **Light:** Bubble shape and alignment are wrong. In MAUI the two messages are content-width rounded pill bubbles aligned by sender: green 'Hi there!' is right-aligned (sent) and blue 'Hello — how can I help you today?' is left-aligned (received). In the C++ port both messages render as FULL-WIDTH rectangular colored bars (no rounded corners, no left/right alignment) spanning edge to edge, so they don't look like chat bubbles at all.

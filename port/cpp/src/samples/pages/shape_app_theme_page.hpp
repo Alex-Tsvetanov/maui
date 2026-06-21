@@ -69,6 +69,7 @@ namespace maui::samples
             // C# Rectangle: HorizontalOptions Start, 200x80, themed Stroke + Fill.
             shape_.set_width_request(200);
             shape_.set_height_request(80);
+            shape_.set_horizontal_layout_alignment(maui::core::layout_alignment::start); // C# HorizontalOptions=Start
             stack_.add(shape_);
 
             page_.set_content(stack_);

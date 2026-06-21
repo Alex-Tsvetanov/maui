@@ -115,11 +115,11 @@ namespace maui::samples
 
             // The three action buttons (C# ClearAndAdd / ResetClicked / DirectUpdateClicked), each driving
             // the matching mutation path so the view selection and the "Selected:" readout stay in lockstep.
-            clear_and_add_btn_.set_text("Clear VM selection and add Items 1 and 2");
+            clear_and_add_btn_.set_text("Clear and Add"); // C# button labels (short)
             clear_and_add_btn_.clicked.connect([this] { clear_and_add(); });
-            reset_btn_.set_text("Set VM selection to new list");
+            reset_btn_.set_text("Reset");
             reset_btn_.clicked.connect([this] { reset_selection(); });
-            direct_update_btn_.set_text("Clear CV selection and add Items 0 and 3");
+            direct_update_btn_.set_text("Direct Update");
             direct_update_btn_.clicked.connect([this] { direct_update(); });
 
             stack_.add(instructions_);
