@@ -56,8 +56,10 @@ namespace maui::samples
             // radio group — picks the readout casing through the attached SelectedValue channel.
             upper_choice_.set_content("UPPER");
             upper_choice_.set_value(std::any{std::string{"upper"}});
+            upper_choice_.set_horizontal_layout_alignment(maui::core::layout_alignment::start); // C# left-aligned
             lower_choice_.set_content("lower");
             lower_choice_.set_value(std::any{std::string{"lower"}});
+            lower_choice_.set_horizontal_layout_alignment(maui::core::layout_alignment::start);
             stack_.add(readout_);
             stack_.add(editor_);
             stack_.add(search_);

@@ -46,6 +46,7 @@
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/bindable_property.hpp"
+#include "maui/core/font.hpp"
 #include "maui/core/property.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/hosting/maui_app.hpp"
@@ -65,6 +66,8 @@ namespace maui::samples
             stack_.set_spacing(12);
 
             heading_.set_text("Triggers");
+            heading_.set_font(
+                maui::core::font::system_font_of_size(32, maui::core::font_weight::bold)); // C# Title style
             instructions_.set_text("Text must be a valid double or it will turn red.");
 
             entry_.set_placeholder("Enter a System.Double");

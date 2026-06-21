@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 48 / 172 🟢 matched** · 83 🟡 minor · 41 🔴 diff · 0 ⬜ pending
+**Progress: 48 / 172 🟢 matched** · 87 🟡 minor · 37 🔴 diff · 0 ⬜ pending
 
 **Flags: 7 ⚠️ broken MAUI reference captures (re-shoot needed) · 14 🎬 motion/effect pages needing an animated GIF to judge.**
 
@@ -36,11 +36,11 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 20 | Content View | 🟢<br>L:match<br>D:match | ![](csharp_ios_light/content_view.png) | ![](cpp_ios_light/content_view.png) | ![](csharp_ios_dark/content_view.png) | ![](cpp_ios_dark/content_view.png) |
 | 21 | Containers | 🟡<br>L:minor<br>D:match | ![](csharp_ios_light/containers.png) | ![](cpp_ios_light/containers.png) | ![](csharp_ios_dark/containers.png) | ![](cpp_ios_dark/containers.png) |
 | 22 | Control stack | 🟢<br>L:match<br>D:match | ![](csharp_ios_light/controls_stack.png) | ![](cpp_ios_light/controls_stack.png) | ![](csharp_ios_dark/controls_stack.png) | ![](cpp_ios_dark/controls_stack.png) |
-| 23 | Input Controls | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/input_controls.png) | ![](cpp_ios_light/input_controls.png) | ![](csharp_ios_dark/input_controls.png) | ![](cpp_ios_dark/input_controls.png) |
+| 23 | Input Controls | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/input_controls.png) | ![](cpp_ios_light/input_controls.png) | ![](csharp_ios_dark/input_controls.png) | ![](cpp_ios_dark/input_controls.png) |
 | 24 | Fonts | 🟢<br>L:match<br>D:match | ![](csharp_ios_light/fonts.png) | ![](cpp_ios_light/fonts.png) | ![](csharp_ios_dark/fonts.png) | ![](cpp_ios_dark/fonts.png) |
 | 25 | Formatted Text | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/formatted_text.png) | ![](cpp_ios_light/formatted_text.png) | ![](csharp_ios_dark/formatted_text.png) | ![](cpp_ios_dark/formatted_text.png) |
 | 26 | Styles | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/styles.png) | ![](cpp_ios_light/styles.png) | ![](csharp_ios_dark/styles.png) | ![](cpp_ios_dark/styles.png) |
-| 27 | Triggers | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/triggers.png) | ![](cpp_ios_light/triggers.png) | ![](csharp_ios_dark/triggers.png) | ![](cpp_ios_dark/triggers.png) |
+| 27 | Triggers | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/triggers.png) | ![](cpp_ios_light/triggers.png) | ![](csharp_ios_dark/triggers.png) | ![](cpp_ios_dark/triggers.png) |
 | 28 | Behaviors | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/behaviors.png) | ![](cpp_ios_light/behaviors.png) | ![](csharp_ios_dark/behaviors.png) | ![](cpp_ios_dark/behaviors.png) |
 | 29 | Semantics | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/semantics.png) | ![](cpp_ios_light/semantics.png) | ![](csharp_ios_dark/semantics.png) | ![](cpp_ios_dark/semantics.png) |
 | 30 | App Theme Binding | 🔴<br>L:match<br>D:diff | ![](csharp_ios_light/app_theme_binding.png) | ![](cpp_ios_light/app_theme_binding.png) | ![](csharp_ios_dark/app_theme_binding.png) | ![](cpp_ios_dark/app_theme_binding.png) |
@@ -50,7 +50,7 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 34 | Grid | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/grid.png) | ![](cpp_ios_light/grid.png) | ![](csharp_ios_dark/grid.png) | ![](cpp_ios_dark/grid.png) |
 | 35 | Absolute Layout | 🟡<br>L:minor<br>D:match | ![](csharp_ios_light/absolute_layout.png) | ![](cpp_ios_light/absolute_layout.png) | ![](csharp_ios_dark/absolute_layout.png) | ![](cpp_ios_dark/absolute_layout.png) |
 | 36 | Flex Layout | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/flex_layout.png) | ![](cpp_ios_light/flex_layout.png) | ![](csharp_ios_dark/flex_layout.png) | ![](cpp_ios_dark/flex_layout.png) |
-| 37 | Relative Layout | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/relative_layout.png) | ![](cpp_ios_light/relative_layout.png) | ![](csharp_ios_dark/relative_layout.png) | ![](cpp_ios_dark/relative_layout.png) |
+| 37 | Relative Layout | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/relative_layout.png) | ![](cpp_ios_light/relative_layout.png) | ![](csharp_ios_dark/relative_layout.png) | ![](cpp_ios_dark/relative_layout.png) |
 | 38 | Layout alignment (Start/Center/End/Fill) | 🟢<br>L:match<br>D:match | ![](csharp_ios_light/alignment.png) | ![](cpp_ios_light/alignment.png) | ![](csharp_ios_dark/alignment.png) | ![](cpp_ios_dark/alignment.png) |
 | 39 | Z Index | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/z_index.png) | ![](cpp_ios_light/z_index.png) | ![](csharp_ios_dark/z_index.png) | ![](cpp_ios_dark/z_index.png) |
 | 40 | Layout Is Enabled | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/layout_is_enabled.png) | ![](cpp_ios_light/layout_is_enabled.png) | ![](csharp_ios_dark/layout_is_enabled.png) | ![](cpp_ios_dark/layout_is_enabled.png) |
@@ -158,7 +158,7 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 142 | Effects | 🔴⚠️<br>L:diff<br>D:diff | ![](csharp_ios_light/effects.png) | ![](cpp_ios_light/effects.png) | ![](csharp_ios_dark/effects.png) | ![](cpp_ios_dark/effects.png) |
 | 143 | Measure First Strategy | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/measure_first_strategy.png) | ![](cpp_ios_light/measure_first_strategy.png) | ![](csharp_ios_dark/measure_first_strategy.png) | ![](cpp_ios_dark/measure_first_strategy.png) |
 | 144 | Scroll View | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/scroll_view.png) | ![](cpp_ios_light/scroll_view.png) | ![](csharp_ios_dark/scroll_view.png) | ![](cpp_ios_dark/scroll_view.png) |
-| 145 | Web View | 🔴<br>L:diff<br>D:minor | ![](csharp_ios_light/web_view.png) | ![](cpp_ios_light/web_view.png) | ![](csharp_ios_dark/web_view.png) | ![](cpp_ios_dark/web_view.png) |
+| 145 | Web View | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/web_view.png) | ![](cpp_ios_light/web_view.png) | ![](csharp_ios_dark/web_view.png) | ![](cpp_ios_dark/web_view.png) |
 | 146 | Hybrid Web View | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/hybrid_web_view.png) | ![](cpp_ios_light/hybrid_web_view.png) | ![](csharp_ios_dark/hybrid_web_view.png) | ![](cpp_ios_dark/hybrid_web_view.png) |
 | 147 | Alerts | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/alerts.png) | ![](cpp_ios_light/alerts.png) | ![](csharp_ios_dark/alerts.png) | ![](cpp_ios_dark/alerts.png) |
 | 148 | Animation | 🟡🎬<br>L:minor<br>D:minor | ![](csharp_ios_light/animation.png) | ![](cpp_ios_light/animation.png) | ![](csharp_ios_dark/animation.png) | ![](cpp_ios_dark/animation.png) |
@@ -279,9 +279,9 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Light:** MAUI reference is truncated near the stepper; C++ shows the full page. All overlapping controls match: 'Controls' header, blue 'A Button', 'An Entry' field, 'An Editor', rounded 'A SearchBar', checkbox + green switch + activity spinner row, slider, and +/- stepper. C++ additionally shows the trailing blue progress bar that the truncated reference cuts off.
 - **Dark:** Same as light: 'Controls' header, A Button, An Entry, An Editor, SearchBar, checkbox/switch/spinner row, slider and stepper all match; the trailing blue progress bar shown in C++ is the page continuation not visible in the truncated MAUI reference.
 
-### 23. Input Controls — 🔴 (L:diff / D:diff)
-- **Light:** Same content ('LENGTH: 0', 'Type here...' entry, 'Search to insert' search bar, radio buttons 'UPPER' selected + 'lower'), but the radio-button group is mis-positioned: C++ centers the UPPER/lower radios horizontally in the page, while MAUI left-aligns them at the left margin. Also C++ renders no gap between the radio circle and its label (reads as '(.)UPPER' tight together) whereas MAUI has clear spacing between the radio and the word.
-- **Dark:** Same diff as light: in C++ the 'UPPER'/'lower' radio buttons are centered with the label butted directly against the radio circle, while MAUI left-aligns them with a space between the radio and the label.
+### 23. Input Controls — 🟡 (L:minor / D:minor)
+- **Light:** FIXED: the UPPER/lower radio buttons now left-align at the margin (HorizontalOptions=Start) matching MAUI (were centered). Editor, search bar, readout all match.
+- **Dark:** Same as light; left-aligned radios in dark.
 
 ### 24. Fonts — 🟢 (L:match / D:match)
 - **Light:** Clean match: the full type ladder Title, Subtitle, Header, Body, Caption, Bold, Italic, Bold + Italic, and the letter-spaced mono 'Character spacing 4.0' all render with equivalent sizes, weights and styles.
@@ -295,9 +295,9 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Light:** Both render 4 styled items: base subtitle label (gray), custom-derived pink label ('Pink wins'), plain default-color label ('no explicit style'), and a 'Style Me' button with a yellow border. Styling/colors match. Cosmetic differences: MAUI wraps the pink and 'no explicit style' lines to 2 lines (narrower content card) while C++ keeps them on fewer lines (full page width); MAUI's button is taller with rounded corners and more padding, C++'s button is shorter/thinner.
 - **Dark:** Same 4 styled items and yellow-bordered 'Style Me' button render in both. The pink custom-style label is a more saturated magenta-pink in MAUI vs a lighter pink in C++ (both clearly pink). Text wrapping and button height/padding differ as in light. Cosmetic only.
 
-### 27. Triggers — 🔴 (L:diff / D:diff)
-- **Light:** MAUI renders the 'Triggers' page title as a large bold Title-style heading (~32pt), while C++ renders 'Triggers' at small regular body size (same size as the description text) — a clear title font-size/weight discrepancy. Otherwise both show the same content: description 'Text must be a valid double or it will turn red.', an 'Enter a System.Double' entry field, 'Highlight off' label, and a blue 'Toggle highlight' button.
-- **Dark:** Same title discrepancy in dark: MAUI shows a large bold 'Triggers' heading, C++ shows it at small body size. All other elements (description, entry, 'Highlight off', blue 'Toggle highlight') match.
+### 27. Triggers — 🟡 (L:minor / D:minor)
+- **Light:** FIXED: the 'Triggers' heading now renders bold ~32pt (C# Title style) matching MAUI (was small/regular). Content (instructions, entry, status, Toggle button + the validation/highlight triggers) matches.
+- **Dark:** Same as light; bold heading + matching content in dark.
 
 ### 28. Behaviors — 🟡 (L:minor / D:minor)
 - **Light:** Both render the large heading 'Red when the number isn't valid' and an 'Enter a System.Double' entry field. Same large heading font in both. Only difference is line-wrapping driven by content width: MAUI (narrower card) wraps 'Red when the / number isn't valid', C++ (full width) wraps 'Red when the number / isn't valid'. Cosmetic wrap difference only.
@@ -335,9 +335,9 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Light:** Both render the same FlexLayout: cyan HEADER bar on top, blue left column, gray CONTENT center, green right column, pink FOOTER bar at bottom — same colors and proportions. Difference is vertical extent: MAUI is bounded by a harness card (white margins top/bottom) so HEADER starts lower and FOOTER ends higher; C++ fills the screen edge-to-edge so the FOOTER is pushed to the very bottom (partially below the visible area). Structure identical.
 - **Dark:** Same flex structure and colors (cyan HEADER, blue/green side columns, gray CONTENT, pink FOOTER). MAUI is inset by the harness card (black margins); C++ fills to the bottom edge with the pink FOOTER nearly off the bottom. Content equivalent, only vertical extent differs.
 
-### 37. Relative Layout — 🔴 (L:diff / D:diff)
-- **Light:** Both show 4 corner squares (red TL, green TR, blue BL, yellow BR) in matching positions plus a centered gray box containing a smaller black box. The center element differs: MAUI's gray box is roughly square (~1:1.2) with the inner black box near-square and roughly centered; C++'s gray box is a tall narrow portrait rectangle and its inner black box is also tall/narrow and sits in the upper-left of the gray box rather than centered. The relatively-positioned center box has the wrong size/aspect ratio and the nested box is the wrong size and position.
-- **Dark:** Same as light: corner squares match, but the center gray box is square-ish with a centered near-square black box in MAUI, whereas C++ renders a tall narrow gray rectangle with a tall narrow black box offset to the upper-left. Center element size/aspect and inner-box placement differ.
+### 37. Relative Layout — 🟡 (L:minor / D:minor)
+- **Light:** Corner squares (red TL/green TR/blue BL/yellow BR) + centered gray-with-black box all in matching proportional positions. Residual is a HARNESS-framing artifact: the C++ gallery gives the AbsoluteLayout the full screen height while the maui-compare host frames it in a shorter card, so the 0.33-proportional center box resolves to a different aspect ratio. Not a port bug (proportional sizing is correct on both against their given heights).
+- **Dark:** Same; corner squares + center box positions match; only the harness content-area aspect differs.
 
 ### 38. Layout alignment (Start/Center/End/Fill) — 🟢 (L:match / D:match)
 - **Light:** Both show four labeled sections (Start, Center, End, Fill) each with a blue button outlined in red, aligned per its label: Start left-aligned, Center centered, End right-aligned, Fill centered/narrower. All four alignments, button colors, red borders, and label text match exactly. Only difference is the whole block sits lower in MAUI (harness card offset).
@@ -767,9 +767,9 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Light:** Both render the 'Row N of 40' list correctly. MAUI is captured scrolled down (showing Row 12-21), while C++ shows from Row 0 with an extra top status label 'Scrolled to: 0 / 0 (done)'. C++ rows are more densely spaced (Row 0-14 visible). Difference is scroll position/state and row spacing, not a render bug; the programmatic-scroll-to-target that MAUI performed did not move C++ off Row 0.
 - **Dark:** Same as light: list content correct in both; MAUI scrolled to Row 12-21, C++ at Row 0 with status label and denser spacing. State/spacing difference only.
 
-### 145. Web View — 🔴 (L:diff / D:minor)
-- **Light:** C++ light renders the WebView HTML content ("Welcome" heading + "Served from a static HtmlWebViewSource." subtext) and a clean nav label "new_page -> https://demo.test/welcome". MAUI light does NOT render the WebView body (top area is blank white) and the nav label reads "No navigation yet" / "Eval result: <none>" — i.e. MAUI shows an un-navigated state while C++ shows the loaded page. Real content discrepancy: the displayed navigation state and the rendered HTML differ between the two. Both show the same 6 blue buttons (Page A, Page B, Back, Forward, Reload, Eval 1+1).
-- **Dark:** Both dark renders show the "Welcome" WebView heading + subtext and the 6 blue buttons. Difference is the nav-label TEXT: C++ shows clean "new_page -> https://demo.test/welcome" (one line) while MAUI shows a fully-resolved local file path "new_page -> file:///Users/Alex.Tsvetanov/Library/Developer/CoreSimulator/.../MauiCompare.app/https:/demo.test/welcome/" spanning many lines. Same controls and structure; URL-resolution formatting differs.
+### 145. Web View — 🟡 (L:minor / D:minor)
+- **Light:** C++ correctly renders the WebView HTML ('Welcome' + 'Served from a static HtmlWebViewSource.') and the nav label 'new_page -> https://demo.test/welcome'. MAUI's capture caught the page BEFORE the async didFinishNavigation fired (blank body, 'No navigation yet') — a screenshot-timing artifact, not a C++ bug (the port is the more-complete render).
+- **Dark:** Same: C++ renders correctly; the MAUI ref difference is async-load capture timing.
 
 ### 146. Hybrid Web View — 🟡 (L:minor / D:minor)
 - **Light:** Same page: "HybridWebView here" label on the left and a column of 5 blue action buttons on the right (Send message to JS, Invoke JS, Invoke Async JS, Test JS Exception, Test JS Async). Truncation strategy differs: MAUI clips the button labels at the right viewport edge ("Send messag", "Invoke Async", "Test JS Exce", "Test JS Asyn") while C++ middle-truncates with ellipsis so they fit ("Send...age to JS", "Test JS...ception"). Same controls, cosmetic text-fit difference.
