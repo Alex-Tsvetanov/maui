@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 48 / 172 🟢 matched** · 99 🟡 minor · 25 🔴 diff · 0 ⬜ pending
+**Progress: 48 / 172 🟢 matched** · 100 🟡 minor · 24 🔴 diff · 0 ⬜ pending
 
 **Flags: 9 ⚠️ broken MAUI reference captures (re-shoot needed) · 14 🎬 motion/effect pages needing an animated GIF to judge.**
 
@@ -109,7 +109,7 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 93 | Switch Grouping | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/switch_grouping.png) | ![](cpp_ios_light/switch_grouping.png) | ![](csharp_ios_dark/switch_grouping.png) | ![](cpp_ios_dark/switch_grouping.png) |
 | 94 | Some Empty Groups | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/some_empty_groups.png) | ![](cpp_ios_light/some_empty_groups.png) | ![](csharp_ios_dark/some_empty_groups.png) | ![](cpp_ios_dark/some_empty_groups.png) |
 | 95 | Scroll To Group | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/scroll_to_group.png) | ![](cpp_ios_light/scroll_to_group.png) | ![](csharp_ios_dark/scroll_to_group.png) | ![](cpp_ios_dark/scroll_to_group.png) |
-| 96 | Scroll Mode Test | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/scroll_mode_test.png) | ![](cpp_ios_light/scroll_mode_test.png) | ![](csharp_ios_dark/scroll_mode_test.png) | ![](cpp_ios_dark/scroll_mode_test.png) |
+| 96 | Scroll Mode Test | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/scroll_mode_test.png) | ![](cpp_ios_light/scroll_mode_test.png) | ![](csharp_ios_dark/scroll_mode_test.png) | ![](cpp_ios_dark/scroll_mode_test.png) |
 | 97 | Adaptive Collection | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/adaptive_collection.png) | ![](cpp_ios_light/adaptive_collection.png) | ![](csharp_ios_dark/adaptive_collection.png) | ![](cpp_ios_dark/adaptive_collection.png) |
 | 98 | Staggered Layout | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/staggered_layout.png) | ![](cpp_ios_light/staggered_layout.png) | ![](csharp_ios_dark/staggered_layout.png) | ![](cpp_ios_dark/staggered_layout.png) |
 | 99 | Varied Size Selector | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/varied_size_selector.png) | ![](cpp_ios_light/varied_size_selector.png) | ![](csharp_ios_dark/varied_size_selector.png) | ![](cpp_ios_dark/varied_size_selector.png) |
@@ -571,9 +571,9 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Light:** Both render the full form: 'Group:'/'Item:' entries pre-filled '0', a blue 'Go', 'Group Name:'/'Item Name:' entries (empty), a second blue 'Go', the 'No scroll requested yet' status, and the grouped list below starting at green 'Avengers'. All controls and text present and correctly placed. Only difference is C++'s taller row spacing in the list (MAUI reaches 'Black Widow', C++ reaches 'Mockingbird' but with far more whitespace per row).
 - **Dark:** Same as light: all form controls (two entries pre-set to 0, two empty name entries, two Go buttons, status text) and the grouped list render correctly and in the right positions; only difference is C++'s taller list row spacing.
 
-### 96. Scroll Mode Test — 🔴 (L:diff / D:diff)
-- **Light:** Both render the same controls ('ItemsUpdatingScrollMode:' label, 'Scroll To Middle', 'Add Item Above', 'Add Item Below', 'Add Item To End' buttons, 'Mode: KeepItemsInView · Items: 20', then the image-name list cover1.jpg,0 / oasis.jpg,1 ...). Real diff: in C++ the picker value to the right of the label is rendered TWICE — it shows 'KeepItemsInView  KeepS...' (a second copy that runs off the right edge), whereas MAUI shows a single 'KeepItemsInView'. C++ list rows are also noticeably taller-spaced.
-- **Dark:** Same as light: controls and list content match, but the picker value is duplicated in C++ ('KeepItemsInView' followed by a second truncated 'KeepS...' off the right edge) vs MAUI's single 'KeepItemsInView'; C++ also uses taller list row spacing.
+### 96. Scroll Mode Test — 🟡 (L:minor / D:minor)
+- **Light:** FIXED: the ItemsUpdatingScrollMode selector now renders as a single Picker showing the current value ('KeepItemsInView'), matching MAUI's EnumSelector (caption + picker) — was three side-by-side mode buttons that overflowed the row ('KeepItemsInView  KeepS…'). Residual minor: the port's picker shows the value in a RoundedRect-bordered black field, vs MAUI's borderless blue picker text.
+- **Dark:** Same as light — single picker value (was overflowing buttons). Residual minor: picker border/text-color style vs MAUI's borderless picker.
 
 ### 97. Adaptive Collection — 🟡 (L:minor / D:minor)
 - **Light:** Both show 'Layout: Linear (single column)' header and Item 1..8. In MAUI each 'Item N' label is horizontally CENTERED with large vertical spacing; in C++ each item is LEFT-aligned and tightly spaced (all 8 visible at once). Same content & structure, only item alignment + row spacing differ. MAUI also wraps content in the harness white card; C++ fills the screen.

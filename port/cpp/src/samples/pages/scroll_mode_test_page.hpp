@@ -28,9 +28,10 @@
 //     (DemoFilteredItemSource.Items), seeded with 20 items cycling the demo image-name captions;
 //   - the PhotoTemplate stand-in is a Label bound to test_item.caption (note: the C# PhotoTemplate is an
 //     image + caption Grid; the headless sim measures the displayable caption text);
-//   - set_items_updating_scroll_mode wires the mode; the EnumSelector is replaced by three explicit mode
-//     buttons (KeepItemsInView / KeepScrollOffset / KeepLastItemInView), since there is no headless-safe
-//     EnumPicker/EnumSelector control on the surface (note:) — same get/set of ItemsUpdatingScrollMode;
+//   - set_items_updating_scroll_mode wires the mode; the EnumSelector is a caption Label + a Picker over the
+//     three ItemsUpdatingScrollMode values (KeepItemsInView / KeepScrollOffset / KeepLastItemInView) whose
+//     SelectedIndexChanged gets/sets ItemsUpdatingScrollMode — the faithful EnumSelector<T> shape (a single
+//     value shown, matching MAUI, rather than three side-by-side buttons that overflow the row);
 //   - scroll_to_middle()/add_item_above()/add_item_below()/add_item_to_end() reproduce the four C# handlers
 //     verbatim (ScrollTo with Start/no-animate; the two positional Inserts; the Add). The ScrollTo request
 //     is observed through the collection_view's scroll_to_requested event into a readout (the
@@ -53,6 +54,8 @@
 #include "maui/controls/items/linear_items_layout.hpp"
 #include "maui/controls/items/scroll_to_request_event_args.hpp"
 #include "maui/controls/label.hpp"
+#include "maui/controls/observable_collection.hpp"
+#include "maui/controls/picker.hpp"
 #include "maui/controls/scroll_to_position.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
@@ -78,23 +81,20 @@ namespace maui::samples
             page_.set_title("ScrollModeTest Gallery");
             root_.set_spacing(8);
 
-            // ---- the EnumSelector stand-in: caption + three mode buttons (gets/sets
-            // ItemsUpdatingScrollMode — note) ----
+            // ---- the EnumSelector: caption + a Picker over the three ItemsUpdatingScrollMode values
+            // (the C# code-behind adds an EnumSelector<ItemsUpdatingScrollMode> = a Label + a Picker that
+            // gets/sets _collectionView.ItemsUpdatingScrollMode). The Picker's SelectedIndexChanged drives
+            // set_mode; index 0 (KeepItemsInView) is the initial selection. ----
             mode_caption_.set_text("ItemsUpdatingScrollMode:");
-            keep_items_button_.set_text("KeepItemsInView");
-            keep_offset_button_.set_text("KeepScrollOffset");
-            keep_last_button_.set_text("KeepLastItemInView");
-            keep_items_button_.clicked.connect(
-                [this] { set_mode(maui::controls::items_updating_scroll_mode::keep_items_in_view); });
-            keep_offset_button_.clicked.connect(
-                [this] { set_mode(maui::controls::items_updating_scroll_mode::keep_scroll_offset); });
-            keep_last_button_.clicked.connect(
-                [this] { set_mode(maui::controls::items_updating_scroll_mode::keep_last_item_in_view); });
+            mode_items_->add("KeepItemsInView");
+            mode_items_->add("KeepScrollOffset");
+            mode_items_->add("KeepLastItemInView");
+            mode_picker_.set_items_source(mode_items_);
+            mode_picker_.set_selected_index(0); // KeepItemsInView (the default mode_)
+            mode_picker_.selected_index_changed.connect([this] { on_mode_picked(); });
             mode_bar_.set_spacing(8);
             mode_bar_.add(mode_caption_);
-            mode_bar_.add(keep_items_button_);
-            mode_bar_.add(keep_offset_button_);
-            mode_bar_.add(keep_last_button_);
+            mode_bar_.add(mode_picker_);
 
             // ---- rows 1–4: the four action buttons (verbatim C# AutomationId text) ----
             scroll_to_middle_.set_text("Scroll To Middle");
@@ -146,9 +146,7 @@ namespace maui::samples
         {
             // mode bar leaves
             gallery_attach_one(app, mode_caption_, "mode_caption_");
-            gallery_attach_one(app, keep_items_button_, "keep_items_button_");
-            gallery_attach_one(app, keep_offset_button_, "keep_offset_button_");
-            gallery_attach_one(app, keep_last_button_, "keep_last_button_");
+            gallery_attach_one(app, mode_picker_, "mode_picker_");
             gallery_attach_one(app, mode_bar_, "mode_bar_");
             // remaining root children + the root + page
             gallery_attach_one(app, scroll_to_middle_, "scroll_to_middle_");
@@ -283,6 +281,23 @@ namespace maui::samples
             return "KeepItemsInView";
         }
 
+        // The Picker's SelectedIndexChanged (the EnumSelector setter): map the chosen row to the mode.
+        void on_mode_picked()
+        {
+            switch (mode_picker_.selected_index())
+            {
+                case 1:
+                    set_mode(maui::controls::items_updating_scroll_mode::keep_scroll_offset);
+                    break;
+                case 2:
+                    set_mode(maui::controls::items_updating_scroll_mode::keep_last_item_in_view);
+                    break;
+                default:
+                    set_mode(maui::controls::items_updating_scroll_mode::keep_items_in_view);
+                    break;
+            }
+        }
+
         void update_readout()
         {
             readout_.set_text(std::string{"Mode: "} + mode_name(mode_) +
@@ -296,9 +311,12 @@ namespace maui::samples
         maui::controls::vertical_stack_layout root_;
         maui::controls::horizontal_stack_layout mode_bar_;
         maui::controls::label mode_caption_;
-        maui::controls::button keep_items_button_;
-        maui::controls::button keep_offset_button_;
-        maui::controls::button keep_last_button_;
+        // The EnumSelector's Picker over the three ItemsUpdatingScrollMode values + its backing list
+        // (the picker tracks a maui::controls::observable_collection<std::string>, distinct from the
+        // maui::core::observable_collection the collection_view items use).
+        std::shared_ptr<maui::controls::observable_collection<std::string>> mode_items_ =
+            std::make_shared<maui::controls::observable_collection<std::string>>();
+        maui::controls::picker mode_picker_;
         maui::controls::button scroll_to_middle_;
         maui::controls::button add_above_;
         maui::controls::button add_below_;

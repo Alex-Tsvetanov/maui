@@ -979,11 +979,11 @@
     "severity": "minor"
   },
   "scroll_mode_test": {
-    "dark": "diff",
-    "dark_note": "Same as light: controls and list content match, but the picker value is duplicated in C++ ('KeepItemsInView' followed by a second truncated 'KeepS...' off the right edge) vs MAUI's single 'KeepItemsInView'; C++ also uses taller list row spacing.",
-    "light": "diff",
-    "light_note": "Both render the same controls ('ItemsUpdatingScrollMode:' label, 'Scroll To Middle', 'Add Item Above', 'Add Item Below', 'Add Item To End' buttons, 'Mode: KeepItemsInView \u00b7 Items: 20', then the image-name list cover1.jpg,0 / oasis.jpg,1 ...). Real diff: in C++ the picker value to the right of the label is rendered TWICE \u2014 it shows 'KeepItemsInView  KeepS...' (a second copy that runs off the right edge), whereas MAUI shows a single 'KeepItemsInView'. C++ list rows are also noticeably taller-spaced.",
-    "severity": "major"
+    "dark": "minor",
+    "dark_note": "Same as light \u2014 single picker value (was overflowing buttons). Residual minor: picker border/text-color style vs MAUI's borderless picker.",
+    "light": "minor",
+    "light_note": "FIXED: the ItemsUpdatingScrollMode selector now renders as a single Picker showing the current value ('KeepItemsInView'), matching MAUI's EnumSelector (caption + picker) \u2014 was three side-by-side mode buttons that overflowed the row ('KeepItemsInView  KeepS\u2026'). Residual minor: the port's picker shows the value in a RoundedRect-bordered black field, vs MAUI's borderless blue picker text.",
+    "severity": "minor"
   },
   "scroll_to_group": {
     "dark": "minor",
