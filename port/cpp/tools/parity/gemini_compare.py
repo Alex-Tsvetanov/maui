@@ -36,7 +36,10 @@ EXIT_ERROR = 1        # hard failure (bad response, repeated 5xx, parse error)
 EXIT_MISSING = 2      # one or more input images missing
 EXIT_QUOTA = 75       # quota / rate limit hit -> caller should fall back to Claude vision
 
-DEFAULT_MODEL = "gemini-flash-latest"
+# Default for single-page calls: a full-flash model (reliable bucketing). NOT gemini-flash-latest —
+# that resolves to gemini-3.5-flash, capped at only 20 requests/day. For batch sweeps run_parity.py
+# drives a quota-aware cascade (premium full-flash first, then the 500-RPD gemini-3.1-flash-lite).
+DEFAULT_MODEL = "gemini-2.5-flash"
 DEFAULT_CMP_ROOT = os.path.normpath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "docs", "comparison")
 )
@@ -178,8 +181,13 @@ def call_gemini(model: str, api_key: str, parts: list, timeout: int, retries: in
             if e.code == 429 or "RESOURCE_EXHAUSTED" in detail:
                 log(f"QUOTA: Gemini returned {e.code} RESOURCE_EXHAUSTED -> caller should fall back.\n{detail[:400]}")
                 sys.exit(EXIT_QUOTA)
+            if e.code == 404:
+                # Model name not available to this key/version — rotate to the next cascade model
+                # (same caller action as quota) so one bad ID can't kill the whole sweep.
+                log(f"MODEL UNAVAILABLE: Gemini returned 404 (model not found) -> caller should rotate to next model.\n{detail[:200]}")
+                sys.exit(EXIT_QUOTA)
             last_err = f"HTTP {e.code}: {detail[:400]}"
-            # 5xx: transient — retry with backoff. 4xx (other than 429): fatal.
+            # 5xx: transient — retry with backoff. 4xx (other than 429/404): fatal.
             if 500 <= e.code < 600 and attempt < retries:
                 wait = 2 ** attempt
                 log(f"{last_err}\n  transient; retrying in {wait}s ({attempt + 1}/{retries})")
@@ -241,6 +249,7 @@ def main() -> None:
         "dark_note": verdict.get("dark_note", ""),
         "maui_quirks": verdict.get("maui_quirks", []),
         "port_diffs": verdict.get("port_diffs", []),
+        "model": args.model,  # which model produced this verdict (for the review / trust weighting)
     }
     print(json.dumps(out))
 

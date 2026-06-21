@@ -46,6 +46,31 @@ EXIT_MISSING = 2
 
 SEV_RANK = {"match": 0, "minor": 1, "diff": 2, "cpp_blank": 3, "cs_blank": 3}
 
+# Quota-aware model cascade (model:rpm), best-quality-first. Each full-flash model has only ~20 RPD,
+# so they're spent first (best bucketing on the early pages), then the 500-RPD gemini-3.1-flash-lite
+# carries the bulk, then 2.5-flash-lite. On a model's quota (HTTP 429) the driver rotates to the next
+# model and RETRIES the page; only when ALL are exhausted does it fall back to Claude. rpm sets the
+# inter-call pace (60/rpm). Override with --models "m1:rpm1,m2:rpm2,...".
+# NOTE: every entry must be a REAL API model id (verify via the ListModels endpoint). 'gemini-3-flash'
+# (no -preview suffix) returns 404 and previously killed the sweep — rotate-on-404 now guards that, but the
+# cascade is kept to ids confirmed present for this key. gemini-3.1-flash-lite is the 500-RPD workhorse that
+# clears a full 172-page sweep; the 20-RPD premiums precede it (best bucketing first) and 429→rotate.
+DEFAULT_CASCADE = "gemini-3.5-flash:5,gemini-2.5-flash:5,gemini-3.1-flash-lite:15,gemini-2.5-flash-lite:10,gemini-2.0-flash-lite:30"
+
+
+def parse_cascade(spec: str) -> list[tuple[str, float]]:
+    out = []
+    for part in spec.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if ":" in part:
+            name, rpm = part.rsplit(":", 1)
+            out.append((name.strip(), float(rpm)))
+        else:
+            out.append((part, 5.0))  # assume conservative 5 RPM if unspecified
+    return out
+
 
 def log(msg: str) -> None:
     print(msg, file=sys.stderr, flush=True)
@@ -107,14 +132,19 @@ def main() -> None:
     ap.add_argument("--root", default=CMP_ROOT)
     ap.add_argument("--status", default=STATUS_PATH, help="parity_status.json (only touched with --commit-board)")
     ap.add_argument("--review", default=REVIEW_PATH, help="review JSON output (verdicts + buckets)")
-    ap.add_argument("--model", default=None, help="override $GEMINI_MODEL")
+    ap.add_argument("--model", default=None,
+                    help="use ONLY this model (disables the cascade); e.g. gemini-3.1-flash-lite")
+    ap.add_argument("--models", default=DEFAULT_CASCADE,
+                    help='quota-aware cascade "m1:rpm1,m2:rpm2,..." (best-first); ignored if --model is set')
     ap.add_argument("--commit-board", action="store_true",
                     help="ALSO merge light/dark verdicts into parity_status.json (default: review-only, non-destructive)")
     ap.add_argument("--gen-readme", action="store_true", help="with --commit-board, also regenerate README.md")
     ap.add_argument("--limit", type=int, default=0, help="cap number of pages (0 = no cap)")
     ap.add_argument("--delay", type=float, default=0.0,
-                    help="seconds to sleep between pages (use ~5 for full sweeps to stay under the free-tier RPM)")
+                    help="minimum seconds between calls (in addition to the per-model 60/rpm pace)")
     args = ap.parse_args()
+
+    cascade = [(args.model, 15.0)] if args.model else parse_cascade(args.models)
 
     status = load_status(args.status)
     if args.all:
@@ -127,20 +157,40 @@ def main() -> None:
         keys = keys[: args.limit]
 
     log(f"Gemini parity sweep: {len(keys)} page(s)  ({'COMMIT to board' if args.commit_board else 'review-only'})")
+    log("  cascade: " + " -> ".join(f"{m}({int(r)}rpm)" for m, r in cascade))
     verdicts, judged, errored, missing, fallback = [], [], [], [], []
     quota_hit = False
+    mi = 0          # index into the cascade of the model currently in use
+    last_call = 0.0  # time.monotonic() of the previous API call, for pacing
 
     for i, key in enumerate(keys):
-        if args.delay and i:
-            time.sleep(args.delay)
-        rc, verdict = run_one(key, args.root, args.model)
+        rc, verdict = None, None
+        # Try the current model; on quota, rotate to the next model and retry the SAME page.
+        while mi < len(cascade):
+            model, rpm = cascade[mi]
+            interval = max(args.delay, (60.0 / rpm * 1.05) if rpm > 0 else 0.0)
+            wait = interval - (time.monotonic() - last_call)
+            if last_call and wait > 0:
+                time.sleep(wait)
+            rc, verdict = run_one(key, args.root, model)
+            last_call = time.monotonic()
+            if rc == EXIT_QUOTA:
+                log(f"  {model} quota exhausted -> cascading to next model")
+                mi += 1
+                continue
+            break
+        if mi >= len(cascade):
+            quota_hit = True
+            fallback = keys[i:]  # all models spent: this page + the rest -> Claude fallback
+            log(f"  ALL Gemini models exhausted at '{key}' -> {len(fallback)} page(s) to Claude fallback")
+            break
         if rc == 0 and verdict:
             verdict["severity"] = severity_of(verdict["light"], verdict["dark"])
             verdicts.append(verdict)
             judged.append(key)
             nq, nd = len(verdict.get("maui_quirks", [])), len(verdict.get("port_diffs", []))
             log(f"  [{i + 1}/{len(keys)}] {key}: L={verdict['light']} D={verdict['dark']} "
-                f"(maui_quirks={nq} port_diffs={nd})")
+                f"(quirks={nq} diffs={nd}) [{verdict.get('model', cascade[mi][0])}]")
             if args.commit_board:
                 entry = status.get(key, {})
                 entry.update({
@@ -149,11 +199,6 @@ def main() -> None:
                     "severity": verdict["severity"],
                 })
                 status[key] = entry
-        elif rc == EXIT_QUOTA:
-            quota_hit = True
-            fallback = keys[i:]  # this page + everything not yet judged -> Claude fallback
-            log(f"  QUOTA hit at '{key}' -> {len(fallback)} page(s) deferred to Claude fallback")
-            break
         elif rc == EXIT_MISSING:
             missing.append(key)
         else:
