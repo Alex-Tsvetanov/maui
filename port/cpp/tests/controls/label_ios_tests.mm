@@ -18,6 +18,7 @@
 #include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
+#include "maui/graphics/colors.hpp"
 #include "maui/graphics/size.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include <gtest/gtest.h>
@@ -96,6 +97,39 @@ namespace
 
         control.set_horizontal_text_alignment(text_alignment::center);
         EXPECT_EQ(view.textAlignment, NSTextAlignmentCenter);
+    }
+
+    // UpdateTextColor's null-vs-set discriminator (the chat_example dark-mode bubble bug). An UNSTYLED
+    // label has no explicit TextColor → C# null → the adaptive UIColor.labelColor (black in light, white
+    // in dark). An EXPLICIT TextColor=Black must reach the UILabel as a CONCRETE opaque black, not the
+    // dynamic default — even though the port's default-constructed color{} already equals opaque black.
+    // The handler keys off is_property_set (BindableObject.IsSet), so explicit black is NOT mistaken for
+    // unset (which would render white in dark mode). labelColor is a dynamic catalog color, so it is never
+    // -isEqual: to the concrete blackColor regardless of the simulator's current appearance.
+    TEST(ios_label_seam, explicit_black_text_color_beats_the_dynamic_default)
+    {
+        // Unset → the adaptive system label color.
+        label unset_control;
+        auto unset_handler = std::make_shared<label_handler>();
+        unset_control.set_handler(unset_handler);
+        EXPECT_TRUE([native_label(unset_handler).textColor isEqual:UIColor.labelColor]);
+
+        // Explicit black → a concrete opaque black, distinct from the dynamic default.
+        label black_control;
+        black_control.set_text_color(maui::graphics::colors::black);
+        auto black_handler = std::make_shared<label_handler>();
+        black_control.set_handler(black_handler);
+        UILabel* const view = native_label(black_handler);
+        EXPECT_FALSE([view.textColor isEqual:UIColor.labelColor]);
+        CGFloat red = 1;
+        CGFloat green = 1;
+        CGFloat blue = 1;
+        CGFloat alpha = 0;
+        ASSERT_TRUE([view.textColor getRed:&red green:&green blue:&blue alpha:&alpha]);
+        EXPECT_NEAR(red, 0.0, 0.01);
+        EXPECT_NEAR(green, 0.0, 0.01);
+        EXPECT_NEAR(blue, 0.0, 0.01);
+        EXPECT_NEAR(alpha, 1.0, 0.01);
     }
 
     // MapBackground: a SolidPaint background paints the UILabel's backing layer (the AbsoluteLayout

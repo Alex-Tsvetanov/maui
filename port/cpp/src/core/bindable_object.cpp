@@ -62,6 +62,15 @@ namespace maui::core
         return name == k_binding_context_name || properties_.contains(name);
     }
 
+    bool bindable_object::is_property_set(std::string_view name) const
+    {
+        if (auto it = properties_.find(name); it != properties_.end() && it->second.is_set)
+        {
+            return it->second.is_set();
+        }
+        return false;
+    }
+
     std::optional<std::any> bindable_object::try_get_value(std::string_view name) const
     {
         if (name == k_binding_context_name)

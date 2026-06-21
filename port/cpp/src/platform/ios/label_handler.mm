@@ -26,6 +26,7 @@
 #include "ios_conversions.hpp"
 #include "ios_text_ops.hpp"
 #include "ios_visual_ops.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/dimension.hpp"
 #include "maui/core/i_label.hpp"
 #include "maui/core/label_handler.hpp"
@@ -285,17 +286,22 @@ namespace maui::core
     void label_handler::map_text_color(label_handler& handler, i_label& view)
     {
         auto* platform = handler.typed_platform_view();
-        if (platform != nullptr)
+        if (platform == nullptr)
         {
-            // LabelExtensions.UpdateTextColor — ToPlatform(LabelColor). MAUI's Label.TextColor defaults to
-            // null → the dynamic system label color (UIColor.labelColor), which adapts to light/dark. The
-            // port's color is a non-nullable value type, so treat the default-constructed (unset) color as
-            // "use the platform default" — mirroring the editor placeholder pattern — so an unstyled label is
-            // visible in BOTH appearances; an explicitly-set color still wins.
-            const maui::graphics::color text_color = view.text_color();
-            as_label(platform->native).textColor =
-                text_color != maui::graphics::color{} ? to_ui_color(text_color) : UIColor.labelColor;
+            return;
         }
+        // LabelExtensions.UpdateTextColor — ToPlatform(LabelColor). C# ITextElement.TextColor is a Color?
+        // defaulting to null → the dynamic system label color (UIColor.labelColor), which adapts to
+        // light/dark; an explicit color wins. The port models TextColor as a NON-nullable value type whose
+        // default-constructed value (color{}) is opaque BLACK, so a value compare (`!= color{}`) cannot
+        // distinguish an explicit TextColor=Black from "unset" — it misreads the explicit black as unset and
+        // falls to labelColor (which is WHITE in dark mode: the chat-bubble cell bug). Discriminate on
+        // whether the property was explicitly SET (BindableObject.IsSet) instead — the faithful stand-in for
+        // C#'s `TextColor != null`. The realized templated cell label stages TextColor at manual specificity,
+        // so is_property_set() reports it as set and the bubble stays black in both appearances.
+        const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+        const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
+        as_label(platform->native).textColor = color_is_set ? to_ui_color(view.text_color()) : UIColor.labelColor;
     }
 
     void label_handler::map_font(label_handler& handler, i_label& view)

@@ -61,6 +61,7 @@ namespace maui::core
                             return false;
                         },
                     .get_default = [this]() -> std::any { return box_value<T>(default_for_owner()); },
+                    .is_set = [this]() -> bool { return is_set(); },
                     .demote_to_binding = [this] { demote_to_binding_specificity(); },
                     .type = type_tag::of<T>(),
                     .default_binding_mode = descriptor.default_binding_mode(),

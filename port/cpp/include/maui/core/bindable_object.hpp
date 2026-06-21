@@ -135,6 +135,7 @@ namespace maui::core
             move_only_function<std::shared_ptr<bindable_object>()> get_object;       // value as a walkable node
             move_only_function<bool(const std::any&, setter_specificity)> try_apply; // converting set
             move_only_function<std::any()> get_default;                              // descriptor default, boxed
+            move_only_function<bool()> is_set;            // property<T>::is_set() — explicitly set at any specificity?
             move_only_function<void()> demote_to_binding; // silent SetBinding demote (BindableObject.SetBinding)
             type_tag type = type_tag::of<void>();         // type_tag::of<T> (the converter targetType analog)
             binding_mode default_binding_mode = binding_mode::one_way;
@@ -165,6 +166,13 @@ namespace maui::core
         // reads the context box's source forms, so paths like "binding_context.title" resolve.
     public:
         [[nodiscard]] bool has_property(std::string_view name) const;
+        // BindableObject.IsSet(BindableProperty): whether the named property has been explicitly set at
+        // any specificity (vs. still reading the shared descriptor default). The faithful stand-in for
+        // C#'s `Color? == null` null-check where the port models a nullable value type (e.g. Color) as a
+        // non-nullable value whose DEFAULT is a legitimate value — so a handler cannot tell "unset" from
+        // "explicitly set to the default-constructed value" (default-constructed color IS opaque black)
+        // by comparing the value. false for an unregistered property (and never materializes a default).
+        [[nodiscard]] bool is_property_set(std::string_view name) const;
         // The property's current value, boxed (materializes a default-value creator, like C# GetValue).
         [[nodiscard]] std::optional<std::any> try_get_value(std::string_view name) const;
         // The value as a walkable bindable_object node (property<shared_ptr<U>> where U derives
