@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 48 / 172 🟢 matched** · 100 🟡 minor · 24 🔴 diff · 0 ⬜ pending
+**Progress: 48 / 172 🟢 matched** · 101 🟡 minor · 23 🔴 diff · 0 ⬜ pending
 
 **Flags: 9 ⚠️ broken MAUI reference captures (re-shoot needed) · 14 🎬 motion/effect pages needing an animated GIF to judge.**
 
@@ -33,7 +33,7 @@ The **AI review** column is an independent automated second opinion (Gemini by d
 | 13 | Check Box | 🟡<br>L:minor<br>D:minor | — | <img src="csharp_ios_light/check_box.png" height="360"> | <img src="cpp_ios_light/check_box.png" height="360"> | <img src="csharp_ios_dark/check_box.png" height="360"> | <img src="cpp_ios_dark/check_box.png" height="360"> |
 | 14 | Progress Bar | 🟡<br>L:minor<br>D:minor | — | <img src="csharp_ios_light/progress_bar.png" height="360"> | <img src="cpp_ios_light/progress_bar.png" height="360"> | <img src="csharp_ios_dark/progress_bar.png" height="360"> | <img src="cpp_ios_dark/progress_bar.png" height="360"> |
 | 15 | Activity Indicator | 🟡🎬<br>L:minor<br>D:minor | — | <img src="csharp_ios_light/activity_indicator.png" height="360"> | <img src="cpp_ios_light/activity_indicator.png" height="360"> | <img src="csharp_ios_dark/activity_indicator.png" height="360"> | <img src="cpp_ios_dark/activity_indicator.png" height="360"> |
-| 16 | Indicator | 🔴<br>L:diff<br>D:diff | — | <img src="csharp_ios_light/indicator.png" height="360"> | <img src="cpp_ios_light/indicator.png" height="360"> | <img src="csharp_ios_dark/indicator.png" height="360"> | <img src="cpp_ios_dark/indicator.png" height="360"> |
+| 16 | Indicator | 🟡<br>L:minor<br>D:minor | — | <img src="csharp_ios_light/indicator.png" height="360"> | <img src="cpp_ios_light/indicator.png" height="360"> | <img src="csharp_ios_dark/indicator.png" height="360"> | <img src="cpp_ios_dark/indicator.png" height="360"> |
 | 17 | Image | 🔴<br>L:diff<br>D:diff | — | <img src="csharp_ios_light/image.png" height="360"> | <img src="cpp_ios_light/image.png" height="360"> | <img src="csharp_ios_dark/image.png" height="360"> | <img src="cpp_ios_dark/image.png" height="360"> |
 | 18 | Image Button | 🟢<br>L:match<br>D:match | — | <img src="csharp_ios_light/image_button.png" height="360"> | <img src="cpp_ios_light/image_button.png" height="360"> | <img src="csharp_ios_dark/image_button.png" height="360"> | <img src="cpp_ios_dark/image_button.png" height="360"> |
 | 19 | Box View | 🟢<br>L:match<br>D:match | — | <img src="csharp_ios_light/box_view.png" height="360"> | <img src="cpp_ios_light/box_view.png" height="360"> | <img src="csharp_ios_dark/box_view.png" height="360"> | <img src="cpp_ios_dark/box_view.png" height="360"> |
@@ -255,9 +255,9 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Light:** Same spinners and layout: Default, Styled-Color from theme (blue), Styled-BackgroundColor=Yellow (yellow bar + spinner), Larger (big spinner), Smaller-HorizontalOptions=Center. C++ additionally shows 'Not Running' and '- End of page -' (tighter spacing fits more; MAUI cut them off below). Only cosmetic diff: section headers bold in MAUI vs regular weight in C++. Spinners are animated so spin parity needs a GIF, but static layout/count/colors match.
 - **Dark:** Same spinners/layout/colors as MAUI; C++ fits the extra 'Not Running' and '- End of page -' rows. Only diff: section headers bold vs regular weight. Spin animation would need a GIF for full parity.
 
-### 16. Indicator — 🔴 (L:diff / D:diff)
-- **Light:** Labels and colors match (Basic, Colors=blue/blue/red/blue/blue on yellow, Indicator Shape, Indicator Size, HideSingle blank, MaximumVisible 7-of-10, Template, 'Using with CarouselView' + 'Item 1' with 3 dots). But the dot LAYOUT differs: MAUI renders evenly-spaced dot rows, while C++ splits each dot row with a visible gap in the middle (dots cluster as a left group and right group around the selected dot). Also the 'Indicator Size' demo dots are rendered much larger and more spread out in C++ than MAUI's small dots. The CarouselView 'Item 1' label also wraps onto the same line as 'Using with CarouselView' in C++.
-- **Dark:** Same as light: labels/colors match but C++ indicator dot rows have an abnormal middle gap (left+right dot clusters) vs MAUI's even spacing, and the 'Indicator Size' demo dots are noticeably larger/wider-spaced in C++. 'Item 1' overlaps the 'Using with CarouselView' line in C++.
+### 16. Indicator — 🟡 (L:minor / D:minor)
+- **Light:** Strong match on fresh captures: Basic / Colors (blue·blue·red·blue·blue on yellow) / Indicator Shape / HideSingle (blank) / MaximumVisible 7-of-10 / Template / CarouselView 'Item 1' + 3 dots all align, and the dot rows are now EVENLY spaced (the earlier middle-gap/cluster artifact is gone). Residual minor: the 'Indicator Size' demo dots render a bit larger/wider-spaced in C++ than MAUI's. NOTE: the 'Item 1' label overlapping 'Using with CarouselView' is on MAUI's side (its harness wrapper) — C++ correctly puts 'Item 1' on its own line.
+- **Dark:** Same as light — evenly-spaced dot rows; only the 'Indicator Size' dots are slightly larger in C++. The CarouselView label overlap is MAUI-side, not the port.
 
 ### 17. Image — 🔴 (L:diff / D:diff)
 - **Light:** C++ is missing two of MAUI's three sections. MAUI shows: UriSource (Microsoft campus photo), FileSource (purple 3D submarine render), and a 'Font Image Source' label. C++ shows only the UriSource photo (rendered noticeably LARGER/taller) and the 'FileSource' label, but the FileSource purple submarine image is absent and the entire 'Font Image Source' section is missing.

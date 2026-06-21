@@ -593,11 +593,11 @@
     "severity": "match"
   },
   "indicator": {
-    "dark": "diff",
-    "dark_note": "Same as light: labels/colors match but C++ indicator dot rows have an abnormal middle gap (left+right dot clusters) vs MAUI's even spacing, and the 'Indicator Size' demo dots are noticeably larger/wider-spaced in C++. 'Item 1' overlaps the 'Using with CarouselView' line in C++.",
-    "light": "diff",
-    "light_note": "Labels and colors match (Basic, Colors=blue/blue/red/blue/blue on yellow, Indicator Shape, Indicator Size, HideSingle blank, MaximumVisible 7-of-10, Template, 'Using with CarouselView' + 'Item 1' with 3 dots). But the dot LAYOUT differs: MAUI renders evenly-spaced dot rows, while C++ splits each dot row with a visible gap in the middle (dots cluster as a left group and right group around the selected dot). Also the 'Indicator Size' demo dots are rendered much larger and more spread out in C++ than MAUI's small dots. The CarouselView 'Item 1' label also wraps onto the same line as 'Using with CarouselView' in C++.",
-    "severity": "major"
+    "dark": "minor",
+    "dark_note": "Same as light \u2014 evenly-spaced dot rows; only the 'Indicator Size' dots are slightly larger in C++. The CarouselView label overlap is MAUI-side, not the port.",
+    "light": "minor",
+    "light_note": "Strong match on fresh captures: Basic / Colors (blue\u00b7blue\u00b7red\u00b7blue\u00b7blue on yellow) / Indicator Shape / HideSingle (blank) / MaximumVisible 7-of-10 / Template / CarouselView 'Item 1' + 3 dots all align, and the dot rows are now EVENLY spaced (the earlier middle-gap/cluster artifact is gone). Residual minor: the 'Indicator Size' demo dots render a bit larger/wider-spaced in C++ than MAUI's. NOTE: the 'Item 1' label overlapping 'Using with CarouselView' is on MAUI's side (its harness wrapper) \u2014 C++ correctly puts 'Item 1' on its own line.",
+    "severity": "minor"
   },
   "input_controls": {
     "dark": "minor",
