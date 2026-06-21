@@ -32,6 +32,7 @@
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
+#include "maui/graphics/colors.hpp"
 #include "maui/graphics/shapes/rectangle.hpp"
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include <gtest/gtest.h>
@@ -308,6 +309,61 @@ namespace
         ASSERT_TRUE([foreground getRed:&red green:&green blue:&blue alpha:&alpha]);
         EXPECT_NEAR(red, 1.0, 0.01);
         EXPECT_NEAR(blue, 0.5, 0.01);
+    }
+
+    // UpdateTextColor's null-vs-set discriminator (the dark-mode sibling of the label chat-bubble bug):
+    // an unset TextColor → the adaptive UIColor.labelColor; an explicit TextColor=Black must reach the
+    // UITextField as a CONCRETE opaque black, not the dynamic default (WHITE in dark mode), even though
+    // color{} already equals opaque black. The handler keys off is_property_set (BindableObject.IsSet).
+    TEST(ios_entry_seam, explicit_black_text_color_beats_the_dynamic_default)
+    {
+        entry unset_control;
+        auto unset_handler = std::make_shared<entry_handler>();
+        unset_control.set_handler(unset_handler);
+        EXPECT_TRUE([native_field(unset_handler).textColor isEqual:UIColor.labelColor]);
+
+        entry black_control;
+        black_control.set_text_color(maui::graphics::colors::black);
+        auto black_handler = std::make_shared<entry_handler>();
+        black_control.set_handler(black_handler);
+        UITextField* const field = native_field(black_handler);
+        EXPECT_FALSE([field.textColor isEqual:UIColor.labelColor]);
+        CGFloat red = 1;
+        CGFloat green = 1;
+        CGFloat blue = 1;
+        CGFloat alpha = 0;
+        ASSERT_TRUE([field.textColor getRed:&red green:&green blue:&blue alpha:&alpha]);
+        EXPECT_NEAR(red, 0.0, 0.01);
+        EXPECT_NEAR(green, 0.0, 0.01);
+        EXPECT_NEAR(blue, 0.0, 0.01);
+        EXPECT_NEAR(alpha, 1.0, 0.01);
+    }
+
+    // The same is-set discriminator on PlaceholderColor: an explicit black placeholder must build the
+    // attributed placeholder with a concrete-black foreground (before the fix the explicit black was
+    // misread as unset and fell to UIKit's muted default with NO foreground attribute).
+    TEST(ios_entry_seam, explicit_black_placeholder_color_carries_a_foreground)
+    {
+        entry control;
+        control.set_placeholder("Hint");
+        control.set_placeholder_color(maui::graphics::colors::black);
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+
+        NSAttributedString* const placeholder = native_field(handler).attributedPlaceholder;
+        ASSERT_NE(placeholder, nil);
+        UIColor* const foreground = [placeholder attribute:NSForegroundColorAttributeName
+                                                   atIndex:0
+                                            effectiveRange:nullptr];
+        ASSERT_NE(foreground, nil);
+        CGFloat red = 1;
+        CGFloat green = 1;
+        CGFloat blue = 1;
+        CGFloat alpha = 0;
+        ASSERT_TRUE([foreground getRed:&red green:&green blue:&blue alpha:&alpha]);
+        EXPECT_NEAR(red, 0.0, 0.01);
+        EXPECT_NEAR(green, 0.0, 0.01);
+        EXPECT_NEAR(blue, 0.0, 0.01);
     }
 
     // character_spacing kerns the placeholder too (UpdateCharacterSpacing's placeholder branch — at

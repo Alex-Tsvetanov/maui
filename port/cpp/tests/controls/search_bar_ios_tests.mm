@@ -16,6 +16,7 @@
 #include "maui/core/search_bar_handler.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/color.hpp"
+#include "maui/graphics/colors.hpp"
 #include "tests/support/run_loop_pump.hpp"
 #include <gtest/gtest.h>
 
@@ -73,6 +74,58 @@ namespace
         EXPECT_EQ(to_std_string(ph.string), "Hint");
         UIColor* const fg = [ph attribute:NSForegroundColorAttributeName atIndex:0 effectiveRange:nullptr];
         ASSERT_NE(fg, nil);
+    }
+
+    // UpdateTextColor's null-vs-set discriminator (the dark-mode sibling of the label chat-bubble bug):
+    // an unset TextColor → the adaptive UIColor.labelColor on the query editor; an explicit
+    // TextColor=Black must reach it as a CONCRETE opaque black, not the dynamic default (WHITE in dark
+    // mode), even though color{} already equals opaque black (keys off is_property_set / IsSet).
+    TEST(ios_search_bar_seam, explicit_black_text_color_beats_the_dynamic_default)
+    {
+        search_bar unset_control;
+        auto unset_handler = std::make_shared<search_bar_handler>();
+        unset_control.set_handler(unset_handler);
+        EXPECT_TRUE([native_bar(unset_handler).searchTextField.textColor isEqual:UIColor.labelColor]);
+
+        search_bar black_control;
+        black_control.set_text_color(maui::graphics::colors::black);
+        auto black_handler = std::make_shared<search_bar_handler>();
+        black_control.set_handler(black_handler);
+        UIColor* const text_color = native_bar(black_handler).searchTextField.textColor;
+        EXPECT_FALSE([text_color isEqual:UIColor.labelColor]);
+        CGFloat red = 1;
+        CGFloat green = 1;
+        CGFloat blue = 1;
+        CGFloat alpha = 0;
+        ASSERT_TRUE([text_color getRed:&red green:&green blue:&blue alpha:&alpha]);
+        EXPECT_NEAR(red, 0.0, 0.01);
+        EXPECT_NEAR(green, 0.0, 0.01);
+        EXPECT_NEAR(blue, 0.0, 0.01);
+        EXPECT_NEAR(alpha, 1.0, 0.01);
+    }
+
+    // The same is-set discriminator on PlaceholderColor: an explicit black placeholder builds the
+    // attributed placeholder with a concrete-black foreground instead of the plain muted default.
+    TEST(ios_search_bar_seam, explicit_black_placeholder_color_carries_a_foreground)
+    {
+        search_bar control;
+        control.set_placeholder("Hint");
+        control.set_placeholder_color(maui::graphics::colors::black);
+        auto handler = std::make_shared<search_bar_handler>();
+        control.set_handler(handler);
+
+        NSAttributedString* const ph = native_bar(handler).searchTextField.attributedPlaceholder;
+        ASSERT_NE(ph, nil);
+        UIColor* const fg = [ph attribute:NSForegroundColorAttributeName atIndex:0 effectiveRange:nullptr];
+        ASSERT_NE(fg, nil);
+        CGFloat red = 1;
+        CGFloat green = 1;
+        CGFloat blue = 1;
+        CGFloat alpha = 0;
+        ASSERT_TRUE([fg getRed:&red green:&green blue:&blue alpha:&alpha]);
+        EXPECT_NEAR(red, 0.0, 0.01);
+        EXPECT_NEAR(green, 0.0, 0.01);
+        EXPECT_NEAR(blue, 0.0, 0.01);
     }
 
     TEST(ios_search_bar_seam, read_only_disables_interaction)

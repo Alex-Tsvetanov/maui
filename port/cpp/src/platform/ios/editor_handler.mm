@@ -54,6 +54,7 @@
 #include "ios_keyboard_ops.hpp"
 #include "ios_text_ops.hpp"
 #include "ios_visual_ops.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/editor_handler.hpp"
 #include "maui/core/i_editor.hpp"
 #include "maui/core/text_alignment.hpp"
@@ -179,7 +180,10 @@ namespace
         NSString* const text = [NSString stringWithUTF8String:placeholder.c_str()];
         text_view.placeholderLabel.text = text != nil ? text : @"";
         const maui::graphics::color color = view.placeholder_color();
-        const bool explicit_color = color != maui::graphics::color{};
+        // is-set discriminator: an explicit PlaceholderColor=Black equals the default-constructed
+        // sentinel by value, so key off BindableObject.IsSet (else it falls to the muted system gray).
+        const auto* const bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+        const bool explicit_color = bindable != nullptr && bindable->is_property_set("placeholder_color");
         text_view.placeholderLabel.textColor = explicit_color ? to_ui_color(color) : UIColor.placeholderTextColor;
         [text_view.placeholderLabel sizeToFit]; // MauiTextView.PlaceholderText setter's SizeToFit
         [text_view mauiUpdatePlaceholderFrame]; // ...then the layout pass overrides the frame for wrapping
@@ -513,9 +517,12 @@ namespace maui::core
             // An unset TextColor (default-constructed sentinel) must resolve to the dynamic system
             // label color so text stays legible in dark mode — mirrors EditorHandler.iOS's reliance on
             // the platform's default label color rather than forcing opaque black. Explicit colors win.
-            const maui::graphics::color text_color = view.text_color();
+            // is-set discriminator (see label_handler.mm): an explicit TextColor=Black equals the
+            // default-constructed sentinel by value, so key off BindableObject.IsSet, not `!= color{}`.
+            const auto* const bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+            const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
             as_text_view(platform->native).textColor =
-                text_color != maui::graphics::color{} ? to_ui_color(text_color) : UIColor.labelColor;
+                color_is_set ? to_ui_color(view.text_color()) : UIColor.labelColor;
         }
     }
 

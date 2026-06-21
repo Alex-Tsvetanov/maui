@@ -20,6 +20,7 @@
 #include "maui/core/radio_button_handler.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
+#include "maui/graphics/colors.hpp"
 #include <gtest/gtest.h>
 
 namespace
@@ -147,6 +148,40 @@ namespace
         UIButton* const button = native_button(handler);
         EXPECT_EQ(button.titleLabel.font.pointSize, 18.0);
         EXPECT_NE([button titleColorForState:UIControlStateNormal], nil);
+    }
+
+    // UpdateTextColor's null-vs-set discriminator (the dark-mode sibling of the label chat-bubble bug):
+    // an UNSTYLED radio button has no explicit TextColor → the adaptive UIColor.labelColor; an EXPLICIT
+    // TextColor=Black must reach the UIButton title as a CONCRETE opaque black, not the dynamic default
+    // (WHITE in dark mode), even though the port's default-constructed color{} already equals opaque
+    // black. The handler keys off is_property_set (BindableObject.IsSet) so explicit black is honored.
+    TEST(ios_radio_button_seam, explicit_black_text_color_beats_the_dynamic_default)
+    {
+        // Unset → the adaptive system label color.
+        radio_button unset_control;
+        unset_control.set_content("Option");
+        auto unset_handler = std::make_shared<radio_button_handler>();
+        unset_control.set_handler(unset_handler);
+        EXPECT_TRUE(
+            [[native_button(unset_handler) titleColorForState:UIControlStateNormal] isEqual:UIColor.labelColor]);
+
+        // Explicit black → a concrete opaque black, distinct from the dynamic default.
+        radio_button black_control;
+        black_control.set_content("Option");
+        black_control.set_text_color(maui::graphics::colors::black);
+        auto black_handler = std::make_shared<radio_button_handler>();
+        black_control.set_handler(black_handler);
+        UIColor* const title = [native_button(black_handler) titleColorForState:UIControlStateNormal];
+        EXPECT_FALSE([title isEqual:UIColor.labelColor]);
+        CGFloat red = 1;
+        CGFloat green = 1;
+        CGFloat blue = 1;
+        CGFloat alpha = 0;
+        ASSERT_TRUE([title getRed:&red green:&green blue:&blue alpha:&alpha]);
+        EXPECT_NEAR(red, 0.0, 0.01);
+        EXPECT_NEAR(green, 0.0, 0.01);
+        EXPECT_NEAR(blue, 0.0, 0.01);
+        EXPECT_NEAR(alpha, 1.0, 0.01);
     }
 
     TEST(ios_radio_button_seam, stroke_and_corner_ride_the_layer)

@@ -49,6 +49,7 @@
 #include "ios_keyboard_ops.hpp"
 #include "ios_text_ops.hpp"
 #include "ios_visual_ops.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/clear_button_visibility.hpp"
 #include "maui/core/entry_handler.hpp"
 #include "maui/core/i_entry.hpp"
@@ -227,7 +228,11 @@ namespace
             return;
         }
         const maui::graphics::color color = view.placeholder_color();
-        const bool explicit_color = color != maui::graphics::color{}; // != the default (opaque black)
+        // is-set discriminator: an explicit PlaceholderColor=Black is byte-identical to the default-
+        // constructed sentinel, so key off BindableObject.IsSet rather than a value compare (else an
+        // explicit black placeholder falls to UIKit's muted default instead of rendering black).
+        const auto* const bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+        const bool explicit_color = bindable != nullptr && bindable->is_property_set("placeholder_color");
         if (!explicit_color)
         {
             field.attributedPlaceholder = [[NSAttributedString alloc] initWithString:text];
@@ -680,9 +685,11 @@ namespace maui::core
             // light/dark — the port treats the default-constructed (unset) color as that null, so unstyled
             // entry text is visible in both appearances (was black-on-black in dark).
             // (UpdateClearButtonColor — private clearButton KVC tint — is not ported.)
-            const maui::graphics::color text_color = view.text_color();
-            as_field(platform->native).textColor =
-                text_color != maui::graphics::color{} ? to_ui_color(text_color) : UIColor.labelColor;
+            // is-set discriminator (see label_handler.mm): an explicit TextColor=Black equals the
+            // default-constructed sentinel by value, so key off BindableObject.IsSet, not `!= color{}`.
+            const auto* const bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+            const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
+            as_field(platform->native).textColor = color_is_set ? to_ui_color(view.text_color()) : UIColor.labelColor;
         }
     }
 

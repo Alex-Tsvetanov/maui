@@ -36,6 +36,7 @@
 #include "ios_keyboard_ops.hpp"
 #include "ios_text_ops.hpp"
 #include "ios_visual_ops.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/i_search_bar.hpp"
 #include "maui/core/return_type.hpp"
 #include "maui/core/search_bar_handler.hpp"
@@ -93,7 +94,10 @@ namespace
         const std::string placeholder(view.placeholder());
         NSString* const text = [NSString stringWithUTF8String:placeholder.c_str()];
         const maui::graphics::color color = view.placeholder_color();
-        const bool explicit_color = color != maui::graphics::color{};
+        // is-set discriminator: an explicit PlaceholderColor=Black equals the default-constructed
+        // sentinel by value, so key off BindableObject.IsSet (else it falls to the plain muted gray).
+        const auto* const bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+        const bool explicit_color = bindable != nullptr && bindable->is_property_set("placeholder_color");
         if (!explicit_color)
         {
             bar.placeholder = text;
@@ -149,7 +153,10 @@ namespace
         const bool should_show = bar.text != nil && bar.text.length > 0; // ShouldShowCancelButton()
         [bar setShowsCancelButton:should_show ? YES : NO animated:NO];
         const maui::graphics::color color = view.cancel_button_color();
-        const bool explicit_color = color != maui::graphics::color{};
+        // is-set discriminator: an explicit CancelButtonColor=Black equals the default sentinel by value,
+        // so key off BindableObject.IsSet (else an explicit-black cancel tint is dropped).
+        const auto* const bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+        const bool explicit_color = bindable != nullptr && bindable->is_property_set("cancel_button_color");
         if (!should_show || !explicit_color)
         {
             return;
@@ -484,9 +491,12 @@ namespace maui::core
             // An unset TextColor (default-constructed sentinel) must resolve to the dynamic system label
             // color so the query text stays legible in dark mode — SearchBarHandler.iOS relies on the
             // search field's default label color rather than forcing opaque black. Explicit colors win.
-            const maui::graphics::color text_color = view.text_color();
+            // is-set discriminator (see label_handler.mm): an explicit TextColor=Black equals the
+            // default-constructed sentinel by value, so key off BindableObject.IsSet, not `!= color{}`.
+            const auto* const bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+            const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
             query_editor(platform->native).textColor =
-                text_color != maui::graphics::color{} ? to_ui_color(text_color) : UIColor.labelColor;
+                color_is_set ? to_ui_color(view.text_color()) : UIColor.labelColor;
         }
     }
 
@@ -644,7 +654,10 @@ namespace maui::core
         // SearchBarExtensions.UpdateSearchIcon: tint the loupe (the QueryEditor's leftView image).
         platform->search_icon_color = view.search_icon_color();
         const maui::graphics::color color = view.search_icon_color();
-        const bool explicit_color = color != maui::graphics::color{};
+        // is-set discriminator: an explicit SearchIconColor=Black equals the default sentinel by value,
+        // so key off BindableObject.IsSet (else an explicit-black loupe tint is dropped).
+        const auto* const bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+        const bool explicit_color = bindable != nullptr && bindable->is_property_set("search_icon_color");
         UIView* const left = query_editor(platform->native).leftView;
         if (explicit_color && [left isKindOfClass:[UIImageView class]])
         {

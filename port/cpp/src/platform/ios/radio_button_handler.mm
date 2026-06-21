@@ -21,6 +21,7 @@
 #include "ios_conversions.hpp"
 #include "ios_text_ops.hpp"
 #include "ios_visual_ops.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/i_radio_button.hpp"
 #include "maui/core/radio_button_handler.hpp"
 #include "maui/core/visibility.hpp"
@@ -73,9 +74,11 @@ namespace
             [button setAttributedTitle:nil forState:UIControlStateNormal];
             return;
         }
-        const maui::graphics::color text_color = view.text_color();
-        UIColor* const foreground =
-            text_color != maui::graphics::color{} ? to_ui_color(text_color) : UIColor.labelColor;
+        // is-set discriminator (see label_handler.mm map_text_color): a value compare cannot tell an
+        // explicit TextColor=Black from the default-constructed sentinel, so key off BindableObject.IsSet.
+        const auto* const bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+        const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
+        UIColor* const foreground = color_is_set ? to_ui_color(view.text_color()) : UIColor.labelColor;
         NSString* const plain_title = [button titleForState:UIControlStateNormal];
         [button setAttributedTitle:maui::platform::ios::kern_attributed(plain_title, spacing, foreground)
                           forState:UIControlStateNormal];
@@ -226,11 +229,13 @@ namespace maui::core
         }
         // The ButtonExtensions.UpdateTextColor recipe; the tintColor also tints the SF-symbol
         // indicator, the fallback's stand-in for the template's themed Ellipse strokes. An unset
-        // (default-constructed) TextColor must resolve to the dynamic system label color, NOT a clear/
-        // opaque-black tint that hides BOTH the title AND the circle on dark backgrounds. Explicit wins.
+        // TextColor (BindableObject.IsSet false) must resolve to the dynamic system label color, NOT a
+        // clear/opaque-black tint that hides BOTH the title AND the circle on dark backgrounds — keying
+        // off is_property_set so an explicit TextColor=Black is not misread as unset. Explicit wins.
         UIButton* const button = as_button(platform->native);
-        const maui::graphics::color text_color = view.text_color();
-        UIColor* const color = text_color != maui::graphics::color{} ? to_ui_color(text_color) : UIColor.labelColor;
+        const auto* const bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+        const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
+        UIColor* const color = color_is_set ? to_ui_color(view.text_color()) : UIColor.labelColor;
         [button setTitleColor:color forState:UIControlStateNormal];
         [button setTitleColor:color forState:UIControlStateHighlighted];
         [button setTitleColor:color forState:UIControlStateDisabled];

@@ -17,6 +17,7 @@
 #include "maui/core/keyboard.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/color.hpp"
+#include "maui/graphics/colors.hpp"
 #include <gtest/gtest.h>
 
 namespace
@@ -97,6 +98,63 @@ namespace
         [label.textColor getRed:&red green:&green blue:&blue alpha:&alpha];
         EXPECT_NEAR(red, 1.0, 0.01);
         EXPECT_NEAR(green, 0.0, 0.01);
+    }
+
+    // UpdateTextColor's null-vs-set discriminator (the dark-mode sibling of the label chat-bubble bug):
+    // an unset TextColor → the adaptive UIColor.labelColor; an explicit TextColor=Black must reach the
+    // UITextView as a CONCRETE opaque black, not the dynamic default (WHITE in dark mode), even though
+    // color{} already equals opaque black. The handler keys off is_property_set (BindableObject.IsSet).
+    TEST(ios_editor_seam, explicit_black_text_color_beats_the_dynamic_default)
+    {
+        editor unset_control;
+        auto unset_handler = std::make_shared<editor_handler>();
+        unset_control.set_handler(unset_handler);
+        EXPECT_TRUE([native_text_view(unset_handler).textColor isEqual:UIColor.labelColor]);
+
+        editor black_control;
+        black_control.set_text_color(maui::graphics::colors::black);
+        auto black_handler = std::make_shared<editor_handler>();
+        black_control.set_handler(black_handler);
+        UITextView* const text_view = native_text_view(black_handler);
+        EXPECT_FALSE([text_view.textColor isEqual:UIColor.labelColor]);
+        CGFloat red = 1;
+        CGFloat green = 1;
+        CGFloat blue = 1;
+        CGFloat alpha = 0;
+        ASSERT_TRUE([text_view.textColor getRed:&red green:&green blue:&blue alpha:&alpha]);
+        EXPECT_NEAR(red, 0.0, 0.01);
+        EXPECT_NEAR(green, 0.0, 0.01);
+        EXPECT_NEAR(blue, 0.0, 0.01);
+        EXPECT_NEAR(alpha, 1.0, 0.01);
+    }
+
+    // The same is-set discriminator on PlaceholderColor: explicit black tints the placeholder label a
+    // concrete black instead of falling to UIColor.placeholderTextColor (the muted system default).
+    TEST(ios_editor_seam, explicit_black_placeholder_color_beats_the_default)
+    {
+        editor unset_control;
+        unset_control.set_placeholder("Hint");
+        auto unset_handler = std::make_shared<editor_handler>();
+        unset_control.set_handler(unset_handler);
+        EXPECT_TRUE(
+            [placeholder_label(native_text_view(unset_handler)).textColor isEqual:UIColor.placeholderTextColor]);
+
+        editor black_control;
+        black_control.set_placeholder("Hint");
+        black_control.set_placeholder_color(maui::graphics::colors::black);
+        auto black_handler = std::make_shared<editor_handler>();
+        black_control.set_handler(black_handler);
+        UILabel* const label = placeholder_label(native_text_view(black_handler));
+        ASSERT_NE(label, nil);
+        EXPECT_FALSE([label.textColor isEqual:UIColor.placeholderTextColor]);
+        CGFloat red = 1;
+        CGFloat green = 1;
+        CGFloat blue = 1;
+        CGFloat alpha = 0;
+        ASSERT_TRUE([label.textColor getRed:&red green:&green blue:&blue alpha:&alpha]);
+        EXPECT_NEAR(red, 0.0, 0.01);
+        EXPECT_NEAR(green, 0.0, 0.01);
+        EXPECT_NEAR(blue, 0.0, 0.01);
     }
 
     // MauiTextView.UpdatePlaceholderFont: the placeholder label tracks the editor's font.
