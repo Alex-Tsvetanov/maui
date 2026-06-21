@@ -60,7 +60,10 @@
 #include "maui/core/i_element.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_maui_context.hpp"
+#include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
+#include "maui/core/layout_alignment.hpp"
+#include "maui/graphics/rect.hpp"
 
 namespace
 {
@@ -140,9 +143,8 @@ namespace
     _templatedContent = content;
     if (content != nil)
     {
-        content.frame = self.contentView.bounds;
-        content.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         [self.contentView addSubview:content];
+        [self layoutTemplatedContent];
     }
 }
 
@@ -152,6 +154,46 @@ namespace
     // previous content never frees the incoming native view mid-swap.
     _realizedContent = std::move(realized);
     [self showTemplatedContent:content];
+}
+
+// Frame the hosted template content within the cell's contentView, honoring the realized root's
+// HorizontalLayoutAlignment — the C# TemplatedCell2 measuring + arranging its content view rather than
+// stretching it. A Fill root (the default — what almost every template uses) spans the full cell width,
+// exactly as before. A Start / Center / End root is measured and sized to its own desired width, then
+// left / center / right-aligned within the cell (the chat-bubble / pill behavior) by routing through the
+// cross-platform measure + arrange: compute_frame resolves the aligned X and the margin-inset extent and
+// pushes the frame to the native view via platform_arrange (recursing into any child views). Re-run from
+// layoutSubviews so a recycled cell or a bounds change re-applies the frame — autoresizing alone cannot
+// express the non-Fill alignments.
+- (void)layoutTemplatedContent
+{
+    if (_templatedContent == nil)
+    {
+        return;
+    }
+    const CGRect bounds = self.contentView.bounds;
+    auto* const view = dynamic_cast<maui::core::i_view*>(_realizedContent.get());
+    if (view == nullptr || view->horizontal_layout_alignment() == maui::core::layout_alignment::fill)
+    {
+        // Fill (or a non-view root): the content spans the whole cell. Flexible autoresizing keeps it
+        // stretched across UIKit's own layout passes (the prior behavior — most templates rely on this).
+        _templatedContent.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        _templatedContent.frame = bounds;
+        return;
+    }
+    // Content-width: measure the root against the cell, then arrange it within the cell bounds. arrange
+    // resolves the aligned frame (compute_frame) and sets the native view's frame via platform_arrange,
+    // so a Start/Center/End bubble lands content-width at the correct edge. autoresizing is cleared —
+    // layoutSubviews re-runs this on every bounds change.
+    _templatedContent.autoresizingMask = UIViewAutoresizingNone;
+    view->measure(bounds.size.width, bounds.size.height);
+    view->arrange(maui::graphics::rect{0.0, 0.0, bounds.size.width, bounds.size.height});
+}
+
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    [self layoutTemplatedContent];
 }
 
 - (void)prepareForReuse

@@ -170,10 +170,10 @@
   },
   "chat_example": {
     "dark": "diff",
-    "dark_note": "Same as light \u2014 bubbles render full-width (iOS CV cell stretches content, ignoring HorizontalOptions) instead of content-width pills aligned by sender; square-cornered (single-root cell, no StrokeShape). Shared CV cell-sizing root cause.",
-    "light": "diff",
-    "light_note": "Root cause = iOS CV cell content-sizing (SHARED with varied_size_selector + the header_footer family). The bubble templates set the label's HorizontalOptions=Start/End (remote left/blue, local right/green) + Padding(10,6)/Margin(8,2), but the realized iOS CV cell STRETCHES its content to full cell width and ignores the content's HorizontalOptions \u2014 so the bubbles render as full-width colored bars instead of MAUI's content-width pills aligned by sender. Secondary, documented: the single-root templated cell can't carry the Border StrokeShape, so the bubbles are square-cornered (no rounded pill). Fixing the iOS CV cell to honor content HorizontalOptions + content-width sizing would address this whole cluster (deep/risky \u2014 touches every collection view).",
-    "severity": "major"
+    "dark_note": "Content-width per-sender alignment FIXED, same as light (collection_view_handler.mm MauiCollectionViewCell now measures + arranges non-Fill cell content content-width via the cross-platform arrange instead of stretching it): the green (local) bubble is content-width RIGHT-aligned and the blue (remote) bubble content-width LEFT-aligned, matching MAUI's per-sender pills (bubble geometry + pastel fills + margins now match). Two residuals remain: (1) the bubble text renders light instead of MAUI's explicit TextColor=Black \u2014 a SEPARATE, pre-existing label-text-color-under-dark-appearance issue (the explicit black is not honored in dark mode; visible on the prior capture too, unrelated to this cell-sizing fix); (2) the single-root templated cell can't carry the Border RoundRectangle StrokeShape, so the bubbles are square-cornered vs MAUI's CornerRadius=12 (documented single-root reduction). The headline full-width-bar bug is resolved.",
+    "light": "minor",
+    "light_note": "iOS CV cell now honors the content's HorizontalOptions \u2014 FIXED. collection_view_handler.mm MauiCollectionViewCell reads the realized root's horizontal_layout_alignment: a Fill root still spans the full cell (unchanged), while a Start/Center/End root is measured and arranged content-width via the cross-platform arrange. The green (local) bubble is now content-width RIGHT-aligned and the blue (remote) bubble content-width LEFT-aligned, matching MAUI's per-sender pills (alignment + fill colors + Padding/Margin now match). RESIDUAL (documented, out of scope): the single-root templated cell can't carry the Border RoundRectangle StrokeShape, so the bubbles are square-cornered vs MAUI's CornerRadius=12 rounded pills.",
+    "severity": "minor"
   },
   "check_box": {
     "dark": "minor",
