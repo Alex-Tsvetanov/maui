@@ -239,9 +239,9 @@
   },
   "composition_gallery": {
     "dark": "diff",
-    "dark_note": "Same layout discrepancy as light: MAUI shows two distinct cream canvases (top square with centered composed shape, bottom wide box with centered axes); C++ shows a single tall cream canvas with the composed shape pushed to the upper-right and axes below. Shape rendering itself is correct, but canvases merged and content not centered.",
+    "dark_note": "Same as light \u2014 the composed shapes + axes draw correctly, but the GraphicsView canvases are too small / not filling width (the iOS leaf-control-Fill-width theme shared with the image/clip pages).",
     "light": "diff",
-    "light_note": "MAUI renders TWO separate cream canvases: a square top canvas with the composed shape (green triangle + yellow circle + translucent diagonal red/orange bars) CENTERED in it, and a shorter wide canvas below with the blue/green/red axis lines centered. C++ merges them into ONE tall cream canvas: the composed shape is offset to the upper-RIGHT (not centered) and the axis lines fill the lower portion. The composition content (translucency, colors) is correct, but the canvas layout and shape centering differ.",
+    "light_note": "The canvas DRAWING is correct (green triangle + yellow circle + translucent orange diagonal composited with transparency; the colored axes) \u2014 but the two GraphicsView canvases render TOO SMALL: MAUI shows two separate full-width (square) cream canvases with a gap; C++ shows them narrow (~70% width) and visually merged. Likely SHARED cause: an iOS leaf control with intrinsic content (GraphicsView here; Image on the clip/image pages) does NOT stretch to fill the parent width when HorizontalOptions=Fill \u2014 it stays at a smaller/content size. Worth a focused look at iOS leaf-control arrange honoring Fill width.",
     "severity": "major"
   },
   "containers": {
