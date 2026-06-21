@@ -545,9 +545,9 @@
   },
   "header_footer_template": {
     "dark": "diff",
-    "dark_note": "Same as light: C++ header shows date+time instead of MAUI's date-only and drops the 'This Is A Header' label; blue item cards collapse together with no spacing; footer 'This Is A Footer' label missing. (Differing date value 6/19 vs 6/21 is just capture date, not a bug; the format/labels are.)",
+    "dark_note": "Same as light \u2014 templated header/footer show only the bound time; the static caption is clipped by the single-line-height supplementary view, and a separate black caption label isn't expressible in a single-root templated cell. Deep CV-supplementary item.",
     "light": "diff",
-    "light_note": "Templated header/footer differ. MAUI header shows a DATE-ONLY value ('6/19/2026') with a 'This Is A Header' label beneath it; C++ header shows a full DATE-TIME ('6/21/2026 2:48:11 PM') and OMITS the 'This Is A Header' label. The three blue item cards are spaced apart with visible gaps in MAUI but are crammed together into one solid blue block (no inter-item spacing) in C++. The footer's 'This Is A Footer' label is also missing in C++ (only the date-time line remains).",
+    "light_note": "Deep CV-supplementary item. The templated header/footer render only the bound CurrentTime (antique-white, bold) \u2014 the static 'This Is A Header'/'This Is A Footer' caption (folded as a 2nd line via '\\n') does NOT show: the CV header/footer SUPPLEMENTARY VIEW is sized to single-line height and clips wrapped content (setting the label to WordWrap had no effect \u2014 the container clips). MAUI's C# templates are a Grid with the AntiqueWhite time Label + a SEPARATE black 'This Is A Header/Footer' Label (row 1); the port's single-root templated cell renders ONE control so it can't show that separate black label (would need a formatted_string two-span label OR multi-child supplementary template). Also the items render as one compact blue box vs MAUI's three tall cells. NOTE: MAUI's header shows date-only and footer date-time though BOTH bind the same {Binding CurrentTime} with no StringFormat \u2014 that's a MAUI realization-timing quirk, not a port format diff.",
     "severity": "major"
   },
   "header_footer_view": {
