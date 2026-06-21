@@ -23,6 +23,7 @@
 #include "maui/core/i_progress.hpp"
 #include "maui/core/progress_bar_handler.hpp"
 #include "maui/core/visibility.hpp"
+#include "maui/graphics/paint.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -80,6 +81,13 @@ namespace maui::core
         const std::string id(value);
         NSString* const raw = [NSString stringWithUTF8String:id.c_str()];
         as_bar(native).accessibilityIdentifier = raw != nil ? raw : @"";
+    }
+
+    // ViewHandler.MapBackground → the UIProgressView layer's backgroundColor (solid) / gradient or image
+    // sublayer behind the track, mirroring the apple backend.
+    void progress_bar_platform::update_background(const maui::graphics::paint* value)
+    {
+        maui::platform::ios::apply_background(native, value);
     }
 
     // ViewHandler.MapClip → WrapperView.SetClip: mask the UIProgressView's layer to the clip geometry,

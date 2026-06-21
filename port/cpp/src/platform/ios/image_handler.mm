@@ -52,6 +52,7 @@
 #include "maui/core/image_source_result.hpp"
 #include "maui/core/uri_bytes.hpp"
 #include "maui/core/visibility.hpp"
+#include "maui/graphics/paint.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -288,6 +289,13 @@ namespace maui::core
         const std::string id(value);
         NSString* const raw = [NSString stringWithUTF8String:id.c_str()];
         as_image_view(native).accessibilityIdentifier = raw != nil ? raw : @"";
+    }
+
+    // ViewHandler.MapBackground → the UIImageView layer's backgroundColor (solid) / gradient or image
+    // sublayer, mirroring the apple backend. The clip page's gray fill behind the photo now renders.
+    void image_platform::update_background(const maui::graphics::paint* value)
+    {
+        maui::platform::ios::apply_background(native, value);
     }
 
     // ViewHandler.MapClip → WrapperView.SetClip: mask the UIImageView's layer to the clip geometry, sized

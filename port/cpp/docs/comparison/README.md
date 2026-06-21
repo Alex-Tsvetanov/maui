@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 48 / 172 🟢 matched** · 96 🟡 minor · 28 🔴 diff · 0 ⬜ pending
+**Progress: 48 / 172 🟢 matched** · 97 🟡 minor · 27 🔴 diff · 0 ⬜ pending
 
 **Flags: 9 ⚠️ broken MAUI reference captures (re-shoot needed) · 14 🎬 motion/effect pages needing an animated GIF to judge.**
 
@@ -79,7 +79,7 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 63 | Border Clip Playground | 🟡⚠️<br>L:minor<br>D:minor | ![](csharp_ios_light/border_clip_playground.png) | ![](cpp_ios_light/border_clip_playground.png) | ![](csharp_ios_dark/border_clip_playground.png) | ![](cpp_ios_dark/border_clip_playground.png) |
 | 64 | Border Resize Content | 🟡⚠️<br>L:minor<br>D:minor | ![](csharp_ios_light/border_resize_content.png) | ![](cpp_ios_light/border_resize_content.png) | ![](csharp_ios_dark/border_resize_content.png) | ![](cpp_ios_dark/border_resize_content.png) |
 | 65 | Borderless | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/borderless.png) | ![](cpp_ios_light/borderless.png) | ![](csharp_ios_dark/borderless.png) | ![](cpp_ios_dark/borderless.png) |
-| 66 | Clip | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/clip.png) | ![](cpp_ios_light/clip.png) | ![](csharp_ios_dark/clip.png) | ![](cpp_ios_dark/clip.png) |
+| 66 | Clip | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/clip.png) | ![](cpp_ios_light/clip.png) | ![](csharp_ios_dark/clip.png) | ![](cpp_ios_dark/clip.png) |
 | 67 | Clip Views | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/clip_views.png) | ![](cpp_ios_light/clip_views.png) | ![](csharp_ios_dark/clip_views.png) | ![](cpp_ios_dark/clip_views.png) |
 | 68 | Clip Corner Radius | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/clip_corner_radius.png) | ![](cpp_ios_light/clip_corner_radius.png) | ![](csharp_ios_dark/clip_corner_radius.png) | ![](cpp_ios_dark/clip_corner_radius.png) |
 | 69 | Clip Gallery | 🟢⚠️<br>L:match<br>D:match | ![](csharp_ios_light/clip_gallery.png) | ![](cpp_ios_light/clip_gallery.png) | ![](csharp_ios_dark/clip_gallery.png) | ![](cpp_ios_dark/clip_gallery.png) |
@@ -451,9 +451,9 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Light:** Both show the same yellow borderless container, the label 'Style: borderless (StrokeThickness 0)', and a switch with a yellow track. Only difference: MAUI insets the yellow region inside a black rounded card (black margin visible top and bottom), while C++ renders the yellow edge-to-edge with no surrounding black inset. Content, label, switch state and colors all match.
 - **Dark:** Same as light: identical content (yellow container, label, yellow-track switch). MAUI shows the yellow inside a black rounded card with margins; C++ fills edge-to-edge. The label text is dark/black in MAUI's lighter-yellow area and rendered correctly in both; cosmetic inset difference only.
 
-### 66. Clip — 🔴 (L:diff / D:diff)
-- **Light:** MAUI 'Image' shows the submarine photo filling the full content width WITH its gray background. C++ renders the same submarine but smaller/narrower, centered, and WITHOUT the gray background fill (transparent behind the sub). Because C++ images are more compact, C++ fits 4 sections (Image, Rectangle, Ellipse, GeometryGroup clips) on screen while MAUI shows only the first 2 — but the core diff is the missing gray image background and the undersized/centered image in C++.
-- **Dark:** Same diff as light: MAUI's top 'Image' is full-width with a gray background; C++ shows a smaller centered submarine with no gray background. The clip geometries themselves render in C++, but image sizing and the missing gray bg fill differ from the MAUI ground truth.
+### 66. Clip — 🟡 (L:minor / D:minor)
+- **Light:** FIXED (iOS image_handler now pushes VisualElement.Background): the gray background fill now renders behind the submarine in the 'Image' section and behind all three clipped variants (Rectangle/Ellipse/GeometryGroup) — was entirely missing. Residual minor: MAUI's image fills the full content width (AspectFill) while C++ renders it centered/narrower (a shared image width/aspect-layout nuance, not the background).
+- **Dark:** Same as light — gray image background now renders; residual is image width/centering (image fills full width in MAUI, centered/narrower in C++).
 
 ### 67. Clip Views — 🟡 (L:minor / D:minor)
 - **Light:** FIXED (iOS entry/editor/search_bar now push VisualElement.Background): the Entry and Editor rows now show their solid RED fill clipped to the swoosh (Entry tints the UITextField's RoundedRect via the UIView backgroundColor; Editor via the layer). Button/DatePicker/Grid/TimePicker already red. Residual minor: the SearchBar bar fill renders faint on iOS 26 (UISearchBar chrome — the port sets backgroundColor exactly as MAUI's UpdateBackground does), and the ellipse clip is slightly narrower (~75% width) than MAUI's.

@@ -74,6 +74,9 @@ namespace maui::core
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_automation_id(std::string_view value) override;
+        // Background IS pushed: VisualElement.Background paints the UIProgressView's layer via the shared
+        // apply_background (mirroring the apple backend) — behind the track.
+        void update_background(const maui::graphics::paint* value) override;
         // Clip IS pushed: WrapperView.SetClip masks the UIProgressView's layer (the shared
         // apply_and_store_clip; the handler's platform_arrange re-frames the mask to the live bounds, the
         // 0×0-at-map-time fix).

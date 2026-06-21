@@ -193,11 +193,11 @@
     "severity": "minor"
   },
   "clip": {
-    "dark": "diff",
-    "dark_note": "Same diff as light: MAUI's top 'Image' is full-width with a gray background; C++ shows a smaller centered submarine with no gray background. The clip geometries themselves render in C++, but image sizing and the missing gray bg fill differ from the MAUI ground truth.",
-    "light": "diff",
-    "light_note": "MAUI 'Image' shows the submarine photo filling the full content width WITH its gray background. C++ renders the same submarine but smaller/narrower, centered, and WITHOUT the gray background fill (transparent behind the sub). Because C++ images are more compact, C++ fits 4 sections (Image, Rectangle, Ellipse, GeometryGroup clips) on screen while MAUI shows only the first 2 \u2014 but the core diff is the missing gray image background and the undersized/centered image in C++.",
-    "severity": "major"
+    "dark": "minor",
+    "dark_note": "Same as light \u2014 gray image background now renders; residual is image width/centering (image fills full width in MAUI, centered/narrower in C++).",
+    "light": "minor",
+    "light_note": "FIXED (iOS image_handler now pushes VisualElement.Background): the gray background fill now renders behind the submarine in the 'Image' section and behind all three clipped variants (Rectangle/Ellipse/GeometryGroup) \u2014 was entirely missing. Residual minor: MAUI's image fills the full content width (AspectFill) while C++ renders it centered/narrower (a shared image width/aspect-layout nuance, not the background).",
+    "severity": "minor"
   },
   "clip_corner_radius": {
     "dark": "minor",

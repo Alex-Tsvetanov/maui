@@ -93,6 +93,9 @@ namespace maui::core
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
+        // Background IS pushed: VisualElement.Background paints the UIImageView's layer via the shared
+        // apply_background — e.g. the clip page's gray fill behind the photo.
+        void update_background(const maui::graphics::paint* value) override;
         // Clip IS pushed: WrapperView.SetClip masks the UIImageView's layer (the shared
         // apply_and_store_clip; the handler's platform_arrange re-frames the mask to the live bounds, the
         // 0×0-at-map-time fix).

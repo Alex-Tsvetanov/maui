@@ -314,6 +314,13 @@ namespace maui::core
         as_check_box(native).accessibilityIdentifier = raw != nil ? raw : @"";
     }
 
+    // ViewHandler.MapBackground → the MauiCheckBox layer's backgroundColor (solid) / gradient or image
+    // sublayer, mirroring the apple backend.
+    void check_box_platform::update_background(const maui::graphics::paint* value)
+    {
+        maui::platform::ios::apply_background(native, value);
+    }
+
     // ViewHandler.MapClip → WrapperView.SetClip: mask the native view's layer to the clip
     // geometry, sized to the view's CURRENT bounds (0×0 before the first layout — the layout hook
     // re-frames it). apply_and_store_clip both applies and stashes the borrow for that re-frame.
