@@ -258,7 +258,7 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Dark:** Same as light — evenly-spaced dot rows; only the 'Indicator Size' dots are slightly larger in C++. The CarouselView label overlap is MAUI-side, not the port.
 
 ### 17. Image — 🔴 (L:diff / D:diff)
-- **Light:** C++ is missing two of MAUI's three sections. MAUI shows: UriSource (Microsoft campus photo), FileSource (purple 3D submarine render), and a 'Font Image Source' label. C++ shows only the UriSource photo (rendered noticeably LARGER/taller) and the 'FileSource' label, but the FileSource purple submarine image is absent and the entire 'Font Image Source' section is missing.
+- **Light:** Three causes (none a framework rendering bug): (1) FileSource = image_source::from_file('dotnet_bot.png'), which the GALLERY DOESN'T BUNDLE (the page's own note flags this — same asset-gap class as the oasis.jpg broken-refs), so it shows nothing where MAUI shows its bundled submarine — needs the gallery to bundle the real test assets (dotnet_bot.png / animated_heart.gif / settings.png). (2) UriSource (remote campus.jpg) DOES render but larger/taller — the iOS leaf-control Fill-width theme (shared with composition_gallery/clip). (3) the Font Image Source section depends on FontImageSource (FontManager, Y3) actually rendering a glyph — verify.
 - **Dark:** Same as light: C++ renders only the UriSource building photo (oversized) and the FileSource label; MAUI's FileSource purple-submarine image is missing in C++ and the 'Font Image Source' section is absent entirely.
 
 ### 18. Image Button — 🟢 (L:match / D:match)
