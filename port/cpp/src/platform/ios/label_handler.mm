@@ -488,4 +488,12 @@ namespace maui::core
         }
         [as_label(platform->native) setFrame:CGRectMake(frame.x, frame.y, frame.width, frame.height)];
     }
+
+    // Render transform pushed to the native UIView via the shared ios apply_transform helper
+    // (the generic-IView ViewMapper widening). `native` is this struct's UIView handle.
+    void label_platform::update_transform(const maui::core::transform_spec& value)
+    {
+        maui::platform::ios::apply_transform(native, value);
+    }
+
 } // namespace maui::core

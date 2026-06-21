@@ -88,6 +88,9 @@ namespace maui::core
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_automation_id(std::string_view value) override;
+        // Render transform pushed to the native view via the shared ios apply_transform helper
+        // (the generic-IView ViewMapper widening). `native` is this struct's UIView handle.
+        void update_transform(const maui::core::transform_spec& value) override;
         void update_background(const maui::graphics::paint* value) override;
         void update_shadow(const maui::core::i_shadow* value) override;
         void update_clip(const maui::graphics::i_shape* value) override;

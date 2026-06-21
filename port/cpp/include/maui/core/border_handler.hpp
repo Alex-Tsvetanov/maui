@@ -99,11 +99,15 @@ namespace maui::core
 
 #ifdef MAUI_PLATFORM_IOS
         // iOS backend (src/platform/ios/border_handler.mm): the UIView-host twin. is_enabled and
-        // transform/flow_direction keep the base mirrors (matching the content_page partial's scope);
+        // flow_direction keep the base mirrors (matching the content_page partial's scope); transform IS
+        // pushed via the shared ios apply_transform helper (the generic-IView ViewMapper widening).
         // update_clip keeps the base mirror for the same shape-owns-the-mask reason as on apple.
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_automation_id(std::string_view value) override;
+        // Render transform pushed to the native view via the shared ios apply_transform helper
+        // (the generic-IView ViewMapper widening). `native` is this struct's UIView handle.
+        void update_transform(const maui::core::transform_spec& value) override;
         void update_background(const maui::graphics::paint* value) override;
         void update_shadow(const maui::core::i_shadow* value) override;
         void update_semantics(const maui::core::semantics* value) override;

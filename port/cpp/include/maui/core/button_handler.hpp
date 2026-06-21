@@ -100,15 +100,19 @@ namespace maui::core
 
 #ifdef MAUI_PLATFORM_IOS
         // iOS backend (M6 scaffold): push the four fundamental IView properties to the UIButton
-        // (defined in src/platform/ios/button_handler.mm). The remaining generic-IView pushes —
-        // transform / flow_direction / shadow / clip / semantics / input_transparent — deliberately keep
-        // the view_platform_base mirrors for now; the M6 fan-out units port the shared ios view/visual/
+        // (defined in src/platform/ios/button_handler.mm). transform IS pushed via the shared ios
+        // apply_transform helper (the generic-IView ViewMapper widening). The remaining generic-IView
+        // pushes — flow_direction / shadow / semantics / input_transparent — deliberately keep the
+        // view_platform_base mirrors for now; the M6 fan-out units port the shared ios view/visual/
         // semantics op helpers and override them here (see port/STATUS.md). background IS overridden: a
         // UIButton's BackgroundColor must be drawn as a per-state backgroundImage (ButtonHandler.MapBackground).
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
+        // Render transform pushed to the native view via the shared ios apply_transform helper
+        // (the generic-IView ViewMapper widening). `native` is this struct's UIView handle.
+        void update_transform(const maui::core::transform_spec& value) override;
         void update_background(const maui::graphics::paint* value) override;
         // Clip IS pushed: WrapperView.SetClip masks the UIButton's layer (the shared
         // apply_and_store_clip; the handler's platform_arrange re-frames the mask to the live bounds, the

@@ -455,4 +455,12 @@ namespace maui::core
         }
         platform->update_on_tap = specifics->update_on_tap();
     }
+
+    // Render transform pushed to the native UIView via the shared ios apply_transform helper
+    // (the generic-IView ViewMapper widening). `native` is this struct's UIView handle.
+    void slider_platform::update_transform(const maui::core::transform_spec& value)
+    {
+        maui::platform::ios::apply_transform(native, value);
+    }
+
 } // namespace maui::core

@@ -76,6 +76,9 @@ namespace maui::core
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
+        // Render transform pushed to the native view via the shared ios apply_transform helper
+        // (the generic-IView ViewMapper widening). `native` is this struct's UIView handle.
+        void update_transform(const maui::core::transform_spec& value) override;
         // BackgroundColor IS pushed to the MauiTimePicker (a RoundedRect UITextField): a solid fill goes to
         // the UIView backgroundColor property (flat fill, bezel suppressed, like MAUI); gradient/image use
         // the shared backing-layer helper. Mirrors the picker/date_picker handlers' update_background.

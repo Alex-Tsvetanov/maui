@@ -71,6 +71,9 @@ namespace maui::core
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_automation_id(std::string_view value) override;
+        // Render transform pushed to the native view via the shared ios apply_transform helper
+        // (the generic-IView ViewMapper widening). `native` is this struct's UIView handle.
+        void update_transform(const maui::core::transform_spec& value) override;
         // BackgroundColor / Background brush IS pushed to the UIActivityIndicatorView — the band behind the
         // spinner (the shared apply_background; MauiIosActivityIndicator.layoutSubviews keeps a gradient
         // fill sized to bounds).

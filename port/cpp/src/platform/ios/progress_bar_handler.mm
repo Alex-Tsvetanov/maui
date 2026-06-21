@@ -180,4 +180,12 @@ namespace maui::core
         // mask was sized at map time, before any layout, when bounds was 0×0. No-op when no clip is set.
         maui::platform::ios::reapply_clip(platform->native);
     }
+
+    // Render transform pushed to the native UIView via the shared ios apply_transform helper
+    // (the generic-IView ViewMapper widening). `native` is this struct's UIView handle.
+    void progress_bar_platform::update_transform(const maui::core::transform_spec& value)
+    {
+        maui::platform::ios::apply_transform(native, value);
+    }
+
 } // namespace maui::core

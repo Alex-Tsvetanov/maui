@@ -86,11 +86,14 @@ namespace maui::core
         // iOS backend: push the generic IView properties to the UIView host (defined in
         // src/platform/ios/content_page_handler.mm). is_enabled is intentionally NOT overridden — a
         // plain UIView host has no enabled state (only UIControl has), so it keeps the base mirror.
-        // transform / flow_direction also keep the base mirrors for now (the shared ios view-ops
-        // helper arrives with the M6 retrofit; see port/STATUS.md).
+        // transform IS pushed via the shared ios apply_transform helper (the generic-IView ViewMapper
+        // widening); flow_direction still keeps the base mirror for now (see port/STATUS.md).
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_automation_id(std::string_view value) override;
+        // Render transform pushed to the native view via the shared ios apply_transform helper
+        // (the generic-IView ViewMapper widening). `native` is this struct's UIView handle.
+        void update_transform(const maui::core::transform_spec& value) override;
         // Background / shadow / clip pushed to the host's layer (ios_visual_ops.hpp) + semantics /
         // input-transparent (ios_semantics_ops.hpp: accessibilityLabel/Hint + the Header trait,
         // userInteractionEnabled) — the direct iOS C# extension ports.

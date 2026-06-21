@@ -42,6 +42,7 @@
 #include "maui/core/image_source_result.hpp"
 #include "maui/core/image_source_service_registry.hpp"
 #include "maui/core/image_source_services.hpp"
+#include "maui/core/view_platform_base.hpp"
 #include "maui/graphics/gradient_paint.hpp"
 #include "maui/graphics/gradient_stop.hpp"
 #include "maui/graphics/i_shape.hpp"
@@ -574,5 +575,86 @@ namespace maui::platform::ios
     {
         apply_clip(native, shape, bounds);
         store_clip_shape(native, shape);
+    }
+
+    // apply_transform is a faithful port of Microsoft.Maui.Platform.TransformationExtensions
+    // .UpdateTransformation (src/Core/src/Platform/iOS/TransformationExtensions.cs): it rebuilds the WHOLE
+    // CATransform3D from the ten ITransform scalars (so any single change re-applies the full transform —
+    // matching the shared map_transform, which always passes the complete transform_spec). The C# original
+    // keys the anchor-relative offset on view.Frame.Width/Height; here we read the laid-out size from the
+    // view's backing layer bounds (set by the handler's platform_arrange), exactly as the AppKit twin
+    // apple_view_ops.hpp does. This is the UIKit-native original the AppKit version was adapted from, so the
+    // math is identical (the AppKit file ADAPTED it; both share CoreAnimation, only the view type differs).
+    inline void apply_transform(void* native, const maui::core::transform_spec& t)
+    {
+        if (native == nullptr)
+        {
+            return;
+        }
+        auto* const view = (__bridge UIView*)native;
+        CALayer* const layer = view.layer; // a UIView is always layer-backed (nonnull)
+
+        const auto anchor_x = static_cast<CGFloat>(t.anchor_x);
+        const auto anchor_y = static_cast<CGFloat>(t.anchor_y);
+        const auto translation_x = static_cast<CGFloat>(t.translation_x);
+        const auto translation_y = static_cast<CGFloat>(t.translation_y);
+        const auto rotation_x = static_cast<CGFloat>(t.rotation_x);
+        const auto rotation_y = static_cast<CGFloat>(t.rotation_y);
+        const auto rotation = static_cast<CGFloat>(t.rotation);
+        // The uniform Scale multiplies the per-axis factors; the z-scale is the uniform Scale alone
+        // (TransformationExtensions: scaleX = ScaleX * Scale, scaleY = ScaleY * Scale).
+        const auto scale = static_cast<CGFloat>(t.scale);
+        const CGFloat scale_x = static_cast<CGFloat>(t.scale_x) * scale;
+        const CGFloat scale_y = static_cast<CGFloat>(t.scale_y) * scale;
+
+        // The anchor-relative offset uses the laid-out size (C# uses view.Frame; the backing layer's bounds
+        // is the post-arrange analog, same as the AppKit twin).
+        const CGFloat width = layer.bounds.size.width;
+        const CGFloat height = layer.bounds.size.height;
+
+        constexpr double epsilon = 0.001;
+
+        CATransform3D transform = CATransform3DIdentity;
+
+        // Position is relative to the anchor point.
+        if (std::abs(anchor_x - 0.5) > epsilon)
+        {
+            transform = CATransform3DTranslate(transform, (anchor_x - 0.5) * width, 0, 0);
+        }
+        if (std::abs(anchor_y - 0.5) > epsilon)
+        {
+            transform = CATransform3DTranslate(transform, 0, (anchor_y - 0.5) * height, 0);
+        }
+
+        if (std::abs(translation_x) > epsilon || std::abs(translation_y) > epsilon)
+        {
+            transform = CATransform3DTranslate(transform, translation_x, translation_y, 0);
+        }
+
+        // Setting m34 (perspective) also stops the layer from pixel-aligning; only do it when there is an
+        // out-of-plane rotation (C# gates on rotationX/rotationY % 180).
+        if (std::abs(std::fmod(rotation_y, 180.0)) > epsilon || std::abs(std::fmod(rotation_x, 180.0)) > epsilon)
+        {
+            transform.m34 = 1.0 / -400.0;
+        }
+
+        constexpr double deg_to_rad = M_PI / 180.0;
+        if (std::abs(std::fmod(rotation_x, 360.0)) > epsilon)
+        {
+            transform = CATransform3DRotate(transform, rotation_x * deg_to_rad, 1.0, 0.0, 0.0);
+        }
+        if (std::abs(std::fmod(rotation_y, 360.0)) > epsilon)
+        {
+            transform = CATransform3DRotate(transform, rotation_y * deg_to_rad, 0.0, 1.0, 0.0);
+        }
+        transform = CATransform3DRotate(transform, rotation * deg_to_rad, 0.0, 0.0, 1.0);
+
+        if (std::abs(scale_x - 1.0) > epsilon || std::abs(scale_y - 1.0) > epsilon)
+        {
+            transform = CATransform3DScale(transform, scale_x, scale_y, scale);
+        }
+
+        layer.anchorPoint = CGPointMake(anchor_x, anchor_y);
+        layer.transform = transform;
     }
 } // namespace maui::platform::ios

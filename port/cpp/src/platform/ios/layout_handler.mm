@@ -304,4 +304,12 @@ namespace maui::core
         clips_to_bounds = value; // keep the mirror in sync with the base
         as_panel(native).clipsToBounds = static_cast<BOOL>(value);
     }
+
+    // Render transform pushed to the native UIView via the shared ios apply_transform helper
+    // (the generic-IView ViewMapper widening). `native` is this struct's UIView handle.
+    void layout_platform::update_transform(const maui::core::transform_spec& value)
+    {
+        maui::platform::ios::apply_transform(native, value);
+    }
+
 } // namespace maui::core

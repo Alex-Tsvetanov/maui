@@ -93,6 +93,9 @@ namespace maui::core
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
+        // Render transform pushed to the native view via the shared ios apply_transform helper
+        // (the generic-IView ViewMapper widening). `native` is this struct's UIView handle.
+        void update_transform(const maui::core::transform_spec& value) override;
         // BackgroundColor IS pushed: a system UIButton draws it as a per-state backgroundImage (a solid
         // fill becomes a 1×1 colored image; gradient/image defers to apply_background) — the ButtonHandler
         // recipe; plain backgroundColor is ignored by the button's own drawing.

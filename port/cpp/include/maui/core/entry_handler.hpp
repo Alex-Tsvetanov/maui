@@ -124,6 +124,9 @@ namespace maui::core
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
+        // Render transform pushed to the native view via the shared ios apply_transform helper
+        // (the generic-IView ViewMapper widening). `native` is this struct's UIView handle.
+        void update_transform(const maui::core::transform_spec& value) override;
         // Background IS pushed: VisualElement.Background paints the UITextField layer's backgroundColor
         // (the shared apply_background), so a clipped red field (clip_views) fills under the clip mask.
         void update_background(const maui::graphics::paint* value) override;
