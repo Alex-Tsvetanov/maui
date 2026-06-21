@@ -1,3 +1,7 @@
+// FALLBACK path. The DEFAULT iOS-parity comparator is Gemini vision:
+//   port/cpp/tools/parity/run_parity.py  (see tools/parity/README.md).
+// Use this Claude-vision workflow only for pages Gemini could not judge — the `fallback`
+// set in docs/comparison/parity_fallback.json (quota / missing images / error). Same schema.
 export const meta = {
   name: 'ios-parity-assess',
   description: 'Assess iOS theme-matched parity (light↔light, dark↔dark) per page; emit per-page light/dark verdicts',

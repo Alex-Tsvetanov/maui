@@ -44,6 +44,27 @@ Only `--commit-board` merges `light`/`dark` verdicts into `parity_status.json` (
 regenerates the tracker `README.md`). Rule on the quirk categories first, record the rulings in
 `port/CLAUDE.md` / `port/PROJECT.md`, THEN fix the port and/or commit the board.
 
+## Models & quota (min-maxed)
+
+The free-tier daily limits make model choice critical — `gemini-flash-latest` resolves to
+**Gemini 3.5 Flash, only 20 requests/day**, which cannot cover a 172-page sweep. Usable
+vision+text-out models and their limits:
+
+| Model | RPM | RPD | Role |
+| --- | --: | --: | --- |
+| `gemini-3.1-flash-lite` | 15 | **500** | **workhorse** — clears a full sweep in one day |
+| `gemini-3-flash` / `gemini-2.5-flash` / `gemini-3.5-flash` | 5 | 20 each | premium — better bucketing, scarce |
+| `gemini-2.5-flash-lite` | 10 | 20 | extra lite quota |
+
+`run_parity.py` drives a **quota-aware cascade** (`--models`, default best-first):
+`gemini-3.5-flash → gemini-3-flash → gemini-2.5-flash → gemini-3.1-flash-lite → gemini-2.5-flash-lite`.
+It spends the scarce premium (20-RPD) models first — best verdicts on the early pages — then rotates
+to flash-lite for the bulk when each 429s, and only falls back to Claude when **all** are exhausted
+(~580 Gemini RPD total). Each page records the model that judged it; full-flash verdicts are more
+reliable than flash-lite (flash-lite occasionally mis-buckets the crop quirk as a port_diff — weight
+your review accordingly). Pacing is automatic from each model's RPM (no manual `--delay` needed).
+Force a single model with `--model gemini-3.1-flash-lite` (consistent verdicts, still 500/day).
+
 ## API key (NOT in the repo)
 
 The key lives **outside the repo** so it can never be committed:
@@ -61,8 +82,12 @@ Resolution order: `$GEMINI_API_KEY` → that file. Model: `$GEMINI_MODEL`
 # one page (prints a JSON verdict + buckets; exits 75 on quota, 2 on missing images)
 python3 port/cpp/tools/parity/gemini_compare.py button
 
-# review-only full sweep -> PARITY_REVIEW.md (board untouched). --delay paces under the free-tier RPM.
-python3 port/cpp/tools/parity/run_parity.py --all --delay 5
+# review-only full sweep -> PARITY_REVIEW.md (board untouched). Cascade + auto-pacing by default.
+python3 port/cpp/tools/parity/run_parity.py --all
+
+# single consistent model (500/day), or a custom cascade
+python3 port/cpp/tools/parity/run_parity.py --all --model gemini-3.1-flash-lite
+python3 port/cpp/tools/parity/run_parity.py --all --models "gemini-2.5-flash:5,gemini-3.1-flash-lite:15"
 
 # specific pages (review-only)
 python3 port/cpp/tools/parity/run_parity.py button grid horizontal_stack

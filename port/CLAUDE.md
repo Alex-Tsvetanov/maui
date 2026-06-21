@@ -93,6 +93,33 @@ A component is done only when: (a) its public surface matches the `PublicAPI.Shi
 that type, (b) its ported tests pass, and (c) for UI components, it renders/reacts in the host app on
 the first platform. Partial ports must be marked as such in the manifest, never silently.
 
+## Parity comparison policy (visual fidelity rulings)
+
+How the iOS parity loop judges the C++ port against real .NET MAUI. The comparison runs through
+`port/cpp/tools/parity/` (Google Gemini by default, Claude vision as the quota fallback); each page's
+differences are split into **port_diffs** (fix) vs **maui_quirks** (MAUI-side, discuss). User rulings
+(2026-06-21) — DO NOT re-litigate these without the user:
+
+1. **Microsoft's MAUI render IS the ground truth for all page CONTENT.** The port matches MAUI's actual
+   rendered demos, in both code (syntax) and visuals: colors, control sizes, internal spacing, text,
+   corner radius, fonts. Any *content* difference vs MAUI — **including any color difference** — is a
+   **port bug to fix**, never excused as a "MAUI imperfection." MAUI's color/appearance is correct by
+   definition.
+2. **The only MAUI imperfection the port need not copy is the harness WRAPPER.** MAUI wraps each demo
+   page in an inset card (large whole-screen padding/margins) and crops the page top/bottom. The port
+   deliberately does **not** replicate this: it uses *modest* page padding for UX (some spacing — not
+   content jammed to the screen edges — but **much less than MAUI's**), and may show more of the page.
+   Do NOT flag the outer-inset magnitude, the resulting uniform global shift, or the top/bottom crop as
+   port bugs. The inset is a uniform outer margin only — it never changes a control's size, color, or
+   internal spacing; if those differ, that is a port_diff. (Port TODO: give the port modest page padding
+   rather than edge-to-edge content.)
+3. **New MAUI imperfections → flag, don't act.** When a sweep surfaces a MAUI-side quirk not covered
+   above, record it in `docs/comparison/PARITY_REVIEW.md` (maui_quirks) and **pause for a user ruling** —
+   neither auto-ignore nor auto-fix. Append the approved ruling to this list.
+
+Workflow: run the sweep **review-only** (writes `PARITY_REVIEW.md`, board untouched) → user verifies and
+rules on quirks → only then `--commit-board` adopts verdicts and the port_diffs become fix candidates.
+
 ## Progress tracking
 
 Maintain a `port/STATUS.md` (create it on first run) with one row per component:

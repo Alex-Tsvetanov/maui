@@ -1,2 +1,10 @@
 # CMake build trees (one per preset: headless, asan-ubsan, tsan, tidy, msan) + vcpkg_installed.
 /build/
+
+# Parity sweep run artifacts (regenerated each run by tools/parity/run_parity.py).
+# PARITY_REVIEW.md is left trackable (human-facing review doc); these intermediates are not.
+/docs/comparison/parity_fallback.json
+/docs/comparison/parity_review.json
+# Defense-in-depth: never commit a Gemini key if one is ever dropped in-tree.
+**/gemini_api_key
+*.gemini.key

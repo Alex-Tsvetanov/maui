@@ -66,6 +66,7 @@ def main() -> None:
 
     # Aggregate quirks for the discussion section.
     cats: dict[str, list[tuple[str, str]]] = {}
+    by_model: dict[str, int] = {}
     n_port = 0
     for k in order:
         v = verdicts[k]
@@ -73,6 +74,7 @@ def main() -> None:
             cats.setdefault(categorize(q), []).append((k, q))
         if v.get("port_diffs"):
             n_port += 1
+        by_model[v.get("model", "?")] = by_model.get(v.get("model", "?"), 0) + 1
 
     o: list[str] = []
     o.append("# C++ port vs .NET MAUI — parity REVIEW (Gemini-judged, for verification)")
@@ -87,6 +89,11 @@ def main() -> None:
     o.append("")
     o.append(f"**Pages judged: {summary.get('judged', len(order))}** · {n_port} with port diffs · "
              f"{sum(len(x) for x in cats.values())} MAUI-quirk notes across {len(cats)} categories.")
+    if by_model:
+        models = ", ".join(f"{m} ×{n}" for m, n in sorted(by_model.items(), key=lambda kv: -kv[1]))
+        o.append("")
+        o.append(f"_Judged by: {models}. Full-flash verdicts are more reliable than flash-lite; "
+                 f"weight your review accordingly._")
     if summary.get("fallback"):
         o.append("")
         o.append(f"**Deferred to Claude fallback ({len(summary['fallback'])}):** "
@@ -116,7 +123,8 @@ def main() -> None:
     for i, k in enumerate(order, 1):
         v = verdicts[k]
         lt, dk = v["light"], v["dark"]
-        o.append(f"### {i}. {gen.title(k)} — {EMOJI.get(lt, '?')} L:{lt} · {EMOJI.get(dk, '?')} D:{dk}")
+        o.append(f"### {i}. {gen.title(k)} — {EMOJI.get(lt, '?')} L:{lt} · {EMOJI.get(dk, '?')} D:{dk}"
+                 f"  <sub>· {v.get('model', '?')}</sub>")
         port = v.get("port_diffs", [])
         quirks = v.get("maui_quirks", [])
         if port:
