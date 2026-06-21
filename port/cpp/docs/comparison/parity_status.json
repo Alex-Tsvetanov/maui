@@ -238,11 +238,11 @@
   "severity": "minor"
  },
  "composition_gallery": {
-  "dark": "diff",
-  "dark_note": "Same as light — the composed shapes + axes draw correctly, but the GraphicsView canvases are too small / not filling width (the iOS leaf-control-Fill-width theme shared with the image/clip pages).",
-  "light": "diff",
-  "light_note": "The canvas DRAWING is correct (green triangle + yellow circle + translucent orange diagonal composited with transparency; the colored axes) — but the two GraphicsView canvases render TOO SMALL: MAUI shows two separate full-width (square) cream canvases with a gap; C++ shows them narrow (~70% width) and visually merged. Likely SHARED cause: an iOS leaf control with intrinsic content (GraphicsView here; Image on the clip/image pages) does NOT stretch to fill the parent width when HorizontalOptions=Fill — it stays at a smaller/content size. Worth a focused look at iOS leaf-control arrange honoring Fill width.",
-  "severity": "major"
+  "dark": "minor",
+  "dark_note": "Graphics composition renders correctly: beige canvas with the overlapping translucent green triangle + yellow circle + red diagonal band (blend) and the blue/green/red axes lines below — matches MAUI's shapes, colors, and blending in both light+dark. Residual: the port's graphics_view is taller so the shapes sit higher within the canvas; plus wrapper scale/crop (exempt, policy #2).",
+  "light": "minor",
+  "light_note": "Graphics composition renders correctly: beige canvas with the overlapping translucent green triangle + yellow circle + red diagonal band (blend) and the blue/green/red axes lines below — matches MAUI's shapes, colors, and blending in both light+dark. Residual: the port's graphics_view is taller so the shapes sit higher within the canvas; plus wrapper scale/crop (exempt, policy #2).",
+  "severity": "minor"
  },
  "containers": {
   "dark": "match",
@@ -259,11 +259,11 @@
   "severity": "match"
  },
  "context_flyout": {
-  "dark": "diff",
-  "dark_note": "Same divergence in dark theme: top controls match, but C++ renders the full lower section (Microsoft Bing cookie card with Accept/Reject, link row, '0' counter, and 'Right-click a control...' description) while the MAUI reference shows only an empty white card band and omits all of that content.",
-  "light": "diff",
-  "light_note": "Top controls match (gray 'Increment by 1 (or right-click me)' button, 'Is dynamic menu enabled?' toggle, 'Right-click to see beautiful menus', 'Has a custom context menu' entry, and the blue 'COOL' image-button). Below that the two captures diverge: the C++ port renders the full lower page content — a 'Microsoft Bing' cookie-consent card (Accept/Reject/More options buttons), a 'Privacy/Legal/Advertise/Ad Info' link row, a '0' counter label, and the description text 'Right-click a control, or its menu items are exercised programmatically' — whereas the MAUI reference shows only blank white space there with none of that content. C++ shows more/correct content; MAUI ref appears truncated/missing the lower section.",
-  "severity": "major"
+  "dark": "minor",
+  "dark_note": "Context-flyout demo content matches MAUI: 'Increment by 1 (or right-click me)' button, 'Is dynamic menu enabled?' toggle, 'Right-click to see beautiful menus', the 'Has a custom context menu' entry, and the COOL FontImage button all render correctly (light+dark). Below them the port faithfully renders the live bing.com WebView (Source per the C# sample's <WebView Source=https://bing.com MinimumHeightRequest=400>) + the '0'/status labels — all below MAUI's wrapper crop (port shows more, policy #2). The WebView content is a LIVE page (cookie banner / Copilot), inherently non-pixel-matchable. NOTE: contradicts the page's stale 'web_view doesn't render pixels' note — it DOES on iOS.",
+  "light": "minor",
+  "light_note": "Context-flyout demo content matches MAUI: 'Increment by 1 (or right-click me)' button, 'Is dynamic menu enabled?' toggle, 'Right-click to see beautiful menus', the 'Has a custom context menu' entry, and the COOL FontImage button all render correctly (light+dark). Below them the port faithfully renders the live bing.com WebView (Source per the C# sample's <WebView Source=https://bing.com MinimumHeightRequest=400>) + the '0'/status labels — all below MAUI's wrapper crop (port shows more, policy #2). The WebView content is a LIVE page (cookie banner / Copilot), inherently non-pixel-matchable. NOTE: contradicts the page's stale 'web_view doesn't render pixels' note — it DOES on iOS.",
+  "severity": "minor"
  },
  "controls_stack": {
   "dark": "match",
