@@ -170,9 +170,9 @@
   },
   "chat_example": {
     "dark": "diff",
-    "dark_note": "Same full-width-bar vs content-width-bubble problem as light, plus a text-color bug: MAUI keeps DARK text on the light green/blue bubbles in dark mode (readable), while the C++ port renders the bubble text in white/light on the green and blue bars, washing out contrast. So C++ has both wrong bubble shape/alignment AND wrong (light) text color on light bubbles in dark mode.",
+    "dark_note": "Same as light \u2014 bubbles render full-width (iOS CV cell stretches content, ignoring HorizontalOptions) instead of content-width pills aligned by sender; square-cornered (single-root cell, no StrokeShape). Shared CV cell-sizing root cause.",
     "light": "diff",
-    "light_note": "Bubble shape and alignment are wrong. In MAUI the two messages are content-width rounded pill bubbles aligned by sender: green 'Hi there!' is right-aligned (sent) and blue 'Hello \u2014 how can I help you today?' is left-aligned (received). In the C++ port both messages render as FULL-WIDTH rectangular colored bars (no rounded corners, no left/right alignment) spanning edge to edge, so they don't look like chat bubbles at all.",
+    "light_note": "Root cause = iOS CV cell content-sizing (SHARED with varied_size_selector + the header_footer family). The bubble templates set the label's HorizontalOptions=Start/End (remote left/blue, local right/green) + Padding(10,6)/Margin(8,2), but the realized iOS CV cell STRETCHES its content to full cell width and ignores the content's HorizontalOptions \u2014 so the bubbles render as full-width colored bars instead of MAUI's content-width pills aligned by sender. Secondary, documented: the single-root templated cell can't carry the Border StrokeShape, so the bubbles are square-cornered (no rounded pill). Fixing the iOS CV cell to honor content HorizontalOptions + content-width sizing would address this whole cluster (deep/risky \u2014 touches every collection view).",
     "severity": "major"
   },
   "check_box": {
