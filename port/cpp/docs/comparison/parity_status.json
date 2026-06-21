@@ -170,9 +170,9 @@
   },
   "chat_example": {
     "dark": "minor",
-    "dark_note": "Content-width per-sender alignment + pastel fills + Padding/Margin match light (the green local bubble content-width RIGHT-aligned, the blue remote bubble content-width LEFT-aligned, matching MAUI's per-sender pills). The explicit TextColor=Black is now honored in DARK mode \u2014 FIXED: label_handler.mm map_text_color keys its adaptive-default fallback off BindableObject.IsSet (the explicitly-set check) instead of a value compare against the default-constructed color. The port's default-constructed color IS opaque black, so the old `!= color{}` compare misread an explicit black as unset and fell to UIColor.labelColor (white in dark mode); is_property_set distinguishes the staged manual-specificity black from unset, so the bubble text is now black in both appearances, matching MAUI. RESIDUAL (documented, out of scope): the single-root templated cell can't carry the Border RoundRectangle StrokeShape, so the bubbles are square-cornered vs MAUI's CornerRadius=12 rounded pills.",
+    "dark_note": "Same as light \u2014 content-width side-aligned bubbles (CV-cell fix); square-cornered vs MAUI's rounded pills (single-root-cell limit).",
     "light": "minor",
-    "light_note": "iOS CV cell now honors the content's HorizontalOptions \u2014 FIXED. collection_view_handler.mm MauiCollectionViewCell reads the realized root's horizontal_layout_alignment: a Fill root still spans the full cell (unchanged), while a Start/Center/End root is measured and arranged content-width via the cross-platform arrange. The green (local) bubble is now content-width RIGHT-aligned and the blue (remote) bubble content-width LEFT-aligned, matching MAUI's per-sender pills (alignment + fill colors + Padding/Margin now match). RESIDUAL (documented, out of scope): the single-root templated cell can't carry the Border RoundRectangle StrokeShape, so the bubbles are square-cornered vs MAUI's CornerRadius=12 rounded pills.",
+    "light_note": "FIXED by the iOS CV-cell HorizontalOptions fix: the chat bubbles now render content-width, aligned by sender (green 'Hi there!' right, blue 'Hello\u2026' left) \u2014 matching MAUI's pill layout. Residual minor (documented): the single-root templated cell can't carry the Border StrokeShape, so the bubbles are square-cornered rather than rounded pills.",
     "severity": "minor"
   },
   "check_box": {
@@ -1235,9 +1235,9 @@
   },
   "varied_size_selector": {
     "dark": "diff",
-    "dark_note": "Same defect in dark: MAUI gives the Milk1 cell a taller height than Coffee cells (4 items); C++ renders 6 uniform compact rows with no height variation between Milk and Coffee templates. Varied-size selection not applied.",
+    "dark_note": "Same as light \u2014 distinct template colors now render, but the Milk cell isn't taller (uniform cell height vs MAUI's varied per-template height).",
     "light": "diff",
-    "light_note": "C++ does not vary cell heights per template. MAUI shows 4 items (Coffee0, Milk1, Coffee2, Coffee3) where the Milk template cell is much TALLER than the Coffee cells (varied size by data-template selector). C++ shows 6 uniform-height compact rows (Coffee0, Milk1, Coffee2, Coffee3, Milk4, Coffee5) \u2014 Milk rows are the same height as Coffee rows, so the varied-size effect is missing. Item count and per-cell heights both differ. Bottom controls (Insert/Add/Remove, Index field '1', 'Latte' field) are present on both.",
+    "light_note": "IMPROVED by the CV-cell fix (the DataTemplateSelector now renders the distinct Coffee=brown / Milk=cream templates). Residual diff: per-template CELL HEIGHT is not varied \u2014 MAUI renders the Milk template ~2x taller than the Coffee cells; C++ renders all cells uniform height (the cell measures a fixed height, ignoring the taller template's content). Needs per-item cell-height measurement in the iOS CV.",
     "severity": "major"
   },
   "vertical_stack": {
