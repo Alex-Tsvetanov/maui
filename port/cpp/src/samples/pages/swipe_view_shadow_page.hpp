@@ -91,6 +91,8 @@ namespace maui::samples
             view_delete_border_.set_stroke_shape(std::make_shared<maui::graphics::shapes::round_rectangle>(12.0));
             view_delete_border_.set_width_request(80);
             view_delete_label_.set_text("Delete");
+            view_delete_label_.set_horizontal_layout_alignment(maui::core::layout_alignment::center);
+            view_delete_label_.set_vertical_layout_alignment(maui::core::layout_alignment::center);
             view_delete_border_.set_content(view_delete_label_);
             view_delete_item_.set_content(view_delete_border_);
 
@@ -98,6 +100,8 @@ namespace maui::samples
             view_add_border_.set_stroke_shape(std::make_shared<maui::graphics::shapes::round_rectangle>(12.0));
             view_add_border_.set_width_request(80);
             view_add_label_.set_text("Add");
+            view_add_label_.set_horizontal_layout_alignment(maui::core::layout_alignment::center);
+            view_add_label_.set_vertical_layout_alignment(maui::core::layout_alignment::center);
             view_add_border_.set_content(view_add_label_);
             view_add_item_.set_content(view_add_border_);
 
@@ -221,6 +225,9 @@ namespace maui::samples
             bordered.set_shadow(std::move(drop));
 
             content_label.set_text("Content");
+            // XAML: the Content Label is HorizontalOptions/VerticalOptions=Center within its single-cell Grid.
+            content_label.set_horizontal_layout_alignment(maui::core::layout_alignment::center);
+            content_label.set_vertical_layout_alignment(maui::core::layout_alignment::center);
             content_grid.add(content_label);
             bordered.set_content(content_grid);
         }

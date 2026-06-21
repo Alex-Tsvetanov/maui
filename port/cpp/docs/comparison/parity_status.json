@@ -1150,11 +1150,11 @@
   "severity": "major"
  },
  "swipe_view_shadow": {
-  "dark": "diff",
-  "dark_note": "Same as light — Border has iOS shadow support; the missing drop-shadow is a swipe-container shadow-clip/render issue, not a handler-drop. (18 leaf handlers lack update_shadow = latent gap, no current failing page.)",
-  "light": "diff",
-  "light_note": "The card is a RoundRectangle Border (stroke 3, corner 10) with a black Shadow (offset 20,20, radius 40) and a light gradient fill. The iOS border_handler DOES push update_shadow (not the handler-drop class), so the missing drop-shadow is a shadow rendering/CLIPPING issue around the SwipeView container (the shadow extends beyond the border bounds and is clipped by the swipe content host, or apply_shadow doesn't render for a gradient+stroke border) — needs focused on-sim verification. Separately: 18 LEAF iOS handlers (button/label/entry/image/etc.) lack update_shadow (sibling of the Background-class gap) — a latent completeness gap, but no current diff page uses leaf-control shadows so it has no visible payoff yet.",
-  "severity": "major"
+  "dark": "minor",
+  "dark_note": "Content labels now centered (HorizontalOptions/VerticalOptions=Center, per XAML) in both shadowed Borders and the custom SwipeItemView Delete/Add labels — matches MAUI. Light: black rounded borders + gradient fill + centered 'Content'. Dark: the hardcoded black Stroke + black Shadow are invisible on the black background, so only the centered 'Content' text shows — IDENTICAL to MAUI's dark ref (faithful: the C# XAML hardcodes Stroke=Black/Shadow Brush=Black). Residual: subtle drop-shadow intensity on the light boxes.",
+  "light": "minor",
+  "light_note": "Content labels now centered (HorizontalOptions/VerticalOptions=Center, per XAML) in both shadowed Borders and the custom SwipeItemView Delete/Add labels — matches MAUI. Light: black rounded borders + gradient fill + centered 'Content'. Dark: the hardcoded black Stroke + black Shadow are invisible on the black background, so only the centered 'Content' text shows — IDENTICAL to MAUI's dark ref (faithful: the C# XAML hardcodes Stroke=Black/Shadow Brush=Black). Residual: subtle drop-shadow intensity on the light boxes.",
+  "severity": "minor"
  },
  "switch": {
   "dark": "minor",
