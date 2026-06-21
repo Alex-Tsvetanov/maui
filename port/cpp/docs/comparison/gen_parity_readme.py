@@ -128,7 +128,7 @@ def review_cell(v):
         return "—"
     rc = review_combined(v)
     sev = v.get("severity")
-    src = v.get("source")  # 'gemini' | 'claude' when the tool/fallback records it
+    src = v.get("model") or v.get("source")  # the judging model id (gemini-*/claude), recorded per page
     out = f"{REVIEW_EMOJI.get(rc, '⬜')}<br>L:{v.get('light', 'pending')}<br>D:{v.get('dark', 'pending')}"
     if sev:
         out += f"<br>_{sev}_"
