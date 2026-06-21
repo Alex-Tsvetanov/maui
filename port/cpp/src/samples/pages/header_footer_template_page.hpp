@@ -101,7 +101,7 @@ namespace maui::samples
             auto cell = maui::controls::data_template::of<maui::controls::label>();
             cell->set_binding<std::string, demo_item>(maui::controls::label::text_property(),
                                                       [](const demo_item& item) { return item.caption; });
-            cell->set_value(maui::controls::label::background_property(),
+            cell->set_value(maui::controls::background_property(),
                             std::static_pointer_cast<maui::graphics::paint>(
                                 std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::blue)));
             cell->set_value(maui::controls::label::horizontal_text_alignment_property(),
