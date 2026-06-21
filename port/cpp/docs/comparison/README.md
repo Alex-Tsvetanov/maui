@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 48 / 172 🟢 matched** · 91 🟡 minor · 33 🔴 diff · 0 ⬜ pending
+**Progress: 48 / 172 🟢 matched** · 93 🟡 minor · 31 🔴 diff · 0 ⬜ pending
 
 **Flags: 7 ⚠️ broken MAUI reference captures (re-shoot needed) · 14 🎬 motion/effect pages needing an animated GIF to judge.**
 
@@ -130,11 +130,11 @@ Rows are in **fix order** (top → bottom): foundational single controls first (
 | 114 | Radio Button Group | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/radio_button_group.png) | ![](cpp_ios_light/radio_button_group.png) | ![](csharp_ios_dark/radio_button_group.png) | ![](cpp_ios_dark/radio_button_group.png) |
 | 115 | Radio Button Group Binding | 🟢⚠️<br>L:match<br>D:match | ![](csharp_ios_light/radio_button_group_binding.png) | ![](cpp_ios_light/radio_button_group_binding.png) | ![](csharp_ios_dark/radio_button_group_binding.png) | ![](cpp_ios_dark/radio_button_group_binding.png) |
 | 116 | Radio Button Group Gallery | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/radio_button_group_gallery.png) | ![](cpp_ios_light/radio_button_group_gallery.png) | ![](csharp_ios_dark/radio_button_group_gallery.png) | ![](cpp_ios_dark/radio_button_group_gallery.png) |
-| 117 | Radio Button Border | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/radio_button_border.png) | ![](cpp_ios_light/radio_button_border.png) | ![](csharp_ios_dark/radio_button_border.png) | ![](cpp_ios_dark/radio_button_border.png) |
+| 117 | Radio Button Border | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/radio_button_border.png) | ![](cpp_ios_light/radio_button_border.png) | ![](csharp_ios_dark/radio_button_border.png) | ![](cpp_ios_dark/radio_button_border.png) |
 | 118 | Radio Button Content | 🔴<br>L:minor<br>D:diff | ![](csharp_ios_light/radio_button_content.png) | ![](cpp_ios_light/radio_button_content.png) | ![](csharp_ios_dark/radio_button_content.png) | ![](cpp_ios_dark/radio_button_content.png) |
 | 119 | Radio Content Properties | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/radio_content_properties.png) | ![](cpp_ios_light/radio_content_properties.png) | ![](csharp_ios_dark/radio_content_properties.png) | ![](cpp_ios_dark/radio_content_properties.png) |
 | 120 | Radio Template From Style | 🟢⚠️<br>L:match<br>D:match | ![](csharp_ios_light/radio_template_from_style.png) | ![](cpp_ios_light/radio_template_from_style.png) | ![](csharp_ios_dark/radio_template_from_style.png) | ![](cpp_ios_dark/radio_template_from_style.png) |
-| 121 | Scattered Radio Button | 🔴<br>L:diff<br>D:diff | ![](csharp_ios_light/scattered_radio_button.png) | ![](cpp_ios_light/scattered_radio_button.png) | ![](csharp_ios_dark/scattered_radio_button.png) | ![](cpp_ios_dark/scattered_radio_button.png) |
+| 121 | Scattered Radio Button | 🟡<br>L:minor<br>D:minor | ![](csharp_ios_light/scattered_radio_button.png) | ![](cpp_ios_light/scattered_radio_button.png) | ![](csharp_ios_dark/scattered_radio_button.png) | ![](cpp_ios_dark/scattered_radio_button.png) |
 | 122 | Swipe Gesture | 🟢⚠️🎬<br>L:match<br>D:match | ![](csharp_ios_light/swipe_gesture.png) | ![](cpp_ios_light/swipe_gesture.png) | ![](csharp_ios_dark/swipe_gesture.png) | ![](cpp_ios_dark/swipe_gesture.png) |
 | 123 | Swipe Item Position | 🟢🎬<br>L:match<br>D:match | ![](csharp_ios_light/swipe_item_position.png) | ![](cpp_ios_light/swipe_item_position.png) | ![](csharp_ios_dark/swipe_item_position.png) | ![](cpp_ios_dark/swipe_item_position.png) |
 | 124 | Swipe Item Size | 🟢<br>L:match<br>D:match | ![](csharp_ios_light/swipe_item_size.png) | ![](cpp_ios_light/swipe_item_size.png) | ![](csharp_ios_dark/swipe_item_size.png) | ![](cpp_ios_dark/swipe_item_size.png) |
@@ -644,24 +644,24 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Dark:** Match in dark theme: same header, buttons, status, and list with identical content/order. Same enlarged C++ row spacing vs MAUI's tighter rows.
 
 ### 114. Radio Button Group — 🟡 (L:minor / D:minor)
-- **Light:** All content present and equivalent: header text, 'Selected: (none)', Option A/B/C in the StackLayout and 'This RadioButton is inside a Grid' with Option D. Cosmetic only: C++ centers the radio rows and renders the circle flush against the label (no gap) and packs rows with tighter vertical spacing; MAUI left-aligns with a gap and larger row spacing.
-- **Dark:** Identical to light — all elements present and correct. Same alignment/spacing cosmetic differences (centered, flush radios, tighter spacing in C++ vs left-aligned/spaced in MAUI).
+- **Light:** FIXED (iOS radio handler): Option A/B/C in the StackLayout and 'This RadioButton is inside a Grid' + Option D are now left-aligned with a ring↔label gap (were centered/flush). All content present and equivalent to MAUI. Residual minor: slightly tighter vertical/inter-radio spacing.
+- **Dark:** Same as light — left-aligned with gaps; all content present. Residual minor: tighter spacing than MAUI.
 
 ### 115. Radio Button Group Binding — 🟢 (L:match / D:match)  ⚠️ _MAUI reference capture broken — re-shoot needed_
 - **Light:** MAUI ground-truth capture is entirely blank (all black, only the nav bar visible) — broken capture, cannot be compared. C++ renders the full page correctly: explanatory text, 'GroupName is group1 / Selection is (null)', Option A/B/C/D in a 2-col grid, and the two blue action buttons ('Set selection... to B', 'Clear selection... to null'). C++ is correct; classifying match since C++ output is right and the MAUI side is unusable.
 - **Dark:** Same as light — MAUI capture is fully blank/broken; C++ renders the complete page correctly with all text, the four radio options and the two blue action labels.
 
 ### 116. Radio Button Group Gallery — 🟡 (L:minor / D:minor)
-- **Light:** All shared content matches: Parent-level (3x Group=null), Page-level (3x Group='A') and the 'mixed group names' section. C++ additionally shows the full third section (GroupName='A'/'B'/'B'/'C'/null) because the MAUI capture is cut off after the 'mixed group names' heading. Cosmetic only: C++ centers radio rows, renders circle flush to label, and uses tighter vertical spacing; MAUI left-aligns with gaps and wider spacing.
-- **Dark:** Same as light — all content matches; C++ shows the complete bottom section the MAUI capture is truncated before reaching. Only the centered/flush/tighter-spacing radio cosmetics differ.
+- **Light:** FIXED (iOS radio handler): all radio rows (Parent-level Group=null, Page-level Group='A', and the mixed-group-names section) are now left-aligned with a ring↔label gap (were centered/flush). C++ also shows the full third section the MAUI capture is truncated before. Residual minor: tighter vertical spacing than MAUI.
+- **Dark:** Same as light — left-aligned with gaps; full content shown. Residual minor: tighter spacing than MAUI.
 
-### 117. Radio Button Border — 🔴 (L:diff / D:diff)
-- **Light:** Real layout bug. MAUI: four full-width bordered rows, radio circle + label left-aligned with generous internal padding/height; Option1 has red border over yellow fill, Option2 is a yellow-filled row, Option4 green border with selected dot. C++: rows are short with almost no internal height, and the radio+label content is pushed to the center-right of each card instead of left-aligned; Option2's yellow background fill is missing (only thin borders render). Alignment + missing fill + collapsed row height.
-- **Dark:** Same bug as light: C++ radio rows are collapsed in height with radio+label mis-centered to the right rather than left, and the yellow fill on Option1/Option2 region is absent (only red/green border strokes shown). MAUI shows tall left-aligned filled rows.
+### 117. Radio Button Border — 🟡 (L:minor / D:minor)
+- **Light:** FIXED (iOS radio handler: left-align + ring↔label gap + VisualElement background). Now four left-aligned bordered rows: Option 1 red border over YELLOW fill, Option 2 YELLOW fill, Option 3 plain, Option 4 green border with the selected dot — matching MAUI. Residual minor: MAUI's rows are a little taller (more internal content padding) than the port's.
+- **Dark:** Same as light — yellow fill + red/green borders + selection all render correctly in dark. Residual minor: rows slightly shorter than MAUI; white label text on the yellow fill is lower-contrast (text follows the dynamic dark label color).
 
 ### 118. Radio Button Content — 🔴 (L:minor / D:diff)
-- **Light:** All text and radios present in both. C++ centers each radio row horizontally and renders the circle flush against the label text (no gap), vs MAUI's left-aligned radios with a gap. C++ actually shows MORE (the custom coffee-cup ControlTemplate group at bottom) because the MAUI capture is cut off lower; that custom template (lines + coffee-cup icons) renders correctly in C++ light.
-- **Dark:** Same alignment/spacing cosmetics as light. Real bug: the custom coffee-cup ControlTemplate at the bottom is missing its cup icons in C++ dark — only the red/black underlines render, the coffee-cup glyphs that appear in C++ light are absent. Element drops out in dark theme.
+- **Light:** FIXED (iOS radio handler): each radio row is left-aligned with a gap between ring and label (Option A, Option C, the View-fallback radio, coffee.png). Residual minor: the long View-fallback content truncates to one line ('Can't use View for…, so just plain old text') where MAUI wraps it to two lines.
+- **Dark:** Radio rows now left-aligned with gaps (same fix as light). SEPARATE residual diff: the custom coffee-cup ControlTemplate at the bottom uses hardcoded BLACK shapes (cup glyph + one underline) that are invisible on the dark background — only the red underline renders. Element drops out in dark (a theme-color bug in that custom template, not the radio layout).
 
 ### 119. Radio Content Properties — 🟡 (L:minor / D:minor)
 - **Light:** All content rows render correctly in both (colored Option A italic-red, Option B bold-blue, green 'It's a button inside a button' rows). C++ uses denser line spacing so it shows all rows fully on one screen while MAUI's last rows are cut off; C++ radio glyph circles sit immediately left of their text (near-centered) vs MAUI's far-left aligned larger circles. Cosmetic spacing/glyph-position only.
@@ -671,9 +671,9 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 - **Light:** MAUI ground-truth PNG is entirely blank/all-black (only status bar visible) — cannot be used as a reference. C++ renders correctly: three templated cards labeled A/B/C each with a blue selected radio dot. C++ output looks correct; classified match since the broken MAUI ref cannot contradict it.
 - **Dark:** MAUI ground-truth PNG again fully blank/all-black. C++ renders the three A/B/C templated cards with blue radio dots correctly. MAUI ref unusable.
 
-### 121. Scattered Radio Button — 🔴 (L:diff / D:diff)
-- **Light:** In the A/B/C nested-StackLayout row, MAUI spaces the three radio buttons with gaps ('O A   O B   O C'), but C++ crams them with no spacing between circle and label ('OAOBOC'). The standalone 'D (None of the above)' radio is left-aligned at the page margin in MAUI but is CENTERED horizontally in C++.
-- **Dark:** Same as light: A/B/C radios are crammed with no spacing in C++ vs spaced in MAUI, and 'D (None of the above)' is centered in C++ vs left-aligned in MAUI. Additionally the A/B/C row sits on the light-blue highlight band so the C++ circles are faint, but that band exists in MAUI too.
+### 121. Scattered Radio Button — 🟡 (L:minor / D:minor)
+- **Light:** FIXED (iOS radio handler): the A/B/C radios now render left-aligned with a gap between each ring and its label (was crammed 'OAOBOC'), and 'D (None of the above)' is left-aligned at the page margin (was centered). Residual minor: inter-radio horizontal spacing is slightly tighter than MAUI's.
+- **Dark:** Same as light — radios now left-aligned with ring↔label gaps. Residual minor: tighter inter-radio spacing; the A/B/C row sits on the light-blue highlight band (present in MAUI too).
 
 ### 122. Swipe Gesture — 🟢 (L:match / D:match)  ⚠️ _MAUI reference capture broken — re-shoot needed_ 🎬 _motion/effect — needs an animated GIF to judge_
 - **Light:** MAUI reference capture is broken: the card content text is GARBLED/overlapping into an illegible jumble (the 'Welcome to .NET MAUI!', the 'June 2026' date, and the subtitle 'A SwipeView with gesture recognizers / Double-tap the card...' are all stacked on top of each other). The C++ side renders this card cleanly and correctly (title 'Welcome to .NET MAUI!', 'June 2026', two-line subtitle, then 'TapCommand (double-tap)'). Needs re-capture before a fair comparison.

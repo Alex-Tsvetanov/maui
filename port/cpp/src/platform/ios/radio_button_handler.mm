@@ -20,11 +20,14 @@
 
 #include "ios_conversions.hpp"
 #include "ios_text_ops.hpp"
+#include "ios_visual_ops.hpp"
 #include "maui/core/i_radio_button.hpp"
 #include "maui/core/radio_button_handler.hpp"
 #include "maui/core/visibility.hpp"
+#include "maui/graphics/paint.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+#include "maui/graphics/solid_paint.hpp"
 
 // Obj-C trampoline: forwards the UIButton's touch-up-inside to the C++ handler's virtual view.
 @interface MauiIosRadioButtonProxy : NSObject
@@ -113,6 +116,27 @@ namespace maui::core
         as_button(native).accessibilityIdentifier = raw != nil ? raw : @"";
     }
 
+    // VisualElement.Background → the RadioButton's fill (e.g. RadioButtonBorder's yellow Option 1/2). Unlike
+    // the System UIButton (which ignores backgroundColor — see button_handler.mm), a Custom UIButton draws
+    // its backgroundColor directly, and the layer cornerRadius set by map_corner_radius clips it to the
+    // rounded card. Gradient/image paints defer to the shared layer applier; a null paint clears the fill.
+    void radio_button_platform::update_background(const maui::graphics::paint* value)
+    {
+        UIButton* const button = as_button(native);
+        if (const auto* const solid = dynamic_cast<const maui::graphics::solid_paint*>(value))
+        {
+            button.backgroundColor = to_ui_color(solid->color());
+        }
+        else if (value != nullptr)
+        {
+            maui::platform::ios::apply_background(native, value);
+        }
+        else
+        {
+            button.backgroundColor = nil;
+        }
+    }
+
     std::unique_ptr<radio_button_platform> radio_button_handler::create_platform_view()
     {
         auto platform = std::make_unique<radio_button_platform>();
@@ -125,6 +149,21 @@ namespace maui::core
         // flip, collapsed onto UIButton.selected).
         [button setImage:[UIImage systemImageNamed:@"circle"] forState:UIControlStateNormal];
         [button setImage:[UIImage systemImageNamed:@"smallcircle.filled.circle"] forState:UIControlStateSelected];
+        // MAUI's DefaultTemplate renders the indicator + content as a LEFT-aligned row with a gap between
+        // the ring and the label; a plain UIButton centers its content and butts the title flush against the
+        // image. Left-align the content, then open a `gap` between the indicator and the title via the
+        // canonical image/title/content inset split: shift the image left by gap/2, the title right by gap/2
+        // (net gap between them), and grow the content box by gap (gap/2 each side) so the title is NOT
+        // clipped — titleEdgeInsets is excluded from sizeThatFits, so its net horizontal offset is kept zero
+        // (+gap/2 left, -gap/2 right) and only contentEdgeInsets feeds the measured width. These insets are
+        // deprecated in the UIButtonConfiguration era but remain functional + correct for this image+title
+        // layout on a Custom button (the same tolerated deprecation as button_handler.mm's contentEdgeInsets),
+        // and a configuration would lose the per-state Normal/Selected ring images this fallback relies on.
+        const CGFloat gap = 8;
+        button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+        button.imageEdgeInsets = UIEdgeInsetsMake(0, -gap / 2, 0, gap / 2);
+        button.titleEdgeInsets = UIEdgeInsetsMake(0, gap / 2, 0, -gap / 2);
+        button.contentEdgeInsets = UIEdgeInsetsMake(0, gap / 2, 0, gap / 2);
         platform->native = (__bridge_retained void*)button; // the void* slot owns one reference
         return platform;
     }
