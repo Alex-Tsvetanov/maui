@@ -300,4 +300,46 @@ namespace
         EXPECT_TRUE(CGRectEqualToRect(gradient_layer.frame, field.bounds));
         EXPECT_FALSE(CGRectEqualToRect(gradient_layer.frame, CGRectZero));
     }
+
+    // R2b regression: a Background LinearGradientBrush set through the CONTROL (the real map_background →
+    // date_picker_platform::update_background path, NOT a direct apply_background) must route to the gradient
+    // sublayer — earlier the field rendered the gradient as a solid fill. The installed sublayer must also
+    // sit BELOW the field's own content: zPosition == -1 at index 0, porting C# LayerExtensions
+    // .InsertBackgroundLayer(layer, 0) + zPosition = -1 ("renders behind subview layers even if UIKit
+    // reorganizes the sublayer array during layout"). Without the negative zPosition the gradient drew over
+    // the field text/bezel after layout.
+    TEST(ios_date_picker_seam, control_gradient_background_routes_below_the_field)
+    {
+        using maui::graphics::gradient_stop;
+        using maui::graphics::linear_gradient_paint;
+
+        date_picker control;
+        auto handler = std::make_shared<date_picker_handler>();
+        control.set_handler(handler);
+
+        UITextField* const field = native_field(handler);
+        ASSERT_NE(field, nil);
+
+        // The randomizable DatePickerPage Background: two opaque colors, stops at 0 and 1, EndPoint (1,0)
+        // — the exact shape the on-sim montage showed rendering as solid magenta.
+        control.set_background(std::make_shared<linear_gradient_paint>(
+            std::vector<gradient_stop>{gradient_stop(0.0F, maui::graphics::colors::blue),
+                                       gradient_stop(1.0F, maui::graphics::colors::green)},
+            maui::graphics::point(0, 0), maui::graphics::point(1, 0)));
+
+        // The gradient routed to a real CAGradientLayer (not a flat field.backgroundColor solid fill).
+        CAGradientLayer* gradient_layer = nil;
+        for (CALayer* const sub in field.layer.sublayers)
+        {
+            if ([sub isKindOfClass:[CAGradientLayer class]] &&
+                [sub.name isEqualToString:maui::platform::ios::k_gradient_layer_name])
+            {
+                gradient_layer = static_cast<CAGradientLayer*>(sub);
+            }
+        }
+        ASSERT_NE(gradient_layer, nil);
+        // Behind the field content: zPosition == -1 and the bottom-most sublayer (index 0).
+        EXPECT_EQ(gradient_layer.zPosition, -1);
+        EXPECT_EQ(field.layer.sublayers.firstObject, gradient_layer);
+    }
 } // namespace

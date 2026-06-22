@@ -14,6 +14,7 @@
 #include <memory>
 #include <string>
 
+#include "ios_visual_ops.hpp"                  // k_gradient_layer_name
 #include "maui/controls/file_image_source.hpp" // image_source::from_stream
 #include "maui/controls/platform_configuration/ios_specific/slider.hpp"
 #include "maui/controls/slider.hpp"
@@ -24,6 +25,9 @@
 #include "maui/core/slider_handler.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
+#include "maui/graphics/colors.hpp"
+#include "maui/graphics/gradient_stop.hpp"
+#include "maui/graphics/linear_gradient_paint.hpp"
 #include "maui/graphics/shapes/rectangle.hpp"
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include <gtest/gtest.h>

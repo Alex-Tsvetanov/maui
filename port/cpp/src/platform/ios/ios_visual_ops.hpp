@@ -418,7 +418,11 @@ namespace maui::platform::ios
             image_layer.frame = layer.bounds;
             image_layer.contentsGravity = kCAGravityResize;
             layer.backgroundColor = nil; // C# clears the solid background while the image layer is shown
-            [layer addSublayer:image_layer];
+            // Same C# LayerExtensions.InsertBackgroundLayer rule as the gradient path: zPosition = -1 +
+            // bottom insertion so an image background fill stays behind the control's own sublayers and
+            // subviews after a UIKit-driven re-layout.
+            image_layer.zPosition = -1;
+            [layer insertSublayer:image_layer atIndex:0];
             installed = true;
         });
         return installed;
@@ -484,7 +488,15 @@ namespace maui::platform::ios
                 gradient_layer.locations = gradient_layer_locations(ordered);
             }
 
-            [layer addSublayer:gradient_layer];
+            // C# LayerExtensions.InsertBackgroundLayer(backgroundLayer, 0): set zPosition = -1 BEFORE
+            // inserting and add the layer at the BOTTOM of the sublayer stack (index 0). The negative
+            // zPosition is the load-bearing part — it keeps the brush fill behind the control's own
+            // sublayers AND its thumb / track / text / bezel SUBVIEWS "even if UIKit reorganizes the
+            // sublayer array during layout passes" (the C# comment). A plain addSublayer (top of stack,
+            // zPosition 0) let the gradient land in front of the UISlider/UISwitch thumb (R2a) and the
+            // date/time picker field content (R2b) once UIKit re-laid the control out.
+            gradient_layer.zPosition = -1;
+            [layer insertSublayer:gradient_layer atIndex:0];
             return;
         }
 

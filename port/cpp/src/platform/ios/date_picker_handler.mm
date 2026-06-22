@@ -264,14 +264,22 @@ namespace maui::core
         UITextField* const field = as_field(native);
         if (const auto* const solid = dynamic_cast<const maui::graphics::solid_paint*>(value))
         {
+            field.borderStyle = UITextBorderStyleRoundedRect;
             field.backgroundColor = maui::platform::ios::to_ui_color(solid->color());
         }
         else if (value != nullptr)
         {
+            // Gradient/image: the brush fill sits at the BOTTOM of the layer (zPosition -1, behind the
+            // thumb/content per InsertBackgroundLayer). The RoundedRect bezel is drawn ABOVE it and would
+            // hide all but the field's edge, so drop the bezel to None — the gradient then fills the field
+            // flat (text on top), matching MAUI's gradient DatePicker fill.
+            field.borderStyle = UITextBorderStyleNone;
+            field.backgroundColor = nil;
             maui::platform::ios::apply_background(native, value);
         }
         else
         {
+            field.borderStyle = UITextBorderStyleRoundedRect;
             field.backgroundColor = nil;
         }
     }
