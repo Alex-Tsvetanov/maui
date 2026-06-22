@@ -116,6 +116,13 @@ differences are split into **port_diffs** (fix) vs **maui_quirks** (MAUI-side, d
 3. **New MAUI imperfections → flag, don't act.** When a sweep surfaces a MAUI-side quirk not covered
    above, record it in `docs/comparison/PARITY_REVIEW.md` (maui_quirks) and **pause for a user ruling** —
    neither auto-ignore nor auto-fix. Append the approved ruling to this list.
+4. **The maui-compare default `Styles.xaml` IS matched, not exempt** (user ruling 2026-06-22, revising the
+   earlier compare-audit "button chrome = harness artifact" stance). The demo harness's default control
+   styles (e.g. the `Button` style's `Padding="14,10"`, corner radius, etc.) are part of MAUI's rendered
+   output, so the port must replicate them to match control sizing/appearance — they are NOT a harness
+   artifact like the WRAPPER (#2). Apply the matching defaults at the port's resource/control-default level
+   and re-verify affected pages. (Concretely: the port's default `Button` padding/appearance should mirror
+   the maui-compare `Styles.xaml` Button style.)
 
 Workflow: run the sweep **review-only** (writes `PARITY_REVIEW.md`, board untouched) → user verifies and
 rules on quirks → only then `--commit-board` adopts verdicts and the port_diffs become fix candidates.
