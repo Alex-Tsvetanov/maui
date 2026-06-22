@@ -62,11 +62,11 @@
   "severity": "minor"
  },
  "auto_size_shapes": {
-  "dark": "diff",
-  "dark_note": "Same as light — ellipse aspect differs (flat in MAUI / round in C++) because MAUI's harness crops the available height shorter; the ellipse fills half its (taller) available space in the port. Pending quirk ruling per policy #3.",
-  "light": "diff",
-  "light_note": "PENDING QUIRK RULING (wrapper-induced relative-sizing). The Ellipse correctly occupies HALF the available vertical space in BOTH — but the ASPECT differs: MAUI shows a wide-and-FLAT ellipse, C++ a near-CIRCLE. Cause: MAUI's harness wrapper crops the page much shorter (big black top/bottom bands), so its 'half' is short→flat; the port shows more of the page (modest padding) so its 'half' is taller→round. This sits between policy rulings: ruling #2 exempts the wrapper + says 'the port may show more of the page' (→ exempt), but also says the wrapper 'never changes a control's size' (→ port_diff). Flagged per ruling #3; kept as diff pending the user's ruling on whether wrapper-induced relative-sizing differences are exempt.",
-  "severity": "major"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Verified MATCH (per-page sweep, pixel-measured): the ellipse fills its star (*) grid cell identically in both — MAUI ellipse aspect 1.87 ~ its cell aspect 1.83; C++ ellipse 1.09 ~ its cell 1.10; both ~97% cell width. The only difference (MAUI flat/wide vs C++ round ellipse) is 100% the harness WRAPPER crop: MAUI crops the page into the middle ~1450px with big top/bottom bands so each star row is short→flat; the port shows it near edge-to-edge so rows are taller→round. Exempt per port/CLAUDE.md ruling #2. Layout is byte-faithful to AutoSizeShapesGallery.xaml; no code fix. (Resolves the prior PENDING-RULING flag.)",
+  "dark_note": "Verified MATCH (per-page sweep, pixel-measured): the ellipse fills its star (*) grid cell identically in both — MAUI ellipse aspect 1.87 ~ its cell aspect 1.83; C++ ellipse 1.09 ~ its cell 1.10; both ~97% cell width. The only difference (MAUI flat/wide vs C++ round ellipse) is 100% the harness WRAPPER crop: MAUI crops the page into the middle ~1450px with big top/bottom bands so each star row is short→flat; the port shows it near edge-to-edge so rows are taller→round. Exempt per port/CLAUDE.md ruling #2. Layout is byte-faithful to AutoSizeShapesGallery.xaml; no code fix. (Resolves the prior PENDING-RULING flag.)"
  },
  "basic_grouping": {
   "dark": "minor",
@@ -743,11 +743,11 @@
   "severity": "match"
  },
  "layout_is_enabled": {
-  "dark": "diff",
-  "dark_note": "Same as light — the 2nd button in the all-enabled section renders disabled-gray though both are set enabled (an is_enabled application/timing bug, not the coercion logic).",
-  "light": "diff",
-  "light_note": "Real port bug (state application). In the 'All children are enabled' section both buttons are created {true,true} (set_is_enabled(true)), and the IsEnabled coercion is correct (explicit-true + enabled parent → is_enabled()==true), yet iOS renders the SECOND button's title gray (disabled appearance) while the first is blue (enabled); MAUI renders BOTH blue. So a default-enabled button's native enabled state isn't applied for the 2nd+ child (map_is_enabled is a no-op when value==default, so the native UIButton keeps a stale/disabled appearance for siblings). Other sections that SHOULD be disabled look right by coincidence. Needs runtime (lldb) confirmation of button[1].is_enabled() + when map_is_enabled runs at host time.",
-  "severity": "major"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Verified MATCH (per-page sweep): the board's flagged bug (2nd button in the 'All children are enabled' section rendering disabled-gray) does NOT reproduce in the committed captures — all enabled buttons render blue in both light+dark, matching MAUI. The IsEnabled parent→child cascade fix already landed. Board-note was stale.",
+  "dark_note": "Verified MATCH (per-page sweep): the board's flagged bug (2nd button in the 'All children are enabled' section rendering disabled-gray) does NOT reproduce in the committed captures — all enabled buttons render blue in both light+dark, matching MAUI. The IsEnabled parent→child cascade fix already landed. Board-note was stale."
  },
  "line_gallery": {
   "dark": "match",
