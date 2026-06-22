@@ -903,11 +903,11 @@
   "severity": "minor"
  },
  "radio_button_content": {
-  "dark": "diff",
-  "dark_note": "Radio rows now left-aligned with gaps (same fix as light). SEPARATE residual diff: the custom coffee-cup ControlTemplate at the bottom uses hardcoded BLACK shapes (cup glyph + one underline) that are invisible on the dark background — only the red underline renders. Element drops out in dark (a theme-color bug in that custom template, not the radio layout).",
   "light": "minor",
-  "light_note": "FIXED (iOS radio handler): each radio row is left-aligned with a gap between ring and label (Option A, Option C, the View-fallback radio, coffee.png). Residual minor: the long View-fallback content truncates to one line ('Can't use View for…, so just plain old text') where MAUI wraps it to two lines.",
-  "severity": "minor"
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "View-fallback RadioButton title now WRAPS to its full text instead of truncating ('Can't use View for Content on this / platform, so just plain old text', 2 lines) — matches MAUI in both light+dark. Fix: radio_button_handler.mm map_content sets titleLabel numberOfLines=0/WordWrap + get_desired_size recomputes the wrapped title height via boundingRect (UIButton sizeThatFits underestimates a wrapped multi-line title, so the control now grows to fit). Residual (dark only, lower priority, below MAUI's crop): the bottom custom coffee-cup ControlTemplate uses hardcoded-black shapes that are invisible on the dark background (sample-design, only the red group lines show).",
+  "dark_note": "View-fallback RadioButton title now WRAPS to its full text instead of truncating ('Can't use View for Content on this / platform, so just plain old text', 2 lines) — matches MAUI in both light+dark. Fix: radio_button_handler.mm map_content sets titleLabel numberOfLines=0/WordWrap + get_desired_size recomputes the wrapped title height via boundingRect (UIButton sizeThatFits underestimates a wrapped multi-line title, so the control now grows to fit). Residual (dark only, lower priority, below MAUI's crop): the bottom custom coffee-cup ControlTemplate uses hardcoded-black shapes that are invisible on the dark background (sample-design, only the red group lines show)."
  },
  "radio_button_group": {
   "dark": "minor",

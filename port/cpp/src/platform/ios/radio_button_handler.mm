@@ -13,6 +13,7 @@
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
 
+#include <algorithm>
 #include <cmath>
 #include <memory>
 #include <string>
@@ -217,6 +218,11 @@ namespace maui::core
         NSString* const raw = [NSString stringWithUTF8String:content.c_str()];
         UIButton* const button = as_button(platform->native);
         [button setTitle:(raw != nil ? raw : @"") forState:UIControlStateNormal];
+        // Long titles WRAP rather than truncate (MAUI wraps the View-fallback RadioButton's text to
+        // multiple lines); the default UIButton titleLabel is single-line + tail-truncated. The matching
+        // multi-line height is reported by get_desired_size so the control grows to fit.
+        button.titleLabel.numberOfLines = 0;
+        button.titleLabel.lineBreakMode = NSLineBreakByWordWrapping;
         refresh_radio_title_formatting(button, view);
     }
 
@@ -298,8 +304,33 @@ namespace maui::core
         }
         const CGFloat width = std::isfinite(width_constraint) ? static_cast<CGFloat>(width_constraint) : CGFLOAT_MAX;
         const CGFloat height = std::isfinite(height_constraint) ? static_cast<CGFloat>(height_constraint) : CGFLOAT_MAX;
-        const CGSize fitting = [as_button(platform->native) sizeThatFits:CGSizeMake(width, height)];
-        return {fitting.width, fitting.height};
+        UIButton* const button = as_button(platform->native);
+        const CGSize fitting = [button sizeThatFits:CGSizeMake(width, height)];
+        maui::graphics::size result{fitting.width, fitting.height};
+        // UIButton's sizeThatFits underestimates a WRAPPED multi-line title (the legacy setTitle path stays
+        // single-line). When the width is bounded and the title is wider than the available text column,
+        // recompute its wrapped height via boundingRect so the radio grows to fit instead of truncating —
+        // the titleLabel is configured numberOfLines=0/WordWrap in map_content.
+        NSString* const title = [button titleForState:UIControlStateNormal];
+        if (std::isfinite(width_constraint) && title.length > 0)
+        {
+            UIFont* const font = button.titleLabel.font != nil ? button.titleLabel.font
+                                                               : [UIFont systemFontOfSize:UIFont.buttonFontSize];
+            NSDictionary* const attrs = @{NSFontAttributeName : font};
+            const CGSize one_line = [title sizeWithAttributes:attrs];
+            // `fitting` is the single-line button width; what it adds over the bare title is the chrome
+            // (indicator + content/title insets). Subtract that to get the text column at this constraint.
+            const CGFloat reserved = std::max<CGFloat>(0, fitting.width - one_line.width);
+            const CGFloat text_width = std::max<CGFloat>(1, width - reserved);
+            const CGRect wrapped =
+                [title boundingRectWithSize:CGSizeMake(text_width, CGFLOAT_MAX)
+                                    options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading
+                                 attributes:attrs
+                                    context:nil];
+            const CGFloat chrome_height = std::max<CGFloat>(0, fitting.height - std::ceil(one_line.height));
+            result.height = std::max<double>(result.height, std::ceil(wrapped.size.height) + chrome_height);
+        }
+        return result;
     }
 
     void radio_button_handler::platform_arrange(const maui::graphics::rect& frame)
