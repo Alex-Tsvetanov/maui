@@ -1234,11 +1234,11 @@
   "severity": "minor"
  },
  "varied_size_selector": {
-  "dark": "diff",
-  "dark_note": "Same as light — distinct template colors now render, but the Milk cell isn't taller (uniform cell height vs MAUI's varied per-template height).",
-  "light": "diff",
-  "light_note": "IMPROVED by the CV-cell fix (the DataTemplateSelector now renders the distinct Coffee=brown / Milk=cream templates). Residual diff: per-template CELL HEIGHT is not varied — MAUI renders the Milk template ~2x taller than the Coffee cells; C++ renders all cells uniform height (the cell measures a fixed height, ignoring the taller template's content). Needs per-item cell-height measurement in the iOS CV.",
-  "severity": "major"
+  "light": "minor",
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "Cells now self-size to their per-template HeightRequest (Coffee vs Milk differ) — varied heights matching MAUI (was uniform ~2x over-height). The Insert/Add/Remove buttons + Index/Latte entries render. Independently re-verified on-sim. Residual minor: the CollectionView's total height / number of items visible before the buttons differs (layout + wrapper crop).",
+  "dark_note": "Cells now self-size to their per-template HeightRequest (Coffee vs Milk differ) — varied heights matching MAUI (was uniform ~2x over-height). The Insert/Add/Remove buttons + Index/Latte entries render. Independently re-verified on-sim. Residual minor: the CollectionView's total height / number of items visible before the buttons differs (layout + wrapper crop)."
  },
  "vertical_stack": {
   "dark": "minor",

@@ -2,7 +2,7 @@
 
 Theme-matched iOS comparison: each page rendered by **real .NET MAUI** vs the **C++ port**, on the same iPhone 17 simulator, compared **light-vs-light** and **dark-vs-dark**. Both stacks render native-default controls + the system font (the C# app's `dotnet new maui` default `Styles.xaml` + OpenSans are stripped; appearance forced via `MAUI_THEME` / `MAUI_APPEARANCE`). Goal: pixel-perfect parity, fixed example-by-example.
 
-**Progress: 51 / 172 🟢 matched** · 118 🟡 minor · 3 🔴 diff · 0 ⬜ pending
+**Progress: 51 / 172 🟢 matched** · 119 🟡 minor · 2 🔴 diff · 0 ⬜ pending
 
 **Flags: 9 ⚠️ broken MAUI reference captures (re-shoot needed) · 14 🎬 motion/effect pages needing an animated GIF to judge.**
 
@@ -114,7 +114,7 @@ The **AI review** column is an independent automated second opinion (Gemini by d
 | 96 | Scroll Mode Test | 🟡<br>L:minor<br>D:minor | 🟡<br>L:minor<br>D:minor<br>_minor_<br><sub>gemini-3.1-flash-lite</sub> | <img src="csharp_ios_light/scroll_mode_test.png" height="360"> | <img src="cpp_ios_light/scroll_mode_test.png" height="360"> | <img src="csharp_ios_dark/scroll_mode_test.png" height="360"> | <img src="cpp_ios_dark/scroll_mode_test.png" height="360"> |
 | 97 | Adaptive Collection | 🟡<br>L:minor<br>D:minor | 🔴<br>L:diff<br>D:diff<br>_diff_<br><sub>gemini-3.1-flash-lite</sub> | <img src="csharp_ios_light/adaptive_collection.png" height="360"> | <img src="cpp_ios_light/adaptive_collection.png" height="360"> | <img src="csharp_ios_dark/adaptive_collection.png" height="360"> | <img src="cpp_ios_dark/adaptive_collection.png" height="360"> |
 | 98 | Staggered Layout | 🟡<br>L:minor<br>D:minor | 🔴<br>L:diff<br>D:diff<br>_diff_<br><sub>gemini-3.1-flash-lite</sub> | <img src="csharp_ios_light/staggered_layout.png" height="360"> | <img src="cpp_ios_light/staggered_layout.png" height="360"> | <img src="csharp_ios_dark/staggered_layout.png" height="360"> | <img src="cpp_ios_dark/staggered_layout.png" height="360"> |
-| 99 | Varied Size Selector | 🔴<br>L:diff<br>D:diff | 🔴<br>L:diff<br>D:diff<br>_diff_<br><sub>gemini-3.1-flash-lite</sub> | <img src="csharp_ios_light/varied_size_selector.png" height="360"> | <img src="cpp_ios_light/varied_size_selector.png" height="360"> | <img src="csharp_ios_dark/varied_size_selector.png" height="360"> | <img src="cpp_ios_dark/varied_size_selector.png" height="360"> |
+| 99 | Varied Size Selector | 🟡<br>L:minor<br>D:minor | 🔴<br>L:diff<br>D:diff<br>_diff_<br><sub>gemini-3.1-flash-lite</sub> | <img src="csharp_ios_light/varied_size_selector.png" height="360"> | <img src="cpp_ios_light/varied_size_selector.png" height="360"> | <img src="csharp_ios_dark/varied_size_selector.png" height="360"> | <img src="cpp_ios_dark/varied_size_selector.png" height="360"> |
 | 100 | Nested Collection | 🟡<br>L:minor<br>D:minor | 🔴<br>L:diff<br>D:diff<br>_diff_<br><sub>gemini-3.1-flash-lite</sub> | <img src="csharp_ios_light/nested_collection.png" height="360"> | <img src="cpp_ios_light/nested_collection.png" height="360"> | <img src="csharp_ios_dark/nested_collection.png" height="360"> | <img src="cpp_ios_dark/nested_collection.png" height="360"> |
 | 101 | Data Template Selector | 🟡<br>L:minor<br>D:minor | 🟡<br>L:minor<br>D:minor<br>_minor_<br><sub>gemini-3.1-flash-lite</sub> | <img src="csharp_ios_light/data_template_selector.png" height="360"> | <img src="cpp_ios_light/data_template_selector.png" height="360"> | <img src="csharp_ios_dark/data_template_selector.png" height="360"> | <img src="cpp_ios_dark/data_template_selector.png" height="360"> |
 | 102 | Cv Visual States | 🟡⚠️<br>L:minor<br>D:match | 🟢<br>L:match<br>D:match<br>_match_<br><sub>gemini-3.1-flash-lite</sub> | <img src="csharp_ios_light/cv_visual_states.png" height="360"> | <img src="cpp_ios_light/cv_visual_states.png" height="360"> | <img src="csharp_ios_dark/cv_visual_states.png" height="360"> | <img src="cpp_ios_dark/cv_visual_states.png" height="360"> |
@@ -573,9 +573,8 @@ Concrete, per-theme notes for every page with a diff, a broken reference, or a m
 ### 98. Staggered Layout — 🟡 (L:minor / D:minor)
 - **Both themes:** Cells now self-size to their varied content heights (the staggered effect) via MauiCollectionViewCell preferredLayoutAttributesFittingAttributes. Was diff; residual minor.
 
-### 99. Varied Size Selector — 🔴 (L:diff / D:diff)
-- **Light:** IMPROVED by the CV-cell fix (the DataTemplateSelector now renders the distinct Coffee=brown / Milk=cream templates). Residual diff: per-template CELL HEIGHT is not varied — MAUI renders the Milk template ~2x taller than the Coffee cells; C++ renders all cells uniform height (the cell measures a fixed height, ignoring the taller template's content). Needs per-item cell-height measurement in the iOS CV.
-- **Dark:** Same as light — distinct template colors now render, but the Milk cell isn't taller (uniform cell height vs MAUI's varied per-template height).
+### 99. Varied Size Selector — 🟡 (L:minor / D:minor)
+- **Both themes:** Cells now self-size to their per-template HeightRequest (Coffee vs Milk differ) — varied heights matching MAUI (was uniform ~2x over-height). The Insert/Add/Remove buttons + Index/Latte entries render. Independently re-verified on-sim. Residual minor: the CollectionView's total height / number of items visible before the buttons differs (layout + wrapper crop).
 
 ### 100. Nested Collection — 🟡 (L:minor / D:minor)
 - **Light:** The nested inner CollectionViews now render (was MISSING): each 'Source N' header is followed by its inner CollectionView of blue 'Caption N-x' items, recursively realized + self-sized on iOS. Remaining diffs: (1) the inner CV flows captions VERTICALLY rather than in a horizontal row — the inner CV's HorizontalList orientation can't be staged through the outer DataTemplate (items_layout is not a bindable_property; documented page limitation), and (2) the 'Source N' header is bold-black rather than MAUI's red-italic. The core nesting (inner cells present) is fixed.
