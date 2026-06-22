@@ -168,3 +168,22 @@ a source check of whether the sample sets an image or solid background, then a r
 
 Board note: the prior Claude pass over-classified many of these as match/minor; the board should be
 re-stamped to honest severities **as each fix lands and is re-verified on-sim** (not pre-emptively).
+
+---
+
+## Execution log (2026-06-23)
+
+- **R1 (section fonts) — DONE+VERIFIED, commit `fa080950e5`.** slider/switch/activity_indicator/
+  progress_bar/check_box/stepper headers now bold 18pt. Verified on-sim (switch headers bold).
+- **R8 device (centering) — DONE+VERIFIED, commit `6461a3c574`.** Stack now horizontally centered.
+- **R3/R4/R5 (CV), R2 (brush), R7 (paths) — delegated to parallel `code-changes` agents** (implementation
+  + headless tests in worktrees); coordinator integrates + does on-sim visual verification.
+- **Validation corrections found DURING fixing (oracle + on-sim re-check overturned the text triage):**
+  - `stack_layout` → **NOFIX (over-flag).** Oracle: the public `StackLayout` derives from `StackBase`
+    with `Spacing` default **0**, matching the port; the montage shows boxes touching in BOTH. Gemini's
+    "MAUI has a gap" is wrong — adding spacing would have *introduced* a diff.
+  - `horizontal_stack` → **NOFIX (over-flag).** `HorizontalStackPage.cs` has **6** boxes (Red→Purple) —
+    the port's 6 is correct; MAUI's last two are simply off-screen. Gemini's "6 vs 4" is misleading.
+  - Lesson: Gemini's vague "spacing tighter/looser / N vs M items" flags are low-precision; each must be
+    oracle-checked + visually verified before fixing. Remaining R8-minor pages (absolute_layout, z_index,
+    flex_layout, invalidate_brush, relative_layout) are likely over-flags too — verify before touching.
