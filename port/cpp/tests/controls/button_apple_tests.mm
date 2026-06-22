@@ -229,20 +229,30 @@ namespace
         auto handler = std::make_shared<button_handler>();
         control.set_handler(handler);
         NSButton* const view = native_button(handler);
-        const NSSize unpadded = [(NSCell*)view.cell cellSize];
+        ASSERT_TRUE([view.cell respondsToSelector:@selector(contentInsets)]);
+
+        // At connect time the still-unset (NaN) Padding maps to DefaultPadding(12,7) — the native-default
+        // content insets — not to zero (which would collapse the button to bare glyph width). The baseline
+        // cellSize therefore already reserves those default insets.
+        const NSEdgeInsets defaults = [(id)view.cell contentInsets];
+        EXPECT_EQ(defaults.left, 12.0);
+        EXPECT_EQ(defaults.right, 12.0);
+        EXPECT_EQ(defaults.top, 7.0);
+        EXPECT_EQ(defaults.bottom, 7.0);
+        const NSSize baseline = [(NSCell*)view.cell cellSize];
 
         control.set_padding(maui::core::thickness(5, 10, 15, 20));
-        ASSERT_TRUE([view.cell respondsToSelector:@selector(contentInsets)]);
         const NSEdgeInsets insets = [(id)view.cell contentInsets];
         EXPECT_EQ(insets.left, 5.0);
         EXPECT_EQ(insets.top, 10.0);
         EXPECT_EQ(insets.right, 15.0);
         EXPECT_EQ(insets.bottom, 20.0);
 
-        // The cell reserves left+right (20) horizontally and top+bottom (30) vertically.
+        // The cell now reserves left+right (20) horizontally and top+bottom (30) vertically, vs the
+        // default-padded (24 horizontal / 14 vertical) baseline — a delta of -4 / +16.
         const NSSize padded = [(NSCell*)view.cell cellSize];
-        EXPECT_NEAR(padded.width - unpadded.width, 20.0, 0.5);
-        EXPECT_NEAR(padded.height - unpadded.height, 30.0, 0.5);
+        EXPECT_NEAR(padded.width - baseline.width, 20.0 - 24.0, 0.5);
+        EXPECT_NEAR(padded.height - baseline.height, 30.0 - 14.0, 0.5);
     }
 
     TEST_F(apple_button_seam, handler_resolved_from_default_registry)

@@ -85,6 +85,14 @@ namespace
     // Key for the associated MauiButtonTarget kept alive by the NSButton (its `target` is weak).
     const char k_target_key = 0;
 
+    // ButtonHandler.DefaultPadding — "the padding that Xcode has when 'Default' content insets are
+    // used" (left/right 12, top/bottom 7); ButtonHandler.MapPadding always passes it to UpdatePadding,
+    // which substitutes it when the cross-platform Padding is NaN (Button's default). Mirrors the iOS
+    // backend's k_default_padding_* so an unstyled NSButton reserves the native-default content insets
+    // rather than collapsing to bare glyph width (the `clipping` digit-row regression).
+    constexpr double k_default_padding_horizontal = 12;
+    constexpr double k_default_padding_vertical = 7;
+
     NSButton* as_button(void* native)
     {
         return (__bridge NSButton*)native;
@@ -272,7 +280,14 @@ namespace maui::core
         // ContentEdgeInsets; UpdatePadding pushes button.Padding straight onto the insets).
         if (auto* const cell = [button.cell isKindOfClass:[MauiButtonCell class]] ? (MauiButtonCell*)button.cell : nil)
         {
-            const maui::core::thickness padding = view.padding();
+            // ButtonExtensions.UpdatePadding(button, DefaultPadding): a NaN Padding (Button's default)
+            // falls back to DefaultPadding(12,7) so the cell reserves the native-default insets instead
+            // of the NaN that Button.padding_property now defaults to. (iOS/Android do the same.)
+            maui::core::thickness padding = view.padding();
+            if (padding.is_nan())
+            {
+                padding = maui::core::thickness(k_default_padding_horizontal, k_default_padding_vertical);
+            }
             cell.contentInsets = NSEdgeInsetsMake(padding.top, padding.left, padding.bottom, padding.right);
             [button setNeedsDisplay:YES];
             [button invalidateIntrinsicContentSize];

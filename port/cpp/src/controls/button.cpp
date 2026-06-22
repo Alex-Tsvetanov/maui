@@ -3,6 +3,7 @@
 
 #include "maui/controls/button.hpp"
 
+#include <limits>
 #include <memory>
 #include <string>
 
@@ -43,7 +44,15 @@ namespace maui::controls
 
     const maui::core::bindable_property<maui::core::thickness>& button::padding_property()
     {
-        static const maui::core::bindable_property<maui::core::thickness> descriptor{"padding"};
+        // C# Button.PaddingDefaultValueCreator() => new Thickness(double.NaN) — UNLIKE ImageButton
+        // (default(Thickness)). The NaN default is what makes ButtonHandler.iOS.MapPadding substitute
+        // DefaultPadding(12,7): UpdatePadding sees Padding.IsNaN and falls back to the native-default
+        // content insets. A zero (default-constructed) thickness here would be is_nan()==false, so the
+        // handler would set contentEdgeInsets to ~0 and the UIButton would collapse to bare glyph width
+        // (the `clipping` page's crammed digit row). The uniform-double ctor sets all four to NaN, the
+        // exact mirror of C#'s `new Thickness(double.NaN)`.
+        static const maui::core::bindable_property<maui::core::thickness> descriptor{
+            "padding", maui::core::thickness{std::numeric_limits<double>::quiet_NaN()}};
         return descriptor;
     }
 

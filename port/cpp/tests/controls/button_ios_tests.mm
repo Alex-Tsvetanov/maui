@@ -335,12 +335,16 @@ namespace
         // reading it back here mirrors the C# device test under the same suppression.
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        // The connect-time map of the default (all-zero) padding: 0 top/bottom became AlmostZero.
+        // The connect-time map of the default padding. Button.PaddingDefaultValueCreator is
+        // new Thickness(double.NaN), so UpdatePadding substitutes DefaultPadding(12,7) — the
+        // "Default content insets" a native UIButton has. (A zero default here would collapse the
+        // button to bare glyph width: the `clipping` page's crammed digit-row regression.) 7/12 are
+        // non-zero, so the AlmostZero floor does not apply.
         const UIEdgeInsets defaults = view.contentEdgeInsets;
-        EXPECT_NEAR(defaults.top, 0.00001, 1e-9);
-        EXPECT_NEAR(defaults.bottom, 0.00001, 1e-9);
-        EXPECT_EQ(defaults.left, 0.0);
-        EXPECT_EQ(defaults.right, 0.0);
+        EXPECT_EQ(defaults.top, 7.0);
+        EXPECT_EQ(defaults.bottom, 7.0);
+        EXPECT_EQ(defaults.left, 12.0);
+        EXPECT_EQ(defaults.right, 12.0);
 
         control.set_padding(maui::core::thickness(5, 10, 15, 20)); // left, top, right, bottom
         const UIEdgeInsets insets = view.contentEdgeInsets;

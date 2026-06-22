@@ -256,6 +256,21 @@ namespace
         EXPECT_EQ(control.image_source(), source.get());
     }
 
+    TEST(button, padding_defaults_to_nan_so_handlers_substitute_the_native_default)
+    {
+        // C# Button.PaddingDefaultValueCreator() => new Thickness(double.NaN). The NaN default is the
+        // signal each backend's UpdatePadding uses to fall back to DefaultPadding(12,7) (the native
+        // button's "Default content insets") — a zero default would collapse the button to bare glyph
+        // width (the `clipping` page's crammed digit-row regression). UNLIKE ImageButton, whose default
+        // is default(Thickness) == zero.
+        button control;
+        EXPECT_TRUE(control.padding().is_nan());
+
+        control.set_padding(maui::core::thickness(4));
+        EXPECT_FALSE(control.padding().is_nan());
+        EXPECT_EQ(control.padding(), maui::core::thickness(4));
+    }
+
     TEST(button, content_layout_defaults_to_left_and_default_spacing)
     {
         button control;
