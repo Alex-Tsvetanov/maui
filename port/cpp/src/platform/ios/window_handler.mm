@@ -227,6 +227,21 @@ namespace
         return (__bridge UIView*)handler->native_view();
     }
 
+    // The page handler's OWN root view controller (IPlatformViewHandler.ViewController), or nil for a
+    // plain-view page (the common case). VC-backed pages — flyout_page (UISplitViewController) and
+    // tabbed_page (UITabBarController) — return their controller here; host_content() makes THAT the
+    // window's rootViewController so the split/tab child-VC lifecycle (viewDidLoad, child presentation,
+    // Auto Layout) actually fires. Mirrors C# ToUIViewController's `nvh.ViewController` branch.
+    UIViewController* page_root_view_controller(maui::core::i_element& page)
+    {
+        auto* handler = dynamic_cast<maui::core::i_view_handler*>(page.handler().get());
+        if (handler == nullptr)
+        {
+            return nil;
+        }
+        return (__bridge UIViewController*)handler->root_view_controller();
+    }
+
     // Un-observe + release the lifecycle proxy (shared by disconnect() and the destructor for the
     // never-disconnected path — KVO observers MUST be removed before the observed UIWindow deallocates).
     void release_trampoline(maui::core::window_platform& platform)
@@ -351,17 +366,32 @@ namespace maui::core
         {
             return;
         }
-        // C# MapContent: RootViewController = window.Content.ToUIViewController(MauiContext) — a fresh
-        // container controller per run, whose view hosts the page's native view as a bounds-filling
-        // subview (ContainerViewController.LoadPlatformView). A page without a native view (none set, or
-        // its handler has no native UIView) still installs a plain root controller — the AppKit twin's
-        // empty-host analog.
+        auto* page = window_view_->content();
+
+        // C# MapContent: RootViewController = window.Content.ToUIViewController(MauiContext). The oracle's
+        // ToUIViewController has TWO branches (ElementExtensions.cs): if the page's handler IS an
+        // IPlatformViewHandler with a non-null ViewController, that VC becomes the root controller
+        // directly; otherwise the page's plain view is wrapped in a ContainerViewController. The VC-backed
+        // pages — flyout_page (UISplitViewController) and tabbed_page (UITabBarController) — take the first
+        // branch: making their controller the window's rootViewController (rather than grafting only its
+        // .view into our container) is what activates the split/tab child-VC lifecycle (viewDidLoad, child
+        // presentation, Auto Layout) — without it the page renders blank.
+        if (UIViewController* const page_controller = page != nullptr ? page_root_view_controller(*page) : nil)
+        {
+            window.rootViewController = page_controller;
+            platform->content_hosted = true;
+            return;
+        }
+
+        // The plain-view branch (ContainerViewController): a fresh container controller per run, whose view
+        // hosts the page's native view as a bounds-filling subview (ContainerViewController.LoadPlatformView).
+        // A page without a native view (none set, or its handler has no native UIView) still installs a
+        // plain root controller — the AppKit twin's empty-host analog.
         MauiWindowRootViewController* const controller = [[MauiWindowRootViewController alloc] init];
         // ContainerViewController.LoadPlatformView paints the system background behind the hosted view
         // (C# skips it when the content brings its own Background; the port's container always paints —
         // the page's own background, when set, covers it).
         controller.view.backgroundColor = UIColor.systemBackgroundColor;
-        auto* page = window_view_->content();
         if (UIView* const view = page != nullptr ? page_native_view(*page) : nil)
         {
             controller.hostedView = view;

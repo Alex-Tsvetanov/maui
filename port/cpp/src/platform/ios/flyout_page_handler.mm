@@ -50,10 +50,35 @@ namespace
         return (__bridge UIView*)handler->native_view();
     }
 
-    // A wrapper UIViewController whose view is the pane's native UIView (or an empty UIView for an
-    // unattached / unset pane — a split column needs a view controller).
+    // The pane's OWN root view controller (IPlatformViewHandler.ViewController), or nil for a plain-view
+    // pane. A pane that is ITSELF VC-backed — e.g. a tabbed_page detail (UITabBarController) — owns its
+    // view through its controller; that view CANNOT be re-parented onto a plain wrapper UIViewController
+    // (UIViewControllerHierarchyInconsistency: "a view can only be associated with at most one view
+    // controller"). Such a pane must contribute its own controller as the split column instead.
+    UIViewController* pane_root_view_controller(maui::core::i_view& pane)
+    {
+        auto* handler = dynamic_cast<maui::core::i_view_handler*>(pane.handler().get());
+        if (handler == nullptr)
+        {
+            return nil;
+        }
+        return (__bridge UIViewController*)handler->root_view_controller();
+    }
+
+    // The view controller a split column hosts for a pane. Mirrors C# ToUIViewController: a VC-backed pane
+    // (tabbed_page → UITabBarController, a nested flyout → UISplitViewController) contributes its OWN
+    // controller; a plain-view pane (content_page / navigation_page) is wrapped in a fresh UIViewController
+    // whose view is the pane's native UIView (or an empty UIView for an unattached / unset pane — a split
+    // column needs a view controller).
     UIViewController* make_pane_controller(maui::core::i_view* pane)
     {
+        if (pane != nullptr)
+        {
+            if (UIViewController* const owned = pane_root_view_controller(*pane))
+            {
+                return owned; // the pane owns its controller (its view is already associated with it)
+            }
+        }
         UIViewController* const wrapper = [[UIViewController alloc] init];
         UIView* pane_view = nil;
         if (pane != nullptr)
@@ -62,6 +87,25 @@ namespace
         }
         wrapper.view = pane_view != nil ? pane_view : [[UIView alloc] initWithFrame:CGRectZero];
         return wrapper;
+    }
+
+    // Detach a previously-installed column host (a retained void* slot) before its pane view is re-adopted.
+    // Only the bare wrappers make_pane_controller minted (EXACT UIViewController class) own their view by
+    // assignment and must release it; a pane that contributed its OWN controller (a UITabBarController /
+    // UISplitViewController subclass) owns its view inherently — nil-ing it would break the controller, so
+    // it is left untouched (and UISplitViewController.setViewController: re-parents it cleanly).
+    void detach_wrapper_host(void* host)
+    {
+        if (host == nullptr)
+        {
+            return;
+        }
+        UIViewController* const controller = (__bridge UIViewController*)host;
+        if ([controller isMemberOfClass:[UIViewController class]])
+        {
+            [controller.viewIfLoaded removeFromSuperview]; // pull the pane view out of the old column
+            controller.view = nil;
+        }
     }
 } // namespace
 
@@ -136,22 +180,15 @@ namespace maui::core
         platform->hosted_flyout = flyout->flyout_view();
         platform->hosted_detail = flyout->flyout_detail();
 
-        // Detach the PREVIOUS wrappers first: a UIView can only be associated with one view controller
-        // at a time (UIViewControllerHierarchyInconsistency), so the old wrappers must release the
-        // pane views before the fresh wrappers adopt them ("flyout" and "detail" both map here, so a
-        // connect runs this twice back to back).
-        if (platform->flyout_host != nullptr)
-        {
-            UIViewController* const old_flyout = (__bridge UIViewController*)platform->flyout_host;
-            [old_flyout.viewIfLoaded removeFromSuperview]; // pull the pane view out of the old column
-            old_flyout.view = nil;
-        }
-        if (platform->detail_host != nullptr)
-        {
-            UIViewController* const old_detail = (__bridge UIViewController*)platform->detail_host;
-            [old_detail.viewIfLoaded removeFromSuperview];
-            old_detail.view = nil;
-        }
+        // Detach the PREVIOUS hosts first: a UIView can only be associated with one view controller at a
+        // time (UIViewControllerHierarchyInconsistency), so an old plain WRAPPER must release the pane
+        // view before a fresh wrapper adopts it ("flyout" and "detail" both map here, so a connect runs
+        // this twice back to back). Only detach the bare wrappers WE minted (exact UIViewController class):
+        // a pane that contributes its OWN controller (a VC-backed pane — tabbed_page's UITabBarController)
+        // owns its view, so nil-ing its view would break the controller. detach_wrapper_host below skips
+        // those.
+        detach_wrapper_host(platform->flyout_host);
+        detach_wrapper_host(platform->detail_host);
 
         // Rebuild the two columns: the flyout as the PRIMARY column, the detail as the SECONDARY.
         UIViewController* const flyout_controller = make_pane_controller(platform->hosted_flyout);

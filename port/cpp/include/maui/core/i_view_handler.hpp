@@ -42,6 +42,20 @@ namespace maui::core
         // otherwise the pimpl's `native` member when it has one — mirroring ToPlatform.)
         [[nodiscard]] virtual void* native_view() const = 0;
 
+        // The native root UIViewController this handler OWNS, or null when it hosts a plain view (the
+        // common case). Mirrors C#'s IPlatformViewHandler.ViewController (Platform/iOS/ElementExtensions.cs
+        // ToUIViewController: `if (view.Handler is IPlatformViewHandler nvh && nvh.ViewController != null)
+        // return nvh.ViewController;` else wrap the view in a ContainerViewController). Only the iOS
+        // VC-backed page handlers override it: flyout_page (UISplitViewController) and tabbed_page
+        // (UITabBarController). The window host reads it to decide whether to set the UIWindow's
+        // rootViewController to this VC (activating its child-VC lifecycle) versus grafting the plain view
+        // into a container controller. An opaque void* like native_view() (a UIViewController* on iOS,
+        // always null elsewhere); NON-pure so every existing handler keeps the plain-view default.
+        [[nodiscard]] virtual void* root_view_controller() const
+        {
+            return nullptr;
+        }
+
         // C#'s `new IView? VirtualView`: a covariant narrowing of i_element_handler::virtual_view()
         // (i_view derives i_element). Concrete CRTP handlers narrow it further to their Virtual type.
         [[nodiscard]] i_view* virtual_view() const override = 0;

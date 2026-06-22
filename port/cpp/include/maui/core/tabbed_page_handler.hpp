@@ -114,6 +114,13 @@ namespace maui::core
 
         static std::unique_ptr<tabbed_page_platform> create_platform_view();
 
+        // The native UITabBarController this handler owns (the platform's `controller` slot), so the window
+        // host can set the UIWindow's rootViewController to it — activating the tab controller's child-VC
+        // lifecycle (without which the tabs / tab bar never lay out / render). Mirrors C#'s
+        // IPlatformViewHandler.ViewController. iOS-only (the `controller` slot exists on the real-native
+        // builds); returns null on headless. Defined per backend.
+        [[nodiscard]] void* root_view_controller() const override;
+
         // Wire the native selection trampoline back to this handler (real backends; headless empty).
         void on_connect_handler(tabbed_page_platform& platform);
 

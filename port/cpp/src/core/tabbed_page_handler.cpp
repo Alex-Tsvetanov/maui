@@ -43,6 +43,21 @@ namespace maui::core
     {
     }
 
+    // The native tab-bar controller this handler owns (IPlatformViewHandler.ViewController) — the
+    // `controller` slot exists only on the real-native builds (the platform struct's
+    // MAUI_PLATFORM_APPLE/IOS guard); headless has no controller, so it returns null and the window host
+    // falls back to the plain-view graft. The iOS window host reads this to set the UIWindow's
+    // rootViewController to the UITabBarController (activating its child-VC lifecycle).
+    void* tabbed_page_handler::root_view_controller() const
+    {
+#if defined(MAUI_PLATFORM_APPLE) || defined(MAUI_PLATFORM_IOS)
+        auto* platform = typed_platform_view();
+        return platform != nullptr ? platform->controller : nullptr;
+#else
+        return nullptr;
+#endif
+    }
+
     // C# MapItemsSource (the control refreshes this key on every PagesChanged and child-Title change):
     // rebuild the tab set, then re-apply the selection and the bar styling (a rebuilt tab set forgets
     // both natively).

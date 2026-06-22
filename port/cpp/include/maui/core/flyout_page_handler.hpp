@@ -90,6 +90,13 @@ namespace maui::core
 
         static std::unique_ptr<flyout_page_platform> create_platform_view();
 
+        // The native UISplitViewController this handler owns (the platform's `controller` slot), so the
+        // window host can set the UIWindow's rootViewController to it — activating the split's child-VC
+        // lifecycle (without which the panes never lay out / render). Mirrors C#'s
+        // IPlatformViewHandler.ViewController. iOS-only (the `controller` slot exists on the real-native
+        // builds); returns null on headless. Defined per backend.
+        [[nodiscard]] void* root_view_controller() const override;
+
         // The flyout page computes its size from its panes, not the handler (the container convention).
         [[nodiscard]] maui::graphics::size get_desired_size(double width_constraint,
                                                             double height_constraint) const override;

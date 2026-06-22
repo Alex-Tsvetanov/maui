@@ -166,6 +166,17 @@ namespace maui::controls
             return bar_background_set_ ? std::optional{bar_background_.get().get()} : std::nullopt;
         }
 
+        // C# TabbedPage layout: size the native tab host (platform_arrange), then arrange EACH tab page —
+        // which content_page::arrange (the inherited base) SKIPS, because a tabbed_page hosts no single
+        // `content_` (it owns `children()`, not content). Without this the selected tab's content (the
+        // label) never gets a frame and the detail renders blank — the same gap flyout_page::arrange
+        // documents for its panes. Each page arranges HOST-RELATIVE ({0,0,w,h}): its native view is a
+        // subview of the UITabBarController's per-tab child VC view (UIKit positions that, insetting the
+        // tab bar), so the page content must start at its tab's origin. All pages are arranged (the tab
+        // controller keeps every child view alive and laid out), not just the current one.
+        maui::graphics::size measure(double width_constraint, double height_constraint) override;
+        maui::graphics::size arrange(const maui::graphics::rect& bounds) override;
+
     protected:
         // TabbedPage.CreateDefault: a plain page titled with the item's text.
         [[nodiscard]] std::shared_ptr<content_page> create_default(const std::string& item_text) override

@@ -30,6 +30,7 @@
 #include "maui/controls/window.hpp"
 #include "maui/core/app_theme.hpp"
 #include "maui/core/i_view.hpp"
+#include "maui/core/i_view_handler.hpp"
 #include "maui/core/window_handler.hpp"
 #include "maui/hosting/maui_app.hpp"
 #include "maui/hosting/maui_app_builder.hpp"
@@ -88,6 +89,29 @@ namespace
         // safeAreaInsets is populated; fall back to a status-bar-height top inset if it isn't yet.
         UIView* const root_view = native_window.rootViewController.view;
         [root_view layoutIfNeeded];
+        auto& root = static_cast<maui::core::i_view&>(app->page_member().page());
+
+        // A VC-backed root page (flyout_page → UISplitViewController, tabbed_page → UITabBarController):
+        // the window host made the page's OWN controller the window's rootViewController, so the split/tab
+        // child-VC lifecycle + Auto Layout position the columns / tab content area. The cross-platform
+        // tree STILL needs an arrange — that is what frames each pane's inner content (flyout_page::arrange
+        // arranges its two panes host-relative; without it the panes render blank). But the inset is NOT
+        // applied here: the controller owns the chrome (split divider / tab bar) and each inner content_page
+        // tracks its own safeAreaInsets via MauiIosPageView, so the page lays out over the FULL controller
+        // bounds. (Detected via the handler's root_view_controller() == ViewController contract.)
+        if (auto* const page_handler = dynamic_cast<maui::core::i_view_handler*>(root.handler().get());
+            page_handler != nullptr && page_handler->root_view_controller() != nullptr)
+        {
+            const CGRect controller_bounds = root_view.bounds;
+            const auto vc_width = static_cast<double>(controller_bounds.size.width);
+            const auto vc_height = static_cast<double>(controller_bounds.size.height);
+            root.measure(vc_width, vc_height);
+            root.arrange(maui::graphics::rect{0, 0, vc_width, vc_height});
+            os_log(OS_LOG_DEFAULT, "[gallery] VC-backed root page laid out %g x %g (full controller bounds)", vc_width,
+                   vc_height);
+            return native_window;
+        }
+
         UIEdgeInsets insets = root_view.safeAreaInsets;
         if (insets.top < 1.0)
         {
@@ -96,7 +120,6 @@ namespace
         const CGRect full = root_view.bounds;
         const auto width = static_cast<double>(full.size.width - insets.left - insets.right);
         const auto height = static_cast<double>(full.size.height - insets.top - insets.bottom);
-        auto& root = static_cast<maui::core::i_view&>(app->page_member().page());
         root.measure(width, height);
         root.arrange(maui::graphics::rect{insets.left, insets.top, width, height});
         os_log(OS_LOG_DEFAULT, "[gallery] laid out %g x %g at inset top=%g", width, height, insets.top);
@@ -137,7 +160,16 @@ namespace
     (void)launchOptions;
     try
     {
-        self.window = boot_selected(_mauiApp);
+        @try
+        {
+            self.window = boot_selected(_mauiApp);
+        }
+        @catch (NSException* exception)
+        {
+            os_log_error(OS_LOG_DEFAULT, "[gallery] boot failed (NSException %{public}s): %{public}s",
+                         exception.name.UTF8String, exception.reason.UTF8String);
+            return NO;
+        }
     }
     catch (const std::exception& error)
     {
