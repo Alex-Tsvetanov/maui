@@ -39,10 +39,12 @@
 //       list, just hosted as the inner list's header rather than a separate Grid row (documented
 //       reduction; the bound data — Title + the inner image/caption captions — is identical). The
 //       headless virtualization sim realizes the OUTER cells (each an inner collection_view bound to its
-//       source); a static capture has no live native pump to recursively realize each inner CV's own
-//       cells, so the nesting is wired + bound but the inner cells' geometry is not arranged headless
-//       (the grid_grouping_page caveat — the structure and bindings are faithful, the geometry is a
-//       real-backend concern).
+//       source); headless has no live native pump to recursively realize each inner CV's own cells, so
+//       there the nesting is wired + bound but the inner cells' geometry is not arranged. On the iOS
+//       backend the inner UICollectionViews DO recursively realize + self-size their own cells (the
+//       captions render), so the full nesting is visible; the one remaining gap is the inner CV's
+//       HORIZONTAL orientation (the documented items_layout-non-bindable limitation above) — the inner
+//       cells flow vertically rather than in a horizontal row.
 
 #include <memory>
 #include <random>

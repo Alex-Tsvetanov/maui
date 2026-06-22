@@ -799,11 +799,11 @@
   "severity": "minor"
  },
  "nested_collection": {
-  "dark": "diff",
-  "dark_note": "Same defect in dark: MAUI shows red-italic 'Source N' headers each with a nested horizontal row of blue 'Caption N-x' items; C++ shows only plain white 'Source 0..17' labels with no nested caption rows and no red/italic styling.",
-  "light": "diff",
-  "light_note": "The nested inner CollectionViews are MISSING in C++. MAUI shows each 'Source N' header (red, italic) followed by a horizontal nested CollectionView row of blue captions ('Caption N-0 Caption N-1 Caption N-2 ...'). C++ renders ONLY the 'Source N' labels (plain black text, not red/italic) with NO nested caption rows at all — so Source 0..17 stack tightly. Both the inner horizontal collections and the red-italic header styling are absent.",
-  "severity": "major"
+  "dark": "minor",
+  "dark_note": "The inner nested CollectionViews now realize in dark too: each 'Source N' header is followed by its blue 'Caption N-x' items. Remaining diffs are styling (port Source header bold-black vs MAUI red-italic) and the inner CV orientation (port stacks the captions vertically; MAUI flows them in a horizontal row) — the documented items_layout-non-bindable page limitation.",
+  "light": "minor",
+  "light_note": "The nested inner CollectionViews now render (was MISSING): each 'Source N' header is followed by its inner CollectionView of blue 'Caption N-x' items, recursively realized + self-sized on iOS. Remaining diffs: (1) the inner CV flows captions VERTICALLY rather than in a horizontal row — the inner CV's HorizontalList orientation can't be staged through the outer DataTemplate (items_layout is not a bindable_property; documented page limitation), and (2) the 'Source N' header is bold-black rather than MAUI's red-italic. The core nesting (inner cells present) is fixed.",
+  "severity": "minor"
  },
  "pan_gesture_events": {
   "dark": "match",
