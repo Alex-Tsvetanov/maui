@@ -37,10 +37,10 @@ namespace maui::samples
         {
             page_.set_title("Device");
             stack_.set_spacing(8);
-            // note: DevicePage.xaml sets StackLayout HorizontalOptions="Center", but the view layer here
-            // exposes no LayoutOptions setter (horizontal_layout_alignment() is a fixed `fill` override —
-            // the cross-platform HorizontalOptions bindable is not ported into view at this layer), so the
-            // centering is deferred rather than invented. The label content below is the demonstrated bit.
+            // DevicePage.xaml sets StackLayout HorizontalOptions="Center" — center the stack horizontally
+            // to match the maui-compare ref. (The vertical offset vs the ref is the harness inset, exempt
+            // per parity ruling #2.)
+            stack_.set_horizontal_layout_alignment(maui::core::layout_alignment::center);
 
             // {OnPlatform …}: resolve the running platform off DeviceInfo.Platform (the source the XAML
             // case keyed on); to_string() yields the C# identifier ("iOS", "MacCatalyst", …).
