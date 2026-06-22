@@ -42,6 +42,7 @@
 #include "maui/core/image_source_result.hpp"
 #include "maui/core/image_source_service_registry.hpp"
 #include "maui/core/image_source_services.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/core/view_platform_base.hpp"
 #include "maui/graphics/gradient_paint.hpp"
 #include "maui/graphics/gradient_stop.hpp"
@@ -59,6 +60,41 @@
 
 namespace maui::platform::ios
 {
+    // Port of ImageViewExtensions.SizeThatFitsImage (Platform/iOS/ImageViewExtensions.cs). UIImageView's
+    // own -sizeThatFits: ALWAYS returns the image's natural dimensions, ignoring the constraint (the C#
+    // comment: "Calling SizeThatFits on an ImageView always returns the image's dimensions, so we need to
+    // call the extension method"), which left AspectFit images measured to full natural height in a
+    // width-constrained stack. This computes the aspect-aware fit: ScaleAspectFit scales the image down by
+    // the smaller of the two constraint ratios; ScaleToFill/Center just clamp each axis to the constraint.
+    // `padding` mirrors the C# Thickness param (button content insets; zero for a plain Image).
+    inline CGSize size_that_fits_image(UIImageView* image_view, CGSize constraints, maui::core::thickness padding = {})
+    {
+        UIImage* const image = image_view.image;
+        if (image == nil)
+        {
+            return CGSizeMake(0, 0); // no image → takes up no space (C# returns CGSize.Empty)
+        }
+        const CGSize image_size = image.size;
+        const double image_width = image_size.width;
+        const double image_height = image_size.height;
+        const double horizontal_thickness = padding.left + padding.right;
+        const double vertical_thickness = padding.top + padding.bottom;
+        const double width_constraint = constraints.width - horizontal_thickness;
+        const double height_constraint = constraints.height - vertical_thickness;
+        const double constrained_width = std::min(image_width, width_constraint);
+        const double constrained_height = std::min(image_height, height_constraint);
+        if (image_view.contentMode == UIViewContentModeScaleAspectFit && image_width > 0 && image_height > 0)
+        {
+            const double width_ratio = constrained_width / image_width;
+            const double height_ratio = constrained_height / image_height;
+            const double scale_factor = std::min(width_ratio, height_ratio);
+            return CGSizeMake(static_cast<CGFloat>(image_width * scale_factor + horizontal_thickness),
+                              static_cast<CGFloat>(image_height * scale_factor + vertical_thickness));
+        }
+        return CGSizeMake(static_cast<CGFloat>(constrained_width + horizontal_thickness),
+                          static_cast<CGFloat>(constrained_height + vertical_thickness));
+    }
+
     // Walk a path_f's operations/points into a CGPath, a faithful port of
     // GraphicsExtensions.AsCGPath (MoveToPoint / AddLineToPoint / AddQuadCurveToPoint / AddCurveToPoint /
     // CloseSubpath per operation) — the same CG-only walk as the AppKit twin (CoreGraphics is shared by

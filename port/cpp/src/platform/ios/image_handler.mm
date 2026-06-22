@@ -422,12 +422,15 @@ namespace maui::core
         {
             return {0, 0};
         }
-        // ViewHandlerExtensions.GetDesiredSizeFromHandler: infinite constraints become the platform
-        // maximum, then the native view measures itself (UIImageView's SizeThatFits reports the image's
-        // dimensions; the constraint-aware SizeThatFitsImage refinement is layout-layer work).
+        // ViewHandlerExtensions.GetDesiredSizeFromHandler (iOS): a UIImageView is special-cased through
+        // ImageViewExtensions.SizeThatFitsImage, because plain -[UIImageView sizeThatFits:] ALWAYS returns
+        // the image's natural dimensions, ignoring the constraint — which leaves an AspectFit image measured
+        // to its full natural height inside a width-constrained stack (the bundled dotnet_bot was sized 694pt
+        // tall, pushing its content below the fold). size_that_fits_image computes the aspect-aware fit.
         const CGFloat width = std::isfinite(width_constraint) ? static_cast<CGFloat>(width_constraint) : CGFLOAT_MAX;
         const CGFloat height = std::isfinite(height_constraint) ? static_cast<CGFloat>(height_constraint) : CGFLOAT_MAX;
-        const CGSize fitting = [as_image_view(platform->native) sizeThatFits:CGSizeMake(width, height)];
+        const CGSize fitting =
+            maui::platform::ios::size_that_fits_image(as_image_view(platform->native), CGSizeMake(width, height));
         return {fitting.width, fitting.height};
     }
 
