@@ -66,6 +66,19 @@ namespace maui::core
                                                                     double height_constraint) const = 0;
         virtual void platform_arrange(const maui::graphics::rect& frame) = 0;
 
+        // Whether the size get_desired_size reports is a hard LOWER BOUND — the native view cannot render
+        // smaller than its content, so an explicit WidthRequest/HeightRequest narrower than the content grows
+        // to the content rather than truncating it. False for nearly every handler (the cross-platform
+        // ResolveConstraints contract lets an explicit request shrink the measured size). True only where a
+        // platform control enforces its intrinsic content size — the iOS UIButton / macOS NSButton, which MAUI
+        // surfaces through its NeedsContainer WrapperView (unported here); see view<>::measure, which floors the
+        // resolved size at the content when this is set. Mirrors the maui-compare reference for ClippingPage
+        // Layout2 (WidthRequest=50 "Hey" buttons render at their full natural width).
+        [[nodiscard]] virtual bool content_is_minimum_size() const
+        {
+            return false;
+        }
+
     protected:
         i_view_handler() = default;
         i_view_handler(const i_view_handler&) = default;

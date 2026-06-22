@@ -612,15 +612,28 @@ namespace maui::controls
         {
             const maui::core::thickness view_margin = this->margin();
             maui::graphics::size content{};
+            bool content_floor = false;
             if (auto* view_handler = dynamic_cast<maui::core::i_view_handler*>(handler_.get()))
             {
                 content = view_handler->get_desired_size(width_constraint - view_margin.horizontal_thickness(),
                                                          height_constraint - view_margin.vertical_thickness());
+                content_floor = view_handler->content_is_minimum_size();
             }
-            desired_size_ = {resolve_size_request(content.width, width(), minimum_width(), maximum_width()) +
-                                 view_margin.horizontal_thickness(),
-                             resolve_size_request(content.height, height(), minimum_height(), maximum_height()) +
-                                 view_margin.vertical_thickness()};
+            double resolved_width = resolve_size_request(content.width, width(), minimum_width(), maximum_width());
+            double resolved_height = resolve_size_request(content.height, height(), minimum_height(), maximum_height());
+            if (content_floor)
+            {
+                // The handler reports its measured content as a hard lower bound (a native iOS/macOS button
+                // cannot render narrower/shorter than its title + insets — MAUI surfaces this via its
+                // NeedsContainer WrapperView, which the port lacks). So an explicit WidthRequest/HeightRequest
+                // smaller than the content GROWS to the content instead of truncating it, while Maximum* still
+                // caps the result. Matches the maui-compare reference for ClippingPage Layout2 (the
+                // WidthRequest=50 "Hey" buttons render at their full natural width).
+                resolved_width = std::max(resolved_width, std::min(content.width, maximum_width()));
+                resolved_height = std::max(resolved_height, std::min(content.height, maximum_height()));
+            }
+            desired_size_ = {resolved_width + view_margin.horizontal_thickness(),
+                             resolved_height + view_margin.vertical_thickness()};
             return desired_size_;
         }
         void invalidate_measure() override

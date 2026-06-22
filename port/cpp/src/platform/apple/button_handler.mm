@@ -342,6 +342,15 @@ namespace maui::core
         return {fitting.width, fitting.height};
     }
 
+    // An NSButton cannot render smaller than its intrinsic content (title + insets) — the AppKit twin of the
+    // UIKit floor. MAUI surfaces it through ButtonHandler.NeedsContainer/WrapperView; with no container in the
+    // port, view<>::measure honors this flag so an under-sized WidthRequest/HeightRequest grows to the content
+    // instead of clipping the title.
+    bool button_handler::content_is_minimum_size() const
+    {
+        return true;
+    }
+
     void button_handler::platform_arrange(const maui::graphics::rect& frame)
     {
         auto* platform = typed_platform_view();

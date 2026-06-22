@@ -489,6 +489,16 @@ namespace maui::core
         return {fitting.width, fitting.height};
     }
 
+    // A UIButton cannot render smaller than its intrinsic content (title + content insets). MAUI surfaces
+    // this through ButtonHandler.NeedsContainer/WrapperView: the wrapped button's measured size is a floor,
+    // so a WidthRequest/HeightRequest narrower than the content grows to the content instead of truncating
+    // the title to "…". The port has no WrapperView, so view<>::measure honors this flag directly — matching
+    // the maui-compare reference (ClippingPage Layout2's WidthRequest=50 "Hey" buttons render full-width).
+    bool button_handler::content_is_minimum_size() const
+    {
+        return true;
+    }
+
     void button_handler::platform_arrange(const maui::graphics::rect& frame)
     {
         auto* platform = typed_platform_view();

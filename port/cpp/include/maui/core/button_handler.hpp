@@ -173,6 +173,11 @@ namespace maui::core
                                                             double height_constraint) const override;
         void platform_arrange(const maui::graphics::rect& frame) override;
 
+        // A native button cannot render narrower/shorter than its title+insets, so its measured size is a
+        // lower bound (the iOS/macOS backends return true; headless/Android keep the cross-platform clamp).
+        // Defined per backend alongside get_desired_size.
+        [[nodiscard]] bool content_is_minimum_size() const override;
+
         // Property map functions (platform recipe), each pushing one virtual-view property onto the
         // platform view. Text/appearance are keyed by i_text_button (C#'s TextButtonMapper<ITextButton>);
         // padding + stroke are keyed by i_button (the button's own mapper).

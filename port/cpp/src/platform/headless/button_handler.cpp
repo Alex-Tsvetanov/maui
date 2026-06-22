@@ -131,6 +131,13 @@ namespace maui::core
         return {width, 20.0};
     }
 
+    // Headless mirrors the cross-platform ResolveConstraints contract (an explicit size request clamps the
+    // measured size) — the intrinsic-content floor is a native iOS/macOS behavior, not a unit-test one.
+    bool button_handler::content_is_minimum_size() const
+    {
+        return false;
+    }
+
     void button_handler::platform_arrange(const maui::graphics::rect& /*frame*/)
     {
         // Headless: no native layout to apply.

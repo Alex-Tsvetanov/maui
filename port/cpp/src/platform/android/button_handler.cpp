@@ -936,6 +936,13 @@ namespace maui::core
         return {static_cast<double>(measured_width) / density, static_cast<double>(measured_height) / density};
     }
 
+    // Android keeps the cross-platform ResolveConstraints clamp (an explicit size request overrides the
+    // measured size) — the intrinsic-content floor is an iOS/macOS native-button behavior. False here.
+    bool button_handler::content_is_minimum_size() const
+    {
+        return false;
+    }
+
     void button_handler::platform_arrange(const maui::graphics::rect& frame)
     {
         auto* platform = typed_platform_view();
