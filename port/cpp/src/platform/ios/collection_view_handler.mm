@@ -85,6 +85,10 @@ namespace
 @interface MauiCollectionViewCell : UICollectionViewCell
 @property(nonatomic, strong) UILabel* label;           // the DefaultCell2 label (always present)
 @property(nonatomic, strong) UIView* templatedContent; // the realized data_template native view, if any
+// The collection's scroll direction (TemplatedCell2.ScrollDirection) — set on each dequeue from the
+// handler's orientation so preferredLayoutAttributesFittingAttributes self-sizes the cell on the SCROLL
+// axis (height for a vertical list, width for a horizontal one), exactly the C# self-measure.
+@property(nonatomic, assign) UICollectionViewScrollDirection scrollDirection;
 - (void)showText:(NSString*)text;
 - (void)showTemplatedContent:(UIView*)content;
 // Host the realized template content's native view AND retain the C++ content (which owns its handler +
@@ -196,6 +200,42 @@ namespace
 {
     [super layoutSubviews];
     [self layoutTemplatedContent];
+}
+
+// Self-size the cell to the realized content's measured size on the SCROLL axis — the C# TemplatedCell2
+// PreferredLayoutAttributesFittingAttributes + GetMeasureConstraints. The compositional layout vends the
+// estimated cell frame (full cross extent, estimated scroll extent); this measures the realized MAUI view
+// against the fixed cross dimension with the scroll axis unbounded and reports its desired extent — so a
+// template with HeightRequest=100 (VariedSize MilkTemplate) occupies 100pt, a HeightRequest=50 one 50pt,
+// and an auto cell its natural content height, instead of every cell collapsing to the 44pt estimate. A
+// default (label-only, no template) cell keeps the proposed frame — UILabel autoresizing fits the estimate.
+- (UICollectionViewLayoutAttributes*)preferredLayoutAttributesFittingAttributes:
+    (UICollectionViewLayoutAttributes*)layoutAttributes
+{
+    auto* const view = dynamic_cast<maui::core::i_view*>(_realizedContent.get());
+    if (view == nullptr)
+    {
+        return [super preferredLayoutAttributesFittingAttributes:layoutAttributes];
+    }
+    CGRect frame = layoutAttributes.frame;
+    // GetMeasureConstraints: a vertical list fixes the width (cross axis) and frees the height (scroll
+    // axis); a horizontal list fixes the height and frees the width. Measure under those constraints, then
+    // overwrite ONLY the freed (scroll) axis with the desired extent — the C# `IsPositiveInfinity(width)?
+    // measured : preferred` split. ceil so a fractional measure never clips the content.
+    const bool vertical = self.scrollDirection == UICollectionViewScrollDirectionVertical;
+    const double width_constraint = vertical ? frame.size.width : std::numeric_limits<double>::infinity();
+    const double height_constraint = vertical ? std::numeric_limits<double>::infinity() : frame.size.height;
+    const maui::graphics::size measured = view->measure(width_constraint, height_constraint);
+    if (vertical)
+    {
+        frame.size.height = static_cast<CGFloat>(std::ceil(measured.height));
+    }
+    else
+    {
+        frame.size.width = static_cast<CGFloat>(std::ceil(measured.width));
+    }
+    layoutAttributes.frame = frame;
+    return layoutAttributes;
 }
 
 - (void)prepareForReuse
@@ -704,13 +744,11 @@ namespace maui::controls
         // arm that hosts the View directly outside the scroll extent, and the headless oracle's
         // realize_supplemental `value.as_bindable()` branch (reuse_id "view"). The boxed view is already a
         // fully-built element tree; in the gallery path the page's attach_handlers has ALREADY attached its
-        // handler + built its native view (gallery_attach.hpp), so the common case just reuses that
-        // native_view(). If no handler is attached yet (a view built but not hosted), attach one off the
-        // view's own handler type — but a boxed view carries no static content_type, so without an existing
-        // handler we can only attach when the maui context can mint one for the element's registered type;
-        // when it can't, yield {nullptr, nil} and the caller falls back to the text mirror. Returns the
-        // bindable (held by the supplementary so the hosted native view outlives this call) + its native
-        // UIView out-param.
+        // handler + built its native view (gallery_attach.hpp), so this reuses that native_view() (the C#
+        // ToPlatform on a view whose PlatformHandler is already set). A boxed view carries no static
+        // content_type, so when it has no attached handler yet there is nothing to look the handler up by:
+        // yield {nullptr, nil} and let the caller fall back to the text mirror. Returns the bindable (held
+        // by the supplementary so the hosted native view outlives this call) + its native UIView out-param.
         std::shared_ptr<maui::core::bindable_object> realize_boxed_view(
             const std::shared_ptr<maui::core::bindable_object>& bindable, UIView** out_native)
         {
@@ -1321,6 +1359,13 @@ namespace maui::controls
     {
         return cell;
     }
+
+    // Wire the scroll direction so the cell self-sizes on the scroll axis (TemplatedCell2.ScrollDirection).
+    const auto* platform = handler->typed_platform_view();
+    const bool horizontal =
+        platform != nullptr && platform->orientation == maui::controls::items_layout_orientation::horizontal;
+    cell.scrollDirection =
+        horizontal ? UICollectionViewScrollDirectionHorizontal : UICollectionViewScrollDirectionVertical;
 
     const maui::controls::index_path path{.section = static_cast<int>(indexPath.section),
                                           .item = static_cast<int>(indexPath.item)};

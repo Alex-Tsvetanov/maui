@@ -502,11 +502,11 @@
   "severity": "minor"
  },
  "grid_grouping": {
-  "dark": "diff",
-  "dark_note": "Same as light: 2-column grid content matches, but C++ adds an extra 'This is a header' title at the top that is absent in MAUI, and C++ row spacing is much taller so far fewer groups fit per screen.",
-  "light": "diff",
-  "light_note": "Both render the 2-column grid with green group headers and orange 'Total members:' footers, same items. Real diff: C++ shows an extra 'This is a header' title row at the very top that MAUI does NOT show (MAUI begins directly with the green 'Avengers' header). Also C++ uses much taller row spacing — MAUI shows all 6 groups through 'West Coast Avengers' on one screen, while C++ only reaches mid-'Defenders'.",
-  "severity": "major"
+  "dark": "minor",
+  "dark_note": "Same as light: 2-column grid content matches (green group headers + orange 'Total members:' footers, same items). Per-cell self-sizing now gives the rows their true height, so the group pitch matches MAUI. The 'This is a header'/'This is a footer' CV-level header/footer are correct (GridGrouping.xaml sets Header/Footer to those strings); MAUI's capture only hides them via the harness top/bottom crop.",
+  "light": "minor",
+  "light_note": "Both render the 2-column grid with green group headers and orange 'Total members:' footers, same items. Per-cell self-sizing now gives each member row its true height (was ~2x over-measured), so the group pitch matches MAUI. The 'This is a header'/'This is a footer' CV-level header/footer the port shows are correct — GridGrouping.xaml sets Header='This is a header' and Footer='This is a footer'; MAUI only hides them via the harness top/bottom crop, not by omitting them.",
+  "severity": "minor"
  },
  "grouping_no_templates": {
   "dark": "minor",
