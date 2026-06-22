@@ -1,1271 +1,1452 @@
 {
  "absolute_layout": {
-  "dark": "match",
-  "dark_note": "Both backgrounds are black and all children match in position and color (top-center blue bar, left green bar, right red bar, 'Centered text', lower-left 'AutoSized', bottom-center dark bar). Visually equivalent.",
   "light": "minor",
-  "light_note": "Both place the same AbsoluteLayout children identically: top-center blue bar, left green vertical bar, right red vertical bar, centered 'Centered text', lower-left 'AutoSized' (blue highlight), and a bottom-center dark bar. Only difference: MAUI renders inside a light-gray harness container card filling the page, while C++ has a white/transparent background. Positions of all children match.",
-  "severity": "minor"
+  "dark": "match",
+  "severity": "minor",
+  "light_note": "All AbsoluteLayout element positions match (blue top-center, green left-edge / red right-edge bars, 'Centered text', 'AutoSized' blue label, black bottom rect). Minor: in light mode MAUI renders the AbsoluteLayout on a gray background panel while the C++ port shows it on white.",
+  "dark_note": "Match — same element positions on black (no gray-vs-white delta in dark).",
+  "reviewed": "2026-06-23"
  },
  "activity_indicator": {
+  "light": "minor",
   "dark": "minor",
-  "dark_note": "Same spinners/layout/colors as MAUI; C++ fits the extra 'Not Running' and '- End of page -' rows. Only diff: section headers bold vs regular weight. Spin animation would need a GIF for full parity.",
+  "severity": "minor",
+  "light_note": "Spinners + styles match: Default, Styled-Color-from-theme (blue), Styled-BackgroundColor=Yellow, Larger, Smaller-HorizontalOptions=Center, Not Running, 'End of page'. Minor: section-header labels larger/bolder in MAUI; motion page (spinners) — a still frame can't judge the animation.",
+  "dark_note": "Same: spinners/styles match; label-size delta; motion page.",
+  "reviewed": "2026-06-23",
   "flags": [
    "needs_gif"
-  ],
-  "light": "minor",
-  "light_note": "Same spinners and layout: Default, Styled-Color from theme (blue), Styled-BackgroundColor=Yellow (yellow bar + spinner), Larger (big spinner), Smaller-HorizontalOptions=Center. C++ additionally shows 'Not Running' and '- End of page -' (tighter spacing fits more; MAUI cut them off below). Only cosmetic diff: section headers bold in MAUI vs regular weight in C++. Spinners are animated so spin parity needs a GIF, but static layout/count/colors match.",
-  "severity": "minor"
+  ]
  },
  "adaptive_collection": {
-  "dark": "minor",
-  "dark_note": "Same as light: MAUI centers each 'Item N' with wide spacing on black; C++ left-aligns them tightly. Content identical (header + Items 1-8), only alignment/spacing differs.",
   "light": "minor",
-  "light_note": "Both show 'Layout: Linear (single column)' header and Item 1..8. In MAUI each 'Item N' label is horizontally CENTERED with large vertical spacing; in C++ each item is LEFT-aligned and tightly spaced (all 8 visible at once). Same content & structure, only item alignment + row spacing differ. MAUI also wraps content in the harness white card; C++ fills the screen.",
-  "severity": "minor"
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "The items (Item 1-8) match, but MAUI renders them in tall, center-aligned cells (spread to fill the available height) while the C++ port packs them into compact, left-aligned cells.",
+  "dark_note": "Same: content matches; tall-centered (MAUI) vs compact-left (C++) cells.",
+  "reviewed": "2026-06-23"
  },
  "alerts": {
-  "dark": "minor",
-  "dark_note": "Same as light — identical labels and button set, only the inter-button vertical spacing differs (MAUI taller, C++ compact). Cosmetic.",
-  "light": "minor",
-  "light_note": "Identical content and order: \"OnAppearing: Alert — Welcome to the Alerts Page [Hello!]\", \"Display Alert\" (Alert Simple / Alert Yes/No), \"Display ActionSheet\" (ActionSheet Simple / ActionSheet Cancel/Delete), \"Display Prompt\" (Question 1 / Question 2). Only difference is vertical spacing — MAUI has larger gaps between the blue buttons; C++ is more compact. Cosmetic.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the 'OnAppearing: Alert — Welcome...' readout, Display Alert (Alert Simple / Alert Yes/No), Display ActionSheet (ActionSheet Simple / Cancel/Delete), and Display Prompt (Question 1 / Question 2) links all render and match.",
+  "dark_note": "Match — same alert/sheet/prompt links on black.",
+  "reviewed": "2026-06-23"
  },
  "alignment": {
-  "dark": "match",
-  "dark_note": "Identical to light: Start/Center/End/Fill sections with red-outlined blue buttons aligned correctly (left/center/right/center). All alignment behavior, colors and text match; MAUI is offset slightly lower due to the harness card.",
   "light": "match",
-  "light_note": "Both show four labeled sections (Start, Center, End, Fill) each with a blue button outlined in red, aligned per its label: Start left-aligned, Center centered, End right-aligned, Fill centered/narrower. All four alignments, button colors, red borders, and label text match exactly. Only difference is the whole block sits lower in MAUI (harness card offset).",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: Start / Center / End / Fill labeled red-bordered blue buttons each align correctly (left, center, right, full-width).",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "animation": {
-  "dark": "minor",
-  "dark_note": "Same as light: MAUI dark shows the target label rotated mid-animation, C++ shows it flat. Buttons (Start Animation / Start Custom Animation / Cancel Animation) match. Needs a motion GIF to fairly compare the rotation animation.",
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: '.NET bot (animation target)' + Start Animation / Start Custom Animation / Cancel Animation all render. The target label is rotated in MAUI's capture vs horizontal in C++ only because the still frame catches the in-flight animation at different moments (a motion page).",
+  "dark_note": "Match — same target + buttons on black (animation captured mid-flight).",
+  "reviewed": "2026-06-23",
   "flags": [
    "needs_gif"
-  ],
-  "light": "minor",
-  "light_note": "This page's point is a rotation animation. The \"...t (animation target)\" label was captured MID-ROTATION in MAUI (rendered diagonally/rotated ~70deg) whereas C++ shows the \".NET bot (animation target)\" label flat/horizontal at top-left. The three buttons (Start Animation, Start Custom Animation, Cancel Animation — last one greyed/disabled) match in both. The label-rotation discrepancy is a capture-timing difference between animation phases, not a layout bug; a GIF is needed to judge true parity.",
-  "severity": "minor"
+  ]
  },
  "app_theme_binding": {
-  "dark": "minor",
-  "dark_note": "AppThemeBinding state + green/orange text colors match; the only diff is MAUI's harness wraps the content in a WHITE card under system dark while the port renders on the system-dark background — a harness-framing artifact, not a port bug.",
   "light": "match",
-  "light_note": "All matches in light: 'AppThemeBinding' header, green/orange themed text, ResourceDictionary text, blue 'Toggle theme' button, 'Theme: Light' status.",
-  "severity": "minor"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match incl. theme-reactive colors: 'green in light / red in dark' renders GREEN in light, the resource text ORANGE (LightPrimaryColor), plus 'Toggle theme' and the 'Theme: Light — inline=Green, resource=Orange' readout.",
+  "dark_note": "Match: the same text renders RED (dark) and the resource text TEAL (DarkPrimaryColor) — AppThemeBinding resolves correctly in dark.",
+  "reviewed": "2026-06-23"
  },
  "application_control": {
-  "dark": "minor",
-  "dark_note": "Same as light — header weight differs (bold in MAUI, lighter in C++) and the window-title text in the status line differs (\"(untitled)\" in MAUI vs \"MAUI C++ — gallery\" in C++, an app-identity difference). Same buttons and counts.",
-  "light": "minor",
-  "light_note": "Same structure: \"Quits the application\" header, then blue buttons Terminate Application / Open Window / Close Window, then a status line. Two cosmetic deltas: (1) MAUI renders the \"Quits the application\" header BOLD and large; C++ renders it in a lighter/smaller weight. (2) Status line differs — MAUI shows \"main window: (untitled)\" while C++ shows \"main window: MAUI C++ — gallery\" (the C++ window has an actual title). Both show \"Windows open: 1\" and \"main page: set\".",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Quits the application' + Terminate Application / Open Window / Close Window links + 'Windows open: 1 | ... | main page: set' all render (the windows-open count is correct; the main-window title naturally differs — MAUI '(untitled)' vs the gallery's own title).",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "auto_size_shapes": {
   "light": "match",
   "dark": "match",
   "severity": "match",
-  "light_note": "Verified MATCH (per-page sweep, pixel-measured): the ellipse fills its star (*) grid cell identically in both — MAUI ellipse aspect 1.87 ~ its cell aspect 1.83; C++ ellipse 1.09 ~ its cell 1.10; both ~97% cell width. The only difference (MAUI flat/wide vs C++ round ellipse) is 100% the harness WRAPPER crop: MAUI crops the page into the middle ~1450px with big top/bottom bands so each star row is short→flat; the port shows it near edge-to-edge so rows are taller→round. Exempt per port/CLAUDE.md ruling #2. Layout is byte-faithful to AutoSizeShapesGallery.xaml; no code fix. (Resolves the prior PENDING-RULING flag.)",
-  "dark_note": "Verified MATCH (per-page sweep, pixel-measured): the ellipse fills its star (*) grid cell identically in both — MAUI ellipse aspect 1.87 ~ its cell aspect 1.83; C++ ellipse 1.09 ~ its cell 1.10; both ~97% cell width. The only difference (MAUI flat/wide vs C++ round ellipse) is 100% the harness WRAPPER crop: MAUI crops the page into the middle ~1450px with big top/bottom bands so each star row is short→flat; the port shows it near edge-to-edge so rows are taller→round. Exempt per port/CLAUDE.md ruling #2. Layout is byte-faithful to AutoSizeShapesGallery.xaml; no code fix. (Resolves the prior PENDING-RULING flag.)"
+  "light_note": "Match (per CLAUDE.md ruling #2): the ellipse occupies the top-half yellow region with the orange region below in both. The only difference — MAUI's ellipse is flat/wide vs the C++ rounder ellipse — is 100% the harness wrapper crop making MAUI's available vertical space shorter; the layout is byte-faithful.",
+  "dark_note": "Match — same half-and-half layout; ellipse aspect differs only via the wrapper crop.",
+  "reviewed": "2026-06-23"
  },
  "basic_grouping": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical content (green headers, orange footers, member names). C++ uses noticeably taller per-row spacing (fewer rows per screen) and renders the 'This is a header' title in regular weight vs MAUI's bold.",
-  "light": "minor",
-  "light_note": "Content is identical: title 'This is a header', green group headers (Avengers/Fantastic Four/Defenders), orange 'Total members:' footers, and member names all present in the same order. Two cosmetic differences: (1) C++ row spacing is much taller — MAUI fits the whole first 3 groups on screen (~30 rows) while C++ fits only ~17 rows; (2) the 'This is a header' title is bold in MAUI but regular weight in C++.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'This is a header' + the grouped lists (Avengers / Fantastic Four / Defenders / Heroes for Hire with green group headers, member rows, and orange 'Total members: N' footers) all equivalent.",
+  "dark_note": "Match — same grouped lists on black.",
+  "reviewed": "2026-06-23"
  },
  "basic_swipe": {
-  "dark": "match",
-  "dark_note": "Dark theme matches: same rows with white labels on light-gray cells, identical text and order. Same harness chrome difference only.",
   "light": "match",
-  "light_note": "Five gray swipe rows ('Swipe Up/Down/Right/Left (Execute/Reveal)', 'Swipe in any direction') plus 'Swipe a row, then invoke Delete' label render identically. Only difference is the harness nav title bar present in MAUI vs absent in C++ (harness chrome), and MAUI rows have slightly more rounded corners — cosmetic.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the five swipe-direction cells (Swipe Up (Execute) / Swipe Down (Reveal) / Swipe Right (Reveal) / Swipe Left (Execute) / Swipe in any direction) + 'Swipe a row, then invoke Delete' all equivalent.",
+  "dark_note": "Match — same swipe cells on black.",
+  "reviewed": "2026-06-23"
  },
  "behaviors": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical heading and entry field; only the wrap point of the heading differs due to content width. Cosmetic.",
-  "light": "minor",
-  "light_note": "Both render the large heading 'Red when the number isn't valid' and an 'Enter a System.Double' entry field. Same large heading font in both. Only difference is line-wrapping driven by content width: MAUI (narrower card) wraps 'Red when the / number isn't valid', C++ (full width) wraps 'Red when the number / isn't valid'. Cosmetic wrap difference only.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the wrapped 'Red when the number isn't valid' header and 'Enter a System.Double' entry are equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "border": {
-  "dark": "match",
-  "dark_note": "Both render the same red-bordered cream box centered. Note: in dark theme BOTH MAUI and C++ render the 'Bordered content' text in a near-white color on the cream fill, making it faint/low-contrast — this is shared behavior (MAUI's actual ground truth), so the two still match each other.",
   "light": "match",
-  "light_note": "Both show a red rounded-rectangle border with thick stroke, cream/light-yellow fill, and centered 'Bordered content' text. Box size, stroke, fill color, and label all match. Only MAUI's box sits slightly lower (harness padding).",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the cream rounded rectangle with the thick red border and 'Bordered content' text are equivalent (C++ box marginally narrower).",
+  "dark_note": "Match — same bordered box on black.",
+  "reviewed": "2026-06-23"
  },
  "border_clip_playground": {
+  "light": "minor",
   "dark": "minor",
-  "dark_note": "Same as light — MAUI ref empty (missing oasis.jpg asset); the port correctly clips a bundled image into the rounded border. Not a port rendering diff.",
+  "severity": "minor",
+  "light_note": "MAUI reference broken (missing asset): the C# XAML clips an <Image Source='oasis.jpg'> into the Border shape, but maui-compare doesn't bundle oasis.jpg, so MAUI shows only the empty red rounded border. The C++ port correctly clips the bundled oasis.jpg (a dog) into the rounded-rect shape (top-left radius 60). The Border Shape / Width / Corner-Radius controls match.",
+  "dark_note": "Same: port clips the dog image into the shape; MAUI's ref is the empty red border (missing oasis.jpg).",
+  "reviewed": "2026-06-23",
   "flags": [
    "maui_broken"
-  ],
-  "light": "minor",
-  "light_note": "NOT a port bug — the MAUI reference is broken (the maui-compare app does not bundle oasis.jpg, so its Border shows an EMPTY red outline). The C# XAML places <Image Source=\"oasis.jpg\" Aspect=\"AspectFill\"> inside the Border; the C++ port correctly resolves a bundled stand-in JPEG and clips it into the StrokeShape with the LIVE per-corner radius (top-left 60, top-right 0 both honored). Clip-into-shape + red stroke + corner-radius sliders all work. Residual: the gallery bundles a different photo than oasis.jpg (asset packaging, not a framework diff).",
-  "severity": "minor"
+  ]
  },
  "border_layout": {
-  "dark": "match",
-  "dark_note": "Identical to light: 'Stroke thickness: 5 / 40', slider, and the pill border with red/green-'Center'/blue/green segments all render equivalently.",
   "light": "match",
-  "light_note": "Both show 'Stroke thickness: 5 / 40', a slider, and a gray pill-shaped border containing a Grid: red rounded-left cap, green cell with 'Center' label, blue block, then green fill. Segment layout, colors, pill stroke, and label all match.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Stroke thickness: 5 / 40' slider + the gray-stroked Border wrapping a red segment, 'Center' text, blue segment, and green segment all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "border_playground": {
-  "dark": "minor",
-  "dark_note": "Same content as light — dashed border, gradient fill, 'Just a Label', and form fields all present. Differences are cosmetic: C++ packs the box higher and exposes more form rows; MAUI positions the box lower with extra whitespace. Header weight differs (regular in C++ vs bold in MAUI).",
-  "light": "minor",
-  "light_note": "Both render the dashed-yellow border with cyan-to-blue gradient fill and 'Just a Label' text, plus the form: 'Border Content'/Label, 'Border Shape'/RoundRectangle, 'Background'/Background Start Color #00B4DB/End Color #0083B0. Cosmetic diffs only: the C++ box is positioned higher and the form scrolls to show more fields (End Color, Content Background, checkbox, 'Show Content Background', 'Border'), while MAUI shows the box lower with more whitespace and fewer fields above the fold. C++ section headers ('Border Content', 'Border Shape', 'Background') render in regular weight vs MAUI's bold.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the blue-gradient Border (yellow dashed stroke) containing 'Just a Label', plus the Border Content / Border Shape (RoundRectangle) / Background (#00B4DB -> #0083B0) property controls all equivalent.",
+  "dark_note": "Match — same border + controls on black.",
+  "reviewed": "2026-06-23"
  },
  "border_resize_content": {
+  "light": "minor",
   "dark": "minor",
-  "dark_note": "Same as light — right-column image borders show the LightBlue style bg in MAUI (missing oasis.jpg) vs a correctly-clipped bundled image in C++. Left column matches. Not a port rendering diff.",
+  "severity": "minor",
+  "light_note": "MAUI reference broken (missing asset): the left-column shapes (red-fill circle/square/triangle with '+') match; the right-column Border shapes show the port's clipped oasis.jpg (dog) while MAUI shows a light-blue fallback fill because oasis.jpg isn't bundled. The Content Text / FontSize / Image Scale controls match.",
+  "dark_note": "Same: right-column shapes show the port's clipped dog image; MAUI shows light-blue (missing oasis.jpg).",
+  "reviewed": "2026-06-23",
   "flags": [
    "maui_broken"
-  ],
-  "light": "minor",
-  "light_note": "NOT a port bug — MAUI reference is broken. The C# XAML's right-column borders contain <Image Source=\"oasis.jpg\">; the maui-compare app does not bundle oasis.jpg, so MAUI shows only the LightBlue style background. The C++ port correctly clips a bundled stand-in image into the circle/round-rect/triangle StrokeShapes (left column red shapes with '+' match exactly). Residual: the gallery bundles a different photo than oasis.jpg (asset packaging, not a framework diff).",
-  "severity": "minor"
+  ]
  },
  "border_stroke": {
-  "dark": "match",
-  "dark_note": "Same as light: all labels, the three stroke-thickness boxes, the slider, and the lower content-height boxes (1/5/10) render equivalently between MAUI and C++.",
   "light": "match",
-  "light_note": "Both show 'Using different StrokeThickness' with three orange boxes (red stroke widths 1/5/10), then 'Updating the Content Height', 'Content height: 60', a slider, and a second set of orange/red boxes labeled 1/5/10. Labels, orange fills, red stroke thicknesses, and slider position all match. Only difference: MAUI's harness card clips the bottom '10' box while C++ shows it fully.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the orange Borders with StrokeThickness 1 / 5 / 10 (red strokes), the 'Content height: 60' slider, and the taller-content border set all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "borderless": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical content (yellow container, label, yellow-track switch). MAUI shows the yellow inside a black rounded card with margins; C++ fills edge-to-edge. The label text is dark/black in MAUI's lighter-yellow area and rendered correctly in both; cosmetic inset difference only.",
-  "light": "minor",
-  "light_note": "Both show the same yellow borderless container, the label 'Style: borderless (StrokeThickness 0)', and a switch with a yellow track. Only difference: MAUI insets the yellow region inside a black rounded card (black margin visible top and bottom), while C++ renders the yellow edge-to-edge with no surrounding black inset. Content, label, switch state and colors all match.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Style: borderless (StrokeThickness 0)' label, the switch, and the large yellow borderless Border region all equivalent (C++ fills a taller page).",
+  "dark_note": "Match — same yellow borderless region on black.",
+  "reviewed": "2026-06-23"
  },
  "box_view": {
-  "dark": "match",
-  "dark_note": "Same as light: Default blue box, Using Color purple box, and Background yellow-to-green gradient match; C++ additionally shows the 'Using CornerRadius' rounded light-green box that the truncated MAUI reference cuts off.",
   "light": "match",
-  "light_note": "MAUI reference is truncated at the 'Background' label; C++ shows the full page including the extra 'Using CornerRadius' rounded green box. All overlapping content matches: Default (blue box), Using Color (purple box) and the Background yellow-to-green gradient are equivalent in size and color.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: Default (cornflower-blue square), Using Color (purple), Background (yellow->green gradient); 'Using CornerRadius' (rounded green) renders in C++ below MAUI's wrapper crop.",
+  "dark_note": "Match — same squares/colors on black.",
+  "reviewed": "2026-06-23"
  },
  "button": {
-  "dark": "match",
-  "dark_note": "Same matching set of buttons and colors in dark. The extra ImageButton/slider rows C++ shows are below MAUI's crop point so they are not comparable; everything visible in both matches.",
-  "light": "match",
-  "light_note": "All comparable button demos match: 'Taps: 0', blue 'Button', gray 'Button (disabled)', 'Clicked', 'Command', solid blue/red/green colored buttons, green 'BorderColor', green 'BorderWidth' with red border, purple rounded 'CornerRadius', pink 'Button'. C++ is scaled smaller and fits the rest of the page that MAUI crops (gear ImageButtons 'settings', Decrease/Increase Spacing, a slider, 'BorderWidth Changing') — harness scroll/scale, not a bug.",
-  "severity": "match"
+  "light": "minor",
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "Core button stack matches: 'Taps: 0', blue Button, gray disabled, Clicked, Command, solid blue/red, green BorderColor, red-bordered green BorderWidth, purple CornerRadius. Delta: the pink CharacterSpacing demo renders wider-spaced in C++ ('B u t t o n') than MAUI ('Button'). The settings ImageButton gears + Decrease/Increase Spacing rows render in C++ and sit below MAUI's wrapper crop (exempt).",
+  "dark_note": "Same as light: stack matches; pink CharacterSpacing text wider in C++; ImageButton gears + spacing rows below MAUI's wrapper crop.",
+  "reviewed": "2026-06-23"
  },
  "carousel_page": {
-  "dark": "minor",
-  "dark_note": "Same as light; big centered item + the intentional Prev/Next affordances.",
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Basic Horizontal Carousel' + the large centered 'Item 1' carousel cell + Prev / Next links + 'Position 0 — current: Item 1' all equivalent (the earlier cell-centering residual is resolved).",
+  "dark_note": "Match — same carousel on black.",
+  "reviewed": "2026-06-23",
   "flags": [
    "needs_gif"
-  ],
-  "light": "minor",
-  "light_note": "Carousel item now renders BIG + centered ('Item 1') matching MAUI's caption. Residual: the port adds Prev/Next buttons + a 'Position' readout below (an intentional demo affordance — the C# carousel has none and is swiped; documented in the page header), so the C++ item is shorter to leave room. Faithful deviation.",
-  "severity": "minor"
+  ]
  },
  "chat_example": {
-  "dark": "minor",
-  "dark_note": "Same as light — content-width side-aligned bubbles (CV-cell fix); square-cornered vs MAUI's rounded pills (single-root-cell limit).",
-  "light": "minor",
-  "light_note": "FIXED by the iOS CV-cell HorizontalOptions fix: the chat bubbles now render content-width, aligned by sender (green 'Hi there!' right, blue 'Hello…' left) — matching MAUI's pill layout. Residual minor (documented): the single-root templated cell can't carry the Border StrokeShape, so the bubbles are square-cornered rather than rounded pills.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the green 'Hi there!' bubble (right-aligned) and the light-blue 'Hello — how can I help you today?' bubble (left-aligned) size to content and align correctly.",
+  "dark_note": "Match — same chat bubbles on black.",
+  "reviewed": "2026-06-23"
  },
  "check_box": {
-  "dark": "minor",
-  "dark_note": "Same checkbox states/colors as MAUI. Only diff: section headers bold vs regular weight.",
   "light": "minor",
-  "light_note": "Excellent match: Default (blue ring), Colored (purple ring), Disabled (blue ring), Disabled Colored (filled purple checked), Change IsChecked, 'Is green? False' (red text) + filled red check. All checkbox colors/positions/checked states match. Only diff: section headers bold in MAUI vs regular weight in C++ (and MAUI light has a white card container).",
-  "severity": "minor"
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "Checkboxes match: Default (blue circle), Colored (magenta), Disabled, Disabled Colored (filled), 'Change IsChecked' -> 'Is green? False' (red) + red filled check. Minor: the section-header labels render larger/bolder in MAUI than in the C++ port (the value-controls-page label delta).",
+  "dark_note": "Same: checkboxes match; section-header labels larger/bolder in MAUI.",
+  "reviewed": "2026-06-23"
  },
  "chrome": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical 'Press or right-click me' button + 'Ready' label; only spacing and absent nav header differ. The right-click menu is interaction-only.",
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Press or right-click me' link + 'Ready' status equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23",
   "flags": [
    "needs_gif"
-  ],
-  "light": "minor",
-  "light_note": "Both show the blue 'Press or right-click me' button and a 'Ready' label below it. Identical static content. The context menu itself only appears on right-click/long-press, so a still cannot show the menu. Only difference is C++'s tighter top spacing and missing nav-bar header.",
-  "severity": "minor"
+  ]
  },
  "clip": {
-  "dark": "minor",
-  "dark_note": "Same as light — gray image background now renders; residual is image width/centering (image fills full width in MAUI, centered/narrower in C++).",
-  "light": "minor",
-  "light_note": "FIXED (iOS image_handler now pushes VisualElement.Background): the gray background fill now renders behind the submarine in the 'Image' section and behind all three clipped variants (Rectangle/Ellipse/GeometryGroup) — was entirely missing. Residual minor: MAUI's image fills the full content width (AspectFill) while C++ renders it centered/narrower (a shared image width/aspect-layout nuance, not the background).",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the submarine 'Image' (on a gray background) plus 'Clipped Image using RectangleGeometry / EllipseGeometry / GeometryGroup' all render and clip correctly.",
+  "dark_note": "Match — same clipped images on black.",
+  "reviewed": "2026-06-23"
  },
  "clip_corner_radius": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical structure and slider styling; the only notable difference is the sample image asset (C++ shows a dog photo, MAUI shows the purple submarine). Round-rectangle clip and corner sliders render correctly in both.",
   "light": "minor",
-  "light_note": "Structure matches: 'Clipped Image using RoundRectangleGeometry' header, a gray-backed clipped image, then four sliders (Top Left / Top Right / Bottom Left / Bottom Right Corner). The clip rendering and sliders are correct. Difference: C++ loads a DIFFERENT sample image (a dog/pug photo) where MAUI shows the purple submarine. C++'s more compact spacing also fits all 4 sliders on screen vs MAUI's 3. Sample-asset difference, clip behavior itself is correct.",
-  "severity": "minor"
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "The RoundRectangleGeometry clip and the four corner-radius sliders (Top Left / Top Right / Bottom Left / Bottom Right) work identically in both, but the source image differs: MAUI shows the dotnet_bot submarine while the C++ port shows oasis.jpg (a dog) — the port page uses the wrong image source.",
+  "dark_note": "Same: corner clipping matches; the port shows the dog, MAUI the submarine.",
+  "reviewed": "2026-06-23"
  },
  "clip_gallery": {
-  "dark": "match",
-  "dark_note": "Same as light: MAUI shows empty gray placeholder boxes (image failed to load) while C++ correctly renders the dog photo clipped with each geometry. MAUI reference capture is broken and needs re-capture; C++ render is correct.",
+  "light": "minor",
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "MAUI reference broken (missing asset): the C# page sources oasis.jpg, which maui-compare doesn't bundle, so MAUI shows empty gray boxes. The C++ port renders the dog and clips it correctly (Image / RectangleGeometry / RoundRectangleGeometry / EllipseGeometry).",
+  "dark_note": "Same: port renders + clips oasis.jpg; MAUI shows empty gray placeholders (missing asset).",
+  "reviewed": "2026-06-23",
   "flags": [
    "maui_broken"
-  ],
-  "light": "match",
-  "light_note": "MAUI reference is BROKEN here: 'Image' and 'Clipped Image using RectangleGeometry' render as EMPTY GRAY PLACEHOLDER BOXES (the image asset failed to load in MAUI). C++ correctly renders the actual photo (a dog) with all clip variants (Rectangle, RoundRectangle, etc.). The C++ side is the more-correct render; the MAUI capture needs re-shooting before a fair pixel comparison. Marking match because C++ behaves correctly and the only divergence is the broken MAUI reference.",
-  "severity": "match"
+  ]
  },
  "clip_views": {
-  "dark": "minor",
-  "dark_note": "Same as light — Entry/Editor red fills now render clipped to the swoosh. Residual minor: faint SearchBar bar fill (iOS 26 UISearchBar chrome, faithful code path) + slightly narrower clip width.",
-  "light": "minor",
-  "light_note": "FIXED (iOS entry/editor/search_bar now push VisualElement.Background): the Entry and Editor rows now show their solid RED fill clipped to the swoosh (Entry tints the UITextField's RoundedRect via the UIView backgroundColor; Editor via the layer). Button/DatePicker/Grid/TimePicker already red. Residual minor: the SearchBar bar fill renders faint on iOS 26 (UISearchBar chrome — the port sets backgroundColor exactly as MAUI's UpdateBackground does), and the ellipse clip is slightly narrower (~75% width) than MAUI's.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: Button / DatePicker (capture-day date) / Entry / Editor / Grid / SearchBar / TimePicker each render with a red background (the VisualElement.Background fix) and the curved swoosh clip applied — all equivalent. (Search-bar fill is the minor iOS-26 tint nuance.)",
+  "dark_note": "Match — same red-backed clipped controls on black.",
+  "reviewed": "2026-06-23"
  },
  "clipping": {
   "light": "minor",
   "dark": "minor",
   "severity": "minor",
-  "light_note": "Digit-button row '1 2 3 4 5 6 7 8' now SPREADS with per-button width matching MAUI (fix 65f75330fe: Button.Padding defaults to NaN not zero, so the C#-faithful NaN->DefaultPadding(12,7) substitution fires instead of zeroing the native UIButton content insets). Red-orange square, light-blue clip region/bar, and the two coffee.png cups all render (the port faithfully shows coffee.png; the earlier 'coffee cups missing' note was about MAUI's ref, not the port). Residuals (minor): the purple WidthRequest=50 'Hey' buttons truncate to '…' because the port honors WidthRequest=50 while MAUI's HorizontalStackLayout grows them to ~188px to fit 'Hey' — a HSL WidthRequest/overflow-growth gap (separate follow-up, not button padding); and the port shows '1' (MAUI crops it off-left, wrapper).",
-  "dark_note": "Digit-button row '1 2 3 4 5 6 7 8' now SPREADS with per-button width matching MAUI (fix 65f75330fe: Button.Padding defaults to NaN not zero, so the C#-faithful NaN->DefaultPadding(12,7) substitution fires instead of zeroing the native UIButton content insets). Red-orange square, light-blue clip region/bar, and the two coffee.png cups all render (the port faithfully shows coffee.png; the earlier 'coffee cups missing' note was about MAUI's ref, not the port). Residuals (minor): the purple WidthRequest=50 'Hey' buttons truncate to '…' because the port honors WidthRequest=50 while MAUI's HorizontalStackLayout grows them to ~188px to fit 'Hey' — a HSL WidthRequest/overflow-growth gap (separate follow-up, not button padding); and the port shows '1' (MAUI crops it off-left, wrapper)."
+  "light_note": "Close match: the digit row '1-8' spreads evenly (button-padding fix), the orange clip square matches, and the purple 'Hey Hey Hey Hey' buttons show full text in both. Residuals: MAUI crops the leading '1' (wrapper), and the coffee.png cups render in C++ (a faithful asset MAUI's harness lacks at that spot).",
+  "dark_note": "Same: digit row + orange square + Hey buttons match; coffee cups render in C++; MAUI wrapper-crops '1'.",
+  "reviewed": "2026-06-23"
  },
  "collectionview": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical 3-column 24-item grid and header text. Only the header weight (bold in MAUI, regular in C++) and minor text-wrap points differ; no harness card visible in dark on either. Basically the same page.",
-  "light": "minor",
-  "light_note": "Content matches: 'This is the header' plus a 3-column grid of 24 items (cover1.jpg,0 ... Vegetables.jpg,23) with identical labels and order. Cosmetic diffs only: MAUI wraps the list in a harness white rounded card; the 'This is the header' label is bold in MAUI vs regular weight in C++; item text wraps at slightly different points. A user would call it basically the same page.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'This is the header' + the 3-column grid of items (cover1.jpg 0 through Vegetables.jpg 23) all equivalent.",
+  "dark_note": "Match — same 3-column grid on black.",
+  "reviewed": "2026-06-23"
  },
  "composition_gallery": {
-  "dark": "minor",
-  "dark_note": "Graphics composition renders correctly: beige canvas with the overlapping translucent green triangle + yellow circle + red diagonal band (blend) and the blue/green/red axes lines below — matches MAUI's shapes, colors, and blending in both light+dark. Residual: the port's graphics_view is taller so the shapes sit higher within the canvas; plus wrapper scale/crop (exempt, policy #2).",
-  "light": "minor",
-  "light_note": "Graphics composition renders correctly: beige canvas with the overlapping translucent green triangle + yellow circle + red diagonal band (blend) and the blue/green/red axes lines below — matches MAUI's shapes, colors, and blending in both light+dark. Residual: the port's graphics_view is taller so the shapes sit higher within the canvas; plus wrapper scale/crop (exempt, policy #2).",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the composite GraphicsView (green triangle + yellow circle + orange blend band + red corner markers) and the axes GraphicsView (blue/green/red lines) on the cream background render equivalently. The C++ GraphicsViews fill a taller area (page-fill) but the drawn content matches.",
+  "dark_note": "Match — same composite drawing + axes on black.",
+  "reviewed": "2026-06-23"
  },
  "containers": {
+  "light": "match",
   "dark": "match",
-  "dark_note": "Clean match: 'Scrolled to: 0 / 0', blue dashed 'Inside a border', red-bordered 'Inside a frame' (transparent in both), and 'Inside a content_view' are all equivalent.",
-  "light": "minor",
-  "light_note": "Same structure: 'Scrolled to: 0 / 0', 'Inside a border' (blue dashed box), 'Inside a frame' (red-bordered rounded box), 'Inside a content_view'. Cosmetic difference: the C++ 'Inside a frame' box has a light-gray background fill, whereas MAUI's frame is white/transparent (page-colored). Also the C++ frame label text is bold vs regular in MAUI.",
-  "severity": "minor"
+  "severity": "match",
+  "light_note": "Match: 'Scrolled to: 0 / 0', blue-dashed 'Inside a border', red rounded 'Inside a frame', 'Inside a content_view' all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "content_view": {
-  "dark": "match",
-  "dark_note": "Equivalent: same 'ContentView' / 'Content' / 'Content' stack and centered blue 'Swap content' button; matches MAUI.",
   "light": "match",
-  "light_note": "Equivalent: 'ContentView' label, indented 'Content', a second 'Content', and a centered blue 'Swap content' button. Layout, text and colors all match.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'ContentView' header, indented 'Content', 'Content', and the 'Swap content' link all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "context_flyout": {
-  "dark": "minor",
-  "dark_note": "Context-flyout demo content matches MAUI: 'Increment by 1 (or right-click me)' button, 'Is dynamic menu enabled?' toggle, 'Right-click to see beautiful menus', the 'Has a custom context menu' entry, and the COOL FontImage button all render correctly (light+dark). Below them the port faithfully renders the live bing.com WebView (Source per the C# sample's <WebView Source=https://bing.com MinimumHeightRequest=400>) + the '0'/status labels — all below MAUI's wrapper crop (port shows more, policy #2). The WebView content is a LIVE page (cookie banner / Copilot), inherently non-pixel-matchable. NOTE: contradicts the page's stale 'web_view doesn't render pixels' note — it DOES on iOS.",
   "light": "minor",
-  "light_note": "Context-flyout demo content matches MAUI: 'Increment by 1 (or right-click me)' button, 'Is dynamic menu enabled?' toggle, 'Right-click to see beautiful menus', the 'Has a custom context menu' entry, and the COOL FontImage button all render correctly (light+dark). Below them the port faithfully renders the live bing.com WebView (Source per the C# sample's <WebView Source=https://bing.com MinimumHeightRequest=400>) + the '0'/status labels — all below MAUI's wrapper crop (port shows more, policy #2). The WebView content is a LIVE page (cookie banner / Copilot), inherently non-pixel-matchable. NOTE: contradicts the page's stale 'web_view doesn't render pixels' note — it DOES on iOS.",
-  "severity": "minor"
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "The demo controls match (the 'Increment by 1' bar, 'Is dynamic menu enabled?' switch, custom-context-menu entry, COOL button, and exercise readout). Minor: the C++ port additionally renders the live bing.com WebView (a <WebView Source=https://bing.com> in the sample, showing a cookie-consent popup) — a faithful but non-pixel-matchable live page.",
+  "dark_note": "Same: controls match; C++ renders the live bing.com WebView (non-matchable).",
+  "reviewed": "2026-06-23"
  },
  "controls_stack": {
-  "dark": "match",
-  "dark_note": "Same as light: 'Controls' header, A Button, An Entry, An Editor, SearchBar, checkbox/switch/spinner row, slider and stepper all match; the trailing blue progress bar shown in C++ is the page continuation not visible in the truncated MAUI reference.",
   "light": "match",
-  "light_note": "MAUI reference is truncated near the stepper; C++ shows the full page. All overlapping controls match: 'Controls' header, blue 'A Button', 'An Entry' field, 'An Editor', rounded 'A SearchBar', checkbox + green switch + activity spinner row, slider, and +/- stepper. C++ additionally shows the trailing blue progress bar that the truncated reference cuts off.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Controls' header, A Button, An Entry, An Editor, A SearchBar, checkbox + green switch + spinner row, slider, stepper, progress bar all render and align equivalently (progress bar below MAUI's crop).",
+  "dark_note": "Match — same controls on black.",
+  "reviewed": "2026-06-23"
  },
  "custom_layout": {
-  "dark": "match",
-  "dark_note": "Match in dark theme too: 'Top' / 'Left Left ... Right Right' / 'Bottom' blue labels at the same positions on a black background, identical between MAUI and C++.",
   "light": "match",
-  "light_note": "Match. The custom layout positions blue labels identically: 'Top' centered near the top, a middle row of 'Left  Left ........ Right  Right', and 'Bottom' centered near the bottom. Same blue text color, same anchoring and spacing in both. Only differences are harness-only (nav pill, clock).",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the custom dock layout (Top centered, Left/Left + Right/Right on the sides, Bottom centered) renders identically (the custom dock_layout handler fix).",
+  "dark_note": "Match — same dock layout on black.",
+  "reviewed": "2026-06-23"
  },
  "custom_size_swipe": {
-  "dark": "match",
-  "dark_note": "Dark theme matches: identical green block, blue link, and status label. Only harness nav-bar chrome differs.",
   "light": "match",
-  "light_note": "Green SwipeView content block with 'This is the SwipeView Content', 'Test Click from Content' blue link, and 'RightItems revealed (open=1, threshold=0)' label all render identically in position, color and text.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the green 'This is the SwipeView Content', the 'Test Click from Content' link, and 'RightItems revealed (open=1, threshold=0)' all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "custom_swipe_item_view": {
-  "dark": "match",
-  "dark_note": "Dark theme matches: same label and blue card with identical text and color.",
   "light": "match",
-  "light_note": "'Right items revealed (Favourite)' label and the blue card ('Welcome to .NET MAUI' / 'June 19, 2026') render identically. C++ card padding is marginally tighter but equivalent.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Right items revealed (Favourite)' + the blue card ('Welcome to .NET MAUI' / 'June 19, 2026') equivalent.",
+  "dark_note": "Match — same swipe card on black.",
+  "reviewed": "2026-06-23"
  },
  "cv_visual_states": {
-  "dark": "match",
-  "dark_note": "The MAUI dark REFERENCE is broken: it renders the 'Single Selection' and 'Multi Selection' section headers but the item areas are solid WHITE blocks with the item text invisible (white-on-white) — needs re-capture. The C++ dark render is CORRECT: it clearly shows 'Single Selection' Item 1/2/3 and 'Multi Selection' Item 1/2/3/4 in white text on black. C++ is fine; the ground-truth capture is the broken one.",
+  "light": "minor",
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "The Single Selection (Item 1-3) and Multi Selection (Item 1-4) items render, but MAUI applies a larger cell font via the VisualState styling that the C++ port renders at the regular size.",
+  "dark_note": "Same: items render; MAUI's VSM-styled larger cell font is not applied in C++.",
+  "reviewed": "2026-06-23",
   "flags": [
    "maui_broken"
-  ],
-  "light": "minor",
-  "light_note": "Both show 'Single Selection' (Item 1/2/3) and 'Multi Selection' (Item 1/2/3/4). Content and structure identical; only row spacing differs (MAUI tighter, C++ more spaced) and MAUI uses the harness white card. No selection highlight is visible in either still.",
-  "severity": "minor"
+  ]
  },
  "data_template_selector": {
-  "dark": "minor",
-  "dark_note": "Same as light: both show the 'Day of Week Filter' SearchBar and the correctly-selected templates (weekend 'Woot!' vs weekday names) on black. Only row-spacing density differs.",
-  "light": "minor",
-  "light_note": "Match in content. Both show a 'Day of Week Filter' SearchBar and a list where weekend entries render the selected template \"It's the weekend! Woot!\" and weekdays render the day name (Monday/Tuesday/...). Template selection works identically. Only difference: MAUI has tighter line spacing (more rows visible) while C++ has slightly larger per-row spacing; MAUI wraps content in the harness white card.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the 'Day of Week Filter' search bar + the list where the selector picks the \"It's the weekend! Woot!\" template for weekend days vs plain weekday names, all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "date_picker": {
-  "dark": "minor",
-  "dark_note": "Same as light: device-locale DD.MM.YYYY date format correct in both (capture-day difference only). Same third-gradient hue mismatch (MAUI blue->cyan vs C++ pink->magenta).",
-  "light": "minor",
-  "light_note": "Structure matches (Default, BackgroundColor blue, two Background gradient pickers, Update/Clear Background, 'Default with date' 21.06.2018). Date format is correct device-locale DD.MM.YYYY in both — MAUI shows '19.06.2026' vs C++ '21.06.2026' purely because they were captured on different days (today's date), NOT a format bug. One real cosmetic diff: the third 'Background' gradient picker uses a blue->cyan/teal gradient in MAUI but a pink/magenta->purple gradient in C++ (the first yellow->green Background gradient matches). C++ also fits trailing rows (Disabled, red TextColor, Format 2026/06/21, IsFocused) MAUI crops.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: Default, BackgroundColor (blue), two gradient Backgrounds (green, purple), Update/Clear Background, Default-with-date (21.06.2018), Disabled all equivalent; device-locale DD.MM.YYYY format. The displayed value differs (MAUI 19.06.2026 vs C++ 22.06.2026) only because the captures were taken on different days — not a parity diff. TextColor/Format/IsFocused rows below MAUI's wrapper crop.",
+  "dark_note": "Match — same rows/colors on black; value differs by capture day only.",
+  "reviewed": "2026-06-23"
  },
  "device": {
-  "dark": "minor",
-  "dark_note": "Dark theme: identical text values; same centered-vs-top-left alignment difference as light.",
   "light": "minor",
-  "light_note": "Same text content ('Platform: iOS', 'Idiom: Phone', 'Version: 26.5'). Alignment differs: MAUI centers the text block horizontally and vertically on the page; C++ pins it to top-left. Content correct, only positioning differs.",
-  "severity": "minor"
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "The device info matches (Platform: iOS, Idiom: Phone, Version: 26.5), but MAUI centers the info block (vertically + horizontally) while the C++ port left-aligns it at the top.",
+  "dark_note": "Same: info matches; centered (MAUI) vs top-left (C++) block.",
+  "reviewed": "2026-06-23"
  },
  "dispatcher": {
-  "dark": "match",
-  "dark_note": "Identical to light comparison in dark theme; text/blue-link colors and layout equivalent, C++ shows a bit more bottom content due to smaller top padding.",
   "light": "match",
-  "light_note": "Same content top-to-bottom: 'Watch the machines complain...' / 'Fail Access' (blue) / '...' / 'Now observe the happy machines...' / 'Access' (blue) / 'This was a success!' / timer section. C++ has less top padding so it surfaces additional lower rows ('3 Second Timer (Start/Stop)', 'OBSOLETE ZONE ALERT!', 'Device.StartTimer(3s)') that the MAUI ref pushes off-screen; same page, only scroll-position/top-padding differs.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the UI-thread/dispatcher demo (Fail Access, Access, 'This was a success!', 3 Seconds Later, 3 Second Timer (Start/Stop), Device.StartTimer(3s)) all render and match.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "drag_drop": {
-  "dark": "match",
-  "dark_note": "Same swatch stack and Rainbow row in dark theme; equivalent. C++ surfaces the same extra event-detail lines below due to smaller top padding.",
   "light": "match",
-  "light_note": "Both render 'All colors (drag a swatch...)' header, the 6 color swatches (orange/yellow/green/blue/purple/pink), 'Rainbow:' label and red row. C++ additionally shows the post-drop event readout ('Drag start position relative to... - Self X:0, Y:0 (Red)', 'Drag position...', 'Drop position...', 'Move: swatch dropped into Rainbow') because it has less top padding; MAUI ref clips these at bottom. Same elements.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'All colors (drag a swatch...)', the orange/yellow/green/blue/purple/pink swatch bars, 'Rainbow:' + red bar, and the Drag-start / Drag / Drop position readouts + 'Move: swatch dropped into Rainbow' all equivalent.",
+  "dark_note": "Match — same swatches + readouts on black.",
+  "reviewed": "2026-06-23"
  },
  "editor": {
-  "dark": "match",
-  "dark_note": "Same content, colors and borderless editors in dark theme; equivalent.",
   "light": "match",
-  "light_note": "Matches exactly: 'LENGTH: 0', 'Type here...' placeholder, purple 'Text', purple 'Placeholder', large 'FontSize (Large)', 'I am read only', '123', 'This should be on the bottom', 'AUTOSIZE LENGTH: 0', 'Grows as you type...' placeholder. Editors are borderless in both (correct iOS editor styling).",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'LENGTH: 0', Type-here placeholder, magenta Text + Placeholder, letter-spaced 'FontSize (Large)', 'I am read only', '123', 'This should be on the bottom', 'AUTOSIZE LENGTH: 0', 'Grows as you type...' placeholder — all equivalent.",
+  "dark_note": "Match — same content on black; equivalent.",
+  "reviewed": "2026-06-23"
  },
  "effects": {
+  "light": "minor",
   "dark": "minor",
-  "dark_note": "MAUI reference is again the iOS home screen/springboard (capture failure). C++ renders the same correct dark-theme page. Cannot compare due to broken MAUI ref.",
+  "severity": "minor",
+  "light_note": "MAUI reference broken (springboard): the C++ port renders the effects page (Entry With Focus Routing Effect / Platform Effect, Alert Simple, Detach / Re-attach routing effect, 'routing attached: yes'), but MAUI's reference shows the iOS home screen — the maui-compare app exits to the springboard on this page.",
+  "dark_note": "Same: port renders the effects page; MAUI's reference is the springboard.",
+  "reviewed": "2026-06-23",
   "flags": [
    "maui_broken"
-  ],
-  "light": "minor",
-  "light_note": "MAUI reference capture is broken — it shows the iOS home screen / springboard (Fitness, Watch, Contacts, Files, app icons) instead of the page, so no valid comparison. The C++ port renders the page correctly: 'Entry With Focus Routing Effect' + Alert Simple entry, 'Entry With Focus Platform Effect' + Alert Simple entry, 'Detach routing effect' / 'Re-attach routing effect' blue buttons, 'routing effect attached — routing attached: yes'. Not a C++ bug.",
-  "severity": "minor"
+  ]
  },
  "ellipse_gallery": {
-  "dark": "match",
-  "dark_note": "Identical content and colors on black: filled red ellipse, red-outline circle, stroked ellipse pair, navy dashed-stroke ellipse. Equivalent layout; C++ shows the dashed ellipse fully, MAUI clips it slightly.",
   "light": "match",
-  "light_note": "All four items match: 'A basic Rectangle' red filled ellipse, 'A Circle' red-outline circle, 'An Ellipse with stroke' (hollow red-outline + navy-filled red-outline pair), 'An Ellipse with stroke dash' navy ellipse with red dashed border. C++ actually renders the dashed ellipse fully while MAUI's is clipped at the bottom edge.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: filled red ellipse ('A basic Rectangle'), red-outlined circle, stroke ellipse + blue-filled ellipse, and the blue-filled red-dashed-stroke ellipse all equivalent.",
+  "dark_note": "Match — same ellipses on black.",
+  "reviewed": "2026-06-23"
  },
  "empty_view": {
-  "dark": "minor",
-  "dark_note": "Same as light: both show the 'Filter' SearchBar and the identical populated list (cover1.jpg 0 ... oasis.jpg 15) in white on black. Only row-spacing density differs.",
-  "light": "minor",
-  "light_note": "Match in content. Both show a 'Filter' SearchBar and the populated list (cover1.jpg 0, oasis.jpg 1, photo.jpg 2, Vegetables.jpg 3, Fruits.jpg 4, FlowerBuds.jpg 5, Legumes.jpg 6, ... same order and numbering). The empty view itself only appears when the filter empties the list; here the list is populated and identical. Only difference: MAUI has tighter row spacing and the harness white card; C++ has slightly more per-row spacing.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the filter/search bar and the full item list (filter empty -> all items shown) equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "empty_view_load_simulate": {
-  "dark": "minor",
-  "dark_note": "Both show centered 'Items loading simulation...' in white-on-black. MAUI shows no container card here (page is black), and C++ matches; the two are essentially identical. (This is a load-simulation page whose point is the eventual swap to data, but both captures landed on the loading frame.)",
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the centered 'Items loading simulation...' view is equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23",
   "flags": [
    "needs_gif"
-  ],
-  "light": "minor",
-  "light_note": "Both show the centered 'Items loading simulation...' EmptyView text in the same place. The only difference is the MAUI harness wraps it in a white/gray container card while the C++ port renders it on a transparent (page-colored) background. Same content and layout otherwise. This page is a load simulation, but both stills captured the same loading state so this frame is a fair comparison.",
-  "severity": "minor"
+  ]
  },
  "empty_view_null": {
-  "dark": "match",
-  "dark_note": "Both show the centered 'Nothing to display.' empty-view string in white on black. Equivalent.",
   "light": "match",
-  "light_note": "Both show a centered 'Nothing to display.' empty-view string on an otherwise empty page. Content identical. Only harness difference: MAUI wraps it in the rounded white card; C++ fills the screen white. Vertical centering is near-identical.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the centered 'Nothing to display.' empty view is equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "empty_view_rtl": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical 'Left to Right' picker + Filter + 3-column grid content. Cosmetic-only differences are the MAUI gray header card and slightly denser C++ row spacing. Both render white-on-black text correctly in dark mode.",
-  "light": "minor",
-  "light_note": "Both show the 'Left to Right' picker, a Filter SearchBar, and a 3-column grid of 'name.jpg, N' items with identical content/order. Only cosmetic differences: MAUI renders a gray harness header card above the picker (absent in C++), and the C++ port uses slightly tighter row spacing so it shows more rows. Despite the page name, neither side actually flips the grid to RTL (both show 'Left to Right'), so they match each other.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the 'Left to Right' control, the search bar, and the multi-column item grid all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "empty_view_selector": {
-  "dark": "minor",
-  "dark_note": "Same as light — identical instruction paragraph, Filter bar, and 'Baboon — Africa & Asia' item, white-on-black. Only the MAUI gray header card and minor text-wrap width differ.",
-  "light": "minor",
-  "light_note": "Both show the same multi-line instruction paragraph ('1. Filter the items below by search term. 2. Filtering 'Xamarin'...'), the Filter SearchBar, and the single item 'Baboon — Africa & Asia'. Only difference is harness chrome (MAUI has a gray header card; C++ does not) and the paragraph wraps at a slightly different width. Equivalent content.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the filter-instruction text, the filter bar, and the 'Baboon — Africa & Asia' item all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "empty_view_swap": {
-  "dark": "minor",
-  "dark_note": "Same as light: matching Filter bar, 'Toggle Between EmptyViews' + Switch, 'Clear'/'Fill' buttons, and 3-column grid in white-on-black. Differences are the MAUI gray header card and tighter C++ row spacing.",
-  "light": "minor",
-  "light_note": "Both show the Filter SearchBar, the 'Toggle Between EmptyViews' label with a Switch (off), 'Clear'/'Fill' blue buttons, and a 3-column grid of 'name.jpg, N' items with matching content. Cosmetic-only: MAUI shows a gray harness header card and the SearchBar/switch sit lower; C++ packs rows tighter and shows more of them. Switch and buttons render identically.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Toggle Between EmptyViews' + Clear + the search bar + the item grid all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "empty_view_template": {
-  "dark": "minor",
-  "dark_note": "Same as light — identical Filter bar + 3-column grid, white-on-black. Only the MAUI gray header card and denser C++ row spacing differ.",
-  "light": "minor",
-  "light_note": "Both show the Filter SearchBar and an identical 3-column grid of 'name.jpg, N' items (same content/order). Only differences are harness chrome (MAUI gray header card vs none) and the C++ port using tighter row spacing so it shows more rows on screen.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the search bar + the multi-column item grid equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "empty_view_view": {
-  "dark": "minor",
-  "dark_note": "Same as light — matching Filter bar and 3-column grid in white-on-black. Differences are limited to the MAUI gray header card and denser C++ rows.",
-  "light": "minor",
-  "light_note": "Identical to empty_view_template: both show the Filter SearchBar and the same 3-column grid of 'name.jpg, N' items. Only harness chrome (MAUI gray header card) and the C++ port's tighter row spacing differ.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the search bar + the multi-column item grid equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "entry": {
-  "dark": "match",
-  "dark_note": "Identical structure and colors in dark theme; same harness scale difference (C++ shows the trailing slider/Cursor entry MAUI crops).",
   "light": "match",
-  "light_note": "Matches: 'LENGTH: 0  RETURN: Default', 'Type here...' placeholder, purple 'Text', purple 'Placeholder', checked blue checkbox, password dots (6), 'I am read only', 'Text', right-aligned 'This should be on the end', 'CursorPosition = 4'. Entries have the standard rounded gray border in both. C++ fits the extra slider + 'Cursor' entry below that MAUI crops — harness scale.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'LENGTH: 0  RETURN: Default', Type-here placeholder, magenta Text + Placeholder entries, blue checkmark, password dots, 'I am read only', right-aligned 'This should be on the end', 'CursorPosition = 4'. The cursor-position slider + 'Cursor' entry sit below MAUI's wrapper crop (present in C++).",
+  "dark_note": "Match — identical layout/colors on black; slider + Cursor entry below MAUI's wrapper crop.",
+  "reviewed": "2026-06-23"
  },
  "filter_collection": {
-  "dark": "minor",
-  "dark_note": "Same as light: matching toggle, search box and two-column item grid; only difference is C++'s wider row spacing (fewer items visible). Cosmetic.",
-  "light": "minor",
-  "light_note": "Content and structure match: 'Use EmptyView' toggle (green/on), 'Filter' search box, and a two-column grid of 'filename, index' items (cover1.jpg 0, oasis.jpg 1, ...). C++ uses larger vertical row spacing so fewer rows fit (C++ ends at row 31; MAUI reaches 33). The C++ light search box also shows a faint border MAUI lacks. Cosmetic only.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the 'Use EmptyView' toggle (on), the filter/search bar, and the 3-column item grid all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "filter_selection": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical content and controls; only difference is C++'s wider inter-row spacing. Cosmetic.",
-  "light": "minor",
-  "light_note": "Structure matches: instruction paragraph, 'Filter' search box, 'Selected: (none)' label + blue 'Reset' button, and single-column item list. C++ uses noticeably larger vertical row spacing so items are more spread out (C++ shows through index 13; MAUI through 12 in a tighter list). Cosmetic spacing difference only.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the instruction text, 'Selected: (none)' + Reset button, the filter bar, and the 3-column item grid all equivalent. (Gemini flagged this 'diff' — an over-flag; the render is a clean match.)",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "flex_layout": {
-  "dark": "minor",
-  "dark_note": "Same flex structure and colors (cyan HEADER, blue/green side columns, gray CONTENT, pink FOOTER). MAUI is inset by the harness card (black margins); C++ fills to the bottom edge with the pink FOOTER nearly off the bottom. Content equivalent, only vertical extent differs.",
-  "light": "minor",
-  "light_note": "Both render the same FlexLayout: cyan HEADER bar on top, blue left column, gray CONTENT center, green right column, pink FOOTER bar at bottom — same colors and proportions. Difference is vertical extent: MAUI is bounded by a harness card (white margins top/bottom) so HEADER starts lower and FOOTER ends higher; C++ fills the screen edge-to-edge so the FOOTER is pushed to the very bottom (partially below the visible area). Structure identical.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the FlexLayout — cyan HEADER, blue left / gray CONTENT / green right columns, pink FOOTER — all render equivalently. C++ fills the full page height while MAUI's is shorter (its wrapper inset), the only delta.",
+  "dark_note": "Match — same flex structure/colors on black.",
+  "reviewed": "2026-06-23"
  },
  "focus": {
-  "dark": "match",
-  "dark_note": "Identical content in dark theme: bordered 'Focus target' entry, two blue action buttons, 'IsFocused: false'. Same minor button-spacing difference as light.",
   "light": "match",
-  "light_note": "Both show 'Focus target' placeholder entry, 'Focus Entry' and 'Unfocus Entry' blue buttons, and 'IsFocused: false'. Only difference: MAUI spaces the two buttons farther apart while C++ places them closer together (minor spacing). Same elements and state.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the 'Focus target' entry, the Focus Entry / Unfocus Entry links, and 'IsFocused: false' all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "fonts": {
-  "dark": "match",
-  "dark_note": "Clean match: identical type ladder (Title through Bold + Italic) plus the 'Character spacing 4.0' letter-spaced line; sizes, weights and styles all equivalent to MAUI.",
   "light": "match",
-  "light_note": "Clean match: the full type ladder Title, Subtitle, Header, Body, Caption, Bold, Italic, Bold + Italic, and the letter-spaced mono 'Character spacing 4.0' all render with equivalent sizes, weights and styles.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the full type hierarchy (Title / Subtitle / Header / Body / Caption), Bold, Italic, Bold + Italic, and 'Character spacing 4.0' all render at equivalent sizes/weights/spacing.",
+  "dark_note": "Match — same hierarchy on black.",
+  "reviewed": "2026-06-23"
  },
  "footer_only_string": {
-  "light": "minor",
-  "dark": "minor",
-  "severity": "minor",
-  "light_note": "Per-cell (caption) row height now self-sizes to true content height (was ~2x over-measured). Matches MAUI row pitch; residual minor.",
-  "dark_note": "Per-cell (caption) row height now self-sizes to true content height (was ~2x over-measured). Matches MAUI row pitch; residual minor."
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the single-column item list (cover1.jpg 0 through FlowerBuds.jpg 19) and the bold 'This is a footer' string are equivalent; per-cell row heights self-size to content.",
+  "dark_note": "Match — same list + footer on black.",
+  "reviewed": "2026-06-23"
  },
  "formatted_text": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical formatted spans (red bold / italic-underlined / kerned / plain). MAUI centers the content lower on a black background; C++ renders it at the top. Colors and styling match; only the vertical position differs.",
-  "light": "minor",
-  "light_note": "Both render the same FormattedString: 'Bold red' (red+bold), 'italic underlined' (italic+underline), 'k e r n e d' (kerned letter-spacing), and 'Plain text label'. Spans, colors, and styling are identical. Only difference: MAUI vertically centers the content within a white content card (text sits near vertical center), while C++ places the text near the top of the page. Cosmetic vertical-position difference only.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the multi-span FormattedString — bold-red 'Bold red', italic+underlined 'italic underlined', kerned 'k e r n e d' — plus 'Plain text label' all render equivalently.",
+  "dark_note": "Match — same spans on black.",
+  "reviewed": "2026-06-23"
  },
  "gestures": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical label + blue target box. C++ 'Last gesture: Pointer exited' vs MAUI '(none)' is a captured-state diff; MAUI white-card framing absent in C++. Cosmetic only.",
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Gesture target (tap / pan / pinch / swipe / pointer)' + the blue gesture-target card + the 'Last gesture:' readout all equivalent (the readout text differs only by which event last fired at capture time — runtime state, not a parity diff). Interaction page; a still frame can't judge the gestures themselves.",
+  "dark_note": "Match — same gesture target + readout on black.",
+  "reviewed": "2026-06-23",
   "flags": [
    "needs_gif"
-  ],
-  "light": "minor",
-  "light_note": "Layout equivalent: 'Gesture target (tap / pan / pinch / swipe / pointer)' label and blue rounded target box render identically. Differences are captured-state only: C++ shows 'Last gesture: Pointer exited' vs MAUI 'Last gesture: (none)', and the MAUI harness wraps the page in a white card with top/bottom black margins while C++ fills full-bleed. No element/color/size bug.",
-  "severity": "minor"
+  ]
  },
  "gradient": {
-  "dark": "match",
-  "dark_note": "Identical to light comparison: both labels and both gradients (linear yellow→green, radial red→navy) render equivalently. Equivalent page.",
   "light": "match",
-  "light_note": "Both render the two labeled gradient swatches identically: 'LinearGradientBrush (yellow→green)' with a horizontal yellow-to-green gradient and 'RadialGradientBrush (red→navy)' with a centered red-to-purple radial gradient. Only difference is MAUI's content starts lower (harness card top padding); the gradients and labels are equivalent.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: LinearGradientBrush (yellow->green horizontal) and RadialGradientBrush (red center -> navy edges) both render equivalently.",
+  "dark_note": "Match — same gradients on black.",
+  "reviewed": "2026-06-23"
  },
  "grid": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical 2x2 grid (red, green / blue, orange) and header; MAUI positions it lower (harness card), C++ at the top. Structure and colors match.",
-  "light": "minor",
-  "light_note": "Both show 'Grid (2 cols x rows)' header and an identical 2x2 grid (red, green / blue, orange) with matching cell sizes and gutter. Only difference is vertical placement: MAUI wraps the content in a harness card pushed down the page so the grid sits mid-screen; C++ renders the grid flush near the top. Content and structure identical.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Grid (2 cols × rows)' header + the 2x2 cell grid (red / green / blue / orange) are equivalent.",
+  "dark_note": "Match — same grid on black.",
+  "reviewed": "2026-06-23"
  },
  "grid_grouping": {
-  "dark": "minor",
-  "dark_note": "Same as light: 2-column grid content matches (green group headers + orange 'Total members:' footers, same items). Per-cell self-sizing now gives the rows their true height, so the group pitch matches MAUI. The 'This is a header'/'This is a footer' CV-level header/footer are correct (GridGrouping.xaml sets Header/Footer to those strings); MAUI's capture only hides them via the harness top/bottom crop.",
-  "light": "minor",
-  "light_note": "Both render the 2-column grid with green group headers and orange 'Total members:' footers, same items. Per-cell self-sizing now gives each member row its true height (was ~2x over-measured), so the group pitch matches MAUI. The 'This is a header'/'This is a footer' CV-level header/footer the port shows are correct — GridGrouping.xaml sets Header='This is a header' and Footer='This is a footer'; MAUI only hides them via the harness top/bottom crop, not by omitting them.",
-  "severity": "minor"
- },
- "grouping_no_templates": {
-  "dark": "minor",
-  "dark_note": "Identical flat name list and order; the only difference is C++'s taller per-row spacing (fewer names per screen than MAUI).",
-  "light": "minor",
-  "light_note": "Both render the same flat list of member names with no group headers/footers, in identical order (Thor, Captain America, Iron Man ... Luke Cage). Only difference is row density: C++ rows are noticeably taller/more spaced, so MAUI fits ~25 names on screen while C++ fits ~14.",
-  "severity": "minor"
- },
- "grouping_plus_selection": {
-  "dark": "minor",
-  "dark_note": "Same content and order as MAUI; no selected-cell highlight visible in either; C++ uses taller per-row spacing so fewer rows fit per screen.",
-  "light": "minor",
-  "light_note": "Both show the grouped list (green headers, orange 'Total members:' footers, member names) in identical order starting at 'Avengers'. No selection highlight is visible in either capture. Only difference is C++'s taller row spacing (fewer rows per screen than MAUI).",
-  "severity": "minor"
- },
- "header_footer": {
   "light": "minor",
   "dark": "minor",
   "severity": "minor",
-  "light_note": "Default string Header/Footer now render in the iOS headline font (bold) matching MAUI (#138: _label.font = UIFontTextStyleHeadline). 'Just a string as a header' + items + 'This footer is also a string' all match.",
-  "dark_note": "Default string Header/Footer now render in the iOS headline font (bold) matching MAUI (#138: _label.font = UIFontTextStyleHeadline). 'Just a string as a header' + items + 'This footer is also a string' all match."
+  "light_note": "The grouped 2-column member grids (Avengers / Fantastic Four / Defenders / Heroes for Hire with green headers + orange 'Total members' footers) match. Minor: the C++ port renders the view-level 'This is a header' (specified by the XAML) while MAUI suppresses it on a grouped CollectionView — the port is arguably the more faithful render.",
+  "dark_note": "Same: grouped grids match; C++ shows the view-level header MAUI suppresses.",
+  "reviewed": "2026-06-23"
+ },
+ "grouping_no_templates": {
+  "light": "minor",
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "The names list matches, but the no-template default cells render with taller row spacing in the C++ port vs MAUI's more compact rows.",
+  "dark_note": "Same: content matches; C++ default-cell rows are taller than MAUI's.",
+  "reviewed": "2026-06-23"
+ },
+ "grouping_plus_selection": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the grouped lists (Avengers / Fantastic Four / Defenders / Heroes for Hire / West Coast Avengers with green group headers + orange 'Total members' footers) all equivalent. (Gemini flagged 'diff' — over-flag.)",
+  "dark_note": "Match — same grouped lists on black.",
+  "reviewed": "2026-06-23"
+ },
+ "header_footer": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: bold 'Just a string as a header', the items (cover1.jpg 0 / oasis.jpg 1 / photo.jpg 2), and bold 'This footer is also a string' all equivalent (default string header/footer in the iOS headline font).",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "header_footer_grid": {
   "light": "minor",
   "dark": "minor",
   "severity": "minor",
-  "light_note": "Boxed-VIEW Header/Footer (image + AntiqueWhite label + button) now host + self-size via the as_bindable supplementary branch (was diff). Renders matching MAUI; residual minor only.",
-  "dark_note": "Boxed-VIEW Header/Footer (image + AntiqueWhite label + button) now host + self-size via the as_bindable supplementary branch (was diff). Renders matching MAUI; residual minor only."
+  "light_note": "The grid items (cover1.jpg 0 .. photo.jpg 9), Toggle Header / Toggle Footer, and Add Content all match. Minor (MAUI ref): the boxed-VIEW Header/Footer render the oasis.jpg image background ('This Is A Header' / 'This Is A Footer' over the dog photo) in the C++ port, while MAUI shows faint text with no image because maui-compare doesn't bundle oasis.jpg.",
+  "dark_note": "Same: grid + controls match; the port draws the oasis.jpg header/footer background, MAUI lacks the asset.",
+  "reviewed": "2026-06-23",
+  "flags": [
+   "maui_broken"
+  ]
  },
  "header_footer_grid_horizontal": {
   "light": "minor",
   "dark": "minor",
   "severity": "minor",
-  "light_note": "Horizontal-grid cells + the CV-level boundary supplementary now self-size to content on the cross axis (preferredLayoutAttributesFittingAttributes via the wired scrollDirection). Was diff; residual minor.",
-  "dark_note": "Horizontal-grid cells + the CV-level boundary supplementary now self-size to content on the cross axis (preferredLayoutAttributesFittingAttributes via the wired scrollDirection). Was diff; residual minor."
+  "light_note": "The horizontal-grid cells and the rotated 'This Is A Header' supplementary self-size and match. Minor (MAUI ref): the boxed header shows the oasis.jpg dog thumbnail in C++, absent in MAUI because maui-compare doesn't bundle oasis.jpg.",
+  "dark_note": "Same: grid + rotated header match; the dog thumbnail renders only in C++.",
+  "reviewed": "2026-06-23",
+  "flags": [
+   "maui_broken"
+  ]
  },
  "header_footer_template": {
   "light": "minor",
   "dark": "minor",
   "severity": "minor",
-  "light_note": "HeaderTemplate/FooterTemplate caption + supplementary now host and size to content. Residual minor: the item cells use the port's single-root-control template reduction.",
-  "dark_note": "HeaderTemplate/FooterTemplate caption + supplementary now host and size to content. Residual minor: the item cells use the port's single-root-control template reduction."
+  "light_note": "Minor: MAUI renders the three items as separate spaced blue boxes while the C++ port compacts them into one blue region (single-root item-template reduction); and the header date-stamp shows date-only in MAUI vs date+time in C++ (the footer carries time in both). Items/header/footer text otherwise match.",
+  "dark_note": "Same: item spacing + header date-format deltas; otherwise equivalent.",
+  "reviewed": "2026-06-23"
  },
  "header_footer_view": {
   "light": "minor",
   "dark": "minor",
   "severity": "minor",
-  "light_note": "Now RENDERS (was BLANK; boxed-VIEW supplementary hosting fix c271c52556): 'This Is A Header' + rotated 'This Is A Footer' + Add 2 Items/Clear All Items buttons. The port shows the header/footer background images (oasis.jpg, faithful to the XAML); MAUI's harness fails to load them (shows AntiqueWhite text on white) — maui-broken-asset like the border pages; the port is the more-faithful render. Structure matches MAUI.",
-  "dark_note": "Now RENDERS (was BLANK; boxed-VIEW supplementary hosting fix c271c52556): 'This Is A Header' + rotated 'This Is A Footer' + Add 2 Items/Clear All Items buttons. The port shows the header/footer background images (oasis.jpg, faithful to the XAML); MAUI's harness fails to load them (shows AntiqueWhite text on white) — maui-broken-asset like the border pages; the port is the more-faithful render. Structure matches MAUI."
+  "light_note": "No longer blank: the boxed-VIEW header/footer render the oasis.jpg image background ('This Is A Header' / 'This Is A Footer' + AntiqueWhite label) in the C++ port, while MAUI shows faint text with no image (maui-compare doesn't bundle oasis.jpg). 'Add 2 Items' / 'Clear All Items' and the structure match.",
+  "dark_note": "Same: port draws the oasis.jpg header/footer; MAUI lacks the asset.",
+  "reviewed": "2026-06-23",
+  "flags": [
+   "maui_broken"
+  ]
  },
  "hit_testing": {
-  "dark": "minor",
-  "dark_note": "Transforms now render correctly (iOS apply_transform fix b8385b0047): 'Scale = 2' is ~double-size and 'Rotation = 20' is rotated ~20deg, matching MAUI. The second 'Lorem ipsum' line is now trailing-aligned (HorizontalOptions End) like MAUI. Ellipse matches. Only residual: 'Selected: Image' vs MAUI's 'Selected: -' is the port's deliberate drive_synthetic_hit_test() demo (shows the hit-walk without a real tap) — benign. Extra green/red shapes below are the harness wrapper top/bottom crop (port shows more of the page) — exempt per policy #2.",
-  "light": "minor",
-  "light_note": "Transforms now render correctly (iOS apply_transform fix b8385b0047): 'Scale = 2' is ~double-size and 'Rotation = 20' is rotated ~20deg, matching MAUI. The second 'Lorem ipsum' line is now trailing-aligned (HorizontalOptions End) like MAUI. Ellipse matches. Only residual: 'Selected: Image' vs MAUI's 'Selected: -' is the port's deliberate drive_synthetic_hit_test() demo (shows the hit-walk without a real tap) — benign. Extra green/red shapes below are the harness wrapper top/bottom crop (port shows more of the page) — exempt per policy #2.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the transform demos render correctly — 'Scale = 2' renders ~2x larger and 'Rotation = 20' renders rotated ~20deg (the iOS view-transform fix); the Lorem labels are Start/End-aligned, and the radio + green ellipse + hit-target render. ('Selected:' text differs only by which element was last tapped at capture.)",
+  "dark_note": "Match — same transforms + targets on black.",
+  "reviewed": "2026-06-23"
  },
  "horizontal_stack": {
   "light": "minor",
   "dark": "minor",
   "severity": "minor",
-  "light_note": "Verified MATCH-on-content (sweep + C# check): MAUI's BoxView default size is 40x40 (BoxView.cs:66) — the SAME as the port's explicit 40x40, so the boxes match (the earlier '49pt' diff was measurement imprecision across the 506px-vs-1206px capture resolution). Both renders show the same layout: the 'HorizontalStackLayout' heading near the top + the 6-box colored row (red/yellow/blue/green/orange/purple) at ~51% vertical, right-of-center — one overflowing HSL row (heading + 6x40pt ~= 440pt > 393pt screen). The only difference (MAUI clips ~1.5 boxes at the right edge; the port fits all 6) is the harness WRAPPER inset shifting the row right — exempt per ruling #2 (port shows more of the page). No port fix needed.",
-  "dark_note": "Verified MATCH-on-content (sweep + C# check): MAUI's BoxView default size is 40x40 (BoxView.cs:66) — the SAME as the port's explicit 40x40, so the boxes match (the earlier '49pt' diff was measurement imprecision across the 506px-vs-1206px capture resolution). Both renders show the same layout: the 'HorizontalStackLayout' heading near the top + the 6-box colored row (red/yellow/blue/green/orange/purple) at ~51% vertical, right-of-center — one overflowing HSL row (heading + 6x40pt ~= 440pt > 393pt screen). The only difference (MAUI clips ~1.5 boxes at the right edge; the port fits all 6) is the harness WRAPPER inset shifting the row right — exempt per ruling #2 (port shows more of the page). No port fix needed."
+  "light_note": "Both render the HorizontalStackLayout rainbow boxes, but MAUI centers the row (red/yellow/blue/green visible) while the C++ row runs all six 40pt boxes off the right screen edge — an HSL centering/overflow difference; the boxes themselves match (BoxView default 40x40 in both).",
+  "dark_note": "Same: boxes match; MAUI centers the row, C++ overflows it to the right edge.",
+  "reviewed": "2026-06-23"
  },
  "hybrid_web_view": {
-  "dark": "minor",
-  "dark_note": "Same controls and buttons as light. MAUI dark shows a large white blank band in the lower-middle (the empty HybridWebView native region renders white) whereas C++ dark renders that region dark/black. Content and the 5 buttons match; the empty-webview background color and the button truncation strategy differ.",
-  "light": "minor",
-  "light_note": "Same page: \"HybridWebView here\" label on the left and a column of 5 blue action buttons on the right (Send message to JS, Invoke JS, Invoke Async JS, Test JS Exception, Test JS Async). Truncation strategy differs: MAUI clips the button labels at the right viewport edge (\"Send messag\", \"Invoke Async\", \"Test JS Exce\", \"Test JS Asyn\") while C++ middle-truncates with ellipsis so they fit (\"Send...age to JS\", \"Test JS...ception\"). Same controls, cosmetic text-fit difference.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'HybridWebView here' + the JS-interaction links (Send message to JS, Invoke JS, Invoke Async JS, Test JS Exception, Test JS Async Exception) all render.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "image": {
   "light": "match",
   "dark": "match",
   "severity": "match",
-  "light_note": "FIXED (was the sole 'diff'): file/font images now render aspect-fit and match the reference (FileSource purple submarine; Font Image Source glyphs). NOT a load failure — the bundled PNG decoded pixel-perfectly all along. iOS get_desired_size called plain [UIImageView sizeThatFits:], which ALWAYS returns the image's natural size ignoring the width constraint, so an AspectFit image was measured to its full 694pt natural height (submarine centered → pushed below the fold under its purple background_brush, read as 'blank purple'). Ported ImageViewExtensions.SizeThatFitsImage (aspect-aware fit) as ios_visual_ops::size_that_fits_image and routed get_desired_size through it. Verified iPhone-17 sim light+dark; 73/73 ios image tests pass; clang-tidy clean.",
-  "dark_note": "FIXED (was the sole 'diff'): file/font images now render aspect-fit and match the reference (FileSource purple submarine; Font Image Source glyphs). NOT a load failure — the bundled PNG decoded pixel-perfectly all along. iOS get_desired_size called plain [UIImageView sizeThatFits:], which ALWAYS returns the image's natural size ignoring the width constraint, so an AspectFit image was measured to its full 694pt natural height (submarine centered → pushed below the fold under its purple background_brush, read as 'blank purple'). Ported ImageViewExtensions.SizeThatFitsImage (aspect-aware fit) as ios_visual_ops::size_that_fits_image and routed get_desired_size through it. Verified iPhone-17 sim light+dark; 73/73 ios image tests pass; clang-tidy clean."
+  "light_note": "Match (was the prior sole diff, now fixed): UriSource campus photo, FileSource purple dotnet_bot submarine, Font Image Source + auto-scaling green glyphs, and the Animating-a-gif toggle all render aspect-fit and match the reference.",
+  "dark_note": "Match — same content on black; submarine + glyphs render.",
+  "reviewed": "2026-06-23"
  },
  "image_button": {
-  "dark": "match",
-  "dark_note": "Same as light: overlapping content (clicks counter, AspectFit/AspectFill/Fill green buttons, BorderColor+BorderWidth) matches; the additional sliders, purple CornerRadius bars, custom-size thumbnail and padding row in C++ are correct continuation of the page that the truncated MAUI reference does not show.",
   "light": "match",
-  "light_note": "The MAUI reference is scrolled to the top and truncated after the 'BorderColor + BorderWidth' green/red-border button; C++ shows the full page (additionally: slider, 'CornerRadius = 0 / 10 / slider' three purple bars, a second slider, 'Custom Size (click to resize)' submarine thumbnail, 'Padding (slider-driven)'). All overlapping content matches: '0 ImageButton clicks', AspectFit/AspectFill/Fill green buttons, and the red-bordered green button are equivalent. Extra C++ content is correct page content not visible in the truncated reference.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: '0 ImageButton clicks', AspectFit / AspectFill / Fill green ImageButtons, BorderColor + BorderWidth (red-bordered). The CornerRadius purple bars, Custom-Size submarine thumbnail, and Padding row render in C++ and sit below MAUI's wrapper crop.",
+  "dark_note": "Match — same buttons on black; lower rows below MAUI's wrapper crop.",
+  "reviewed": "2026-06-23"
  },
  "indicator": {
-  "dark": "minor",
-  "dark_note": "Same as light — evenly-spaced dot rows; only the 'Indicator Size' dots are slightly larger in C++. The CarouselView label overlap is MAUI-side, not the port.",
   "light": "minor",
-  "light_note": "Strong match on fresh captures: Basic / Colors (blue·blue·red·blue·blue on yellow) / Indicator Shape / HideSingle (blank) / MaximumVisible 7-of-10 / Template / CarouselView 'Item 1' + 3 dots all align, and the dot rows are now EVENLY spaced (the earlier middle-gap/cluster artifact is gone). Residual minor: the 'Indicator Size' demo dots render a bit larger/wider-spaced in C++ than MAUI's. NOTE: the 'Item 1' label overlapping 'Using with CarouselView' is on MAUI's side (its harness wrapper) — C++ correctly puts 'Item 1' on its own line.",
-  "severity": "minor"
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "IndicatorView dots match: Basic, Colors (yellow bg, blue/red dots), Indicator Shape, MaximumVisible 7-of-10, 'Using with CarouselView' Item 1. Minor: the 'Indicator Size' large dots render wider (running to the screen edge) in C++ vs MAUI; the 'Item 1' overlapping 'Using with CarouselView' is MAUI-side (its wrapper), the port puts Item 1 on its own line.",
+  "dark_note": "Same: dots/colors match; 'Indicator Size' big dots wider in C++; CarouselView label overlap is MAUI-side.",
+  "reviewed": "2026-06-23"
  },
  "input_controls": {
-  "dark": "minor",
-  "dark_note": "Same as light; left-aligned radios in dark.",
-  "light": "minor",
-  "light_note": "FIXED: the UPPER/lower radio buttons now left-align at the margin (HorizontalOptions=Start) matching MAUI (were centered). Editor, search bar, readout all match.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'LENGTH: 0', Type-here entry, 'Search to insert' bar, UPPER (selected) / lower (unselected) radio buttons all equivalent and correctly aligned.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "input_transparent": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical paragraphs and buttons, identical intentional button overlaps. C++ tighter spacing reveals the toggle + 'Ready' line that MAUI cut off. Cosmetic spacing difference only.",
-  "light": "minor",
-  "light_note": "All content matches: the three explanatory paragraphs, 'Clickable'/'Not Clickable' buttons, the four 'Tap ...' buttons, and the intentionally overlapping 'Top (transparent)'/'Bottom (clickable)' and 'Test Button'/'Bottom Layer' button pairs (overlap is by-design in both). C++ uses tighter vertical spacing and full-bleed (no MAUI white-card padding), so it fits the toggle switch + 'Ready — tap a layer set below' line that MAUI clips off-screen. Spacing/clipping only.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the InputTransparent=false ('Clickable') / =true ('Not Clickable') buttons, the overlay (tap routes to the bottom layer), the toggle, and the 'Ready — tap a layer set below' status all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "invalidate_brush": {
-  "dark": "minor",
-  "dark_note": "Same as light; content-width button + green brush in dark.",
-  "light": "minor",
-  "light_note": "FIXED: the 'Change color' button is now content-width left-aligned (HorizontalOptions=Start) matching MAUI (was full-bleed). Green button bg, green underline, and 'Brush color: Green' label all match.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the green 'Change color' button (blue text), the green line, and the 'Brush color: Green' readout all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "invalidate_shadow_host": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical controls and slider positions; the green-bordered host box renders taller in C++ than in MAUI (MAUI's content is inset in a black rounded card, compressing the box). Otherwise a full match.",
-  "light": "minor",
-  "light_note": "Both show 'Host' label, 'Update Host Size' blue button, 'Shadow' label, sliders Offset X:10 / Offset Y:10 / Radius:10 / Opacity:1.00 (thumb positions match), and a green-bordered white host box at the bottom. All controls, labels and slider values match. Difference: the green host box is noticeably TALLER in C++ (fills more vertical space, ~330px) vs a short ~120px box in MAUI — largely because MAUI compresses content inside a black rounded-card inset while C++ renders edge-to-edge, letting the host fill remaining height.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Host' + 'Update Host Size' link, the Shadow Offset X / Offset Y / Radius / Opacity sliders, and the green-bordered host box all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "ios_blur_effect": {
+  "light": "minor",
   "dark": "minor",
-  "dark_note": "Same as light: the MAUI DARK reference shows only the four buttons + 'BlurEffect: ExtraLight' label and NO image, while the C++ port shows the dog photo plus the buttons. MAUI reference is missing the image content; cannot fairly compare blur fidelity from a still.",
+  "severity": "minor",
+  "light_note": "MAUI reference missing the asset: the C++ port renders the oasis.jpg (dog) image with the No Blur / Extra Light / Light / Dark Blur buttons + 'BlurEffect: ExtraLight', while MAUI shows the buttons but no image because maui-compare doesn't bundle oasis.jpg. The blur effect itself also needs an animated comparison to judge fully.",
+  "dark_note": "Same: port renders the dog image + blur buttons; MAUI lacks the asset.",
+  "reviewed": "2026-06-23",
   "flags": [
    "maui_broken",
    "needs_gif"
-  ],
-  "light": "minor",
-  "light_note": "This is a blur-effect demo whose subject is an image. The MAUI reference (LIGHT) shows ONLY the four buttons (No Blur / Extra Light Blur / Light Blur / Dark Blur) and the 'BlurEffect: ExtraLight' label, with NO image rendered at all. The C++ port correctly shows the source photo (a black pug in a sweater) at the top with the buttons below. So C++ renders MORE content than MAUI here; MAUI's reference appears to be missing the image entirely. The actual blur strength is a transient effect a still frame cannot fully judge.",
-  "severity": "minor"
+  ]
  },
  "ios_date_picker": {
-  "dark": "match",
-  "dark_note": "Same as light — \"31.12.2020\" in the same locale format, bordered field, and toggle button all match in dark theme. Match.",
   "light": "match",
-  "light_note": "DatePicker shows \"31.12.2020\" (device-locale dd.MM.yyyy) in a bordered field with a blue \"Toggle DatePicker UpdateMode\" button below. Date format, value, border box, and button all match MAUI exactly. Only vertical positioning differs (harness card).",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the '31.12.2020' date (DD.MM.YYYY device-locale) + 'Toggle DatePicker UpdateMode' link equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "ios_entry": {
-  "dark": "match",
-  "dark_note": "Same as light — placeholder Entry with its border and the blue toggle button render identically in dark theme. Match.",
   "light": "match",
-  "light_note": "Entry with placeholder \"Enter text here to see the font size change\" inside a subtle rounded-border field, and a blue \"Toggle AdjustsFontSizeToFitWidth\" button below. Placeholder text, border outline, and button all match between MAUI and C++. Only minor vertical positioning differs (harness card).",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the 'Enter text here to see the font size change' entry and the 'Toggle AdjustsFontSizeToFitWidth' link equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "ios_first_responder": {
-  "dark": "minor",
-  "dark_note": "Same as light: both entries, both OK buttons, Focus First/Second, and the three status lines all match in text and state. C++ 'Focus First'/'Focus Second' buttons sit flush together vs MAUI spaced apart, and the first instruction line is clipped one row shorter. Cosmetic only.",
-  "light": "minor",
-  "light_note": "Strong parity: both Entry fields ('First Entry', 'Second Entry' placeholders), both 'OK' buttons, the 'Focus First'/'Focus Second' buttons, and all three status lines ('First IsFocused: false', 'Second IsFocused: false', 'Second OK CanBecomeFirstResponder: true') render with identical text and state. Minor diffs: C++ places 'Focus First' and 'Focus Second' adjacent with no gap (MAUI spaces them across the row), and C++ clips the first instruction one line shorter ('...keyboard should' without 'disappear.'). Spacing/clipping only.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: both Entry sections (first / second, each with an OK button), the Focus First / Focus Second links, and the 'First IsFocused: false' / 'Second IsFocused: false' / 'Second OK CanBecomeFirstResponder: true' readouts all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "ios_pan_gesture": {
+  "light": "match",
   "dark": "match",
-  "dark_note": "Equivalent content and order in dark theme; same harness-card/bold differences as light, cosmetic only.",
+  "severity": "match",
+  "light_note": "Match: 'panned x:45 y:-12', 'Toggle Simultaneous Gesture Recognition', 'Pan target', and 'SimultaneousRecognition: false' all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23",
   "flags": [
    "needs_gif"
-  ],
-  "light": "match",
-  "light_note": "Equivalent: 'panned x:45 y:-12' label, 'Toggle Simultaneous Gesture Recognition' blue button, 'Pan target', 'SimultaneousRecognition: false' all present and identically laid out. C# wraps content in a white harness card and renders the panned label bold; C++ has no card and regular weight — harness/style artifacts only.",
-  "severity": "match"
+  ]
  },
  "ios_picker": {
-  "dark": "match",
-  "dark_note": "Equivalent: same picker field and button in dark theme; placeholder and border render correctly. Harness-card only difference.",
   "light": "match",
-  "light_note": "Equivalent: 'Select a monkey' placeholder picker field with hairline border, and 'Toggle Picker UpdateMode' blue button below. Only difference is C# white harness card vs C++ no card.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the 'Select a monkey' picker + 'Toggle Picker UpdateMode' link equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "ios_safe_area": {
-  "dark": "match",
-  "dark_note": "Equivalent lorem text and button in dark theme; same harness-card difference only.",
   "light": "match",
-  "light_note": "Equivalent: identical lorem-ipsum paragraph (Lorem ipsum...constructio interrete.) and 'Disable Use Safe Area' blue button. Content respects the safe-area top inset in both. C# white card vs C++ no card; C++ starts slightly higher due to no card padding — cosmetic.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the Lorem ipsum paragraph + 'Disable Use Safe Area' link equivalent (top inset differs by the safe-area/wrapper).",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "ios_scroll_view": {
-  "dark": "minor",
-  "dark_note": "Same elements and same cosmetic spacing/chevron differences in dark theme; slider thumb position differs slightly. No missing content.",
-  "light": "minor",
-  "light_note": "All elements present: slider, 'Toggle ScrollView DelayContentTouches' and 'Return to Platform-Specifics List' blue buttons. Differences are cosmetic: C# spaces the two buttons far apart with a white harness card; C++ stacks them tightly and shows a harness back-chevron. Slider thumb sits at ~50% (C++) vs ~45% (C#) — demo value.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the slider, 'Toggle ScrollView DelayContentTouches', and 'Return to Platform-Specifics List' links all equivalent (C++ additionally shows a nav back-chevron).",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "ios_search_bar": {
-  "dark": "minor",
-  "dark_note": "Match in dark theme: dark-gray rounded search bar, placeholder, magnifier, and both blue buttons all render. Same minor top-spacing difference as light (C++ bar sits higher).",
-  "light": "minor",
-  "light_note": "All elements match: rounded search bar with magnifier icon + 'Enter search term' placeholder, 'Toggle SearchBar Style' and 'Toggle Background' blue buttons. Only diff: C++ places the search bar higher/closer to the top (less top spacing) than MAUI which centers it lower; button vertical gap also tighter in C++.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the 'Enter search term' search bar + 'Toggle SearchBar Style' / 'Toggle Background' links equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "ios_slider_update_on_tap": {
-  "dark": "minor",
-  "dark_note": "Match in dark theme: label, slider with white thumb on dark track, and blue toggle button render correctly. Same minor top-spacing offset as light.",
-  "light": "minor",
-  "light_note": "Match: 'Tap on the Slider bar to move the thumb.' label, slider (thumb at left, gray track) and blue 'Toggle Update on Tap' button all present and equivalent. Only diff: C++ content sits higher with less top spacing vs MAUI.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Tap on the Slider bar to move the thumb.' + the slider + 'Toggle Update on Tap' link equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "ios_swipe_transition": {
-  "dark": "minor",
-  "dark_note": "Match in dark theme: same elements render. The swipe item keeps a light-gray background with dark text in both platforms (demo color, not a bug). Same minor button-spacing/top-offset diffs as light.",
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'SwipeTransitionMode:' Reveal / Drag links, the 'Swipe right' cell, the instruction, and 'SwipeTransitionMode: Drag' all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23",
   "flags": [
    "needs_gif"
-  ],
-  "light": "minor",
-  "light_note": "Match: 'SwipeTransitionMode:' label, blue Reveal/Drag buttons, light-gray swipe item ('Swipe right'), instruction text, and 'SwipeTransitionMode: Drag' status all present. Minor: C++ packs the Reveal and Drag buttons close together on one line vs MAUI's wider spacing; C++ content sits higher.",
-  "severity": "minor"
+  ]
  },
  "ios_time_picker": {
-  "dark": "match",
-  "dark_note": "Same as light — \"14:00\" 24h format, bordered field, toggle button, and \"UpdateMode: WhenFinished\" status all match in dark theme. Match.",
   "light": "match",
-  "light_note": "TimePicker shows \"14:00\" (device-locale 24h format) in a bordered field, with blue \"Toggle TimePicker UpdateMode\" button and \"UpdateMode: WhenFinished\" status label below. Time format/value, border, button, and status text all match MAUI. Only vertical positioning differs (harness card).",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: '14:00' (24h device-locale) + 'Toggle TimePicker UpdateMode' + 'UpdateMode: WhenFinished' all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "items": {
-  "dark": "minor",
-  "dark_note": "Identical content (Today / 3 tasks / Pick a task). Same cosmetic diffs: 'Today' bold in MAUI vs regular in C++, and notably larger inter-item spacing in C++. No missing content.",
-  "light": "minor",
-  "light_note": "Same grouped CollectionView content: group header 'Today', items 'Water the plants', 'Review the port', 'Ship wave 2', then footer/label 'Pick a task'. Cosmetic diffs: 'Today' is bold in MAUI vs regular in C++; C++ uses much larger vertical spacing between the three items (they are spread out) whereas MAUI packs them tightly; MAUI shows a harness white card. All content present and correct.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Today' header, the items 'Water the plants / Review the port / Ship wave 2', and 'Pick a task' all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "items_updating_scroll_mode": {
-  "dark": "minor",
-  "dark_note": "Match in dark theme: same header, buttons, status, and list with identical content/order. Same enlarged C++ row spacing vs MAUI's tighter rows.",
-  "light": "minor",
-  "light_note": "All content matches: 'UpdatingScrollMode:' header, KeepItemsInView/KeepScrollOffset buttons, 'Add Item' button, 'Mode: KeepItemsInView · Items: 50' status, and the Title N — Subtitle N list. Diff: C++ CollectionView row spacing is roughly double MAUI's (C++ ~50px tall rows showing ~17 items, MAUI tight ~24px rows). Cosmetic row-height difference only.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'UpdatingScrollMode: KeepItemsInView' picker, the 'Mode ... Items: 50' readout, and the 'Title N - Subtitle N' two-line item list all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "label": {
-  "dark": "match",
-  "dark_note": "Same as light — identical structure and colors in dark theme (red text, cyan background, gray cards all correct). Difference is only that C++ fits more rows on screen due to a smaller text scale; comparable region is equivalent.",
   "light": "match",
-  "light_note": "All label demos match: 'Defaults', red 'This text should be RED', cyan-background label, start/center/end-aligned labels in gray cards, justified Lorem ipsum paragraph, and 'This should be at the start/center' gray boxes. C++ renders the page at a slightly smaller text scale so more content fits on one screen (also shows the 'Plain old Text / Colors / Strikethrough / Big Font' FormattedString row and the repeated Lorem rows that MAUI crops off below 'This should be at the center'); this is a harness scroll/scale artifact, not a content difference.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Clean match: 'Defaults', red 'This text should be RED', cyan-background label, start/center/end-of-line alignment cards, justified Lorem ipsum paragraph, and the FormattedString + 'Big Font' demos all render equivalently.",
+  "dark_note": "Match — same content as light on a black page; colors and alignment all equivalent.",
+  "reviewed": "2026-06-23"
  },
  "layout_is_enabled": {
   "light": "match",
   "dark": "match",
   "severity": "match",
-  "light_note": "Verified MATCH (per-page sweep): the board's flagged bug (2nd button in the 'All children are enabled' section rendering disabled-gray) does NOT reproduce in the committed captures — all enabled buttons render blue in both light+dark, matching MAUI. The IsEnabled parent→child cascade fix already landed. Board-note was stale.",
-  "dark_note": "Verified MATCH (per-page sweep): the board's flagged bug (2nd button in the 'All children are enabled' section rendering disabled-gray) does NOT reproduce in the committed captures — all enabled buttons render blue in both light+dark, matching MAUI. The IsEnabled parent→child cascade fix already landed. Board-note was stale."
+  "light_note": "Match: the grid of enabled/disabled demo cards (cyan 'enabled' vs pink 'disabled', 'First item enabled / second disabled', 'Children have commands attached', 'Nested layouts') renders equivalently; the earlier 2nd-button-renders-disabled bug does not reproduce.",
+  "dark_note": "Match — same card grid on black.",
+  "reviewed": "2026-06-23"
  },
  "line_gallery": {
-  "dark": "match",
-  "dark_note": "Same three diagonal lines (purple solid, orange dotted, thick black) rendered correctly on black background. Equivalent.",
   "light": "match",
-  "light_note": "Three sections match exactly: 'A basic Line' purple diagonal, 'A dash Line' orange dotted diagonal, 'A Line using StrokeThickness' thick black diagonal. Same colors, angles and dash patterns.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: basic purple Line, orange dashed Line, and the thick black 'A Line using StrokeThickness' all equivalent.",
+  "dark_note": "Match — same lines on black.",
+  "reviewed": "2026-06-23"
  },
  "line_join_gallery": {
-  "dark": "match",
-  "dark_note": "Same three cyan chevrons with correct Miter/Bevel/Round joins on black. Equivalent join rendering and layout.",
   "light": "match",
-  "light_note": "All three cyan chevron polylines match: Miter (sharp apex), Bevel (flat-cut apex), Round (rounded apex). The line-join styles render correctly. C++ shapes fill slightly more vertical space (no harness card offset) but proportions and join geometry are equivalent.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the three cyan polyline joins — Miter (sharp point), Bevel (flat), Round (rounded) — all render correctly.",
+  "dark_note": "Match — same joins on black.",
+  "reviewed": "2026-06-23"
  },
  "measure_first_strategy": {
-  "dark": "minor",
-  "dark_note": "Same as light — content equivalent, C++ row spacing is larger than MAUI's. Colors (green headers, orange total, white text on black) match.",
-  "light": "minor",
-  "light_note": "All content matches: intro text, blue 'Toggle Sizing Strategy' button, 'ItemSizingStrategy: MeasureFirstItem' label, green section headers (Avengers/Fantastic Four), member list, orange 'Total members: 12'. Difference is cosmetic: C++ CollectionView rows have noticeably larger inter-item vertical spacing/padding so fewer items fit per screen vs MAUI's tight rows.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the ItemSizingStrategy.MeasureFirstItem note, the 'Toggle Sizing Strategy' link, and the grouped Avengers / Defenders / Heroes for Hire list (green headers, orange footers) all equivalent.",
+  "dark_note": "Match — same grouped list on black.",
+  "reviewed": "2026-06-23"
  },
  "menu_bar": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical 'You clicked on Menu Item:' label and 'Toggle Menu Bar Item' button; only spacing and absent nav header differ.",
-  "light": "minor",
-  "light_note": "Identical content: 'You clicked on Menu Item:' label and the blue 'Toggle Menu Bar Item' button. (A native MenuBar is a desktop concept and is not shown in the body on either side.) Only difference is the tighter spacing and missing nav-bar header in C++.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'You clicked on Menu Item:' + 'Toggle Menu Bar Item' equivalent (MenuBar is a desktop concept; on iOS phone the page is just the readout + toggle).",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "modal": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical content and disabled-button state; only the inter-button spacing density and absent nav header differ in C++.",
-  "light": "minor",
-  "light_note": "Identical content: 'Modal Page 1', buttons Push Page / Push Modal Page / Push Modal Navigation Page / Push Modal Flyout Page, a grayed-out (disabled) 'Pop Modal Page', and 'Modal depth: 0 | page stack depth: 1'. Disabled state, colors, and order all match. Only difference is MAUI's wider button spacing and nav-bar header vs C++'s tighter spacing and no header.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Modal Page 1' + Push Page / Push Modal Page / Push Modal Navigation Page / Push Modal Flyout Page / Pop Modal Page links + 'Modal depth: 0 | page stack depth: 1' all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "multiple_bound_selection": {
-  "dark": "minor",
-  "dark_note": "Same as light; labels + selection match in dark.",
-  "light": "minor",
-  "light_note": "FIXED button labels to match C# ('Clear and Add' / 'Reset' / 'Direct Update'). Structure, selection (Item 1&2 highlighted), header, and readout all match. Residual minor: the 3 buttons stack centered vs MAUI's layout — cosmetic.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: instruction text, 'Selected: Item 1, Item 2', the header, the items (Item 1 + Item 2 highlighted-selected), and all three action buttons (Clear and Add / Reset / Direct Update) render — the earlier 'action buttons don't show' residual is resolved.",
+  "dark_note": "Match — same selection + buttons on black.",
+  "reviewed": "2026-06-23"
  },
  "navigation_gallery": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical label + 6 buttons; the only difference is tighter inter-button spacing and the absent nav-bar header in C++.",
-  "light": "minor",
-  "light_note": "Identical content: status label 'Stack depth: 1 | top: PAGE NUMBER 1 | secondary toolbar items: 0' and the 6 buttons (Push Page, Pop Page, Insert Page Before Current, Remove Page Before Current, Pop To Root, Toggle Secondary Toolbar Item). Only difference is vertical density: MAUI has generous spacing between buttons and a nav-bar header; C++ packs the buttons tighter and omits the nav header. No element missing or wrong.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Stack depth: 1 | top: PAGE NUMBER 1 | secondary toolbar items: 0' + the Push Page / Pop Page / Insert Page Before Current / Remove Page Before Current / Pop To Root / Toggle Secondary Toolbar Item links all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "nested_collection": {
-  "dark": "minor",
-  "dark_note": "The inner nested CollectionViews now realize in dark too: each 'Source N' header is followed by its blue 'Caption N-x' items. Remaining diffs are styling (port Source header bold-black vs MAUI red-italic) and the inner CV orientation (port stacks the captions vertically; MAUI flows them in a horizontal row) — the documented items_layout-non-bindable page limitation.",
   "light": "minor",
-  "light_note": "The nested inner CollectionViews now render (was MISSING): each 'Source N' header is followed by its inner CollectionView of blue 'Caption N-x' items, recursively realized + self-sized on iOS. Remaining diffs: (1) the inner CV flows captions VERTICALLY rather than in a horizontal row — the inner CV's HorizontalList orientation can't be staged through the outer DataTemplate (items_layout is not a bindable_property; documented page limitation), and (2) the 'Source N' header is bold-black rather than MAUI's red-italic. The core nesting (inner cells present) is fixed.",
-  "severity": "minor"
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "\"It's CollectionViews all the way down.\" renders every Source header + Caption item, but the inner CollectionViews lay out VERTICALLY in the C++ port vs HORIZONTALLY in MAUI — a bindable items-layout-orientation limitation (the captions themselves all render).",
+  "dark_note": "Same: all captions render; inner CV orientation is vertical (C++) vs horizontal (MAUI).",
+  "reviewed": "2026-06-23"
  },
  "pan_gesture_events": {
+  "light": "match",
   "dark": "match",
-  "dark_note": "Same green/red split with status label, equivalent to MAUI. Minor: C++ fills full height vs MAUI's small white margins.",
+  "severity": "match",
+  "light_note": "Match: 'StatusType: Completed, TotalX: 0, TotalY: 0' + the green (top) / red (bottom) pan-target panels equivalent.",
+  "dark_note": "Match — same pan panels on black.",
+  "reviewed": "2026-06-23",
   "flags": [
    "needs_gif"
-  ],
-  "light": "match",
-  "light_note": "Green/red vertical split box with white 'StatusType: Completed, TotalX: 0, TotalY: 0' label at top of green region — matches MAUI. C++ box fills the full content height (no thin white top/bottom margins MAUI shows) but the layout, colors and label are equivalent. Static frame of a pan-gesture demo.",
-  "severity": "match"
+  ]
  },
  "path_aspect_gallery": {
-  "dark": "minor",
-  "dark_note": "Same as light: MAUI keeps the light-gray container cards behind each heart (gray boxes stay gray in dark theme); C++ renders the hearts directly on the black background with no gray card. Heart shapes and aspect modes match. Minor harness-card difference.",
   "light": "minor",
-  "light_note": "Both show the 'None'/'Fill'/'Uniform'/'UniformToFill' labels each with a red heart that correctly demonstrates each aspect mode. MAUI draws each heart inside a light-gray container card (a harness gray box, e.g. the 'None' heart sits in a large empty gray rectangle); C++ draws the hearts directly on the white background with no gray card. Heart shapes/aspect behavior match. Minor harness-card-only difference.",
-  "severity": "minor"
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "The heart-path aspect behaviors (None / Fill stretched / Uniform aspect-preserved / UniformToFill cropped) all render correctly. Minor: MAUI draws each path inside a gray container box (the layout bounds) that the C++ port does not render — a missing container background, same class as absolute_layout.",
+  "dark_note": "Same: heart aspects match; MAUI's gray container boxes are absent in C++.",
+  "reviewed": "2026-06-23"
  },
  "path_gallery": {
-  "dark": "match",
-  "dark_note": "The first three path items (LineSegment, triangle, Cubic Bezier) use a default black stroke and are therefore invisible on the black background in BOTH MAUI and C++ — they match (both blank in that region). 'Composite shape' light-purple circles render in both. C++ additionally shows the red Overlapping Rectangles and orange/green EllipseGeometry which are below MAUI's clipped fold. Equivalent.",
   "light": "match",
-  "light_note": "Shared items all match: 'Create a LineSegment' thin diagonal, 'Create a Shape' right-triangle outline, 'Cubic Bezier Path' wavy curve, 'Composite shape' concentric purple circles. C++ additionally shows 'Overlapping Rectangles' (red L/Z shape) and 'EllipseGeometry' (orange square with green overlapping ellipse outlines) because content starts higher; MAUI's reference is shifted down so those are below the fold. Equivalent on shared content.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: LineSegment, PathGeometry triangle, Cubic Bezier curve, concentric-circle 'Composite shape', overlapping red Rectangles, and the orange EllipseGeometry flower all equivalent (MAUI is wrapper-cropped to the first few items).",
+  "dark_note": "Match — same path shapes on black.",
+  "reviewed": "2026-06-23"
  },
  "path_transform_string": {
-  "dark": "match",
-  "dark_note": "Both MAUI and C++ show only the two labels with the path shapes invisible (black stroke on black background did not adapt to dark theme in either app). Identical behavior on both sides.",
   "light": "match",
-  "light_note": "Both show 'Without RenderTransform' (a Z/butterfly path) and 'With RenderTransform' (the same path skewed). The two stroked shapes and the skew applied to the second one match closely between MAUI and C++.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the Z-shaped path renders the same Without- and With-RenderTransform (skewed) in both.",
+  "dark_note": "Match — both MAUI and C++ render the hardcoded-black path invisibly on the black background (same faithful behavior); only the labels show.",
+  "reviewed": "2026-06-23"
  },
  "picker": {
-  "dark": "match",
-  "dark_note": "Same pickers and accent colors in dark theme; the italic placeholder on the yellow picker is equally low-contrast (light text on yellow) in both. Equivalent.",
   "light": "match",
-  "light_note": "Matches: 'Basic' 'Select an item' placeholder, 'SelectedIndex=1' Item 2, 'SelectedIndexChanged' Item 2, 'Selected: (none)', 'TextColor=Blue' picker, 'TitleColor=Blue' blue 'Select an item', 'FontAttributes=Italic + BackgroundColor=Yellow' yellow italic picker. C++ fits the rest (Dynamic add items, Clear/Add/Replace Items, green 'Item 1' picker) that MAUI crops — harness scale.",
-  "severity": "minor"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: Basic + 'Select an item', SelectedIndex=1 -> Item 2, SelectedIndexChanged -> Item 2, Selected: (none), TextColor=Blue, TitleColor=Blue, FontAttributes=Italic + BackgroundColor=Yellow (yellow picker) all equivalent. The Dynamic-add / Clear / Add / Replace / markup-green 'Item 1' rows sit below MAUI's wrapper crop (present in C++).",
+  "dark_note": "Match — same picker rows/colors on black; lower rows below MAUI's wrapper crop.",
+  "reviewed": "2026-06-23"
  },
  "pickers": {
+  "light": "match",
   "dark": "match",
-  "dark_note": "Identical to MAUI: 'Pick a room' placeholder, date field (dd.MM.yyyy device-locale), time '09:00' (24h), and 'No room on M/d/yyyy at 09:00' label. No card container in either dark capture. Date differs (19 vs 21) only due to capture day.",
-  "light": "minor",
-  "light_note": "Both show the same three pickers (placeholder 'Pick a room', a date field in device-locale dd.MM.yyyy format, a time field '09:00' 24h) plus the 'No room on M/d/yyyy at 09:00' label. Content/format/layout match. Only difference: MAUI light wraps the pickers in a white card container while C++ has no card (transparent background). The date values differ (19.06.2026 vs 21.06.2026) only because captured on different days — not a bug.",
-  "severity": "minor"
+  "severity": "match",
+  "light_note": "Match: 'Pick a room' picker, a date picker (DD.MM.YYYY, value = capture day), a time picker (09:00), and the 'No room on M/D/YYYY at 09:00' summary label all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "pointer_gesture": {
-  "dark": "minor",
-  "dark_note": "Same content and same font-size diff as light — C++ uses smaller font for the banner / 'Thanks for hovering me!' / 'Hover me green!' headers that MAUI shows large. Colors (yellow banner, green label, white text) match.",
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Thanks for releasing me!' (yellow), the pointer-position readouts ({40,30}, {25,18}), 'Thanks for hovering me!', and the green 'Hover me green!' label all equivalent.",
+  "dark_note": "Match — same pointer readouts on black.",
+  "reviewed": "2026-06-23",
   "flags": [
    "needs_gif"
-  ],
-  "light": "minor",
-  "light_note": "All text present and matching: yellow 'Thanks for releasing me!...' banner, three pointer-position lines {40,30}, 'Thanks for hovering me!', three {25,18} lines, green 'Hover me green!', and hint text. Cosmetic font-size diff: MAUI renders the yellow banner, 'Thanks for hovering me!' and 'Hover me green!' in a large header font; C++ renders them at the normal body size (smaller).",
-  "severity": "minor"
+  ]
  },
  "polygon_gallery": {
+  "light": "match",
   "dark": "match",
-  "dark_note": "Green triangle, green dashed triangle, and blue/red EvenOdd star all match. The NonZero star renders as a yellow outline whose interior fill is black (matching MAUI's black NonZero fill, invisible on the black background in both). Equivalent.",
-  "light": "minor",
-  "light_note": "'A basic Polygon' green triangle, 'A dash Polygon' green dashed triangle, and 'EvenOdd Polygon' (blue fill / red stroke star with hollow center) all match. For 'NonZero Polygon' MAUI shows a black-filled yellow-outline star; C++ light is scrolled up so only the top tip + a yellow horizontal segment is visible (rest below the fold), so the NonZero star can't be fully compared — a scroll-offset artifact, not a wrong render.",
-  "severity": "minor"
+  "severity": "match",
+  "light_note": "Match: green Polygon triangle, green-dashed Polygon, EvenOdd pentagram (inner pentagon unfilled), NonZero pentagram (solid fill) all demonstrate the fill rules equivalently. MAUI's NonZero star is wrapper-cropped in light.",
+  "dark_note": "Match — same polygons/fill rules on black.",
+  "reviewed": "2026-06-23"
  },
  "polyline_gallery": {
-  "dark": "minor",
-  "dark_note": "Same as light on black background: thin red basic polyline stub and red dashed polyline at the left edge. C++ dash polyline is longer than MAUI's 3-dot stub; otherwise same content and structure.",
-  "light": "minor",
-  "light_note": "Both render 'A basic Polyline' as a thin red near-horizontal segment clipped at the left edge and 'A dash Polyline' as a red dashed segment at the left edge — same content/structure. Minor: C++ draws the dashed polyline as a longer continuous red dotted line whereas MAUI shows only a short 3-dot stub; the basic-line length also differs slightly. Geometry (flat near-horizontal lines anchored at x=0) is the same.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: basic red Polyline and dashed red Polyline are equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "preselected_item": {
-  "dark": "minor",
-  "dark_note": "Same as light: correct preselection of 'photo.jpg, 2', same list. Only cosmetic diffs are the header weight and the larger C++ row spacing. Content and selection correct.",
-  "light": "minor",
-  "light_note": "Matches: 'Preselected: photo.jpg, 2', header 'This is the header', single-column list (cover1.jpg,0 ... ) with 'photo.jpg, 2' (index 2) correctly preselected/highlighted. Cosmetic diffs: header bold in MAUI vs regular in C++; C++ uses larger inter-item spacing so fewer rows fit per screen (C++ visible to ~index 15-16, MAUI to ~19-20). Selection and content correct.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Preselected: photo.jpg, 2' + the header + the item list with 'photo.jpg, 2' highlighted as the preselected item, all equivalent.",
+  "dark_note": "Match — same preselection on black.",
+  "reviewed": "2026-06-23"
  },
  "preselected_items": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical preselection of the 3 items in the grid, same header and instruction text. Only the header weight and minor scale differ. Selection correct.",
-  "light": "minor",
-  "light_note": "Matches: instruction text, 'Preselected: photo.jpg, 2, Fruits.jpg, 4, FlowerBuds.jpg, 5', header 'This is the header', and a 3-column grid with exactly photo.jpg/2, Fruits.jpg/4, FlowerBuds.jpg/5 highlighted. Cosmetic diffs only: header bold in MAUI vs regular in C++, and the light MAUI capture appears at a slightly smaller/zoomed-out scale, but item layout, order and the 3 highlighted cells are identical.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: instruction text, 'Preselected: photo.jpg 2, Fruits.jpg 4...', the header, and the 3-column grid with several items highlighted-preselected all equivalent.",
+  "dark_note": "Match — same multi-preselection grid on black.",
+  "reviewed": "2026-06-23"
  },
  "progress_bar": {
-  "dark": "minor",
-  "dark_note": "Same bars/colors/fills as MAUI. Only diff: section headers bold vs regular weight.",
   "light": "minor",
-  "light_note": "Excellent match: Default (blue ~50%), ProgressColor (orange ~50%), Disabled (blue), ProgressColor (orange), ProgressTo (empty bar), and the 'ProgressTo' blue link. Fill amounts, colors and order all match. Only diff: section headers bold in MAUI vs regular weight in C++ (and MAUI light has a white card container).",
-  "severity": "minor"
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "Progress bars + colors match: Default (blue), ProgressColor (orange), Disabled, second ProgressColor, ProgressTo, plus the 'ProgressTo' button. Minor: section-header labels render larger/bolder in MAUI (looser row spacing) than the C++ port.",
+  "dark_note": "Same: bars/colors match; section-header label font larger/bolder in MAUI.",
+  "reviewed": "2026-06-23"
  },
  "radio_button_border": {
-  "dark": "minor",
-  "dark_note": "Same as light — yellow fill + red/green borders + selection all render correctly in dark. Residual minor: rows slightly shorter than MAUI; white label text on the yellow fill is lower-contrast (text follows the dynamic dark label color).",
-  "light": "minor",
-  "light_note": "FIXED (iOS radio handler: left-align + ring↔label gap + VisualElement background). Now four left-aligned bordered rows: Option 1 red border over YELLOW fill, Option 2 YELLOW fill, Option 3 plain, Option 4 green border with the selected dot — matching MAUI. Residual minor: MAUI's rows are a little taller (more internal content padding) than the port's.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'RadioButton with Border' / 'Selected: Option 4', Option 1 (yellow fill + red border), Option 2 (yellow fill), Option 3, and Option 4 (green border, selected) all render correctly (the RadioButtonBorder fill fix).",
+  "dark_note": "Match — same bordered radios on black.",
+  "reviewed": "2026-06-23"
  },
  "radio_button_content": {
   "light": "minor",
   "dark": "minor",
   "severity": "minor",
-  "light_note": "View-fallback RadioButton title now WRAPS to its full text instead of truncating ('Can't use View for Content on this / platform, so just plain old text', 2 lines) — matches MAUI in both light+dark. Fix: radio_button_handler.mm map_content sets titleLabel numberOfLines=0/WordWrap + get_desired_size recomputes the wrapped title height via boundingRect (UIButton sizeThatFits underestimates a wrapped multi-line title, so the control now grows to fit). Residual (dark only, lower priority, below MAUI's crop): the bottom custom coffee-cup ControlTemplate uses hardcoded-black shapes that are invisible on the dark background (sample-design, only the red group lines show).",
-  "dark_note": "View-fallback RadioButton title now WRAPS to its full text instead of truncating ('Can't use View for Content on this / platform, so just plain old text', 2 lines) — matches MAUI in both light+dark. Fix: radio_button_handler.mm map_content sets titleLabel numberOfLines=0/WordWrap + get_desired_size recomputes the wrapped title height via boundingRect (UIButton sizeThatFits underestimates a wrapped multi-line title, so the control now grows to fit). Residual (dark only, lower priority, below MAUI's crop): the bottom custom coffee-cup ControlTemplate uses hardcoded-black shapes that are invisible on the dark background (sample-design, only the red group lines show)."
+  "light_note": "The string-Content and View-Content radios render (the View-fallback title wraps to its full text — the multi-line measure fix). Minor: the custom coffee-cup ControlTemplate uses hardcoded-black shapes that render faintly/invisibly on the dark background.",
+  "dark_note": "Same: content radios render; the hardcoded-black coffee-cup ControlTemplate is faint on dark.",
+  "reviewed": "2026-06-23"
  },
  "radio_button_group": {
-  "dark": "minor",
-  "dark_note": "Same as light — left-aligned with gaps; all content present. Residual minor: tighter spacing than MAUI.",
-  "light": "minor",
-  "light_note": "FIXED (iOS radio handler): Option A/B/C in the StackLayout and 'This RadioButton is inside a Grid' + Option D are now left-aligned with a ring↔label gap (were centered/flush). All content present and equivalent to MAUI. Residual minor: slightly tighter vertical/inter-radio spacing.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the GroupName='foo' explanation, 'Selected: (none)', the Option A / B / C radios, and 'This RadioButton is inside a Grid' + Option D all render and align correctly.",
+  "dark_note": "Match — same radios on black.",
+  "reviewed": "2026-06-23"
  },
  "radio_button_group_binding": {
-  "dark": "match",
-  "dark_note": "Same as light — MAUI capture is fully blank/broken; C++ renders the complete page correctly with all text, the four radio options and the two blue action labels.",
-  "flags": [
-   "maui_broken"
-  ],
-  "light": "match",
-  "light_note": "MAUI ground-truth capture is entirely blank (all black, only the nav bar visible) — broken capture, cannot be compared. C++ renders the full page correctly: explanatory text, 'GroupName is group1 / Selection is (null)', Option A/B/C/D in a 2-col grid, and the two blue action buttons ('Set selection... to B', 'Clear selection... to null'). C++ is correct; classifying match since C++ output is right and the MAUI side is unusable.",
-  "severity": "match"
- },
- "radio_button_group_gallery": {
-  "dark": "minor",
-  "dark_note": "Same as light — left-aligned with gaps; full content shown. Residual minor: tighter spacing than MAUI.",
-  "light": "minor",
-  "light_note": "FIXED (iOS radio handler): all radio rows (Parent-level Group=null, Page-level Group='A', and the mixed-group-names section) are now left-aligned with a ring↔label gap (were centered/flush). C++ also shows the full third section the MAUI capture is truncated before. Residual minor: tighter vertical spacing than MAUI.",
-  "severity": "minor"
- },
- "radio_content_properties": {
-  "dark": "minor",
-  "dark_note": "Same as light: text, colors, and font attributes all correct in dark; only difference is C++'s tighter vertical spacing and radio-circle horizontal position vs MAUI. Cosmetic.",
-  "light": "minor",
-  "light_note": "All content rows render correctly in both (colored Option A italic-red, Option B bold-blue, green 'It's a button inside a button' rows). C++ uses denser line spacing so it shows all rows fully on one screen while MAUI's last rows are cut off; C++ radio glyph circles sit immediately left of their text (near-centered) vs MAUI's far-left aligned larger circles. Cosmetic spacing/glyph-position only.",
-  "severity": "minor"
- },
- "radio_template_from_style": {
-  "dark": "match",
-  "dark_note": "MAUI ground-truth PNG again fully blank/all-black. C++ renders the three A/B/C templated cards with blue radio dots correctly. MAUI ref unusable.",
-  "flags": [
-   "maui_broken"
-  ],
-  "light": "match",
-  "light_note": "MAUI ground-truth PNG is entirely blank/all-black (only status bar visible) — cannot be used as a reference. C++ renders correctly: three templated cards labeled A/B/C each with a blue selected radio dot. C++ output looks correct; classified match since the broken MAUI ref cannot contradict it.",
-  "severity": "minor"
- },
- "rectangle_gallery": {
-  "dark": "match",
-  "dark_note": "Same five rectangles, same red/navy colors on black. C++ shows all five including the curved-corners rounded rect; MAUI dark clips after the dashed rect. Shared content equivalent.",
-  "light": "match",
-  "light_note": "Shared items all match: 'A basic Rectangle' red, 'A Square' red-outline, 'A Rectangle with stroke' (hollow + navy-filled pair), 'A Rectangle with stroke dash' navy with red dashed border. C++ additionally fits 'A Rectangle with curved corners' (navy rounded rect) because content starts higher; MAUI's reference is shifted down by the harness card so that item is below the fold.",
-  "severity": "match"
- },
- "refresh_view": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical content, only button-row spacing differs (MAUI wide/clipped, C++ compact/full). Cosmetic.",
-  "light": "minor",
-  "light_note": "All elements present and matching: header 'Pull the items down...', 'Number of items: 50', four blue action buttons, 'Is Refreshing: False', 'Is Enabled: True', '50 items loaded' footer. Difference is button layout — MAUI spreads buttons 2-per-row widely (clipping 'Toggle Background Color' at right edge) while C++ packs them tighter so all labels are fully visible. Cosmetic spacing.",
-  "severity": "minor"
- },
- "relative_layout": {
-  "dark": "minor",
-  "dark_note": "Same; corner squares + center box positions match; only the harness content-area aspect differs.",
-  "light": "minor",
-  "light_note": "Corner squares (red TL/green TR/blue BL/yellow BR) + centered gray-with-black box all in matching proportional positions. Residual is a HARNESS-framing artifact: the C++ gallery gives the AbsoluteLayout the full screen height while the maui-compare host frames it in a shorter card, so the 0.33-proportional center box resolves to a different aspect ratio. Not a port bug (proportional sizing is correct on both against their given heights).",
-  "severity": "minor"
- },
- "scattered_radio_button": {
-  "dark": "minor",
-  "dark_note": "Same as light — radios now left-aligned with ring↔label gaps. Residual minor: tighter inter-radio spacing; the A/B/C row sits on the light-blue highlight band (present in MAUI too).",
-  "light": "minor",
-  "light_note": "FIXED (iOS radio handler): the A/B/C radios now render left-aligned with a gap between each ring and its label (was crammed 'OAOBOC'), and 'D (None of the above)' is left-aligned at the page margin (was centered). Residual minor: inter-radio horizontal spacing is slightly tighter than MAUI's.",
-  "severity": "minor"
- },
- "scroll_mode_test": {
-  "dark": "minor",
-  "dark_note": "Same as light — single picker value (was overflowing buttons). Residual minor: picker border/text-color style vs MAUI's borderless picker.",
-  "light": "minor",
-  "light_note": "FIXED: the ItemsUpdatingScrollMode selector now renders as a single Picker showing the current value ('KeepItemsInView'), matching MAUI's EnumSelector (caption + picker) — was three side-by-side mode buttons that overflowed the row ('KeepItemsInView  KeepS…'). Residual minor: the port's picker shows the value in a RoundedRect-bordered black field, vs MAUI's borderless blue picker text.",
-  "severity": "minor"
- },
- "scroll_to_group": {
-  "dark": "minor",
-  "dark_note": "Same as light: all form controls (two entries pre-set to 0, two empty name entries, two Go buttons, status text) and the grouped list render correctly and in the right positions; only difference is C++'s taller list row spacing.",
-  "light": "minor",
-  "light_note": "Both render the full form: 'Group:'/'Item:' entries pre-filled '0', a blue 'Go', 'Group Name:'/'Item Name:' entries (empty), a second blue 'Go', the 'No scroll requested yet' status, and the grouped list below starting at green 'Avengers'. All controls and text present and correctly placed. Only difference is C++'s taller row spacing in the list (MAUI reaches 'Black Widow', C++ reaches 'Mockingbird' but with far more whitespace per row).",
-  "severity": "minor"
- },
- "scroll_view": {
-  "dark": "minor",
-  "dark_note": "Same as light: list content correct in both; MAUI scrolled to Row 12-21, C++ at Row 0 with status label and denser spacing. State/spacing difference only.",
-  "light": "minor",
-  "light_note": "Both render the 'Row N of 40' list correctly. MAUI is captured scrolled down (showing Row 12-21), while C++ shows from Row 0 with an extra top status label 'Scrolled to: 0 / 0 (done)'. C++ rows are more densely spaced (Row 0-14 visible). Difference is scroll position/state and row spacing, not a render bug; the programmatic-scroll-to-target that MAUI performed did not move C++ off Row 0.",
-  "severity": "minor"
- },
- "search_bar": {
-  "dark": "match",
-  "dark_note": "Same search bars and accent colors rendered correctly in dark (dark-gray pill fills, green/pink text). Same harness scale difference for the trailing rows.",
-  "light": "match",
-  "light_note": "Matches: 'LENGTH: 0  SEARCHES: 0', pill search bars with magnifier icon and 'Search...' placeholder, green 'Green text' with clear-X plus a secondary close-X button, pink 'Placeholder', italic 'Italic 24pt' enlarged bar. C++ is scaled smaller and shows additional rows ('end of the line' right-aligned, 'Cancel is red', 'Numeric keyboard' placeholder) that MAUI crops; harness scale only.",
-  "severity": "match"
- },
- "selection_command_param": {
-  "dark": "minor",
-  "dark_note": "Same as light; two-line cells in dark.",
-  "light": "minor",
-  "light_note": "FIXED: each cell now renders two lines ('Item N' + 'This is item N') matching MAUI's title+detail DataTemplate (was title-only — the single-root struct cell now binds text+description on two lines). Header 'This is the header' + the Pending/Success status present.",
-  "severity": "minor"
- },
- "selection_synchronization": {
-  "dark": "minor",
-  "dark_note": "Same as light: both sections render with Item 2 and Item 3 correctly selected and 'Selected: Item 3, Item 2'. Only the larger C++ row spacing (causing different amounts of scroll content visible) differs. Selection correct.",
-  "light": "minor",
-  "light_note": "Matches: instruction paragraph, two CollectionView sections ('Set ItemsSource then SelectedItems...' and 'Set SelectedItems then ItemsSource...'), each with 'Selected: Item 3, Item 2' and Item 1-4 where Item 2 and Item 3 are correctly highlighted. Cosmetic diff: C++ uses larger inter-item spacing, so it fits both full sections on screen while MAUI shows the first section's list plus only the start of the second section. Selection state correct in both.",
-  "severity": "minor"
- },
- "semantics": {
-  "dark": "minor",
-  "dark_note": "Same content and structure in dark; identical controls and search bar. C++ shows more of the list visible (down to 'Label receiving semantic focus') because MAUI centers content lower in the card. Cosmetic vertical-offset difference.",
-  "light": "minor",
-  "light_note": "Both render the SemanticProperties showcase identically: header, 'Semantics readout: (interact to inspect)', 'Label text TH/DH', blue 'Button text TH/DH', 'Entry text, DTH' field, 'Editor text, DTH', a search bar 'Search bar text, DH' with clear X, and the 'HeadingLevel labels' section. Difference is the visible scroll viewport: MAUI vertically centers content in the white card so it cuts off at 'HeadingLevel labels...', whereas C++ starts content higher and shows more (Heading 1-4, StackLayout labels, 'Click to set semantic focus...'). Same content, different visible offset.",
-  "severity": "minor"
- },
- "shadow_playground": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical structure, hex fields and slider positions; the red drop shadow is present and correctly colored/offset in both. C++'s shadow blur is slightly tighter/less spread than MAUI's softer glow. Cosmetic shadow-blur difference only.",
-  "light": "minor",
-  "light_note": "Both show 'Label with a Shadow' (red shadow under text), a cyan #00B4DB box with a red drop shadow offset down-right, the 'Background' field #00B4DB, 'Shadow Color' #FF0000, and three sliders (Offset X:10, Offset Y:10, Radius:10) plus a partly-visible 4th. All values, colors and controls match. Minor difference: MAUI's red shadows are softer/more spread (larger blur glow around the box and a more visible label shadow); C++'s red shadow is a tighter glow concentrated bottom-right and the label shadow is fainter.",
-  "severity": "minor"
- },
- "shape_app_theme": {
-  "dark": "minor",
-  "dark_note": "Dark renders red label + red rectangle on black (theme seed works), left-aligned. Matches MAUI.",
-  "light": "minor",
-  "light_note": "FIXED rectangle horizontal alignment to Start (was centered) — now left-aligned at the stack margin matching MAUI. AppTheme color binding correct (green label+rect in light). Equivalent.",
-  "severity": "minor"
- },
- "shapes": {
-  "dark": "match",
-  "dark_note": "Same controls and colors on black background: red/navy ellipse, navy round-rect, blue/red pentagram. C++ shows the purple diagonal Line clearly while MAUI dark renders it as a faint near-invisible stub at the bottom; otherwise equivalent.",
-  "light": "match",
-  "light_note": "Both show Ellipse (red fill / navy stroke), RoundRectangle (navy fill), EvenOdd pentagram (blue fill / red stroke), and 'Line' label with a purple diagonal line. C++ renders the Line slightly more visibly but geometry, colors and layout are equivalent. MAUI has a white harness card wrapper; C++ is plain white — harness-only difference.",
-  "severity": "match"
- },
- "single_bound_selection": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical instruction text, 'Selected: (none)', and the 5-country list with no selection. Only the larger C++ inter-item spacing differs. Content identical.",
-  "light": "minor",
-  "light_note": "Matches: same instruction paragraph, 'Selected: (none)', and the 5 countries (United States, Canada, Mexico, Brazil, Argentina) in order with none selected. Only cosmetic diff is larger inter-item vertical spacing in the C++ CollectionView (items spread further apart); MAUI also shows a harness white card. Content identical.",
-  "severity": "minor"
- },
- "slider": {
-  "dark": "minor",
-  "dark_note": "Same slider list and colors as MAUI including the gray disabled thumb. Only cosmetic diff: section headers bold in MAUI vs regular weight in C++, and C++ uses slightly tighter row spacing.",
-  "light": "minor",
-  "light_note": "Same slider sequence and colors: Default, BackgroundColor (blue), Background (yellow-green gradient), Minimum(5)/Maximum(15) with value '5', Disabled, MinimumTrackColor=LightBlue, etc. Two cosmetic diffs: MAUI section headers ('Default','BackgroundColor') are bold while C++ renders them regular weight; MAUI light has a white card container, C++ does not. C++ also fits more rows (tighter vertical spacing) so MaximumTrackColor=Pink/ThumbColor=Orange/ThumbImageSource/Custom Slider are visible — content is identical.",
-  "severity": "minor"
- },
- "some_empty_groups": {
-  "dark": "minor",
-  "dark_note": "Same correct behavior: empty groups (Thundercats, Bionic Six) still show headers/'Total members: 0' footers; all content matches MAUI. C++ uses taller per-row spacing.",
-  "light": "minor",
-  "light_note": "Both show the description text, then groups where empty groups (Thundercats 'Total members: 0', Bionic Six 'Total members: 0') still display their headers and footers exactly as expected. Content, group order and member counts match. Only difference is C++'s taller row spacing.",
-  "severity": "minor"
- },
- "stack_layout": {
-  "dark": "minor",
-  "dark_note": "Same content and color order in dark on a black background. Same minor sizing difference: MAUI squares slightly larger and horizontal row wider; C++ slightly smaller/narrower. Cosmetic only.",
-  "light": "minor",
-  "light_note": "Both render a 'Vertical' label with a vertical column of 6 colored squares (red, yellow, blue, green, orange, purple) and a 'Horizontal' label with a horizontal row of the same 6 colors. Order, colors, and structure match exactly. Cosmetic sizing: MAUI's vertical squares are larger/taller and the horizontal row spans the full page width to the right edge; C++'s squares are slightly smaller and the horizontal row is slightly narrower (doesn't reach the right edge).",
-  "severity": "minor"
- },
- "staggered_layout": {
   "light": "minor",
   "dark": "minor",
   "severity": "minor",
-  "light_note": "Cells now self-size to their varied content heights (the staggered effect) via MauiCollectionViewCell preferredLayoutAttributesFittingAttributes. Was diff; residual minor.",
-  "dark_note": "Cells now self-size to their varied content heights (the staggered effect) via MauiCollectionViewCell preferredLayoutAttributesFittingAttributes. Was diff; residual minor."
+  "light_note": "MAUI reference broken (blank): the C++ port renders the full page (ViewModel-bound GroupName explanation, the Option A/B/C/D radio grid, 'Set selection in view model to B' / 'Clear selection to null' links), but the maui-compare app renders a blank black screen for this page — the C++ side is correct-but-unverifiable.",
+  "dark_note": "Same: port renders correctly; MAUI's reference is blank.",
+  "reviewed": "2026-06-23",
+  "flags": [
+   "maui_broken"
+  ]
+ },
+ "radio_button_group_gallery": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the parent-level (no group name), page-level (group 'A'), and mixed-group radio sections all render with correctly aligned radios + labels and 'Selected: (none)' readouts.",
+  "dark_note": "Match — same radio groups on black.",
+  "reviewed": "2026-06-23"
+ },
+ "radio_content_properties": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the Text-property propagation onto Content (TextColor=Red, CharacterSpacing, TextTransform=Lowercase, FontAttributes=Bold, FontSize, FontFamily on 'Option B'), the Button-content radio, and the semantic-description radio all render equivalently.",
+  "dark_note": "Match — same content-property radios on black.",
+  "reviewed": "2026-06-23"
+ },
+ "radio_template_from_style": {
+  "light": "minor",
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "MAUI reference broken (blank): the C++ port renders the style-driven template radios (A / B / C labels + gray boxes each with a blue selected dot), but the maui-compare app renders a blank screen (springboard) for this page — correct-but-unverifiable.",
+  "dark_note": "Same: port renders the template radios; MAUI's reference is blank (A/B/C labels are faint on dark).",
+  "reviewed": "2026-06-23",
+  "flags": [
+   "maui_broken"
+  ]
+ },
+ "rectangle_gallery": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: basic red Rectangle, red-outlined Square, stroke + blue-fill Rectangle, red-dashed-stroke Rectangle, and the curved-corners blue rounded Rectangle all equivalent.",
+  "dark_note": "Match — same rectangles on black.",
+  "reviewed": "2026-06-23"
+ },
+ "refresh_view": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the pull-to-refresh instruction, 'Number of items: 50', the Toggle Refresh Color / Background / Refresh / Is-Enabled links, 'Is Refreshing: False' / 'Is Enabled: True', and '50 items loaded. Pull to add more.' all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
+ },
+ "relative_layout": {
+  "light": "minor",
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "RelativeLayout corner anchors match (red top-left, green top-right, blue bottom-left, yellow bottom-right) and the centered gray box with the black inner rect is present in both. Minor: the center box is taller/narrower in C++ (its relative-to-parent height resolves larger because the C++ page fills more vertical space than MAUI's wrapper-inset page).",
+  "dark_note": "Same: anchors match; center relative-sized box taller in C++.",
+  "reviewed": "2026-06-23"
+ },
+ "scattered_radio_button": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'RadioButtons don't have to be in the same container to be grouped', the A/B/C radios in a nested StackLayout, and D ('None of the above') outside it with the same GroupName all render and align correctly.",
+  "dark_note": "Match — same scattered radios on black.",
+  "reviewed": "2026-06-23"
+ },
+ "scroll_mode_test": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'ItemsUpdatingScrollMode: KeepItemsInView' picker (the EnumSelector fix), the Scroll To Middle / Add Item Above / Below / To End links, the 'Mode ... Items: 20' readout, and the item list all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
+ },
+ "scroll_to_group": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the Group/Item index entries + Go, the Group Name/Item Name entries + Go, 'No scroll requested yet', and the grouped list all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
+ },
+ "scroll_view": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the 'Row N of 40' list and the 'Scrolled to: 0 / 0 (done)' readout match; the only difference is the scroll position (MAUI's capture is scrolled to row 12, the C++ capture is at the top) — runtime state, not a parity diff.",
+  "dark_note": "Match — same rows on black (scroll position differs by runtime).",
+  "reviewed": "2026-06-23"
+ },
+ "search_bar": {
+  "light": "minor",
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "All search bars match: Search, green 'Green text', magenta Placeholder, 'Italic 24pt', right-aligned 'end of the line', 'Cancel is red', 'Numeric keyboard' — each with clear/cancel affordances. Minor: C++ bar fill renders slightly grayer than MAUI's near-white (the documented iOS-26 search-bar chrome nuance). Lower rows sit below MAUI's wrapper crop.",
+  "dark_note": "Match-grade content (same bars/text/colors); same faint-vs-gray bar-fill nuance as light.",
+  "reviewed": "2026-06-23"
+ },
+ "selection_command_param": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Pending...' + 'This is the header' + the two-line item list (Item 0 / 'This is item 0' through Item 9 / 'This is item 9') all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
+ },
+ "selection_synchronization": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: both CollectionViews (ItemsSource-then-SelectedItems, and SelectedItems-then-ItemsSource) show 'Selected: Item 3, Item 2' with Item 2 + Item 3 highlighted-selected, equivalent.",
+  "dark_note": "Match — same synchronized selection on black.",
+  "reviewed": "2026-06-23"
+ },
+ "semantics": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the SemanticProperties showcase (Label/Button/Entry/Editor/SearchBar each with Description+Hint) and the heading-level navigation list render equivalently; the semantic metadata itself is non-visual (screen-reader only).",
+  "dark_note": "Match — same controls/headings on black.",
+  "reviewed": "2026-06-23"
+ },
+ "shadow_playground": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Label with a Shadow' (red text shadow), the cyan square with the offset red shadow (10,10, radius 10), and the Background / Shadow Color / Offset X / Offset Y / Radius / Opacity controls all equivalent.",
+  "dark_note": "Match — same shadowed square + controls on black.",
+  "reviewed": "2026-06-23"
+ },
+ "shape_app_theme": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Shape using AppTheme' label + rectangle render GREEN in light in both (theme-reactive AppThemeBinding).",
+  "dark_note": "Match: the label + rectangle render RED in dark in both (confirms the earlier dark-theme fix).",
+  "reviewed": "2026-06-23"
+ },
+ "shapes": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: red/blue-stroke Ellipse, navy RoundRectangle, the red-outlined blue EvenOdd pentagram (correct even-odd fill showing the inner pentagon), and the magenta Line all equivalent.",
+  "dark_note": "Match — same shapes on black.",
+  "reviewed": "2026-06-23"
+ },
+ "single_bound_selection": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the test-instruction text, 'Selected: (none)', and the country list (United States / Canada / Mexico / Brazil / Argentina) all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
+ },
+ "slider": {
+  "light": "minor",
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "Sliders + colors match: Default, BackgroundColor (blue), Background (green gradient), Minimum(5)/Maximum(15), Disabled, MinimumTrackColor=LightBlue (and below MAUI's crop: MaximumTrackColor=Pink, ThumbColor=Orange, ThumbImageSource, Custom Slider). Minor: the section-header labels render larger/bolder in MAUI than the C++ port's regular-weight labels.",
+  "dark_note": "Same as light: sliders/colors match; section-header label font is larger/bolder in MAUI.",
+  "reviewed": "2026-06-23"
+ },
+ "some_empty_groups": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: empty groups (Thundercats, Bionic Six) correctly show their header + 'Total members: 0' footer while populated groups (Avengers, Fantastic Four) show members — equivalent.",
+  "dark_note": "Match — same empty/populated groups on black.",
+  "reviewed": "2026-06-23"
+ },
+ "stack_layout": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the 'Vertical' rainbow column (red/yellow/blue/green/orange/purple) and the 'Horizontal' rainbow row both render equivalently.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
+ },
+ "staggered_layout": {
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the 3-column staggered grid (Item 0 through Item 17 with varying cell heights) self-sizes and matches.",
+  "dark_note": "Match — same staggered grid on black.",
+  "reviewed": "2026-06-23"
  },
  "stepper": {
-  "dark": "minor",
-  "dark_note": "Same controls/order as MAUI. Same two diffs: BackgroundColor red fill spans full row width in MAUI but only the -/+ pill width in C++; section headers bold vs regular weight.",
   "light": "minor",
-  "light_note": "Same controls in same order: Default, Disabled, 'Enable Stepper' link, BackgroundColor (red), Background, Minimum(5)/Maximum(25), Increment(2), ValueChanged, 'Value: 0'. Two diffs: (1) the BackgroundColor red fill spans the full row width in MAUI but in C++ the red fill is sized only to the stepper -/+ pill; (2) section headers bold in MAUI vs regular weight in C++.",
-  "severity": "minor"
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "Steppers match: Default, Disabled, Enable Stepper, BackgroundColor (red), Background (gray), Minimum(5)/Maximum(25), Increment(2) (ValueChanged + Value:0 below MAUI's crop). Minor: section-header labels render larger/bolder in MAUI than in the C++ port.",
+  "dark_note": "Same: steppers match; section-header label font larger/bolder in MAUI.",
+  "reviewed": "2026-06-23"
  },
  "styles": {
-  "dark": "minor",
-  "dark_note": "Same 4 styled items and yellow-bordered 'Style Me' button render in both. The pink custom-style label is a more saturated magenta-pink in MAUI vs a lighter pink in C++ (both clearly pink). Text wrapping and button height/padding differ as in light. Cosmetic only.",
-  "light": "minor",
-  "light_note": "Both render 4 styled items: base subtitle label (gray), custom-derived pink label ('Pink wins'), plain default-color label ('no explicit style'), and a 'Style Me' button with a yellow border. Styling/colors match. Cosmetic differences: MAUI wraps the pink and 'no explicit style' lines to 2 lines (narrower content card) while C++ keeps them on fewer lines (full page width); MAUI's button is taller with rounded corners and more padding, C++'s button is shorter/thinner.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: base-subtitle (gray), custom-derived 'Pink wins' (pink), no-explicit-style (default) labels, and the yellow-bordered gray 'Style Me' button all equivalent.",
+  "dark_note": "Match — same styled labels/button on black.",
+  "reviewed": "2026-06-23"
  },
  "swipe_gesture": {
+  "light": "match",
   "dark": "match",
-  "dark_note": "MAUI reference capture is broken in dark too: the 'Welcome to .NET MAUI!' card content is MISSING entirely (only the header band and 'TapCommand (double-tap)' show, no card). The C++ side renders the full card content correctly. Needs re-capture.",
+  "severity": "match",
+  "light_note": "Match: the TapGestureRecognizer instruction, the SwipeView card ('Welcome to .NET MAUI!', June 2026, description lines), and 'TapCommand (double-tap)' all render. MAUI's own card text overlaps (a MAUI-side sample quirk); the C++ card lays the lines out cleanly.",
+  "dark_note": "Match — same swipe card on black; MAUI's text overlap is MAUI-side.",
+  "reviewed": "2026-06-23",
   "flags": [
    "maui_broken",
    "needs_gif"
-  ],
-  "light": "match",
-  "light_note": "MAUI reference capture is broken: the card content text is GARBLED/overlapping into an illegible jumble (the 'Welcome to .NET MAUI!', the 'June 2026' date, and the subtitle 'A SwipeView with gesture recognizers / Double-tap the card...' are all stacked on top of each other). The C++ side renders this card cleanly and correctly (title 'Welcome to .NET MAUI!', 'June 2026', two-line subtitle, then 'TapCommand (double-tap)'). Needs re-capture before a fair comparison.",
-  "severity": "match"
+  ]
  },
  "swipe_item_position": {
+  "light": "match",
   "dark": "match",
-  "dark_note": "Both show the 'Reveal' box at top followed by a large light-gray SwipeView content block filling most of the page; the 'Swipe in any direction' subtitle is hidden behind the gray block on both sides. Equivalent rendering. The page's real point (swipe to reveal items) needs a GIF to judge.",
+  "severity": "match",
+  "light_note": "Match: the 'Reveal' swipe cell + 'Swipe in any direction' label (and the gray content area in dark) all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23",
   "flags": [
    "needs_gif"
-  ],
-  "light": "match",
-  "light_note": "Both show the 'Reveal' bordered box followed by the 'Swipe in any direction' subtitle. Layout, text, and sizing match (C++ omits only the white harness card border, a harness-only artifact).",
-  "severity": "match"
+  ]
  },
  "swipe_item_size": {
-  "dark": "match",
-  "dark_note": "Same strong match in dark; the gray 'Swipe to Left' cards render identically and the 'Swipe to Left' label is light-on-gray in both. All section headers and rows present.",
   "light": "match",
-  "light_note": "Strong match: 'Swipe a row left to reveal Delete', bold 'Different icon sizes', the 128x128/256x256/512x512 Icon rows each with a gray 'Swipe to Left' card, then bold 'Different SwipeView sizes', 'SwipeView 128 Height' and 'SwipeView 256 Height' rows. All gray cards and labels align.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Swipe a row left to reveal Delete' + the different icon-size cells (128/256/512 Icon) and the different SwipeView heights (128/256) all render with gray 'Swipe to Left' cells.",
+  "dark_note": "Match — same swipe-size cells on black.",
+  "reviewed": "2026-06-23"
  },
  "swipe_refresh": {
+  "light": "match",
   "dark": "match",
-  "dark_note": "Same as light: both show 'Swipe left to delete, pull to refresh' and 'Ready' on black, no list items, identical. Pull-to-refresh motion needs a GIF.",
+  "severity": "match",
+  "light_note": "Match: 'Swipe left to delete, pull to refresh' + 'Ready' status equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23",
   "flags": [
    "needs_gif"
-  ],
-  "light": "match",
-  "light_note": "Both render only the two text lines 'Swipe left to delete, pull to refresh' and 'Ready' with the rest of the page empty (the list/refresh content requires interaction). Identical static rendering. The page's point (pull-to-refresh spinner) needs a GIF to judge.",
-  "severity": "match"
+  ]
  },
  "swipe_threshold": {
-  "dark": "match",
-  "dark_note": "Same as light: identical purple bars, sliders, and labels; C++ shows the complete list (footer 'Reveal threshold=80 / Execute threshold=80') while the MAUI capture is scrolled to show less. Equivalent rendering.",
   "light": "match",
-  "light_note": "Content matches: header band, 'Default Threshold (Reveal Mode)' purple bar, 'Custom Threshold ... Reveal Mode' slider, purple bar, 'Default Threshold (Execute Mode)' purple bar, plus the C++ side correctly shows the full remainder ('Custom Threshold ... Execute Mode' slider + bar + 'Reveal threshold=80 / Execute threshold=80' footer) that the MAUI capture is scrolled above. Slider thumb positions and purple bar colors match.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the Default/Custom Threshold demos (Reveal + Execute modes, blue swipe cells + sliders) and the 'Reveal threshold=80 / Execute threshold=80' readout all equivalent.",
+  "dark_note": "Match — same threshold demos on black.",
+  "reviewed": "2026-06-23"
  },
  "swipe_view_margin": {
-  "dark": "match",
-  "dark_note": "Same strong match in dark: black instruction box, both sliders at matching positions, and both gray SwipeItems cards present and aligned.",
   "light": "match",
-  "light_note": "Strong match: 'Horizontal items revealed', the black instruction box, 'SwipeView Content Margin' slider, 'SwipeView Content Padding' slider (thumbs at matching positions), and the gray 'Horizontal SwipeItems' / 'Vertical SwipeItems' cards. C++ shows both cards fully; MAUI capture is scrolled to top showing Horizontal + partial Vertical.",
-  "severity": "major"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the SwipeView Content Margin / Content Padding sliders and the 'Horizontal SwipeItems' / 'Vertical SwipeItems' gray cells all equivalent. (Gemini flagged 'diff' — over-flag.)",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "swipe_view_shadow": {
-  "dark": "minor",
-  "dark_note": "Content labels now centered (HorizontalOptions/VerticalOptions=Center, per XAML) in both shadowed Borders and the custom SwipeItemView Delete/Add labels — matches MAUI. Light: black rounded borders + gradient fill + centered 'Content'. Dark: the hardcoded black Stroke + black Shadow are invisible on the black background, so only the centered 'Content' text shows — IDENTICAL to MAUI's dark ref (faithful: the C# XAML hardcodes Stroke=Black/Shadow Brush=Black). Residual: subtle drop-shadow intensity on the light boxes.",
-  "light": "minor",
-  "light_note": "Content labels now centered (HorizontalOptions/VerticalOptions=Center, per XAML) in both shadowed Borders and the custom SwipeItemView Delete/Add labels — matches MAUI. Light: black rounded borders + gradient fill + centered 'Content'. Dark: the hardcoded black Stroke + black Shadow are invisible on the black background, so only the centered 'Content' text shows — IDENTICAL to MAUI's dark ref (faithful: the C# XAML hardcodes Stroke=Black/Shadow Brush=Black). Residual: subtle drop-shadow intensity on the light boxes.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Shadow in SwipeView Content' + the centered 'Content' cards (SwipeItems + SwipeItemViews) with gradient fill, border, and drop shadow all equivalent.",
+  "dark_note": "Match — same shadowed content cards on black (the black-on-black border is faithful to the hardcoded Stroke=Black).",
+  "reviewed": "2026-06-23"
  },
  "switch": {
-  "dark": "minor",
-  "dark_note": "Same switches/colors as MAUI. Same diffs: ThumbColor switch thumb is white in MAUI but orange in C++; section headers bold vs regular weight.",
   "light": "minor",
-  "light_note": "Same switches and colors: Default (off, 'Default switch is Off'), BackgroundColor (blue), Background (yellow-green gradient), Disabled, OnColor, ThumbColor. Diffs: the ThumbColor demo switch shows a white/light thumb in MAUI but an orange thumb in C++; section headers bold in MAUI vs regular weight in C++; MAUI light has a white card container.",
-  "severity": "minor"
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "Switches + colors match exactly: Default (off), BackgroundColor (blue track), Background (green gradient), Disabled (gray), OnColor, ThumbColor (orange). Minor: the section-header labels (Default/BackgroundColor/...) render larger/bolder in MAUI than the C++ port's regular-weight labels.",
+  "dark_note": "Same: switches/colors match; section-header label font larger/bolder in MAUI.",
+  "reviewed": "2026-06-23"
  },
  "switch_grouping": {
-  "dark": "minor",
-  "dark_note": "Same as light: 'Is Grouped:' label + green ON switch and identical grouped content; C++ uses taller per-row spacing so fewer rows fit per screen.",
-  "light": "minor",
-  "light_note": "Both show 'Is Grouped:' label with a green ON switch, then the grouped list (green headers, orange footers, members) in identical order. Switch renders correctly. Only difference is C++'s taller row spacing — MAUI reaches 'Defenders' while C++ only reaches 'Fantastic Four' on screen.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the 'Is Grouped:' toggle (on) and the grouped lists (green headers / orange footers) all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "tabbed_flyout": {
   "light": "minor",
   "dark": "minor",
   "severity": "minor",
-  "light_note": "Now RENDERS (was BLANK; fix 8c591cc864 — VC-backed root pages install AS the window rootViewController so the UISplitViewController/UITabBarController child-VC lifecycle fires). Port shows correct native iOS FlyoutPage chrome: UISplitViewController collapsed on iPhone → detail visible + a chevron to reveal the flyout, plus a UITabBarController (Home/Settings tab bar, Home tab content 'This is the Home tab.'). The maui-compare REF shows a FLAT layout instead (Menu + Home tab/Settings tab/Toggle flyout buttons + both tabs' content stacked vertically) which does NOT resemble native iOS FlyoutPage — likely a maui-compare harness rendering artifact, not real MAUI's native render. Port's native presentation is correct; the residual is presentation-style + flyout collapsed-vs-expanded. Verified no content_page regression (value_controls + ios_scroll_view render). Flagged as possible non-native ref (policy #3).",
-  "dark_note": "Now RENDERS (was BLANK; fix 8c591cc864 — VC-backed root pages install AS the window rootViewController so the UISplitViewController/UITabBarController child-VC lifecycle fires). Port shows correct native iOS FlyoutPage chrome: UISplitViewController collapsed on iPhone → detail visible + a chevron to reveal the flyout, plus a UITabBarController (Home/Settings tab bar, Home tab content 'This is the Home tab.'). The maui-compare REF shows a FLAT layout instead (Menu + Home tab/Settings tab/Toggle flyout buttons + both tabs' content stacked vertically) which does NOT resemble native iOS FlyoutPage — likely a maui-compare harness rendering artifact, not real MAUI's native render. Port's native presentation is correct; the residual is presentation-style + flyout collapsed-vs-expanded. Verified no content_page regression (value_controls + ios_scroll_view render). Flagged as possible non-native ref (policy #3)."
+  "light_note": "No longer blank: the C++ port renders the NATIVE flyout (UISplitViewController back-chevron) + the bottom Home/Settings tab bar, while MAUI's reference shows a FLAT non-native layout (a maui-compare harness artifact). The port's native render is the more faithful one.",
+  "dark_note": "Same: native flyout + tab bar in C++; MAUI's ref is a flat harness layout.",
+  "reviewed": "2026-06-23"
  },
  "templated_view": {
-  "dark": "minor",
-  "dark_note": "Same as light: content, structure, red headings, gray placeholders and three compact cards all match; the only difference is the slightly smaller C++ card sizing (all three visible) vs slightly larger MAUI cards (third card clipped).",
-  "light": "minor",
-  "light_note": "Strong match. Both show the red intro text 'A standard CardView control is suitable for grid layouts:', the standard card ('Slavko Vlasic' + lorem text), the red 'A ControlTemplate overrides the standard view, creating a more compact view:' note, and three compact cards (Carolina Pena, Wade Blanks, Colette Quint) each with a gray image placeholder and bold 'Compact card' title. Only cosmetic difference: C++ compact cards / gray placeholders are slightly smaller so all three fit fully on screen, while MAUI's cards are a touch larger so the third (Colette Quint) is partially cut off at the bottom.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'A standard CardView control...' + the Slavko Vlasic card + 'A ControlTemplate overrides...' + the compact cards (Carolina Pena / Wade Blanks / Colette Quint with thumbnails) all equivalent.",
+  "dark_note": "Match — same cards on black.",
+  "reviewed": "2026-06-23"
  },
  "time_picker": {
-  "dark": "minor",
-  "dark_note": "Same as light: 24h '0:00' device-locale time format correct in both. Same third-gradient hue mismatch (MAUI blue->cyan vs C++ pink->magenta).",
-  "light": "minor",
-  "light_note": "Structure matches (Default, BackgroundColor blue, two Background gradient pickers, Update/Clear Background, 'Default with time' 4:15). Time format is correct 24h device-locale '0:00' in both (NOT the old invariant '12:00 AM' bug) — format fix confirmed working; the C++ 'Format' demo row correctly shows '12:00'. Same one cosmetic diff as date_picker: the third 'Background' gradient picker is blue->cyan/teal in MAUI vs pink/magenta->purple in C++ (first yellow->green gradient matches). C++ fits trailing rows (Disabled, green TextColor, Format 12:00, IsFocused) MAUI crops.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: Default (0:00), BackgroundColor (blue), two gradient Backgrounds, Update/Clear, Default-with-time (4:15), Disabled — all 24h device-locale, equivalent. TextColor/Format/IsFocused rows below MAUI's wrapper crop.",
+  "dark_note": "Match — same content on black.",
+  "reviewed": "2026-06-23"
  },
  "title_bar": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical two-column control set including the checked 'Show TitleBar' and the right-edge-clipped Color Options buttons; only spacing density and absent nav header differ.",
-  "light": "minor",
-  "light_note": "Both show the same two-column layout: left 'Content Options' with Set Icon radio, Title + Subtitle entry fields, Leading Content / Content / Trailing Content / Tall TitleBar radios, and a checked 'Show TitleBar'; right 'Color Options' with two 'Green' entry fields, 'Set Color'/'Set Foreground' buttons (clipped at the right edge on both), 'Toggle Title Bar On Window', and 'TitleBar: Title / Subtitle / Content are live'. All controls and the checked state match. Only difference is C++'s tighter vertical density and missing nav header.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Content Options' (Set Icon / Title / Subtitle / Leading-Content / Content / Trailing-Content / Tall-TitleBar / Show-TitleBar radios) + 'Color Options' (Set Color / Set Font, Toggle Title Bar On Window, live readout) all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "toolbar": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical label + 6 buttons; only spacing density and the absent nav header differ.",
-  "light": "minor",
-  "light_note": "Identical content: 'You clicked on ToolbarItem: {none}' and the 6 buttons (Enable/Disable Test (1), Enable/Disable Test Secondary (4), Enable/Disable Test Secondary (2), Change text on Test Secondary (1), Remove/Add Secondary (3), Change Command Property on Secondary (3)). Only difference is the tighter button spacing and the missing nav-bar header in C++.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'You clicked on ToolbarItem: {none}' status (the earlier missing-label residual is resolved) + the Enable/Disable Test, Enable/Disable/Change/Remove-Add Secondary, and Change Command Property links all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "transform_playground": {
-  "dark": "match",
-  "dark_note": "Same as light in dark theme: gray canvas + red square top-left, identical slider labels and values (Rotation 0, CenterX 0, CenterY 0, ScaleX 1.00). C++ shows a bit more content below the fold but structure matches.",
   "light": "match",
-  "light_note": "Both show the gray canvas square with the red/blue-bordered square in its top-left, then identical labeled sliders: 'RotateTransform / Rotation: 0', 'CenterX: 0', 'CenterY: 0', 'ScaleTransform / ScaleX: 1.00'. Slider thumb positions and values match. C++ simply shows slightly more rows below the fold (SkewTransform) due to tighter row spacing; structure and values are identical.",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the gray target panel with the red/blue-bordered square (at identity) plus the RotateTransform / Center / ScaleTransform / SkewTransform labeled sliders all equivalent (the gray panel IS rendered in C++ here).",
+  "dark_note": "Match — same panel + sliders on black.",
+  "reviewed": "2026-06-23"
  },
  "transformations": {
-  "dark": "minor",
-  "dark_note": "Same as light; integer number format + matching controls in dark.",
-  "light": "minor",
-  "light_note": "FIXED number format to match C# double.ToString(): whole values now print as integers ('Scale = 1' not '1.0'; 'AnchorX = 0.5' preserved). Heading 'SCALE AND ROTATE', the 6 transform sliders, Anchor steppers, and Translation sliders all match.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'SCALE AND ROTATE' header + Scale / ScaleX / ScaleY / Rotation / RotationX / RotationY sliders, AnchorX/AnchorY steppers, and TranslationX/TranslationY sliders all equivalent.",
+  "dark_note": "Match — same transform controls on black.",
+  "reviewed": "2026-06-23"
  },
  "triggers": {
-  "dark": "minor",
-  "dark_note": "Same as light; bold heading + matching content in dark.",
-  "light": "minor",
-  "light_note": "FIXED: the 'Triggers' heading now renders bold ~32pt (C# Title style) matching MAUI (was small/regular). Content (instructions, entry, status, Toggle button + the validation/highlight triggers) matches.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Triggers' header, the 'valid double or it turns red' hint, 'Enter a System.Double' entry, 'Highlight off', and 'Toggle highlight' link all equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "update_path_data": {
+  "light": "match",
   "dark": "match",
-  "dark_note": "Both MAUI and C++ show ONLY the bottom 'counter = 0 | Data:...' text and the blue 'Update Path Data' button; the S-curve is invisible (black stroke on black background did not adapt to dark theme) in BOTH apps. Identical behavior, so they match.",
-  "light": "minor",
-  "light_note": "Both show the S-curve cubic-bezier path stroked in black, the bottom text 'counter = 0 | Data: M 10,100 C 10,300 300,-200 300,100', and the blue 'Update Path Data' button overlapping that text. The curve shape and labels match; only the curve's vertical position differs (MAUI centers the curve in the white card, C++ draws it near the top). Minor positional difference.",
-  "severity": "minor"
+  "severity": "match",
+  "light_note": "Match: the black cubic-bezier S-curve, the 'counter = 0 | Data: M 10,100 C 10,300 300,-200 300,100' readout, and the 'Update Path Data' link all equivalent (the link overlapping the counter text is a sample quirk present in both).",
+  "dark_note": "Match — both render the hardcoded-black path invisibly on black; only the text shows.",
+  "reviewed": "2026-06-23"
  },
  "varied_size_selector": {
-  "light": "minor",
-  "dark": "minor",
-  "severity": "minor",
-  "light_note": "Cells now self-size to their per-template HeightRequest (Coffee vs Milk differ) — varied heights matching MAUI (was uniform ~2x over-height). The Insert/Add/Remove buttons + Index/Latte entries render. Independently re-verified on-sim. Residual minor: the CollectionView's total height / number of items visible before the buttons differs (layout + wrapper crop).",
-  "dark_note": "Cells now self-size to their per-template HeightRequest (Coffee vs Milk differ) — varied heights matching MAUI (was uniform ~2x over-height). The Insert/Add/Remove buttons + Index/Latte entries render. Independently re-verified on-sim. Residual minor: the CollectionView's total height / number of items visible before the buttons differs (layout + wrapper crop)."
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the DataTemplateSelector cells self-size by type (Coffee = short brown, Milk = tall cream: Coffee0 / Milk1 / Coffee2 / Coffee3 / Milk4 / Coffee5) and the Insert / Add / Remove + Index / Latte controls all match.",
+  "dark_note": "Match — same varied-size cells on black.",
+  "reviewed": "2026-06-23"
  },
  "vertical_stack": {
-  "dark": "minor",
-  "dark_note": "Same content and color order in dark on a black background; squares centered horizontally. MAUI squares slightly larger than C++'s. Cosmetic sizing only.",
-  "light": "minor",
-  "light_note": "Both render the 'VerticalStackLayout' label and a centered vertical column of 6 colored squares (red, yellow, blue, green, orange, purple). Color order and structure match exactly. Only difference: MAUI's squares are slightly larger/taller than C++'s. Cosmetic sizing only.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'VerticalStackLayout' label + the centered rainbow column of 6 squares are equivalent.",
+  "dark_note": "Match — same on black.",
+  "reviewed": "2026-06-23"
  },
  "visual_states": {
-  "dark": "match",
-  "dark_note": "VSM background now renders: the 'Entry with VisualStateManager' shows the Normal-state Lime green BackgroundColor, matching MAUI (fix: VSM setters now target background_property() with a solid_paint instead of the old text_color stand-in; entry rests in Normal — MAUI's DataTrigger IsEnabled=False does not visually swap to the Disabled Pink at startup). Both state-change buttons + enabler entry match. Only the harness wrapper inset/crop differs (exempt, policy #2).",
   "light": "match",
-  "light_note": "VSM background now renders: the 'Entry with VisualStateManager' shows the Normal-state Lime green BackgroundColor, matching MAUI (fix: VSM setters now target background_property() with a solid_paint instead of the old text_color stand-in; entry rests in Normal — MAUI's DataTrigger IsEnabled=False does not visually swap to the Disabled Pink at startup). Both state-change buttons + enabler entry match. Only the harness wrapper inset/crop differs (exempt, policy #2).",
-  "severity": "match"
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the green-background 'Entry with VisualStateManager:' (the Lime VSM background fix), the 'Type something to enable 2nd Entry' entry, and both VSM buttons ('Hover me to see the state change' / 'Click me to see the state change and revert') all equivalent.",
+  "dark_note": "Match — same VSM entry + buttons on black.",
+  "reviewed": "2026-06-23"
  },
  "web_view": {
-  "dark": "minor",
-  "dark_note": "Same: C++ renders correctly; the MAUI ref difference is async-load capture timing.",
-  "light": "minor",
-  "light_note": "C++ correctly renders the WebView HTML ('Welcome' + 'Served from a static HtmlWebViewSource.') and the nav label 'new_page -> https://demo.test/welcome'. MAUI's capture caught the page BEFORE the async didFinishNavigation fired (blank body, 'No navigation yet') — a screenshot-timing artifact, not a C++ bug (the port is the more-complete render).",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: the WebView 'Welcome' HTML content ('Served from a static HtmlWebViewSource.'), the navigation readout, 'Eval result: <none>', and the Page A / Page B / Back / Forward / Reload / Eval 1+1 links all render (the nav-readout text differs only by runtime navigation state).",
+  "dark_note": "Match — same WebView + links on black.",
+  "reviewed": "2026-06-23"
  },
  "z_index": {
-  "dark": "minor",
-  "dark_note": "Same as light: identical 10-label diagonal z-index cascade with red Label 9 on top, correct stacking order and all label texts present. MAUI is positioned lower (harness card) and C++ has marginally tighter row spacing; z-order matches.",
-  "light": "minor",
-  "light_note": "Both show the 'Z-Index of Label 5: 5' header with a -/+ stepper and a diagonal cascade of 10 colored labels ('This is Label 0..9, z-index 0..9') stacked so red Label 9 is frontmost. The z-order, colors, label text and cascade direction all match. Only differences: MAUI sits lower (harness card) and C++ stacks the rows with slightly tighter vertical spacing; the stepper is a pill in MAUI vs a flatter control in C++.",
-  "severity": "minor"
+  "light": "match",
+  "dark": "match",
+  "severity": "match",
+  "light_note": "Match: 'Z-Index of Label 5: 5' + stepper, and the diagonal cascade of 10 colored z-ordered labels ('This is Label N, z-index N') overlap with identical z-order.",
+  "dark_note": "Match — same cascade on black.",
+  "reviewed": "2026-06-23"
  }
 }

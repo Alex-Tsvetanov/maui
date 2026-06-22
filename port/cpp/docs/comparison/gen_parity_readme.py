@@ -137,6 +137,33 @@ def review_cell(v):
     return out
 
 
+def _esc_cell(s):
+    """Make note text safe inside a markdown table cell: no raw pipes / newlines."""
+    return (s or "").replace("|", "\\|").replace("\r", " ").replace("\n", " ").strip()
+
+
+def fmt_notes(ln, dn):
+    """Render a reviewer's per-theme notes as a compact table-cell fragment (prefixed with <br>)."""
+    ln, dn = _esc_cell(ln), _esc_cell(dn)
+    if not ln and not dn:
+        return ""
+    if ln and dn and ln == dn:
+        return f"<br>{ln}"
+    parts = []
+    if ln:
+        parts.append(f"**L:** {ln}")
+    if dn:
+        parts.append(f"**D:** {dn}")
+    return "<br>" + "<br>".join(parts)
+
+
+def review_notes(v):
+    """Gemini's per-theme notes from a review verdict (run_parity stores light_note/dark_note)."""
+    if not v:
+        return ""
+    return fmt_notes(v.get("light_note", ""), v.get("dark_note", ""))
+
+
 def img(rel):
     """A fixed-height <img> so MAUI and C++ captures line up at the same height in the GitHub preview."""
     return f'<img src="{rel}" height="{IMG_HEIGHT}">'
@@ -219,9 +246,12 @@ def main():
              "scroll/web, combos, iOS-specifics, and chrome/host pages last.")
     o.append("")
     reviewed = sum(1 for k in KEYS if k in review)
-    o.append(f"The **AI review** column is an independent automated second opinion (Gemini by default, Claude "
-             f"vision on quota fallback) from `tools/parity/run_parity.py` — it does not drive the board. "
-             f"{reviewed}/{total} pages Gemini-reviewed; **—** = not yet judged by Gemini.")
+    o.append(f"Each page carries **two independent visual reviews**, both from a fresh capture of the same images: "
+             f"the **Claude review** column (Opus 4.x vision, the curated board in `parity_status.json` — drives the "
+             f"progress counter + fixes) and the **Gemini review** column (Gemini's best-available model per "
+             f"`tools/parity/run_parity.py`, quota-aware cascade, recorded in `parity_review.json`). Each cell shows "
+             f"that reviewer's per-theme verdict (L/D) + its note. {reviewed}/{total} pages Gemini-reviewed; "
+             f"**—** = not yet judged by Gemini.")
     if reviewed < total:
         o.append("")
         o.append(f"> ⏳ **Gemini sweep pending for {total - reviewed} page(s).** The free-tier daily quota was "
@@ -229,15 +259,18 @@ def main():
                  f"resets. Meanwhile the **Status** column (the human/Claude-reviewed board) is authoritative and "
                  f"drives fixes.")
     o.append("")
-    o.append("| # | Page | Status | AI review | .NET MAUI (light) | C++ (light) | .NET MAUI (dark) | C++ (dark) |")
-    o.append("| --: | --- | :---: | :---: | :---: | :---: | :---: | :---: |")
+    o.append("| # | Page | Claude review | Gemini review | .NET MAUI (light) | C++ (light) | .NET MAUI (dark) | C++ (dark) |")
+    o.append("| --: | --- | :--- | :--- | :---: | :---: | :---: | :---: |")
     for i, k in enumerate(KEYS, start=1):
         st = status[k]
         c = combined(st)
         fl = "".join(FLAG_EMOJI[f] for f in flags_of(st))
-        badge = f"{EMOJI[c]}{fl}<br>L:{LABEL[st.get('light','pending')]}<br>D:{LABEL[st.get('dark','pending')]}"
+        rv = review.get(k)
+        claude_cell = (f"{EMOJI[c]}{fl}<br>L:{LABEL[st.get('light','pending')]}<br>D:{LABEL[st.get('dark','pending')]}"
+                       + fmt_notes(st.get("light_note"), st.get("dark_note")))
+        gemini_cell = review_cell(rv) + review_notes(rv)
         o.append(
-            f"| {i} | {title(k)} | {badge} | {review_cell(review.get(k))} "
+            f"| {i} | {title(k)} | {claude_cell} | {gemini_cell} "
             f"| {img(f'csharp_ios_light/{k}.png')} | {img(f'cpp_ios_light/{k}.png')} "
             f"| {img(f'csharp_ios_dark/{k}.png')} | {img(f'cpp_ios_dark/{k}.png')} |"
         )
