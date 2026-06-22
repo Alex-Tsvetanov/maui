@@ -116,13 +116,18 @@ differences are split into **port_diffs** (fix) vs **maui_quirks** (MAUI-side, d
 3. **New MAUI imperfections → flag, don't act.** When a sweep surfaces a MAUI-side quirk not covered
    above, record it in `docs/comparison/PARITY_REVIEW.md` (maui_quirks) and **pause for a user ruling** —
    neither auto-ignore nor auto-fix. Append the approved ruling to this list.
-4. **The maui-compare default `Styles.xaml` IS matched, not exempt** (user ruling 2026-06-22, revising the
-   earlier compare-audit "button chrome = harness artifact" stance). The demo harness's default control
-   styles (e.g. the `Button` style's `Padding="14,10"`, corner radius, etc.) are part of MAUI's rendered
-   output, so the port must replicate them to match control sizing/appearance — they are NOT a harness
-   artifact like the WRAPPER (#2). Apply the matching defaults at the port's resource/control-default level
-   and re-verify affected pages. (Concretely: the port's default `Button` padding/appearance should mirror
-   the maui-compare `Styles.xaml` Button style.)
+4. **Match MAUI's NATIVE-default control rendering (the maui-compare ref renders native-default, NOT
+   styled).** CORRECTED 2026-06-22 after reading `~/maui-compare/App.xaml`: the reference app
+   **intentionally does NOT merge `Styles.xaml`** (its comment: "renders native-default controls + the
+   system font, matching the C++ gallery"), so the demo's default `Button`/`Label`/`Entry` styles
+   (Padding 14,10, purple chrome, OpenSans, etc.) are **NOT applied** — the prior compare-audit stance
+   ("default Styles.xaml = harness artifact; port correct to omit it") was RIGHT. So the port must NOT
+   adopt the default Styles.xaml. **But** the port must faithfully replicate the **native control
+   defaults**: e.g. the iOS button measure must not zero the native `UIButton`'s default content insets
+   (an unset `Padding` should leave the native default, mirroring MAUI's `MapPadding`), which is what
+   caused clipping's crammed digit row vs MAUI's naturally-spread native buttons. The fix is a targeted
+   native-default-fidelity change, NOT a default-style adoption. (The user's "match the ref's button
+   sizing" intent stands — achieved via native-inset fidelity, not Styles.xaml.)
 
 Workflow: run the sweep **review-only** (writes `PARITY_REVIEW.md`, board untouched) → user verifies and
 rules on quirks → only then `--commit-board` adopts verdicts and the port_diffs become fix candidates.
