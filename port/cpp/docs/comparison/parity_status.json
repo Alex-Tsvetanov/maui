@@ -224,11 +224,11 @@
   "severity": "minor"
  },
  "clipping": {
-  "dark": "diff",
-  "dark_note": "Same diffs as light: numbers '1'-'8' are spread full-width in MAUI but bunched together at the left in C++, and two coffee-cup emojis appear in C++ but not in MAUI. The orange square, purple 'Hey' block and light-blue clip otherwise match.",
-  "light": "diff",
-  "light_note": "Orange clipping demo: 'Not clipping' label, 'Toggle clipping on horizontal stack layouts' button, an orange-red square, a purple 'Hey Hey Hey Hey' block over a light-blue clip, and a numbers row. Two real diffs: (1) the numbers row — MAUI spreads '1'-'8' across the full width (the '1' clipped off-screen left, large gaps between digits) while C++ bunches them tightly as '12345678' at the far left with no spacing; (2) C++ renders two coffee-cup emoji glyphs at the left of the light-blue bar that are ABSENT in MAUI. C++ also fills edge-to-edge orange vs MAUI's black-inset rounded card.",
-  "severity": "major"
+  "light": "minor",
+  "dark": "minor",
+  "severity": "minor",
+  "light_note": "Digit-button row '1 2 3 4 5 6 7 8' now SPREADS with per-button width matching MAUI (fix 65f75330fe: Button.Padding defaults to NaN not zero, so the C#-faithful NaN->DefaultPadding(12,7) substitution fires instead of zeroing the native UIButton content insets). Red-orange square, light-blue clip region/bar, and the two coffee.png cups all render (the port faithfully shows coffee.png; the earlier 'coffee cups missing' note was about MAUI's ref, not the port). Residuals (minor): the purple WidthRequest=50 'Hey' buttons truncate to '…' because the port honors WidthRequest=50 while MAUI's HorizontalStackLayout grows them to ~188px to fit 'Hey' — a HSL WidthRequest/overflow-growth gap (separate follow-up, not button padding); and the port shows '1' (MAUI crops it off-left, wrapper).",
+  "dark_note": "Digit-button row '1 2 3 4 5 6 7 8' now SPREADS with per-button width matching MAUI (fix 65f75330fe: Button.Padding defaults to NaN not zero, so the C#-faithful NaN->DefaultPadding(12,7) substitution fires instead of zeroing the native UIButton content insets). Red-orange square, light-blue clip region/bar, and the two coffee.png cups all render (the port faithfully shows coffee.png; the earlier 'coffee cups missing' note was about MAUI's ref, not the port). Residuals (minor): the purple WidthRequest=50 'Hey' buttons truncate to '…' because the port honors WidthRequest=50 while MAUI's HorizontalStackLayout grows them to ~188px to fit 'Hey' — a HSL WidthRequest/overflow-growth gap (separate follow-up, not button padding); and the port shows '1' (MAUI crops it off-left, wrapper)."
  },
  "collectionview": {
   "dark": "minor",
