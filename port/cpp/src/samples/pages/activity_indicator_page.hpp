@@ -84,6 +84,13 @@ namespace maui::samples
             // ---- End-of-page subhead ----
             end_label_.set_text("- End of page -");
 
+            // Section headers render bold @18pt — mirrors maui-compare ActivityIndicatorPage.Headline().
+            for (maui::controls::label* h : {&default_header_, &color_header_, &background_header_, &smaller_header_,
+                                             &larger_header_, &not_running_header_})
+            {
+                h->set_font(maui::core::font::system_font_of_size(18.0, maui::core::font_weight::bold));
+            }
+
             stack_.add(default_header_);
             stack_.add(default_indicator_);
             stack_.add(color_header_);

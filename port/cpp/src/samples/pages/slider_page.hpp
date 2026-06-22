@@ -130,6 +130,15 @@ namespace maui::samples
             edge_slider_.set_minimum(100);
             edge_slider_.set_value(100);
 
+            // Section headers render bold @18pt — mirrors maui-compare SliderPage.Headline().
+            for (maui::controls::label* h :
+                 {&default_headline_, &bg_color_headline_, &background_headline_, &min_max_headline_,
+                  &disabled_headline_, &min_track_headline_, &max_track_headline_, &thumb_color_headline_,
+                  &thumb_image_headline_, &custom_headline_, &dynamic_headline_, &edge_headline_})
+            {
+                h->set_font(maui::core::font::system_font_of_size(18.0, maui::core::font_weight::bold));
+            }
+
             stack_.add(default_headline_);
             stack_.add(default_slider_);
             stack_.add(bg_color_headline_);

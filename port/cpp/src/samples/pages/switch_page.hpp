@@ -69,6 +69,13 @@ namespace maui::samples
             thumb_color_headline_.set_text("ThumbColor");
             thumb_color_switch_.set_thumb_color(maui::graphics::colors::orange);
 
+            // Section headers render bold @18pt — mirrors maui-compare SwitchPage.Headline().
+            for (maui::controls::label* h : {&default_headline_, &bg_color_headline_, &background_headline_,
+                                             &disabled_headline_, &on_color_headline_, &thumb_color_headline_})
+            {
+                h->set_font(maui::core::font::system_font_of_size(18.0, maui::core::font_weight::bold));
+            }
+
             stack_.add(default_headline_);
             stack_.add(default_switch_);
             stack_.add(readout_);

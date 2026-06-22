@@ -59,6 +59,13 @@ namespace maui::samples
             change_row_.add(change_button_);
             change_row_.add(change_check_);
 
+            // Section headers render bold @18pt — mirrors maui-compare CheckBoxPage.Headline().
+            for (maui::controls::label* h : {&default_headline_, &colored_headline_, &change_headline_,
+                                             &disabled_headline_, &disabled_colored_headline_})
+            {
+                h->set_font(maui::core::font::system_font_of_size(18.0, maui::core::font_weight::bold));
+            }
+
             stack_.add(default_headline_);
             stack_.add(default_check_);
             stack_.add(colored_headline_);

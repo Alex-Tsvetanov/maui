@@ -70,6 +70,12 @@ namespace maui::samples
             progress_to_button_.set_text("ProgressTo");
             progress_to_button_.clicked.connect([this] { progress_to_bar_.set_progress(1.0); });
 
+            // Section headers render bold @18pt — mirrors maui-compare ProgressBarPage.Headline().
+            for (maui::controls::label* h : {&default_header_, &color_header_, &disabled_header_, &progress_to_header_})
+            {
+                h->set_font(maui::core::font::system_font_of_size(18.0, maui::core::font_weight::bold));
+            }
+
             stack_.add(default_header_);
             stack_.add(default_bar_);
             stack_.add(color_header_);

@@ -89,6 +89,14 @@ namespace maui::samples
                 [this](double /*old_value*/, double new_value) { update_readout(new_value); });
             update_readout(value_changed_stepper_.value());
 
+            // Section headers render bold @18pt — mirrors maui-compare StepperPage.Headline().
+            for (maui::controls::label* h :
+                 {&default_header_, &background_header_, &background_color_header_, &disabled_header_,
+                  &increment_header_, &min_max_header_, &value_changed_header_})
+            {
+                h->set_font(maui::core::font::system_font_of_size(18.0, maui::core::font_weight::bold));
+            }
+
             stack_.add(default_header_);
             stack_.add(default_stepper_);
             stack_.add(disabled_header_);
