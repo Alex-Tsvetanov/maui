@@ -176,8 +176,23 @@ re-stamped to honest severities **as each fix lands and is re-verified on-sim** 
 - **R1 (section fonts) — DONE+VERIFIED, commit `fa080950e5`.** slider/switch/activity_indicator/
   progress_bar/check_box/stepper headers now bold 18pt. Verified on-sim (switch headers bold).
 - **R8 device (centering) — DONE+VERIFIED, commit `6461a3c574`.** Stack now horizontally centered.
-- **R3/R4/R5 (CV), R2 (brush), R7 (paths) — delegated to parallel `code-changes` agents** (implementation
-  + headless tests in worktrees); coordinator integrates + does on-sim visual verification.
+- **R2 (Background brush) — DONE+VERIFIED, commit `d80d559930`.** Gradient/image sublayer moved below the
+  thumb (zPosition −1 + index 0, ports C# InsertBackgroundLayer); date/time pickers drop the RoundedRect
+  bezel for the gradient case so it fills. Switch thumb visible; picker gradients fill. (Salvaged from the
+  U-BRUSH agent's WIP after it died on an infra timeout; picker half completed by coordinator.)
+- **R3/R4/R5 (CV) — DONE+VERIFIED, commit `9e5a3835ab`** (from the U-CV agent). KEY FINDING: the iOS cell
+  self-sizing was ALREADY correct post-#143. R3 = adaptive_collection's *page* had dropped its template
+  chrome (HeightRequest=60, centered) — restored → centered 60pt rows. R4/R5 = new reflection-free
+  `data_template::add_setup` hook pushes the inner CV's horizontal orientation + a red-italic source-title
+  template. Verified on-sim (adaptive centered+tall; nested horizontal + red titles).
+  → **IMPLICATION for the rest of R3:** the other ~13 "tight CV" pages are NOT one framework root cause;
+  each needs an individual check — likely a mix of Gemini over-flags (MAUI also tight = harness crop) and
+  per-page dropped chrome. Do NOT blanket-fix.
+- **R7 (paths) — re-spawned** after the first U-PATHS agent died on an infra timeout leaving nothing
+  (no commit, no WIP); retry brief mandates commit-early-and-often.
+- **Agent infra note (2026-06-23):** the "Stream idle timeout" error killed 2 of 3 framework agents at
+  ~13–15 min. Worktree commits survive; uncommitted WIP is salvageable via `git diff > patch`; a clean
+  death leaves nothing. Lesson baked into re-spawn briefs: commit each sub-fix immediately.
 - **Validation corrections found DURING fixing (oracle + on-sim re-check overturned the text triage):**
   - `stack_layout` → **NOFIX (over-flag).** Oracle: the public `StackLayout` derives from `StackBase`
     with `Spacing` default **0**, matching the port; the montage shows boxes touching in BOTH. Gemini's
