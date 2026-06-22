@@ -34,17 +34,18 @@
 //
 // note: the C# OUTER cell is a two-row Grid (an italic red Title Label ABOVE the inner CV). The port's
 //       templated cells render a SINGLE root control (data_template::of<TControl>), so the cell root is
-//       the inner collection_view, and the outer item's Title surfaces as that inner CV's HEADER (a
-//       boxed string bound off the same outer item) — the title text is preserved adjacent to its inner
-//       list, just hosted as the inner list's header rather than a separate Grid row (documented
-//       reduction; the bound data — Title + the inner image/caption captions — is identical). The
-//       headless virtualization sim realizes the OUTER cells (each an inner collection_view bound to its
-//       source); headless has no live native pump to recursively realize each inner CV's own cells, so
-//       there the nesting is wired + bound but the inner cells' geometry is not arranged. On the iOS
-//       backend the inner UICollectionViews DO recursively realize + self-size their own cells (the
-//       captions render), so the full nesting is visible; the one remaining gap is the inner CV's
-//       HORIZONTAL orientation (the documented items_layout-non-bindable limitation above) — the inner
-//       cells flow vertically rather than in a horizontal row.
+//       the inner collection_view, and the outer item's Title surfaces as that inner CV's HEADER — but
+//       rendered through a red-italic header TEMPLATE bound to the source Title (matching the XAML
+//       TextColor=Red / FontAttributes=Italic), not a plain boxed string, so the title color is faithful
+//       (documented reduction in STRUCTURE only — the title is the inner list's header rather than a
+//       separate Grid row; the bound data — Title + the inner image/caption captions — and its color are
+//       identical). The headless virtualization sim realizes the OUTER cells (each an inner
+//       collection_view bound to its source); headless has no live native pump to recursively realize
+//       each inner CV's own cells, so there the nesting is wired + bound but the inner cells' geometry is
+//       not arranged. On the iOS backend the inner UICollectionViews DO recursively realize + self-size
+//       their own cells (the captions render), so the full nesting is visible; the inner CV's HORIZONTAL
+//       orientation is now staged through the outer template via a setup action (add_setup), so the inner
+//       cells flow in a horizontal row as in MAUI.
 
 #include <memory>
 #include <random>
@@ -63,6 +64,7 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/font.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/scroll_bar_visibility.hpp"
 #include "maui/graphics/colors.hpp"
@@ -112,12 +114,15 @@ namespace maui::samples
             // ---- the outer item template: the cell IS an inner collection_view (header note) ----
             auto outer_cell = maui::controls::data_template::of<maui::controls::collection_view>();
 
-            // note: the XAML inner CV is a HorizontalList. ItemsLayout is exposed as a non-bindable
-            //       shared_ptr (StructuredItemsView.ItemsLayout), so a data_template can only stage the
-            //       BINDABLE inner-CV chrome (ItemTemplate, the two scroll-bar visibilities, HeightRequest,
-            //       ItemsSource, Header) — the HorizontalList ORIENTATION cannot be pushed through the
-            //       template, so each inner CV keeps its default vertical layout (documented gap; every
-            //       other inner-CV attribute is reproduced).
+            // The XAML inner CV is a HorizontalList. ItemsLayout is a plain slot (NOT a
+            // bindable_property), so it cannot be staged through the template's Values; a template SETUP
+            // action carries the C# lambda template's `inner.ItemsLayout = LinearItemsLayout.Horizontal`
+            // instead (data_template::add_setup) — so each realized inner CV flows its image/caption
+            // items in a horizontal row, matching MAUI (the prior "horizontal CV renders vertically"
+            // gap is closed).
+            outer_cell->add_setup<maui::controls::collection_view>([](maui::controls::collection_view& inner) {
+                inner.set_items_layout(maui::controls::linear_items_layout::create_horizontal_default());
+            });
 
             // The inner CV's own ItemTemplate: a blue caption Label bound to gallery_item.Caption.
             auto inner_cell = maui::controls::data_template::of<maui::controls::label>();
@@ -139,12 +144,25 @@ namespace maui::samples
                 maui::controls::items_view::items_source_property(),
                 [](const nested_source& src) { return src.items; });
 
-            // The outer item's Title is preserved as the inner CV's HEADER (the red Label reduction —
-            // header note): bind the inner CV's Header (a boxed string) off the same outer item, so each
-            // inner list shows its source's Title above its image/caption row.
+            // The outer item's Title is the red italic Label that sits ABOVE the inner horizontal list
+            // (XAML: TextColor=Red, FontAttributes=Italic). The port's templated cell renders a single
+            // root (the inner CV), so the Title surfaces as that inner CV's HEADER (header note). The
+            // Header VALUE is the source Title (a boxed string bound off each outer item — so the realized
+            // header's BindingContext IS that title string), and a Header TEMPLATE renders it RED + ITALIC
+            // like MAUI instead of the plain headline-font default supplementary. The header label binds
+            // the self path (the boxed string context = the title) and carries the red color + italic
+            // slant (FontAttributes.Italic → font_slant::italic, the port convention).
+            auto header_cell = maui::controls::data_template::of<maui::controls::label>();
+            header_cell->set_binding<std::string, std::string>(maui::controls::label::text_property(),
+                                                               [](const std::string& title) { return title; });
+            header_cell->set_value(maui::controls::label::text_color_property(), maui::graphics::colors::red);
+            header_cell->set_value(maui::controls::label::font_property(),
+                                   maui::core::font::system_font_of_weight(maui::core::font_weight::regular,
+                                                                           maui::core::font_slant::italic));
             outer_cell->set_binding<maui::controls::boxed_item, nested_source>(
                 maui::controls::structured_items_view::header_property(),
                 [](const nested_source& src) { return maui::controls::boxed_item::of(src.title); });
+            outer_cell->set_value(maui::controls::structured_items_view::header_template_property(), header_cell);
 
             outer_.set_item_template(outer_cell);
 

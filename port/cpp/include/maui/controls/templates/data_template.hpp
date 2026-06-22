@@ -34,6 +34,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 #include "maui/controls/templates/element_template.hpp"
 #include "maui/core/bindable_object.hpp"
@@ -130,6 +131,27 @@ namespace maui::controls
             add_binding<T, T>(descriptor, [](const T& context) { return context; });
         }
 
+        // ---- Setup actions (the reflection-free analog of the C# DataTemplate(() => { … }) body) ----
+        // The Values/Bindings dictionaries express only bindable_property<T> staging — the parity of
+        // C#'s `Values`/`Bindings`. But a C# lambda template (`new DataTemplate(() => { var cv = new
+        // CollectionView { ItemsLayout = LinearItemsLayout.Horizontal }; … })`) configures the created
+        // content with arbitrary code, including NON-bindable members (CollectionView.ItemsLayout is a
+        // BindableProperty in C#, but the port models it as a plain slot — header note). The port's
+        // of<TControl>() form mints the content from a default ctor and so cannot run that lambda body;
+        // add_setup re-exposes it. Each setup runs against every created content AFTER the Values +
+        // Bindings (so a setup can read or override a staged value), at create_content time — exactly
+        // the C# lambda's per-instance configuration. Setups are NOT removed by set_value/set_binding
+        // (they target arbitrary members, not a single descriptor name).
+        template <class TContent> void add_setup(std::function<void(TContent&)> setup)
+        {
+            setups_.push_back([setup = std::move(setup)](maui::core::bindable_object& content) {
+                if (auto* typed = dynamic_cast<TContent*>(&content))
+                {
+                    setup(*typed);
+                }
+            });
+        }
+
     protected:
         // DataTemplate.SetupContent: ApplyBindings (throwing std::runtime_error — C#
         // InvalidOperationException — when the property is also staged in Values), then ApplyValues.
@@ -177,5 +199,8 @@ namespace maui::controls
         // Ordered (std::map) so create_content applies deterministically; keys are descriptor names.
         std::map<std::string, std::any, std::less<>> values_;
         std::map<std::string, binding_applier, std::less<>> bindings_;
+        // The setup actions (add_setup), applied in insertion order after Values + Bindings — the C#
+        // lambda template's per-instance configuration body (header note).
+        std::vector<std::function<void(maui::core::bindable_object&)>> setups_;
     };
 } // namespace maui::controls

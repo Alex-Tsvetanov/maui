@@ -36,6 +36,7 @@
 #include "maui/core/label_handler.hpp"
 #include "maui/core/layout_handler.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/graphics/colors.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 #include <gtest/gtest.h>
@@ -302,6 +303,26 @@ namespace
         EXPECT_EQ(content->text(), "Top"); // the template's context is the Header object
     }
 
+    // R5: a header TEMPLATE's staged TextColor (a Value, not a binding) reaches the realized header
+    // label — the NestedCollectionPage red-italic Title mechanism (the Title is the inner CV's header,
+    // rendered through a red header template instead of the plain default supplementary). Guards the
+    // "template-bound TextColor not applied" defect for the supplementary realization path.
+    TEST(collection_view_sim, header_template_text_color_reaches_the_realized_label)
+    {
+        sim rig;
+        rig.view.set_header(boxed_item::of(std::string{"Source 0"}));
+        auto tmpl = data_template::of<label>();
+        tmpl->set_binding<std::string, std::string>(label::text_property(),
+                                                    [](const std::string& value) { return value; });
+        tmpl->set_value(label::text_color_property(), maui::graphics::colors::red);
+        rig.view.set_header_template(tmpl);
+
+        const auto content = std::dynamic_pointer_cast<label>(rig.platform->header.content);
+        ASSERT_NE(content, nullptr);
+        EXPECT_EQ(content->text(), "Source 0");
+        EXPECT_EQ(content->text_color(), maui::graphics::colors::red); // the staged color is applied
+    }
+
     // ---- selection ----
 
     TEST(collection_view_sim, tap_in_single_mode_selects_through_the_view)
@@ -532,6 +553,34 @@ namespace
         EXPECT_DOUBLE_EQ(reports[0].horizontal_offset, 150);
         EXPECT_DOUBLE_EQ(reports[0].vertical_offset, 0);
         rig.view.scrolled.disconnect(token);
+    }
+
+    // R4: a NESTED collection_view whose orientation is set through the OUTER item template. The inner
+    // CV is a templated cell (of<collection_view>); its ItemsLayout is a plain slot (NOT a bindable
+    // property), so it cannot be staged via set_value — a template SETUP action carries the C# lambda
+    // template's `inner.ItemsLayout = LinearItemsLayout.Horizontal` instead. Each realized inner CV must
+    // come back HORIZONTAL (the NestedCollectionPage inner-list mechanism); without the setup it would
+    // default to vertical (the prior "horizontal CV renders vertically" defect).
+    TEST(collection_view_sim, inner_collection_view_orientation_is_staged_through_a_template_setup)
+    {
+        sim rig; // the outer CV over 10 string items
+        auto inner_template = data_template::of<collection_view>();
+        inner_template->add_setup<collection_view>([](collection_view& inner) {
+            inner.set_items_layout(maui::controls::linear_items_layout::create_horizontal_default());
+        });
+        rig.view.set_item_template(inner_template);
+
+        ASSERT_FALSE(rig.platform->realized.empty());
+        bool saw_inner = false;
+        for (const realized_cell& cell : rig.platform->realized)
+        {
+            const auto inner = std::dynamic_pointer_cast<collection_view>(cell.content);
+            ASSERT_NE(inner, nullptr); // every realized cell hosts an inner collection_view
+            ASSERT_NE(inner->items_layout(), nullptr);
+            EXPECT_EQ(inner->items_layout()->orientation(), items_layout_orientation::horizontal);
+            saw_inner = true;
+        }
+        EXPECT_TRUE(saw_inner);
     }
 
     // ---- grouping ----

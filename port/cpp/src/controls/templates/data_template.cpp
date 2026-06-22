@@ -65,5 +65,11 @@ namespace maui::controls
         {
             item.apply_setter(name, value, maui::core::setter_specificity::manual_value_setter);
         }
+        // Setup actions (add_setup) run LAST — the C# lambda template body's per-instance configuration,
+        // after the staged Values/Bindings so a setup can read or override them (data_template.hpp note).
+        for (const auto& setup : setups_)
+        {
+            setup(item);
+        }
     }
 } // namespace maui::controls

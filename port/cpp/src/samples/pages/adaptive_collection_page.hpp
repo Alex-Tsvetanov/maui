@@ -22,10 +22,12 @@
 //     linear_items_layout and a grid_items_layout(span 3) — the adaptive core;
 //   - the readout label mirrors the mounted layout kind.
 //
-// note: the C# DataTemplate's HeightRequest=60 / Padding=12 / centered Label is cosmetic chrome; the
-//   headless virtualization sim keys on the cell TREE + bindings, so the cell here is the bound label
-//   (the items_page precedent). The Width>600 threshold and the GridItemsLayout span of 3 are carried
-//   verbatim from AdaptiveCollectionView.xaml.cs.
+// note: the C# DataTemplate's HeightRequest=60 / Padding=12 / centered Label chrome is reproduced
+//   faithfully (staged on the type-activated template via set_value — each is a bindable_property): the
+//   headless virtualization sim keys on the cell TREE + bindings, but the NATIVE (iOS) cell renders the
+//   real template, where the row must be full-cross-width + measured-height (60pt) + centered to match
+//   MAUI — not shrink-wrapped + left-aligned. The Width>600 threshold and the GridItemsLayout span of 3
+//   are carried verbatim from AdaptiveCollectionView.xaml.cs.
 
 #include <memory>
 #include <string>
@@ -39,7 +41,11 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/controls/view.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/text_alignment.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/hosting/maui_app.hpp"
 
 #include "gallery_attach.hpp"
@@ -61,10 +67,25 @@ namespace maui::samples
             page_.set_title("Adaptive CollectionView");
             stack_.set_spacing(12);
 
-            // The C# DataTemplate: a centered Label bound to the string item ({Binding} self-path).
+            // The C# DataTemplate (AdaptiveCollectionView.xaml): a Label bound to the string item
+            // ({Binding} self-path) with HeightRequest=60, Padding=12, centered text, and centered
+            // HorizontalOptions/VerticalOptions. The iOS cell gives each row the collection's full
+            // cross-axis width and self-sizes to the measured template height, so the centered label
+            // renders centered in a 60pt-tall row (matching MAUI) — NOT shrink-wrapped + left-aligned.
+            // The chrome is staged on the type-activated template via set_value (each property is a
+            // bindable_property), the reflection-free analog of the XAML attribute assignments.
             auto cell = maui::controls::data_template::of<maui::controls::label>();
             cell->set_binding<std::string, std::string>(maui::controls::label::text_property(),
                                                         [](const std::string& value) { return value; });
+            cell->set_value(maui::controls::height_request_property(), 60.0);
+            cell->set_value(maui::controls::label::padding_property(), maui::core::thickness{12.0});
+            cell->set_value(maui::controls::label::horizontal_text_alignment_property(),
+                            maui::core::text_alignment::center);
+            cell->set_value(maui::controls::label::vertical_text_alignment_property(),
+                            maui::core::text_alignment::center);
+            cell->set_value(maui::controls::horizontal_layout_alignment_property(),
+                            maui::core::layout_alignment::center);
+            cell->set_value(maui::controls::vertical_layout_alignment_property(), maui::core::layout_alignment::center);
             list_.set_item_template(cell);
             list_.set_items_source(items_);
 

@@ -92,6 +92,38 @@ namespace
         EXPECT_EQ(content->text.get(), "value");
     }
 
+    TEST(data_template, add_setup_runs_per_instance_configuration)
+    {
+        // The reflection-free analog of a C# `new DataTemplate(() => { … })` body: add_setup runs
+        // arbitrary configuration on every created content (here, a NON-staged write through the typed
+        // setter), once per instance.
+        const auto tmpl = data_template::of<mock_bindable>();
+        tmpl->add_setup<mock_bindable>([](mock_bindable& m) { m.text.set("from-setup"); });
+        const auto a = std::dynamic_pointer_cast<mock_bindable>(tmpl->create_content());
+        const auto b = std::dynamic_pointer_cast<mock_bindable>(tmpl->create_content());
+        ASSERT_NE(a, nullptr);
+        ASSERT_NE(b, nullptr);
+        EXPECT_EQ(a->text.get(), "from-setup");
+        EXPECT_EQ(b->text.get(), "from-setup"); // a FRESH content each time, each configured
+        EXPECT_NE(a.get(), b.get());
+    }
+
+    TEST(data_template, add_setup_runs_after_staged_values)
+    {
+        // Setups run LAST (after Values/Bindings), so a setup observes — and can override — a staged
+        // value. Mirrors a C# lambda template whose body mutates a property it also set via an
+        // initializer.
+        const auto tmpl = data_template::of<mock_bindable>();
+        tmpl->set_value(text_prop(), std::string{"staged"});
+        tmpl->add_setup<mock_bindable>([](mock_bindable& m) {
+            EXPECT_EQ(m.text.get(), "staged"); // the staged value is already applied
+            m.text.set("overridden-by-setup");
+        });
+        const auto content = std::dynamic_pointer_cast<mock_bindable>(tmpl->create_content());
+        ASSERT_NE(content, nullptr);
+        EXPECT_EQ(content->text.get(), "overridden-by-setup");
+    }
+
     TEST(data_template, create_content_bindings)
     {
         // C#: Bindings = { { TextProperty, new Binding(".") } } — the self-path context binding.
