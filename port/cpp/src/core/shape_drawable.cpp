@@ -14,7 +14,6 @@
 #include "maui/graphics/paint.hpp"
 #include "maui/graphics/path_f.hpp"
 #include "maui/graphics/rect.hpp"
-#include "maui/graphics/winding_mode.hpp"
 
 namespace maui::core
 {
@@ -99,8 +98,14 @@ namespace maui::core
             canvas.set_fill_paint(fill_paint, dirty_rect);
         }
 
-        // C# canvas.FillPath(path) — the parameterless extension fills NonZero.
-        canvas.fill_path(path, maui::graphics::winding_mode::non_zero);
+        // C# canvas.FillPath(path) fills NonZero and relies on ClipPath(path, WindingMode) above to
+        // carry the fill rule. On the iOS/CoreGraphics backend the clip alone does NOT reliably
+        // hollow/solidify a self-intersecting fill (a Nonzero star rendered with unfilled arms — the
+        // R7a parity bug), so the FILL itself must honor the winding mode: FillRule.Nonzero →
+        // CGContextFillPath (winding), FillRule.EvenOdd → CGContextEOFillPath. Output is identical to
+        // MAUI in the well-behaved case (clip and fill agree), and correct where the clip alone was
+        // not enough.
+        canvas.fill_path(path, winding_mode_);
 
         canvas.restore_state();
     }

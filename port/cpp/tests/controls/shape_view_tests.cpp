@@ -14,6 +14,7 @@
 #include <cstddef>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -285,7 +286,7 @@ namespace
 
         const auto* filled = next_is(std::in_place_type<ops::fill_path>);
         ASSERT_NE(filled, nullptr);
-        EXPECT_EQ(filled->winding, winding_mode::non_zero); // FillPath(path) — NonZero
+        EXPECT_EQ(filled->winding, winding_mode::non_zero); // a rectangle's fill rule is NonZero
 
         // the stroke pass, after the fill: the staged stroke state then the path draw.
         const auto* stroke_color = next_is(std::in_place_type<ops::set_stroke_color>);
@@ -350,6 +351,45 @@ namespace
             }
         }
         EXPECT_TRUE(saw_clip);
+    }
+
+    // R7a: BOTH the clip and the FILL op must carry the polygon's fill rule. A Nonzero, self-
+    // intersecting star must select the winding (NonZero) fill so its arms + center fill solid; the
+    // CoreGraphics backend maps NonZero → CGContextFillPath and EvenOdd → CGContextEOFillPath, so an
+    // even-odd fill op would hollow the star center. (PolygonGalleryPage's EvenOdd vs Nonzero stars.)
+    TEST(shape_view_seam, polygon_fill_rule_selects_the_fill_op_winding)
+    {
+        const auto fill_winding_for = [](shapes::fill_rule rule) {
+            shapes::polygon view(shapes::point_collection{{10, 100}, {50, 0}, {90, 100}, {0, 35}, {100, 35}});
+            view.set_fill(std::make_shared<maui::graphics::solid_paint>(color(0.0F, 0.0F, 0.0F)));
+            view.set_stroke_thickness(0); // fill pass only
+            view.set_fill_rule(rule);
+
+            auto handler = std::make_shared<shape_view_handler>();
+            view.set_handler(handler);
+            auto* platform = handler->typed_platform_view();
+            EXPECT_NE(platform, nullptr);
+
+            recording_canvas canvas;
+            platform->replay(canvas, rect_f(0, 0, 100, 100));
+            std::optional<winding_mode> fill_winding;
+            for (const canvas_op& op : canvas.ops())
+            {
+                if (const auto* filled = std::get_if<ops::fill_path>(&op))
+                {
+                    fill_winding = filled->winding;
+                }
+            }
+            return fill_winding;
+        };
+
+        const std::optional<winding_mode> even_odd = fill_winding_for(shapes::fill_rule::even_odd);
+        ASSERT_TRUE(even_odd.has_value());
+        EXPECT_EQ(*even_odd, winding_mode::even_odd); // EvenOdd star → EO fill (hollow center)
+
+        const std::optional<winding_mode> nonzero = fill_winding_for(shapes::fill_rule::nonzero);
+        ASSERT_TRUE(nonzero.has_value());
+        EXPECT_EQ(*nonzero, winding_mode::non_zero); // Nonzero star → winding fill (solid)
     }
 
     TEST(shape_view_seam, path_render_transform_moves_the_drawn_path) // PathHandler.MapRenderTransform

@@ -245,6 +245,52 @@ namespace
         EXPECT_EQ(pixel_at(80, 80).a, 0); // outside
     }
 
+    // The PolygonGalleryPage pentagram (self-intersecting 5-point star): a closed polyline whose
+    // arms cross, leaving a central pentagon. ShapeDrawable.DrawFillPath clips the path by the
+    // shape's WindingMode and then fills (NonZero). The fill itself must ALSO honor the winding
+    // mode so a Nonzero star fills the whole star solid (arms + center), while an EvenOdd star
+    // leaves the center pentagon hollow. (Build the star inset a few px so arm tips have interior
+    // room to sample.)
+    namespace
+    {
+        maui::graphics::path_f make_pentagram()
+        {
+            // Gallery point list, scaled into the 100px bitmap with a small inset.
+            maui::graphics::path_f path(10, 95);
+            path.line_to(50, 5);
+            path.line_to(90, 95);
+            path.line_to(5, 38);
+            path.line_to(95, 38);
+            path.close();
+            return path;
+        }
+    } // namespace
+
+    TEST_F(coregraphics_canvas_pixels, fill_path_nonzero_fills_the_self_intersecting_star_solid)
+    {
+        const maui::graphics::path_f star = make_pentagram();
+
+        // Mirror ShapeDrawable.DrawFillPath: clip by the winding mode, then fill.
+        canvas_.set_fill_color(colors::black);
+        canvas_.clip_path(star, maui::graphics::winding_mode::non_zero);
+        canvas_.fill_path(star, maui::graphics::winding_mode::non_zero);
+
+        EXPECT_NE(pixel_at(50, 30).a, 0); // an upper arm — filled
+        EXPECT_NE(pixel_at(50, 55).a, 0); // the CENTER pentagon — filled solid under Nonzero
+    }
+
+    TEST_F(coregraphics_canvas_pixels, fill_path_evenodd_hollows_the_star_center)
+    {
+        const maui::graphics::path_f star = make_pentagram();
+
+        canvas_.set_fill_color(colors::black);
+        canvas_.clip_path(star, maui::graphics::winding_mode::even_odd);
+        canvas_.fill_path(star, maui::graphics::winding_mode::even_odd);
+
+        EXPECT_NE(pixel_at(50, 30).a, 0); // an upper arm — filled
+        EXPECT_EQ(pixel_at(50, 55).a, 0); // the CENTER pentagon — hollow under EvenOdd
+    }
+
     TEST_F(coregraphics_canvas_pixels, linear_gradient_fill_shades_across_the_rect)
     {
         maui::graphics::linear_gradient_paint paint(maui::graphics::point{0, 0}, maui::graphics::point{1, 0});
