@@ -21,11 +21,9 @@
 
 #include "maui/controls/shapes/ellipse.hpp"
 #include "maui/controls/shapes/ellipse_geometry.hpp"
-#include "maui/controls/shapes/fill_rule.hpp"
 #include "maui/controls/shapes/geometry_group.hpp"
 #include "maui/controls/shapes/line.hpp"
 #include "maui/controls/shapes/path.hpp"
-#include "maui/controls/shapes/path_geometry.hpp"
 #include "maui/controls/shapes/path_markup_parser.hpp"
 #include "maui/controls/shapes/polygon.hpp"
 #include "maui/controls/shapes/polyline.hpp"
@@ -387,13 +385,13 @@ namespace
             return fill_winding;
         };
 
+        // Compare optional-to-optional (no dereference) so the value check is part of the assertion and
+        // clang-tidy's bugprone-unchecked-optional-access stays satisfied (it can't model ASSERT_TRUE).
         const std::optional<winding_mode> even_odd = fill_winding_for(shapes::fill_rule::even_odd);
-        ASSERT_TRUE(even_odd.has_value());
-        EXPECT_EQ(*even_odd, winding_mode::even_odd); // EvenOdd star → EO fill (hollow center)
+        EXPECT_EQ(even_odd, std::optional<winding_mode>{winding_mode::even_odd}); // EvenOdd star → EO (hollow center)
 
         const std::optional<winding_mode> nonzero = fill_winding_for(shapes::fill_rule::nonzero);
-        ASSERT_TRUE(nonzero.has_value());
-        EXPECT_EQ(*nonzero, winding_mode::non_zero); // Nonzero star → winding fill (solid)
+        EXPECT_EQ(nonzero, std::optional<winding_mode>{winding_mode::non_zero}); // Nonzero star → winding (solid)
     }
 
     // R7b: the PolylineGallery dashed polyline (StrokeThickness 2, StrokeDashArray {1,1},
@@ -471,11 +469,11 @@ namespace
     // (the C# GetPathWindingMode default), and an empty/no-data Path likewise.
     TEST(shape_view_seam, path_defaults_to_even_odd_winding)
     {
-        shapes::path empty;
+        const shapes::path empty;
         EXPECT_EQ(empty.fill_winding(), winding_mode::even_odd);
 
         // PathGeometry carries its own FillRule (default EvenOdd).
-        shapes::path geom(std::make_shared<shapes::path_geometry>());
+        const shapes::path geom(std::make_shared<shapes::path_geometry>());
         EXPECT_EQ(geom.fill_winding(), winding_mode::even_odd);
     }
 
