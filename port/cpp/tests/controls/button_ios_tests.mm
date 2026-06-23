@@ -39,7 +39,6 @@ namespace
     using maui::controls::image_source;
     using maui::core::button_handler;
     using maui::core::i_element_handler;
-    using maui::platform::ios::kerning_of;
 
     // -[NSString UTF8String] is nullable-annotated; convert through this guard so the std::string
     // construction never receives a null pointer (the values under test are always non-null).
@@ -250,9 +249,11 @@ namespace
         EXPECT_EQ(view.layer.cornerRadius, 7.0);
     }
 
-    // Ports ButtonHandlerTests.iOS CharacterSpacingInitializesCorrectly: the kerning on the (now
-    // attributed) Normal-state title equals the cross-platform CharacterSpacing.
-    TEST(ios_button_seam, character_spacing_kerns_the_attributed_title)
+    // MAUI's iOS Button does NOT visibly apply CharacterSpacing (a runtime mapper-order quirk — see
+    // refresh_button_title_formatting). Per the 2026-06-23 user ruling the maui-compare RUNTIME is ground
+    // truth (it renders "Button", never "B u t t o n"), so the port treats button CharacterSpacing as a
+    // visual no-op: NO kerned attributed title is installed; the plain Normal-state title carries the text.
+    TEST(ios_button_seam, character_spacing_does_not_kern_the_button_title)
     {
         button control;
         control.set_text("Test");
@@ -260,14 +261,14 @@ namespace
         auto handler = std::make_shared<button_handler>();
         control.set_handler(handler);
 
-        NSAttributedString* const title = [native_button(handler) attributedTitleForState:UIControlStateNormal];
-        EXPECT_EQ(kerning_of(title), 4.0);
-        EXPECT_EQ(to_std_string(title.string), "Test");
+        UIButton* const native = native_button(handler);
+        EXPECT_EQ([native attributedTitleForState:UIControlStateNormal], nil);         // no kerned attributed title
+        EXPECT_EQ(to_std_string([native titleForState:UIControlStateNormal]), "Test"); // plain title carries the text
     }
 
-    // Ports ButtonHandlerTests.iOS CharacterSpacingAndTextColorInitializesCorrectly: the kerned title
-    // carries both the spacing and the explicit text color.
-    TEST(ios_button_seam, character_spacing_with_text_color_sets_both_on_the_title)
+    // With CharacterSpacing a no-op, the text color still applies via UpdateTextColor (setTitleColor), NOT
+    // via an attributed title — the title stays plain.
+    TEST(ios_button_seam, character_spacing_with_text_color_keeps_plain_title_and_sets_title_color)
     {
         button control;
         control.set_text("Test");
@@ -276,9 +277,9 @@ namespace
         auto handler = std::make_shared<button_handler>();
         control.set_handler(handler);
 
-        NSAttributedString* const title = [native_button(handler) attributedTitleForState:UIControlStateNormal];
-        EXPECT_EQ(kerning_of(title), 4.0);
-        UIColor* const fg = [title attribute:NSForegroundColorAttributeName atIndex:0 effectiveRange:nullptr];
+        UIButton* const native = native_button(handler);
+        EXPECT_EQ([native attributedTitleForState:UIControlStateNormal], nil); // still no attributed title
+        UIColor* const fg = [native titleColorForState:UIControlStateNormal];
         ASSERT_NE(fg, nil);
         CGFloat red = 0;
         CGFloat green = 0;
@@ -289,32 +290,16 @@ namespace
         EXPECT_NEAR(blue, 0.5, 0.01);
     }
 
-    // Re-kerning while an attributed title is already installed rebuilds it from the plain title
-    // storage — the text survives, only the spacing changes.
-    TEST(ios_button_seam, changing_character_spacing_rekerns_and_preserves_the_title)
+    // Any CharacterSpacing value (the no-op) leaves the plain, setTitleColor:-colored title in place — no
+    // attributed title, whether spacing is non-zero or back at 0.
+    TEST(ios_button_seam, character_spacing_changes_keep_the_plain_title)
     {
         button control;
         control.set_text("Test");
         control.set_character_spacing(4);
         auto handler = std::make_shared<button_handler>();
         control.set_handler(handler);
-
-        control.set_character_spacing(2);
-        NSAttributedString* const title = [native_button(handler) attributedTitleForState:UIControlStateNormal];
-        EXPECT_EQ(kerning_of(title), 2.0);
-        EXPECT_EQ(to_std_string(title.string), "Test");
-    }
-
-    // Spacing back to 0 resets the attributed title (SetAttributedTitle(null)) so the plain,
-    // setTitleColor:-colored title shows again.
-    TEST(ios_button_seam, clearing_character_spacing_reverts_to_plain_title)
-    {
-        button control;
-        control.set_text("Test");
-        control.set_character_spacing(4);
-        auto handler = std::make_shared<button_handler>();
-        control.set_handler(handler);
-        EXPECT_EQ(kerning_of([native_button(handler) attributedTitleForState:UIControlStateNormal]), 4.0);
+        EXPECT_EQ([native_button(handler) attributedTitleForState:UIControlStateNormal], nil);
 
         control.set_character_spacing(0);
         EXPECT_EQ([native_button(handler) attributedTitleForState:UIControlStateNormal], nil);

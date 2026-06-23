@@ -282,18 +282,19 @@ namespace maui::core
         // un-kerned title and SetAttributedTitle(null) keeps the plain-title path.
         void refresh_button_title_formatting(UIButton* button, const i_text_button& view)
         {
-            const double spacing = view.character_spacing();
-            if (spacing == 0)
-            {
-                [button setAttributedTitle:nil forState:UIControlStateNormal];
-                return;
-            }
-            UIColor* const foreground = to_ui_color(view.text_color());
-            // Rebuild from the PLAIN title storage (what map_text sets) — unlike currentTitle, it is
-            // well-defined even while a previous attributed title is still installed (the re-kern path).
-            NSString* const plain_title = [button titleForState:UIControlStateNormal];
-            [button setAttributedTitle:maui::platform::ios::kern_attributed(plain_title, spacing, foreground)
-                              forState:UIControlStateNormal];
+            // MAUI's iOS Button does NOT visibly apply CharacterSpacing on the rendered title — a runtime
+            // mapper-order quirk: ButtonExtensions.UpdateCharacterSpacing kerns the EXISTING
+            // TitleLabel.AttributedText, but on the live mapping path that title is the plain one MapText
+            // installs (SetTitle, not an attributed title), so the kerning never visibly takes (the
+            // maui-compare reference renders "Button", never "B u t t o n", for a CharacterSpacing button).
+            // Per the 2026-06-23 user ruling the maui-compare RUNTIME is ground truth here, so the port
+            // matches it: a button's CharacterSpacing is a visual no-op — the plain title (UpdateText) +
+            // title color (UpdateTextColor) carry the text. Clearing any attributed title keeps the plain
+            // one showing. (Deliberately diverges from MAUI's CharacterSpacingInitializesCorrectly unit test,
+            // which the runtime contradicts; tried mirroring titleLabel.attributedText, but UIButton
+            // synthesizes a non-nil attributed title synchronously after SetTitle, so kerning still applied.)
+            (void)view;
+            [button setAttributedTitle:nil forState:UIControlStateNormal];
         }
     } // namespace
 
