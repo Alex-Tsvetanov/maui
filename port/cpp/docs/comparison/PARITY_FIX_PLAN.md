@@ -245,7 +245,28 @@ re-stamped to honest severities **as each fix lands and is re-verified on-sim** 
   Adding it would touch EVERY radio page (radio_button_group/scattered_radio_button/etc.) — some may
   currently match — so it needs the RadioButton default-template padding set + cross-page on-sim
   verification, not a blind change. Flagged for a focused follow-up.
-- **Convergence:** genuine-fix count far below the original ~44. REAL fixes DONE: R1, R2, R3/R4/R5, R7,
-  R13, device, selection-highlight. Still to check: header_footer (R12), clip/clip_views/border_clip,
-  cv_visual_states (verify agent R5 covered it), nested caption color. Then the DISCUSS source-checks +
-  final gate (`tools/gate.sh` + clang-tidy 0 + sanitizers) + push.
+- **cv_visual_states → NOFIX (reversed claim).** The port renders items correctly in BOTH themes (the
+  white-on-white fix `2fb5f2ac64` holds); MAUI DARK is the one with blank/missing items. Gemini reversed it.
+- **header_footer_grid → NOFIX (MAUI image-load failure, per user ruling).** Same as header_footer_view:
+  the port loads the real dog images the sample sets behind the header/footer; MAUI shows a faint beige
+  placeholder. Port more faithful (oasis precedent). The whole R12 header_footer family is this pattern.
+
+## Endgame status (2026-06-23)
+
+**REAL fixes DONE + on-sim-verified + committed (8):** R1 fonts · device centering · R2 Background brush ·
+R3/R4/R5 CV chrome+orientation+color · R7 paths · R13 indicator · CV selection-highlight.
+
+**Validated NOFIX (over-flag / harness / MAUI-broken):** R6 (5 shape pages) · stack_layout ·
+horizontal_stack · entry · search_bar · title_bar · cv_visual_states · R7b polyline dash · R12
+header_footer family (image-load) · + the original ~25 harness-crop / runtime-readout / capture-date /
+MAUI-blank / live-page from the triage.
+
+**DEFERRED real-minor:** radio_button_border (RadioButton default-template Padding=6; blast radius — needs
+cross-page verify).
+
+**DISCUSS (default NOFIX per user's oasis ruling, after source-check):** header_footer_view,
+border_resize_content, clip_corner_radius, ios_blur_effect, clipping = image-load → NOFIX.
+templated_view / hybrid_web_view / radio_button_content need a quick visual confirm.
+
+**Remaining steps:** quick-confirm clip family + the 3 non-image DISCUSS → run the **final gate**
+(`tools/gate.sh`: all presets + sanitizers + clang-tidy 0) on the integrated batch → push → summary.
