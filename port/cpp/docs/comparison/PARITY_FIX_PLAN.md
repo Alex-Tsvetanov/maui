@@ -232,6 +232,13 @@ re-stamped to honest severities **as each fix lands and is re-verified on-sim** 
   render because MapText (mapper order 33) runs AFTER MapCharacterSpacing (order 30) → no-op → plain
   "Button", no spacing. The port applies the kerning correctly ("B u t t o n"). Replicating MAUI's bug to
   match it is a user call — flagged, not auto-fixed. (CornerRadius sharp-vs-rounded same page: marginal.)
-- **Convergence:** genuine-fix count is landing far below the original ~44. REAL fixes done so far: R1, R2,
-  R3/R4/R5, R7, R13, device. The rest are overwhelmingly over-flags or MAUI-quirk DISCUSS. Still to check:
-  title_bar, header_footer, radio_button_border, selection-highlight color, clip/clip_views, search_bar.
+- **Selection-highlight color — DONE+VERIFIED, commit `99e50bcd39`.** CV `selectedBackgroundView` was
+  `systemGray4` (too light); MAUI's `ItemsViewCell` default is `ColorExtensions.Gray == UIColor.systemGray`
+  (medium). Fixed → matches on-sim. Covers `multiple_bound_selection` + `selection_synchronization`.
+- **search_bar → NOFIX (over-flag).** Both port + oracle set Text="Italic 24pt" identically; MAUI's
+  "Italic 24" is just the narrower harness search bar cropping the "pt". Bars otherwise match.
+- **title_bar → NOFIX (over-flag).** The 2-column Content/Color Options form (radios, entries, headers,
+  links, live readout) matches MAUI; "Set Col…/Set For…" truncates in BOTH (narrow column).
+- **Convergence:** genuine-fix count far below the original ~44. REAL fixes done: R1, R2, R3/R4/R5, R7,
+  R13, device, selection-highlight. Still to check: header_footer (R12), radio_button_border, clip/
+  clip_views/border_clip, cv_visual_states, nested caption color. Then the DISCUSS source-checks + final gate.
