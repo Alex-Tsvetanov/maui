@@ -158,7 +158,8 @@ def cell(v):
     return f"**{CAT_LABEL.get(v['category'], v['category'])}**<br><sub>{v.get('model', '')}</sub>{notes}"
 
 
-DEMO_H = 700  # px height per screenshot — big enough to read inline without zooming
+DEMO_H = 350  # px height per screenshot — readable inline without zooming
+EXAMPLE_W = 300  # px width cap for the Example column (renderers that honor inline style)
 
 
 def _img(d, key):
@@ -255,7 +256,8 @@ def main():
     L.append("| --- | --- | --- | --- | --- |")
     for i, k in enumerate(keys, 1):
         anim = " 🎬" if k in ANIMATED else ""
-        ex = f"**{title_of(k)}**{anim}<br><sub>{description(k)}</sub>"
+        ex = (f'<div style="width:{EXAMPLE_W}px"><b>{title_of(k)}</b>{anim}'
+              f"<br><sub>{description(k)}</sub></div>")
         L.append(f"| {i} | {ex} | {demo(k)} | {cell(son.get(k))} | {cell(gem.get(k))} |")
     L.append("")
 
