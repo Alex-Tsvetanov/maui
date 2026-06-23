@@ -16,14 +16,18 @@
 #include <optional>
 #include <utility>
 
+#include "maui/controls/shapes/fill_rule.hpp"
 #include "maui/controls/shapes/geometry.hpp"
+#include "maui/controls/shapes/geometry_group.hpp"
 #include "maui/controls/shapes/matrix.hpp"
+#include "maui/controls/shapes/path_geometry.hpp"
 #include "maui/controls/shapes/shape.hpp"
 #include "maui/controls/shapes/transform.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/property.hpp"
 #include "maui/graphics/matrix3x2.hpp"
 #include "maui/graphics/path_f.hpp"
+#include "maui/graphics/winding_mode.hpp"
 
 namespace maui::controls::shapes
 {
@@ -98,6 +102,28 @@ namespace maui::controls::shapes
                 value->append_path(result);
             }
             return result;
+        }
+
+        // C# ShapeExtensions.GetPathWindingMode (called from PathHandler's UpdatePath, NOT a Map* push
+        // like Polygon/Polyline): a Path's winding mode comes from its Data geometry's FillRule and —
+        // unlike the other shapes — DEFAULTS TO EvenOdd. A GeometryGroup or PathGeometry contributes
+        // its own FillRule; any other geometry keeps the EvenOdd default. So the PathGallery
+        // "Composite shape" (a GeometryGroup of concentric ellipses, FillRule.EvenOdd) renders the
+        // alternating filled/hollow rings instead of a solid disc.
+        [[nodiscard]] maui::graphics::winding_mode fill_winding() const override
+        {
+            shapes::fill_rule rule = shapes::fill_rule::even_odd;
+            const geometry* data = data_.get().get();
+            if (const auto* group = dynamic_cast<const geometry_group*>(data))
+            {
+                rule = group->fill_rule();
+            }
+            else if (const auto* geom = dynamic_cast<const path_geometry*>(data))
+            {
+                rule = geom->fill_rule();
+            }
+            return rule == shapes::fill_rule::even_odd ? maui::graphics::winding_mode::even_odd
+                                                       : maui::graphics::winding_mode::non_zero;
         }
 
     protected:

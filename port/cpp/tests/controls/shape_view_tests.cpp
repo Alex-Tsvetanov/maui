@@ -20,8 +20,12 @@
 #include <vector>
 
 #include "maui/controls/shapes/ellipse.hpp"
+#include "maui/controls/shapes/ellipse_geometry.hpp"
+#include "maui/controls/shapes/fill_rule.hpp"
+#include "maui/controls/shapes/geometry_group.hpp"
 #include "maui/controls/shapes/line.hpp"
 #include "maui/controls/shapes/path.hpp"
+#include "maui/controls/shapes/path_geometry.hpp"
 #include "maui/controls/shapes/path_markup_parser.hpp"
 #include "maui/controls/shapes/polygon.hpp"
 #include "maui/controls/shapes/polyline.hpp"
@@ -425,6 +429,54 @@ namespace
         EXPECT_EQ(dash->pattern, (std::vector<float>{1.0F, 1.0F})); // C# StrokeDashPattern (cast only)
         EXPECT_EQ(dash->dash_offset, 6.0F);                         // StrokeDashOffset, unscaled here
         EXPECT_EQ(dash->stroke_size, 2.0F);                         // the size the platform scales by
+    }
+
+    // R7c: a Path's winding mode comes from its Data geometry's FillRule and DEFAULTS TO EvenOdd
+    // (C# ShapeExtensions.GetPathWindingMode), unlike every other shape (NonZero). The PathGallery
+    // "Composite shape" is a GeometryGroup(EvenOdd) of concentric ellipses — its drawable clip must
+    // be EvenOdd so the rings alternate filled/hollow instead of forming a solid disc.
+    TEST(shape_view_seam, path_geometry_group_fill_rule_drives_the_winding_mode)
+    {
+        // A GeometryGroup of two concentric ellipses, FillRule EvenOdd (the C# Composite shape).
+        const auto make_group = [](shapes::fill_rule rule) {
+            auto group = std::make_shared<shapes::geometry_group>();
+            group->set_fill_rule(rule);
+            group->children().push_back(
+                std::make_shared<shapes::ellipse_geometry>(maui::graphics::point{50, 50}, 40.0, 40.0));
+            group->children().push_back(
+                std::make_shared<shapes::ellipse_geometry>(maui::graphics::point{50, 50}, 20.0, 20.0));
+            return group;
+        };
+
+        // EvenOdd group → EvenOdd winding (rings alternate).
+        shapes::path even_odd(make_group(shapes::fill_rule::even_odd));
+        auto eo_handler = std::make_shared<shape_view_handler>();
+        even_odd.set_handler(eo_handler);
+        auto* eo_platform = eo_handler->typed_platform_view();
+        ASSERT_NE(eo_platform, nullptr);
+        EXPECT_EQ(even_odd.fill_winding(), winding_mode::even_odd);
+        EXPECT_EQ(eo_platform->drawable.winding_mode(), winding_mode::even_odd);
+
+        // Nonzero group → NonZero winding (solid disc).
+        shapes::path nonzero(make_group(shapes::fill_rule::nonzero));
+        auto nz_handler = std::make_shared<shape_view_handler>();
+        nonzero.set_handler(nz_handler);
+        auto* nz_platform = nz_handler->typed_platform_view();
+        ASSERT_NE(nz_platform, nullptr);
+        EXPECT_EQ(nonzero.fill_winding(), winding_mode::non_zero);
+        EXPECT_EQ(nz_platform->drawable.winding_mode(), winding_mode::non_zero);
+    }
+
+    // R7c: a Path whose Data is neither a GeometryGroup nor a PathGeometry still defaults to EvenOdd
+    // (the C# GetPathWindingMode default), and an empty/no-data Path likewise.
+    TEST(shape_view_seam, path_defaults_to_even_odd_winding)
+    {
+        shapes::path empty;
+        EXPECT_EQ(empty.fill_winding(), winding_mode::even_odd);
+
+        // PathGeometry carries its own FillRule (default EvenOdd).
+        shapes::path geom(std::make_shared<shapes::path_geometry>());
+        EXPECT_EQ(geom.fill_winding(), winding_mode::even_odd);
     }
 
     TEST(shape_view_seam, path_render_transform_moves_the_drawn_path) // PathHandler.MapRenderTransform
