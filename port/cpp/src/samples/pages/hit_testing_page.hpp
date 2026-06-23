@@ -178,7 +178,14 @@ namespace maui::samples
             gallery_rehost_content(scroller_);
             gallery_rehost_content(page_);
 
-            drive_synthetic_hit_test();
+            // NOTE: the gallery render must match the maui-compare reference, which shows the CLEAN INITIAL
+            // state (readout "Selected: -", no view highlighted). The C# HitTestingPage selects + highlights
+            // only on a real tap; its static capture is the initial state. Earlier the port auto-ran
+            // drive_synthetic_hit_test() here "to show the wiring in a static capture", but that left the
+            // page in a post-tap state (a red highlight + "Selected: <name>") that DIVERGED from MAUI — and
+            // since the page wires no real per-view tap gestures (the synthetic walk was the only driver),
+            // the faithful parity target is simply the initial state. The hit_test / tap_single /
+            // tap_rectangle methods remain available for a headless test or an interactive driver to call.
         }
 
         // The owned readout + check, exposed for the hosting main / headless tests.
@@ -255,23 +262,6 @@ namespace maui::samples
             {
                 highlight(*first);
             }
-        }
-
-        // One deterministic drive: a single-selection tap that lands on the overlapping Scale=2 button
-        // (it covers the most area), then a rectangle lasso over the shapes — so the static capture shows
-        // both selection modes exercised. Leaves the readout on the last selection.
-        void drive_synthetic_hit_test()
-        {
-            // Single mode (the default): tap a point inside the scaled button's frame.
-            tap_single(maui::graphics::point{200, 180});
-
-            // Rectangle mode: toggle the check, then lasso the ellipse + rounded box region.
-            rectangle_select_check_.set_is_checked(true);
-            tap_rectangle(maui::graphics::point{20, 300}, maui::graphics::point{340, 590});
-
-            // Return to single mode and land a final tap on the image (the bottom-most view).
-            rectangle_select_check_.set_is_checked(false);
-            tap_single(maui::graphics::point{190, 680});
         }
 
     private:

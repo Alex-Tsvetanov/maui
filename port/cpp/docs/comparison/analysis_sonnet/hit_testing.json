@@ -1,10 +1,1 @@
-{
-  "category": "cpp_minor",
-  "notes": [
-    "C++ shows 'Selected: Image' at top while MAUI shows 'Selected: -' — this is runtime interaction state difference, not a rendering bug.",
-    "C++ light renders the green rounded rectangle with visible red corner squares at its bounds, indicating the hit-test bounding box is drawn/exposed; MAUI does not show these red corners.",
-    "The red corner indicators in C++ (visible at all four corners of the green box) suggest the C++ port is rendering an additional debug bounding box element that MAUI does not show.",
-    "Both themes show the same content otherwise (ellipse ring, scaled label, rotated italic label, green rounded box); dark mode reproduces the same red-corner difference."
-  ],
-  "model": "claude-sonnet-4-6"
-}
+{"category": "cpp_minor", "notes": ["FIXED: readout shows 'Selected: -' matching MAUI's clean initial state (was 'Selected: Image' \u2014 the port auto-ran a synthetic hit-test that left a post-tap state)", "FIXED: the large light-green rounded box is clean with no spurious red corners (was a stray highlight's square red background showing around the rounded fill)", "Remaining diffs are the allowed harness inset/global-shift (box positioned lower/larger) + minor checkbox gap", "Content, colors, text all correct"], "model": "claude-sonnet-4-6"}

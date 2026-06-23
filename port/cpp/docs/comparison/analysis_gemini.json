@@ -625,9 +625,10 @@
  "hit_testing": {
   "category": "cpp_major",
   "notes": [
-   "The C++ implementation displays red corners on the rectangle that are absent in the MAUI reference.",
-   "The layout of the text and UI elements is significantly shifted vertically in the C++ version compared to the MAUI version.",
-   "The C++ version incorrectly displays 'Selected: Image' while the MAUI version shows 'Selected: -'."
+   "The radio button for 'Rectangle Selection' is missing in the C++ implementation.",
+   "The text 'Rectangle Selection' is misaligned vertically compared to the MAUI reference.",
+   "The green ellipse and rectangle shapes are significantly smaller in the C++ implementation.",
+   "The spacing and positioning of all text elements are inconsistent with the MAUI reference."
   ],
   "model": "gemini-3.1-flash-lite"
  },
