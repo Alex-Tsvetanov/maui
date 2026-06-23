@@ -1,10 +1,1 @@
-{
-  "category": "cpp_major",
-  "notes": [
-    "MAUI light shows building photo + UrSource/FileSource labels on left; purple/planet image on right — two images side by side with labels beneath",
-    "C++ shows the same content but in a single-column stacked layout with much larger images taking full width",
-    "The 'Animating a gif' toggle/switch and 'Load Inline Source' links are present on both but at different scroll positions",
-    "Dark mode repeats the same layout mismatch — C++ stacks images vertically at large size vs MAUI's two-column layout"
-  ],
-  "model": "claude-sonnet-4-6"
-}
+{"category":"cpp_minor","notes":["C++ port shows images slightly larger/taller than MAUI (building photo and Xbox logo row appear to take more vertical space), but all image rows are present","Both light and dark themes render all content: building photo, colorful ball/Xbox placeholder, Post Image Source labels, Animating a gif toggle — nothing missing","Dark mode renders correctly in both with appropriate background colors and image display","Minor layout proportions differ: MAUI's image area is more compact; C++ port's images stretch slightly taller, potentially pushing the bottom toggle closer to the fold"],"model":"claude-sonnet-4-6"}

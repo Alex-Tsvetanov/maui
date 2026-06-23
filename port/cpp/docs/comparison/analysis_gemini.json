@@ -654,12 +654,10 @@
  "image": {
   "category": "cpp_major",
   "notes": [
-   "The C++ implementation is missing the 'Stream Source', 'Opacity (0.5)', 'Start/Stop', and 'Use Online Source' controls.",
-   "The C++ implementation is missing the 'Animated GIF' label and the associated GIF animation.",
-   "The C++ implementation is missing the 'UriSource' image in the light theme.",
-   "The C++ implementation has significantly different layout and element ordering compared to the MAUI reference."
+   "The 'Start/Stop' link is missing in both C++ light and dark themes.",
+   "The 'Use Online Source' link is missing in both C++ light and dark themes."
   ],
-  "model": "gemini-3.1-flash-lite"
+  "model": "gemini-2.5-flash"
  },
  "image_button": {
   "category": "cpp_major",
