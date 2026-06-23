@@ -158,18 +158,26 @@ def cell(v):
     return f"**{CAT_LABEL.get(v['category'], v['category'])}**<br><sub>{v.get('model', '')}</sub>{notes}"
 
 
+DEMO_H = 700  # px height per screenshot — big enough to read inline without zooming
+
+
+def _img(d, key):
+    """One demo image cell — the animated GIF if present, else the still PNG, at a uniform height."""
+    ext = "gif" if (key in ANIMATED and os.path.exists(os.path.join(CMP, "captures", d, f"{key}.gif"))) else "png"
+    return f'<img src="captures/{d}/{key}.{ext}" height="{DEMO_H}">'
+
+
 def demo(key):
-    out = f'<img src="montages/{key}.png" width="320">'
-    if key in ANIMATED:
-        gifs = []
-        for lab, d in (("MAUI L", "maui_light"), ("C++ L", "cpp_light"),
-                       ("MAUI D", "maui_dark"), ("C++ D", "cpp_dark")):
-            p = os.path.join(CMP, "captures", d, f"{key}.gif")
-            if os.path.exists(p):
-                gifs.append(f'<img src="captures/{d}/{key}.gif" height="300">')
-        if gifs:
-            out += "<br>🎬 " + " ".join(gifs)
-    return out
+    """A full-size 2x2 of the NATIVE captures (sharper than the downscaled montage), uniform height.
+    Single-line nested HTML table so it stays inside the Markdown table cell."""
+    return (
+        "<table>"
+        f'<tr><td align="center">MAUI light<br>{_img("maui_light", key)}</td>'
+        f'<td align="center">C++ light<br>{_img("cpp_light", key)}</td></tr>'
+        f'<tr><td align="center">MAUI dark<br>{_img("maui_dark", key)}</td>'
+        f'<td align="center">C++ dark<br>{_img("cpp_dark", key)}</td></tr>'
+        "</table>"
+    )
 
 
 def main():
