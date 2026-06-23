@@ -152,36 +152,33 @@ def consensus(key, diff, gem, son):
     return "maui_minor" if maui_side else "cpp_minor"
 
 
+DEMO_H = 350  # px height per screenshot
+
+
+def md_cell(s):
+    """Make free text safe inside a Markdown table cell: escape HTML + the cell-delimiter pipe."""
+    return html.escape(s).replace("|", "&#124;")
+
+
 def cell(v):
-    """Pure-HTML model-verdict cell (markdown isn't parsed inside an HTML <table>); notes escaped."""
+    """Model-verdict cell for a Markdown table: bold category + model + bulleted notes (pipe-safe)."""
     if not v:
         return "⬜ pending"
-    notes = "".join(f"<br>• {html.escape(n)}" for n in v.get("notes", [])[:4])
-    return f"<b>{CAT_LABEL.get(v['category'], v['category'])}</b><br><sub>{html.escape(v.get('model', ''))}</sub>{notes}"
-
-
-DEMO_H = 350     # px height per screenshot
-EXAMPLE_W = 150  # px width of the Example column (HTML `width` attr — honored by GitHub, unlike style)
-NOTE_W = 360     # px width of each model-notes column
+    notes = "".join(f"<br>• {md_cell(n)}" for n in v.get("notes", [])[:4])
+    return f"**{CAT_LABEL.get(v['category'], v['category'])}**<br><sub>{v.get('model', '')}</sub>{notes}"
 
 
 def _img(d, key):
-    """One demo image cell — the animated GIF if present, else the still PNG, at a uniform height."""
+    """One demo image — the animated GIF if present, else the still PNG, at a uniform height."""
     ext = "gif" if (key in ANIMATED and os.path.exists(os.path.join(CMP, "captures", d, f"{key}.gif"))) else "png"
     return f'<img src="captures/{d}/{key}.{ext}" height="{DEMO_H}">'
 
 
 def demo(key):
-    """A full-size 2x2 of the NATIVE captures (sharper than the downscaled montage), uniform height.
-    Single-line nested HTML table so it stays inside the Markdown table cell."""
-    return (
-        "<table>"
-        f'<tr><td align="center">MAUI light<br>{_img("maui_light", key)}</td>'
-        f'<td align="center">C++ light<br>{_img("cpp_light", key)}</td></tr>'
-        f'<tr><td align="center">MAUI dark<br>{_img("maui_dark", key)}</td>'
-        f'<td align="center">C++ dark<br>{_img("cpp_dark", key)}</td></tr>'
-        "</table>"
-    )
+    """2x2 of the NATIVE captures as plain <img> tags (no nested <table> — that breaks GitHub's
+    Markdown-cell rendering): top row light (MAUI, C++), bottom row dark (MAUI, C++)."""
+    return (f'{_img("maui_light", key)} {_img("cpp_light", key)}<br>'
+            f'{_img("maui_dark", key)} {_img("cpp_dark", key)}')
 
 
 def main():
@@ -255,21 +252,14 @@ def main():
     L.append("")
 
     L.append("## Examples (simplest → most complex)\n")
-    L.append("<table>")
-    L.append(f'<thead><tr><th width="34">#</th><th width="{EXAMPLE_W}px">Example</th>'
-             f"<th>Demo — MAUI ┃ C++ · light/dark</th>"
-             f'<th width="{NOTE_W}">Sonnet <code>{MODEL_SONNET}</code></th>'
-             f'<th width="{NOTE_W}">Gemini</th></tr></thead>')
-    L.append("<tbody>")
+    # Markdown table (renders reliably on GitHub). Example holds only the NAME (so its column stays
+    # narrow, content-driven); the long description sits in its own column between Demo and Sonnet.
+    L.append(f"| # | Example | Demo — MAUI ┃ C++ · light/dark | Description | Sonnet `{MODEL_SONNET}` | Gemini |")
+    L.append("| --- | --- | --- | --- | --- | --- |")
     for i, k in enumerate(keys, 1):
         anim = " 🎬" if k in ANIMATED else ""
-        ex = f"<b>{html.escape(title_of(k))}</b>{anim}<br><sub>{html.escape(description(k))}</sub>"
-        L.append(f'<tr><td align="center">{i}</td><td width="{EXAMPLE_W}px">{ex}</td>'
-                 f"<td>{demo(k)}</td>"
-                 f'<td width="{NOTE_W}">{cell(son.get(k))}</td>'
-                 f'<td width="{NOTE_W}">{cell(gem.get(k))}</td></tr>')
-    L.append("</tbody>")
-    L.append("</table>")
+        L.append(f"| {i} | **{title_of(k)}**{anim} | {demo(k)} | {md_cell(description(k))} | "
+                 f"{cell(son.get(k))} | {cell(gem.get(k))} |")
     L.append("")
 
     out = os.path.join(CMP, "README.md")
