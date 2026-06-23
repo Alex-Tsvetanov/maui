@@ -126,3 +126,18 @@ spacing, and counts are directly comparable — a size/spacing difference is a *
 container card / nav bar / status bar, and transient animation phase. It is deliberately **not**
 biased toward "match" — on `button` it correctly reports a `diff` (thinner C++ buttons, pink-button
 letter-spacing) that the older hand-classified board called a match.
+
+## Capturing the baselines
+
+- **C++ port** → `capture_all_cpp.py` drives the installed `dev.maui-cpp.ios-gallery`.
+- **MAUI baseline** → `capture_all_csharp.py` drives the installed maui-compare app
+  (`com.companyname.mauicompare`, `MAUI_COMPARE_PAGE` / `MAUI_THEME`).
+
+⚠️ **The maui-compare app MUST declare `UILaunchScreen` in `Platforms/iOS/Info.plist`.** Without it iOS
+runs the app in legacy compatibility mode — letterboxed and laid out at ~320pt logical, upscaled ~1.25×
+to the 402pt device — so every MAUI control renders ~1.25× larger than the native-rendering C++ gallery
+(402/320 = 1.256). This silently scaled the *entire* old baseline and produced a whole class of bogus
+"MAUI is larger / C++ smaller / fonts bigger" diffs (the port was correct). Both stacks must render
+**native** for the "same resolution, directly comparable" claim above to hold. A clean
+`dotnet build -t:Rebuild` is required for the plist change to take effect (an incremental build won't
+reprocess it).
