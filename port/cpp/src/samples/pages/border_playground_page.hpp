@@ -94,6 +94,15 @@ namespace maui::samples
 
             // --- the live border (BorderView) + its initial Label content.
             border_content_label_.set_text("Just a Label");
+            // maui-compare BorderPlaygroundPage: the Border content Label is FontSize=20, and each section
+            // header uses Headline() = FontSize 18 + Bold. The port set neither (default font); apply both.
+            border_content_label_.set_font(maui::core::font::system_font_of_size(20.0));
+            for (maui::controls::label* h :
+                 {&content_caption_, &shape_caption_, &background_caption_, &content_bg_caption_, &border_caption_,
+                  &line_join_caption_, &line_cap_caption_, &corner_caption_})
+            {
+                h->set_font(maui::core::font::system_font_of_size(18.0, maui::core::font_weight::bold));
+            }
             border_view_.set_content(border_content_label_);
             grid_.add(border_view_);
             grid_.set_row(border_view_, 0);
