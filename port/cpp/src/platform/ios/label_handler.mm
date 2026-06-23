@@ -255,6 +255,14 @@ namespace maui::core
         maui::platform::ios::apply_background(native, value);
     }
 
+    // MapShadow → ShadowExtensions.SetShadow: set the UILabel layer's shadow (color/opacity/radius/offset)
+    // from the i_shadow, mirroring the shape_view / layout twins. The layer shadow blurs the rendered text
+    // glyphs (masksToBounds stays NO), so "Label with a Shadow" casts its colored blur exactly as MAUI.
+    void label_platform::update_shadow(const maui::core::i_shadow* value)
+    {
+        maui::platform::ios::apply_shadow(native, value);
+    }
+
     std::unique_ptr<label_platform> label_handler::create_platform_view()
     {
         auto platform = std::make_unique<label_platform>();

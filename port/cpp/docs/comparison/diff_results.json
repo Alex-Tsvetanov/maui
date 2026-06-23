@@ -4717,11 +4717,11 @@
  },
  "shadow_playground": {
   "light": {
-   "diff_pct": 11.3332,
-   "thresh_pct": 7.5064,
+   "diff_pct": 11.5884,
+   "thresh_pct": 7.2562,
    "max_delta": 255,
    "ssim": 0.9628,
-   "ae": 273941,
+   "ae": 273892,
    "pixel_perfect": false,
    "bbox": [
     0,
@@ -4733,11 +4733,11 @@
    "note": ""
   },
   "dark": {
-   "diff_pct": 10.0554,
-   "thresh_pct": 8.3683,
+   "diff_pct": 10.2521,
+   "thresh_pct": 8.3594,
    "max_delta": 255,
-   "ssim": 0.9485,
-   "ae": 301467,
+   "ssim": 0.9486,
+   "ae": 302701,
    "pixel_perfect": false,
    "bbox": [
     0,

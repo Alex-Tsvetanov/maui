@@ -91,7 +91,7 @@ namespace maui::core
         // iOS backend (M6 fan-out): push the four fundamental IView properties to the UILabel (defined
         // in src/platform/ios/label_handler.mm). transform IS pushed via the shared ios apply_transform
         // helper (the generic-IView ViewMapper widening). The remaining generic-IView pushes —
-        // flow_direction / shadow / semantics / input_transparent — keep the view_platform_base mirrors
+        // flow_direction / semantics / input_transparent — keep the view_platform_base mirrors
         // until the shared ios view/visual/semantics op helpers land (the coordinator's retrofit; see
         // port/STATUS.md).
         void update_visibility(maui::core::visibility value) override;
@@ -106,6 +106,12 @@ namespace maui::core
         // the UILabel's backing layer via apply_background. Without it the paint fell through to the no-op
         // view_platform_base mirror and never rendered (a transparent label, invisible on a light page).
         void update_background(const maui::graphics::paint* value) override;
+        // MapShadow → ShadowExtensions.SetShadow on the UILabel's layer (the shared apply_shadow). A
+        // Label IS a VisualElement and CAN carry a Shadow (e.g. the shadow_playground "Label with a
+        // Shadow" target casts a red blur behind its glyphs); without this push the shadow fell through
+        // to the no-op view_platform_base mirror and never rendered, while the BoxView (shape_view) twin
+        // showed it — the asymmetry the parity sweep caught.
+        void update_shadow(const maui::core::i_shadow* value) override;
         // Clip IS pushed: WrapperView.SetClip masks the MauiIosLabel (UILabel)'s layer (the shared
         // apply_and_store_clip; MauiIosLabel.layoutSubviews re-frames the mask to the live bounds, the
         // 0×0-at-map-time fix).

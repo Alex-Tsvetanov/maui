@@ -1202,8 +1202,8 @@
   "category": "cpp_major",
   "notes": [
    "The shadow rendering is significantly different in size, blur, and intensity compared to the MAUI reference.",
-   "The C++ implementation is missing the 'Remove Shadow' button present in the MAUI version.",
-   "The layout of the sliders and labels is inconsistent, with different spacing and alignment between the two implementations."
+   "The C++ implementation is missing the 'Remove Shadow' button in both light and dark themes.",
+   "The layout of the controls and the spacing between elements differ from the MAUI reference."
   ],
   "model": "gemini-3.1-flash-lite"
  },
