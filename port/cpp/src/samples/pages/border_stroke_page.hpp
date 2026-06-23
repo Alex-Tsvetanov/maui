@@ -228,6 +228,9 @@ namespace maui::samples
             outline.set_stroke_shape(std::make_shared<maui::graphics::shapes::rectangle>());
             outline.set_stroke(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::red));
             outline.set_stroke_thickness(thickness);
+            // BorderStroke.xaml's <Style TargetType="Border"> sets Margin="0,6" on every Border, giving the
+            // rows vertical spacing; the port had omitted it so the boxes touched. (left/right 0, top/bottom 6)
+            outline.set_margin(maui::core::thickness{0.0, 6.0});
             outline.set_content(text);
             grid.add(outline);
             grid.set_row(outline, row);
