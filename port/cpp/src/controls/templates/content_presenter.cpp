@@ -14,7 +14,6 @@
 #include "maui/core/content_page_handler.hpp"
 #include "maui/core/event.hpp"
 #include "maui/core/handler_registry.hpp"
-#include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/thickness.hpp"
