@@ -581,6 +581,13 @@ if(MAUI_BACKEND STREQUAL "android")
   target_compile_definitions(maui_core PUBLIC MAUI_PLATFORM_ANDROID)
   target_include_directories(maui_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/android)
 endif()
+# The headless twin of the platform blocks above: MAUI_PLATFORM_HEADLESS (PUBLIC, the same ODR rule) marks
+# the in-memory backend. It also gates the headless-only run_app entry (host_run.hpp / src/platform/headless/
+# host_run.cpp) — the apple/ios/windows/android run_app bodies are Stage 2, so a TU that calls run_app (e.g.
+# the maui_hello_world_boots test) compiles its call only on the headless lane.
+if(MAUI_BACKEND STREQUAL "headless")
+  target_compile_definitions(maui_core PUBLIC MAUI_PLATFORM_HEADLESS)
+endif()
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
@@ -1647,6 +1654,11 @@ add_library(maui_hosting STATIC
   src/hosting/lifecycle_event_service.cpp
   src/hosting/apple_lifecycle.cpp
   src/hosting/ios_lifecycle.cpp
+  # The generic recursive mount + layout driver (backend-agnostic, app_host.hpp).
+  src/hosting/app_host.cpp
+  # The run_app body — ONE per backend, keyed off MAUI_BACKEND. Stage 1 ships only the headless lane;
+  # apple/ios/windows/android add their own host_run .cpp (same mount, plus the native run loop) in Stage 2.
+  $<$<STREQUAL:${MAUI_BACKEND},headless>:src/platform/headless/host_run.cpp>
 )
 target_include_directories(maui_hosting PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # Hosting mints the controls::application and seeds the controls handler table — PUBLIC so consumers
@@ -1663,6 +1675,7 @@ if(NOT MAUI_BACKEND STREQUAL "ios")
   add_executable(maui_hosting_tests
     tests/hosting/app_builder_tests.cpp
     tests/hosting/lifecycle_events_tests.cpp
+    tests/hosting/app_host_tests.cpp
   )
   target_link_libraries(maui_hosting_tests PRIVATE
     maui_hosting
@@ -1673,6 +1686,21 @@ if(NOT MAUI_BACKEND STREQUAL "ios")
   if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     set_target_properties(maui_hosting_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
   endif()
+endif()
+
+# ---- hello_world: the cross-platform entry-point PROOF (Stage 1, headless). A 100% portable C++ program
+# that includes maui/maui_main.hpp (which defines main()) and links maui_hosting — proving a user writes
+# zero platform code. Headless only this Stage (the run_app body it forwards to is the headless lane); the
+# apple/ios run_app arrives in Stage 2. ----
+if(MAUI_BACKEND STREQUAL "headless")
+  add_executable(maui_hello_world samples/hello_world/main.cpp)
+  target_link_libraries(maui_hello_world PRIVATE maui_hosting maui_sanitizers)
+  if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+    set_target_properties(maui_hello_world PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+  endif()
+  # A ctest that BOOTS the proof binary end-to-end (run_app: build -> mount -> settle -> exit 0). The
+  # app_host_tests above assert the mount internals; this asserts the user-facing main() actually runs.
+  add_test(NAME maui_hello_world_boots COMMAND maui_hello_world)
 endif()
 
 # ======================================================================

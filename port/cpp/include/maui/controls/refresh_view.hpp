@@ -146,6 +146,16 @@ namespace maui::controls
             }
         }
 
+        // Generic mount (app_host): re-fire "set_content" so the now-attached handler hosts the refreshed
+        // content's native view (the construction-order replay of set_content's command).
+        void mount_into_handler() override
+        {
+            if (const auto& element_handler = handler())
+            {
+                element_handler->invoke("set_content");
+            }
+        }
+
         // C# RefreshView.OnPropertyChanged: when IsEnabled becomes false while refreshing, stop the
         // refresh. (The IsRefreshing/IsRefreshEnabled coercion runs through the descriptor callbacks.)
         // Protected to match the bindable_object base.

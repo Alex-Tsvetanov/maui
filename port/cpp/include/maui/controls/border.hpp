@@ -244,6 +244,16 @@ namespace maui::controls
             }
         }
 
+        // Generic mount (app_host): re-fire the "set_content" command so the now-attached handler hosts the
+        // content's native view — the construction-order replay set_content does when a handler is present.
+        void mount_into_handler() override
+        {
+            if (const auto& element_handler = handler())
+            {
+                element_handler->invoke("set_content");
+            }
+        }
+
     private:
         maui::core::i_view* content_ = nullptr; // NON-owning: the caller owns the content's lifetime
         maui::core::property<maui::core::thickness> padding_;

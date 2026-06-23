@@ -134,6 +134,44 @@ namespace maui::controls
             return logical_parent_;
         }
 
+        // ---- generic mount surface (the hosting app_host driver) ----------------------------------------
+        // The three public hooks a backend-agnostic mount driver needs to walk + host an arbitrary element
+        // tree WITHOUT special-casing each control (maui/hosting/app_host.hpp). They are the public face of
+        // the protected for_each_logical_child + the per-container host command.
+        //
+        // (1) visit_logical_children — the public window onto for_each_logical_child (which stays protected
+        //     so only containers OVERRIDE it). The driver enumerates a node's direct logical children here.
+        void visit_logical_children(const std::function<void(element&)>& visit) const
+        {
+            for_each_logical_child(visit);
+        }
+
+        // (2) handler_type_tag — the CONCRETE control's type_tag the handler_registry keys its factory on
+        //     (handler_registry::create_handler(type_tag)). attach_handler<View> keys on the STATIC type;
+        //     a generic driver only holds element& (static type element), so it needs the RUNTIME tag. The
+        //     reflection-free port has the control declare it; it defaults to the implicit-style target type
+        //     (set_style_target_type<T>(), which every registered control already populates with
+        //     type_tag::of<T>() — the same concrete registered type). A control that registers a handler but
+        //     has NO implicit style (the lone case today: collection_view) calls set_handler_type_tag<T>()
+        //     instead. nullopt = no handler to mount (a leaf chrome element / a control with neither set).
+        [[nodiscard]] virtual std::optional<maui::core::type_tag> handler_type_tag() const
+        {
+            return handler_type_tag_.has_value() ? handler_type_tag_ : style_target_type_;
+        }
+
+        // (3) mount_into_handler — re-fire this container's host command so its (now-attached) handler hosts
+        //     its logical children's native views. The element tree is typically built in a control's
+        //     CONSTRUCTOR, BEFORE any handler exists, so the content/add command fired then found no handler
+        //     and hosted nothing; once the driver attaches handlers bottom-up it calls this to replay the
+        //     host command (the generic form of the gallery_rehost_* helpers). Default no-op — a leaf has
+        //     nothing to host. A container overrides it to invoke its own command ("set_content" / "add" /
+        //     the multi-page child-sync) on handler(). Called AFTER this element's own handler is attached
+        //     and after all its children's handlers are attached (post-order), so every child native view
+        //     exists when the parent hosts it.
+        virtual void mount_into_handler()
+        {
+        }
+
         // C# VisualElement IsEnabled cascade (IPropertyPropagationController.PropagatePropertyChanged for
         // IsEnabledProperty / RefreshIsEnabledProperty): an ANCESTOR's IsEnabled changed, so re-push THIS
         // element's now-recomputed effective (coerced) IsEnabled to its handler + re-run ChangeVisualState,
@@ -232,6 +270,17 @@ namespace maui::controls
             merged_style_.set_target_type(*style_target_type_);
         }
 
+        // Declare the CONCRETE control type the handler_registry keys this control's handler factory on, for
+        // the generic mount driver's runtime resolution (handler_type_tag above). A control whose
+        // set_style_target_type already supplies the same concrete tag needs NOT call this — the default
+        // handler_type_tag() returns the style target. Only a control that registers a handler but has no
+        // implicit style (so style_target_type_ stays unset) calls this in its constructor. Stored
+        // separately from the style target so the two stay semantically distinct.
+        template <class TControl> void set_handler_type_tag()
+        {
+            handler_type_tag_ = maui::core::type_tag::of<TControl>();
+        }
+
         // Apply the merged (implicit + class) style to this element (merged_style.apply). Called by the view
         // when an explicit style is set/cleared and by the resource/parent machinery on a relevant change.
         // The explicit (local) style is owned by view<>; merged_style only handles implicit + class styles.
@@ -281,6 +330,10 @@ namespace maui::controls
         // owned (a name or key may be a built string).
         std::unordered_map<std::string, std::string> dynamic_resources_;
         std::optional<maui::core::type_tag> style_target_type_; // this control's style TargetType (if any)
+        // The concrete handler-registry key for the generic mount driver (set_handler_type_tag). Distinct
+        // from style_target_type_: a control with an implicit style needs only the style target; a control
+        // that registers a handler but has no implicit style sets this. handler_type_tag() prefers it.
+        std::optional<maui::core::type_tag> handler_type_tag_;
 
         // --- templates (W1-09) --------------------------------------------------------------------------
         // The Element-side templated-parent surface: Element.IsTemplateRoot, the synchronous

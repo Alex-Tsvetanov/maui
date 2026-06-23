@@ -223,6 +223,17 @@ namespace maui::controls
             }
         }
 
+        // Generic mount (app_host): re-fire the "add" command for each existing child so the now-attached
+        // handler's native panel hosts every child's native view — the construction-order replay of the per-
+        // child "add" that add() runs once a handler is present (the generic form of gallery_rehost_layout).
+        void mount_into_handler() override
+        {
+            for (int index = 0; index < count(); ++index)
+            {
+                notify_handler("add", index, at(index));
+            }
+        }
+
     private:
         // Attach / detach a child from this layout's logical tree (so it inherits / loses BindingContext +
         // Window). The cast bridges the i_view child pointer to the shared element base.

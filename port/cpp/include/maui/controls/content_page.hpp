@@ -256,6 +256,13 @@ namespace maui::controls
             }
         }
 
+        // Generic mount (app_host): re-host the page content on the now-attached handler (the same
+        // "set_content" command notify_content_changed fires when the content changes with a handler present).
+        void mount_into_handler() override
+        {
+            notify_content_changed();
+        }
+
     private:
         // Tell the handler (if attached) to re-host the new content on the native panel. The handler
         // reads the current content from the virtual view, so the bare command carries no payload.

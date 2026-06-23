@@ -144,6 +144,17 @@ namespace maui::controls
             }
         }
 
+        // Generic mount (app_host): re-fire "set_content" so the now-attached handler hosts the presented
+        // content's native view — the same command set_content runs when content changes with a handler
+        // present (covers content_view + content_presenter + any templated host that maps "set_content").
+        void mount_into_handler() override
+        {
+            if (const auto& element_handler = handler())
+            {
+                element_handler->invoke("set_content");
+            }
+        }
+
     private:
         std::vector<std::shared_ptr<element>> internal_children_; // OWNING (the template mints content)
         element* template_root_ = nullptr;                        // borrowed from internal_children_

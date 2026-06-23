@@ -261,6 +261,16 @@ namespace maui::controls
             }
         }
 
+        // Generic mount (app_host): re-fire "set_content" so the now-attached handler hosts the scrolled
+        // content's native view (the construction-order replay of set_content's command).
+        void mount_into_handler() override
+        {
+            if (const auto& element_handler = handler())
+            {
+                element_handler->invoke("set_content");
+            }
+        }
+
     private:
         // C# OnScrollToRequested: raise the controller event, then dispatch to the handler — or pend
         // the (single, latest-wins) request until one attaches.

@@ -195,6 +195,16 @@ namespace maui::controls
         // Content + the four collections are this view's logical children (BindingContext inherits down).
         void for_each_logical_child(const std::function<void(element&)>& visit) const override;
 
+        // Generic mount (app_host): re-fire "set_content" so the now-attached handler hosts the swiped
+        // content's native view (the construction-order replay of set_content's command).
+        void mount_into_handler() override
+        {
+            if (const auto& element_handler = handler())
+            {
+                element_handler->invoke("set_content");
+            }
+        }
+
     private:
         // Replace one of the four collections (the shared body for the four setters): reset the old
         // collection's change subscription (disconnecting while the old collection is still alive — §8),

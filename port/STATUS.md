@@ -4,6 +4,47 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## Cross-platform entry point — Stage 1 (headless) — ✅ DONE (2026-06-24)
+
+A framework user can now write a PURE C++ `main.cpp` (no Obj-C, no `.mm`, no platform headers) that looks
+like a MAUI `MauiProgram`: define an `application` subclass + a `use_shared_maui_app` configurator,
+`#include "maui/maui_main.hpp"`, and get a working `main()`. Stage 1 targets the **headless** backend and is
+proven end-to-end. New/changed:
+- **`include/maui/hosting/host_run.hpp`** — the PURE-C++ entry seam `run_app(argc, argv, configure)` each
+  backend implements (`app_configurator = maui_app_builder (*)(maui_app_builder)`). Names no platform type.
+- **`include/maui/maui_main.hpp`** — the convenience header: includes host_run + maui_app_builder, declares
+  the USER-defined `use_shared_maui_app`, and defines `main()` → `run_app(..., &use_shared_maui_app)`.
+  Include in exactly ONE TU (it defines main(), like CATCH_CONFIG_MAIN).
+- **`include/maui/hosting/app_host.hpp` + `src/hosting/app_host.cpp`** — the GENERIC recursive mount + layout
+  driver: `mount_tree` (depth-first post-order: attach a handler to every element via its runtime
+  `handler_type_tag`, then re-host its children via `mount_into_handler`), `mount_window` (mount the page
+  tree → attach window handler → open_window), `drive_layout` (one measure+arrange over the content bounds).
+  NO per-control special-casing — generalizes the per-page `attach_handlers`/`gallery_rehost_*` pattern.
+- **`src/platform/headless/host_run.cpp`** — the headless `run_app` body (build → get the app's window via
+  `create_window()` → `mount_window` → `drive_layout` at 402×874 → return 0). Headless-keyed in CMake; the
+  apple/ios/windows/android `run_app` (Stage 2) reuses `mount_window`/`drive_layout` + adds the native run
+  loop and safe-area-derived bounds.
+- **Minimal generic-mount accessors on `controls::element`** (the only framework edit the generic traversal
+  needed): public `visit_logical_children` (the public window onto the already-overridden protected
+  `for_each_logical_child`), virtual `handler_type_tag()` (the CONCRETE control's handler-registry key for
+  runtime resolution — defaults to the existing `style_target_type_`, which every registered control already
+  sets, + a `set_handler_type_tag<T>()` for `collection_view`, the lone control with a handler but no implicit
+  style), and virtual `mount_into_handler()` (re-fires the container's own host command). Overridden on
+  `border` / `content_page` / `templated_view`(→content_view) / `scroll_view` / `refresh_view` / `swipe_view`
+  / `layout` to re-host their children.
+- **`samples/hello_world/main.cpp`** — the pure-C++ proof program (the target UX verbatim) + a headless
+  `maui_hello_world` target.
+- **Tests:** `tests/hosting/app_host_tests.cpp` (6 cases) — handlers attach across the tree, the label's text
+  reaches its headless handler mirror, `drive_layout` sizes the page, a DEEP nested tree (page→scroll→stack→
+  {label, border→label}) mounts every node with the deepest leaf's text pushed, and `run_app` boots+returns 0;
+  plus a `maui_hello_world_boots` ctest booting the proof binary end-to-end.
+
+Gate: **headless 3081/3081** (was 3031; +6 new + existing). `gate.sh --fast` (headless+tidy+apple): see the
+commit. **Stage 2 deltas the headless run_app leaves for apple/ios:** a native run loop (UIApplicationMain
+et al.) instead of boot+settle-then-return; safe-area-derived layout bounds instead of the fixed 402×874; and
+re-driving `drive_layout` on every native resize. The generic `mount_tree`/`mount_window`/`drive_layout` are
+backend-agnostic and reused as-is.
+
 ## LayoutOptions gap — ✅ DONE (2026-06-19)
 
 `View.HorizontalOptions` / `VerticalOptions` are now **settable + honored**. Previously
