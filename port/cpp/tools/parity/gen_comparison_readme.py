@@ -175,10 +175,16 @@ def _img(d, key):
 
 
 def demo(key):
-    """2x2 of the NATIVE captures as plain <img> tags (no nested <table> — that breaks GitHub's
-    Markdown-cell rendering): top row light (MAUI, C++), bottom row dark (MAUI, C++)."""
-    return (f'{_img("maui_light", key)} {_img("cpp_light", key)}<br>'
-            f'{_img("maui_dark", key)} {_img("cpp_dark", key)}')
+    """2x2 of the NATIVE captures via a nested <table> (plain <img> tags stack vertically in a GitHub
+    Markdown cell; the nested table lays them out as a grid): top row light, bottom row dark."""
+    return (
+        "<table>"
+        f'<tr><td align="center">MAUI light<br>{_img("maui_light", key)}</td>'
+        f'<td align="center">C++ light<br>{_img("cpp_light", key)}</td></tr>'
+        f'<tr><td align="center">MAUI dark<br>{_img("maui_dark", key)}</td>'
+        f'<td align="center">C++ dark<br>{_img("cpp_dark", key)}</td></tr>'
+        "</table>"
+    )
 
 
 def main():
