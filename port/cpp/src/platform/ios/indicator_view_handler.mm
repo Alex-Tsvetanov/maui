@@ -188,8 +188,10 @@ namespace maui::core
         {
             return;
         }
-        // MauiPageControl.UpdateIndicatorSize: scale the dot subviews relative to the 6pt default.
-        constexpr double k_default_indicator_size = 6.0;
+        // MauiPageControl.UpdateIndicatorSize: scale the dot subviews relative to the default dot.
+        // C# IndicatorViewRenderer.DefaultIndicatorSize == 7 (scale = IndicatorSize / 7) — the port had 6,
+        // which over-scaled every sized indicator (e.g. 15 → 2.5x instead of 2.14x).
+        constexpr double k_default_indicator_size = 7.0;
         const double size = view->indicator_size();
         MauiPageControl* const control = as_page_control(platform->native);
         if (size == 0 || size == k_default_indicator_size)
