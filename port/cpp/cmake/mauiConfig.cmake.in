@@ -1,0 +1,18 @@
+@PACKAGE_INIT@
+
+# Package config for the C++23 .NET MAUI port (Stage 3 packaging). Consumed by an out-of-tree project:
+#   find_package(maui CONFIG REQUIRED)
+#   target_link_libraries(myapp PRIVATE maui::hosting)   # transitively pulls core/controls/layouts/...
+# After cmake --install, this file lives at <prefix>/lib/cmake/maui/mauiConfig.cmake.
+
+include(CMakeFindDependencyMacro)
+
+# pugixml is the framework's ONE transitive runtime/link dependency (maui_xaml's parser links it; the
+# other vcpkg deps — GTest/benchmark — are test/bench-only and not part of the installed targets). It is
+# linked PRIVATE, so consumers don't include pugixml headers, but the import still resolves its imported
+# target on the link line — re-find it before the targets file references pugixml::pugixml.
+find_dependency(pugixml CONFIG)
+
+include("${CMAKE_CURRENT_LIST_DIR}/mauiTargets.cmake")
+
+check_required_components(maui)

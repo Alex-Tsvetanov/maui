@@ -1,7 +1,9 @@
 # Root build for the C++23 MAUI port. Selects a native backend by preset/option
 # (MAUI_BACKEND), mirroring MAUI's cross-platform/platform split (PROFILE.md §3-§4).
 cmake_minimum_required(VERSION 3.28)
-project(maui_cpp LANGUAGES CXX)
+# VERSION mirrors vcpkg.json's version-string (0.1.0) — drives write_basic_package_version_file so an
+# out-of-tree `find_package(maui 0.1 CONFIG REQUIRED)` version check resolves (Stage 3 packaging).
+project(maui_cpp VERSION 0.1.0 LANGUAGES CXX)
 
 # ---- Language standard (PROFILE.md §1) ----
 set(CMAKE_CXX_STANDARD 23)
@@ -156,7 +158,13 @@ add_library(maui_graphics STATIC
   src/graphics/text/attributed_text.cpp
   ${MAUI_GRAPHICS_PLATFORM_SOURCES}
 )
-target_include_directories(maui_graphics PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# BUILD_INTERFACE: the in-tree source include path; INSTALL_INTERFACE: <prefix>/include after
+# `cmake --install` — so the exported target carries the right header path both in-tree (add_subdirectory)
+# and as an installed find_package dependency (Stage 3 packaging). The same generator-expression pattern
+# is applied to every installed framework library below.
+target_include_directories(maui_graphics PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
 target_link_libraries(maui_graphics PRIVATE maui_sanitizers)
 # ---- BEGIN apple_shared link/include: the CoreGraphics canvas needs CoreGraphics + CoreText +
 # Foundation (PUBLIC: the .mm tests and any backend consumer reach CGContext/CTLine through it);
@@ -535,7 +543,9 @@ add_library(maui_core STATIC
   src/animations/animation_manager.cpp
   ${MAUI_CORE_PLATFORM_SOURCES}
 )
-target_include_directories(maui_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(maui_core PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
 # Layer 1 depends on layer 0: core contracts expose graphics value types (color in i_text_style,
 # rect/size in i_view). PUBLIC so consumers of maui_core link maui_graphics transitively.
 target_link_libraries(maui_core PUBLIC maui_graphics PRIVATE maui_sanitizers)
@@ -972,7 +982,9 @@ add_library(maui_controls STATIC
   src/controls/detail/tweener.cpp
   src/controls/detail/element_animations.cpp
 )
-target_include_directories(maui_controls PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(maui_controls PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
 # Controls depend on Core (handlers, contracts, the property system); the layout controls additionally
 # use the maui_layouts measure/arrange managers (their create_layout_manager() instantiates them).
 # maui_essentials joins for the state triggers (DeviceStateTrigger/OrientationStateTrigger read the
@@ -1540,7 +1552,9 @@ add_library(maui_layouts STATIC
   src/layouts/flex_layout_manager.cpp
   src/layouts/detail/flex.cpp
 )
-target_include_directories(maui_layouts PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(maui_layouts PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
 target_link_libraries(maui_layouts PUBLIC maui_core PRIVATE maui_sanitizers)
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_layouts PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
@@ -1604,7 +1618,9 @@ add_library(maui_xaml STATIC
   src/xaml/xaml_runtime_bindings.cpp
   src/xaml/xaml_loader.cpp
 )
-target_include_directories(maui_xaml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(maui_xaml PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
 # pugixml stays an implementation detail of the parser .cpp (never in public headers) — PRIVATE.
 target_link_libraries(maui_xaml PUBLIC maui_controls PRIVATE pugixml::pugixml maui_sanitizers)
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
@@ -1672,7 +1688,9 @@ if(MAUI_BACKEND STREQUAL "apple")
 elseif(MAUI_BACKEND STREQUAL "ios")
   set_source_files_properties(src/platform/ios/host_run.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
 endif()
-target_include_directories(maui_hosting PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(maui_hosting PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
 # Hosting mints the controls::application and seeds the controls handler table — PUBLIC so consumers
 # (samples, tests) reach the controls/core surface transitively.
 target_link_libraries(maui_hosting PUBLIC maui_controls PRIVATE maui_sanitizers)
@@ -1866,7 +1884,9 @@ add_library(maui_essentials STATIC
   src/essentials/semantic_screen_reader.cpp
   ${MAUI_ESSENTIALS_PLATFORM_SOURCES}
 )
-target_include_directories(maui_essentials PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(maui_essentials PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
 # The internal detail bases (src/essentials/detail/) + the headless fakes header are included via
 # repo-root-relative paths ("src/..."), like the tests do - PRIVATE root include dir.
 target_include_directories(maui_essentials PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -1991,3 +2011,88 @@ if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     OBJCXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
 # --- end maui_essentials: devices+sensors (W1-16) ---
+
+# ======================================================================
+# Packaging — install + export so the framework is consumable via find_package(maui CONFIG REQUIRED)
+# (Stage 3). After `cmake --install`, an out-of-tree project does:
+#     find_package(maui CONFIG REQUIRED)
+#     target_link_libraries(myapp PRIVATE maui::hosting)   # transitively pulls core/controls/...
+# and compiles a pure-C++ program that #include "maui/maui_main.hpp".
+# ======================================================================
+
+# ---- EXPORT_NAME: strip the maui_ prefix so the exported (namespaced) target is maui::hosting, NOT
+# maui::maui_hosting. install(EXPORT ... NAMESPACE maui::) prepends maui:: to each target's EXPORT_NAME
+# (which defaults to the raw target name maui_hosting) — set EXPORT_NAME to the short stem so the
+# installed name matches the in-tree alias names below exactly. ----
+set_target_properties(maui_graphics PROPERTIES EXPORT_NAME graphics)
+set_target_properties(maui_core PROPERTIES EXPORT_NAME core)
+set_target_properties(maui_controls PROPERTIES EXPORT_NAME controls)
+set_target_properties(maui_layouts PROPERTIES EXPORT_NAME layouts)
+set_target_properties(maui_xaml PROPERTIES EXPORT_NAME xaml)
+set_target_properties(maui_hosting PROPERTIES EXPORT_NAME hosting)
+set_target_properties(maui_essentials PROPERTIES EXPORT_NAME essentials)
+set_target_properties(maui_sanitizers PROPERTIES EXPORT_NAME sanitizers)
+# (maui_umbrella's EXPORT_NAME is set after it is defined, below.)
+
+# ---- In-tree namespaced ALIAS targets ----
+# So the SAME maui::* target name resolves whether the framework is consumed via find_package (the
+# install(EXPORT ... NAMESPACE maui::) below mints maui::graphics etc.) OR via add_subdirectory (these
+# aliases). Aliases are build-time only (never installed) — the exported package re-creates them.
+add_library(maui::graphics ALIAS maui_graphics)
+add_library(maui::core ALIAS maui_core)
+add_library(maui::controls ALIAS maui_controls)
+add_library(maui::layouts ALIAS maui_layouts)
+add_library(maui::xaml ALIAS maui_xaml)
+add_library(maui::hosting ALIAS maui_hosting)
+add_library(maui::essentials ALIAS maui_essentials)
+add_library(maui::sanitizers ALIAS maui_sanitizers)
+# Optional umbrella: maui::maui pulls the whole framework via hosting (the top of the link DAG).
+add_library(maui_umbrella INTERFACE)
+target_link_libraries(maui_umbrella INTERFACE maui_hosting)
+set_target_properties(maui_umbrella PROPERTIES EXPORT_NAME maui)
+add_library(maui::maui ALIAS maui_umbrella)
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+# ---- Install the framework libraries + register them in the export set ----
+# All 8 targets (the 7 STATIC libs + the maui_sanitizers INTERFACE lib + the umbrella) are defined
+# UNCONDITIONALLY — the per-backend conditionals in this file only swap each library's *sources*, never
+# whether the target exists — so there is NOTHING backend-conditional to install here. maui_sanitizers
+# is in the set because the framework libs PRIVATE-link it (the exported targets reference it; an export
+# set must contain every target its members link, even INTERFACE ones); the umbrella carries maui::maui.
+install(TARGETS
+    maui_graphics maui_core maui_controls maui_layouts maui_xaml maui_hosting maui_essentials
+    maui_sanitizers maui_umbrella
+  EXPORT mauiTargets
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+# ---- Install the public headers (the entire include/maui tree = the public API surface, incl.
+# maui_main.hpp, hosting/host_run.hpp, hosting/app_host.hpp) ----
+install(DIRECTORY include/maui DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+# ---- Export the targets under the maui:: namespace ----
+install(EXPORT mauiTargets
+  FILE mauiTargets.cmake
+  NAMESPACE maui::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/maui)
+
+# ---- Generate + install the package config + version files (CMakePackageConfigHelpers) ----
+# mauiConfig.cmake re-finds the framework's transitive runtime dep (pugixml) via find_dependency, then
+# includes mauiTargets.cmake. Version is project's VERSION (0.1.0, mirrors vcpkg.json); SameMajorVersion
+# matches any 0.x request while 0.x is pre-1.0 — tighten to SameMinorVersion once the API stabilizes.
+configure_package_config_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/mauiConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/mauiConfig.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/maui)
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/mauiConfigVersion.cmake
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY SameMajorVersion)
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/mauiConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/mauiConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/maui)
