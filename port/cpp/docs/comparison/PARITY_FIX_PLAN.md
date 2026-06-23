@@ -188,8 +188,14 @@ re-stamped to honest severities **as each fix lands and is re-verified on-sim** 
   → **IMPLICATION for the rest of R3:** the other ~13 "tight CV" pages are NOT one framework root cause;
   each needs an individual check — likely a mix of Gemini over-flags (MAUI also tight = harness crop) and
   per-page dropped chrome. Do NOT blanket-fix.
-- **R7 (paths) — re-spawned** after the first U-PATHS agent died on an infra timeout leaving nothing
-  (no commit, no WIP); retry brief mandates commit-early-and-often.
+- **R7 (paths) — DONE+VERIFIED, commits `22fc59ea60`/`f52e85d810`/`d8179fc40b`/`2fbef928f6`** (U-PATHS
+  retry; the first agent died leaving nothing, the retry's commit-early brief produced 4 clean commits).
+  R7a NonZero fill → CG winding op (star fills solid); R7c Path defaults EvenOdd + reads GeometryGroup
+  FillRule (composite renders alternating rings, not a disc); R7d Background+Fill paints the shape host
+  (path_aspect gray rects back). **R7b dash = HONEST NO-BUG finding** — pipeline already faithful; the
+  "extra segments" was harness crop (rule #2), so added regression coverage, no code change. Verified
+  on-sim: polygon NonZero solid; path_gallery composite rings + Overlapping-Rectangles + EllipseGeometry
+  all render; path_aspect gray rects present.
 - **Agent infra note (2026-06-23):** the "Stream idle timeout" error killed 2 of 3 framework agents at
   ~13–15 min. Worktree commits survive; uncommitted WIP is salvageable via `git diff > patch`; a clean
   death leaves nothing. Lesson baked into re-spawn briefs: commit each sub-fix immediately.
