@@ -11,6 +11,7 @@ Layout: Setup section -> classification Summary -> table
 ordered # = simplest->complex (FIX_ORDER).
 """
 import datetime
+import html
 import json
 import os
 import re
@@ -152,14 +153,16 @@ def consensus(key, diff, gem, son):
 
 
 def cell(v):
+    """Pure-HTML model-verdict cell (markdown isn't parsed inside an HTML <table>); notes escaped."""
     if not v:
         return "⬜ pending"
-    notes = "".join(f"<br>• {n}" for n in v.get("notes", [])[:4])
-    return f"**{CAT_LABEL.get(v['category'], v['category'])}**<br><sub>{v.get('model', '')}</sub>{notes}"
+    notes = "".join(f"<br>• {html.escape(n)}" for n in v.get("notes", [])[:4])
+    return f"<b>{CAT_LABEL.get(v['category'], v['category'])}</b><br><sub>{html.escape(v.get('model', ''))}</sub>{notes}"
 
 
-DEMO_H = 350  # px height per screenshot — readable inline without zooming
-EXAMPLE_W = 300  # px width cap for the Example column (renderers that honor inline style)
+DEMO_H = 350     # px height per screenshot
+EXAMPLE_W = 150  # px width of the Example column (HTML `width` attr — honored by GitHub, unlike style)
+NOTE_W = 360     # px width of each model-notes column
 
 
 def _img(d, key):
@@ -252,13 +255,21 @@ def main():
     L.append("")
 
     L.append("## Examples (simplest → most complex)\n")
-    L.append("| # | Example | Demo (MAUI ┃ C++ · light/dark) | Sonnet | Gemini |")
-    L.append("| --- | --- | --- | --- | --- |")
+    L.append("<table>")
+    L.append(f'<thead><tr><th width="34">#</th><th width="{EXAMPLE_W}px">Example</th>'
+             f"<th>Demo — MAUI ┃ C++ · light/dark</th>"
+             f'<th width="{NOTE_W}">Sonnet <code>{MODEL_SONNET}</code></th>'
+             f'<th width="{NOTE_W}">Gemini</th></tr></thead>')
+    L.append("<tbody>")
     for i, k in enumerate(keys, 1):
         anim = " 🎬" if k in ANIMATED else ""
-        ex = (f'<div style="width:{EXAMPLE_W}px"><b>{title_of(k)}</b>{anim}'
-              f"<br><sub>{description(k)}</sub></div>")
-        L.append(f"| {i} | {ex} | {demo(k)} | {cell(son.get(k))} | {cell(gem.get(k))} |")
+        ex = f"<b>{html.escape(title_of(k))}</b>{anim}<br><sub>{html.escape(description(k))}</sub>"
+        L.append(f'<tr><td align="center">{i}</td><td width="{EXAMPLE_W}px">{ex}</td>'
+                 f"<td>{demo(k)}</td>"
+                 f'<td width="{NOTE_W}">{cell(son.get(k))}</td>'
+                 f'<td width="{NOTE_W}">{cell(gem.get(k))}</td></tr>')
+    L.append("</tbody>")
+    L.append("</table>")
     L.append("")
 
     out = os.path.join(CMP, "README.md")
