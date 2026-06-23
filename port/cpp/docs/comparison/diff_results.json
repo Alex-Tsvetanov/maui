@@ -749,11 +749,11 @@
  },
  "chat_example": {
   "light": {
-   "diff_pct": 4.3499,
-   "thresh_pct": 4.3482,
+   "diff_pct": 4.2867,
+   "thresh_pct": 4.2779,
    "max_delta": 255,
-   "ssim": 0.9915,
-   "ae": 179904,
+   "ssim": 0.9914,
+   "ae": 178427,
    "pixel_perfect": false,
    "bbox": [
     24,
@@ -765,11 +765,11 @@
    "note": ""
   },
   "dark": {
-   "diff_pct": 4.0801,
-   "thresh_pct": 4.0541,
+   "diff_pct": 4.0174,
+   "thresh_pct": 3.9891,
    "max_delta": 219,
-   "ssim": 0.9764,
-   "ae": 167280,
+   "ssim": 0.9763,
+   "ae": 167050,
    "pixel_perfect": false,
    "bbox": [
     24,

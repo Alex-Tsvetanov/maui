@@ -147,11 +147,11 @@
   "model": "gemini-3.1-flash-lite"
  },
  "chat_example": {
-  "category": "cpp_major",
+  "category": "cpp_minor",
   "notes": [
-   "The message bubble alignment is incorrect; the C++ version places the 'Hi there!' bubble on the right side, whereas the MAUI reference places it on the left.",
-   "The vertical positioning of the message bubbles is inconsistent between the two implementations.",
-   "The background color of the message bubbles in the C++ version appears to have a different shade or opacity compared to the MAUI reference."
+   "The bubble corner radius is slightly different between the C++ implementation and the MAUI reference.",
+   "The vertical alignment of the text within the bubbles shows minor variations.",
+   "The padding around the text inside the bubbles is slightly inconsistent compared to the MAUI version."
   ],
   "model": "gemini-3.1-flash-lite"
  },

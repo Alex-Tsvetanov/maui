@@ -36,9 +36,10 @@
 //   HorizontalOptions (Start/End — the per-message alignment), Padding (10,6) and Margin (8,2), and
 //   TextColor=Black, with Text bound to message.text. The two distinct templates are preserved (a
 //   selector really chooses between them per item), giving colored, side-aligned chat bubbles.
-//   RESIDUAL: the Border's RoundRectangle CornerRadius=12 has no Label analog (corner radius is a
-//   border-only StrokeShape), so the bubbles are square-cornered — the one cosmetic deviation from the
-//   oracle. The C# "Add 1000 Messages" rebuilds the VM and re-points BindingContext; the port mutates the
+//   The Border's RoundRectangle CornerRadius=12 IS reproduced via the single-root label's Clip (a
+//   round_rectangle(12) masks the label layer incl. its background fill → rounded bubble), so the
+//   bubbles read rounded like the oracle (earlier this was a square-cornered residual deviation).
+//   The C# "Add 1000 Messages" rebuilds the VM and re-points BindingContext; the port mutates the
 //   live observable source instead (add_range), the equivalent reload — same 1000 variable-height cells.
 
 #include <cstddef>
@@ -62,6 +63,7 @@
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/paint.hpp"
+#include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
 
@@ -183,8 +185,10 @@ namespace maui::samples
     private:
         // One bubble template: a Label whose Text = message.text, carrying the bubble's per-side
         // Background color and HorizontalOptions (Start/End) plus the oracle's Padding (10,6) / Margin
-        // (8,2) and TextColor=Black. The Border's RoundRectangle corner radius has no Label analog
-        // (single-root reduction — see the header note), so the bubble is square-cornered.
+        // (8,2) and TextColor=Black. The Border's RoundRectangle CornerRadius=12 IS reproduced on the
+        // single-root label via its Clip: a round_rectangle(12) clip masks the label's layer (incl. its
+        // background fill) to the rounded rect, so the bubble reads rounded exactly like the oracle's
+        // Border StrokeShape (the label handler's update_clip re-frames the mask to the live bounds).
         [[nodiscard]] static std::shared_ptr<maui::controls::data_template> make_bubble_template(
             maui::graphics::color background, maui::core::layout_alignment horizontal)
         {
@@ -204,6 +208,12 @@ namespace maui::samples
             bubble->set_value(maui::controls::margin_property(), maui::core::thickness(8, 2));
             // C# Label.TextColor = Black.
             bubble->set_value(maui::controls::label::text_color_property(), maui::graphics::colors::black);
+            // C# Border.StrokeShape = RoundRectangle{CornerRadius=12}: stage it as the label's Clip so
+            // the layer mask rounds the bubble (incl. the staged background fill) — the single-root
+            // equivalent of the oracle's rounded Border.
+            bubble->set_value(maui::controls::clip_property(),
+                              std::static_pointer_cast<maui::graphics::i_shape>(
+                                  std::make_shared<maui::graphics::shapes::round_rectangle>(12.0)));
             return bubble;
         }
 
