@@ -164,10 +164,16 @@ namespace maui::core
         // layout on a Custom button (the same tolerated deprecation as button_handler.mm's contentEdgeInsets),
         // and a configuration would lose the per-state Normal/Selected ring images this fallback relies on.
         const CGFloat gap = 8;
+        // MAUI's RadioButton DefaultTemplate wraps the indicator+content in a Border(Padding=6) > Grid
+        // (Padding=2), giving every radio ~8pt of fixed chrome padding top+bottom — so a native-default
+        // radio row is taller than a bare UIButton. The port renders the radio natively (no template), so
+        // fold that vertical chrome into contentEdgeInsets (which feeds sizeThatFits) to match the ref's row
+        // height; the port's radios were rendering noticeably more compact than MAUI's without it.
+        const CGFloat template_vpad = 8;
         button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
         button.imageEdgeInsets = UIEdgeInsetsMake(0, -gap / 2, 0, gap / 2);
         button.titleEdgeInsets = UIEdgeInsetsMake(0, gap / 2, 0, -gap / 2);
-        button.contentEdgeInsets = UIEdgeInsetsMake(0, gap / 2, 0, gap / 2);
+        button.contentEdgeInsets = UIEdgeInsetsMake(template_vpad, gap / 2, template_vpad, gap / 2);
         platform->native = (__bridge_retained void*)button; // the void* slot owns one reference
         return platform;
     }
