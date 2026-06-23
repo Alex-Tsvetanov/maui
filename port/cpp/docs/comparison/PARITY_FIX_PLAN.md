@@ -220,3 +220,18 @@ re-stamped to honest severities **as each fix lands and is re-verified on-sim** 
   (entry dark border, title_bar truncation/font, indicator dot size, button corner/letter-spacing, radio
   padding, selection highlight color, search_bar italic, header_footer image-vs-solid), NOT the
   layout/spacing/count flags.
+- **R13 indicator — DONE+VERIFIED, commit `1a0dc160e1`.** Dot-size scale base 6→7 (C#
+  `IndicatorViewRenderer.DefaultIndicatorSize == 7`); the port over-scaled (15 → 2.5× vs 2.14×). Dots
+  shrink toward MAUI on-sim; residual gap is the modern-vs-legacy handler nuance (minor). The CarouselView
+  "Item 1" bottom gap is the star-available-space harness effect (R6 family), not fixed.
+- **R10 entry → NOFIX (over-flag).** Fields match MAUI in height, spacing, magenta text, rounded borders
+  (light + dark); the port just shows more below the fold (harness crop). `visual_states` entry is the
+  same rendering (its "missing card bg" = harness wrapper).
+- **button "B u t t o n" letter-spacing → DISCUSS (MAUI mapper-order quirk), per ruling #3.** Both set
+  CharacterSpacing=20. MAUI's `UpdateCharacterSpacing` reads `TitleLabel.AttributedText?` — null on initial
+  render because MapText (mapper order 33) runs AFTER MapCharacterSpacing (order 30) → no-op → plain
+  "Button", no spacing. The port applies the kerning correctly ("B u t t o n"). Replicating MAUI's bug to
+  match it is a user call — flagged, not auto-fixed. (CornerRadius sharp-vs-rounded same page: marginal.)
+- **Convergence:** genuine-fix count is landing far below the original ~44. REAL fixes done so far: R1, R2,
+  R3/R4/R5, R7, R13, device. The rest are overwhelmingly over-flags or MAUI-quirk DISCUSS. Still to check:
+  title_bar, header_footer, radio_button_border, selection-highlight color, clip/clip_views, search_bar.
