@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "MAUI light: buttons/labels rendered mid-animation at a rotated/diagonal state; C++ shows them upright and properly laid out without the mid-animation diagonal text",
+    "C++ is missing the animated rotation state captured in MAUI screenshot (static vs mid-rotation capture timing difference)",
+    "Both sides show the same controls: '.NET bot (animation target)' label, 'Start Animation', 'Start Custom Animation', 'Cancel Animation'",
+    "Dark mode: same observation — MAUI captured mid-animation diagonal text, C++ shows default upright layout; functional parity but runtime animation state not captured"
+  ],
+  "model": "claude-sonnet-4-6"
+}

@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Both light and dark themes show matching content: placeholder text, 'Toggle AdjustsFontSizeToFitWidth' button, and empty entry field.",
+    "Entry placeholder styling and button text match between MAUI and C++ in both themes.",
+    "Dark mode renders correctly on both sides with appropriate dark background and light placeholder text.",
+    "Very low diff_pct (0.53%) confirms near-pixel-perfect match; only harness padding differs."
+  ],
+  "model": "claude-sonnet-4-6"
+}

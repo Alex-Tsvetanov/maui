@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Both light and dark show the same four radio buttons (Option A/B/C in a StackLayout, Option D in a Grid) with matching intro text and 'Selected: (none)' label.",
+    "MAUI's radio button circles appear tightly left-aligned against text; C++ shows a small gap/spacing between the circle and label text that is slightly larger.",
+    "The 'This RadioButton is inside a Grid / Option D' row aligns correctly in both, with Option D on the right side.",
+    "Dark mode matches well; slight radio button circle sizing or spacing difference (minor) accounts for the ~3% diff."
+  ],
+  "model": "claude-sonnet-4-6"
+}

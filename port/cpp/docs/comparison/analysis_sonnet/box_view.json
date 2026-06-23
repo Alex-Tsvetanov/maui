@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "All box shapes render correctly: Default (cornflower blue), Using Color (purple), Background (yellow-green gradient), Using CornerRadius (mint green rounded), and orange strip at bottom are all present and color-matched.",
+    "C++ boxes are slightly narrower/smaller than MAUI boxes — the colored rectangles take up less horizontal width on the right side.",
+    "Gradient direction and colors on the 'Background' box match between MAUI and C++.",
+    "Both light and dark themes are consistent; no missing elements or color errors."
+  ],
+  "model": "claude-sonnet-4-6"
+}

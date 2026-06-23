@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Both show Miter/Bevel/Round zigzag polyline shapes in cyan on white (light) and black (dark) backgrounds",
+    "C++ shapes are visibly smaller and narrower than MAUI — the polylines don't extend as far to the right edge",
+    "Line join rendering style (miter points, bevel cuts, round caps) appears correct on both sides",
+    "Size/width difference is consistent across all three join types and both themes — likely a canvas/view sizing issue in C++"
+  ],
+  "model": "claude-sonnet-4-6"
+}

@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Both light and dark themes show identical content: heading 'Red when the number isn't valid' and 'Enter a System.Double' entry placeholder",
+    "Entry field renders correctly with matching placeholder text and border in both themes",
+    "Dark mode background is black in both, light mode is white in both",
+    "Pixel diff is marginal (2.1%) and attributable to harness outer-inset; content is structurally identical"
+  ],
+  "model": "claude-sonnet-4-6"
+}

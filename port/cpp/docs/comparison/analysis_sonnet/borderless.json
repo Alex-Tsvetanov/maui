@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Light mode: yellow background with 'Style: borderless (StrokeThickness 0)' label and toggle switch — identical layout",
+    "Dark mode: same yellow background content renders correctly on both sides",
+    "Tiny diff (~0.69%) is subpixel antialiasing on toggle switch rendering only",
+    "Toggle switch position and style match between MAUI and C++"
+  ],
+  "model": "claude-sonnet-4-6"
+}

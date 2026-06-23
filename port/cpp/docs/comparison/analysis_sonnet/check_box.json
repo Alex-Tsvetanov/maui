@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "All 5 rows (Default, Colored, Disabled, Disabled Colored, Change IsChecked) render correctly in both C++ and MAUI",
+    "CheckBox circle icons match in size, color (blue/purple/disabled blue/purple filled), and position relative to labels",
+    "'Is green? False' row with red check icon matches in both themes",
+    "Dark mode inverts backgrounds correctly; minor pixel diff (2.4%) is harness inset only"
+  ],
+  "model": "claude-sonnet-4-6"
+}

@@ -1,0 +1,10 @@
+{
+  "category": "cpp_major",
+  "notes": [
+    "Icon buttons ('settings') render with large gear icon + text side-by-side in C++ taking full row height (~100pt cells), vs small compact single-row entries in MAUI — icon sizing or button layout is completely different",
+    "MAUI shows a compact list where icon buttons (settings, settings, Decrease Spacing, Increase Spacing) fit as normal-height rows; C++ renders them as tall icon+label cards",
+    "All text content and color-coded buttons (blue Button, red Button, green BorderColor, BorderWidth, purple CornerRadius, pink Button) match correctly in both themes",
+    "diff_pct ~52% light / ~31% dark confirms a significant layout divergence in the icon-button rows"
+  ],
+  "model": "claude-sonnet-4-6"
+}

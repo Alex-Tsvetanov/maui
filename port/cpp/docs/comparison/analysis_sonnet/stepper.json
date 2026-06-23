@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Both light and dark show matching stepper controls: Default, Disabled, BackgroundColor (red), Background, Minimum/Maximum, Increment, ValueChanged — all sections present.",
+    "MAUI light shows the red BackgroundColor stepper spanning the full page width as a wide red bar; C++ renders it smaller/shorter (not full-width).",
+    "All stepper control labels and 'Value: 0' text match; the functional layout is correct with enabled/disabled states visible.",
+    "Dark mode matches closely; the main minor difference is the BackgroundColor stepper width not stretching to full page width in C++."
+  ],
+  "model": "claude-sonnet-4-6"
+}

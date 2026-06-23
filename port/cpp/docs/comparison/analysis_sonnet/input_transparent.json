@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Light mode: Both show identical content structure — single clickable button, tap single clickable, not clickable, tap single transparent, overlay/tap overlay sections, toggle section, tap toggle set, and footer label",
+    "Button labels and blue link-style text items match exactly in both light and dark",
+    "Dark mode: both show dark background with white/blue text — content and layout match",
+    "Minor padding difference (C++ has slightly more top spacing) is within harness-wrapper tolerance; all functional content matches"
+  ],
+  "model": "claude-sonnet-4-6"
+}

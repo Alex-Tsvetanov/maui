@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "All five rectangle types present in both: basic red filled, square (red stroke only), rectangle with stroke (stacked red+blue), stroke dash (blue+red dashes), curved corners (dark blue pill)",
+    "C++ rectangles appear slightly narrower/smaller than MAUI's — shapes are right-aligned in C++ but left-aligned in MAUI, indicating HorizontalOptions difference",
+    "The 'A Rectangle with stroke' item in MAUI shows two stacked rects (empty red-bordered + solid blue); C++ renders the same but the top empty rect appears darker/filled in dark mode",
+    "Dark mode: C++ 'rectangle with stroke' top rect appears with a dark fill rather than fully transparent, differing from MAUI's empty (transparent) interior"
+  ],
+  "model": "claude-sonnet-4-6"
+}

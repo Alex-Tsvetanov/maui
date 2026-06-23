@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Both light and dark show matching z-index stacking: 10 colored labels (Label 0–9, z-index 0–9) cascading diagonally with correct stacking order, ending in the large red square at front.",
+    "The z-index ordering (green/teal at back, red at front) is correct and identical in both MAUI and C++.",
+    "The stepper control (Z-Index of Label 5: 5) with minus/plus buttons is present and matches on both sides.",
+    "Dark mode stacking and colors match; slight size difference in the stacked cascade is within the harness margin difference."
+  ],
+  "model": "claude-sonnet-4-6"
+}

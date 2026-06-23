@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Both sides show 'HybridWebView here' label on the left and a column of blue hyperlink buttons on the right: Send message to JS, Invoke JS, Invoke Async JS, Test JS Exception, Test JS Async Ex",
+    "C++ truncates button labels: 'Send...to JS', 'Invok...ync JS', 'Test...eption' x2 — MAUI shows more characters before truncation in the same space",
+    "Layout is a two-column arrangement in both; C++ column widths appear equal or the right column is narrower causing earlier truncation",
+    "Dark mode: C++ shows a black area below the two columns (blank lower portion), while MAUI also has a blank lower area — both look correct for a page that only has a small UI at the top"
+  ],
+  "model": "claude-sonnet-4-6"
+}

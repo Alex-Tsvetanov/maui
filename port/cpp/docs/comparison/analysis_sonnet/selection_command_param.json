@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Both sides show the same structure: 'Pending...' header, bold 'This is the header', then alternating Item N / This is item N rows for items 0-9",
+    "C++ renders more items visible on screen due to smaller outer padding (harness inset difference — per policy not a bug)",
+    "Text content, bold header styling, and item/detail alternation are identical between MAUI and C++",
+    "Dark mode matches equally well with correct white-on-black text colors"
+  ],
+  "model": "claude-sonnet-4-6"
+}

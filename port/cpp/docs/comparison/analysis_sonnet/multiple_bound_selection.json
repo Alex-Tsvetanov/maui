@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Light mode: Both show header text, 'Selected: Item 1, Item 2', 'This is the header' bold label, 4 list items with Item 1 and Item 2 highlighted, and 3 blue action buttons",
+    "MAUI: list items and buttons are tightly grouped near top; C++ has large vertical gap between the list items and the action buttons (Clear and Add / Reset / Direct Update pushed far down)",
+    "Dark mode: same gap issue — C++ action buttons are much lower than in MAUI",
+    "Selection highlight in C++ is a medium grey similar to MAUI's; all content correct, only vertical spacing/layout differs"
+  ],
+  "model": "claude-sonnet-4-6"
+}

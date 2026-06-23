@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Both MAUI and C++ render all sections: 'Different icon sizes' (128x128, 256x256, 512x512) and 'Different SwipeView sizes' (128, 256 heights) with grey 'Swipe to Left' cells.",
+    "The swipe rows are visually identical in sizing and layout between MAUI and C++ for all variations.",
+    "Dark mode is consistent: MAUI shows white text on black gutters with grey cells; C++ matches.",
+    "The diff_pct (~25%) is attributable to the harness padding shift rather than content differences."
+  ],
+  "model": "claude-sonnet-4-6"
+}

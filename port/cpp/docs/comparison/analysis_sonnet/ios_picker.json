@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Both light and dark show 'Select a monkey' placeholder picker field and 'Toggle Picker UpdateMode' button identically",
+    "Picker placeholder text color and button link color match between MAUI and C++",
+    "Dark mode picker field is visible with subtle divider on both sides",
+    "Tiny diff (~0.62%) is subpixel only — no content difference"
+  ],
+  "model": "claude-sonnet-4-6"
+}

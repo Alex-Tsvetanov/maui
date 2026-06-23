@@ -1,0 +1,10 @@
+{
+  "category": "cpp_major",
+  "notes": [
+    "MAUI light: shows two path figures (triangle outlines) — one 'Without RenderTransform' and one 'With RenderTransform' (rotated/scaled differently)",
+    "C++ light: shows the same two labels but both path figures are present and rendered; however the 'With RenderTransform' group in C++ shows TWO stacked triangles instead of one transformed path — the transform is duplicating the shape",
+    "MAUI dark: both path labels are present but the actual triangle figures are missing/invisible (black on black) — this is a MAUI dark-mode rendering issue where the path stroke color is not adapting to dark background",
+    "C++ dark: same missing-paths issue as MAUI dark, plus the extra-triangle duplication visible in light mode; the transform string parsing may be producing an extra un-transformed path copy"
+  ],
+  "model": "claude-sonnet-4-6"
+}

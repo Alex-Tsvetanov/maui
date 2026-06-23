@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "All text content matches: description, 'Fail Access', 'Access', '3 Seconds Later', '3 Second Timer (Start/Stop)', and 'Device.StartTimer(3s) (Start/Stop)' buttons/links all present.",
+    "Text layout and line wrapping differs slightly due to C++ having slightly different page width/padding, but all content is present.",
+    "Blue link/button styling is reproduced correctly in both themes.",
+    "Dark mode renders correctly with white text on black background."
+  ],
+  "model": "claude-sonnet-4-6"
+}

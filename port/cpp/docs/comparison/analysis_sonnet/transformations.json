@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "All transformation controls present in both: Scale, ScaleX, ScaleY, Rotation, RotationX, RotationY, AnchorX, AnchorY (with +/- buttons), TranslationX, TranslationY sliders",
+    "MAUI has a 'SCALE AND ROTATE' heading centered at the top of the content area; C++ also has it but it appears lower/further from the top due to outer padding difference",
+    "Slider thumb positions differ between captures (state-dependent at capture time) — Scale/ScaleX/ScaleY sliders show thumbs at left in C++ vs further right in MAUI, likely not a bug",
+    "Dark mode: all controls render correctly with appropriate dark backgrounds; diff_pct ~14-17% is driven by slider state + padding offset"
+  ],
+  "model": "claude-sonnet-4-6"
+}

@@ -1,0 +1,10 @@
+{
+  "category": "cpp_major",
+  "notes": [
+    "MAUI light: 8 clipped controls (Button, DatePicker, Entry, Editor, Grid, SearchBar, TimePicker) all show as wide diagonal-cut parallelogram-shaped red bands across full screen width",
+    "C++ light: controls are narrower (~half-width) and do not extend to left edge; the red clip shapes are shorter and shifted right — layout width is wrong",
+    "Dark mode: same width/layout discrepancy; MAUI dark red bands span full width, C++ bands are narrower and start from center",
+    "SearchBar background in C++ dark shows a distinct grey pill vs MAUI's transparent red band — additional visual difference on top of the width issue"
+  ],
+  "model": "claude-sonnet-4-6"
+}

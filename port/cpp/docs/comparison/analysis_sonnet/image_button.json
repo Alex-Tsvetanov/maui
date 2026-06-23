@@ -1,0 +1,10 @@
+{
+  "category": "cpp_major",
+  "notes": [
+    "AspectFit, AspectFill, and Fill green image buttons are present but C++ renders them noticeably smaller/narrower than MAUI.",
+    "MAUI 'Custom Size (click to resize)' shows a full-width green image button; C++ shows only a tiny ship/dolphin icon instead of the green image button — major rendering difference.",
+    "CornerRadius section: MAUI shows three purple rounded-rectangle buttons stacked; C++ also shows them but they appear slightly smaller.",
+    "The 'Animated GIF' section is cut off in C++ (not visible at bottom of screen), while MAUI shows the label — likely a scrollable content issue."
+  ],
+  "model": "claude-sonnet-4-6"
+}

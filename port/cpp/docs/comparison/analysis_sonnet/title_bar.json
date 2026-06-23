@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Both sides show a two-column layout: 'Content Options' (radio buttons for Set Icon, Leading Content, Content, Trailing Content, Tall TitleBar, Show TitleBar) and 'Color Options' (Green text fields + Set Color/Set Foreg buttons + Toggle TitleBar On Window link + status text)",
+    "C++ radio button labels are wider/larger, causing the right column ('Color Options') to be pushed off-screen (truncated at right edge) in both light and dark modes",
+    "MAUI fits both columns comfortably; C++ radio button row height appears larger, expanding the left column and crowding the right",
+    "Title, Entry field placeholders ('Green'), button labels, and status text all match between sides; layout compression is the primary defect"
+  ],
+  "model": "claude-sonnet-4-6"
+}

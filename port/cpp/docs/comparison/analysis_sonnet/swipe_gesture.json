@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "MAUI light: SwipeView card shows stacked/overlapping text (all text crammed together) — indicates a layout rendering issue on MAUI side where text layers overlap",
+    "C++ light: SwipeView card renders correctly with 'Welcome to .NET MAUI!' title, subtitle 'A SwipeView with gesture recognizers', and 'Double-tap the card, or swipe to Favourite / Delete.' properly stacked",
+    "MAUI dark: SwipeView card is blank/empty (no card content visible, just 'TapCommand (double-tap)' label below) — MAUI render failure",
+    "C++ dark: renders the complete SwipeView card with all text content visible — C++ is actually MORE correct than MAUI here; the 'cpp_minor' category reflects the light-mode text layout difference"
+  ],
+  "model": "claude-sonnet-4-6"
+}

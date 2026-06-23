@@ -1,0 +1,1 @@
+{"category": "match", "notes": ["Both show 'Press or right-click me' blue link and 'Ready' label in same positions", "C++ button text appears slightly bolder/larger but functionally equivalent", "Layout and element presence match in both light and dark modes", "Only trivial font-weight/rendering differences"], "model": "claude-sonnet-4-6"}

@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Light mode: both show header text, 'Selected: (none)', then list of United States / Canada / Mexico / Brazil / Argentina — all matching",
+    "No item selected in initial state in both MAUI and C++ — correct",
+    "Dark mode: same dark background with white text, same list content — matches",
+    "Minor top-padding difference (C++ inset slightly larger) is within harness-wrapper tolerance; all content correct"
+  ],
+  "model": "claude-sonnet-4-6"
+}

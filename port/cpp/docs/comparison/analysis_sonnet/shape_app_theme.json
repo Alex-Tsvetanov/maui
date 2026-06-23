@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Light mode: both show 'Shape using AppTheme' in green text above a green filled rectangle — colors and layout match",
+    "Dark mode: both switch to red text and red filled rectangle correctly, confirming AppTheme binding works in C++ port",
+    "Shape dimensions are slightly smaller in C++ (rectangle appears narrower) but the color/theme switch behavior is correct",
+    "diff_pct ~0.69% in both themes confirms near-identical render; size difference is within minor threshold"
+  ],
+  "model": "claude-sonnet-4-6"
+}

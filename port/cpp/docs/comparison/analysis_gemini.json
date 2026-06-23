@@ -1,0 +1,1556 @@
+{
+ "alerts": {
+  "category": "cpp_minor",
+  "notes": [
+   "The blue interactive text elements (Alerts, ActionSheets, Questions) appear slightly bolder and a different shade of blue in the C++ version across both themes.",
+   "The blue interactive text elements are horizontally shifted slightly to the right in the C++ version compared to MAUI.",
+   "The general text rendering (e.g., \"OnAppearing: Alert...\") shows subtle differences in font weight or anti-aliasing in the C++ version."
+  ],
+  "model": "gemini-2.5-flash"
+ },
+ "animation": {
+  "category": "cpp_major",
+  "notes": [
+   "The text \".NET bot (animation target)\" is rotated in MAUI but not in C++.",
+   "The animation control buttons are positioned to the right of the rotated text in MAUI.",
+   "In C++, the animation control buttons are positioned below the horizontal \".NET bot (animation target)\" text.",
+   "The overall layout and arrangement of elements are substantially different between MAUI and C++."
+  ],
+  "model": "gemini-2.5-flash"
+ },
+ "app_theme_binding": {
+  "category": "cpp_major",
+  "notes": [
+   "In dark mode, the C++ port displays the text \"This text is green in light mode, and red in dark mode.\" as green, instead of red.",
+   "In dark mode, the C++ port displays the text \"This text uses LightPrimaryColor (Orange) in light mode, and DarkPrimaryColor (Teal) in dark mode.\" as orange, instead of teal.",
+   "The MAUI dark theme is completely incorrect, displaying light theme content (white background and light theme text colors).",
+   "The light theme is a close visual match between MAUI and C++."
+  ],
+  "model": "gemini-2.5-flash"
+ },
+ "basic_grouping": {
+  "category": "cpp_minor",
+  "notes": [
+   "Group titles (e.g., \"Avengers\", \"Fantastic Four\", \"Defenders\") are rendered in black/dark grey in MAUI light/dark themes.",
+   "Group titles (e.g., \"Avengers\", \"Fantastic Four\", \"Defenders\") are rendered in green in C++ light/dark themes."
+  ],
+  "model": "gemini-2.5-flash"
+ },
+ "basic_swipe": {
+  "category": "cpp_minor",
+  "notes": [
+   "Vertical spacing between list items is slightly smaller on the C++ side.",
+   "The height of the list item rectangles appears slightly shorter on the C++ side."
+  ],
+  "model": "gemini-2.5-flash"
+ },
+ "behaviors": {
+  "category": "cpp_minor",
+  "notes": [
+   "The placeholder text 'Enter a System.Double' has a slightly different font weight or rendering in the C++ implementation compared to the MAUI reference.",
+   "The border color or thickness of the input field appears slightly different in both light and dark themes.",
+   "There is a subtle difference in the vertical padding or alignment of the input field container."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "border": {
+  "category": "cpp_minor",
+  "notes": [
+   "The text 'Bordered content' in the C++ implementation appears slightly bolder or has different font rendering compared to the MAUI reference.",
+   "The red border stroke width is slightly thicker in the C++ implementation than in the MAUI reference.",
+   "The corner radius of the container appears slightly different between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "border_clip_playground": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation is missing the image content inside the border.",
+   "The C++ implementation is missing the 'Bottom Right Corner Radius' slider control entirely.",
+   "The C++ implementation is missing the 'Bottom Left Corner Radius' slider control entirely.",
+   "The layout of the slider controls in the C++ version is inconsistent with the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "border_layout": {
+  "category": "cpp_minor",
+  "notes": [
+   "The border stroke color in dark mode is slightly lighter/brighter in the C++ version compared to the MAUI version.",
+   "The slider thumb in the C++ version appears slightly larger or has a different shadow/border rendering compared to the MAUI version.",
+   "The text 'Center' has slightly different font weight or anti-aliasing characteristics in the C++ implementation."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "border_playground": {
+  "category": "cpp_major",
+  "notes": [
+   "The border stroke is completely missing in the C++ implementation.",
+   "The C++ implementation fails to render the border dash pattern and border width settings.",
+   "The C++ implementation is missing the UI controls for Border Width, Border Dash Array, Border Dash Offset, and Border LineJoin.",
+   "The C++ implementation is missing the 'Show Content Background' toggle switch."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "border_resize_content": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation fails to render the '+' text content inside the shapes.",
+   "The C++ implementation fails to render the image content inside the shapes, showing empty blue backgrounds instead.",
+   "The C++ implementation displays a '-' symbol instead of a '+' symbol in the bottom-left triangle shape.",
+   "The C++ implementation has incorrect alignment and scaling of the content within the triangle shapes."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "border_stroke": {
+  "category": "cpp_major",
+  "notes": [
+   "The border thickness implementation is inconsistent; the C++ version renders borders significantly thinner than the MAUI reference.",
+   "The layout of the 'Using different StrokeThickness' section is incorrect in the C++ version, with elements appearing as thin lines rather than boxes.",
+   "The vertical spacing and alignment of the boxes in the C++ version do not match the MAUI reference.",
+   "The slider track and thumb styling differ significantly between the C++ implementation and the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "borderless": {
+  "category": "cpp_minor",
+  "notes": [
+   "The switch control in the C++ implementation has a slightly different thumb size and track shape compared to the MAUI reference.",
+   "The vertical alignment of the switch control relative to the top text label is slightly shifted in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "box_view": {
+  "category": "cpp_major",
+  "notes": [
+   "The 'Using Complex CornerRadius' section is completely missing from the C++ implementation in both light and dark themes.",
+   "The vertical spacing between the 'Using CornerRadius' box and the bottom of the screen is significantly larger in the C++ implementation compared to the MAUI reference.",
+   "The overall vertical layout is compressed in the C++ version, causing the elements to not align with the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "button": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation displays significantly larger buttons and icons compared to the MAUI reference.",
+   "The layout spacing is inconsistent, with the C++ version having much larger gaps between elements.",
+   "The C++ version fails to render the slider control present in the MAUI reference.",
+   "The overall scale and proportions of the UI elements in the C++ port do not match the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "carousel_page": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation is missing the carousel content area entirely.",
+   "The C++ implementation includes navigation buttons (Prev/Next) and status text that are absent in the MAUI reference.",
+   "The layout structure is fundamentally different between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "chat_example": {
+  "category": "cpp_major",
+  "notes": [
+   "The message bubble alignment is incorrect; the C++ version places the 'Hi there!' bubble on the right side, whereas the MAUI reference places it on the left.",
+   "The vertical positioning of the message bubbles is inconsistent between the two implementations.",
+   "The background color of the message bubbles in the C++ version appears to have a different shade or opacity compared to the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "check_box": {
+  "category": "cpp_minor",
+  "notes": [
+   "The vertical spacing between the radio button rows is slightly tighter in the C++ implementation compared to the MAUI reference.",
+   "The alignment of the 'Is green? False' text and its associated checkmark icon is slightly shifted horizontally in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "chrome": {
+  "category": "match",
+  "notes": [
+   "The text 'Press or right-click me' and 'Ready' are visually identical in both light and dark modes.",
+   "The layout and positioning of all elements are consistent between the MAUI reference and the C++ port.",
+   "The background colors and text colors match perfectly across both themes."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "clip": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation fails to render the source images, showing only empty gray boxes instead of the expected character graphic.",
+   "The layout of the clipped images is inconsistent with the MAUI reference, specifically regarding the size and aspect ratio of the clipped areas.",
+   "The C++ implementation displays significantly smaller clipped regions compared to the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "clip_corner_radius": {
+  "category": "cpp_major",
+  "notes": [
+   "The image is missing in the MAUI reference implementation, while it is correctly rendered in the C++ implementation.",
+   "The slider track color and thumb style differ significantly between the MAUI reference and the C++ implementation.",
+   "The layout of the sliders and labels is inconsistent between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "clip_gallery": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation fails to render the source images, showing only empty gray boxes instead of the dog image.",
+   "The layout of the clipped elements is inconsistent with the MAUI reference, specifically regarding the spacing and alignment of the clipped shapes.",
+   "The overall visual representation is significantly different due to the missing image content."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "clip_views": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation uses a significantly different, non-standard shape for all controls compared to the MAUI reference.",
+   "The search bar icon and input field styling are inconsistent with the MAUI reference.",
+   "The time format in the bottom control differs between the two implementations (12:00 AM vs 0:00).",
+   "Vertical spacing and layout alignment are noticeably different across all controls."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "clipping": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation displays two coffee cup icons that are completely absent in the .NET MAUI reference.",
+   "The horizontal alignment of the 'Hey' buttons within the purple container differs between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "collectionview": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation has significantly different column widths compared to the MAUI reference.",
+   "The text alignment and wrapping behavior differ, causing the grid layout to break differently.",
+   "The spacing between items is inconsistent with the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "composition_gallery": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation renders the content as a single tall container instead of two separate stacked containers.",
+   "The layout of the shapes is vertically stretched in the C++ version compared to the MAUI reference.",
+   "The relative positioning and aspect ratio of the shapes within the container are distorted in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "containers": {
+  "category": "cpp_minor",
+  "notes": [
+   "The border stroke color in the C++ version is slightly lighter than the MAUI reference in both light and dark themes.",
+   "The frame border thickness appears slightly thinner in the C++ version compared to the MAUI reference.",
+   "The vertical spacing between the border, frame, and content_view elements is slightly tighter in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "content_view": {
+  "category": "cpp_minor",
+  "notes": [
+   "The 'Swap content' button is positioned differently in the C++ implementation compared to the MAUI reference.",
+   "The vertical spacing between the text elements 'ContentView', 'Content', and 'Content' is inconsistent between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "context_flyout": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation is missing the 'Increment by 1' button entirely in both light and dark themes.",
+   "The C++ implementation is missing the 'Is dynamic menu enabled?' toggle switch.",
+   "The C++ implementation is missing the 'Has a custom context menu' text input field.",
+   "The C++ implementation is missing the 'COOL' button/image element."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "controls_stack": {
+  "category": "cpp_major",
+  "notes": [
+   "The slider thumb size and shape are inconsistent between MAUI and C++ implementations.",
+   "The progress bar height and corner radius differ significantly.",
+   "The stepper control layout and button sizing are not aligned with the MAUI reference.",
+   "The search bar icon and text alignment show noticeable discrepancies."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "custom_layout": {
+  "category": "match",
+  "notes": [
+   "The layout and positioning of all labels (Top, Left, Right, Bottom) are visually identical between the MAUI and C++ implementations.",
+   "The color schemes for both light and dark modes are correctly applied and match the reference.",
+   "The minor pixel differences reported are negligible and likely due to sub-pixel rendering or anti-aliasing variations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "custom_size_swipe": {
+  "category": "match",
+  "notes": [
+   "The visual layout and content are identical across both light and dark themes.",
+   "The minor SSIM differences are likely due to subtle font rendering or anti-aliasing variations between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "custom_swipe_item_view": {
+  "category": "match",
+  "notes": [
+   "The font weight of the date text appears slightly bolder in the C++ implementation compared to the MAUI reference.",
+   "There is a subtle difference in the font rendering or anti-aliasing, making the text look slightly sharper in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "cv_visual_states": {
+  "category": "cpp_major",
+  "notes": [
+   "In light mode, the C++ version has significantly larger vertical spacing between the 'Single Selection' and 'Multi Selection' sections compared to MAUI.",
+   "In dark mode, the MAUI version is missing the list items entirely, while the C++ version renders them correctly.",
+   "In dark mode, the MAUI version displays incorrect background colors for the section headers, whereas the C++ version correctly renders the dark theme."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "data_template_selector": {
+  "category": "cpp_major",
+  "notes": [
+   "The search bar height is significantly taller in the C++ implementation compared to the MAUI reference.",
+   "The vertical spacing between list items is inconsistent, with the C++ version appearing more compressed.",
+   "The font weight and rendering style of the list items differ noticeably from the MAUI reference.",
+   "The overall vertical alignment and padding of the list content within the screen area do not match the MAUI layout."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "date_picker": {
+  "category": "cpp_major",
+  "notes": [
+   "The background color for the third date picker entry is incorrect (magenta in C++ vs blue gradient in MAUI).",
+   "The 'Set to today' button is missing in the C++ implementation.",
+   "The spacing and layout alignment of the controls differ significantly between the two implementations.",
+   "The text color for the 'TextColor' entry in the dark theme is red in C++ but appears as a dark red/maroon in MAUI."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "device": {
+  "category": "cpp_minor",
+  "notes": [
+   "The C++ implementation is missing the dynamic island/notch area pill-shaped container present in the MAUI light theme.",
+   "The text alignment and vertical positioning of the platform information labels are slightly shifted compared to the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "dispatcher": {
+  "category": "cpp_minor",
+  "notes": [
+   "The C++ implementation has slightly tighter vertical spacing between text blocks compared to the MAUI reference.",
+   "The text alignment and margins appear slightly shifted in the C++ version, resulting in a different line-wrapping behavior for the paragraph text.",
+   "The font weight or rendering style in the C++ version appears slightly bolder or more condensed than the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "drag_drop": {
+  "category": "cpp_minor",
+  "notes": [
+   "The C++ implementation has slightly different vertical spacing between the color swatches compared to the MAUI reference.",
+   "The text labels in the C++ version appear to have slightly different font weight or rendering characteristics compared to the MAUI version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "editor": {
+  "category": "cpp_minor",
+  "notes": [
+   "The font weight for the 'FontSize (Large)' header appears slightly bolder in the C++ implementation compared to the MAUI reference.",
+   "There is a subtle difference in the vertical spacing between the text elements and the input fields.",
+   "The placeholder text color in the C++ implementation is slightly lighter than the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "effects": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation is missing the Entry control borders and background styling.",
+   "The C++ implementation lacks the visual styling for the buttons, appearing as plain text instead of buttons.",
+   "The layout of the C++ implementation is significantly different, lacking the padding and container structure seen in the MAUI reference.",
+   "The text labels and overall UI hierarchy are not correctly aligned or styled compared to the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "ellipse_gallery": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation renders shapes with significantly different aspect ratios compared to the MAUI reference.",
+   "The C++ shapes appear more compressed or flattened vertically.",
+   "The spacing between the labels and the shapes is inconsistent with the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "empty_view": {
+  "category": "cpp_major",
+  "notes": [
+   "The search bar background color is significantly darker in the C++ implementation compared to the MAUI reference in both light and dark modes.",
+   "The search bar height is noticeably taller in the C++ implementation.",
+   "The search bar corner radius is larger in the C++ implementation.",
+   "The search icon and placeholder text alignment within the search bar differ from the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "empty_view_load_simulate": {
+  "category": "pixel_perfect",
+  "notes": [
+   "The C++ implementation perfectly matches the .NET MAUI reference in both light and dark themes.",
+   "Text content, alignment, and background colors are identical across all quadrants."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "empty_view_null": {
+  "category": "match",
+  "notes": [
+   "The text 'Nothing to display.' is visually identical in both light and dark themes.",
+   "The vertical and horizontal alignment of the text is consistent across both implementations.",
+   "Background colors and text colors match perfectly between the MAUI reference and the C++ port."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "empty_view_rtl": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation uses a different grid layout with fewer columns compared to the MAUI reference.",
+   "The text wrapping and item distribution are inconsistent between the two implementations.",
+   "The C++ version displays fewer items per row, leading to a significantly different visual density."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "empty_view_selector": {
+  "category": "cpp_major",
+  "notes": [
+   "The search bar in the C++ version is significantly taller than the MAUI reference.",
+   "The search bar icon and text alignment are inconsistent between the two implementations.",
+   "The font weight and size of the instructional text differ noticeably.",
+   "The vertical spacing between the instructional text and the search bar is inconsistent."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "empty_view_swap": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation uses a different column layout, resulting in three columns instead of the two columns seen in the MAUI reference.",
+   "The text alignment and spacing between items are inconsistent with the MAUI reference due to the layout difference.",
+   "The overall density and distribution of the list items differ significantly from the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "empty_view_template": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation uses a different column layout, resulting in different text wrapping and item distribution compared to the MAUI reference.",
+   "The spacing between columns and the alignment of text blocks are inconsistent with the MAUI reference.",
+   "The font rendering and line height appear slightly different, affecting the overall vertical density of the list."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "empty_view_view": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation uses a different column layout, resulting in different text wrapping and item distribution compared to the MAUI reference.",
+   "The spacing between columns and rows is inconsistent with the MAUI reference.",
+   "The text alignment and overall grid structure do not match the reference layout."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "entry": {
+  "category": "cpp_minor",
+  "notes": [
+   "The slider thumb size and track thickness are slightly different in the C++ implementation compared to the MAUI reference.",
+   "The text alignment and padding within the input fields show minor discrepancies.",
+   "The border thickness and corner radius of the input fields appear slightly inconsistent with the MAUI version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "filter_collection": {
+  "category": "cpp_minor",
+  "notes": [
+   "The search bar background color in the C++ implementation is slightly darker than the MAUI reference in both light and dark modes.",
+   "The text color of the list items in the C++ implementation appears slightly bolder or has different anti-aliasing compared to the MAUI reference.",
+   "There is a subtle difference in the vertical spacing between the search bar and the start of the list content."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "filter_selection": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation is missing a significant number of items in the list compared to the MAUI reference.",
+   "The list height and scrollable area are significantly shorter in the C++ version.",
+   "The search bar and text elements appear to have different vertical spacing and alignment."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "flex_layout": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation is missing the top safe area padding, causing the header to overlap with the status bar area.",
+   "The C++ implementation is missing the bottom safe area padding, causing the footer to be cut off by the home indicator area.",
+   "The content area in the C++ implementation is vertically stretched compared to the MAUI reference due to the lack of safe area insets."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "focus": {
+  "category": "cpp_minor",
+  "notes": [
+   "The Entry border color in light mode is slightly lighter in the C++ implementation compared to the MAUI reference.",
+   "The text color of the 'Focus Entry' and 'Unfocus Entry' buttons appears slightly more saturated in the C++ implementation.",
+   "The vertical spacing between the Entry and the buttons is slightly tighter in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "fonts": {
+  "category": "cpp_minor",
+  "notes": [
+   "The vertical spacing between text elements is slightly larger in the C++ implementation compared to the MAUI reference.",
+   "The font weight for the 'Title' and 'Subtitle' elements appears slightly thinner in the C++ version.",
+   "The character spacing for the 'Character spacing 4.0' line is slightly wider in the C++ implementation."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "footer_only_string": {
+  "category": "cpp_minor",
+  "notes": [
+   "The vertical spacing between list items is slightly larger in the C++ implementation compared to the MAUI reference.",
+   "The top margin/padding for the list content is slightly different, causing the first item to be positioned lower in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "formatted_text": {
+  "category": "cpp_minor",
+  "notes": [
+   "The kerning of the text 'k e r n e d' is slightly wider in the C++ implementation compared to the MAUI reference.",
+   "The vertical spacing between the formatted text line and the 'Plain text label' line is slightly larger in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "gestures": {
+  "category": "cpp_minor",
+  "notes": [
+   "The C++ implementation displays 'Last gesture: Pointer exited' while the MAUI reference displays 'Last gesture: (none)'",
+   "The blue rectangle in the C++ implementation has slightly different corner rounding compared to the MAUI reference"
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "gradient": {
+  "category": "cpp_minor",
+  "notes": [
+   "The RadialGradientBrush in the C++ implementation has a slightly different color distribution compared to the MAUI reference.",
+   "The height of the gradient boxes in the C++ implementation is slightly smaller than in the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "grid": {
+  "category": "match",
+  "notes": [
+   "The layout and dimensions of the grid cells are visually identical.",
+   "The colors used for the grid cells match perfectly across both light and dark themes.",
+   "The text labels and their positioning are consistent between the MAUI and C++ implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "grid_grouping": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation includes a 'This is a header' and 'This is a footer' element that are completely missing from the MAUI reference.",
+   "The layout of the list items is significantly different; the C++ version uses a two-column grid layout for the character names, whereas the MAUI version uses a single-column list layout.",
+   "The vertical spacing and alignment of the group headers and 'Total members' text differ between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "grouping_no_templates": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation displays significantly fewer list items compared to the MAUI reference.",
+   "The vertical spacing between list items is much larger in the C++ version, causing the list to be truncated.",
+   "The C++ version fails to render the full content of the list, leading to a major layout discrepancy."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "grouping_plus_selection": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation is missing the 'Great Lakes Avengers' section entirely in both light and dark themes.",
+   "The vertical spacing between list items and section headers is inconsistent compared to the MAUI reference.",
+   "The font weight and text rendering appear slightly different, leading to a different overall layout height."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "header_footer": {
+  "category": "cpp_minor",
+  "notes": [
+   "The header text 'Just a string as a header' is positioned slightly lower in the C++ implementation compared to the MAUI reference.",
+   "The vertical spacing between the header, the list items, and the footer is slightly larger in the C++ version.",
+   "The font weight or rendering style of the text appears slightly thinner in the C++ implementation."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "header_footer_grid": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation includes a header and footer image that are completely missing in the MAUI reference.",
+   "The text 'This Is A Header' and 'This Is A Footer' are vertically centered in the C++ version but are positioned differently in the MAUI version.",
+   "The layout of the text content is significantly different, with the C++ version displaying text over the images while the MAUI version does not."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "header_footer_grid_horizontal": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation is missing the 'Ad' text element present in the MAUI reference.",
+   "The C++ implementation is missing the vertical 'This Is A Header' text element present in the MAUI reference.",
+   "The C++ implementation displays an extra image (the dog photo) at the top of the list that is not present in the MAUI reference.",
+   "The layout of the list items differs significantly between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "header_footer_template": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation uses a single container for all images instead of individual containers with spacing.",
+   "The layout of the header and footer text is significantly different in terms of alignment and positioning.",
+   "The vertical spacing between elements is inconsistent compared to the MAUI reference.",
+   "The overall layout structure is fundamentally different, failing to replicate the individual item spacing and positioning."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "header_footer_view": {
+  "category": "cpp_major",
+  "notes": [
+   "The header and footer images are completely missing in the MAUI reference implementation.",
+   "The C++ implementation correctly renders the header and footer images.",
+   "The MAUI reference shows text that is barely visible due to lack of contrast or missing background elements.",
+   "The C++ implementation has correct layout and visibility for all UI elements."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "hit_testing": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation displays red corners on the rectangle that are absent in the MAUI reference.",
+   "The layout of the text and UI elements is significantly shifted vertically in the C++ version compared to the MAUI version.",
+   "The C++ version incorrectly displays 'Selected: Image' while the MAUI version shows 'Selected: -'."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "horizontal_stack": {
+  "category": "match",
+  "notes": [
+   "The layout of the colored boxes is visually identical across both implementations.",
+   "The spacing and alignment of the HorizontalStackLayout elements match perfectly.",
+   "The color rendering and theme application (light/dark) are consistent between MAUI and the C++ port."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "hybrid_web_view": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation has significantly truncated text labels (e.g., 'Send message to' becomes 'Send...to JS').",
+   "The C++ implementation uses a different, narrower font weight or style compared to the MAUI reference.",
+   "The layout of the buttons in the C++ version is more compressed, leading to the text truncation issues.",
+   "The alignment of the button column appears slightly shifted compared to the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "image": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation is missing the 'Stream Source', 'Opacity (0.5)', 'Start/Stop', and 'Use Online Source' controls.",
+   "The C++ implementation is missing the 'Animated GIF' label and the associated GIF animation.",
+   "The C++ implementation is missing the 'UriSource' image in the light theme.",
+   "The C++ implementation has significantly different layout and element ordering compared to the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "image_button": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation is missing the 'Animated GIF' element entirely.",
+   "The 'Custom Size' image is missing in the light theme and appears significantly smaller in the dark theme compared to the MAUI reference.",
+   "The 'Padding (slider-driven)' component has incorrect proportions and layout in the C++ version.",
+   "The 'BorderColor + BorderWidth' slider and the 'CornerRadius' sliders have different visual styles and track heights compared to the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "indicator": {
+  "category": "cpp_minor",
+  "notes": [
+   "The indicator dots in the C++ version are slightly larger than in the MAUI version.",
+   "The spacing between the indicator dots is slightly wider in the C++ version.",
+   "The alignment of the indicator groups relative to the labels is slightly shifted."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "input_controls": {
+  "category": "cpp_minor",
+  "notes": [
+   "The search bar background color in light mode is slightly darker in the C++ version compared to the MAUI version.",
+   "The search bar corner radius appears slightly different between the two implementations.",
+   "The vertical spacing between the search bar and the radio button group is slightly inconsistent."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "input_transparent": {
+  "category": "cpp_major",
+  "notes": [
+   "The text 'Bottom(clickable)' is significantly misaligned and overlapping in the C++ version compared to the MAUI reference.",
+   "The 'Tap overlay' text is positioned differently relative to the 'Bottom(clickable)' text in the C++ version.",
+   "The overall vertical spacing and layout of the text elements are inconsistent between the C++ implementation and the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "invalidate_brush": {
+  "category": "cpp_minor",
+  "notes": [
+   "The green horizontal line under the button is slightly thicker in the C++ implementation compared to the MAUI reference.",
+   "The vertical spacing between the button and the text 'Brush color: Green' is slightly larger in the C++ implementation."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "invalidate_shadow_host": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation is missing the red shadow effect entirely.",
+   "The green border around the white box is missing in the C++ implementation.",
+   "The white box in the C++ implementation is significantly smaller than the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "ios_blur_effect": {
+  "category": "cpp_major",
+  "notes": [
+   "The image is missing in the C++ light and dark themes.",
+   "The text alignment is centered in the C++ version, whereas it is left-aligned in the MAUI version.",
+   "The vertical spacing between the text items is significantly different in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "ios_date_picker": {
+  "category": "cpp_minor",
+  "notes": [
+   "The DatePicker control in the C++ implementation has a slightly different border thickness compared to the MAUI reference.",
+   "The vertical spacing between the DatePicker and the button is slightly inconsistent between the two implementations.",
+   "The font weight or rendering style of the date text appears slightly bolder in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "ios_entry": {
+  "category": "cpp_minor",
+  "notes": [
+   "The text in the Entry field is slightly misaligned vertically compared to the MAUI reference.",
+   "The font weight or rendering style of the button text appears slightly bolder in the C++ implementation.",
+   "There is a subtle difference in the vertical spacing between the Entry field and the button."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "ios_first_responder": {
+  "category": "cpp_minor",
+  "notes": [
+   "The text labels in the C++ version have slightly different font weight or rendering compared to the MAUI reference.",
+   "The spacing between the 'OK' buttons and the entry fields appears slightly tighter in the C++ version.",
+   "The alignment of the 'Focus First' and 'Focus Second' buttons is slightly shifted horizontally compared to the MAUI version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "ios_pan_gesture": {
+  "category": "match",
+  "notes": [
+   "The text alignment and font rendering are visually consistent across both implementations.",
+   "The layout of the labels and the button control is identical in both light and dark modes.",
+   "The color schemes for background and text match perfectly between the MAUI reference and the C++ port."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "ios_picker": {
+  "category": "cpp_minor",
+  "notes": [
+   "The Picker control in the C++ implementation has a slightly different border color and thickness compared to the MAUI reference.",
+   "The vertical spacing between the Picker and the 'Toggle Picker UpdateMode' button is slightly inconsistent between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "ios_safe_area": {
+  "category": "cpp_major",
+  "notes": [
+   "The text layout is significantly different, with the C++ version showing different line breaks and word wrapping compared to the MAUI reference.",
+   "The 'Disable Use Safe Area' button is positioned differently, appearing higher up in the C++ version than in the MAUI version.",
+   "The overall vertical spacing and paragraph flow do not match the reference implementation."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "ios_scroll_view": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation includes a back button in the navigation bar that is missing in the MAUI reference.",
+   "The slider track and thumb in the C++ implementation are significantly smaller than in the MAUI reference.",
+   "The vertical positioning of the slider and text elements is inconsistent between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "ios_search_bar": {
+  "category": "cpp_minor",
+  "notes": [
+   "The search bar background color in light mode is slightly lighter in the C++ implementation compared to the MAUI reference.",
+   "The search bar corner radius appears slightly different between the two implementations.",
+   "The text color of the buttons 'Toggle SearchBar Style' and 'Toggle Background' is slightly more saturated in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "ios_slider_update_on_tap": {
+  "category": "cpp_minor",
+  "notes": [
+   "The slider thumb in the C++ implementation is slightly smaller than the MAUI reference.",
+   "The slider track height appears slightly thinner in the C++ version.",
+   "The vertical spacing between the slider and the 'Toggle Update on Tap' button is slightly different."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "ios_swipe_transition": {
+  "category": "cpp_minor",
+  "notes": [
+   "The swipeable item container height is slightly taller in the C++ implementation compared to the MAUI reference.",
+   "The text 'Swipe right' is vertically centered in the MAUI version but aligned to the top in the C++ version.",
+   "The font weight for 'Swipe right' appears slightly bolder in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "ios_time_picker": {
+  "category": "match",
+  "notes": [
+   "The time format differs between the MAUI reference (12-hour format) and the C++ implementation (24-hour format).",
+   "The visual layout, spacing, and color schemes are otherwise identical across both light and dark themes."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "items": {
+  "category": "cpp_major",
+  "notes": [
+   "The 'Pick a task' text is positioned significantly lower in the C++ implementation compared to the MAUI reference.",
+   "The vertical spacing between the list items and the 'Pick a task' text is inconsistent between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "items_updating_scroll_mode": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation has significantly larger font sizes for the list items compared to the MAUI reference.",
+   "The vertical spacing between list items is much larger in the C++ version, resulting in fewer items visible on screen.",
+   "The text alignment and overall layout density do not match the MAUI reference.",
+   "The 'Add Item' button and 'UpdatingScrollMode' labels appear to have different font weights or sizes in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "label": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation fails to render the multi-line text blocks correctly, showing significantly fewer lines of text compared to the MAUI reference.",
+   "The layout of the text blocks is inconsistent, with the C++ version failing to wrap text properly in several instances.",
+   "The vertical spacing and alignment of the text elements within the containers do not match the MAUI reference.",
+   "The C++ version displays truncated text content that is fully visible in the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "layout_is_enabled": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation fails to render the text labels for the buttons and layout sections.",
+   "The background colors for the button containers are missing or incorrectly rendered in the C++ version.",
+   "The layout structure is significantly different, with elements appearing misaligned or missing compared to the MAUI reference.",
+   "The visual hierarchy and spacing are inconsistent with the MAUI implementation."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "line_gallery": {
+  "category": "cpp_major",
+  "notes": [
+   "The third line (A Line using StrokeThickness) is completely missing in the C++ implementation.",
+   "The stroke thickness of the third line in the MAUI reference is significantly thicker than the lines above it, which is not reflected in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "line_join_gallery": {
+  "category": "cpp_major",
+  "notes": [
+   "The Miter join style in the C++ implementation is rendered incorrectly, appearing as a sharp point instead of the expected mitered corner seen in the MAUI reference.",
+   "The Bevel join style in the C++ implementation is missing the flat edge, resulting in a sharp point similar to the Miter style.",
+   "The Round join style in the C++ implementation is significantly less rounded than the MAUI reference, appearing more angular."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "measure_first_strategy": {
+  "category": "cpp_minor",
+  "notes": [
+   "The C++ implementation has slightly different vertical spacing between list items compared to the MAUI reference.",
+   "The font weight or rendering style for the group headers (e.g., 'Avengers') appears slightly bolder or more saturated in the C++ version.",
+   "The text alignment and padding around the 'Total members' labels show minor discrepancies in vertical positioning."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "menu_bar": {
+  "category": "match",
+  "notes": [
+   "The text 'You clicked on Menu Item:' and 'Toggle Menu Bar Item' are visually identical in both light and dark themes.",
+   "The layout, font size, and color rendering are consistent between the MAUI reference and the C++ port.",
+   "The minor pixel diff is likely due to subtle anti-aliasing differences in text rendering between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "modal": {
+  "category": "match",
+  "notes": [
+   "The layout, text content, and button positioning are visually identical between the MAUI reference and the C++ implementation.",
+   "The color schemes for both light and dark modes are correctly applied and match the reference.",
+   "The minor SSIM difference is attributed to subtle font rendering variations inherent to the different rendering engines."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "multiple_bound_selection": {
+  "category": "cpp_major",
+  "notes": [
+   "The CollectionView in the C++ implementation is missing the header 'This is the header' and the list items entirely.",
+   "The interactive buttons 'Clear and Add', 'Reset', and 'Direct Update' are positioned significantly lower in the C++ implementation compared to the MAUI reference.",
+   "The overall layout structure is broken in the C++ version due to the missing list component."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "navigation_gallery": {
+  "category": "cpp_minor",
+  "notes": [
+   "The text color in the C++ implementation is slightly brighter/more saturated blue compared to the MAUI reference.",
+   "The vertical spacing between the buttons is slightly tighter in the C++ version.",
+   "The font weight of the buttons appears slightly bolder in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "nested_collection": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation displays an extra row (Source 7) that is missing in the MAUI reference.",
+   "The text alignment and wrapping behavior differ significantly between the two implementations.",
+   "The spacing between the 'Source' label and the 'Caption' content is inconsistent compared to the MAUI reference.",
+   "The font weight and rendering style of the 'Source' labels appear different from the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "pan_gesture_events": {
+  "category": "pixel_perfect",
+  "notes": [
+   "The layout, colors, and text content are visually identical across both light and dark themes.",
+   "The minor pixel diff percentage is negligible and likely due to sub-pixel rendering differences in the simulator environment."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "path_aspect_gallery": {
+  "category": "cpp_major",
+  "notes": [
+   "The image aspect ratios and scaling behaviors are inconsistent between the C++ implementation and the MAUI reference.",
+   "In the 'Fill' and 'UniformToFill' modes, the C++ implementation displays the heart image with different cropping or scaling compared to the MAUI reference.",
+   "The 'Uniform' mode in the C++ implementation shows a different image size/aspect ratio than the MAUI reference.",
+   "The 'None' mode shows a different alignment or padding for the heart icon within the container."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "path_gallery": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation is missing the 'LineSegment', 'Shape', 'Cubic Bezier', and 'Multiple Line Segments' visual elements entirely.",
+   "The 'Overlapping Rectangles' and 'EllipseGeometry' elements are present but are missing their corresponding labels in the C++ implementation.",
+   "The layout of the C++ implementation is significantly different due to the missing elements, resulting in a large amount of empty space."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "path_transform_string": {
+  "category": "cpp_major",
+  "notes": [
+   "The shapes are completely missing in the C++ implementation in both light and dark themes.",
+   "The C++ implementation fails to render the graphical elements present in the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "picker": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation has significantly larger vertical spacing between all UI elements compared to the MAUI reference.",
+   "The Picker controls in the C++ implementation have a much larger height than the MAUI reference.",
+   "The text alignment and padding within the Picker controls are inconsistent with the MAUI reference.",
+   "The overall layout density is much lower in the C++ version, causing elements to be pushed further down the screen."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "pickers": {
+  "category": "cpp_minor",
+  "notes": [
+   "The text color in the C++ version is slightly lighter/less intense than the MAUI reference in both light and dark modes.",
+   "The border thickness or rendering style of the input fields appears slightly different between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "pointer_gesture": {
+  "category": "cpp_minor",
+  "notes": [
+   "The yellow background highlight on the first line of text is slightly shorter in the C++ version compared to the MAUI version.",
+   "The text wrapping behavior differs slightly, causing the C++ version to have different line breaks for the first paragraph.",
+   "The vertical spacing between the text blocks is slightly tighter in the C++ implementation."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "polygon_gallery": {
+  "category": "cpp_major",
+  "notes": [
+   "The fill colors for the EvenOdd and NonZero polygons are missing or incorrect in the C++ implementation.",
+   "In dark mode, the NonZero polygon is rendered as an outline only in C++, whereas MAUI renders it with a yellow fill.",
+   "The stroke thickness and dash patterns appear slightly different between the two implementations.",
+   "The overall positioning and alignment of the polygon shapes show inconsistencies compared to the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "polyline_gallery": {
+  "category": "match",
+  "notes": [
+   "The dashed line in the C++ implementation appears slightly more dense or has a different dash-gap ratio compared to the MAUI reference.",
+   "The visual representation of the polylines is functionally equivalent across both light and dark themes."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "preselected_item": {
+  "category": "cpp_major",
+  "notes": [
+   "The selection highlight color is significantly lighter in the C++ version compared to the MAUI version in both light and dark themes.",
+   "The list items in the C++ version are missing the top and bottom padding/margins present in the MAUI version, causing the text to appear more cramped.",
+   "The C++ version displays fewer items in the viewport compared to the MAUI version, indicating a difference in row height or layout calculation."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "preselected_items": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation fails to render the selection state (highlighting) for the preselected items.",
+   "The layout of the grid items is inconsistent, with text wrapping and alignment differences compared to the MAUI reference.",
+   "The spacing between grid items is significantly different, leading to a different number of items per row in some sections."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "progress_bar": {
+  "category": "cpp_minor",
+  "notes": [
+   "The progress bar track color in the 'Disabled' state is slightly lighter in the C++ implementation compared to the MAUI reference.",
+   "The vertical spacing between the progress bar and the 'ProgressTo' label is slightly tighter in the C++ implementation."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "radio_button_border": {
+  "category": "cpp_minor",
+  "notes": [
+   "The border thickness of the selected RadioButton (Option 4) is slightly thinner in the C++ implementation compared to the MAUI reference.",
+   "The spacing between the RadioButton circle and the text label is slightly tighter in the C++ version.",
+   "The font weight or rendering style of the text labels appears slightly different, resulting in a subtle visual weight discrepancy."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "radio_button_content": {
+  "category": "cpp_major",
+  "notes": [
+   "The coffee cup icons are completely missing in the C++ implementation across both light and dark themes.",
+   "The custom template group at the bottom is missing the visual elements present in the MAUI reference.",
+   "The spacing and alignment of the radio button labels and text blocks differ significantly from the MAUI reference.",
+   "The C++ implementation fails to render the complex view content that the MAUI reference successfully displays."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "radio_button_group": {
+  "category": "cpp_minor",
+  "notes": [
+   "The horizontal alignment of 'Option D' is slightly different between MAUI and C++.",
+   "The vertical spacing between the radio buttons and the text 'This RadioButton is inside a Grid' is inconsistent."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "radio_button_group_binding": {
+  "category": "cpp_minor",
+  "notes": [
+   "The radio button circles in the C++ implementation are slightly smaller than the MAUI reference.",
+   "The text labels for the radio buttons have slightly different font weight or rendering characteristics.",
+   "The vertical spacing between the radio button rows is slightly tighter in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "radio_button_group_gallery": {
+  "category": "cpp_major",
+  "notes": [
+   "The radio button icons in the C++ implementation are significantly smaller than the MAUI reference.",
+   "The vertical spacing between radio button items is noticeably tighter in the C++ version.",
+   "The font weight and size of the labels appear thinner and slightly smaller in the C++ implementation.",
+   "The overall layout density is higher in the C++ version compared to the more spacious MAUI layout."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "radio_content_properties": {
+  "category": "cpp_major",
+  "notes": [
+   "The radio button indicators in the C++ implementation are rendered as hollow circles, whereas the MAUI reference uses filled circles for selected states.",
+   "The C++ implementation displays the radio button indicators in a distinct green color, while the MAUI reference uses the standard system accent color (black/white).",
+   "The text alignment and vertical spacing between the radio button labels and the radio button indicators are inconsistent between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "radio_template_from_style": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation fails to render the RadioButton labels (A, B, C) correctly, showing them as plain text instead of associated labels.",
+   "The layout of the RadioButtons is completely different; the C++ version uses a vertical stack with large white backgrounds, whereas the MAUI version uses a more compact, integrated layout.",
+   "The C++ version lacks the expected styling and alignment of the RadioButton controls compared to the native MAUI reference.",
+   "The overall visual structure and component styling are significantly different from the reference implementation."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "rectangle_gallery": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation has significantly different vertical spacing between elements compared to the MAUI reference.",
+   "The C++ implementation displays the labels and shapes with different alignment and positioning relative to the screen edges.",
+   "The C++ implementation shows inconsistent sizing for the shapes, particularly the square and the rectangle with curved corners."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "refresh_view": {
+  "category": "cpp_minor",
+  "notes": [
+   "The text '50 items loaded. Pull to add more.' is positioned significantly higher in the C++ implementation compared to the MAUI reference.",
+   "The vertical spacing between the buttons and the status text is inconsistent between the two implementations.",
+   "The overall layout of the buttons and labels shows slight alignment variations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "relative_layout": {
+  "category": "match",
+  "notes": [
+   "The layout, element sizes, and color schemes are visually identical across both light and dark themes.",
+   "The minor pixel diff percentage is negligible and likely due to subtle rendering engine differences in anti-aliasing or sub-pixel positioning."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "scattered_radio_button": {
+  "category": "cpp_minor",
+  "notes": [
+   "The RadioButton layout in the C++ version is horizontal, whereas the MAUI version is vertical.",
+   "The spacing between the RadioButton elements and their labels is tighter in the C++ version.",
+   "The font weight or rendering style of the labels appears slightly different between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "scroll_mode_test": {
+  "category": "cpp_minor",
+  "notes": [
+   "The dropdown menu for 'ItemsUpdatingScrollMode' in the C++ version has a distinct border/background box, whereas the MAUI version displays the text directly without a visible container.",
+   "The vertical spacing between the buttons and the list content is slightly tighter in the C++ version compared to the MAUI version.",
+   "The font weight or rendering style of the 'ItemsUpdatingScrollMode' label appears slightly bolder in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "scroll_to_group": {
+  "category": "cpp_minor",
+  "notes": [
+   "The text color for group headers and total member counts is slightly different in the C++ version compared to the MAUI reference.",
+   "The vertical spacing between list items appears slightly tighter in the C++ implementation.",
+   "The font weight or rendering style for the list items is slightly bolder in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "scroll_view": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation starts at Row 0, whereas the MAUI reference starts at Row 12.",
+   "The C++ implementation includes an extra 'Scrolled to: 0 / 0 (done)' text element at the top that is absent in the MAUI reference.",
+   "The vertical scroll position and content alignment are significantly different between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "search_bar": {
+  "category": "cpp_major",
+  "notes": [
+   "The clear button icon is missing in the C++ implementation across all search bars.",
+   "The cancel button color is incorrect in the C++ implementation (it is grey instead of red).",
+   "The search icon and placeholder text alignment/spacing are inconsistent compared to the MAUI reference.",
+   "The font weight and styling for the search text do not match the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "selection_command_param": {
+  "category": "cpp_minor",
+  "notes": [
+   "The vertical spacing between the list items is slightly larger in the C++ implementation compared to the MAUI reference.",
+   "The font weight for the list items appears slightly bolder in the C++ implementation."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "selection_synchronization": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation fails to render the third CollectionView section entirely in both light and dark modes.",
+   "The selection highlighting in the C++ implementation is significantly wider than the MAUI reference, extending to the full width of the screen.",
+   "The background color of the selected items in the C++ dark mode is a lighter grey compared to the darker grey used in the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "semantics": {
+  "category": "cpp_major",
+  "notes": [
+   "Significant layout differences in button alignment and spacing between the C++ implementation and the MAUI reference.",
+   "The SearchBar component in the C++ implementation has a different height and internal padding compared to the MAUI version.",
+   "Text alignment and vertical spacing throughout the page are inconsistent with the MAUI reference.",
+   "The C++ implementation fails to replicate the specific padding and margin constraints of the MAUI layout containers."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "shadow_playground": {
+  "category": "cpp_major",
+  "notes": [
+   "The shadow rendering is significantly different in size, blur, and intensity compared to the MAUI reference.",
+   "The C++ implementation is missing the 'Remove Shadow' button present in the MAUI version.",
+   "The layout of the sliders and labels is inconsistent, with different spacing and alignment between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "shape_app_theme": {
+  "category": "match",
+  "notes": [
+   "The visual representation of the shapes and text is identical across both platforms.",
+   "The slight pixel difference is negligible and likely due to minor rendering engine variations in the simulator."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "shapes": {
+  "category": "cpp_major",
+  "notes": [
+   "The Ellipse in the C++ version is significantly smaller than the MAUI reference.",
+   "The RoundRectangle in the C++ version is smaller and has different corner radius proportions.",
+   "The EvenOdd Polygon (pentagram) is smaller and has different stroke thickness/scaling compared to the MAUI version.",
+   "The Line element in the C++ version is shorter and positioned differently than in the MAUI version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "single_bound_selection": {
+  "category": "match",
+  "notes": [
+   "The layout, text content, and visual hierarchy are identical between the MAUI and C++ implementations.",
+   "The slight SSIM difference is attributed to minor font rendering variations between the two frameworks, which is expected behavior."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "slider": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation uses a significantly larger thumb size compared to the MAUI reference.",
+   "The track height in the C++ implementation is noticeably thicker than the MAUI version.",
+   "The C++ sliders exhibit inconsistent vertical alignment and spacing relative to the labels.",
+   "The C++ implementation fails to render the thumb image correctly in the 'ThumbImageSource' section."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "some_empty_groups": {
+  "category": "cpp_minor",
+  "notes": [
+   "The C++ implementation has slightly tighter vertical spacing between the group headers and the list items compared to the MAUI reference.",
+   "The font weight for the group headers and footer text appears slightly bolder in the C++ version than in the MAUI version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "stack_layout": {
+  "category": "cpp_minor",
+  "notes": [
+   "The vertical stack of colored boxes is slightly shifted to the right in the C++ implementation compared to the MAUI reference.",
+   "The horizontal spacing between the colored boxes in the horizontal stack is slightly wider in the C++ implementation.",
+   "The overall alignment of the stacks relative to the 'Vertical' and 'Horizontal' labels shows minor positional discrepancies."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "staggered_layout": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation is missing items 18, 19, and 20 in both light and dark themes.",
+   "The vertical spacing between rows is significantly larger in the C++ implementation compared to the MAUI reference.",
+   "The horizontal alignment and column spacing differ between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "stepper": {
+  "category": "cpp_minor",
+  "notes": [
+   "The BackgroundColor stepper in the C++ implementation has a smaller width compared to the MAUI reference.",
+   "The vertical spacing between the 'Enable Stepper' button and the 'BackgroundColor' label is slightly tighter in the C++ version.",
+   "The stepper control height appears slightly different in the C++ implementation across both themes."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "styles": {
+  "category": "cpp_minor",
+  "notes": [
+   "The button border color in the C++ implementation is slightly lighter/more yellow than the MAUI reference.",
+   "The button height in the C++ implementation is slightly taller than the MAUI reference.",
+   "The text alignment and vertical spacing between elements show minor deviations from the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "swipe_gesture": {
+  "category": "cpp_major",
+  "notes": [
+   "The SwipeView content is completely missing in the C++ implementation.",
+   "The C++ implementation displays the 'Welcome to .NET MAUI!' text and subtext, which are absent in the MAUI reference.",
+   "The layout of the C++ version is significantly different due to the missing SwipeView component."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "swipe_item_position": {
+  "category": "match",
+  "notes": [
+   "The C++ implementation is visually indistinguishable from the MAUI reference.",
+   "The minor pixel diffs are likely due to subtle font rendering or anti-aliasing differences between the two frameworks."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "swipe_item_size": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation fails to render the 512x512 icon and the SwipeView 512 height elements entirely.",
+   "The vertical spacing between the different sections is inconsistent compared to the MAUI reference.",
+   "The overall layout height and element distribution differ significantly from the reference implementation."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "swipe_refresh": {
+  "category": "cpp_minor",
+  "notes": [
+   "The text 'Swipe left to delete, pull to refresh' and 'Ready' is positioned slightly lower in the C++ implementation compared to the MAUI reference.",
+   "The vertical spacing between the two lines of text is slightly larger in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "swipe_threshold": {
+  "category": "cpp_major",
+  "notes": [
+   "The blue swipe item containers are significantly shorter in height in the C++ implementation compared to the MAUI reference.",
+   "The slider controls are missing in the C++ implementation for both light and dark themes.",
+   "The text labels are positioned differently relative to the blue containers.",
+   "The overall vertical layout and spacing between elements do not match the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "swipe_view_margin": {
+  "category": "cpp_major",
+  "notes": [
+   "The SwipeView container borders are missing in the C++ implementation.",
+   "The background color of the SwipeView container is significantly lighter in the C++ dark theme compared to the MAUI reference.",
+   "The vertical spacing between the two SwipeView containers is inconsistent between the two implementations.",
+   "The overall layout padding and alignment of the SwipeView elements differ from the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "swipe_view_shadow": {
+  "category": "cpp_major",
+  "notes": [
+   "The shadow effect is completely missing in the C++ implementation for both light and dark themes.",
+   "The border styling for the content boxes is missing in the C++ implementation.",
+   "The background color of the content boxes in the C++ light theme is a gradient, whereas the MAUI reference uses a solid color."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "switch": {
+  "category": "cpp_major",
+  "notes": [
+   "The BackgroundColor switch in C++ is not correctly reflecting the 'On' state color (blue) compared to MAUI.",
+   "The Background switch in C++ is not correctly reflecting the 'On' state color (green) compared to MAUI.",
+   "The ThumbColor switch in C++ is not correctly reflecting the 'On' state color (orange) compared to MAUI.",
+   "The switch track and thumb sizes/proportions differ significantly between the C++ implementation and the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "switch_grouping": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation is missing the 'Great Lakes Avengers' group header and its associated list items at the bottom of the screen.",
+   "The C++ implementation is missing the 'West Coast Avengers' list items, showing only the group header at the very bottom.",
+   "The vertical spacing between group headers and list items is inconsistent compared to the MAUI reference.",
+   "The text color for the 'Total members' labels in the C++ implementation is significantly darker/less vibrant than in the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "tabbed_flyout": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation is missing the navigation menu and text content present in the MAUI reference.",
+   "The C++ implementation displays a back button that is absent in the MAUI reference.",
+   "The C++ implementation uses a segmented control at the bottom of the screen, whereas the MAUI reference uses a list-based navigation menu."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "templated_view": {
+  "category": "cpp_major",
+  "notes": [
+   "The image boxes in the C++ implementation are significantly larger than the MAUI reference.",
+   "The text layout and line wrapping are inconsistent between the two implementations.",
+   "The overall vertical spacing and padding between elements do not match the MAUI reference.",
+   "The font weight and sizing appear slightly different, affecting the overall visual density."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "time_picker": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation uses a 24-hour time format (0:00) while the MAUI reference uses a 12-hour format (12:00 AM).",
+   "The background color for the 'Background' field in the C++ version is pink, whereas the MAUI reference uses a blue-to-white gradient.",
+   "The C++ version is missing the 'Set to now' button present in the MAUI reference.",
+   "The C++ version has inconsistent spacing and alignment compared to the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "title_bar": {
+  "category": "cpp_minor",
+  "notes": [
+   "The radio buttons in the C++ version are larger than the MAUI reference.",
+   "The text input fields in the C++ version have a different border style and height compared to the MAUI version.",
+   "The spacing between the 'Content Options' and 'Color Options' sections is slightly inconsistent between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "toolbar": {
+  "category": "cpp_minor",
+  "notes": [
+   "The text alignment is centered in the C++ version, whereas it is left-aligned in the MAUI version.",
+   "The vertical spacing between the text items is slightly larger in the C++ version compared to the MAUI version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "transform_playground": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation is missing the 'TranslateTransform' section entirely.",
+   "The C++ implementation is missing the 'SkewY' slider.",
+   "The layout of the sliders and labels is significantly different, with inconsistent spacing and alignment compared to the MAUI reference.",
+   "The slider track and thumb styling in the C++ version do not match the native MAUI controls."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "transformations": {
+  "category": "cpp_major",
+  "notes": [
+   "The slider track color is inconsistent; MAUI uses a light blue, while C++ uses a darker blue.",
+   "The slider thumb size and shape differ significantly between the two implementations.",
+   "The spacing and layout of the control labels and sliders are inconsistent, with C++ having tighter vertical spacing.",
+   "The stepper buttons (plus/minus) in the C++ version have different styling and border thickness compared to the MAUI version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "triggers": {
+  "category": "cpp_minor",
+  "notes": [
+   "The text 'Enter a System.Double' in the entry field has a slightly different font weight or rendering thickness in the C++ version compared to the MAUI reference.",
+   "The vertical spacing between the 'Highlight off' label and the 'Toggle highlight' button is slightly tighter in the C++ implementation.",
+   "The 'Toggle highlight' button text appears slightly bolder or more saturated in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "update_path_data": {
+  "category": "match",
+  "notes": [
+   "The path rendering is visually identical across both implementations in both light and dark modes.",
+   "The text labels 'counter = 0 | Data: M 10,100 C 10,300 300,-200 300,100' and 'Update Path Data' are correctly positioned and styled in both versions.",
+   "The background colors and overall layout structure match perfectly between the MAUI reference and the C++ port."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "varied_size_selector": {
+  "category": "cpp_minor",
+  "notes": [
+   "The list items in the C++ implementation have slightly different vertical spacing compared to the MAUI reference.",
+   "The text alignment or padding within the list items appears slightly inconsistent between the two implementations.",
+   "The overall height of the list container in the C++ version is slightly different, causing the bottom controls to shift position."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "vertical_stack": {
+  "category": "cpp_minor",
+  "notes": [
+   "The vertical stack of colored boxes is slightly shifted to the right in the C++ implementation compared to the MAUI reference.",
+   "The horizontal alignment of the 'VerticalStackLayout' text label is slightly offset in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "visual_states": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation has significantly different font weights and text rendering compared to the MAUI reference.",
+   "The text alignment and line spacing are inconsistent between the two implementations.",
+   "The input field borders and background colors do not match the MAUI reference.",
+   "The overall layout spacing and padding are noticeably different, leading to a different visual structure."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "web_view": {
+  "category": "cpp_major",
+  "notes": [
+   "The C++ implementation displays a significantly shorter URL string compared to the MAUI reference.",
+   "The vertical spacing between the buttons and the text elements is inconsistent between the two implementations.",
+   "The alignment of the button group relative to the left margin differs, with the C++ version appearing more centered than the MAUI version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "z_index": {
+  "category": "cpp_minor",
+  "notes": [
+   "The Z-index stacking order is slightly different, causing the overlapping labels to have different visual layering.",
+   "The spacing and positioning of the labels relative to each other are slightly inconsistent compared to the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "absolute_layout": {
+  "category": "match",
+  "notes": [
+   "The layout and visual elements are identical across both light and dark themes.",
+   "The minor pixel differences reported are likely due to sub-pixel rendering or anti-aliasing variations between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "activity_indicator": {
+  "category": "match",
+  "notes": [
+   "The ActivityIndicator controls are visually identical in both light and dark themes.",
+   "Layout, spacing, and alignment of all text labels and indicators are consistent between MAUI and the C++ port.",
+   "Color rendering for the yellow background and theme-colored indicators matches perfectly.",
+   "The minor pixel diff is negligible and likely due to sub-pixel rendering differences in the simulator."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "adaptive_collection": {
+  "category": "match",
+  "notes": [
+   "The layout and content are visually identical across both light and dark themes.",
+   "The minor pixel diff is attributed to subtle font rendering differences between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "alignment": {
+  "category": "match",
+  "notes": [
+   "The visual layout, button sizes, and alignment are identical across both light and dark themes.",
+   "The slight pixel difference is attributed to minor anti-aliasing variations in text rendering between the two implementations."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "application_control": {
+  "category": "cpp_major",
+  "notes": [
+   "The main window title text is missing in the MAUI reference but present in the C++ port.",
+   "The text 'main window: (untitled)' in MAUI is replaced by 'main window: MAUI C++ \u2014 gallery' in the C++ port.",
+   "The C++ port displays additional text content that is not present in the MAUI reference."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ },
+ "auto_size_shapes": {
+  "category": "cpp_minor",
+  "notes": [
+   "The ellipse in the C++ implementation is slightly smaller than the MAUI reference.",
+   "The vertical alignment of the ellipse within the yellow container is slightly different.",
+   "The yellow background area appears to have slightly different dimensions in the C++ version."
+  ],
+  "model": "gemini-3.1-flash-lite"
+ }
+}

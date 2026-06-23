@@ -1,0 +1,10 @@
+{
+  "category": "cpp_major",
+  "notes": [
+    "MAUI shows a 3-column CollectionView grid with thumbnail images + filenames in each cell",
+    "C++ shows a text-only list with no images — image cells are missing entirely, only filename text is rendered",
+    "Both show the same 'This is the header' header element correctly",
+    "C++ CollectionView renders in a different column layout (appears as a wider text grid without image content)"
+  ],
+  "model": "claude-sonnet-4-6"
+}

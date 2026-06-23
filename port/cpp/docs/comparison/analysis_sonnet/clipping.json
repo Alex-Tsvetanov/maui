@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Both sides show 'Not clipping' state with same orange background, red rectangle overlapping a row of numbers, purple 'Hey' button row, and coffee cup images below",
+    "C++ 'Hey' buttons appear slightly wider/larger than MAUI's — MAUI has 4 compact buttons fitting in a smaller container, C++ has same 4 but with more horizontal spread",
+    "The coffee cup emoji icons appear in C++ but not in MAUI (or MAUI crops them below visible area); this is a content positioning difference",
+    "Dark mode matches light mode observations; overall layout is recognizable and very close, minor sizing/positioning differences in button row and icon row"
+  ],
+  "model": "claude-sonnet-4-6"
+}

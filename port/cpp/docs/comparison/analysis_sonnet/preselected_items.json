@@ -1,0 +1,10 @@
+{
+  "category": "cpp_major",
+  "notes": [
+    "MAUI renders a CollectionView with images showing file thumbnails in a dense grid; C++ renders only text filenames in a list with no images visible",
+    "The image thumbnails (photo.jpg, oasis.jpg, FlowerBuds.jpg, Legumes.jpg, Fruits.jpg, etc.) are missing in the C++ render — only text labels appear",
+    "SSIM 0.8772 / diff 17.1% confirms significant visual difference: missing image cells in the collection view",
+    "Dark mode shows same pattern: C++ missing image thumbnails, only text rendered in the collection"
+  ],
+  "model": "claude-sonnet-4-6"
+}

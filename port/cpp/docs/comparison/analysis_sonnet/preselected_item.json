@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Light mode: both show a long scrollable list with 'Preselected: photo.jpg, 2' header and 'This is the header' bold label followed by file list — C++ matches content",
+    "MAUI shows list content tightly packed starting near top; C++ shows the same list but with more top padding/spacing before content begins",
+    "Dark mode: both dark — same content; C++ top inset is slightly larger than MAUI's",
+    "Item index in C++ appears 0-based while MAUI appears to use different indexing (montage too small to confirm clearly) — needs closer check"
+  ],
+  "model": "claude-sonnet-4-6"
+}

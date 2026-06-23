@@ -1,0 +1,10 @@
+{
+  "category": "cpp_major",
+  "notes": [
+    "C++ light only shows the top border with 'Just a Label' and the first few property labels; the MAUI version shows many more controls including sliders, color swatches, and Border Dash/LineJoin settings.",
+    "C++ is missing interactive controls below: the slider rows (Border Width, Dash Array, Dash Offset), and the full Border section with color swatches are absent or cut off.",
+    "In MAUI light, the gradient-background border (teal-to-blue via #00B4D8→#008380) is visible with full content; C++ shows only the label inside a solid teal box without gradient fill.",
+    "Dark mode shows the same truncation — C++ renders only the top portion of the playground controls, missing the lower property editor rows present in MAUI."
+  ],
+  "model": "claude-sonnet-4-6"
+}

@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Light mode: both show 'Reveal' title and 'Swipe in any direction' subtitle identically",
+    "Dark mode: both show gray placeholder content area with 'Reveal' label — no visible content difference",
+    "Very small diff (0.37% light, 0.09% dark) is subpixel only",
+    "SwipeView reveal mode and item position render consistently between MAUI and C++"
+  ],
+  "model": "claude-sonnet-4-6"
+}

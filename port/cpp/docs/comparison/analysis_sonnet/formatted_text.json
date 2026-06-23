@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Both light and dark show identical content: 'Bold red italic underlined k e r n e d' followed by 'Plain text label'.",
+    "Bold, red color, italic, underline, and kerning spacing all render correctly and match MAUI in both themes.",
+    "Dark mode both sides correctly show the formatted spans with white plain text and red bold text on black background.",
+    "Only the outer page padding (harness inset) differs — content itself is pixel-accurate."
+  ],
+  "model": "claude-sonnet-4-6"
+}

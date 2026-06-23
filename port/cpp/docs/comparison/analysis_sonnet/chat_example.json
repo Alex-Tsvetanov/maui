@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Light mode: MAUI shows messages stacked at top-left/top-right corner of screen with no gap; C++ shows messages further down with visible vertical gap from top",
+    "Both show correct content: 'Hi there!' green bubble right-aligned, 'Hello — how can I help you today?' blue/teal bubble left-aligned",
+    "Dark mode: same layout offset issue — C++ has a vertical gap above the first message that MAUI does not have",
+    "Bubble colors and text are correct in both themes; layout vertical offset is the only difference"
+  ],
+  "model": "claude-sonnet-4-6"
+}

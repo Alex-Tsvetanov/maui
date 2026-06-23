@@ -1,0 +1,10 @@
+{
+  "category": "cpp_major",
+  "notes": [
+    "MAUI light shows Single Selection (3 items) and Multi Selection (4 items) close together near the top; C++ light shows a large blank white gap between the two sections — items are mispositioned far down the page.",
+    "MAUI dark shows items with a black selected-cell highlight row visible for Single Selection; C++ dark shows items correctly but the section spacing gap is also present.",
+    "The large vertical gap in C++ between sections suggests CollectionView item sizing or section header layout is off — items are not filling from top, leaving dead space.",
+    "Text content and item labels match correctly; the issue is layout spacing/gap between the two CollectionView sections."
+  ],
+  "model": "claude-sonnet-4-6"
+}

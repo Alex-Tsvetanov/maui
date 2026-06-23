@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Both light and dark show matching path shapes: LineSegment (horizontal line), PathGeometry triangle, Cubic Bezier curve, Composite shape (concentric circles), Overlapping Rectangles (red squares), and EllipseGeometry (orange/yellow flower).",
+    "MAUI light is missing the 'Multiple Line Segments' label and cyan/teal arrow shape at the bottom that C++ shows — MAUI's capture appears cropped at that section.",
+    "The teal arrow/MultiLine segment visible only in C++ appears to be correct rendering that MAUI simply didn't capture (page extends below fold).",
+    "All visible shape colors and forms match between MAUI and C++ in both themes; the diff is attributable to harness crop/padding."
+  ],
+  "model": "claude-sonnet-4-6"
+}

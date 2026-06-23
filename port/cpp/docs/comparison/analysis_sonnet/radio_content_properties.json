@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Both show radio buttons with multi-line property description text and 'Option B' selection group",
+    "C++ text wraps at different line breaks than MAUI due to container/font width differences, causing layout shift",
+    "Radio button circles render correctly on both sides; selected/unselected state appears consistent",
+    "14% pixel diff is driven by text reflow across the full page height — no missing controls, just spacing/wrapping delta"
+  ],
+  "model": "claude-sonnet-4-6"
+}

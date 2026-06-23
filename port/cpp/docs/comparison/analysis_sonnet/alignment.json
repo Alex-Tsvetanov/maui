@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Start/Center/End/Fill buttons all align correctly in C++ matching MAUI in both light and dark themes",
+    "Button widths differ slightly: MAUI 'Start' button is narrower (~90pt natural width) vs C++ (~70pt), likely native UIButton inset differences — minor",
+    "'End' button in C++ appears slightly wider than MAUI's, filling closer to right edge; both are right-aligned correctly",
+    "Vertical spacing and label positions are consistent; dark mode background and text colors match"
+  ],
+  "model": "claude-sonnet-4-6"
+}

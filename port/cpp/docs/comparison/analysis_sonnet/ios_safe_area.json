@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Both MAUI and C++ render a long Lorem ipsum paragraph and a 'Disable Use Safe Area' link below it.",
+    "MAUI text starts from the very top of the content area (near the status bar notch); C++ adds a small top margin before the text begins.",
+    "The 'Disable Use Safe Area' button link is present and styled correctly (blue) in both themes.",
+    "Dark mode matches well: white text on black background, same structure."
+  ],
+  "model": "claude-sonnet-4-6"
+}

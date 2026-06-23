@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "MAUI light: shows full iOS springboard screenshot as background behind the effects demo text; C++ light: shows same springboard background but with a solid black overlay region obscuring the bottom portion",
+    "Text content matches in both: 'Entry With Focus Routing Effect', 'Alert Simple', 'Entry With Focus Platform Effect', 'Detach routing effect', 'Re-attach routing effect', 'routing effect attached : yes'",
+    "Dark mode: both show black background with same text list — close match in dark",
+    "C++ light mode has a dark/black overlay on the lower half of the springboard background image, which is not present in MAUI — the background image should show through fully"
+  ],
+  "model": "claude-sonnet-4-6"
+}

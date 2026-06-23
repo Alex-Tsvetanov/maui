@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Both MAUI and C++ show a multi-column grid of filenames (photo.jpg, meta.jpg, cover.jpg, etc.) in a CollectionView/list layout.",
+    "The file listing content appears structurally identical — same number of items visible, same text content.",
+    "Dark mode also matches: white text on black background with same grid layout.",
+    "The diff_pct (~11.6%) is likely due to the harness padding difference causing a layout shift, not missing content."
+  ],
+  "model": "claude-sonnet-4-6"
+}

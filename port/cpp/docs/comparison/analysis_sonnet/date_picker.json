@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Both sides render the same date picker demo rows: Default, BackgroundColor, Background, TextColor, Format, IsFocused, IsFocused False, Set to null, Set to today",
+    "Date values match (23.06.2026 default, 21.06.2018 'Default with date', Format shows 2026/06/23) — locale-formatted dates are consistent",
+    "C++ is missing the 'Set to today' button visible in MAUI light (it appears in the list but C++ crops it); diff_pct 25.6% is high but likely driven by color differences in the BackgroundColor/Background picker rows",
+    "BackgroundColor picker row: MAUI shows a cyan/light-blue tint, C++ shows a more saturated blue; minor tint difference in the colored pickers"
+  ],
+  "model": "claude-sonnet-4-6"
+}

@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Light mode: MAUI places 'Increment by 1' button at very top; C++ has same content but with a visible inset/padding pushing content down — the button/label area appears lower",
+    "The embedded web-content iframe (Microsoft Bing cookie consent dialog) appears in roughly the same position in both; C++ iframe content looks correct",
+    "Dark mode: Same structure matches; toggle switch, labels, button, and iframe all present in both; C++ has slightly more padding at top",
+    "Content block at bottom 'Right-click a control...' label wraps differently in C++ (wider text area) vs MAUI — minor text-wrap difference, not a missing element"
+  ],
+  "model": "claude-sonnet-4-6"
+}

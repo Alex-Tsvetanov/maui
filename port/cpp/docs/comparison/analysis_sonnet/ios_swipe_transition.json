@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Both show 'SwipeTransitionMode:' label with 'Reveal' and 'Drag' blue buttons, and a 'Swipe right' gray content box",
+    "Instructional text 'Swipe right to reveal Delete; pick a SwipeTransitionMode above' and 'SwipeTransitionMode: Drag' label match in both",
+    "Dark mode renders correctly in both with matching layout and text",
+    "Diff 6.2% is from harness inset only; all content items are structurally and visually equivalent"
+  ],
+  "model": "claude-sonnet-4-6"
+}

@@ -1,0 +1,10 @@
+{
+  "category": "cpp_major",
+  "notes": [
+    "Both render 'Default', 'BackgroundColor', 'Background' labels and slider rows, but C++ slider track colors differ from MAUI",
+    "MAUI shows colored track fills (LightBlue, Pink, Orange visible as colored bars); C++ appears to render only the default blue/grey track without applying custom MinimumTrackColor/MaximumTrackColor/ThumbColor",
+    "ThumbImageSource row: MAUI renders a custom image thumb; C++ appears to not render the thumb image correctly",
+    "SSIM 0.8907 / diff 33.9% — highest diff of this batch — confirms major custom-styling failure in slider track/thumb color and image mapping"
+  ],
+  "model": "claude-sonnet-4-6"
+}

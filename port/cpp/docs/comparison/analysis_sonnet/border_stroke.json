@@ -1,0 +1,10 @@
+{
+  "category": "cpp_major",
+  "notes": [
+    "Top section 'Using different StrokeThickness': MAUI renders each border with visible stroke inside its bounds; C++ renders borders that are clipped/overflowing — the thick borders (5, 10) are cut at the screen edge and appear excessively wide",
+    "MAUI border items have proper horizontal margins/padding keeping them within screen bounds; C++ borders extend full-width and the thick stroke bleeds to the edge",
+    "Bottom section 'Updating the Content Height': MAUI shows correct 3 bordered boxes with strokes properly sized; C++ shows the same but with significantly larger vertical spacing and the stroke-5 and stroke-10 borders lack visible left/right insets",
+    "Dark mode: same issues persist — thick strokes overflow viewport edges in C++ vs properly contained in MAUI"
+  ],
+  "model": "claude-sonnet-4-6"
+}

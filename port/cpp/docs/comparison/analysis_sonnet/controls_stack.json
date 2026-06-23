@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "All controls present in both: Button, Entry, Editor, SearchBar, CheckBox+Switch, Slider, Stepper",
+    "Slider thumb position differs: MAUI shows thumb roughly at 50%, C++ shows thumb shifted further right (~60-65%)",
+    "SearchBar shape/rounding appears slightly less pronounced in C++ vs MAUI's rounder pill shape",
+    "High pixel diff (12.1%) is dominated by the slider thumb position offset; rest of controls are structurally equivalent"
+  ],
+  "model": "claude-sonnet-4-6"
+}

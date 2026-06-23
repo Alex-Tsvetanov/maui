@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Both MAUI and C++ show a multi-item list of Marvel characters with the 'Using ItemSizingStrategy.MeasureFirstItem' header label.",
+    "MAUI light shows a search/filter field at top; C++ does not appear to have it, but both show the same character list below.",
+    "Content matches: The Thing, Human Torch, Mr. Fantastic, Invisible Woman, Doctor Strange, etc. all present in same order.",
+    "Dark mode is consistent between both platforms."
+  ],
+  "model": "claude-sonnet-4-6"
+}

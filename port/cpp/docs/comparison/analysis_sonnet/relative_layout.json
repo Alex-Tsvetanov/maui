@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Light mode: both show red box top-left, green box top-center, red box slightly right of green, green box top-right (partially clipped); large grey rectangle with black inner rectangle centered; blue box bottom-left, yellow box bottom-center, blue box bottom-right area — layout matches",
+    "Dark mode: same colored boxes appear at same positions on dark background — matches MAUI",
+    "Box positions and sizes appear consistent between MAUI and C++ in both themes",
+    "Minor pixel-level position differences possible due to rounding but overall layout is correct"
+  ],
+  "model": "claude-sonnet-4-6"
+}

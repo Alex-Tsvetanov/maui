@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Both sides display the blue gesture target area and the 'Last gesture:' label correctly",
+    "MAUI shows 'Last gesture: (none)' as initial state; C++ shows 'Last gesture: Pointer exited' — C++ fired a pointer-exited event on screenshot capture, a runtime/interaction state difference not a visual defect",
+    "Blue target box size and color are identical in both light and dark themes",
+    "The 'Pointer exited' vs '(none)' text is a dynamic runtime state captured at screenshot time, not a structural rendering bug"
+  ],
+  "model": "claude-sonnet-4-6"
+}

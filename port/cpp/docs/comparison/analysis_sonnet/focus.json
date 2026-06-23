@@ -1,0 +1,1 @@
+{"category": "match", "notes": ["Both show 'Focus target' Entry, 'Focus Entry'/'Unfocus Entry' buttons, 'IsFocused: false' label", "C++ buttons appear slightly larger/bolder than MAUI's", "Layout order and element types match exactly in both light and dark modes", "Trivial font-weight difference only"], "model": "claude-sonnet-4-6"}

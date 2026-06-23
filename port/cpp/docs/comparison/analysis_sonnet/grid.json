@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Both light and dark show a 2x2 grid with red/green (top row) and blue/orange (bottom row) cells",
+    "Colors are identical between MAUI and C++ in both themes",
+    "Grid label 'Grid (2 cols x rows)' present and identical on both sides",
+    "Small diff (~1.68%) is due to minor cell size/spacing differences from outer harness margin; grid structure and colors match"
+  ],
+  "model": "claude-sonnet-4-6"
+}

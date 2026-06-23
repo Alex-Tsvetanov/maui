@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "All indicator rows present in both: Basic, Colors (yellow bg), Indicator Shape, Indicator Size, Indicator HideSingle, Indicator MaximumVisible 7 of 10, Indicator Template, Using with CarouselView",
+    "Colors row: MAUI shows blue+red+blue+blue dots on yellow; C++ shows red+red+red+red+red dots on yellow — dot colors differ, port may not apply individual dot colors correctly",
+    "Dot sizes in 'Indicator Size' row appear slightly different; C++ dots look marginally larger relative to MAUI",
+    "CarouselView section at bottom ('Item 1' with 3 dots) matches in both themes"
+  ],
+  "model": "claude-sonnet-4-6"
+}

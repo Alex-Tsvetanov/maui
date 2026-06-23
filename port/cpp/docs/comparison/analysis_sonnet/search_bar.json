@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Both light and dark show matching search bar entries: Search..., Green text, Placeholder, Italic 24pt, end of the line, Cancel is red, Numeric keyboard.",
+    "MAUI light shows each search bar with a light gray rounded background fill; C++ search bars have a slightly different visual weight/shade for the pill-shaped background.",
+    "The 'Cancel is red' bar correctly shows a red X cancel button in both MAUI and C++ (light and dark).",
+    "High diff_pct (46%) is likely driven by the harness inset plus slight background color differences in the search bar backgrounds; content and functional rendering match."
+  ],
+  "model": "claude-sonnet-4-6"
+}

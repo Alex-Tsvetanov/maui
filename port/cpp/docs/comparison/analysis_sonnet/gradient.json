@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "LinearGradientBrush (yellow->green): both sides render correctly with the same yellow-to-green horizontal gradient; visually nearly identical",
+    "RadialGradientBrush (red->navy): both sides render a radial gradient from red center to navy/purple edges; C++ gradient appears slightly more saturated/different purple endpoint vs MAUI's slightly different hue",
+    "Diff bbox is limited to y=241–824 covering just the two gradient bars — confirms only the gradient rendering area differs, not surrounding layout",
+    "Dark mode matches light mode closely; diff_pct 7.27% likely due to slight color rendering differences in the radial gradient endpoints"
+  ],
+  "model": "claude-sonnet-4-6"
+}

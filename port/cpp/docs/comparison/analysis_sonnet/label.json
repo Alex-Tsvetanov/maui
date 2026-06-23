@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Both sides show the same label demo sections: top/center/bottom alignment labels, lorem ipsum paragraph, Orange Formatted Styling section, and the large 'Big Font man' label at bottom.",
+    "High diff_pct (38%) is largely driven by the harness outer padding difference — MAUI's inset makes content appear smaller and offset; actual content matches.",
+    "The 'Orange Formatted Styling' orange-background label is present on both sides in light and dark modes.",
+    "Minor differences in line-wrapping and text block spacing are visible at this resolution; overall content and color fidelity match."
+  ],
+  "model": "claude-sonnet-4-6"
+}

@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Both MAUI and C++ show identical content: 'Swipe left to delete, pull to refresh' and 'Ready' labels",
+    "Light and dark themes both match; no list items are visible in either (same state)",
+    "diff_pct ~0.67% is clock-noise only",
+    "No structural, color, or content differences in either theme"
+  ],
+  "model": "claude-sonnet-4-6"
+}

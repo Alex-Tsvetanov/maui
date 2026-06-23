@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Both show semantic property descriptions, entry/editor fields, heading labels, and 'Button text' buttons",
+    "C++ buttons have visible native chrome (rounded rectangle) while MAUI buttons in reference app appear as plain text links — consistent with native-default rendering difference",
+    "Text wrapping and label layout differs between the two due to container width differences",
+    "Large diff_pct (28% light) is driven by text reflow throughout the long page and button chrome presence — all semantic content is present"
+  ],
+  "model": "claude-sonnet-4-6"
+}

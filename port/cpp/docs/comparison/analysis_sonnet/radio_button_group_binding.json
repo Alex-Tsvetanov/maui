@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "All four radio buttons (Option A/B/C/D) render correctly in a 2x2 grid layout in both C++ and MAUI, light and dark",
+    "The header text 'The RadioButtons in this Grid have a GroupName and Selection bound to a ViewModel. The GroupName is group1  The Selection is (null)' renders correctly on both sides",
+    "C++ radio button circles appear slightly larger/bolder than MAUI's — minor size difference in the native UIButton/radio indicator",
+    "Blue link-style buttons ('Set selection in view model to B' and 'Clear selection...') are present and styled correctly on both sides"
+  ],
+  "model": "claude-sonnet-4-6"
+}

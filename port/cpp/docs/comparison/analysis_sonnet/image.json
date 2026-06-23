@@ -1,0 +1,10 @@
+{
+  "category": "cpp_major",
+  "notes": [
+    "MAUI light shows building photo + UrSource/FileSource labels on left; purple/planet image on right — two images side by side with labels beneath",
+    "C++ shows the same content but in a single-column stacked layout with much larger images taking full width",
+    "The 'Animating a gif' toggle/switch and 'Load Inline Source' links are present on both but at different scroll positions",
+    "Dark mode repeats the same layout mismatch — C++ stacks images vertically at large size vs MAUI's two-column layout"
+  ],
+  "model": "claude-sonnet-4-6"
+}

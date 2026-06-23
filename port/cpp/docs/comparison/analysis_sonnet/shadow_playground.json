@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Both MAUI and C++ render the cyan/teal box with red shadow correctly in both themes.",
+    "All slider controls (Offset X, Offset Y, Radius, Opacity) and text labels (#00B4DB, #FF0000, values) are present and match.",
+    "C++ is missing the 'Remove Shadow' button link at the bottom — it is visible in MAUI light but the C++ view is cut off before reaching it (content scrolled out of view or layout differs).",
+    "Shadow values (Offset X: 10, Offset Y: 10, Radius: 10, Opacity: 1.00) and slider positions are correctly reproduced."
+  ],
+  "model": "claude-sonnet-4-6"
+}

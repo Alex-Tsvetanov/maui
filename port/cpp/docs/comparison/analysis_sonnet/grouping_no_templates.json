@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "All hero names render in the correct order in both MAUI and C++; the list content is identical",
+    "C++ list items have more vertical spacing between entries, causing the list to spread out — MAUI rows are more compact with tighter row height",
+    "MAUI shows items starting with 'Thor, Iron Man, The Hulk, Ant-Man, Wasp...' with dense packing; C++ shows the same names but each row is taller",
+    "Dark mode matches structurally; no missing items or color differences observed"
+  ],
+  "model": "claude-sonnet-4-6"
+}

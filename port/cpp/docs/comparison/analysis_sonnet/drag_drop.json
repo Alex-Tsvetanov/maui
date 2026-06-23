@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "All six color swatches (orange, yellow, green, blue, purple, pink) render in correct order and colors in both themes",
+    "Rainbow target swatch (red) and all status text lines match exactly between MAUI and C++",
+    "C++ swatch rows appear slightly thinner/shorter in height than MAUI, causing the full list to occupy less vertical space",
+    "Dark mode matches structurally; diff_pct ~10% driven by the height difference in swatch rows"
+  ],
+  "model": "claude-sonnet-4-6"
+}

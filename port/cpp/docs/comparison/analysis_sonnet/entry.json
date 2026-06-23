@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "All entry types present: placeholder, text, colored text/placeholder, checkmark entry, password dots, read-only, right-aligned, cursor position label, slider, and cursor entry — all match",
+    "Slider thumb position differs slightly: in C++ the slider thumb appears further left (around 40% position) vs MAUI's thumb at ~60% — likely a capture-moment state difference, not a render bug",
+    "Text colors (magenta 'Text', magenta 'Placeholder') match correctly in both light and dark themes",
+    "Dark mode renders cleanly; diff_pct ~5% is primarily positional/layout shift from outer padding difference"
+  ],
+  "model": "claude-sonnet-4-6"
+}

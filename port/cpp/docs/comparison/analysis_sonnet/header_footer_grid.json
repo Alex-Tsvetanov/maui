@@ -1,0 +1,10 @@
+{
+  "category": "cpp_major",
+  "notes": [
+    "MAUI light: content list is compact with images visible only in header area; C++ light shows a full CollectionView grid with 9 images rendered across 3 columns filling the page",
+    "C++ renders the image grid content fully visible while MAUI clips it behind the header/footer overlay — significant layout difference in how header/footer overlap content",
+    "In MAUI the 'This Is A Header' and 'This Is A Footer' are styled italic/large overlaid on content; C++ renders them correctly styled but the grid image layout beneath differs substantially",
+    "SSIM 0.9357 / diff 19.8% confirms major structural layout difference in how the CollectionView content is positioned relative to header/footer overlays"
+  ],
+  "model": "claude-sonnet-4-6"
+}

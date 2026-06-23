@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Both light and dark themes show identical 5 swipe-item rows with same label text and cell background",
+    "Footer label 'Swipe a row, then invoke Delete' present and matching in both themes",
+    "Light: minor page-padding offset (C++ content slightly inset vs MAUI edge-to-edge) — within harness-wrapper tolerance",
+    "Dark mode: background correctly black, text white, cell backgrounds light-grey — matches MAUI"
+  ],
+  "model": "claude-sonnet-4-6"
+}

@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "Both render Coffee0/Milk1/Coffee2/Coffee3/Milk4/Coffee5 rows with correct brown (coffee) and beige (milk) background colors",
+    "Bottom section with Insert/Add/Remove buttons, Index entry, and Latte label all match",
+    "Dark mode: coffee rows keep brown color with white text; milk rows keep beige with dark text — both correct",
+    "Diff 2.3% is within harness-inset noise; content, colors, and row heights are visually equivalent"
+  ],
+  "model": "claude-sonnet-4-6"
+}

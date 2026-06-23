@@ -1,0 +1,1 @@
+{"category": "match", "notes": ["Both show Default (blue), ProgressColor (orange), Disabled (blue), ProgressColor (orange), ProgressTo (empty) bars with matching labels", "Progress fill lengths are visually equivalent between MAUI and C++", "ProgressTo button is present on both sides in same style", "Dark mode matches with same colors and layout"], "model": "claude-sonnet-4-6"}

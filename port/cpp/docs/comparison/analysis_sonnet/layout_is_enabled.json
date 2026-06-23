@@ -1,0 +1,10 @@
+{
+  "category": "cpp_major",
+  "notes": [
+    "The montage image is too small to read individual rows clearly, but diff_pct of 60% with ssim 0.88 indicates very substantial visual differences",
+    "MAUI light shows enabled/disabled state rows with teal/pink background color blocks for enabled/disabled children sections; C++ appears to not show the colored background regions or shows them in wrong colors",
+    "The page exercises IsEnabled propagation through parent layouts — large diff suggests the enabled/disabled visual state (greying, tinting) is not being applied correctly in C++ children",
+    "Both dark panels appear similarly structured but color/shading differences for disabled states are likely the root cause of the high diff score"
+  ],
+  "model": "claude-sonnet-4-6"
+}

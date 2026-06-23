@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Both sides show the same list of weekday/weekend items (Monday through Sunday alternating) with 'It's the weekend! Woo!' text for weekend entries",
+    "C++ renders slightly more items visible on screen due to less outer padding (harness inset difference — per policy, not a bug)",
+    "Text content, alternation pattern, and relative font sizes appear identical between MAUI and C++",
+    "Dark mode matches equally well; no color or content differences observed"
+  ],
+  "model": "claude-sonnet-4-6"
+}

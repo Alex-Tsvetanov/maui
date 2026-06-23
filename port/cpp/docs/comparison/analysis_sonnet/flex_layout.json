@@ -1,0 +1,10 @@
+{
+  "category": "match",
+  "notes": [
+    "HEADER (cyan), CONTENT (gray center), FOOTER (pink), blue left column, green right column all render correctly in both",
+    "Color blocks match exactly: cyan header, blue/green sidebars, gray content area, pink footer",
+    "Dark mode renders identically with same color structure against black background",
+    "Pixel diff 7.3% is entirely from harness inset offset shifting the layout region; content colors and structure are identical"
+  ],
+  "model": "claude-sonnet-4-6"
+}

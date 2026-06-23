@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Light mode: Both show a long scrollable list of filenames with 'Reset' button at top; MAUI has a blue 'Reset' button at top-right and selected highlighted items; C++ shows a blue 'Reset' button at top too — content structure matches",
+    "C++ light: header label and Reset button appear further from top edge; MAUI content starts immediately under status bar",
+    "Dark mode: both show dark background with same list content; selected items appear highlighted similarly",
+    "Selection highlight color in C++ appears slightly different shade (darker grey vs MAUI's grey-blue tint) — minor color difference on selected rows"
+  ],
+  "model": "claude-sonnet-4-6"
+}

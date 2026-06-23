@@ -1,0 +1,10 @@
+{
+  "category": "cpp_major",
+  "notes": [
+    "MAUI light shows placeholder gray rectangles for all clipped images (images failed to load — maui_blank for image content), while C++ successfully loads and displays the actual dog photo for each clip shape.",
+    "C++ correctly applies RectangleGeometry, RoundRectangleGeometry, and EllipseGeometry clipping shapes to the actual image — the clipping logic works.",
+    "MAUI's image load failure means the MAUI side is the defective one for image content; however this is a maui_blank condition on the image resource, not a port difference.",
+    "Overall structure and label text match between both sides; the clip shapes are correctly rendered in C++."
+  ],
+  "model": "claude-sonnet-4-6"
+}

@@ -1,0 +1,10 @@
+{
+  "category": "cpp_minor",
+  "notes": [
+    "Layout is equivalent: yellow top half with green-filled blue-bordered ellipse, orange bottom half, both themes match structurally",
+    "C++ ellipse renders slightly smaller in diameter compared to MAUI — the circle does not quite reach the full width of the yellow section",
+    "Text label wraps to two lines in C++ ('The Ellipse below must occupy half of the available space.') vs single line in MAUI due to narrower effective text area",
+    "Dark mode: both render identically in terms of color and structure; the size/wrap difference persists"
+  ],
+  "model": "claude-sonnet-4-6"
+}
