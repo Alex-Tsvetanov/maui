@@ -14,13 +14,14 @@ Single source of truth for iOS pixel parity. Each example is rendered by BOTH th
 
 ## Summary
 
-172 examples · pixel-perfect-grade **0** + match **16**. The two vision models judge independently and diverge often (Gemini runs stricter), so the **consensus** below is conservative: a page is *major* only when BOTH models flag it, *pixel-perfect/match* only when both agree (+ SSIM), and the uncertain middle falls to *minor*. The per-page Sonnet & Gemini columns carry the raw, independent verdicts.
+172 examples · pixel-perfect-grade **12** + match **4**. The two vision models judge independently and diverge often (Gemini runs stricter), so the **consensus** below is conservative: a page is *major* only when BOTH models flag it, *pixel-perfect/match* only when both agree (+ SSIM), and the uncertain middle falls to *minor*. The per-page Sonnet & Gemini columns carry the raw, independent verdicts.
 
 **Consensus classification:**
 
 | Classification | Count | Examples |
 | --- | --- | --- |
-| 🟢 Match | 16 | activity_indicator, grid, relative_layout, alignment, polyline_gallery, shape_app_theme, single_bound_selection, empty_view_load_simulate, swipe_item_position, custom_size_swipe, pan_gesture_events, ios_pan_gesture, modal, menu_bar, chrome, custom_layout |
+| 🟢 Pixel-perfect | 12 | activity_indicator, grid, relative_layout, alignment, polyline_gallery, shape_app_theme, empty_view_load_simulate, swipe_item_position, pan_gesture_events, menu_bar, chrome, custom_layout |
+| 🟢 Match | 4 | single_bound_selection, custom_size_swipe, ios_pan_gesture, modal |
 | 🟡 C++ minor | 126 | label, entry, editor, search_bar, picker, date_picker, pickers, stepper, check_box, progress_bar, indicator, image, box_view, content_view, containers, controls_stack, input_controls, fonts, formatted_text, styles, triggers, behaviors, semantics, app_theme_binding … (+102) |
 | 🔴 C++ major | 29 | button, time_picker, slider, switch, image_button, layout_is_enabled, path_transform_string, border_stroke, border_playground, border_clip_playground, clip, clip_views, clip_gallery, invalidate_shadow_host, collectionview, preselected_items, header_footer_grid, header_footer_grid_horizontal, header_footer_template, header_footer_view, nested_collection, cv_visual_states, items_updating_scroll_mode, radio_button_content … (+5) |
 | ◻️ MAUI blank | 1 | radio_template_from_style |

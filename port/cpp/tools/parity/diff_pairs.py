@@ -134,7 +134,13 @@ def main():
         keys = [k for k in keys if k in want]
     themes = [t for t in args.themes.split(",") if t in ("light", "dark")]
 
+    # Merge into existing results so a `--only` run updates just those keys (don't clobber the rest).
     results = {}
+    if os.path.exists(args.out):
+        try:
+            results = json.load(open(args.out))
+        except (OSError, ValueError):
+            results = {}
     for i, key in enumerate(keys, 1):
         results[key] = {}
         for theme in themes:
