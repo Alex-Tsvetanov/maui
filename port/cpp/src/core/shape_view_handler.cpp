@@ -107,11 +107,22 @@ namespace maui::core
         handler.invalidate_shape();
     }
 
-    // C# MapBackground: a set background (or fill) invalidates the shape; the Fill+Background
-    // container split (UpdateValue(ContainerView) + UpdateBackground on the wrapper) is deferred
-    // with the container seam (documented in STATUS).
+    // C# ShapeViewHandler.MapBackground: when BOTH Background and Fill are set, Fill paints the shape
+    // and Background paints the SHAPEVIEW container (UpdateValue(ContainerView) + container
+    // UpdateBackground); a set Background OR Fill then invalidates the shape. The port has no separate
+    // container wrapper (that seam is deferred), so the Background is applied directly to the shape's
+    // own native host — the equivalent visual: e.g. the PathAspectGallery's LightGray 100x100 rect
+    // behind each red-filled path. (A Background with no Fill is the shape fill via Fill ?? Background
+    // in the drawable, so the host stays transparent then.)
     void shape_view_handler::map_background(shape_view_handler& handler, i_shape_view& view)
     {
+        if (view.background() != nullptr && view.fill() != nullptr)
+        {
+            if (auto* platform = handler.typed_platform_view())
+            {
+                platform->update_background(view.background());
+            }
+        }
         if (view.background() != nullptr || view.fill() != nullptr)
         {
             handler.invalidate_shape();

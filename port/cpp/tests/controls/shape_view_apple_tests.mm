@@ -10,6 +10,7 @@
 #include <memory>
 #include <vector>
 
+#include "maui/controls/shapes/ellipse.hpp"
 #include "maui/controls/shapes/rectangle.hpp"
 #include "maui/core/shape_view_handler.hpp"
 #include "maui/graphics/color.hpp"
@@ -76,6 +77,30 @@ namespace
         EXPECT_LT(channel(buffer, k_size / 2, k_size / 2, 0), 50);  // R
         // the edge (inside the 4px stroke band): the red stroke.
         EXPECT_GT(channel(buffer, k_size / 2, 2, 0), 200); // R at the top edge
+    }
+
+    // R7d: when a shape sets BOTH Fill and Background (the PathAspectGallery pattern: red Fill +
+    // LightGray Background), Fill paints the shape and Background paints the shape's host — the gray
+    // 100x100 rect behind the figure. An ellipse leaves the box corners uncovered, so a corner pixel
+    // must show the gray background (green here for channel clarity), while the center shows the fill.
+    TEST_F(apple_shape_view_seam, background_with_fill_paints_the_host_behind_the_shape)
+    {
+        shapes::ellipse view;
+        view.set_fill(std::make_shared<maui::graphics::solid_paint>(maui::graphics::color(1.0F, 0.0F, 0.0F))); // red
+        view.set_background(
+            std::make_shared<maui::graphics::solid_paint>(maui::graphics::color(0.0F, 1.0F, 0.0F))); // green host
+
+        auto handler = std::make_shared<shape_view_handler>();
+        view.set_handler(handler);
+        ASSERT_NE(handler->typed_platform_view(), nullptr);
+        handler->platform_arrange(maui::graphics::rect(0, 0, k_size, k_size));
+
+        const std::vector<std::uint8_t> buffer = render_host(handler);
+        // a box corner the ellipse does not cover: the green host background.
+        EXPECT_GT(channel(buffer, 2, 2, 1), 200); // G at the corner
+        EXPECT_LT(channel(buffer, 2, 2, 0), 50);  // not red
+        // the center: the red ellipse fill.
+        EXPECT_GT(channel(buffer, k_size / 2, k_size / 2, 0), 200); // R at the center
     }
 
     TEST_F(apple_shape_view_seam, no_shape_renders_nothing)
