@@ -130,6 +130,11 @@ namespace maui::platform::ios
             stroke_layer.name = k_border_layer_name;
             [layer addSublayer:stroke_layer];
         }
+        // The Border content is hosted as a SUBVIEW (set_content -> addSubview), whose layer composites
+        // ABOVE this stroke sublayer at the default zPosition 0 (the content is added after the stroke), so
+        // the content painted over the border stroke. MAUI draws the border stroke ON TOP of the content
+        // (MauiCALayer.DrawInContext strokes last), so lift the stroke above the content via zPosition.
+        stroke_layer.zPosition = 1;
         stroke_layer.frame = CGRectMake(bounds.x, bounds.y, bounds.width, bounds.height);
         stroke_layer.fillColor = nil; // stroke only — the background is the container layer's
 
