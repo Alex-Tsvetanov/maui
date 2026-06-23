@@ -239,6 +239,13 @@ re-stamped to honest severities **as each fix lands and is re-verified on-sim** 
   "Italic 24" is just the narrower harness search bar cropping the "pt". Bars otherwise match.
 - **title_bar → NOFIX (over-flag).** The 2-column Content/Color Options form (radios, entries, headers,
   links, live readout) matches MAUI; "Set Col…/Set For…" truncates in BOTH (narrow column).
-- **Convergence:** genuine-fix count far below the original ~44. REAL fixes done: R1, R2, R3/R4/R5, R7,
-  R13, device, selection-highlight. Still to check: header_footer (R12), radio_button_border, clip/
-  clip_views/border_clip, cv_visual_states, nested caption color. Then the DISCUSS source-checks + final gate.
+- **radio_button_border → REAL-MINOR, DEFERRED (blast radius).** The port's radio rows are more compact
+  than MAUI's: MAUI's `RadioButton.BuildDefaultTemplate` wraps the content in a Border with `Padding=6`
+  (+ a Grid `Padding=2`, 21pt outer / 11pt inner circle); the port's default template lacks that padding.
+  Adding it would touch EVERY radio page (radio_button_group/scattered_radio_button/etc.) — some may
+  currently match — so it needs the RadioButton default-template padding set + cross-page on-sim
+  verification, not a blind change. Flagged for a focused follow-up.
+- **Convergence:** genuine-fix count far below the original ~44. REAL fixes DONE: R1, R2, R3/R4/R5, R7,
+  R13, device, selection-highlight. Still to check: header_footer (R12), clip/clip_views/border_clip,
+  cv_visual_states (verify agent R5 covered it), nested caption color. Then the DISCUSS source-checks +
+  final gate (`tools/gate.sh` + clang-tidy 0 + sanitizers) + push.
