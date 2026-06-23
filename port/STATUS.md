@@ -4,6 +4,42 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## Cross-platform entry point — Stage 2 (apple + ios native run loops) — ✅ DONE (2026-06-24)
+
+The SAME pure-C++ `samples/hello_world/main.cpp` (Stage 1) now opens a REAL native window on the apple
+(macOS/AppKit) and ios (UIKit) backends, with **zero Objective-C in the user's code** — all the
+`NSApplication`/`UIApplicationMain`/AppDelegate glue lives in the framework's `run_app` lane now. New/changed:
+- **`src/platform/apple/host_run.mm`** — `run_app` for AppKit: stands up `NSApplication` + an app delegate
+  whose `applicationDidFinishLaunching` builds the app from the configurator, asks it for its window
+  (`IApplication.CreateWindow`), runs the Stage-1 generic mount (`mount_window` + `drive_layout` over a
+  480×720 default, REUSED as-is — NO per-control code), shows the `NSWindow` key+front, and enters
+  `[NSApp run]`. Returns the run-loop exit code. The built `maui_app` is held in a function-local-static
+  `host_state` (PROFILE §8 — outlives the whole run loop). Verified: launches, mounts, shows an NSWindow
+  titled "Hello" (stderr+os_log mount trace), runs until the window closes.
+- **`src/platform/ios/host_run.mm`** — `run_app` for UIKit: a classic (non-scene) `UIApplicationDelegate`
+  whose `didFinishLaunchingWithOptions` builds + mounts the app and lays it out over the root VC's
+  **safe-area** bounds (the recipe factored verbatim from `ios_gallery.mm` boot_page — `layoutIfNeeded` +
+  status-bar/Dynamic-Island fallback + the VC-backed-root-page full-controller-bounds branch), makes the
+  `UIWindow` key+visible, returns YES. `main()` is `UIApplicationMain`. **The configurator hand-off:**
+  `UIApplicationMain` instantiates the delegate itself, so `run_app` stashes the `configure` function
+  pointer in a file-scope `host_state` (a function-local-static struct) BEFORE calling `UIApplicationMain`,
+  and the delegate reads it from `didFinishLaunching` (the apple lane uses the same struct for symmetry).
+  Boot wrapped in the gallery's try/@catch (C++ throw → NO, NSException → NO). Verified on the sim
+  (UDID `C4926671…`): the "Hello, MAUI C++!" label renders at the safe-area top-leading (screenshot).
+- **CMake**: the `maui_hosting` `host_run` generator expression gains the `apple`→`.mm` and `ios`→`.mm`
+  lanes (ARC-compiled), beside the existing headless `.cpp` — exactly one `run_app` links per backend.
+  `maui_hosting` now lints both languages (`OBJCXX_CLANG_TIDY`). `maui_hello_world` builds on all three
+  backends from the **unchanged** pure-C++ source: a plain macOS executable on apple, a minimal `.app`
+  bundle (reusing `ios_app_sample_info.plist.in`, id `dev.maui-cpp.hello-world`) on ios, the console binary
+  + boot ctest on headless.
+
+Gate: `gate.sh --fast` (headless 2516/2516 · tidy 0 findings · apple build) **PASS**; ios `maui_hello_world`
+builds + installs + renders on the simulator. Stage-2 delta vs the headless lane: a native run loop
+(`[NSApp run]` / `UIApplicationMain`) instead of boot+return, and safe-area-derived bounds instead of the
+fixed default. **Deferred to later stages (untouched here):** re-driving `drive_layout` on native resize
+(no resize hook yet — first layout only), windows/android `run_app`, and the `examples/` packaging tree
+(Stages 3–5; the existing `src/samples` gallery `.mm` stays until Stage 5 retires it).
+
 ## Cross-platform entry point — Stage 1 (headless) — ✅ DONE (2026-06-24)
 
 A framework user can now write a PURE C++ `main.cpp` (no Obj-C, no `.mm`, no platform headers) that looks

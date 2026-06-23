@@ -1656,16 +1656,31 @@ add_library(maui_hosting STATIC
   src/hosting/ios_lifecycle.cpp
   # The generic recursive mount + layout driver (backend-agnostic, app_host.hpp).
   src/hosting/app_host.cpp
-  # The run_app body — ONE per backend, keyed off MAUI_BACKEND. Stage 1 ships only the headless lane;
-  # apple/ios/windows/android add their own host_run .cpp (same mount, plus the native run loop) in Stage 2.
+  # The run_app body — ONE per backend, keyed off MAUI_BACKEND (exactly one definition links per backend).
+  # Stage 1 shipped the headless lane; Stage 2 adds the apple (AppKit) + ios (UIKit) lanes — the SAME generic
+  # mount (app_host.cpp) wrapped in the native run loop ([NSApp run] / UIApplicationMain) over safe-area-
+  # derived bounds. The .mm lanes are ARC-compiled below. windows/android remain later stages.
   $<$<STREQUAL:${MAUI_BACKEND},headless>:src/platform/headless/host_run.cpp>
+  $<$<STREQUAL:${MAUI_BACKEND},apple>:src/platform/apple/host_run.mm>
+  $<$<STREQUAL:${MAUI_BACKEND},ios>:src/platform/ios/host_run.mm>
 )
+# The apple/ios run_app lanes are Objective-C++ (AppKit/UIKit) and must compile under ARC like every other
+# .mm partial. AppKit (apple) / UIKit (ios) are already linked PUBLIC through maui_core (the window_handler
+# .mm uses them); host_run only needs the ARC flag on its own .mm.
+if(MAUI_BACKEND STREQUAL "apple")
+  set_source_files_properties(src/platform/apple/host_run.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+elseif(MAUI_BACKEND STREQUAL "ios")
+  set_source_files_properties(src/platform/ios/host_run.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+endif()
 target_include_directories(maui_hosting PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # Hosting mints the controls::application and seeds the controls handler table — PUBLIC so consumers
 # (samples, tests) reach the controls/core surface transitively.
 target_link_libraries(maui_hosting PUBLIC maui_controls PRIVATE maui_sanitizers)
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
-  set_target_properties(maui_hosting PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+  # CXX for the cross-platform sources; OBJCXX lints the apple/ios host_run.mm run-loop lanes too.
+  set_target_properties(maui_hosting PROPERTIES
+    CXX_CLANG_TIDY "${CLANG_TIDY_EXE}"
+    OBJCXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
 
 # ---- Hosting tests (GoogleTest). Backend-agnostic pure C++; wired like maui_xaml_tests — built on
@@ -1688,10 +1703,18 @@ if(NOT MAUI_BACKEND STREQUAL "ios")
   endif()
 endif()
 
-# ---- hello_world: the cross-platform entry-point PROOF (Stage 1, headless). A 100% portable C++ program
-# that includes maui/maui_main.hpp (which defines main()) and links maui_hosting — proving a user writes
-# zero platform code. Headless only this Stage (the run_app body it forwards to is the headless lane); the
-# apple/ios run_app arrives in Stage 2. ----
+# ---- hello_world: the cross-platform entry-point PROOF. A 100% PORTABLE C++ program (samples/hello_world/
+# main.cpp — no Objective-C, no .mm, no platform headers) that includes maui/maui_main.hpp (which defines
+# main()) and links maui_hosting, proving a user writes ZERO platform code. The SAME source builds on every
+# backend; only its CMake/bundle wiring is platform-aware:
+#   - headless: a plain console binary + a ctest that boots it end-to-end (run_app: build -> mount -> settle
+#     -> exit 0). It returns immediately (no run loop).
+#   - apple: a plain macOS executable that opens a real NSWindow and enters [NSApp run] (run with ./build/
+#     apple/maui_hello_world — it stays up until the window closes).
+#   - ios: a minimal .app bundle (the same plist template + flat-bundle setup as maui_ios_app_sample),
+#     installable on the simulator, that renders the label under UIApplicationMain.
+# The run loop on apple/ios comes entirely from the maui_hosting run_app lane the source forwards to — the
+# example itself is unchanged across backends. ----
 if(MAUI_BACKEND STREQUAL "headless")
   add_executable(maui_hello_world samples/hello_world/main.cpp)
   target_link_libraries(maui_hello_world PRIVATE maui_hosting maui_sanitizers)
@@ -1701,6 +1724,32 @@ if(MAUI_BACKEND STREQUAL "headless")
   # A ctest that BOOTS the proof binary end-to-end (run_app: build -> mount -> settle -> exit 0). The
   # app_host_tests above assert the mount internals; this asserts the user-facing main() actually runs.
   add_test(NAME maui_hello_world_boots COMMAND maui_hello_world)
+elseif(MAUI_BACKEND STREQUAL "apple")
+  # A plain macOS executable (not a .app) — the apple run_app lane stands up NSApplication + the NSWindow.
+  add_executable(maui_hello_world samples/hello_world/main.cpp)
+  target_link_libraries(maui_hello_world PRIVATE maui_hosting maui_sanitizers)
+  if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+    set_target_properties(maui_hello_world PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+  endif()
+elseif(MAUI_BACKEND STREQUAL "ios")
+  # A launchable iOS app needs an .app bundle (unlike the plain-console test binaries): opt into
+  # MACOSX_BUNDLE with the same minimal iOS Info.plist as maui_ios_app_sample (no UIAppFonts needed — the
+  # hello_world page is a single label, no bundled assets). Run on the booted simulator:
+  #   cmake --build --preset ios --target maui_hello_world
+  #   xcrun simctl install booted build/ios/maui_hello_world.app
+  #   xcrun simctl launch booted dev.maui-cpp.hello-world
+  add_executable(maui_hello_world samples/hello_world/main.cpp)
+  target_link_libraries(maui_hello_world PRIVATE maui_hosting maui_sanitizers)
+  set_target_properties(maui_hello_world PROPERTIES
+    MACOSX_BUNDLE TRUE
+    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/src/samples/ios_app_sample_info.plist.in"
+    MACOSX_BUNDLE_BUNDLE_NAME "maui_hello_world"
+    MACOSX_BUNDLE_GUI_IDENTIFIER "dev.maui-cpp.hello-world"
+    MACOSX_BUNDLE_BUNDLE_VERSION "1"
+    MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0")
+  if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+    set_target_properties(maui_hello_world PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+  endif()
 endif()
 
 # ======================================================================
