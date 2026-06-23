@@ -208,3 +208,15 @@ re-stamped to honest severities **as each fix lands and is re-verified on-sim** 
   - Lesson: Gemini's vague "spacing tighter/looser / N vs M items" flags are low-precision; each must be
     oracle-checked + visually verified before fixing. Remaining R8-minor pages (absolute_layout, z_index,
     flex_layout, invalidate_brush, relative_layout) are likely over-flags too — verify before touching.
+- **R6 (shapes) → ALL 5 NOFIX (over-flag/harness), verified by on-sim montage review.** `auto_size_shapes`
+  (port layout mirrors the C# Grid Auto/*/* exactly; the ellipse renders circle-not-oval ONLY because the
+  port has more vertical space than MAUI's harness card, so "half the available space" is taller — the
+  ellipse correctly occupies half its (larger) row; harness, ruling #2), `ellipse_gallery` (shapes are the
+  same size in both — over-flag), `composition_gallery` (shape composition same size; the card/lines are
+  star-sized so the port's extra height makes them taller/longer — harness, NOT "scaled-down shapes"),
+  `shapes` (ellipse/round-rect/pentagram all match; the "Line" is cropped in MAUI = unverifiable),
+  `line_gallery`/`relative_layout` same star-available-space pattern. **The real-fix count keeps shrinking
+  below the original ~44 estimate as validation proceeds.** Likely-real remaining = CONTROL-STYLING tail
+  (entry dark border, title_bar truncation/font, indicator dot size, button corner/letter-spacing, radio
+  padding, selection highlight color, search_bar italic, header_footer image-vs-solid), NOT the
+  layout/spacing/count flags.
