@@ -270,3 +270,19 @@ templated_view / hybrid_web_view / radio_button_content need a quick visual conf
 
 **Remaining steps:** quick-confirm clip family + the 3 non-image DISCUSS → run the **final gate**
 (`tools/gate.sh`: all presets + sanitizers + clang-tidy 0) on the integrated batch → push → summary.
+
+## LANDED (tip `31a5506157`, pushed)
+
+Full gate **PASS** (headless/tidy/asan-ubsan/tsan/apple/ios; 2311 ios tests; 0 NEW clang-tidy findings —
+cleaned the 6 the agents' incremental check masked in shape_view_tests.cpp). **8 real fixes** committed +
+on-sim-verified: R1 fonts · device centering · R2 brush · R3/R4/R5 CV · R7 paths · R13 indicator · CV
+selection-highlight. `clip` + `templated_view` = NOFIX (reversed/over-flag claims, like border_playground).
+
+**Validation conclusively complete:** every substantial flagged page accounted for. The genuine-fix count
+landed at ~10 (8 fixed + radio_button_border deferred + the button DISCUSS) — the rest of Gemini's 111
+were over-flags / harness / runtime-readouts / capture-dates / MAUI-broken (image-load or blank). The
+contrast between Gemini's 111 "diffs" and the ~10 real ones is the headline result.
+
+**Awaiting user:** (1) button CharacterSpacing — replicate MAUI's mapper-order quirk (drop spacing) or keep
+the port correct? (2) pre-existing clang-tidy debt (not this batch) — clean up separately? **Optional
+deferred:** radio_button_border (RadioButton template Padding=6, cross-page verify).
