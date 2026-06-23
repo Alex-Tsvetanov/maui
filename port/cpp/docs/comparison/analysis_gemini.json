@@ -75,9 +75,9 @@
  "border_layout": {
   "category": "cpp_minor",
   "notes": [
-   "The border stroke color in dark mode is slightly lighter/brighter in the C++ version compared to the MAUI version.",
-   "The slider thumb in the C++ version appears slightly larger or has a different shadow/border rendering compared to the MAUI version.",
-   "The text 'Center' has slightly different font weight or anti-aliasing characteristics in the C++ implementation."
+   "The border thickness around the green container is noticeably thicker in the C++ implementation compared to the MAUI reference.",
+   "The slider thumb in the C++ implementation is slightly larger and has a different visual weight than the MAUI version.",
+   "The spacing between the slider and the green container is slightly inconsistent between the two implementations."
   ],
   "model": "gemini-3.1-flash-lite"
  },
@@ -1459,7 +1459,7 @@
   "notes": [
    "The list items in the C++ implementation have slightly different vertical spacing compared to the MAUI reference.",
    "The text alignment or padding within the list items appears slightly inconsistent between the two implementations.",
-   "The overall height of the list container in the C++ version is slightly different, causing the bottom controls to shift position."
+   "The overall height of the list container in the C++ version is slightly different from the MAUI version."
   ],
   "model": "gemini-3.1-flash-lite"
  },

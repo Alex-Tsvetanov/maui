@@ -477,11 +477,11 @@
  },
  "border_layout": {
   "light": {
-   "diff_pct": 3.1225,
-   "thresh_pct": 2.6461,
+   "diff_pct": 3.1423,
+   "thresh_pct": 2.6579,
    "max_delta": 255,
-   "ssim": 0.9873,
-   "ae": 89281,
+   "ssim": 0.9876,
+   "ae": 88320,
    "pixel_perfect": false,
    "bbox": [
     0,
@@ -493,11 +493,11 @@
    "note": ""
   },
   "dark": {
-   "diff_pct": 2.7675,
-   "thresh_pct": 2.7301,
+   "diff_pct": 2.7875,
+   "thresh_pct": 2.7455,
    "max_delta": 255,
-   "ssim": 0.9835,
-   "ae": 87969,
+   "ssim": 0.9833,
+   "ae": 89046,
    "pixel_perfect": false,
    "bbox": [
     0,
@@ -5669,11 +5669,11 @@
  },
  "varied_size_selector": {
   "light": {
-   "diff_pct": 2.3039,
-   "thresh_pct": 2.1876,
+   "diff_pct": 2.1321,
+   "thresh_pct": 2.019,
    "max_delta": 255,
-   "ssim": 0.9815,
-   "ae": 71974,
+   "ssim": 0.9833,
+   "ae": 67085,
    "pixel_perfect": false,
    "bbox": [
     0,
@@ -5685,11 +5685,11 @@
    "note": ""
   },
   "dark": {
-   "diff_pct": 2.3094,
-   "thresh_pct": 2.1761,
+   "diff_pct": 2.1379,
+   "thresh_pct": 2.0089,
    "max_delta": 255,
-   "ssim": 0.9805,
-   "ae": 74229,
+   "ssim": 0.9828,
+   "ae": 67816,
    "pixel_perfect": false,
    "bbox": [
     0,

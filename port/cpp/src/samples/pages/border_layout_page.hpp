@@ -42,6 +42,9 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/slider.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/font.hpp"
+#include "maui/core/layout_alignment.hpp"
+#include "maui/core/text_alignment.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
@@ -84,7 +87,14 @@ namespace maui::samples
             left_square_.set_width_request(40);
             left_square_.set_height_request(40);
 
-            center_label_.set_text("Center"); // FontSize="Medium", centered text (alignment deferred — see note)
+            // Match the oracle: FontSize=17 (Medium), Horizontal/VerticalTextAlignment=Center, and
+            // VerticalOptions=Center so the short label sits vertically centered in the 40pt row (the prior
+            // "alignment deferred" note is stale — the view surface now exposes these setters).
+            center_label_.set_text("Center");
+            center_label_.set_font(maui::core::font::system_font_of_size(17.0));
+            center_label_.set_horizontal_text_alignment(maui::core::text_alignment::center);
+            center_label_.set_vertical_text_alignment(maui::core::text_alignment::center);
+            center_label_.set_vertical_layout_alignment(maui::core::layout_alignment::center);
 
             right_square_.set_color(maui::graphics::colors::blue);
             right_square_.set_width_request(40);

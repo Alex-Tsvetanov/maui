@@ -64,6 +64,7 @@
 #include "maui/controls/view.hpp"
 #include "maui/core/grid_length.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/text_alignment.hpp"
 #include "maui/core/type_tag.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
@@ -414,6 +415,14 @@ namespace maui::samples
             cell->set_value(
                 maui::controls::background_property(),
                 std::static_pointer_cast<maui::graphics::paint>(std::make_shared<maui::graphics::solid_paint>(color)));
+            // Center the bound Name text vertically within the cell's fixed height (Milk 100 / Coffee 50).
+            // The oracle (VariedSizeSelectorPage.cs) sets `VerticalOptions = LayoutOptions.Center` on each
+            // cell Label; here the cell IS that label (single-root reduction) and it also carries the cell's
+            // background color, so it must FILL the row to paint the full-height color band. VerticalOptions
+            // would shrink the label to text height and lose the fill, so the faithful equivalent is
+            // VerticalTextAlignment=Center: full-height colored cell with the Name centered in it.
+            cell->set_value(maui::controls::label::vertical_text_alignment_property(),
+                            maui::core::text_alignment::center);
         }
 
         std::shared_ptr<maui::core::observable_collection<drink>> items_; // publisher before the list (§8)
