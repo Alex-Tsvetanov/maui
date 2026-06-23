@@ -104,10 +104,9 @@
  "border_stroke": {
   "category": "cpp_major",
   "notes": [
-   "The border thickness implementation is inconsistent; the C++ version renders borders significantly thinner than the MAUI reference.",
-   "The layout of the 'Using different StrokeThickness' section is incorrect in the C++ version, with elements appearing as thin lines rather than boxes.",
-   "The vertical spacing and alignment of the boxes in the C++ version do not match the MAUI reference.",
-   "The slider track and thumb styling differ significantly between the C++ implementation and the MAUI reference."
+   "The border stroke thickness is not being applied correctly in the C++ implementation.",
+   "The C++ implementation fails to render the red border around the boxes, which is present in the MAUI reference.",
+   "The spacing and layout of the boxes differ significantly between the two implementations."
   ],
   "model": "gemini-3.1-flash-lite"
  },

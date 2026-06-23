@@ -228,9 +228,10 @@ namespace maui::samples
             outline.set_stroke_shape(std::make_shared<maui::graphics::shapes::rectangle>());
             outline.set_stroke(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::red));
             outline.set_stroke_thickness(thickness);
-            // BorderStroke.xaml's <Style TargetType="Border"> sets Margin="0,6" on every Border, giving the
-            // rows vertical spacing; the port had omitted it so the boxes touched. (left/right 0, top/bottom 6)
-            outline.set_margin(maui::core::thickness{0.0, 6.0});
+            // NO per-Border margin: the maui-compare oracle (BorderStrokePage.cs) creates each Border with
+            // no Margin (only the outer stack has Margin=12/Spacing=12). A prior `set_margin(0,6)` was
+            // overfit to the old-master MAUI render of the CoreGallery <Style Margin="0,6">; the stable
+            // 10.0.71 baseline doesn't reproduce it, so the boxes sit on the grid rows with no extra gap.
             outline.set_content(text);
             grid.add(outline);
             grid.set_row(outline, row);

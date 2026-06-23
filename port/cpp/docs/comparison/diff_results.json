@@ -579,33 +579,33 @@
  },
  "border_stroke": {
   "light": {
-   "diff_pct": 34.1664,
-   "thresh_pct": 33.7768,
+   "diff_pct": 36.5848,
+   "thresh_pct": 36.2021,
    "max_delta": 255,
-   "ssim": 0.9216,
-   "ae": 1073980,
+   "ssim": 0.9236,
+   "ae": 1149210,
    "pixel_perfect": false,
    "bbox": [
     0,
     230,
     1206,
-    1734
+    1752
    ],
    "heatmap": "diffs/border_stroke_light.png",
    "note": ""
   },
   "dark": {
-   "diff_pct": 33.9976,
-   "thresh_pct": 33.9462,
+   "diff_pct": 36.416,
+   "thresh_pct": 36.3711,
    "max_delta": 255,
-   "ssim": 0.9097,
-   "ae": 1075360,
+   "ssim": 0.9086,
+   "ae": 1152700,
    "pixel_perfect": false,
    "bbox": [
     0,
     230,
     1206,
-    1734
+    1752
    ],
    "heatmap": "diffs/border_stroke_dark.png",
    "note": ""
