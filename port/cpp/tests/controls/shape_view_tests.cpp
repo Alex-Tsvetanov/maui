@@ -392,6 +392,41 @@ namespace
         EXPECT_EQ(*nonzero, winding_mode::non_zero); // Nonzero star → winding fill (solid)
     }
 
+    // R7b: the PolylineGallery dashed polyline (StrokeThickness 2, StrokeDashArray {1,1},
+    // StrokeDashOffset 6) must hand the canvas the UNSCALED pattern + offset together with the
+    // stroke size it is to be scaled by (the platform multiplies pattern[i] and offset by
+    // strokeSize — verified in the CG pixel test). The dash flush must therefore carry stroke_size=2
+    // so the period is 2px-on/2px-off, not the unscaled 1px/1px ("too many segments").
+    TEST(shape_view_seam, dashed_polyline_flushes_pattern_offset_and_stroke_size)
+    {
+        shapes::polyline view(shapes::point_collection{{0, 0}, {10, 30}, {15, 0}, {18, 60}, {100, 30}});
+        view.set_stroke(std::make_shared<maui::graphics::solid_paint>(color(1.0F, 0.0F, 0.0F)));
+        view.set_stroke_thickness(2);
+        view.set_stroke_dash_array({1.0, 1.0});
+        view.set_stroke_dash_offset(6);
+
+        auto handler = std::make_shared<shape_view_handler>();
+        view.set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+
+        recording_canvas canvas;
+        platform->replay(canvas, rect_f(0, 0, 500, 100));
+
+        const ops::set_stroke_dash_pattern* dash = nullptr;
+        for (const canvas_op& op : canvas.ops())
+        {
+            if (const auto* flush = std::get_if<ops::set_stroke_dash_pattern>(&op))
+            {
+                dash = flush;
+            }
+        }
+        ASSERT_NE(dash, nullptr);
+        EXPECT_EQ(dash->pattern, (std::vector<float>{1.0F, 1.0F})); // C# StrokeDashPattern (cast only)
+        EXPECT_EQ(dash->dash_offset, 6.0F);                         // StrokeDashOffset, unscaled here
+        EXPECT_EQ(dash->stroke_size, 2.0F);                         // the size the platform scales by
+    }
+
     TEST(shape_view_seam, path_render_transform_moves_the_drawn_path) // PathHandler.MapRenderTransform
     {
         shapes::path view(std::make_shared<shapes::path_geometry>([] {

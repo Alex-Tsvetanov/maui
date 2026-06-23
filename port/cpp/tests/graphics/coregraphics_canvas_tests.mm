@@ -187,6 +187,29 @@ namespace
         EXPECT_EQ(pixel_at(50, 10).a, 0); // far from the line
     }
 
+    // R7b: a dashed stroke's pattern is scaled by the stroke thickness (MAUI
+    // PlatformSetStrokeDashPattern: actualDash[i] = pattern[i] * strokeSize). For the PolylineGallery
+    // dashed polyline (thickness 2, dash {1,1}) the on/off period must be 2px-on / 2px-off, NOT the
+    // unscaled 1px/1px (which would render twice as many segments — the R7b "too many segments"
+    // symptom). StrokeSize must be applied BEFORE the dash flush for the scaling to use it.
+    TEST_F(coregraphics_canvas_pixels, dash_pattern_scales_with_stroke_thickness)
+    {
+        canvas_.set_stroke_color(colors::red);
+        canvas_.set_stroke_size(2); // thickness first — the dash flush reads it
+        canvas_.set_stroke_dash_pattern(std::vector<float>{1.0F, 1.0F});
+        canvas_.set_stroke_dash_offset(0);
+        canvas_.draw_line(0, 50, 100, 50);
+
+        // 2px on, 2px off → ink at x in [0,2) and [4,6), gaps at [2,4) and [6,8).
+        EXPECT_NE(pixel_at(0, 50).a, 0); // first dash on
+        EXPECT_NE(pixel_at(1, 50).a, 0); // still on (2px wide)
+        EXPECT_EQ(pixel_at(2, 50).a, 0); // gap (would be ink if unscaled 1px/1px)
+        EXPECT_EQ(pixel_at(3, 50).a, 0); // gap
+        EXPECT_NE(pixel_at(4, 50).a, 0); // next dash on — period is 4px
+        EXPECT_NE(pixel_at(5, 50).a, 0);
+        EXPECT_EQ(pixel_at(6, 50).a, 0);
+    }
+
     TEST_F(coregraphics_canvas_pixels, clip_rectangle_limits_the_fill)
     {
         canvas_.clip_rectangle(0, 0, 20, 20);
