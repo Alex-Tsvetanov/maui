@@ -119,11 +119,12 @@ namespace
         // Selected-cell visual state (the C# CollectionView default selection highlight). UIKit shows
         // selectedBackgroundView automatically while the cell isSelected; the handler only ever selects a
         // cell when SelectionMode != None (selectItemAtIndexPath runs from the selection-sync /
-        // programmatic-select paths), so a None-mode cell never highlights. systemGray4 is the adaptive
-        // light-gray fill iOS uses for selected backgrounds (light + dark), matching MAUI's gray default.
+        // programmatic-select paths), so a None-mode cell never highlights. MAUI's default selection fill
+        // is ItemsViewCell's ColorExtensions.Gray == UIColor.systemGray (a medium adaptive gray), NOT the
+        // lighter systemGray4 — the port used Gray4, rendering a too-light highlight vs the ref.
         UIView* const selectedBg = [[UIView alloc] initWithFrame:self.contentView.bounds];
         selectedBg.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-        selectedBg.backgroundColor = [UIColor systemGray4Color];
+        selectedBg.backgroundColor = [UIColor systemGrayColor];
         self.selectedBackgroundView = selectedBg;
     }
     return self;
