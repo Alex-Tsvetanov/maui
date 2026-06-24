@@ -1,0 +1,8 @@
+{
+  "name": "maui-examples",
+  "version-string": "0.1.0",
+  "description": "Standalone examples consuming the C++23 .NET MAUI port. Declares the framework's one transitive link dependency (pugixml) so the vcpkg toolchain resolves it for find_package(maui).",
+  "dependencies": [
+    "pugixml"
+  ]
+}

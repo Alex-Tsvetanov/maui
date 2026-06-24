@@ -1,0 +1,4 @@
+# Out-of-source build trees for the standalone examples project (both consume modes / both backends).
+build/
+build-ios/
+build-*/

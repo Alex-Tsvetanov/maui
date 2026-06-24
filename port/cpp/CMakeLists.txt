@@ -1721,54 +1721,13 @@ if(NOT MAUI_BACKEND STREQUAL "ios")
   endif()
 endif()
 
-# ---- hello_world: the cross-platform entry-point PROOF. A 100% PORTABLE C++ program (samples/hello_world/
-# main.cpp — no Objective-C, no .mm, no platform headers) that includes maui/maui_main.hpp (which defines
-# main()) and links maui_hosting, proving a user writes ZERO platform code. The SAME source builds on every
-# backend; only its CMake/bundle wiring is platform-aware:
-#   - headless: a plain console binary + a ctest that boots it end-to-end (run_app: build -> mount -> settle
-#     -> exit 0). It returns immediately (no run loop).
-#   - apple: a plain macOS executable that opens a real NSWindow and enters [NSApp run] (run with ./build/
-#     apple/maui_hello_world — it stays up until the window closes).
-#   - ios: a minimal .app bundle (the same plist template + flat-bundle setup as maui_ios_app_sample),
-#     installable on the simulator, that renders the label under UIApplicationMain.
-# The run loop on apple/ios comes entirely from the maui_hosting run_app lane the source forwards to — the
-# example itself is unchanged across backends. ----
-if(MAUI_BACKEND STREQUAL "headless")
-  add_executable(maui_hello_world samples/hello_world/main.cpp)
-  target_link_libraries(maui_hello_world PRIVATE maui_hosting maui_sanitizers)
-  if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
-    set_target_properties(maui_hello_world PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
-  endif()
-  # A ctest that BOOTS the proof binary end-to-end (run_app: build -> mount -> settle -> exit 0). The
-  # app_host_tests above assert the mount internals; this asserts the user-facing main() actually runs.
-  add_test(NAME maui_hello_world_boots COMMAND maui_hello_world)
-elseif(MAUI_BACKEND STREQUAL "apple")
-  # A plain macOS executable (not a .app) — the apple run_app lane stands up NSApplication + the NSWindow.
-  add_executable(maui_hello_world samples/hello_world/main.cpp)
-  target_link_libraries(maui_hello_world PRIVATE maui_hosting maui_sanitizers)
-  if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
-    set_target_properties(maui_hello_world PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
-  endif()
-elseif(MAUI_BACKEND STREQUAL "ios")
-  # A launchable iOS app needs an .app bundle (unlike the plain-console test binaries): opt into
-  # MACOSX_BUNDLE with the same minimal iOS Info.plist as maui_ios_app_sample (no UIAppFonts needed — the
-  # hello_world page is a single label, no bundled assets). Run on the booted simulator:
-  #   cmake --build --preset ios --target maui_hello_world
-  #   xcrun simctl install booted build/ios/maui_hello_world.app
-  #   xcrun simctl launch booted dev.maui-cpp.hello-world
-  add_executable(maui_hello_world samples/hello_world/main.cpp)
-  target_link_libraries(maui_hello_world PRIVATE maui_hosting maui_sanitizers)
-  set_target_properties(maui_hello_world PROPERTIES
-    MACOSX_BUNDLE TRUE
-    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/src/samples/ios_app_sample_info.plist.in"
-    MACOSX_BUNDLE_BUNDLE_NAME "maui_hello_world"
-    MACOSX_BUNDLE_GUI_IDENTIFIER "dev.maui-cpp.hello-world"
-    MACOSX_BUNDLE_BUNDLE_VERSION "1"
-    MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0")
-  if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
-    set_target_properties(maui_hello_world PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
-  endif()
-endif()
+# ---- hello_world relocated to the standalone examples project (port/cpp/examples/hello_world) ----
+# The cross-platform entry-point proof used to be an in-tree target (maui_hello_world) built from
+# samples/hello_world/main.cpp. It now lives in the standalone examples/ project, which consumes the
+# framework via find_package(maui) — the realistic consumer path. There is no second copy of the source
+# here; the in-tree CI smoke-build of the user-facing run_app path is the headless ctest
+# `app_host.run_app_boots_and_returns_zero` (tests/hosting/app_host_tests.cpp), which boots an inline app
+# through run_app end-to-end (build -> mount -> settle -> exit 0).
 
 # ======================================================================
 # Layer 7 - Essentials  (maui::devices[::sensors]  <=  Microsoft.Maui.Devices[.Sensors])
