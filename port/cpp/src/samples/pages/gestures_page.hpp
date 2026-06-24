@@ -9,7 +9,7 @@
 //
 // The recognizers are real maui::controls::*_gesture_recognizer instances added to the target's
 // GestureRecognizers collection (View.gesture_recognizers().add). On a device the platform gesture
-// manager drives them; headless, there is no native input, so attach_handlers() also issues one
+// manager drives them; headless, there is no native input, so the page's mount hook also issues one
 // deterministic synthetic drive per recognizer through each one's Send* / i_*_gesture_controller
 // seam (exactly how the gesture unit tests exercise them) — leaving the readout showing the last
 // recognized gesture so the static capture is non-blank.
@@ -22,7 +22,7 @@
 //   - PointerGestureRecognizer.PointerEntered/Moved/Exited/Pressed/Released -> "Pointer <phase>".
 //
 // Self-contained (the value_controls_page / shapes_page pattern): the page OWNS its whole element
-// tree, exposes page() and attach_handlers(maui_app).
+// tree, exposes page().
 
 #include <cstdio>
 #include <memory>
@@ -43,8 +43,6 @@
 #include "maui/graphics/corner_radius.hpp"
 #include "maui/graphics/point.hpp"
 #include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -140,22 +138,12 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED view, BOTTOM-UP (the stack's children, the stack, the page), then
-        // re-host the ctor-built tree. Headless has no native input, so finish with one deterministic
-        // synthetic drive per recognizer so the readout reflects the wiring in a static capture.
-        void attach_handlers(maui::hosting::maui_app& app)
+        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
+        // handler + builds the native tree. Headless has no native input, so drive one deterministic synthetic
+        // gesture per recognizer so the readout reflects the wiring in a static capture. All per-control attach
+        // + re-host plumbing is now the generic mount's job.
+        void on_mounted(maui::hosting::maui_app& /*app*/)
         {
-            auto one = [&app](auto& view, const char* name) { gallery_attach_one(app, view, name); };
-
-            one(instructions_, "instructions_");
-            one(target_, "target_");
-            one(readout_, "readout_");
-            one(stack_, "stack_");
-            one(page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
-
             drive_synthetic_gestures();
         }
 

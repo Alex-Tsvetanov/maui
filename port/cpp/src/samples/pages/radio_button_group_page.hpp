@@ -39,9 +39,6 @@
 #include "maui/controls/radio_button_group.hpp"
 #include "maui/controls/stack_layout.hpp"
 #include "maui/core/grid_length.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -99,26 +96,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last) so each parent can
-        // host its child's native view, then re-host the tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, header_, "header_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, option_a_, "option_a_");
-            gallery_attach_one(app, option_b_, "option_b_");
-            gallery_attach_one(app, option_c_, "option_c_");
-            gallery_attach_one(app, grid_label_, "grid_label_");
-            gallery_attach_one(app, option_d_, "option_d_");
-            gallery_attach_one(app, grid_, "grid_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(grid_);  // grid hosts its label + Option D
-            gallery_rehost_layout(stack_); // stack hosts the header, readout, A/B/C, and the grid
-            gallery_rehost_content(page_); // page hosts the stack
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

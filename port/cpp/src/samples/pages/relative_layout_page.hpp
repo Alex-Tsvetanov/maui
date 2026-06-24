@@ -26,18 +26,12 @@
 //   - absolute_layout with proportional position + size flags as the RelativeLayout stand-in;
 //   - four colored corner boxes + a centered 1/3-size box (the legacy constraint scene, modernized).
 
-#include <cstdio>
-#include <exception>
-
 #include "maui/controls/absolute_layout.hpp"
 #include "maui/controls/box_view.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/rect.hpp"
-#include "maui/hosting/maui_app.hpp"
 #include "maui/layouts/absolute_layout_flags.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -92,34 +86,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the box views, then the absolute layout, then
-        // the page), then re-host the tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            auto one = [&app](auto& v, const char* n) {
-                try
-                {
-                    app.attach_handler(v);
-                }
-                catch (const std::exception& e)
-                {
-                    std::fprintf(stderr, "[gallery] skip %s: %s\n", n, e.what());
-                }
-            };
-
-            one(red_, "red_");
-            one(green_, "green_");
-            one(blue_, "blue_");
-            one(yellow_, "yellow_");
-            one(one_third_, "one_third_");
-            one(black_, "black_");
-            one(root_, "root_");
-            one(page_, "page_");
-
-            gallery_rehost_layout(root_); // the absolute layout hosts its six boxes
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

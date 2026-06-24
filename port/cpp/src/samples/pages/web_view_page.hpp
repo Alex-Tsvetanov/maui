@@ -15,7 +15,6 @@
 //   - navigated updates the status label with the event kind + url,
 //   - "Eval 1+1" runs eval_js and writes the result (or "<null>") into the result label.
 
-#include <cstdio>
 #include <memory>
 #include <optional>
 #include <string>
@@ -29,9 +28,6 @@
 #include "maui/controls/web_navigation_event_args.hpp"
 #include "maui/controls/web_view.hpp"
 #include "maui/core/web_navigation_event.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -86,26 +82,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the stack's children, then the stack, then the
-        // page), then re-host the tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, status_, "status_");
-            gallery_attach_one(app, result_, "result_");
-            gallery_attach_one(app, load_a_, "load_a_");
-            gallery_attach_one(app, load_b_, "load_b_");
-            gallery_attach_one(app, back_, "back_");
-            gallery_attach_one(app, forward_, "forward_");
-            gallery_attach_one(app, reload_, "reload_");
-            gallery_attach_one(app, eval_, "eval_");
-            gallery_attach_one(app, browser_, "browser_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

@@ -42,9 +42,6 @@
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -89,23 +86,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the ellipse first, then its yellow cell, then the
-        // caption + orange cell, then the outer grid, then the page), then re-host the tree built in the ctor
-        // (gallery_attach.hpp). The generic auto& parameter preserves each member's concrete static type.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, ellipse_, "ellipse_");
-            gallery_attach_one(app, yellow_cell_, "yellow_cell_");
-            gallery_attach_one(app, caption_, "caption_");
-            gallery_attach_one(app, orange_cell_, "orange_cell_");
-            gallery_attach_one(app, outer_, "outer_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(yellow_cell_); // yellow cell hosts the ellipse
-            gallery_rehost_layout(outer_);       // outer grid hosts caption + both cells
-            gallery_rehost_content(page_);       // page hosts the outer grid
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

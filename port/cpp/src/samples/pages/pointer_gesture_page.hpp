@@ -18,7 +18,7 @@
 // This code-first port reproduces all three sections. Each recognizer is a real
 // maui::controls::pointer_gesture_recognizer added to its label's GestureRecognizers collection (the
 // View seam). On a device the platform pointer manager drives them; the headless backend has no native
-// input, so attach_handlers() finishes with one deterministic synthetic drive per section through each
+// input, so the page's mount hook finishes with one deterministic synthetic drive per section through each
 // recognizer's send_pointer_* seam (exactly how the gesture unit tests exercise them), leaving every
 // readout reacting in a static capture.
 //
@@ -30,7 +30,7 @@
 //     exit runs it with Colors.Black (text turns black) — proving the one-command/two-parameter wiring.
 //
 // The page OWNS its whole element tree (the gestures_page / value_controls_page pattern): public
-// page() and attach_handlers(maui_app).
+// page().
 //
 // note: PointerEventArgs.GetPosition(relativeTo) is narrowed in the port to a single stored
 //       view-relative position (the position carried on send_pointer_*). The C# three-readout split
@@ -56,8 +56,6 @@
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -157,30 +155,12 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED view, BOTTOM-UP (the labels, the stack, the page), then re-host
-        // the ctor-built tree (gallery_attach.hpp). Headless has no native input, so finish with one
-        // deterministic synthetic pointer drive per section so every readout reflects the wiring in a
-        // static capture.
-        void attach_handlers(maui::hosting::maui_app& app)
+        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
+        // handler + builds the native tree. Headless has no native input, so drive one deterministic synthetic
+        // pointer sequence per section so every readout reflects the wiring in a static capture. All per-control
+        // attach + re-host plumbing is now the generic mount's job.
+        void on_mounted(maui::hosting::maui_app& /*app*/)
         {
-            auto one = [&app](auto& view, const char* name) { gallery_attach_one(app, view, name); };
-
-            one(pgr_label_, "pgr_label_");
-            one(pgr_position_label_, "pgr_position_label_");
-            one(pgr_position_to_window_, "pgr_position_to_window_");
-            one(pgr_position_to_this_label_, "pgr_position_to_this_label_");
-            one(hover_label_, "hover_label_");
-            one(position_label_, "position_label_");
-            one(position_to_window_, "position_to_window_");
-            one(position_to_this_label_, "position_to_this_label_");
-            one(colorful_hover_label_, "colorful_hover_label_");
-            one(colorful_hint_, "colorful_hint_");
-            one(stack_, "stack_");
-            one(page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
-
             drive_synthetic_pointer();
         }
 

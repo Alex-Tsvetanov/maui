@@ -40,9 +40,6 @@
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -114,25 +111,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the bar's children and the overlapping labels
-        // first, then the bar and the grid, then the page), then re-host the trees built in the ctor.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, current_z_index_, "current_z_index_");
-            gallery_attach_one(app, stepper_, "stepper_");
-            gallery_attach_one(app, controls_bar_, "controls_bar_");
-            for (auto& label : labels_)
-            {
-                gallery_attach_one(app, *label, "z_label");
-            }
-            gallery_attach_one(app, root_, "root_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(controls_bar_); // bar hosts the readout + stepper
-            gallery_rehost_layout(root_);         // grid hosts the bar + the ten overlapping labels
-            gallery_rehost_content(page_);        // page hosts the grid
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

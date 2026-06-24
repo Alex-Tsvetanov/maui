@@ -39,8 +39,6 @@
 #include "maui/controls/platform_configuration/ios_specific/search_bar.hpp"
 #include "maui/controls/platform_configuration/ios_specific/ui_search_bar_style.hpp"
 
-#include "gallery_attach.hpp"
-
 #include <memory>
 
 namespace maui::samples
@@ -100,20 +98,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, search_bar_, "search_bar_");
-            gallery_attach_one(app, style_button_, "style_button_");
-            gallery_attach_one(app, background_button_, "background_button_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

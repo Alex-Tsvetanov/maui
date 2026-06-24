@@ -12,8 +12,8 @@
 // config calls: the button flips safe area off and disables itself, mirroring OnButtonClicked.
 //
 // Code-first, owns its whole element tree (the value_controls_page / pickers_page pattern). Public
-// page() hands back the content_page; attach_handlers(maui_app) attaches every owned view bottom-up via
-// gallery_attach_one then replays the host commands via gallery_rehost_* (gallery_attach.hpp).
+// page() hands back the content_page; the generic mount (app_host.hpp) attaches every owned view's
+// handler and hosts the tree.
 
 #include "maui/controls/button.hpp"
 #include "maui/controls/content_page.hpp"
@@ -22,9 +22,6 @@
 #include "maui/controls/platform_configuration/ios_specific/page.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/safe_area_edges.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -63,19 +60,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view BOTTOM-UP (leaves first, the page last), then replay the
-        // host commands built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, lorem_, "lorem_");
-            gallery_attach_one(app, disable_button_, "disable_button_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

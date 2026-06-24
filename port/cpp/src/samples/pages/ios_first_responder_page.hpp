@@ -26,8 +26,8 @@
 //       knob on the second), and adds the Focus/Unfocus controls + readouts as the headless-observable
 //       stand-in for the keyboard behavior — never inventing C# logic that isn't there.
 //
-// The page OWNS its whole element tree (the sample_app pattern). attach_handlers wires every owned view
-// bottom-up via the shared gallery helpers and re-hosts the ctor-built tree.
+// The page OWNS its whole element tree (the sample_app pattern). The generic mount attaches every owned
+// view's handler and hosts the ctor-built tree.
 
 #include <string>
 
@@ -38,12 +38,9 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/thickness.hpp"
-#include "maui/hosting/maui_app.hpp"
 
 #include "maui/controls/platform_configuration/configuration.hpp"
 #include "maui/controls/platform_configuration/ios_specific/visual_element.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -123,29 +120,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view BOTTOM-UP (leaves before their hosts), then re-host the
-        // ctor-built tree. The entries' handlers MUST be attached for focus()/unfocus() to realize (with no
-        // handler, focus() returns false — see view.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, first_caption_, "first_caption_");
-            gallery_attach_one(app, first_entry_, "first_entry_");
-            gallery_attach_one(app, first_ok_, "first_ok_");
-            gallery_attach_one(app, second_caption_, "second_caption_");
-            gallery_attach_one(app, second_entry_, "second_entry_");
-            gallery_attach_one(app, second_ok_, "second_ok_");
-            gallery_attach_one(app, focus_first_, "focus_first_");
-            gallery_attach_one(app, focus_second_, "focus_second_");
-            gallery_attach_one(app, focus_buttons_, "focus_buttons_");
-            gallery_attach_one(app, status_, "status_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(focus_buttons_); // the focus button row hosts its two buttons
-            gallery_rehost_layout(stack_);         // outer stack hosts captions/entries/buttons/status
-            gallery_rehost_content(page_);         // page hosts the stack
         }
 
         // ---- owned controls, exposed for the hosting main / tests ----

@@ -30,8 +30,6 @@
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
 
-#include "gallery_attach.hpp"
-
 namespace maui::samples
 {
     class containers_page
@@ -78,31 +76,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP through the nested containers (each container's
-        // content before the container, then outward to the scroll_view and the page), then re-host the
-        // tree built in the ctor: the inner content hosts first, then the stack's children, then the
-        // scroll_view, then the page (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, bordered_text_, "bordered_text_");
-            gallery_attach_one(app, border_, "border_");
-            gallery_attach_one(app, framed_text_, "framed_text_");
-            gallery_attach_one(app, frame_, "frame_");
-            gallery_attach_one(app, *wrapped_text_, "wrapped_text_");
-            gallery_attach_one(app, wrapper_, "wrapper_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroller_, "scroller_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_content(border_);   // border hosts bordered_text_
-            gallery_rehost_content(frame_);    // frame (a border) hosts framed_text_
-            gallery_rehost_content(wrapper_);  // content_view hosts wrapped_text_
-            gallery_rehost_layout(stack_);     // stack hosts readout_ + the three containers
-            gallery_rehost_content(scroller_); // scroll_view hosts the stack
-            gallery_rehost_content(page_);     // page hosts the scroll_view
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

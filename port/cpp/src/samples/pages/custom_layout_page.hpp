@@ -27,7 +27,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
-#include <exception>
 #include <memory>
 #include <unordered_map>
 
@@ -46,8 +45,6 @@
 #include "maui/hosting/maui_app.hpp"
 #include "maui/layouts/i_layout_manager.hpp"
 #include "maui/layouts/layout_manager.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -305,41 +302,17 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED view, BOTTOM-UP (the buttons, then the dock layout, then the
-        // page), then re-host the tree built in the ctor (gallery_attach.hpp). The dock_layout reuses the
-        // layout host command path ("add"), so gallery_rehost_layout mirrors its children onto the panel.
-        void attach_handlers(maui::hosting::maui_app& app)
+        // PRE-MOUNT hook (gallery_host.hpp gallery_pre_mount): register a handler for the user-defined
+        // dock_layout control BEFORE the generic mount walks the tree. dock_layout is a brand-new user type,
+        // so its handler isn't registered the way the built-in controls self-register; the generic mount
+        // resolves handlers via THIS app's per-app handler_registry (seeded from add_maui_controls_handlers,
+        // which has NO fallback to the global default registry), so without this registration the mount would
+        // skip dock_layout (logged) and the six buttons would never be hosted → a blank page. The registry
+        // tolerates re-registration, so registering once per boot is safe. Every other element on this page is
+        // a built-in control the generic mount handles with no per-page plumbing.
+        void register_handlers(maui::hosting::maui_app& app)
         {
-            // dock_layout is a brand-new user type, so its default handler isn't registered the way the
-            // built-in controls self-register. Register layout_handler for it into THIS APP's registry
-            // (idempotent) — maui_app resolves handlers via its own per-app handler_registry seeded from
-            // add_maui_controls_handlers, which has NO fallback to the global default registry, so a global
-            // registration would leave dock_layout handler-less (attach_handler throws → blank page). The
-            // registry tolerates re-registration, so doing it per attach is safe.
             maui::core::register_handler<dock_layout, maui::core::layout_handler>(app.handlers());
-
-            auto one = [&app](auto& v, const char* n) {
-                try
-                {
-                    app.attach_handler(v);
-                }
-                catch (const std::exception& e)
-                {
-                    std::fprintf(stderr, "[gallery] skip %s: %s\n", n, e.what());
-                }
-            };
-
-            one(top_, "top_");
-            one(bottom_, "bottom_");
-            one(left_a_, "left_a_");
-            one(left_b_, "left_b_");
-            one(right_a_, "right_a_");
-            one(right_b_, "right_b_");
-            one(dock_, "dock_");
-            one(page_, "page_");
-
-            gallery_rehost_layout(dock_); // dock layout hosts its six buttons
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

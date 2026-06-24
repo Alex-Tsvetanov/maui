@@ -33,9 +33,6 @@
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -84,24 +81,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last) so each parent can
-        // host its child's native view, then re-host the tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, headline_a_, "headline_a_");
-            gallery_attach_one(app, inline_label_, "inline_label_");
-            gallery_attach_one(app, headline_b_, "headline_b_");
-            gallery_attach_one(app, resource_label_, "resource_label_");
-            gallery_attach_one(app, toggle_button_, "toggle_button_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            // The tree was built in the ctor before any handler existed, so replay the host commands now.
-            gallery_rehost_layout(stack_); // stack hosts the labels + toggle + readout
-            gallery_rehost_content(page_); // page hosts the stack
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / inspection.

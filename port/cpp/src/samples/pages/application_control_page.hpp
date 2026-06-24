@@ -19,9 +19,9 @@
 //
 // The page OWNS its visual tree (the sample_app pattern): the headline + readout labels, the three
 // buttons, the stack, and the gallery content_page (page()). The application it drives is the HOSTING
-// app's application (captured in attach_handlers from maui_app::application()); the extra window it
+// app's application (captured in on_mounted from maui_app::application()); the extra window it
 // opens/closes is owned here (a member) so it outlives the application's NON-owning windows() list. It is
-// backend-agnostic; attach_handlers attaches every VIEW bottom-up and re-hosts the ctor-built tree.
+// backend-agnostic; the generic mount (app_host.hpp) attaches every view's handler and hosts the ctor-built tree.
 
 #include <memory>
 #include <string>
@@ -33,8 +33,6 @@
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/controls/window.hpp"
 #include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -78,28 +76,16 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED VIEW bottom-up (the labels + buttons, then the stack, then the
-        // page), then re-host the ctor-built tree. Also CAPTURE the hosting application here (maui_app::
-        // application()) so the buttons can drive the i_application window-management surface, and refresh
-        // the readout from the now-known application state (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
+        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
+        // handler + builds the native tree. Capture the hosting application so the buttons can drive the
+        // i_application window-management surface, then refresh the readout from the live application state.
+        // All per-control attach + re-host plumbing is now the generic mount's job.
+        void on_mounted(maui::hosting::maui_app& app)
         {
-            gallery_attach_one(app, headline_, "headline_");
-            gallery_attach_one(app, terminate_button_, "terminate_button_");
-            gallery_attach_one(app, open_button_, "open_button_");
-            gallery_attach_one(app, close_button_, "close_button_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
-
             app_ = &app; // the hosting maui_app (its open_window/close_window route the lifecycle)
             application_ = app.application().get(); // the minted controls::application (may be null if unconfigured)
-            // The window opens AFTER attach_handlers runs, so an immediate refresh() reads "Windows open: 0".
-            // Re-run refresh() once the application raises `started` (post-open) so the readout reflects the
-            // real window count.
+            // The generic mount opens the window BEFORE on_mounted runs, so refresh() already reads the real
+            // window count; also re-run on `started` so a later open/close keeps the readout live.
             if (application_ != nullptr)
             {
                 application_->started.connect([this] { refresh(); });
@@ -238,7 +224,7 @@ namespace maui::samples
         maui::controls::button close_button_;
         maui::controls::label readout_;
 
-        // ---- the i_application surface under exercise (captured in attach_handlers) + the page-owned
+        // ---- the i_application surface under exercise (captured in on_mounted) + the page-owned
         // extra window it opens/closes (NON-owning windows() list, so the window + its page are members) ----
         maui::hosting::maui_app* app_ = nullptr;             // the hosting maui_app (open/close door)
         maui::controls::application* application_ = nullptr; // the minted application (its windows()/theming)

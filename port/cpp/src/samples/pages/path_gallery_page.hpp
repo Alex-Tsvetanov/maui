@@ -76,9 +76,6 @@
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -264,39 +261,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the stack's children first in add()-order, then
-        // the stack, then the scroll_view, then the page), then re-host the tree built in the ctor
-        // (gallery_attach.hpp). The generic lambda preserves each member's concrete static type.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, line_seg_label_, "line_seg_label_");
-            gallery_attach_one(app, line_seg_, "line_seg_");
-            gallery_attach_one(app, geom_label_, "geom_label_");
-            gallery_attach_one(app, geom_, "geom_");
-            gallery_attach_one(app, cubic_label_, "cubic_label_");
-            gallery_attach_one(app, cubic_, "cubic_");
-            gallery_attach_one(app, composite_label_, "composite_label_");
-            gallery_attach_one(app, composite_, "composite_");
-            gallery_attach_one(app, rects_label_, "rects_label_");
-            gallery_attach_one(app, rects_, "rects_");
-            gallery_attach_one(app, ellipses_label_, "ellipses_label_");
-            gallery_attach_one(app, ellipses_, "ellipses_");
-            gallery_attach_one(app, multi_seg_label_, "multi_seg_label_");
-            gallery_attach_one(app, multi_seg_, "multi_seg_");
-            gallery_attach_one(app, complex_label_, "complex_label_");
-            gallery_attach_one(app, four_quadrant_markup_label_, "four_quadrant_markup_label_");
-            gallery_attach_one(app, four_quadrant_, "four_quadrant_");
-            gallery_attach_one(app, leaf_markup_label_, "leaf_markup_label_");
-            gallery_attach_one(app, leaf_, "leaf_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroll_, "scroll_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);   // stack hosts every path + caption
-            gallery_rehost_content(scroll_); // scroll hosts the stack
-            gallery_rehost_content(page_);   // page hosts the scroll
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

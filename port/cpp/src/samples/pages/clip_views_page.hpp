@@ -27,12 +27,12 @@
 //   - the StaticResource shared across views    -> ONE shared_ptr, set_clip()'d onto each control.
 //   - BackgroundColor="Red" on each control     -> view::set_background(solid_paint(Red)).
 //
-// HEADLESS-SAFE maui:: API only; the page OWNS its whole element tree and attaches every owned view
-// bottom-up, then re-hosts (the clip_page / clipping_page convention — gallery_attach.hpp). This is a
+// HEADLESS-SAFE maui:: API only; the page OWNS its whole element tree (the generic mount in app_host.hpp
+// attaches every owned view's handler and hosts the tree). This is a
 // VISUAL clip demo: each red control renders clipped to the ellipse once a backend draws pixels.
 //
 // note: several of these value controls (date_picker / time_picker, and the others) may have no AppKit
-//       handler registered — gallery_attach_one swallows the per-control attach throw and logs+continues,
+//       handler registered — the generic mount skips an unmappable control (logs + continues),
 //       so the page still mounts the controls that DO resolve. The Clip property is set on all of them
 //       regardless, faithfully to the XAML.
 
@@ -54,9 +54,6 @@
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -123,30 +120,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first: the grid's label, then the grid,
-        // then the remaining controls, then the stack, scroll, page), then re-host the tree built in the
-        // ctor. gallery_attach_one swallows any per-control attach throw so an unregistered value control
-        // can't abort the page. (gallery_attach.hpp)
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, button_, "button_");
-            gallery_attach_one(app, date_picker_, "date_picker_");
-            gallery_attach_one(app, entry_, "entry_");
-            gallery_attach_one(app, editor_, "editor_");
-            gallery_attach_one(app, grid_label_, "grid_label_");
-            gallery_attach_one(app, grid_, "grid_");
-            gallery_attach_one(app, search_bar_, "search_bar_");
-            gallery_attach_one(app, time_picker_, "time_picker_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroll_, "scroll_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(grid_);    // the grid hosts its single label child
-            gallery_rehost_layout(stack_);   // the stack hosts every clipped control
-            gallery_rehost_content(scroll_); // the scroll hosts the stack
-            gallery_rehost_content(page_);   // the page hosts the scroll
         }
 
         // Owned controls exposed for the hosting main / inspection.

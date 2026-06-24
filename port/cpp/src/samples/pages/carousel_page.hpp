@@ -48,9 +48,6 @@
 #include "maui/core/font.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/text_alignment.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -108,24 +105,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, headline_, "headline_");
-            gallery_attach_one(app, carousel_, "carousel_");
-            gallery_attach_one(app, prev_button_, "prev_button_");
-            gallery_attach_one(app, next_button_, "next_button_");
-            gallery_attach_one(app, buttons_, "buttons_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, root_, "root_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(buttons_); // the Prev/Next row
-            gallery_rehost_layout(root_);    // headline + carousel + buttons + readout
-            gallery_rehost_content(page_);
         }
 
         // ---- owned controls exposed for the hosting main / tests ----

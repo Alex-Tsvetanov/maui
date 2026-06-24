@@ -29,6 +29,7 @@
 // ios run_app (Stage 2) reuses the SAME mount_app/drive_layout and adds the platform run loop + the native
 // safe-area-derived bounds (see host_run.hpp).
 
+#include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
 namespace maui::controls
@@ -56,6 +57,21 @@ namespace maui::hosting
     // Drive one measure + arrange pass over the window's content at `width` x `height` (the content origin
     // is {0,0}; a real backend insets by the native safe area — Stage 2). Returns the page's arranged size.
     // No-op (returns {0,0}) when the window has no content page. The headless run_app calls this at a default
-    // size to settle the tree; on a native backend the run loop re-drives it on every resize.
+    // size to settle the tree; on a native backend the run loop re-drives it on every resize. Equivalent to
+    // the two-rect overload below with `full_bounds == safe_area_bounds == {0, 0, width, height}` — so a
+    // VC-backed root page (which always lays out over full bounds) gets the same {0,0,width,height} rect, the
+    // correct headless/origin-0 behavior.
     maui::graphics::size drive_layout(maui::controls::window& window, double width, double height);
+
+    // The two-rect form a NATIVE backend drives: measure + arrange the content page over EITHER `full_bounds`
+    // (the whole controller / window) OR `safe_area_bounds` (inset past the status bar / Dynamic Island),
+    // chosen by the same VC-backed-root-page contract the ios_gallery / ios host_run hand-rolled — a page
+    // whose handler is an i_view_handler with a non-null root_view_controller() (flyout_page →
+    // UISplitViewController, tabbed_page → UITabBarController) owns its own chrome + each inner page tracks
+    // its own safe area, so it lays out over `full_bounds`; every other page lays out over `safe_area_bounds`.
+    // On non-iOS backends root_view_controller() is always null, so this always picks `safe_area_bounds`
+    // (pass the same rect for both for the headless/full-bounds case). Returns the page's arranged size; a
+    // no-op returning {0,0} when the window has no content page.
+    maui::graphics::size drive_layout(maui::controls::window& window, const maui::graphics::rect& full_bounds,
+                                      const maui::graphics::rect& safe_area_bounds);
 } // namespace maui::hosting

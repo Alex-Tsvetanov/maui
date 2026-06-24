@@ -44,9 +44,6 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/toggle_switch.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -135,37 +132,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED VIEW bottom-up (leaves, then the two grids, then the stack, then
-        // the page), then re-host the tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, single_clickable_label_, "single_clickable_label_");
-            gallery_attach_one(app, clickable_btn_, "clickable_btn_");
-            gallery_attach_one(app, single_tap_btn_, "single_tap_btn_");
-            gallery_attach_one(app, single_transparent_label_, "single_transparent_label_");
-            gallery_attach_one(app, not_clickable_btn_, "not_clickable_btn_");
-            gallery_attach_one(app, transparent_tap_btn_, "transparent_tap_btn_");
-            gallery_attach_one(app, overlay_label_, "overlay_label_");
-            gallery_attach_one(app, overlay_bottom_btn_, "overlay_bottom_btn_");
-            gallery_attach_one(app, overlay_top_btn_, "overlay_top_btn_");
-            gallery_attach_one(app, overlay_grid_, "overlay_grid_");
-            gallery_attach_one(app, overlay_tap_btn_, "overlay_tap_btn_");
-            gallery_attach_one(app, toggle_label_, "toggle_label_");
-            gallery_attach_one(app, test_bottom_btn_, "test_bottom_btn_");
-            gallery_attach_one(app, test_button_, "test_button_");
-            gallery_attach_one(app, test_grid_, "test_grid_");
-            gallery_attach_one(app, test_transparent_switch_, "test_transparent_switch_");
-            gallery_attach_one(app, toggle_tap_btn_, "toggle_tap_btn_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(overlay_grid_);
-            gallery_rehost_layout(test_grid_);
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // The owned views, exposed for the hosting main + headless tests.

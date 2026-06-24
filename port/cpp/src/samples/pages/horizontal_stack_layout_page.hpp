@@ -7,22 +7,17 @@
 // "HorizontalStackLayout" label and the six boxes. (XAML Margin maps to the stack's padding here — the
 // closest headless-safe analogue.)
 //
-// The page OWNS its whole element tree (the sample_app pattern). attach_handlers attaches a handler to
-// every owned VIEW bottom-up via a GENERIC lambda that preserves each member's concrete static type,
+// The page OWNS its whole element tree (the sample_app pattern). The generic mount (app_host.hpp)
+// attaches a handler to every owned VIEW bottom-up, preserving each member's concrete static type,
 // then replays the host "add"/"set_content" commands so the native panel mirrors the children built in
 // the ctor.
-
-#include <cstdio>
-#include <exception>
 
 #include "maui/controls/box_view.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/horizontal_stack_layout.hpp"
 #include "maui/controls/label.hpp"
-#include "maui/core/layout_handler.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
-#include "maui/hosting/maui_app.hpp"
 
 namespace maui::samples
 {
@@ -67,46 +62,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaf label/boxes first, the stack, the page
-        // last), then replay the host commands so the native panel mirrors the ctor-built tree. A GENERIC
-        // lambda preserves each member's concrete static type — never use i_view& (it erases the type and
-        // attach_handler finds no handler → blank page).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            auto one = [&app](auto& v, const char* n) {
-                try
-                {
-                    app.attach_handler(v);
-                }
-                catch (const std::exception& e)
-                {
-                    std::fprintf(stderr, "[gallery] skip %s: %s\n", n, e.what());
-                }
-            };
-
-            one(heading_, "heading_");
-            one(red_, "red_");
-            one(yellow_, "yellow_");
-            one(blue_, "blue_");
-            one(green_, "green_");
-            one(orange_, "orange_");
-            one(purple_, "purple_");
-            one(stack_, "stack_");
-            one(page_, "page_");
-
-            if (const auto& stack_handler = stack_.handler())
-            {
-                for (int i = 0; i < stack_.count(); ++i)
-                {
-                    stack_handler->invoke("add", maui::core::layout_handler_update{.index = i, .view = &stack_.at(i)});
-                }
-            }
-            if (const auto& page_handler = page_.handler())
-            {
-                page_handler->invoke("set_content");
-            }
         }
 
         // ---- owned controls, exposed for the hosting main's bottom-up attachment ----

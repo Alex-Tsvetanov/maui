@@ -29,8 +29,8 @@
 //   - CornerRadius(TL, TR, BL, BR)                 -> graphics::corner_radius{tl, tr, bl, br} (same 4-arg order).
 //   - MinimumTrackColor=LightGray, MaximumTrackColor=Gray (the Slider style) -> set_minimum/maximum_track_color.
 //
-// HEADLESS-SAFE maui:: API only; the page OWNS its whole element tree and attaches every owned view
-// bottom-up, then re-hosts (the clip_page / slider_page convention — gallery_attach.hpp). This is a
+// HEADLESS-SAFE maui:: API only; the page OWNS its whole element tree (the generic mount in app_host.hpp
+// attaches every owned view's handler and hosts the tree). This is a
 // VISUAL + INTERACTIVE clip demo: moving a slider reshapes the corner that clips the image (observable
 // here via the geometry's corner_radius being driven deterministically; a backend that renders draws it).
 //
@@ -56,9 +56,6 @@
 #include "maui/graphics/corner_radius.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -107,30 +104,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the image inside the grid first, then the grid,
-        // then each label+slider, then the stack and page), then re-host the tree built in the ctor.
-        // (gallery_attach.hpp)
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, container_label_, "container_label_");
-            gallery_attach_one(app, image_, "image_");
-            gallery_attach_one(app, container_, "container_");
-            gallery_attach_one(app, top_left_label_, "top_left_label_");
-            gallery_attach_one(app, top_left_corner_, "top_left_corner_");
-            gallery_attach_one(app, top_right_label_, "top_right_label_");
-            gallery_attach_one(app, top_right_corner_, "top_right_corner_");
-            gallery_attach_one(app, bottom_left_label_, "bottom_left_label_");
-            gallery_attach_one(app, bottom_left_corner_, "bottom_left_corner_");
-            gallery_attach_one(app, bottom_right_label_, "bottom_right_label_");
-            gallery_attach_one(app, bottom_right_corner_, "bottom_right_corner_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(container_); // the grid hosts the clipped image
-            gallery_rehost_layout(stack_);     // the stack hosts the caption + container + sliders
-            gallery_rehost_content(page_);     // the page hosts the stack
         }
 
         // Owned controls exposed for the hosting main / inspection.

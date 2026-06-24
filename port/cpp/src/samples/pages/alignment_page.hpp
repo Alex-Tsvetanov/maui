@@ -30,9 +30,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -89,28 +86,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (each section's caption + border + header, then
-        // the stack, then the page), then re-host the tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            for (std::size_t i = 0; i < k_count; ++i)
-            {
-                section& sec = sections_.at(i);
-                gallery_attach_one(app, sec.caption, "caption");
-                gallery_attach_one(app, sec.bordered, "bordered");
-                gallery_attach_one(app, sec.header, "header");
-            }
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            for (std::size_t i = 0; i < k_count; ++i)
-            {
-                gallery_rehost_content(sections_.at(i).bordered); // each border hosts its caption label
-            }
-            gallery_rehost_layout(stack_); // the stack hosts the header + border pairs
-            gallery_rehost_content(page_); // the page hosts the stack
         }
 
         // The owned controls, exposed for tests / the hosting main's bottom-up attachment.

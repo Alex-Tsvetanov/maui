@@ -22,7 +22,7 @@
 //   - the Picker's SelectedIndexChanged sets the Mode of all four SwipeItems collections to Reveal
 //     (index 0) or Execute (index 1) — the exact C# OnModePickerSelectedIndexChanged fan-out;
 //   - the ctor preselects index 0 (Reveal), as the C# code-behind does (ModePicker.SelectedIndex = 0);
-//   - in attach_handlers, the SwipeView is synthetically opened toward its populated RightItems side so a
+//   - on mount, the SwipeView is synthetically opened toward its populated RightItems side so a
 //     static capture shows the two revealed right items (the swipe-to-reveal gesture has no headless
 //     analogue; open() routes through the now-attached handler — see swipe_view_seam tests).
 //
@@ -51,8 +51,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -129,26 +127,12 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED view, BOTTOM-UP (the content label, the content Grid, the picker,
-        // the swipe_view, the outer Grid, then the page), then re-host the tree built in the ctor. The eight
-        // swipe_item members are NON-view items (no standalone handler), deliberately excluded — attaching
-        // one would throw. After re-hosting, synthetically open the swipe_view toward its RightItems side so
-        // a static capture shows the two revealed right items. (gallery_attach.hpp)
-        void attach_handlers(maui::hosting::maui_app& app)
+        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
+        // handler + builds the native tree. Synthetically open the swipe_view toward its RightItems side so a
+        // static capture shows the two revealed right items. All per-control attach + re-host plumbing is now
+        // the generic mount's job.
+        void on_mounted(maui::hosting::maui_app& /*app*/)
         {
-            gallery_attach_one(app, content_label_, "content_label_");
-            gallery_attach_one(app, content_, "content_");
-            gallery_attach_one(app, mode_picker_, "mode_picker_");
-            gallery_attach_one(app, swipe_, "swipe_");
-            gallery_attach_one(app, outer_, "outer_");
-            gallery_attach_one(app, page_, "page_");
-
-            // The tree was built in the ctor before any handler existed, so replay the host commands now.
-            gallery_rehost_layout(content_); // content grid hosts its label
-            gallery_rehost_content(swipe_);  // swipe_view hosts the content grid
-            gallery_rehost_layout(outer_);   // outer grid hosts the picker + swipe_view
-            gallery_rehost_content(page_);   // page hosts the outer grid
-
             // Static-capture seam: reveal the RightItems (the swipe gesture has no headless analogue).
             swipe_.open(maui::core::open_swipe_item::right_items);
         }

@@ -21,7 +21,7 @@
 //     code-behind OnInvoked, which in MAUI shows a DisplayAlert("SwipeView", "Delete Invoked", "OK"); the
 //     port has no modal alert at this layer, so the observable effect is the readout, the gallery
 //     convention used by swipe_refresh_page).
-//   - in attach_handlers, the first SwipeView is synthetically opened toward its populated BottomItems
+//   - on mount, the first SwipeView is synthetically opened toward its populated BottomItems
 //     side so a static capture shows the revealed item (the swipe-to-reveal gesture has no headless
 //     analogue; open() routes through the now-attached handler — see swipe_view_seam tests).
 //
@@ -50,8 +50,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -200,50 +198,13 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED view, BOTTOM-UP (each swipe's content Grid + its label, then the
-        // swipe_view, then the stack, then the page), then re-host the tree built in the ctor. The
-        // swipe_item members are NON-view items (no standalone handler) so they are deliberately excluded —
-        // attaching one would throw. After re-hosting, synthetically open the first swipe_view toward its
-        // populated BottomItems side so a static capture shows the revealed item. (gallery_attach.hpp)
-        void attach_handlers(maui::hosting::maui_app& app)
+        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): after the generic mount has attached every
+        // handler + built the native tree, synthetically open the first swipe_view toward its populated
+        // BottomItems side so a static capture shows the revealed item (the swipe-to-reveal gesture has no
+        // headless analogue). open() routes through the now-attached handler (swipe_view_seam tests). All the
+        // per-control attach + re-host plumbing is now the generic mount's job.
+        void on_mounted(maui::hosting::maui_app& /*app*/)
         {
-            gallery_attach_one(app, bottom_label_, "bottom_label_");
-            gallery_attach_one(app, bottom_content_, "bottom_content_");
-            gallery_attach_one(app, bottom_swipe_, "bottom_swipe_");
-            gallery_attach_one(app, top_label_, "top_label_");
-            gallery_attach_one(app, top_content_, "top_content_");
-            gallery_attach_one(app, top_swipe_, "top_swipe_");
-            gallery_attach_one(app, left_label_, "left_label_");
-            gallery_attach_one(app, left_content_, "left_content_");
-            gallery_attach_one(app, left_swipe_, "left_swipe_");
-            gallery_attach_one(app, right_label_, "right_label_");
-            gallery_attach_one(app, right_content_, "right_content_");
-            gallery_attach_one(app, right_swipe_, "right_swipe_");
-            gallery_attach_one(app, any_label_, "any_label_");
-            gallery_attach_one(app, any_content_, "any_content_");
-            gallery_attach_one(app, any_swipe_, "any_swipe_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            // The tree was built in the ctor before any handler existed, so replay the host commands now:
-            // each content Grid hosts its label, each swipe_view hosts its content Grid, the stack hosts the
-            // five swipe_views + readout, the page hosts the stack.
-            gallery_rehost_layout(bottom_content_);
-            gallery_rehost_layout(top_content_);
-            gallery_rehost_layout(left_content_);
-            gallery_rehost_layout(right_content_);
-            gallery_rehost_layout(any_content_);
-            gallery_rehost_content(bottom_swipe_);
-            gallery_rehost_content(top_swipe_);
-            gallery_rehost_content(left_swipe_);
-            gallery_rehost_content(right_swipe_);
-            gallery_rehost_content(any_swipe_);
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
-
-            // Static-capture seam: reveal the first row's BottomItems (the swipe-to-reveal gesture has no
-            // headless analogue). open() routes through the now-attached handler (swipe_view_seam tests).
             bottom_swipe_.open(maui::core::open_swipe_item::bottom_items);
         }
 

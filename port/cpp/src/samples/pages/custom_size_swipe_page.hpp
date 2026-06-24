@@ -11,7 +11,7 @@
 // here to a readout label (no modal dialog seam headless).
 //
 // Self-contained (the swipe_refresh_page / value_controls_page pattern): the page OWNS its whole element
-// tree, exposes page() and attach_handlers(maui_app).
+// tree, exposes page().
 //
 // Demonstrated (custom-size reveal panels + the three click channels):
 //   - LeftItems:  one SwipeItemView -> a light-pink Grid (WidthRequest 200) with a centered label.
@@ -22,9 +22,9 @@
 //   - Content:    a light-green Grid with a label + "Test Click from Content" button.
 // Each of the three buttons' Clicked drives the readout (the C# DisplayAlert, collapsed).
 //
-// attach_handlers() finishes by synthetically OPENING the RightItems side (open(right_items)) so the static
-// capture shows a revealed panel + reports the Threshold, then fires each button's Clicked so the readout
-// reflects the wiring.
+// The page's mount hook finishes by synthetically OPENING the RightItems side (open(right_items)) so the
+// static capture shows a revealed panel + reports the Threshold, then fires each button's Clicked so the
+// readout reflects the wiring.
 
 #include <cstdio>
 #include <memory>
@@ -41,8 +41,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -112,50 +110,12 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED VIEW, BOTTOM-UP (the deepest panels first, the page last), then
-        // re-host the ctor-built tree. The SwipeItem (right_menu_item_) is a NON-view menu item with no
-        // standalone handler, so it is deliberately excluded (attaching it would throw). Finally drive the
-        // page deterministically so the static capture is non-blank: open the RightItems side and click each
-        // button. (gallery_attach.hpp)
-        void attach_handlers(maui::hosting::maui_app& app)
+        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
+        // handler + builds the native tree. Synthetically reveal the RightItems side so a static capture
+        // shows the revealed panel, fire each wired button's Clicked, then report the open state + Threshold.
+        // All per-control attach + re-host plumbing is now the generic mount's job.
+        void on_mounted(maui::hosting::maui_app& /*app*/)
         {
-            gallery_attach_one(app, left_label_, "left_label_");
-            gallery_attach_one(app, left_panel_, "left_panel_");
-            gallery_attach_one(app, left_item_view_, "left_item_view_");
-
-            gallery_attach_one(app, right_label_, "right_label_");
-            gallery_attach_one(app, right_button_, "right_button_");
-            gallery_attach_one(app, right_panel_, "right_panel_");
-            gallery_attach_one(app, right_item_view_, "right_item_view_");
-
-            gallery_attach_one(app, top_label_, "top_label_");
-            gallery_attach_one(app, top_button_, "top_button_");
-            gallery_attach_one(app, top_panel_, "top_panel_");
-            gallery_attach_one(app, top_item_view_, "top_item_view_");
-
-            gallery_attach_one(app, content_label_, "content_label_");
-            gallery_attach_one(app, content_button_, "content_button_");
-            gallery_attach_one(app, content_stack_, "content_stack_");
-            gallery_attach_one(app, content_panel_, "content_panel_");
-
-            gallery_attach_one(app, swipe_, "swipe_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, root_, "root_");
-            gallery_attach_one(app, page_, "page_");
-
-            // Replay the ctor's host commands now that handlers exist.
-            gallery_rehost_layout(left_panel_);
-            gallery_rehost_content(left_item_view_);
-            gallery_rehost_layout(right_panel_);
-            gallery_rehost_content(right_item_view_);
-            gallery_rehost_layout(top_panel_);
-            gallery_rehost_content(top_item_view_);
-            gallery_rehost_layout(content_stack_);
-            gallery_rehost_layout(content_panel_);
-            gallery_rehost_content(swipe_);
-            gallery_rehost_layout(root_);
-            gallery_rehost_content(page_);
-
             // Synthetically reveal one side (RightItems) so the capture shows the revealed SwipeItems, and
             // report the Threshold. SwipeView is interactive — open() is the developer-API seam the platform
             // would otherwise drive on a real swipe.

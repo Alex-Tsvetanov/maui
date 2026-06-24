@@ -34,10 +34,10 @@
 // (each menu item's activate() is the same path a native click takes — menu_item.hpp send_clicked →
 // activate → clicked) and every activation drives the visible counter / status readout the C# page shows.
 //
-// HEADLESS-SAFE maui:: API only; the page OWNS its whole element tree (every control AND every menu item)
-// and attaches every owned VIEW bottom-up, then re-hosts (gallery_attach.hpp). Menu items / flyouts /
-// separators are NON-view items with no standalone handler, so they are deliberately excluded from the
-// attach (attaching one would throw) — exactly as chrome_page.hpp excludes its menu items.
+// HEADLESS-SAFE maui:: API only; the page OWNS its whole element tree (every control AND every menu item);
+// the generic mount (app_host.hpp) attaches every owned VIEW's handler and hosts the tree. Menu items /
+// flyouts / separators are NON-view items with no standalone handler, so they are deliberately excluded
+// from the attach (attaching one would throw) — exactly as chrome_page.hpp excludes its menu items.
 //
 // note: the C# DisplayAlert side-effects (the entry / image / "add menu" / webview message boxes) have no
 //       headless analog; each ported handler instead stamps the status label with the same message text,
@@ -68,9 +68,6 @@
 #include "maui/core/keyboard_accelerator.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -101,29 +98,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED VIEW, BOTTOM-UP, then re-host. The menu_flyout / menu_flyout_item
-        // / sub_item / separator members are NON-view items (no standalone handler) and are excluded —
-        // attaching one would throw (chrome_page.hpp convention). (gallery_attach.hpp)
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, increment_button_, "increment_button_");
-            gallery_attach_one(app, dynamic_label_, "dynamic_label_");
-            gallery_attach_one(app, dynamic_switch_, "dynamic_switch_");
-            gallery_attach_one(app, color_label_, "color_label_");
-            gallery_attach_one(app, entry_, "entry_");
-            gallery_attach_one(app, image_, "image_");
-            gallery_attach_one(app, web_view_, "web_view_");
-            gallery_attach_one(app, counter_label_, "counter_label_");
-            gallery_attach_one(app, status_, "status_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroll_, "scroll_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(scroll_);
-            gallery_rehost_content(page_);
         }
 
         // Owned controls exposed for the hosting main / the headless test tree.

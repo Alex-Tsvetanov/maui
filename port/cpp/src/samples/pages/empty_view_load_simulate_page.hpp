@@ -32,8 +32,8 @@
 //     set (the EmptyView disappears, the cells render) — the end-state of the C# Task. reset() empties
 //     the source again (back to the "loading" EmptyView), so the load can be replayed/observed.
 //
-// The page OWNS its whole element tree (the items_page pattern). attach_handlers wires every owned view
-// bottom-up then re-hosts the grid + page.
+// The page OWNS its whole element tree (the items_page pattern). The generic mount (app_host.hpp) attaches
+// every owned view's handler and hosts the grid + page.
 //
 // note: the C# load is a real background Task with two 1-second Delays dispatched onto the UI thread.
 //       The headless backend has no dispatcher/run-loop to pump a delayed continuation deterministically
@@ -62,9 +62,6 @@
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/core/grid_length.hpp"
 #include "maui/core/observable_collection.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -112,18 +109,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the list, the grid, then the page), then
-        // re-host the tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, list_, "list_");
-            gallery_attach_one(app, grid_, "grid_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(grid_);  // the grid hosts the collection_view
-            gallery_rehost_content(page_); // the page hosts the grid
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / tests.

@@ -9,7 +9,7 @@
 //   (Open/Close buttons + Opened/Closed console events).
 //
 // This is a code-first port following the pickers_page pattern: the page OWNS its whole element tree
-// as members, exposes page() and attach_handlers(maui_app). It is headless-safe — only
+// as members, exposes page(). It is headless-safe — only
 // cross-platform maui:: API. The code-behind logic (UpdateDatePickerBackground, the button handlers,
 // the IsOpen Opened/Closed subscriptions, the IsFocused binding echo) is ported into lambdas on the
 // owned controls.
@@ -54,9 +54,6 @@
 #include "maui/graphics/linear_gradient_paint.hpp"
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -183,65 +180,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves -> rows -> stack -> scroll -> page), then
-        // re-host the tree built in the ctor. EXCLUDES non-view items (paints).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            auto one = [&app](auto& view, const char* name) {
-                try
-                {
-                    app.attach_handler(view);
-                }
-                catch (const std::exception& error)
-                {
-                    std::fprintf(stderr, "[gallery] skip %s: %s\n", name, error.what());
-                }
-            };
-
-            one(default_label_, "default_label_");
-            one(default_date_, "default_date_");
-            one(background_color_label_, "background_color_label_");
-            one(background_color_date_, "background_color_date_");
-            one(gradient_label_, "gradient_label_");
-            one(gradient_date_, "gradient_date_");
-            one(random_background_label_, "random_background_label_");
-            one(background_date_, "background_date_");
-            one(update_background_button_, "update_background_button_");
-            one(clear_background_button_, "clear_background_button_");
-            one(dated_label_, "dated_label_");
-            one(dated_date_, "dated_date_");
-            one(disabled_label_, "disabled_label_");
-            one(disabled_date_, "disabled_date_");
-            one(text_color_label_, "text_color_label_");
-            one(text_color_date_, "text_color_date_");
-            one(format_label_, "format_label_");
-            one(format_date_, "format_date_");
-            one(focus_label_, "focus_label_");
-            one(focus_date_, "focus_date_");
-            one(is_focused_caption_, "is_focused_caption_");
-            one(focus_result_, "focus_result_");
-            one(focus_row_, "focus_row_");
-            one(null_label_, "null_label_");
-            one(null_date_, "null_date_");
-            one(set_null_button_, "set_null_button_");
-            one(set_today_button_, "set_today_button_");
-            one(is_open_label_, "is_open_label_");
-            one(is_open_date_, "is_open_date_");
-            one(open_button_, "open_button_");
-            one(close_button_, "close_button_");
-            one(select_label_, "select_label_");
-            one(select_date_, "select_date_");
-            one(readout_, "readout_");
-            one(stack_, "stack_");
-            one(scroll_, "scroll_");
-            one(page_, "page_");
-
-            gallery_rehost_layout(focus_row_);
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(scroll_);
-            gallery_rehost_content(page_);
         }
 
     private:

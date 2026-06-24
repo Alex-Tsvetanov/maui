@@ -37,8 +37,8 @@
 //     filter empties the source.
 //
 // The page OWNS its whole element tree (the items_page pattern); the EmptyView tree is owned + rehosted
-// too, so it materializes when the source empties. attach_handlers wires every owned view bottom-up then
-// re-hosts the stacks + grid + page.
+// too, so it materializes when the source empties. The generic mount (app_host.hpp) attaches every owned
+// view's handler and hosts the stacks + grid + page.
 //
 // note: the C# item template is ExampleTemplates.PhotoTemplate() (an Image over a caption Label). The
 //       port cell is the caption Label only — an Image cell would need an i_image_source per row, which
@@ -70,9 +70,6 @@
 #include "maui/core/grid_length.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/text_alignment.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -144,32 +141,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp). The EmptyView tree is attached + rehosted too so it
-        // materializes when the source empties.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            // EmptyView leaves + container
-            gallery_attach_one(app, empty_primary_, "empty_primary_");
-            gallery_attach_one(app, empty_secondary_, "empty_secondary_");
-            gallery_attach_one(app, *empty_view_, "empty_view_");
-
-            // header row
-            gallery_attach_one(app, picker_, "picker_");
-            gallery_attach_one(app, search_, "search_");
-            gallery_attach_one(app, header_stack_, "header_stack_");
-
-            // list + grid + page
-            gallery_attach_one(app, list_, "list_");
-            gallery_attach_one(app, grid_, "grid_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(*empty_view_);  // the EmptyView stack hosts its two labels
-            gallery_rehost_layout(header_stack_); // the header stack hosts the picker + search bar
-            gallery_rehost_layout(grid_);         // the grid hosts the header stack + collection_view
-            gallery_rehost_content(page_);        // the page hosts the grid
         }
 
         // ---- accessors (used by the hosting main + any test tree) ----

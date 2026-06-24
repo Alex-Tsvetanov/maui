@@ -25,8 +25,8 @@
 // geometries, now toggled so the clip surface is exercised programmatically (the shapes render clipped
 // when on; headless has no pixels but the clip property and re-host are driven deterministically).
 //
-// HEADLESS-SAFE maui:: API only; the page OWNS its whole element tree and attaches every owned view
-// bottom-up, then re-hosts (the shapes_demo_page / clipping_page convention — gallery_attach.hpp).
+// HEADLESS-SAFE maui:: API only; the page OWNS its whole element tree (the generic mount in app_host.hpp
+// attaches every owned view's handler and hosts the tree).
 //
 // note: the C# Source="dotnet_bot.png" is a file image source; the headless gallery loads no pixels, so
 //       each image carries a best-effort file_image_source("dotnet_bot.png") — the demonstrated feature
@@ -58,9 +58,6 @@
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -138,32 +135,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the stack's children in add()-order, then the
-        // stack, then the scroll_view, then the page), then re-host the tree built in the ctor. The
-        // generic gallery_attach_one preserves each member's concrete static type. (gallery_attach.hpp)
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, image_label_, "image_label_");
-            gallery_attach_one(app, image_, "image_");
-            gallery_attach_one(app, rect_label_, "rect_label_");
-            gallery_attach_one(app, rect_image_, "rect_image_");
-            gallery_attach_one(app, ellipse_label_, "ellipse_label_");
-            gallery_attach_one(app, ellipse_image_, "ellipse_image_");
-            gallery_attach_one(app, group_label_, "group_label_");
-            gallery_attach_one(app, group_image_, "group_image_");
-            gallery_attach_one(app, path_label_, "path_label_");
-            gallery_attach_one(app, path_image_, "path_image_");
-            gallery_attach_one(app, status_, "status_");
-            gallery_attach_one(app, toggle_, "toggle_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroll_, "scroll_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);   // the stack hosts every caption + image + status + toggle
-            gallery_rehost_content(scroll_); // the scroll hosts the stack
-            gallery_rehost_content(page_);   // the page hosts the scroll
         }
 
         // Owned controls exposed for the hosting main / inspection.

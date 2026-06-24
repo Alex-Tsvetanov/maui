@@ -24,7 +24,7 @@
 // The page OWNS its whole element tree (the sample_app pattern): the readout, the five buttons, the grid-
 // like vertical stack, the gallery content_page (page()), AND the page-owned navigation_page + the pool
 // of content_pages it pushes/modals (the stacks are NON-owning, so the pages are members). It is backend-
-// agnostic; attach_handlers attaches every VIEW bottom-up and re-hosts the ctor-built tree. The page-owned
+// agnostic; the generic mount attaches every view's handler and hosts the ctor-built tree. The page-owned
 // navigation_page + its pooled pages are the STACK UNDER TEST (not in this page's visual tree), so they
 // are excluded from the attach/re-host walk. The C# Grid (RowDefinitions=Auto×6) is a plain vertical
 // stack here — a single-column auto-row Grid lays out identically to a vertical stack (note below).
@@ -37,9 +37,6 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/navigation_page.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -108,25 +105,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED VIEW bottom-up (the label + buttons + readout, then the stack,
-        // then the page), then re-host the ctor-built tree. The page-owned navigation_page + pooled pages
-        // are the STACK UNDER TEST (not in this page's visual tree), so they are excluded (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, number_label_, "number_label_");
-            gallery_attach_one(app, push_button_, "push_button_");
-            gallery_attach_one(app, push_modal_button_, "push_modal_button_");
-            gallery_attach_one(app, push_modal_nav_button_, "push_modal_nav_button_");
-            gallery_attach_one(app, push_modal_flyout_button_, "push_modal_flyout_button_");
-            gallery_attach_one(app, pop_modal_button_, "pop_modal_button_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // ---- owned controls, exposed for the hosting main's bottom-up attachment + tests ----

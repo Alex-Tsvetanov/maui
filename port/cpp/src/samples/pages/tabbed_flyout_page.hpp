@@ -13,7 +13,6 @@
 // sample main attaches handlers bottom-up via the hosting layer and hosts page() in a window; the
 // headless/apple/ios test trees exercise the same wiring directly.
 
-#include <cstdio>
 #include <string>
 
 #include "maui/controls/button.hpp"
@@ -23,9 +22,6 @@
 #include "maui/controls/tabbed_page.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -75,34 +71,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::flyout_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP through the nested multi-page tree: each tab's
-        // label + the tab content_page, then the tabbed_page; the menu buttons + status, the menu_stack
-        // and the menu content_page; finally the flyout_page root. Then re-host the tree built in the
-        // ctor: each tab page's content, the menu_stack's children, the menu page, the tabbed_page's tabs,
-        // and the flyout_page's two panes (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, first_label_, "first_label_");
-            gallery_attach_one(app, first_tab_, "first_tab_");
-            gallery_attach_one(app, second_label_, "second_label_");
-            gallery_attach_one(app, second_tab_, "second_tab_");
-            gallery_attach_one(app, tabs_, "tabs_");
-            gallery_attach_one(app, home_button_, "home_button_");
-            gallery_attach_one(app, settings_button_, "settings_button_");
-            gallery_attach_one(app, toggle_button_, "toggle_button_");
-            gallery_attach_one(app, status_, "status_");
-            gallery_attach_one(app, menu_stack_, "menu_stack_");
-            gallery_attach_one(app, menu_page_, "menu_page_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_content(first_tab_); // each tab content_page hosts its label
-            gallery_rehost_content(second_tab_);
-            gallery_rehost_layout(menu_stack_); // the menu stack hosts its buttons + status
-            gallery_rehost_content(menu_page_); // the menu page hosts the menu stack
-            gallery_rehost_pages(tabs_);        // the tabbed_page hosts its two tabs
-            gallery_rehost_panes(page_);        // the flyout_page hosts the menu (flyout) + tabs (detail)
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment (and the

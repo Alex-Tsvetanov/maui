@@ -33,10 +33,7 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
 #include "maui/layouts/absolute_layout_flags.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -102,26 +99,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the placed children first, then the
-        // absolute_layout, then the page) so each parent can host its child's native view, then re-host the
-        // tree built in the ctor (gallery_attach.hpp). The generic lambda preserves each member's concrete
-        // static type — attach_handler keys on the static type, so an i_view& parameter would erase it.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, top_box_, "top_box_");
-            gallery_attach_one(app, left_box_, "left_box_");
-            gallery_attach_one(app, right_box_, "right_box_");
-            gallery_attach_one(app, bottom_box_, "bottom_box_");
-            gallery_attach_one(app, centered_label_, "centered_label_");
-            gallery_attach_one(app, auto_label_, "auto_label_");
-            gallery_attach_one(app, layout_, "layout_");
-            gallery_attach_one(app, page_, "page_");
-
-            // The tree was built in the ctor before any handler existed, so replay the host commands now.
-            gallery_rehost_layout(layout_); // absolute_layout hosts its six placed children
-            gallery_rehost_content(page_);  // page hosts the absolute_layout
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

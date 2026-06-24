@@ -46,9 +46,6 @@
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/thickness.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -129,19 +126,6 @@ namespace maui::samples
             list_.set_items_layout(std::make_shared<maui::controls::linear_items_layout>(
                 maui::controls::items_layout_orientation::vertical));
             readout_.set_text("Layout: Linear (single column)");
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, list_, "list_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

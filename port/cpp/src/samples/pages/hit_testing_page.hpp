@@ -30,7 +30,7 @@
 //     so the hit walk has overlapping candidates to disambiguate.
 //
 // The page OWNS its whole element tree (the input_transparent_page / gestures_page pattern): public
-// page() and attach_handlers(maui_app).
+// page().
 //
 // note: the native GetVisualTreeElements(window, x, y) walk + the WindowOverlay Tapped drive + the
 //       IDrawable rectangle-lasso rendering are the documented headless gap (window_overlay.hpp). This
@@ -41,7 +41,6 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <cstdio>
 #include <functional>
 #include <memory>
 #include <string>
@@ -64,9 +63,6 @@
 #include "maui/graphics/corner_radius.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -147,45 +143,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the readouts + targets, the mode row, the
-        // stack, the scroll_view, the page), then re-host the ctor-built tree (gallery_attach.hpp).
-        // Headless has no native hit-tester, so finish with a deterministic synthetic tap (and a second
-        // tap in rectangle mode) so the selection readout reflects the wiring in a static capture.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            auto one = [&app](auto& view, const char* name) { gallery_attach_one(app, view, name); };
-
-            one(selection_label_, "selection_label_");
-            one(mode_label_, "mode_label_");
-            one(rectangle_select_check_, "rectangle_select_check_");
-            one(mode_row_, "mode_row_");
-            one(left_label_, "left_label_");
-            one(right_label_, "right_label_");
-            one(scale1_btn_, "scale1_btn_");
-            one(scale2_btn_, "scale2_btn_");
-            one(rotate_btn_, "rotate_btn_");
-            one(oval_, "oval_");
-            one(rounded_, "rounded_");
-            one(bot_image_, "bot_image_");
-            one(stack_, "stack_");
-            one(scroller_, "scroller_");
-            one(page_, "page_");
-
-            gallery_rehost_layout(mode_row_);
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(scroller_);
-            gallery_rehost_content(page_);
-
-            // NOTE: the gallery render must match the maui-compare reference, which shows the CLEAN INITIAL
-            // state (readout "Selected: -", no view highlighted). The C# HitTestingPage selects + highlights
-            // only on a real tap; its static capture is the initial state. Earlier the port auto-ran
-            // drive_synthetic_hit_test() here "to show the wiring in a static capture", but that left the
-            // page in a post-tap state (a red highlight + "Selected: <name>") that DIVERGED from MAUI — and
-            // since the page wires no real per-view tap gestures (the synthetic walk was the only driver),
-            // the faithful parity target is simply the initial state. The hit_test / tap_single /
-            // tap_rectangle methods remain available for a headless test or an interactive driver to call.
         }
 
         // The owned readout + check, exposed for the hosting main / headless tests.

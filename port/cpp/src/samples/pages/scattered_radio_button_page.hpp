@@ -46,9 +46,6 @@
 #include "maui/controls/stack_orientation.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -109,27 +106,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last) so each parent can
-        // host its child's native view, then re-host the tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, intro_, "intro_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, nested_caption_, "nested_caption_");
-            gallery_attach_one(app, option_a_, "option_a_");
-            gallery_attach_one(app, option_b_, "option_b_");
-            gallery_attach_one(app, option_c_, "option_c_");
-            gallery_attach_one(app, nested_stack_, "nested_stack_");
-            gallery_attach_one(app, outside_caption_, "outside_caption_");
-            gallery_attach_one(app, option_d_, "option_d_");
-            gallery_attach_one(app, root_stack_, "root_stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(nested_stack_); // nested stack hosts A/B/C
-            gallery_rehost_layout(root_stack_);   // root stack hosts intro/readout/captions/nested stack/D
-            gallery_rehost_content(page_);        // page hosts the root stack
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

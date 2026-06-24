@@ -26,7 +26,7 @@
 //         three {AppThemeBinding} styles, reproduced here as an explicit theme applier (no XAML binding
 //         engine / DynamicResource styling, layer 6). apply_theme() runs AppThemeBinding's own slot
 //         pick: light/unspecified → Light slot, dark → Dark slot (both falling back to the Default).
-//   note: attach_handlers reads the app's requested_theme() to seed the initial colors and subscribes
+//   note: the page's mount hook reads the app's requested_theme() to seed the initial colors and subscribes
 //         to requested_theme_changed to re-apply — the cross-platform stand-in for AppThemeBinding's
 //         "__MAUI_ApplicationTheme__" resubscription. Until handlers are attached the page sits at its
 //         default (Default-slot) colors, so the headless tree is still valid before hosting.
@@ -51,8 +51,6 @@
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
 
-#include "gallery_attach.hpp"
-
 namespace maui::samples
 {
     class shape_app_theme_page
@@ -74,7 +72,7 @@ namespace maui::samples
 
             page_.set_content(stack_);
 
-            // Seed at the Default-slot colors (no application yet); attach_handlers re-applies for the
+            // Seed at the Default-slot colors (no application yet); the mount hook re-applies for the
             // live theme once a host is present.
             apply_theme(maui::core::app_theme::unspecified);
         }
@@ -84,20 +82,12 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED view, BOTTOM-UP (the stack's children in add()-order, then the
-        // stack, the page), re-host the ctor-built tree, then bind the live OS theme: seed from the app's
-        // current requested_theme() and re-apply on every requested_theme_changed (the AppThemeBinding
-        // resubscription stand-in).
-        void attach_handlers(maui::hosting::maui_app& app)
+        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
+        // handler + builds the native tree. Bind the live OS theme: seed from the app's current
+        // requested_theme() and re-apply on every requested_theme_changed (the AppThemeBinding resubscription
+        // stand-in). All per-control attach + re-host plumbing is now the generic mount's job.
+        void on_mounted(maui::hosting::maui_app& app)
         {
-            gallery_attach_one(app, label_, "label_");
-            gallery_attach_one(app, shape_, "shape_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_); // stack hosts the label + the rectangle
-            gallery_rehost_content(page_); // page hosts the stack
-
             if (const std::shared_ptr<maui::controls::application>& application = app.application())
             {
                 apply_theme(application->requested_theme());

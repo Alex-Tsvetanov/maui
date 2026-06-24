@@ -26,9 +26,6 @@
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/thickness.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -84,30 +81,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the row's children + the stack's children first,
-        // then the row, the stack, then the page), then re-host the tree built in the ctor.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, check_, "check_");
-            gallery_attach_one(app, switch_, "switch_");
-            gallery_attach_one(app, spinner_, "spinner_");
-            gallery_attach_one(app, header_, "header_");
-            gallery_attach_one(app, button_, "button_");
-            gallery_attach_one(app, entry_, "entry_");
-            gallery_attach_one(app, editor_, "editor_");
-            gallery_attach_one(app, search_, "search_");
-            gallery_attach_one(app, slider_, "slider_");
-            gallery_attach_one(app, stepper_, "stepper_");
-            gallery_attach_one(app, progress_, "progress_");
-            gallery_attach_one(app, row_, "row_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(row_);   // the row hosts the checkbox/switch/spinner
-            gallery_rehost_layout(stack_); // the stack hosts the header + widgets + the row
-            gallery_rehost_content(page_); // the page hosts the stack
         }
 
         // The owned controls, exposed for tests / the hosting main's bottom-up attachment.

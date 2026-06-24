@@ -14,7 +14,7 @@
 // Interactions demonstrated:
 //   - every left SwipeItem's Invoked event (the MAUI OnSwipeItemInvoked → DisplayAlert) is wired to the
 //     readout: invoking the Delete item sets "Delete SwipeItem Invoked".
-//   - attach_handlers() synthetically OPENS the first swipe_view's left items (open(left_items)) so the
+//   - the page's mount hook synthetically OPENS the first swipe_view's left items (open(left_items)) so the
 //     static capture shows a revealed Delete item, and reports the open via open_requested → readout.
 //
 // The page OWNS its whole element tree; it is backend-agnostic. A sample main attaches handlers bottom-up
@@ -26,7 +26,6 @@
 // is replaced by the in-page readout, the observable swipe interaction.
 
 #include <array>
-#include <cstdio>
 #include <memory>
 #include <string>
 
@@ -46,8 +45,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -130,61 +127,12 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED view, BOTTOM-UP, then re-host the tree built in the ctor. Each
-        // swipe_view's left "Delete" swipe_item is a NON-view item (no standalone handler), so it is
-        // deliberately excluded from attach (attaching it would throw) — but its content grid/stack IS a
-        // view and is hosted (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
+        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
+        // handler + builds the native tree. Synthetically open the first row's left items so the static
+        // capture shows a revealed Delete. All per-control attach + re-host plumbing is now the generic
+        // mount's job.
+        void on_mounted(maui::hosting::maui_app& /*app*/)
         {
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, icon_sizes_header_, "icon_sizes_header_");
-            gallery_attach_one(app, view_sizes_header_, "view_sizes_header_");
-            for (auto& label : group1_labels_)
-            {
-                gallery_attach_one(app, label, "group1_label");
-            }
-            for (auto& label : group2_labels_)
-            {
-                gallery_attach_one(app, label, "group2_label");
-            }
-
-            for (auto& row : rows_)
-            {
-                gallery_attach_one(app, row.content_label, "content_label");
-                if (row.uses_stack)
-                {
-                    gallery_attach_one(app, row.content_label2, "content_label2");
-                    gallery_attach_one(app, row.content_stack, "content_stack");
-                }
-                else
-                {
-                    gallery_attach_one(app, row.content_grid, "content_grid");
-                }
-                gallery_attach_one(app, row.swipe, "row.swipe");
-            }
-
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroll_, "scroll_");
-            gallery_attach_one(app, page_, "page_");
-
-            // Replay the host commands the ctor fired before any handler existed (bottom-up).
-            for (auto& row : rows_)
-            {
-                if (row.uses_stack)
-                {
-                    gallery_rehost_layout(row.content_stack); // stack hosts its two labels
-                }
-                else
-                {
-                    gallery_rehost_layout(row.content_grid); // grid hosts the centered label
-                }
-                gallery_rehost_content(row.swipe); // swipe_view hosts its content
-            }
-            gallery_rehost_layout(stack_);   // outer stack hosts headers + rows + readout
-            gallery_rehost_content(scroll_); // scroll hosts the stack
-            gallery_rehost_content(page_);   // page hosts the scroll
-
-            // Synthetically OPEN the first row's left items so the static capture shows a revealed Delete.
             rows_[0].swipe.open(maui::core::open_swipe_item::left_items);
         }
 

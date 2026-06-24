@@ -29,8 +29,6 @@
 #include "maui/controls/platform_configuration/ios_specific/date_picker.hpp"
 #include "maui/controls/platform_configuration/ios_specific/update_mode.hpp"
 
-#include "gallery_attach.hpp"
-
 namespace maui::samples
 {
     class ios_date_picker_page
@@ -73,19 +71,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, date_picker_, "date_picker_");
-            gallery_attach_one(app, toggle_button_, "toggle_button_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

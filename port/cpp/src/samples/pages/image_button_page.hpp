@@ -3,8 +3,8 @@
 //
 // A self-contained, code-first demo page for the ImageButton control (the C# gallery-page convention,
 // mirroring the input_controls_page / image_page pattern). The page OWNS its whole element tree;
-// `page()` hands back the content_page and `attach_handlers(maui_app)` mounts every owned VIEW
-// bottom-up (leaves → layout → page) through a guarded try/catch, then re-hosts the tree.
+// `page()` hands back the content_page; the generic mount (app_host.hpp) attaches every owned view's
+// handler and hosts the tree.
 //
 // The C# page is a scroll of headline-labelled ImageButton variants. This port keeps the
 // cross-platform-API subset and wires the demonstrated INTERACTIONS:
@@ -46,9 +46,6 @@
 #include "maui/core/aspect.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -196,46 +193,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host
-        // the tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, fit_label_, "fit_label_");
-            gallery_attach_one(app, fit_button_, "fit_button_");
-            gallery_attach_one(app, fill_label_, "fill_label_");
-            gallery_attach_one(app, fill_button_, "fill_button_");
-            gallery_attach_one(app, stretch_label_, "stretch_label_");
-            gallery_attach_one(app, stretch_button_, "stretch_button_");
-            gallery_attach_one(app, border_label_, "border_label_");
-            gallery_attach_one(app, border_button_, "border_button_");
-            gallery_attach_one(app, border_width_slider_, "border_width_slider_");
-            gallery_attach_one(app, corner_label_, "corner_label_");
-            gallery_attach_one(app, corner_zero_button_, "corner_zero_button_");
-            gallery_attach_one(app, corner_ten_button_, "corner_ten_button_");
-            gallery_attach_one(app, corner_slider_button_, "corner_slider_button_");
-            gallery_attach_one(app, corner_radius_slider_, "corner_radius_slider_");
-            gallery_attach_one(app, resize_label_, "resize_label_");
-            gallery_attach_one(app, resize_button_, "resize_button_");
-            gallery_attach_one(app, padding_label_, "padding_label_");
-            gallery_attach_one(app, padding_button_, "padding_button_");
-            gallery_attach_one(app, padding_slider_, "padding_slider_");
-            gallery_attach_one(app, gif_label_, "gif_label_");
-            gallery_attach_one(app, gif_button_, "gif_button_");
-            gallery_attach_one(app, online_source_button_, "online_source_button_");
-            gallery_attach_one(app, background_label_, "background_label_");
-            gallery_attach_one(app, background_button_, "background_button_");
-            gallery_attach_one(app, update_background_button_, "update_background_button_");
-            gallery_attach_one(app, remove_background_button_, "remove_background_button_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroll_, "scroll_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(scroll_); // scroll_view hosts the stack
-            gallery_rehost_content(page_);   // page hosts the scroll_view
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment + the tests.

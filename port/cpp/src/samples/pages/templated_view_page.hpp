@@ -27,9 +27,8 @@
 //       Rate value control + its heart PathGeometry are sample-app-specific; they are not reproduced.
 //       What this page demonstrates is the ControlTemplate application + content packing they all rely
 //       on. Each card's body is co-owned via shared_ptr (the templated currency) and so is reached
-//       through *() in attach_handlers.
+//       through *() at mount.
 
-#include <cstdio>
 #include <memory>
 #include <string>
 #include <utility>
@@ -47,9 +46,6 @@
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/corner_radius.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -90,27 +86,6 @@ namespace maui::samples
         [[nodiscard]] const std::shared_ptr<maui::controls::content_presenter>& presenter() const
         {
             return presenter_;
-        }
-
-        // Attach a handler to every view in this MINTED template subtree (the page can't reach these
-        // by member — it only holds the content_view card, then the template root through it), then
-        // re-host the layouts whose "add" commands fired in this ctor before any handler existed. The
-        // presenter's PACKED content (the card body) is owned + attached + re-hosted by the page, which
-        // re-fires this presenter's "set_content" afterward (gallery_attach.hpp convention).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, icon_, "compact_icon_");
-            gallery_attach_one(app, heading_, "compact_heading_");
-            gallery_attach_one(app, *presenter_, "compact_presenter_");
-            gallery_attach_one(app, column_, "compact_column_");
-            // The template root IS a horizontal_stack_layout subclass; attach it via that REGISTERED
-            // base type (the handler registry keys on the exact static type, and there is no handler for
-            // the subclass — layout_handler drives it through the i_layout interface regardless).
-            gallery_attach_one(app, static_cast<maui::controls::horizontal_stack_layout&>(*this),
-                               "compact_template_root_");
-
-            gallery_rehost_layout(column_); // the column hosts the heading + the presenter
-            gallery_rehost_layout(*this);   // the hstack hosts the icon block + the column
         }
 
     private:
@@ -165,70 +140,6 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED view, BOTTOM-UP, then re-host the tree built in the ctor.
-        // Unlike the leaf-content pages, each card body is a NESTED layout (a stack of two labels) and
-        // each compact card additionally hosts a MINTED ControlTemplate subtree, so attachment must
-        // recurse into BOTH (the label leaves + the template's icon/heading/column/presenter) and
-        // re-host every intermediate layout — not just the cards. Otherwise the bodies render as empty
-        // panels (their leaves never hosted) and the template subtrees never mount (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            auto one = [&app](auto& view, const char* name) { gallery_attach_one(app, view, name); };
-
-            one(caption_standard_, "caption_standard_");
-            one(caption_compact_, "caption_compact_");
-
-            // Each card body's leaf labels first, then the body stacks themselves (so the body panels
-            // have hostable children once re-hosted below).
-            for (const auto& leaf : card_leaves_)
-            {
-                one(*leaf, "card_leaf");
-            }
-            for (const auto& body : card_bodies_)
-            {
-                one(*body, "card_body");
-            }
-
-            // The standard (un-templated) card hosts its body directly.
-            one(standard_card_, "standard_card_");
-
-            // The compact cards: attach the card, then its minted CardViewCompressed template subtree
-            // (reached through the card's template_root() — the page holds no direct member for it).
-            for (const auto& card : compact_cards_)
-            {
-                one(*card, "compact_card");
-                if (auto* tmpl = dynamic_cast<compact_card_template*>(card->template_root()))
-                {
-                    tmpl->attach_handlers(app);
-                }
-            }
-
-            one(root_, "root_");
-            one(page_, "page_");
-
-            // Re-host bottom-up: each body's children first, then each compact presenter packs its body,
-            // then the cards host their presented content (the body, or the template root), then the
-            // root and the page (each via its sibling host command).
-            for (const auto& body : card_bodies_)
-            {
-                gallery_rehost_layout(*body);
-            }
-            for (const auto& card : compact_cards_)
-            {
-                if (auto* tmpl = dynamic_cast<compact_card_template*>(card->template_root()))
-                {
-                    gallery_rehost_content(*tmpl->presenter()); // the presenter packs the card body
-                }
-            }
-            gallery_rehost_content(standard_card_);
-            for (const auto& card : compact_cards_)
-            {
-                gallery_rehost_content(*card);
-            }
-            gallery_rehost_layout(root_);
-            gallery_rehost_content(page_);
-        }
-
         // The owned controls, exposed for the hosting main's inspection.
         [[nodiscard]] maui::controls::vertical_stack_layout& root()
         {
@@ -245,7 +156,7 @@ namespace maui::samples
 
     private:
         // Build a card body (a title + a description label in a vertical stack) and co-own it (the
-        // content_view co-owns its Content; we also keep a copy so attach_handlers can reach the labels).
+        // content_view co-owns its Content; we also keep a copy so the page can reach the labels).
         std::shared_ptr<maui::controls::vertical_stack_layout> make_card_body(const std::string& title,
                                                                               const std::string& description)
         {

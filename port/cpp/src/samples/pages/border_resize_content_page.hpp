@@ -53,9 +53,6 @@
 #include "maui/graphics/shapes/ellipse.hpp"
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -148,52 +145,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (each border's content first, then the borders,
-        // then the grid, then the controls, then the outer stack, then the page), then re-host the tree
-        // built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            // The six border contents (leaves) first.
-            gallery_attach_one(app, circle_label_, "circle_label_");
-            gallery_attach_one(app, round_label_, "round_label_");
-            gallery_attach_one(app, triangle_label_, "triangle_label_");
-            gallery_attach_one(app, circle_image_, "circle_image_");
-            gallery_attach_one(app, round_image_, "round_image_");
-            gallery_attach_one(app, triangle_image_, "triangle_image_");
-
-            // The six borders.
-            gallery_attach_one(app, circle_label_border_, "circle_label_border_");
-            gallery_attach_one(app, round_label_border_, "round_label_border_");
-            gallery_attach_one(app, triangle_label_border_, "triangle_label_border_");
-            gallery_attach_one(app, circle_image_border_, "circle_image_border_");
-            gallery_attach_one(app, round_image_border_, "round_image_border_");
-            gallery_attach_one(app, triangle_image_border_, "triangle_image_border_");
-
-            // The grid + the controls below it.
-            gallery_attach_one(app, grid_, "grid_");
-            gallery_attach_one(app, content_text_header_, "content_text_header_");
-            gallery_attach_one(app, text_entry_, "text_entry_");
-            gallery_attach_one(app, font_size_header_, "font_size_header_");
-            gallery_attach_one(app, font_size_slider_, "font_size_slider_");
-            gallery_attach_one(app, image_scale_header_, "image_scale_header_");
-            gallery_attach_one(app, image_scale_slider_, "image_scale_slider_");
-
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            // Re-host: each border hosts its single content, then the grid hosts the six borders, then the
-            // outer stack hosts the grid + controls, then the page hosts the stack.
-            gallery_rehost_content(circle_label_border_);
-            gallery_rehost_content(round_label_border_);
-            gallery_rehost_content(triangle_label_border_);
-            gallery_rehost_content(circle_image_border_);
-            gallery_rehost_content(round_image_border_);
-            gallery_rehost_content(triangle_image_border_);
-            gallery_rehost_layout(grid_);
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

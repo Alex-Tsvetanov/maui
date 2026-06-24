@@ -36,9 +36,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/line_join.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -76,31 +73,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (each grid's child polyline first, then the
-        // grid, interleaved with the captions in stack add()-order, then the stack, then the page), then
-        // re-host the tree built in the ctor (gallery_attach.hpp). The generic lambda in
-        // gallery_attach_one preserves each member's concrete static type.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, miter_label_, "miter_label_");
-            gallery_attach_one(app, miter_, "miter_");
-            gallery_attach_one(app, miter_grid_, "miter_grid_");
-            gallery_attach_one(app, bevel_label_, "bevel_label_");
-            gallery_attach_one(app, bevel_, "bevel_");
-            gallery_attach_one(app, bevel_grid_, "bevel_grid_");
-            gallery_attach_one(app, round_label_, "round_label_");
-            gallery_attach_one(app, round_, "round_");
-            gallery_attach_one(app, round_grid_, "round_grid_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(miter_grid_); // each grid hosts its one polyline
-            gallery_rehost_layout(bevel_grid_);
-            gallery_rehost_layout(round_grid_);
-            gallery_rehost_layout(stack_); // stack hosts the captions + grids
-            gallery_rehost_content(page_); // page hosts the stack
         }
 
         // The owned controls, exposed for the hosting main / tests.

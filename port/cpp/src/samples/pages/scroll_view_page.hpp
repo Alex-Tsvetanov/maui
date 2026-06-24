@@ -30,9 +30,6 @@
 #include "maui/controls/scroll_view.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/scroll_orientation.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -84,25 +81,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the stack's children first, then the stack, then
-        // the scroll_view, then the page), then re-host the tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, readout_, "readout_");
-            for (auto& row : rows_)
-            {
-                gallery_attach_one(app, *row, "row");
-            }
-            gallery_attach_one(app, final_label_, "final_label_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroller_, "scroller_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);     // stack hosts the readout-less content rows + final label
-            gallery_rehost_content(scroller_); // scroll_view hosts the stack
-            gallery_rehost_content(page_);     // page hosts the scroll_view
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

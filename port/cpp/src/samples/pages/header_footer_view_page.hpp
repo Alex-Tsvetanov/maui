@@ -28,8 +28,8 @@
 //     clear_items() empties the live source (so the source starts empty and the footer buttons drive it);
 //   - the item template is the PhotoTemplate caption Label (Text bound to each row's caption).
 //
-// The page OWNS its whole element tree; attach_handlers wires every owned view bottom-up and re-hosts
-// the tree (gallery_attach.hpp).
+// The page OWNS its whole element tree; the generic mount (app_host.hpp) attaches every owned view's
+// handler and hosts the tree.
 //
 // note: HeaderText / FooterText bind against the CollectionView's BindingContext (the viewmodel). Since
 //       the Header/Footer here are VIEWS (hosted directly, not templated against a per-item context), the
@@ -60,9 +60,6 @@
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -100,30 +97,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (chrome leaves first, the page last), then
-        // re-host the tree built in the ctor (gallery_attach.hpp). The header/footer grids live outside
-        // the scroll extent — re-hosted as layouts so their own children (image/label/buttons) mount.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            // header chrome leaves + grid
-            gallery_attach_one(app, header_image_, "header_image_");
-            gallery_attach_one(app, header_label_, "header_label_");
-            gallery_attach_one(app, *header_chrome_, "header_chrome_");
-            // footer chrome leaves + grid
-            gallery_attach_one(app, footer_image_, "footer_image_");
-            gallery_attach_one(app, footer_label_, "footer_label_");
-            gallery_attach_one(app, add_button_, "add_button_");
-            gallery_attach_one(app, clear_button_, "clear_button_");
-            gallery_attach_one(app, *footer_chrome_, "footer_chrome_");
-            // the list + page
-            gallery_attach_one(app, list_, "list_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(*header_chrome_);
-            gallery_rehost_layout(*footer_chrome_);
-            gallery_rehost_content(page_); // the page hosts the collection_view
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / tests.

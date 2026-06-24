@@ -96,6 +96,21 @@ namespace maui::controls
             }
         }
 
+        // Generic mount hook (element::mount_into_handler): re-fire "set_content" so the presenter's
+        // now-attached handler hosts the packed developer content as a native subview. The presenter's
+        // content is packed in the templated parent's CONSTRUCTOR (before any handler exists), so the
+        // set_content above found no handler and hosted nothing; the generic driver (app_host.hpp) calls
+        // this post-order — after this presenter's handler AND its content's handler are attached — to
+        // replay it. The exact re-host the old gallery_rehost_content(*presenter) hand-fired. A no-op when
+        // no handler / no content (handler()->invoke is safe to call with no presented content).
+        void mount_into_handler() override
+        {
+            if (const auto& element_handler = handler())
+            {
+                element_handler->invoke("set_content");
+            }
+        }
+
     private:
         std::shared_ptr<element> content_; // co-owned while presented (see header comment)
         maui::core::property<maui::core::thickness> padding_{*this, padding_property()};

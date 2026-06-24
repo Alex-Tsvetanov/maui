@@ -23,9 +23,8 @@
 //   - the DataTrigger (disable entry-with-VSM until the enabler entry has text) is reproduced in code: the
 //     enabler entry's text_changed sets the VSM entry's is_enabled, which re-drives change_visual_state.
 //
-// The page OWNS its whole tree; attach_handlers wires every owned VIEW bottom-up.
+// The page OWNS its whole tree; the generic mount attaches every owned view's handler.
 
-#include <cstdio>
 #include <string>
 #include <string_view>
 
@@ -39,9 +38,6 @@
 #include "maui/core/font.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -82,26 +78,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, entry_headline_, "entry_headline_");
-            gallery_attach_one(app, vsm_entry_, "vsm_entry_");
-            gallery_attach_one(app, enabler_headline_, "enabler_headline_");
-            gallery_attach_one(app, enabler_entry_, "enabler_entry_");
-            gallery_attach_one(app, pointer_headline_, "pointer_headline_");
-            gallery_attach_one(app, pointer_button_, "pointer_button_");
-            gallery_attach_one(app, pressed_headline_, "pressed_headline_");
-            gallery_attach_one(app, pressed_explainer_, "pressed_explainer_");
-            gallery_attach_one(app, pressed_button_, "pressed_button_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // ---- headless drivers (observable with no backend) ----

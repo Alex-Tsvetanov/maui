@@ -50,9 +50,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -136,29 +133,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (each grid's children first in add()-order, then
-        // the grid; then the stack, then the page), then re-host the tree built in the ctor
-        // (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, diagonal_path_, "diagonal_path_");
-            gallery_attach_one(app, thick_line_, "thick_line_");
-            gallery_attach_one(app, triangle_, "triangle_");
-            gallery_attach_one(app, circle_, "circle_");
-            gallery_attach_one(app, grid_one_, "grid_one_");
-            gallery_attach_one(app, red_line_, "red_line_");
-            gallery_attach_one(app, blue_line_, "blue_line_");
-            gallery_attach_one(app, green_line_, "green_line_");
-            gallery_attach_one(app, grid_two_, "grid_two_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(grid_one_); // grid 1 hosts its four shapes
-            gallery_rehost_layout(grid_two_); // grid 2 hosts its three lines
-            gallery_rehost_layout(stack_);    // stack hosts the two grids
-            gallery_rehost_content(page_);    // page hosts the stack
         }
 
         // The owned controls, exposed for the hosting main / tests.

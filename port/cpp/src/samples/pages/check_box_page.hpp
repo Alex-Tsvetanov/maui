@@ -7,7 +7,7 @@
 // that recolors the paired check box (and the button's own text + text color), as UpdateControls() does.
 //
 // Self-contained (the value_controls_page pattern): the page OWNS its whole element tree as members,
-// exposes page() and attach_handlers(maui_app). Headless-safe — only cross-platform maui:: API here.
+// exposes page(). Headless-safe — only cross-platform maui:: API here.
 
 #include <cstdio>
 
@@ -18,8 +18,6 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/graphics/colors.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -85,30 +83,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view BOTTOM-UP (leaves → layouts → page), then replay the host
-        // commands the ctor fired before any handler existed (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, default_headline_, "default_headline_");
-            gallery_attach_one(app, default_check_, "default_check_");
-            gallery_attach_one(app, colored_headline_, "colored_headline_");
-            gallery_attach_one(app, colored_check_, "colored_check_");
-            gallery_attach_one(app, disabled_headline_, "disabled_headline_");
-            gallery_attach_one(app, disabled_check_, "disabled_check_");
-            gallery_attach_one(app, disabled_colored_headline_, "disabled_colored_headline_");
-            gallery_attach_one(app, disabled_colored_check_, "disabled_colored_check_");
-            gallery_attach_one(app, change_headline_, "change_headline_");
-            gallery_attach_one(app, change_button_, "change_button_");
-            gallery_attach_one(app, change_check_, "change_check_");
-            gallery_attach_one(app, change_row_, "change_row_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(change_row_);
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
     private:

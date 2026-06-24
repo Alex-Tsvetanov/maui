@@ -9,7 +9,7 @@
 //   Opened/Closed console events).
 //
 // This is a code-first port following the pickers_page pattern: the page OWNS its whole element tree
-// as members, exposes page() and attach_handlers(maui_app). Headless-safe — only cross-platform
+// as members, exposes page(). Headless-safe — only cross-platform
 // maui:: API. The code-behind logic (UpdateTimePickerBackground, the button handlers, the IsOpen
 // Opened/Closed subscriptions, the IsFocused echo) is ported into lambdas on the owned controls.
 //
@@ -53,9 +53,6 @@
 #include "maui/graphics/linear_gradient_paint.hpp"
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -186,65 +183,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves -> rows -> stack -> scroll -> page), then
-        // re-host the tree built in the ctor. EXCLUDES non-view items (paints).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            auto one = [&app](auto& view, const char* name) {
-                try
-                {
-                    app.attach_handler(view);
-                }
-                catch (const std::exception& error)
-                {
-                    std::fprintf(stderr, "[gallery] skip %s: %s\n", name, error.what());
-                }
-            };
-
-            one(default_label_, "default_label_");
-            one(default_time_, "default_time_");
-            one(background_color_label_, "background_color_label_");
-            one(background_color_time_, "background_color_time_");
-            one(gradient_label_, "gradient_label_");
-            one(gradient_time_, "gradient_time_");
-            one(random_background_label_, "random_background_label_");
-            one(background_time_, "background_time_");
-            one(update_background_button_, "update_background_button_");
-            one(clear_background_button_, "clear_background_button_");
-            one(timed_label_, "timed_label_");
-            one(timed_time_, "timed_time_");
-            one(disabled_label_, "disabled_label_");
-            one(disabled_time_, "disabled_time_");
-            one(text_color_label_, "text_color_label_");
-            one(text_color_time_, "text_color_time_");
-            one(format_label_, "format_label_");
-            one(format_time_, "format_time_");
-            one(focus_label_, "focus_label_");
-            one(focus_time_, "focus_time_");
-            one(is_focused_caption_, "is_focused_caption_");
-            one(focus_result_, "focus_result_");
-            one(focus_row_, "focus_row_");
-            one(null_label_, "null_label_");
-            one(null_time_, "null_time_");
-            one(set_null_button_, "set_null_button_");
-            one(set_now_button_, "set_now_button_");
-            one(is_open_label_, "is_open_label_");
-            one(is_open_time_, "is_open_time_");
-            one(open_button_, "open_button_");
-            one(close_button_, "close_button_");
-            one(select_label_, "select_label_");
-            one(select_time_, "select_time_");
-            one(readout_, "readout_");
-            one(stack_, "stack_");
-            one(scroll_, "scroll_");
-            one(page_, "page_");
-
-            gallery_rehost_layout(focus_row_);
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(scroll_);
-            gallery_rehost_content(page_);
         }
 
     private:

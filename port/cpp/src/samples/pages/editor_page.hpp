@@ -33,9 +33,6 @@
 #include "maui/core/keyboard.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/color.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -119,27 +116,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, basic_, "basic_");
-            gallery_attach_one(app, text_color_, "text_color_");
-            gallery_attach_one(app, placeholder_, "placeholder_");
-            gallery_attach_one(app, font_, "font_");
-            gallery_attach_one(app, read_only_, "read_only_");
-            gallery_attach_one(app, numeric_, "numeric_");
-            gallery_attach_one(app, aligned_, "aligned_");
-            gallery_attach_one(app, auto_size_readout_, "auto_size_readout_");
-            gallery_attach_one(app, auto_size_, "auto_size_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

@@ -12,8 +12,8 @@
 // ToggleImageSource swaps the thumb image source in/out (remembering the removed one); the Update Minimum/
 // Maximum buttons set Minimum=4 / Maximum=8 on the dynamic slider then refresh its info label.
 //
-// Self-contained (the value_controls_page pattern): the page OWNS its whole element tree, exposes page()
-// and attach_handlers(maui_app). Headless-safe — only cross-platform maui:: API here.
+// Self-contained (the value_controls_page pattern): the page OWNS its whole element tree, exposes page().
+// Headless-safe — only cross-platform maui:: API here.
 
 #include <cstdio>
 #include <memory>
@@ -33,8 +33,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/solid_paint.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -176,50 +174,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view BOTTOM-UP (leaves → layouts → scroll → page), then replay the
-        // host commands the ctor fired before any handler existed (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, default_headline_, "default_headline_");
-            gallery_attach_one(app, default_slider_, "default_slider_");
-            gallery_attach_one(app, bg_color_headline_, "bg_color_headline_");
-            gallery_attach_one(app, bg_color_slider_, "bg_color_slider_");
-            gallery_attach_one(app, background_headline_, "background_headline_");
-            gallery_attach_one(app, background_slider_, "background_slider_");
-            gallery_attach_one(app, min_max_headline_, "min_max_headline_");
-            gallery_attach_one(app, min_max_slider_, "min_max_slider_");
-            gallery_attach_one(app, min_max_readout_, "min_max_readout_");
-            gallery_attach_one(app, disabled_headline_, "disabled_headline_");
-            gallery_attach_one(app, disabled_slider_, "disabled_slider_");
-            gallery_attach_one(app, min_track_headline_, "min_track_headline_");
-            gallery_attach_one(app, min_track_slider_, "min_track_slider_");
-            gallery_attach_one(app, max_track_headline_, "max_track_headline_");
-            gallery_attach_one(app, max_track_slider_, "max_track_slider_");
-            gallery_attach_one(app, thumb_color_headline_, "thumb_color_headline_");
-            gallery_attach_one(app, thumb_color_slider_, "thumb_color_slider_");
-            gallery_attach_one(app, thumb_image_headline_, "thumb_image_headline_");
-            gallery_attach_one(app, image_slider_, "image_slider_");
-            gallery_attach_one(app, toggle_image_button_, "toggle_image_button_");
-            gallery_attach_one(app, custom_headline_, "custom_headline_");
-            gallery_attach_one(app, custom_slider_, "custom_slider_");
-            gallery_attach_one(app, dynamic_headline_, "dynamic_headline_");
-            gallery_attach_one(app, dynamic_slider_, "dynamic_slider_");
-            gallery_attach_one(app, dynamic_info_, "dynamic_info_");
-            gallery_attach_one(app, update_min_button_, "update_min_button_");
-            gallery_attach_one(app, update_max_button_, "update_max_button_");
-            gallery_attach_one(app, dynamic_buttons_, "dynamic_buttons_");
-            gallery_attach_one(app, edge_headline_, "edge_headline_");
-            gallery_attach_one(app, edge_slider_, "edge_slider_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroll_, "scroll_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(dynamic_buttons_);
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(scroll_);
-            gallery_rehost_content(page_);
         }
 
     private:

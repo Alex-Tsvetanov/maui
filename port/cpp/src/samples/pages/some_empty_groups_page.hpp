@@ -32,7 +32,7 @@
 // snapshot captured at build time — the footer binds that (the documented {Binding Count} stand-in).
 // For the empty groups that count is 0, so their footers read "Total members: 0".
 //
-// The page OWNS its whole element tree (the items_page pattern); attach_handlers wires handlers
+// The page OWNS its whole element tree (the items_page pattern); the generic mount attaches handlers
 // bottom-up then re-hosts the stack + page. The headless collection_view virtualization sim realizes
 // per-section group header/footer supplementals with the group KEY as their binding context — so a
 // static capture shows EVERY group's name + "Total members: N" footer, including the empty ones, which
@@ -51,9 +51,6 @@
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -121,17 +118,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, description_, "description_");
-            gallery_attach_one(app, list_, "list_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_); // the stack hosts the description label + collection view
-            gallery_rehost_content(page_); // the page hosts the stack
         }
 
         [[nodiscard]] maui::controls::collection_view& list()

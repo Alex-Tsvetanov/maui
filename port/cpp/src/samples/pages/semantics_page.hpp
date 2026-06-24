@@ -19,8 +19,8 @@
 // with no headless equivalent; the focus button's handler instead echoes the target label's semantics
 // into the readout (the faithful stand-in for "assistive tech is now focused on this element").
 //
-// The page OWNS its whole element tree (the sample_app pattern). attach_handlers wires every owned view
-// bottom-up via the shared gallery helpers and re-hosts the ctor-built tree.
+// The page OWNS its whole element tree (the sample_app pattern). The generic mount attaches every owned view's
+// handler bottom-up and re-hosts the ctor-built tree.
 
 #include <memory>
 #include <string>
@@ -34,9 +34,6 @@
 #include "maui/controls/search_bar.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/semantics.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -133,41 +130,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view BOTTOM-UP (inner content before its host), then re-host the
-        // ctor-built tree: the nested layout's children, the inner layout, the outer stack, the scroll
-        // view, then the page (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, intro_, "intro_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, label_th_, "label_th_");
-            gallery_attach_one(app, label_dh_, "label_dh_");
-            gallery_attach_one(app, button_th_, "button_th_");
-            gallery_attach_one(app, button_dh_, "button_dh_");
-            gallery_attach_one(app, entry_dth_, "entry_dth_");
-            gallery_attach_one(app, editor_dth_, "editor_dth_");
-            gallery_attach_one(app, search_dh_, "search_dh_");
-            gallery_attach_one(app, heading_intro_, "heading_intro_");
-            gallery_attach_one(app, heading1_, "heading1_");
-            gallery_attach_one(app, heading2_, "heading2_");
-            gallery_attach_one(app, heading3_, "heading3_");
-            gallery_attach_one(app, heading4_, "heading4_");
-            gallery_attach_one(app, layout_desc_intro_, "layout_desc_intro_");
-            gallery_attach_one(app, described_label_a_, "described_label_a_");
-            gallery_attach_one(app, described_label_b_, "described_label_b_");
-            gallery_attach_one(app, described_layout_, "described_layout_");
-            gallery_attach_one(app, focus_button_, "focus_button_");
-            gallery_attach_one(app, focus_label_, "focus_label_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroller_, "scroller_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(described_layout_); // inner layout hosts its two labels
-            gallery_rehost_layout(stack_);            // outer stack hosts everything
-            gallery_rehost_content(scroller_);        // scroll view hosts the stack
-            gallery_rehost_content(page_);            // page hosts the scroll view
         }
 
         // ---- owned controls, exposed for the hosting main / tests ----

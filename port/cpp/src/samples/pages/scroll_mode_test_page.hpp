@@ -60,9 +60,6 @@
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/observable_collection.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -138,29 +135,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            // mode bar leaves
-            gallery_attach_one(app, mode_caption_, "mode_caption_");
-            gallery_attach_one(app, mode_picker_, "mode_picker_");
-            gallery_attach_one(app, mode_bar_, "mode_bar_");
-            // remaining root children + the root + page
-            gallery_attach_one(app, scroll_to_middle_, "scroll_to_middle_");
-            gallery_attach_one(app, add_above_, "add_above_");
-            gallery_attach_one(app, add_below_, "add_below_");
-            gallery_attach_one(app, add_to_end_, "add_to_end_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, list_, "list_");
-            gallery_attach_one(app, root_, "root_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(mode_bar_);
-            gallery_rehost_layout(root_);
-            gallery_rehost_content(page_);
         }
 
         // ---- owned controls exposed for the hosting main / tests ----

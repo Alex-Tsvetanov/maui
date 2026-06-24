@@ -19,7 +19,7 @@
 // Interactions demonstrated:
 //   - the page is a purely visual shadow demo (the C# code-behind is just InitializeComponent() — there
 //     is no logic to port);
-//   - in attach_handlers, the first SwipeView is synthetically opened toward its RightItems side so a
+//   - on mount, the first SwipeView is synthetically opened toward its RightItems side so a
 //     static capture shows the revealed "Add" item alongside the shadowed content (the swipe-to-reveal
 //     gesture has no headless analogue; open() routes through the now-attached handler — see the
 //     swipe_view_seam tests).
@@ -56,8 +56,6 @@
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -125,55 +123,12 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED view, BOTTOM-UP (the content labels + grids, the shadowed
-        // borders, the custom item-view borders + their swipe_item_views, the two swipe_views, the captions
-        // + headline, the stack, then the page), then re-host the tree built in the ctor. The text
-        // swipe_item members are NON-view items (no standalone handler), deliberately excluded — attaching
-        // one would throw. The swipe_item_views ARE views, so they DO attach. After re-hosting,
-        // synthetically open the first swipe_view toward its RightItems side. (gallery_attach.hpp)
-        void attach_handlers(maui::hosting::maui_app& app)
+        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
+        // handler + builds the native tree. Synthetically open the first swipe_view toward its RightItems side
+        // so a static capture shows the revealed "Add" item alongside the shadowed content. All per-control
+        // attach + re-host plumbing is now the generic mount's job.
+        void on_mounted(maui::hosting::maui_app& /*app*/)
         {
-            // #1 content (bottom-up): label → grid → shadowed border → swipe.
-            gallery_attach_one(app, items_content_label_, "items_content_label_");
-            gallery_attach_one(app, items_content_grid_, "items_content_grid_");
-            gallery_attach_one(app, items_border_, "items_border_");
-            gallery_attach_one(app, items_swipe_, "items_swipe_");
-
-            // #2 custom item-view borders (bottom-up): label → border → swipe_item_view.
-            gallery_attach_one(app, view_delete_label_, "view_delete_label_");
-            gallery_attach_one(app, view_delete_border_, "view_delete_border_");
-            gallery_attach_one(app, view_delete_item_, "view_delete_item_");
-            gallery_attach_one(app, view_add_label_, "view_add_label_");
-            gallery_attach_one(app, view_add_border_, "view_add_border_");
-            gallery_attach_one(app, view_add_item_, "view_add_item_");
-            // #2 content (bottom-up): label → grid → shadowed border → swipe.
-            gallery_attach_one(app, view_content_label_, "view_content_label_");
-            gallery_attach_one(app, view_content_grid_, "view_content_grid_");
-            gallery_attach_one(app, view_border_, "view_border_");
-            gallery_attach_one(app, view_swipe_, "view_swipe_");
-
-            gallery_attach_one(app, headline_, "headline_");
-            gallery_attach_one(app, items_caption_, "items_caption_");
-            gallery_attach_one(app, item_views_caption_, "item_views_caption_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            // The tree was built in the ctor before any handler existed, so replay the host commands now.
-            gallery_rehost_layout(items_content_grid_);
-            gallery_rehost_content(items_border_);
-            gallery_rehost_content(items_swipe_);
-
-            gallery_rehost_content(view_delete_border_); // border hosts its label
-            gallery_rehost_content(view_delete_item_);   // item-view hosts its border
-            gallery_rehost_content(view_add_border_);
-            gallery_rehost_content(view_add_item_);
-            gallery_rehost_layout(view_content_grid_);
-            gallery_rehost_content(view_border_);
-            gallery_rehost_content(view_swipe_);
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
-
             // Static-capture seam: reveal the first swipe_view's RightItems ("Add"). open() routes through
             // the now-attached handler (the swipe gesture has no headless analogue — swipe_view_seam tests).
             items_swipe_.open(maui::core::open_swipe_item::right_items);

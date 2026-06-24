@@ -23,7 +23,6 @@
 // to it identically and it needs no image asset to render in the headless gallery (note: the C# original
 // animates an Image — swap the label for an image + set_source to mirror the asset exactly).
 
-#include <cstdio>
 #include <string>
 
 #include "maui/animations/easing.hpp"
@@ -33,9 +32,6 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/controls/view_extensions.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -71,31 +67,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor so the native panel materializes (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            auto one = [&app](auto& v, const char* n) {
-                try
-                {
-                    app.attach_handler(v);
-                }
-                catch (const std::exception& e)
-                {
-                    std::fprintf(stderr, "[gallery] skip %s: %s\n", n, e.what());
-                }
-            };
-            one(target_, "target_");
-            one(start_button_, "start_button_");
-            one(custom_button_, "custom_button_");
-            one(cancel_button_, "cancel_button_");
-            one(stack_, "stack_");
-            one(page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // Owned controls, exposed for tests / the hosting main.

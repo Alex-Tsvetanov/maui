@@ -68,9 +68,6 @@
 #include "maui/core/type_tag.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -195,28 +192,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, list_, "list_");
-            gallery_attach_one(app, insert_, "insert_");
-            gallery_attach_one(app, add_, "add_");
-            gallery_attach_one(app, remove_, "remove_");
-            gallery_attach_one(app, button_row_, "button_row_");
-            gallery_attach_one(app, index_label_, "index_label_");
-            gallery_attach_one(app, index_entry_, "index_entry_");
-            gallery_attach_one(app, template_picker_, "template_picker_");
-            gallery_attach_one(app, panel_, "panel_");
-            gallery_attach_one(app, grid_, "grid_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(button_row_); // the 3-button row
-            gallery_rehost_layout(panel_);      // the control-panel stack
-            gallery_rehost_layout(grid_);       // the page grid (collection view + panel)
-            gallery_rehost_content(page_);      // the page hosts the grid
         }
 
         // ---- the xaml.cs button handlers (IsValid(index) guard + the live-collection mutation) ----

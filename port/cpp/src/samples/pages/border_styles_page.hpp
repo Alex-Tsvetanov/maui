@@ -55,9 +55,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -113,31 +110,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the stack's children + the update border's content
-        // first, then the stack, then the page) so each parent can host its child's native view, then re-host
-        // the tree built in the ctor (gallery_attach.hpp). The generic lambda preserves each member's concrete
-        // static type — attach_handler keys on the static type, so an i_view& parameter would erase it.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, style_caption_, "style_caption_");
-            gallery_attach_one(app, styled_border_, "styled_border_");
-            gallery_attach_one(app, bound_caption_, "bound_caption_");
-            gallery_attach_one(app, bound_border_, "bound_border_");
-            gallery_attach_one(app, update_caption_, "update_caption_");
-            gallery_attach_one(app, update_info_, "update_info_");
-            gallery_attach_one(app, update_border_, "update_border_");
-            gallery_attach_one(app, increase_button_, "increase_button_");
-            gallery_attach_one(app, decrease_button_, "decrease_button_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            // The tree was built in the ctor before any handler existed, so replay the host commands now: the
-            // update border hosts its info label, the stack hosts its children, the page hosts the stack.
-            gallery_rehost_content(update_border_); // border hosts update_info_
-            gallery_rehost_layout(stack_);          // stack hosts captions + borders + buttons
-            gallery_rehost_content(page_);          // page hosts the stack
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

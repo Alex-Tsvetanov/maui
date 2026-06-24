@@ -37,9 +37,6 @@
 #include "maui/controls/stack_layout.hpp"
 #include "maui/core/dispatcher.hpp"
 #include "maui/core/manual_dispatcher.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -114,36 +111,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last) so each parent can
-        // host its child's native view, then re-host the tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, fail_prompt_, "fail_prompt_");
-            gallery_attach_one(app, fail_button_, "fail_button_");
-            gallery_attach_one(app, fail_label_, "fail_label_");
-            gallery_attach_one(app, happy_prompt_, "happy_prompt_");
-            gallery_attach_one(app, access_button_, "access_button_");
-            gallery_attach_one(app, happy_label_, "happy_label_");
-            gallery_attach_one(app, later_prompt_, "later_prompt_");
-            gallery_attach_one(app, later_button_, "later_button_");
-            gallery_attach_one(app, later_label_, "later_label_");
-            gallery_attach_one(app, timer_prompt_, "timer_prompt_");
-            gallery_attach_one(app, timer_button_, "timer_button_");
-            gallery_attach_one(app, timer_label_, "timer_label_");
-            gallery_attach_one(app, obsolete_prompt_a_, "obsolete_prompt_a_");
-            gallery_attach_one(app, obsolete_prompt_b_, "obsolete_prompt_b_");
-            gallery_attach_one(app, obsolete_button_, "obsolete_button_");
-            gallery_attach_one(app, obsolete_label_, "obsolete_label_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroller_, "scroller_");
-            gallery_attach_one(app, page_, "page_");
-
-            // The tree was built in the ctor before any handler existed, so replay the host commands now.
-            gallery_rehost_layout(stack_);     // stack hosts the prompt/button/label rows
-            gallery_rehost_content(scroller_); // scroll_view hosts the stack
-            gallery_rehost_content(page_);     // page hosts the scroll_view
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / inspection.

@@ -3,8 +3,7 @@
 //
 // A self-contained, code-first demo page for maui::controls::label. Mirrors the EXACT shape of
 // value_controls_page.hpp / input_controls_page.hpp / formatted_text_page.hpp: the class OWNS its whole
-// element tree as members, exposes page() and attach_handlers(maui_app) (bottom-up, leaves first →
-// layout → page, via the shared gallery_attach helpers), and uses only cross-platform maui:: API so it
+// element tree as members, exposes page(), and uses only cross-platform maui:: API so it
 // stays headless-safe.
 //
 // What the MAUI page demonstrates (reproduced here so the demo visibly exercises the control):
@@ -41,8 +40,6 @@
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -168,37 +165,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, defaults_label_, "defaults_label_");
-            gallery_attach_one(app, text_color_label_, "text_color_label_");
-            gallery_attach_one(app, background_label_, "background_label_");
-            gallery_attach_one(app, h_start_label_, "h_start_label_");
-            gallery_attach_one(app, h_center_label_, "h_center_label_");
-            gallery_attach_one(app, h_end_label_, "h_end_label_");
-            gallery_attach_one(app, h_justify_label_, "h_justify_label_");
-            gallery_attach_one(app, v_start_label_, "v_start_label_");
-            gallery_attach_one(app, v_center_label_, "v_center_label_");
-            gallery_attach_one(app, v_end_label_, "v_end_label_");
-            gallery_attach_one(app, formatted_label_, "formatted_label_");
-            gallery_attach_one(app, change_formatted_button_, "change_formatted_button_");
-            gallery_attach_one(app, max_lines_1_label_, "max_lines_1_label_");
-            gallery_attach_one(app, max_lines_2_label_, "max_lines_2_label_");
-            gallery_attach_one(app, no_wrap_label_, "no_wrap_label_");
-            gallery_attach_one(app, word_wrap_label_, "word_wrap_label_");
-            gallery_attach_one(app, head_trunc_label_, "head_trunc_label_");
-            gallery_attach_one(app, middle_trunc_label_, "middle_trunc_label_");
-            gallery_attach_one(app, tail_trunc_label_, "tail_trunc_label_");
-            gallery_attach_one(app, char_wrap_label_, "char_wrap_label_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / tests.

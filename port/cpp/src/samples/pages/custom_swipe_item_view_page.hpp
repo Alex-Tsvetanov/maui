@@ -20,18 +20,17 @@
 //   - the right swipe item is a CUSTOM swipe_item_view: its invoked event IS the command channel (the
 //     W1-11 command-as-event collapse, matching MAUI's Command="...FavouriteCommand" binding). invoked
 //     drives the readout to "Favourite invoked".
-//   - attach_handlers() synthetically OPENS the right items (open(right_items)) so the static capture
+//   - the page's mount hook synthetically OPENS the right items (open(right_items)) so the static capture
 //     shows the revealed custom swipe item content, and reports the open via open_requested → readout.
 //
-// The page OWNS its whole element tree; it is backend-agnostic. A sample main attaches handlers bottom-up
-// and hosts page() in a window; the headless/apple/ios trees exercise the same wiring.
+// The page OWNS its whole element tree; it is backend-agnostic. A sample main mounts the tree generically
+// (maui::hosting::mount_window) and hosts page() in a window; the headless/apple/ios trees exercise the same wiring.
 //
 // note: MAUI's CollectionView ItemsSource binding to a SwipeViewGalleryViewModel (a list of Message
 // {Title, Date}) and the WeakReferenceMessenger "favourite"/"delete" DisplayAlert handlers are not
 // ported — the item-view host + messenger + modal alert are out of scope at this layer. The single
 // representative row + the invoked-driven readout capture the same observable swipe interaction.
 
-#include <cstdio>
 #include <memory>
 
 #include "maui/controls/border.hpp"
@@ -53,8 +52,6 @@
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -135,34 +132,12 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last) so each parent can
-        // host its child's native view, then re-host the tree built in the ctor (gallery_attach.hpp). The
-        // swipe_item_view IS a view (custom content) so it gets a handler + a content re-host; the swipe
-        // items collection and the (non-existent) plain swipe_item are non-view and excluded.
-        void attach_handlers(maui::hosting::maui_app& app)
+        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
+        // handler + builds the native tree. Synthetically open the right items so a static capture shows the
+        // revealed custom swipe item content. All per-control attach + re-host plumbing is now the generic
+        // mount's job.
+        void on_mounted(maui::hosting::maui_app& /*app*/)
         {
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, favourite_label_, "favourite_label_");
-            gallery_attach_one(app, favourite_border_, "favourite_border_");
-            gallery_attach_one(app, favourite_item_, "favourite_item_");
-            gallery_attach_one(app, title_label_, "title_label_");
-            gallery_attach_one(app, date_label_, "date_label_");
-            gallery_attach_one(app, row_grid_, "row_grid_");
-            gallery_attach_one(app, row_frame_, "row_frame_");
-            gallery_attach_one(app, swipe_, "swipe_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            // Replay the host commands the ctor fired before any handler existed.
-            gallery_rehost_content(favourite_border_); // border hosts the "Favourite" label
-            gallery_rehost_content(favourite_item_);   // custom swipe item hosts the border
-            gallery_rehost_layout(row_grid_);          // grid hosts the title + date labels
-            gallery_rehost_content(row_frame_);        // frame hosts the grid
-            gallery_rehost_content(swipe_);            // swipe_view hosts the frame row
-            gallery_rehost_layout(stack_);             // stack hosts the readout + swipe
-            gallery_rehost_content(page_);             // page hosts the stack
-
-            // Synthetically OPEN the right items so the static capture shows the revealed custom swipe item.
             swipe_.open(maui::core::open_swipe_item::right_items);
         }
 

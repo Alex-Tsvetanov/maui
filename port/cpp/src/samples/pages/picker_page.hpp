@@ -3,8 +3,8 @@
 //
 // A self-contained, code-first demo page for the Picker control (the C# gallery-page convention,
 // mirroring the value_controls_page / pickers_page pattern). The page OWNS its whole element tree;
-// `page()` hands back the content_page and `attach_handlers(maui_app)` mounts every owned VIEW
-// bottom-up (leaves → layout → page) through a guarded try/catch, then re-hosts the tree.
+// `page()` hands back the content_page; the generic mount (app_host.hpp) attaches every owned view's
+// handler and hosts the tree.
 //
 // The C# page is a scroll of headline-labelled Picker variants exercising a wide property surface.
 // This port keeps the cross-platform-API subset and wires the demonstrated INTERACTIONS so every
@@ -27,7 +27,6 @@
 //   - C#'s ItemDisplayBinding ("{Binding Name}") is string-only in the port (the display value IS the
 //     string item), so the BindingContext block collapses to a plain Items picker.
 
-#include <cstdio>
 #include <memory>
 #include <string>
 
@@ -41,8 +40,6 @@
 #include "maui/core/font.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -162,39 +159,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host
-        // the tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, basic_label_, "basic_label_");
-            gallery_attach_one(app, basic_picker_, "basic_picker_");
-            gallery_attach_one(app, preselect_label_, "preselect_label_");
-            gallery_attach_one(app, preselect_picker_, "preselect_picker_");
-            gallery_attach_one(app, changed_label_, "changed_label_");
-            gallery_attach_one(app, changed_picker_, "changed_picker_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, text_color_label_, "text_color_label_");
-            gallery_attach_one(app, text_color_picker_, "text_color_picker_");
-            gallery_attach_one(app, title_color_label_, "title_color_label_");
-            gallery_attach_one(app, title_color_picker_, "title_color_picker_");
-            gallery_attach_one(app, styled_label_, "styled_label_");
-            gallery_attach_one(app, styled_picker_, "styled_picker_");
-            gallery_attach_one(app, dynamic_label_, "dynamic_label_");
-            gallery_attach_one(app, dynamic_picker_, "dynamic_picker_");
-            gallery_attach_one(app, clear_items_button_, "clear_items_button_");
-            gallery_attach_one(app, add_items_button_, "add_items_button_");
-            gallery_attach_one(app, replace_items_button_, "replace_items_button_");
-            gallery_attach_one(app, markup_label_, "markup_label_");
-            gallery_attach_one(app, markup_picker_, "markup_picker_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroll_, "scroll_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(scroll_); // scroll_view hosts the stack
-            gallery_rehost_content(page_);   // page hosts the scroll_view
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment + the tests.

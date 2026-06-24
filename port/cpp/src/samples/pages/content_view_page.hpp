@@ -30,9 +30,6 @@
 #include "maui/controls/scroll_view.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/thickness.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -82,29 +79,6 @@ namespace maui::samples
             alternate_text_ = std::make_shared<maui::controls::label>();
             alternate_text_->set_text("Swapped content");
             wrapper_.set_content(alternate_text_);
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the inner content before the wrapper, then the
-        // stack, the scroll_view, and the page last), then re-host the tree built in the ctor.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, default_header_, "default_header_");
-            gallery_attach_one(app, *wrapped_text_, "wrapped_text_");
-            if (alternate_text_)
-            {
-                gallery_attach_one(app, *alternate_text_, "alternate_text_");
-            }
-            gallery_attach_one(app, wrapper_, "wrapper_");
-            gallery_attach_one(app, swap_header_, "swap_header_");
-            gallery_attach_one(app, swap_button_, "swap_button_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroller_, "scroller_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_content(wrapper_);  // content_view hosts its presented label
-            gallery_rehost_layout(stack_);     // stack hosts the headers + the wrapper
-            gallery_rehost_content(scroller_); // scroll_view hosts the stack
-            gallery_rehost_content(page_);     // page hosts the scroll_view
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

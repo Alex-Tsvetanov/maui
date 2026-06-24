@@ -47,8 +47,6 @@
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
 
-#include "gallery_attach.hpp"
-
 namespace maui::samples
 {
     class invalidate_brush_page
@@ -95,21 +93,12 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED view, BOTTOM-UP (the stack's children in add()-order, then the
-        // stack, then the page), then re-host the tree built in the ctor (gallery_attach.hpp). The generic
-        // auto& parameter preserves each member's concrete static type.
-        void attach_handlers(maui::hosting::maui_app& app)
+        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
+        // handler + builds the native tree. Replay the initial brush so both consumers (line stroke + button
+        // background) paint the start color now that handlers exist. All per-control attach + re-host plumbing
+        // is now the generic mount's job.
+        void on_mounted(maui::hosting::maui_app& /*app*/)
         {
-            gallery_attach_one(app, change_color_, "change_color_");
-            gallery_attach_one(app, line_, "line_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_); // stack hosts the button + line + readout
-            gallery_rehost_content(page_); // page hosts the stack
-
-            // The handlers exist now, so replay the initial brush so both consumers paint the start color.
             apply_brush();
         }
 

@@ -21,7 +21,7 @@
 // applicable and intentionally omitted.
 //
 // Self-contained (the value_controls_page pattern): the page OWNS its whole element tree, exposes
-// page() and attach_handlers(maui_app).
+// page().
 
 #include <cstdio>
 
@@ -32,9 +32,6 @@
 #include "maui/controls/slider.hpp"
 #include "maui/controls/stepper.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -174,47 +171,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the stack's children in add()-order, then the
-        // stack, the scroll_view, the page), then re-host the ctor-built tree.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            auto one = [&app](auto& view, const char* name) { gallery_attach_one(app, view, name); };
-
-            one(target_, "target_");
-
-            one(scale_readout_, "scale_readout_");
-            one(scale_slider_, "scale_slider_");
-            one(scale_x_readout_, "scale_x_readout_");
-            one(scale_x_slider_, "scale_x_slider_");
-            one(scale_y_readout_, "scale_y_readout_");
-            one(scale_y_slider_, "scale_y_slider_");
-
-            one(rotation_readout_, "rotation_readout_");
-            one(rotation_slider_, "rotation_slider_");
-            one(rotation_x_readout_, "rotation_x_readout_");
-            one(rotation_x_slider_, "rotation_x_slider_");
-            one(rotation_y_readout_, "rotation_y_readout_");
-            one(rotation_y_slider_, "rotation_y_slider_");
-
-            one(anchor_x_readout_, "anchor_x_readout_");
-            one(anchor_x_stepper_, "anchor_x_stepper_");
-            one(anchor_y_readout_, "anchor_y_readout_");
-            one(anchor_y_stepper_, "anchor_y_stepper_");
-
-            one(translation_x_readout_, "translation_x_readout_");
-            one(translation_x_slider_, "translation_x_slider_");
-            one(translation_y_readout_, "translation_y_readout_");
-            one(translation_y_slider_, "translation_y_slider_");
-
-            one(stack_, "stack_");
-            one(scroller_, "scroller_");
-            one(page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(scroller_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main / tests.

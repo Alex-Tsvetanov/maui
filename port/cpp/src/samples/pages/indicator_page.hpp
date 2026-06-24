@@ -53,9 +53,6 @@
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -160,37 +157,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the grid's children first in add()-order, then
-        // the grid, then the page), then re-host the tree built in the ctor (gallery_attach.hpp). The
-        // generic lambda preserves each member's concrete static type — attach_handler keys on the static
-        // type, so an i_view& parameter would erase it and find no handler (a blank page).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, basic_label_, "basic_label_");
-            gallery_attach_one(app, basic_indicator_, "basic_indicator_");
-            gallery_attach_one(app, colors_label_, "colors_label_");
-            gallery_attach_one(app, colors_indicator_, "colors_indicator_");
-            gallery_attach_one(app, shape_label_, "shape_label_");
-            gallery_attach_one(app, shape_indicator_, "shape_indicator_");
-            gallery_attach_one(app, size_label_, "size_label_");
-            gallery_attach_one(app, size_indicator_, "size_indicator_");
-            gallery_attach_one(app, hide_single_label_, "hide_single_label_");
-            gallery_attach_one(app, hide_single_indicator_, "hide_single_indicator_");
-            gallery_attach_one(app, max_visible_label_, "max_visible_label_");
-            gallery_attach_one(app, max_visible_indicator_, "max_visible_indicator_");
-            gallery_attach_one(app, template_label_, "template_label_");
-            gallery_attach_one(app, template_indicator_, "template_indicator_");
-            gallery_attach_one(app, carousel_label_, "carousel_label_");
-            gallery_attach_one(app, carousel_, "carousel_");
-            gallery_attach_one(app, carousel_indicator_, "carousel_indicator_");
-            gallery_attach_one(app, grid_, "grid_");
-            gallery_attach_one(app, page_, "page_");
-
-            // The tree was built in the ctor before any handler existed, so replay the host commands now.
-            gallery_rehost_layout(grid_);  // grid hosts its caption/indicator/carousel children
-            gallery_rehost_content(page_); // page hosts the grid
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

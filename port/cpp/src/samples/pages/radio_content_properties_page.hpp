@@ -51,9 +51,6 @@
 #include "maui/controls/stack_layout.hpp"
 #include "maui/core/font.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -136,34 +133,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (captions + radios, then the stack, then the
-        // page), then re-host the tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            auto one = [&app](auto& view, const char* name) { gallery_attach_one(app, view, name); };
-
-            one(caption_intro_, "caption_intro_");
-            one(caption_a_, "caption_a_");
-            one(option_a_, "option_a_");
-            one(caption_b_, "caption_b_");
-            one(option_b_, "option_b_");
-            one(caption_button_, "caption_button_");
-            one(radio_button_content_, "radio_button_content_");
-            one(caption_semantic1_, "caption_semantic1_");
-            one(radio_semantic1_, "radio_semantic1_");
-            one(caption_semantic2_, "caption_semantic2_");
-            one(radio_semantic2_, "radio_semantic2_");
-            one(caption_already_set_, "caption_already_set_");
-            one(radio_already_set_, "radio_already_set_");
-            one(radio_already_bound_, "radio_already_bound_");
-
-            one(stack_, "stack_");
-            one(page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's inspection.

@@ -5,16 +5,16 @@
 // gallery_host.hpp's MAUI_GALLERY_PAGES X-macro; this main expands it to dispatch the runtime env string
 // to a compile-time gallery_app<PageType>.
 //
-// The mount recipe (verified):
+// The mount recipe (now the GENERIC driver — app_host.hpp, Stage 5a):
 //   1. Build the app through the hosting builder: use_maui_app<gallery_app<Page>> mints it (it OWNS the
 //      window + the page, and create_window() returns the window).
-//   2. Attach handlers BOTTOM-UP: the page's owned controls first (page.attach_handlers, leaves→page),
-//      then the window LAST.
-//   3. open_window drives the lifecycle + the window_handler host_content (the NSWindow's contentView
-//      becomes the page's native view).
-//   4. The window host does NOT auto-layout: measure(W,H) then arrange({0,0,W,H}) frames every native
-//      child view.
-//   5. Show the NSWindow (setContentSize / center / makeKeyAndOrderFront + activate).
+//   2. mount_window walks the page's element tree, attaches a handler to every element (children before
+//      parents) + re-hosts each container, attaches the window handler, and opens the window — NO per-page
+//      attach_handlers / gallery_rehost plumbing. The NSWindow's contentView becomes the page's native view.
+//   3. The window host does NOT auto-layout: measure to get the content height, then drive_layout frames
+//      every native child over the clamped content rect (the AppKit unflipped-bottom-anchor gallery choice
+//      below).
+//   4. Show the NSWindow (setContentSize / center / makeKeyAndOrderFront + activate).
 //
 // Build (apple preset) + run:
 //   cmake --build --preset apple --target maui_macos_gallery
@@ -36,6 +36,8 @@
 #include "maui/controls/window.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/window_handler.hpp"
+#include "maui/graphics/rect.hpp"
+#include "maui/hosting/app_host.hpp"
 #include "maui/hosting/maui_app.hpp"
 #include "maui/hosting/maui_app_builder.hpp"
 
@@ -58,27 +60,32 @@ namespace
             maui::hosting::maui_app::create_builder().use_maui_app<app_type>().build();
         auto* const app = maui_app->application_as<app_type>().get();
 
-        // (2) Attach handlers bottom-up: the page's owned controls first, then the window LAST.
-        app->page_member().attach_handlers(*maui_app);
-        const auto window_handler =
-            std::dynamic_pointer_cast<maui::core::window_handler>(maui_app->attach_handler(app->win()));
+        // (2) Generic mount: attach handlers across the page tree (children before parents), re-host each
+        //     container, attach the window handler, open the window — NO per-page attach_handlers plumbing.
+        //     gallery_pre_mount lets a page register a user-control handler first (custom_layout_page);
+        //     gallery_post_mount runs a page's post-mount demo seeding after the tree is live (both no-ops
+        //     unless the page opts in — gallery_host.hpp).
+        maui::samples::gallery_pre_mount(*maui_app, app->page_member());
+        maui::hosting::mount_window(*maui_app, app->win());
+        maui::samples::gallery_post_mount(*maui_app, app->page_member());
+        const auto window_handler = std::dynamic_pointer_cast<maui::core::window_handler>(app->win().handler());
 
-        // (3) Open the window: drives the lifecycle + hosts the page's native view in the NSWindow.
-        maui_app->open_window(app->win());
-
-        // (4) Lay out the tree: the window host does no auto-layout, so measure + arrange explicitly.
+        // (3) Lay out the tree: the window host does no auto-layout, so measure + drive_layout explicitly.
         // NOTE (AppKit): the page/layout host panels are plain (UNFLIPPED) NSViews, so a vertical stack
         // arranges its first child at MAUI-y≈0 — which AppKit renders at the BOTTOM. To keep the content
         // fully on-screen we size the window's content height to the MEASURED content height (clamped to
         // k_window_height), so the bottom-anchored block fills the visible window top-to-bottom rather
         // than sinking off the bottom edge of a taller window. A purely presentational gallery choice.
+        // The measure here computes that clamped height; drive_layout then measures + arranges the tree over
+        // {0,0,k_window_width,content_height} through the generic path (the gallery has no VC-backed roots
+        // on macOS — root_view_controller() is always null — so the safe-area branch == full bounds).
         auto& root = static_cast<maui::core::i_view&>(app->page_member().page());
         const maui::graphics::size measured = root.measure(k_window_width, k_window_height);
         const double content_height =
             std::min(k_window_height, measured.height > 0 ? measured.height : k_window_height);
-        root.arrange(maui::graphics::rect{0, 0, k_window_width, content_height});
+        maui::hosting::drive_layout(app->win(), k_window_width, content_height);
 
-        // (5) Show the NSWindow centered + frontmost.
+        // (4) Show the NSWindow centered + frontmost.
         auto* const ns_window = (__bridge NSWindow*)window_handler->typed_platform_view()->native;
 
         // Appearance toggle for the parity-comparison capture loop: MAUI_APPEARANCE=dark|light forces the

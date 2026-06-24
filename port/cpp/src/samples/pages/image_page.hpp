@@ -3,8 +3,7 @@
 //
 // A self-contained, code-first demo page for maui::controls::image. Mirrors the EXACT shape of
 // value_controls_page.hpp / input_controls_page.hpp: the class OWNS its whole element tree as members,
-// exposes page() and attach_handlers(maui_app) (bottom-up, leaves first → layout → page, via the shared
-// gallery_attach helpers), and uses only cross-platform maui:: API so it stays headless-safe.
+// exposes page(), and uses only cross-platform maui:: API so it stays headless-safe.
 //
 // What the MAUI page demonstrates (reproduced here so the demo visibly exercises the control):
 //   - UriSource: an image whose Source is a remote URI (image_source::from_uri),
@@ -42,9 +41,6 @@
 #include "maui/core/i_stream_image_source.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -145,38 +141,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, uri_caption_, "uri_caption_");
-            gallery_attach_one(app, uri_image_, "uri_image_");
-            gallery_attach_one(app, file_caption_, "file_caption_");
-            gallery_attach_one(app, file_image_, "file_image_");
-            gallery_attach_one(app, font_caption_, "font_caption_");
-            gallery_attach_one(app, font_image_, "font_image_");
-            gallery_attach_one(app, font_scaled_caption_, "font_scaled_caption_");
-            gallery_attach_one(app, font_scaled_image_, "font_scaled_image_");
-            gallery_attach_one(app, gif_caption_, "gif_caption_");
-            gallery_attach_one(app, animation_switch_, "animation_switch_");
-            gallery_attach_one(app, switch_gif_, "switch_gif_");
-            gallery_attach_one(app, stream_caption_, "stream_caption_");
-            gallery_attach_one(app, stream_image_, "stream_image_");
-            gallery_attach_one(app, opacity_caption_, "opacity_caption_");
-            gallery_attach_one(app, opacity_image_, "opacity_image_");
-            gallery_attach_one(app, animated_caption_, "animated_caption_");
-            gallery_attach_one(app, animated_gif_, "animated_gif_");
-            gallery_attach_one(app, start_stop_button_, "start_stop_button_");
-            gallery_attach_one(app, use_online_button_, "use_online_button_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroll_, "scroll_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(scroll_); // scroll_view hosts the stack
-            gallery_rehost_content(page_);   // page hosts the scroll_view
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / tests.

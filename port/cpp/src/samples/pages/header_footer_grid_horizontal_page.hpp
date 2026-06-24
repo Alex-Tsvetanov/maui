@@ -35,8 +35,8 @@
 //   - toggle_header()/toggle_footer() reproduce the stash-and-flip logic; add_content() appends a
 //     "Grow" label to the inner horizontal stack the tapped button sits in (the C# parent walk).
 //
-// The page OWNS its whole element tree (the items_page pattern); attach_handlers wires every owned view
-// bottom-up and re-hosts the tree (gallery_attach.hpp).
+// The page OWNS its whole element tree (the items_page pattern); the generic mount (app_host.hpp) attaches
+// every owned view's handler and hosts the tree.
 //
 // note: ExampleTemplates.PhotoTemplate() pairs an Image (bound to "Image") above a caption Label (bound
 //       to "Caption"). The port item cell is the caption Label only — an Image row would need an
@@ -46,7 +46,6 @@
 //       resolves a real on-disk asset — absent one it stays a sized placeholder (the structure is what
 //       the demo shows).
 
-#include <cstdio>
 #include <memory>
 #include <string>
 #include <vector>
@@ -70,9 +69,6 @@
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -135,42 +131,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp). The header/footer chrome stacks live outside the
-        // scroll extent — they are re-hosted as layouts so their own children (image/label/inner
-        // stack/button) mount.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            // header chrome leaves
-            gallery_attach_one(app, header_image_, "header_image_");
-            gallery_attach_one(app, header_label_, "header_label_");
-            gallery_attach_one(app, header_add_button_, "header_add_button_");
-            gallery_attach_one(app, header_button_row_, "header_button_row_");
-            gallery_attach_one(app, header_chrome_stack(), "header_chrome_");
-            // footer chrome leaves
-            gallery_attach_one(app, footer_image_, "footer_image_");
-            gallery_attach_one(app, footer_label_, "footer_label_");
-            gallery_attach_one(app, footer_add_button_, "footer_add_button_");
-            gallery_attach_one(app, footer_button_row_, "footer_button_row_");
-            gallery_attach_one(app, footer_chrome_stack(), "footer_chrome_");
-            // the toggle buttons + their stack
-            gallery_attach_one(app, toggle_header_button_, "toggle_header_button_");
-            gallery_attach_one(app, toggle_footer_button_, "toggle_footer_button_");
-            gallery_attach_one(app, toggles_, "toggles_");
-            // the list, grid, page
-            gallery_attach_one(app, list_, "list_");
-            gallery_attach_one(app, grid_, "grid_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(header_button_row_);
-            gallery_rehost_layout(header_chrome_stack());
-            gallery_rehost_layout(footer_button_row_);
-            gallery_rehost_layout(footer_chrome_stack());
-            gallery_rehost_layout(toggles_);
-            gallery_rehost_layout(grid_); // the grid hosts the toggles + collection_view
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / tests.
@@ -291,15 +251,6 @@ namespace maui::samples
             footer_chrome_->add(footer_image_);
             footer_chrome_->add(footer_label_);
             footer_chrome_->add(footer_button_row_);
-        }
-
-        [[nodiscard]] maui::controls::vertical_stack_layout& header_chrome_stack()
-        {
-            return *header_chrome_;
-        }
-        [[nodiscard]] maui::controls::vertical_stack_layout& footer_chrome_stack()
-        {
-            return *footer_chrome_;
         }
 
         std::shared_ptr<maui::core::observable_collection<demo_item>> items_; // publisher before the list (§8)

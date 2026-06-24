@@ -7,8 +7,8 @@
 // has no behavior beyond InitializeComponent, so this page adds a small live readout: toggling the first
 // switch updates a label, exercising the IsToggled property + Toggled event end-to-end.
 //
-// Self-contained (the value_controls_page pattern): the page OWNS its whole element tree, exposes page()
-// and attach_handlers(maui_app). Headless-safe — only cross-platform maui:: API here.
+// Self-contained (the value_controls_page pattern): the page OWNS its whole element tree, exposes page().
+// Headless-safe — only cross-platform maui:: API here.
 
 #include "maui/controls/brushes/gradient_stop.hpp"
 #include "maui/controls/brushes/linear_gradient_brush.hpp"
@@ -22,8 +22,6 @@
 
 #include <memory>
 #include <vector>
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -95,30 +93,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view BOTTOM-UP (leaves → layout → page), then replay the host
-        // commands the ctor fired before any handler existed (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, default_headline_, "default_headline_");
-            gallery_attach_one(app, default_switch_, "default_switch_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, bg_color_headline_, "bg_color_headline_");
-            gallery_attach_one(app, bg_color_switch_, "bg_color_switch_");
-            gallery_attach_one(app, background_headline_, "background_headline_");
-            gallery_attach_one(app, background_switch_, "background_switch_");
-            gallery_attach_one(app, disabled_headline_, "disabled_headline_");
-            gallery_attach_one(app, disabled_switch_, "disabled_switch_");
-            gallery_attach_one(app, on_color_headline_, "on_color_headline_");
-            gallery_attach_one(app, on_color_switch_, "on_color_switch_");
-            gallery_attach_one(app, thumb_color_headline_, "thumb_color_headline_");
-            gallery_attach_one(app, thumb_color_switch_, "thumb_color_switch_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
     private:

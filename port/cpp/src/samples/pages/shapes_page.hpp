@@ -30,9 +30,6 @@
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -116,27 +113,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the stack's children first in add()-order, then
-        // the stack, the scroll_view, then the page), then re-host the tree built in the ctor.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, ellipse_label_, "ellipse_label_");
-            gallery_attach_one(app, ellipse_, "ellipse_");
-            gallery_attach_one(app, rect_label_, "rect_label_");
-            gallery_attach_one(app, rect_, "rect_");
-            gallery_attach_one(app, poly_label_, "poly_label_");
-            gallery_attach_one(app, poly_, "poly_");
-            gallery_attach_one(app, line_label_, "line_label_");
-            gallery_attach_one(app, line_, "line_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroller_, "scroller_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);     // the stack hosts the captions + shapes
-            gallery_rehost_content(scroller_); // the scroll_view hosts the stack
-            gallery_rehost_content(page_);     // the page hosts the scroll_view
         }
 
         // The owned controls, exposed for tests / the hosting main's bottom-up attachment.

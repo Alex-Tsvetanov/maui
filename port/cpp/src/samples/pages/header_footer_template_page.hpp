@@ -30,8 +30,8 @@
 //     Image's TapGestureRecognizer firing the bound command — the gesture itself is wired on the model's
 //     command, see note).
 //
-// The page OWNS its whole element tree; attach_handlers wires every owned view bottom-up and re-hosts
-// the tree (gallery_attach.hpp).
+// The page OWNS its whole element tree; the generic mount (app_host.hpp) attaches every owned view's
+// handler and hosts the tree.
 //
 // note: the C# templates root a Grid holding three things the port reduces:
 //       (1) the {Binding CurrentTime} Label — PORTED as the template's bound Label (the live text);
@@ -61,9 +61,6 @@
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -126,17 +123,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the list first, the page last), then re-host
-        // the tree built in the ctor (gallery_attach.hpp). The Header/Footer templated content is created
-        // and hosted by the collection_view handler itself (no separately-owned chrome views to attach).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, list_, "list_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_content(page_); // the page hosts the collection_view
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / tests.

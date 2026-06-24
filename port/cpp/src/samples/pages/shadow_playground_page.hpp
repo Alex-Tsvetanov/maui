@@ -45,9 +45,6 @@
 #include "maui/core/shadow.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/point.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -159,38 +156,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the targets + every input leaf, then the inner
-        // stack, the scroll_view, the root stack, and finally the page), then re-host the tree built in the
-        // ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, label_target_, "label_target_");
-            gallery_attach_one(app, view_target_, "view_target_");
-            gallery_attach_one(app, background_header_, "background_header_");
-            gallery_attach_one(app, fill_color_, "fill_color_");
-            gallery_attach_one(app, shadow_header_, "shadow_header_");
-            gallery_attach_one(app, shadow_color_label_, "shadow_color_label_");
-            gallery_attach_one(app, shadow_color_, "shadow_color_");
-            gallery_attach_one(app, offset_x_label_, "offset_x_label_");
-            gallery_attach_one(app, offset_x_, "offset_x_");
-            gallery_attach_one(app, offset_y_label_, "offset_y_label_");
-            gallery_attach_one(app, offset_y_, "offset_y_");
-            gallery_attach_one(app, radius_label_, "radius_label_");
-            gallery_attach_one(app, radius_, "radius_");
-            gallery_attach_one(app, opacity_label_, "opacity_label_");
-            gallery_attach_one(app, opacity_, "opacity_");
-            gallery_attach_one(app, remove_button_, "remove_button_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroller_, "scroller_");
-            gallery_attach_one(app, root_, "root_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);     // input column hosts its inputs
-            gallery_rehost_content(scroller_); // scroll_view hosts the input column
-            gallery_rehost_layout(root_);      // root hosts the two targets + the scroller
-            gallery_rehost_content(page_);     // page hosts the root
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

@@ -62,9 +62,6 @@
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/thickness.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -135,32 +132,6 @@ namespace maui::samples
             cv9_.set_items_source(
                 std::vector<std::string>{"Item -1", "Item 0", "Item 1", "Item 3", "Item 4", "Item 5"});
             update_readout(cv9_, readout9_);
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the tree.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, instructions_, "instructions_");
-            attach_cv_block(app, label1_, readout1_, cv1_, "1");
-            attach_cv_block(app, label2_, readout2_, cv2_, "2");
-            attach_cv_block(app, label3_, readout3_, cv3_, "3");
-            attach_cv_block(app, label4_, readout4_, cv4_, "4");
-            attach_cv_block(app, label5_, readout5_, cv5_, "5");
-            attach_cv_block(app, label6_, readout6_, cv6_, "6");
-            attach_cv_block(app, label7_, readout7_, cv7_, "7");
-            attach_cv_block(app, label8_, readout8_, cv8_, "8");
-            gallery_attach_one(app, label9_, "label9_");
-            gallery_attach_one(app, switch_button_, "switch_button_");
-            gallery_attach_one(app, label9b_, "label9b_");
-            gallery_attach_one(app, readout9_, "readout9_");
-            gallery_attach_one(app, cv9_, "cv9_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroll_, "scroll_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);   // the stack hosts the instructions + the nine CV blocks
-            gallery_rehost_content(scroll_); // the scroll hosts the stack
-            gallery_rehost_content(page_);   // the page hosts the scroll
         }
 
         // ---- accessors (used by the hosting main + any test tree) ----
@@ -323,14 +294,6 @@ namespace maui::samples
                 }
             }
             readout.set_text("Selected: " + (joined.empty() ? std::string{"(none)"} : joined));
-        }
-
-        void attach_cv_block(maui::hosting::maui_app& app, maui::controls::label& before,
-                             maui::controls::label& readout, maui::controls::collection_view& cv, const char* n)
-        {
-            gallery_attach_one(app, before, n);
-            gallery_attach_one(app, readout, n);
-            gallery_attach_one(app, cv, n);
         }
 
         std::vector<std::string> items_; // SelectionSyncModel.Items

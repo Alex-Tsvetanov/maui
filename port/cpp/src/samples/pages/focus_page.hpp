@@ -16,8 +16,8 @@
 // layout-independent, so this port uses a vertical_stack_layout (headless-safe, same control set). The
 // inner ScrollView around InfoLabel is preserved.
 //
-// The page OWNS its whole element tree (the sample_app pattern). attach_handlers wires every owned view
-// bottom-up via the shared gallery helpers and re-hosts the ctor-built tree.
+// The page OWNS its whole element tree (the sample_app pattern). The generic mount (app_host.hpp) attaches
+// every owned view's handler and hosts the ctor-built tree.
 
 #include <string>
 
@@ -28,9 +28,6 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/scroll_view.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -81,28 +78,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view BOTTOM-UP (leaves before their hosts), then re-host the
-        // ctor-built tree: the button row, the info scroller's label, the outer stack, then the page
-        // (gallery_attach.hpp). The entry's handler MUST be attached for focus()/unfocus() to realize
-        // (with no handler, focus() returns false — see view.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, focus_entry_, "focus_entry_");
-            gallery_attach_one(app, focus_button_, "focus_button_");
-            gallery_attach_one(app, unfocus_button_, "unfocus_button_");
-            gallery_attach_one(app, buttons_, "buttons_");
-            gallery_attach_one(app, status_, "status_");
-            gallery_attach_one(app, info_label_, "info_label_");
-            gallery_attach_one(app, info_scroller_, "info_scroller_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(buttons_);        // button row hosts the two buttons
-            gallery_rehost_content(info_scroller_); // scroll view hosts the info label
-            gallery_rehost_layout(stack_);          // outer stack hosts entry/buttons/status/scroller
-            gallery_rehost_content(page_);          // page hosts the stack
         }
 
         // ---- owned controls, exposed for the hosting main / tests ----

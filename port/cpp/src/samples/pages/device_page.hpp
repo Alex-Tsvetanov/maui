@@ -24,9 +24,6 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/stack_layout.hpp"
 #include "maui/essentials/device_info.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -64,21 +61,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last) so each parent can
-        // host its child's native view, then re-host the tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, platform_label_, "platform_label_");
-            gallery_attach_one(app, idiom_label_, "idiom_label_");
-            gallery_attach_one(app, version_label_, "version_label_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            // The tree was built in the ctor before any handler existed, so replay the host commands now.
-            gallery_rehost_layout(stack_); // stack hosts the three labels
-            gallery_rehost_content(page_); // page hosts the stack
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / inspection.

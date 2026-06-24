@@ -25,9 +25,6 @@
 #include "maui/core/swipe_mode.hpp"
 #include "maui/core/swipe_view_requests.hpp"
 #include "maui/graphics/color.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -75,25 +72,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the swipe's content row, then the swipe, the
-        // refresh host, the page), then re-host the tree built in the ctor. The swipe_item (delete_item_)
-        // is a NON-view item: it has no standalone handler, so it is deliberately excluded (attaching it
-        // would throw). (gallery_attach.hpp)
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, row_, "row_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, swipe_, "swipe_");
-            gallery_attach_one(app, column_, "column_");
-            gallery_attach_one(app, refresh_, "refresh_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_content(swipe_);   // swipe_view hosts the row
-            gallery_rehost_layout(column_);   // column hosts the swipe_view + the readout
-            gallery_rehost_content(refresh_); // refresh_view hosts the column
-            gallery_rehost_content(page_);    // page hosts the refresh_view
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment + the tests.

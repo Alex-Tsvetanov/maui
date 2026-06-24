@@ -33,9 +33,6 @@
 #include "maui/core/grid_length.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -81,24 +78,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the two borders + readout + switch, then the
-        // grid + outer stack, then the page), then re-host the tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, stroke_switch_, "stroke_switch_");
-            gallery_attach_one(app, pink_border_, "pink_border_");
-            gallery_attach_one(app, red_border_, "red_border_");
-            gallery_attach_one(app, grid_, "grid_");
-            gallery_attach_one(app, controls_, "controls_");
-            gallery_attach_one(app, page_, "page_");
-
-            // The two borders host no content (they are pure fills), so only the layouts need re-hosting.
-            gallery_rehost_layout(grid_);     // grid hosts the two borders
-            gallery_rehost_layout(controls_); // outer stack hosts readout + switch + grid
-            gallery_rehost_content(page_);    // page hosts the outer stack
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

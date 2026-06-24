@@ -24,7 +24,7 @@
 // scope for this code-first page and intentionally not reproduced.
 //
 // Self-contained (the value_controls_page / shapes_page pattern): the page OWNS its whole element
-// tree, exposes page() and attach_handlers(maui_app).
+// tree, exposes page().
 
 #include <array>
 #include <cstdio>
@@ -48,9 +48,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/corner_radius.hpp"
 #include "maui/graphics/point.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -173,42 +170,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the stack's children, the buttons-row children,
-        // the buttons row, the stack, the scroll_view, then the page), then re-host the ctor-built tree.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            auto one = [&app](auto& view, const char* name) { gallery_attach_one(app, view, name); };
-
-            one(solid_headline_, "solid_headline_");
-            one(solid_predefined_swatch_, "solid_predefined_swatch_");
-            one(solid_color_swatch_, "solid_color_swatch_");
-            one(solid_hex_swatch_, "solid_hex_swatch_");
-            one(solid_tag_swatch_, "solid_tag_swatch_");
-            one(linear_headline_, "linear_headline_");
-            one(linear_horizontal_swatch_, "linear_horizontal_swatch_");
-            one(linear_vertical_swatch_, "linear_vertical_swatch_");
-            one(linear_diagonal_swatch_, "linear_diagonal_swatch_");
-            one(radial_headline_, "radial_headline_");
-            one(radial_upper_left_swatch_, "radial_upper_left_swatch_");
-            one(radial_center_swatch_, "radial_center_swatch_");
-            one(radial_lower_right_swatch_, "radial_lower_right_swatch_");
-            one(changes_headline_, "changes_headline_");
-            one(readout_, "readout_");
-            one(solid_mutable_swatch_, "solid_mutable_swatch_");
-            one(linear_mutable_swatch_, "linear_mutable_swatch_");
-            one(update_solid_button_, "update_solid_button_");
-            one(update_linear_button_, "update_linear_button_");
-            one(buttons_row_, "buttons_row_");
-            one(stack_, "stack_");
-            one(scroller_, "scroller_");
-            one(page_, "page_");
-
-            gallery_rehost_layout(buttons_row_);
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(scroller_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main / tests.

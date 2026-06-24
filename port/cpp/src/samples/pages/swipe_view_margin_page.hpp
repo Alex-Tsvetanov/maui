@@ -16,7 +16,7 @@
 //   - the PaddingSlider drives BOTH content grids' Padding (the MAUI Padding="{x:Reference PaddingSlider}"
 //     binding, mirrored code-first via slider value_changed → grid.set_padding).
 //   - the MarginSlider drives BOTH content grids' Margin (mirroring the Padding wiring) and the readout.
-//   - attach_handlers() synthetically OPENS swipe_view #1's left items so the static capture shows the
+//   - the page's mount hook synthetically OPENS swipe_view #1's left items so the static capture shows the
 //     revealed Favourite item, and reports the open via open_requested → readout.
 //
 // The page OWNS its whole element tree; it is backend-agnostic. A sample main attaches handlers bottom-up
@@ -44,8 +44,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -148,39 +146,13 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED view, BOTTOM-UP, then re-host the tree built in the ctor. The
-        // four "Favourite"/"Delete" swipe_items are NON-view items (no standalone handler) and are
-        // deliberately excluded; their content grids ARE views and are hosted (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
+        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
+        // handler + builds the native tree. Push the initial padding through (the slider's default 12) so the
+        // readout and the content insets agree, then synthetically open the horizontal swipe's left items so a
+        // static capture shows a revealed Favourite. All per-control attach + re-host plumbing is now the
+        // generic mount's job.
+        void on_mounted(maui::hosting::maui_app& /*app*/)
         {
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, instructions_, "instructions_");
-            gallery_attach_one(app, margin_caption_, "margin_caption_");
-            gallery_attach_one(app, padding_caption_, "padding_caption_");
-            gallery_attach_one(app, margin_slider_, "margin_slider_");
-            gallery_attach_one(app, padding_slider_, "padding_slider_");
-
-            gallery_attach_one(app, horizontal_label_, "horizontal_label_");
-            gallery_attach_one(app, horizontal_grid_, "horizontal_grid_");
-            gallery_attach_one(app, horizontal_swipe_, "horizontal_swipe_");
-            gallery_attach_one(app, vertical_label_, "vertical_label_");
-            gallery_attach_one(app, vertical_grid_, "vertical_grid_");
-            gallery_attach_one(app, vertical_swipe_, "vertical_swipe_");
-
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            // Replay the host commands the ctor fired before any handler existed (bottom-up).
-            gallery_rehost_layout(horizontal_grid_);   // grid hosts the centered label
-            gallery_rehost_content(horizontal_swipe_); // swipe hosts the grid
-            gallery_rehost_layout(vertical_grid_);
-            gallery_rehost_content(vertical_swipe_);
-            gallery_rehost_layout(stack_); // outer stack hosts captions + sliders + swipes
-            gallery_rehost_content(page_); // page hosts the stack
-
-            // Synthetically OPEN the horizontal swipe's left items so the static capture shows a revealed
-            // Favourite, then push the initial padding through (the slider's default 12) so the readout and
-            // the content insets agree.
             padding_slider_.set_value(12);
             horizontal_swipe_.open(maui::core::open_swipe_item::left_items);
         }

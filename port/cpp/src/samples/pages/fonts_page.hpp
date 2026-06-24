@@ -10,8 +10,8 @@
 // font_weight::bold, Italic → font_slant::italic. The attribute + character-spacing labels carry NO
 // explicit size, matching the C# (system default), via font::system_font_of_weight.
 //
-// The page OWNS its whole tree; attach_handlers wires every owned VIEW bottom-up. ScrollView wraps the
-// stack (a single-content host — gallery_rehost_content).
+// The page OWNS its whole tree; the generic mount attaches every owned view's handler bottom-up. ScrollView wraps the
+// stack (a single-content host).
 
 #include <array>
 #include <cstddef>
@@ -22,9 +22,6 @@
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/thickness.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -76,24 +73,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host both
-        // single-content hosts (the inner stack into the ScrollView, the ScrollView into the page).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            for (auto* label :
-                 {&title_, &subtitle_, &header_, &body_, &caption_, &bold_, &italic_, &bold_italic_, &kerned_})
-            {
-                gallery_attach_one(app, *label, "font_label");
-            }
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroll_, "scroll_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(scroll_);
-            gallery_rehost_content(page_);
         }
 
         // ---- owned controls, exposed for the hosting main + tests ----

@@ -25,7 +25,7 @@
 //     the live collection is empty, so typing a non-matching filter shows the coral label.
 //
 // The page OWNS its whole tree (grid + the two header controls + the live collection + the cell and
-// empty-view templates). attach_handlers wires every owned view bottom-up then re-hosts.
+// empty-view templates). The generic mount attaches every owned view's handler and hosts the tree.
 
 #include <algorithm>
 #include <cctype>
@@ -48,9 +48,6 @@
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -115,22 +112,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP, then re-host the constructor-built tree.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, empty_view_caption_, "empty_view_caption_");
-            gallery_attach_one(app, use_empty_view_, "use_empty_view_");
-            gallery_attach_one(app, header_stack_, "header_stack_");
-            gallery_attach_one(app, search_, "search_");
-            gallery_attach_one(app, list_, "list_");
-            gallery_attach_one(app, grid_, "grid_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(header_stack_); // the stack hosts its label + switch
-            gallery_rehost_layout(grid_);         // the grid hosts the stack, search bar, list
-            gallery_rehost_content(page_);        // the page hosts the grid
         }
 
         // ---- accessors (used by the hosting main + any test tree) ----

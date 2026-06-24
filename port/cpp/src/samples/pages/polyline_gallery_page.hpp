@@ -37,9 +37,6 @@
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -78,22 +75,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the stack's children first in add()-order, then
-        // the stack, then the page), then re-host the tree built in the ctor (gallery_attach.hpp). The
-        // generic lambda preserves each member's concrete static type.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, basic_label_, "basic_label_");
-            gallery_attach_one(app, basic_, "basic_");
-            gallery_attach_one(app, dash_label_, "dash_label_");
-            gallery_attach_one(app, dash_, "dash_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_); // stack hosts both polylines + captions
-            gallery_rehost_content(page_); // page hosts the stack
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

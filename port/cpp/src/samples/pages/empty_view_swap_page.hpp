@@ -68,9 +68,6 @@
 #include "maui/core/grid_length.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/text_alignment.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -147,42 +144,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp). The two alternative EmptyView trees are attached +
-        // rehosted too, so whichever is active materializes when the source empties.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            // EmptyView1 leaves + container
-            gallery_attach_one(app, empty1_primary_, "empty1_primary_");
-            gallery_attach_one(app, empty1_secondary_, "empty1_secondary_");
-            gallery_attach_one(app, *empty_view1_, "empty_view1_");
-            // EmptyView2 leaves + container
-            gallery_attach_one(app, empty2_primary_, "empty2_primary_");
-            gallery_attach_one(app, *empty_view2_, "empty_view2_");
-
-            // search row
-            gallery_attach_one(app, search_, "search_");
-            // toggle row
-            gallery_attach_one(app, toggle_caption_, "toggle_caption_");
-            gallery_attach_one(app, empty_view_switch_, "empty_view_switch_");
-            gallery_attach_one(app, toggle_row_, "toggle_row_");
-            // button row
-            gallery_attach_one(app, clear_button_, "clear_button_");
-            gallery_attach_one(app, fill_button_, "fill_button_");
-            gallery_attach_one(app, buttons_, "buttons_");
-            // list + grid + page
-            gallery_attach_one(app, list_, "list_");
-            gallery_attach_one(app, grid_, "grid_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(*empty_view1_);
-            gallery_rehost_layout(*empty_view2_);
-            gallery_rehost_layout(toggle_row_);
-            gallery_rehost_layout(buttons_);
-            gallery_rehost_layout(grid_);
-            gallery_rehost_content(page_);
         }
 
         // ---- accessors (used by the hosting main + any test tree) ----

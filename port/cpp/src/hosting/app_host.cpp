@@ -18,6 +18,7 @@
 #include "maui/core/i_element.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_view.hpp"
+#include "maui/core/i_view_handler.hpp"
 #include "maui/core/type_tag.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
@@ -92,15 +93,37 @@ namespace maui::hosting
 
     maui::graphics::size drive_layout(maui::controls::window& window, double width, double height)
     {
+        // Headless / origin-0 convenience: full bounds == safe-area bounds == {0,0,width,height}. A VC-backed
+        // root page would arrange over the full bounds — which here equals the safe-area rect — so both
+        // branches of the two-rect form collapse to the same {0,0,width,height} pass.
+        const maui::graphics::rect bounds{0, 0, width, height};
+        return drive_layout(window, bounds, bounds);
+    }
+
+    maui::graphics::size drive_layout(maui::controls::window& window, const maui::graphics::rect& full_bounds,
+                                      const maui::graphics::rect& safe_area_bounds)
+    {
         // The window host does no auto-layout (mirrors the native backends — the run loop / gallery main
-        // drives the pass). Measure then arrange the content page over the content bounds; a native backend
-        // insets by the safe area (Stage 2) — headless uses the full {0,0,width,height}.
+        // drives the pass). Measure then arrange the content page over the chosen bounds.
         auto* page = dynamic_cast<maui::core::i_view*>(window.content());
         if (page == nullptr)
         {
             return {0, 0};
         }
-        page->measure(width, height);
-        return page->arrange(maui::graphics::rect{0, 0, width, height});
+
+        // VC-backed-root-page contract (factored from ios_gallery.mm boot_page + ios host_run.mm): a page
+        // whose handler is an i_view_handler exposing a non-null root_view_controller() (flyout_page →
+        // UISplitViewController, tabbed_page → UITabBarController) made its OWN controller the window's
+        // rootViewController, so the split/tab child-VC lifecycle + Auto Layout position the columns / tab
+        // content area. The controller owns the chrome (split divider / tab bar) and each inner content_page
+        // tracks its own safeAreaInsets, so the cross-platform tree lays out over the FULL controller bounds
+        // — NOT the safe-area inset. On non-iOS backends root_view_controller() is always null, so this picks
+        // the safe-area rect (which the headless/macOS callers pass equal to the full rect).
+        const auto* page_handler = dynamic_cast<const maui::core::i_view_handler*>(page->handler().get());
+        const bool vc_backed = page_handler != nullptr && page_handler->root_view_controller() != nullptr;
+        const maui::graphics::rect& bounds = vc_backed ? full_bounds : safe_area_bounds;
+
+        page->measure(bounds.width, bounds.height);
+        return page->arrange(bounds);
     }
 } // namespace maui::hosting

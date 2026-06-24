@@ -8,7 +8,7 @@
 //   EllipseGeometry), and Shadow (radius 6, offset 6,6, red brush).
 //
 // This is a code-first port following the value_controls_page / shapes_page pattern: the page OWNS
-// its whole element tree as members, exposes page() and attach_handlers(maui_app). It is
+// its whole element tree as members, exposes page(). It is
 // headless-safe — only cross-platform maui:: API. The original .xaml.cs has no logic beyond
 // InitializeComponent(), so there are no events to wire; the demonstration is purely the set of
 // statically-configured box_view variants.
@@ -43,9 +43,6 @@
 #include "maui/graphics/linear_gradient_paint.hpp"
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -138,46 +135,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves -> stack -> scroll -> page), then re-host
-        // the tree built in the ctor (gallery_attach.hpp). EXCLUDES the non-view items (paints, shadow).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            auto one = [&app](auto& view, const char* name) {
-                try
-                {
-                    app.attach_handler(view);
-                }
-                catch (const std::exception& error)
-                {
-                    std::fprintf(stderr, "[gallery] skip %s: %s\n", name, error.what());
-                }
-            };
-
-            one(default_label_, "default_label_");
-            one(default_box_, "default_box_");
-            one(color_label_, "color_label_");
-            one(color_box_, "color_box_");
-            one(gradient_label_, "gradient_label_");
-            one(gradient_box_, "gradient_box_");
-            one(corner_label_, "corner_label_");
-            one(corner_box_, "corner_box_");
-            one(complex_corner_label_, "complex_corner_label_");
-            one(complex_corner_box_, "complex_corner_box_");
-            one(opacity_label_, "opacity_label_");
-            one(opacity_box_, "opacity_box_");
-            one(clip_label_, "clip_label_");
-            one(clip_box_, "clip_box_");
-            one(shadow_label_, "shadow_label_");
-            one(shadow_box_, "shadow_box_");
-            one(stack_, "stack_");
-            one(scroll_, "scroll_");
-            one(page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(scroll_);
-            gallery_rehost_content(page_);
         }
 
     private:

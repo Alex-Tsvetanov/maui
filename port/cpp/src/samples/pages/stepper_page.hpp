@@ -3,8 +3,7 @@
 //
 // A self-contained, code-first demo page for maui::controls::stepper. Mirrors the EXACT shape of
 // value_controls_page.hpp / button_page.hpp: the class OWNS its whole element tree as members,
-// exposes page() and attach_handlers(maui_app) (bottom-up, leaves first -> layout -> page, via the
-// shared gallery_attach helpers), and uses only cross-platform maui:: API so it stays headless-safe.
+// exposes page(), and uses only cross-platform maui:: API so it stays headless-safe.
 //
 // What the MAUI page demonstrates (reproduced here so the demo visibly exercises the control):
 //   - a Default stepper (no bounds set),
@@ -34,9 +33,6 @@
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -119,33 +115,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, default_header_, "default_header_");
-            gallery_attach_one(app, default_stepper_, "default_stepper_");
-            gallery_attach_one(app, disabled_header_, "disabled_header_");
-            gallery_attach_one(app, enable_stepper_, "enable_stepper_");
-            gallery_attach_one(app, enable_button_, "enable_button_");
-            gallery_attach_one(app, background_color_header_, "background_color_header_");
-            gallery_attach_one(app, background_color_stepper_, "background_color_stepper_");
-            gallery_attach_one(app, background_header_, "background_header_");
-            gallery_attach_one(app, background_stepper_, "background_stepper_");
-            gallery_attach_one(app, min_max_header_, "min_max_header_");
-            gallery_attach_one(app, min_max_stepper_, "min_max_stepper_");
-            gallery_attach_one(app, increment_header_, "increment_header_");
-            gallery_attach_one(app, increment_stepper_, "increment_stepper_");
-            gallery_attach_one(app, value_changed_header_, "value_changed_header_");
-            gallery_attach_one(app, value_changed_stepper_, "value_changed_stepper_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / tests.

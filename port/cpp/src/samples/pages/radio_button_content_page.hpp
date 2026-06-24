@@ -40,7 +40,6 @@
 //       stand-ins (box_view bars) since the page's point is the template+presenter hosting, not the
 //       exact glyph. Nothing here is invented beyond those clearly-noted stand-ins.
 
-#include <cstdio>
 #include <memory>
 #include <string>
 #include <vector>
@@ -61,9 +60,6 @@
 #include "maui/core/line_break_mode.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -103,24 +99,6 @@ namespace maui::samples
         [[nodiscard]] const std::shared_ptr<maui::controls::content_presenter>& presenter() const
         {
             return presenter_;
-        }
-
-        // Attach a handler to every view in this MINTED template subtree (the page holds no member for
-        // these — it only has the content_view card, reaching the template root through it), then re-host
-        // the layout whose "add" commands fired in this ctor before any handler existed. The presenter's
-        // PACKED content (the coffee image) is owned + attached + re-hosted by the page (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, button_bar_, "weird_button_bar_");
-            gallery_attach_one(app, indicator_bar_, "weird_indicator_bar_");
-            gallery_attach_one(app, *presenter_, "weird_presenter_");
-            // The template root IS a horizontal_stack_layout subclass; attach it via that REGISTERED base
-            // type (the handler registry keys on the exact static type — there is no handler for the
-            // subclass; layout_handler drives it through the i_layout interface regardless).
-            gallery_attach_one(app, static_cast<maui::controls::horizontal_stack_layout&>(*this),
-                               "weird_template_root_");
-
-            gallery_rehost_layout(*this); // the hstack hosts the two bars + the presenter
         }
 
     private:
@@ -197,66 +175,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            auto one = [&app](auto& view, const char* name) { gallery_attach_one(app, view, name); };
-
-            // Leaves / captions first.
-            one(caption_string_, "caption_string_");
-            one(option_a_, "option_a_");
-            one(caption_string2_, "caption_string2_");
-            one(option_c_, "option_c_");
-            one(caption_view_, "caption_view_");
-            one(framed_radio_, "framed_radio_");
-            one(frame_, "frame_");
-            one(caption_fallback_, "caption_fallback_");
-            one(fallback_radio_, "fallback_radio_");
-            one(caption_template_, "caption_template_");
-            one(caption_weird_, "caption_weird_");
-
-            // The coffee images each weird template's content_presenter packs (attach BEFORE the cards so
-            // the presenter has a hostable child when it re-hosts below).
-            for (const auto& coffee : coffee_images_)
-            {
-                one(*coffee, "coffee_image");
-            }
-            // Each weird card, then its MINTED custom template subtree (the bars + presenter), reached
-            // through the card's template_root() — the page holds no direct member for it.
-            for (const auto& card : weird_cards_)
-            {
-                one(*card, "weird_card");
-                if (auto* tmpl = dynamic_cast<weird_radio_template*>(card->template_root()))
-                {
-                    tmpl->attach_handlers(app);
-                }
-            }
-
-            // Containers, then the page.
-            one(stack_, "stack_");
-            one(scroll_, "scroll_");
-            one(page_, "page_");
-
-            // Replay the host commands recorded during construction, bottom-up: the presenters pack the
-            // coffee images, then the cards host their presented content (the template root).
-            gallery_rehost_content(frame_);
-            for (const auto& card : weird_cards_)
-            {
-                if (auto* tmpl = dynamic_cast<weird_radio_template*>(card->template_root()))
-                {
-                    gallery_rehost_content(*tmpl->presenter()); // the presenter packs the coffee image
-                }
-            }
-            for (const auto& card : weird_cards_)
-            {
-                gallery_rehost_content(*card);
-            }
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(scroll_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's inspection.

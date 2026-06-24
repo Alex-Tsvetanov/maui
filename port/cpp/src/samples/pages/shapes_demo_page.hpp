@@ -54,9 +54,6 @@
 #include "maui/graphics/line_cap.hpp"
 #include "maui/graphics/line_join.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -169,37 +166,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the stack's children first in add()-order, then
-        // the stack, then the scroll_view, then the page), then re-host the tree built in the ctor
-        // (gallery_attach.hpp). The generic lambda preserves each member's concrete static type —
-        // attach_handler keys on the static type, so an i_view& parameter would erase it (a blank page).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, ellipse_label_, "ellipse_label_");
-            gallery_attach_one(app, ellipse_, "ellipse_");
-            gallery_attach_one(app, rect_label_, "rect_label_");
-            gallery_attach_one(app, rect_, "rect_");
-            gallery_attach_one(app, round_rect_label_, "round_rect_label_");
-            gallery_attach_one(app, round_rect_, "round_rect_");
-            gallery_attach_one(app, line_label_, "line_label_");
-            gallery_attach_one(app, line_, "line_");
-            gallery_attach_one(app, polyline_label_, "polyline_label_");
-            gallery_attach_one(app, polyline_, "polyline_");
-            gallery_attach_one(app, polygon_label_, "polygon_label_");
-            gallery_attach_one(app, polygon_, "polygon_");
-            gallery_attach_one(app, path_label_, "path_label_");
-            gallery_attach_one(app, path_, "path_");
-            gallery_attach_one(app, more_samples_, "more_samples_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroll_, "scroll_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);   // stack hosts every shape + caption
-            gallery_rehost_content(scroll_); // scroll hosts the stack
-            gallery_rehost_content(page_);   // page hosts the scroll
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

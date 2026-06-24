@@ -66,9 +66,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -128,58 +125,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the panel + the controls' children in
-        // add()-order, then the panel, the controls stack, the scroll, the outer stack, the page), then
-        // re-host the ctor-built tree (gallery_attach.hpp). The generic `auto&` preserves each member's
-        // concrete static type — attach_handler keys on the static type.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            auto one = [&app](auto& view, const char* name) { gallery_attach_one(app, view, name); };
-
-            // panel + its single child (the transform target Path)
-            one(path_, "path_");
-
-            // the slider-row controls (header / readout / slider, in add()-order)
-            one(rotate_header_, "rotate_header_");
-            one(rotation_readout_, "rotation_readout_");
-            one(rotation_slider_, "rotation_slider_");
-            one(center_x_readout_, "center_x_readout_");
-            one(center_x_slider_, "center_x_slider_");
-            one(center_y_readout_, "center_y_readout_");
-            one(center_y_slider_, "center_y_slider_");
-
-            one(scale_header_, "scale_header_");
-            one(scale_x_readout_, "scale_x_readout_");
-            one(scale_x_slider_, "scale_x_slider_");
-            one(scale_y_readout_, "scale_y_readout_");
-            one(scale_y_slider_, "scale_y_slider_");
-
-            one(skew_header_, "skew_header_");
-            one(skew_x_readout_, "skew_x_readout_");
-            one(skew_x_slider_, "skew_x_slider_");
-            one(skew_y_readout_, "skew_y_readout_");
-            one(skew_y_slider_, "skew_y_slider_");
-
-            one(translate_header_, "translate_header_");
-            one(translate_x_readout_, "translate_x_readout_");
-            one(translate_x_slider_, "translate_x_slider_");
-            one(translate_y_readout_, "translate_y_readout_");
-            one(translate_y_slider_, "translate_y_slider_");
-
-            // the hosts, innermost-first
-            one(panel_, "panel_");
-            one(controls_stack_, "controls_stack_");
-            one(scroll_, "scroll_");
-            one(stack_, "stack_");
-            one(page_, "page_");
-
-            gallery_rehost_layout(panel_);          // panel hosts the target Path
-            gallery_rehost_layout(controls_stack_); // controls stack hosts every header/readout/slider
-            gallery_rehost_content(scroll_);        // scroll hosts the controls stack
-            gallery_rehost_layout(stack_);          // outer stack hosts the panel + the scroll
-            gallery_rehost_content(page_);          // page hosts the outer stack
         }
 
         // The owned controls, exposed for the hosting main / tests.

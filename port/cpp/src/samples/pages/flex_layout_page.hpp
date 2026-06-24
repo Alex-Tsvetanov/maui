@@ -32,11 +32,8 @@
 #include "maui/core/text_alignment.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
 #include "maui/layouts/flex_basis.hpp"
 #include "maui/layouts/flex_enums.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -98,29 +95,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the body's three children first, then the body
-        // and the header/footer leaves, then the outer flex, then the page) so each parent can host its
-        // child's native view, then re-host the tree built in the ctor (gallery_attach.hpp). The generic
-        // lambda preserves each member's concrete static type — attach_handler keys on the static type, so
-        // an i_view& parameter would erase it.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, content_, "content_");
-            gallery_attach_one(app, nav_, "nav_");
-            gallery_attach_one(app, aside_, "aside_");
-            gallery_attach_one(app, body_, "body_");
-            gallery_attach_one(app, header_, "header_");
-            gallery_attach_one(app, footer_, "footer_");
-            gallery_attach_one(app, root_, "root_");
-            gallery_attach_one(app, page_, "page_");
-
-            // The tree was built in the ctor before any handler existed, so replay the host commands now,
-            // INNER flex first so the body's native panel is populated before the outer flex hosts it.
-            gallery_rehost_layout(body_);  // body hosts content_ + nav_ + aside_
-            gallery_rehost_layout(root_);  // outer flex hosts header_ + body_ + footer_
-            gallery_rehost_content(page_); // page hosts the outer flex
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

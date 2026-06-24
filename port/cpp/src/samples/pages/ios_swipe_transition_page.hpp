@@ -19,7 +19,7 @@
 //   - the LeftItems "Delete" SwipeItem's Invoked drives the readout to "Delete invoked." (the C#
 //     OnDeleteSwipeItemInvoked shows a DisplayAlert; the port has no modal alert at this layer, so the
 //     observable effect is the readout — the gallery convention used by basic_swipe_page);
-//   - attach_handlers synthetically opens the SwipeView toward its populated LeftItems side so a static
+//   - on mount, the SwipeView is synthetically opened toward its populated LeftItems side so a static
 //     capture shows the revealed item (the swipe-to-reveal gesture has no headless analogue; open() routes
 //     through the now-attached handler — see basic_swipe_page / swipe_view_seam tests).
 //
@@ -35,7 +35,7 @@
 //         the Grid HeightRequest=60/WidthRequest=300 + the swipe item BackgroundColor LightPink ARE set
 //         where the XAML names them.
 //
-// Self-contained: the page OWNS its whole element tree, exposes page() and attach_handlers(maui_app).
+// Self-contained: the page OWNS its whole element tree, exposes page().
 
 #include <memory>
 #include <string>
@@ -55,8 +55,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -116,31 +114,12 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED view BOTTOM-UP (the content Grid's label, the content Grid, the
-        // swipe_view, the selector row's children + the row, the readouts, the stack, the page), re-host the
-        // ctor-built tree, then synthetically open the SwipeView toward its populated LeftItems side so a
-        // static capture shows the revealed item. The swipe_item is a NON-view item (no standalone handler)
-        // so it is deliberately excluded — attaching one would throw. (gallery_attach.hpp / basic_swipe_page)
-        void attach_handlers(maui::hosting::maui_app& app)
+        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
+        // handler + builds the native tree. Synthetically open the SwipeView toward its populated LeftItems
+        // side so a static capture shows the revealed item. All per-control attach + re-host plumbing is now
+        // the generic mount's job.
+        void on_mounted(maui::hosting::maui_app& /*app*/)
         {
-            gallery_attach_one(app, mode_caption_, "mode_caption_");
-            gallery_attach_one(app, reveal_button_, "reveal_button_");
-            gallery_attach_one(app, drag_button_, "drag_button_");
-            gallery_attach_one(app, selector_, "selector_");
-            gallery_attach_one(app, content_label_, "content_label_");
-            gallery_attach_one(app, content_, "content_");
-            gallery_attach_one(app, swipe_, "swipe_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, status_, "status_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(selector_); // the selector row hosts caption + the two buttons
-            gallery_rehost_layout(content_);  // the content Grid hosts its label
-            gallery_rehost_content(swipe_);   // the swipe_view hosts its content Grid
-            gallery_rehost_layout(stack_);    // outer stack hosts selector/swipe/readouts
-            gallery_rehost_content(page_);    // page hosts the stack
-
             // Static-capture seam: reveal the populated LeftItems (the swipe-to-reveal gesture has no
             // headless analogue). open() routes through the now-attached handler (swipe_view_seam tests).
             swipe_.open(maui::core::open_swipe_item::left_items);

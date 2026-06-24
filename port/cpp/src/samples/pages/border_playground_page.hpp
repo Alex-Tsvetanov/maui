@@ -75,9 +75,6 @@
 #include "maui/graphics/shapes/rectangle.hpp"
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -128,68 +125,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the border's content + every control first, then
-        // the controls stack, the border, the scroll_view, the grid, the page) so each parent can host its
-        // child's native view, then re-host the tree built in the ctor (gallery_attach.hpp). The generic
-        // lambda preserves each member's concrete static type — attach_handler keys on the static type.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, border_content_label_, "border_content_label_");
-            gallery_attach_one(app, border_content_image_, "border_content_image_");
-            gallery_attach_one(app, border_view_, "border_view_");
-
-            gallery_attach_one(app, content_caption_, "content_caption_");
-            gallery_attach_one(app, content_picker_, "content_picker_");
-            gallery_attach_one(app, shape_caption_, "shape_caption_");
-            gallery_attach_one(app, shape_picker_, "shape_picker_");
-            gallery_attach_one(app, background_caption_, "background_caption_");
-            gallery_attach_one(app, bg_start_caption_, "bg_start_caption_");
-            gallery_attach_one(app, bg_start_entry_, "bg_start_entry_");
-            gallery_attach_one(app, bg_end_caption_, "bg_end_caption_");
-            gallery_attach_one(app, bg_end_entry_, "bg_end_entry_");
-            gallery_attach_one(app, content_bg_caption_, "content_bg_caption_");
-            gallery_attach_one(app, content_bg_check_, "content_bg_check_");
-            gallery_attach_one(app, content_bg_label_, "content_bg_label_");
-            gallery_attach_one(app, border_caption_, "border_caption_");
-            gallery_attach_one(app, border_start_caption_, "border_start_caption_");
-            gallery_attach_one(app, border_start_entry_, "border_start_entry_");
-            gallery_attach_one(app, border_end_caption_, "border_end_caption_");
-            gallery_attach_one(app, border_end_entry_, "border_end_entry_");
-            gallery_attach_one(app, width_caption_, "width_caption_");
-            gallery_attach_one(app, width_slider_, "width_slider_");
-            gallery_attach_one(app, dash_array_caption_, "dash_array_caption_");
-            gallery_attach_one(app, dash_array_entry_, "dash_array_entry_");
-            gallery_attach_one(app, dash_offset_caption_, "dash_offset_caption_");
-            gallery_attach_one(app, dash_offset_slider_, "dash_offset_slider_");
-            gallery_attach_one(app, line_join_caption_, "line_join_caption_");
-            gallery_attach_one(app, line_join_picker_, "line_join_picker_");
-            gallery_attach_one(app, line_cap_caption_, "line_cap_caption_");
-            gallery_attach_one(app, line_cap_picker_, "line_cap_picker_");
-            gallery_attach_one(app, corner_caption_, "corner_caption_");
-            gallery_attach_one(app, top_left_caption_, "top_left_caption_");
-            gallery_attach_one(app, top_left_slider_, "top_left_slider_");
-            gallery_attach_one(app, top_right_caption_, "top_right_caption_");
-            gallery_attach_one(app, top_right_slider_, "top_right_slider_");
-            gallery_attach_one(app, bottom_left_caption_, "bottom_left_caption_");
-            gallery_attach_one(app, bottom_left_slider_, "bottom_left_slider_");
-            gallery_attach_one(app, bottom_right_caption_, "bottom_right_caption_");
-            gallery_attach_one(app, bottom_right_slider_, "bottom_right_slider_");
-            gallery_attach_one(app, corner_layout_, "corner_layout_");
-
-            gallery_attach_one(app, controls_, "controls_");
-            gallery_attach_one(app, scroller_, "scroller_");
-            gallery_attach_one(app, grid_, "grid_");
-            gallery_attach_one(app, page_, "page_");
-
-            // Replay the host commands now (the tree was built before any handler existed).
-            gallery_rehost_content(border_view_); // border hosts its content view
-            gallery_rehost_layout(corner_layout_);
-            gallery_rehost_layout(controls_);  // controls stack hosts every control
-            gallery_rehost_content(scroller_); // scroll hosts the controls stack
-            gallery_rehost_layout(grid_);      // grid hosts the border + scroll
-            gallery_rehost_content(page_);     // page hosts the grid
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

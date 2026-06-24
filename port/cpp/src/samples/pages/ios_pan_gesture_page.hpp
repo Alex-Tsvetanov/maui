@@ -11,7 +11,7 @@
 //   1. A PanGestureRecognizer attached to a target Label's GestureRecognizers (the View seam). Its
 //      pan_updated drives the readout to "panned x:<TotalX> y:<TotalY>" while RUNNING (exactly the C#
 //      OnPanUpdated format), and shows the started/completed phases too. Headless has no native input, so
-//      attach_handlers() issues one deterministic synthetic drive (started -> running(TotalX,TotalY) ->
+//      the page's mount hook issues one deterministic synthetic drive (started -> running(TotalX,TotalY) ->
 //      completed) through the recognizer's i_pan_gesture_controller seam (send_pan_started / send_pan /
 //      send_pan_completed) — the same path the platform bridges and the pan unit tests use — leaving the
 //      readout non-blank on a static capture.
@@ -28,7 +28,7 @@
 //       templated row. The recognizer wiring + the iOSSpecific knob — the actual subject of the page — are
 //       reproduced faithfully.
 //
-// Self-contained: the page OWNS its whole element tree, exposes page() and attach_handlers(maui_app).
+// Self-contained: the page OWNS its whole element tree, exposes page().
 
 #include <cstdio>
 #include <memory>
@@ -46,8 +46,6 @@
 #include "maui/controls/application.hpp"
 #include "maui/controls/platform_configuration/configuration.hpp"
 #include "maui/controls/platform_configuration/ios_specific/application.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -112,21 +110,12 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED view BOTTOM-UP, re-host the ctor-built tree, then — since headless
-        // has no native input — issue one deterministic synthetic pan drive so the readout reflects the
-        // wiring on a static capture (the recognizer needs no handler of its own; it rides the target view).
-        void attach_handlers(maui::hosting::maui_app& app)
+        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
+        // handler + builds the native tree. Headless has no native input, so issue one deterministic synthetic
+        // pan drive so the readout reflects the wiring on a static capture. All per-control attach + re-host
+        // plumbing is now the generic mount's job.
+        void on_mounted(maui::hosting::maui_app& /*app*/)
         {
-            gallery_attach_one(app, message_, "message_");
-            gallery_attach_one(app, toggle_, "toggle_");
-            gallery_attach_one(app, target_, "target_");
-            gallery_attach_one(app, status_, "status_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
-
             drive_synthetic_pan();
         }
 

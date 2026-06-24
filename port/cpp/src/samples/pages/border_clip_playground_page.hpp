@@ -40,9 +40,8 @@
 //       FontSize=8 on the readouts is a markup-era Style (XAML, deferred); the readouts carry the value
 //       text directly.
 //
-// HEADLESS-SAFE maui:: API only; the page owns its whole element tree and re-hosts it bottom-up via the
-// shared gallery_attach helpers (the Border + the scroll_view are single-content hosts → rehost_content;
-// the stacks are layouts → rehost_layout).
+// HEADLESS-SAFE maui:: API only; the page owns its whole element tree (the generic mount in app_host.hpp
+// attaches handlers + hosts it).
 
 #include <cstdio>
 #include <memory>
@@ -64,9 +63,6 @@
 #include "maui/graphics/shapes/rectangle.hpp"
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -144,43 +140,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, content_image_, "content_image_");
-            gallery_attach_one(app, border_, "border_");
-
-            gallery_attach_one(app, shape_heading_, "shape_heading_");
-            gallery_attach_one(app, shape_picker_, "shape_picker_");
-            gallery_attach_one(app, border_heading_, "border_heading_");
-            gallery_attach_one(app, width_readout_, "width_readout_");
-            gallery_attach_one(app, width_slider_, "width_slider_");
-
-            gallery_attach_one(app, corner_heading_, "corner_heading_");
-            gallery_attach_one(app, top_left_readout_, "top_left_readout_");
-            gallery_attach_one(app, top_left_slider_, "top_left_slider_");
-            gallery_attach_one(app, top_right_readout_, "top_right_readout_");
-            gallery_attach_one(app, top_right_slider_, "top_right_slider_");
-            gallery_attach_one(app, bottom_left_readout_, "bottom_left_readout_");
-            gallery_attach_one(app, bottom_left_slider_, "bottom_left_slider_");
-            gallery_attach_one(app, bottom_right_readout_, "bottom_right_readout_");
-            gallery_attach_one(app, bottom_right_slider_, "bottom_right_slider_");
-            gallery_attach_one(app, corner_stack_, "corner_stack_");
-
-            gallery_attach_one(app, controls_stack_, "controls_stack_");
-            gallery_attach_one(app, scroller_, "scroller_");
-            gallery_attach_one(app, root_, "root_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_content(border_);        // border hosts the image (its clip is the StrokeShape)
-            gallery_rehost_layout(corner_stack_);   // corner block hosts the four readout+slider pairs
-            gallery_rehost_layout(controls_stack_); // controls stack hosts the headings/picker/width/corner block
-            gallery_rehost_content(scroller_);      // scroll_view hosts the controls stack
-            gallery_rehost_layout(root_);           // root hosts the preview border + the scroll_view
-            gallery_rehost_content(page_);          // page hosts the root
         }
 
         // The owned controls, exposed for inspection.

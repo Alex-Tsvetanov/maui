@@ -16,7 +16,7 @@
 //
 // Headless-safe: text_changed is the inbound channel the handler raises on a native edit; this demo also
 // drives it directly through the entry's send_text_changed so the effect is observable with no backend
-// (see simulate_input). The page OWNS its whole tree; attach_handlers wires every owned VIEW bottom-up.
+// (see simulate_input). The page OWNS its whole tree; the generic mount wires every owned VIEW bottom-up.
 
 #include <charconv>
 #include <cstdio>
@@ -31,9 +31,6 @@
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/font.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -115,19 +112,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, headline_, "headline_");
-            gallery_attach_one(app, value_entry_, "value_entry_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // Drive the behavior with no native backend: feed text through the entry's inbound text_changed

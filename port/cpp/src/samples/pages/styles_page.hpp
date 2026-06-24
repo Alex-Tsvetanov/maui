@@ -30,7 +30,6 @@
 // The page OWNS its whole element tree (the sample_app pattern). It is backend-agnostic — a sample main
 // attaches handlers bottom-up via the hosting layer and hosts page() in a window.
 
-#include <cstdio>
 #include <memory>
 #include <string>
 
@@ -43,9 +42,6 @@
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -114,31 +110,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            auto one = [&app](auto& v, const char* n) {
-                try
-                {
-                    app.attach_handler(v);
-                }
-                catch (const std::exception& e)
-                {
-                    std::fprintf(stderr, "[gallery] skip %s: %s\n", n, e.what());
-                }
-            };
-            one(base_styled_label_, "base_styled_label_");
-            one(custom_styled_label_, "custom_styled_label_");
-            one(unstyled_label_, "unstyled_label_");
-            one(styled_button_, "styled_button_");
-            one(stack_, "stack_");
-            one(page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // Owned controls / styles, exposed for tests / the hosting main.

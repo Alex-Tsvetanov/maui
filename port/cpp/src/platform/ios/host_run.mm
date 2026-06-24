@@ -106,46 +106,34 @@ namespace
             return nil;
         }
 
-        // (5) Lay out the tree over the root view-controller's SAFE-AREA rect (the window host does no
-        //     auto-layout). Factored from ios_gallery.mm boot_page: force a layout pass so safeAreaInsets
-        //     is populated, fall back to a status-bar/Dynamic-Island top inset if it is not yet, and give
-        //     a VC-backed root page (flyout/tabbed) the full controller bounds instead (the controller owns
-        //     the chrome and each inner page tracks its own safe area).
+        // (5) Lay out the tree over the root view-controller's bounds (the window host does no auto-layout).
+        //     Compute BOTH the full controller bounds and the safe-area-inset rect, then hand both to the
+        //     generic drive_layout: it picks the full bounds for a VC-backed root page (flyout/tabbed — the
+        //     controller owns the chrome and each inner page tracks its own safe area) and the safe-area rect
+        //     for every other page, via the shared root_view_controller() contract (app_host.hpp). Force a
+        //     layout pass first so safeAreaInsets is populated; fall back to a status-bar/Dynamic-Island top
+        //     inset if it is not yet (no run-loop spin has happened at boot).
         UIView* const root_view = native_window.rootViewController.view;
         [root_view layoutIfNeeded];
-        auto* const page = window->content_element();
-        auto* const root = dynamic_cast<maui::core::i_view*>(window->content());
-        if (page == nullptr || root == nullptr)
+        if (window->content_element() == nullptr)
         {
             os_log(OS_LOG_DEFAULT, "[host_run] window has no content page — showing empty window");
             return native_window;
         }
 
-        if (auto* const page_handler = dynamic_cast<maui::core::i_view_handler*>(root->handler().get());
-            page_handler != nullptr && page_handler->root_view_controller() != nullptr)
-        {
-            const CGRect controller_bounds = root_view.bounds;
-            const auto vc_width = static_cast<double>(controller_bounds.size.width);
-            const auto vc_height = static_cast<double>(controller_bounds.size.height);
-            root->measure(vc_width, vc_height);
-            root->arrange(maui::graphics::rect{0, 0, vc_width, vc_height});
-            os_log(OS_LOG_DEFAULT, "[host_run] VC-backed root page laid out %g x %g (full controller bounds)", vc_width,
-                   vc_height);
-            return native_window;
-        }
-
+        const CGRect full = root_view.bounds;
         UIEdgeInsets insets = root_view.safeAreaInsets;
         if (insets.top < 1.0)
         {
             insets.top = 59.0; // status bar + Dynamic Island fallback (no run-loop spin has happened yet)
         }
-        const CGRect full = root_view.bounds;
-        const auto width = static_cast<double>(full.size.width - insets.left - insets.right);
-        const auto height = static_cast<double>(full.size.height - insets.top - insets.bottom);
-        root->measure(width, height);
-        root->arrange(maui::graphics::rect{insets.left, insets.top, width, height});
-        os_log(OS_LOG_DEFAULT, "[host_run] mounted app window — laid out %g x %g at inset top=%g", width, height,
-               insets.top);
+        const maui::graphics::rect full_bounds{0, 0, static_cast<double>(full.size.width),
+                                               static_cast<double>(full.size.height)};
+        const maui::graphics::rect safe_area_bounds{static_cast<double>(insets.left), static_cast<double>(insets.top),
+                                                    static_cast<double>(full.size.width - insets.left - insets.right),
+                                                    static_cast<double>(full.size.height - insets.top - insets.bottom)};
+        maui::hosting::drive_layout(*window, full_bounds, safe_area_bounds);
+        os_log(OS_LOG_DEFAULT, "[host_run] mounted app window — laid out (safe-area inset top=%g)", insets.top);
 
         return native_window;
     }

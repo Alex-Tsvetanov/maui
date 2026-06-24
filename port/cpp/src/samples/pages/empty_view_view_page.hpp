@@ -52,8 +52,8 @@
 //       set_horizontal_layout_alignment(fill). The XAML Margin="10,25,10,10" on the primary Label maps to
 //       set_margin(thickness(10, 25, 10, 10)) — the VisualElement/View.Margin seam.
 //
-// The page OWNS its whole element tree (the items_page pattern); attach_handlers wires handlers bottom-up
-// (including the EmptyView StackLayout + its Labels) then re-hosts the grid + page.
+// The page OWNS its whole element tree (the items_page pattern); the generic mount (app_host.hpp) attaches
+// every owned view's handler (including the EmptyView StackLayout + its Labels) and hosts the grid + page.
 
 #include <algorithm>
 #include <cctype>
@@ -77,9 +77,6 @@
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/thickness.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -156,24 +153,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp). The EmptyView StackLayout + its Labels are owned
-        // views too, so they get handlers + a re-host so the empty-state view materializes natively.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, empty_label_primary_, "empty_label_primary_");
-            gallery_attach_one(app, empty_label_secondary_, "empty_label_secondary_");
-            gallery_attach_one(app, *empty_view_, "empty_view_");
-            gallery_attach_one(app, search_, "search_");
-            gallery_attach_one(app, list_, "list_");
-            gallery_attach_one(app, grid_, "grid_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(*empty_view_); // the EmptyView StackLayout hosts its two Labels
-            gallery_rehost_layout(grid_);        // the grid hosts the search bar + collection_view
-            gallery_rehost_content(page_);       // the page hosts the grid
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / tests.

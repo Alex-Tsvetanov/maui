@@ -23,12 +23,11 @@
 // bindings). SwipeItem has NO Command in the port — its command channel IS the invoked/clicked event — so
 // the "Favourite" SwipeItem wires through `invoked` instead (the observable equivalent of FavouriteCommand).
 //
-// Self-contained (the gestures_page pattern): the page OWNS its whole element tree, exposes page() and
-// attach_handlers(maui_app); attach_handlers() also OPENS the SwipeView (so the revealed items show) and
+// Self-contained (the gestures_page pattern): the page OWNS its whole element tree, exposes page();
+// the page's mount hook also OPENS the SwipeView (so the revealed items show) and
 // drives the two tap recognizers + the favourite item so the readout reflects all three channels.
 
 #include <any>
-#include <cstdio>
 #include <memory>
 #include <string>
 
@@ -49,8 +48,6 @@
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -157,39 +154,12 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED VIEW, BOTTOM-UP (the card + delete content first, the page last),
-        // then re-host the ctor-built tree. The "Favourite" SwipeItem is a NON-view menu item with no
-        // standalone handler, so it is excluded (attaching it would throw). Headless has no native input, so
-        // finish by opening the SwipeView and driving each of the three channels synthetically so the readout
-        // reflects the full wiring in a static capture. (gallery_attach.hpp)
-        void attach_handlers(maui::hosting::maui_app& app)
+        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
+        // handler + builds the native tree. Headless has no native input, so open the SwipeView and drive each
+        // of the three channels synthetically so the readout reflects the full wiring in a static capture. All
+        // per-control attach + re-host plumbing is now the generic mount's job.
+        void on_mounted(maui::hosting::maui_app& /*app*/)
         {
-            // The card content (deepest first).
-            gallery_attach_one(app, title_, "title_");
-            gallery_attach_one(app, date_, "date_");
-            gallery_attach_one(app, subtitle_, "subtitle_");
-            gallery_attach_one(app, description_, "description_");
-            gallery_attach_one(app, card_, "card_");
-
-            // The delete custom item view content.
-            gallery_attach_one(app, delete_label_, "delete_label_");
-            gallery_attach_one(app, delete_content_, "delete_content_");
-            gallery_attach_one(app, delete_item_view_, "delete_item_view_");
-
-            gallery_attach_one(app, banner_, "banner_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, swipe_, "swipe_");
-            gallery_attach_one(app, root_, "root_");
-            gallery_attach_one(app, page_, "page_");
-
-            // Replay the host commands now that handlers exist.
-            gallery_rehost_layout(card_);
-            gallery_rehost_layout(delete_content_);
-            gallery_rehost_content(delete_item_view_);
-            gallery_rehost_content(swipe_);
-            gallery_rehost_layout(root_);
-            gallery_rehost_content(page_);
-
             drive_synthetic_gestures();
         }
 

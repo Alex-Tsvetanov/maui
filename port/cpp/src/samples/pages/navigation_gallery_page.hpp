@@ -25,12 +25,11 @@
 // The page OWNS its whole element tree (the sample_app pattern): the readout, the buttons, the stack,
 // the gallery content_page (page()), AND the page-owned navigation_page + the pool of content_pages it
 // pushes/pops (the nav stack is NON-owning, so the pages must outlive it — they are members here).
-// It is backend-agnostic; attach_handlers attaches every VIEW bottom-up via gallery_attach.hpp and
-// re-hosts the tree built in the ctor. The navigation_page is NOT mounted in the visual tree (it is the
+// It is backend-agnostic; the generic mount (app_host.hpp) attaches every view's handler and
+// hosts the tree built in the ctor. The navigation_page is NOT mounted in the visual tree (it is the
 // page-owned stack under test), so it is intentionally excluded from the attach/re-host walk.
 
 #include <array>
-#include <cstdio>
 #include <string>
 
 #include "maui/controls/button.hpp"
@@ -40,9 +39,6 @@
 #include "maui/controls/toolbar_item.hpp"
 #include "maui/controls/toolbar_item_order.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -110,26 +106,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED VIEW bottom-up (the readout + buttons, then the stack, then the
-        // page), then re-host the tree built in the ctor. The page-owned navigation_page + its pooled
-        // content_pages are the STACK UNDER TEST (not mounted in this page's visual tree), so they are
-        // deliberately excluded — like chrome_page excludes its non-view menu items (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, push_button_, "push_button_");
-            gallery_attach_one(app, pop_button_, "pop_button_");
-            gallery_attach_one(app, insert_button_, "insert_button_");
-            gallery_attach_one(app, remove_button_, "remove_button_");
-            gallery_attach_one(app, pop_to_root_button_, "pop_to_root_button_");
-            gallery_attach_one(app, toggle_toolbar_button_, "toggle_toolbar_button_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // ---- owned controls, exposed for the hosting main's bottom-up attachment + tests ----

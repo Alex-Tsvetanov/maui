@@ -42,9 +42,6 @@
 #include "maui/controls/platform_effect.hpp"
 #include "maui/controls/routing_effect.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -151,25 +148,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED VIEW bottom-up (leaves, then the stack, then the page), then
-        // re-host the tree. The effect members are NON-view subscribers on their entries (no standalone
-        // handler), so they are excluded — they ride along through the entries' effects collections.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, routing_label_, "routing_label_");
-            gallery_attach_one(app, entry1_, "entry1_");
-            gallery_attach_one(app, platform_label_, "platform_label_");
-            gallery_attach_one(app, entry2_, "entry2_");
-            gallery_attach_one(app, detach_btn_, "detach_btn_");
-            gallery_attach_one(app, attach_btn_, "attach_btn_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // The owned views/effects, exposed for the hosting main + headless tests.

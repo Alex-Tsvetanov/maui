@@ -29,8 +29,8 @@
 //       (the content is reproduced faithfully; alignment is deferred). The Slider Maximum=40 cap and the
 //       0-margin/0-padding on the Border are honored.
 //
-// HEADLESS-SAFE maui:: API only; the page owns its whole element tree and re-hosts it bottom-up via the
-// shared gallery_attach helpers (Border is a single-content host → gallery_rehost_content).
+// HEADLESS-SAFE maui:: API only; the page owns its whole element tree (the generic mount in app_host.hpp
+// attaches handlers + hosts it).
 
 #include <cstdio>
 
@@ -48,9 +48,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -119,29 +116,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp). The border is a single-content host (rehost_content);
-        // the grid + the horizontal row + the outer stack are layouts (rehost_layout).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, slider_, "slider_");
-            gallery_attach_one(app, left_square_, "left_square_");
-            gallery_attach_one(app, center_label_, "center_label_");
-            gallery_attach_one(app, right_square_, "right_square_");
-            gallery_attach_one(app, row_, "row_");
-            gallery_attach_one(app, content_grid_, "content_grid_");
-            gallery_attach_one(app, border_, "border_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(row_);          // horizontal stack hosts the two squares + the label
-            gallery_rehost_layout(content_grid_); // grid hosts the row
-            gallery_rehost_content(border_);      // border hosts the grid
-            gallery_rehost_layout(stack_);        // outer stack hosts readout + slider + border
-            gallery_rehost_content(page_);        // page hosts the stack
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / inspection.

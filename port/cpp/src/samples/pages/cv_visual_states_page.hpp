@@ -56,9 +56,6 @@
 #include "maui/core/font.hpp"
 #include "maui/core/line_break_mode.hpp"
 #include "maui/core/observable_collection.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -109,19 +106,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, single_headline_, "single_headline_");
-            gallery_attach_one(app, single_list_, "single_list_");
-            gallery_attach_one(app, multi_headline_, "multi_headline_");
-            gallery_attach_one(app, multi_list_, "multi_list_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_); // the stack hosts the two labels + two collection views
-            gallery_rehost_content(page_); // the page hosts the stack
         }
 
         // ---- headless selection drivers (selection is observable; the per-cell recolor is not — note:)

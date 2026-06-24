@@ -31,8 +31,8 @@
 //     live source again (the EmptyView reappears). The headless collection_view virtualization sim
 //     realizes the cells when the source fills and surfaces the EmptyView when it empties.
 //
-// The page OWNS its whole element tree (the items_page pattern). attach_handlers wires every owned view
-// bottom-up then re-hosts the page content.
+// The page OWNS its whole element tree (the items_page pattern). The generic mount (app_host.hpp) attaches
+// every owned view's handler and hosts the page content.
 //
 // note: the C# item template is ExampleTemplates.PhotoTemplate() (an Image over a caption Label). The
 //       port cell is the caption Label only — an Image cell would need an i_image_source per row, which
@@ -55,9 +55,6 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/core/observable_collection.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -99,16 +96,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the list, then the page), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, list_, "list_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_content(page_); // the page hosts the collection_view directly
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / tests.

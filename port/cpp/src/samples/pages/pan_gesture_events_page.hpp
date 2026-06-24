@@ -19,7 +19,7 @@
 //     the pan_updated_event_args (status_type / total_x / total_y).
 //
 // On a device the platform pan-gesture manager drives the recognizer through its
-// i_pan_gesture_controller seam. The headless backend has NO native input, so attach_handlers()
+// i_pan_gesture_controller seam. The headless backend has NO native input, so the page's mount hook
 // finishes with one deterministic synthetic pan drive through that same seam — Started -> Running(dx,dy)
 // -> Completed, stamped with one gesture id minted from PanGestureRecognizer::current_id() (exactly how
 // the gesture unit tests and the platform bridges drive it) — leaving the readout showing the final
@@ -27,7 +27,7 @@
 // already exercised the cumulative-translation path.
 //
 // The page OWNS its whole element tree (the gestures_page / pointer_gesture_page pattern): public
-// page() and attach_handlers(maui_app).
+// page().
 
 #include <cstdio>
 #include <memory>
@@ -42,8 +42,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -84,23 +82,12 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED view, BOTTOM-UP (the label, the two row grids, the outer grid,
-        // the page), then re-host the ctor-built tree (gallery_attach.hpp). Headless has no native input,
-        // so finish with one deterministic synthetic pan so the readout reflects the wiring in a static
-        // capture.
-        void attach_handlers(maui::hosting::maui_app& app)
+        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
+        // handler + builds the native tree. Headless has no native input, so drive one deterministic synthetic
+        // pan so the readout reflects the wiring in a static capture. All per-control attach + re-host plumbing
+        // is now the generic mount's job.
+        void on_mounted(maui::hosting::maui_app& /*app*/)
         {
-            gallery_attach_one(app, info_label_, "info_label_");
-            gallery_attach_one(app, target_, "target_");
-            gallery_attach_one(app, backdrop_, "backdrop_");
-            gallery_attach_one(app, outer_, "outer_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(target_);   // the green grid hosts the readout label
-            gallery_rehost_layout(backdrop_); // (empty, but keeps the pattern uniform)
-            gallery_rehost_layout(outer_);    // the outer grid hosts both rows
-            gallery_rehost_content(page_);
-
             drive_synthetic_pan();
         }
 

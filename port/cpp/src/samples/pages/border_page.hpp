@@ -21,9 +21,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -59,17 +56,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to the caption + the border + the page, then re-host the tree built in the ctor.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, caption_, "caption_");
-            gallery_attach_one(app, bordered_, "bordered_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_content(bordered_); // the border hosts the caption
-            gallery_rehost_content(page_);     // the page hosts the border
         }
 
         // The owned controls, exposed for tests / the hosting main's bottom-up attachment.

@@ -38,9 +38,6 @@
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -108,30 +105,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (stack children first in add()-order, then the
-        // stack, then the scroll_view, then the page), then re-host the ctor-built tree (gallery_attach.hpp).
-        // The generic gallery_attach_one preserves each member's concrete static type (attach_handler keys
-        // on it — an i_view& parameter would erase it to a blank page).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, basic_label_, "basic_label_");
-            gallery_attach_one(app, ellipse_, "ellipse_");
-            gallery_attach_one(app, circle_label_, "circle_label_");
-            gallery_attach_one(app, circle_, "circle_");
-            gallery_attach_one(app, stroke_label_, "stroke_label_");
-            gallery_attach_one(app, stroke_ellipse_, "stroke_ellipse_");
-            gallery_attach_one(app, filled_stroke_ellipse_, "filled_stroke_ellipse_");
-            gallery_attach_one(app, dash_label_, "dash_label_");
-            gallery_attach_one(app, dash_ellipse_, "dash_ellipse_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroll_, "scroll_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);   // stack hosts every ellipse + caption
-            gallery_rehost_content(scroll_); // scroll hosts the stack
-            gallery_rehost_content(page_);   // page hosts the scroll
         }
 
     private:

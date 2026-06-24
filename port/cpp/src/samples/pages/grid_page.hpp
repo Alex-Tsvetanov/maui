@@ -18,9 +18,6 @@
 #include "maui/core/grid_length.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -61,22 +58,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the header + four boxes, then the grid, then the
-        // page), then re-host the tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, header_, "header_");
-            gallery_attach_one(app, red_, "red_");
-            gallery_attach_one(app, green_, "green_");
-            gallery_attach_one(app, blue_, "blue_");
-            gallery_attach_one(app, orange_, "orange_");
-            gallery_attach_one(app, grid_, "grid_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(grid_);  // the grid hosts the header + four boxes
-            gallery_rehost_content(page_); // the page hosts the grid
         }
 
         // The owned controls, exposed for tests / the hosting main's bottom-up attachment.

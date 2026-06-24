@@ -22,8 +22,8 @@
 //       content and the blue grid fills (faithful content-sizing). The Headline StaticResource
 //       style is markup-era (deferred) — reproduced as the label text.
 //
-// HEADLESS-SAFE maui:: API only; the page owns its whole element tree and re-hosts it bottom-up via the
-// shared gallery_attach helpers (each Border is a single-content host → gallery_rehost_content).
+// HEADLESS-SAFE maui:: API only; the page owns its whole element tree (the generic mount in app_host.hpp
+// attaches handlers + hosts it).
 
 #include <array>
 
@@ -36,9 +36,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -92,31 +89,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (each section's caption → grid → border, the
-        // headline, then outward to the stack and the page), then re-host the tree built in the ctor.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            for (std::size_t i = 0; i < kSectionCount; ++i)
-            {
-                section& sec = sections_[i];
-                gallery_attach_one(app, sec.caption, "caption");
-                gallery_attach_one(app, sec.cell, "cell");
-                gallery_attach_one(app, sec.bordered, "bordered");
-                gallery_attach_one(app, sec.headline, "headline");
-            }
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            for (std::size_t i = 0; i < kSectionCount; ++i)
-            {
-                section& sec = sections_[i];
-                gallery_rehost_layout(sec.cell);      // grid hosts the white caption label
-                gallery_rehost_content(sec.bordered); // border hosts the grid
-            }
-            gallery_rehost_layout(stack_); // outer stack hosts the four headline+border pairs
-            gallery_rehost_content(page_); // page hosts the stack
         }
 
         // The owned controls, exposed for inspection.

@@ -41,9 +41,6 @@
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -111,14 +108,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, list_, "list_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_content(page_); // the page hosts the grouped collection view
         }
 
         [[nodiscard]] maui::controls::collection_view& list()

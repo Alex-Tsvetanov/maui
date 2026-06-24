@@ -6,12 +6,14 @@
 // and shows it. The page list is single-sourced in gallery_host.hpp's MAUI_GALLERY_PAGES X-macro; this
 // main expands it to dispatch the runtime env string to a compile-time gallery_app<PageType>.
 //
-// The mount recipe (verified):
+// The mount recipe (now the GENERIC driver — app_host.hpp, Stage 5a):
 //   1. use_maui_app<gallery_app<Page>> mints the app (it OWNS the window + page; create_window() returns it).
-//   2. Attach handlers BOTTOM-UP: the page's owned controls first (page.attach_handlers), the window LAST.
-//   3. open_window drives the lifecycle + the window_handler host_content (the UIWindow's
-//      rootViewController.view hosts the page's native view), then make it key + visible.
-//   4. The window host does NOT auto-layout: measure(W,H) + arrange({0,0,W,H}) over the rootVC view bounds.
+//   2. mount_window walks the page's element tree, attaches a handler to every element (children before
+//      parents) + re-hosts each container, attaches the window handler, and opens the window — NO per-page
+//      attach_handlers / gallery_rehost plumbing. The window host hosts the page's native view on open.
+//   3. drive_layout (the two-rect form) measures + arranges the tree over the rootVC bounds, choosing the
+//      safe-area inset for a normal page and the full controller bounds for a VC-backed root page
+//      (flyout/tabbed), via the shared root_view_controller() contract.
 //
 // Build + run on the booted simulator:
 //   cmake --build --preset ios --target maui_ios_gallery
@@ -29,9 +31,9 @@
 #include "maui/controls/application.hpp"
 #include "maui/controls/window.hpp"
 #include "maui/core/app_theme.hpp"
-#include "maui/core/i_view.hpp"
-#include "maui/core/i_view_handler.hpp"
 #include "maui/core/window_handler.hpp"
+#include "maui/graphics/rect.hpp"
+#include "maui/hosting/app_host.hpp"
 #include "maui/hosting/maui_app.hpp"
 #include "maui/hosting/maui_app_builder.hpp"
 
@@ -66,13 +68,15 @@ namespace
         maui_app->application()->set_platform_app_theme(dark_appearance ? maui::core::app_theme::dark
                                                                         : maui::core::app_theme::light);
 
-        // (2) Attach handlers bottom-up: the page's owned controls first, the window LAST.
-        app->page_member().attach_handlers(*maui_app);
-        const auto window_handler =
-            std::dynamic_pointer_cast<maui::core::window_handler>(maui_app->attach_handler(app->win()));
-
-        // (3) Open the window: drives the lifecycle + hosts the page's native view, key + visible.
-        maui_app->open_window(app->win());
+        // (2) Generic mount: attach handlers across the page tree (children before parents), re-host each
+        //     container, attach the window handler, open the window — NO per-page attach_handlers plumbing.
+        //     gallery_pre_mount lets a page register a user-control handler first (custom_layout_page);
+        //     gallery_post_mount runs a page's post-mount demo seeding after the tree is live (both no-ops
+        //     unless the page opts in — gallery_host.hpp).
+        maui::samples::gallery_pre_mount(*maui_app, app->page_member());
+        maui::hosting::mount_window(*maui_app, app->win());
+        maui::samples::gallery_post_mount(*maui_app, app->page_member());
+        const auto window_handler = std::dynamic_pointer_cast<maui::core::window_handler>(app->win().handler());
 
         auto* const native_window = (__bridge UIWindow*)window_handler->typed_platform_view()->native;
 
@@ -83,46 +87,28 @@ namespace
         native_window.overrideUserInterfaceStyle =
             dark_appearance ? UIUserInterfaceStyleDark : UIUserInterfaceStyleLight;
 
-        // (4) Lay out the tree over the root view-controller's SAFE-AREA rect (the window host does no
-        // auto-layout). A real app would inset via the page's SafeAreaEdges; the gallery host insets here
-        // so the demo content clears the status bar / Dynamic Island. Force a layout pass first so
-        // safeAreaInsets is populated; fall back to a status-bar-height top inset if it isn't yet.
+        // (3) Lay out the tree over the root view-controller's bounds (the window host does no auto-layout).
+        // Compute BOTH the full controller bounds and the safe-area-inset rect, then hand both to the generic
+        // drive_layout: it picks the full bounds for a VC-backed root page (flyout/tabbed — the controller
+        // owns the chrome and each inner page tracks its own safe area) and the safe-area rect for every
+        // other page, via the shared root_view_controller() contract (app_host.hpp). Force a layout pass
+        // first so safeAreaInsets is populated; fall back to a status-bar-height top inset if it isn't yet.
         UIView* const root_view = native_window.rootViewController.view;
         [root_view layoutIfNeeded];
-        auto& root = static_cast<maui::core::i_view&>(app->page_member().page());
 
-        // A VC-backed root page (flyout_page → UISplitViewController, tabbed_page → UITabBarController):
-        // the window host made the page's OWN controller the window's rootViewController, so the split/tab
-        // child-VC lifecycle + Auto Layout position the columns / tab content area. The cross-platform
-        // tree STILL needs an arrange — that is what frames each pane's inner content (flyout_page::arrange
-        // arranges its two panes host-relative; without it the panes render blank). But the inset is NOT
-        // applied here: the controller owns the chrome (split divider / tab bar) and each inner content_page
-        // tracks its own safeAreaInsets via MauiIosPageView, so the page lays out over the FULL controller
-        // bounds. (Detected via the handler's root_view_controller() == ViewController contract.)
-        if (auto* const page_handler = dynamic_cast<maui::core::i_view_handler*>(root.handler().get());
-            page_handler != nullptr && page_handler->root_view_controller() != nullptr)
-        {
-            const CGRect controller_bounds = root_view.bounds;
-            const auto vc_width = static_cast<double>(controller_bounds.size.width);
-            const auto vc_height = static_cast<double>(controller_bounds.size.height);
-            root.measure(vc_width, vc_height);
-            root.arrange(maui::graphics::rect{0, 0, vc_width, vc_height});
-            os_log(OS_LOG_DEFAULT, "[gallery] VC-backed root page laid out %g x %g (full controller bounds)", vc_width,
-                   vc_height);
-            return native_window;
-        }
-
+        const CGRect full = root_view.bounds;
         UIEdgeInsets insets = root_view.safeAreaInsets;
         if (insets.top < 1.0)
         {
             insets.top = 59.0; // status bar + Dynamic Island fallback (no run-loop spin has happened yet)
         }
-        const CGRect full = root_view.bounds;
-        const auto width = static_cast<double>(full.size.width - insets.left - insets.right);
-        const auto height = static_cast<double>(full.size.height - insets.top - insets.bottom);
-        root.measure(width, height);
-        root.arrange(maui::graphics::rect{insets.left, insets.top, width, height});
-        os_log(OS_LOG_DEFAULT, "[gallery] laid out %g x %g at inset top=%g", width, height, insets.top);
+        const maui::graphics::rect full_bounds{0, 0, static_cast<double>(full.size.width),
+                                               static_cast<double>(full.size.height)};
+        const maui::graphics::rect safe_area_bounds{static_cast<double>(insets.left), static_cast<double>(insets.top),
+                                                    static_cast<double>(full.size.width - insets.left - insets.right),
+                                                    static_cast<double>(full.size.height - insets.top - insets.bottom)};
+        maui::hosting::drive_layout(app->win(), full_bounds, safe_area_bounds);
+        os_log(OS_LOG_DEFAULT, "[gallery] laid out (safe-area inset top=%g)", insets.top);
 
         return native_window;
     }

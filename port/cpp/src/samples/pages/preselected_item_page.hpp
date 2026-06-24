@@ -41,9 +41,6 @@
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/core/grid_length.hpp"
 #include "maui/core/observable_collection.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -111,20 +108,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the tree.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, selected_items_event_, "selected_items_event_");
-            gallery_attach_one(app, selected_items_command_, "selected_items_command_");
-            gallery_attach_one(app, list_, "list_");
-            gallery_attach_one(app, grid_, "grid_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(grid_);  // the grid hosts the labels + the list
-            gallery_rehost_content(page_); // the page hosts the grid
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / any test tree.

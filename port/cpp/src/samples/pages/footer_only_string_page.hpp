@@ -19,8 +19,8 @@
 //   - the source is a live observable_collection<demo_item> of twenty rows, seeded like
 //     DemoFilteredItemSource's AddItems loop (image-name + index caption).
 //
-// The page OWNS its whole element tree (the items_page pattern). attach_handlers wires every owned view
-// bottom-up and re-hosts the tree (gallery_attach.hpp); the headless collection_view runs its
+// The page OWNS its whole element tree (the items_page pattern). The generic mount (app_host.hpp) attaches
+// every owned view's handler and hosts the tree; the headless collection_view runs its
 // fake-viewport virtualization simulator, which realizes the item cells (binding each realized cell to
 // its item, so the caption binding is exercised) plus the footer supplemental.
 //
@@ -40,9 +40,6 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/core/observable_collection.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -78,16 +75,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the list first, the page last), then re-host
-        // the tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, list_, "list_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_content(page_); // the page hosts the collection_view
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / tests.

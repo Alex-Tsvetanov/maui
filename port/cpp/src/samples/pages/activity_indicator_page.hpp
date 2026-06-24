@@ -3,8 +3,7 @@
 //
 // A self-contained, code-first demo page for maui::controls::activity_indicator. Mirrors the EXACT shape
 // of value_controls_page.hpp / button_page.hpp: the class OWNS its whole element tree as members,
-// exposes page() and attach_handlers(maui_app) (bottom-up, leaves first -> layout -> page, via the
-// shared gallery_attach helpers), and uses only cross-platform maui:: API so it stays headless-safe.
+// exposes page(), and uses only cross-platform maui:: API so it stays headless-safe.
 //
 // What the MAUI page demonstrates (reproduced here so the demo visibly exercises the control):
 //   - a Default running indicator (IsRunning=True),
@@ -32,9 +31,6 @@
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -110,30 +106,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, default_header_, "default_header_");
-            gallery_attach_one(app, default_indicator_, "default_indicator_");
-            gallery_attach_one(app, color_header_, "color_header_");
-            gallery_attach_one(app, color_indicator_, "color_indicator_");
-            gallery_attach_one(app, background_header_, "background_header_");
-            gallery_attach_one(app, background_indicator_, "background_indicator_");
-            gallery_attach_one(app, larger_header_, "larger_header_");
-            gallery_attach_one(app, larger_indicator_, "larger_indicator_");
-            gallery_attach_one(app, smaller_header_, "smaller_header_");
-            gallery_attach_one(app, smaller_indicator_, "smaller_indicator_");
-            gallery_attach_one(app, not_running_header_, "not_running_header_");
-            gallery_attach_one(app, not_running_indicator_, "not_running_indicator_");
-            gallery_attach_one(app, end_label_, "end_label_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / tests.

@@ -45,9 +45,6 @@
 #include "maui/controls/toolbar_item.hpp"
 #include "maui/controls/toolbar_item_order.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -146,26 +143,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED VIEW, bottom-up (the leaf views, then the stack, then the page),
-        // then re-host the tree built in the ctor. The toolbar_item members are NON-view menu items: they
-        // have no standalone handler (attaching would throw), so they are deliberately excluded — exactly
-        // as chrome_page does. (gallery_attach.hpp)
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, menu_label_, "menu_label_");
-            gallery_attach_one(app, toggle_primary1_btn_, "toggle_primary1_btn_");
-            gallery_attach_one(app, toggle_secondary4_btn_, "toggle_secondary4_btn_");
-            gallery_attach_one(app, toggle_secondary2_btn_, "toggle_secondary2_btn_");
-            gallery_attach_one(app, rename_secondary1_btn_, "rename_secondary1_btn_");
-            gallery_attach_one(app, remove_add_secondary3_btn_, "remove_add_secondary3_btn_");
-            gallery_attach_one(app, change_command_btn_, "change_command_btn_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // The owned views/items, exposed for the hosting main + headless tests.

@@ -53,9 +53,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/shapes/rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -114,54 +111,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (each border's content label first, then the border,
-        // then its grid, then the stack, then the scroll_view, then the page) so each parent can host its
-        // child's native view, then re-host the tree built in the ctor (gallery_attach.hpp). The generic
-        // lambda preserves each member's concrete static type — attach_handler keys on the static type.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            // Section 1 leaves → borders → grid.
-            gallery_attach_one(app, fixed_caption_, "fixed_caption_");
-            gallery_attach_one(app, fixed_label1_, "fixed_label1_");
-            gallery_attach_one(app, fixed_border1_, "fixed_border1_");
-            gallery_attach_one(app, fixed_label2_, "fixed_label2_");
-            gallery_attach_one(app, fixed_border2_, "fixed_border2_");
-            gallery_attach_one(app, fixed_label3_, "fixed_label3_");
-            gallery_attach_one(app, fixed_border3_, "fixed_border3_");
-            gallery_attach_one(app, fixed_grid_, "fixed_grid_");
-
-            // Section 2 leaves → borders → grid (+ caption, readout, slider).
-            gallery_attach_one(app, height_caption_, "height_caption_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, height_slider_, "height_slider_");
-            gallery_attach_one(app, height_label1_, "height_label1_");
-            gallery_attach_one(app, height_border1_, "height_border1_");
-            gallery_attach_one(app, height_label2_, "height_label2_");
-            gallery_attach_one(app, height_border2_, "height_border2_");
-            gallery_attach_one(app, height_label3_, "height_label3_");
-            gallery_attach_one(app, height_border3_, "height_border3_");
-            gallery_attach_one(app, height_grid_, "height_grid_");
-
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, scroller_, "scroller_");
-            gallery_attach_one(app, page_, "page_");
-
-            // Replay the host commands now (the tree was built before any handler existed): each border hosts
-            // its label, each grid hosts its borders, the stack hosts both sections, the scroll hosts the
-            // stack, the page hosts the scroll.
-            gallery_rehost_content(fixed_border1_);
-            gallery_rehost_content(fixed_border2_);
-            gallery_rehost_content(fixed_border3_);
-            gallery_rehost_layout(fixed_grid_);
-            gallery_rehost_content(height_border1_);
-            gallery_rehost_content(height_border2_);
-            gallery_rehost_content(height_border3_);
-            gallery_rehost_layout(height_grid_);
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(scroller_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

@@ -11,13 +11,7 @@
 // the closest headless-safe analogue; note: the C# Headline StaticResource is approximated with a bold
 // system font on the section labels.)
 //
-// The page OWNS its whole element tree (the sample_app pattern). attach_handlers attaches a handler to
-// every owned VIEW bottom-up via a GENERIC lambda that preserves each member's concrete static type
-// (attach_handler keys on it), then replays the host "add"/"set_content" commands so the native panels
-// actually mirror the children built in the ctor.
-
-#include <cstdio>
-#include <exception>
+// The page OWNS its whole element tree (the sample_app pattern).
 
 #include "maui/controls/box_view.hpp"
 #include "maui/controls/content_page.hpp"
@@ -25,10 +19,8 @@
 #include "maui/controls/stack_layout.hpp"
 #include "maui/controls/stack_orientation.hpp"
 #include "maui/core/font.hpp"
-#include "maui/core/layout_handler.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
-#include "maui/hosting/maui_app.hpp"
 
 namespace maui::samples
 {
@@ -101,53 +93,6 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaf boxes/labels first, inner stacks, the
-        // outer stack, the page last), then replay the host commands so the native panels mirror the tree
-        // built in the ctor. A GENERIC lambda preserves each member's concrete static type — never use
-        // i_view& here (that erases the type and attach_handler finds no handler → blank page).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            auto one = [&app](auto& v, const char* n) {
-                try
-                {
-                    app.attach_handler(v);
-                }
-                catch (const std::exception& e)
-                {
-                    std::fprintf(stderr, "[gallery] skip %s: %s\n", n, e.what());
-                }
-            };
-
-            one(vertical_heading_, "vertical_heading_");
-            one(vertical_red_, "vertical_red_");
-            one(vertical_yellow_, "vertical_yellow_");
-            one(vertical_blue_, "vertical_blue_");
-            one(vertical_green_, "vertical_green_");
-            one(vertical_orange_, "vertical_orange_");
-            one(vertical_purple_, "vertical_purple_");
-            one(vertical_stack_, "vertical_stack_");
-            one(horizontal_heading_, "horizontal_heading_");
-            one(horizontal_red_, "horizontal_red_");
-            one(horizontal_yellow_, "horizontal_yellow_");
-            one(horizontal_blue_, "horizontal_blue_");
-            one(horizontal_green_, "horizontal_green_");
-            one(horizontal_orange_, "horizontal_orange_");
-            one(horizontal_purple_, "horizontal_purple_");
-            one(horizontal_stack_, "horizontal_stack_");
-            one(outer_, "outer_");
-            one(page_, "page_");
-
-            // Replay the layout "add" commands (children added in the ctor, before handlers existed) and
-            // the page's "set_content", so the native subview trees actually materialize.
-            rehost_layout(vertical_stack_);
-            rehost_layout(horizontal_stack_);
-            rehost_layout(outer_);
-            if (const auto& h = page_.handler())
-            {
-                h->invoke("set_content");
-            }
-        }
-
         // ---- owned controls, exposed for the hosting main's bottom-up attachment ----
         [[nodiscard]] maui::controls::stack_layout& outer()
         {
@@ -163,18 +108,6 @@ namespace maui::samples
         }
 
     private:
-        // Replay a layout's children into its now-attached handler so the native panel hosts each one.
-        template <class Layout> static void rehost_layout(Layout& layout)
-        {
-            if (const auto& layout_handler = layout.handler())
-            {
-                for (int i = 0; i < layout.count(); ++i)
-                {
-                    layout_handler->invoke("add", maui::core::layout_handler_update{.index = i, .view = &layout.at(i)});
-                }
-            }
-        }
-
         maui::controls::content_page page_;
         maui::controls::stack_layout outer_;
 

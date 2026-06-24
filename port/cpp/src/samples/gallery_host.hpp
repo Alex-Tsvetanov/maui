@@ -8,8 +8,16 @@
 //   - gallery_app<Page> is a maui::controls::application subclass (the use_maui_app<TApp> shape, like the
 //     sample_app in maui_app_sample.mm): it OWNS a Page member + a window, hosts the page in the window
 //     (window.set_content(page.page())), and overrides create_window() to return that window. The mains
-//     boot it through the maui_app_builder, attach the page's handlers (page.attach_handlers), attach the
-//     window handler, open_window, then measure/arrange + show the native window.
+//     boot it through the maui_app_builder, then mount the whole tree GENERICALLY via
+//     maui::hosting::mount_window + drive_layout (app_host.hpp) — NO per-page attach_handlers plumbing.
+//
+//   - The two OPTIONAL per-page hooks the generic mount cannot infer (most pages define neither):
+//     gallery_pre_mount runs a page's register_handlers(maui_app&) BEFORE mount_window so a page that owns
+//     a brand-new user control type (custom_layout_page's dock_layout) can register its handler into the
+//     app registry the generic mount resolves from; gallery_post_mount runs a page's on_mounted(maui_app&)
+//     AFTER mount_window for the demo seeding that needs live handlers (opening a SwipeView to its revealed
+//     state, driving a synthetic gesture, subscribing to the application theme, …). Both are detected with
+//     `if constexpr (requires ...)` so a page opts in simply by declaring the method.
 //
 //   - MAUI_GALLERY_PAGES(X) single-sources the page list (name string ⇄ page type). The mains expand it
 //     against the MAUI_SAMPLE_PAGE env var to pick which gallery_app<PageType> to boot, so a new page is
@@ -17,9 +25,12 @@
 //     page's element / i_view faces, so the same template deduces for both content_page and flyout_page
 //     roots.
 
+#include <utility>
+
 #include "maui/controls/application.hpp"
 #include "maui/controls/window.hpp"
 #include "maui/core/i_window.hpp"
+#include "maui/hosting/maui_app.hpp"
 
 #include "pages/chrome_page.hpp"
 #include "pages/containers_page.hpp"
@@ -407,6 +418,32 @@
 
 namespace maui::samples
 {
+    // The two OPTIONAL per-page mount hooks (see the header comment). Both are no-ops for a page that does
+    // not declare the corresponding method — the generic mount covers the whole tree; only a page with
+    // wiring the generic driver cannot express opts in by defining register_handlers / on_mounted.
+
+    // BEFORE mount_window: let a page register a handler for a user-defined control type into THIS app's
+    // registry (the generic mount resolves handlers only from app.handlers(), which has no global fallback —
+    // custom_layout_page's dock_layout). A no-op unless the page declares register_handlers(maui_app&).
+    template <class Page> void gallery_pre_mount(maui::hosting::maui_app& app, Page& page)
+    {
+        if constexpr (requires { page.register_handlers(app); })
+        {
+            page.register_handlers(app);
+        }
+    }
+
+    // AFTER mount_window (handlers attached, native views built): run the page's post-mount demo seeding —
+    // the actions that need live handlers (open a SwipeView to its revealed capture state, drive a synthetic
+    // gesture, subscribe to the application theme, …). A no-op unless the page declares on_mounted(maui_app&).
+    template <class Page> void gallery_post_mount(maui::hosting::maui_app& app, Page& page)
+    {
+        if constexpr (requires { page.on_mounted(app); })
+        {
+            page.on_mounted(app);
+        }
+    }
+
     // The application subclass the builder mints (use_maui_app<gallery_app<Page>>). It OWNS the demo page
     // and the window, and hosts the page in the window (the C# Application.CreateWindow shape).
     template <class Page> class gallery_app final : public maui::controls::application

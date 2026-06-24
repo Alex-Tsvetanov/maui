@@ -45,9 +45,6 @@
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/core/grid_length.hpp"
 #include "maui/core/observable_collection.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -119,20 +116,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, mode_picker_, "mode_picker_");
-            gallery_attach_one(app, selection_event_, "selection_event_");
-            gallery_attach_one(app, previous_event_, "previous_event_");
-            gallery_attach_one(app, selection_command_, "selection_command_");
-            gallery_attach_one(app, list_, "list_");
-            gallery_attach_one(app, grid_, "grid_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(grid_);  // the grid hosts the picker, the three labels, the list
-            gallery_rehost_content(page_); // the page hosts the grid
         }
 
         // ---- accessors (used by the hosting main + any test tree) ----

@@ -60,9 +60,6 @@
 #include "maui/core/grid_length.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -106,36 +103,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            // index grid leaves
-            gallery_attach_one(app, group_index_label_, "group_index_label_");
-            gallery_attach_one(app, group_index_entry_, "group_index_entry_");
-            gallery_attach_one(app, item_index_label_, "item_index_label_");
-            gallery_attach_one(app, item_index_entry_, "item_index_entry_");
-            gallery_attach_one(app, scroll_to_button_, "scroll_to_button_");
-            gallery_attach_one(app, index_grid_, "index_grid_");
-            // name grid leaves
-            gallery_attach_one(app, group_name_label_, "group_name_label_");
-            gallery_attach_one(app, group_name_entry_, "group_name_entry_");
-            gallery_attach_one(app, item_name_label_, "item_name_label_");
-            gallery_attach_one(app, item_name_entry_, "item_name_entry_");
-            gallery_attach_one(app, scroll_to_item_button_, "scroll_to_item_button_");
-            gallery_attach_one(app, name_grid_, "name_grid_");
-            // remaining root children + the root + page
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, list_, "list_");
-            gallery_attach_one(app, root_, "root_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(index_grid_);
-            gallery_rehost_layout(name_grid_);
-            gallery_rehost_layout(root_);
-            gallery_rehost_content(page_);
         }
 
         // ---- owned controls exposed for the hosting main / tests ----

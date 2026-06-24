@@ -37,7 +37,6 @@
 
 #include <array>
 #include <cstddef>
-#include <cstdio>
 #include <memory>
 #include <string>
 #include <utility>
@@ -54,9 +53,6 @@
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -86,55 +82,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first up through each stack, then the
-        // grid, the scroll_view and the page), then re-host the tree built in the ctor.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            auto one = [&app](auto& view, const char* name) { gallery_attach_one(app, view, name); };
-
-            // Every co-owned leaf + sub-stack across both columns, then the column roots. Concrete-typed
-            // loops so each view's real type reaches attach_handler (gallery_attach.hpp).
-            for (const auto& caption : caption_labels_)
-            {
-                one(*caption, "caption");
-            }
-            for (const auto& button : buttons_)
-            {
-                one(*button, "button");
-            }
-            for (const auto& sub : sub_stacks_)
-            {
-                one(*sub, "sub_stack");
-            }
-            one(main_layout_, "main_layout_");
-            one(left_controls_, "left_controls_");
-            one(disable_layout_button_, "disable_layout_button_");
-            one(enable_button_button_, "enable_button_button_");
-            one(right_layout_, "right_layout_");
-            one(right_controls_, "right_controls_");
-            one(layout_check_, "layout_check_");
-            one(button_check_, "button_check_");
-            one(command_check_, "command_check_");
-
-            one(grid_, "grid_");
-            one(scroller_, "scroller_");
-            one(page_, "page_");
-
-            // Re-host: every sub-stack hosts its leaves, the column roots host their sub-stacks, the grid
-            // hosts the four column blocks, the scroll_view hosts the grid, the page hosts the scroller.
-            for (const auto& sub : sub_stacks_)
-            {
-                gallery_rehost_layout(*sub);
-            }
-            gallery_rehost_layout(main_layout_);
-            gallery_rehost_layout(left_controls_);
-            gallery_rehost_layout(right_layout_);
-            gallery_rehost_layout(right_controls_);
-            gallery_rehost_layout(grid_);
-            gallery_rehost_content(scroller_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's inspection / tests.
@@ -431,7 +378,8 @@ namespace maui::samples
 
         // The co-owned leaves, kept alive + reachable for bottom-up handler attachment. Stored in
         // TYPE-CONCRETE vectors (never erased to a base) so the generic `one(...)` attach lambda sees
-        // each view's real static type — erasing to element&/i_view& blanks the page (gallery_attach).
+        // each view's real static type — erasing to element&/i_view& blanks the page (the generic mount
+        // needs the concrete view type).
         std::vector<std::shared_ptr<maui::controls::label>> caption_labels_;
         std::vector<std::shared_ptr<maui::controls::button>> buttons_;
         std::vector<std::shared_ptr<maui::controls::vertical_stack_layout>> sub_stacks_;

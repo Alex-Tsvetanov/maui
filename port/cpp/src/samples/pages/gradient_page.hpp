@@ -25,9 +25,6 @@
 #include "maui/graphics/linear_gradient_paint.hpp"
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/radial_gradient_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -72,21 +69,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the captions + boxes, then the stack, then the
-        // page), then re-host the tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, linear_caption_, "linear_caption_");
-            gallery_attach_one(app, linear_box_, "linear_box_");
-            gallery_attach_one(app, radial_caption_, "radial_caption_");
-            gallery_attach_one(app, radial_box_, "radial_box_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for tests / the hosting main's bottom-up attachment.

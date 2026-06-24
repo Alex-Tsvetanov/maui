@@ -18,9 +18,9 @@
 // the readout reports the live thresholds. SwipeItems.Mode is set via set_mode(reveal|execute).
 //
 // Self-contained (the swipe_refresh_page / value_controls_page pattern): the page OWNS its whole element
-// tree, exposes page() and attach_handlers(maui_app).
+// tree, exposes page().
 //
-// attach_handlers() finishes by synthetically OPENING the two custom-threshold SwipeViews (so the static
+// The page's mount hook finishes by synthetically OPENING the two custom-threshold SwipeViews (so the static
 // capture shows their revealed orange SwipeItems) and reports each live Threshold into the readout.
 
 #include <cstdio>
@@ -39,8 +39,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -123,42 +121,13 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED VIEW, BOTTOM-UP (each block's content first, the page last), then
-        // re-host the ctor-built tree. The four SwipeItems are NON-view menu items with no standalone handler,
-        // so they are excluded (attaching one would throw). Finally drive the page deterministically: open the
-        // two custom-threshold SwipeViews so the capture shows their revealed orange items, and report the
-        // live thresholds. (gallery_attach.hpp)
-        void attach_handlers(maui::hosting::maui_app& app)
+        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
+        // handler + builds the native tree. Synthetically reveal the two custom-threshold SwipeViews so the
+        // capture is non-blank, then report the live thresholds. All per-control attach + re-host plumbing is
+        // now the generic mount's job.
+        void on_mounted(maui::hosting::maui_app& /*app*/)
         {
-            // Block contents (the dark-blue Grids' labels, then each Grid, then each SwipeView).
-            attach_block(app, default_reveal_swipe_, default_reveal_content_, "default_reveal");
-            attach_block(app, custom_reveal_swipe_, custom_reveal_content_, "custom_reveal");
-            attach_block(app, default_execute_swipe_, default_execute_content_, "default_execute");
-            attach_block(app, custom_execute_swipe_, custom_execute_content_, "custom_execute");
-
-            // The section labels, sliders, note + readout.
-            gallery_attach_one(app, note_, "note_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, default_reveal_label_, "default_reveal_label_");
-            gallery_attach_one(app, custom_reveal_label_, "custom_reveal_label_");
-            gallery_attach_one(app, default_execute_label_, "default_execute_label_");
-            gallery_attach_one(app, custom_execute_label_, "custom_execute_label_");
-            gallery_attach_one(app, reveal_slider_, "reveal_slider_");
-            gallery_attach_one(app, execute_slider_, "execute_slider_");
-
-            gallery_attach_one(app, root_, "root_");
-            gallery_attach_one(app, page_, "page_");
-
-            // Replay the host commands now that handlers exist.
-            rehost_block(default_reveal_swipe_, default_reveal_content_);
-            rehost_block(custom_reveal_swipe_, custom_reveal_content_);
-            rehost_block(default_execute_swipe_, default_execute_content_);
-            rehost_block(custom_execute_swipe_, custom_execute_content_);
-            gallery_rehost_layout(root_);
-            gallery_rehost_content(page_);
-
-            // Synthetically reveal the two custom-threshold SwipeViews so the capture is non-blank, then
-            // report the live thresholds. open() is the developer-API seam the platform drives on a real swipe.
+            // open() is the developer-API seam the platform drives on a real swipe.
             custom_reveal_swipe_.open(maui::core::open_swipe_item::right_items, /*animated=*/false);
             custom_execute_swipe_.open(maui::core::open_swipe_item::right_items, /*animated=*/false);
             update_readout();
@@ -216,19 +185,6 @@ namespace maui::samples
             content.set_background(solid(brand_blue()));
             content.set_height_request(80);
             swipe.set_content(content);
-        }
-
-        // Attach a block's content Grid then its SwipeView (bottom-up), guarded.
-        void attach_block(maui::hosting::maui_app& app, maui::controls::swipe_view& swipe,
-                          maui::controls::grid& content, const char* name)
-        {
-            gallery_attach_one(app, content, name);
-            gallery_attach_one(app, swipe, name);
-        }
-        static void rehost_block(maui::controls::swipe_view& swipe, maui::controls::grid& content)
-        {
-            gallery_rehost_layout(content);
-            gallery_rehost_content(swipe);
         }
 
         void update_readout()

@@ -17,7 +17,7 @@
 //
 // This code-first port builds both lists as real StackLayouts of box_views, wires real
 // drag_/drop_gesture_recognizers, and reproduces the move/readout/tint logic. The headless backend has
-// no native drag session, so attach_handlers() finishes with one deterministic synthetic drive of a
+// no native drag session, so the page's mount hook finishes with one deterministic synthetic drive of a
 // full drag -> over -> drop sequence (the same send_drag_starting / send_drag_over / send_drop seams the
 // drag/drop unit tests use), moving the first AllColors swatch into the Rainbow list and leaving every
 // readout reacting in a static capture.
@@ -28,8 +28,7 @@
 //   - Drop reads the package, moves the swatch box_view from the source layout into the receiving layout,
 //     updates the drop-position labels, and resets the tints.
 //
-// The page OWNS its whole element tree (the gestures_page pattern): public page() and
-// attach_handlers(maui_app).
+// The page OWNS its whole element tree (the gestures_page pattern): public page().
 //
 // note: the C# BindableLayout.ItemsSource binding to ObservableCollection<Brush> (the data-template
 //       fan-out) is a binding/data-template concern; the port models the SAME observable result by
@@ -40,7 +39,6 @@
 
 #include <any>
 #include <cstddef>
-#include <cstdio>
 #include <map>
 #include <memory>
 #include <string>
@@ -59,8 +57,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -122,42 +118,12 @@ namespace maui::samples
             return page_;
         }
 
-        // Attach a handler to every OWNED view, BOTTOM-UP (the swatches, the two lists' labels, the lists,
-        // the readouts, the root, the page), then re-host the ctor-built tree (gallery_attach.hpp).
-        // Headless has no native drag session, so finish with one deterministic synthetic drag->drop so
-        // the move + readouts reflect the wiring in a static capture.
-        void attach_handlers(maui::hosting::maui_app& app)
+        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
+        // handler + builds the native tree. Headless has no native drag session, so drive one deterministic
+        // synthetic drag->drop so the move + readouts reflect the wiring in a static capture. All per-control
+        // attach + re-host plumbing is now the generic mount's job.
+        void on_mounted(maui::hosting::maui_app& /*app*/)
         {
-            auto one = [&app](auto& view, const char* name) { gallery_attach_one(app, view, name); };
-
-            // Swatches first (the leaves of each list).
-            for (const auto& swatch : all_swatches_)
-            {
-                one(*swatch, "all_swatch");
-            }
-            for (const auto& swatch : rainbow_swatches_)
-            {
-                one(*swatch, "rainbow_swatch");
-            }
-            one(all_colors_title_, "all_colors_title_");
-            one(rainbow_title_, "rainbow_title_");
-            one(all_colors_, "all_colors_");
-            one(rainbow_, "rainbow_");
-            one(drag_starting_title_, "drag_starting_title_");
-            one(drag_starting_position_, "drag_starting_position_");
-            one(drag_title_, "drag_title_");
-            one(drag_position_, "drag_position_");
-            one(drop_title_, "drop_title_");
-            one(drop_position_, "drop_position_");
-            one(move_readout_, "move_readout_");
-            one(root_, "root_");
-            one(page_, "page_");
-
-            gallery_rehost_layout(all_colors_);
-            gallery_rehost_layout(rainbow_);
-            gallery_rehost_layout(root_);
-            gallery_rehost_content(page_);
-
             drive_synthetic_drag_drop();
         }
 

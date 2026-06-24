@@ -4,7 +4,7 @@
 //
 // A self-contained, code-first demo page for the RefreshView control (the C# gallery-page convention,
 // mirroring the swipe_refresh_page pattern). The page OWNS its whole element tree; `page()` hands back
-// the content_page and `attach_handlers(maui_app)` mounts every owned VIEW bottom-up
+// the content_page; the generic mount (app_host.hpp) attaches every owned view's handler and hosts the tree
 // (leaves → layout → page) through a guarded try/catch, then re-hosts the tree.
 //
 // The C# page pairs a RefreshView (wrapping a scrolled, bindable item collection) with a column of
@@ -31,7 +31,6 @@
 //   - The C# 2-second async refresh collapses to a synchronous AddItems + IsRefreshing=false (the
 //     swipe_refresh_page convention: the gallery ends the spinner inside the command).
 
-#include <cstdio>
 #include <string>
 
 #include "maui/controls/brushes/solid_color_brush.hpp"
@@ -46,9 +45,6 @@
 #include "maui/core/grid_length.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -118,36 +114,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves → the inner hosts → the layouts → the
-        // page), then re-host the tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, header_, "header_");
-            gallery_attach_one(app, item_count_label_, "item_count_label_");
-            gallery_attach_one(app, toggle_refresh_color_button_, "toggle_refresh_color_button_");
-            gallery_attach_one(app, toggle_background_button_, "toggle_background_button_");
-            gallery_attach_one(app, color_buttons_, "color_buttons_");
-            gallery_attach_one(app, toggle_refresh_button_, "toggle_refresh_button_");
-            gallery_attach_one(app, toggle_enabled_button_, "toggle_enabled_button_");
-            gallery_attach_one(app, toggle_buttons_, "toggle_buttons_");
-            gallery_attach_one(app, refresh_text_, "refresh_text_");
-            gallery_attach_one(app, enabled_text_, "enabled_text_");
-            gallery_attach_one(app, controls_stack_, "controls_stack_");
-            gallery_attach_one(app, refresh_content_, "refresh_content_");
-            gallery_attach_one(app, inner_scroll_, "inner_scroll_");
-            gallery_attach_one(app, refresh_, "refresh_");
-            gallery_attach_one(app, body_, "body_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(color_buttons_);
-            gallery_rehost_layout(toggle_buttons_);
-            gallery_rehost_layout(controls_stack_);
-            gallery_rehost_content(inner_scroll_); // scroll hosts the readout
-            gallery_rehost_content(refresh_);      // refresh_view hosts the inner scroll
-            gallery_rehost_layout(body_);          // the grid hosts the control stack + the refresh_view
-            gallery_rehost_content(page_);         // the page hosts the grid
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment + the tests.

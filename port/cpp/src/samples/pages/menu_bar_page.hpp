@@ -37,7 +37,7 @@
 // screen plus the observable label readout.
 //
 // HEADLESS-SAFE maui:: API only; the page OWNS its whole element tree (every menu_bar_item AND its items)
-// and attaches every owned VIEW bottom-up, then re-hosts (gallery_attach.hpp). The menu_bar_item / flyout
+// and the generic mount attaches every owned view's handler and hosts the tree. The menu_bar_item / flyout
 // item / sub_item / separator members are NON-view items with no standalone handler and are excluded from
 // the attach — exactly as chrome_page.hpp excludes its menu items.
 //
@@ -66,9 +66,6 @@
 #include "maui/core/font.hpp"
 #include "maui/core/keyboard_accelerator.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -95,20 +92,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED VIEW, BOTTOM-UP, then re-host. The menu_bar_item / menu_flyout
-        // item / sub_item / separator members are NON-view items (no standalone handler) and are excluded
-        // — attaching one would throw (chrome_page.hpp convention). (gallery_attach.hpp)
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, menu_label_, "menu_label_");
-            gallery_attach_one(app, toggle_button_, "toggle_button_");
-            gallery_attach_one(app, body_, "body_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(body_); // the body hosts the label + toggle button
-            gallery_rehost_content(page_);
         }
 
         // Owned controls / menus exposed for the hosting main / the headless test tree.

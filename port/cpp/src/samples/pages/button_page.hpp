@@ -3,8 +3,7 @@
 //
 // A self-contained, code-first demo page for maui::controls::button. Mirrors the EXACT shape of
 // value_controls_page.hpp / input_controls_page.hpp: the class OWNS its whole element tree as members,
-// exposes page() and attach_handlers(maui_app) (bottom-up, leaves first → layout → page, via the shared
-// gallery_attach helpers), and uses only cross-platform maui:: API so it stays headless-safe.
+// exposes page(), and uses only cross-platform maui:: API so it stays headless-safe.
 //
 // What the MAUI page demonstrates (reproduced here so the demo visibly exercises the control):
 //   - a Default button, a Disabled button (IsEnabled=false), and a Clicked button whose taps bump a
@@ -38,9 +37,6 @@
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -194,35 +190,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, default_button_, "default_button_");
-            gallery_attach_one(app, disabled_button_, "disabled_button_");
-            gallery_attach_one(app, clicked_button_, "clicked_button_");
-            gallery_attach_one(app, command_button_, "command_button_");
-            gallery_attach_one(app, background_button_, "background_button_");
-            gallery_attach_one(app, text_color_button_, "text_color_button_");
-            gallery_attach_one(app, border_color_button_, "border_color_button_");
-            gallery_attach_one(app, border_width_button_, "border_width_button_");
-            gallery_attach_one(app, corner_radius_button_, "corner_radius_button_");
-            gallery_attach_one(app, spacing_button_, "spacing_button_");
-            gallery_attach_one(app, image_button_, "image_button_");
-            gallery_attach_one(app, position_button_, "position_button_");
-            gallery_attach_one(app, decrease_spacing_button_, "decrease_spacing_button_");
-            gallery_attach_one(app, increase_spacing_button_, "increase_spacing_button_");
-            gallery_attach_one(app, padding_button_, "padding_button_");
-            gallery_attach_one(app, border_width_demo_button_, "border_width_demo_button_");
-            gallery_attach_one(app, border_width_slider_, "border_width_slider_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / tests.

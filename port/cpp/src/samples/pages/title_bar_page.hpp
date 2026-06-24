@@ -62,9 +62,6 @@
 #include "maui/core/font.hpp"
 #include "maui/core/grid_length.hpp"
 #include "maui/graphics/color.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -110,72 +107,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::title_bar& bar()
         {
             return bar_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (each panel's children first in add()-order,
-        // then the panels, then the grid, then the page), then re-host the tree built in the ctor
-        // (gallery_attach.hpp). The generic lambda preserves each member's concrete static type —
-        // attach_handler keys on the static type, so an i_view& parameter would erase it (a blank page).
-        // bar_ / content_search_ are NOT attached here: title_bar is a handler-less element (the window
-        // chrome materializes it), and the search bar is hosted only while it is the bar's Content.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            // Left panel (content options) — leaves first.
-            gallery_attach_one(app, content_heading_, "content_heading_");
-            gallery_attach_one(app, set_icon_check_, "set_icon_check_");
-            gallery_attach_one(app, set_icon_label_, "set_icon_label_");
-            gallery_attach_one(app, set_icon_row_, "set_icon_row_");
-            gallery_attach_one(app, title_entry_, "title_entry_");
-            gallery_attach_one(app, subtitle_entry_, "subtitle_entry_");
-            gallery_attach_one(app, leading_check_, "leading_check_");
-            gallery_attach_one(app, leading_label_, "leading_label_");
-            gallery_attach_one(app, leading_row_, "leading_row_");
-            gallery_attach_one(app, content_check_, "content_check_");
-            gallery_attach_one(app, content_label_, "content_label_");
-            gallery_attach_one(app, content_row_, "content_row_");
-            gallery_attach_one(app, trailing_check_, "trailing_check_");
-            gallery_attach_one(app, trailing_label_, "trailing_label_");
-            gallery_attach_one(app, trailing_row_, "trailing_row_");
-            gallery_attach_one(app, tall_check_, "tall_check_");
-            gallery_attach_one(app, tall_label_, "tall_label_");
-            gallery_attach_one(app, tall_row_, "tall_row_");
-            gallery_attach_one(app, show_check_, "show_check_");
-            gallery_attach_one(app, show_label_, "show_label_");
-            gallery_attach_one(app, show_row_, "show_row_");
-            gallery_attach_one(app, content_panel_, "content_panel_");
-
-            // Right panel (color options) — leaves first.
-            gallery_attach_one(app, color_heading_, "color_heading_");
-            gallery_attach_one(app, color_entry_, "color_entry_");
-            gallery_attach_one(app, color_button_, "color_button_");
-            gallery_attach_one(app, color_row_, "color_row_");
-            gallery_attach_one(app, foreground_entry_, "foreground_entry_");
-            gallery_attach_one(app, foreground_button_, "foreground_button_");
-            gallery_attach_one(app, foreground_row_, "foreground_row_");
-            gallery_attach_one(app, toggle_window_button_, "toggle_window_button_");
-            gallery_attach_one(app, toggle_navbar_button_, "toggle_navbar_button_");
-            gallery_attach_one(app, push_button_, "push_button_");
-            gallery_attach_one(app, action_row_, "action_row_");
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, color_panel_, "color_panel_");
-
-            gallery_attach_one(app, grid_, "grid_");
-            gallery_attach_one(app, page_, "page_");
-
-            // The tree was built in the ctor before any handler existed, so replay the host commands now.
-            gallery_rehost_layout(set_icon_row_);
-            gallery_rehost_layout(leading_row_);
-            gallery_rehost_layout(content_row_);
-            gallery_rehost_layout(trailing_row_);
-            gallery_rehost_layout(tall_row_);
-            gallery_rehost_layout(show_row_);
-            gallery_rehost_layout(content_panel_);
-            gallery_rehost_layout(color_row_);
-            gallery_rehost_layout(foreground_row_);
-            gallery_rehost_layout(action_row_);
-            gallery_rehost_layout(color_panel_);
-            gallery_rehost_layout(grid_);
-            gallery_rehost_content(page_);
         }
 
         // Exposed for the hosting main's bottom-up handler attachment.

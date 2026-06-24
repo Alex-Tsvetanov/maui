@@ -41,9 +41,6 @@
 #include "maui/controls/scroll_view.hpp"
 #include "maui/controls/stack_layout.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -120,46 +117,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (every leaf radio/label, then each section stack,
-        // then the root stack, the scroll_view, and finally the page), then re-host the tree built in the
-        // ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, parent_header_, "parent_header_");
-            gallery_attach_one(app, parent_readout_, "parent_readout_");
-            gallery_attach_one(app, parent_a_, "parent_a_");
-            gallery_attach_one(app, parent_b_, "parent_b_");
-            gallery_attach_one(app, parent_c_, "parent_c_");
-            gallery_attach_one(app, parent_stack_, "parent_stack_");
-
-            gallery_attach_one(app, page_header_, "page_header_");
-            gallery_attach_one(app, page_readout_, "page_readout_");
-            gallery_attach_one(app, page_a_, "page_a_");
-            gallery_attach_one(app, page_b_, "page_b_");
-            gallery_attach_one(app, page_c_, "page_c_");
-            gallery_attach_one(app, page_stack_, "page_stack_");
-
-            gallery_attach_one(app, test_header_, "test_header_");
-            gallery_attach_one(app, test_readout_, "test_readout_");
-            gallery_attach_one(app, test_a_, "test_a_");
-            gallery_attach_one(app, test_b1_, "test_b1_");
-            gallery_attach_one(app, test_b2_, "test_b2_");
-            gallery_attach_one(app, test_c_, "test_c_");
-            gallery_attach_one(app, test_null_, "test_null_");
-            gallery_attach_one(app, test_stack_, "test_stack_");
-
-            gallery_attach_one(app, root_, "root_");
-            gallery_attach_one(app, scroller_, "scroller_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(parent_stack_);
-            gallery_rehost_layout(page_stack_);
-            gallery_rehost_layout(test_stack_);
-            gallery_rehost_layout(root_);      // root hosts the three sections
-            gallery_rehost_content(scroller_); // scroll_view hosts the root
-            gallery_rehost_content(page_);     // page hosts the scroller
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / tests.

@@ -3,8 +3,7 @@
 //
 // A self-contained, code-first demo page for maui::controls::progress_bar. Mirrors the EXACT shape of
 // value_controls_page.hpp / button_page.hpp: the class OWNS its whole element tree as members,
-// exposes page() and attach_handlers(maui_app) (bottom-up, leaves first -> layout -> page, via the
-// shared gallery_attach helpers), and uses only cross-platform maui:: API so it stays headless-safe.
+// exposes page(), and uses only cross-platform maui:: API so it stays headless-safe.
 //
 // What the MAUI page demonstrates (reproduced here so the demo visibly exercises the control):
 //   - a Default progress bar at Progress=0.5,
@@ -31,8 +30,6 @@
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -93,28 +90,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, default_header_, "default_header_");
-            gallery_attach_one(app, default_bar_, "default_bar_");
-            gallery_attach_one(app, color_header_, "color_header_");
-            gallery_attach_one(app, color_bar_, "color_bar_");
-            gallery_attach_one(app, disabled_header_, "disabled_header_");
-            gallery_attach_one(app, disabled_bar_, "disabled_bar_");
-            gallery_attach_one(app, color2_header_, "color2_header_");
-            gallery_attach_one(app, color2_bar_, "color2_bar_");
-            gallery_attach_one(app, progress_to_header_, "progress_to_header_");
-            gallery_attach_one(app, progress_to_bar_, "progress_to_bar_");
-            gallery_attach_one(app, progress_to_button_, "progress_to_button_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / tests.

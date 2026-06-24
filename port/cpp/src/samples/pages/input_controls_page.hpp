@@ -28,9 +28,6 @@
 #include "maui/controls/search_bar.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/boxed_value.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -80,23 +77,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, editor_, "editor_");
-            gallery_attach_one(app, search_, "search_");
-            gallery_attach_one(app, upper_choice_, "upper_choice_");
-            gallery_attach_one(app, lower_choice_, "lower_choice_");
-            gallery_attach_one(app, clear_button_, "clear_button_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

@@ -13,8 +13,8 @@
 // prompts, the page's own question-result labels — exactly the values the C# handlers compute. When the
 // real Page dialog services land, these lambdas swap their canned result for the awaited call.
 //
-// The page OWNS its whole element tree (the sample_app pattern). It is backend-agnostic; the gallery
-// main attaches handlers bottom-up via attach_handlers + the shared gallery re-host helpers.
+// The page OWNS its whole element tree (the sample_app pattern). It is backend-agnostic; the generic
+// mount (maui::hosting::mount_window) attaches handlers bottom-up and hosts the tree.
 
 #include <string>
 
@@ -23,9 +23,6 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/thickness.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -92,29 +89,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view BOTTOM-UP (leaves first, page last), then re-host the tree
-        // built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, readout_, "readout_");
-            gallery_attach_one(app, alert_header_, "alert_header_");
-            gallery_attach_one(app, alert_simple_, "alert_simple_");
-            gallery_attach_one(app, alert_yes_no_, "alert_yes_no_");
-            gallery_attach_one(app, action_header_, "action_header_");
-            gallery_attach_one(app, action_simple_, "action_simple_");
-            gallery_attach_one(app, action_cancel_delete_, "action_cancel_delete_");
-            gallery_attach_one(app, prompt_header_, "prompt_header_");
-            gallery_attach_one(app, question1_button_, "question1_button_");
-            gallery_attach_one(app, question1_result_, "question1_result_");
-            gallery_attach_one(app, question2_button_, "question2_button_");
-            gallery_attach_one(app, question2_result_, "question2_result_");
-            gallery_attach_one(app, stack_, "stack_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(stack_);
-            gallery_rehost_content(page_);
         }
 
         // ---- owned controls, exposed for the hosting main / tests ----

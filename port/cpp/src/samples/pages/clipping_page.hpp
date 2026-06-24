@@ -31,11 +31,9 @@
 //           pixels render blank; the source is still set faithfully and the LightBlue row background +
 //           50×50 sizing are correct regardless.
 //
-// HEADLESS-SAFE maui:: API only; the page owns its whole element tree and attaches every owned view
-// bottom-up, then re-hosts the layouts/grid/content (the swipe_gesture_page / value_controls_page
-// convention — gallery_attach.hpp).
+// HEADLESS-SAFE maui:: API only; the page owns its whole element tree (the generic mount in app_host.hpp
+// attaches every owned view's handler and hosts the tree).
 
-#include <cstdio>
 #include <memory>
 #include <string>
 #include <utility>
@@ -60,9 +58,6 @@
 #include "maui/graphics/corner_radius.hpp"
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -173,42 +168,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (leaves first, the page last), then re-host the
-        // tree built in the ctor (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            auto one = [&app](auto& view, const char* name) { gallery_attach_one(app, view, name); };
-
-            one(status_, "status_");
-            one(toggle_clip_, "toggle_clip_");
-            for (const auto& button : row1_buttons_)
-            {
-                one(*button, "row1_button");
-            }
-            one(row1_, "row1_");
-            one(overlay_, "overlay_");
-            one(overflow_grid_, "overflow_grid_");
-            for (const auto& button : row2_buttons_)
-            {
-                one(*button, "row2_button");
-            }
-            one(row2_, "row2_");
-            for (const auto& picture : row3_images_)
-            {
-                one(*picture, "row3_image");
-            }
-            one(row3_, "row3_");
-            one(root_, "root_");
-            one(page_, "page_");
-
-            gallery_rehost_layout(row1_);
-            gallery_rehost_layout(overflow_grid_);
-            gallery_rehost_layout(row2_);
-            gallery_rehost_layout(row3_);
-            gallery_rehost_layout(root_);
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / inspection.

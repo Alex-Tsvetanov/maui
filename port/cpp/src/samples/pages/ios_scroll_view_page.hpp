@@ -50,8 +50,6 @@
 #include "maui/controls/platform_configuration/configuration.hpp"
 #include "maui/controls/platform_configuration/ios_specific/scroll_view.hpp"
 
-#include "gallery_attach.hpp"
-
 #include <memory>
 
 namespace maui::samples
@@ -119,30 +117,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_; // flyout_page IS-A content_page (the required gallery contract)
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP through the nested flyout tree: the menu label +
-        // the menu content_page; the inner controls + the content stack, the scroll_view and the detail
-        // content_page; finally the flyout_page root. Then re-host the tree built in the ctor: the menu
-        // page's content, the content stack's children, the scroll_view's content, the detail page's
-        // content, and the flyout_page's two panes (gallery_attach.hpp).
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, menu_label_, "menu_label_");
-            gallery_attach_one(app, menu_page_, "menu_page_");
-            gallery_attach_one(app, inner_slider_, "inner_slider_");
-            gallery_attach_one(app, toggle_button_, "toggle_button_");
-            gallery_attach_one(app, return_button_, "return_button_");
-            gallery_attach_one(app, content_stack_, "content_stack_");
-            gallery_attach_one(app, scroller_, "scroller_");
-            gallery_attach_one(app, detail_page_, "detail_page_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_content(menu_page_);    // the menu page hosts its label
-            gallery_rehost_layout(content_stack_); // the content stack hosts the slider + buttons
-            gallery_rehost_content(scroller_);     // the scroll_view hosts the content stack
-            gallery_rehost_content(detail_page_);  // the detail page hosts the scroll_view
-            gallery_rehost_panes(page_);           // the flyout_page hosts the menu (flyout) + detail
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

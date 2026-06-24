@@ -28,8 +28,6 @@
 //   - SendRawMessage from a button + RawMessageReceived feeding a read-only status editor;
 //   - invoke_js (the InvokeJavaScriptAsync callback port) with a raw result written back to the status.
 
-#include <cstdio>
-#include <exception>
 #include <optional>
 #include <string>
 #include <vector>
@@ -42,9 +40,6 @@
 #include "maui/controls/hybrid_web_view_raw_message_received_event_args.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/grid_length.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -156,39 +151,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // Attach a handler to every OWNED view, BOTTOM-UP (the leaf controls, then the button stack, then
-        // the grid, then the page), then re-host the tree built in the ctor (gallery_attach.hpp). The
-        // hybrid_web_view may have no headless/AppKit handler registered — gallery_attach_one logs + skips
-        // it, the rest of the page still mounts.
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            auto one = [&app](auto& v, const char* n) {
-                try
-                {
-                    app.attach_handler(v);
-                }
-                catch (const std::exception& e)
-                {
-                    std::fprintf(stderr, "[gallery] skip %s: %s\n", n, e.what());
-                }
-            };
-
-            one(status_, "status_");
-            one(send_msg_, "send_msg_");
-            one(invoke_js_, "invoke_js_");
-            one(invoke_async_js_, "invoke_async_js_");
-            one(throw_js_, "throw_js_");
-            one(throw_async_js_, "throw_async_js_");
-            one(hwv_, "hwv_");
-            one(buttons_, "buttons_");
-            one(root_, "root_");
-            one(page_, "page_");
-
-            gallery_rehost_layout(buttons_); // the button stack hosts its five buttons
-            gallery_rehost_layout(root_);    // the grid hosts status_ + buttons_ + hwv_
-            gallery_rehost_content(page_);
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.

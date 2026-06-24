@@ -57,9 +57,6 @@
 #include "maui/controls/toggle_switch.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/hosting/maui_app.hpp"
-
-#include "gallery_attach.hpp"
 
 namespace maui::samples
 {
@@ -134,20 +131,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        void attach_handlers(maui::hosting::maui_app& app)
-        {
-            gallery_attach_one(app, grouped_label_, "grouped_label_");
-            gallery_attach_one(app, grouping_switch_, "grouping_switch_");
-            gallery_attach_one(app, row_, "row_");
-            gallery_attach_one(app, list_, "list_");
-            gallery_attach_one(app, outer_, "outer_");
-            gallery_attach_one(app, page_, "page_");
-
-            gallery_rehost_layout(row_);   // the row hosts the label + switch
-            gallery_rehost_layout(outer_); // the outer stack hosts the row + collection view
-            gallery_rehost_content(page_); // the page hosts the outer stack
         }
 
         // ---- headless drivers (the switch path, observable) ----
