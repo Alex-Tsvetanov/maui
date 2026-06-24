@@ -1,13 +1,13 @@
-// hello_world — the cross-platform entry-point proof (Stage 1, headless).
+// hello_world — the minimal MAUI C++ app: a window hosting a page hosting a single label.
 //
 // 100% PORTABLE C++: no Objective-C, no .mm, no platform headers. The framework user writes ONLY this —
 // an `application` subclass + the one `use_shared_maui_app` configurator — `#include "maui/maui_main.hpp"`,
 // and gets a working main() that boots, mounts the window/page/content tree, and lays it out on whichever
-// backend is linked (headless here). This is the C++ analog of a MAUI MauiProgram + App.
+// backend is linked. This is the C++ analog of a MAUI MauiProgram + App.
 //
-// Build + run (headless preset):
-//   cmake --build --preset headless --target maui_hello_world
-//   ./build/headless/maui_hello_world      # boots, mounts, settles one layout pass, exits 0
+// Build + run (from the standalone examples project, headless):
+//   cmake --build examples/build --target hello_world
+//   ./examples/build/hello_world/hello_world   # boots, mounts, settles one layout pass, exits 0
 
 #include "maui/maui_main.hpp"
 
