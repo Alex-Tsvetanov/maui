@@ -12,6 +12,6 @@ Ports .NET MAUI's `RadioButtonBorder` ([oracle](../../../../../src/Controls/samp
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=radio_button_border ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=radio_button_border xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=radio_button_border ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=radio_button_border xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
 
 > Natively-rendered Border demo — the `border` control draws its StrokeShape (a `shapes::*` geometry) + stroke + content through the handler on both Apple backends.

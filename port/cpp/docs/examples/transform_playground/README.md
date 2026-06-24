@@ -12,6 +12,6 @@ Ports .NET MAUI's `TransformPlaygroundGallery` ([oracle](../../../../../src/Cont
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=transform_playground ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=transform_playground xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=transform_playground ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=transform_playground xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
 
 > Natively-rendered shape demo — the Shape family draws through the graphics_view / shape_view handler over a CoreGraphics canvas.

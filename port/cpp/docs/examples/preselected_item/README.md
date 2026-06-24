@@ -12,4 +12,4 @@ Ports .NET MAUI's `PreselectedItemGallery` ([oracle](../../../../../src/Controls
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=preselected_item ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=preselected_item xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=preselected_item ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=preselected_item xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)

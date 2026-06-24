@@ -12,4 +12,4 @@ Ports .NET MAUI's `SelectionSynchronization` ([oracle](../../../../../src/Contro
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=selection_synchronization ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=selection_synchronization xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=selection_synchronization ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=selection_synchronization xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)

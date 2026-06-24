@@ -12,6 +12,6 @@ Ports .NET MAUI's `LayoutIsEnabledPage` ([oracle](../../../../../src/Controls/sa
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=layout_is_enabled ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=layout_is_enabled xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=layout_is_enabled ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=layout_is_enabled xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
 
 > Notes: two-way bindings modelled via checked_changed→set_is_enabled; the ICommand CanExecute→IsEnabled coupling is reduced to a guard flag.

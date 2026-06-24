@@ -1,8 +1,8 @@
-// Tests for the shapes_page demo (src/samples/pages/shapes_page.hpp) — a faithful reproduction of the
+// Tests for the shapes_page demo (examples/gallery/pages/shapes_page.hpp) — a faithful reproduction of the
 // maui-compare Shapes() reference (Ellipse / RoundRectangle / EvenOdd Polygon / Line). Backend-agnostic:
 // the page is pure cross-platform control wiring, so this suite compiles in every preset and proves the
 // demo's structure + per-shape decoration without a hosting main.
-#include "src/samples/pages/shapes_page.hpp"
+#include "examples/gallery/pages/shapes_page.hpp"
 
 #include "maui/controls/shapes/fill_rule.hpp"
 #include <gtest/gtest.h>

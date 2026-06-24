@@ -13,7 +13,7 @@ Ports .NET MAUI's `ImageButtonPage` ([oracle](../../../../../src/Controls/sample
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
 **Run it:**
-- macOS — `MAUI_SAMPLE_PAGE=image_button ./build/apple/maui_macos_gallery`
+- macOS — `MAUI_SAMPLE_PAGE=image_button ./examples/build/gallery/gallery`
 - iOS sim — `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=image_button xcrun simctl launch booted dev.maui-cpp.ios-gallery`
 
 > Notes: cog.png/dotnet_bot.png/gif are bundled assets the headless backend can't rasterize (the source is minted faithfully); the C# random gradient collapses to a deterministic green/purple toggle.

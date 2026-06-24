@@ -12,4 +12,4 @@ Ports .NET MAUI's `PanGestureEventsGallery` ([oracle](../../../../../src/Control
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=pan_gesture_events ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=pan_gesture_events xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=pan_gesture_events ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=pan_gesture_events xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)

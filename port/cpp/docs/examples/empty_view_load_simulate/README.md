@@ -12,4 +12,4 @@ Ports .NET MAUI's `EmptyViewLoadSimulateGallery` ([oracle](../../../../../src/Co
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=empty_view_load_simulate ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=empty_view_load_simulate xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=empty_view_load_simulate ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=empty_view_load_simulate xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)

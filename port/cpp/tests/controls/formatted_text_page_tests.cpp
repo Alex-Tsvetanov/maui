@@ -1,7 +1,7 @@
-// Tests for the formatted_text_page demo (src/samples/pages/formatted_text_page.hpp) — backend-agnostic:
+// Tests for the formatted_text_page demo (examples/gallery/pages/formatted_text_page.hpp) — backend-agnostic:
 // the page is pure cross-platform control wiring, so this suite compiles in every preset and proves the
 // rich-text demo's structure (three styled spans on the rich label, the plain label's Text path).
-#include "src/samples/pages/formatted_text_page.hpp"
+#include "examples/gallery/pages/formatted_text_page.hpp"
 
 #include "maui/core/font.hpp" // font_weight
 #include "maui/core/text_decorations.hpp"

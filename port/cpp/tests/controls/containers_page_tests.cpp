@@ -1,9 +1,9 @@
-// Tests for the containers_page demo (src/samples/pages/containers_page.hpp) — backend-agnostic:
+// Tests for the containers_page demo (examples/gallery/pages/containers_page.hpp) — backend-agnostic:
 // the page is pure cross-platform control wiring, so this suite compiles in every preset and proves
 // the demo's structure (scroll_view → stack → border/frame/content_view, each hosting its content)
 // and interactions (scrolled → readout, scroll_to_completed → the done marker) without a hosting
 // main.
-#include "src/samples/pages/containers_page.hpp"
+#include "examples/gallery/pages/containers_page.hpp"
 
 #include <gtest/gtest.h>
 

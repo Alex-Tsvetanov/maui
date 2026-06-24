@@ -12,6 +12,6 @@ Ports .NET MAUI's `ShapesPage` ([oracle](../../../../../src/Controls/samples/Con
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=shapes_demo ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=shapes_demo xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=shapes_demo ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=shapes_demo xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
 
 > Notes: RoundRectangle is a Rectangle with RadiusX=RadiusY (C#'s own decomposition); the "More samples" sub-gallery drives a readout.

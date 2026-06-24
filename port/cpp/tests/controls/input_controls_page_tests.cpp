@@ -1,8 +1,8 @@
-// Tests for the input_controls_page demo (src/samples/pages/input_controls_page.hpp) — backend-
+// Tests for the input_controls_page demo (examples/gallery/pages/input_controls_page.hpp) — backend-
 // agnostic: the page is pure cross-platform control wiring, so this suite compiles in every preset
 // and proves the demo's interactions (editor→readout, search→editor, radio group→casing,
 // image button→clear) without a hosting main.
-#include "src/samples/pages/input_controls_page.hpp"
+#include "examples/gallery/pages/input_controls_page.hpp"
 
 #include <string>
 

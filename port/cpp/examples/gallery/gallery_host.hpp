@@ -1,7 +1,7 @@
 #pragma once
 // gallery_host — the runnable demo-gallery host shared by the macOS + iOS gallery mains.
 //
-// The 11 curated demo pages (src/samples/pages/*.hpp) each OWN a self-contained element tree and expose
+// The 11 curated demo pages (pages/*.hpp) each OWN a self-contained element tree and expose
 // page() returning their root page (a content_page, except tabbed_flyout's flyout_page). They are
 // orphaned on their own — nothing builds or runs them. This header bridges that gap two ways:
 //

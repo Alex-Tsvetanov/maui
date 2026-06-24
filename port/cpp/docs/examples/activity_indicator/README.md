@@ -13,7 +13,7 @@ Ports .NET MAUI's `ActivityIndicatorPage` ([oracle](../../../../../src/Controls/
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
 **Run it:**
-- macOS — `MAUI_SAMPLE_PAGE=activity_indicator ./build/apple/maui_macos_gallery`
+- macOS — `MAUI_SAMPLE_PAGE=activity_indicator ./examples/build/gallery/gallery`
 - iOS sim — `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=activity_indicator xcrun simctl launch booted dev.maui-cpp.ios-gallery`
 
 > Notes: AppThemeBinding color maps to a fixed accent color (no app-theme surface); section headers map to plain labels.

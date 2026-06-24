@@ -34,6 +34,11 @@
 #include "maui/core/i_application.hpp"
 #include "maui/core/i_window.hpp"
 
+namespace maui::hosting
+{
+    class maui_app; // the hosting boot context passed to the mount hooks below (forward-declared)
+} // namespace maui::hosting
+
 namespace maui::controls
 {
     class application : public element, public maui::core::i_application
@@ -142,6 +147,23 @@ namespace maui::controls
         }
         // Application.OnStart override point (a subclass may create its main window here).
         virtual void on_start()
+        {
+        }
+
+    public:
+        // ---- Generic-mount lifecycle hooks (no C# 1:1) ----
+        // The generic hosting mount (maui::hosting::mount_window) calls these around the window's mount so an
+        // application can do per-app wiring the backend-agnostic driver cannot infer, WITHOUT any platform code
+        // in the user's app: on_pre_mount runs BEFORE the page tree is mounted (e.g. register a handler for a
+        // user-defined control type into this boot's registry — there is no global fallback), on_post_mount runs
+        // AFTER the window is open and every native view exists (e.g. demo seeding that needs live handlers:
+        // opening a SwipeView to its revealed state, driving a synthetic gesture, subscribing to the app theme).
+        // Both default to no-ops, so an app opts in only by overriding. This generalizes the gallery's former
+        // per-page register_handlers / on_mounted plumbing onto the application the builder already minted.
+        virtual void on_pre_mount(maui::hosting::maui_app& /*app*/)
+        {
+        }
+        virtual void on_post_mount(maui::hosting::maui_app& /*app*/)
         {
         }
 

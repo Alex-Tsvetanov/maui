@@ -2,7 +2,7 @@
 
 A `collection_view` over a live observable items source with a templated cell, single selection
 driving a readout, and an empty-view for the cleared state. Source:
-[`items_page.hpp`](../../../src/samples/pages/items_page.hpp).
+[`items_page.hpp`](../../../examples/gallery/pages/items_page.hpp).
 
 | macOS (AppKit) | iOS (UIKit) |
 | --- | --- |
@@ -18,7 +18,7 @@ driving a readout, and an empty-view for the cleared state. Source:
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
 **Run it:**
-- macOS — `MAUI_SAMPLE_PAGE=items ./build/apple/maui_macos_gallery`
+- macOS — `MAUI_SAMPLE_PAGE=items ./examples/build/gallery/gallery`
 - iOS sim — `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=items xcrun simctl launch booted dev.maui-cpp.ios-gallery`
 
 > The iOS capture shows the realized item rows ("Water the plants", "Review the port", "Ship wave 2")

@@ -1,4 +1,4 @@
-// Tests for the W1-10 demo page (src/samples/pages/tabbed_flyout_page.hpp): the flyout/tabbed wiring a
+// Tests for the W1-10 demo page (examples/gallery/pages/tabbed_flyout_page.hpp): the flyout/tabbed wiring a
 // sample main hosts — the flyout pane is the titled menu, the detail is the two-tab tabbed_page, the
 // menu buttons drive the tab selection, and the toggle button flips IsPresented (mirrored into the
 // status label). Backend-agnostic (no handlers attached); the essentials mocks pin the IsPresented
@@ -6,7 +6,7 @@
 
 #include "maui/core/event.hpp"
 #include "maui/core/move_only_function.hpp"
-#include "src/samples/pages/tabbed_flyout_page.hpp"
+#include "examples/gallery/pages/tabbed_flyout_page.hpp"
 
 #include <memory>
 #include <string>

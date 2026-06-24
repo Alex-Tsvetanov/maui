@@ -13,7 +13,7 @@ Ports .NET MAUI's `SliderPage` ([oracle](../../../../../src/Controls/samples/Con
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
 **Run it:**
-- macOS — `MAUI_SAMPLE_PAGE=slider ./build/apple/maui_macos_gallery`
+- macOS — `MAUI_SAMPLE_PAGE=slider ./examples/build/gallery/gallery`
 - iOS sim — `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=slider xcrun simctl launch booted dev.maui-cpp.ios-gallery`
 
 

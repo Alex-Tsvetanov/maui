@@ -7,7 +7,7 @@
 
 #include "maui/controls/items/collection_view_handler.hpp"
 #include "maui/controls/items/selection_mode.hpp"
-#include "src/samples/pages/items_page.hpp"
+#include "examples/gallery/pages/items_page.hpp"
 #include <gtest/gtest.h>
 
 namespace

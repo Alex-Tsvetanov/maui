@@ -13,7 +13,7 @@ Ports .NET MAUI's `StepperPage` ([oracle](../../../../../src/Controls/samples/Co
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
 **Run it:**
-- macOS — `MAUI_SAMPLE_PAGE=stepper ./build/apple/maui_macos_gallery`
+- macOS — `MAUI_SAMPLE_PAGE=stepper ./examples/build/gallery/gallery`
 - iOS sim — `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=stepper xcrun simctl launch booted dev.maui-cpp.ios-gallery`
 
 > Notes: the Background LinearGradientBrush stepper is left plain; section headers map to plain labels (no resource-dictionary styling surface).

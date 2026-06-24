@@ -58,3 +58,8 @@ add_subdirectory(layouts)         # vertical_stack_layout + grid composition
 add_subdirectory(data_binding)    # a bindable_object view-model bound to a label, driven by an entry
 add_subdirectory(collection_view) # collection_view over an observable_collection + a data_template
 add_subdirectory(custom_drawing)  # graphics_view + an i_drawable that draws shapes and text
+
+# The runnable demo gallery: one app hosting whichever of the curated demo pages (gallery/pages/*.hpp) the
+# MAUI_SAMPLE_PAGE env var selects. The iOS parity-capture pipeline builds + launches THIS target (bundle id
+# dev.maui-cpp.ios-gallery) — see tools/parity/capture_all.py.
+add_subdirectory(gallery)         # runtime page-select demo gallery (MAUI_SAMPLE_PAGE / MAUI_APPEARANCE)

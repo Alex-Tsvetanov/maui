@@ -13,7 +13,7 @@ Ports .NET MAUI's `EditorPage` ([oracle](../../../../../src/Controls/samples/Con
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
 **Run it:**
-- macOS — `MAUI_SAMPLE_PAGE=editor ./build/apple/maui_macos_gallery`
+- macOS — `MAUI_SAMPLE_PAGE=editor ./examples/build/gallery/gallery`
 - iOS sim — `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=editor xcrun simctl launch booted dev.maui-cpp.ios-gallery`
 
 > Notes: background sections + Focus/Unfocus are out of scope.

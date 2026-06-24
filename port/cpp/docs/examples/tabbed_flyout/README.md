@@ -2,7 +2,7 @@
 
 A `flyout_page` whose flyout pane is a titled menu (two buttons selecting the detail's tabs + a
 "Toggle flyout") and whose detail pane is a `tabbed_page` with two tabs. Source:
-[`tabbed_flyout_page.hpp`](../../../src/samples/pages/tabbed_flyout_page.hpp).
+[`tabbed_flyout_page.hpp`](../../../examples/gallery/pages/tabbed_flyout_page.hpp).
 
 | macOS (AppKit) | iOS (UIKit) |
 | --- | --- |
@@ -18,7 +18,7 @@ A `flyout_page` whose flyout pane is a titled menu (two buttons selecting the de
 **Platforms:** macOS ✅ demo · iOS ❌ known gap (see note) · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
 **Run it:**
-- macOS — `MAUI_SAMPLE_PAGE=tabbed_flyout ./build/apple/maui_macos_gallery`
+- macOS — `MAUI_SAMPLE_PAGE=tabbed_flyout ./examples/build/gallery/gallery`
 - iOS sim — `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=tabbed_flyout xcrun simctl launch booted dev.maui-cpp.ios-gallery`
 
 > ⚠️ Known gallery-host limitation: on iOS this page renders **blank**. The flyout + tabbed multi-page

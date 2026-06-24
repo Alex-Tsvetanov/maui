@@ -1,11 +1,11 @@
-// Tests for the web_view_page demo (src/samples/pages/web_view_page.hpp) — backend-agnostic: the page
+// Tests for the web_view_page demo (examples/gallery/pages/web_view_page.hpp) — backend-agnostic: the page
 // is pure cross-platform control wiring, so this suite compiles in every preset and proves the demo's
 // interactions (source swap buttons, navigated → status label, eval_js → result label) without a
 // hosting main. The handler-dependent paths (back/forward/reload, the real eval round trip) are covered
 // by the web_view seam suites per backend.
 #include "maui/core/web_navigation_event.hpp"
 #include "maui/core/web_navigation_result.hpp"
-#include "src/samples/pages/web_view_page.hpp"
+#include "examples/gallery/pages/web_view_page.hpp"
 
 #include <string>
 

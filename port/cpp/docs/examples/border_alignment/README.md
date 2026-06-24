@@ -12,6 +12,6 @@ Ports .NET MAUI's `BorderAlignment` ([oracle](../../../../../src/Controls/sample
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=border_alignment ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=border_alignment xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=border_alignment ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=border_alignment xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
 
 > The four headline labels visibly align **Start** (left) / **Center** / **End** (right) / **Fill** — `View.HorizontalOptions`/`VerticalOptions` is now settable and honored at `view::arrange` (the C# `LayoutExtensions.ComputeFrame` path; previously the view surface hardcoded Fill). The bordered cells stay full-width because a Border sizes to its content and the blue grid fills the available width (a faithful content-sizing behavior — the alignment is demonstrated by the labels). This page is also the visible proof of the LayoutOptions framework fix.

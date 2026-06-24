@@ -12,4 +12,4 @@ Ports .NET MAUI's `ScrollModeTestGallery` ([oracle](../../../../../src/Controls/
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=scroll_mode_test ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=scroll_mode_test xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=scroll_mode_test ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=scroll_mode_test xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)

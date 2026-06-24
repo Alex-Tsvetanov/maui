@@ -12,4 +12,4 @@ Ports .NET MAUI's `HeaderFooterGridHorizontal` ([oracle](../../../../../src/Cont
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=header_footer_grid_horizontal ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=header_footer_grid_horizontal xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=header_footer_grid_horizontal ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=header_footer_grid_horizontal xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)

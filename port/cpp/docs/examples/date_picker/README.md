@@ -13,7 +13,7 @@ Ports .NET MAUI's `DatePickerPage` ([oracle](../../../../../src/Controls/samples
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
 **Run it:**
-- macOS — `MAUI_SAMPLE_PAGE=date_picker ./build/apple/maui_macos_gallery`
+- macOS — `MAUI_SAMPLE_PAGE=date_picker ./examples/build/gallery/gallery`
 - iOS sim — `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=date_picker xcrun simctl launch booted dev.maui-cpp.ios-gallery`
 
 > Notes: live IsFocused echo is deferred (no focus-change signal on this surface); the random-background uses a fixed seed for deterministic captures.

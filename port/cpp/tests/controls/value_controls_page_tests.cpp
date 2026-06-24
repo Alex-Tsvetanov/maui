@@ -1,8 +1,8 @@
-// Tests for the value_controls_page demo (src/samples/pages/value_controls_page.hpp) — backend-
+// Tests for the value_controls_page demo (examples/gallery/pages/value_controls_page.hpp) — backend-
 // agnostic: the page is pure cross-platform control wiring, so this suite compiles in every preset
 // and proves the demo's interactions (slider→progress/readout, stepper→slider, switch→spinner,
 // check_box→thumb color) without a hosting main.
-#include "src/samples/pages/value_controls_page.hpp"
+#include "examples/gallery/pages/value_controls_page.hpp"
 
 #include <string>
 

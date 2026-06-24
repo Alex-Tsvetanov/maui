@@ -1,7 +1,7 @@
-// Tests for the pickers_page demo (src/samples/pages/pickers_page.hpp) — backend-agnostic: the page
+// Tests for the pickers_page demo (examples/gallery/pages/pickers_page.hpp) — backend-agnostic: the page
 // is pure cross-platform control wiring, so this suite compiles in every preset and proves the
 // demo's interactions (picker/date_picker/time_picker → readout) without a hosting main.
-#include "src/samples/pages/pickers_page.hpp"
+#include "examples/gallery/pages/pickers_page.hpp"
 
 #include <string>
 

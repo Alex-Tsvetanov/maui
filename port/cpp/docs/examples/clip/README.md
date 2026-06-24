@@ -12,6 +12,6 @@ Ports .NET MAUI's `ClipPage` ([oracle](../../../../../src/Controls/samples/Contr
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=clip ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=clip xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=clip ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=clip xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
 
 > The image carries: bare, RectangleGeometry(0,15,150,150), EllipseGeometry(center 100,100 / r 100), a GeometryGroup of four overlapping ellipses (FillRule EvenOdd), and a PathGeometry from "M8 148 L156 148 L132 12 Z" — each a real `controls::shapes::*_geometry` (an `i_shape`) set via `image::set_clip`. A Toggle button clears/re-applies every clip with a "Clipped"/"Cleared" readout (the gallery's observable extension — C# has empty code-behind). `dotnet_bot.png` is a best-effort file source; headless renders no bitmap, so the demonstrated feature is the Clip geometry.

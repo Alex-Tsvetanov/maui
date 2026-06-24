@@ -13,7 +13,7 @@ Ports .NET MAUI's `ProgressBarPage` ([oracle](../../../../../src/Controls/sample
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
 **Run it:**
-- macOS — `MAUI_SAMPLE_PAGE=progress_bar ./build/apple/maui_macos_gallery`
+- macOS — `MAUI_SAMPLE_PAGE=progress_bar ./examples/build/gallery/gallery`
 - iOS sim — `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=progress_bar xcrun simctl launch booted dev.maui-cpp.ios-gallery`
 
 > Notes: `ProgressTo(value,length,easing)` animation is deferred in the port, so the button sets Progress=1.0 directly (the animation's end state).

@@ -12,4 +12,4 @@ Ports .NET MAUI's `iOSSwipeViewTransitionModePage` ([oracle](../../../../../src/
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=ios_swipe_transition ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=ios_swipe_transition xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=ios_swipe_transition ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=ios_swipe_transition xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)

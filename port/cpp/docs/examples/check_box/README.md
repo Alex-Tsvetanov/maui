@@ -13,7 +13,7 @@ Ports .NET MAUI's `CheckBoxPage` ([oracle](../../../../../src/Controls/samples/C
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
 **Run it:**
-- macOS — `MAUI_SAMPLE_PAGE=check_box ./build/apple/maui_macos_gallery`
+- macOS — `MAUI_SAMPLE_PAGE=check_box ./examples/build/gallery/gallery`
 - iOS sim — `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=check_box xcrun simctl launch booted dev.maui-cpp.ios-gallery`
 
 

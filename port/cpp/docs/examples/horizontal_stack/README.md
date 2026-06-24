@@ -13,7 +13,7 @@ Ports .NET MAUI's `HorizontalStackLayoutPage` ([oracle](../../../../../src/Contr
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
 **Run it:**
-- macOS — `MAUI_SAMPLE_PAGE=horizontal_stack ./build/apple/maui_macos_gallery`
+- macOS — `MAUI_SAMPLE_PAGE=horizontal_stack ./examples/build/gallery/gallery`
 - iOS sim — `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=horizontal_stack xcrun simctl launch booted dev.maui-cpp.ios-gallery`
 
 > On macOS the gallery host sizes the window to the measured content over plain (unflipped) NSViews, so

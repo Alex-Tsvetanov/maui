@@ -12,6 +12,6 @@ Ports .NET MAUI's `TransformationsPage` ([oracle](../../../../../src/Controls/sa
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=transformations ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=transformations xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=transformations ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=transformations xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
 
 > Scale/ScaleX/ScaleY + Rotation/RotationX/RotationY sliders (max 10 / 360), AnchorX/AnchorY steppers (range -1..2, step 0.5), plus Translation X/Y. The XAML two-way `{Binding StringFormat}` rows are reproduced as explicit handler-driven snprintf readouts. Skew is correctly N/A — MAUI's `View` has no Skew property either.

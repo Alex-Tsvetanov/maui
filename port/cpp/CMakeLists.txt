@@ -1445,96 +1445,16 @@ if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     OBJCXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
 
-# ---- Demo-gallery resource assets ----
-# The runnable galleries otherwise ship only Info.plist + the binary, so every from_file()/from_font()
-# source in src/samples/pages/*.hpp failed to load. These faithful copies of the original .NET MAUI
-# sample assets (provenance in src/samples/resources/README.md) are bundled into each gallery .app /
-# next to the macOS binary by the POST_BUILD steps below. cog.png / thumb_image.png are intentionally
-# absent — the originals are SVG-only and the loaders cannot decode raw SVG (see the README).
-set(MAUI_GALLERY_RESOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/samples/resources")
-set(MAUI_GALLERY_RESOURCES
-  "${MAUI_GALLERY_RESOURCE_DIR}/dotnet_bot.png"
-  "${MAUI_GALLERY_RESOURCE_DIR}/animated_heart.gif"
-  "${MAUI_GALLERY_RESOURCE_DIR}/settings.png"
-  "${MAUI_GALLERY_RESOURCE_DIR}/coffee.png"
-  "${MAUI_GALLERY_RESOURCE_DIR}/oasis.jpg"
-  "${MAUI_GALLERY_RESOURCE_DIR}/cover1.jpg"
-  "${MAUI_GALLERY_RESOURCE_DIR}/ionicons.ttf")
-
-# ---- Sample apps (macOS only) ----
-# (M-L hosting-app-builder) Both samples now boot through maui_app_builder (maui_hosting, defined
-# below — CMake resolves link targets at generate time, so the forward reference is fine).
-if(MAUI_BACKEND STREQUAL "apple")
-  # A real NSWindow hosting the cross-platform button (the M2 seam).
-  add_executable(maui_button_sample src/samples/button_sample.mm)
-  set_source_files_properties(src/samples/button_sample.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
-  target_link_libraries(maui_button_sample PRIVATE maui_hosting maui_sanitizers)
-
-  # The full Application → Window → ContentPage → Button slice, opened via app.open_window (the M5c
-  # native NSWindow host: window_handler sets the NSWindow contentView to the page's native view).
-  add_executable(maui_app_sample src/samples/maui_app_sample.mm)
-  set_source_files_properties(src/samples/maui_app_sample.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
-  target_link_libraries(maui_app_sample PRIVATE maui_hosting maui_sanitizers)
-
-  # The runnable demo gallery: one NSWindow hosting whichever of the 11 curated demo pages
-  # (src/samples/pages/*.hpp) the MAUI_SAMPLE_PAGE env var selects. Run e.g.
-  #   MAUI_SAMPLE_PAGE=pickers ./build/apple/maui_macos_gallery
-  add_executable(maui_macos_gallery src/samples/macos_gallery.mm)
-  set_source_files_properties(src/samples/macos_gallery.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
-  target_link_libraries(maui_macos_gallery PRIVATE maui_hosting maui_sanitizers)
-  # maui_macos_gallery is a PLAIN executable (not a .app), and its image loader resolves from_file()
-  # paths against the CWD. Copy the demo assets next to the binary; macos_gallery.mm chdir's there at
-  # startup (and runtime-registers ionicons.ttf via CoreText) so the same sources render as on iOS.
-  add_custom_command(TARGET maui_macos_gallery POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${MAUI_GALLERY_RESOURCES}
-            "$<TARGET_FILE_DIR:maui_macos_gallery>"
-    COMMENT "Copying demo gallery assets next to maui_macos_gallery")
-endif()
-
-# ---- Sample app (iOS only): maui_app_sample's UIKit twin, a real UIApplicationMain app ----
-# Unlike the test executables (plain console binaries for `simctl spawn`), a launchable iOS app needs an
-# .app bundle, so this target opts back into MACOSX_BUNDLE with a minimal iOS Info.plist (CMake produces
-# the flat iOS bundle layout; simulator apps need no code signing). Run it on the booted simulator:
-#   xcrun simctl install booted build/ios/maui_ios_app_sample.app
-#   xcrun simctl launch --console-pty booted dev.maui-cpp.ios-app-sample
-if(MAUI_BACKEND STREQUAL "ios")
-  add_executable(maui_ios_app_sample src/samples/ios_app_sample.mm)
-  set_source_files_properties(src/samples/ios_app_sample.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
-  # (M-L hosting-app-builder) builder boot — link maui_hosting (defined below; resolved at generate).
-  target_link_libraries(maui_ios_app_sample PRIVATE maui_hosting maui_sanitizers)
-  set_target_properties(maui_ios_app_sample PROPERTIES
-    MACOSX_BUNDLE TRUE
-    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/src/samples/ios_app_sample_info.plist.in"
-    MACOSX_BUNDLE_BUNDLE_NAME "maui_ios_app_sample"
-    MACOSX_BUNDLE_GUI_IDENTIFIER "dev.maui-cpp.ios-app-sample"
-    MACOSX_BUNDLE_BUNDLE_VERSION "1"
-    MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0")
-
-  # The runnable demo gallery — the UIKit twin of maui_macos_gallery (a real .app bundle, the same
-  # minimal Info.plist as maui_ios_app_sample). Run e.g.
-  #   xcrun simctl install booted build/ios/maui_ios_gallery.app
-  #   SIMCTL_CHILD_MAUI_SAMPLE_PAGE=pickers xcrun simctl launch booted dev.maui-cpp.ios-gallery
-  add_executable(maui_ios_gallery src/samples/ios_gallery.mm)
-  set_source_files_properties(src/samples/ios_gallery.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
-  target_link_libraries(maui_ios_gallery PRIVATE maui_hosting maui_sanitizers)
-  # The gallery's own Info.plist adds UIAppFonts (ionicons.ttf) so the bundled icon font registers at
-  # launch — the Image page's "Font Image Source" rows need the "Ionicons" family installed (the port
-  # has no runtime font-registration seam). maui_ios_app_sample keeps the plain plist (no font).
-  set_target_properties(maui_ios_gallery PROPERTIES
-    MACOSX_BUNDLE TRUE
-    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/src/samples/ios_gallery_info.plist.in"
-    MACOSX_BUNDLE_BUNDLE_NAME "maui_ios_gallery"
-    MACOSX_BUNDLE_GUI_IDENTIFIER "dev.maui-cpp.ios-gallery"
-    MACOSX_BUNDLE_BUNDLE_VERSION "1"
-    MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0")
-  # Bundle the demo assets into the .app ROOT (iOS bundles are flat — that is where the loader's
-  # [UIImage imageNamed:] fallback and UIAppFonts both look). A POST_BUILD copy is generator-agnostic
-  # (the RESOURCE property lands files in a Resources/ subdir under Ninja, which imageNamed: would miss).
-  add_custom_command(TARGET maui_ios_gallery POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${MAUI_GALLERY_RESOURCES}
-            "$<TARGET_BUNDLE_CONTENT_DIR:maui_ios_gallery>"
-    COMMENT "Bundling demo gallery assets into maui_ios_gallery.app")
-endif()
+# ---- Sample apps + demo gallery: RETIRED (Stage 5b) ----
+# The in-tree sample/gallery targets (maui_button_sample, maui_app_sample, maui_macos_gallery,
+# maui_ios_app_sample, maui_ios_gallery) and their src/samples sources are GONE. The runnable demo gallery
+# now lives as a pure-C++ example in the standalone examples/ project (examples/gallery/), consuming the
+# framework as an external package — no .mm, no platform code in the user-facing app. It keeps the bundle id
+# dev.maui-cpp.ios-gallery so the iOS parity tooling launches it unchanged. The parity dark/light native
+# interface style now flows from MAUI_APPEARANCE -> application::set_platform_app_theme ->
+# application::requested_theme(), which the framework's iOS/macOS run_app (src/platform/{ios,apple}/host_run.mm)
+# reads after boot to force the native window's interface style. Build + run: examples/README.md and the
+# command at the top of tools/parity/capture_all.py.
 
 # ======================================================================
 # Layouts  (maui::layouts  <=  Microsoft.Maui.Layouts : cross-platform measure/arrange algorithms)

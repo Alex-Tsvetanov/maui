@@ -9,7 +9,33 @@ Supersedes capture_all_cpp.py + capture_all_csharp.py for the pixel-perfect rebu
     paletted GIF via ffmpeg, into the same dirs as <key>.{mp4,gif}.
 
 Both apps MUST be installed on the sim first (the C++ gallery rebuilt from the current port; maui-compare
-rebuilt on the pinned stable MAUI with UILaunchScreen). This script does NOT install.
+rebuilt on the pinned stable MAUI with UILaunchScreen). This script does NOT build or install.
+
+BUILD + INSTALL THE C++ GALLERY (Stage 5b — it is now the `gallery` target of the STANDALONE examples
+project, NOT the retired in-tree maui_ios_gallery). The bundle id is unchanged: dev.maui-cpp.ios-gallery.
+From port/cpp, with VCPKG_ROOT set:
+
+  # 1. Build + install the framework for the ios preset to a prefix:
+  cmake --preset ios && cmake --build --preset ios
+  cmake --install build/ios --prefix /tmp/maui-prefix-ios
+
+  # 2. Configure the examples project for the simulator against that prefix (same ios cache settings the
+  #    framework's ios preset uses), then build ONLY the gallery target:
+  cmake -S examples -B examples/build-ios -G Ninja \
+        -Dmaui_DIR=/tmp/maui-prefix-ios/lib/cmake/maui \
+        -DCMAKE_PREFIX_PATH=/tmp/maui-prefix-ios \
+        -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
+        -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator \
+        -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=26.0 \
+        -DVCPKG_TARGET_TRIPLET=arm64-ios-simulator \
+        -DVCPKG_OVERLAY_TRIPLETS=$(pwd)/cmake/triplets
+  cmake --build examples/build-ios --target gallery
+
+  # 3. Install the resulting .app on the booted sim (bundle id stays dev.maui-cpp.ios-gallery):
+  xcrun simctl install booted examples/build-ios/gallery/gallery.app
+
+(Alternatively skip the install/prefix with the in-tree consume mode: add -DMAUI_EXAMPLES_FRAMEWORK_DIR=..
+to step 2 instead of the maui_DIR/PREFIX_PATH lines, and drop step 1. See examples/README.md "iOS".)
 
 Keys come from tools/parity/page_keys.txt (the 172-key both-apps-supported set). Status-bar/clock is NOT
 stripped here — the diff script masks it.

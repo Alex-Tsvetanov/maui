@@ -2,7 +2,7 @@
 
 A `graphics_view` (a custom drawable painting through the canvas stack), a `box_view`, and the shape
 family — rounded rectangle, ellipse, dashed line, star polygon (EvenOdd fill) and a rotated path.
-Source: [`shapes_page.hpp`](../../../src/samples/pages/shapes_page.hpp).
+Source: [`shapes_page.hpp`](../../../examples/gallery/pages/shapes_page.hpp).
 
 | macOS (AppKit) | iOS (UIKit) |
 | --- | --- |
@@ -19,7 +19,7 @@ rotation transform.
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
 **Run it:**
-- macOS — `MAUI_SAMPLE_PAGE=shapes ./build/apple/maui_macos_gallery`
+- macOS — `MAUI_SAMPLE_PAGE=shapes ./examples/build/gallery/gallery`
 - iOS sim — `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=shapes xcrun simctl launch booted dev.maui-cpp.ios-gallery`
 
 > The iOS capture is the showcase — the graphics-view cross, red box, yellow stroked rounded-rect, green

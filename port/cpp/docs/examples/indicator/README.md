@@ -12,6 +12,6 @@ Ports .NET MAUI's `IndicatorPage` ([oracle](../../../../../src/Controls/samples/
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=indicator ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=indicator xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=indicator ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=indicator xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
 
 > Notes: the custom IndicatorTemplate path is deferred (default dots); the CarouselView↔IndicatorView link is reproduced explicitly.

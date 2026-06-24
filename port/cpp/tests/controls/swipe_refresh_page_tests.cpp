@@ -1,8 +1,8 @@
-// Tests for the swipe_refresh_page demo (src/samples/pages/swipe_refresh_page.hpp) — backend-agnostic:
+// Tests for the swipe_refresh_page demo (examples/gallery/pages/swipe_refresh_page.hpp) — backend-agnostic:
 // the page is pure cross-platform control wiring, so this suite compiles in every preset and proves the
 // demo's structure (content_page → refresh_view → swipe_view → row) and interactions (the swipe item's
 // Invoked → readout, SwipeEnded → readout, the refresh Command → counter) without a hosting main.
-#include "src/samples/pages/swipe_refresh_page.hpp"
+#include "examples/gallery/pages/swipe_refresh_page.hpp"
 
 #include "maui/core/swipe_mode.hpp"
 #include <gtest/gtest.h>

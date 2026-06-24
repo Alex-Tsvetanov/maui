@@ -2,7 +2,9 @@
 
 A code-first **C++23** port of .NET MAUI's `Controls.Sample` pages, each wired into the runnable demo gallery and captured on **macOS (AppKit)** + **iOS (UIKit)** with a screenshot, an iOS GIF, and a per-page README mapping it to its C# oracle. Behavior is derived from the read-only C# source, never invented; per-page deviations are documented honestly.
 
-**Run any page** — macOS: `MAUI_SAMPLE_PAGE=<key> ./build/apple/maui_macos_gallery` · iOS: `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=<key> xcrun simctl launch booted dev.maui-cpp.ios-gallery`.
+The gallery is a pure-C++ app in the standalone **[`examples/gallery`](../../examples/gallery/)** project (page sources under [`examples/gallery/pages`](../../examples/gallery/pages/)); build it with the rest of the examples per [`examples/README.md`](../../examples/README.md) (the `gallery` target). It selects a page at runtime from `MAUI_SAMPLE_PAGE` and the theme from `MAUI_APPEARANCE`.
+
+**Run any page** — macOS: `MAUI_SAMPLE_PAGE=<key> ./examples/build/gallery/gallery` · iOS: `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=<key> xcrun simctl launch booted dev.maui-cpp.ios-gallery`.
 
 **173 example pages.** Two genuine framework gaps the sample work surfaced were root-caused + fixed with full-gate framework changes + TDD tests: **CollectionView struct-typed templated-cell rendering** (porting C#'s `TemplatedCell.Bind` to the AppKit/iOS handlers) and **`View.HorizontalOptions`/`VerticalOptions`** (made settable + honored at `view::arrange`, the C# `ComputeFrame` path).
 

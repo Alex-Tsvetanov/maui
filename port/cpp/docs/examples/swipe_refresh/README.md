@@ -1,7 +1,7 @@
 # Swipe & refresh
 
 A `refresh_view` wrapping a `swipe_view` (which wraps a labelled row), with a readout reflecting the
-latest interaction. Source: [`swipe_refresh_page.hpp`](../../../src/samples/pages/swipe_refresh_page.hpp).
+latest interaction. Source: [`swipe_refresh_page.hpp`](../../../examples/gallery/pages/swipe_refresh_page.hpp).
 
 | macOS (AppKit) | iOS (UIKit) |
 | --- | --- |
@@ -17,7 +17,7 @@ swipe-to-reveal `swipe_view` host, labelled row + readout.
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
 **Run it:**
-- macOS — `MAUI_SAMPLE_PAGE=swipe_refresh ./build/apple/maui_macos_gallery`
+- macOS — `MAUI_SAMPLE_PAGE=swipe_refresh ./examples/build/gallery/gallery`
 - iOS sim — `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=swipe_refresh xcrun simctl launch booted dev.maui-cpp.ios-gallery`
 
 > ⚠️ Partial in a static capture: the "Swipe left to delete, pull to refresh" header and the refresh /

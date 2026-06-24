@@ -12,6 +12,6 @@ Ports .NET MAUI's `TemplatedViewPage` ([oracle](../../../../../src/Controls/samp
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=templated_view ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=templated_view xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=templated_view ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=templated_view xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
 
 > Notes: CardView/Rate are sample-app controls (not framework types), so their per-property TemplateBindings + heart geometry aren't reproduced — the ControlTemplate-application mechanism is what's shown.

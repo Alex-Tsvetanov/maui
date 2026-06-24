@@ -31,6 +31,7 @@
 
 #include "maui/controls/application.hpp"
 #include "maui/controls/window.hpp"
+#include "maui/core/app_theme.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/i_window.hpp"
@@ -104,6 +105,27 @@ namespace
         {
             os_log_error(OS_LOG_DEFAULT, "[host_run] native UIWindow is nil");
             return nil;
+        }
+
+        // (4b) Native interface style from the app's requested theme (the parity-capture dark/light path). The
+        //      app set its cross-platform theme in pure C++ (application::set_platform_app_theme from
+        //      MAUI_APPEARANCE — there is no AppInfo singleton on iOS, so nothing else seeds it); read it back
+        //      here and force the native UIWindow's overrideUserInterfaceStyle so native UIKit controls render
+        //      in the requested theme. Set on the window so it propagates to the root VC + every native child.
+        //      `unspecified` (no theme requested) leaves the system default (UIUserInterfaceStyleUnspecified).
+        //      This keeps the gallery example pure C++ while preserving the parity dark captures the former
+        //      ios_gallery.mm produced by forcing overrideUserInterfaceStyle directly.
+        switch (application->requested_theme())
+        {
+            case maui::core::app_theme::dark:
+                native_window.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+                break;
+            case maui::core::app_theme::light:
+                native_window.overrideUserInterfaceStyle = UIUserInterfaceStyleLight;
+                break;
+            case maui::core::app_theme::unspecified:
+                native_window.overrideUserInterfaceStyle = UIUserInterfaceStyleUnspecified;
+                break;
         }
 
         // (5) Lay out the tree over the root view-controller's bounds (the window host does no auto-layout).

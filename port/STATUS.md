@@ -4,6 +4,37 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## Cross-platform entry point — Stage 5b (gallery → examples; src/samples retired) — ✅ DONE (2026-06-24)
+
+The final, destructive packaging stage: the runnable demo gallery moved OUT of the framework tree into the
+standalone `examples/` project as a **pure-C++** app, and **`port/cpp/src/samples` is entirely gone** (the 5
+`.mm` hosts + `gallery_host.hpp` + the plist templates + all its CMake build blocks). New/changed:
+- **`examples/gallery/`** — `main.cpp` (a pure-C++ `gallery_app : application`, no `.mm`/platform headers),
+  `gallery_host.hpp` (the `MAUI_GALLERY_PAGES` X-macro + the `gallery_pre_mount`/`gallery_post_mount` hook
+  helpers, `git mv`'d from `src/samples`), `pages/` (178 page headers, `git mv`'d), `resources/` (`git mv`'d),
+  `gallery_info.plist.in` (the UIAppFonts variant), and `CMakeLists.txt`. Registered in `examples/CMakeLists.txt`.
+  The gallery selects its page at runtime from `MAUI_SAMPLE_PAGE` (default `value_controls`) via the X-macro
+  dispatch behind a small type-erased `gallery_page_holder`, and seeds the CROSS-PLATFORM app theme from
+  `MAUI_APPEARANCE` via `application::set_platform_app_theme` — NO UIKit/AppKit call in the example.
+- **Generic-mount lifecycle hooks** — `application::on_pre_mount`/`on_post_mount` (default no-ops) added to the
+  framework; `maui::hosting::mount_window` now calls them around the window mount. `gallery_app` overrides them
+  to forward the selected page's optional `register_handlers`/`on_mounted`. This generalizes the gallery's
+  former per-`.mm` plumbing onto the application the builder mints, so the pure-C++ `run_app` flow drives them.
+- **Native interface style from the app theme** — `src/platform/ios/host_run.mm` (and the macOS twin
+  `src/platform/apple/host_run.mm`) now read `application::requested_theme()` after boot and force the native
+  window's `overrideUserInterfaceStyle` / `NSAppearance`. This preserves the parity dark/light captures the
+  old `ios_gallery.mm` produced by forcing UIKit directly — WITHOUT any platform code in the example.
+- **`maui_add_app`** gained optional `IDENTIFIER` + `PLIST` args; the gallery keeps bundle id
+  `dev.maui-cpp.ios-gallery` so the parity tooling launches it unchanged.
+- **Parity pipeline re-pointed** — `tools/parity/capture_all.py` documents the new examples-based iOS build
+  command at its top (bundle id + env vars + `page_keys.txt` unchanged); `gen_comparison_readme.py` reads page
+  header comments from `examples/gallery/pages`. The 11 in-tree page-wiring tests now `#include` the pages from
+  `examples/gallery/pages` (the framework test target already has the repo root on its include path).
+
+Verify: **headless 3080/3080 (unchanged from baseline — pages are gallery headers, not framework libs/tests)**;
+the gallery example builds + boots on headless and on iOS (installed as `dev.maui-cpp.ios-gallery`), with the
+light+dark parity captures reproduced. `gate.sh --fast`: see the commit.
+
 ## Cross-platform entry point — Stage 2 (apple + ios native run loops) — ✅ DONE (2026-06-24)
 
 The SAME pure-C++ `samples/hello_world/main.cpp` (Stage 1) now opens a REAL native window on the apple

@@ -12,4 +12,4 @@ Ports .NET MAUI's `FooterOnlyString` ([oracle](../../../../../src/Controls/sampl
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=footer_only_string ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=footer_only_string xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=footer_only_string ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=footer_only_string xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)

@@ -12,6 +12,6 @@ Ports .NET MAUI's `LineJoinGallery` ([oracle](../../../../../src/Controls/sample
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=line_join_gallery ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=line_join_gallery xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=line_join_gallery ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=line_join_gallery xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
 
 > These are **natively-rendered** shape demos — the Shape control family (`controls::shapes::*`) draws through the graphics_view / shape_view handler over a CoreGraphics canvas, so the geometry is real pixels on both Apple backends (not a readout). Miter (default) / Bevel / Round on a 20px-thick Aqua open polyline "20 20,250 50,20 120", each wrapped in its own single-cell Grid and captioned. The StaticResource `PolylineStyle` is applied as code-first setters.

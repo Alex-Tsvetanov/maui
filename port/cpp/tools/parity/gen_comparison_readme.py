@@ -3,7 +3,7 @@
 
 Inputs (all under docs/comparison/): montages/<key>.png, captures/{cpp,maui}_{light,dark}/<key>.gif (for
 animated keys), diff_results.json, analysis_gemini.json, analysis_sonnet/<key>.json. Per-example
-descriptions are extracted from each src/samples/pages/<key>_page.hpp header comment.
+descriptions are extracted from each examples/gallery/pages/<key>_page.hpp header comment.
 
 Layout: Setup section -> classification Summary -> table
   | # | Example (name + what it demonstrates) | Demo (2x2 native montage; GIFs for animated) |
@@ -19,7 +19,7 @@ import re
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, "..", ".."))            # port/cpp
 CMP = os.path.join(ROOT, "docs", "comparison")
-PAGES = os.path.join(ROOT, "src", "samples", "pages")
+PAGES = os.path.join(ROOT, "examples", "gallery", "pages")
 
 PP_SSIM = 0.99   # "pixel-perfect-grade": cross-engine AA prevents byte-exact 0; SSIM>=this (both themes).
 MODEL_SONNET = "claude-sonnet-4-6"

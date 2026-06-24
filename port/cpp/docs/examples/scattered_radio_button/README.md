@@ -12,4 +12,4 @@ Ports .NET MAUI's `ScatteredRadioButtonGallery` ([oracle](../../../../../src/Con
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=scattered_radio_button ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=scattered_radio_button xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=scattered_radio_button ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=scattered_radio_button xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)

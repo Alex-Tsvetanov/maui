@@ -1,8 +1,8 @@
 # Gallery sample resources
 
-Bundled assets for the runnable demo galleries (`maui_ios_gallery` / `maui_macos_gallery`). The galleries
-otherwise ship only `Info.plist` + the binary, so every `image_source::from_file(...)` / `from_font(...)`
-source in `src/samples/pages/*.hpp` failed to load. These files make those sources render on device.
+Bundled assets for the runnable demo gallery (the `gallery` target of the standalone `examples/` project).
+The gallery otherwise ships only `Info.plist` + the binary, so every `image_source::from_file(...)` /
+`from_font(...)` source in `pages/*.hpp` failed to load. These files make those sources render on device.
 
 All files are **faithful copies of the original .NET MAUI sample assets** (read-only `src/` reference or
 the local `~/maui-compare` clone) — nothing here is hand-drawn or fabricated.
@@ -29,15 +29,14 @@ C# reference shot where the button fill dominates and the cog is barely visible.
 
 ## How they are bundled
 
-See `port/cpp/CMakeLists.txt` (the gallery targets):
-- **iOS** (`maui_ios_gallery`, a flat `.app`): a POST_BUILD step copies every file into the `.app` root, where
+See `examples/gallery/CMakeLists.txt` (`maui_add_app(gallery ... RESOURCES <these files>)`):
+- **iOS** (a flat `.app`): `maui_add_app`'s POST_BUILD step copies every file into the `.app` root, where
   `[UIImage imageNamed:]` finds them; `ionicons.ttf` is registered at launch via `UIAppFonts` in the
-  gallery's `ios_gallery_info.plist.in`.
-- **macOS** (`maui_macos_gallery`, a plain executable whose loader resolves relative paths against the CWD):
-  the same files are copied next to the binary; `macos_gallery.mm` `chdir`s there at startup and registers
-  the font at runtime via `CTFontManagerRegisterFontsForURL`. Verified: pages with **explicitly-sized**
-  images render the bundled assets (e.g. the `image_button` "Custom Size" button shows the purple
-  `dotnet_bot.png`). Caveat: *auto-sized* images in a stack (e.g. the Image page's `FileSource`, which has
-  no Width/HeightRequest) still collapse to zero height — the macOS `image_handler::get_desired_size`
-  returns `{0,0}` ("no intrinsic content size this cut", unlike the iOS handler's `sizeThatFits:`). That
-  intrinsic-measure gap is a pre-existing, deliberately-deferred concern, independent of asset bundling.
+  gallery's `gallery_info.plist.in`.
+- **macOS / headless** (a plain executable whose loader resolves relative paths against the CWD): `maui_add_app`
+  copies the same files next to the binary; run the gallery from a directory where they resolve. The font is
+  registered by the framework's font seam. Caveat: *auto-sized* images in a stack (e.g. the Image page's
+  `FileSource`, which has no Width/HeightRequest) may collapse to zero height on macOS — the
+  `image_handler::get_desired_size` returns `{0,0}` ("no intrinsic content size this cut", unlike the iOS
+  handler's `sizeThatFits:`). That intrinsic-measure gap is a pre-existing, deferred concern, independent of
+  asset bundling.

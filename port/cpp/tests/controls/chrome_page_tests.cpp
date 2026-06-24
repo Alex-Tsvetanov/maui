@@ -1,8 +1,8 @@
-// Tests for the W1-11 chrome demo page wiring (src/samples/pages/chrome_page.hpp) — backend-agnostic:
+// Tests for the W1-11 chrome demo page wiring (examples/gallery/pages/chrome_page.hpp) — backend-agnostic:
 // the toolbar/menu/context-flyout activations drive the readout, the page surfaces the chrome
 // collections, and the tooltip/context flyout are attached. (The native materialization is covered by
 // the chrome handler/backends tests; this exercises the sample's cross-platform wiring only.)
-#include "src/samples/pages/chrome_page.hpp"
+#include "examples/gallery/pages/chrome_page.hpp"
 
 #include <optional>
 #include <string>

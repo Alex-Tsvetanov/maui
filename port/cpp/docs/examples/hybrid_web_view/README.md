@@ -12,6 +12,6 @@ Ports .NET MAUI's `HybridWebViewPage` ([oracle](../../../../../src/Controls/samp
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=hybrid_web_view ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=hybrid_web_view xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=hybrid_web_view ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=hybrid_web_view xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
 
 > Notes: SetInvokeJavaScriptTarget / InvokeDotNet (JS→.NET by reflection) and typed InvokeJavaScriptAsync<T> are deferred (no reflection per the port doctrine).

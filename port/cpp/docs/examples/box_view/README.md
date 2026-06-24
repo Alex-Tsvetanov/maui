@@ -13,7 +13,7 @@ Ports .NET MAUI's `BoxViewPage` ([oracle](../../../../../src/Controls/samples/Co
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
 **Run it:**
-- macOS — `MAUI_SAMPLE_PAGE=box_view ./build/apple/maui_macos_gallery`
+- macOS — `MAUI_SAMPLE_PAGE=box_view ./examples/build/gallery/gallery`
 - iOS sim — `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=box_view xcrun simctl launch booted dev.maui-cpp.ios-gallery`
 
 > Notes: EllipseGeometry-as-clip is deferred (rendered as a plain block); on macOS the scroll_view + unflipped-view layout shows one box at a time (AppKit deviation) — the iOS capture shows the full stack.

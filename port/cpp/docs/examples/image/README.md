@@ -13,7 +13,7 @@ Ports .NET MAUI's `ImagePage` ([oracle](../../../../../src/Controls/samples/Cont
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
 **Run it:**
-- macOS — `MAUI_SAMPLE_PAGE=image ./build/apple/maui_macos_gallery`
+- macOS — `MAUI_SAMPLE_PAGE=image ./examples/build/gallery/gallery`
 - iOS sim — `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=image xcrun simctl launch booted dev.maui-cpp.ios-gallery`
 
 > Notes: png/gif assets need bundling to display (file sources point at plausible bundle-relative paths; the stream source is wired but returns no bytes headless) — the control wiring is faithful.

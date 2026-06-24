@@ -12,6 +12,6 @@ Ports .NET MAUI's `GroupingNoTemplates` ([oracle](../../../../../src/Controls/sa
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=grouping_no_templates ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=grouping_no_templates xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=grouping_no_templates ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=grouping_no_templates xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
 
 > Struct-typed item cells render their template-bound content natively (post the TemplatedCell.Bind fix).

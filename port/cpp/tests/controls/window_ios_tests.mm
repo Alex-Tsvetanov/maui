@@ -13,7 +13,7 @@
 // keyed (makeKeyAndVisible) and given a rootViewController in a spawned process with NO UIApplication;
 // the spawned process's windows carry a placeholder UIWindowScene whose title is settable; and KVO on
 // "frame" fires on setFrame:. The UIApplication lifecycle notifications, however, are only POSTED by a
-// real application run loop (UIApplicationMain — see src/samples/ios_app_sample.mm), so the tests post
+// real application run loop (UIApplicationMain — see src/platform/ios/host_run.mm), so the tests post
 // them to the default NSNotificationCenter directly — the same stand-in the apple twin uses for
 // NSWindowDidBecomeMainNotification, exercising the very observers the handler registered.
 //

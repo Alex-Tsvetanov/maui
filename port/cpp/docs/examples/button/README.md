@@ -13,7 +13,7 @@ Ports .NET MAUI's `ButtonPage` ([oracle](../../../../../src/Controls/samples/Con
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
 **Run it:**
-- macOS — `MAUI_SAMPLE_PAGE=button ./build/apple/maui_macos_gallery`
+- macOS — `MAUI_SAMPLE_PAGE=button ./examples/build/gallery/gallery`
 - iOS sim — `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=button xcrun simctl launch booted dev.maui-cpp.ios-gallery`
 
 > Notes: `LineBreakMode` has no Button surface in the port; the gradient-brush swap, tooltip, converter-color binding and HorizontalOptions are simplified/omitted.

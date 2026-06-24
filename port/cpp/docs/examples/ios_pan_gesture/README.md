@@ -12,4 +12,4 @@ Ports .NET MAUI's `iOSPanGestureRecognizerPage` ([oracle](../../../../../src/Con
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=ios_pan_gesture ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=ios_pan_gesture xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=ios_pan_gesture ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=ios_pan_gesture xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)

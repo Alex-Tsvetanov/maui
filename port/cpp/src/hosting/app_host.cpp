@@ -12,6 +12,7 @@
 #include <memory>
 #include <optional>
 
+#include "maui/controls/application.hpp"
 #include "maui/controls/element.hpp"
 #include "maui/controls/window.hpp"
 #include "maui/core/handler_registry.hpp"
@@ -78,6 +79,14 @@ namespace maui::hosting
 
     void mount_window(maui_app& app, maui::controls::window& window)
     {
+        // (0) PRE-MOUNT hook: let the application register a handler for a user-defined control type into THIS
+        //     boot's registry BEFORE the tree is walked (the generic mount resolves handlers only from the
+        //     app registry, which has no global fallback). A no-op unless the app overrides on_pre_mount.
+        const std::shared_ptr<maui::controls::application>& application = app.application();
+        if (application != nullptr)
+        {
+            application->on_pre_mount(app);
+        }
         // (1) Mount the page tree FIRST (handlers bottom-up + container re-host) so the page's view-handler
         //     exists — the window handler hosts the page by reading that handler's native view on open.
         if (auto* page = window.content_element())
@@ -89,6 +98,13 @@ namespace maui::hosting
         //     handler's content hosting (MapContent), which now finds the page handler attached.
         app.attach_handler(window);
         app.open_window(window);
+        // (4) POST-MOUNT hook: now every native view exists, run the app's post-mount demo seeding (open a
+        //     SwipeView to its revealed state, drive a synthetic gesture, subscribe to the app theme, …). A
+        //     no-op unless the app overrides on_post_mount.
+        if (application != nullptr)
+        {
+            application->on_post_mount(app);
+        }
     }
 
     maui::graphics::size drive_layout(maui::controls::window& window, double width, double height)

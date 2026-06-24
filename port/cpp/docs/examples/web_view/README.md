@@ -2,7 +2,7 @@
 
 A `web_view` loading a static HTML source (no network), with back/forward/reload buttons over the
 handler-pushed `CanGoBack`/`CanGoForward` read-onlys and an "Eval 1+1" button driving the
-`EvaluateJavaScriptAsync` round-trip. Source: [`web_view_page.hpp`](../../../src/samples/pages/web_view_page.hpp).
+`EvaluateJavaScriptAsync` round-trip. Source: [`web_view_page.hpp`](../../../examples/gallery/pages/web_view_page.hpp).
 
 | macOS (AppKit) | iOS (UIKit) |
 | --- | --- |
@@ -18,7 +18,7 @@ navigation/eval status labels.
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
 **Run it:**
-- macOS — `MAUI_SAMPLE_PAGE=web_view ./build/apple/maui_macos_gallery`
+- macOS — `MAUI_SAMPLE_PAGE=web_view ./examples/build/gallery/gallery`
 - iOS sim — `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=web_view xcrun simctl launch booted dev.maui-cpp.ios-gallery`
 
 > ⚠️ Partial: the control chrome (navigation/eval buttons + the `new_page -> https://demo.test/welcome`

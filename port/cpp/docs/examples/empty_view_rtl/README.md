@@ -12,4 +12,4 @@ Ports .NET MAUI's `EmptyViewRTLGallery` ([oracle](../../../../../src/Controls/sa
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=empty_view_rtl ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=empty_view_rtl xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=empty_view_rtl ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=empty_view_rtl xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)

@@ -13,7 +13,7 @@ Ports .NET MAUI's `SearchBarPage` ([oracle](../../../../../src/Controls/samples/
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
 **Run it:**
-- macOS — `MAUI_SAMPLE_PAGE=search_bar ./build/apple/maui_macos_gallery`
+- macOS — `MAUI_SAMPLE_PAGE=search_bar ./examples/build/gallery/gallery`
 - iOS sim — `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=search_bar xcrun simctl launch booted dev.maui-cpp.ios-gallery`
 
 > Notes: SearchCommand/SearchCommandParameter is collapsed onto the port's command+event channel; background sections + Focus/Unfocus are out of scope.

@@ -12,6 +12,6 @@ Ports .NET MAUI's `GesturesPage` ([oracle](../../../../../src/Controls/samples/C
 
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
-**Run it:** `MAUI_SAMPLE_PAGE=gestures ./build/apple/maui_macos_gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=gestures xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
+**Run it:** `MAUI_SAMPLE_PAGE=gestures ./examples/build/gallery/gallery` (macOS) · `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=gestures xcrun simctl launch booted dev.maui-cpp.ios-gallery` (iOS)
 
 > Tap, Pan (state machine), Pinch (relative scale), Swipe (all directions + threshold), Pointer (entered/moved/pressed/released/exited) added via `gesture_recognizers().add`. Headless has no native input, so `attach_handlers()` issues one deterministic synthetic drive per recognizer through each `Send*`/`i_*_gesture_controller` seam (the same path the gesture unit tests use) so the static capture shows the readout reacting; one recognizer honors `View.ValidateGesture`'s single-pinch rule. The real GesturesPage.xaml is a Shell-nav CollectionView (no headless analog) — this builds the recognizer demo those sections lead to.

@@ -3,9 +3,10 @@
 <!-- Minimal Info.plist for an example's iOS .app bundle (configured by CMake via MACOSX_BUNDLE_INFO_PLIST
      in maui_add_app). Deliberately has NO UIApplicationSceneManifest: the app runs the classic
      (non-scene) UIApplicationDelegate lifecycle — the path the framework's window_handler mirrors.
-     UILaunchScreen (empty) opts into the modern full-size launch without a storyboard. This mirrors the
-     framework's own src/samples/ios_app_sample_info.plist.in, kept separate so the examples project
-     stands alone (it does not reach back into the framework source tree for build inputs). -->
+     UILaunchScreen (empty) opts into the modern full-size launch without a storyboard. The gallery example
+     overrides this template with its own variant (examples/gallery/gallery_info.plist.in) that adds
+     UIAppFonts; the examples project stands alone (it does not reach back into the framework source tree
+     for build inputs). -->
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>

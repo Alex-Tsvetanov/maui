@@ -29,6 +29,7 @@
 
 #include "maui/controls/application.hpp"
 #include "maui/controls/window.hpp"
+#include "maui/core/app_theme.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_window.hpp"
 #include "maui/core/window_handler.hpp"
@@ -111,6 +112,24 @@ namespace
         {
             os_log_error(OS_LOG_DEFAULT, "[host_run] native NSWindow is nil");
             return false;
+        }
+
+        // Native appearance from the app's requested theme (the parity-capture dark/light path, the macOS twin
+        // of the iOS lane's overrideUserInterfaceStyle). The app set its cross-platform theme in pure C++
+        // (application::set_platform_app_theme); read it back and force the NSWindow's NSAppearance so native
+        // AppKit controls render in the requested theme. Set on the window so it propagates to the content view
+        // + every native child. `unspecified` leaves nil (the system default).
+        switch (application->requested_theme())
+        {
+            case maui::core::app_theme::dark:
+                ns_window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameDarkAqua];
+                break;
+            case maui::core::app_theme::light:
+                ns_window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameAqua];
+                break;
+            case maui::core::app_theme::unspecified:
+                ns_window.appearance = nil;
+                break;
         }
         // Trace to BOTH the unified log (os_log) and stderr: the unified-log store may drop default-level
         // messages on some hosts, so the stderr line is the deterministic "the mount ran" proof the brief

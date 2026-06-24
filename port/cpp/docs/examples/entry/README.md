@@ -13,7 +13,7 @@ Ports .NET MAUI's `EntryPage` ([oracle](../../../../../src/Controls/samples/Cont
 **Platforms:** macOS ✅ demo · iOS ✅ demo · Windows ⬜ TODO · Linux ⬜ TODO · Android ⬜ TODO
 
 **Run it:**
-- macOS — `MAUI_SAMPLE_PAGE=entry ./build/apple/maui_macos_gallery`
+- macOS — `MAUI_SAMPLE_PAGE=entry ./examples/build/gallery/gallery`
 - iOS sim — `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=entry xcrun simctl launch booted dev.maui-cpp.ios-gallery`
 
 > Notes: BackgroundColor / background-brush / VisualState / Focus-Unfocus alerts are out of scope (no headless seam).
