@@ -22,6 +22,8 @@ set(GALLERY_RESOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/oasis.jpg
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/settings.png)
 
+# The "C++ & XAML" parity column is the separate examples/gallery_xaml app (the same demo pages authored as
+# markup, built at compile time). This builder gallery hosts only the hand-written pages.
 maui_add_app(gallery
   SOURCES main.cpp
   RESOURCES ${GALLERY_RESOURCES}

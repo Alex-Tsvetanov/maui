@@ -10,6 +10,7 @@
 // scope as content_page/content_view).
 #include "maui/controls/frame.hpp"
 
+#include <any>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -19,6 +20,7 @@
 #include "maui/core/border_handler.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/setter_specificity.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/rect.hpp"
@@ -140,6 +142,30 @@ namespace
         frame view;
         EXPECT_THROW(view.set_corner_radius(-2.0F), std::invalid_argument);
         EXPECT_EQ(view.corner_radius(), -1.0F); // unchanged
+    }
+
+    // The facade translation must fire on the bindable-property seam too — the path the XAML loader
+    // (register_bindable_property → apply_setter) and data bindings take, NOT just the imperative
+    // set_* methods. Before the propertyChanged fix, setting BorderColor/CornerRadius/HasShadow this
+    // way left stroke/shape/shadow untranslated, so a loader-mounted Frame rendered no chrome on iOS.
+    TEST(frame, bindable_property_seam_translates_onto_the_border_machinery)
+    {
+        using maui::core::setter_specificity;
+
+        frame view;
+        view.apply_setter("border_color", std::any(color(0.86F, 0.20F, 0.27F)),
+                          setter_specificity::manual_value_setter);
+        ASSERT_NE(view.stroke(), nullptr);
+        EXPECT_EQ(view.stroke()->background_color(), color(0.86F, 0.20F, 0.27F));
+        EXPECT_EQ(view.stroke_thickness(), 1.0);
+
+        view.apply_setter("corner_radius", std::any(6.0F), setter_specificity::manual_value_setter);
+        auto* rounded = dynamic_cast<maui::graphics::shapes::round_rectangle*>(view.shape());
+        ASSERT_NE(rounded, nullptr);
+        EXPECT_EQ(rounded->corner_radius().top_left, 6.0);
+
+        view.apply_setter("has_shadow", std::any(false), setter_specificity::manual_value_setter);
+        EXPECT_EQ(view.shadow(), nullptr);
     }
 
     TEST(frame, has_shadow_drives_the_canned_frame_shadow)

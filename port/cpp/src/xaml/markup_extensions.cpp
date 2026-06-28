@@ -318,6 +318,29 @@ namespace maui::xaml
                         throw xaml_parse_exception(std::format("No xmlns declaration for prefix '{}'.", prefix));
                     }
                 }
+                // W13 — x:2009 language primitives ({x:Type x:String}, used by <x:Array Type=…>) are not
+                // in the type registry (they are a create_values concern, like <x:String>); resolve their
+                // type_tag here so {x:Type} mirrors create_primitive. Same primitive set as
+                // create_values_visitor::visit(element_node).
+                if (ns == xaml_namespace::x)
+                {
+                    if (name == "String")
+                    {
+                        return std::any{maui::core::type_tag::of<std::string>()};
+                    }
+                    if (name == "Int32")
+                    {
+                        return std::any{maui::core::type_tag::of<int>()};
+                    }
+                    if (name == "Double")
+                    {
+                        return std::any{maui::core::type_tag::of<double>()};
+                    }
+                    if (name == "Boolean")
+                    {
+                        return std::any{maui::core::type_tag::of<bool>()};
+                    }
+                }
                 const xaml_type_registry& types =
                     services.type_registry != nullptr ? *services.type_registry : default_xaml_type_registry();
                 if (const auto* registration = types.find(name, ns))

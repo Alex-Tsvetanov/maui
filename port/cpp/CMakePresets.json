@@ -76,6 +76,19 @@
       }
     },
     {
+      "name": "maccatalyst",
+      "inherits": "headless",
+      "displayName": "Mac Catalyst (UIKit on macOS, Obj-C++)",
+      "description": "Mac Catalyst backend: the iOS UIKit handlers + host retargeted to the macabi ABI (arm64-apple-ios26.0-macabi via cmake/maccatalyst.toolchain.cmake), running NATIVELY on macOS. Matches .NET MAUI's own macOS rendering (Catalyst) for the strict 3-way visual-parity check.",
+      "binaryDir": "${sourceDir}/build/maccatalyst",
+      "cacheVariables": {
+        "MAUI_BACKEND": "maccatalyst",
+        "VCPKG_TARGET_TRIPLET": "arm64-maccatalyst",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/cmake/triplets",
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/maccatalyst.toolchain.cmake"
+      }
+    },
+    {
       "name": "android",
       "inherits": "headless",
       "displayName": "Android (NDK / emulator, arm64-v8a)",
@@ -103,6 +116,7 @@
     { "name": "msan", "configurePreset": "msan" },
     { "name": "apple", "configurePreset": "apple" },
     { "name": "ios", "configurePreset": "ios" },
+    { "name": "maccatalyst", "configurePreset": "maccatalyst" },
     { "name": "android", "configurePreset": "android" }
   ],
   "testPresets": [

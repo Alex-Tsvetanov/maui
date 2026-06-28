@@ -100,6 +100,13 @@ namespace maui::xaml
         {
             return static_cast<bool>(handler_);
         }
+        // The error policy itself (W4): a DataTemplate stamp builds a CHILD context that inherits the
+        // load's doNotThrow knob, so the inflater snapshots it from the load context (the handler is a
+        // value-type std::function copy — the stamp must not depend on the parent context's lifetime).
+        [[nodiscard]] const exception_handler& handler() const
+        {
+            return handler_;
+        }
 
         // ---- RootElement ----
         [[nodiscard]] maui::core::bindable_object* root_element() const
@@ -143,6 +150,17 @@ namespace maui::xaml
             return subscriptions_;
         }
 
+        // Attached-property placements (Grid.Row/Column/Span, …) deferred until AFTER the apply pass: a
+        // child's attached attribute is applied before add() parents it into its layout, so the owning grid
+        // is not yet reachable when the attribute is read. The loader drains these once the tree is fully
+        // parented (every child's logical_parent is set). MAUI's central attached-property bag stored the
+        // value on the child directly; PROFILE §7 removed that bag, so the value lives in the parent layout's
+        // per-child side-map and the placement must wait for the parent.
+        [[nodiscard]] std::vector<std::function<void()>>& deferred_attached()
+        {
+            return deferred_attached_;
+        }
+
         // ---- the explicit registries (port-specific; non-owning) ----
         [[nodiscard]] const xaml_type_registry& type_registry() const
         {
@@ -172,6 +190,7 @@ namespace maui::xaml
         maui::core::bindable_object* root_element_ = nullptr;
         xaml_object_graph graph_;
         std::vector<std::shared_ptr<void>> keep_alive_;
+        std::vector<std::function<void()>> deferred_attached_;     // drained after the apply pass (see accessor)
         std::vector<maui::core::scoped_connection> subscriptions_; // after graph_: disconnect before teardown
     };
 } // namespace maui::xaml

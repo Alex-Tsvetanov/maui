@@ -1,0 +1,49 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Slider">
+    <ScrollView>
+        <VerticalStackLayout Spacing="6">
+            <Label Text="Default" FontSize="18" FontAttributes="Bold" />
+            <Slider />
+
+            <Label Text="BackgroundColor" FontSize="18" FontAttributes="Bold" />
+            <Slider BackgroundColor="Blue" />
+
+            <Label Text="Background" FontSize="18" FontAttributes="Bold" />
+            <Slider />
+
+            <Label Text="Minimum (5) and Maximum (15)" FontSize="18" FontAttributes="Bold" />
+            <Slider Maximum="15" Minimum="5" Value="10" />
+            <Label Text="10" />
+
+            <Label Text="Disabled" FontSize="18" FontAttributes="Bold" />
+            <Slider IsEnabled="False" />
+
+            <Label Text="MinimumTrackColor=LightBlue" FontSize="18" FontAttributes="Bold" />
+            <Slider MinimumTrackColor="LightBlue" />
+
+            <Label Text="MaximumTrackColor=Pink" FontSize="18" FontAttributes="Bold" />
+            <Slider MaximumTrackColor="Pink" />
+
+            <Label Text="ThumbColor=Orange" FontSize="18" FontAttributes="Bold" />
+            <Slider ThumbColor="Orange" />
+
+            <Label Text="ThumbImageSource=thumb_image.png" FontSize="18" FontAttributes="Bold" />
+            <Slider />
+            <Button Text="Toggle Image" />
+
+            <Label Text="Custom Slider (Red MinimumTrackColor, Green MaximumTrackColor, Blue ThumbColor)" FontSize="18" FontAttributes="Bold" />
+            <Slider MinimumTrackColor="Red" MaximumTrackColor="Green" ThumbColor="Blue" />
+
+            <Label Text="Dynamically update Slider" FontSize="18" FontAttributes="Bold" />
+            <Slider Minimum="0" Maximum="10" Value="5" />
+            <Label Text="Minimum: 0, Maximum: 10, Value: 5" />
+            <HorizontalStackLayout>
+                <Button Text="Update Minimum" />
+                <Button Text="Update Maximum" />
+            </HorizontalStackLayout>
+
+            <Label Text="Edge case - Same Minimum, Maximum and Value" FontSize="18" FontAttributes="Bold" />
+            <Slider Minimum="100" Maximum="100" Value="100" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

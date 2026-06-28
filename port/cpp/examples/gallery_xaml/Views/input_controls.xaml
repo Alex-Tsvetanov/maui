@@ -1,0 +1,11 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Input controls">
+    <VerticalStackLayout Spacing="12" Padding="16">
+        <Label Text="LENGTH: 0" />
+        <Editor Placeholder="Type here..." />
+        <SearchBar Placeholder="Search to insert" />
+        <RadioButton Content="UPPER" GroupName="casing" IsChecked="True" HorizontalOptions="Start" />
+        <RadioButton Content="lower" GroupName="casing" HorizontalOptions="Start" />
+        <ImageButton />
+    </VerticalStackLayout>
+</ContentPage>

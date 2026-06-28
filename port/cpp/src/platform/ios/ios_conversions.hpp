@@ -21,8 +21,21 @@ namespace maui::platform::ios
         return [UIColor colorWithRed:value.red green:value.green blue:value.blue alpha:value.alpha];
     }
 
+    // The default font SIZE a text control (Label/Entry/Editor/Picker/DatePicker/TimePicker) uses when its
+    // FontSize is unset. MAUI gives FontSize a default-value-creator (FontElement.FontSizeDefaultValueCreator)
+    // returning IFontManager.DefaultFontSize = UIFont.SystemFontSize (14pt), so a control's font.Size is
+    // already 14 by the time it reaches the handler — the UIFont.LabelFontSize (17pt) fallback inside MAUI's
+    // *Extensions.UpdateFont is never actually reached for a real control. The port has no such creator, so
+    // the handler's default IS the effective default and must be SystemFontSize to match MAUI. (Porting the
+    // LabelFontSize fallback literally rendered every implicit-size label/entry/… at 17pt instead of 14pt — a
+    // ~1.2× over-size the 3-column iOS comparison surfaced; see docs/comparison/EXAMPLES_XAML.md.)
+    [[nodiscard]] inline double default_text_font_size()
+    {
+        return static_cast<double>(UIFont.systemFontSize);
+    }
+
     // maui font → UIFont. `default_size` is the control's system default when the font carries no size
-    // (FontManager falls back per control — e.g. UIFont.buttonFontSize for buttons); an unknown family
+    // (e.g. default_text_font_size() for text controls, UIFont.buttonFontSize for buttons); an unknown family
     // falls back to the system font, like FontManager's font-registrar miss path.
     inline UIFont* to_ui_font(const maui::core::font& value, double default_size)
     {

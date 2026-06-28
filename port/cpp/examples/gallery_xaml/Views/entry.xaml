@@ -1,0 +1,17 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Entry">
+    <VerticalStackLayout Spacing="12">
+        <Label Text="LENGTH: 0  RETURN: Default" />
+        <Entry Placeholder="Type here..." />
+        <Entry Text="Text" TextColor="Purple" />
+        <Entry Placeholder="Placeholder" PlaceholderColor="Purple" />
+        <CheckBox IsChecked="True" />
+        <Entry Text="secret" Keyboard="Numeric" IsPassword="True" />
+        <Entry Text="I am read only" IsReadOnly="True" />
+        <Entry Text="Text" ClearButtonVisibility="WhileEditing" />
+        <Entry Text="This should be on the end" HorizontalTextAlignment="End" />
+        <Label Text="CursorPosition = 4" />
+        <Slider Minimum="0" Maximum="6" Value="4" />
+        <Entry Text="Cursor" CursorPosition="4" />
+    </VerticalStackLayout>
+</ContentPage>

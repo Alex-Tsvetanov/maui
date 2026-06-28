@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Info.plist for an example's Mac Catalyst .app bundle (macOS Contents/ layout, macabi binary; launches
+     natively on macOS). Configured by CMake via MACOSX_BUNDLE_INFO_PLIST in maui_add_app. Same classic
+     (non-scene) UIApplicationDelegate lifecycle as the iOS bundle — NO UIApplicationSceneManifest — but
+     this is a MAC app, so it must NOT carry LSRequiresIPhoneOS; LSMinimumSystemVersion gates it on macOS
+     instead. The gallery overrides this with a variant that also lists UIAppFonts (the icon font). -->
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleExecutable</key>
+	<string>@MACOSX_BUNDLE_EXECUTABLE_NAME@</string>
+	<key>CFBundleIdentifier</key>
+	<string>@MACOSX_BUNDLE_GUI_IDENTIFIER@</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>@MACOSX_BUNDLE_BUNDLE_NAME@</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>@MACOSX_BUNDLE_SHORT_VERSION_STRING@</string>
+	<key>CFBundleVersion</key>
+	<string>@MACOSX_BUNDLE_BUNDLE_VERSION@</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>11.0</string>
+	<key>UILaunchScreen</key>
+	<dict/>
+</dict>
+</plist>

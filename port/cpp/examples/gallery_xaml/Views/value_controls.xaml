@@ -1,0 +1,12 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Value controls">
+    <VerticalStackLayout Spacing="12">
+        <Label Text="Value: 25 / 100" />
+        <Slider Minimum="0" Maximum="100" Value="25" />
+        <Stepper Minimum="0" Maximum="100" Increment="5" Value="25" />
+        <ProgressBar Progress="0.25" />
+        <Switch IsToggled="False" />
+        <CheckBox IsChecked="False" />
+        <ActivityIndicator IsRunning="False" />
+    </VerticalStackLayout>
+</ContentPage>

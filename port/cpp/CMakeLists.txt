@@ -31,9 +31,20 @@ if(MAUI_USE_CCACHE AND NOT CMAKE_CXX_COMPILER_LAUNCHER)
 endif()
 
 # ---- Backend selection (headless first; macOS/iOS done, Windows/Android/Linux later) ----
-set(MAUI_BACKEND "headless" CACHE STRING "Native backend: headless|apple|ios|windows|android|linux")
-set_property(CACHE MAUI_BACKEND PROPERTY STRINGS headless apple ios windows android linux)
+set(MAUI_BACKEND "headless" CACHE STRING "Native backend: headless|apple|ios|maccatalyst|windows|android|linux")
+set_property(CACHE MAUI_BACKEND PROPERTY STRINGS headless apple ios maccatalyst windows android linux)
 message(STATUS "MAUI_BACKEND = ${MAUI_BACKEND}")
+
+# Mac Catalyst reuses the iOS UIKit backend VERBATIM — the same src/platform/ios/*.mm handlers, the same
+# UIKit host, the same framework links. Only the compiler/linker TARGET differs: the macabi ABI against the
+# macOS SDK's iOSSupport twin, supplied entirely by cmake/maccatalyst.toolchain.cmake (the preset's
+# VCPKG_CHAINLOAD_TOOLCHAIN_FILE). So record the real request, then drive the rest of this file as `ios`
+# for source/framework selection — no other branch in this file needs to know about Catalyst.
+set(MAUI_BACKEND_REQUESTED "${MAUI_BACKEND}")
+if(MAUI_BACKEND STREQUAL "maccatalyst")
+  set(MAUI_BACKEND "ios")
+  message(STATUS "MAUI_BACKEND maccatalyst -> reusing the ios (UIKit) sources, retargeted to macabi")
+endif()
 
 # ---- Warnings (PROFILE.md §1: treat as errors in CI once green) ----
 add_compile_options(-Wall -Wextra -Wpedantic)
@@ -50,7 +61,10 @@ include(GoogleTest)
 # runner (CMAKE_CROSSCOMPILING_EMULATOR = tools/ios-sim-run.sh), whose boot-and-spawn round trip
 # needs far more than the default 5s discovery timeout. Other backends keep the stock behavior.
 function(maui_discover_tests target)
-  if(MAUI_BACKEND STREQUAL "ios")
+  # Key on the REQUESTED backend: maccatalyst is aliased to "ios" above for source selection, but its
+  # binaries run NATIVELY on this Mac (CMAKE_CROSSCOMPILING is false), so it must use plain host discovery,
+  # not the iOS simulator runner.
+  if(MAUI_BACKEND_REQUESTED STREQUAL "ios")
     gtest_discover_tests(${target} DISCOVERY_MODE PRE_TEST DISCOVERY_TIMEOUT 180)
   elseif(MAUI_BACKEND STREQUAL "android")
     # The android runner (tools/android-emu-run.sh) may have to CREATE the maui-test AVD and cold-boot
@@ -1523,6 +1537,22 @@ add_library(maui_xaml STATIC
   src/xaml/xaml_property_registry.cpp
   src/xaml/xaml_converter_registry.cpp
   src/xaml/xaml_standard_types.cpp
+  src/xaml/xaml_style_builder.cpp  # W3: <Style>/<Setter> loader builder
+  # ---- per-group control registrations (one TU each; coordinated by register_standard_xaml) ----
+  src/xaml/register_xaml_extra_converters.cpp
+  src/xaml/register_xaml_text_input.cpp
+  src/xaml/register_xaml_toggles_selections.cpp
+  src/xaml/register_xaml_range_progress.cpp
+  src/xaml/register_xaml_pickers.cpp
+  src/xaml/register_xaml_containers_content.cpp
+  src/xaml/register_xaml_scrolling_interactive.cpp
+  src/xaml/register_xaml_specialized_views.cpp
+  src/xaml/register_xaml_layouts.cpp
+  src/xaml/register_xaml_pages.cpp
+  src/xaml/register_xaml_shapes.cpp
+  src/xaml/register_xaml_items.cpp  # W4: CollectionView / CarouselView loader registration
+  src/xaml/register_xaml_brushes.cpp  # W7: gradient brushes (LinearGradientBrush/RadialGradientBrush/GradientStop)
+  src/xaml/register_xaml_formatted_text.cpp  # W8: FormattedString / Span (Label.FormattedText)
   src/xaml/xaml_node.cpp
   src/xaml/xaml_parser.cpp
   src/xaml/i_markup_extension.cpp
@@ -1534,6 +1564,7 @@ add_library(maui_xaml STATIC
   src/xaml/xaml_runtime_environment.cpp
   src/xaml/xaml_static_registry.cpp
   src/xaml/xaml_visitors.cpp
+  src/xaml/xaml_template_inflater.cpp  # W4: DataTemplate body inflation (per-item factory)
   src/xaml/xaml_binding_applier.cpp
   src/xaml/xaml_runtime_bindings.cpp
   src/xaml/xaml_loader.cpp
@@ -1560,15 +1591,32 @@ if(NOT MAUI_BACKEND STREQUAL "ios")
     tests/xaml/markup_extension_tests.cpp
     tests/xaml/visitor_tests.cpp
     tests/xaml/loader_tests.cpp
+    tests/xaml/example_page_tests.cpp
+    tests/xaml/gallery_twin_tests.cpp # phase-4 corpus: each gallery twin must load as a plain ContentPage
   )
   target_link_libraries(maui_xaml_tests PRIVATE
     maui_xaml
     maui_sanitizers
     GTest::gmock_main
   )
+  # Phase-4 twin corpus dir (absolute source path) for the parametrized gallery_twin loader gate.
+  target_compile_definitions(maui_xaml_tests
+    PRIVATE GALLERY_TWINS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/examples/gallery_xaml/Views")
   maui_discover_tests(maui_xaml_tests)
   if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     set_target_properties(maui_xaml_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+  endif()
+endif()
+
+# ---- maui_xaml_codegen: the build-time "compile-time XAML" tool (PUBLIC_API_DESIGN.md §6). A host
+# executable that REUSES the runtime xaml_parser to turn a .xaml document into the node tree, then EMITS
+# idiomatic maui::ui builder C++ — markup compiled into the app, no runtime parse, no reflection. The new
+# piece is just the node->C++ emitter; the parser/registries are shared with the runtime loader. ----
+if(NOT MAUI_BACKEND STREQUAL "ios")
+  add_executable(maui_xaml_codegen tools/xaml_codegen/main.cpp)
+  target_link_libraries(maui_xaml_codegen PRIVATE maui_xaml maui_sanitizers)
+  if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+    set_target_properties(maui_xaml_codegen PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
   endif()
 endif()
 
@@ -1629,15 +1677,75 @@ if(NOT MAUI_BACKEND STREQUAL "ios")
     tests/hosting/app_builder_tests.cpp
     tests/hosting/lifecycle_events_tests.cpp
     tests/hosting/app_host_tests.cpp
+    tests/hosting/gallery_twin_render_tests.cpp # phase-4 render gate: each twin must mount + lay out
   )
   target_link_libraries(maui_hosting_tests PRIVATE
     maui_hosting
+    maui_xaml # phase-4 render gate loads the twins via xaml_loader
     maui_sanitizers
     GTest::gmock_main
   )
+  # Phase-4 twin corpus dir (absolute source path) for the parametrized render gate.
+  target_compile_definitions(maui_hosting_tests
+    PRIVATE GALLERY_TWINS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/examples/gallery_xaml/Views")
   maui_discover_tests(maui_hosting_tests)
   if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     set_target_properties(maui_hosting_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+  endif()
+endif()
+
+# ---- maui::ui facade tests (PUBLIC_API_DESIGN.md P1: the consumer-facing facade + ui::app base). The
+# `maui::ui` layer is header-only (include/maui/ui.hpp + include/maui/ui/app.hpp), an additive surface over
+# controls/hosting; the test is backend-agnostic pure C++, wired like maui_hosting_tests (skipped on ios). ----
+if(NOT MAUI_BACKEND STREQUAL "ios")
+  # Build-time XAML codegen: emit a maui::ui factory from the sample counter.xaml (the compile-time-XAML
+  # path), so the parity test can compare the codegen'd tree to the hand-written + runtime-loaded ones.
+  set(MAUI_UI_GEN_DIR ${CMAKE_BINARY_DIR}/generated/maui_ui)
+  set(MAUI_UI_COUNTER_GEN ${MAUI_UI_GEN_DIR}/counter_page.gen.hpp)
+  add_custom_command(
+    OUTPUT ${MAUI_UI_COUNTER_GEN}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${MAUI_UI_GEN_DIR}
+    COMMAND maui_xaml_codegen
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/xaml_codegen/samples/counter.xaml
+            counter_page ${MAUI_UI_COUNTER_GEN}
+    DEPENDS maui_xaml_codegen ${CMAKE_CURRENT_SOURCE_DIR}/tools/xaml_codegen/samples/counter.xaml
+    COMMENT "maui_xaml_codegen: counter.xaml -> counter_page.gen.hpp (compile-time XAML)"
+    VERBATIM)
+  set(MAUI_UI_GRID_GEN ${MAUI_UI_GEN_DIR}/grid_page.gen.hpp)
+  add_custom_command(
+    OUTPUT ${MAUI_UI_GRID_GEN}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${MAUI_UI_GEN_DIR}
+    COMMAND maui_xaml_codegen
+            ${CMAKE_CURRENT_SOURCE_DIR}/tools/xaml_codegen/samples/grid.xaml
+            grid_page ${MAUI_UI_GRID_GEN}
+    DEPENDS maui_xaml_codegen ${CMAKE_CURRENT_SOURCE_DIR}/tools/xaml_codegen/samples/grid.xaml
+    COMMENT "maui_xaml_codegen: grid.xaml -> grid_page.gen.hpp (compile-time XAML)"
+    VERBATIM)
+
+  add_executable(maui_ui_tests
+    tests/ui/app_smoke_test.cpp
+    tests/ui/handle_tests.cpp
+    tests/ui/builder_tests.cpp
+    tests/ui/observable_tests.cpp
+    tests/ui/bind_tests.cpp
+    tests/ui/xaml_parity_tests.cpp
+    tests/ui/compile_time_xaml_tests.cpp
+    ${MAUI_UI_COUNTER_GEN}
+    ${MAUI_UI_GRID_GEN}
+  )
+  target_include_directories(maui_ui_tests PRIVATE ${MAUI_UI_GEN_DIR})
+  # compile_time_xaml_tests.cpp uses #embed (the compiler-managed XAML path); it is a C23/C++26 feature
+  # clang accepts under -std=c++23 but warns about as an extension. Silence just that diagnostic.
+  target_compile_options(maui_ui_tests PRIVATE -Wno-c23-extensions)
+  target_link_libraries(maui_ui_tests PRIVATE
+    maui_hosting
+    maui_xaml
+    maui_sanitizers
+    GTest::gmock_main
+  )
+  maui_discover_tests(maui_ui_tests)
+  if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+    set_target_properties(maui_ui_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
   endif()
 endif()
 

@@ -317,8 +317,10 @@ namespace maui::core
         auto* platform = handler.typed_platform_view();
         if (platform != nullptr)
         {
-            // LabelExtensions.UpdateFont with UIFont.LabelFontSize as the control default.
-            as_label(platform->native).font = to_ui_font(view.font(), static_cast<double>(UIFont.labelFontSize));
+            // LabelExtensions.UpdateFont's effective control default is MAUI's FontSize creator value
+            // (IFontManager.DefaultFontSize = SystemFontSize), NOT the LabelFontSize fallback — see
+            // default_text_font_size() in ios_conversions.hpp.
+            as_label(platform->native).font = to_ui_font(view.font(), maui::platform::ios::default_text_font_size());
         }
     }
 
@@ -423,8 +425,10 @@ namespace maui::core
         else
         {
             // FormattedText!=null branch: platformLabel.AttributedText = label.ToNSAttributedString().
+            // The per-run default size is MAUI's effective Label default (SystemFontSize), per
+            // default_text_font_size() — not the LabelFontSize fallback.
             label.attributedText =
-                maui::platform::ios::attributed_from_runs(runs, static_cast<double>(UIFont.labelFontSize));
+                maui::platform::ios::attributed_from_runs(runs, maui::platform::ios::default_text_font_size());
             label.textAlignment = to_ns_text_alignment(view.horizontal_text_alignment());
         }
     }

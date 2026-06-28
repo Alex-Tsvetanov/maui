@@ -1,0 +1,19 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Grid">
+    <Grid Padding="16" RowSpacing="6" ColumnSpacing="6">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="80" />
+            <RowDefinition Height="80" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Label Text="Grid (2 cols × rows)" FontAttributes="Bold" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" />
+        <BoxView Color="Red" Grid.Row="1" Grid.Column="0" />
+        <BoxView Color="Green" Grid.Row="1" Grid.Column="1" />
+        <BoxView Color="Blue" Grid.Row="2" Grid.Column="0" />
+        <BoxView Color="Orange" Grid.Row="2" Grid.Column="1" />
+    </Grid>
+</ContentPage>

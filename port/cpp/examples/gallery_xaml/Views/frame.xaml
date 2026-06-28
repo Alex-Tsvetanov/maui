@@ -1,0 +1,11 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Frame">
+    <VerticalStackLayout Spacing="12" Padding="16">
+        <Frame Padding="12" BorderColor="Purple" CornerRadius="12" HasShadow="True">
+            <Label Text="In a Frame" HorizontalTextAlignment="Center" />
+        </Frame>
+        <Frame Padding="12" BackgroundColor="Teal" CornerRadius="20">
+            <Label Text="Colored Frame" TextColor="White" HorizontalTextAlignment="Center" />
+        </Frame>
+    </VerticalStackLayout>
+</ContentPage>

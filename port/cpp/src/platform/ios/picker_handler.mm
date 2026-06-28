@@ -456,7 +456,8 @@ namespace maui::core
     {
         if (auto* platform = handler.typed_platform_view())
         {
-            as_field(platform->native).font = maui::platform::ios::to_ui_font(view.font(), UIFont.labelFontSize);
+            as_field(platform->native).font =
+                maui::platform::ios::to_ui_font(view.font(), maui::platform::ios::default_text_font_size());
         }
     }
 

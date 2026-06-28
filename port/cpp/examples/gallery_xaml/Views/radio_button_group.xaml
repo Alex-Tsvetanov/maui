@@ -1,0 +1,18 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="RadioButton Group">
+    <StackLayout Padding="16" Spacing="6">
+        <Label Text="All of the RadioButtons in this StackLayout will automatically be given the GroupName of 'foo'" />
+        <Label Text="Selected: (none)" />
+        <RadioButton Content="Option A" />
+        <RadioButton Content="Option B" />
+        <RadioButton Content="Option C" />
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Label Text="This RadioButton is inside a Grid" Grid.Column="0" />
+            <RadioButton Content="Option D" Grid.Column="1" />
+        </Grid>
+    </StackLayout>
+</ContentPage>

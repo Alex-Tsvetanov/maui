@@ -1,0 +1,18 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Title="RadioButton Group (Attached Property, Binding)">
+    <StackLayout>
+        <Grid RowDefinitions="*,50,*,*,*,*" ColumnDefinitions="*,*">
+            <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                   Text="The RadioButtons in this Grid have a GroupName and Selection bound to a ViewModel." />
+            <Label Grid.Row="1" Grid.Column="0" Text="The GroupName is group1" />
+            <Label Grid.Row="1" Grid.Column="1" Text="The Selection is (null)" />
+            <RadioButton Grid.Row="2" Grid.Column="0" Content="Option A" />
+            <RadioButton Grid.Row="2" Grid.Column="1" Content="Option B" />
+            <RadioButton Grid.Row="3" Grid.Column="0" Content="Option C" />
+            <RadioButton Grid.Row="3" Grid.Column="1" Content="Option D" />
+            <Button Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Text="Set selection in view model to 'B'" />
+            <Button Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Text="Clear selection in view model to 'null'" />
+        </Grid>
+    </StackLayout>
+</ContentPage>

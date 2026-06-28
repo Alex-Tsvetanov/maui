@@ -1,0 +1,13 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="RadioButton Border">
+    <StackLayout Spacing="6" Padding="16">
+        <Label Text="RadioButton with Border" FontSize="18" FontAttributes="Bold" />
+        <Label Text="Selected: Option 4" />
+        <RadioButton Content="Option 1" GroupName="border-options" BackgroundColor="Yellow"
+                     BorderColor="Red" BorderWidth="4" CornerRadius="12" />
+        <RadioButton Content="Option 2" GroupName="border-options" BackgroundColor="Yellow" />
+        <RadioButton Content="Option 3" GroupName="border-options" />
+        <RadioButton Content="Option 4" GroupName="border-options" IsChecked="True"
+                     BorderColor="Green" BorderWidth="4" CornerRadius="12" />
+    </StackLayout>
+</ContentPage>

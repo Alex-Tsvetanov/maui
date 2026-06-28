@@ -74,6 +74,7 @@ namespace
 
     // Construct the holder for the page MAUI_SAMPLE_PAGE names (default value_controls), via the single-sourced
     // X-macro dispatch. An unknown name logs nothing here (pure C++ — no os_log) and falls back to the default.
+    // (The compile-time-XAML twin of this gallery is the separate examples/gallery_xaml app.)
     std::unique_ptr<gallery_page_holder> make_selected_page()
     {
         const char* const env = std::getenv("MAUI_SAMPLE_PAGE");

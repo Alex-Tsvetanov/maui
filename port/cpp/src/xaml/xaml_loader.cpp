@@ -20,6 +20,7 @@
 #include "maui/xaml/xaml_parser.hpp"
 #include "maui/xaml/xaml_property_registry.hpp"
 #include "maui/xaml/xaml_standard_types.hpp"
+#include "maui/xaml/xaml_template_inflater.hpp"
 #include "maui/xaml/xaml_type_registry.hpp"
 #include "maui/xaml/xaml_visitors.hpp"
 
@@ -53,25 +54,49 @@ namespace maui::xaml
             return context;
         }
 
-        // XamlLoader.Visit — the fixed visitor sequence both entry points share.
+    } // namespace
+
+    // XamlLoader.Visit — the fixed visitor sequence both the top-level load AND each DataTemplate stamp
+    // share (W4). Extracted from the loader's anon namespace into a public free function so
+    // inflate_template_body (xaml_template_inflater) can replay the SAME sequence on a cloned template
+    // body. Declared in xaml_template_inflater.hpp.
+    void run_hydration_pipeline(i_xaml_node& node, hydration_context& context)
+    {
+        xaml_node_visitor set_parents{[](i_xaml_node& n, i_xaml_node* parent) { n.set_parent(parent); }};
+        node.accept(set_parents, nullptr); // set parents for {StaticResource}
+        expand_markups_visitor expand{context};
+        node.accept(expand, nullptr);
+        prune_ignored_nodes_visitor prune;
+        node.accept(prune, nullptr);
+        namescoping_visitor namescope{context}; // set namescopes for {x:Reference}
+        node.accept(namescope, nullptr);
+        create_values_visitor create{context};
+        node.accept(create, nullptr);
+        register_x_names_visitor register_names{context};
+        node.accept(register_names, nullptr);
+        fill_resource_dictionaries_visitor fill{context};
+        node.accept(fill, nullptr);
+        apply_properties_visitor apply{context, /*stop_on_resource_dictionary=*/true};
+        node.accept(apply, nullptr);
+
+        // Place deferred attached properties (Grid.Row/Column/Span). The apply pass has now parented
+        // every child into its layout, so each child's owning grid is reachable (logical_parent set);
+        // these closures could not run earlier because a child's attached attribute is applied before
+        // add() parents it. (See hydration_context::deferred_attached / try_apply_attached_property.)
+        for (auto& place : context.deferred_attached())
+        {
+            place();
+        }
+        context.deferred_attached().clear();
+    }
+
+    namespace
+    {
+        // XamlLoader.Visit — the fixed visitor sequence both entry points share (delegates to the public
+        // run_hydration_pipeline so the template stamp replays the identical sequence).
         void visit(root_node& root, hydration_context& context)
         {
-            xaml_node_visitor set_parents{[](i_xaml_node& node, i_xaml_node* parent) { node.set_parent(parent); }};
-            root.accept(set_parents, nullptr); // set parents for {StaticResource}
-            expand_markups_visitor expand{context};
-            root.accept(expand, nullptr);
-            prune_ignored_nodes_visitor prune;
-            root.accept(prune, nullptr);
-            namescoping_visitor namescope{context}; // set namescopes for {x:Reference}
-            root.accept(namescope, nullptr);
-            create_values_visitor create{context};
-            root.accept(create, nullptr);
-            register_x_names_visitor register_names{context};
-            root.accept(register_names, nullptr);
-            fill_resource_dictionaries_visitor fill{context};
-            root.accept(fill, nullptr);
-            apply_properties_visitor apply{context, /*stop_on_resource_dictionary=*/true};
-            root.accept(apply, nullptr);
+            run_hydration_pipeline(root, context);
         }
 
         // Drain the context's accumulated owners + the root's scope/warnings into the result.

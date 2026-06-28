@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Title="Containers">
+    <ScrollView>
+        <VerticalStackLayout Spacing="12">
+            <Label Text="Scrolled to: 0 / 0" />
+            <Border Stroke="#2980B9" StrokeThickness="2" StrokeDashArray="4, 2" Padding="8">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="8" />
+                </Border.StrokeShape>
+                <Label Text="Inside a border" />
+            </Border>
+            <Frame BorderColor="#DB3345" CornerRadius="6">
+                <Label Text="Inside a frame" />
+            </Frame>
+            <ContentView>
+                <Label Text="Inside a content_view" />
+            </ContentView>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

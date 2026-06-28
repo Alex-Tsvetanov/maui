@@ -1,0 +1,23 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="RelativeLayout">
+    <!-- RelativeLayout (Microsoft.Maui.Controls.Compatibility) is out of scope for the port, so the
+         gallery page reproduces the scene with an AbsoluteLayout + proportional flags (the modern
+         replacement MAUI recommends). This twin mirrors that builder page 1:1 (W10 AbsoluteLayout). -->
+    <AbsoluteLayout>
+        <!-- four 40x40 corner boxes pinned proportionally to each corner -->
+        <BoxView Color="#D9332E" AbsoluteLayout.LayoutBounds="0,0,40,40"
+                 AbsoluteLayout.LayoutFlags="PositionProportional" />
+        <BoxView Color="#2EA64D" AbsoluteLayout.LayoutBounds="1,0,40,40"
+                 AbsoluteLayout.LayoutFlags="PositionProportional" />
+        <BoxView Color="#3366CC" AbsoluteLayout.LayoutBounds="0,1,40,40"
+                 AbsoluteLayout.LayoutFlags="PositionProportional" />
+        <BoxView Color="#F2CC33" AbsoluteLayout.LayoutBounds="1,1,40,40"
+                 AbsoluteLayout.LayoutFlags="PositionProportional" />
+        <!-- centered silver box: 1/3 of the parent in position AND size -->
+        <BoxView Color="#BFBFBF" AbsoluteLayout.LayoutBounds="0.33,0.33,0.33,0.33"
+                 AbsoluteLayout.LayoutFlags="All" />
+        <!-- small black box pinned to the silver box origin (~1/3 of the silver box) -->
+        <BoxView Color="#0D0D0D" AbsoluteLayout.LayoutBounds="0.33,0.33,0.11,0.11"
+                 AbsoluteLayout.LayoutFlags="All" />
+    </AbsoluteLayout>
+</ContentPage>

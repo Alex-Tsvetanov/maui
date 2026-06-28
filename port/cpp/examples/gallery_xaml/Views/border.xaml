@@ -1,0 +1,18 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Border">
+    <Border Stroke="Red"
+            StrokeThickness="5"
+            BackgroundColor="LightYellow"
+            Padding="16"
+            WidthRequest="280"
+            HeightRequest="160"
+            HorizontalOptions="Center"
+            VerticalOptions="Center">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="20" />
+        </Border.StrokeShape>
+        <Label Text="Bordered content"
+               HorizontalTextAlignment="Center"
+               VerticalTextAlignment="Center" />
+    </Border>
+</ContentPage>

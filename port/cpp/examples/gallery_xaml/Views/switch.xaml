@@ -1,0 +1,18 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Switch">
+    <VerticalStackLayout Spacing="6">
+        <Label Text="Default" FontSize="18" FontAttributes="Bold" />
+        <Switch />
+        <Label Text="Default switch is Off" />
+        <Label Text="BackgroundColor" FontSize="18" FontAttributes="Bold" />
+        <Switch BackgroundColor="Blue" />
+        <Label Text="Background" FontSize="18" FontAttributes="Bold" />
+        <Switch />
+        <Label Text="Disabled" FontSize="18" FontAttributes="Bold" />
+        <Switch IsEnabled="False" />
+        <Label Text="OnColor" FontSize="18" FontAttributes="Bold" />
+        <Switch OnColor="Red" />
+        <Label Text="ThumbColor" FontSize="18" FontAttributes="Bold" />
+        <Switch ThumbColor="Orange" />
+    </VerticalStackLayout>
+</ContentPage>

@@ -8,6 +8,7 @@
 #include <stdexcept>
 
 #include "maui/controls/border.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/border_handler.hpp"
 #include "maui/core/handler_registry.hpp"
@@ -57,30 +58,63 @@ namespace maui::controls
     const maui::core::bindable_property<maui::graphics::color>& frame::border_color_property()
     {
         // C# BorderElement.BorderColorProperty default is null — "unset" is tracked via is_set().
-        static const maui::core::bindable_property<maui::graphics::color> descriptor{"border_color"};
+        // The facade translation lives in propertyChanged (not just the imperative setter) so EVERY
+        // set-path — set_border_color, the XAML loader's apply_setter, a data binding, a style setter —
+        // materializes the stroke. Without this, a loader/binding-driven BorderColor would set only the
+        // tracking slot and the border_handler would read a null stroke (no chrome rendered).
+        static const maui::core::bindable_property<maui::graphics::color> descriptor{
+            "border_color",
+            maui::graphics::color{},
+            {.property_changed = [](maui::core::bindable_object& owner, const maui::graphics::color& /*old*/,
+                                    const maui::graphics::color& value) {
+                auto& self = static_cast<frame&>(owner);
+                // The FrameRenderer's fixed 1px border in the given color.
+                self.set_stroke(std::make_shared<maui::graphics::solid_paint>(value));
+                self.set_stroke_thickness(1.0);
+            }}};
         return descriptor;
     }
 
     const maui::core::bindable_property<float>& frame::corner_radius_property()
     {
         // C# Frame.CornerRadiusProperty default is -1 (the "use the platform default" sentinel).
-        static const maui::core::bindable_property<float> descriptor{"corner_radius", -1.0F};
+        // propertyChanged drives the StrokeShape on every set-path (see border_color_property).
+        static const maui::core::bindable_property<float> descriptor{
+            "corner_radius",
+            -1.0F,
+            {.property_changed = [](maui::core::bindable_object& owner, const float& /*old*/, const float& value) {
+                auto& self = static_cast<frame&>(owner);
+                if (value >= 0.0F)
+                {
+                    self.set_stroke_shape(
+                        std::make_shared<maui::graphics::shapes::round_rectangle>(static_cast<double>(value)));
+                }
+                else
+                {
+                    self.set_stroke_shape(std::make_shared<maui::graphics::shapes::rectangle>());
+                }
+            }}};
         return descriptor;
     }
 
     const maui::core::bindable_property<bool>& frame::has_shadow_property()
     {
         // C# Frame.HasShadowProperty default is true.
-        static const maui::core::bindable_property<bool> descriptor{"has_shadow", true};
+        // propertyChanged drives the canned frame shadow on every set-path (see border_color_property).
+        static const maui::core::bindable_property<bool> descriptor{
+            "has_shadow",
+            true,
+            {.property_changed = [](maui::core::bindable_object& owner, const bool& /*old*/, const bool& value) {
+                static_cast<frame&>(owner).set_shadow(value ? make_frame_shadow() : nullptr);
+            }}};
         return descriptor;
     }
 
     void frame::set_border_color(maui::graphics::color value)
     {
+        // The facade translation onto stroke/StrokeThickness runs in border_color_property's
+        // propertyChanged, so every set-path (this setter, the XAML loader, a binding) is identical.
         border_color_.set(value);
-        // The facade translation: the FrameRenderer's fixed 1px border in the given color.
-        set_stroke(std::make_shared<maui::graphics::solid_paint>(value));
-        set_stroke_thickness(1.0);
     }
 
     void frame::set_corner_radius(float value)
@@ -90,21 +124,14 @@ namespace maui::controls
         {
             throw std::invalid_argument("frame corner_radius must be -1 or >= 0");
         }
+        // The StrokeShape translation runs in corner_radius_property's propertyChanged.
         corner_radius_.set(value);
-        if (value >= 0.0F)
-        {
-            set_stroke_shape(std::make_shared<maui::graphics::shapes::round_rectangle>(static_cast<double>(value)));
-        }
-        else
-        {
-            set_stroke_shape(std::make_shared<maui::graphics::shapes::rectangle>());
-        }
     }
 
     void frame::set_has_shadow(bool value)
     {
+        // The Shadow translation runs in has_shadow_property's propertyChanged.
         has_shadow_.set(value);
-        set_shadow(value ? make_frame_shadow() : nullptr);
     }
 } // namespace maui::controls
 

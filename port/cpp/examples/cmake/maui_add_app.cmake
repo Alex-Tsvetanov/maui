@@ -32,6 +32,9 @@
 # absolute path so it is correct no matter which example subdirectory calls the function.
 set(MAUI_EXAMPLE_IOS_PLIST_IN "${CMAKE_CURRENT_LIST_DIR}/ios_app_info.plist.in"
     CACHE INTERNAL "iOS Info.plist template for example .app bundles")
+# The Mac Catalyst variant (macOS bundle, no LSRequiresIPhoneOS — see the file's note).
+set(MAUI_EXAMPLE_MACCATALYST_PLIST_IN "${CMAKE_CURRENT_LIST_DIR}/maccatalyst_app_info.plist.in"
+    CACHE INTERNAL "Mac Catalyst Info.plist template for example .app bundles")
 
 function(maui_add_app name)
   cmake_parse_arguments(ARG "" "IDENTIFIER;PLIST" "SOURCES;RESOURCES" ${ARGN})
@@ -47,6 +50,8 @@ function(maui_add_app name)
   endif()
   if(ARG_PLIST)
     set(_app_plist "${ARG_PLIST}")
+  elseif(MAUI_BACKEND STREQUAL "maccatalyst")
+    set(_app_plist "${MAUI_EXAMPLE_MACCATALYST_PLIST_IN}")
   else()
     set(_app_plist "${MAUI_EXAMPLE_IOS_PLIST_IN}")
   endif()
@@ -59,7 +64,28 @@ function(maui_add_app name)
   # an example builds at C++23 even if consumed against a future relaxed framework requirement.
   target_compile_features(${name} PRIVATE cxx_std_23)
 
-  if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+  if(MAUI_BACKEND STREQUAL "maccatalyst")
+    # Mac Catalyst: a macOS .app bundle (Contents/ layout) holding the macabi binary — it launches NATIVELY
+    # on macOS as a Catalyst app (the iOS UIKit handlers retargeted to macabi; see the framework's
+    # cmake/maccatalyst.toolchain.cmake). MACOSX_BUNDLE on this Darwin build produces Contents/MacOS +
+    # Info.plist; the Catalyst plist (default above) carries NO LSRequiresIPhoneOS.
+    set_target_properties(${name} PROPERTIES
+      MACOSX_BUNDLE TRUE
+      MACOSX_BUNDLE_INFO_PLIST "${_app_plist}"
+      MACOSX_BUNDLE_BUNDLE_NAME "${name}"
+      MACOSX_BUNDLE_GUI_IDENTIFIER "${_app_identifier}"
+      MACOSX_BUNDLE_BUNDLE_VERSION "1"
+      MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0")
+    if(ARG_RESOURCES)
+      # Catalyst apps look up bundled assets under Contents/Resources (the macOS bundle convention), unlike
+      # the flat iOS .app root — copy them there via a generator-agnostic POST_BUILD step.
+      add_custom_command(TARGET ${name} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_CONTENT_DIR:${name}>/Resources"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ARG_RESOURCES}
+                "$<TARGET_BUNDLE_CONTENT_DIR:${name}>/Resources"
+        COMMENT "Bundling resources into ${name}.app (Catalyst)")
+    endif()
+  elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
     # iOS: an installable .app bundle. Opt into MACOSX_BUNDLE with a generated Info.plist (the same
     # minimal non-scene plist the framework's iOS samples use — simulator apps need no code signing).
     set_target_properties(${name} PROPERTIES

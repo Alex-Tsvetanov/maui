@@ -698,8 +698,9 @@ namespace maui::core
         auto* platform = handler.typed_platform_view();
         if (platform != nullptr)
         {
-            // TextFieldExtensions.UpdateFont with UIFont.LabelFontSize as the control default.
-            as_field(platform->native).font = to_ui_font(view.font(), static_cast<double>(UIFont.labelFontSize));
+            // TextFieldExtensions.UpdateFont's effective control default is MAUI's FontSize creator value
+            // (SystemFontSize), not the LabelFontSize fallback — see default_text_font_size().
+            as_field(platform->native).font = to_ui_font(view.font(), maui::platform::ios::default_text_font_size());
         }
     }
 

@@ -1,0 +1,46 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Label">
+    <VerticalStackLayout Spacing="6" Padding="12">
+        <!-- Basic properties -->
+        <Label Text="Defaults" />
+        <Label Text="This text should be RED" TextColor="Red" />
+        <Label Text="This has a solid CYAN background color" BackgroundColor="Cyan" />
+
+        <!-- Horizontal text alignment -->
+        <Label Text="This should be at the start of the line" HorizontalTextAlignment="Start" BackgroundColor="LightGray" />
+        <Label Text="This should be at the center of the line" HorizontalTextAlignment="Center" BackgroundColor="Silver" />
+        <Label Text="This should be at the end of the line" HorizontalTextAlignment="End" BackgroundColor="LightGray" />
+        <Label Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." HorizontalTextAlignment="Justify" BackgroundColor="Silver" />
+
+        <!-- Vertical text alignment -->
+        <Label Text="This should be at the start" VerticalTextAlignment="Start" HeightRequest="100" BackgroundColor="LightGray" />
+        <Label Text="This should be at the center" VerticalTextAlignment="Center" HeightRequest="100" BackgroundColor="Silver" />
+        <Label Text="This should be at the bottom" VerticalTextAlignment="End" HeightRequest="100" BackgroundColor="LightGray" />
+
+        <!-- Formatted text spans (W8 FormattedString element form) -->
+        <Label>
+            <Label.FormattedText>
+                <FormattedString>
+                    <Span Text="Plain old Text " />
+                    <Span Text="Colors" BackgroundColor="Cyan" />
+                    <Span Text=" Strikethrough" TextDecorations="Strikethrough" />
+                    <Span Text=" Big Font" FontSize="24" />
+                    <Span Text=" Plain old Text" TextColor="Navy" />
+                </FormattedString>
+            </Label.FormattedText>
+        </Label>
+        <Button Text="Change Formatted String" />
+
+        <!-- Maximum lines (MaxLines unsupported in twin surface; kept as plain lorem labels) -->
+        <Label Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
+        <Label Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
+
+        <!-- Line break mode (LineBreakMode unsupported in twin surface; kept as plain lorem labels) -->
+        <Label Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
+        <Label Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
+        <Label Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
+        <Label Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
+        <Label Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
+        <Label Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
+    </VerticalStackLayout>
+</ContentPage>

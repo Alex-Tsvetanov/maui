@@ -1,0 +1,55 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Button">
+    <VerticalStackLayout Spacing="6" Padding="12">
+        <Label Text="Taps: 0" />
+
+        <!-- Default -->
+        <Button Text="Button" />
+
+        <!-- Disabled -->
+        <Button Text="Button (disabled)" IsEnabled="False" />
+
+        <!-- Clicked (handler omitted) -->
+        <Button Text="Clicked" />
+
+        <!-- Command (binding omitted) -->
+        <Button Text="Command" />
+
+        <!-- BackgroundColor (Blue) -->
+        <Button Text="Button" BackgroundColor="Blue" />
+
+        <!-- TextColor (White on Red) -->
+        <Button Text="Button" BackgroundColor="Red" TextColor="White" />
+
+        <!-- BorderColor (Red on Green, White text) -->
+        <Button Text="BorderColor" BackgroundColor="Green" TextColor="White" BorderColor="Red" />
+
+        <!-- BorderWidth (StrokeThickness=4) -->
+        <Button Text="BorderWidth" BackgroundColor="Green" TextColor="White" BorderColor="Red" BorderWidth="4" />
+
+        <!-- CornerRadius = 10 (Purple, White text) -->
+        <Button Text="CornerRadius" BackgroundColor="Purple" TextColor="White" CornerRadius="10" />
+
+        <!-- CharacterSpacing = 20 (HotPink text) -->
+        <Button Text="Button" TextColor="HotPink" CharacterSpacing="20" />
+
+        <!-- ImageSource icon button (W15: Button.ImageSource); ContentLayout positioning omitted -->
+        <Button Text="settings" TextColor="White" BackgroundColor="Black" ImageSource="settings.png" />
+
+        <!-- ContentLayout positioning button (ContentLayout omitted) -->
+        <Button Text="settings" TextColor="White" BackgroundColor="Black" ImageSource="settings.png" />
+
+        <!-- Decrease spacing (handler omitted) -->
+        <Button Text="Decrease Spacing" TextColor="White" BackgroundColor="Black" />
+
+        <!-- Increase spacing (handler omitted) -->
+        <Button Text="Increase Spacing" TextColor="White" BackgroundColor="Black" />
+
+        <!-- Padding = 20,10 (LightGray background) -->
+        <Button Text="Button" BackgroundColor="LightGray" Padding="20,10" />
+
+        <!-- Slider drives BorderWidth -->
+        <Button Text="BorderWidth Changing" BackgroundColor="Green" />
+        <Slider Minimum="0" Maximum="100" Value="0" />
+    </VerticalStackLayout>
+</ContentPage>

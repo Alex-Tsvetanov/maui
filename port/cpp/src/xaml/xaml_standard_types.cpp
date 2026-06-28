@@ -20,15 +20,20 @@
 //   - per-PROPERTY C# converters have no type-keyed slot: FontSizeConverter (double-typed named
 //     sizes) and VisualElement.VisibilityConverter (bool-typed "visible"/"hidden" aliases) stay free
 //     functions until a per-property converter override channel exists (STATUS.md M7 deferrals);
-//   - Background/Clip/Shadow/Semantics/Style/StyleClass and the font sub-attributes
-//     (FontFamily/FontSize/FontAttributes over the port's single font value) wait on unported types /
-//     loader-side composition;
+//   - Background/Clip/Shadow/Semantics/Style/StyleClass wait on unported types / loader-side composition.
+//     (The font sub-attributes FontFamily/FontSize/FontAttributes — once a deferral — are now wired via
+//     register_font_properties<T> in register_xaml_helpers.hpp, W6: each composes onto the single
+//     core::font value, parsed as a string property so NamedSize / the [Flags] FontAttributes route
+//     through one entry without a type-keyed converter slot.);
 //   - Grid.RowDefinitions/ColumnDefinitions ("Auto,*,2*") CONVERT now but their attribute
 //     registrations wait on the grid's definition-collection properties, and attached properties
 //     (Grid.Row=…) are the M7 loader's dotted-name path — neither is a plain per-type property
 //     registration.
 
 #include "maui/xaml/xaml_standard_types.hpp"
+
+#include "register_xaml_groups.hpp"  // per-group control registrations (register_xaml_<group>.cpp TUs)
+#include "register_xaml_helpers.hpp" // register_view_properties<T> / register_layout_children<T>
 
 #include <memory> // X1: std::shared_ptr<brush> converter registration
 
@@ -44,6 +49,7 @@
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/element.hpp"
 #include "maui/controls/entry.hpp"
+#include "maui/controls/file_image_source.hpp" // W6: image_source::from_file/from_uri (Image/ImageButton.Source)
 #include "maui/controls/grid.hpp"
 #include "maui/controls/horizontal_stack_layout.hpp"
 #include "maui/controls/image.hpp"
@@ -53,8 +59,10 @@
 #include "maui/controls/row_definition.hpp"
 #include "maui/controls/stack_layout.hpp"
 #include "maui/controls/stack_orientation.hpp"
+#include "maui/controls/url_web_view_source.hpp" // W6: WebView.Source string -> url_web_view_source
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/controls/view.hpp"
+#include "maui/controls/web_view_source.hpp" // W6: WebView.Source value type
 #include "maui/controls/window.hpp"
 #include "maui/core/aspect.hpp"
 #include "maui/core/bindable_object.hpp"
@@ -108,64 +116,31 @@ namespace maui::xaml
             };
         }
 
+        // convert_image_source (W6) <= Microsoft.Maui.Controls.ImageSourceConverter.ConvertFrom: a string
+        // becomes a UriImageSource for an absolute non-file URI, else a FileImageSource. Covers Image.Source
+        // AND ImageButton.Source (both shared_ptr<i_image_source>); registered once, keyed by that type.
+        [[nodiscard]] std::shared_ptr<maui::core::i_image_source> convert_image_source(const std::string& text)
+        {
+            // The realistic gallery cases: "http(s)://…" -> remote (UriImageSource); a bundled file name
+            // or path -> FileImageSource. (C# also routes other absolute non-file schemes to Uri; the
+            // scheme check below covers the common ones without a full URI parser.)
+            const bool is_uri = (text.find("://") != std::string::npos) && !text.starts_with("file://");
+            return is_uri ? maui::controls::image_source::from_uri(text)
+                          : maui::controls::image_source::from_file(text);
+        }
+
+        // convert_web_view_source (W6) <= WebView's implicit operator WebViewSource(string url): a string
+        // becomes a UrlWebViewSource (WebView.Source is shared_ptr<web_view_source>, a distinct type).
+        [[nodiscard]] std::shared_ptr<maui::controls::web_view_source> convert_web_view_source(const std::string& text)
+        {
+            return std::make_shared<maui::controls::url_web_view_source>(text);
+        }
+
         // ---- shared per-control property surfaces ---------------------------------------------------
-
-        // The generic IView/VisualElement attribute surface every view<>-derived control shares. C#
-        // finds these inherited bindables by walking base types (GetBindableProperty's
-        // FlattenHierarchy); the explicit port FLATTENS them into each concrete type's registration,
-        // re-using the same shared descriptors (view.cpp's non-template *_property() free functions)
-        // so the apply_setter name — and therefore the value-precedence slot — is identical for every
-        // control.
-        template <class TControl> void register_view_properties(xaml_property_registry& properties)
-        {
-            namespace controls = maui::controls;
-            properties.register_bindable_property<TControl>("IsEnabled", controls::is_enabled_property());
-            properties.register_bindable_property<TControl>("Opacity", controls::opacity_property());
-            properties.register_bindable_property<TControl>("InputTransparent", controls::input_transparent_property());
-            properties.register_bindable_property<TControl>("AutomationId", controls::automation_id_property());
-            properties.register_bindable_property<TControl>("TranslationX", controls::translation_x_property());
-            properties.register_bindable_property<TControl>("TranslationY", controls::translation_y_property());
-            properties.register_bindable_property<TControl>("Scale", controls::scale_property());
-            properties.register_bindable_property<TControl>("ScaleX", controls::scale_x_property());
-            properties.register_bindable_property<TControl>("ScaleY", controls::scale_y_property());
-            properties.register_bindable_property<TControl>("Rotation", controls::rotation_property());
-            properties.register_bindable_property<TControl>("RotationX", controls::rotation_x_property());
-            properties.register_bindable_property<TControl>("RotationY", controls::rotation_y_property());
-            properties.register_bindable_property<TControl>("AnchorX", controls::anchor_x_property());
-            properties.register_bindable_property<TControl>("AnchorY", controls::anchor_y_property());
-            properties.register_bindable_property<TControl>("ZIndex", controls::z_index_property());
-            properties.register_bindable_property<TControl>("WidthRequest", controls::width_request_property());
-            properties.register_bindable_property<TControl>("HeightRequest", controls::height_request_property());
-            properties.register_bindable_property<TControl>("MinimumWidthRequest",
-                                                            controls::minimum_width_request_property());
-            properties.register_bindable_property<TControl>("MinimumHeightRequest",
-                                                            controls::minimum_height_request_property());
-            properties.register_bindable_property<TControl>("MaximumWidthRequest",
-                                                            controls::maximum_width_request_property());
-            properties.register_bindable_property<TControl>("MaximumHeightRequest",
-                                                            controls::maximum_height_request_property());
-            // VisualElement.IsVisible (a bool bindable in C#) maps onto the port's visibility property
-            // exactly the way VisualElement implements IView.Visibility: IsVisible.ToVisibility() —
-            // true → Visible, false → Collapsed (VisibilityExtensions.cs).
-            properties.register_property<TControl, bool>("IsVisible", [](TControl& control, const bool& value) {
-                control.set_visibility(value ? maui::core::visibility::visible : maui::core::visibility::collapsed);
-            });
-        }
-
-        // Layout.cs [ContentProperty(nameof(Children))]: a child element appends to the i_container.
-        // Registered under "Children" so the <Layout.Children> property-element spelling routes here.
-        template <class TLayout> void register_layout_children(xaml_property_registry& properties)
-        {
-            properties.register_add_child<TLayout>("Children", [](TLayout& parent, maui::core::bindable_object& child) {
-                auto* view = dynamic_cast<maui::core::i_view*>(&child);
-                if (view == nullptr)
-                {
-                    return false;
-                }
-                parent.add(*view);
-                return true;
-            });
-        }
+        // register_view_properties<T> (the generic IView/VisualElement attribute surface) and
+        // register_layout_children<T> (Layout.cs [ContentProperty(nameof(Children))]) now live in
+        // register_xaml_helpers.hpp so every per-group register_xaml_<group>.cpp TU can share them;
+        // they are used unqualified below (maui::xaml lookup resolves to the header's inline templates).
     } // namespace
 
     void register_standard_xaml_types(xaml_type_registry& types)
@@ -190,6 +165,7 @@ namespace maui::xaml
 
         // ---- Button (Button.cs; markup BorderColor/BorderWidth back the port's stroke descriptors) ----
         register_view_properties<controls::button>(properties);
+        register_font_properties<controls::button>(properties); // W6
         properties.register_bindable_property<controls::button>("Text", controls::button::text_property());
         properties.register_bindable_property<controls::button>("TextColor", controls::button::text_color_property());
         properties.register_bindable_property<controls::button>("CharacterSpacing",
@@ -201,9 +177,15 @@ namespace maui::xaml
                                                                 controls::button::stroke_thickness_property());
         properties.register_bindable_property<controls::button>("CornerRadius",
                                                                 controls::button::corner_radius_property());
+        // W15 — Button.ImageSource (the icon): a string routes through convert_image_source (registered
+        // below for shared_ptr<i_image_source>, shared with Image/ImageButton). The gallery's button page
+        // uses ImageSource="settings.png" on its icon buttons.
+        properties.register_bindable_property<controls::button>("ImageSource",
+                                                                controls::button::image_source_property());
 
         // ---- Label (Label.cs; [ContentProperty(nameof(Text))]) ----
         register_view_properties<controls::label>(properties);
+        register_font_properties<controls::label>(properties); // W6
         properties.register_bindable_property<controls::label>("Text", controls::label::text_property());
         properties.register_bindable_property<controls::label>("TextColor", controls::label::text_color_property());
         properties.register_bindable_property<controls::label>("CharacterSpacing",
@@ -220,6 +202,7 @@ namespace maui::xaml
 
         // ---- Entry (Entry.cs + InputView/TextElement members) ----
         register_view_properties<controls::entry>(properties);
+        register_font_properties<controls::entry>(properties); // W6
         properties.register_bindable_property<controls::entry>("Text", controls::entry::text_property());
         properties.register_bindable_property<controls::entry>("Placeholder", controls::entry::placeholder_property());
         properties.register_bindable_property<controls::entry>("PlaceholderColor",
@@ -245,6 +228,9 @@ namespace maui::xaml
                                                                controls::entry::horizontal_text_alignment_property());
         properties.register_bindable_property<controls::entry>("VerticalTextAlignment",
                                                                controls::entry::vertical_text_alignment_property());
+        properties.register_bindable_property<controls::entry>(
+            "Keyboard",
+            controls::entry::keyboard_property()); // W6: parity with Editor/SearchBar
 
         // ---- Image (Image.cs; IsLoading is read-only in C#, so it is not settable from markup) ----
         register_view_properties<controls::image>(properties);
@@ -285,7 +271,8 @@ namespace maui::xaml
                                                                                  controls::clips_to_bounds_property());
         register_layout_children<controls::horizontal_stack_layout>(properties);
 
-        // ---- Grid (GridLayout.cs spacing; definitions/attached props are deferred — header note) ----
+        // ---- Grid (GridLayout.cs spacing + Row/ColumnDefinitions; Grid.Row/Column attached props are
+        // placed by the loader's deferred-attached pass — xaml_visitors.cpp::try_apply_attached_property) ----
         register_view_properties<controls::grid>(properties);
         properties.register_bindable_property<controls::grid>("RowSpacing", controls::grid::row_spacing_property());
         properties.register_bindable_property<controls::grid>("ColumnSpacing",
@@ -293,6 +280,22 @@ namespace maui::xaml
         properties.register_bindable_property<controls::grid>("Padding", controls::grid::padding_property());
         properties.register_bindable_property<controls::grid>("IsClippedToBounds",
                                                               controls::clips_to_bounds_property());
+        // Row/ColumnDefinitions="auto,*,2*,100": the collection converters (xaml_converters.hpp) split + parse
+        // each grid length; the port's grid owns concrete definition vectors, so add each in markup order.
+        properties.register_property<controls::grid, std::string>(
+            "ColumnDefinitions", [](controls::grid& grid, const std::string& text) {
+                for (const controls::column_definition& definition : convert_column_definitions(text))
+                {
+                    grid.add_column_definition(definition.width());
+                }
+            });
+        properties.register_property<controls::grid, std::string>(
+            "RowDefinitions", [](controls::grid& grid, const std::string& text) {
+                for (const controls::row_definition& definition : convert_row_definitions(text))
+                {
+                    grid.add_row_definition(definition.height());
+                }
+            });
         register_layout_children<controls::grid>(properties);
 
         // ---- ContentPage (ContentPage.cs [ContentProperty("Content")]; Page Title/Padding) ----
@@ -421,6 +424,12 @@ namespace maui::xaml
         converters.register_converter<maui::layouts::flex_wrap>(registry_converter(&convert_flex_wrap));
         converters.register_converter<maui::layouts::flex_basis>(registry_converter(&convert_flex_basis));
         converters.register_converter<maui::core::safe_area_edges>(registry_converter(&convert_safe_area_edges));
+
+        // W6 — image/web sources from a literal string. These construct directly (no xaml_convert_error),
+        // so they are registered raw rather than through registry_converter. Image.Source AND
+        // ImageButton.Source share the i_image_source converter; WebView.Source is the web_view_source twin.
+        converters.register_converter<std::shared_ptr<maui::core::i_image_source>>(&convert_image_source);
+        converters.register_converter<std::shared_ptr<maui::controls::web_view_source>>(&convert_web_view_source);
     }
 
     void register_standard_xaml(xaml_type_registry& types, xaml_property_registry& properties,
@@ -429,5 +438,22 @@ namespace maui::xaml
         register_standard_xaml_types(types);
         register_standard_xaml_properties(properties);
         register_standard_xaml_converters(converters);
+
+        // The per-group control registrations (one TU each, register_xaml_<group>.cpp). Added after the
+        // core 11 so the full implemented-control surface is XAML-loadable. See register_xaml_groups.hpp.
+        register_xaml_extra_converters(converters);
+        register_xaml_text_input(types, properties, converters);
+        register_xaml_toggles_selections(types, properties, converters);
+        register_xaml_range_progress(types, properties, converters);
+        register_xaml_pickers(types, properties, converters);
+        register_xaml_containers_content(types, properties, converters);
+        register_xaml_scrolling_interactive(types, properties, converters);
+        register_xaml_specialized_views(types, properties, converters);
+        register_xaml_layouts(types, properties, converters);
+        register_xaml_pages(types, properties, converters);
+        register_xaml_shapes(types, properties, converters);
+        register_xaml_items(types, properties, converters);          // W4: CollectionView / CarouselView
+        register_xaml_brushes(types, properties, converters);        // W7: gradient brushes (element form)
+        register_xaml_formatted_text(types, properties, converters); // W8: FormattedString / Span
     }
 } // namespace maui::xaml

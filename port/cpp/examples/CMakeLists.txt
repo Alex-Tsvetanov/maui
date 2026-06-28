@@ -53,9 +53,13 @@ include(maui_add_app)
 # ---- The examples (each its own subfolder: a pure-C++ main.cpp + a trivial CMakeLists) ----
 # Ordered simplest-first, the order the README walks a newcomer through.
 add_subdirectory(hello_world)     # minimal app: window -> page -> label
+add_subdirectory(hello_world_xaml) # WITH-XAML twin of hello_world: markup compiled via maui_xaml_codegen
 add_subdirectory(counter)         # button::clicked increments a label
+add_subdirectory(counter_xaml)    # WITH-XAML twin of counter: x:Name'd markup + code-behind click wiring
 add_subdirectory(layouts)         # vertical_stack_layout + grid composition
+add_subdirectory(layouts_xaml)    # WITH-XAML twin of layouts: Grid + Grid.Row/Grid.Column compiled from markup
 add_subdirectory(data_binding)    # a bindable_object view-model bound to a label, driven by an entry
+add_subdirectory(data_binding_xaml) # WITH-XAML twin of data_binding: XAML layout + code-behind bindings
 add_subdirectory(collection_view) # collection_view over an observable_collection + a data_template
 add_subdirectory(custom_drawing)  # graphics_view + an i_drawable that draws shapes and text
 
@@ -63,3 +67,8 @@ add_subdirectory(custom_drawing)  # graphics_view + an i_drawable that draws sha
 # MAUI_SAMPLE_PAGE env var selects. The iOS parity-capture pipeline builds + launches THIS target (bundle id
 # dev.maui-cpp.ios-gallery) — see tools/parity/capture_all.py.
 add_subdirectory(gallery)         # runtime page-select demo gallery (MAUI_SAMPLE_PAGE / MAUI_APPEARANCE)
+
+# The WITH-XAML twin of the gallery: the same demo pages, each authored as markup (Views/<name>.xaml) and
+# built at compile time (#embed + build_page). The "C++ & XAML" parity column; its own bundle id
+# (dev.maui-cpp.ios-gallery-xaml) so it installs alongside the builder gallery.
+add_subdirectory(gallery_xaml)    # compile-time-XAML demo gallery (MAUI_SAMPLE_PAGE / MAUI_XAML_TWIN)

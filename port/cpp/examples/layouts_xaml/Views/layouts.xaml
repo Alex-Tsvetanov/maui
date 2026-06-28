@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <VerticalStackLayout Spacing="12" Padding="16">
+        <Label Text="Layouts demo" />
+        <Label Text="A vertical stack above a 2x2 grid" />
+        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" RowSpacing="8" ColumnSpacing="8">
+            <Label Grid.Row="0" Grid.Column="0" Text="(0,0)" />
+            <Label Grid.Row="0" Grid.Column="1" Text="(0,1)" />
+            <Label Grid.Row="1" Grid.Column="0" Text="(1,0)" />
+            <Label Grid.Row="1" Grid.Column="1" Text="(1,1)" />
+        </Grid>
+    </VerticalStackLayout>
+</ContentPage>

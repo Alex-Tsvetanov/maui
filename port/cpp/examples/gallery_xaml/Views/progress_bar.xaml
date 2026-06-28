@@ -1,0 +1,16 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="ProgressBar">
+    <VerticalStackLayout Spacing="6" Padding="12">
+        <Label Text="Default" FontSize="18" FontAttributes="Bold" />
+        <ProgressBar Progress="0.5" />
+        <Label Text="ProgressColor" FontSize="18" FontAttributes="Bold" />
+        <ProgressBar Progress="0.5" ProgressColor="Orange" />
+        <Label Text="Disabled" FontSize="18" FontAttributes="Bold" />
+        <ProgressBar Progress="0.5" IsEnabled="False" />
+        <Label Text="ProgressColor" />
+        <ProgressBar Progress="0.5" ProgressColor="Orange" />
+        <Label Text="ProgressTo" FontSize="18" FontAttributes="Bold" />
+        <ProgressBar Progress="0.0" />
+        <Button Text="ProgressTo" />
+    </VerticalStackLayout>
+</ContentPage>

@@ -7,35 +7,60 @@
 
 #include <algorithm>
 #include <any>
+#include <charconv>
 #include <cstddef>
 #include <format>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <utility>
 #include <vector>
 
+#include "maui/controls/absolute_layout.hpp" // W10: AbsoluteLayout.LayoutBounds/LayoutFlags attached props
 #include "maui/controls/application.hpp"
+#include "maui/controls/brushes/brush.hpp" // W7: element-form brush object-coercion for Background
 #include "maui/controls/dynamic_resource.hpp"
 #include "maui/controls/element.hpp"
+#include "maui/controls/flex_layout.hpp"       // W11: FlexLayout.Grow/Shrink/Basis/Order/AlignSelf attached props
+#include "maui/controls/font_image_source.hpp" // W17: <FontImageSource> element form (Image.Source)
+#include "maui/controls/formatted_string.hpp"  // W8: element-form formatted_string object-coercion (FormattedText)
+#include "maui/controls/grid.hpp"
+#include "maui/controls/items/items_view.hpp" // W4: ItemTemplate target (CollectionView/CarouselView)
+#include "maui/controls/picker.hpp"           // W12: <Picker.Items> x:String child sink
 #include "maui/controls/resource_dictionary.hpp"
+#include "maui/controls/setter.hpp"
+#include "maui/controls/style.hpp"
+#include "maui/controls/templates/control_template.hpp" // W16: <ControlTemplate> minting (DataTemplate sibling)
+#include "maui/controls/templates/data_template.hpp"    // W4: <DataTemplate> minting + the loader factory
 #include "maui/core/app_theme.hpp"
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/event.hpp"
+#include "maui/core/i_view.hpp"
 #include "maui/core/type_tag.hpp"
+#include "maui/graphics/i_shape.hpp" // W9: Border.StrokeShape object-coercion (controls::shape is-a i_shape)
+#include "maui/graphics/shapes/round_rectangle.hpp" // W9: <RoundRectangle CornerRadius=…> minting (no controls equivalent)
+#include "maui/layouts/flex_basis.hpp"              // W11
+#include "maui/layouts/flex_enums.hpp"              // W11: flex_align_self
 #include "maui/xaml/hydration_context.hpp"
 #include "maui/xaml/i_markup_extension.hpp"
 #include "maui/xaml/markup_extensions.hpp"
 #include "maui/xaml/name_scope.hpp"
 #include "maui/xaml/xaml_binding_applier.hpp"
 #include "maui/xaml/xaml_converter_registry.hpp"
+#include "maui/xaml/xaml_converters.hpp" // W2: convert_grid_length for element-form Row/ColumnDefinition
 #include "maui/xaml/xaml_node.hpp"
 #include "maui/xaml/xaml_parse_exception.hpp"
 #include "maui/xaml/xaml_parser.hpp"
 #include "maui/xaml/xaml_property_registry.hpp"
 #include "maui/xaml/xaml_type_registry.hpp"
+
+#include "maui/xaml/xaml_template_inflater.hpp" // W4: DataTemplate body inflation (the loader factory)
+
+#include "xaml_style_builder.hpp" // W3: loader-side <Style>/<Setter> resolution
 
 namespace maui::xaml
 {
@@ -121,6 +146,96 @@ namespace maui::xaml
             return stored != nullptr ? *stored : nullptr;
         }
 
+        // W3: the boxed shape a minted <Style> carries in context values (shared_ptr<style>), or null.
+        [[nodiscard]] std::shared_ptr<maui::controls::style> as_style(const std::any* value)
+        {
+            if (value == nullptr)
+            {
+                return nullptr;
+            }
+            const auto* stored = std::any_cast<std::shared_ptr<maui::controls::style>>(value);
+            return stored != nullptr ? *stored : nullptr;
+        }
+
+        // W3: whether an element node is a <Style> in the maui namespace (the loader special-case gate,
+        // mirroring the ResourceDictionary one). Style is not a bindable_object, so it is never in the
+        // type registry — recognized purely by name + namespace here.
+        [[nodiscard]] bool is_style_element(const element_node& node)
+        {
+            return node.type().is_of_any_type({"Style"});
+        }
+
+        // W3: read a plain-literal attribute (e.g. TargetType, Property, Value, BasedOn, Class) off a
+        // Style/Setter element node's property map. Returns nullopt when the attribute is absent or is not
+        // a value_node literal (a markup-valued attribute is handled separately by the caller).
+        [[nodiscard]] std::optional<std::string> literal_attribute(const element_node& node,
+                                                                   std::string_view local_name)
+        {
+            xml_name matched = xml_name::empty();
+            const std::shared_ptr<i_xaml_node> attribute = node.properties().try_get(local_name, matched);
+            if (attribute == nullptr)
+            {
+                return std::nullopt;
+            }
+            const auto* literal = dynamic_cast<const value_node*>(attribute.get());
+            return literal != nullptr ? std::optional<std::string>{literal->value()} : std::nullopt;
+        }
+
+        // W3: extract the resource KEY from a Style's BasedOn attribute. MAUI authors BasedOn as
+        // BasedOn="{StaticResource baseKey}"; the port keeps it LAZY by storing the key as the style's
+        // base_resource_key (resolved at apply time via the resource_resolver, so a forward-reference is
+        // tolerated). The attribute is a markup_node after the expand pass; its markup_string is parsed
+        // here for the key. A bare-literal BasedOn (rare) is also accepted as a key. Returns nullopt when
+        // there is no BasedOn or it is not a recognizable StaticResource key.
+        [[nodiscard]] std::optional<std::string> based_on_key(const element_node& node)
+        {
+            xml_name matched = xml_name::empty();
+            const std::shared_ptr<i_xaml_node> attribute = node.properties().try_get("BasedOn", matched);
+            if (attribute == nullptr)
+            {
+                return std::nullopt;
+            }
+            if (const auto* literal = dynamic_cast<const value_node*>(attribute.get()))
+            {
+                const std::string& text = literal->value();
+                return text.empty() ? std::nullopt : std::optional<std::string>{text};
+            }
+            const auto* markup = dynamic_cast<const markup_node*>(attribute.get());
+            if (markup == nullptr)
+            {
+                return std::nullopt;
+            }
+            // Parse "{StaticResource key}" textually (key may be the bare value or "ResourceKey=key").
+            std::string_view text = markup->markup_string();
+            const auto trim = [](std::string_view value) {
+                const std::size_t begin = value.find_first_not_of(" \t");
+                if (begin == std::string_view::npos)
+                {
+                    return std::string_view{};
+                }
+                const std::size_t end = value.find_last_not_of(" \t");
+                return value.substr(begin, end - begin + 1);
+            };
+            text = trim(text);
+            if (!text.starts_with('{') || !text.ends_with('}'))
+            {
+                return std::nullopt;
+            }
+            text = trim(text.substr(1, text.size() - 2));
+            constexpr std::string_view marker = "StaticResource";
+            if (!text.starts_with(marker))
+            {
+                return std::nullopt;
+            }
+            std::string_view argument = trim(text.substr(marker.size()));
+            constexpr std::string_view named = "ResourceKey=";
+            if (argument.starts_with(named))
+            {
+                argument = trim(argument.substr(named.size()));
+            }
+            return argument.empty() ? std::nullopt : std::optional<std::string>{std::string{argument}};
+        }
+
         // The x:Key literal of an element node; throws C#'s "x:Key expects a string literal." when
         // the key is not a plain value node.
         [[nodiscard]] std::optional<std::string> x_key_of(const element_node& node)
@@ -163,6 +278,7 @@ namespace maui::xaml
             const xaml_converter_registry* converters = nullptr;
             maui::controls::application* application = nullptr;
             std::vector<maui::core::scoped_connection>* subscriptions = nullptr; // null = no re-subscribe
+            std::vector<std::function<void()>>* deferred_attached = nullptr;     // null = no deferral (re-apply)
         };
 
         [[nodiscard]] applier_env env_from(hydration_context& context)
@@ -170,7 +286,8 @@ namespace maui::xaml
             return {.properties = &context.property_registry(),
                     .converters = &context.converter_registry(),
                     .application = context.application,
-                    .subscriptions = &context.subscriptions()};
+                    .subscriptions = &context.subscriptions(),
+                    .deferred_attached = &context.deferred_attached()};
         }
 
         [[noreturn]] void throw_cannot_assign(const std::string& local_name, int line_number, int line_position)
@@ -180,6 +297,291 @@ namespace maui::xaml
                                                    "not assignable, or mismatching type between value and property",
                                                    local_name),
                                        line_number, line_position);
+        }
+
+        // Attached property on a CHILD (e.g. "Grid.Row"): the markup sets it on the child, but the value is
+        // stored by the PARENT layout — the port keeps it in the parent's per-child side-map (PROFILE §7
+        // removed C#'s central attached-property bag, so SetRow(child, n) lives on the grid). C# resolves the
+        // declaring type's attached BindableProperty through reflection; the reflection-free port special-cases
+        // the in-scope Grid attached set here.
+        //
+        // The value is parsed + validated NOW (so a bad integer fails at its own line), but the PLACEMENT is
+        // DEFERRED: a child's attached attribute is applied BEFORE add() parents it into the layout, so the
+        // owning grid is not reachable yet (logical_parent() is still null). The loader drains the deferred
+        // closures once the whole tree is parented. A child that ends up outside a Grid is silently left
+        // unplaced, exactly as MAUI ignores a stray Grid.Row. Returns false for any non-attached / unknown
+        // dotted name → the caller falls through to its catch-all error.
+        // W10 — AbsoluteLayout.LayoutBounds / LayoutFlags parse the [Flags] enum string (None / *Proportional
+        // combos). Mirrors C# AbsoluteLayoutFlagsTypeConverter; comma-separated like a [Flags] Enum.Parse.
+        [[nodiscard]] maui::layouts::absolute_layout_flags parse_absolute_layout_flags(std::string_view text)
+        {
+            using maui::layouts::absolute_layout_flags;
+            absolute_layout_flags result = absolute_layout_flags::none;
+            std::size_t start = 0;
+            while (start <= text.size())
+            {
+                const std::size_t comma = text.find(',', start);
+                const std::size_t end = comma == std::string_view::npos ? text.size() : comma;
+                std::string_view token = text.substr(start, end - start);
+                while (!token.empty() && token.front() == ' ')
+                {
+                    token.remove_prefix(1);
+                }
+                while (!token.empty() && token.back() == ' ')
+                {
+                    token.remove_suffix(1);
+                }
+                if (token == "XProportional")
+                {
+                    result = result | absolute_layout_flags::x_proportional;
+                }
+                else if (token == "YProportional")
+                {
+                    result = result | absolute_layout_flags::y_proportional;
+                }
+                else if (token == "WidthProportional")
+                {
+                    result = result | absolute_layout_flags::width_proportional;
+                }
+                else if (token == "HeightProportional")
+                {
+                    result = result | absolute_layout_flags::height_proportional;
+                }
+                else if (token == "PositionProportional")
+                {
+                    result = result | absolute_layout_flags::position_proportional;
+                }
+                else if (token == "SizeProportional")
+                {
+                    result = result | absolute_layout_flags::size_proportional;
+                }
+                else if (token == "All")
+                {
+                    result = absolute_layout_flags::all;
+                }
+                else if (!token.empty() && token != "None")
+                {
+                    throw xaml_convert_error("Invalid AbsoluteLayoutFlags value: " + std::string(token));
+                }
+                if (comma == std::string_view::npos)
+                {
+                    break;
+                }
+                start = comma + 1;
+            }
+            return result;
+        }
+
+        [[nodiscard]] bool try_apply_attached_property(maui::core::bindable_object& target,
+                                                       const std::string& local_name, const std::any& value,
+                                                       std::vector<std::function<void()>>* deferred, int line_number,
+                                                       int line_position)
+        {
+            // W10 — AbsoluteLayout.LayoutBounds (a Rect "x,y,w,h") / LayoutFlags (the [Flags] enum). Like the
+            // Grid attached set below, these are set on the CHILD before add() parents it into the layout, so the
+            // placement is DEFERRED until the child's logical_parent (the absolute_layout) is reachable.
+            constexpr std::string_view al_prefix = "AbsoluteLayout.";
+            if (local_name.starts_with(al_prefix))
+            {
+                const std::string_view property = std::string_view{local_name}.substr(al_prefix.size());
+                if (property != "LayoutBounds" && property != "LayoutFlags")
+                {
+                    return false;
+                }
+                auto* view = dynamic_cast<maui::core::i_view*>(&target);
+                auto* element = dynamic_cast<maui::controls::element*>(&target);
+                const auto* text = std::any_cast<std::string>(&value);
+                if (view == nullptr || element == nullptr || text == nullptr)
+                {
+                    return false;
+                }
+                if (deferred == nullptr)
+                {
+                    return true; // re-apply path: nothing to place
+                }
+                if (property == "LayoutBounds")
+                {
+                    maui::graphics::rect bounds;
+                    try
+                    {
+                        bounds = convert_rect(*text);
+                    }
+                    catch (const xaml_convert_error& error)
+                    {
+                        throw xaml_parse_exception(error.what(), line_number, line_position);
+                    }
+                    deferred->emplace_back([view, element, bounds] {
+                        if (auto* al = dynamic_cast<maui::controls::absolute_layout*>(element->logical_parent()))
+                        {
+                            al->set_layout_bounds(*view, bounds);
+                        }
+                    });
+                }
+                else
+                {
+                    maui::layouts::absolute_layout_flags flags{};
+                    try
+                    {
+                        flags = parse_absolute_layout_flags(*text);
+                    }
+                    catch (const xaml_convert_error& error)
+                    {
+                        throw xaml_parse_exception(error.what(), line_number, line_position);
+                    }
+                    deferred->emplace_back([view, element, flags] {
+                        if (auto* al = dynamic_cast<maui::controls::absolute_layout*>(element->logical_parent()))
+                        {
+                            al->set_layout_flags(*view, flags);
+                        }
+                    });
+                }
+                return true;
+            }
+
+            // W11 — FlexLayout.Grow/Shrink (float) / Basis (flex_basis) / Order (int) / AlignSelf (enum):
+            // the per-child flex attached values. Deferred + applied via the parent flex_layout's setters,
+            // like AbsoluteLayout/Grid. The container-level props (Direction/JustifyContent/…) are plain
+            // bindable registrations in register_xaml_layouts; these per-child ones live here.
+            constexpr std::string_view flex_prefix = "FlexLayout.";
+            if (local_name.starts_with(flex_prefix))
+            {
+                const std::string_view property = std::string_view{local_name}.substr(flex_prefix.size());
+                const bool known = property == "Grow" || property == "Shrink" || property == "Basis" ||
+                                   property == "Order" || property == "AlignSelf";
+                if (!known)
+                {
+                    return false;
+                }
+                auto* view = dynamic_cast<maui::core::i_view*>(&target);
+                auto* element = dynamic_cast<maui::controls::element*>(&target);
+                const auto* text = std::any_cast<std::string>(&value);
+                if (view == nullptr || element == nullptr || text == nullptr)
+                {
+                    return false;
+                }
+                if (deferred == nullptr)
+                {
+                    return true;
+                }
+                // Parse now (so a bad literal fails loudly at its node), capture the typed value, place later.
+                std::function<void(maui::controls::flex_layout&, maui::core::i_view&)> place;
+                try
+                {
+                    if (property == "Grow")
+                    {
+                        const float grow = convert_float(*text);
+                        place = [grow](maui::controls::flex_layout& flex, maui::core::i_view& child) {
+                            flex.set_grow(child, grow);
+                        };
+                    }
+                    else if (property == "Shrink")
+                    {
+                        const float shrink = convert_float(*text);
+                        place = [shrink](maui::controls::flex_layout& flex, maui::core::i_view& child) {
+                            flex.set_shrink(child, shrink);
+                        };
+                    }
+                    else if (property == "Basis")
+                    {
+                        const maui::layouts::flex_basis basis = convert_flex_basis(*text);
+                        place = [basis](maui::controls::flex_layout& flex, maui::core::i_view& child) {
+                            flex.set_basis(child, basis);
+                        };
+                    }
+                    else if (property == "AlignSelf")
+                    {
+                        const maui::layouts::flex_align_self align = convert_flex_align_self(*text);
+                        place = [align](maui::controls::flex_layout& flex, maui::core::i_view& child) {
+                            flex.set_align_self(child, align);
+                        };
+                    }
+                    else // Order
+                    {
+                        const int order = convert_int(*text);
+                        place = [order](maui::controls::flex_layout& flex, maui::core::i_view& child) {
+                            flex.set_order(child, order);
+                        };
+                    }
+                }
+                catch (const xaml_convert_error& error)
+                {
+                    throw xaml_parse_exception(error.what(), line_number, line_position);
+                }
+                deferred->emplace_back([view, element, place = std::move(place)] {
+                    if (auto* flex = dynamic_cast<maui::controls::flex_layout*>(element->logical_parent()))
+                    {
+                        place(*flex, *view);
+                    }
+                });
+                return true;
+            }
+
+            constexpr std::string_view grid_prefix = "Grid.";
+            if (!local_name.starts_with(grid_prefix))
+            {
+                return false;
+            }
+            const std::string_view property = std::string_view{local_name}.substr(grid_prefix.size());
+            const bool known =
+                property == "Row" || property == "Column" || property == "RowSpan" || property == "ColumnSpan";
+            if (!known)
+            {
+                return false; // an unrecognized Grid.* attribute → caller's catch-all error
+            }
+
+            auto* view = dynamic_cast<maui::core::i_view*>(&target);
+            auto* element = dynamic_cast<maui::controls::element*>(&target);
+            if (view == nullptr || element == nullptr)
+            {
+                return false;
+            }
+
+            // The Grid attached properties are all int; the attribute arrives as raw text ("0").
+            const auto* text = std::any_cast<std::string>(&value);
+            if (text == nullptr)
+            {
+                return false;
+            }
+            int parsed = 0;
+            const auto* const begin = text->data();
+            const auto* const end = begin + text->size();
+            const auto [stop, error] = std::from_chars(begin, end, parsed);
+            if (error != std::errc{} || stop != end)
+            {
+                throw xaml_parse_exception(
+                    std::format("Cannot set \"{}\": \"{}\" is not a valid integer", local_name, *text), line_number,
+                    line_position);
+            }
+
+            // No deferral sink (the {AppThemeBinding} re-apply path): nothing to place, accept the value.
+            if (deferred == nullptr)
+            {
+                return true;
+            }
+            deferred->emplace_back([view, element, prop = std::string{property}, parsed] {
+                auto* grid = dynamic_cast<maui::controls::grid*>(element->logical_parent());
+                if (grid == nullptr)
+                {
+                    return; // the child is not inside a Grid → no placement, as MAUI does
+                }
+                if (prop == "Row")
+                {
+                    grid->set_row(*view, parsed);
+                }
+                else if (prop == "Column")
+                {
+                    grid->set_column(*view, parsed);
+                }
+                else if (prop == "RowSpan")
+                {
+                    grid->set_row_span(*view, parsed);
+                }
+                else if (prop == "ColumnSpan")
+                {
+                    grid->set_column_span(*view, parsed);
+                }
+            });
+            return true;
         }
 
         // ApplyPropertiesVisitor.TryAddToResourceDictionary (the value cases the port can load —
@@ -256,6 +658,132 @@ namespace maui::xaml
 
         // The port of TrySetPropertyValue's route chain — see apply_properties_visitor's header
         // comment for the full route list. Throws xaml_parse_exception on failure.
+        // W2 — Grid.RowDefinitions / Grid.ColumnDefinitions element form. The <RowDefinition>/
+        // <ColumnDefinition> items mint plain row_definition/column_definition VALUES (a create_values
+        // special-case), not bindable_objects, so they bypass both the registered-property surface and
+        // the bindable child sink; they push straight into the grid's definition vectors (mirrors C#
+        // RowDefinitionCollection.Add — appended in document order). Returns true when it consumed the
+        // value. The string form Grid.RowDefinitions="Auto,*" is the converter twin (xaml_standard_types)
+        // — same grid_length parse, different markup shape.
+        [[nodiscard]] bool try_add_grid_definition(maui::core::bindable_object& target,
+                                                   const std::string& property_name, const std::any& value)
+        {
+            auto* grid = dynamic_cast<maui::controls::grid*>(&target);
+            if (grid == nullptr)
+            {
+                return false;
+            }
+            if (property_name == "RowDefinitions")
+            {
+                if (const auto* definition = std::any_cast<maui::controls::row_definition>(&value))
+                {
+                    grid->add_row_definition(definition->height());
+                    return true;
+                }
+            }
+            else if (property_name == "ColumnDefinitions")
+            {
+                if (const auto* definition = std::any_cast<maui::controls::column_definition>(&value))
+                {
+                    grid->add_column_definition(definition->width());
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // W12 — element-form <Picker.Items> with <x:String> children. Like the Grid definitions above,
+        // the items are plain std::string VALUES (created by the x:String primitive route), so they
+        // bypass both the registered-property surface and the bindable child sink; each is pushed onto
+        // the picker's Items face (mirrors C# Picker.Items.Add — appended in document order, which the
+        // C# gallery PickerPage.xaml uses for its <Picker.Items> markup). Returns true when consumed.
+        [[nodiscard]] bool try_add_picker_item(maui::core::bindable_object& target, const std::string& property_name,
+                                               const std::any& value)
+        {
+            if (property_name != "Items")
+            {
+                return false;
+            }
+            auto* picker = dynamic_cast<maui::controls::picker*>(&target);
+            if (picker == nullptr)
+            {
+                return false;
+            }
+            if (const auto* item = std::any_cast<std::string>(&value))
+            {
+                picker->items().add(*item);
+                return true;
+            }
+            return false;
+        }
+
+        // W13 — element-form <CollectionView.ItemsSource><x:Array Type="{x:Type x:String}"><x:String>…
+        // The <x:Array> create-pass mints an xaml_array carrying its item children (here std::string from
+        // the <x:String> primitives); the ItemsSource property is a shared_ptr<i_item_collection> set only
+        // via {Binding} (no text/object converter), so a static inline array bypasses the registered
+        // surface and builds a fixed-snapshot item_collection here (the C# array-ItemsSource: a vector<T>
+        // source whose changed() is null). Mirrors try_add_picker_item / try_add_grid_definition. Returns
+        // true when consumed. (Only string element types are supported — the gallery's inline lists are
+        // caption strings; a non-string item falls through to the normal "cannot assign" path.)
+        [[nodiscard]] bool try_set_items_source_from_array(maui::core::bindable_object& target,
+                                                           const std::string& property_name, const std::any& value)
+        {
+            if (property_name != "ItemsSource")
+            {
+                return false;
+            }
+            const auto* array = std::any_cast<xaml_array>(&value);
+            if (array == nullptr)
+            {
+                return false;
+            }
+            auto* view = dynamic_cast<maui::controls::items_view*>(&target);
+            if (view == nullptr)
+            {
+                return false;
+            }
+            std::vector<std::string> strings;
+            strings.reserve(array->items.size());
+            for (const std::any& item : array->items)
+            {
+                const auto* text = std::any_cast<std::string>(&item);
+                if (text == nullptr)
+                {
+                    return false; // a non-string element type — not the string-list subset W13 supports
+                }
+                strings.push_back(*text);
+            }
+            view->set_items_source(std::move(strings));
+            return true;
+        }
+
+        // W7/W8 — element-form object-property coercion. A property element value is a CREATED element (boxed
+        // as shared_ptr<bindable_object> by register_type), but the property expects shared_ptr<Derived>
+        // (Derived : bindable_object) — e.g. Background<-brush, FormattedText<-formatted_string. try_set's
+        // exact any_cast can't downcast, so re-box via dynamic_pointer_cast and retry. Returns true if it set.
+        template <class Derived>
+        [[nodiscard]] bool try_set_created_object(const applier_env& env, maui::core::bindable_object& target,
+                                                  maui::core::type_tag target_type, const std::string& local_name,
+                                                  const xaml_property_registry::property_entry& entry,
+                                                  const std::any& value)
+        {
+            if (entry.value_type != maui::core::type_tag::of<std::shared_ptr<Derived>>())
+            {
+                return false;
+            }
+            const auto* object = std::any_cast<std::shared_ptr<maui::core::bindable_object>>(&value);
+            if (object == nullptr)
+            {
+                return false;
+            }
+            std::shared_ptr<Derived> derived = std::dynamic_pointer_cast<Derived>(*object);
+            if (!derived)
+            {
+                return false;
+            }
+            return env.properties->try_set(target_type, target, local_name, std::any{std::move(derived)});
+        }
+
         void apply_value_core(const applier_env& env, maui::core::bindable_object& target,
                               maui::core::type_tag target_type, const std::string& local_name, const std::any& value,
                               const std::optional<std::string>& x_key, int line_number, int line_position)
@@ -263,6 +791,27 @@ namespace maui::xaml
             // {OnPlatform}/{OnIdiom} "no value for this platform/idiom": skip the assignment (the
             // documented deviation from C#'s BindableProperty.GetDefaultValue re-assignment).
             if (!value.has_value())
+            {
+                return;
+            }
+
+            // W2 — element-form Grid row/column definitions route to the grid's vectors, not the
+            // registered-property table (this is the single-<RowDefinition>-child path; the multi-child
+            // list path is handled in visit_collection_item).
+            if (try_add_grid_definition(target, local_name, value))
+            {
+                return;
+            }
+
+            // W12 — element-form <Picker.Items> string items (single-<x:String>-child path; the
+            // multi-child list path is handled in visit_collection_item).
+            if (try_add_picker_item(target, local_name, value))
+            {
+                return;
+            }
+
+            // W13 — element-form <CollectionView.ItemsSource><x:Array> static string-list items source.
+            if (try_set_items_source_from_array(target, local_name, value))
             {
                 return;
             }
@@ -334,6 +883,21 @@ namespace maui::xaml
                 {
                     return;
                 }
+                // W7/W8/W9 — element-form object property: a created element (boxed as shared_ptr<bindable_object>)
+                // assigned to a property typed shared_ptr<Derived> is coerced via dynamic_pointer_cast so
+                // try_set's exact any_cast succeeds. Covers Background (brush, e.g.
+                // <BoxView.Background><LinearGradientBrush/>), Label.FormattedText (formatted_string), and
+                // Border.StrokeShape (graphics::i_shape — controls::shape multiply-inherits it, so a
+                // <Border.StrokeShape><Ellipse/> coerces). The string forms took the converter path above.
+                if (try_set_created_object<maui::controls::brush>(env, target, target_type, local_name, *entry,
+                                                                  value) ||
+                    try_set_created_object<maui::controls::formatted_string>(env, target, target_type, local_name,
+                                                                             *entry, value) ||
+                    try_set_created_object<maui::graphics::i_shape>(env, target, target_type, local_name, *entry,
+                                                                    value))
+                {
+                    return;
+                }
                 throw_cannot_assign(local_name, line_number, line_position);
             }
 
@@ -359,6 +923,14 @@ namespace maui::xaml
                 {
                     return;
                 }
+            }
+
+            // Attached property (Grid.Row, …): set on the child, stored by the parent layout (deferred until
+            // the child is parented — see try_apply_attached_property).
+            if (try_apply_attached_property(target, local_name, value, env.deferred_attached, line_number,
+                                            line_position))
+            {
+                return;
             }
 
             throw_cannot_assign(local_name, line_number, line_position);
@@ -979,6 +1551,28 @@ namespace maui::xaml
                     context_->set_value(node, create_primitive<bool>(*context_, node, false));
                     context_->set_type(node, maui::core::type_tag::of<bool>());
                 }
+                else if (name == "Array")
+                {
+                    // W13 — element form <x:Array Type="{x:Type x:String}"><x:String>…</x:String></x:Array>
+                    // (Microsoft.Maui.Controls.Xaml.ArrayExtension as an element). The create pass is
+                    // bottom-up, so the item children are already created VALUES (x:String → std::string)
+                    // in the context; gather them into an xaml_array here (the same marker the curly
+                    // {x:Array} extension mints). The Type attribute is left to the apply-pass skip (it is
+                    // a {x:Type} markup on a non-bindable value, like a <RowDefinition>'s Height). The
+                    // xaml_array → ItemsSource conversion happens in apply_value_core
+                    // (try_set_items_source_from_array). Items in document order, mirroring C# Array order.
+                    xaml_array array;
+                    for (const std::shared_ptr<i_xaml_node>& child : node.collection_items())
+                    {
+                        if (const std::any* item = context_->try_get_value(*child);
+                            item != nullptr && item->has_value())
+                        {
+                            array.items.push_back(*item);
+                        }
+                    }
+                    context_->set_value(node, std::any{std::move(array)});
+                    context_->set_type(node, maui::core::type_tag::of<xaml_array>());
+                }
                 else
                 {
                     // The remaining x2009 primitives (x:Char, x:TimeSpan, …) are M7 deferrals.
@@ -997,6 +1591,192 @@ namespace maui::xaml
                 context_->set_value(node, std::any{dictionary.get()});
                 context_->set_type(node, maui::core::type_tag::of<maui::controls::resource_dictionary>());
                 context_->keep_alive(std::move(dictionary));
+                return;
+            }
+
+            // W3 — <Style>: not a bindable_object either (so not in the type registry), minted here like
+            // a ResourceDictionary. The create pass is bottom-up, so child <Setter> nodes are visited
+            // FIRST; the Style is minted as an EMPTY shell now (TargetType / x:Key / BasedOn / Class /
+            // ApplyToDerivedTypes are plain literals available at create time) and its setters are filled
+            // in the apply pass, when each <Setter> can walk to this resolved shell (mirrors C#
+            // IValueProvider.ProvideValue at apply time). The shared_ptr<style> is owned by the context's
+            // keep-alive list, and a copy is the node's boxed value (so the apply pass + the explicit
+            // Style-property / resource routing all reach the same instance).
+            if (is_style_element(node))
+            {
+                const std::optional<std::string> target_type_name = literal_attribute(node, "TargetType");
+                const maui::core::type_tag target_type =
+                    resolve_target_type(target_type_name.value_or(std::string{}), node.namespace_uri(),
+                                        context_->type_registry(), node.line_number(), node.line_position());
+                std::optional<std::string> apply_to_derived = literal_attribute(node, "ApplyToDerivedTypes");
+                const bool apply_to_derived_types =
+                    apply_to_derived.has_value() && (*apply_to_derived == "true" || *apply_to_derived == "True");
+                std::shared_ptr<maui::controls::style> built = build_style(
+                    target_type, based_on_key(node), literal_attribute(node, "Class"), apply_to_derived_types);
+                context_->set_type(node, target_type); // the Setter resolution reads the TargetType here
+                context_->set_value(node, std::any{built});
+                context_->keep_alive(built);
+                return;
+            }
+
+            // W3 — <Setter>: a collection item of a <Style>. It has no created value of its own; the
+            // apply pass resolves its Property/Value against the parent Style's TargetType and adds the
+            // built setter to the parent's minted style. Recognized here so it no longer fails the
+            // "Type Setter not found" type-registry lookup below. (A stray <Setter> outside a <Style>
+            // stays inert — the apply pass ignores it, mirroring C# where a Setter only means something
+            // to its Style parent.)
+            if (node.type().is_of_any_type({"Setter"}))
+            {
+                return;
+            }
+
+            // W4 — <DataTemplate>: not a bindable_object (so not in the type registry), minted here like
+            // a ResourceDictionary / Style. The create pass STOPS on the data-template body (its
+            // _CreateContent child is NOT created now — stop_on_data_template==true), so only the EMPTY
+            // template shell is minted in this pass; the apply pass installs the loader that lazily
+            // inflates a fresh copy of the captured body per item (apply_properties_visitor::set_template).
+            // An EMPTY <DataTemplate/> (no _CreateContent child) leaves the loader unset, so
+            // create_content() returns the element_template Label fallback (C# LoaderTests.TestEmptyTemplate).
+            // The value is the shared_ptr<data_template> itself (so the standard object->property routing
+            // sets CollectionView.ItemTemplate via register_property<items_view, shared_ptr<data_template>>);
+            // it is also kept alive by the context for the tree's lifetime.
+            if (node.type().is_of_any_type({"DataTemplate"}))
+            {
+                auto tmpl = std::make_shared<maui::controls::data_template>();
+                context_->set_value(node, std::any{tmpl});
+                context_->set_type(node, maui::core::type_tag::of<maui::controls::data_template>());
+                context_->keep_alive(tmpl);
+                return;
+            }
+
+            // W16 — <ControlTemplate>: the DataTemplate sibling (also an element_template, not a
+            // bindable_object, so name-special-cased by the parser + minted here, never register_type'd).
+            // The empty shell is minted now; set_template installs the body loader in the apply pass. The
+            // value is shared_ptr<control_template> so the object→property routing sets a control's
+            // ControlTemplate (register_property<templated_view, shared_ptr<control_template>>).
+            if (node.type().is_of_any_type({"ControlTemplate"}))
+            {
+                auto tmpl = std::make_shared<maui::controls::control_template>();
+                context_->set_value(node, std::any{tmpl});
+                context_->set_type(node, maui::core::type_tag::of<maui::controls::control_template>());
+                context_->keep_alive(tmpl);
+                return;
+            }
+
+            // W2 — <RowDefinition>/<ColumnDefinition>: the element form of Grid.RowDefinitions /
+            // Grid.ColumnDefinitions. Not bindable_objects (PROFILE — the port models them as plain value
+            // types, RowDefinition.cs/ColumnDefinition.cs reduced to their single Height/Width), so not in
+            // the type registry; minted here from that one grid_length attribute (default Star, matching the
+            // C# RowDefinition()/ColumnDefinition() ctor) and boxed BY VALUE. The apply pass pulls each
+            // minted definition out of its <Grid.RowDefinitions> property/list and pushes it onto the grid
+            // (try_add_grid_definition). The converter throws xaml_convert_error; translate it to the loader's
+            // single xaml_parse_exception channel so guarded() (which only catches the latter) routes it.
+            if (node.type().is_of_any_type({"RowDefinition"}))
+            {
+                const std::optional<std::string> height = literal_attribute(node, "Height");
+                maui::core::grid_length length = maui::core::grid_length::star();
+                if (height.has_value())
+                {
+                    try
+                    {
+                        length = convert_grid_length(*height);
+                    }
+                    catch (const xaml_convert_error& error)
+                    {
+                        throw xaml_parse_exception(error.what(), node.line_number(), node.line_position());
+                    }
+                }
+                context_->set_value(node, std::any{maui::controls::row_definition{length}});
+                context_->set_type(node, maui::core::type_tag::of<maui::controls::row_definition>());
+                return;
+            }
+            if (node.type().is_of_any_type({"ColumnDefinition"}))
+            {
+                const std::optional<std::string> width = literal_attribute(node, "Width");
+                maui::core::grid_length length = maui::core::grid_length::star();
+                if (width.has_value())
+                {
+                    try
+                    {
+                        length = convert_grid_length(*width);
+                    }
+                    catch (const xaml_convert_error& error)
+                    {
+                        throw xaml_parse_exception(error.what(), node.line_number(), node.line_position());
+                    }
+                }
+                context_->set_value(node, std::any{maui::controls::column_definition{length}});
+                context_->set_type(node, maui::core::type_tag::of<maui::controls::column_definition>());
+                return;
+            }
+
+            // W9 — <RoundRectangle CornerRadius="…">: the rounded Border.StrokeShape. The port has NO controls
+            // RoundRectangle (only the non-bindable graphics::round_rectangle, an i_shape), so it can't be
+            // register_type'd; minted here from the CornerRadius literal and boxed AS shared_ptr<i_shape> (the
+            // StrokeShape property's exact type, so apply_value_core's any_cast matches directly — no
+            // coercion). The other stroke shapes (Ellipse/Rectangle/Polygon) ARE register_type'd controls
+            // shapes that multiply-inherit i_shape, reaching StrokeShape via the apply object-coercion instead.
+            // CornerRadius is consumed here, so the apply pass skips it (see visit(value_node)).
+            if (node.type().is_of_any_type({"RoundRectangle"}))
+            {
+                maui::graphics::corner_radius radius{};
+                const std::optional<std::string> corner = literal_attribute(node, "CornerRadius");
+                if (corner.has_value())
+                {
+                    try
+                    {
+                        radius = convert_corner_radius(*corner);
+                    }
+                    catch (const xaml_convert_error& error)
+                    {
+                        throw xaml_parse_exception(error.what(), node.line_number(), node.line_position());
+                    }
+                }
+                context_->set_value(node, std::any{std::shared_ptr<maui::graphics::i_shape>(
+                                              std::make_shared<maui::graphics::shapes::round_rectangle>(radius))});
+                context_->set_type(node, maui::core::type_tag::of<maui::graphics::shapes::round_rectangle>());
+                return;
+            }
+
+            // W17 — <FontImageSource Glyph="…" FontFamily="…" Size="…" Color="…" FontAutoScalingEnabled="…">:
+            // the element form of Image.Source (the real C# ImagePage uses it). The port's font_image_source
+            // is a CTOR-ONLY i_image_source (NOT a bindable_object, so not register_type'd) — like
+            // <RoundRectangle>, its attributes are consumed here and it is minted boxed AS
+            // shared_ptr<i_image_source> (Image.Source's exact type — image::source_property(), so
+            // apply_value_core's any_cast matches directly). Glyph/FontFamily are literals; Size/Color parse
+            // via convert_double/convert_color; FontFamily+Size+AutoScaling compose onto the font.
+            if (node.type().is_of_any_type({"FontImageSource"}))
+            {
+                const std::string glyph = literal_attribute(node, "Glyph").value_or(std::string{});
+                const std::string family = literal_attribute(node, "FontFamily").value_or(std::string{});
+                double size = maui::controls::font_image_source::default_size; // C# SizeProperty default 30
+                maui::graphics::color color{};                                 // C# default (transparent)
+                bool auto_scaling = false;                                     // C# FontAutoScalingEnabled default
+                try
+                {
+                    if (const std::optional<std::string> s = literal_attribute(node, "Size"); s.has_value())
+                    {
+                        size = convert_double(*s);
+                    }
+                    if (const std::optional<std::string> c = literal_attribute(node, "Color"); c.has_value())
+                    {
+                        color = convert_color(*c);
+                    }
+                }
+                catch (const xaml_convert_error& error)
+                {
+                    throw xaml_parse_exception(error.what(), node.line_number(), node.line_position());
+                }
+                if (const std::optional<std::string> a = literal_attribute(node, "FontAutoScalingEnabled");
+                    a.has_value())
+                {
+                    auto_scaling = (*a == "true" || *a == "True");
+                }
+                auto font = maui::core::font::of_size(family, size).with_auto_scaling(auto_scaling);
+                context_->set_value(node,
+                                    std::any{std::shared_ptr<maui::core::i_image_source>(
+                                        std::make_shared<maui::controls::font_image_source>(glyph, font, color))});
+                context_->set_type(node, maui::core::type_tag::of<maui::controls::font_image_source>());
                 return;
             }
 
@@ -1289,6 +2069,13 @@ namespace maui::xaml
         {
             return;
         }
+        // W13 — an <x:Array>'s own attributes (Type="{x:Type …}") are consumed/ignored at create time;
+        // the value is a non-bindable xaml_array, so the generic apply must skip them (else it throws
+        // "Cannot assign property Type"), the same create-time-consumed pattern as <RowDefinition> Height.
+        if (source != nullptr && std::any_cast<xaml_array>(source) != nullptr)
+        {
+            return;
+        }
         guarded(*context_, [this, &value, &node, &parent_element, &property_name, source] {
             maui::core::bindable_object* target = as_bindable(source);
             if (target == nullptr)
@@ -1319,6 +2106,20 @@ namespace maui::xaml
         const std::optional<xml_name> property_name = try_get_property_name(node, parent_node);
         if (property_name.has_value() && parent_element != nullptr)
         {
+            // W3: a <Style>'s own attributes (TargetType/BasedOn/Class/ApplyToDerivedTypes) are consumed at
+            // CREATE time by build_style, and a <Setter>'s (Property/Value) by apply_setter_to_parent_style;
+            // neither is a runtime bindable property, so the generic apply must skip them (else it throws
+            // "Cannot assign property TargetType").
+            // W2: likewise a <RowDefinition>/<ColumnDefinition>'s Height/Width is consumed at CREATE time
+            // (the minted value type is not a bindable_object, so the generic apply would throw
+            // "Cannot assign property Height"). W9: a <RoundRectangle>'s CornerRadius is consumed at CREATE
+            // time too (minted as a non-bindable graphics::i_shape). W17: a <FontImageSource>'s
+            // Glyph/FontFamily/Size/Color are consumed at CREATE time (minted as a non-bindable i_image_source).
+            if (parent_element->type().is_of_any_type(
+                    {"Style", "Setter", "RowDefinition", "ColumnDefinition", "RoundRectangle", "FontImageSource"}))
+            {
+                return;
+            }
             // (TrySetRuntimeName — x:Name → StyleId — is the documented deviation; x:Name is in
             // Skips either way.)
             if (is_apply_skip(*property_name) || is_skip_property(*parent_element, *property_name) ||
@@ -1414,6 +2215,14 @@ namespace maui::xaml
                     return;
                 }
 
+                // W13 — an <x:Array> parent: its item children were already gathered into the xaml_array
+                // at create time (create_values), so the apply pass leaves them alone (the create-time-
+                // consumed pattern, like a <RowDefinition>'s Height).
+                if (source != nullptr && std::any_cast<xaml_array>(source) != nullptr)
+                {
+                    return;
+                }
+
                 maui::core::bindable_object* target = as_bindable(source);
                 const maui::core::type_tag* target_type = context_->try_get_type(*parent_element);
                 if (target == nullptr || target_type == nullptr)
@@ -1475,6 +2284,22 @@ namespace maui::xaml
             const auto* element = dynamic_cast<const element_node*>(&node);
             const std::optional<std::string> x_key = element != nullptr ? x_key_of(*element) : std::nullopt;
 
+            // W2 — element-form Grid.RowDefinitions / Grid.ColumnDefinitions with several items: each
+            // row_definition/column_definition VALUE is pushed onto the grid's vectors (the multi-child
+            // twin of the apply_value_core single-child path) before the bindable child sink, which
+            // cannot accept a non-bindable value type.
+            if (try_add_grid_definition(*target, list_name, value))
+            {
+                return;
+            }
+
+            // W12 — element-form <Picker.Items> with several <x:String> children: each string VALUE is
+            // pushed onto the picker's Items face (the multi-child twin of the apply_value_core path).
+            if (try_add_picker_item(*target, list_name, value))
+            {
+                return;
+            }
+
             // Resources lists fill the element's dictionary; everything else goes through the named
             // child sink (the port of the IEnumerable + Add() walk).
             if (list_name == "Resources" || list_name.ends_with(".Resources"))
@@ -1499,13 +2324,119 @@ namespace maui::xaml
         });
     }
 
+    // W3: resolve a <Setter Property=… Value=…/> against its enclosing <Style>'s TargetType and add the
+    // built setter to that Style's minted shell. The reflection-free stand-in for C#'s
+    // BindablePropertyConverter walking IProvideParentValues.ParentObjects: walk the node's parent chain to
+    // the <Style> element explicitly, read the resolved shell + target type the create pass stored on it,
+    // then build + add the setter. A <Setter> outside a <Style> is inert (matches C#).
+    void apply_properties_visitor::apply_setter_to_parent_style(element_node& node, i_xaml_node* parent_node)
+    {
+        guarded(*context_, [this, &node, parent_node] {
+            element_node* style_node = nullptr;
+            for (i_xaml_node* ancestor = parent_node; ancestor != nullptr; ancestor = ancestor->parent())
+            {
+                auto* element = dynamic_cast<element_node*>(ancestor);
+                if (element != nullptr && element->type().is_of_any_type({"Style"}))
+                {
+                    style_node = element;
+                    break;
+                }
+            }
+            if (style_node == nullptr)
+            {
+                return; // a stray <Setter> outside a <Style> — inert, as in C#
+            }
+            const std::shared_ptr<maui::controls::style> style = as_style(context_->try_get_value(*style_node));
+            const maui::core::type_tag* target_type = context_->try_get_type(*style_node);
+            if (style == nullptr || target_type == nullptr)
+            {
+                return; // the Style shell failed to mint (already reported on the error channel)
+            }
+            const std::optional<std::string> property = literal_attribute(node, "Property");
+            const std::optional<std::string> value = literal_attribute(node, "Value");
+            if (!property.has_value() || !value.has_value())
+            {
+                throw xaml_parse_exception("A <Setter> requires both a Property and a Value attribute",
+                                           node.line_number(), node.line_position());
+            }
+            const applier_env env = env_from(*context_);
+            style->add(build_setter(*target_type, *property, *value, *env.properties, *env.converters,
+                                    node.line_number(), node.line_position()));
+        });
+    }
+
+    void apply_properties_visitor::set_template(element_node& body_node, i_xaml_node* parent_node)
+    {
+        guarded(*context_, [this, &body_node, parent_node] {
+            // The body's parent is the <DataTemplate>/<ControlTemplate> element node (the parser stored
+            // the body as the parent's _CreateContent property), whose created value is the minted
+            // element_template (a data_template for <DataTemplate>). Resolve it; a non-template parent
+            // (or one that failed to mint) leaves the hook inert.
+            auto* template_node = dynamic_cast<element_node*>(parent_node);
+            if (template_node == nullptr)
+            {
+                return;
+            }
+            const std::any* template_value = context_->try_get_value(*template_node);
+            if (template_value == nullptr)
+            {
+                return;
+            }
+            // SetTemplate (ApplyPropertiesVisitor.SetTemplate): install the per-stamp loader. The closure
+            // OWNS a clone of the body subtree (the captured master, kept pristine — inflate clones it
+            // AGAIN per stamp) and a VALUE snapshot of the load environment (NOT the live parent
+            // hydration_context — a CollectionView stamps items / a templated control stamps its tree
+            // after the load returns). Each loader() call inflates one fresh subtree from the master.
+            // (PROFILE §8 ownership note: the captured clone lives in the move_only_function, which lives on
+            // the template, which the consuming control owns — torn down with the loaded tree.) W16 — the
+            // SAME loader serves both <DataTemplate> (data_template) and <ControlTemplate> (control_template),
+            // both element_templates with set_load_template; pick whichever the parent minted.
+            auto make_loader = [&body_node, this] {
+                return [captured = body_node.clone(), env = template_inflater::from(*context_)]() mutable
+                           -> std::shared_ptr<maui::core::bindable_object> {
+                    return inflate_template_body(captured, env);
+                };
+            };
+            if (const auto* data_tmpl = std::any_cast<std::shared_ptr<maui::controls::data_template>>(template_value);
+                data_tmpl != nullptr && *data_tmpl != nullptr)
+            {
+                (*data_tmpl)->set_load_template(make_loader());
+                return;
+            }
+            if (const auto* ctrl_tmpl =
+                    std::any_cast<std::shared_ptr<maui::controls::control_template>>(template_value);
+                ctrl_tmpl != nullptr && *ctrl_tmpl != nullptr)
+            {
+                (*ctrl_tmpl)->set_load_template(make_loader());
+                return;
+            }
+            // a non-template parent / mint failure — deferred / inert.
+        });
+    }
+
     void apply_properties_visitor::visit(element_node& node, i_xaml_node* parent_node)
     {
-        // _CreateContent values are DataTemplate bodies — templates are an M7 deferral (their TYPE
-        // already fails creation), so the template hook is inert here.
+        // W4 — _CreateContent values are <DataTemplate>/<ControlTemplate> bodies (the parser promotes a
+        // template's single child to the _CreateContent property). The apply pass STOPS at the body (its
+        // own children are not walked — stop_on_data_template) but still VISITS the body node, so this is
+        // the SetTemplate hook: install the parent template's loader so each item lazily inflates a fresh
+        // copy of this body. The reflection-free port of ApplyPropertiesVisitor.SetTemplate.
         const std::optional<xml_name> direct_name = try_get_property_name(node, parent_node);
         if (direct_name.has_value() && *direct_name == xml_name::create_content())
         {
+            set_template(node, parent_node);
+            return;
+        }
+
+        // W3 — a <Setter> collection item of a <Style>: resolve its Property/Value against the PARENT
+        // Style's TargetType (the reflection-free stand-in for C#'s IProvideParentValues.ParentObjects
+        // walk in BindablePropertyConverter — the port walks the node's parent chain to the enclosing
+        // <Style> explicitly) and add the built setter to that Style's minted shell. Handled here, before
+        // the generic collection routing, because a Setter has no created value (visit_collection_item
+        // would otherwise fail "Cannot set the content of Style").
+        if (node.type().is_of_any_type({"Setter"}))
+        {
+            apply_setter_to_parent_style(node, parent_node);
             return;
         }
 

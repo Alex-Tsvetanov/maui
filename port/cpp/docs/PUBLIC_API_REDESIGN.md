@@ -1,5 +1,9 @@
 # Public API redesign — context brief
 
+> **✅ Answered by [`PUBLIC_API_DESIGN.md`](PUBLIC_API_DESIGN.md)** — the design (the additive `maui::ui`
+> layer, the resolved move-only-handle ownership model, before/after for every §3 target, and the XAML
+> future) lives there. This file is retained as the original problem statement / context.
+
 > **Purpose.** This doc is the *standalone* starting context for a focused session that redesigns the
 > framework's **public (consumer-facing) API** to be idiomatic C++ — not a 1-to-1 transliteration of
 > C# .NET MAUI. Read this first; it tells you what the framework is, what the public surface looks like

@@ -1,0 +1,34 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Border Stroke options">
+    <ScrollView>
+        <VerticalStackLayout Spacing="12" Padding="12">
+            <Label Text="Using different StrokeThickness" />
+            <Grid RowDefinitions="*,*,*">
+                <Border Grid.Row="0" Stroke="Red" StrokeThickness="1">
+                    <Label Text="1" BackgroundColor="Orange" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" MinimumHeightRequest="20" />
+                </Border>
+                <Border Grid.Row="1" Stroke="Red" StrokeThickness="5">
+                    <Label Text="5" BackgroundColor="Orange" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" MinimumHeightRequest="20" />
+                </Border>
+                <Border Grid.Row="2" Stroke="Red" StrokeThickness="10">
+                    <Label Text="10" BackgroundColor="Orange" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" MinimumHeightRequest="20" />
+                </Border>
+            </Grid>
+
+            <Label Text="Updating the Content Height" />
+            <Label Text="Content height: 60" />
+            <Slider Minimum="40" Maximum="100" Value="60" />
+            <Grid RowDefinitions="*,*,*">
+                <Border Grid.Row="0" Stroke="Red" StrokeThickness="1">
+                    <Label Text="1" BackgroundColor="Orange" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" HeightRequest="60" />
+                </Border>
+                <Border Grid.Row="1" Stroke="Red" StrokeThickness="5">
+                    <Label Text="5" BackgroundColor="Orange" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" HeightRequest="60" />
+                </Border>
+                <Border Grid.Row="2" Stroke="Red" StrokeThickness="10">
+                    <Label Text="10" BackgroundColor="Orange" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" HeightRequest="60" />
+                </Border>
+            </Grid>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

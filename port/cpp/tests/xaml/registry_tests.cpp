@@ -17,6 +17,7 @@
 #include <string>
 #include <utility>
 
+#include "maui/controls/border.hpp" // StrokeShape — a still-deferred (no-converter) property example
 #include "maui/controls/button.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/entry.hpp"
@@ -28,13 +29,13 @@
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/controls/window.hpp"
 #include "maui/core/bindable_object.hpp"
-#include "maui/core/i_image_source.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/setter_specificity.hpp"
 #include "maui/core/type_tag.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
+#include "maui/graphics/i_shape.hpp" // Border.StrokeShape value type — a still-deferred no-converter case
 #include <gtest/gtest.h>
 
 namespace
@@ -103,9 +104,11 @@ namespace
     TEST(xaml_type_registry, unknown_type_returns_null_without_throwing)
     {
         const registries reg;
-        EXPECT_EQ(reg.types.find("Slider"), nullptr);
-        EXPECT_EQ(reg.types.create("Slider"), nullptr);
-        EXPECT_FALSE(reg.types.is_registered("Slider"));
+        // A name that is NOT a registered control element (Slider/etc. are now registered — see the
+        // register_xaml_<group> TUs — so use a guaranteed-absent type for the "unknown" assertion).
+        EXPECT_EQ(reg.types.find("NotARegisteredControl"), nullptr);
+        EXPECT_EQ(reg.types.create("NotARegisteredControl"), nullptr);
+        EXPECT_FALSE(reg.types.is_registered("NotARegisteredControl"));
         // Namespaces are separate keyspaces: "Button" lives in the default maui xmlns, not in x.
         EXPECT_EQ(reg.types.find("Button", xaml_namespace::x), nullptr);
     }
@@ -359,9 +362,11 @@ namespace
         const registries reg;
 
         EXPECT_TRUE(reg.converters.has_converter(type_tag::of<maui::graphics::color>()));
-        EXPECT_FALSE(reg.converters.has_converter(type_tag::of<std::shared_ptr<maui::core::i_image_source>>()));
-        EXPECT_FALSE(
-            reg.converters.convert(type_tag::of<std::shared_ptr<maui::core::i_image_source>>(), "img.png").has_value());
+        // Border.StrokeShape (shared_ptr<i_shape>) is a still-deferred type — no convert_stroke_shape yet.
+        // (Image.Source's i_image_source converter landed in W6, so that is no longer the example here.)
+        EXPECT_FALSE(reg.converters.has_converter(type_tag::of<std::shared_ptr<maui::graphics::i_shape>>()));
+        EXPECT_FALSE(reg.converters.convert(type_tag::of<std::shared_ptr<maui::graphics::i_shape>>(), "RoundRectangle")
+                         .has_value());
     }
 
     // ---- the converter ⇄ property seam (converters named implicitly by the value type T) -------------
@@ -385,9 +390,11 @@ namespace
         // Unknown property → false; a known property whose value type has no converter yet → false.
         EXPECT_FALSE(
             reg.properties.try_set_from_text(type_tag::of<controls::button>(), target, "NoSuch", "1", reg.converters));
-        controls::image image_target;
-        EXPECT_FALSE(reg.properties.try_set_from_text(type_tag::of<controls::image>(), image_target, "Source",
-                                                      "img.png", reg.converters));
+        // Border.StrokeShape (shared_ptr<i_shape>) is registered but its converter is still deferred →
+        // false. (Image.Source became text-settable in W6, so it is no longer the no-converter example.)
+        controls::border border_target;
+        EXPECT_FALSE(reg.properties.try_set_from_text(type_tag::of<controls::border>(), border_target, "StrokeShape",
+                                                      "RoundRectangle", reg.converters));
     }
 
     // The U4 seam, exercised with a fake: registering a color converter makes the already-registered

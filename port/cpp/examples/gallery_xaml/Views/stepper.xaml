@@ -1,0 +1,21 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Stepper">
+    <VerticalStackLayout Spacing="6" Padding="12">
+        <Label Text="Default" FontSize="18" FontAttributes="Bold" />
+        <Stepper />
+        <Label Text="Disabled" FontSize="18" FontAttributes="Bold" />
+        <Stepper IsEnabled="False" />
+        <Button Text="Enable Stepper" />
+        <Label Text="BackgroundColor" FontSize="18" FontAttributes="Bold" />
+        <Stepper BackgroundColor="Red" />
+        <Label Text="Background" FontSize="18" FontAttributes="Bold" />
+        <Stepper />
+        <Label Text="Minimum (5) and Maximum (25)" FontSize="18" FontAttributes="Bold" />
+        <Stepper Maximum="25" Minimum="5" />
+        <Label Text="Increment (2)" FontSize="18" FontAttributes="Bold" />
+        <Stepper Minimum="0" Maximum="100" Increment="2" />
+        <Label Text="ValueChanged" FontSize="18" FontAttributes="Bold" />
+        <Stepper Minimum="0" Maximum="100" Increment="1" />
+        <Label Text="Value: 0" />
+    </VerticalStackLayout>
+</ContentPage>

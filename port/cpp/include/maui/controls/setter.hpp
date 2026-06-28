@@ -63,6 +63,27 @@ namespace maui::controls
             return setter{descriptor.name(), std::any{std::move(value)}, nullptr, std::move(target_name)};
         }
 
+        // The TYPE-ERASED loader builder: the XAML loader resolves a <Setter Property="…" Value="…"/> to an
+        // already-converted, already-boxed value plus the backing descriptor name (the apply_setter routing
+        // key), so it cannot use the typed of() factories above. `bindable_name` is the descriptor name from
+        // xaml_property_registry::property_entry.bindable_name — a string_view into a static descriptor name
+        // (register_bindable_property stores descriptor.name()), so the borrow stays valid for the same
+        // reason of()'s does. The value's held type must match the property's T (the loader converts it via
+        // the property's value-type converter before calling this). Mirrors C#'s Setter created by the XAML
+        // SetterValueProvider, whose Property/Value are resolved at ProvideValue (apply) time.
+        [[nodiscard]] static setter of_erased(std::string_view bindable_name, std::any value)
+        {
+            return setter{bindable_name, std::move(value), nullptr, {}};
+        }
+
+        // The TargetName-in-style variant of of_erased: the assignment retargets to the named element,
+        // resolved at apply() time against the apply target's namescope (Setter.TargetName).
+        [[nodiscard]] static setter of_named_erased(std::string_view bindable_name, std::any value,
+                                                    std::string target_name)
+        {
+            return setter{bindable_name, std::move(value), nullptr, std::move(target_name)};
+        }
+
         void apply(maui::core::bindable_object& target, maui::core::setter_specificity specificity) const
         {
             resolve_target(target).apply_setter(property_name_, value_, specificity);

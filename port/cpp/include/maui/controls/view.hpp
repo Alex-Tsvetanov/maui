@@ -24,8 +24,9 @@
 #include <utility>
 #include <vector>
 
-#include "maui/controls/behavior.hpp"      // --- styles tail (W1-15) ---
-#include "maui/controls/brushes/brush.hpp" // X1: VisualElement.Background accepts a Brush (bridged to paint)
+#include "maui/controls/behavior.hpp"               // --- styles tail (W1-15) ---
+#include "maui/controls/brushes/brush.hpp"          // X1: VisualElement.Background accepts a Brush (bridged to paint)
+#include "maui/controls/brushes/gradient_brush.hpp" // W7: re-derive the bridged paint when a gradient brush mutates
 #include "maui/controls/element.hpp"
 #include "maui/controls/gestures/gesture_platform_manager.hpp" // --- gestures (W1-12) ---
 #include "maui/controls/style.hpp"
@@ -353,7 +354,8 @@ namespace maui::controls
         // The control takes ownership of the background paint. Passing a distinct instance fires the change.
         void set_background(std::shared_ptr<maui::graphics::paint> value)
         {
-            background_brush_.reset(); // a raw-paint background clears any brush previously set
+            background_brush_subscription_.reset(); // and its invalidate subscription (W7)
+            background_brush_.reset();              // a raw-paint background clears any brush previously set
             background_.set(std::move(value));
         }
 
@@ -366,10 +368,22 @@ namespace maui::controls
         // consuming background().
         void set_background_brush(std::shared_ptr<brush> value)
         {
+            background_brush_subscription_.reset(); // drop any subscription to the previous brush first
             background_brush_ = std::move(value);
             if (background_brush_)
             {
                 background_brush_->set_inherited_binding_context(this->raw_binding_context());
+                // A gradient brush's stops can change after assignment (the XAML loader adds them AFTER
+                // setting Background; runtime mutation too). Subscribe to its invalidate event so the bridged
+                // paint is re-derived then — without this the cached paint keeps the empty-stops snapshot
+                // taken here and the gradient renders blank. (MAUI's VisualElement does the same via
+                // InvalidateGradientBrushRequested.)
+                if (auto* gradient = dynamic_cast<gradient_brush*>(background_brush_.get()))
+                {
+                    background_brush_subscription_ =
+                        maui::core::connect_scoped(gradient->invalidate_gradient_brush_requested,
+                                                   [this] { background_.set(to_paint(background_brush_)); });
+                }
             }
             background_.set(to_paint(background_brush_));
         }
@@ -1142,6 +1156,11 @@ namespace maui::controls
         // X1 — the developer-facing Background brush (when set via the brush overload). Owned by the view so
         // it inherits the view's BindingContext; the bridged paint lives in background_ above for the handler.
         std::shared_ptr<brush> background_brush_;
+        // W7 — a gradient brush mutates AFTER assignment (the XAML loader adds GradientStops after setting
+        // Background; runtime code can too), so re-derive the bridged paint on its invalidate event. Declared
+        // AFTER background_brush_ so it is destroyed FIRST — the disconnect runs while the brush (the event
+        // publisher) is still alive.
+        maui::core::scoped_connection background_brush_subscription_;
         // Accessibility metadata + the input-transparent flag (each re-runs the chained view_mapper's
         // map_semantics / map_input_transparent). Shared descriptors, like the visual-layer props.
         maui::core::property<std::shared_ptr<maui::core::semantics>> semantics_{*this, semantics_property()};

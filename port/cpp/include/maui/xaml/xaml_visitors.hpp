@@ -364,6 +364,18 @@ namespace maui::xaml
                                   const xml_name& property_name);
         void visit_collection_item(const std::any& value, i_xaml_node& node, i_xaml_node& parent_node);
 
+        // W3 — resolve a <Setter> against the enclosing <Style>'s TargetType (walking the node's parent
+        // chain to the Style element node) and add the built setter to the Style's minted shell. The
+        // reflection-free substitute for C#'s BindablePropertyConverter reading the parent Style's
+        // TargetType via IProvideParentValues.ParentObjects.
+        void apply_setter_to_parent_style(element_node& node, i_xaml_node* parent_node);
+
+        // W4 — ApplyPropertiesVisitor.SetTemplate: at a <DataTemplate>'s _CreateContent body node,
+        // install the parent template's per-item loader (a closure owning a clone of `body_node` + a
+        // value snapshot of the load environment), so each stamp lazily inflates a fresh copy of the
+        // captured body. `parent_node` is the <DataTemplate> element node carrying the minted template.
+        void set_template(element_node& body_node, i_xaml_node* parent_node);
+
         hydration_context* context_;
         bool stop_on_resource_dictionary_;
     };

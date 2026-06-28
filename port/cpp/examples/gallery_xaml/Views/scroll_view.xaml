@@ -1,0 +1,49 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="ScrollView">
+    <ScrollView>
+        <VerticalStackLayout Spacing="8">
+            <Label Text="Scrolled to: 0 / 0 (done)" />
+            <Label Text="Row 0 of 40" HeightRequest="40" />
+            <Label Text="Row 1 of 40" HeightRequest="40" />
+            <Label Text="Row 2 of 40" HeightRequest="40" />
+            <Label Text="Row 3 of 40" HeightRequest="40" />
+            <Label Text="Row 4 of 40" HeightRequest="40" />
+            <Label Text="Row 5 of 40" HeightRequest="40" />
+            <Label Text="Row 6 of 40" HeightRequest="40" />
+            <Label Text="Row 7 of 40" HeightRequest="40" />
+            <Label Text="Row 8 of 40" HeightRequest="40" />
+            <Label Text="Row 9 of 40" HeightRequest="40" />
+            <Label Text="Row 10 of 40" HeightRequest="40" />
+            <Label Text="Row 11 of 40" HeightRequest="40" />
+            <Label Text="Row 12 of 40" HeightRequest="40" />
+            <Label Text="Row 13 of 40" HeightRequest="40" />
+            <Label Text="Row 14 of 40" HeightRequest="40" />
+            <Label Text="Row 15 of 40" HeightRequest="40" />
+            <Label Text="Row 16 of 40" HeightRequest="40" />
+            <Label Text="Row 17 of 40" HeightRequest="40" />
+            <Label Text="Row 18 of 40" HeightRequest="40" />
+            <Label Text="Row 19 of 40" HeightRequest="40" />
+            <Label Text="Row 20 of 40" HeightRequest="40" />
+            <Label Text="Row 21 of 40" HeightRequest="40" />
+            <Label Text="Row 22 of 40" HeightRequest="40" />
+            <Label Text="Row 23 of 40" HeightRequest="40" />
+            <Label Text="Row 24 of 40" HeightRequest="40" />
+            <Label Text="Row 25 of 40" HeightRequest="40" />
+            <Label Text="Row 26 of 40" HeightRequest="40" />
+            <Label Text="Row 27 of 40" HeightRequest="40" />
+            <Label Text="Row 28 of 40" HeightRequest="40" />
+            <Label Text="Row 29 of 40" HeightRequest="40" />
+            <Label Text="Row 30 of 40" HeightRequest="40" />
+            <Label Text="Row 31 of 40" HeightRequest="40" />
+            <Label Text="Row 32 of 40" HeightRequest="40" />
+            <Label Text="Row 33 of 40" HeightRequest="40" />
+            <Label Text="Row 34 of 40" HeightRequest="40" />
+            <Label Text="Row 35 of 40" HeightRequest="40" />
+            <Label Text="Row 36 of 40" HeightRequest="40" />
+            <Label Text="Row 37 of 40" HeightRequest="40" />
+            <Label Text="Row 38 of 40" HeightRequest="40" />
+            <Label Text="Row 39 of 40" HeightRequest="40" />
+            <Label Text="End of content" HeightRequest="40" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

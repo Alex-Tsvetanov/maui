@@ -1,0 +1,43 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Image">
+    <ScrollView>
+        <VerticalStackLayout Spacing="6" Padding="12">
+            <Label Text="UriSource" />
+            <Image Source="https://aka.ms/campus.jpg" />
+
+            <Label Text="FileSource" />
+            <Image Source="dotnet_bot.png" BackgroundColor="Purple" />
+
+            <Label Text="Font Image Source" />
+            <Image BackgroundColor="Green">
+                <Image.Source>
+                    <FontImageSource Glyph="&#xf30c;" FontFamily="Ionicons" Size="20" Color="White" />
+                </Image.Source>
+            </Image>
+
+            <Label Text="Font Image Source (auto-scaling)" />
+            <Image BackgroundColor="Green">
+                <Image.Source>
+                    <FontImageSource Glyph="&#xf30c;" FontFamily="Ionicons" Size="90" Color="White"
+                                     FontAutoScalingEnabled="True" />
+                </Image.Source>
+            </Image>
+
+            <Label Text="Animating a gif" />
+            <Switch IsToggled="True" />
+            <Image Source="animated_heart.gif" WidthRequest="200" />
+
+            <Label Text="Stream Source" />
+            <Image Source="stream.png" BackgroundColor="LightPink" />
+
+            <Label Text="Opacity (0.5)" />
+            <Image Source="dotnet_bot.png" BackgroundColor="Black" Opacity="0.5" />
+
+            <Label Text="Animated GIF" />
+            <Image Source="animated_heart.gif" />
+
+            <Button Text="Start/Stop" />
+            <Button Text="Use Online Source" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

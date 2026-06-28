@@ -1,0 +1,32 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Border Alignment">
+    <VerticalStackLayout Spacing="12">
+        <Label Text="Start" HorizontalOptions="Start" />
+        <Border Stroke="Red" StrokeThickness="5" HorizontalOptions="Start">
+            <Grid BackgroundColor="Blue" HeightRequest="40">
+                <Label Text="Start" TextColor="White" />
+            </Grid>
+        </Border>
+
+        <Label Text="Center" HorizontalOptions="Center" />
+        <Border Stroke="Red" StrokeThickness="5" HorizontalOptions="Center">
+            <Grid BackgroundColor="Blue" HeightRequest="40">
+                <Label Text="Center" TextColor="White" />
+            </Grid>
+        </Border>
+
+        <Label Text="End" HorizontalOptions="End" />
+        <Border Stroke="Red" StrokeThickness="5" HorizontalOptions="End">
+            <Grid BackgroundColor="Blue" HeightRequest="40">
+                <Label Text="End" TextColor="White" />
+            </Grid>
+        </Border>
+
+        <Label Text="Fill" HorizontalOptions="Fill" />
+        <Border Stroke="Red" StrokeThickness="5" HorizontalOptions="Fill">
+            <Grid BackgroundColor="Blue" HeightRequest="40">
+                <Label Text="Fill" TextColor="White" />
+            </Grid>
+        </Border>
+    </VerticalStackLayout>
+</ContentPage>

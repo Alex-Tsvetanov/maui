@@ -1,0 +1,55 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="TemplatedView">
+    <StackLayout Padding="12" Spacing="10">
+        <Label Text="A standard CardView control is suitable for grid layouts:"
+               TextColor="Red" FontAttributes="Italic" />
+        <ContentView>
+            <VerticalStackLayout Spacing="2">
+                <Label Text="Slavko Vlasic" FontAttributes="Bold" />
+                <Label Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla elit dolor." />
+            </VerticalStackLayout>
+        </ContentView>
+
+        <Label Text="A ControlTemplate overrides the standard view, creating a more compact view:"
+               TextColor="Red" FontAttributes="Italic" />
+
+        <ContentView>
+            <HorizontalStackLayout Spacing="8">
+                <BoxView Color="SlateGray" CornerRadius="6" WidthRequest="100" HeightRequest="100" />
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Compact card" FontAttributes="Bold" />
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Carolina Pena" FontAttributes="Bold" />
+                        <Label Text="Phasellus eu convallis mi. In tempus augue eu dignissim fermentum." />
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+        </ContentView>
+
+        <ContentView>
+            <HorizontalStackLayout Spacing="8">
+                <BoxView Color="SlateGray" CornerRadius="6" WidthRequest="100" HeightRequest="100" />
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Compact card" FontAttributes="Bold" />
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Wade Blanks" FontAttributes="Bold" />
+                        <Label Text="Aliquam sagittis, odio lacinia fermentum dictum, mi erat scelerisque erat." />
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+        </ContentView>
+
+        <ContentView>
+            <HorizontalStackLayout Spacing="8">
+                <BoxView Color="SlateGray" CornerRadius="6" WidthRequest="100" HeightRequest="100" />
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Compact card" FontAttributes="Bold" />
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Colette Quint" FontAttributes="Bold" />
+                        <Label Text="In pellentesque odio eget augue elementum lobortis. Sed augue massa." />
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+        </ContentView>
+    </StackLayout>
+</ContentPage>

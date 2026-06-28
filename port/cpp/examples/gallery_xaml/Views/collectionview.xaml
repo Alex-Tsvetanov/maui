@@ -1,0 +1,38 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="CollectionView">
+    <CollectionView Header="This is the header" SelectionMode="Single" ItemsLayout="VerticalGrid, 3">
+        <CollectionView.ItemsSource>
+            <x:Array Type="{x:Type x:String}">
+                <x:String>cover1.jpg, 0</x:String>
+                <x:String>oasis.jpg, 1</x:String>
+                <x:String>Vegetables.jpg, 2</x:String>
+                <x:String>Fruits.jpg, 3</x:String>
+                <x:String>FlowerBuds.jpg, 4</x:String>
+                <x:String>Legumes.jpg, 5</x:String>
+                <x:String>photo.jpg, 6</x:String>
+                <x:String>cover1.jpg, 7</x:String>
+                <x:String>oasis.jpg, 8</x:String>
+                <x:String>Vegetables.jpg, 9</x:String>
+                <x:String>Fruits.jpg, 10</x:String>
+                <x:String>FlowerBuds.jpg, 11</x:String>
+                <x:String>Legumes.jpg, 12</x:String>
+                <x:String>photo.jpg, 13</x:String>
+                <x:String>cover1.jpg, 14</x:String>
+                <x:String>oasis.jpg, 15</x:String>
+                <x:String>Vegetables.jpg, 16</x:String>
+                <x:String>Fruits.jpg, 17</x:String>
+                <x:String>FlowerBuds.jpg, 18</x:String>
+                <x:String>Legumes.jpg, 19</x:String>
+                <x:String>photo.jpg, 20</x:String>
+                <x:String>cover1.jpg, 21</x:String>
+                <x:String>oasis.jpg, 22</x:String>
+                <x:String>Vegetables.jpg, 23</x:String>
+            </x:Array>
+        </CollectionView.ItemsSource>
+        <CollectionView.ItemTemplate>
+            <DataTemplate>
+                <Label Text="{Binding .}" Margin="6" />
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+</ContentPage>

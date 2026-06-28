@@ -239,11 +239,11 @@ namespace maui::core
         {
             return;
         }
-        // The ButtonExtensions.UpdateTextColor recipe; the tintColor also tints the SF-symbol
-        // indicator, the fallback's stand-in for the template's themed Ellipse strokes. An unset
-        // TextColor (BindableObject.IsSet false) must resolve to the dynamic system label color, NOT a
-        // clear/opaque-black tint that hides BOTH the title AND the circle on dark backgrounds — keying
-        // off is_property_set so an explicit TextColor=Black is not misread as unset. Explicit wins.
+        // The ButtonExtensions.UpdateTextColor recipe applies TextColor to the TITLE only. The SF-symbol
+        // radio indicator (the fallback's stand-in for the template's themed Ellipse) must NOT track the
+        // content TextColor: MAUI keeps the ring at the default label color, so e.g. a red-text option still
+        // shows a black ring. Keying off is_property_set so an explicit TextColor=Black is not misread as
+        // unset. Explicit wins.
         UIButton* const button = as_button(platform->native);
         const auto* const bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
         const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
@@ -251,7 +251,9 @@ namespace maui::core
         [button setTitleColor:color forState:UIControlStateNormal];
         [button setTitleColor:color forState:UIControlStateHighlighted];
         [button setTitleColor:color forState:UIControlStateDisabled];
-        button.tintColor = color;
+        // Ring indicator pinned to the dynamic system label color (NOT the content TextColor) — matches MAUI,
+        // and still visible on both light and dark backgrounds.
+        button.tintColor = UIColor.labelColor;
         refresh_radio_title_formatting(button, view);
     }
 

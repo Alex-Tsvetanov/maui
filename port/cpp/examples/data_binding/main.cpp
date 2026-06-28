@@ -1,101 +1,65 @@
-// data_binding — a view-model bound to a control, kept in sync automatically.
+// data_binding — a view-model bound to controls, kept in sync automatically (idiomatic maui::ui).
 //
-// ONE concept: binding a control property to a view-model property by NAME, the code-first analog of
-// MAUI's `<Label Text="{Binding Message}" />`. The pieces:
-//   - A view-model is a `bindable_object` holding `property<T>` members. Each property self-registers
-//     under its descriptor name (here "message"), so a string-path binding can resolve it — no
-//     reflection.
-//   - We set the view-model as the label's BindingContext, then `set_binding("text", "message")`. The
-//     label's Text now tracks vm.message: change the source and the label re-renders itself.
-//   - An entry drives the view-model: on each keystroke the handler raises `text_changed`, and we push
-//     the new value into vm.message — which flows through the binding back out to the label.
+// ONE concept: TYPED binding. The view-model holds a maui::core::observable<std::string> — ONE member, no
+// descriptor boilerplate. `ui::bind(control, &Ctrl::set_x).to(vm.obs)` wires a one-way binding that routes
+// writes through the control's real set_*; the two-way form (.to_two_way) also takes the getter + change
+// event, so the entry drives the view-model and the view-model drives the greeting label. A wrong property
+// is a COMPILE error here, not a silently dead string binding. The tree is built with the owning builder.
 //
-// This is one-directional VM->label binding plus a manual entry->VM push, the smallest end-to-end loop
-// that shows the binding actually propagating. 100% PORTABLE C++: no platform headers.
+// 100% PORTABLE C++: no platform headers.
 
 #include "maui/maui_main.hpp"
 
-#include "maui/controls/application.hpp"
+#include "maui/ui.hpp"
+
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/entry.hpp"
 #include "maui/controls/label.hpp"
-#include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/controls/window.hpp"
 #include "maui/core/bindable_object.hpp"
-#include "maui/core/bindable_property.hpp"
-#include "maui/core/binding_mode.hpp"
-#include "maui/core/event.hpp"
-#include "maui/core/property.hpp"
+#include "maui/core/binding.hpp"
 
-#include <memory>
 #include <string>
 
-// ---- The view-model: a bindable_object with one named, observable property ----
+namespace ui = maui::ui;
+
+// The view-model: a bindable_object with one observable property — no static descriptor, no member wiring.
 class greeting_view_model : public maui::core::bindable_object
 {
 public:
-    // The shared descriptor names the property "message" — the exact string a binding path resolves.
-    static const maui::core::bindable_property<std::string>& message_property()
-    {
-        static const maui::core::bindable_property<std::string> descriptor{"message"};
-        return descriptor;
-    }
-
-    // The per-instance value slot. Constructing it self-registers "message" on this object, so
-    // set_binding("text", "message") finds it. `.changed` fires on every set, driving bound targets.
-    maui::core::property<std::string> message{*this, message_property()};
+    maui::core::observable<std::string> message{*this, "message", "World"};
 };
 
-class data_binding_app : public maui::controls::application
+class data_binding_app : public ui::app
 {
 public:
     data_binding_app()
     {
-        view_model_ = std::make_shared<greeting_view_model>();
-        view_model_->message.set("World");
+        auto prompt = ui::label("Type a name; the greeting updates live:");
+        auto input = ui::entry();
+        input->set_placeholder("name"); // long-tail property via the operator-> escape
+        auto greeting = ui::label();
 
-        prompt_.set_text("Type a name; the greeting updates live:");
-        input_.set_placeholder("name");
-        input_.set_text("World");
+        // Typed bindings, wired while we still hold the named handles (the controls are heap-stable, so the
+        // references survive the move into the builder). greeting tracks the view-model one-way; the entry
+        // is two-way (it both reads from and writes to vm.message).
+        greeting_binding_ = ui::bind(greeting.impl(), &maui::controls::label::set_text).to(view_model_.message);
+        input_binding_ = ui::bind(input.impl(), &maui::controls::entry::set_text, &maui::controls::entry::text,
+                                  &input.impl().text_changed)
+                             .to_two_way(view_model_.message);
 
-        // Bind the label's Text to the view-model's "message" property. First give the label the
-        // view-model as its binding context, then declare the binding by property name + source path.
-        greeting_.set_binding_context(view_model_);
-        greeting_.set_binding("text", "message", maui::core::binding_mode::one_way);
-
-        // Drive the view-model from the entry: every edit pushes the new text into vm.message, which the
-        // binding propagates out to the label. (The handler passes old + new; we only need the new value.)
-        text_token_ = maui::core::connect_scoped(
-            input_.text_changed, [this](const std::string& /*old_value*/, const std::string& new_value) {
-                view_model_->message.set(new_value);
-            });
-
-        root_.set_padding(maui::core::thickness{16.0});
-        root_.set_spacing(12.0);
-        root_.add(prompt_);
-        root_.add(input_);
-        root_.add(greeting_);
-
-        page_.set_content(root_);
-        window_.set_content(page_);
-        window_.set_title("Data Binding");
-    }
-
-    maui::core::i_window* create_window() override
-    {
-        return &window_;
+        set_content(ui::page(ui::vstack(std::move(prompt), std::move(input), std::move(greeting))
+                                 .spacing(12)
+                                 .padding(ui::thickness{16.0})));
+        set_title("Data Binding");
     }
 
 private:
-    std::shared_ptr<greeting_view_model> view_model_;
-
-    maui::controls::window window_;
-    maui::controls::content_page page_;
-    maui::controls::vertical_stack_layout root_;
-    maui::controls::label prompt_;
-    maui::controls::entry input_;
-    maui::controls::label greeting_;
-    maui::core::scoped_connection text_token_;
+    greeting_view_model view_model_;
+    // Binding handles are DERIVED members, so they destruct before ui::app's (base) content root + view-model:
+    // they disconnect while the controls and the view-model are still alive.
+    maui::core::binding_handle greeting_binding_;
+    maui::core::binding_handle input_binding_;
 };
 
 maui::hosting::maui_app_builder use_shared_maui_app(maui::hosting::maui_app_builder builder)

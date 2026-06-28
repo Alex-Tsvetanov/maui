@@ -531,9 +531,10 @@ namespace maui::core
         auto* platform = handler.typed_platform_view();
         if (platform != nullptr)
         {
-            // TextViewExtensions.UpdateFont with UIFont.LabelFontSize as the control default.
+            // TextViewExtensions.UpdateFont's effective control default is MAUI's FontSize creator value
+            // (SystemFontSize), not the LabelFontSize fallback — see default_text_font_size().
             MauiIosEditorTextView* const text_view = as_text_view(platform->native);
-            text_view.font = to_ui_font(view.font(), static_cast<double>(UIFont.labelFontSize));
+            text_view.font = to_ui_font(view.font(), maui::platform::ios::default_text_font_size());
             // MauiTextView.Font setter → UpdatePlaceholderFont: the placeholder tracks the editor's font.
             sync_placeholder_style(text_view, view);
         }

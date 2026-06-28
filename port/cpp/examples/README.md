@@ -21,6 +21,29 @@ backends; only the build helper (`cmake/maui_add_app.cmake`) is platform-aware.
   Run a page: `MAUI_SAMPLE_PAGE=pickers ./examples/build/gallery/gallery` (macOS/headless), or on the sim
   `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=pickers xcrun simctl launch booted dev.maui-cpp.ios-gallery`.
 
+### With-XAML twins (`*_xaml`)
+
+`hello_world`, `counter`, `data_binding`, and `layouts` each have a `*_xaml` twin that authors the **same**
+UI as raw XAML markup instead of a hand-written builder, via **compile-time XAML** (`#embed` +
+`maui::build_page`): the compiler embeds the `.xaml` bytes into the binary — no codegen tool, no build step,
+so it cross-compiles to the iOS bundle. Each twin is structured like a MAUI `.xaml`/`.xaml.cs` app, as three
+linked files:
+
+- **`<page>.xaml`** — the markup.
+- **`<page>.xaml.hpp`** — a bodyless declaration of the page-construction function in `namespace examples`,
+  e.g. `std::unique_ptr<maui::controls::content_page> counter_page(std::unique_ptr<counter_view_model>);`
+  (bound pages take the view-model, like the design doc's `LoginPage(std::unique_ptr<LoginViewModel>)`;
+  structural pages take no argument).
+- **`<page>.xaml.cpp`** — a **separate translation unit** implementing it: the `#embed`, `build_page`,
+  `bind_to`, and any `x:Name` code-behind wiring live here (the view-model type is sealed in this TU).
+  Code-behind event tokens are parked on the page with `page->retain(...)` so the function can return the
+  page by value. The view-model, when present, is in its own header (`<vm>.hpp`).
+
+`main.cpp` is then just the app shell — it `#include`s the `.xaml.hpp`, constructs the view-model, calls the
+factory, and hosts the page; it never sees `#embed`/`build_page`. CMake links both TUs:
+`maui_add_app(<name> SOURCES main.cpp <page>.xaml.cpp)`. The twins render pixel-identically to the builder
+examples on device — see [docs/comparison/EXAMPLES_XAML.md](../docs/comparison/EXAMPLES_XAML.md).
+
 ## Building
 
 The examples consume the framework as an external package. There are two modes.
