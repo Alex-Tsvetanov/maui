@@ -681,6 +681,10 @@ if(MAUI_BACKEND STREQUAL "android")
     # both directions (property pushes read back over JNI; performClick → clicked). Links
     # maui_controls so the cross-platform seam is the one under test.
     tests/platform/android_button_tests.cpp
+    # label: the real maui::controls::label + handler drive a real android.widget.TextView — text /
+    # color / font / alignment (TextAlignment + Gravity) / decorations (PaintFlags) / max-lines pushed,
+    # read back over JNI.
+    tests/platform/android_label_tests.cpp
     # (W4-34d) navigation + window: the real navigation_page / window controls + handlers drive a real
     # android.widget.FrameLayout — set window content → the root container hosts it; push/pop → the
     # visible native child swaps; push/pop modal → the overlay child appears/clears.
