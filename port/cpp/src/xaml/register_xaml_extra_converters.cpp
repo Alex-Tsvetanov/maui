@@ -24,6 +24,8 @@
 
 #include "register_xaml_groups.hpp"
 
+#include "maui/detail/charconv_compat.hpp" // portable float from_chars (Android NDK libc++ lacks FP)
+
 #include <array>
 #include <charconv>
 #include <chrono>
@@ -112,8 +114,17 @@ namespace maui::xaml
             }
             const char* first = s.data();
             const char* last = std::next(first, static_cast<std::ptrdiff_t>(s.size()));
-            const auto [ptr, ec] = std::from_chars(first, last, out);
-            return ec == std::errc{} && ptr == last;
+            // Floating T must use the portable shim — the Android NDK libc++ deletes FP from_chars.
+            if constexpr (std::floating_point<T>)
+            {
+                const auto [ptr, ec] = maui::detail::from_chars_general(first, last, out);
+                return ec == std::errc{} && ptr == last;
+            }
+            else
+            {
+                const auto [ptr, ec] = std::from_chars(first, last, out);
+                return ec == std::errc{} && ptr == last;
+            }
         }
 
         [[nodiscard]] constexpr char to_lower_ascii_local(char c) noexcept

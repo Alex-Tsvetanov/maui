@@ -8,6 +8,8 @@
 
 #include "maui/controls/brushes/brush_type_converter.hpp"
 
+#include "maui/detail/charconv_compat.hpp" // portable float from_chars (Android NDK libc++ lacks FP)
+
 #include <algorithm>
 #include <cctype>
 #include <charconv>
@@ -88,7 +90,7 @@ namespace maui::controls
             float v = 0.0F;
             const char* first = s.data();
             const char* last = std::next(first, static_cast<std::ptrdiff_t>(s.size()));
-            const auto [ptr, ec] = std::from_chars(first, last, v);
+            const auto [ptr, ec] = maui::detail::from_chars_general(first, last, v);
             if (ec == std::errc{} && ptr == last)
             {
                 out = v;
