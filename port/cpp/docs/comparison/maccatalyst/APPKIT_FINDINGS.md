@@ -87,6 +87,7 @@ worked before) is unchanged — no regression. appkit_cpp still == appkit_xaml o
 **Switch FIXED** (commit follows): the NeedsContainer arrange framed the inner NSSwitch, not the
 wrapper the layout positioned — now `platform_arrange` frames the container + fills it. All toggles render.
 
-**Still open (separate, smaller gaps):** `image` doesn't show the actual
+**Image FIXED** (get_desired_size returned a {0,0} stub → images measured to nothing; now returns the
+loaded NSImage's aspect-fit size). `image_button` GIF still renders black (separate decode issue). `image` doesn't show the actual
 images; `radio_template_from_style` builder ControlTemplate renders a solid-blue box (cpp-vs-xaml). These
 are NOT the shape-fill bug and are deferred.

@@ -44,6 +44,8 @@
 #include "maui/core/i_image_source.hpp"
 #include "maui/core/i_stream_image_source.hpp" // image_bytes
 #include "maui/core/image_handler.hpp"
+#include <algorithm>
+#include <cmath>
 #include "maui/core/image_source_loader.hpp"
 #include "maui/core/image_source_result.hpp"
 #include "maui/core/uri_bytes.hpp"
@@ -322,11 +324,31 @@ namespace maui::core
         as_image_view(platform.native).image = nil;
     }
 
-    maui::graphics::size image_handler::get_desired_size(double /*width_constraint*/,
-                                                         double /*height_constraint*/) const
+    maui::graphics::size image_handler::get_desired_size(double width_constraint, double height_constraint) const
     {
-        // No image bytes are loaded this cut, so there is no intrinsic content size to report.
-        return {0, 0};
+        // Report the loaded NSImage's intrinsic size, aspect-fit to any finite constraint (mirrors the
+        // iOS SizeThatFitsImage). The image is set on the NSImageView synchronously for file sources, so
+        // its size is available here; the old {0,0} stub made every Image measure to nothing and never show.
+        const auto* platform = typed_platform_view();
+        NSImage* const image = (platform != nullptr && platform->native != nullptr)
+                                   ? as_image_view(platform->native).image
+                                   : nil;
+        if (image == nil || image.size.width <= 0 || image.size.height <= 0)
+        {
+            return {0, 0};
+        }
+        const double w = image.size.width;
+        const double h = image.size.height;
+        double scale = 1.0;
+        if (std::isfinite(width_constraint) && width_constraint < w)
+        {
+            scale = std::min(scale, width_constraint / w);
+        }
+        if (std::isfinite(height_constraint) && height_constraint < h * scale)
+        {
+            scale = std::min(scale, height_constraint / h);
+        }
+        return {w * scale, h * scale};
     }
 
     void image_handler::platform_arrange(const maui::graphics::rect& frame)

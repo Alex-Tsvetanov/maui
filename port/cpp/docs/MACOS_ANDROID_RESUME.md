@@ -40,7 +40,9 @@ Criterion (per user): every coded/XAML element PRESENT in all renders; `appkit_c
   - **switch** — FIXED: `switch_handler::platform_arrange` now frames the CONTAINER (the wrapper the
     layout positioned via NeedsContainer) and fills it with the NSSwitch, instead of framing the bare inner
     NSSwitch. All toggles render; no regression on controls_stack/value_controls.
-  - **image** — NSImageView shows no image (UriSource/FileSource); investigate the apple image handler.
+  - **image** — FIXED: apple image_handler::get_desired_size was a {0,0} stub; now returns the loaded
+    NSImage's aspect-fit size, so Images render (UriSource/FileSource/Font). (image_button GIF still draws
+    black — a separate image_button decode issue.)
   - **radio_template_from_style** — builder ControlTemplate renders a solid-blue box (only cpp-vs-xaml diff).
 
 ## 3. Android — builds + core verified on-device ✅ (UI handlers deferred)
@@ -57,6 +59,5 @@ Each backend builds in its own dir via a CMake option/preset (headless/apple/ios
 per the chosen "enabling options, keep separate dirs" approach.
 
 ## Suggested resume order
-1. AppKit `image` rendering (NSImageView measures to 0 before the async load).
 3. Catalyst collectionview/items spacing (native get_desired_size).
 4. Android: port more control handlers + stand up an Android app host for visual parity.
