@@ -51,12 +51,18 @@
     {
         return;
     }
-    // C# PlatformGraphicsView.Draw: a PlatformCanvas over the current context, Drawable.Draw over
-    // the dirty rect.
+    // C# PlatformGraphicsView.Draw: a PlatformCanvas over the current context, Drawable.Draw over the
+    // draw rect. Pass the view's own BOUNDS, NOT AppKit's dirtyRect: a shape drawable FILLS the rect it
+    // is given, and on a flipped/nested NSView the OS dirtyRect can be the whole window in the view's
+    // coordinate space (e.g. {-220,-296,480,752} for a 40x40 box) — which made every BoxView/shape paint
+    // across the entire window. self.bounds is the shape's real geometry (and matches MAUI, whose
+    // IDrawable.Draw receives the view bounds); the context is already clipped to the OS-invalidated
+    // region, so drawing the full bounds is correct, not wasteful.
+    const NSRect b = self.bounds;
     maui::platform::apple_shared::coregraphics_canvas canvas(context);
-    _drawable->draw(canvas, maui::graphics::rect_f(
-                                static_cast<float>(dirtyRect.origin.x), static_cast<float>(dirtyRect.origin.y),
-                                static_cast<float>(dirtyRect.size.width), static_cast<float>(dirtyRect.size.height)));
+    _drawable->draw(canvas,
+                    maui::graphics::rect_f(static_cast<float>(b.origin.x), static_cast<float>(b.origin.y),
+                                           static_cast<float>(b.size.width), static_cast<float>(b.size.height)));
 }
 
 // ---- the PlatformTouchGraphicsView mouse plumbing ----

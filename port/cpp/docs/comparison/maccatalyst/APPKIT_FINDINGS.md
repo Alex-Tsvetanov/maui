@@ -62,3 +62,28 @@ boot then `setContentSize`/`center`, with no resize re-layout — same class as 
 AppKit is **built + tested**; the dominant remaining work is the systemic shape/layout-fill bug above
 (fixes ~10 pages at once) plus the switch/image gaps and the one builder ControlTemplate divergence.
 Deferred for a focused, instrumented fix (risky to fix blind; the look-difference vs MAUI is by design).
+
+---
+
+## UPDATE 2026-06-29 — systemic shape-fill bug FIXED
+
+Root-caused + fixed the "colored/sized children render as a single solid fill" bug (~10 pages).
+
+**Root cause:** `src/platform/apple/graphics_host.mm` `drawRect:` passed the OS `dirtyRect` to the shape
+drawable as the draw rect. A shape drawable FILLS the rect it is given, and on a flipped/nested NSView the
+OS `dirtyRect` is the whole window expressed in the view's coordinate space (probe showed
+`dirty={-220,-296,480,752}` while `bounds={0,0,40,40}` for a 40×40 BoxView) — so every BoxView/shape
+painted across the entire window.
+
+**Fix:** draw over `self.bounds` (the shape's real geometry) instead of `dirtyRect` — matches MAUI (whose
+`IDrawable.Draw` receives the view bounds); the context is already clipped to the invalidated region, so it
+is correct and not wasteful. One-line change in `drawRect:`.
+
+**Verified (re-captured, AppKit):** vertical_stack_layout (6 squares), box_view (all boxes), grid,
+stack_layout, grid_definitions, relative_layout, flex_layout, absolute_layout, radio_button_content,
+templated_view all render their children correctly now; border_resize_content (shapes inside Borders, which
+worked before) is unchanged — no regression. appkit_cpp still == appkit_xaml on these.
+
+**Still open (separate, smaller gaps):** `switch` toggles don't render; `image` doesn't show the actual
+images; `radio_template_from_style` builder ControlTemplate renders a solid-blue box (cpp-vs-xaml). These
+are NOT the shape-fill bug and are deferred.
