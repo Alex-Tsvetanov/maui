@@ -89,5 +89,5 @@ wrapper the layout positioned — now `platform_arrange` frames the container + 
 
 **Image FIXED** (get_desired_size returned a {0,0} stub → images measured to nothing; now returns the
 loaded NSImage's aspect-fit size). `image_button` GIF still renders black (separate decode issue). `image` doesn't show the actual
-images; `radio_template_from_style` builder ControlTemplate renders a solid-blue box (cpp-vs-xaml). These
-are NOT the shape-fill bug and are deferred.
+images; `radio_template_from_style` was ALSO fixed by the shape-fill fix (its radio ring/dot are shapes) — cpp==xaml now.
+Only remaining AppKit gap: `image_button` Animated GIF draws black (a separate decode issue).

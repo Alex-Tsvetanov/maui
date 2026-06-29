@@ -43,7 +43,9 @@ Criterion (per user): every coded/XAML element PRESENT in all renders; `appkit_c
   - **image** — FIXED: apple image_handler::get_desired_size was a {0,0} stub; now returns the loaded
     NSImage's aspect-fit size, so Images render (UriSource/FileSource/Font). (image_button GIF still draws
     black — a separate image_button decode issue.)
-  - **radio_template_from_style** — builder ControlTemplate renders a solid-blue box (only cpp-vs-xaml diff).
+  - **radio_template_from_style** — FIXED by the shape-fill fix (radio ring/dot are shapes); cpp==xaml.
+  - **image_button Animated GIF** — draws black (route the apple image_button load through the GIF-aware
+    CGImageSource decode the image handler uses). The only remaining AppKit element gap.
 
 ## 3. Android — builds + core verified on-device ✅ (UI handlers deferred)
 `cmake --preset android && cmake --build --preset android -j` (skip the experimental `maui_ui` codegen
