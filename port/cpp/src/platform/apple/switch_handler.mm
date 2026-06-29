@@ -259,6 +259,15 @@ namespace maui::core
         {
             return;
         }
+        // NeedsContainer: the layout positions the CONTAINER (the wrapper that native_child handed it), not
+        // the bare NSSwitch — so frame the wrapper to the arranged rect and let the NSSwitch fill it. Without
+        // this the wrapper kept its setup-time frame and the toggle was mispositioned off-screen.
+        if (platform->container != nullptr)
+        {
+            [(__bridge NSView*)platform->container setFrame:NSMakeRect(frame.x, frame.y, frame.width, frame.height)];
+            [as_switch(platform->native) setFrame:NSMakeRect(0, 0, frame.width, frame.height)];
+            return;
+        }
         [as_switch(platform->native) setFrame:NSMakeRect(frame.x, frame.y, frame.width, frame.height)];
     }
 } // namespace maui::core

@@ -37,10 +37,9 @@ Criterion (per user): every coded/XAML element PRESENT in all renders; `appkit_c
   `drawRect:` drew over the OS `dirtyRect` (the whole window on a flipped/nested NSView) instead of
   `self.bounds`. See `db2433923a` + APPKIT_FINDINGS.md.
 - **Remaining AppKit gaps (deferred, diagnosed):**
-  - **switch** toggles invisible — NeedsContainer arrange gap: apple's generic arrange frames the inner
-    NSSwitch, not the **container** the layout added, so the container keeps its setup-time frame and the
-    switch is mispositioned. Fix in the apple container-arrange path (generic — affects all NeedsContainer
-    controls). `src/platform/apple/switch_handler.mm` on_setup_container + the apple view-arrange/container map.
+  - **switch** — FIXED: `switch_handler::platform_arrange` now frames the CONTAINER (the wrapper the
+    layout positioned via NeedsContainer) and fills it with the NSSwitch, instead of framing the bare inner
+    NSSwitch. All toggles render; no regression on controls_stack/value_controls.
   - **image** — NSImageView shows no image (UriSource/FileSource); investigate the apple image handler.
   - **radio_template_from_style** — builder ControlTemplate renders a solid-blue box (only cpp-vs-xaml diff).
 
@@ -58,7 +57,6 @@ Each backend builds in its own dir via a CMake option/preset (headless/apple/ios
 per the chosen "enabling options, keep separate dirs" approach.
 
 ## Suggested resume order
-1. AppKit `switch` (NeedsContainer container-arrange) — likely fixes other wrapped controls too.
-2. AppKit `image` rendering.
+1. AppKit `image` rendering (NSImageView measures to 0 before the async load).
 3. Catalyst collectionview/items spacing (native get_desired_size).
 4. Android: port more control handlers + stand up an Android app host for visual parity.

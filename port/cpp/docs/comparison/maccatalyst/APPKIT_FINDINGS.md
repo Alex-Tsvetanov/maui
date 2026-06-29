@@ -84,6 +84,9 @@ stack_layout, grid_definitions, relative_layout, flex_layout, absolute_layout, r
 templated_view all render their children correctly now; border_resize_content (shapes inside Borders, which
 worked before) is unchanged — no regression. appkit_cpp still == appkit_xaml on these.
 
-**Still open (separate, smaller gaps):** `switch` toggles don't render; `image` doesn't show the actual
+**Switch FIXED** (commit follows): the NeedsContainer arrange framed the inner NSSwitch, not the
+wrapper the layout positioned — now `platform_arrange` frames the container + fills it. All toggles render.
+
+**Still open (separate, smaller gaps):** `image` doesn't show the actual
 images; `radio_template_from_style` builder ControlTemplate renders a solid-blue box (cpp-vs-xaml). These
 are NOT the shape-fill bug and are deferred.
