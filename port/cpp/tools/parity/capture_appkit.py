@@ -50,7 +50,10 @@ def shot(app_key, key, theme, out_png):
         print(f"  ! missing {a['bin']}")
         return False
     env = dict(os.environ, MAUI_SAMPLE_PAGE=key, MAUI_APPEARANCE=theme)
-    proc = subprocess.Popen([a["bin"]], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # Run from the binary's own directory: the apple plain-exe gallery resolves from_file() resource paths
+    # (dotnet_bot.png, oasis.jpg, ...) against the CWD, and maui_add_app copies the assets next to the binary.
+    proc = subprocess.Popen([a["bin"]], env=env, cwd=os.path.dirname(a["bin"]),
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         time.sleep(3.5)
         osa(f'tell application "System Events" to set frontmost of (first process whose unix id is {proc.pid}) to true')
