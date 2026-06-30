@@ -20,8 +20,14 @@
 //     MauiMaterialButton). AppCompatImageView's only behavioral addition over ImageView that this cut
 //     touches — SetAdjustViewBounds — exists on plain ImageView too (a stock View API since API 16), so the
 //     create + UpdateAspect adjust-view-bounds toggle is ported faithfully. MauiImageView additionally
-//     carries a setClipPath hook (the WrapperView.SetClip analog) the handler does not yet drive — the clip
-//     family is a follow-up wave; the path stays null, so the subclass renders identically to ImageView.
+//     carries a setClipPath hook (the WrapperView.SetClip analog) the handler DRIVES (wave 11): the image's
+//     VisualElement.Clip is masked by clipping the view's onDraw to a native android.graphics.Path. C#'s
+//     ViewExtensions.UpdateClip masks an unwrapped View's WrapperView; the port has no per-control
+//     WrapperView, so the custom MauiImageView clips itself instead (the iOS CAShapeLayer-mask analog —
+//     update_clip below builds the Path + platform_arrange re-frames it, the bounds-dependent reapply_clip
+//     twin). The generic-IView pushes other than Clip still keep ONLY the view_platform_base mirrors (next
+//     bullet). Clip is wired for images only this wave (the gallery's clip pages clip images); a shared
+//     android native-Path clip for any view's VisualElement.Clip is future work (image_handler.hpp note).
 //
 //   - The generic IView property pushes (Visibility / Opacity / IsEnabled / AutomationId / Transform /
 //     FlowDirection / Background / Semantics) are NOT overridden for android on image_platform: the
@@ -95,6 +101,10 @@
 #include "maui/core/image_source_loader.hpp"   // configure_loader parameter type
 #include "maui/core/image_source_result.hpp"
 #include "maui/core/uri_bytes.hpp" // read_uri_bytes (disk fallback)
+#include "maui/graphics/i_shape.hpp"
+#include "maui/graphics/path_f.hpp"
+#include "maui/graphics/path_operation.hpp"
+#include "maui/graphics/point_f.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -106,15 +116,27 @@ namespace
     using maui::platform::android::scoped_env;
 
     // The native widget is dev.mauicpp.MauiImageView (an android.widget.ImageView subclass that can clip
-    // its draw to a native Path — the WrapperView.SetClip analog; the clip wiring is a later wave, the
-    // path stays null here). Because it extends ImageView, every method the handler drives — setImageBitmap,
-    // setScaleType, setAdjustViewBounds, measure/layout, the View surface — resolves through the subclass
-    // (GetMethodID walks the superclasses). The class is dexed by both hosts from src/platform/android/java.
+    // its draw to a native android.graphics.Path — the WrapperView.SetClip analog; the handler now DRIVES
+    // it via setClipPath, see install_clip). Because it extends ImageView, every method the handler drives —
+    // setImageBitmap, setScaleType, setAdjustViewBounds, measure/layout, the View surface — resolves through
+    // the subclass (GetMethodID walks the superclasses). The class is dexed by both hosts from
+    // src/platform/android/java.
     constexpr const char* k_image_view_class = "dev/mauicpp/MauiImageView";
     constexpr const char* k_scale_type_class = "android/widget/ImageView$ScaleType";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
     constexpr const char* k_bitmap_factory_class = "android/graphics/BitmapFactory";
     constexpr const char* k_bitmap_class = "android/graphics/Bitmap";
+    // The android.graphics.Path class the clip mask is built into (the WrapperView.SetClip → CAShapeLayer
+    // analog, expressed as a Path the view's onDraw clips to). Same class android_canvas builds its shape
+    // paths from — duplicated here (not shared) so the two TUs stay independently buildable, exactly as the
+    // box/border android partials each carry their own corner_radii_of. The Path keeps its DEFAULT WINDING
+    // (non-zero) fill type: WrapperView.SetClip installs a plain CAShapeLayer mask whose fill rule is the
+    // CoreAnimation default kCAFillRuleNonZero (the iOS apply_clip sets no even-odd), so a GeometryGroup's
+    // EvenOdd rule — which lives on the concrete geometry_group, NOT on the i_shape seam path_for_bounds
+    // exposes — is not conveyed on either backend. Matching the iOS reference (the ground truth) means the
+    // non-zero union, not an even-odd hollow. // TODO: thread a fill rule through i_shape if a future page
+    // depends on the even-odd hollow centre (it would diverge from the current iOS render).
+    constexpr const char* k_path_class = "android/graphics/Path";
 
     // GeometryUtil.Epsilon — ContextExtensions.ToPixels subtracts it before ceiling (see to_pixels).
     constexpr double k_to_pixels_epsilon = 0.0000000001;
@@ -435,6 +457,169 @@ namespace
         env->CallVoidMethod(widget, set_bitmap, bitmap);
         clear_pending(env);
     }
+
+    // ---- clip: i_shape → android.graphics.Path (the WrapperView.SetClip / CAShapeLayer-mask analog) ----
+    // The view's onDraw (MauiImageView.onDraw) clips the bitmap draw to a native Path the handler installs
+    // via setClipPath. The Path is built here from the clip geometry resolved against the view's CURRENT
+    // bounds, in the View's PIXEL coordinate space — onDraw applies no density scale (super.onDraw blits the
+    // bitmap in raw view pixels), unlike android_canvas which scales the Canvas by density and feeds points.
+    // So this builder emits pixel coordinates: it resolves path_for_bounds against the bounds in POINTS, then
+    // multiplies every coordinate by `density` as it walks the path into the android.graphics.Path.
+
+    // Build `path` (a path_f in POINT coordinates) into a fresh android.graphics.Path scaled to PIXELS by
+    // `density`. Empty local ref on any JNI failure. The walk mirrors android_canvas::build_path 1:1
+    // (move/line/quad/cubic/arc/close) — duplicated, not shared, so the image partial stays independently
+    // buildable (the same doctrine the box/border partials' corner_radii_of follow). Arc mapping matches
+    // android_canvas exactly: android's arcTo angles are clockwise from +x and the framework's are
+    // counter-clockwise, so the start is negated and the sweep sign-adjusted.
+    [[nodiscard]] local_ref<jobject> build_clip_path(JNIEnv* env, const maui::graphics::path_f& path, float density)
+    {
+        auto& cache = default_jni_cache();
+        jclass path_class = cache.find_class(env, k_path_class);
+        jmethodID path_ctor = cache.method(env, k_path_class, "<init>", "()V");
+        jmethodID move_to = cache.method(env, k_path_class, "moveTo", "(FF)V");
+        jmethodID line_to = cache.method(env, k_path_class, "lineTo", "(FF)V");
+        jmethodID quad_to = cache.method(env, k_path_class, "quadTo", "(FFFF)V");
+        jmethodID cubic_to = cache.method(env, k_path_class, "cubicTo", "(FFFFFF)V");
+        jmethodID close = cache.method(env, k_path_class, "close", "()V");
+        jmethodID arc_to = cache.method(env, k_path_class, "arcTo", "(FFFFFFZ)V");
+        if (path_class == nullptr || path_ctor == nullptr || move_to == nullptr || line_to == nullptr ||
+            quad_to == nullptr || cubic_to == nullptr || close == nullptr)
+        {
+            return {};
+        }
+        local_ref<jobject> path_obj{env, env->NewObject(path_class, path_ctor)};
+        if (clear_pending(env) || !path_obj)
+        {
+            return {};
+        }
+        const auto s = static_cast<jfloat>(density);
+        int point_index = 0;
+        int arc_angle_index = 0;
+        int arc_clockwise_index = 0;
+        const auto& operations = path.segment_types();
+        for (const auto type : operations)
+        {
+            switch (type)
+            {
+                case maui::graphics::path_operation::move: {
+                    const maui::graphics::point_f p = path[point_index++];
+                    env->CallVoidMethod(path_obj.get(), move_to, p.x * s, p.y * s);
+                    break;
+                }
+                case maui::graphics::path_operation::line: {
+                    const maui::graphics::point_f p = path[point_index++];
+                    env->CallVoidMethod(path_obj.get(), line_to, p.x * s, p.y * s);
+                    break;
+                }
+                case maui::graphics::path_operation::quad: {
+                    const maui::graphics::point_f control = path[point_index++];
+                    const maui::graphics::point_f end = path[point_index++];
+                    env->CallVoidMethod(path_obj.get(), quad_to, control.x * s, control.y * s, end.x * s, end.y * s);
+                    break;
+                }
+                case maui::graphics::path_operation::cubic: {
+                    const maui::graphics::point_f c1 = path[point_index++];
+                    const maui::graphics::point_f c2 = path[point_index++];
+                    const maui::graphics::point_f end = path[point_index++];
+                    env->CallVoidMethod(path_obj.get(), cubic_to, c1.x * s, c1.y * s, c2.x * s, c2.y * s, end.x * s,
+                                        end.y * s);
+                    break;
+                }
+                case maui::graphics::path_operation::arc: {
+                    const maui::graphics::point_f top_left = path[point_index++];
+                    const maui::graphics::point_f bottom_right = path[point_index++];
+                    const float start_angle = path.get_arc_angle(arc_angle_index++);
+                    const float end_angle = path.get_arc_angle(arc_angle_index++);
+                    const bool clockwise = path.get_arc_clockwise(arc_clockwise_index++);
+                    // Path.arcTo(left,top,right,bottom,startAngle,sweepAngle,forceMoveTo) — the RectF-less
+                    // overload (a Path method since API 21); the oval is the arc's bounding box in pixels.
+                    float sweep = -(end_angle - start_angle);
+                    if (!clockwise && sweep > 0)
+                    {
+                        sweep -= 360.0F;
+                    }
+                    else if (clockwise && sweep < 0)
+                    {
+                        sweep += 360.0F;
+                    }
+                    env->CallVoidMethod(path_obj.get(), arc_to, top_left.x * s, top_left.y * s, bottom_right.x * s,
+                                        bottom_right.y * s, static_cast<jfloat>(-start_angle),
+                                        static_cast<jfloat>(sweep), static_cast<jboolean>(false));
+                    break;
+                }
+                case maui::graphics::path_operation::close:
+                    env->CallVoidMethod(path_obj.get(), close);
+                    break;
+            }
+            clear_pending(env);
+        }
+        return path_obj;
+    }
+
+    // Resolve the image's CURRENT pixel size (getWidth/getHeight). {0,0} before the first layout (the view
+    // has not been measured/laid out yet) — install_clip skips building a path against a 0-sized view, the
+    // same 0×0-at-map-time guard the iOS twin handles by re-framing from platform_arrange.
+    struct pixel_size
+    {
+        jint width;
+        jint height;
+    };
+    [[nodiscard]] pixel_size view_pixel_size(JNIEnv* env, jobject widget)
+    {
+        auto& cache = default_jni_cache();
+        jmethodID get_width = cache.method(env, k_image_view_class, "getWidth", "()I");
+        jmethodID get_height = cache.method(env, k_image_view_class, "getHeight", "()I");
+        if (get_width == nullptr || get_height == nullptr)
+        {
+            return {.width = 0, .height = 0};
+        }
+        const jint w = env->CallIntMethod(widget, get_width);
+        const jint h = env->CallIntMethod(widget, get_height);
+        if (clear_pending(env))
+        {
+            return {.width = 0, .height = 0};
+        }
+        return {.width = w, .height = h};
+    }
+
+    // Install (or clear, when shape is null) the clip path on the MauiImageView. Resolves the geometry
+    // against the view's live bounds (in points = pixels / density), builds the pixel-space Path, and calls
+    // setClipPath(path) — or setClipPath(null) to remove the mask (the WrapperView.SetClip(null) analog).
+    // Called from update_clip (the map-time push) AND platform_arrange (the bounds-dependent reapply — the
+    // iOS reapply_clip twin: the geometry resolves against the live frame, so a resize must rebuild it).
+    void install_clip(JNIEnv* env, jobject widget, const maui::graphics::i_shape* shape, float density)
+    {
+        jmethodID set_clip_path =
+            default_jni_cache().method(env, k_image_view_class, "setClipPath", "(Landroid/graphics/Path;)V");
+        if (set_clip_path == nullptr)
+        {
+            return;
+        }
+        if (shape == nullptr)
+        {
+            env->CallVoidMethod(widget, set_clip_path, static_cast<jobject>(nullptr)); // remove the mask
+            clear_pending(env);
+            return;
+        }
+        const pixel_size size = view_pixel_size(env, widget);
+        if (size.width <= 0 || size.height <= 0 || !(density > 0))
+        {
+            return; // not laid out yet (0×0) — platform_arrange re-installs once the view has bounds
+        }
+        // WrapperView.SetClip resolves the geometry against RectF(0, 0, frame.Width, frame.Height) in POINTS;
+        // the view's point-size is its pixel-size / density.
+        const auto width_pt = static_cast<float>(size.width) / density;
+        const auto height_pt = static_cast<float>(size.height) / density;
+        const maui::graphics::path_f path = shape->path_for_bounds(maui::graphics::rect{0, 0, width_pt, height_pt});
+        const local_ref<jobject> path_obj = build_clip_path(env, path, density);
+        if (!path_obj)
+        {
+            return;
+        }
+        env->CallVoidMethod(widget, set_clip_path, path_obj.get());
+        clear_pending(env);
+    }
 } // namespace
 
 namespace maui::core
@@ -453,6 +638,31 @@ namespace maui::core
             }
             native = nullptr;
         }
+    }
+
+    // ViewMapper map_clip → WrapperView.SetClip: mask the MauiImageView's onDraw to the clip geometry. The
+    // shared view_mapper drives this through view_platform_base::update_clip (view_mapper.cpp). The base body
+    // runs FIRST (the headless mirror — view_platform_base::clip — must stay live for the VM-less
+    // cross-platform suite), then the native push installs the android.graphics.Path. The geometry resolves
+    // against the view's LIVE bounds (0×0 before the first layout — platform_arrange re-installs it then, the
+    // iOS reapply_clip analog), so the borrow is stashed in clip_shape for that bounds-dependent reapply.
+    // Wave 11: this is the one generic-IView push wired for the image on android (header note); the rest keep
+    // only the base mirror.
+    void image_platform::update_clip(const maui::graphics::i_shape* value)
+    {
+        view_platform_base::update_clip(value); // headless mirror first (the VM-less suite observes it)
+        clip_shape = value;                     // the borrow platform_arrange re-resolves against live bounds
+        if (native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        jobject widget = widget_of(*this);
+        install_clip(env.get(), widget, value, display_density(env.get(), widget));
     }
 
     std::unique_ptr<image_platform> image_handler::create_platform_view()
@@ -773,6 +983,15 @@ namespace maui::core
         }
         env->CallVoidMethod(widget, layout, left, top, left + width, top + height);
         clear_pending(env.get());
+        // Re-install the clip mask against the just-laid-out bounds (the iOS reapply_clip analog): the clip
+        // geometry resolves against the live frame, and update_clip may have run before the first layout when
+        // the view was 0×0 (install_clip skipped it then). A resize likewise lands here, so the Path tracks
+        // the new size. Only when a clip is stashed — an unclipped image never needs a re-mask (reapply_clip
+        // likewise early-returns when nothing is stashed); the null-clear path is owned by update_clip.
+        if (platform->clip_shape != nullptr)
+        {
+            install_clip(env.get(), widget, platform->clip_shape, density);
+        }
     }
 
     // No display-density seam on android this cut (the loader's defaults run inline): pass the loader's

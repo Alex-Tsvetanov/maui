@@ -73,6 +73,13 @@ namespace maui::core
         // animation state instead — on apple IsAnimationPlaying drives native GIF frame cycling).
         bool opaque = false;
         bool animation_playing = false;
+        // Non-owning borrow of the last-mapped clip geometry (VisualElement.Clip / IView.Clip), refreshed on
+        // every update_clip incl. the null clear. The Android backend re-resolves it against the LIVE bounds
+        // from platform_arrange (the iOS reapply_clip analog — the clip path is bounds-dependent, so a resize
+        // must rebuild + reinstall it). Null when no clip is set. The control owns the shape's lifetime
+        // (controls/view.hpp holds it by shared_ptr); this is only the const* borrow, exactly as the iOS
+        // store_clip_shape stash. Unused on headless/Apple (Apple stashes via an associated object instead).
+        const maui::graphics::i_shape* clip_shape = nullptr;
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSImageView (defined in
@@ -110,6 +117,22 @@ namespace maui::core
         // Clip IS pushed: WrapperView.SetClip masks the UIImageView's layer (the shared
         // apply_and_store_clip; the handler's platform_arrange re-frames the mask to the live bounds, the
         // 0×0-at-map-time fix).
+        void update_clip(const maui::graphics::i_shape* value) override;
+#endif
+
+#ifdef MAUI_PLATFORM_ANDROID
+        // Android backend (wave 11): the ONE generic-IView push wired for the image so far is Clip
+        // (VisualElement.Clip / IView.Clip). The C# ViewExtensions.UpdateClip masks a WrapperView; the port
+        // has no per-control WrapperView, so the clip rides the custom dev.mauicpp.MauiImageView, which
+        // clips its own onDraw to a native android.graphics.Path the handler installs via setClipPath (the
+        // CAShapeLayer-mask analog). update_clip builds that Path from the shape resolved against the view's
+        // CURRENT bounds and stashes the borrow in clip_shape so platform_arrange can rebuild + reinstall it
+        // on a resize (the iOS reapply_clip analog — the geometry is bounds-dependent). A null clip clears
+        // the path. The remaining generic-IView pushes keep the view_platform_base mirrors (the image_platform
+        // android override block is otherwise out of scope — see the deviations note in image_handler.cpp).
+        // This wave scopes clip to images only (the target pages clip images); generalizing the same
+        // native-Path-clip to any view's VisualElement.Clip (a shared android clip op + a custom-View host
+        // per control) is future work. // TODO: a shared android clip op once more controls need a native clip.
         void update_clip(const maui::graphics::i_shape* value) override;
 #endif
     };

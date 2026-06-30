@@ -4,12 +4,15 @@
 // src/platform/ios/image_handler.mm image_platform::update_clip + ios_visual_ops apply_and_store_clip).
 //
 // WHY A CUSTOM SUBCLASS (not setClipToOutline): Android's ViewOutlineProvider + setClipToOutline only
-// supports CONVEX outlines, so it cannot express the gallery's clip geometries — a GeometryGroup with
-// FillRule=EvenOdd (four overlapping ellipses leaving a hollow centre) or an arbitrary PathGeometry.
-// Clipping the Canvas to the native-built Path in onDraw expresses the SAME arbitrary-shape model the
-// iOS CAShapeLayer mask does, including the even-odd fill rule (the native path builder sets the Path's
-// fill type), so the whole clip family (Rectangle/Ellipse/RoundRectangle/GeometryGroup/PathGeometry)
-// renders identically to the iOS reference.
+// supports CONVEX outlines, so it cannot express the gallery's clip geometries — an arbitrary PathGeometry
+// (a triangle) or a multi-ellipse GeometryGroup. Clipping the Canvas to the native-built Path in onDraw
+// expresses the SAME arbitrary-shape model the iOS CAShapeLayer mask does (a non-convex mask of any shape),
+// so the whole clip family (Rectangle/Ellipse/RoundRectangle/GeometryGroup/PathGeometry) renders to match
+// the iOS reference. The Path's own fill type carries the fill rule: Canvas.clipPath honours whatever the
+// handler set on the Path. The handler builds it with the default WINDING (non-zero) rule, matching the
+// iOS WrapperView.SetClip mask (a plain CAShapeLayer whose fill rule is the CoreAnimation default
+// kCAFillRuleNonZero) — so a GeometryGroup clips to the non-zero union, exactly as the iOS reference does
+// (the EvenOdd hollow centre is not conveyed on either backend; see image_handler.cpp install_clip).
 //
 // WHY ImageView(Context) (theme-independent ctor): like MauiShapeView/MauiLayout, the bare app_process
 // widget test host has no Activity theme, so a ctor resolving a defStyleAttr would throw there.
