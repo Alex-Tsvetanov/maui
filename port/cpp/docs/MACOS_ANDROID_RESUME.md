@@ -57,7 +57,8 @@ core suites still **509 on-device** (graphics 207 / core 146 / layout 116 / anim
 `#ifdef MAUI_PLATFORM_ANDROID` override block + a CMake fan-out pair + emulator seam tests):
 button, navigation, window (pre-existing) · **label** (TextView — 14 tests) · **progress_bar** (ProgressBar
 horizontal — 7) · **activity_indicator** (ProgressBar indeterminate — 4) · **image** (ImageView — 6) ·
-**editor** (EditText — handler compiles + wired; seam test deferred, see lesson 3). The recipe: port
+**slider** (SeekBar — 15) · **editor** / **switch** / **check_box** (handlers compile + wired; seam tests
+deferred to the app host — see lesson 3). The recipe: port
 `<Ctrl>Handler.Android.cs` → a partial mirroring `button_handler.cpp` (scoped_env/app_context VM-less
 guards, headless-mirror-first then widget push, `default_jni_cache`, global-ref lifecycle, to_pixels/density).
 Hand-port the foundational ones; agent-port the rest via `code-changes` agents (button + label + editor are
@@ -69,19 +70,25 @@ platform partial swaps via the CMake `list(REMOVE_ITEM headless…)/list(APPEND 
    `GetFieldID` = instance-only → returns null for statics; there is no `static_field()` — call `env`
    directly). Bit progress_bar (`R.style`) + activity_indicator (`PorterDuff.Mode`).
 2. **Theme-dependent widget ctors throw in the bare `app_process` testhost** (no Activity theme): the default
-   ctors of horizontal-ProgressBar (`progressBarStyleHorizontal`) and EditText (`editTextStyle`) resolve a
-   theme style attr. Construct theme-independently — 4-arg `(Context, null, 0, R.style.X)` or 3-arg
-   `(Context, null, 0)` with `defStyleAttr=0` — plus a plain-ctor fallback. (TextView/Button are fine.)
-3. **EditText cannot be constructed in the `app_process` testhost at all** — its `Editor` eagerly queries
-   Settings/DeviceConfig (`SelectionActionModeHelper` → `TextClassificationConstants`), which the shell-uid
-   (2000) process may not reach → `SecurityException`. So **editor/entry/search_bar (any EditText) can only
-   be verified via a real Activity** (the Android app host). Their seam-test files are kept but unwired.
+   ctors of horizontal-ProgressBar (`progressBarStyleHorizontal`), SeekBar (`seekBarStyle`), EditText
+   (`editTextStyle`) resolve a theme style attr. Construct theme-independently with the **4-arg
+   `(Context, null, 0, R.style.X)`** ctor (defStyleRes — e.g. `Widget_ProgressBar_Horizontal`, `Widget_SeekBar`)
+   so the widget keeps its drawables + intrinsic size; the 3-arg `defStyleAttr=0` form constructs but yields a
+   drawable-less, **size-0** widget (slider's measure→0). Always add a plain-ctor fallback. (TextView/Button OK.)
+3. **TextView-derived INTERACTIVE widgets cannot be constructed in the testhost at all** — their ctor's
+   `setText` triggers a Settings/DeviceConfig ContentProvider query the shell-uid (2000) process may not reach
+   → `SecurityException`. EditText: `Editor`→`SelectionActionModeHelper`→`TextClassificationConstants`.
+   Switch/CheckBox: `notifyListeningManagersAfterTextChanged`→`AutofillManager`. So **editor/entry/switch/
+   check_box/search_bar (EditText- or CompoundButton-based) can only be verified via a real Activity** (the app
+   host); their seam-test files are kept but unwired. Non-text widgets (View/ProgressBar/ImageView/SeekBar) +
+   plain Button/TextView construct fine.
 
-**Remaining Android work:** entry (hand-port the EditText handler — no testhost seam test possible) + ~20 more
-controls (slider/switch/check_box/stepper/picker/date+time_picker/search_bar/border/box_view/shapes/…) +
-**the Android app host** (a real Activity that mounts the view tree) — now the critical path, since it is the
-only route to on-device VISUAL parity (the user's acceptance criterion) AND the only way to verify
-EditText-backed controls. See `docs/ANDROID_STATUS.md`.
+**Remaining Android work:** **the Android app host** is the clear critical path (a real Activity/APK that mounts
+the maui view tree + an emulator screenshot pipeline) — the ONLY route to on-device VISUAL parity (the user's
+acceptance criterion) AND the only way to verify the app-host-only controls above. With ~9 handlers already
+rendering, simple gallery pages can show meaningful content once it exists. Then continue the fan-out for the
+rest (entry, stepper, picker, date+time_picker, search_bar, border, box_view, shapes/…) — non-text ones
+seam-test in the testhost, text/interactive ones verify in the app host. See `docs/ANDROID_STATUS.md`.
 
 ## Build-system note
 Each backend builds in its own dir via a CMake option/preset (headless/apple/ios/maccatalyst/android),
