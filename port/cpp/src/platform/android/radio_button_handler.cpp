@@ -36,13 +36,22 @@
 //     group's mutual exclusion unchecks the others at the Controls layer (radio_button_group), never here.
 //   - The stroke / corner-radius / background BORDER (RadioButtonExtensions.UpdateBorderDrawable: a custom
 //     Microsoft.Maui.Platform.BorderDrawable set as the widget Background, carrying SetBackground /
-//     SetBorderBrush / SetBorderWidth / SetCornerRadius) is DEFERRED — that drawable is a large
-//     Android-Graphics subsystem (Canvas/Path/Paint) not yet ported to this backend, the same class of gap
-//     label_handler.cpp documents for gradient/image backgrounds. The headless mirrors (stroke_color /
-//     stroke_thickness / corner_radius) are kept ALWAYS live so the VM-less cross-platform suite still
-//     observes them; map_background pushes the SOLID fill via the shared android background op (the
-//     null-vs-paint ViewExtensions.UpdateBackground twin) and the border overlay is the only deferred part.
-//     // TODO: verify against RadioButtonExtensions.UpdateBorderDrawable once BorderDrawable is ported.
+//     SetBorderBrush / SetBorderWidth / SetCornerRadius) is expressed with the SAME GradientDrawable
+//     stand-in the button partial uses (src/platform/android/button_handler.cpp's update_button_stroke):
+//     ONE android.graphics.drawable.GradientDrawable installed as the RadioButton's BACKGROUND, with
+//       - the generic IView background paint → GradientDrawable.setColor(argb)        (the fill)
+//       - i_radio_button::stroke_color()     → GradientDrawable.setStroke(widthPx, argb) (the border brush)
+//       - i_radio_button::stroke_thickness() → that setStroke width (dp → px via ToPixels)
+//       - i_radio_button::corner_radius()    → GradientDrawable.setCornerRadius(px)    (the rounded corner)
+//     The RadioButton's selectable-circle glyph is its buttonDrawable (a SEPARATE slot from background), so
+//     installing a GradientDrawable as the background draws the border around the whole widget WITHOUT
+//     removing the circle — exactly the iOS reference (a colored rounded border around the whole option
+//     row, the circle glyph intact). The drawable is installed LAZILY — only once the radio carries a
+//     visible stroke, a positive corner radius, or a background paint — so an untouched radio keeps its
+//     default theme background. Lossy only for the BorderDrawable surface at large (gradient brushes, dash
+//     patterns, per-corner-distinct radii) the GradientDrawable cannot express, the same scope the button /
+//     border partials document. The headless mirrors (stroke_color / stroke_thickness / corner_radius) are
+//     kept ALWAYS live so the VM-less cross-platform suite still observes them.
 //
 // VM-less degradation: the android preset also runs the PURE-NATIVE cross-platform suite on the emulator
 // where no Java VM exists. Every JNI path here checks scoped_env/app_context() and quietly skips, while
@@ -61,7 +70,6 @@
 
 #include "android_semantics_ops.hpp"
 #include "android_view_ops.hpp"
-#include "android_visual_ops.hpp"
 #include "jni/app_context.hpp"
 #include "jni/jni_cache.hpp"
 #include "jni/jni_env.hpp"
@@ -101,6 +109,9 @@ namespace
     constexpr const char* k_color_state_list_class = "android/content/res/ColorStateList";
     constexpr const char* k_typeface_class = "android/graphics/Typeface";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
+    // The maui-managed border drawable class (the GradientDrawable stand-in for the custom BorderDrawable
+    // — header deviation; the same one button_handler.cpp / border_handler.cpp install).
+    constexpr const char* k_gradient_drawable_class = "android/graphics/drawable/GradientDrawable";
 
     constexpr float k_default_font_size = 14.0F;         // FontManager.DefaultFontSize (14sp)
     constexpr float k_em_coefficient = 0.0624F;          // UnitExtensions.EmCoefficient (CharacterSpacing.ToEm)
@@ -215,6 +226,56 @@ namespace
             return 1.0F;
         }
         return density;
+    }
+
+    // The maui-managed GradientDrawable carrying background fill + stroke + corner radius (the plain-widget
+    // stand-in for the custom BorderDrawable — header deviation). Returns the installed one (the
+    // RadioButton's getBackground() instanceof GradientDrawable identifies OURS; the default theme
+    // background is not a GradientDrawable), installing a fresh one only when `install` is set. An empty
+    // ref means "not installed and not asked to install" (or a JNI failure). The exact mirror of
+    // button_handler.cpp's maui_background_drawable, kept standalone so the partials stay independently
+    // buildable.
+    [[nodiscard]] local_ref<jobject> maui_border_drawable(JNIEnv* env, jobject widget, bool install)
+    {
+        auto& cache = default_jni_cache();
+        jclass gradient_class = cache.find_class(env, k_gradient_drawable_class);
+        jmethodID get_background =
+            cache.method(env, k_radio_button_class, "getBackground", "()Landroid/graphics/drawable/Drawable;");
+        if (gradient_class == nullptr || get_background == nullptr)
+        {
+            return {};
+        }
+        local_ref<jobject> current{env, env->CallObjectMethod(widget, get_background)};
+        if (clear_pending(env))
+        {
+            return {};
+        }
+        if (current && env->IsInstanceOf(current.get(), gradient_class) == JNI_TRUE)
+        {
+            return current;
+        }
+        if (!install)
+        {
+            return {};
+        }
+        jmethodID ctor = cache.method(env, k_gradient_drawable_class, "<init>", "()V");
+        jmethodID set_background =
+            cache.method(env, k_radio_button_class, "setBackground", "(Landroid/graphics/drawable/Drawable;)V");
+        if (ctor == nullptr || set_background == nullptr)
+        {
+            return {};
+        }
+        local_ref<jobject> fresh{env, env->NewObject(gradient_class, ctor)};
+        if (clear_pending(env) || !fresh)
+        {
+            return {};
+        }
+        env->CallVoidMethod(widget, set_background, fresh.get());
+        if (clear_pending(env))
+        {
+            return {};
+        }
+        return fresh;
     }
 } // namespace
 
@@ -356,11 +417,34 @@ namespace maui::core
     void radio_button_platform::update_background(const maui::graphics::paint* value)
     {
         view_platform_base::update_background(value);
-        // RadioButtonExtensions.UpdateBackground → UpdateBorderDrawable installs a BorderDrawable carrying
-        // BOTH the background fill AND the stroke/corner border. The custom BorderDrawable is deferred
-        // (header deviation); the SOLID-fill half rides the shared android background op (the null-vs-paint
-        // ViewExtensions.UpdateBackground twin), so a developer-set Background still paints. VM-less safe.
-        maui::platform::android::apply_background(native, value);
+        if (native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        // RadioButtonExtensions.UpdateBackground → UpdateBorderDrawable installs ONE drawable carrying BOTH
+        // the background fill AND the stroke/corner border. The port expresses that drawable as the shared
+        // GradientDrawable stand-in (header deviation): the IView background paint lands as the drawable's
+        // setColor, the SAME drawable the stroke mappers push setStroke/setCornerRadius onto — so a Border
+        // radio's yellow fill and its red/green rounded stroke compose in one drawable. A null paint clears
+        // OUR drawable's fill to transparent when one is installed; an untouched radio never installs one.
+        const local_ref<jobject> drawable =
+            maui_border_drawable(env.get(), widget_of(*this), /*install=*/value != nullptr);
+        if (!drawable)
+        {
+            return;
+        }
+        jmethodID set_color = default_jni_cache().method(env.get(), k_gradient_drawable_class, "setColor", "(I)V");
+        if (set_color != nullptr)
+        {
+            const jint argb = value != nullptr ? static_cast<jint>(value->background_color().to_int()) : 0;
+            env->CallVoidMethod(drawable.get(), set_color, argb);
+            clear_pending(env.get());
+        }
     }
 
     void radio_button_platform::update_semantics(const maui::core::semantics* value)
@@ -682,17 +766,71 @@ namespace maui::core
         }
     }
 
-    // The stroke / corner-radius mappers mirror the property into the headless slot (the VM-less suite
-    // observes it) but DEFER the native border: RadioButtonExtensions.UpdateStroke*/UpdateCornerRadius all
-    // funnel into UpdateBorderDrawable, the custom BorderDrawable not yet ported to this backend (header
-    // deviation). No JNI push — exactly the label gradient-background pattern.
+    namespace
+    {
+        // RadioButtonExtensions.UpdateStroke*/UpdateCornerRadius all funnel into UpdateBorderDrawable — the
+        // three properties are intertwined in one drawable (the stroke needs the radius for its rounded
+        // outline, the radius needs the stroke width). So C# routes MapStrokeColor / MapStrokeThickness /
+        // MapCornerRadius through this ONE update; the plain-widget cut pushes setStroke(width, color) +
+        // setCornerRadius onto the maui GradientDrawable (the same drawable update_background fills),
+        // installing it only once a stroke or radius is actually visible (header deviations; mirrors
+        // button_handler.cpp's update_button_stroke). The headless mirrors are written by the mappers FIRST
+        // (the VM-less suite observes them) — this is the native half only.
+        void update_radio_stroke(radio_button_handler& handler, i_radio_button& view)
+        {
+            auto* platform = handler.typed_platform_view();
+            if (platform == nullptr || platform->native == nullptr)
+            {
+                return;
+            }
+            const scoped_env env;
+            if (!env)
+            {
+                return;
+            }
+            jobject widget = widget_of(*platform);
+            // GetStrokeProperties with the port's non-nullable color: thickness < 0 → width 0; radius < 0 →
+            // 0. A border is "visible" once it strokes or rounds; an unstroked, square radio installs no
+            // drawable (keeps its default theme background — the lazy-install gate).
+            const double thickness = view.stroke_thickness() >= 0 ? view.stroke_thickness() : 0;
+            const int radius = view.corner_radius() >= 0 ? view.corner_radius() : 0;
+            const bool visible = thickness > 0 || radius > 0;
+            const local_ref<jobject> drawable = maui_border_drawable(env.get(), widget, /*install=*/visible);
+            if (!drawable)
+            {
+                return;
+            }
+            auto& cache = default_jni_cache();
+            jmethodID set_stroke = cache.method(env.get(), k_gradient_drawable_class, "setStroke", "(II)V");
+            jmethodID set_corner_radius = cache.method(env.get(), k_gradient_drawable_class, "setCornerRadius", "(F)V");
+            if (set_stroke == nullptr || set_corner_radius == nullptr)
+            {
+                return;
+            }
+            const float density = display_density(env.get(), widget);
+            // StrokeExtensions.UpdateStrokeColor/Thickness → setStroke(widthPx, argb). A 0-thickness stroke
+            // is an invisible 0-width border, matching C#'s DefaultStrokeThicknessNoColor.
+            env->CallVoidMethod(drawable.get(), set_stroke, to_pixels(thickness, density),
+                                static_cast<jint>(view.stroke_color().to_int()));
+            if (clear_pending(env.get()))
+            {
+                return;
+            }
+            env->CallVoidMethod(drawable.get(), set_corner_radius,
+                                static_cast<jfloat>(to_pixels(static_cast<double>(radius), density)));
+            clear_pending(env.get());
+        }
+    } // namespace
+
+    // The stroke / corner-radius mappers mirror the property into the headless slot FIRST (the VM-less
+    // suite observes it), then push the GradientDrawable border via update_radio_stroke (the JNI half).
 
     void radio_button_handler::map_stroke_color(radio_button_handler& handler, i_radio_button& view)
     {
         if (auto* platform = handler.typed_platform_view())
         {
             platform->stroke_color = view.stroke_color();
-            // TODO: verify against RadioButtonExtensions.UpdateBorderDrawable (BorderDrawable deferred).
+            update_radio_stroke(handler, view); // RadioButtonExtensions.UpdateStrokeColor → UpdateBorderDrawable
         }
     }
 
@@ -701,7 +839,7 @@ namespace maui::core
         if (auto* platform = handler.typed_platform_view())
         {
             platform->stroke_thickness = view.stroke_thickness();
-            // TODO: verify against RadioButtonExtensions.UpdateBorderDrawable (BorderDrawable deferred).
+            update_radio_stroke(handler, view); // RadioButtonExtensions.UpdateStrokeThickness → UpdateBorderDrawable
         }
     }
 
@@ -710,7 +848,7 @@ namespace maui::core
         if (auto* platform = handler.typed_platform_view())
         {
             platform->corner_radius = view.corner_radius();
-            // TODO: verify against RadioButtonExtensions.UpdateBorderDrawable (BorderDrawable deferred).
+            update_radio_stroke(handler, view); // RadioButtonExtensions.UpdateCornerRadius → UpdateBorderDrawable
         }
     }
 

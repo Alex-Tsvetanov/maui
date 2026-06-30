@@ -341,6 +341,33 @@ namespace
         env->CallVoidMethod(child, layout, left, top, right, bottom);
         clear_pending(env);
     }
+
+    // The CollectionView default "Selected" VisualState fill (the C# CommonStates Selected highlight; the
+    // iOS twin is the cell's selectedBackgroundView = systemGray while isSelected — see
+    // src/platform/ios/collection_view_handler.mm). MAUI's default selection fill on iOS is the system gray
+    // (≈ #8E8E93); the android twin paints that same opaque gray onto the realized cell's native View via
+    // View.setBackgroundColor when the cell's index path is in the handler's selected_paths mirror (kept
+    // current by the cross-platform update_platform_selection on every backend). An UNselected cell gets a
+    // TRANSPARENT background, so a re-realized previously-selected cell (arrange_native rebuilds every cell
+    // each pass) does not keep a stale highlight. No-op when the View has no setBackgroundColor (never, for
+    // an android.view.View) or on any JNI failure.
+    constexpr jint k_selected_highlight_argb = static_cast<jint>(0xFF8E8E93U); // iOS systemGray (light)
+    constexpr jint k_transparent_argb = 0;
+
+    void apply_selection_highlight(JNIEnv* env, jobject native, bool selected)
+    {
+        if (native == nullptr)
+        {
+            return;
+        }
+        jmethodID set_background_color = default_jni_cache().method(env, k_view_class, "setBackgroundColor", "(I)V");
+        if (set_background_color == nullptr)
+        {
+            return;
+        }
+        env->CallVoidMethod(native, set_background_color, selected ? k_selected_highlight_argb : k_transparent_argb);
+        clear_pending(env);
+    }
 } // namespace
 
 namespace maui::controls
@@ -864,6 +891,16 @@ namespace maui::controls
                             add_and_frame(env, host, cols[static_cast<std::size_t>(c)].native, row_start_px, col_start,
                                           row_start_px + row_extent_px, col_start + col_px);
                         }
+                        // The "Selected" VisualState fill (the C# CommonStates Selected highlight; iOS shows
+                        // the cell's selectedBackgroundView while isSelected). This realized cell is selected
+                        // iff its index path is in the cross-platform selected_paths mirror (kept current by
+                        // update_platform_selection on every backend); push the gray fill (or transparent for
+                        // an unselected cell, so a re-realized formerly-selected cell does not keep a stale
+                        // highlight). The fill goes onto the cell ROOT, behind its content (the bound label).
+                        const index_path cell_path{.section = section, .item = first + c};
+                        const bool selected =
+                            std::ranges::find(platform->selected_paths, cell_path) != platform->selected_paths.end();
+                        apply_selection_highlight(env, cols[static_cast<std::size_t>(c)].native, selected);
                         // Frame the cell's CHILDREN / inner cells via the cross-platform arrange at the cell's
                         // ABSOLUTE placed rect — a templated cell whose root is itself a CollectionView (the
                         // nested_collection inner CV) needs its own arrange_native to run so its inner cells
