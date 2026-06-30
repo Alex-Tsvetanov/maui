@@ -133,6 +133,23 @@ namespace maui::core
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_ANDROID
+        // Android backend (the M-android per-control fan-out): push the generic IView properties to the
+        // real android.webkit.WebView (defined in src/platform/android/web_view_handler.cpp). visibility/
+        // opacity/automation_id map onto the View surface; transform/flow_direction/background/semantics
+        // route through the shared android ops. is_enabled keeps the base mirror (a WebView's interactivity
+        // is governed by its content; ViewExtensions has no MapIsEnabled for it — the apple-twin precedent),
+        // and shadow/clip/input_transparent have no plain-View analog (WrapperView-only in C#), so they too
+        // keep ONLY the headless mirror (the progress_bar/image partial precedent).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_transform(const maui::core::transform_spec& value) override;
+        void update_flow_direction(maui::core::flow_direction value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        void update_semantics(const maui::core::semantics* value) override;
+#endif
     };
 
     class web_view_handler : public view_handler<web_view_handler, i_web_view, web_view_platform>

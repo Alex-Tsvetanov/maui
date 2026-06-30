@@ -570,6 +570,13 @@ else()
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/navigation_handler.cpp)
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/window_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/window_handler.cpp)
+    # (W22) web_view: a real android.webkit.WebView. map_source drives the STATIC HtmlWebViewSource through
+    # loadDataWithBaseURL (MauiWebView.IWebViewDelegate.LoadHtml); the android partial keeps the headless
+    # back-forward simulation mirror live (VM-less suite) and additionally drives the real WebView when a
+    # VM + app context exist (the real-Activity app host). Remote-URL navigation EVENTS + the JS bridge are
+    # deferred (no MauiWebViewClient/WebChromeClient on this AAR-less backend) — see the partial's header.
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/web_view_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/web_view_handler.cpp)
   endif()
 endif()
 
