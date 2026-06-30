@@ -57,6 +57,12 @@ namespace maui::core
         std::string source_file;
         bool source_loaded = false;
         bool opaque = false;
+        // Intrinsic size of the decoded file bitmap (the image_platform convention). The android partial
+        // (wave 19) reports this from get_desired_size for the aspect-fit auto-size of an unconstrained
+        // ImageButton (e.g. the Custom-Size dotnet_bot button). Apple/iOS measure via sizeThatFits and
+        // headless returns {0,0}, so those backends leave these at 0; android is the only writer.
+        double intrinsic_width = 0.0;
+        double intrinsic_height = 0.0;
         // Headless mirror of IsAnimationPlaying (the image_platform convention; apple/ios drive native
         // GIF frame cycling instead). ImageButton pins the value false, so this stays false in practice.
         bool animation_playing = false;
@@ -104,6 +110,29 @@ namespace maui::core
         // apply_and_store_clip; the handler's platform_arrange re-frames the mask to the live bounds, the
         // 0×0-at-map-time fix).
         void update_clip(const maui::graphics::i_shape* value) override;
+#endif
+
+#ifdef MAUI_PLATFORM_ANDROID
+        // Android backend (wave 19): push the generic IView properties to the dev.mauicpp.MauiImageView
+        // (an android.widget.ImageView subclass — the image rides setImageBitmap + setScaleType, the
+        // chrome rides a GradientDrawable background), mirroring the android button partial. Each body
+        // runs view_platform_base FIRST (the headless mirror must stay live for the VM-less pure-native
+        // cross-platform suite on the emulator) then pushes to the real widget when a VM + app context
+        // exist. Defined in src/platform/android/image_button_handler.cpp.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_transform(const maui::core::transform_spec& value) override;
+        void update_flow_direction(maui::core::flow_direction value) override;
+        // Background IS pushed: the ImageButton's solid BackgroundColor / brush fills the SHARED maui
+        // GradientDrawable installed as the MauiImageView's background (the same drawable the stroke +
+        // corner-radius map functions write to — ButtonExtensions' intertwined stroke recipe). A
+        // gradient paint installs a GradientDrawable color ramp; a null paint clears OUR drawable. This
+        // is what makes the page's green/purple-filled ImageButtons visible (cog.png is SVG-only and
+        // never rasterizes, exactly as on iOS — the fill is the chrome).
+        void update_background(const maui::graphics::paint* value) override;
+        void update_semantics(const maui::core::semantics* value) override;
 #endif
     };
 

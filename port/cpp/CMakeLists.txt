@@ -480,6 +480,14 @@ else()
     # image: android.widget.ImageView partial (aspect→ScaleType; source decode deferred to the mirror).
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/image_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/image_handler.cpp)
+    # image_button (wave 19): a tappable dev.mauicpp.MauiImageView reusing the image decode (setImageBitmap
+    # + ScaleType) with a button-style GradientDrawable chrome (background fill + stroke + corner radius)
+    # and the NativeOnClickListener click trampoline. The static FileSource bot images + the green/purple
+    # chrome fills render; the "Use Online Source" remote URI swap + the animated-GIF cycling are deferred
+    # (no Glide AAR / android image-source services — the image partial's deviation). Without this swap an
+    # ImageButton is completely blank on Android (the headless mirror has no native view).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/image_button_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/image_button_handler.cpp)
     # editor: android.widget.EditText (multiline) partial.
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/editor_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/editor_handler.cpp)
