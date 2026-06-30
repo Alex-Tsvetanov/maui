@@ -70,7 +70,9 @@
 #include <algorithm>
 #include <atomic>
 #include <cmath>
+#include <limits>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -79,6 +81,7 @@
 #include "jni/jni_env.hpp"
 #include "jni/jni_ref.hpp"
 #include "jni/jni_string.hpp"
+#include "maui/controls/element.hpp"
 #include "maui/controls/items/boxed_item.hpp"
 #include "maui/controls/items/groupable_items_view.hpp"
 #include "maui/controls/items/items_layout_orientation.hpp"
@@ -91,6 +94,7 @@
 #include "maui/core/i_element.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_maui_context.hpp"
+#include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
@@ -399,19 +403,65 @@ namespace maui::controls
             return content;
         }
 
-        // Reuse an already-built boxed VIEW's native (a Header/Footer/EmptyView set to a live View via
-        // boxed_item::of(view)). In the gallery path the page's attach_handlers has already built its native
-        // view, so this reuses native_view() (the C# ToPlatform on a view whose handler is already set).
-        // Yields nullptr when the view has no attached handler / native view (caller falls back to text).
-        jobject boxed_view_native(const boxed_item& value)
+        // Recursively MOUNT a boxed VIEW chrome subtree (the generic mount the hosting driver runs, inlined
+        // for the seam where the CV must realize a Header/Footer that is a live View). A boxed Header/Footer
+        // (boxed_item::of(grid_/stack_)) is NOT a logical child of the CollectionView, so the page-level
+        // mount_tree never walks it — its handler (and every descendant's) is unattached, so its native view
+        // does not exist. Mirror app_host::mount_tree EXACTLY: depth-first POST-ORDER (children first, so each
+        // child's native view exists before its parent hosts it), attach each element's registered handler
+        // by its runtime handler_type_tag (SetMauiContext before SetVirtualView, the C# order), then re-fire
+        // the container host command (mount_into_handler) so the now-attached children's native views are
+        // hosted. Idempotent: an element that already carries a handler is skipped (the gallery may have
+        // mounted it through some other path; re-attaching would rebuild + orphan the old native view). This
+        // is what makes the VIEW header/footer (HeaderFooterView / HeaderFooterGrid) realize on Android — the
+        // analog of iOS reusing the page-attached native_view, but here the CV builds it on demand.
+        void ensure_mounted(maui::core::i_maui_context* context, maui::controls::element& root)
+        {
+            if (context == nullptr)
+            {
+                return;
+            }
+            root.visit_logical_children([context](maui::controls::element& child) { ensure_mounted(context, child); });
+
+            auto* element_face = dynamic_cast<maui::core::i_element*>(&root);
+            if (element_face == nullptr)
+            {
+                return;
+            }
+            if (!element_face->handler()) // skip an already-mounted element (idempotent re-mount guard)
+            {
+                if (const std::optional<maui::core::type_tag> tag = root.handler_type_tag(); tag.has_value())
+                {
+                    if (std::shared_ptr<maui::core::i_element_handler> handler =
+                            context->handlers().create_handler(*tag))
+                    {
+                        handler->set_maui_context(context);            // SetMauiContext precedes SetVirtualView (C#)
+                        element_face->set_handler(std::move(handler)); // the view owns its handler (PROFILE §11)
+                    }
+                }
+            }
+            root.mount_into_handler(); // re-host the (now-attached) children's native views
+        }
+
+        // Reuse a boxed VIEW's native view (a Header/Footer/EmptyView set to a live View via
+        // boxed_item::of(view)). The boxed chrome is not a CV logical child, so unlike the gallery's mounted
+        // tree it usually arrives UNMOUNTED here — ensure_mounted builds its whole native subtree first (the
+        // C# `Header is View` arm where ToPlatform builds the platform view on demand), then this returns the
+        // root handler's native_view(). Yields nullptr when the value is not an element or has no view handler
+        // even after mounting (the caller then falls back to the text mirror).
+        jobject boxed_view_native(maui::core::i_maui_context* context, const boxed_item& value)
         {
             const std::shared_ptr<maui::core::bindable_object>& bindable = value.as_bindable();
-            auto* element = dynamic_cast<maui::core::i_element*>(bindable.get());
-            if (element == nullptr)
+            auto* element_face = dynamic_cast<maui::core::i_element*>(bindable.get());
+            if (element_face == nullptr)
             {
                 return nullptr;
             }
-            if (const std::shared_ptr<maui::core::i_element_handler>& existing = element->handler())
+            if (auto* chrome = dynamic_cast<maui::controls::element*>(bindable.get()); chrome != nullptr)
+            {
+                ensure_mounted(context, *chrome); // build the native subtree on demand if not already mounted
+            }
+            if (const std::shared_ptr<maui::core::i_element_handler>& existing = element_face->handler())
             {
                 if (auto* view_handler = dynamic_cast<maui::core::i_view_handler*>(existing.get()))
                 {
@@ -419,6 +469,32 @@ namespace maui::controls
                 }
             }
             return nullptr;
+        }
+
+        // Run the cross-platform layout pass on a realized content view (a boxed Header/Footer Grid/StackLayout
+        // OR a templated cell whose root is itself a container — e.g. the nested_collection inner CollectionView)
+        // so its CHILDREN / inner cells get framed. add_and_frame only native-measures+lays out the realized
+        // ROOT; the deeper tree needs the cross-platform arrange:
+        //   - a boxed Grid/StackLayout chrome re-arranges its own children HOST-RELATIVE when its MauiLayout
+        //     panel's onLayout fires (the wave-13 nativeArrange seam) — but its children must be MEASURED first
+        //     so they carry desired sizes; this runs that measure + a full arrange.
+        //   - a nested CollectionView cell root needs its OWN arrange_native to run so its inner cells realize;
+        //     the arrange drives it.
+        // The arrange MUST use the ABSOLUTE frame add_and_frame placed the native at (the port drives arrange
+        // in ABSOLUTE coordinates — arrange coordinate convention note): a 0-origin arrange would re-frame the
+        // realized root to (0,0), stacking every placed element at the host's top-left. A container re-positions
+        // its OWN children host-relative regardless (via its native onLayout), so the absolute root frame and
+        // the host-relative child frames stay consistent. `frame_dp` is that absolute placed rect (dp).
+        void arrange_realized_view(const std::shared_ptr<maui::core::bindable_object>& bindable,
+                                   const maui::graphics::rect& frame_dp)
+        {
+            auto* const view = dynamic_cast<maui::core::i_view*>(bindable.get());
+            if (view == nullptr)
+            {
+                return; // a non-view realized content (e.g. a bare string mirror) — nothing to arrange
+            }
+            view->measure(frame_dp.width, frame_dp.height);
+            view->arrange(frame_dp);
         }
     } // namespace
 
@@ -563,26 +639,121 @@ namespace maui::controls
         // does NOT measure children, so the panel must be framed EXPLICITLY here — the same reason every
         // child gets an absolute frame).
         double content_main_dp = 0;
+        double cursor_dp = 0; // main-axis position in dp (header → items/empty → footer all advance it)
 
-        // ---- the empty view: shown while the source has no items (UpdateEmptyView) ----
+        // The source is empty (UpdateEmptyView) — but the global Header/Footer STILL render around the empty
+        // region (the C# `Header is View` arm is independent of item count; HeaderFooterView's source starts
+        // EMPTY yet shows its View header+footer). So the header/footer realization below runs UNCONDITIONALLY;
+        // only the ITEMS region is swapped for the empty view.
         const bool empty = view == nullptr || !src || src->item_count() == 0;
+
+        // Place a realized supplemental/empty native full cross-width at the cursor and advance it. Prefers
+        // the realized content's CROSS-PLATFORM measure for the main extent when it is a MAUI view (a boxed
+        // Grid/StackLayout header measures its true height INCLUDING its children, the iOS supplementary's
+        // preferredLayoutAttributesFittingAttributes path); falls back to the native View.measure for a plain
+        // text mirror. After placing, runs the cross-platform arrange so the realized view's children land.
+        auto place_full_width = [&](jobject child,
+                                    const std::shared_ptr<maui::core::bindable_object>& realized) -> double {
+            if (child == nullptr)
+            {
+                return 0.0;
+            }
+            // Main extent: cross-platform measure (unbounded main axis) for a realized MAUI view, else native.
+            double extent_dp = 0.0;
+            if (auto* const v = dynamic_cast<maui::core::i_view*>(realized.get()); v != nullptr)
+            {
+                const maui::graphics::size desired =
+                    v->measure(cross_extent_dp, std::numeric_limits<double>::infinity());
+                extent_dp = vertical ? desired.height : desired.width;
+            }
+            jint extent_px = to_pixels(extent_dp, density);
+            extent_px = std::max<jint>(extent_px, measure_main_extent(env, child, cross_px, vertical));
+            extent_px = std::max<jint>(extent_px, to_pixels(k_min_row_extent, density));
+            const jint start_px = to_pixels(cursor_dp, density);
+            if (vertical)
+            {
+                add_and_frame(env, host, child, 0, start_px, cross_px, start_px + extent_px);
+            }
+            else
+            {
+                add_and_frame(env, host, child, start_px, 0, start_px + extent_px, cross_px);
+            }
+            const double placed_main_dp = static_cast<double>(extent_px) / static_cast<double>(density);
+            // Frame the realized view's CHILDREN (header Image/Label/Buttons, a nested CV's own cells) via the
+            // cross-platform arrange over the placed rect — add_and_frame only laid out the realized ROOT.
+            const maui::graphics::rect placed =
+                vertical ? maui::graphics::rect{0.0, cursor_dp, cross_extent_dp, placed_main_dp}
+                         : maui::graphics::rect{cursor_dp, 0.0, placed_main_dp, cross_extent_dp};
+            arrange_realized_view(realized, placed);
+            cursor_dp += placed_main_dp;
+            return placed_main_dp;
+        };
+
+        // Realize a supplemental (header/footer/group header/footer): template content > boxed view >
+        // text mirror, hosted full cross-width. Returns nothing — appends to the host + retains.
+        auto realize_supplemental_native = [&](const std::shared_ptr<data_template>& tmpl, const boxed_item& value) {
+            if (!tmpl && !value.has_value())
+            {
+                return; // nothing to show
+            }
+            jobject native = nullptr;
+            std::shared_ptr<maui::core::bindable_object> realized =
+                realize_template_content(*this, tmpl, value, &native);
+            if (native == nullptr)
+            {
+                // A boxed VIEW (HeaderFooterView/Grid): mount its subtree on demand, then host its native view.
+                native = boxed_view_native(maui_context(), value);
+                if (native != nullptr)
+                {
+                    realized = value.as_bindable(); // arrange this boxed view's children via place_full_width
+                }
+            }
+            local_ref<jobject> text_view;
+            if (native == nullptr && value.has_value())
+            {
+                jobject context = app_context();
+                if (context != nullptr)
+                {
+                    text_view = make_text_view(env, context, value.text());
+                    native = text_view.get();
+                }
+            }
+            place_full_width(native, realized);
+            if (realized && realized != value.as_bindable())
+            {
+                platform->retained_natives.push_back(std::move(realized));
+            }
+        };
+
+        // The global (structured) header — realized BEFORE the items/empty region (and independent of it).
+        auto* structured = dynamic_cast<structured_items_view*>(view);
+        if (view != nullptr && structured != nullptr)
+        {
+            realize_supplemental_native(structured->header_template(), structured->header());
+        }
+
         if (empty)
         {
+            // ---- the empty view region (UpdateEmptyView): centered between the header and footer ----
+            // Only reserve the viewport-height empty region when an empty view is actually SET (a template, a
+            // boxed View, or a non-empty text value). HeaderFooterView's source starts empty with NO empty view
+            // — in that case the footer must follow the header directly (the C# UpdateEmptyView shows nothing),
+            // not be pushed a full viewport down by a blank placeholder.
             jobject context = app_context();
-            if (context == nullptr)
-            {
-                // size the host to the viewport so the (empty) scroller still frames; fall through to the
-                // ScrollView framing below.
-            }
-            else if (view != nullptr)
+            const bool has_empty_view =
+                view != nullptr && (view->empty_view_template() != nullptr || view->empty_view().has_value());
+            if (context != nullptr && view != nullptr && has_empty_view)
             {
                 jobject empty_native = nullptr;
-                // Template content > boxed view > text mirror (the realize_supplemental precedence).
                 std::shared_ptr<maui::core::bindable_object> realized =
                     realize_template_content(*this, view->empty_view_template(), view->empty_view(), &empty_native);
                 if (empty_native == nullptr)
                 {
-                    empty_native = boxed_view_native(view->empty_view());
+                    empty_native = boxed_view_native(maui_context(), view->empty_view());
+                    if (empty_native != nullptr)
+                    {
+                        realized = view->empty_view().as_bindable();
+                    }
                 }
                 local_ref<jobject> text_view; // keep alive until added
                 if (empty_native == nullptr)
@@ -595,9 +766,12 @@ namespace maui::controls
                     // Center the empty view filling the viewport (the C# EmptyView centered host).
                     const jint w = cross_px;
                     const jint h = std::max<jint>(1, to_pixels(main_viewport_dp, density));
-                    content_main_dp = main_viewport_dp;
-                    add_and_frame(env, host, empty_native, 0, 0, w, h);
-                    if (realized)
+                    const jint start_px = to_pixels(cursor_dp, density);
+                    add_and_frame(env, host, empty_native, 0, start_px, w, start_px + h);
+                    arrange_realized_view(realized,
+                                          maui::graphics::rect{0.0, cursor_dp, cross_extent_dp, main_viewport_dp});
+                    cursor_dp += main_viewport_dp;
+                    if (realized && realized != view->empty_view().as_bindable())
                     {
                         platform->retained_natives.push_back(std::move(realized));
                     }
@@ -612,67 +786,7 @@ namespace maui::controls
         }
         else
         {
-            // ---- the realized content: header → [group header → items → group footer]* → footer ----
-            double cursor_dp = 0; // main-axis position in dp
-
-            auto place_full_width = [&](jobject child) {
-                if (child == nullptr)
-                {
-                    return;
-                }
-                const jint extent_px = std::max<jint>(measure_main_extent(env, child, cross_px, vertical),
-                                                      to_pixels(k_min_row_extent, density));
-                const jint start_px = to_pixels(cursor_dp, density);
-                if (vertical)
-                {
-                    add_and_frame(env, host, child, 0, start_px, cross_px, start_px + extent_px);
-                }
-                else
-                {
-                    add_and_frame(env, host, child, start_px, 0, start_px + extent_px, cross_px);
-                }
-                cursor_dp += static_cast<double>(extent_px) / static_cast<double>(density);
-            };
-
-            // Realize a supplemental (header/footer/group header/footer): template content > boxed view >
-            // text mirror, hosted full cross-width. Returns nothing — appends to the host + retains.
-            auto realize_supplemental_native = [&](const std::shared_ptr<data_template>& tmpl,
-                                                   const boxed_item& value) {
-                if (!tmpl && !value.has_value())
-                {
-                    return; // nothing to show
-                }
-                jobject native = nullptr;
-                std::shared_ptr<maui::core::bindable_object> realized =
-                    realize_template_content(*this, tmpl, value, &native);
-                if (native == nullptr)
-                {
-                    native = boxed_view_native(value);
-                }
-                local_ref<jobject> text_view;
-                if (native == nullptr && value.has_value())
-                {
-                    jobject context = app_context();
-                    if (context != nullptr)
-                    {
-                        text_view = make_text_view(env, context, value.text());
-                        native = text_view.get();
-                    }
-                }
-                place_full_width(native);
-                if (realized)
-                {
-                    platform->retained_natives.push_back(std::move(realized));
-                }
-            };
-
-            // The global (structured) header.
-            auto* structured = dynamic_cast<structured_items_view*>(view);
-            if (structured != nullptr)
-            {
-                realize_supplemental_native(structured->header_template(), structured->header());
-            }
-
+            // ---- the realized items: [group header → items → group footer]* ----
             const auto* groupable = dynamic_cast<const groupable_items_view*>(view);
             const bool grouped = platform->grouped;
             const std::shared_ptr<data_template> group_header_t =
@@ -736,6 +850,10 @@ namespace maui::controls
                             continue;
                         }
                         const jint col_start = static_cast<jint>(c) * col_px;
+                        const double col_main_dp = static_cast<double>(row_extent_px) / static_cast<double>(density);
+                        const double col_cross_dp = static_cast<double>(col_px) / static_cast<double>(density);
+                        const double col_cross_origin_dp =
+                            static_cast<double>(col_start) / static_cast<double>(density);
                         if (vertical)
                         {
                             add_and_frame(env, host, cols[static_cast<std::size_t>(c)].native, col_start, row_start_px,
@@ -746,8 +864,19 @@ namespace maui::controls
                             add_and_frame(env, host, cols[static_cast<std::size_t>(c)].native, row_start_px, col_start,
                                           row_start_px + row_extent_px, col_start + col_px);
                         }
+                        // Frame the cell's CHILDREN / inner cells via the cross-platform arrange at the cell's
+                        // ABSOLUTE placed rect — a templated cell whose root is itself a CollectionView (the
+                        // nested_collection inner CV) needs its own arrange_native to run so its inner cells
+                        // realize. The arrange uses the SAME absolute rect add_and_frame placed the native at
+                        // (arrange coordinate convention) so a leaf cell stays in place and a nested CV's
+                        // ScrollView lands where it was framed.
                         if (cols[static_cast<std::size_t>(c)].retain)
                         {
+                            const maui::graphics::rect cell_rect =
+                                vertical
+                                    ? maui::graphics::rect{col_cross_origin_dp, cursor_dp, col_cross_dp, col_main_dp}
+                                    : maui::graphics::rect{cursor_dp, col_cross_origin_dp, col_main_dp, col_cross_dp};
+                            arrange_realized_view(cols[static_cast<std::size_t>(c)].retain, cell_rect);
                             platform->retained_natives.push_back(std::move(cols[static_cast<std::size_t>(c)].retain));
                         }
                     }
@@ -758,14 +887,16 @@ namespace maui::controls
                     realize_supplemental_native(group_footer_t, src->group(index_path{.section = section, .item = -1}));
                 }
             }
-
-            // The global (structured) footer.
-            if (structured != nullptr)
-            {
-                realize_supplemental_native(structured->footer_template(), structured->footer());
-            }
-            content_main_dp = cursor_dp;
         }
+
+        // The global (structured) footer — realized AFTER the items/empty region (and, like the header,
+        // independent of item count, so HeaderFooterView's empty source still shows its View footer + the
+        // Add/Clear buttons).
+        if (view != nullptr && structured != nullptr)
+        {
+            realize_supplemental_native(structured->footer_template(), structured->footer());
+        }
+        content_main_dp = cursor_dp;
 
         // ---- size the inner host panel to the content (EXPLICIT pixel LayoutParams + measure + layout) ----
         // MauiLayout.onMeasure does NOT measure children (the no-op-onLayout container contract): given the
