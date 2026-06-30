@@ -104,6 +104,22 @@ namespace
     // All instance methods resolve through the widget's own class (GetMethodID walks the superclasses,
     // so the View/TextView surface resolves through android/widget/EditText too).
     constexpr const char* k_edit_text_class = "android/widget/EditText";
+    constexpr const char* k_style_class = "android/R$style";
+    // The concrete platform style that carries the EditText's box/underline CHROME, resolved
+    // theme-independently as a defStyleRes so the bare app_process testhost (and the app host) construct an
+    // EditText that actually HAS its field chrome. The 3-arg (Context, AttributeSet, int defStyleAttr) ctor
+    // with defStyleAttr=0 and NO defStyleRes resolves NO background drawable, so an EMPTY EditText renders
+    // as invisible nothing (no box, no underline) — the exact missing-chrome bug the switch/checkbox glyph
+    // waves hit, fixed there with a defStyleRes (Widget_*). The gallery's light Activity theme makes
+    // android.R.style.Widget_EditText the matching field chrome: it carries @android:drawable/edit_text, a
+    // framework-res state-list 9-patch underline that does NOT depend on an app/AppCompat theme, so it
+    // renders in the bare app_process host. The Material_Light variant resolves its background to a theme
+    // attr the host can't satisfy and paints NOTHING (verified empirically in wave 14), so it is only a
+    // fallback. The *_alt fields are tried in turn if the primary is absent on some API level. (Read with
+    // GetStaticFieldID — these are static fields.)
+    constexpr const char* k_edit_text_style_field = "Widget_EditText";
+    constexpr const char* k_edit_text_style_field_alt = "Widget_Material_EditText";
+    constexpr const char* k_edit_text_style_field_alt2 = "Widget_Material_Light_EditText";
     constexpr const char* k_typeface_class = "android/graphics/Typeface";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
 
@@ -529,7 +545,14 @@ namespace maui::core
         // PlatformView.UpdateBackground). The headless mirror keeps the base body; the android view op
         // pushes the solid/gradient/image background to the View (VM-less safe).
         view_platform_base::update_background(value);
-        maui::platform::android::apply_background(native, value);
+        // WAVE 14: a NULL paint must NOT call apply_background — that path does setBackground(null), which
+        // would ERASE the defStyleRes field chrome (the underline 9-patch the styled ctor installed),
+        // leaving the field box-less again. MAUI's UpdateBackground leaves the native default when the
+        // virtual Background is null; the EditText's styled background IS that native default.
+        if (value != nullptr)
+        {
+            maui::platform::android::apply_background(native, value);
+        }
     }
 
     // Render transform + flow direction + semantics pushed to the real widget via the shared android
@@ -573,19 +596,57 @@ namespace maui::core
         // EditText(Context) chains to the (Context, AttributeSet, int) ctor with defStyleAttr = the theme
         // attr editTextStyle, which it resolves against the Context's THEME — the bare, Activity-less
         // app_process testhost has no such theme, so that ctor throws (the same trap progress_bar's styled
-        // ctor hit). Construct with defStyleAttr = 0 (no theme attr, exactly what TextView(Context) does);
-        // fall back to the plain (Context) ctor so the widget is never null. The ImeOptions = Done is
-        // AppCompat-only (header deviations); the multi-line knobs ARE ported below.
+        // ctor hit). The 3-arg (Context, AttributeSet, int defStyleAttr) ctor with defStyleAttr=0 constructs
+        // fine BUT resolves NO background drawable, so an empty EditText renders with NO box/underline chrome
+        // (the missing-chrome bug the switch/checkbox glyph waves hit). So construct THEME-INDEPENDENTLY via
+        // the 4-arg (Context, AttributeSet, int defStyleAttr, int defStyleRes) ctor with defStyleAttr=0 and
+        // defStyleRes = android.R.style.Widget_Material_Light_EditText (a concrete style resource that
+        // CARRIES the field chrome — read with GetStaticFieldID since it is a static field). Then fall back
+        // to the 3-arg defStyleAttr=0 form, and finally the plain (Context) ctor, so the widget is never
+        // null. The ImeOptions = Done is AppCompat-only (header deviations); the multi-line knobs ARE ported
+        // below.
         jobject created = nullptr;
-        jmethodID ctor_unstyled = cache.method(env.get(), k_edit_text_class, "<init>",
-                                               "(Landroid/content/Context;Landroid/util/AttributeSet;I)V");
-        if (ctor_unstyled != nullptr)
+        jmethodID ctor_styled = cache.method(env.get(), k_edit_text_class, "<init>",
+                                             "(Landroid/content/Context;Landroid/util/AttributeSet;II)V");
+        jclass style_class = cache.find_class(env.get(), k_style_class);
+        jfieldID style_field =
+            style_class != nullptr ? env->GetStaticFieldID(style_class, k_edit_text_style_field, "I") : nullptr;
+        clear_pending(env.get()); // a missing-field lookup raises NoSuchFieldError — clear it, then try alts
+        if (style_class != nullptr && style_field == nullptr)
         {
-            created = env->NewObject(edit_text_class, ctor_unstyled, context, static_cast<jobject>(nullptr),
-                                     static_cast<jint>(0));
-            if (clear_pending(env.get()))
+            style_field = env->GetStaticFieldID(style_class, k_edit_text_style_field_alt, "I");
+            clear_pending(env.get());
+        }
+        if (style_class != nullptr && style_field == nullptr)
+        {
+            style_field = env->GetStaticFieldID(style_class, k_edit_text_style_field_alt2, "I");
+            clear_pending(env.get());
+        }
+        if (ctor_styled != nullptr && style_class != nullptr && style_field != nullptr)
+        {
+            const jint style_res = env->GetStaticIntField(style_class, style_field);
+            if (!clear_pending(env.get()))
             {
-                created = nullptr;
+                created = env->NewObject(edit_text_class, ctor_styled, context, static_cast<jobject>(nullptr),
+                                         static_cast<jint>(0), style_res);
+                if (clear_pending(env.get()))
+                {
+                    created = nullptr;
+                }
+            }
+        }
+        if (created == nullptr)
+        {
+            jmethodID ctor_unstyled = cache.method(env.get(), k_edit_text_class, "<init>",
+                                                   "(Landroid/content/Context;Landroid/util/AttributeSet;I)V");
+            if (ctor_unstyled != nullptr)
+            {
+                created = env->NewObject(edit_text_class, ctor_unstyled, context, static_cast<jobject>(nullptr),
+                                         static_cast<jint>(0));
+                if (clear_pending(env.get()))
+                {
+                    created = nullptr;
+                }
             }
         }
         if (created == nullptr)

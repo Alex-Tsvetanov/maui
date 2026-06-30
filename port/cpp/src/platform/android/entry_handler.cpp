@@ -1,110 +1,98 @@
-// search_bar_handler — Android (JNI) platform partial, the single-line search-input control of the
-// M-android per-control fan-out (M6's iOS Rosetta Stone replayed over JNI; the headless mirror in
-// src/platform/headless/search_bar_handler.cpp is the VM-less twin, and the apple/NSSearchField partial
-// in src/platform/apple/search_bar_handler.mm is the real-native twin). The managed platform view is a
-// plain android.widget.EditText (held as a JNI global reference in search_bar_platform::native): every
-// map_* pushes its property through the jni_cache'd method ids, and a native edit / search-key press
-// flows back through the C++ callbacks (on_text_changed / on_search_button_pressed) into
-// i_search_bar::send_text_changed / send_search_button_pressed — exactly the inbound channel the headless
-// mirror exposes.
+// entry_handler (android) <= Microsoft.Maui.Handlers.EntryHandler.Android
 //
-// Ported DIRECTLY from SearchBarHandler.Android.cs + Platform/Android/{SearchViewExtensions.cs,
-// EditTextExtensions.cs, TextViewExtensions.cs, TextAlignmentExtensions.cs, AlignmentExtensions.cs,
-// KeyboardExtensions.cs, ViewExtensions.cs, ContextExtensions.cs (ToPixels), UnitExtensions.cs (ToEm)} +
-// Fonts/FontManager.Android.cs. The editor partial (editor_handler.cpp) is the structural template — a
-// search bar is just a single-line EditText stand-in — so the scoped_env/app_context VM-less guards, the
-// call_void_* helpers, to_pixels/display_density, clear_pending-after-every-call discipline, the global-
-// ref lifecycle, and the per-backend view_platform_base overrides are copied from it verbatim where they
-// apply, with the editor-only multi-line knobs removed.
+// The single-line editable text-entry control of the M-android per-control fan-out (M6's iOS Rosetta
+// Stone replayed over JNI; the headless mirror in src/platform/headless/entry_handler.cpp is the
+// VM-less twin). The managed platform view is a REAL android.widget.EditText (held as a JNI global
+// reference in entry_platform::native): every map_* pushes its property through the jni_cache'd method
+// ids, and a native edit / end-of-edit flows back through C++ callbacks (on_text_changed /
+// on_completed) into i_entry::send_text_changed / send_completed — exactly the inbound channel the
+// headless mirror exposes.
 //
-// THE EDITTEXT STAND-IN (the central documented deviation): MAUI's Android SearchBar is a MauiSearchView
-// (androidx.appcompat.widget.SearchView), whose visible text field is the inner EditText queryEditor
-// (MauiSearchView._queryEditor = this.GetFirstChildOfType<EditText>()). The whole Android text surface of
-// SearchBarHandler — MapText/Placeholder/PlaceholderColor/TextColor/Font/CharacterSpacing/Horizontal+
-// VerticalTextAlignment/IsReadOnly/IsTextPrediction/IsSpellCheck/Keyboard/MaxLength/Cursor/Selection —
-// is delegated by SearchViewExtensions onto THAT inner EditText (via UpdateText/UpdatePlaceholder/… and
-// the EditTextExtensions/TextViewExtensions the editor partial already ports). Because this APK-less
-// backend deliberately carries NO AndroidX AppCompat AAR (the same gradle/AAR gap the button and editor
-// partials document for MauiAppCompatButton / MauiAppCompatEditText), there is no SearchView to host;
-// the port stands the search bar up as the inner EditText DIRECTLY — exactly the picker/editor EditText
-// stand-in approach — and addresses every text map against android/widget/EditText. This is faithful:
-// the inner queryEditor IS an EditText, and the C# maps target it, not the SearchView chrome.
+// Ported DIRECTLY from EntryHandler.Android.cs + Platform/Android/{EditTextExtensions.cs,
+// TextViewExtensions.cs, TextAlignmentExtensions.cs, AlignmentExtensions.cs, KeyboardExtensions.cs,
+// ImeActionExtensions.cs, ViewExtensions.cs, ContextExtensions.cs (ToPixels), UnitExtensions.cs (ToEm)}
+// + Fonts/FontManager.Android.cs. The editor partial (editor_handler.cpp) is the structural template —
+// the scoped_env/app_context VM-less guards, the call_void_* helpers, to_pixels/display_density,
+// clear_pending-after-every-call discipline, the global-ref lifecycle, and the per-backend
+// view_platform_base overrides are copied from it verbatim where they apply; the deltas are the entry
+// single-line construction and the entry-only properties (is_password, return_type,
+// clear_button_visibility, cursor_color, adjusts_font_size_to_fit_width).
 //
 // DOCUMENTED DEVIATIONS from the C# oracle (each is a library / infrastructure gap, not a behavior
 // guess):
-//   - The widget is a plain android.widget.EditText, not a SearchView's inner SearchAutoComplete: the
-//     AndroidX AppCompat library is a gradle/AAR dependency this backend does not carry (as above). The
-//     SearchView-only chrome therefore has NO plain-EditText analog and is DEFERRED to mirror-only:
-//       * cancel_button_color (UpdateCancelButtonColor — tints search_close_btn's ImageView drawable),
-//       * search_icon_color   (UpdateSearchIconColor   — tints search_mag_icon's ImageView drawable),
-//       * return_type         (UpdateReturnType        — sets SearchView.ImeOptions + the inner
-//                              EditText.ImeOptions and RestartInput); the IME-options push and the
-//                              cancel/search icons have no plain-EditText surface here.
-//     map_cancel_button_color / map_search_icon_color / map_return_type therefore record the cross-
-//     platform mirror only, EXACTLY like the apple/AppKit twin (NSSearchFieldCell has no public tint).
-//     // TODO: verify against src/Core/src/Platform/Android/SearchViewExtensions.cs
-//     (UpdateCancelButtonColor / UpdateSearchIconColor / UpdateReturnType) when an AppCompat-equivalent
-//     SearchView (or a custom cancel/loupe overlay) lands.
-//   - SetIconifiedByDefault(false) / MaxWidth = int.MaxValue / the queryEditor LayoutParams FillVertical
-//     tweaks / the search_close_btn min-width (MauiSearchView.Initialize) are SearchView-shell setup with
-//     no plain-EditText analog; skipped. A plain wrap-content EditText already shows its text + hint.
-//   - MapBackground rides the shared view_mapper (the C# MapBackground delegates straight to
-//     PlatformView.UpdateBackground); update_background pushes the solid/gradient/image background to the
-//     View via the shared android op (VM-less safe), like the editor partial.
+//   - The widget is a plain android.widget.EditText, not MauiAppCompatEditText: the AndroidX AppCompat
+//     library (which MauiAppCompatEditText subclasses) is a gradle/AAR dependency this APK-less backend
+//     does not carry, exactly like the editor partial's plain-android.widget.EditText stand-in. EditText
+//     extends TextView, so the whole TextView surface (MapText/Font/CharacterSpacing/alignment) resolves
+//     through android/widget/EditText (GetMethodID walks the superclasses).
+//   - WAVE 14 CHROME: CreatePlatformView constructs via the 4-arg (Context, AttributeSet, int
+//     defStyleAttr, int defStyleRes) ctor with defStyleRes = android.R.style.Widget_Material_Light_EditText
+//     — a concrete style resource that CARRIES the field's underline/box drawable — so an EMPTY entry is
+//     VISIBLE (the field box renders) instead of bare unboxed text. This is the wave-12/check_box_handler
+//     precedent (the styled ctor read the buttonDrawable-bearing style via GetStaticFieldID so the glyph
+//     rendered): the bare 3-arg defStyleAttr=0 ctor resolves NO editTextStyle chrome in the Activity-less
+//     app_process testhost. The 3-arg and plain (Context) ctors stay as fallbacks so the widget is never
+//     null. (The style field is read with GetStaticFieldID — the jni_cache's instance field() helper
+//     returns null for a static.)
+//   - MapBackground rides the shared view_mapper (no per-handler override needed); the maui background
+//     drawable / corner-radius / stroke machinery the button partial carries does not apply to an entry.
 //   - The port's colors are non-nullable value types, so C#'s null-color branches collapse exactly as
 //     they did in the editor/apple/ios partials: UpdateTextColor's / UpdatePlaceholderColor's "restore
-//     the theme default" (TryGetDefaultStateColor) else-branches have no value-type analog and are
-//     dropped (an unset color is a real value here, pushed through setTextColor / setHintTextColor like
-//     every other color). The search_mag_icon co-tint inside UpdateTextColor/UpdatePlaceholderColor is
-//     part of the deferred SearchView chrome (no icon to tint).
+//     the theme default" else-branches have no value-type analog and are dropped (an unset color is a
+//     real value here, pushed through to setTextColor / setHintTextColor like every other color).
 //   - The native EditText color setters take a ColorStateList (C# routes through
 //     PlatformInterop.CreateEditTextColorStateList). The plain-widget cut uses the single-int overloads
 //     setTextColor(int) / setHintTextColor(int) — the ColorStateList path's enabled-state coloring is an
-//     AppCompat/PlatformInterop nicety, not part of the ISearchBar contract, and the int overloads land
-//     the same ARGB. (Identical to the editor partial.)
+//     AppCompat/PlatformInterop nicety, not part of the IEntry contract, and the int overloads land the
+//     same ARGB the tests read back via getCurrentTextColor / getCurrentHintTextColor. (Identical to the
+//     editor partial.)
 //   - FontManager's registrar/asset/file lookups and the "-light"/"-medium" suffix map are skipped (the
-//     port has no font registrar yet, on any backend): family → Typeface.create(family, style), then the
-//     API-28+ Typeface.create(base, weight, italic) refinement — byte-for-byte the editor partial's
-//     map_font (which is byte-for-byte the button partial's).
-//   - max_length is enforced control-side (search_bar::set_max_length / the InputView truncation, like
-//     entry/editor), so the native InputFilter[] LengthFilter + the SetQuery(trimmedQuery) re-push
-//     (SearchViewExtensions.UpdateMaxLength) are a documented no-op here: the value is mirrored into
-//     search_bar_platform::max_length and the truncation already happened before the text reached the
-//     widget. // TODO: verify against src/Core/src/Platform/Android/SearchViewExtensions.cs
-//     (UpdateMaxLength → SetLengthFilter / TrimToMaxLength) when the native InputFilter seam lands.
-//   - SINGLE-LINE: unlike the editor partial (a multi-line IEditor → SetSingleLine(false) + the InputType
-//     TextFlagMultiLine bit + Gravity = Top), a search bar is single-line. apply_input_type here does NOT
-//     OR-in TextFlagMultiLine, the widget keeps EditText's default single-line behaviour, and the
-//     vertical alignment defaults to CENTER (search_bar_platform::vertical_alignment = center), matching
-//     SearchViewExtensions.UpdateVerticalTextAlignment's TextAlignment.Center.ToVerticalGravityFlags()
-//     fallback and the inner SearchAutoComplete's centered single line.
-//   - The QueryTextChange / QueryTextSubmit / focus listeners (SearchBarHandler.Android ConnectHandler:
-//     platformView.QueryTextChange += OnQueryTextChange → VirtualView.UpdateText; QueryTextSubmit +=
-//     OnQueryTextSubmit → VirtualView.SearchButtonPressed; SetOnQueryTextFocusChangeListener; the
-//     QueryEditorTouch/KeyListener cursor/selection trampolines) are DEFERRED with the gesture/text-
-//     watcher fan-out, EXACTLY like the editor partial defers its TextWatcher/FocusChange. on_text_changed
-//     / on_search_button_pressed stay invokable C++ callbacks (the cross-platform suite drives them); no
-//     android.text.TextWatcher / View.OnFocusChangeListener / OnTouchListener / OnKeyListener trampoline
-//     is installed yet. // TODO: verify against src/Core/src/Handlers/SearchBar/SearchBarHandler.Android.cs
-//     (OnQueryTextChange / OnQueryTextSubmit / OnQueryEditorSelectionChanged) when the android
-//     TextWatcher/focus/key trampolines arrive.
-//   - Cursor/selection (MapCursorPosition / MapSelectionLength → EditTextExtensions
-//     UpdateCursorPosition/UpdateSelectionLength via SetSelection, posted on the looper) are deferred with
+//     port has no font registrar yet, on any backend): family goes straight to Typeface.create(family,
+//     style), then the API-28+ Typeface.create(base, weight, italic) refinement — the exact CreateTypeface
+//     tail for a non-registered family. This is byte-for-byte the editor/button partial's map_font.
+//   - max_length is enforced control-side (entry::set_max_length truncates the stored text), so the
+//     native InputFilter[] LengthFilter (PlatformInterop.UpdateMaxLength) push is a documented no-op
+//     here: the value is mirrored into entry_platform::max_length and the truncation already happened
+//     before the text reached the widget. // TODO: verify against
+//     src/Core/src/Platform/Android/EditTextExtensions.cs (UpdateMaxLength → SetLengthFilter) when the
+//     native InputFilter seam lands.
+//   - The TextChanged / FocusChange / EditorAction / Touch listeners (EntryHandler.Android.cs
+//     ConnectHandler) are deferred with the gesture/text-watcher fan-out, EXACTLY like the editor partial
+//     defers its TextWatcher. on_text_changed / on_completed stay invokable C++ callbacks (the
+//     cross-platform suite drives them); no android.text.TextWatcher / View.OnFocusChangeListener /
+//     EditorAction trampoline is installed yet. // TODO: verify against EntryHandler.Android.cs
+//     (OnTextChanged / OnFocusedChange / OnEditorAction) when the android trampolines arrive.
+//   - SelectionChanged → MapCursorPosition / MapSelectionLength: the native selection round-trip
+//     (EditTextExtensions.UpdateCursorSelection via SetSelection, posted on the looper) is deferred with
 //     the same listener fan-out; map_cursor_position / map_selection_length mirror the values and push
-//     setSelection best-effort, identical to the editor partial. // TODO: verify against
-//     EditTextExtensions.cs (UpdateCursorSelection's editText.Post looper hop) when the focus/looper seam
-//     lands.
+//     setSelection best-effort. // TODO: verify against EditTextExtensions.cs (UpdateCursorSelection's
+//     editText.Post looper hop) when the focus/looper seam lands.
+//   - The CLEAR BUTTON (EntryHandler.Android's GetClearButtonDrawable / ShowClearButton /
+//     HideClearButton / SetCompoundDrawablesWithIntrinsicBounds, drawn from the AppCompat
+//     abc_ic_clear_material resource) needs an AndroidX drawable resource this APK-less backend does not
+//     carry — exactly the AppCompat gap the editor partial documents for its other AppCompat-only knobs.
+//     map_clear_button_visibility mirrors the value and is a documented no-op on the plain widget.
+//     // TODO: verify against EntryHandler.Android.cs (ShowClearButton / HideClearButton) +
+//     EditTextExtensions.cs (UpdateClearButtonVisibility) when the AppCompat drawable seam lands.
+//   - CURSOR COLOR (iOSSpecific Entry.CursorColor) is an iOS knob (UITextField.tintColor); it has no
+//     plain-EditText analog (the cursor-drawable tint is an API-29+ setTextCursorDrawable nicety, not
+//     part of the IEntry contract on Android). map_cursor_color mirrors the value (guarded by the IsSet
+//     probe like TextExtensions.UpdateCursorColor) and is a documented no-op on Android. // TODO: verify
+//     against the android cursor-drawable tint seam if/when it lands.
+//   - ADJUSTS_FONT_SIZE_TO_FIT_WIDTH (iOSSpecific Entry.AdjustsFontSizeToFitWidth) is an iOS knob
+//     (UITextField.adjustsFontSizeToFitWidth); Android EditText has no auto-shrink. map_adjusts_font_
+//     size_to_fit_width mirrors the value (unconditional, no IsSet guard — matching
+//     TextExtensions.UpdateAdjustsFontSizeToFitWidth) and is a documented no-op on Android.
 //
-// VM-less degradation (identical to the editor/button partials): the android preset also runs the
-// PURE-NATIVE cross-platform suite on the emulator (tools/android-emu-run.sh) where no Java VM exists.
-// Every JNI path here checks scoped_env/app_context() and quietly skips, while the headless mirrors
-// (text/placeholder/text_color/…) are ALWAYS maintained — so that suite observes exactly the headless
-// partial's behavior, and the Android app host (a real Activity) additionally observes the real widget
-// (the app_process widget testhost CANNOT construct an EditText — its Editor eagerly queries a Settings
-// ContentProvider the shell-uid process may not reach → SecurityException — so the search bar, like the
-// editor/entry/switch, is app-host-only; see docs/MACOS_ANDROID_RESUME.md lesson 3).
+// VM-less degradation (identical to the editor partial): the android preset also runs the PURE-NATIVE
+// cross-platform suite on the emulator (tools/android-emu-run.sh) where no Java VM exists. Every JNI
+// path here checks scoped_env/app_context() and quietly skips, while the headless mirrors (text/
+// placeholder/text_color/…) are ALWAYS maintained — so that suite observes exactly the headless
+// partial's behavior, and the widget test host (tools/android-testhost-run.sh) additionally observes
+// the real widget.
 
-#include "maui/core/search_bar_handler.hpp"
+#include "maui/core/entry_handler.hpp"
+#include "maui/core/i_ios_entry_specifics.hpp"
 
 #include <jni.h>
 
@@ -122,9 +110,10 @@
 #include "jni/jni_ref.hpp"
 #include "jni/jni_string.hpp"
 #include "maui/core/font.hpp"
-#include "maui/core/i_search_bar.hpp"
+#include "maui/core/i_entry.hpp"
 #include "maui/core/keyboard.hpp"
 #include "maui/core/keyboard_flags.hpp"
+#include "maui/core/return_type.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/view_platform_base.hpp"
 #include "maui/core/visibility.hpp"
@@ -143,23 +132,22 @@ namespace
     // All instance methods resolve through the widget's own class (GetMethodID walks the superclasses,
     // so the View/TextView surface resolves through android/widget/EditText too).
     constexpr const char* k_edit_text_class = "android/widget/EditText";
+    constexpr const char* k_typeface_class = "android/graphics/Typeface";
+    constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
+
+    // android.R.style — the class carrying the field-chrome style resource (wave 14). The static field
+    // is read with GetStaticFieldID (the jni_cache instance field() helper returns null for a static),
+    // exactly the check_box/switch wave-12 precedent.
     constexpr const char* k_style_class = "android/R$style";
-    // The concrete platform style that carries the EditText's box/underline CHROME (the search field
-    // stand-in for the SearchView's inner queryEditor), resolved theme-independently as a defStyleRes so
-    // the bare app_process testhost (and the app host) construct a field that actually HAS its chrome. A
-    // defStyleAttr=0 ctor with NO defStyleRes resolves no background drawable → a chrome-less field (the
-    // missing-chrome bug the switch/checkbox glyph waves hit). The gallery's light Activity theme makes
-    // Widget_EditText the matching field chrome: it carries @android:drawable/edit_text (a framework-res
-    // 9-patch underline) that renders in the bare app_process host; the Material_Light variant resolves its
-    // background to a theme attr the host can't satisfy and paints NOTHING (verified in wave 14), so it is
-    // only a fallback. The *_alt fields are tried in turn if absent. (GetStaticFieldID — static fields.)
-    // The SearchView's OWN magnifier/cancel icons + the search-field rounded background remain DEFERRED
-    // (header deviation: no SearchView chrome here); this restores the EditText field chrome only.
+    // The classic android.R.style.Widget_EditText CARRIES @android:drawable/edit_text — a framework-res
+    // state-list 9-patch underline that does NOT depend on an app/AppCompat theme, so it renders the
+    // field's underline chrome even in the bare app_process host (the Material_Light variant resolves its
+    // background to a theme attr the host can't satisfy, so it paints nothing — verified empirically in
+    // wave 14). Two fallbacks (the platform-default Material, then the light Material) cover any API level
+    // whose R$style omits the classic field — identical chrome-ctor fallback shape to the editor/picker.
     constexpr const char* k_edit_text_style_field = "Widget_EditText";
     constexpr const char* k_edit_text_style_field_alt = "Widget_Material_EditText";
     constexpr const char* k_edit_text_style_field_alt2 = "Widget_Material_Light_EditText";
-    constexpr const char* k_typeface_class = "android/graphics/Typeface";
-    constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
 
     // FontManager.DefaultFontSize (Android) — 14sp. (FontManager.GetFontSize fallback.)
     constexpr float k_default_font_size = 14.0F;
@@ -194,18 +182,24 @@ namespace
     constexpr auto k_measure_spec_exactly = static_cast<jint>(0x40000000U);
 
     // android.view.View.TEXT_ALIGNMENT_* (AlignmentExtensions.ToTextAlignment's targets — the EditText
-    // TextAlignment path, taken on RTL-capable Android, which is every device the port targets):
-    // ToTextAlignment maps Center → Center, End → ViewEnd, else → ViewStart.
+    // TextAlignment path, taken on RTL-capable Android): Center → Center, End → ViewEnd, else → ViewStart.
     constexpr jint k_text_alignment_center = 4;     // View.TEXT_ALIGNMENT_CENTER
     constexpr jint k_text_alignment_view_start = 5; // View.TEXT_ALIGNMENT_VIEW_START
     constexpr jint k_text_alignment_view_end = 6;   // View.TEXT_ALIGNMENT_VIEW_END
 
-    // android.view.Gravity bits (TextAlignmentExtensions' vertical-gravity masking). The search bar's
-    // vertical alignment defaults to Center (search_bar_platform::vertical_alignment = center).
+    // android.view.Gravity bits (TextAlignmentExtensions' vertical-gravity masking). The entry's vertical
+    // alignment defaults to Center (unlike the editor, which defaults to Top).
     constexpr jint k_gravity_top = 0x30;
     constexpr jint k_gravity_bottom = 0x50;
     constexpr jint k_gravity_center_vertical = 0x10;
     constexpr jint k_gravity_vertical_mask = k_gravity_top | k_gravity_bottom | k_gravity_center_vertical;
+
+    // android.view.inputmethod.EditorInfo IME_ACTION_* (ImeActionExtensions.ToPlatform's targets).
+    constexpr jint k_ime_action_done = 6;
+    constexpr jint k_ime_action_go = 2;
+    constexpr jint k_ime_action_next = 5;
+    constexpr jint k_ime_action_search = 3;
+    constexpr jint k_ime_action_send = 4;
 
     // android.text.InputType flags (KeyboardExtensions.ToInputType + SetInputType). Ported verbatim
     // from android.text.InputType so the computed type matches the oracle bit-for-bit.
@@ -225,10 +219,11 @@ namespace
     constexpr jint k_type_text_flag_no_suggestions = 0x00080000;
     constexpr jint k_type_number_flag_signed = 0x00001000;
     constexpr jint k_type_number_flag_decimal = 0x00002000;
+    constexpr jint k_type_number_variation_password = 0x00000010;
     constexpr jint k_type_datetime_variation_normal = 0x00000000;
     constexpr jint k_type_datetime_variation_time = 0x00000020;
 
-    [[nodiscard]] jobject widget_of(const maui::core::search_bar_platform& platform) noexcept
+    [[nodiscard]] jobject widget_of(const maui::core::entry_platform& platform) noexcept
     {
         return static_cast<jobject>(platform.native);
     }
@@ -326,8 +321,7 @@ namespace
         return density;
     }
 
-    // AlignmentExtensions.ToTextAlignment: Center → Center, End → ViewEnd, else ViewStart. (The EditText
-    // path UpdateHorizontalAlignment takes on RTL-capable Android.)
+    // AlignmentExtensions.ToTextAlignment: Center → Center, End → ViewEnd, else ViewStart.
     [[nodiscard]] jint to_text_alignment(maui::core::text_alignment alignment)
     {
         switch (alignment)
@@ -342,8 +336,7 @@ namespace
     }
 
     // AlignmentExtensions.ToVerticalGravityFlags: Start → Top, End → Bottom, else CenterVertical.
-    // (The search bar's vertical default is Center — see search_bar_platform's vertical_alignment default
-    // and SearchViewExtensions.UpdateVerticalTextAlignment's TextAlignment.Center fallback.)
+    // (Entry's vertical default is Center — see entry_platform's vertical_alignment default.)
     [[nodiscard]] jint to_vertical_gravity(maui::core::text_alignment alignment)
     {
         switch (alignment)
@@ -357,10 +350,30 @@ namespace
         }
     }
 
-    // KeyboardExtensions.ToInputType — the named-keyboard / CustomKeyboard branch table, ported verbatim
-    // from the editor partial. The result is the BASE input type before SetInputType's prediction /
-    // spellcheck overlay (apply_input_type below). UNLIKE the editor, there is NO multi-line bit: a
-    // search bar is single-line.
+    // ImeActionExtensions.ToPlatform: Go→Go, Next→Next, Send→Send, Search→Search, Done→Done,
+    // Default→Done (the entry's return-key style; UpdateReturnType sets ImeOptions).
+    [[nodiscard]] jint to_ime_action(maui::core::return_type type)
+    {
+        switch (type)
+        {
+            case maui::core::return_type::go:
+                return k_ime_action_go;
+            case maui::core::return_type::next:
+                return k_ime_action_next;
+            case maui::core::return_type::send:
+                return k_ime_action_send;
+            case maui::core::return_type::search:
+                return k_ime_action_search;
+            case maui::core::return_type::done:
+            case maui::core::return_type::default_:
+            default:
+                return k_ime_action_done;
+        }
+    }
+
+    // KeyboardExtensions.ToInputType — the named-keyboard / CustomKeyboard branch table, ported
+    // verbatim. The result is the BASE input type before SetInputType's prediction / spellcheck /
+    // password overlay (apply_input_type below).
     [[nodiscard]] jint keyboard_to_input_type(maui::core::keyboard keyboard)
     {
         using kind = enum maui::core::keyboard::kind; // disambiguate the nested enum from keyboard::kind()
@@ -419,19 +432,18 @@ namespace
         return k_type_text_variation_normal; // "Should never happen" (KeyboardExtensions' else).
     }
 
-    // EditTextExtensions.SetInputType (the search-bar slice): compute the keyboard base type, then OR-in
-    // the prediction/spellcheck bits (UpdateIsTextPredictionEnabled / UpdateIsSpellCheckEnabled are
-    // SearchViewExtensions methods that toggle exactly these two bits on the inner EditText). NO
-    // TextFlagMultiLine — the virtual view is an ISearchBar, not an IEditor (the editor partial's tail
-    // `if (textInput is IEditor) InputType |= TextFlagMultiLine` does not apply). Recomputed from
-    // i_search_bar each call so any of the three intertwined properties (keyboard / prediction /
-    // spellcheck) lands the full type.
-    void apply_input_type(JNIEnv* env, jobject widget, const maui::core::i_search_bar& view)
+    // EditTextExtensions.SetInputType (the entry slice): compute the keyboard base type, OR-in the
+    // prediction/spellcheck bits (skipped for a CustomKeyboard), OR-in the password variation when the
+    // entry is a password field (the IEntry branch C# has but IEditor does not). UNLIKE the editor, the
+    // entry does NOT OR-in TextFlagMultiLine (it is single-line). Recomputed from i_entry each call so
+    // any of the intertwined properties (keyboard / prediction / spellcheck / is_password) lands the
+    // full type.
+    void apply_input_type(JNIEnv* env, jobject widget, const maui::core::i_entry& view)
     {
         jint input_type = keyboard_to_input_type(view.keyboard());
 
-        // UpdateIsTextPredictionEnabled / UpdateIsSpellCheckEnabled (skipped for a CustomKeyboard, which
-        // already derives these bits from its flags — matching SetInputType's CustomKeyboard guard).
+        // UpdateIsTextPredictionEnabled / UpdateIsSpellCheckEnabled (SetInputType only skips them for a
+        // CustomKeyboard / Plain keyboard).
         if (view.keyboard().kind() != maui::core::keyboard::kind::custom &&
             view.keyboard().kind() != maui::core::keyboard::kind::plain)
         {
@@ -453,6 +465,23 @@ namespace
             }
         }
 
+        // SetInputType: `if (textInput is IEntry entry && entry.IsPassword) { if ClassText →
+        // |TextVariationPassword; if ClassNumber → |NumberVariationPassword; }`.
+        if (view.is_password())
+        {
+            if ((input_type & k_type_class_text) != 0)
+            {
+                input_type |= k_type_text_variation_password;
+            }
+            if ((input_type & k_type_class_number) != 0)
+            {
+                input_type |= k_type_number_variation_password;
+            }
+        }
+
+        // No `|= TextFlagMultiLine` tail: that branch is `if (textInput is IEditor)`, and the entry is
+        // single-line.
+
         call_void_int(env, widget, "setInputType", input_type);
     }
 } // namespace
@@ -460,8 +489,8 @@ namespace
 namespace maui::core
 {
     // Releases the global reference pinning the android.widget.EditText (the JNI shape of the
-    // pimpl-owned-native-view doctrine; the apple twin releases its NSSearchField here).
-    search_bar_platform::~search_bar_platform()
+    // pimpl-owned-native-view doctrine; the apple/ios twins release their UITextField/NSTextField here).
+    entry_platform::~entry_platform()
     {
         if (native != nullptr)
         {
@@ -474,12 +503,13 @@ namespace maui::core
         }
     }
 
+#ifdef MAUI_PLATFORM_ANDROID
     // The generic-IView pushes (the shared view_mapper calls these through view_platform_base). Each
     // calls the base body FIRST — the headless mirrors must stay live for the VM-less cross-platform
     // suite (see the header comment) — then pushes to the real widget when one exists. Copied from the
     // editor partial; only the widget class name differs.
 
-    void search_bar_platform::update_visibility(maui::core::visibility value)
+    void entry_platform::update_visibility(maui::core::visibility value)
     {
         view_platform_base::update_visibility(value);
         if (native == nullptr)
@@ -505,7 +535,7 @@ namespace maui::core
         call_void_int(env.get(), widget_of(*this), "setVisibility", state);
     }
 
-    void search_bar_platform::update_opacity(double value)
+    void entry_platform::update_opacity(double value)
     {
         view_platform_base::update_opacity(value);
         if (native == nullptr)
@@ -520,7 +550,7 @@ namespace maui::core
         }
     }
 
-    void search_bar_platform::update_is_enabled(bool value)
+    void entry_platform::update_is_enabled(bool value)
     {
         view_platform_base::update_is_enabled(value);
         if (native == nullptr)
@@ -530,14 +560,12 @@ namespace maui::core
         const scoped_env env;
         if (env)
         {
-            // SearchBarHandler.MapIsEnabled → SearchViewExtensions.UpdateIsEnabled sets the inner
-            // EditText.Enabled = searchBar.IsEnabled. With the EditText stand-in that IS the platform
-            // view, so this is platformView.Enabled = value (the shared ViewExtensions.UpdateIsEnabled).
+            // ViewExtensions.UpdateIsEnabled: platformView.Enabled = view.IsEnabled.
             call_void_bool(env.get(), widget_of(*this), "setEnabled", static_cast<jboolean>(value));
         }
     }
 
-    void search_bar_platform::update_automation_id(std::string_view value)
+    void entry_platform::update_automation_id(std::string_view value)
     {
         view_platform_base::update_automation_id(value);
         // ViewExtensions.UpdateAutomationId's IsNullOrWhiteSpace gate (a blank id is never pushed).
@@ -579,15 +607,17 @@ namespace maui::core
         }
     }
 
-    void search_bar_platform::update_background(const maui::graphics::paint* value)
+    void entry_platform::update_background(const maui::graphics::paint* value)
     {
-        // MapBackground rides the shared view_mapper in C# (SearchBarHandler.Android.MapBackground
-        // delegates straight to PlatformView.UpdateBackground). The headless mirror keeps the base body;
-        // the android view op pushes the solid/gradient/image background to the View (VM-less safe).
+        // MapBackground rides the shared view_mapper in C# (EntryHandler.Android delegates straight to
+        // PlatformView.UpdateBackground). The headless mirror keeps the base body; the android view op
+        // pushes the solid/gradient/image background to the View (VM-less safe).
         view_platform_base::update_background(value);
-        // WAVE 14: a NULL paint must NOT call apply_background — setBackground(null) would ERASE the
-        // defStyleRes field chrome (the underline the styled ctor installed). MAUI leaves the native
-        // default when Background is null; the EditText's styled background IS that default.
+        // WAVE 14: a NULL paint must NOT call apply_background — that path does setBackground(null), which
+        // would ERASE the defStyleRes field chrome (the underline 9-patch the styled ctor installed),
+        // leaving the entry box-less again. MAUI's UpdateBackground leaves the native default when the
+        // virtual Background is null; the EditText's styled background IS that native default. Only a real
+        // (solid / gradient) paint overrides the field chrome — exactly MAUI's behavior.
         if (value != nullptr)
         {
             maui::platform::android::apply_background(native, value);
@@ -597,27 +627,28 @@ namespace maui::core
     // Render transform + flow direction + semantics pushed to the real widget via the shared android
     // ops. Each calls the view_platform_base body FIRST — the VM-less cross-platform suite observes the
     // headless mirror — then the shared op (itself VM-less safe) pushes to the View.
-    void search_bar_platform::update_transform(const maui::core::transform_spec& value)
+    void entry_platform::update_transform(const maui::core::transform_spec& value)
     {
         view_platform_base::update_transform(value);
         maui::platform::android::apply_transform(native, value);
     }
 
-    void search_bar_platform::update_flow_direction(maui::core::flow_direction value)
+    void entry_platform::update_flow_direction(maui::core::flow_direction value)
     {
         view_platform_base::update_flow_direction(value);
         maui::platform::android::apply_flow_direction(native, value);
     }
 
-    void search_bar_platform::update_semantics(const maui::core::semantics* value)
+    void entry_platform::update_semantics(const maui::core::semantics* value)
     {
         view_platform_base::update_semantics(value);
         maui::platform::android::apply_semantics(native, value);
     }
+#endif // MAUI_PLATFORM_ANDROID
 
-    std::unique_ptr<search_bar_platform> search_bar_handler::create_platform_view()
+    std::unique_ptr<entry_platform> entry_handler::create_platform_view()
     {
-        auto platform = std::make_unique<search_bar_platform>();
+        auto platform = std::make_unique<entry_platform>();
         const scoped_env env;
         jobject context = app_context();
         if (!env || context == nullptr)
@@ -630,19 +661,17 @@ namespace maui::core
         {
             return platform;
         }
-        // SearchBarHandler.CreatePlatformView builds a MauiSearchView (a SearchView whose inner field is
-        // an EditText). The AppCompat SearchView is not carried here (header deviation), so the EditText
-        // stand-in IS the platform view. EditText(Context) chains to the (Context, AttributeSet, int)
-        // ctor with defStyleAttr = the theme attr editTextStyle, which it resolves against the Context's
-        // THEME — the bare, Activity-less app_process testhost has no such theme, so that ctor throws
-        // (the trap the editor partial documents). The defStyleAttr=0 3-arg ctor constructs fine BUT
-        // resolves NO background drawable, so an empty search field renders with NO box/underline chrome
-        // (the missing-chrome bug the switch/checkbox glyph waves hit). So construct THEME-INDEPENDENTLY
-        // via the 4-arg (Context, AttributeSet, int defStyleAttr, int defStyleRes) ctor with defStyleAttr=0
-        // and defStyleRes = android.R.style.Widget_Material_Light_EditText (a concrete style resource that
-        // CARRIES the field chrome — read with GetStaticFieldID since it is a static field). Then fall back
-        // to the 3-arg defStyleAttr=0 form, and finally the plain (Context) ctor, so the widget is never
-        // null. Single-line (the EditText default) — NO SetSingleLine(false) / multi-line knobs.
+        // EntryHandler.CreatePlatformView: new MauiAppCompatEditText(Context). The plain
+        // android.widget.EditText stand-in (header deviations). WAVE 14 CHROME: construct via the 4-arg
+        // (Context, AttributeSet, int defStyleAttr, int defStyleRes) ctor with defStyleRes =
+        // android.R.style.Widget_Material_Light_EditText — a concrete style resource that CARRIES the
+        // field's underline/box drawable, so an EMPTY entry is VISIBLE (the field box renders) instead of
+        // bare unboxed text. This is the wave-12/check_box_handler precedent (the styled ctor read the
+        // buttonDrawable-bearing style via GetStaticFieldID so the glyph rendered): the bare 3-arg
+        // defStyleAttr=0 ctor resolves NO editTextStyle chrome in the Activity-less app_process testhost.
+        // Fall back to the 3-arg defStyleAttr=0 ctor, then the plain (Context) ctor, so the widget is
+        // never null. (GetStaticFieldID — the jni_cache instance field() helper returns null for a
+        // static.)
         jobject created = nullptr;
         jmethodID ctor_styled = cache.method(env.get(), k_edit_text_class, "<init>",
                                              "(Landroid/content/Context;Landroid/util/AttributeSet;II)V");
@@ -704,9 +733,12 @@ namespace maui::core
             return platform;
         }
         const local_ref<jobject> widget{env.get(), created};
-        // TextAlignment = ViewStart + Gravity = CenterVertical: the search bar's default leading,
-        // vertically-centered single line (vs the editor's Top). The vertical centre matches
-        // SearchViewExtensions.UpdateVerticalTextAlignment's TextAlignment.Center fallback.
+        // SetSingleLine(true): the entry is a SINGLE-LINE field (unlike the editor, which sets it false
+        // for multi-line). The EditText default is already single-line; the explicit set documents intent
+        // and keeps TextFlagMultiLine (never OR-ed for the entry) from leaking a multi-line layout.
+        call_void_bool(env.get(), widget.get(), "setSingleLine", JNI_TRUE);
+        // TextAlignment = ViewStart + Gravity = CenterVertical: the entry's default leading,
+        // vertically-centered single line (vs the editor's Top).
         call_void_int(env.get(), widget.get(), "setTextAlignment", k_text_alignment_view_start);
         call_void_int(env.get(), widget.get(), "setGravity", k_gravity_center_vertical);
 
@@ -730,19 +762,18 @@ namespace maui::core
                 clear_pending(env.get());
             }
         }
-        platform->native = env->NewGlobalRef(widget.get()); // released in ~search_bar_platform
+        platform->native = env->NewGlobalRef(widget.get()); // released in ~entry_platform
         return platform;
     }
 
-    void search_bar_handler::on_connect_handler(search_bar_platform& platform)
+    void entry_handler::on_connect_handler(entry_platform& platform)
     {
-        // SearchBarHandler.Android ConnectHandler installs platformView.QueryTextChange += OnQueryTextChange
-        // (→ VirtualView.UpdateText) and QueryTextSubmit += OnQueryTextSubmit (→ SearchButtonPressed), plus
-        // the focus / cursor-selection listeners. The android trampolines are deferred with the gesture/
-        // text-watcher fan-out (header deviations), EXACTLY like the editor partial defers its TextWatcher
-        // — but the C++ callbacks stay wired so the VM-less cross-platform suite (and a future trampoline)
-        // can drive them, and on_text_changed keeps the headless mirror's last_known_text live so an
-        // inbound edit can supply the (old, new) pair.
+        // EntryHandler.Android ConnectHandler installs platformView.TextChanged += OnTextChanged,
+        // FocusChange += OnFocusedChange, EditorAction += OnEditorAction (→ Completed), Touch += OnTouch.
+        // The android trampolines are deferred with the gesture/text-watcher fan-out (header deviations),
+        // EXACTLY like the editor partial defers its TextWatcher — but the C++ callbacks stay wired so the
+        // VM-less cross-platform suite (and a future trampoline) can drive them, and they keep the
+        // headless mirror's last_known_text live so an inbound edit can supply the (old, new) pair.
         platform.on_text_changed = [this](const std::string& old_value, const std::string& new_value) {
             if (auto* platform_view = typed_platform_view())
             {
@@ -753,24 +784,23 @@ namespace maui::core
                 view->send_text_changed(old_value, new_value);
             }
         };
-        platform.on_search_button_pressed = [this] {
+        platform.on_completed = [this] {
             if (auto* view = virtual_view())
             {
-                view->send_search_button_pressed();
+                view->send_completed();
             }
         };
     }
 
-    void search_bar_handler::on_disconnect_handler(search_bar_platform& platform)
+    void entry_handler::on_disconnect_handler(entry_platform& platform)
     {
-        // DisconnectHandler: QueryTextChange -= OnQueryTextChange; QueryTextSubmit -= OnQueryTextSubmit;
-        // SetOnQueryTextFocusChangeListener(null); … (the native trampoline uninstall lands with the
-        // deferred listener fan-out).
+        // DisconnectHandler: TextChanged/FocusChange/EditorAction/Touch -= … (the native trampoline
+        // uninstall lands with the deferred listener fan-out).
         platform.on_text_changed = nullptr;
-        platform.on_search_button_pressed = nullptr;
+        platform.on_completed = nullptr;
     }
 
-    void search_bar_handler::map_text(search_bar_handler& handler, i_search_bar& view)
+    void entry_handler::map_text(entry_handler& handler, i_entry& view)
     {
         auto* platform = handler.typed_platform_view();
         if (platform == nullptr)
@@ -790,11 +820,8 @@ namespace maui::core
         }
         jobject widget = widget_of(*platform);
         auto& cache = default_jni_cache();
-        // SearchViewExtensions.UpdateText → SearchView.SetQuery(Text, false); the inner-EditText overload
-        // (SearchViewExtensions.UpdateText(EditText)) is editText.Text = newText with an equality guard.
-        // With the EditText stand-in: setText(Text), then SetSelection(Text.Length) to keep the caret at
-        // the end after a programmatic set (setting text resets the cursor to 0). to_jstring goes through
-        // the real-UTF-8 path (supplementary-plane safe — see jni_string.hpp).
+        // EditTextExtensions.UpdateText(IEntry): editText.Text = entry.Text; SetSelection(Text.Length).
+        // to_jstring goes through the real-UTF-8 path (supplementary-plane safe — see jni_string.hpp).
         jmethodID set_text = cache.method(env.get(), k_edit_text_class, "setText", "(Ljava/lang/CharSequence;)V");
         if (set_text != nullptr)
         {
@@ -802,6 +829,8 @@ namespace maui::core
             env->CallVoidMethod(widget, set_text, text.get());
             clear_pending(env.get());
         }
+        // SetSelection(Text.Length): keep the caret at the end after a programmatic set (UpdateText's
+        // comment: setting the text resets the cursor to position zero).
         jmethodID set_selection = cache.method(env.get(), k_edit_text_class, "setSelection", "(I)V");
         if (set_selection != nullptr)
         {
@@ -810,7 +839,7 @@ namespace maui::core
         }
     }
 
-    void search_bar_handler::map_text_color(search_bar_handler& handler, i_search_bar& view)
+    void entry_handler::map_text_color(entry_handler& handler, i_entry& view)
     {
         auto* platform = handler.typed_platform_view();
         if (platform == nullptr)
@@ -825,16 +854,15 @@ namespace maui::core
         const scoped_env env;
         if (env)
         {
-            // SearchViewExtensions.UpdateTextColor → inner EditText.SetTextColor(color). The null branch
-            // (TryGetDefaultStateColor + the search_mag_icon co-tint) collapses for the port's non-nullable
-            // color + the deferred SearchView chrome (header deviations); the ColorStateList path is
-            // replaced by the int overload (header deviations).
+            // EditTextExtensions.UpdateTextColor: SetTextColor(textColor.ToPlatform()). The null branch
+            // (restore the theme default) collapses for the port's non-nullable color (header deviations);
+            // the ColorStateList path is replaced by the int overload (header deviations).
             call_void_int(env.get(), widget_of(*platform), "setTextColor",
                           static_cast<jint>(view.text_color().to_int()));
         }
     }
 
-    void search_bar_handler::map_placeholder(search_bar_handler& handler, i_search_bar& view)
+    void entry_handler::map_placeholder(entry_handler& handler, i_entry& view)
     {
         auto* platform = handler.typed_platform_view();
         if (platform == nullptr)
@@ -851,8 +879,8 @@ namespace maui::core
         {
             return;
         }
-        // SearchViewExtensions.UpdatePlaceholder → SearchView.QueryHint = Placeholder. The QueryHint is
-        // surfaced on the inner EditText as its Hint, so with the EditText stand-in this is setHint(Placeholder).
+        // EditTextExtensions.UpdatePlaceholder: editText.Hint = textInput.Placeholder (the Hint == guard
+        // is a redundant-set optimization, not behavior; the unconditional set lands the same value).
         jmethodID set_hint =
             default_jni_cache().method(env.get(), k_edit_text_class, "setHint", "(Ljava/lang/CharSequence;)V");
         if (set_hint != nullptr)
@@ -863,7 +891,7 @@ namespace maui::core
         }
     }
 
-    void search_bar_handler::map_placeholder_color(search_bar_handler& handler, i_search_bar& view)
+    void entry_handler::map_placeholder_color(entry_handler& handler, i_entry& view)
     {
         auto* platform = handler.typed_platform_view();
         if (platform == nullptr)
@@ -878,15 +906,37 @@ namespace maui::core
         const scoped_env env;
         if (env)
         {
-            // SearchViewExtensions.UpdatePlaceholderColor → inner EditText.SetHintTextColor(color). Null
-            // branch (default + the search_mag_icon co-tint) collapses + ColorStateList→int overload
-            // (header deviations).
+            // EditTextExtensions.UpdatePlaceholderColor: SetHintTextColor(placeholderColor.ToPlatform()).
+            // Null branch collapses + ColorStateList→int overload (header deviations).
             call_void_int(env.get(), widget_of(*platform), "setHintTextColor",
                           static_cast<jint>(view.placeholder_color().to_int()));
         }
     }
 
-    void search_bar_handler::map_is_read_only(search_bar_handler& handler, i_search_bar& view)
+    void entry_handler::map_is_password(entry_handler& handler, i_entry& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        platform->is_password = view.is_password();
+        if (platform->native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (env)
+        {
+            // EntryHandler.MapIsPassword: handler.UpdateValue(Text) then UpdateIsPassword →
+            // EditTextExtensions.UpdateIsPassword → SetInputType (the password variation OR-in is in
+            // apply_input_type's IEntry branch). The Text re-push is map_text's job on the next mapper
+            // run; here we recompute the full input type so the password variation lands.
+            apply_input_type(env.get(), widget_of(*platform), view);
+        }
+    }
+
+    void entry_handler::map_is_read_only(entry_handler& handler, i_entry& view)
     {
         auto* platform = handler.typed_platform_view();
         if (platform == nullptr)
@@ -904,31 +954,31 @@ namespace maui::core
             return;
         }
         jobject widget = widget_of(*platform);
-        // SearchViewExtensions.UpdateIsReadOnly(EditText): bool isReadOnly = !searchBar.IsReadOnly;
-        // FocusableInTouchMode = isReadOnly; Focusable = isReadOnly; SetCursorVisible(isReadOnly). (NOTE:
-        // the C# variable named `isReadOnly` is actually the EDITABLE flag = !IsReadOnly; the search
-        // overload, like the editor overload, does NOT touch InputType. The SearchView's
-        // UpdateCancelButtonState co-call is deferred SearchView chrome — header deviations.)
+        // EditTextExtensions.UpdateIsReadOnly(IEntry): bool isEditable = !entry.IsReadOnly;
+        // SetInputType(entry); FocusableInTouchMode = isEditable; Focusable = isEditable;
+        // SetCursorVisible(isEditable). (UNLIKE the IEditor overload, the entry overload ALSO re-runs
+        // SetInputType — the read-only state is part of the input type for the entry.)
+        apply_input_type(env.get(), widget, view);
         const jboolean editable = static_cast<jboolean>(!view.is_read_only());
         call_void_bool(env.get(), widget, "setFocusableInTouchMode", editable);
         call_void_bool(env.get(), widget, "setFocusable", editable);
         call_void_bool(env.get(), widget, "setCursorVisible", editable);
     }
 
-    void search_bar_handler::map_max_length(search_bar_handler& handler, i_search_bar& view)
+    void entry_handler::map_max_length(entry_handler& handler, i_entry& view)
     {
-        // SearchViewExtensions.UpdateMaxLength → editText.SetLengthFilter + SetQuery(TrimToMaxLength). The
-        // port enforces max_length control-side (the InputView truncation, like entry/editor), so the
-        // native filter + re-query is a documented no-op; the value is mirrored and the text already
-        // arrived truncated (header deviations). // TODO: verify against
-        // src/Core/src/Platform/Android/SearchViewExtensions.cs (UpdateMaxLength → SetLengthFilter).
+        // EditTextExtensions.UpdateMaxLength → PlatformInterop.UpdateMaxLength sets an InputFilter[]
+        // LengthFilter. The port enforces max_length control-side (entry::set_max_length truncates the
+        // stored text), so the native filter is a documented no-op; the value is mirrored and the text
+        // already arrived truncated (header deviations). // TODO: verify against
+        // src/Core/src/Platform/Android/EditTextExtensions.cs (UpdateMaxLength → SetLengthFilter).
         if (auto* platform = handler.typed_platform_view())
         {
             platform->max_length = view.max_length();
         }
     }
 
-    void search_bar_handler::map_font(search_bar_handler& handler, i_search_bar& view)
+    void entry_handler::map_font(entry_handler& handler, i_entry& view)
     {
         auto* platform = handler.typed_platform_view();
         if (platform == nullptr)
@@ -949,10 +999,10 @@ namespace maui::core
         auto& cache = default_jni_cache();
         const font value = view.font();
 
-        // SearchViewExtensions.UpdateFont → inner EditText.UpdateFont (FontManager.GetTypeface →
-        // CreateTypeface; the non-registered-family tail; header deviations, identical to the editor
-        // partial's map_font): base = family ? Typeface.create(family, ToTypefaceStyle(weight, italic)) :
-        // Typeface.DEFAULT, then the API-28+ refinement Typeface.create(base, weight, italic).
+        // FontManager.GetTypeface → CreateTypeface (the non-registered-family tail; header deviations,
+        // identical to the editor partial's map_font): base = family ? Typeface.create(family,
+        // ToTypefaceStyle(weight, italic)) : Typeface.DEFAULT, then the API-28+ refinement
+        // Typeface.create(base, weight, italic).
         const bool italic = value.slant() != font_slant::normal;
         const bool bold = value.weight() >= font_weight::bold; // ToTypefaceStyle: bold = weight >= Bold
         jint style = k_typeface_normal;
@@ -1020,7 +1070,7 @@ namespace maui::core
         }
     }
 
-    void search_bar_handler::map_character_spacing(search_bar_handler& handler, i_search_bar& view)
+    void entry_handler::map_character_spacing(entry_handler& handler, i_entry& view)
     {
         auto* platform = handler.typed_platform_view();
         if (platform == nullptr)
@@ -1035,14 +1085,13 @@ namespace maui::core
         const scoped_env env;
         if (env)
         {
-            // SearchViewExtensions.MapCharacterSpacing → inner EditText.UpdateCharacterSpacing →
-            // TextViewExtensions: LetterSpacing = CharacterSpacing.ToEm().
+            // TextViewExtensions.UpdateCharacterSpacing: LetterSpacing = CharacterSpacing.ToEm().
             call_void_float(env.get(), widget_of(*platform), "setLetterSpacing",
                             static_cast<jfloat>(view.character_spacing()) * k_em_coefficient);
         }
     }
 
-    void search_bar_handler::map_horizontal_text_alignment(search_bar_handler& handler, i_search_bar& view)
+    void entry_handler::map_horizontal_text_alignment(entry_handler& handler, i_entry& view)
     {
         auto* platform = handler.typed_platform_view();
         if (platform == nullptr)
@@ -1061,13 +1110,11 @@ namespace maui::core
         }
         jobject widget = widget_of(*platform);
         auto& cache = default_jni_cache();
-        // SearchViewExtensions.MapHorizontalTextAlignment → inner EditText.UpdateHorizontalTextAlignment →
-        // UpdateHorizontalAlignment (EditText): on RTL-capable Android (every device the port targets) it
-        // sets BOTH TextAlignment and the horizontal gravity bits — "text alignment does not work at
-        // runtime, so we also need gravity". The horizontal-gravity re-masking is done native-side by the
-        // single setTextAlignment here (the gravity half needs a getGravity round-trip; deferred with the
-        // gravity-mask helper, identical to the editor partial — the TextAlignment push is the
-        // runtime-effective one). // TODO: verify against
+        // TextViewExtensions.UpdateHorizontalTextAlignment → UpdateHorizontalAlignment (EditText): on
+        // RTL-capable Android it sets BOTH TextAlignment and the horizontal gravity bits. The
+        // horizontal-gravity re-masking is done native-side by the single setTextAlignment here (the
+        // gravity half needs a getGravity round-trip; deferred with the gravity-mask helper — the
+        // TextAlignment push is the runtime-effective one). // TODO: verify against
         // src/Core/src/Platform/Android/TextAlignmentExtensions.cs (UpdateHorizontalAlignment's Gravity
         // re-mask) when the getGravity round-trip lands.
         jmethodID set_text_alignment = cache.method(env.get(), k_edit_text_class, "setTextAlignment", "(I)V");
@@ -1078,7 +1125,7 @@ namespace maui::core
         }
     }
 
-    void search_bar_handler::map_vertical_text_alignment(search_bar_handler& handler, i_search_bar& view)
+    void entry_handler::map_vertical_text_alignment(entry_handler& handler, i_entry& view)
     {
         auto* platform = handler.typed_platform_view();
         if (platform == nullptr)
@@ -1097,10 +1144,9 @@ namespace maui::core
         }
         jobject widget = widget_of(*platform);
         auto& cache = default_jni_cache();
-        // SearchViewExtensions.UpdateVerticalTextAlignment → inner EditText.UpdateVerticalAlignment:
-        // Gravity = (Gravity & ~VerticalMask) | ToVerticalGravityFlags(alignment). Read-modify-write the
-        // existing gravity so the horizontal bits survive (identical to the editor partial; the search
-        // bar's vertical default is Center, not Top).
+        // TextAlignmentExtensions.UpdateVerticalAlignment(EditText): Gravity = (Gravity & ~VerticalMask)
+        // | ToVerticalGravityFlags(alignment). Read-modify-write the existing gravity so the horizontal
+        // bits set at construction survive.
         jmethodID get_gravity = cache.method(env.get(), k_edit_text_class, "getGravity", "()I");
         jmethodID set_gravity = cache.method(env.get(), k_edit_text_class, "setGravity", "(I)V");
         if (get_gravity == nullptr || set_gravity == nullptr)
@@ -1117,7 +1163,7 @@ namespace maui::core
         clear_pending(env.get());
     }
 
-    void search_bar_handler::map_is_text_prediction_enabled(search_bar_handler& handler, i_search_bar& view)
+    void entry_handler::map_is_text_prediction_enabled(entry_handler& handler, i_entry& view)
     {
         auto* platform = handler.typed_platform_view();
         if (platform == nullptr)
@@ -1132,15 +1178,15 @@ namespace maui::core
         const scoped_env env;
         if (env)
         {
-            // SearchViewExtensions.UpdateIsTextPredictionEnabled toggles the inner EditText InputType's
-            // TextFlagAutoCorrect. The port recomputes the FULL input type (keyboard base + prediction +
-            // spellcheck) so the three intertwined properties stay consistent — SetInputType's shape
-            // (header deviations). NO multi-line bit (single-line search bar).
+            // EditTextExtensions.UpdateIsTextPredictionEnabled toggles InputType's TextFlagAutoCorrect.
+            // The port recomputes the FULL input type (keyboard base + prediction + spellcheck +
+            // password) so the intertwined properties stay consistent — SetInputType's shape (header
+            // deviations).
             apply_input_type(env.get(), widget_of(*platform), view);
         }
     }
 
-    void search_bar_handler::map_is_spell_check_enabled(search_bar_handler& handler, i_search_bar& view)
+    void entry_handler::map_is_spell_check_enabled(entry_handler& handler, i_entry& view)
     {
         auto* platform = handler.typed_platform_view();
         if (platform == nullptr)
@@ -1155,13 +1201,13 @@ namespace maui::core
         const scoped_env env;
         if (env)
         {
-            // SearchViewExtensions.UpdateIsSpellCheckEnabled toggles the inner EditText InputType's
-            // TextFlagNoSuggestions; recompute the full type (see map_is_text_prediction_enabled).
+            // EditTextExtensions.UpdateIsSpellCheckEnabled toggles InputType's TextFlagNoSuggestions;
+            // recompute the full type (see map_is_text_prediction_enabled).
             apply_input_type(env.get(), widget_of(*platform), view);
         }
     }
 
-    void search_bar_handler::map_keyboard(search_bar_handler& handler, i_search_bar& view)
+    void entry_handler::map_keyboard(entry_handler& handler, i_entry& view)
     {
         auto* platform = handler.typed_platform_view();
         if (platform == nullptr)
@@ -1176,15 +1222,53 @@ namespace maui::core
         const scoped_env env;
         if (env)
         {
-            // SearchBarHandler.MapKeyboard re-pushes Text first (UpdateValue(nameof(Text)) — to restore
-            // the caret after the input-type change) then UpdateKeyboard → SetInputType: keyboard base
-            // type + prediction/spellcheck. The caret restore is the deferred SetSelection round-trip
-            // (header deviations); map_text already lands the text. NO multi-line bit (single-line).
+            // EditTextExtensions.UpdateKeyboard(IEntry) → SetInputType: keyboard base type + prediction/
+            // spellcheck + password. (MapKeyboard in C# also re-pushes Text first to restore the caret
+            // after the input-type change; the caret restore is the deferred SetSelection round-trip —
+            // header deviations — and map_text already lands the text.)
             apply_input_type(env.get(), widget_of(*platform), view);
         }
     }
 
-    void search_bar_handler::map_cursor_position(search_bar_handler& handler, i_search_bar& view)
+    void entry_handler::map_return_type(entry_handler& handler, i_entry& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        platform->entry_return_type = view.return_type();
+        if (platform->native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (env)
+        {
+            // EditTextExtensions.UpdateReturnType: editText.ImeOptions = entry.ReturnType.ToPlatform();
+            // then imm.RestartInput(editText). The InputMethodManager.RestartInput is a soft-keyboard
+            // nicety with no analog in the bare testhost (no IME); ImeOptions IS the field state the
+            // capture/tests observe. // TODO: verify against EditTextExtensions.cs (UpdateReturnType's
+            // imm.RestartInput) when the soft-keyboard seam lands.
+            call_void_int(env.get(), widget_of(*platform), "setImeOptions", to_ime_action(view.return_type()));
+        }
+    }
+
+    void entry_handler::map_clear_button_visibility(entry_handler& handler, i_entry& view)
+    {
+        // EditTextExtensions.UpdateClearButtonVisibility → EntryHandler.ShowClearButton/HideClearButton
+        // draws the AppCompat abc_ic_clear_material drawable as a compound drawable. That drawable is an
+        // AndroidX resource this APK-less backend does not carry (header deviations), so the value is
+        // mirrored and the compound-drawable push is a documented no-op. // TODO: verify against
+        // EntryHandler.Android.cs (ShowClearButton / HideClearButton) when the AppCompat drawable seam
+        // lands.
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->clear_button = view.clear_button_visibility();
+        }
+    }
+
+    void entry_handler::map_cursor_position(entry_handler& handler, i_entry& view)
     {
         auto* platform = handler.typed_platform_view();
         if (platform == nullptr)
@@ -1202,16 +1286,16 @@ namespace maui::core
             return;
         }
         // EditTextExtensions.UpdateCursorPosition → SetSelection(start) (clamped to the text length). The
-        // full UpdateCursorSelection logic (the looper Post when focused, the OnQueryEditorSelectionChanged
-        // round-trip) is deferred with the focus/selection-changed seam (header deviations); the
-        // best-effort SetSelection here lands the clamped caret synchronously (identical to the editor
-        // partial). // TODO: verify against EditTextExtensions.cs (UpdateCursorSelection).
+        // full UpdateCursorSelection logic (the looper Post when focused, the RTL-selection preservation)
+        // is deferred with the focus/selection-changed seam (header deviations); the best-effort
+        // SetSelection here lands the clamped caret synchronously. // TODO: verify against
+        // src/Core/src/Platform/Android/EditTextExtensions.cs (UpdateCursorSelection).
         const auto length = static_cast<int>(view.text().size());
         const jint start = static_cast<jint>(std::max(0, std::min(view.cursor_position(), length)));
         call_void_int(env.get(), widget_of(*platform), "setSelection", start);
     }
 
-    void search_bar_handler::map_selection_length(search_bar_handler& handler, i_search_bar& view)
+    void entry_handler::map_selection_length(entry_handler& handler, i_entry& view)
     {
         auto* platform = handler.typed_platform_view();
         if (platform == nullptr)
@@ -1229,10 +1313,10 @@ namespace maui::core
             return;
         }
         jobject widget = widget_of(*platform);
-        // EditTextExtensions.UpdateSelectionLength → SetSelection(start, end). start = clamp(cursor), end =
-        // clamp(start + selectionLength). The native-RTL / looper-Post nuances are deferred (header
-        // deviations); the two-arg SetSelection lands the clamped range synchronously (identical to the
-        // editor partial). // TODO: verify against EditTextExtensions.cs (GetSelectionStart/End).
+        // EditTextExtensions.UpdateSelectionLength → SetSelection(start, end). start = clamp(cursor),
+        // end = clamp(start + selectionLength). The native-RTL / looper-Post nuances are deferred (header
+        // deviations); the two-arg SetSelection lands the clamped range synchronously. // TODO: verify
+        // against EditTextExtensions.cs (GetSelectionStart/GetSelectionEnd) with the focus seam.
         const auto length = static_cast<int>(view.text().size());
         const int start = std::max(0, std::min(view.cursor_position(), length));
         const int end = std::max(start, std::min(length, start + view.selection_length()));
@@ -1244,44 +1328,38 @@ namespace maui::core
         }
     }
 
-    void search_bar_handler::map_cancel_button_color(search_bar_handler& handler, i_search_bar& view)
+    void entry_handler::map_cursor_color(entry_handler& handler, i_entry& view)
     {
-        // SearchViewExtensions.UpdateCancelButtonColor tints the search_close_btn ImageView's drawable.
-        // The plain-EditText stand-in carries no SearchView cancel button (header deviations — DEFERRED,
-        // exactly like the apple/AppKit twin whose NSSearchFieldCell cancel cell has no public tint); the
-        // mirror records the value.
-        if (auto* platform = handler.typed_platform_view())
+        // --- platform configuration (W2-24): the iOSSpecific Entry.CursorColor map. The cursor tint is
+        // an iOS knob (UITextField.tintColor) with no plain-EditText analog (header deviations), so the
+        // android partial mirrors the value (guarded by the IsSet probe like
+        // TextExtensions.UpdateCursorColor — an untouched entry leaves the mirror nullopt) and the
+        // native cursor-drawable tint is a documented no-op.
+        auto* platform = handler.typed_platform_view();
+        const auto* specifics = dynamic_cast<const i_ios_entry_specifics*>(&view);
+        if (platform == nullptr || specifics == nullptr || !specifics->cursor_color_set())
         {
-            platform->cancel_button_color = view.cancel_button_color();
+            return;
         }
+        platform->cursor_color = specifics->cursor_color();
     }
 
-    void search_bar_handler::map_search_icon_color(search_bar_handler& handler, i_search_bar& view)
+    void entry_handler::map_adjusts_font_size_to_fit_width(entry_handler& handler, i_entry& view)
     {
-        // SearchViewExtensions.UpdateSearchIconColor tints the search_mag_icon ImageView's drawable. No
-        // SearchView loupe on the plain-EditText stand-in (header deviations — DEFERRED, like the apple
-        // twin); the mirror records the value.
-        if (auto* platform = handler.typed_platform_view())
+        // --- platform configuration (W2-24): the iOSSpecific Entry.AdjustsFontSizeToFitWidth map. The
+        // auto-shrink is an iOS knob (UITextField.adjustsFontSizeToFitWidth); Android EditText has none
+        // (header deviations). The mirror is recorded UNCONDITIONALLY (no IsSet guard, matching
+        // TextExtensions.UpdateAdjustsFontSizeToFitWidth — default false) and the native push is a no-op.
+        auto* platform = handler.typed_platform_view();
+        const auto* specifics = dynamic_cast<const i_ios_entry_specifics*>(&view);
+        if (platform == nullptr || specifics == nullptr)
         {
-            platform->search_icon_color = view.search_icon_color();
+            return;
         }
+        platform->adjusts_font_size_to_fit_width = specifics->adjusts_font_size_to_fit_width();
     }
 
-    void search_bar_handler::map_return_type(search_bar_handler& handler, i_search_bar& view)
-    {
-        // SearchViewExtensions.UpdateReturnType sets SearchView.ImeOptions + the inner EditText.ImeOptions
-        // (ReturnType.ToPlatform) and RestartInput. The IME-options push has no observable surface on the
-        // bare app_process testhost (no soft keyboard) and the SearchView ImeOptions has no stand-in
-        // target; DEFERRED to mirror-only (header deviations — like the apple twin's hardware-keyboard
-        // collapse). // TODO: verify against SearchViewExtensions.cs (UpdateReturnType → ImeOptions +
-        // RestartInput) when a soft-keyboard-aware app host lands.
-        if (auto* platform = handler.typed_platform_view())
-        {
-            platform->bar_return_type = view.return_type();
-        }
-    }
-
-    maui::graphics::size search_bar_handler::get_desired_size(double width_constraint, double height_constraint) const
+    maui::graphics::size entry_handler::get_desired_size(double width_constraint, double height_constraint) const
     {
         const auto* platform = typed_platform_view();
         if (platform == nullptr)
@@ -1290,15 +1368,15 @@ namespace maui::core
         }
         if (platform->native == nullptr)
         {
-            // VM-less degradation: the headless partial's placeholder metric (a single-line bar ~200pt
-            // wide, clamped to a finite width constraint, fixed line height), so the backend-agnostic
+            // VM-less degradation: the headless partial's placeholder metric (a single-line field ~150pt
+            // wide, clamped to a finite width constraint, one line tall), so the backend-agnostic
             // size-request suites see consistent numbers in the pure-native run.
-            double width = 200.0;
+            double width = 150.0;
             if (width_constraint > 0 && width_constraint < width)
             {
                 width = width_constraint;
             }
-            return {width, 30.0};
+            return {width, 22.0};
         }
         const scoped_env env;
         if (!env)
@@ -1343,7 +1421,7 @@ namespace maui::core
         return {static_cast<double>(measured_width) / density, static_cast<double>(measured_height) / density};
     }
 
-    void search_bar_handler::platform_arrange(const maui::graphics::rect& frame)
+    void entry_handler::platform_arrange(const maui::graphics::rect& frame)
     {
         auto* platform = typed_platform_view();
         if (platform == nullptr || platform->native == nullptr)
@@ -1357,11 +1435,9 @@ namespace maui::core
         }
         jobject widget = widget_of(*platform);
         auto& cache = default_jni_cache();
-        // ViewHandler.PlatformArrange (the dp frame becomes pixels, the view measures Exactly at the final
-        // size — Android requires a measure pass before layout — and lays out). Identical to the editor
-        // partial; the text-view re-layout nicety (PrepareForTextViewArrange) is deferred.
-        // TODO: verify against src/Core/src/Platform/Android/.../PrepareForTextViewArrange when the
-        // text-view arrange-prep seam lands.
+        // ViewHandler.PlatformArrange: the dp frame becomes pixels, the view measures Exactly at the
+        // final size (Android requires a measure pass before layout) and lays out. Identical to the
+        // editor partial.
         jmethodID make_measure_spec = cache.static_method(env.get(), k_measure_spec_class, "makeMeasureSpec", "(II)I");
         jmethodID measure = cache.method(env.get(), k_edit_text_class, "measure", "(II)V");
         jmethodID layout = cache.method(env.get(), k_edit_text_class, "layout", "(IIII)V");

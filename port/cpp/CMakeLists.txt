@@ -483,6 +483,11 @@ else()
     # editor: android.widget.EditText (multiline) partial.
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/editor_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/editor_handler.cpp)
+    # entry (wave 14): android.widget.EditText (single-line) partial WITH defStyleRes field chrome — the
+    # headless entry partial returns a null native (no field at all), so without this swap an Entry is
+    # completely absent on Android. The styled ctor makes an EMPTY entry's box/underline visible.
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/entry_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/entry_handler.cpp)
     # wave 2 — interactive widgets (theme-independent ctors; deferred value-change listeners):
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/slider_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/slider_handler.cpp)

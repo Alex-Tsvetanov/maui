@@ -134,6 +134,23 @@ namespace maui::core
         // MauiIosTextField.layoutSubviews re-frames the mask to the live bounds, the 0×0-at-map-time fix).
         void update_clip(const maui::graphics::i_shape* value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_ANDROID
+        // Android backend (M-android fan-out, wave 14): push the generic IView properties to the real
+        // android.widget.EditText over JNI (defined in src/platform/android/entry_handler.cpp). Each
+        // override calls the view_platform_base body FIRST (the VM-less cross-platform suite observes the
+        // headless mirror) then pushes to the widget when one exists; transform / flow-direction /
+        // semantics route through the shared android ops. Shadow, Clip, and InputTransparent keep ONLY the
+        // base mirror (WrapperView-only on Android, no plain-View analog), as the editor partial documents.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        void update_transform(const maui::core::transform_spec& value) override;
+        void update_flow_direction(maui::core::flow_direction value) override;
+        void update_semantics(const maui::core::semantics* value) override;
+#endif
     };
 
     class entry_handler : public view_handler<entry_handler, i_entry, entry_platform>
