@@ -606,8 +606,8 @@
 },
 {
 "key": "radio_button_border",
-"status": "yellow",
-"note": "All 4 options + yellow band + correct selection (Option 4) render, but the colored item borders (red around Option 1, green around Option 4) from iOS are missing entirely."
+"status": "green",
+"note": "Matches iOS ref: Option1 yellow+red border, Option2 yellow only, Option3 plain, Option4 selected with green border+filled dot. VSM styling intact."
 },
 {
 "key": "radio_button_content",
@@ -686,8 +686,8 @@
 },
 {
 "key": "selection_synchronization",
-"status": "yellow",
-"note": "Text/items all render correctly, but selected rows (Item 2/Item 3) lack the gray highlight iOS shows — selection state not visualized."
+"status": "green",
+"note": "Matches iOS ref: both CollectionViews show Item2/Item3 gray-highlighted as selected, rest unselected, text content identical."
 },
 {
 "key": "semantics",
