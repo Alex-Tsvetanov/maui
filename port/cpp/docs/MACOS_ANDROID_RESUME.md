@@ -104,9 +104,17 @@ mean simple pages render meaningful content on day one.
 native View into a plain `android.widget.FrameLayout` (its `host_content` does the `SetContentView(rootView)`
 dance; navigation_handler does the same for page stacks) — so the rendering plumbing EXISTS; the Activity just
 needs `setContentView(window's FrameLayout)`. Four pieces to build:
-1. **Native JNI `nativeMount(Activity, pageKey)`** — set_java_vm + set_app_context(activity), build the gallery
-   page for the key, connect a window to it, return the window's FrameLayout. Analogous to
-   `src/platform/android/testhost/test_host.cpp`'s `nativeRun`, but mounting a page instead of running gtest.
+1. **Native JNI `nativeMount(Activity, pageKey)`** (`src/platform/android/apphost/app_host.cpp`) — set_java_vm +
+   set_app_context(NewGlobalRef(activity)); build the gallery page for the key; connect a window; mount; return
+   the window's FrameLayout. **Confirmed API:** the mount driver is `maui::hosting::mount_window(app, window)` +
+   `drive_layout(window, w, h)` (`include/maui/hosting/app_host.hpp` — the SAME path headless/apple `run_app`
+   use; android has no `run_app` yet, so this entry IS the android boot). The page-by-key holder is
+   `examples/gallery/gallery_host.hpp`'s `MAUI_GALLERY_PAGES` X-macro (runtime string → type-erased
+   `gallery_page_holder` whose root the window hosts). Then return `window_platform::native` (the FrameLayout)
+   as the jobject. **Resolve when writing:** the gallery page-holder factory signature, `maui_app` construction
+   + `add_maui_controls_handlers` (hosting/maui_controls_handlers.hpp), the window→native accessor, and pixel
+   display dims (Activity `getResources().getDisplayMetrics()` widthPixels/heightPixels). Model the JNI
+   bootstrap on `src/platform/android/testhost/test_host.cpp`'s `nativeRun`.
 2. **`MauiHostActivity.java` + `AndroidManifest.xml`** — onCreate: System.loadLibrary the app-host .so, call
    nativeMount, `setContentView` the returned root view. (Model the JNI bootstrap on `testhost/Bootstrap.java`.)
 3. **CMake `SHARED` app-host .so target** — gallery page-builder sources + `maui_controls` + the JNI entry,
