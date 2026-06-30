@@ -646,8 +646,8 @@
 },
 {
 "key": "refresh_view",
-"status": "yellow",
-"note": "Header text, item count, all 4 buttons, and state labels render correctly, but the bottom status text '50 items loaded. Pull to add more.' present in iOS is missing on Android."
+"status": "green",
+"note": "Android renders all labels, item count, 4 action buttons (Material gray vs iOS link-text style), refresh/enabled status, footer text — matches iOS content; neither shows list rows below."
 },
 {
 "key": "relative_layout",
@@ -761,8 +761,8 @@
 },
 {
 "key": "swipe_refresh",
-"status": "blank",
-"note": "Only app bar + empty background; iOS shows 'Swipe left to delete, pull to refresh' text and Ready status — no content rendered at all."
+"status": "yellow",
+"note": "Android shows both status lines but the SwipeView/list rows area is blank below 'Ready' — same blank area in iOS ref too, likely shared empty-list state, not unique to Android."
 },
 {
 "key": "swipe_threshold",
