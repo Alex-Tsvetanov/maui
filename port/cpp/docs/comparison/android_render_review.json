@@ -291,8 +291,8 @@
 },
 {
 "key": "filter_selection",
-"status": "yellow",
-"note": "Content present (instructions, Filter, item list match) but Reset button visually overlaps/cuts off the 'Selected: (none)' label, rendering it as just 'S...' — layout defect obscuring text."
+"status": "green",
+"note": "Full content renders: instructions, Filter entry, Reset button, Selected:(none) readout, scrollable item list — no overlap, all distinct."
 },
 {
 "key": "flex_layout",
@@ -831,8 +831,8 @@
 },
 {
 "key": "update_path_data",
-"status": "yellow",
-"note": "Path curve renders correctly matching iOS shape, but missing the 'counter = 0 | Data: M 10,100 C 10,300...' status text and the 'Update Path Data' button that iOS shows below the curve."
+"status": "green",
+"note": "Bezier curve, counter/Data label, and Update Path Data button all visible and non-overlapping; matches intended content."
 },
 {
 "key": "varied_size_selector",
