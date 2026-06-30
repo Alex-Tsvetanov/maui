@@ -577,6 +577,17 @@ else()
     # deferred (no MauiWebViewClient/WebChromeClient on this AAR-less backend) — see the partial's header.
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/web_view_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/web_view_handler.cpp)
+    # (W26) flyout_page + tabbed_page: the two multi-content page hosts the 2 blank gallery pages
+    # (ios_scroll_view + tabbed_flyout) root on. flyout_page is a MauiLayout hosting the DETAIL pane (the
+    # phone-visible content; the flyout drawer + AndroidX DrawerLayout are the documented deviation);
+    # tabbed_page is a MauiLayout hosting the CURRENT tab's content + a plain-LinearLayout tab bar (the
+    # Material BottomNavigationView + live tap-switch are the documented deviation). The android partials
+    # keep the headless mirrors live (VM-less suite) and drive the real ViewGroup hosting when a VM + app
+    # context exist — see each partial's header.
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/flyout_page_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/flyout_page_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/tabbed_page_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/tabbed_page_handler.cpp)
   endif()
 endif()
 

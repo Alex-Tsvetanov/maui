@@ -102,6 +102,30 @@ namespace maui::core
         void update_opacity(double value) override;
         void update_automation_id(std::string_view value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_ANDROID
+        // Android backend (src/platform/android/tabbed_page_handler.cpp): the host is a real
+        // dev.mauicpp.MauiLayout hosting the CURRENT tab's content + a bottom tab bar (a horizontal
+        // android.widget.LinearLayout of one android.widget.TextView per tab). The Material
+        // BottomNavigationView / TabLayout+ViewPager2 is unavailable on this AAR-less backend, so the bar
+        // is a plain LinearLayout of TextViews; the live tap-to-switch listener is the documented deviation
+        // (see the .cpp header). The retained native slots:
+        void* tab_bar = nullptr;      // the bar LinearLayout (global ref; rebuilt by set_pages)
+        std::vector<void*> tab_views; // one TextView per tab (global refs; rebuilt by set_pages)
+
+        // Each override calls the view_platform_base body FIRST (the VM-less cross-platform suite observes
+        // the headless mirror), then pushes to the real host when one exists. Visibility/opacity/
+        // automation_id push directly; transform/flow_direction/background/semantics through the shared
+        // android ops. is_enabled keeps only the base mirror (a plain ViewGroup host has no enabled state,
+        // matching the apple/ios twins).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_transform(const maui::core::transform_spec& value) override;
+        void update_flow_direction(maui::core::flow_direction value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        void update_semantics(const maui::core::semantics* value) override;
+#endif
     };
 
     class tabbed_page_handler : public view_handler<tabbed_page_handler, i_view, tabbed_page_platform>
