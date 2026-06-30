@@ -290,16 +290,22 @@ namespace maui::controls
     maui::graphics::size refresh_view::arrange(const maui::graphics::rect& bounds)
     {
         frame_ = bounds;
-        if (content_ != nullptr)
-        {
-            const maui::core::thickness inset = padding();
-            content_->arrange({bounds.x + inset.left, bounds.y + inset.top,
-                               std::max(0.0, bounds.width - inset.horizontal_thickness()),
-                               std::max(0.0, bounds.height - inset.vertical_thickness())});
-        }
+        // Frame the native host FIRST, then arrange the single content HOST-RELATIVE (origin
+        // {inset.left, inset.top}, NOT bounds.x/bounds.y) — the swipe_view/border/templated_view fix
+        // family. The port drives arrange top-down in ABSOLUTE page coords, but native subview frames are
+        // relative-to-superview, so a refresh_view sitting at a non-zero page Y (below the app bar /
+        // padding) would otherwise double-offset its content by the host's own origin and push it off the
+        // host bounds (the swipe_refresh page was fully blank, refresh_view's hosted content missing). The
+        // host's own platform_arrange already places it at the absolute frame; the content lands inside it.
         if (auto* view_handler = dynamic_cast<maui::core::i_view_handler*>(handler().get()))
         {
             view_handler->platform_arrange(bounds);
+        }
+        if (content_ != nullptr)
+        {
+            const maui::core::thickness inset = padding();
+            content_->arrange({inset.left, inset.top, std::max(0.0, bounds.width - inset.horizontal_thickness()),
+                               std::max(0.0, bounds.height - inset.vertical_thickness())});
         }
         return {bounds.width, bounds.height};
     }
