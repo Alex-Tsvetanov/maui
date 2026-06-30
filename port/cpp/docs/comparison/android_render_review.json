@@ -116,8 +116,8 @@
 },
 {
 "key": "check_box",
-"status": "yellow",
-"note": "CONFIRM. All 5 labels + 'Is green? False' button render, but every checkbox glyph is missing. iOS shows 5 (blue/purple circles + filled checks)."
+"status": "green",
+"note": "All 5 checkbox states render (empty, purple, faint-disabled, purple+check, red+check) + 'Is green? False' button. iOS draws circles vs Android squares (native shape), but glyphs all present."
 },
 {
 "key": "chrome",
@@ -611,13 +611,13 @@
 },
 {
 "key": "radio_button_content",
-"status": "yellow",
-"note": "CONFIRM. All prose paragraphs render but every RadioButton is missing: no Option A/C radios, no 'Can't use View' radio, no coffee.png radio, no coffee-cup template graphics. Gaps left in their place."
+"status": "green",
+"note": "Android shows radio circles for Option A, Option C, the 'plain old text' radio, coffee.png radio, plus both custom-template coffee-cup glyphs with red/black lines, matching iOS."
 },
 {
 "key": "radio_button_group",
-"status": "yellow",
-"note": "CONFIRM. Header + Option A/B/C/D labels and the in-Grid 'inside a Grid'/Option D layout render, but the radio-ring (O) glyph is absent from every option; labels sit flush-left vs iOS rings+indent."
+"status": "green",
+"note": "Android shows all 4 radio circles (Option A/B/C in stack, Option D in grid) + intro text + 'Selected: (none)' + 'inside a Grid' label, matching iOS glyphs and content."
 },
 {
 "key": "radio_button_group_binding",
@@ -656,8 +656,8 @@
 },
 {
 "key": "scattered_radio_button",
-"status": "yellow",
-"note": "CONFIRM. Android shows all 4 text paragraphs but ZERO radio buttons. iOS ref shows 'O A O B O C' row + 'O D (None of the above)' — all RadioButton controls absent on Android."
+"status": "green",
+"note": "Android shows intro text, 'Selected: (none)', highlighted nested A/B/C radio circles row, and the D (None of the above) radio outside, matching iOS glyphs and content."
 },
 {
 "key": "scroll_mode_test",
@@ -781,13 +781,13 @@
 },
 {
 "key": "switch",
-"status": "yellow",
-"note": "CONFIRM yellow. All 6 labels and 'Default switch is Off' render, but NONE of the 6 Switch toggles draw; iOS ref shows all 6 with colors/thumbs."
+"status": "green",
+"note": "Android renders all 6 switch sections with thumbs+tracks: default off, blue bg, yellow-green gradient bg, disabled gray, OnColor, orange ThumbColor. Same content + glyphs as iOS ref."
 },
 {
 "key": "switch_grouping",
-"status": "yellow",
-"note": "CONFIRMED. Grouped list renders fully (Avengers/Fantastic Four/Defenders headers, rows, orange 'Total members:' footers match iOS). But the green ON switch by 'Is Grouped:' is missing."
+"status": "green",
+"note": "Android 'Is Grouped' switch shows thumb+track (on); green group headers (Avengers/Fantastic Four/Defenders), all members, and 'Total members' counts all render as iOS shows."
 },
 {
 "key": "tabbed_flyout",
