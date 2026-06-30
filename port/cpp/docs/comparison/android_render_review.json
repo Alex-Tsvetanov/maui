@@ -397,7 +397,7 @@
 {
 "key": "image_button",
 "status": "yellow",
-"note": "Labels and sliders render correctly but every ImageButton itself (green rounded rects in iOS: AspectFit/AspectFill/Fill/BorderColor/CornerRadius) is completely blank/missing."
+"note": "AspectFit/Fill/Custom-size/blob match iOS. But BorderColor+BorderWidth box is missing (no green/red rect, just slider) and CornerRadius's 3 purple rounded bars are missing (only thin lines)."
 },
 {
 "key": "indicator",
