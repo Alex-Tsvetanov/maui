@@ -471,6 +471,9 @@ else()
     # Rosetta Stone replayed for its headless label_handler.cpp twin).
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/label_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/label_handler.cpp)
+    # progress_bar: android.widget.ProgressBar (horizontal/determinate) partial.
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/progress_bar_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/progress_bar_handler.cpp)
     # (W4-34d) navigation + window: the FrameLayout-based page-stack container + the Activity
     # content-view stand-in. The android partials keep the headless mirrors live (VM-less suite) and
     # additionally drive the real FrameLayout child swap when a VM + app context exist (the test host).
@@ -685,6 +688,9 @@ if(MAUI_BACKEND STREQUAL "android")
     # color / font / alignment (TextAlignment + Gravity) / decorations (PaintFlags) / max-lines pushed,
     # read back over JNI.
     tests/platform/android_label_tests.cpp
+    # progress_bar: the real progress_bar control + handler drive a real android.widget.ProgressBar —
+    # progress (0..1 → 0..10000) + progress-color (ProgressTintList) read back over JNI.
+    tests/platform/android_progress_bar_tests.cpp
     # (W4-34d) navigation + window: the real navigation_page / window controls + handlers drive a real
     # android.widget.FrameLayout — set window content → the root container hosts it; push/pop → the
     # visible native child swaps; push/pop modal → the overlay child appears/clears.
