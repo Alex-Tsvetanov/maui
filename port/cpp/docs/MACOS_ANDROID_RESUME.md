@@ -12,9 +12,17 @@ MAUI ┃ C++ ┃ C++&XAML per row). Status:
   RUN hijacks the host screen (`screencapture` + frontmost), so it is an **away/overnight job**:
   `python3 tools/parity/capture_maccatalyst.py` then `--theme dark`, then `gen_macos_readme_section.py` to
   regenerate the README block. (Also extend AppKit similarly via `capture_appkit.py`.)
-- **Android ⏳ 0→172** — needs the **app host** (below) so pages render on the emulator; then `adb exec-out
-  screencap` per page, which grabs the EMULATOR framebuffer and does NOT hijack the host screen (so it can run
-  while the Mac is in use). The 9-widget handler fan-out is the prerequisite that makes pages render.
+- **Android ⏳ 0→172** — the **app host WORKS end-to-end** (`tools/parity/build_android_apphost.sh <key>` builds
+  the .so + APK via aapt2/d8/apksigner, installs, launches `MauiHostActivity`, and `adb screencap`s to
+  `docs/comparison/android/cpp/`; the Activity launches + displays cleanly, no crash). **BUT pages render BLANK.**
+  ROOT CAUSE (confirmed): the android backend has the LEAF widget handlers (button/label/image/slider/switch/
+  check_box/editor/progress_bar/activity_indicator) but **NO LAYOUT/CONTAINER handlers** — `layout_handler`,
+  `content_view`, `content_page`, `scroll_view`, stack, grid are HEADLESS-ONLY (no native android `ViewGroup`),
+  so the leaf TextViews have no visible parent. **NEXT (the rendering blocker):** implement android layout/
+  container partials — a custom `android.view.ViewGroup` that `addView`s the maui children and whose `onLayout`
+  does NOT re-lay-out (maui positions children absolutely via each handler's `platform_arrange` → child.layout();
+  a standard ViewGroup would override that). Wire `src/platform/android/layout_handler.cpp` (+ content_view/
+  content_page/scroll_view) into the CMake android fan-out like the widget handlers. Then `adb screencap` all 172.
 
 ## Milestones (this session, on the branch)
 | commit | what |
