@@ -212,6 +212,16 @@ activity="${pkg}/.MauiHostActivity"
 echo "[apphost] adb install -r..." >&2
 "${maui_adb}" -s "${maui_serial}" install -r "${signed_apk}" >&2
 
+# Post-install warm-up: launch + kill once before the real run so the first REAL capture is not the one
+# that eats the install/dexopt churn (the first post-install launch is COLD + dexopts, which can outlast a
+# readiness poll and leave the launcher on screen). This throwaway launch absorbs that churn; we discard
+# its frame. (Cheap: one launch + force-stop.)
+echo "[apphost] post-install warm-up launch..." >&2
+"${maui_adb}" -s "${maui_serial}" shell am start -W -n "${activity}" \
+  --es MAUI_SAMPLE_PAGE "label" --es MAUI_APPEARANCE "${appearance}" > /dev/null 2>&1 || true
+sleep 2
+"${maui_adb}" -s "${maui_serial}" shell am force-stop "${pkg}" > /dev/null 2>&1 || true
+
 # Launch one page key and screencap it to <out_dir>/<key><suffix>.png. The Activity reads the
 # MAUI_SAMPLE_PAGE intent extra; MAUI_APPEARANCE is read by the native app host from the process env, which
 # on android is NOT inherited from `am start`, so we pass it as a second extra the Activity can forward (or
@@ -221,19 +231,68 @@ echo "[apphost] adb install -r..." >&2
 # captures (the default) this does not matter. See the hand-off uncertainties.
 out_dir="${cpp_root}/docs/comparison/android/cpp"
 mkdir -p "${out_dir}"
+# Wait until our process is actually GONE (not just asked to stop). am force-stop is asynchronous: it
+# returns before the process dies, and — crucially — before its Activity's window/frame is torn down. If
+# we relaunch + screencap while the OLD frame is still composited, screencap grabs the PREVIOUS page (the
+# dispatch-offset wave-15 bug: every <key>.png was the page captured one launch earlier, because the blind
+# `sleep 5` could elapse while the prior frame still owned the surface under load/install churn). Polling
+# `pidof` to zero before the next launch makes the old frame unreachable, so a stale grab is impossible.
+wait_process_gone() {
+  for _ in $(seq 1 40); do # ~10s ceiling (40 * 0.25s)
+    local pid
+    pid="$("${maui_adb}" -s "${maui_serial}" shell pidof "${pkg}" 2> /dev/null | tr -d '[:space:]')"
+    [[ -z "${pid}" ]] && return 0
+    sleep 0.25
+  done
+  return 1 # still alive after the ceiling — caller logs but proceeds (best-effort)
+}
+
+# Wait for THIS launch's Activity to have actually DRAWN, using the system's own first-frame signal:
+# ActivityTaskManager logs `Displayed <pkg>/.MauiHostActivity for user 0: +Nms` exactly when the new
+# instance's first frame is presented. We clear logcat immediately before the launch, so the ONLY such
+# line that can appear is from the launch we just issued — a per-launch, race-free readiness barrier that
+# replaces the blind sleep. (am start -W also blocks to first frame; the poll backstops it under load.)
+#
+# Backstop: right after `adb install -r`, dexopt + the install's own launch can either delay or pre-emit
+# the Displayed line so the log-grep misses it (the launcher gets captured instead). So we ALSO accept a
+# second, level-triggered signal — our Activity being the resumed/top activity in `dumpsys activity` —
+# which is true for as long as our page is on screen regardless of when the one-shot log line fired. The
+# barrier is satisfied when EITHER signal is seen, making the post-install first capture race-free too.
+wait_displayed() {
+  for _ in $(seq 1 60); do # ~15s ceiling (60 * 0.25s)
+    if "${maui_adb}" -s "${maui_serial}" logcat -d 2> /dev/null \
+      | grep -q "Displayed ${pkg}/.MauiHostActivity"; then
+      return 0
+    fi
+    # Level-triggered fallback: our Activity is the currently resumed/top activity (survives a missed log).
+    if "${maui_adb}" -s "${maui_serial}" shell dumpsys activity activities 2> /dev/null \
+      | grep -qE "(topResumedActivity|ResumedActivity)[^\n]*${pkg}/.MauiHostActivity"; then
+      return 0
+    fi
+    sleep 0.25
+  done
+  return 1 # neither signal seen after the ceiling — caller logs but proceeds (best-effort)
+}
+
 capture_one() {
   local key="$1"
   echo "[apphost] launch ${key} (${appearance})..." >&2
+  # (a) Kill the prior instance and WAIT for its process — and thus its on-screen frame — to be gone, so a
+  #     screencap can never capture the previous page (the wave-15 dispatch-offset root cause).
   "${maui_adb}" -s "${maui_serial}" shell am force-stop "${pkg}" > /dev/null 2>&1 || true
-  "${maui_adb}" -s "${maui_serial}" shell am start -n "${activity}" \
+  wait_process_gone || echo "[apphost] WARNING: ${pkg} still alive after force-stop (${key})" >&2
+  # (b) Clear logcat so the next `Displayed` line is unambiguously from THIS launch (the readiness barrier).
+  "${maui_adb}" -s "${maui_serial}" logcat -c > /dev/null 2>&1 || true
+  # (c) Launch with -W (blocks to first frame) and then poll for this launch's Displayed marker.
+  "${maui_adb}" -s "${maui_serial}" shell am start -W -n "${activity}" \
     --es MAUI_SAMPLE_PAGE "${key}" --es MAUI_APPEARANCE "${appearance}" > /dev/null
-  # Give the Activity time to create + mount + lay out before grabbing the framebuffer. VERIFY: bump this
-  # if pages capture mid-layout; a poll on a known view would be more robust but needs a uiautomator hook.
-  sleep 5
+  wait_displayed || echo "[apphost] WARNING: never saw Displayed for ${key}; capturing anyway" >&2
   # Dismiss the transient "System UI isn't responding" ANR dialog that can overlay the page during the
   # build/install/launch load burst. Use the CLOSE_SYSTEM_DIALOGS broadcast, NOT keyevent BACK — BACK would
   # be consumed by the ANR dialog the first time but close the Activity (-> launcher) when no dialog is up.
   "${maui_adb}" -s "${maui_serial}" shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
+  # A short settle AFTER the first-frame barrier: the system's Displayed fires on the window's first frame,
+  # but the maui tree's content draw (text/shapes via the Canvas bridge) can trail it by a frame or two.
   sleep 1
   "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out_dir}/${key}${suffix}.png"
   echo "[apphost] wrote ${out_dir}/${key}${suffix}.png" >&2
