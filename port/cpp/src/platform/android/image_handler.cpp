@@ -1,0 +1,510 @@
+// image_handler — Android (JNI) platform partial, the M-android per-control fan-out replayed over JNI
+// for the image control (the iOS Rosetta Stone — src/platform/ios/image_handler.mm — mapped onto a real
+// android.widget.ImageView). The managed platform view is a REAL android.widget.ImageView (held as a JNI
+// global reference in image_platform::native); map_aspect pushes the scaling mode through the jni_cache'd
+// method ids, and get_desired_size / platform_arrange drive the real View measure/layout, exactly like the
+// android button partial.
+//
+// Ported DIRECTLY from ImageHandler.Android.cs + Platform/Android/{ImageViewExtensions.cs,
+// AspectExtensions.cs} + ViewExtensions.cs + ContextExtensions.cs (ToPixels). The cross-platform source
+// routing (file fast-path vs the async loader) lives once in image_handler.cpp::map_source and dispatches
+// into the per-backend source primitives at the bottom of this file.
+//
+// DOCUMENTED DEVIATIONS from the C# oracle (each is an infrastructure gap, not a behavior guess — mirrors
+// exactly how the android button partial documents its plain-widget deviations):
+//
+//   - The widget is a plain android.widget.ImageView, not the AppCompatImageView that
+//     ImageHandler.Android.cs creates: AndroidX.AppCompat is a gradle/AAR dependency this APK-less backend
+//     does not carry (the same reason the button partial uses a plain android.widget.Button, not
+//     MauiMaterialButton). AppCompatImageView's only behavioral addition over ImageView that this cut
+//     touches — SetAdjustViewBounds — exists on plain ImageView too (it is a stock View API since API 16),
+//     so the create + UpdateAspect adjust-view-bounds toggle is ported faithfully onto the plain widget.
+//
+//   - The generic IView property pushes (Visibility / Opacity / IsEnabled / AutomationId / Transform /
+//     FlowDirection / Background / Semantics) are NOT overridden for android on image_platform: the
+//     image_platform struct in include/maui/core/image_handler.hpp declares android overrides for none of
+//     them (only MAUI_PLATFORM_APPLE / MAUI_PLATFORM_IOS blocks exist), and that header is out of scope for
+//     this slice. So those properties keep ONLY the view_platform_base mirrors (the VM-less cross-platform
+//     suite observes them), and the real ImageView does not yet receive them over JNI. The button partial
+//     pushes them because button_handler.hpp DOES carry a MAUI_PLATFORM_ANDROID override block; wiring the
+//     same block + shared android view/visual/semantics ops for the image is the header-side follow-up
+//     (see port/STATUS.md). // TODO: verify against src/Core/src/Platform/Android/ViewExtensions.cs once the
+//     image_platform android override block lands.
+//
+//   - The SOURCE is mirrored, not decoded into the widget. ImageImageSourcePartSetter.SetImageSource calls
+//     ImageView.SetImageDrawable(platformImage), where platformImage is produced by Glide (the android
+//     image-source services / ImageLoaderCallback pipeline). That decode + Glide stack is part of the
+//     deferred android backend (no bitmap-decode infra, no Glide AAR — the same posture the button partial's
+//     image-source primitives take). So load_file_source_sync / apply_loaded_result / clear_source_native
+//     update the shared headless-style mirrors (source_kind / source_file / source_loaded) — so the android
+//     preset's pure-native cross-platform suite still observes the load — and the real setImageBitmap /
+//     setImageDrawable JNI push is deferred. // TODO: verify against
+//     src/Core/src/Platform/Android/ImageViewExtensions.cs + the android FileImageSourceService.
+//
+//   - IsOpaque and IsAnimationPlaying are mirrored only. UpdateIsAnimationPlaying operates on the LOADED
+//     Drawable (Drawable.UpdateIsAnimationPlaying → IAnimatable.Start/Stop), which does not exist until the
+//     deferred Glide decode lands; IsOpaque has no plain-ImageView analog on android (C#'s ImageHandler does
+//     not map it natively on android at all — the port's is_opaque mirror is the documented cross-platform
+//     extension, faithful as a flag). Both keep the headless mirror and re-apply once the drawable decode
+//     arrives. // TODO: verify against src/Core/src/Platform/Android/ImageViewExtensions.cs UpdateIsAnimationPlaying.
+//
+//   - PlatformArrange's center-crop clip (ImageHandler.Android.cs: PlatformInterop.IsImageViewCenterCrop →
+//     SetClipBounds for AspectFill) is deferred: SetClipBounds is a PlatformInterop helper class this
+//     backend's java/ does not yet provide, and clipping is a WrapperView concern in the same family the
+//     button partial defers. The measure-Exactly + layout body is ported. // TODO: verify against
+//     src/Core/src/Handlers/Image/ImageHandler.Android.cs PlatformArrange.
+//
+// VM-less degradation: the android preset also runs the PURE-NATIVE cross-platform suite on the emulator
+// (tools/android-emu-run.sh) where no Java VM exists. Every JNI path here checks scoped_env / app_context()
+// and quietly skips, while the headless mirrors (image_aspect / source_* / opaque / animation_playing) are
+// ALWAYS maintained — so that suite observes exactly the headless partial's behavior, and the widget test
+// host (tools/android-testhost-run.sh) additionally observes the real ImageView.
+
+#include "maui/core/image_handler.hpp"
+
+#include <jni.h>
+
+#include <atomic>
+#include <cmath>
+#include <memory>
+#include <string>
+
+#include "jni/app_context.hpp"
+#include "jni/jni_cache.hpp"
+#include "jni/jni_env.hpp"
+#include "jni/jni_ref.hpp"
+#include "maui/core/aspect.hpp"
+#include "maui/core/i_image.hpp"
+#include "maui/core/i_image_source.hpp"
+#include "maui/core/image_source_loader.hpp" // configure_loader parameter type
+#include "maui/core/image_source_result.hpp"
+#include "maui/graphics/rect.hpp"
+#include "maui/graphics/size.hpp"
+
+namespace
+{
+    using maui::platform::android::app_context;
+    using maui::platform::android::default_jni_cache;
+    using maui::platform::android::local_ref;
+    using maui::platform::android::scoped_env;
+
+    // All instance methods resolve through the widget's own class (GetMethodID walks the superclasses, so
+    // the View surface — measure / layout / setVisibility — resolves through android/widget/ImageView too).
+    constexpr const char* k_image_view_class = "android/widget/ImageView";
+    constexpr const char* k_scale_type_class = "android/widget/ImageView$ScaleType";
+    constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
+
+    // GeometryUtil.Epsilon — ContextExtensions.ToPixels subtracts it before ceiling (see to_pixels).
+    constexpr double k_to_pixels_epsilon = 0.0000000001;
+
+    // android.view.View.MeasureSpec modes (ViewHandlerExtensions.GetDesiredSizeFromHandler).
+    constexpr jint k_measure_spec_unspecified = 0;
+    constexpr auto k_measure_spec_at_most = static_cast<jint>(0x80000000U);
+    constexpr auto k_measure_spec_exactly = static_cast<jint>(0x40000000U);
+
+    [[nodiscard]] jobject widget_of(const maui::core::image_platform& platform) noexcept
+    {
+        return static_cast<jobject>(platform.native);
+    }
+
+    // Clears any pending Java exception (the handler must never leak JNI pending-exception state into the
+    // cross-platform layer); true when one was pending — call sites skip the read-back.
+    bool clear_pending(JNIEnv* env)
+    {
+        if (env->ExceptionCheck() == JNI_FALSE)
+        {
+            return false;
+        }
+        env->ExceptionDescribe(); // logcat/stderr breadcrumb, same channel the test host uses
+        env->ExceptionClear();
+        return true;
+    }
+
+    void call_void_bool(JNIEnv* env, jobject widget, const char* name, jboolean value)
+    {
+        if (jmethodID method = default_jni_cache().method(env, k_image_view_class, name, "(Z)V"))
+        {
+            env->CallVoidMethod(widget, method, value);
+            clear_pending(env);
+        }
+    }
+
+    // ContextExtensions.ToPixels: ceil(dp * density - Epsilon), then C#'s (int) truncation at the call
+    // sites — the ceil already produced an integral value, so truncation is exact.
+    [[nodiscard]] jint to_pixels(double dp, float density)
+    {
+        return static_cast<jint>(std::ceil((dp * static_cast<double>(density)) - k_to_pixels_epsilon));
+    }
+
+    // The widget's display density (Context.getResources().getDisplayMetrics().density). Memoized
+    // process-wide after the first successful read, exactly like ContextExtensions' s_displayDensity cache
+    // (the JNI walk is four calls). 1.0 when any step fails (failures are NOT memoized, so a transient
+    // failure does not pin the fallback). The mirror of the button partial's display_density.
+    [[nodiscard]] float display_density(JNIEnv* env, jobject widget)
+    {
+        static std::atomic<float> memoized{0.0F}; // 0 = not read yet (a real density is never 0)
+        if (const float cached = memoized.load(std::memory_order_relaxed); cached != 0.0F)
+        {
+            return cached;
+        }
+        auto& cache = default_jni_cache();
+        jmethodID get_context = cache.method(env, k_image_view_class, "getContext", "()Landroid/content/Context;");
+        jmethodID get_resources =
+            cache.method(env, "android/content/Context", "getResources", "()Landroid/content/res/Resources;");
+        jmethodID get_display_metrics =
+            cache.method(env, "android/content/res/Resources", "getDisplayMetrics", "()Landroid/util/DisplayMetrics;");
+        jfieldID density_field = cache.field(env, "android/util/DisplayMetrics", "density", "F");
+        if (get_context == nullptr || get_resources == nullptr || get_display_metrics == nullptr ||
+            density_field == nullptr)
+        {
+            return 1.0F;
+        }
+        const local_ref<jobject> context{env, env->CallObjectMethod(widget, get_context)};
+        if (clear_pending(env) || !context)
+        {
+            return 1.0F;
+        }
+        const local_ref<jobject> resources{env, env->CallObjectMethod(context.get(), get_resources)};
+        if (clear_pending(env) || !resources)
+        {
+            return 1.0F;
+        }
+        const local_ref<jobject> metrics{env, env->CallObjectMethod(resources.get(), get_display_metrics)};
+        if (clear_pending(env) || !metrics)
+        {
+            return 1.0F;
+        }
+        const jfloat density = env->GetFloatField(metrics.get(), density_field);
+        if (clear_pending(env) || density == 0.0F)
+        {
+            return 1.0F;
+        }
+        memoized.store(density, std::memory_order_relaxed);
+        return density;
+    }
+
+    // AspectExtensions.ToScaleType: the field NAME of the ImageView.ScaleType constant for an aspect.
+    //   AspectFit → FIT_CENTER, AspectFill → CENTER_CROP, Fill → FIT_XY, Center → CENTER (default FIT_CENTER).
+    [[nodiscard]] const char* scale_type_field(maui::core::aspect value) noexcept
+    {
+        switch (value)
+        {
+            case maui::core::aspect::aspect_fit:
+                return "FIT_CENTER";
+            case maui::core::aspect::aspect_fill:
+                return "CENTER_CROP";
+            case maui::core::aspect::fill:
+                return "FIT_XY";
+            case maui::core::aspect::center:
+                return "CENTER";
+        }
+        return "FIT_CENTER"; // AspectExtensions' default arm
+    }
+
+    // Read one ImageView.ScaleType static object field (the enum-like constants are static fields of
+    // android/widget/ImageView$ScaleType — GetStaticFieldID + GetStaticObjectField, the same shape C#'s
+    // ImageView.ScaleType.FitCenter resolves to). Local ref (empty on any JNI failure). The jni_cache only
+    // memoizes instance fields, so the static-field id is resolved directly through the pinned class.
+    [[nodiscard]] local_ref<jobject> scale_type_constant(JNIEnv* env, const char* field_name)
+    {
+        jclass scale_type_class = default_jni_cache().find_class(env, k_scale_type_class);
+        if (scale_type_class == nullptr)
+        {
+            return {};
+        }
+        const jfieldID field =
+            env->GetStaticFieldID(scale_type_class, field_name, "Landroid/widget/ImageView$ScaleType;");
+        if (clear_pending(env) || field == nullptr)
+        {
+            return {};
+        }
+        local_ref<jobject> value{env, env->GetStaticObjectField(scale_type_class, field)};
+        if (clear_pending(env))
+        {
+            return {};
+        }
+        return value;
+    }
+} // namespace
+
+namespace maui::core
+{
+    // Releases the global reference pinning the android.widget.ImageView (the JNI shape of the
+    // pimpl-owned-native-view doctrine: the ios twin CFReleases its UIImageView here; the headless twin
+    // just clears the slot).
+    image_platform::~image_platform()
+    {
+        if (native != nullptr)
+        {
+            const scoped_env env; // any-thread teardown, exactly like global_ref::reset
+            if (env)
+            {
+                env->DeleteGlobalRef(static_cast<jobject>(native));
+            }
+            native = nullptr;
+        }
+    }
+
+    std::unique_ptr<image_platform> image_handler::create_platform_view()
+    {
+        auto platform = std::make_unique<image_platform>();
+        const scoped_env env;
+        jobject context = app_context();
+        if (!env || context == nullptr)
+        {
+            return platform; // VM-less / context-less: the headless-mirror degradation (header note)
+        }
+        auto& cache = default_jni_cache();
+        jclass image_view_class = cache.find_class(env.get(), k_image_view_class);
+        jmethodID ctor = cache.method(env.get(), k_image_view_class, "<init>", "(Landroid/content/Context;)V");
+        if (image_view_class == nullptr || ctor == nullptr)
+        {
+            return platform;
+        }
+        // ImageHandler.CreatePlatformView: new AppCompatImageView(Context) { SetAdjustViewBounds(true) }
+        // — the AppCompat subtype is a Material/AppCompat AAR dependency (header deviations); the plain
+        // ImageView carries the same SetAdjustViewBounds API.
+        const local_ref<jobject> widget{env.get(), env->NewObject(image_view_class, ctor, context)};
+        if (clear_pending(env.get()) || !widget)
+        {
+            return platform;
+        }
+        // "Enable view bounds adjustment on measure" (the CreatePlatformView comment) — lets OnMeasure
+        // account for the image's intrinsic aspect ratio during constrained measurement.
+        call_void_bool(env.get(), widget.get(), "setAdjustViewBounds", JNI_TRUE);
+        // Wrap-content LayoutParams up front (the same parentless-View guard the button partial documents:
+        // a null-LayoutParams View NPEs in checkForRelayout once a parent measure pass runs; the android
+        // container fan-out that would supply them on attach has not arrived).
+        jclass layout_params_class = cache.find_class(env.get(), "android/view/ViewGroup$LayoutParams");
+        jmethodID layout_params_ctor =
+            cache.method(env.get(), "android/view/ViewGroup$LayoutParams", "<init>", "(II)V");
+        jmethodID set_layout_params =
+            cache.method(env.get(), k_image_view_class, "setLayoutParams", "(Landroid/view/ViewGroup$LayoutParams;)V");
+        if (layout_params_class != nullptr && layout_params_ctor != nullptr && set_layout_params != nullptr)
+        {
+            constexpr jint k_wrap_content = -2; // ViewGroup.LayoutParams.WRAP_CONTENT
+            const local_ref<jobject> params{
+                env.get(), env->NewObject(layout_params_class, layout_params_ctor, k_wrap_content, k_wrap_content)};
+            if (!clear_pending(env.get()) && params)
+            {
+                env->CallVoidMethod(widget.get(), set_layout_params, params.get());
+                clear_pending(env.get());
+            }
+        }
+        platform->native = env->NewGlobalRef(widget.get()); // released in ~image_platform
+        return platform;
+    }
+
+    // Headless/android: leave the loader on its defaults — the synchronous read_uri_bytes fetch (file:// +
+    // local paths) and the disk layer off (in-memory cache only). The real android loader wiring (Glide /
+    // the android image services + a disk cache directory) is part of the deferred android image pipeline
+    // (header deviations). Tests inject a dispatcher / disk dir / uri fetch via the loader's seams directly.
+    void image_handler::configure_loader(image_source_loader& /*loader*/)
+    {
+    }
+
+    void image_handler::map_aspect(image_handler& handler, i_image& view)
+    {
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        platform->image_aspect = view.aspect(); // headless mirror FIRST (the VM-less suite observes it)
+        if (platform->native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        jobject widget = widget_of(*platform);
+        auto& cache = default_jni_cache();
+        // ImageViewExtensions.UpdateAspect: AspectFill turns adjust-view-bounds OFF, every other aspect ON,
+        // then SetScaleType(aspect.ToScaleType()).
+        call_void_bool(env.get(), widget, "setAdjustViewBounds",
+                       view.aspect() == aspect::aspect_fill ? JNI_FALSE : JNI_TRUE);
+        const local_ref<jobject> scale_type = scale_type_constant(env.get(), scale_type_field(view.aspect()));
+        jmethodID set_scale_type =
+            cache.method(env.get(), k_image_view_class, "setScaleType", "(Landroid/widget/ImageView$ScaleType;)V");
+        if (!scale_type || set_scale_type == nullptr)
+        {
+            return;
+        }
+        env->CallVoidMethod(widget, set_scale_type, scale_type.get());
+        clear_pending(env.get());
+    }
+
+    // IsOpaque (headless mirror only on android — header deviations: no plain-ImageView analog, and C#'s
+    // android handler does not map it natively).
+    void image_handler::map_is_opaque(image_handler& handler, i_image& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->opaque = view.is_opaque();
+        }
+    }
+
+    // IsAnimationPlaying (headless mirror only this cut — header deviations: UpdateIsAnimationPlaying acts
+    // on the loaded Drawable, which awaits the deferred Glide decode; the flag is faithful + re-applied
+    // once the drawable lands).
+    void image_handler::map_is_animation_playing(image_handler& handler, i_image& view)
+    {
+        if (auto* platform = handler.typed_platform_view())
+        {
+            platform->animation_playing = view.is_animation_playing();
+        }
+    }
+
+    // ---- per-backend source primitives (the cross-platform map_source in image_handler.cpp routes here) ----
+    // The real setImageDrawable / Glide decode is deferred (header deviations); the primitives update the
+    // shared headless-style mirrors (kind / file / loaded) so the android preset's pure-native
+    // cross-platform suite still observes the load — exactly the headless partial's bodies, and the same
+    // posture the button partial's image-source primitives take.
+
+    // File fast-path (mirror): record kind="file" + the path, marked loaded.
+    void image_handler::load_file_source_sync(image_platform& platform, const i_file_image_source& file_src)
+    {
+        platform.source_kind = "file";
+        platform.source_file = std::string(file_src.file());
+        platform.source_loaded = true;
+    }
+
+    // The async loader's apply (mirror): copy the result's kind + detail. A !loaded() result clears it,
+    // mirroring SetImageSource(null) / ImageViewExtensions.Clear.
+    void image_handler::apply_loaded_result(image_platform& platform, const image_source_result& result)
+    {
+        if (!result.loaded())
+        {
+            clear_source_native(platform);
+            return;
+        }
+        platform.source_kind = result.kind();
+        platform.source_file = result.detail();
+        platform.source_loaded = true;
+    }
+
+    // Clear the loaded image (mirror — ImageViewExtensions.Clear: stop the animation + drop the drawable).
+    void image_handler::clear_source_native(image_platform& platform)
+    {
+        platform.source_kind.clear();
+        platform.source_file.clear();
+        platform.source_loaded = false;
+    }
+
+    maui::graphics::size image_handler::get_desired_size(double width_constraint, double height_constraint) const
+    {
+        const auto* platform = typed_platform_view();
+        if (platform == nullptr)
+        {
+            return {0, 0};
+        }
+        if (platform->native == nullptr)
+        {
+            // VM-less degradation: no native widget and no decoded bitmap, so there is no intrinsic content
+            // size to report — the headless partial's {0,0} (no source bytes are loaded this cut).
+            return {0, 0};
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return {0, 0};
+        }
+        jobject widget = widget_of(*platform);
+        auto& cache = default_jni_cache();
+        // ViewHandlerExtensions.GetDesiredSizeFromHandler (Android): finite constraints become AtMost specs
+        // in pixels, infinite become Unspecified; View.measure, then the measured pixels come back as dp
+        // (Context.FromPixels). With no decoded drawable the ImageView measures to its padding (wrap-content
+        // with no intrinsic content), which is the faithful "no image loaded" measurement.
+        jmethodID make_measure_spec = cache.static_method(env.get(), k_measure_spec_class, "makeMeasureSpec", "(II)I");
+        jmethodID measure = cache.method(env.get(), k_image_view_class, "measure", "(II)V");
+        jmethodID get_measured_width = cache.method(env.get(), k_image_view_class, "getMeasuredWidth", "()I");
+        jmethodID get_measured_height = cache.method(env.get(), k_image_view_class, "getMeasuredHeight", "()I");
+        jclass measure_spec_class = cache.find_class(env.get(), k_measure_spec_class);
+        if (make_measure_spec == nullptr || measure == nullptr || get_measured_width == nullptr ||
+            get_measured_height == nullptr || measure_spec_class == nullptr)
+        {
+            return {0, 0};
+        }
+        const float density = display_density(env.get(), widget);
+        const auto spec_for = [&](double constraint) -> jint {
+            const jint size = std::isfinite(constraint) ? to_pixels(constraint, density) : 0;
+            const jint mode = std::isfinite(constraint) ? k_measure_spec_at_most : k_measure_spec_unspecified;
+            const jint spec = env->CallStaticIntMethod(measure_spec_class, make_measure_spec, size, mode);
+            return clear_pending(env.get()) ? 0 : spec;
+        };
+        const jint width_spec = spec_for(width_constraint);
+        const jint height_spec = spec_for(height_constraint);
+        env->CallVoidMethod(widget, measure, width_spec, height_spec);
+        if (clear_pending(env.get()))
+        {
+            return {0, 0};
+        }
+        const jint measured_width = env->CallIntMethod(widget, get_measured_width);
+        const jint measured_height = env->CallIntMethod(widget, get_measured_height);
+        if (clear_pending(env.get()))
+        {
+            return {0, 0};
+        }
+        return {static_cast<double>(measured_width) / density, static_cast<double>(measured_height) / density};
+    }
+
+    void image_handler::platform_arrange(const maui::graphics::rect& frame)
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->native == nullptr)
+        {
+            return; // headless: no native layout to apply
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        jobject widget = widget_of(*platform);
+        auto& cache = default_jni_cache();
+        // ImageHandler.Android.PlatformArrange → ViewHandler.PlatformArrange: the dp frame becomes pixels,
+        // the view measures Exactly at the final size (Android requires a measure pass before layout) and
+        // lays out. The AspectFill center-crop ClipBounds branch is deferred (header deviations).
+        jmethodID make_measure_spec = cache.static_method(env.get(), k_measure_spec_class, "makeMeasureSpec", "(II)I");
+        jmethodID measure = cache.method(env.get(), k_image_view_class, "measure", "(II)V");
+        jmethodID layout = cache.method(env.get(), k_image_view_class, "layout", "(IIII)V");
+        jclass measure_spec_class = cache.find_class(env.get(), k_measure_spec_class);
+        if (make_measure_spec == nullptr || measure == nullptr || layout == nullptr || measure_spec_class == nullptr)
+        {
+            return;
+        }
+        const float density = display_density(env.get(), widget);
+        const jint left = to_pixels(frame.x, density);
+        const jint top = to_pixels(frame.y, density);
+        const jint width = to_pixels(frame.width, density);
+        const jint height = to_pixels(frame.height, density);
+        const jint width_spec =
+            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, width, k_measure_spec_exactly);
+        const jint height_spec =
+            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, height, k_measure_spec_exactly);
+        if (clear_pending(env.get()))
+        {
+            return;
+        }
+        env->CallVoidMethod(widget, measure, width_spec, height_spec);
+        if (clear_pending(env.get()))
+        {
+            return;
+        }
+        env->CallVoidMethod(widget, layout, left, top, left + width, top + height);
+        clear_pending(env.get());
+    }
+
+    // No display-density seam on android this cut (the loader's defaults run inline): pass the loader's
+    // currently-set scale back through, so map_source's refresh_display_scale is a no-op that preserves
+    // whatever a test set via source_loader().set_scale(). The headless twin does the same; ios reads the
+    // real screen DPI instead. // TODO: verify against ContextExtensions.GetDisplayDensity once the android
+    // density seam lands.
+    float image_handler::query_display_scale() const
+    {
+        return source_loader_.scale();
+    }
+} // namespace maui::core

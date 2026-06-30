@@ -477,6 +477,9 @@ else()
     # activity_indicator: android.widget.ProgressBar (indeterminate) partial.
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/activity_indicator_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/activity_indicator_handler.cpp)
+    # image: android.widget.ImageView partial (aspect→ScaleType; source decode deferred to the mirror).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/image_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/image_handler.cpp)
     # (W4-34d) navigation + window: the FrameLayout-based page-stack container + the Activity
     # content-view stand-in. The android partials keep the headless mirrors live (VM-less suite) and
     # additionally drive the real FrameLayout child swap when a VM + app context exist (the test host).
@@ -697,6 +700,9 @@ if(MAUI_BACKEND STREQUAL "android")
     # activity_indicator: the real activity_indicator control + handler drive a real indeterminate
     # android.widget.ProgressBar — is_running↔visibility + color-filter read back over JNI.
     tests/platform/android_activity_indicator_tests.cpp
+    # image: the real image control + handler drive a real android.widget.ImageView — aspect→ScaleType
+    # + adjustViewBounds read back over JNI; the file-source load is observed via the headless mirror.
+    tests/platform/android_image_tests.cpp
     # (W4-34d) navigation + window: the real navigation_page / window controls + handlers drive a real
     # android.widget.FrameLayout — set window content → the root container hosts it; push/pop → the
     # visible native child swaps; push/pop modal → the overlay child appears/clears.
