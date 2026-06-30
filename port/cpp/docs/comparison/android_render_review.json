@@ -141,8 +141,8 @@
 },
 {
 "key": "clip_views",
-"status": "yellow",
-"note": "All labeled red rows present (Button/date/Entry/Editor/Grid/search/time) matching iOS, but clip-shape/curved-cutout effect (page's purpose) is missing — plain rectangles instead."
+"status": "green",
+"note": "All 7 rows (Button/date/Entry/Editor/Grid/time) render red bars masked to the leaf/petal clip outline, matching iOS ref's clip-to-shape effect; text labels present."
 },
 {
 "key": "clipping",
