@@ -316,8 +316,8 @@
 },
 {
 "key": "formatted_text",
-"status": "yellow",
-"note": "Android shows only plain 'Plain text label' line; the FormattedString/Span run (bold red, italic underlined, kerned text) seen in iOS is entirely missing."
+"status": "green",
+"note": "Android renders all FormattedString spans: bold red, italic underlined, and kerned segments match iOS ref content/styling."
 },
 {
 "key": "gestures",
