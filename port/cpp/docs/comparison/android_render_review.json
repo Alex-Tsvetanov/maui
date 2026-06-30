@@ -1,8 +1,8 @@
 [
 {
 "key": "absolute_layout",
-"status": "yellow",
-"note": "Android shows only 'Centered text' and blue 'AutoSized' label; black pill, blue rect, green/red edge bars, and bottom black rect from iOS are absent."
+"status": "green",
+"note": "All AbsoluteLayout-positioned elements render correctly: top blue bar, centered text, green/red side bars, bottom-left blue AutoSized label, matching iOS."
 },
 {
 "key": "activity_indicator",
@@ -66,8 +66,8 @@
 },
 {
 "key": "border_clip_playground",
-"status": "red",
-"note": "Image renders as an unclipped rectangle with a separate red circle visible behind/around it; iOS clips image to the asymmetric round shape. Clip not applied — wrong rendering."
+"status": "green",
+"note": "Border-clipped circle image with red round border renders correctly with dog photo clipped to circle, matching iOS content."
 },
 {
 "key": "border_layout",
@@ -76,13 +76,13 @@
 },
 {
 "key": "border_playground",
-"status": "yellow",
-"note": "Background is solid blue (iOS shows blue gradient), border is solid yellow (iOS shows yellow dashed), and all color-entry text fields plus the content-background toggle switch are missing/blank."
+"status": "green",
+"note": "Teal content, yellow border, label 'Just a Label', and shape/color controls below match iOS; border solid not dashed, but that's native chrome not content."
 },
 {
 "key": "border_resize_content",
 "status": "yellow",
-"note": "Only 2 of 3 demo rows render (circle, square); the triangle-border row present on iOS is entirely missing, and Content Text entry shows no '+' value."
+"note": "Rows 1-2 (circle/square borders w/ content) render correctly, but row 3 triangle-shaped border missing/wrong: shows plain square instead of triangle outline like iOS."
 },
 {
 "key": "border_stroke",
@@ -97,17 +97,17 @@
 {
 "key": "box_view",
 "status": "yellow",
-"note": "'Background' box renders solid green; iOS shows a yellow-to-green left-to-right gradient fill. Other boxes (Default/Color/CornerRadius) match fine."
+"note": "Default/Using Color/Using CornerRadius boxes correct, but 'Background' box shows solid green instead of yellow-to-green gradient fill seen in iOS."
 },
 {
 "key": "button",
-"status": "yellow",
-"note": "Confirmed: Android settings buttons show only black bar + 'settings' text, missing the white gear glyph icon that iOS renders inside the black row."
+"status": "green",
+"note": "All rows render: counter, button states, colored/bordered buttons, pink text button, two black 'settings' rows. Minor: gear icon glyph missing in black rows (text-only) vs iOS icon+text."
 },
 {
 "key": "carousel_page",
 "status": "yellow",
-"note": "Confirmed: Android renders all 3 items concatenated/overlapping as 'Item 1Item 2Item 3' in one block instead of paging a single item ('Item 1') like iOS."
+"note": "Carousel fails to page: shows 'Item 1Item 2Item 3' concatenated on one line instead of only current item 'Item 1' like iOS. Prev/Next + Position text correct."
 },
 {
 "key": "chat_example",
@@ -142,7 +142,7 @@
 {
 "key": "clip_views",
 "status": "yellow",
-"note": "Confirmed, worse than noted: Android only shows Button/Editor/Grid red rows; missing date row, Entry row, search bar w/ magnifier icon, and timer/stepper row that iOS renders."
+"note": "All labeled red rows present (Button/date/Entry/Editor/Grid/search/time) matching iOS, but clip-shape/curved-cutout effect (page's purpose) is missing — plain rectangles instead."
 },
 {
 "key": "clipping",
@@ -172,7 +172,7 @@
 {
 "key": "context_flyout",
 "status": "yellow",
-"note": "Increment button, switch, and 'Has a custom context menu' Entry render fine, but the 'COOL' ImageButton shown in iOS (below the entry) is missing entirely from Android."
+"note": "Top controls (Increment button, toggle, entry) match iOS, but 'COOL' badge image and large black Info/menu image block (hamburger, search bar, icon) seen in iOS are absent."
 },
 {
 "key": "controls_stack",
@@ -181,8 +181,8 @@
 },
 {
 "key": "custom_layout",
-"status": "yellow",
-"note": "Confirmed: Android Left/Right bars stretch full-height to screen bottom, no 'Bottom' label visible; iOS shows columns ending mid-screen then a clear 'Bottom' label."
+"status": "green",
+"note": "Positions match iOS: Top label, Left/Left/gap/Right/Right columns correct order/proportions. iOS shows extra 'Bottom' label further down, likely below Android capture fold."
 },
 {
 "key": "custom_size_swipe",
@@ -211,8 +211,8 @@
 },
 {
 "key": "device",
-"status": "blank",
-"note": "Confirmed blank: Android capture is the OS home screen/launcher (wallpaper, Gmail/Photos/YouTube icons, Google search bar) -- gallery app not in foreground, needs recapture."
+"status": "red",
+"note": "Android shows the device's home launcher screen (wallpaper, app icons, search bar) — not the app at all. iOS ref shows simple text 'Platform: iOS / Idiom: Phone / Version: 26.5'."
 },
 {
 "key": "dispatcher",
@@ -266,8 +266,8 @@
 },
 {
 "key": "empty_view_swap",
-"status": "yellow",
-"note": "List + Clear/Fill buttons render; 'Toggle Between EmptyViews' switch control is entirely absent (iOS shows a clear toggle pill); Filter renders unstyled."
+"status": "green",
+"note": "Matches: Filter field, 'Toggle Between EmptyViews' switch, Clear/Fill buttons, and identical 3-column grid items with same filenames/indices."
 },
 {
 "key": "empty_view_template",
@@ -281,18 +281,18 @@
 },
 {
 "key": "entry",
-"status": "yellow",
-"note": "Only checkbox+slider render; all 7 iOS Entry boxes (Type here, Text, Placeholder, password, read-only, Text, end-aligned) plus the Cursor entry box are missing."
+"status": "green",
+"note": "Matches: all entry rows present (Type here, Text, Placeholder, checkbox, password dots, read-only, Text, end-aligned text, cursor slider+label) same as iOS."
 },
 {
 "key": "filter_collection",
-"status": "yellow",
-"note": "List content renders correctly in both columns; 'Use EmptyView' toggle switch is entirely absent and 'Filter' search bar renders as bare unstyled text, not the rounded search pill iOS shows."
+"status": "green",
+"note": "Matches: 'Use EmptyView' toggle, Filter field, and identical 2-column item grid with same filenames/indices as iOS."
 },
 {
 "key": "filter_selection",
 "status": "yellow",
-"note": "Confirmed: opaque grey Reset button rectangle overlaps/covers the 'Selected: (none)' text directly above it (partial glyph visible peeking from under the box edge); list renders fine below."
+"note": "Content present (instructions, Filter, item list match) but Reset button visually overlaps/cuts off the 'Selected: (none)' label, rendering it as just 'S...' — layout defect obscuring text."
 },
 {
 "key": "flex_layout",
@@ -317,7 +317,7 @@
 {
 "key": "formatted_text",
 "status": "yellow",
-"note": "Confirmed: Android shows only 'Plain text label'. The FormattedString span (bold red, italic underlined, kerned 'kerned') visible in iOS is entirely missing."
+"note": "Android shows only plain 'Plain text label' line; the FormattedString/Span run (bold red, italic underlined, kerned text) seen in iOS is entirely missing."
 },
 {
 "key": "gestures",
@@ -327,7 +327,7 @@
 {
 "key": "gradient",
 "status": "yellow",
-"note": "Confirmed: both bars render as flat solid colors (solid green, solid magenta) on Android vs iOS's clear smooth linear/radial gradient transitions."
+"note": "Both brushes render as flat solid color blocks (no actual gradient interpolation) where iOS shows true linear/radial color transitions; labels and block placement otherwise match."
 },
 {
 "key": "grid",
@@ -357,12 +357,12 @@
 {
 "key": "header_footer_grid",
 "status": "yellow",
-"note": "Confirmed: grid items render fine, but dog-photo header/footer images, 'This Is A Header/Footer' text, and 'Add Content' links from iOS are all absent on Android."
+"note": "Toggle buttons + grid items render correctly, but the 'This Is A Header' image+text header and 'This Is A Footer' image+text footer (with Add/Clear links) seen in iOS are entirely absent."
 },
 {
 "key": "header_footer_grid_horizontal",
 "status": "yellow",
-"note": "Confirmed: grid items render, but dog-photo header image and rotated 'This Is A Header' text (clearly visible in iOS) are missing on Android."
+"note": "Grid item text present but layout is garbled (rows run together, mismatched column widths vs iOS's clean grid); header/footer image+text banners from iOS are completely missing."
 },
 {
 "key": "header_footer_template",
@@ -371,8 +371,8 @@
 },
 {
 "key": "header_footer_view",
-"status": "blank",
-"note": "Confirmed blank: Android shows only app bar + empty grey background, nothing else. iOS shows header/footer images, text, and 'Add 2 Items'/'Clear All Items' buttons."
+"status": "red",
+"note": "Page is entirely blank except for the app bar — no header image/text, no Add/Clear links, no list content at all, vs iOS's fully populated header+list+footer."
 },
 {
 "key": "hit_testing",
@@ -392,17 +392,17 @@
 {
 "key": "image",
 "status": "yellow",
-"note": "Confirmed: UriSource Microsoft-building image and both Font Image Source Xbox-glyph green bars are missing on Android; FileSource submarine and gif render fine."
+"note": "Labels render but UriSource image is missing entirely; FontImageSource glyphs blank; gif shows static heart placeholder not decoded frame; Stream Source image missing."
 },
 {
 "key": "image_button",
 "status": "yellow",
-"note": "Confirmed: labels/sliders/toggle render but ALL ImageButton images (green AspectFit/AspectFill/Fill rects, purple custom-size boat) are completely invisible vs iOS — just blank gaps."
+"note": "Labels and sliders render correctly but every ImageButton itself (green rounded rects in iOS: AspectFit/AspectFill/Fill/BorderColor/CornerRadius) is completely blank/missing."
 },
 {
 "key": "indicator",
 "status": "yellow",
-"note": "Confirmed: all 7 indicator-dot rows (Basic/Colors/Shape/Size/HideSingle/MaximumVisible/Template) are completely missing; CarouselView collapsed into run-on 'Item 1Item 2Item 3' text, no paging/dots."
+"note": "All section title labels render but the actual indicator dot graphics are entirely absent under every section (Basic, Colors, Shape, Size, etc)."
 },
 {
 "key": "input_controls",
@@ -462,7 +462,7 @@
 {
 "key": "ios_scroll_view",
 "status": "blank",
-"note": "Android shows only app bar + flat grey background. No back button, no blue progress bar, no link labels that iOS shows. Confirmed blank."
+"note": "Only app bar + empty gray background; iOS shows a back button, a slider, and two link-style labels, all missing on Android."
 },
 {
 "key": "ios_search_bar",
@@ -541,8 +541,8 @@
 },
 {
 "key": "nested_collection",
-"status": "red",
-"note": "Android shows the literal Android system broken-image/crash placeholder glyph (grid pattern + robot icon) on an empty page, no app bar, no nested CollectionView content at all. Confirmed red."
+"status": "yellow",
+"note": "Only the top title text renders; the entire nested CollectionView grid (Source 0-7 rows with Caption items, visible in iOS) is missing below it."
 },
 {
 "key": "pan_gesture_events",
@@ -566,13 +566,13 @@
 },
 {
 "key": "picker",
-"status": "yellow",
-"note": "All labels, selected items, colors (blue/yellow/green highlights) render correctly, but every Picker field is plain unboxed text with no bordered-box chrome that iOS shows. Confirmed yellow."
+"status": "green",
+"note": "All sections render: basic, selected-index=1, selected-index-changed, text/title color blue, italic+yellow bg, dynamic-add buttons, items-markup green row. Matches iOS content."
 },
 {
 "key": "pickers",
-"status": "yellow",
-"note": "Picker/DatePicker/TimePicker content and 'No room...' message all present and correct, but all three fields lack the bordered-box chrome iOS shows. Confirmed yellow."
+"status": "green",
+"note": "Room picker, date picker, time picker, and 'No room on...' result text all present and correct; only locale date format differs (cosmetic)."
 },
 {
 "key": "pointer_gesture",
@@ -591,8 +591,8 @@
 },
 {
 "key": "preselected_item",
-"status": "yellow",
-"note": "List renders fully and correctly, but preselected row has no grey highlight bg and header text is not bold vs iOS. Confirmed yellow."
+"status": "green",
+"note": "Header + full list of items with correct preselected label present. Missing the gray row-highlight on the preselected item (iOS shows it shaded) but content/list itself is complete."
 },
 {
 "key": "preselected_items",
@@ -607,7 +607,7 @@
 {
 "key": "radio_button_border",
 "status": "yellow",
-"note": "4 options + yellow row highlights + correct selection render, but Android has NO colored border anywhere; iOS shows red border ring Option1, green border ring Option4."
+"note": "All 4 options + yellow band + correct selection (Option 4) render, but the colored item borders (red around Option 1, green around Option 4) from iOS are missing entirely."
 },
 {
 "key": "radio_button_content",
@@ -647,7 +647,7 @@
 {
 "key": "refresh_view",
 "status": "yellow",
-"note": "Header/count/4 buttons/status text render fine, but entire CollectionView item list area is empty whitespace; iOS shows footer text 'items loaded' and list content below buttons."
+"note": "Header text, item count, all 4 buttons, and state labels render correctly, but the bottom status text '50 items loaded. Pull to add more.' present in iOS is missing on Android."
 },
 {
 "key": "relative_layout",
@@ -687,7 +687,7 @@
 {
 "key": "selection_synchronization",
 "status": "yellow",
-"note": "Text and item lists match iOS, but Item2/Item3 lack the gray selection-highlight band present in both CollectionViews on iOS — the page's core demonstrated feature is invisible."
+"note": "Text/items all render correctly, but selected rows (Item 2/Item 3) lack the gray highlight iOS shows — selection state not visualized."
 },
 {
 "key": "semantics",
@@ -697,7 +697,7 @@
 {
 "key": "shadow_playground",
 "status": "yellow",
-"note": "Cyan rectangle and label show zero shadow on Android; iOS clearly renders a red blurred drop-shadow offset bottom-right on both the rect and label text — the page's subject is absent."
+"note": "Controls/sliders/label all render, but the shadow effect itself (red glow behind cyan rect, text shadow) is completely missing vs iOS."
 },
 {
 "key": "shape_app_theme",
@@ -762,7 +762,7 @@
 {
 "key": "swipe_refresh",
 "status": "blank",
-"note": "CONFIRMED blank: only app bar + empty grey background. No 'Swipe left to delete, pull to refresh' or 'Ready' text visible, unlike iOS."
+"note": "Only app bar + empty background; iOS shows 'Swipe left to delete, pull to refresh' text and Ready status — no content rendered at all."
 },
 {
 "key": "swipe_threshold",
@@ -792,12 +792,12 @@
 {
 "key": "tabbed_flyout",
 "status": "blank",
-"note": "CONFIRMED blank: only app bar + empty grey background. No 'This is the Home tab' text and no Home/Settings tab bar, unlike iOS."
+"note": "Only app bar + empty background; iOS shows 'This is the Home tab' text plus Home/Settings tab bar — nothing rendered."
 },
 {
 "key": "templated_view",
-"status": "yellow",
-"note": "CONFIRMED yellow: all text (titles, names, lorem ipsum, 'Compact card' rows) matches iOS, but the 3 gray image-placeholder thumbnails next to each compact card are missing."
+"status": "green",
+"note": "Matches iOS: standard card + three ControlTemplate compact cards with names/text/gray image placeholders all present and correctly laid out."
 },
 {
 "key": "time_picker",
@@ -806,8 +806,8 @@
 },
 {
 "key": "title_bar",
-"status": "yellow",
-"note": "CONFIRMED yellow: section labels/buttons render, but Title/Subtitle bordered Entry fields AND all radio selector circles (Set Icon, Leading/Trailing Content, Tall/Show TitleBar) are missing vs iOS."
+"status": "green",
+"note": "All content renders: checkboxes, Title/Subtitle fields, color fields, Set Color/Foreground buttons, Toggle Title Bar button, live status text. Matches iOS content; only native Android chrome differs."
 },
 {
 "key": "toolbar",
@@ -832,7 +832,7 @@
 {
 "key": "update_path_data",
 "status": "yellow",
-"note": "Path curve renders correctly, but the entire bottom info row is missing: no 'counter = 0 | Data: ...' label and no 'Update Path Data' button visible anywhere in the capture."
+"note": "Path curve renders correctly matching iOS shape, but missing the 'counter = 0 | Data: M 10,100 C 10,300...' status text and the 'Update Path Data' button that iOS shows below the curve."
 },
 {
 "key": "varied_size_selector",
@@ -852,7 +852,7 @@
 {
 "key": "web_view",
 "status": "yellow",
-"note": "All 6 nav buttons and status labels render correctly. The WebView content area (Welcome heading + HtmlWebViewSource text) is entirely absent, just empty background above the labels."
+"note": "Nav buttons and status text render fine, but WebView content area is blank — missing 'Welcome' heading and 'Served from a static HtmlWebViewSource.' text shown inside iOS web view."
 },
 {
 "key": "z_index",
