@@ -480,6 +480,9 @@ else()
     # image: android.widget.ImageView partial (aspect→ScaleType; source decode deferred to the mirror).
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/image_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/image_handler.cpp)
+    # editor: android.widget.EditText (multiline) partial.
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/editor_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/editor_handler.cpp)
     # (W4-34d) navigation + window: the FrameLayout-based page-stack container + the Activity
     # content-view stand-in. The android partials keep the headless mirrors live (VM-less suite) and
     # additionally drive the real FrameLayout child swap when a VM + app context exist (the test host).
@@ -703,6 +706,13 @@ if(MAUI_BACKEND STREQUAL "android")
     # image: the real image control + handler drive a real android.widget.ImageView — aspect→ScaleType
     # + adjustViewBounds read back over JNI; the file-source load is observed via the headless mirror.
     tests/platform/android_image_tests.cpp
+    # editor / entry (EditText) seam tests are deliberately NOT wired here: constructing an
+    # android.widget.EditText in the app_process widget test host throws java.lang.SecurityException
+    # ("Given calling package android does not match caller's uid 2000") — its Editor eagerly queries the
+    # Settings / DeviceConfig ContentProvider (SelectionActionModeHelper → TextClassificationConstants),
+    # which the shell-uid (2000) app_process is not allowed to reach. A plain TextView (label) has no
+    # Editor and is unaffected. EditText-backed controls therefore need a real Activity context and are
+    # verified via the Android app host; tests/platform/android_editor_tests.cpp is kept ready for it.
     # (W4-34d) navigation + window: the real navigation_page / window controls + handlers drive a real
     # android.widget.FrameLayout — set window content → the root container hosts it; push/pop → the
     # visible native child swaps; push/pop modal → the overlay child appears/clears.
