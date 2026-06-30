@@ -858,6 +858,13 @@ if(MAUI_BACKEND STREQUAL "apple")
 elseif(MAUI_BACKEND STREQUAL "ios")
   set(MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES src/platform/ios/collection_view_handler.mm)
   set_source_files_properties(${MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+elseif(MAUI_BACKEND STREQUAL "android")
+  # (W8-CV) the android CollectionView family partial: a real ScrollView → MauiLayout host into which the
+  # handler realizes a native view per element and pushes ABSOLUTE frames (the no-op-onLayout container
+  # convention). The cross-platform simulator still runs as the in-memory state mirror; this is the on-
+  # device render. Guarded internally by scoped_env / app_context (VM-less degradation). MAUI_PLATFORM_
+  # ANDROID is already PUBLIC on maui_core for this backend (so the header's android struct slots compile).
+  set(MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES src/platform/android/collection_view_handler.cpp)
 else()
   set(MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES src/platform/headless/collection_view_handler.cpp)
 endif()

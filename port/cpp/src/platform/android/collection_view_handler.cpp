@@ -1,0 +1,851 @@
+// collection_view_handler — Android (JNI) platform partial: a real android.widget.ScrollView whose
+// single document child is a dev.mauicpp.MauiCollectionContent host ViewGroup, into which the handler
+// realizes a native android.view.View per collection element and positions each ABSOLUTELY. The android twin
+// of
+// src/platform/apple/collection_view_handler.mm (a real NSCollectionView) and the real-native sibling of
+// the headless mirror (src/platform/headless/collection_view_handler.cpp).
+//
+// ──────────────────────────────────────────────────────────────────────────────────────────────────
+// WAVE 8: the CollectionView family on Android (the 40 blank gallery pages this unblocks)
+// ──────────────────────────────────────────────────────────────────────────────────────────────────
+// Every other backend renders the CollectionView family; Android rendered NOTHING (the audit found 40
+// gallery pages blank — only the app bar over grey) because there was no Android CV partial. This file
+// is that partial. The cross-platform simulator (src/controls/items/collection_view_handler.cpp) still
+// runs as the in-memory state mirror on this backend EXACTLY as before — the android preset's pure-native
+// cross-platform suite (no JavaVM) observes the headless partial's behavior unchanged. The native render
+// is layered ON TOP, behind scoped_env / app_context guards, driven from arrange_native (the one hook
+// platform_arrange calls unconditionally on every backend) — so NO shared-code edit was needed and the
+// headless build is untouched.
+//
+// THE REALIZATION MODEL (mirrors the AppKit data source, adapted to the android absolute-frame seam):
+//   - C++ drives layout — native android views do NOT self-layout (MauiLayout.onLayout is a no-op, the
+//     same reason every container handler's children keep the absolute frames their own platform_arrange
+//     set; see src/platform/android/java/MauiLayout.java). So arrange_native reads the handler's
+//     i_items_view_source + the control's templates DIRECTLY (the RecyclerView-adapter analog), realizes
+//     one native view per element, and lays each out at an absolute frame in the host panel.
+//   - An ITEM with an ItemTemplate set realizes the template's content as a real native view bound to the
+//     item (realize_template_content: create_handler<TControl>() → set_maui_context → set_handler builds
+//     the native view + runs the mapper — the C# TemplatedCell2.Bind path, identical to the apple/ios
+//     partials). With no template the default cell is a plain TextView mirroring item.text() (DefaultCell).
+//   - HEADER / FOOTER (structured, global) and GROUP HEADER / FOOTER (grouped, per-section) realize the
+//     same way: their template's content when set, else a TextView of the value's / group key's text.
+//   - EMPTY VIEW (shown while the source is empty) realizes its template content centered, else a centered
+//     TextView of the empty value's text — the C# UpdateEmptyView.
+//   - GRID: a GridItemsLayout(span, orientation) lays `span` item columns across the cross axis; a linear
+//     list is span 1. Both orientations are honored (vertical stacks rows down the main axis, horizontal
+//     across it). Each realized view is MEASURED (View.measure at its column width) so a text row takes its
+//     natural height — matching the iOS reference where each row is text-height, not a fixed extent.
+//
+// DOCUMENTED DEVIATIONS from the C# oracle (infrastructure gaps + the resume-doc render-first guidance,
+// NOT behavior guesses):
+//   - NO RecyclerView view-recycling. MAUI's Android CV is a MauiRecyclerView + ItemsViewAdapter with cell
+//     reuse; the gallery pages have small fixed item counts, so this partial favors render correctness and
+//     realizes every in-content element directly into the host panel (the resume-doc "favor correctness of
+//     render over recycling"). The cross-platform simulator still records the realize/recycle/bind trail
+//     for any consumer that wants it. A faithful RecyclerView adapter is a future refinement.
+//   - The host is a plain ScrollView → MauiCollectionContent, NOT MauiRecyclerView; it scrolls VERTICALLY
+//     only (the
+//     content still measures/arranges at full size so the scroller has the right extent). A horizontal
+//     CollectionView's content is laid out across the main axis but hosted in the vertical ScrollView —
+//     the horizontal scroller swap is deferred with the scroll_view_handler's same documented deviation.
+//   - estimated self-sizing is reduced to: each view measured at its column width with an unbounded main
+//     axis, then laid out at its measured main extent (deterministic, matches the text-height rows).
+//   - selection highlight / interactive reorder-drag have no plain-View analog and are not drawn here (the
+//     cross-platform selection mirror is still maintained; the simulator is the asserted surface). The
+//     selection STATE pages (single/multiple/preselected) still render their items — selection chrome is
+//     the only missing piece, documented.
+//   - snap points / peek insets / scroll-bar-visibility nuances are iOS-only knobs with no plain-ScrollView
+//     analog (the cross-platform mirror carries them as state) — same as the other android container
+//     deviations.
+//
+// VM-less degradation (like every android handler): create_platform_view / arrange_native check scoped_env
+// / app_context() and quietly skip when no Java VM exists (the pure-native cross-platform suite runs on the
+// emulator without one) — the simulator state mirror is always live. The gallery app host drives the real
+// ScrollView.
+
+#include "maui/controls/items/collection_view_handler.hpp"
+
+#include <jni.h>
+
+#include <algorithm>
+#include <atomic>
+#include <cmath>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "jni/app_context.hpp"
+#include "jni/jni_cache.hpp"
+#include "jni/jni_env.hpp"
+#include "jni/jni_ref.hpp"
+#include "jni/jni_string.hpp"
+#include "maui/controls/items/boxed_item.hpp"
+#include "maui/controls/items/groupable_items_view.hpp"
+#include "maui/controls/items/items_layout_orientation.hpp"
+#include "maui/controls/items/items_view_source.hpp"
+#include "maui/controls/items/structured_items_view.hpp"
+#include "maui/controls/templates/data_template.hpp"
+#include "maui/controls/templates/data_template_selector.hpp"
+#include "maui/core/bindable_object.hpp"
+#include "maui/core/handler_registry.hpp"
+#include "maui/core/i_element.hpp"
+#include "maui/core/i_element_handler.hpp"
+#include "maui/core/i_maui_context.hpp"
+#include "maui/core/i_view_handler.hpp"
+#include "maui/graphics/rect.hpp"
+#include "maui/graphics/size.hpp"
+
+namespace
+{
+    using maui::platform::android::app_context;
+    using maui::platform::android::default_jni_cache;
+    using maui::platform::android::local_ref;
+    using maui::platform::android::scoped_env;
+    using maui::platform::android::to_jstring;
+
+    constexpr const char* k_scroll_view_class = "android/widget/ScrollView";
+    // The inner content host: a ViewGroup whose onLayout is a no-op (the CV frames children absolutely) and
+    // whose onMeasure reports the CONTENT extent so it sizes correctly inside the ScrollView's UNSPECIFIED
+    // measure (java/MauiCollectionContent.java — see that file for why it is NOT the plain MauiLayout).
+    constexpr const char* k_host_class = "dev/mauicpp/MauiCollectionContent";
+    constexpr const char* k_text_view_class = "android/widget/TextView";
+    constexpr const char* k_view_class = "android/view/View";
+    constexpr const char* k_view_group_class = "android/view/ViewGroup";
+    constexpr const char* k_layout_params_class = "android/view/ViewGroup$LayoutParams";
+    // ScrollView IS-A FrameLayout, and FrameLayout.measureChildWithMargins casts its child's LayoutParams to
+    // MarginLayoutParams — so the host (the scroller's single document child) MUST carry FrameLayout
+    // .LayoutParams (a MarginLayoutParams subclass), not a bare ViewGroup.LayoutParams (a ClassCastException
+    // otherwise). The host's OWN children use the plain k_layout_params_class (MauiCollectionContent does not
+    // require margins).
+    constexpr const char* k_frame_params_class = "android/widget/FrameLayout$LayoutParams";
+    constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
+
+    constexpr jint k_match_parent = -1; // ViewGroup.LayoutParams.MATCH_PARENT
+    constexpr jint k_wrap_content = -2; // ViewGroup.LayoutParams.WRAP_CONTENT
+    // android.view.View.MeasureSpec modes.
+    constexpr auto k_measure_spec_exactly = static_cast<jint>(0x40000000U);
+    constexpr auto k_measure_spec_unspecified = static_cast<jint>(0x00000000U);
+    // GeometryUtil.Epsilon — ContextExtensions.ToPixels subtracts it before ceiling.
+    constexpr double k_to_pixels_epsilon = 0.0000000001;
+    // A modest default supplemental/item extent fallback (dp) for views that measure to nothing (e.g. a
+    // realized template whose handler built no measured native view). Keeps a row from collapsing to 0.
+    constexpr double k_min_row_extent = 24;
+
+    bool clear_pending(JNIEnv* env)
+    {
+        if (env->ExceptionCheck() == JNI_FALSE)
+        {
+            return false;
+        }
+        env->ExceptionDescribe(); // logcat/stderr breadcrumb, the channel the test host uses
+        env->ExceptionClear();
+        return true;
+    }
+
+    // ContextExtensions.ToPixels: ceil(dp * density - Epsilon).
+    [[nodiscard]] jint to_pixels(double dp, float density)
+    {
+        return static_cast<jint>(std::ceil((dp * static_cast<double>(density)) - k_to_pixels_epsilon));
+    }
+
+    // The display density (Context.getResources().getDisplayMetrics().density), memoized process-wide after
+    // the first read, exactly like the other android handlers' display_density. 1.0 when any step fails.
+    [[nodiscard]] float display_density(JNIEnv* env, jobject view)
+    {
+        static std::atomic<float> memoized{0.0F}; // 0 = not read yet (a real density is never 0)
+        if (const float cached = memoized.load(std::memory_order_relaxed); cached != 0.0F)
+        {
+            return cached;
+        }
+        auto& cache = default_jni_cache();
+        jmethodID get_context = cache.method(env, k_view_class, "getContext", "()Landroid/content/Context;");
+        jmethodID get_resources =
+            cache.method(env, "android/content/Context", "getResources", "()Landroid/content/res/Resources;");
+        jmethodID get_display_metrics =
+            cache.method(env, "android/content/res/Resources", "getDisplayMetrics", "()Landroid/util/DisplayMetrics;");
+        jfieldID density_field = cache.field(env, "android/util/DisplayMetrics", "density", "F");
+        if (get_context == nullptr || get_resources == nullptr || get_display_metrics == nullptr ||
+            density_field == nullptr)
+        {
+            return 1.0F;
+        }
+        const local_ref<jobject> context{env, env->CallObjectMethod(view, get_context)};
+        if (clear_pending(env) || !context)
+        {
+            return 1.0F;
+        }
+        const local_ref<jobject> resources{env, env->CallObjectMethod(context.get(), get_resources)};
+        if (clear_pending(env) || !resources)
+        {
+            return 1.0F;
+        }
+        const local_ref<jobject> metrics{env, env->CallObjectMethod(resources.get(), get_display_metrics)};
+        if (clear_pending(env) || !metrics)
+        {
+            return 1.0F;
+        }
+        const jfloat density = env->GetFloatField(metrics.get(), density_field);
+        if (clear_pending(env) || density == 0.0F)
+        {
+            return 1.0F;
+        }
+        memoized.store(density, std::memory_order_relaxed);
+        return density;
+    }
+
+    // Detach `child` from any ViewGroup parent (removeView), so addView never throws "already has a
+    // parent" (the re-parent guard the layout/content_page/scroll partials share).
+    void detach_from_parent(JNIEnv* env, jobject child)
+    {
+        auto& cache = default_jni_cache();
+        jmethodID get_parent = cache.method(env, k_view_class, "getParent", "()Landroid/view/ViewParent;");
+        if (get_parent == nullptr)
+        {
+            return;
+        }
+        const local_ref<jobject> parent{env, env->CallObjectMethod(child, get_parent)};
+        if (clear_pending(env) || !parent)
+        {
+            return;
+        }
+        jclass view_group_class = cache.find_class(env, k_view_group_class);
+        if (view_group_class == nullptr || env->IsInstanceOf(parent.get(), view_group_class) == JNI_FALSE)
+        {
+            return;
+        }
+        jmethodID remove_view = cache.method(env, k_view_group_class, "removeView", "(Landroid/view/View;)V");
+        if (remove_view != nullptr)
+        {
+            env->CallVoidMethod(parent.get(), remove_view, child);
+            clear_pending(env);
+        }
+    }
+
+    // Construct a plain android.widget.TextView showing `text` (the DefaultCell label / the supplemental
+    // text mirror). Theme-independent ctor (TextView(Context)) so it builds in the bare app_process testhost
+    // (the LESSON-2 constraint). Returns a local ref (caller adds it to the host / measures it).
+    [[nodiscard]] local_ref<jobject> make_text_view(JNIEnv* env, jobject context, const std::string& text)
+    {
+        auto& cache = default_jni_cache();
+        jclass text_view_class = cache.find_class(env, k_text_view_class);
+        jmethodID ctor = cache.method(env, k_text_view_class, "<init>", "(Landroid/content/Context;)V");
+        jmethodID set_text = cache.method(env, k_text_view_class, "setText", "(Ljava/lang/CharSequence;)V");
+        if (text_view_class == nullptr || ctor == nullptr || set_text == nullptr)
+        {
+            return {};
+        }
+        local_ref<jobject> view{env, env->NewObject(text_view_class, ctor, context)};
+        if (clear_pending(env) || !view)
+        {
+            return {};
+        }
+        const local_ref<jstring> text_str = to_jstring(env, text);
+        env->CallVoidMethod(view.get(), set_text, text_str.get());
+        clear_pending(env);
+        return view;
+    }
+
+    // Measure `view` at an exact cross-axis pixel width and an UNSPECIFIED main axis, then read back its
+    // measured main extent in pixels (View.getMeasuredHeight for a vertical list, getMeasuredWidth for a
+    // horizontal one). Returns 0 on any failure — the caller floors it to a minimum so a row never
+    // collapses. `vertical` selects which measured dimension is the main axis.
+    [[nodiscard]] jint measure_main_extent(JNIEnv* env, jobject view, jint cross_px, bool vertical)
+    {
+        auto& cache = default_jni_cache();
+        jmethodID make_measure_spec = cache.static_method(env, k_measure_spec_class, "makeMeasureSpec", "(II)I");
+        jmethodID measure = cache.method(env, k_view_class, "measure", "(II)V");
+        jmethodID get_measured_width = cache.method(env, k_view_class, "getMeasuredWidth", "()I");
+        jmethodID get_measured_height = cache.method(env, k_view_class, "getMeasuredHeight", "()I");
+        jclass measure_spec_class = cache.find_class(env, k_measure_spec_class);
+        if (make_measure_spec == nullptr || measure == nullptr || get_measured_width == nullptr ||
+            get_measured_height == nullptr || measure_spec_class == nullptr)
+        {
+            return 0;
+        }
+        // Vertical: cross = width (Exactly), main = height (Unspecified). Horizontal: cross = height
+        // (Exactly), main = width (Unspecified).
+        const jint cross_spec =
+            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, cross_px, k_measure_spec_exactly);
+        const jint main_spec =
+            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, 0, k_measure_spec_unspecified);
+        if (clear_pending(env))
+        {
+            return 0;
+        }
+        if (vertical)
+        {
+            env->CallVoidMethod(view, measure, cross_spec, main_spec);
+        }
+        else
+        {
+            env->CallVoidMethod(view, measure, main_spec, cross_spec);
+        }
+        if (clear_pending(env))
+        {
+            return 0;
+        }
+        const jint extent =
+            vertical ? env->CallIntMethod(view, get_measured_height) : env->CallIntMethod(view, get_measured_width);
+        clear_pending(env);
+        return extent;
+    }
+
+    // Add `child` to `host` with WRAP/WRAP params then layout(l,t,r,b) it ABSOLUTELY in PIXELS — the
+    // android container convention (MauiLayout.onLayout is a no-op so this frame survives). Detaches first.
+    void add_and_frame(JNIEnv* env, jobject host, jobject child, jint left, jint top, jint right, jint bottom)
+    {
+        detach_from_parent(env, child);
+        auto& cache = default_jni_cache();
+        jclass params_class = cache.find_class(env, k_layout_params_class);
+        jmethodID params_ctor = cache.method(env, k_layout_params_class, "<init>", "(II)V");
+        jmethodID add_view = cache.method(env, k_view_group_class, "addView",
+                                          "(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V");
+        jmethodID measure = cache.method(env, k_view_class, "measure", "(II)V");
+        jmethodID layout = cache.method(env, k_view_class, "layout", "(IIII)V");
+        jmethodID make_measure_spec = cache.static_method(env, k_measure_spec_class, "makeMeasureSpec", "(II)I");
+        jclass measure_spec_class = cache.find_class(env, k_measure_spec_class);
+        if (params_class == nullptr || params_ctor == nullptr || add_view == nullptr || measure == nullptr ||
+            layout == nullptr || make_measure_spec == nullptr || measure_spec_class == nullptr)
+        {
+            return;
+        }
+        const local_ref<jobject> params{env, env->NewObject(params_class, params_ctor, k_wrap_content, k_wrap_content)};
+        if (clear_pending(env) || !params)
+        {
+            return;
+        }
+        env->CallVoidMethod(host, add_view, child, params.get());
+        if (clear_pending(env))
+        {
+            return;
+        }
+        // Measure Exactly at the final frame size (android requires a measure pass before layout), then
+        // layout absolutely — the same two-step every leaf android handler's platform_arrange does.
+        const jint width_spec =
+            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, right - left, k_measure_spec_exactly);
+        const jint height_spec =
+            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, bottom - top, k_measure_spec_exactly);
+        if (clear_pending(env))
+        {
+            return;
+        }
+        env->CallVoidMethod(child, measure, width_spec, height_spec);
+        if (clear_pending(env))
+        {
+            return;
+        }
+        env->CallVoidMethod(child, layout, left, top, right, bottom);
+        clear_pending(env);
+    }
+} // namespace
+
+namespace maui::controls
+{
+    namespace
+    {
+        // Resolve a possibly-selector template against one item (DataTemplateSelector.SelectTemplate; the
+        // container is the items view itself, like C# passes the ItemsView). Mirrors the cross-platform
+        // resolve_template (kept local — that one is .cpp-internal).
+        std::shared_ptr<data_template> resolve_item_template(const std::shared_ptr<data_template>& candidate,
+                                                             const boxed_item& item,
+                                                             maui::core::bindable_object* container)
+        {
+            if (auto selector = std::dynamic_pointer_cast<data_template_selector>(candidate))
+            {
+                return selector->select_template(item.context_box(), container);
+            }
+            return candidate;
+        }
+
+        // Realize a type-activated template's content into a native android.view.View (the C#
+        // TemplatedCell.Bind: CreateContent → set BindingContext → ToPlatform(mauiContext)). Returns the
+        // realized content (which OWNS its attached handler + native view — the caller keeps it alive for as
+        // long as it is hosted) and, out-param, its native View as a jobject. Yields {nullptr, nullptr} when
+        // the template is loader-only (no static control type) or no handler is registered for that type —
+        // the caller then falls back to the item-text mirror. Identical to the apple/ios realize path.
+        std::shared_ptr<maui::core::bindable_object> realize_template_content(
+            collection_view_handler& handler, const std::shared_ptr<data_template>& tmpl, const boxed_item& value,
+            jobject* out_native)
+        {
+            *out_native = nullptr;
+            maui::core::i_maui_context* const context = handler.maui_context();
+            if (tmpl == nullptr || context == nullptr || !tmpl->content_type().has_value())
+            {
+                return nullptr;
+            }
+            std::shared_ptr<maui::core::bindable_object> content = tmpl->create_content();
+            if (!content)
+            {
+                return nullptr;
+            }
+            // BindingContext = the item (so the template's staged bindings resolve against it). Set BEFORE
+            // attaching the handler so the first mapper pass already sees the bound property values.
+            content->set_binding_context_box(value.context_box());
+
+            std::shared_ptr<maui::core::i_element_handler> child_handler =
+                context->handlers().create_handler(*tmpl->content_type());
+            auto* element = dynamic_cast<maui::core::i_element*>(content.get());
+            if (!child_handler || element == nullptr)
+            {
+                return nullptr; // no registered handler (or non-element content) — fall back to text
+            }
+            child_handler->set_maui_context(context);
+            element->set_handler(child_handler); // creates the platform view + runs the mapper
+
+            if (auto* view_handler = dynamic_cast<maui::core::i_view_handler*>(child_handler.get()))
+            {
+                *out_native = static_cast<jobject>(view_handler->native_view());
+            }
+            return content;
+        }
+
+        // Reuse an already-built boxed VIEW's native (a Header/Footer/EmptyView set to a live View via
+        // boxed_item::of(view)). In the gallery path the page's attach_handlers has already built its native
+        // view, so this reuses native_view() (the C# ToPlatform on a view whose handler is already set).
+        // Yields nullptr when the view has no attached handler / native view (caller falls back to text).
+        jobject boxed_view_native(const boxed_item& value)
+        {
+            const std::shared_ptr<maui::core::bindable_object>& bindable = value.as_bindable();
+            auto* element = dynamic_cast<maui::core::i_element*>(bindable.get());
+            if (element == nullptr)
+            {
+                return nullptr;
+            }
+            if (const std::shared_ptr<maui::core::i_element_handler>& existing = element->handler())
+            {
+                if (auto* view_handler = dynamic_cast<maui::core::i_view_handler*>(existing.get()))
+                {
+                    return static_cast<jobject>(view_handler->native_view());
+                }
+            }
+            return nullptr;
+        }
+    } // namespace
+
+    // ---- creation + teardown ----
+
+    collection_view_platform::~collection_view_platform()
+    {
+        // Release the retained global refs. The scroll view owns the host MauiLayout (its document child),
+        // so releasing the global ref to each is enough; the retained_natives subtrees free their own
+        // handlers + native views when the vector clears.
+        const scoped_env env; // any-thread teardown, like global_ref::reset
+        if (env)
+        {
+            if (empty_view_native != nullptr)
+            {
+                env->DeleteGlobalRef(static_cast<jobject>(empty_view_native));
+            }
+            if (host != nullptr)
+            {
+                env->DeleteGlobalRef(static_cast<jobject>(host));
+            }
+            if (scroll != nullptr)
+            {
+                env->DeleteGlobalRef(static_cast<jobject>(scroll));
+            }
+        }
+        empty_view_native = nullptr;
+        host = nullptr;
+        scroll = nullptr;
+        native = nullptr; // aliases `scroll` (not separately retained)
+        retained_natives.clear();
+    }
+
+    std::unique_ptr<collection_view_platform> collection_view_handler::create_platform_view()
+    {
+        auto platform = std::make_unique<collection_view_platform>();
+        const scoped_env env;
+        jobject context = app_context();
+        if (!env || context == nullptr)
+        {
+            return platform; // VM-less / context-less: the headless-mirror degradation (file header)
+        }
+        auto& cache = default_jni_cache();
+        jclass scroll_class = cache.find_class(env.get(), k_scroll_view_class);
+        jmethodID scroll_ctor = cache.method(env.get(), k_scroll_view_class, "<init>", "(Landroid/content/Context;)V");
+        jclass layout_class = cache.find_class(env.get(), k_host_class);
+        jmethodID layout_ctor = cache.method(env.get(), k_host_class, "<init>", "(Landroid/content/Context;)V");
+        if (scroll_class == nullptr || scroll_ctor == nullptr || layout_class == nullptr || layout_ctor == nullptr)
+        {
+            return platform; // MauiLayout is host-provided (java/MauiLayout.java); without it the headless
+                             // mirror stands (the VM-less degradation)
+        }
+        // The composed native: a ScrollView whose single document child is the MauiLayout host panel (the
+        // no-op-onLayout ViewGroup the realized children keep absolute frames inside). The same shape the
+        // scroll_view_handler builds, plus the inner host panel the CV positions its cells into.
+        const local_ref<jobject> scroller{env.get(), env->NewObject(scroll_class, scroll_ctor, context)};
+        if (clear_pending(env.get()) || !scroller)
+        {
+            return platform;
+        }
+        const local_ref<jobject> host{env.get(), env->NewObject(layout_class, layout_ctor, context)};
+        if (clear_pending(env.get()) || !host)
+        {
+            return platform;
+        }
+        // Add the host as the scroller's document child (MATCH_PARENT width, WRAP_CONTENT height so the
+        // content overflows vertically and scrolls — the android scroll-content convention). FrameLayout
+        // .LayoutParams because ScrollView casts its child's params to MarginLayoutParams (see the constant).
+        jclass params_class = cache.find_class(env.get(), k_frame_params_class);
+        jmethodID params_ctor = cache.method(env.get(), k_frame_params_class, "<init>", "(II)V");
+        jmethodID add_view = cache.method(env.get(), k_view_group_class, "addView",
+                                          "(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V");
+        if (params_class != nullptr && params_ctor != nullptr && add_view != nullptr)
+        {
+            const local_ref<jobject> params{env.get(),
+                                            env->NewObject(params_class, params_ctor, k_match_parent, k_wrap_content)};
+            if (!clear_pending(env.get()) && params)
+            {
+                env->CallVoidMethod(scroller.get(), add_view, host.get(), params.get());
+                clear_pending(env.get());
+            }
+        }
+        platform->scroll = env->NewGlobalRef(scroller.get()); // released in ~collection_view_platform
+        platform->host = env->NewGlobalRef(host.get());
+        platform->native = platform->scroll; // the composed native (aliases scroll; NOT separately retained)
+        return platform;
+    }
+
+    // arrange_native — the backend half of platform_arrange (the one hook called on every backend). Frame
+    // the ScrollView to the arranged rect, then re-realize the WHOLE content into the host panel and
+    // position each element absolutely. The shared platform_arrange re-sets the viewport mirror + re-runs
+    // the simulator after this returns; the native render here is independent of the windowing simulator
+    // (it realizes the full content, the render-first model).
+    void collection_view_handler::arrange_native(const maui::graphics::rect& frame)
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->scroll == nullptr || platform->host == nullptr)
+        {
+            return; // headless / VM-less: no native tree to render
+        }
+        const scoped_env env_guard;
+        if (!env_guard)
+        {
+            return;
+        }
+        JNIEnv* env = env_guard.get();
+        auto* const scroll = static_cast<jobject>(platform->scroll);
+        auto* const host = static_cast<jobject>(platform->host);
+        auto& cache = default_jni_cache();
+        const float density = display_density(env, scroll);
+
+        // Drop the previous pass: clear the host's children and release the retained template subtrees (the
+        // apple prepareForReuse analog — every realized native is rebuilt fresh this pass).
+        jmethodID remove_all = cache.method(env, k_view_group_class, "removeAllViews", "()V");
+        if (remove_all != nullptr)
+        {
+            env->CallVoidMethod(host, remove_all);
+            clear_pending(env);
+        }
+        platform->retained_natives.clear();
+        if (platform->empty_view_native != nullptr)
+        {
+            env->DeleteGlobalRef(static_cast<jobject>(platform->empty_view_native));
+            platform->empty_view_native = nullptr;
+        }
+
+        // The mapped layout mirrors (orientation / span) drive the flow; the cross-platform refresh_layout_
+        // mirrors keeps them current from the items_layout.
+        const bool vertical = platform->orientation == items_layout_orientation::vertical;
+        const int span = std::max(1, platform->span);
+        const double cross_extent_dp = vertical ? frame.width : frame.height;
+        const double main_viewport_dp = vertical ? frame.height : frame.width;
+        const jint cross_px = std::max<jint>(1, to_pixels(cross_extent_dp, density));
+        const jint col_px = std::max<jint>(1, cross_px / span);
+
+        auto* view = virtual_view();
+        const std::shared_ptr<i_items_view_source>& src = items_view_source();
+        auto* container = dynamic_cast<maui::core::bindable_object*>(view);
+
+        // The total content extent along the main axis (dp), accumulated as elements are placed; the inner
+        // host panel is sized to it so the ScrollView has the right scrollable extent (the host's onMeasure
+        // does NOT measure children, so the panel must be framed EXPLICITLY here — the same reason every
+        // child gets an absolute frame).
+        double content_main_dp = 0;
+
+        // ---- the empty view: shown while the source has no items (UpdateEmptyView) ----
+        const bool empty = view == nullptr || !src || src->item_count() == 0;
+        if (empty)
+        {
+            jobject context = app_context();
+            if (context == nullptr)
+            {
+                // size the host to the viewport so the (empty) scroller still frames; fall through to the
+                // ScrollView framing below.
+            }
+            else if (view != nullptr)
+            {
+                jobject empty_native = nullptr;
+                // Template content > boxed view > text mirror (the realize_supplemental precedence).
+                std::shared_ptr<maui::core::bindable_object> realized =
+                    realize_template_content(*this, view->empty_view_template(), view->empty_view(), &empty_native);
+                if (empty_native == nullptr)
+                {
+                    empty_native = boxed_view_native(view->empty_view());
+                }
+                local_ref<jobject> text_view; // keep alive until added
+                if (empty_native == nullptr)
+                {
+                    text_view = make_text_view(env, context, view->empty_view().text());
+                    empty_native = text_view.get();
+                }
+                if (empty_native != nullptr)
+                {
+                    // Center the empty view filling the viewport (the C# EmptyView centered host).
+                    const jint w = cross_px;
+                    const jint h = std::max<jint>(1, to_pixels(main_viewport_dp, density));
+                    content_main_dp = main_viewport_dp;
+                    add_and_frame(env, host, empty_native, 0, 0, w, h);
+                    if (realized)
+                    {
+                        platform->retained_natives.push_back(std::move(realized));
+                    }
+                    // Retain a global ref so the destructor can release a reused boxed/template native that
+                    // outlives this local frame (the text-view local is owned by the host after addView).
+                    if (!text_view)
+                    {
+                        platform->empty_view_native = env->NewGlobalRef(empty_native);
+                    }
+                }
+            }
+        }
+        else
+        {
+            // ---- the realized content: header → [group header → items → group footer]* → footer ----
+            double cursor_dp = 0; // main-axis position in dp
+
+            auto place_full_width = [&](jobject child) {
+                if (child == nullptr)
+                {
+                    return;
+                }
+                const jint extent_px = std::max<jint>(measure_main_extent(env, child, cross_px, vertical),
+                                                      to_pixels(k_min_row_extent, density));
+                const jint start_px = to_pixels(cursor_dp, density);
+                if (vertical)
+                {
+                    add_and_frame(env, host, child, 0, start_px, cross_px, start_px + extent_px);
+                }
+                else
+                {
+                    add_and_frame(env, host, child, start_px, 0, start_px + extent_px, cross_px);
+                }
+                cursor_dp += static_cast<double>(extent_px) / static_cast<double>(density);
+            };
+
+            // Realize a supplemental (header/footer/group header/footer): template content > boxed view >
+            // text mirror, hosted full cross-width. Returns nothing — appends to the host + retains.
+            auto realize_supplemental_native = [&](const std::shared_ptr<data_template>& tmpl,
+                                                   const boxed_item& value) {
+                if (!tmpl && !value.has_value())
+                {
+                    return; // nothing to show
+                }
+                jobject native = nullptr;
+                std::shared_ptr<maui::core::bindable_object> realized =
+                    realize_template_content(*this, tmpl, value, &native);
+                if (native == nullptr)
+                {
+                    native = boxed_view_native(value);
+                }
+                local_ref<jobject> text_view;
+                if (native == nullptr && value.has_value())
+                {
+                    jobject context = app_context();
+                    if (context != nullptr)
+                    {
+                        text_view = make_text_view(env, context, value.text());
+                        native = text_view.get();
+                    }
+                }
+                place_full_width(native);
+                if (realized)
+                {
+                    platform->retained_natives.push_back(std::move(realized));
+                }
+            };
+
+            // The global (structured) header.
+            auto* structured = dynamic_cast<structured_items_view*>(view);
+            if (structured != nullptr)
+            {
+                realize_supplemental_native(structured->header_template(), structured->header());
+            }
+
+            const auto* groupable = dynamic_cast<const groupable_items_view*>(view);
+            const bool grouped = platform->grouped;
+            const std::shared_ptr<data_template> group_header_t =
+                groupable != nullptr ? groupable->group_header_template() : nullptr;
+            const std::shared_ptr<data_template> group_footer_t =
+                groupable != nullptr ? groupable->group_footer_template() : nullptr;
+            const std::shared_ptr<data_template> item_t = view->item_template();
+
+            const int sections = src->group_count();
+            for (int section = 0; section < sections; ++section)
+            {
+                if (grouped && group_header_t)
+                {
+                    realize_supplemental_native(group_header_t, src->group(index_path{.section = section, .item = -1}));
+                }
+                const int count = src->item_count_in_group(section);
+                // Lay items across `span` columns; each row's height is the max measured of its columns.
+                for (int first = 0; first < count; first += span)
+                {
+                    const int row_n = std::min(span, count - first);
+                    jint row_extent_px = to_pixels(k_min_row_extent, density);
+                    // Realize the row's columns, measure each, then place them across the cross axis at the
+                    // shared row extent.
+                    struct realized_col
+                    {
+                        jobject native = nullptr;
+                        std::shared_ptr<maui::core::bindable_object> retain;
+                        local_ref<jobject> text_view;
+                    };
+                    std::vector<realized_col> cols;
+                    cols.reserve(static_cast<std::size_t>(row_n));
+                    for (int c = 0; c < row_n; ++c)
+                    {
+                        const index_path path{.section = section, .item = first + c};
+                        const boxed_item value = src->item(path);
+                        realized_col col;
+                        const std::shared_ptr<data_template> resolved =
+                            item_t ? resolve_item_template(item_t, value, container) : nullptr;
+                        col.retain = realize_template_content(*this, resolved, value, &col.native);
+                        if (col.native == nullptr)
+                        {
+                            jobject context = app_context();
+                            if (context != nullptr)
+                            {
+                                col.text_view = make_text_view(env, context, value.text());
+                                col.native = col.text_view.get();
+                            }
+                        }
+                        if (col.native != nullptr)
+                        {
+                            row_extent_px =
+                                std::max(row_extent_px, measure_main_extent(env, col.native, col_px, vertical));
+                        }
+                        cols.push_back(std::move(col));
+                    }
+                    const jint row_start_px = to_pixels(cursor_dp, density);
+                    for (int c = 0; c < static_cast<int>(cols.size()); ++c)
+                    {
+                        if (cols[static_cast<std::size_t>(c)].native == nullptr)
+                        {
+                            continue;
+                        }
+                        const jint col_start = static_cast<jint>(c) * col_px;
+                        if (vertical)
+                        {
+                            add_and_frame(env, host, cols[static_cast<std::size_t>(c)].native, col_start, row_start_px,
+                                          col_start + col_px, row_start_px + row_extent_px);
+                        }
+                        else
+                        {
+                            add_and_frame(env, host, cols[static_cast<std::size_t>(c)].native, row_start_px, col_start,
+                                          row_start_px + row_extent_px, col_start + col_px);
+                        }
+                        if (cols[static_cast<std::size_t>(c)].retain)
+                        {
+                            platform->retained_natives.push_back(std::move(cols[static_cast<std::size_t>(c)].retain));
+                        }
+                    }
+                    cursor_dp += static_cast<double>(row_extent_px) / static_cast<double>(density);
+                }
+                if (grouped && group_footer_t)
+                {
+                    realize_supplemental_native(group_footer_t, src->group(index_path{.section = section, .item = -1}));
+                }
+            }
+
+            // The global (structured) footer.
+            if (structured != nullptr)
+            {
+                realize_supplemental_native(structured->footer_template(), structured->footer());
+            }
+            content_main_dp = cursor_dp;
+        }
+
+        // ---- size the inner host panel to the content (EXPLICIT pixel LayoutParams + measure + layout) ----
+        // MauiLayout.onMeasure does NOT measure children (the no-op-onLayout container contract): given the
+        // UNSPECIFIED height spec a ScrollView passes its single document child, resolveSize(0, …) returns
+        // ZERO — so the host (and every realized child) would collapse and clip. The fix is to give the host
+        // EXPLICIT PIXEL LayoutParams (height = content extent on the scroll axis, not WRAP_CONTENT): the
+        // ScrollView then measures the child with an EXACTLY spec for that fixed size, MauiLayout.onMeasure's
+        // resolveSize returns it, and the scroller gets a real scrollable extent the absolute child frames
+        // land inside. Sized to at least the viewport so a short list still fills the scroller.
+        const double host_main_dp = std::max(content_main_dp, main_viewport_dp);
+        const jint host_main_px = std::max<jint>(1, to_pixels(host_main_dp, density));
+        const jint host_w = vertical ? k_match_parent : host_main_px;
+        const jint host_h = vertical ? host_main_px : k_match_parent;
+        {
+            // FrameLayout.LayoutParams (a MarginLayoutParams) — ScrollView casts its child's params to that.
+            jclass params_class = cache.find_class(env, k_frame_params_class);
+            jmethodID params_ctor = cache.method(env, k_frame_params_class, "<init>", "(II)V");
+            jmethodID set_params =
+                cache.method(env, k_view_class, "setLayoutParams", "(Landroid/view/ViewGroup$LayoutParams;)V");
+            if (params_class != nullptr && params_ctor != nullptr && set_params != nullptr)
+            {
+                const local_ref<jobject> params{env, env->NewObject(params_class, params_ctor, host_w, host_h)};
+                if (!clear_pending(env) && params)
+                {
+                    env->CallVoidMethod(host, set_params, params.get());
+                    clear_pending(env);
+                }
+            }
+            // Also measure + layout the host at the explicit pixel size so its bounds are correct on the
+            // first pass even before the ScrollView's own measure pass runs (the two-step layout convention).
+            const jint host_main_full_px = host_main_px;
+            const jint full_w = vertical ? cross_px : host_main_full_px;
+            const jint full_h = vertical ? host_main_full_px : cross_px;
+            jmethodID host_measure = cache.method(env, k_host_class, "measure", "(II)V");
+            jmethodID host_layout = cache.method(env, k_host_class, "layout", "(IIII)V");
+            jmethodID host_make_spec = cache.static_method(env, k_measure_spec_class, "makeMeasureSpec", "(II)I");
+            jclass spec_class = cache.find_class(env, k_measure_spec_class);
+            if (host_measure != nullptr && host_layout != nullptr && host_make_spec != nullptr && spec_class != nullptr)
+            {
+                const jint w_spec =
+                    env->CallStaticIntMethod(spec_class, host_make_spec, full_w, k_measure_spec_exactly);
+                const jint h_spec =
+                    env->CallStaticIntMethod(spec_class, host_make_spec, full_h, k_measure_spec_exactly);
+                if (!clear_pending(env))
+                {
+                    env->CallVoidMethod(host, host_measure, w_spec, h_spec);
+                    clear_pending(env);
+                    env->CallVoidMethod(host, host_layout, 0, 0, full_w, full_h);
+                    clear_pending(env);
+                }
+            }
+        }
+
+        // ---- frame the ScrollView to the arranged rect (measure Exactly + layout) ----
+        jmethodID make_measure_spec = cache.static_method(env, k_measure_spec_class, "makeMeasureSpec", "(II)I");
+        jmethodID measure = cache.method(env, k_scroll_view_class, "measure", "(II)V");
+        jmethodID layout = cache.method(env, k_scroll_view_class, "layout", "(IIII)V");
+        jclass measure_spec_class = cache.find_class(env, k_measure_spec_class);
+        if (make_measure_spec == nullptr || measure == nullptr || layout == nullptr || measure_spec_class == nullptr)
+        {
+            return;
+        }
+        const jint left = to_pixels(frame.x, density);
+        const jint top = to_pixels(frame.y, density);
+        const jint width = to_pixels(frame.width, density);
+        const jint height = to_pixels(frame.height, density);
+        const jint width_spec =
+            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, width, k_measure_spec_exactly);
+        const jint height_spec =
+            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, height, k_measure_spec_exactly);
+        if (clear_pending(env))
+        {
+            return;
+        }
+        env->CallVoidMethod(scroll, measure, width_spec, height_spec);
+        if (clear_pending(env))
+        {
+            return;
+        }
+        env->CallVoidMethod(scroll, layout, left, top, left + width, top + height);
+        clear_pending(env);
+    }
+} // namespace maui::controls

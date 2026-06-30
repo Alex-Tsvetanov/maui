@@ -155,6 +155,28 @@ namespace maui::controls
         void* empty_view_native = nullptr; // the realized EmptyView's native NSView while shown
 #endif
 
+        // --- android (W8-CV) ---
+        // The Android native render stack — a real android.widget.ScrollView whose single document child is
+        // a dev.mauicpp.MauiLayout host ViewGroup. C++ drives measure/arrange and pushes ABSOLUTE child
+        // frames (the android container convention: MauiLayout.onLayout is a no-op so the frames survive —
+        // see src/platform/android/java/MauiLayout.java), so realized item/header/footer views attach to the
+        // host and arrange_native positions them. The retained-natives vector keeps each realized template-
+        // content C++ subtree (which OWNS its attached handler + native view) alive for as long as it is
+        // hosted — the android twin of the apple cell's _realizedContent retain. All four slots are
+        // released in the backend-defined destructor (collection_view_handler.cpp's android partial).
+        // DOCUMENTED DEVIATION: no RecyclerView view-recycling — the gallery pages have small fixed item
+        // counts, so the partial favors render correctness, realizing every in-content element directly into
+        // the host (the resume-doc "favor correctness of render over recycling" guidance). The cross-platform
+        // simulator above still runs as the in-memory state mirror; these natives are the on-device surface.
+#ifdef MAUI_PLATFORM_ANDROID
+        void* scroll = nullptr;            // the android.widget.ScrollView (the composed native, global ref)
+        void* host = nullptr;              // the inner dev.mauicpp.MauiLayout hosting the realized children
+        void* empty_view_native = nullptr; // the realized EmptyView's native android.view.View while shown
+        // The realized template-content subtrees currently hosted (owns handler + native view); cleared and
+        // rebuilt each arrange_native pass, freed in the destructor (the apple _realizedContent analog).
+        std::vector<std::shared_ptr<maui::core::bindable_object>> retained_natives;
+#endif
+
         // ---- the fake viewport ----
         double viewport_main_extent = 400;  // along the scroll axis
         double viewport_cross_extent = 400; // across it
