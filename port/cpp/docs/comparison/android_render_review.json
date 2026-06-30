@@ -172,7 +172,7 @@
 {
 "key": "context_flyout",
 "status": "yellow",
-"note": "Top controls (Increment button, toggle, entry) match iOS, but 'COOL' badge image and large black Info/menu image block (hamburger, search bar, icon) seen in iOS are absent."
+"note": "Increment button, toggle, Entry field, counter all present, but COOL image button (between Entry and WebView) is missing entirely."
 },
 {
 "key": "controls_stack",
@@ -182,7 +182,7 @@
 {
 "key": "custom_layout",
 "status": "green",
-"note": "Positions match iOS: Top label, Left/Left/gap/Right/Right columns correct order/proportions. iOS shows extra 'Bottom' label further down, likely below Android capture fold."
+"note": "Top/Bottom buttons + Left/Left/Right/Right column labels with gray backgrounds all present, matching iOS ref content."
 },
 {
 "key": "custom_size_swipe",
