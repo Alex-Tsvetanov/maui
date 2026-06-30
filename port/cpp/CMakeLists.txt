@@ -490,6 +490,20 @@ else()
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/switch_handler.cpp)
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/check_box_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/check_box_handler.cpp)
+    # container fan-out — the rendering blocker: the leaf widgets above have no VISIBLE parent until the
+    # layout/container handlers create a real android ViewGroup. dev.mauicpp.MauiLayout
+    # (src/platform/android/java/MauiLayout.java) is a no-op-onLayout ViewGroup so maui's absolute
+    # child.layout() frames survive (a stock ViewGroup's onLayout would override them); the layout partial
+    # addView()s the children (grid reuses layout_handler), content_page re-hosts the single content child
+    # (it backs BOTH content_view and content_page), and scroll_view wraps content in android.widget
+    # .ScrollView. The android partials keep the headless mirrors live (VM-less cross-platform suite) and
+    # drive the real ViewGroup when a VM + app context exist (the gallery app host).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/layout_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/layout_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/content_page_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/content_page_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/scroll_view_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/scroll_view_handler.cpp)
     # (W4-34d) navigation + window: the FrameLayout-based page-stack container + the Activity
     # content-view stand-in. The android partials keep the headless mirrors live (VM-less suite) and
     # additionally drive the real FrameLayout child swap when a VM + app context exist (the test host).

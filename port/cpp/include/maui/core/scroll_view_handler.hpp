@@ -100,6 +100,22 @@ namespace maui::core
         void update_semantics(const maui::core::semantics* value) override;
         void update_input_transparent(bool value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_ANDROID
+        // Android backend (src/platform/android/scroll_view_handler.cpp): the generic IView pushes onto
+        // the android.widget.ScrollView. is_enabled keeps the base mirror (scroll-ability is derived
+        // from orientation); transform/flow_direction/background/semantics push through the shared
+        // android ops (the button/layout partial scope). Shadow / Clip / InputTransparent keep ONLY the
+        // base mirror (WrapperView-only on Android). Each override calls the base body FIRST (the VM-less
+        // suite observes the headless mirror), then pushes to the scroller when one exists.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_transform(const maui::core::transform_spec& value) override;
+        void update_flow_direction(maui::core::flow_direction value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        void update_semantics(const maui::core::semantics* value) override;
+#endif
     };
 
     class scroll_view_handler : public view_handler<scroll_view_handler, i_scroll_view, scroll_view_platform>

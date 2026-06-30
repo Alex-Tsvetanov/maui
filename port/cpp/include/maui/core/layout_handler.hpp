@@ -115,6 +115,28 @@ namespace maui::core
         // update_clips_to_bounds (declared once above) pushes UIView.clipsToBounds — the REAL UIKit
         // property C#'s LayoutViewExtensions.UpdateClipsToBounds drives; body in ios/layout_handler.mm.
 #endif
+
+#ifdef MAUI_PLATFORM_ANDROID
+        // Android backend (container fan-out): push the generic IView properties to the real
+        // dev.mauicpp.MauiLayout ViewGroup over JNI (defined in src/platform/android/layout_handler.cpp).
+        // is_enabled is intentionally NOT overridden — a plain ViewGroup container has no enabled state
+        // (the leaf widgets carry their own), matching the apple/ios twins, so it keeps the base mirror.
+        // Each override calls the view_platform_base body FIRST — the android preset also runs the
+        // pure-native cross-platform suite on the emulator WITHOUT a Java VM, and that suite observes the
+        // headless mirrors — then pushes to the ViewGroup when one exists. Visibility/opacity/automation_id
+        // push directly; transform/flow_direction/background/semantics push through the shared android
+        // view/visual/semantics ops (the same set the button partial widens). Shadow, Clip, and
+        // InputTransparent keep ONLY the base mirror: on Android those are WrapperView-only (no plain
+        // android.view.ViewGroup analog), exactly as the button partial documents. update_clips_to_bounds
+        // (declared once above) pushes ViewGroup.setClipChildren/setClipToPadding via the JNI body.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_transform(const maui::core::transform_spec& value) override;
+        void update_flow_direction(maui::core::flow_direction value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        void update_semantics(const maui::core::semantics* value) override;
+#endif
     };
 
     class layout_handler : public view_handler<layout_handler, i_layout, layout_platform>, public i_layout_handler
