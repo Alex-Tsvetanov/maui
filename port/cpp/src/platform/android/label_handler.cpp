@@ -21,10 +21,25 @@
 //     GradientDrawable layering) are deferred. // TODO: verify against ViewExtensions.UpdateBackground.
 //   - MaxLines IS pushed (TextView.setMaxLines); the LineBreakMode → Ellipsize/SingleLine resolution is
 //     deferred (the headless mirror is kept live). // TODO: verify against the Android SetLineBreakMode.
-//   - FormattedText (SpannableString) is deferred — the headless run mirror is kept so the cross-platform
-//     suite still observes the runs. The GetDesiredSize multi-line width-narrowing refinement
-//     (LabelHandler.Android.GetDesiredSize) and PrepareForTextViewArrange are deferred; the base
-//     measure/arrange (button's pattern) stands in.
+//   - FormattedText IS pushed (wave 20): map_formatted_text builds an android.text.SpannableString from
+//     the resolved runs and applies, per character range, the platform-standard spans that mirror
+//     FormattedStringExtensions.ToSpannableString — ForegroundColorSpan (TextColor), BackgroundColorSpan
+//     (BackgroundColor), StyleSpan(BOLD/ITALIC) (FontAttributes), AbsoluteSizeSpan(px) (FontSize),
+//     UnderlineSpan / StrikethroughSpan (TextDecorations) — then setText(spannable). Empty runs revert to
+//     the plain setText(string) path. DEVIATIONS from the C# oracle (each an infrastructure gap, not a
+//     behavior guess): C# uses the Maui-private PlatformFontSpan (folds typeface + size + per-span
+//     letter-spacing) and PlatformLineHeightSpan, which are AppCompat/Maui types this plain-widget backend
+//     does not carry; the port substitutes the AOSP StyleSpan + AbsoluteSizeSpan (typeface family beyond
+//     bold/italic and a custom typeface object are not expressible via a stock span, so the family folds to
+//     the bold/italic style only — the same family limitation map_font already documents). PER-SPAN KERNING
+//     LIMITATION: TextView.setLetterSpacing is label-WIDE (there is no stock per-range letter-spacing span;
+//     C#'s per-span kerning rides on PlatformFontSpan, absent here), so a span's CharacterSpacing cannot be
+//     applied to only its range. Best-effort: the largest run CharacterSpacing is pushed label-wide via the
+//     existing map_character_spacing path (LetterSpacing = spacing.ToEm()); a single kerned span therefore
+//     kerns the whole label rather than its substring. LineHeight spans are not pushed (no stock per-range
+//     line-height span; the label-wide map_line_height covers the common case). The GetDesiredSize
+//     multi-line width-narrowing refinement (LabelHandler.Android.GetDesiredSize) and
+//     PrepareForTextViewArrange are deferred; the base measure/arrange (button's pattern) stands in.
 //
 // VM-less degradation: identical to button — every JNI path checks scoped_env/app_context() and quietly
 // skips, while the headless mirrors are ALWAYS maintained (the pure-native cross-platform suite on the
@@ -37,9 +52,11 @@
 #include <atomic>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "android_semantics_ops.hpp"
 #include "android_view_ops.hpp"
@@ -51,6 +68,7 @@
 #include "jni/jni_string.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/i_label.hpp"
+#include "maui/core/label_run.hpp"
 #include "maui/core/line_break_mode.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/text_decorations.hpp"
@@ -73,6 +91,22 @@ namespace
     constexpr const char* k_text_view_class = "android/widget/TextView";
     constexpr const char* k_typeface_class = "android/graphics/Typeface";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
+
+    // android.text.SpannableString + the AOSP character spans map_formatted_text applies (wave 20). The
+    // C# oracle (FormattedStringExtensions.ToSpannableString) uses the same SpannableString, with the
+    // Maui-private PlatformFontSpan / PlatformLineHeightSpan substituted by these stock spans (header).
+    constexpr const char* k_spannable_string_class = "android/text/SpannableString";
+    constexpr const char* k_spannable_iface = "android/text/Spannable"; // SpannableString : Spannable
+    constexpr const char* k_foreground_color_span_class = "android/text/style/ForegroundColorSpan";
+    constexpr const char* k_background_color_span_class = "android/text/style/BackgroundColorSpan";
+    constexpr const char* k_style_span_class = "android/text/style/StyleSpan";
+    constexpr const char* k_absolute_size_span_class = "android/text/style/AbsoluteSizeSpan";
+    constexpr const char* k_underline_span_class = "android/text/style/UnderlineSpan";
+    constexpr const char* k_strikethrough_span_class = "android/text/style/StrikethroughSpan";
+    // Spannable.setSpan flags (Spannable.SPAN_*). InclusiveExclusive (33) for color/background ranges;
+    // InclusiveInclusive (18) for style/size/decoration ranges — mirrors the C# SpanTypes choices.
+    constexpr jint k_span_inclusive_exclusive = 33;
+    constexpr jint k_span_inclusive_inclusive = 18;
 
     constexpr float k_default_font_size = 14.0F;         // FontManager.DefaultFontSize (14sp)
     constexpr float k_em_coefficient = 0.0624F;          // UnitExtensions.EmCoefficient
@@ -225,6 +259,188 @@ namespace
         call_void_int(env.get(), widget_of(platform), "setMaxLines", max);
         // TODO: verify against src/Core/src/Platform/Android (LabelExtensions.SetLineBreakMode) — the
         // Ellipsize / SingleLine half of LineBreakMode is not yet pushed.
+    }
+
+    // Spannable.setSpan(span, start, end, flags). The span jobject is a local ref; cleared on any pending.
+    void set_span(JNIEnv* env, jobject spannable, jobject span, jint start, jint end, jint flags)
+    {
+        if (span == nullptr)
+        {
+            return;
+        }
+        jmethodID set = default_jni_cache().method(env, k_spannable_iface, "setSpan", "(Ljava/lang/Object;III)V");
+        if (set != nullptr)
+        {
+            env->CallVoidMethod(spannable, set, span, start, end, flags);
+            clear_pending(env);
+        }
+    }
+
+    // new <SpanClass>(int): the ForegroundColorSpan / BackgroundColorSpan / StyleSpan / AbsoluteSizeSpan
+    // single-int-arg constructors. Returns a local ref (caller owns it); nullptr on any failure.
+    [[nodiscard]] local_ref<jobject> new_int_span(JNIEnv* env, const char* class_name, jint arg)
+    {
+        auto& cache = default_jni_cache();
+        jclass span_class = cache.find_class(env, class_name);
+        jmethodID ctor = cache.method(env, class_name, "<init>", "(I)V");
+        if (span_class == nullptr || ctor == nullptr)
+        {
+            return {};
+        }
+        local_ref<jobject> span{env, env->NewObject(span_class, ctor, arg)};
+        if (clear_pending(env))
+        {
+            return {};
+        }
+        return span;
+    }
+
+    // new <SpanClass>(): the no-arg UnderlineSpan / StrikethroughSpan constructors. Local ref; nullptr on
+    // failure.
+    [[nodiscard]] local_ref<jobject> new_marker_span(JNIEnv* env, const char* class_name)
+    {
+        auto& cache = default_jni_cache();
+        jclass span_class = cache.find_class(env, class_name);
+        jmethodID ctor = cache.method(env, class_name, "<init>", "()V");
+        if (span_class == nullptr || ctor == nullptr)
+        {
+            return {};
+        }
+        local_ref<jobject> span{env, env->NewObject(span_class, ctor)};
+        if (clear_pending(env))
+        {
+            return {};
+        }
+        return span;
+    }
+
+    // Build an android.text.SpannableString from the resolved runs and TextView.setText it (wave 20).
+    // Mirrors FormattedStringExtensions.ToSpannableString: concatenate the run texts, then apply each
+    // run's per-range spans (color / background / bold-italic style / absolute size / underline /
+    // strikethrough). Per-span kerning and line-height have no stock-span analog (header) and are skipped
+    // here; the label-wide map_character_spacing / map_line_height paths cover the common case. Ranges are
+    // UTF-16 offsets — each run's contribution is measured by its jstring length (GetStringLength), so
+    // multi-byte UTF-8 runs index correctly.
+    void build_and_set_spannable(JNIEnv* env, jobject widget, const std::vector<maui::core::label_run>& runs,
+                                 float density)
+    {
+        auto& cache = default_jni_cache();
+
+        // Concatenate the run texts into the full Java string (the SpannableString backing text). Track each
+        // run's [start,end) in UTF-16 units via the per-run jstring length.
+        std::string concatenated;
+        concatenated.reserve(64);
+        for (const maui::core::label_run& run : runs)
+        {
+            concatenated += run.text;
+        }
+        const local_ref<jstring> full_text = to_jstring(env, concatenated);
+        if (!full_text)
+        {
+            return;
+        }
+
+        jclass spannable_class = cache.find_class(env, k_spannable_string_class);
+        jmethodID spannable_ctor = cache.method(env, k_spannable_string_class, "<init>", "(Ljava/lang/CharSequence;)V");
+        if (spannable_class == nullptr || spannable_ctor == nullptr)
+        {
+            return;
+        }
+        const local_ref<jobject> spannable{env, env->NewObject(spannable_class, spannable_ctor, full_text.get())};
+        if (clear_pending(env) || !spannable)
+        {
+            return;
+        }
+
+        jint cursor = 0;
+        for (const maui::core::label_run& run : runs)
+        {
+            // The run's UTF-16 length: build its own jstring and read GetStringLength (code units, not bytes).
+            const local_ref<jstring> piece = to_jstring(env, run.text);
+            if (!piece)
+            {
+                continue;
+            }
+            const jint start = cursor;
+            const jint end = start + env->GetStringLength(piece.get());
+            cursor = end;
+            if (end == start)
+            {
+                continue; // empty run contributes no range
+            }
+
+            // ForegroundColorSpan(color) — to_int() is 0xAARRGGBB, exactly android.graphics.Color's int form
+            // (the same value map_text_color feeds setTextColor).
+            if (run.text_color.has_value())
+            {
+                const local_ref<jobject> span =
+                    new_int_span(env, k_foreground_color_span_class, static_cast<jint>(run.text_color->to_int()));
+                set_span(env, spannable.get(), span.get(), start, end, k_span_inclusive_exclusive);
+            }
+            // BackgroundColorSpan(color).
+            if (run.background_color.has_value())
+            {
+                const local_ref<jobject> span =
+                    new_int_span(env, k_background_color_span_class, static_cast<jint>(run.background_color->to_int()));
+                set_span(env, spannable.get(), span.get(), start, end, k_span_inclusive_exclusive);
+            }
+            // StyleSpan(style) — bold / italic from the run's effective font (the family-beyond-bold/italic
+            // limitation is documented). Only emitted when the run is bold and/or italic (NORMAL adds nothing).
+            const bool italic = run.run_font.slant() != maui::core::font_slant::normal;
+            const bool bold = run.run_font.weight() >= maui::core::font_weight::bold;
+            if (bold || italic)
+            {
+                jint style = k_typeface_normal;
+                if (bold && italic)
+                {
+                    style = k_typeface_bold | k_typeface_italic;
+                }
+                else if (bold)
+                {
+                    style = k_typeface_bold;
+                }
+                else
+                {
+                    style = k_typeface_italic;
+                }
+                const local_ref<jobject> span = new_int_span(env, k_style_span_class, style);
+                set_span(env, spannable.get(), span.get(), start, end, k_span_inclusive_inclusive);
+            }
+            // AbsoluteSizeSpan(sizePx) — the run's font size in pixels (FontManager.GetFontSize tail: ≤0 / NaN
+            // → DefaultFontSize), converted dp→px via the display density (AbsoluteSizeSpan(int) is in px).
+            auto size = static_cast<float>(run.run_font.size());
+            if (!(size > 0) || std::isnan(size))
+            {
+                size = k_default_font_size;
+            }
+            const auto size_px =
+                static_cast<jint>(std::lround(static_cast<double>(size) * static_cast<double>(density)));
+            if (size_px > 0)
+            {
+                const local_ref<jobject> span = new_int_span(env, k_absolute_size_span_class, size_px);
+                set_span(env, spannable.get(), span.get(), start, end, k_span_inclusive_inclusive);
+            }
+            // TextDecorations — UnderlineSpan / StrikethroughSpan (marker spans, no constructor args).
+            const auto decorations = static_cast<std::uint8_t>(run.decorations);
+            if ((decorations & static_cast<std::uint8_t>(maui::core::text_decorations::underline)) != 0)
+            {
+                const local_ref<jobject> span = new_marker_span(env, k_underline_span_class);
+                set_span(env, spannable.get(), span.get(), start, end, k_span_inclusive_inclusive);
+            }
+            if ((decorations & static_cast<std::uint8_t>(maui::core::text_decorations::strikethrough)) != 0)
+            {
+                const local_ref<jobject> span = new_marker_span(env, k_strikethrough_span_class);
+                set_span(env, spannable.get(), span.get(), start, end, k_span_inclusive_inclusive);
+            }
+        }
+
+        // TextView.setText(CharSequence) — SpannableString IS a CharSequence, so the existing signature works.
+        jmethodID set_text = cache.method(env, k_text_view_class, "setText", "(Ljava/lang/CharSequence;)V");
+        if (set_text != nullptr)
+        {
+            env->CallVoidMethod(widget, set_text, spannable.get());
+            clear_pending(env);
+        }
     }
 } // namespace
 
@@ -778,13 +994,43 @@ namespace maui::core
 
     void label_handler::map_formatted_text(label_handler& handler, i_label& view)
     {
-        // Keep the headless run mirror live; the SpannableString build is deferred (header). The plain
-        // text mirror remains for the Text path.
-        if (auto* platform = handler.typed_platform_view())
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
         {
-            platform->formatted_text_runs = view.formatted_text_runs();
-            // TODO: verify against LabelExtensions (Android) — build a SpannableString from the runs.
+            return;
         }
+        // Always keep the headless run mirror live — the android preset also runs the pure-native
+        // cross-platform suite WITHOUT a Java VM, and that suite observes this mirror.
+        platform->formatted_text_runs = view.formatted_text_runs();
+        if (platform->native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        jobject widget = widget_of(*platform);
+        const auto& runs = view.formatted_text_runs();
+        if (runs.empty())
+        {
+            // LabelExtensions.UpdateText FormattedText==null branch: revert to the plain setText(string)
+            // path (map_text's body). Re-assign the plain text directly so a Formatted→plain transition
+            // clears the SpannableString.
+            jmethodID set_text =
+                default_jni_cache().method(env.get(), k_text_view_class, "setText", "(Ljava/lang/CharSequence;)V");
+            if (set_text != nullptr)
+            {
+                const local_ref<jstring> text = to_jstring(env.get(), view.text());
+                env->CallVoidMethod(widget, set_text, text.get());
+                clear_pending(env.get());
+            }
+            return;
+        }
+        // FormattedText!=null branch: build the SpannableString from the resolved runs and setText it.
+        const float density = display_density(env.get(), widget);
+        build_and_set_spannable(env.get(), widget, runs, density);
     }
 
     void label_handler::map_line_break_mode(label_handler& handler, i_label& view)
