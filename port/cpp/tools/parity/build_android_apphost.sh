@@ -213,7 +213,12 @@ capture_one() {
     --es MAUI_SAMPLE_PAGE "${key}" --es MAUI_APPEARANCE "${appearance}" > /dev/null
   # Give the Activity time to create + mount + lay out before grabbing the framebuffer. VERIFY: bump this
   # if pages capture mid-layout; a poll on a known view would be more robust but needs a uiautomator hook.
-  sleep 3
+  sleep 5
+  # Dismiss the transient "System UI isn't responding" ANR dialog that can overlay the page during the
+  # build/install/launch load burst. Use the CLOSE_SYSTEM_DIALOGS broadcast, NOT keyevent BACK — BACK would
+  # be consumed by the ANR dialog the first time but close the Activity (-> launcher) when no dialog is up.
+  "${maui_adb}" -s "${maui_serial}" shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
+  sleep 1
   "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out_dir}/${key}${suffix}.png"
   echo "[apphost] wrote ${out_dir}/${key}${suffix}.png" >&2
 }
