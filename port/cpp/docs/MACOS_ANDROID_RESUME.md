@@ -114,7 +114,15 @@ needs `setContentView(window's FrameLayout)`. Four pieces to build:
    as the jobject. **Resolve when writing:** the gallery page-holder factory signature, `maui_app` construction
    + `add_maui_controls_handlers` (hosting/maui_controls_handlers.hpp), the window→native accessor, and pixel
    display dims (Activity `getResources().getDisplayMetrics()` widthPixels/heightPixels). Model the JNI
-   bootstrap on `src/platform/android/testhost/test_host.cpp`'s `nativeRun`.
+   bootstrap on `src/platform/android/testhost/test_host.cpp`'s `nativeRun`. **Template the mount on the
+   run_app internals, NOT on the gallery's main.cpp:** `src/platform/headless/host_run.cpp` shows the
+   builder → maui_app → mount_window → drive_layout sequence, and `src/platform/apple/host_run.mm` shows
+   how the platform run_app reaches + shows the native window view (the android entry returns that view to
+   the Activity instead of spinning a run loop). NOTE: `examples/gallery/main.cpp`'s `gallery_app` +
+   `make_selected_page` live in an anonymous namespace (not reusable), so app_host.cpp needs its own
+   MAUI_GALLERY_PAGES dispatch + a maui_app subclass owning the page+window (or reuse `gallery_host.hpp`'s
+   `sample_app` template, which already exposes `win()`). The window's native FrameLayout is
+   `window_platform::native` — find the handler→platform_view accessor used inside window_handler.cpp.
 2. **`MauiHostActivity.java` + `AndroidManifest.xml`** — onCreate: System.loadLibrary the app-host .so, call
    nativeMount, `setContentView` the returned root view. (Model the JNI bootstrap on `testhost/Bootstrap.java`.)
 3. **CMake `SHARED` app-host .so target** — gallery page-builder sources + `maui_controls` + the JNI entry,
