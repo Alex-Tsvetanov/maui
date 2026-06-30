@@ -78,6 +78,22 @@ namespace maui::core
         // shared apply_background; MauiPageControl.layoutSubviews keeps a gradient fill sized to bounds).
         void update_background(const maui::graphics::paint* value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_ANDROID
+        // Android backend: AndroidX is absent (no native page control), so the dots are drawn by hand as a
+        // dev.mauicpp.MauiLayout host ViewGroup of small circular/square GradientDrawable-backed Views — the
+        // direct twin of the apple NSStackView-of-dots recipe (src/platform/android/indicator_view_handler
+        // .cpp). The generic IView pushes go to that host ViewGroup; the dot row itself is rebuilt by the
+        // mappers (the C# UpdateIndicatorCount / ResetIndicators). `native` holds the host as a JNI global
+        // ref; the dot Views are children of it (released with removeAllViews on each rebuild). Each push
+        // calls the base body FIRST so the VM-less cross-platform suite still observes the headless mirror.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+        // BackgroundColor / Background brush fills the band behind the dots (the Colors row's yellow): the
+        // shared apply_background paints the host ViewGroup, exactly like the iOS UIPageControl band.
+        void update_background(const maui::graphics::paint* value) override;
+#endif
     };
 
     class indicator_view_handler

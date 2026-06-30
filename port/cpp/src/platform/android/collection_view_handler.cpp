@@ -58,6 +58,21 @@
 //     analog (the cross-platform mirror carries them as state) — same as the other android container
 //     deviations.
 //
+// ──────────────────────────────────────────────────────────────────────────────────────────────────
+// WAVE 25: the CarouselView paged path (one item per page, not the CV's all-items flow)
+// ──────────────────────────────────────────────────────────────────────────────────────────────────
+// CarouselView reuses this collection_view_handler wholesale (carousel_view.cpp registers it), but a
+// carousel PAGES — it shows ONE item at a time, full-viewport (LayoutFactory2.CreateCarouselLayout sizes
+// each item to FractionalWidth/Height(1)), not the horizontal CV's all-items-concatenated flow. So when the
+// virtual view is a carousel_view (detected by dynamic_cast — the same predicate the iOS layout factory and
+// the scroll-end writeback use), arrange_native takes a dedicated branch: it realizes ONLY the item at the
+// carousel's current Position (clamped into range) and frames it filling the whole viewport, centered. A
+// static capture at Position 0 shows just "Item 1" large/centered, matching the iOS reference — NOT the
+// "Item 1Item 2Item 3" concatenation a plain horizontal CV produces. DEFERRED: live swipe paging (the
+// android backend has no androidx.viewpager2; a touch-drag that advances Position has no plain-View analog —
+// the same swipe-channel cut the SwipeView/scroll partials document). The Prev/Next buttons in the gallery
+// drive Position programmatically, which re-runs arrange_native and re-realizes the new current item.
+//
 // VM-less degradation (like every android handler): create_platform_view / arrange_native check scoped_env
 // / app_context() and quietly skip when no Java VM exists (the pure-native cross-platform suite runs on the
 // emulator without one) — the simulator state mirror is always live. The gallery app host drives the real
@@ -83,6 +98,7 @@
 #include "jni/jni_string.hpp"
 #include "maui/controls/element.hpp"
 #include "maui/controls/items/boxed_item.hpp"
+#include "maui/controls/items/carousel_view.hpp"
 #include "maui/controls/items/groupable_items_view.hpp"
 #include "maui/controls/items/items_layout_orientation.hpp"
 #include "maui/controls/items/items_view_source.hpp"
@@ -752,14 +768,73 @@ namespace maui::controls
             }
         };
 
+        // ── CarouselView paged path (wave 25): show ONLY the current item, full-viewport ──────────────
+        // A carousel reuses this handler but PAGES (one item per page). When the virtual view is a
+        // carousel_view, realize ONLY the item at the clamped current Position and frame it filling the whole
+        // viewport — NOT the horizontal CV's all-items flow. This early branch fully handles the items region
+        // (and a carousel carries no header/footer/empty/group chrome in the gallery), so it skips the
+        // header/items/footer flow below via is_carousel and falls straight through to the host-sizing tail.
+        const bool is_carousel = dynamic_cast<carousel_view*>(view) != nullptr;
+        if (is_carousel && !empty)
+        {
+            auto* carousel = dynamic_cast<carousel_view*>(view);
+            const int item_count = src->item_count();
+            // CarouselView.Position clamped into [0, count-1] (the settled page; a fresh carousel is at 0).
+            int position = carousel != nullptr ? carousel->position() : 0;
+            position = std::clamp(position, 0, item_count - 1);
+            const boxed_item value = src->item(index_path{.section = 0, .item = position});
+            const std::shared_ptr<data_template> item_t = view->item_template();
+            const std::shared_ptr<data_template> resolved =
+                item_t ? resolve_item_template(item_t, value, container) : nullptr;
+
+            jobject native = nullptr;
+            std::shared_ptr<maui::core::bindable_object> realized =
+                realize_template_content(*this, resolved, value, &native);
+            local_ref<jobject> text_view;
+            if (native == nullptr)
+            {
+                jobject context = app_context();
+                if (context != nullptr)
+                {
+                    text_view = make_text_view(env, context, value.text());
+                    native = text_view.get();
+                }
+            }
+            if (native != nullptr)
+            {
+                // Frame the single current item filling the WHOLE viewport rect (the C# CreateCarouselLayout's
+                // FractionalWidth(1)/FractionalHeight(1) item — one item per page). The page IS the viewport,
+                // so the cell spans the full frame in BOTH axes regardless of carousel orientation (width =
+                // frame.width, height = frame.height). The templated Label centers its own text (the gallery's
+                // cell stages center text alignment), so a page-sized cell reads as a big centered caption.
+                const jint w = std::max<jint>(1, to_pixels(frame.width, density));
+                const jint h = std::max<jint>(1, to_pixels(frame.height, density));
+                add_and_frame(env, host, native, 0, 0, w, h);
+                // Frame the realized cell's CHILDREN (the templated Label) via the cross-platform arrange over
+                // the page rect — add_and_frame only laid out the realized ROOT.
+                arrange_realized_view(realized, maui::graphics::rect{0.0, 0.0, frame.width, frame.height});
+                // Advance the content cursor by the viewport's MAIN extent so the host panel sizes to one page.
+                cursor_dp += main_viewport_dp;
+                if (realized && realized != value.as_bindable())
+                {
+                    platform->retained_natives.push_back(std::move(realized));
+                }
+            }
+        }
+
         // The global (structured) header — realized BEFORE the items/empty region (and independent of it).
         auto* structured = dynamic_cast<structured_items_view*>(view);
-        if (view != nullptr && structured != nullptr)
+        if (!is_carousel && view != nullptr && structured != nullptr)
         {
             realize_supplemental_native(structured->header_template(), structured->header());
         }
 
-        if (empty)
+        if (is_carousel)
+        {
+            // The carousel paged path above already realized the single current item; skip the CV's
+            // header/items/empty/footer flow entirely (a carousel carries none of that chrome).
+        }
+        else if (empty)
         {
             // ---- the empty view region (UpdateEmptyView): centered between the header and footer ----
             // Only reserve the viewport-height empty region when an empty view is actually SET (a template, a
@@ -928,8 +1003,8 @@ namespace maui::controls
 
         // The global (structured) footer — realized AFTER the items/empty region (and, like the header,
         // independent of item count, so HeaderFooterView's empty source still shows its View footer + the
-        // Add/Clear buttons).
-        if (view != nullptr && structured != nullptr)
+        // Add/Clear buttons). A carousel carries no footer (its paged path realized only the current item).
+        if (!is_carousel && view != nullptr && structured != nullptr)
         {
             realize_supplemental_native(structured->footer_template(), structured->footer());
         }

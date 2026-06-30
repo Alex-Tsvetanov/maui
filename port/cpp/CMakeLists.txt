@@ -913,6 +913,13 @@ if(MAUI_BACKEND STREQUAL "apple")
 elseif(MAUI_BACKEND STREQUAL "ios")
   set(MAUI_CONTROLS_INDICATOR_PLATFORM_SOURCES src/platform/ios/indicator_view_handler.mm)
   set_source_files_properties(${MAUI_CONTROLS_INDICATOR_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+elseif(MAUI_BACKEND STREQUAL "android")
+  # (W25) the android dot-row partial: AndroidX is absent (no native page control), so the dots are drawn by
+  # hand as a dev.mauicpp.MauiLayout host ViewGroup of circular/square GradientDrawable-backed Views — the
+  # direct twin of the apple NSStackView-of-dots recipe. The cross-platform mirror still records count /
+  # position / shape; this is the on-device render. Guarded internally by scoped_env / app_context (VM-less
+  # degradation). MAUI_PLATFORM_ANDROID is already PUBLIC on maui_core for this backend.
+  set(MAUI_CONTROLS_INDICATOR_PLATFORM_SOURCES src/platform/android/indicator_view_handler.cpp)
 else()
   set(MAUI_CONTROLS_INDICATOR_PLATFORM_SOURCES src/platform/headless/indicator_view_handler.cpp)
 endif()
