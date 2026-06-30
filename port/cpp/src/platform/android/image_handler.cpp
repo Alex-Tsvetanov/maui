@@ -1,9 +1,10 @@
 // image_handler — Android (JNI) platform partial, the M-android per-control fan-out replayed over JNI
 // for the image control (the iOS Rosetta Stone — src/platform/ios/image_handler.mm — mapped onto a real
-// android.widget.ImageView). The managed platform view is a REAL android.widget.ImageView (held as a JNI
-// global reference in image_platform::native); map_aspect pushes the scaling mode through the jni_cache'd
-// method ids, and get_desired_size / platform_arrange drive the real View measure/layout, exactly like the
-// android button partial.
+// dev.mauicpp.MauiImageView, an android.widget.ImageView subclass). The managed platform view is held as a
+// JNI global reference in image_platform::native; map_aspect pushes the scaling mode through the jni_cache'd
+// method ids, the file fast-path decodes the bundled bytes into an android.graphics.Bitmap (BitmapFactory)
+// and pushes it via setImageBitmap, and get_desired_size reports the decoded bitmap's intrinsic size
+// (aspect-fit), exactly like the iOS/apple twins.
 //
 // Ported DIRECTLY from ImageHandler.Android.cs + Platform/Android/{ImageViewExtensions.cs,
 // AspectExtensions.cs} + ViewExtensions.cs + ContextExtensions.cs (ToPixels). The cross-platform source
@@ -13,12 +14,14 @@
 // DOCUMENTED DEVIATIONS from the C# oracle (each is an infrastructure gap, not a behavior guess — mirrors
 // exactly how the android button partial documents its plain-widget deviations):
 //
-//   - The widget is a plain android.widget.ImageView, not the AppCompatImageView that
-//     ImageHandler.Android.cs creates: AndroidX.AppCompat is a gradle/AAR dependency this APK-less backend
-//     does not carry (the same reason the button partial uses a plain android.widget.Button, not
+//   - The widget is dev.mauicpp.MauiImageView (extends the stock android.widget.ImageView), not the
+//     AppCompatImageView that ImageHandler.Android.cs creates: AndroidX.AppCompat is a gradle/AAR dependency
+//     this APK-less backend does not carry (the same reason the button partial uses a plain Button, not
 //     MauiMaterialButton). AppCompatImageView's only behavioral addition over ImageView that this cut
-//     touches — SetAdjustViewBounds — exists on plain ImageView too (it is a stock View API since API 16),
-//     so the create + UpdateAspect adjust-view-bounds toggle is ported faithfully onto the plain widget.
+//     touches — SetAdjustViewBounds — exists on plain ImageView too (a stock View API since API 16), so the
+//     create + UpdateAspect adjust-view-bounds toggle is ported faithfully. MauiImageView additionally
+//     carries a setClipPath hook (the WrapperView.SetClip analog) the handler does not yet drive — the clip
+//     family is a follow-up wave; the path stays null, so the subclass renders identically to ImageView.
 //
 //   - The generic IView property pushes (Visibility / Opacity / IsEnabled / AutomationId / Transform /
 //     FlowDirection / Background / Semantics) are NOT overridden for android on image_platform: the
@@ -31,15 +34,21 @@
 //     (see port/STATUS.md). // TODO: verify against src/Core/src/Platform/Android/ViewExtensions.cs once the
 //     image_platform android override block lands.
 //
-//   - The SOURCE is mirrored, not decoded into the widget. ImageImageSourcePartSetter.SetImageSource calls
-//     ImageView.SetImageDrawable(platformImage), where platformImage is produced by Glide (the android
-//     image-source services / ImageLoaderCallback pipeline). That decode + Glide stack is part of the
-//     deferred android backend (no bitmap-decode infra, no Glide AAR — the same posture the button partial's
-//     image-source primitives take). So load_file_source_sync / apply_loaded_result / clear_source_native
-//     update the shared headless-style mirrors (source_kind / source_file / source_loaded) — so the android
-//     preset's pure-native cross-platform suite still observes the load — and the real setImageBitmap /
-//     setImageDrawable JNI push is deferred. // TODO: verify against
-//     src/Core/src/Platform/Android/ImageViewExtensions.cs + the android FileImageSourceService.
+//   - FILE sources DECODE; uri/stream/font sources are still mirrored. The C# pipeline routes every source
+//     through Glide (ImageImageSourcePartSetter.SetImageSource → ImageView.SetImageDrawable(platformImage)).
+//     This cut decodes the FILE fast-path natively: load_file_source_sync resolves the bundled bytes
+//     (assets/<name> via the Context AssetManager — the apphost packages the gallery resources into the APK;
+//     then a disk read for an absolute path / the test host), BitmapFactory.decodeByteArray → Bitmap, and
+//     setImageBitmap pushes it. The async apply (apply_loaded_result, uri/stream/font) stays a mirror: no
+//     bytes flow through image_source_result on android (no Glide AAR / android image-source services yet),
+//     so a remote-photo or font-glyph decode awaits that deferred wiring — only the file bitmaps the gallery
+//     image / image_button pages show render (dotnet_bot.png; animated_heart.gif's first frame — BitmapFactory
+//     decodes a GIF to its first frame, the animation cycling being a separate IsAnimationPlaying concern).
+//     A from_file naming an asset that exists only as SVG (cog.png — never rasterized) decodes to null and
+//     leaves the view image-less, matching the existing parity note. The headless-style mirrors (source_kind
+//     / source_file / source_loaded) are ALWAYS set so the VM-less cross-platform suite still observes the
+//     load. // TODO: verify against src/Core/src/Platform/Android/ImageViewExtensions.cs + the android
+//     FileImageSourceService once the async android image-source services land.
 //
 //   - IsOpaque and IsAnimationPlaying are mirrored only. UpdateIsAnimationPlaying operates on the LOADED
 //     Drawable (Drawable.UpdateIsAnimationPlaying → IAnimatable.Start/Stop), which does not exist until the
@@ -56,28 +65,36 @@
 //
 // VM-less degradation: the android preset also runs the PURE-NATIVE cross-platform suite on the emulator
 // (tools/android-emu-run.sh) where no Java VM exists. Every JNI path here checks scoped_env / app_context()
-// and quietly skips, while the headless mirrors (image_aspect / source_* / opaque / animation_playing) are
-// ALWAYS maintained — so that suite observes exactly the headless partial's behavior, and the widget test
-// host (tools/android-testhost-run.sh) additionally observes the real ImageView.
+// and quietly skips (the decode included — no Context means no AssetManager and no widget), while the
+// headless mirrors (image_aspect / source_* / opaque / animation_playing + intrinsic size) are ALWAYS
+// maintained — so that suite observes exactly the headless partial's behavior, and the widget test host
+// (tools/android-testhost-run.sh) additionally observes the real MauiImageView with its decoded bitmap.
 
 #include "maui/core/image_handler.hpp"
 
 #include <jni.h>
 
+#include <algorithm>
 #include <atomic>
 #include <cmath>
+#include <cstddef>
 #include <memory>
 #include <string>
+#include <string_view>
+#include <vector>
 
 #include "jni/app_context.hpp"
 #include "jni/jni_cache.hpp"
 #include "jni/jni_env.hpp"
 #include "jni/jni_ref.hpp"
+#include "jni/jni_string.hpp"
 #include "maui/core/aspect.hpp"
 #include "maui/core/i_image.hpp"
 #include "maui/core/i_image_source.hpp"
-#include "maui/core/image_source_loader.hpp" // configure_loader parameter type
+#include "maui/core/i_stream_image_source.hpp" // image_bytes
+#include "maui/core/image_source_loader.hpp"   // configure_loader parameter type
 #include "maui/core/image_source_result.hpp"
+#include "maui/core/uri_bytes.hpp" // read_uri_bytes (disk fallback)
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -88,11 +105,16 @@ namespace
     using maui::platform::android::local_ref;
     using maui::platform::android::scoped_env;
 
-    // All instance methods resolve through the widget's own class (GetMethodID walks the superclasses, so
-    // the View surface — measure / layout / setVisibility — resolves through android/widget/ImageView too).
-    constexpr const char* k_image_view_class = "android/widget/ImageView";
+    // The native widget is dev.mauicpp.MauiImageView (an android.widget.ImageView subclass that can clip
+    // its draw to a native Path — the WrapperView.SetClip analog; the clip wiring is a later wave, the
+    // path stays null here). Because it extends ImageView, every method the handler drives — setImageBitmap,
+    // setScaleType, setAdjustViewBounds, measure/layout, the View surface — resolves through the subclass
+    // (GetMethodID walks the superclasses). The class is dexed by both hosts from src/platform/android/java.
+    constexpr const char* k_image_view_class = "dev/mauicpp/MauiImageView";
     constexpr const char* k_scale_type_class = "android/widget/ImageView$ScaleType";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
+    constexpr const char* k_bitmap_factory_class = "android/graphics/BitmapFactory";
+    constexpr const char* k_bitmap_class = "android/graphics/Bitmap";
 
     // GeometryUtil.Epsilon — ContextExtensions.ToPixels subtracts it before ceiling (see to_pixels).
     constexpr double k_to_pixels_epsilon = 0.0000000001;
@@ -225,13 +247,201 @@ namespace
         }
         return value;
     }
+
+    // ---- source bytes: APK asset → on-disk file ----
+    // The gallery's from_file("dotnet_bot.png") names a BUNDLED asset. On the real app host the resources
+    // are packaged into the APK under assets/ (build_android_apphost.sh), so the robust, SELinux-/uid-/
+    // reinstall-immune fetch is the AssetManager: context.getAssets().open(name) → an InputStream we drain.
+    // This is the android twin of the apple file fast-path resolving from_file() against the flat .app
+    // bundle. A bare name first tries assets/<name>; if no asset (or no Context — the VM-less / test host),
+    // it falls back to the cross-platform read_uri_bytes (a file:// / absolute path on disk).
+
+    // Drain a java.io.InputStream fully into image_bytes (empty on any JNI failure / empty stream). Reads in
+    // 64 KiB chunks via InputStream.read(byte[]) — the same buffered drain the testhost font loader uses.
+    [[nodiscard]] maui::core::image_bytes drain_input_stream(JNIEnv* env, jobject stream)
+    {
+        auto& cache = default_jni_cache();
+        jmethodID read = cache.method(env, "java/io/InputStream", "read", "([B)I");
+        jmethodID close = cache.method(env, "java/io/InputStream", "close", "()V");
+        if (read == nullptr)
+        {
+            return {};
+        }
+        constexpr jsize k_chunk = 64 * 1024;
+        const local_ref<jbyteArray> buffer{env, env->NewByteArray(k_chunk)};
+        if (clear_pending(env) || !buffer)
+        {
+            return {};
+        }
+        maui::core::image_bytes bytes;
+        for (;;)
+        {
+            const jint n = env->CallIntMethod(stream, read, buffer.get());
+            if (clear_pending(env) || n <= 0)
+            {
+                break; // -1 = EOF (and 0 only for a zero-length request, which we never make)
+            }
+            const std::size_t old = bytes.size();
+            bytes.resize(old + static_cast<std::size_t>(n));
+            // GetByteArrayRegion copies into a temporary jbyte buffer; reinterpret to std::byte is forbidden
+            // (NOLINT would be a suppression), so go through a small jbyte staging span.
+            std::vector<jbyte> staging(static_cast<std::size_t>(n));
+            env->GetByteArrayRegion(buffer.get(), 0, n, staging.data());
+            if (clear_pending(env))
+            {
+                break;
+            }
+            for (jint i = 0; i < n; ++i)
+            {
+                bytes[old + static_cast<std::size_t>(i)] =
+                    static_cast<std::byte>(static_cast<unsigned char>(staging[static_cast<std::size_t>(i)]));
+            }
+        }
+        if (close != nullptr)
+        {
+            env->CallVoidMethod(stream, close);
+            clear_pending(env);
+        }
+        return bytes;
+    }
+
+    // Read assets/<name> from the process Context's AssetManager (empty if no Context, no AssetManager, or
+    // the asset is absent — the caller then falls back to a disk read). context.getAssets() :
+    // android.content.res.AssetManager; assets.open(name) : java.io.InputStream (throws if absent — cleared).
+    [[nodiscard]] maui::core::image_bytes read_asset_bytes(JNIEnv* env, std::string_view name)
+    {
+        jobject context = app_context();
+        if (env == nullptr || context == nullptr)
+        {
+            return {};
+        }
+        auto& cache = default_jni_cache();
+        jmethodID get_assets =
+            cache.method(env, "android/content/Context", "getAssets", "()Landroid/content/res/AssetManager;");
+        jmethodID open =
+            cache.method(env, "android/content/res/AssetManager", "open", "(Ljava/lang/String;)Ljava/io/InputStream;");
+        if (get_assets == nullptr || open == nullptr)
+        {
+            return {};
+        }
+        const local_ref<jobject> assets{env, env->CallObjectMethod(context, get_assets)};
+        if (clear_pending(env) || !assets)
+        {
+            return {};
+        }
+        const local_ref<jstring> jname = maui::platform::android::to_jstring(env, name);
+        if (!jname)
+        {
+            return {};
+        }
+        const local_ref<jobject> stream{env, env->CallObjectMethod(assets.get(), open, jname.get())};
+        if (clear_pending(env) || !stream) // a missing asset throws FileNotFoundException → cleared, empty
+        {
+            return {};
+        }
+        return drain_input_stream(env, stream.get());
+    }
+
+    // Resolve the bytes for a from_file() name: assets/<name> first (the packaged APK resource), then the
+    // cross-platform on-disk reader (an absolute path / file:// uri — and the test host, which has assets
+    // neither). Empty when neither resolves (the caller clears the view, exactly like a nil apple decode).
+    [[nodiscard]] maui::core::image_bytes resolve_file_bytes(JNIEnv* env, std::string_view file)
+    {
+        maui::core::image_bytes bytes = read_asset_bytes(env, file);
+        if (!bytes.empty())
+        {
+            return bytes;
+        }
+        return maui::core::read_uri_bytes(file); // file:// + absolute/relative disk path
+    }
+
+    // BitmapFactory.decodeByteArray(bytes, 0, len) → android.graphics.Bitmap (null on a failed decode). The
+    // returned local ref owns the decoded bitmap; the caller installs it via setImageBitmap (the ImageView
+    // takes its own retain through its drawable) and reads getWidth/getHeight for the intrinsic measure.
+    [[nodiscard]] local_ref<jobject> decode_bitmap(JNIEnv* env, const maui::core::image_bytes& bytes)
+    {
+        if (env == nullptr || bytes.empty())
+        {
+            return {};
+        }
+        auto& cache = default_jni_cache();
+        jmethodID decode =
+            cache.static_method(env, k_bitmap_factory_class, "decodeByteArray", "([BII)Landroid/graphics/Bitmap;");
+        jclass factory_class = cache.find_class(env, k_bitmap_factory_class);
+        if (decode == nullptr || factory_class == nullptr)
+        {
+            return {};
+        }
+        const auto len = static_cast<jsize>(bytes.size());
+        const local_ref<jbyteArray> array{env, env->NewByteArray(len)};
+        if (clear_pending(env) || !array)
+        {
+            return {};
+        }
+        // Copy via a jbyte staging span (no reinterpret of std::byte* to jbyte*).
+        std::vector<jbyte> staging(bytes.size());
+        for (std::size_t i = 0; i < bytes.size(); ++i)
+        {
+            staging[i] = static_cast<jbyte>(std::to_integer<unsigned char>(bytes[i]));
+        }
+        env->SetByteArrayRegion(array.get(), 0, len, staging.data());
+        if (clear_pending(env))
+        {
+            return {};
+        }
+        local_ref<jobject> bitmap{env, env->CallStaticObjectMethod(factory_class, decode, array.get(), 0, len)};
+        if (clear_pending(env))
+        {
+            return {};
+        }
+        return bitmap;
+    }
+
+    // The decoded bitmap's intrinsic pixel size via getWidth()/getHeight() ({0,0} on failure). The gallery
+    // assets are 1× rasters, so the pixel size IS the framework-point intrinsic size (the apple twin divides
+    // an @2x NSImage by the screen scale; our packaged PNGs carry no @Nx sibling).
+    struct bitmap_size
+    {
+        double width;
+        double height;
+    };
+    [[nodiscard]] bitmap_size bitmap_intrinsic_size(JNIEnv* env, jobject bitmap)
+    {
+        auto& cache = default_jni_cache();
+        jmethodID get_width = cache.method(env, k_bitmap_class, "getWidth", "()I");
+        jmethodID get_height = cache.method(env, k_bitmap_class, "getHeight", "()I");
+        if (bitmap == nullptr || get_width == nullptr || get_height == nullptr)
+        {
+            return {.width = 0.0, .height = 0.0};
+        }
+        const jint w = env->CallIntMethod(bitmap, get_width);
+        const jint h = env->CallIntMethod(bitmap, get_height);
+        if (clear_pending(env))
+        {
+            return {.width = 0.0, .height = 0.0};
+        }
+        return {.width = static_cast<double>(w), .height = static_cast<double>(h)};
+    }
+
+    // Push a decoded Bitmap (or null to clear) into the ImageView via setImageBitmap(Bitmap).
+    void set_image_bitmap(JNIEnv* env, jobject widget, jobject bitmap)
+    {
+        jmethodID set_bitmap =
+            default_jni_cache().method(env, k_image_view_class, "setImageBitmap", "(Landroid/graphics/Bitmap;)V");
+        if (set_bitmap == nullptr)
+        {
+            return;
+        }
+        env->CallVoidMethod(widget, set_bitmap, bitmap);
+        clear_pending(env);
+    }
 } // namespace
 
 namespace maui::core
 {
-    // Releases the global reference pinning the android.widget.ImageView (the JNI shape of the
-    // pimpl-owned-native-view doctrine: the ios twin CFReleases its UIImageView here; the headless twin
-    // just clears the slot).
+    // Releases the global reference pinning the MauiImageView (the JNI shape of the pimpl-owned-native-view
+    // doctrine: the ios twin CFReleases its UIImageView here; the headless twin just clears the slot). The
+    // decoded Bitmap is owned by the ImageView's drawable, reclaimed when the View is GC'd.
     image_platform::~image_platform()
     {
         if (native != nullptr)
@@ -262,8 +472,9 @@ namespace maui::core
             return platform;
         }
         // ImageHandler.CreatePlatformView: new AppCompatImageView(Context) { SetAdjustViewBounds(true) }
-        // — the AppCompat subtype is a Material/AppCompat AAR dependency (header deviations); the plain
-        // ImageView carries the same SetAdjustViewBounds API.
+        // — the AppCompat subtype is a Material/AppCompat AAR dependency (header deviations); MauiImageView
+        // (extends the stock ImageView) carries the same SetAdjustViewBounds API and a theme-independent
+        // (Context) ctor that constructs in both the testhost (no Activity theme) and the app host.
         const local_ref<jobject> widget{env.get(), env->NewObject(image_view_class, ctor, context)};
         if (clear_pending(env.get()) || !widget)
         {
@@ -359,21 +570,53 @@ namespace maui::core
     }
 
     // ---- per-backend source primitives (the cross-platform map_source in image_handler.cpp routes here) ----
-    // The real setImageDrawable / Glide decode is deferred (header deviations); the primitives update the
-    // shared headless-style mirrors (kind / file / loaded) so the android preset's pure-native
-    // cross-platform suite still observes the load — exactly the headless partial's bodies, and the same
-    // posture the button partial's image-source primitives take.
+    // The file fast-path decodes the bundled bytes (assets/<name>, then disk) into an android.graphics.Bitmap
+    // via BitmapFactory and pushes it to the MauiImageView with setImageBitmap (the iOS twin's
+    // [UIImage imageNamed:] / NSImageView.image analog). The headless-style mirrors (kind / file / loaded +
+    // intrinsic size) are ALWAYS maintained so the android preset's pure-native cross-platform suite still
+    // observes the load even with no JavaVM (tools/android-emu-run.sh). The async (uri/stream/font) apply is
+    // still a mirror this cut — it carries no bytes through image_source_result on android (no Glide AAR), so
+    // a remote photo decode awaits the deferred android image-source services; the FILE bitmaps the gallery's
+    // image / image_button pages show (dotnet_bot.png, animated_heart.gif first frame) now render.
 
-    // File fast-path (mirror): record kind="file" + the path, marked loaded.
+    // File fast-path: resolve the bundled bytes (assets/<name> → disk), decode to a Bitmap, push it into the
+    // ImageView, and record the intrinsic size for get_desired_size. The mirror (kind/file/loaded) is set
+    // FIRST so the VM-less suite observes the load; a failed decode clears the view (the nil-decode analog).
     void image_handler::load_file_source_sync(image_platform& platform, const i_file_image_source& file_src)
     {
         platform.source_kind = "file";
         platform.source_file = std::string(file_src.file());
         platform.source_loaded = true;
+        platform.intrinsic_width = 0.0;
+        platform.intrinsic_height = 0.0;
+        if (platform.native == nullptr)
+        {
+            return; // VM-less / context-less: mirror only (no native widget to push into)
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        const maui::core::image_bytes bytes = resolve_file_bytes(env.get(), file_src.file());
+        const local_ref<jobject> bitmap = decode_bitmap(env.get(), bytes);
+        if (!bitmap)
+        {
+            // A from_file naming an asset that is not packaged (e.g. cog.png — SVG-only, never rasterized) or
+            // a failed decode leaves the view image-less, mirroring the iOS nil-decode: no pixels, no crash.
+            set_image_bitmap(env.get(), widget_of(platform), nullptr);
+            return;
+        }
+        set_image_bitmap(env.get(), widget_of(platform), bitmap.get());
+        const bitmap_size size = bitmap_intrinsic_size(env.get(), bitmap.get());
+        platform.intrinsic_width = size.width;
+        platform.intrinsic_height = size.height;
     }
 
-    // The async loader's apply (mirror): copy the result's kind + detail. A !loaded() result clears it,
-    // mirroring SetImageSource(null) / ImageViewExtensions.Clear.
+    // The async loader's apply (mirror this cut): copy the result's kind + detail. A !loaded() result clears
+    // it, mirroring SetImageSource(null) / ImageViewExtensions.Clear. The real uri/stream bitmap decode +
+    // setImageBitmap awaits the deferred android image-source services (no bytes flow through the result on
+    // android), so no native push here — only the FILE fast-path above decodes.
     void image_handler::apply_loaded_result(image_platform& platform, const image_source_result& result)
     {
         if (!result.loaded())
@@ -386,12 +629,25 @@ namespace maui::core
         platform.source_loaded = true;
     }
 
-    // Clear the loaded image (mirror — ImageViewExtensions.Clear: stop the animation + drop the drawable).
+    // Clear the loaded image (ImageViewExtensions.Clear: stop the animation + drop the drawable). Clears the
+    // mirror + the intrinsic size AND drops the native bitmap (setImageBitmap(null)) so a source→null swap
+    // actually empties the view, not just the mirror.
     void image_handler::clear_source_native(image_platform& platform)
     {
         platform.source_kind.clear();
         platform.source_file.clear();
         platform.source_loaded = false;
+        platform.intrinsic_width = 0.0;
+        platform.intrinsic_height = 0.0;
+        if (platform.native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (env)
+        {
+            set_image_bitmap(env.get(), widget_of(platform), nullptr);
+        }
     }
 
     maui::graphics::size image_handler::get_desired_size(double width_constraint, double height_constraint) const
@@ -401,10 +657,31 @@ namespace maui::core
         {
             return {0, 0};
         }
+        // Intrinsic-bitmap fast path (the iOS SizeThatFitsImage analog): when a file source decoded into a
+        // bitmap, report its intrinsic size aspect-fit to any finite constraint. The old path measured the
+        // native ImageView, which — with adjustViewBounds + a wrap-content drawable — returns the right
+        // height under a finite width but {0,0} when BOTH constraints are infinite (an unconstrained stack
+        // child), collapsing the auto-sized Image to nothing. Reporting the decoded size directly closes
+        // that gap exactly as the apple/iOS twins do.
+        if (platform->intrinsic_width > 0.0 && platform->intrinsic_height > 0.0)
+        {
+            const double w = platform->intrinsic_width;
+            const double h = platform->intrinsic_height;
+            double scale = 1.0;
+            if (std::isfinite(width_constraint) && width_constraint < w)
+            {
+                scale = std::min(scale, width_constraint / w);
+            }
+            if (std::isfinite(height_constraint) && height_constraint < h * scale)
+            {
+                scale = std::min(scale, height_constraint / h);
+            }
+            return {w * scale, h * scale};
+        }
         if (platform->native == nullptr)
         {
             // VM-less degradation: no native widget and no decoded bitmap, so there is no intrinsic content
-            // size to report — the headless partial's {0,0} (no source bytes are loaded this cut).
+            // size to report — the headless partial's {0,0}.
             return {0, 0};
         }
         const scoped_env env;

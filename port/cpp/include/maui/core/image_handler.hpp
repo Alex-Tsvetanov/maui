@@ -61,6 +61,14 @@ namespace maui::core
         std::string source_kind;
         std::string source_file;
         bool source_loaded = false;
+        // Intrinsic size (in framework points) of the last decoded bitmap, or {0,0} when nothing is
+        // loaded. The Android backend records the BitmapFactory-decoded bitmap's width/height here so
+        // image_handler::get_desired_size can aspect-fit the real content size (the iOS SizeThatFitsImage
+        // analog; a {0,0} measure collapses an auto-sized Image to nothing — the documented gap the
+        // intrinsic measure closes). Headless leaves it {0,0} (no decode); Apple measures the NSImage/
+        // UIImage directly instead, so this mirror is unused there.
+        double intrinsic_width = 0.0;
+        double intrinsic_height = 0.0;
         // Headless mirrors of IsOpaque / IsAnimationPlaying (Apple pushes these to the NSImageView's layer /
         // animation state instead — on apple IsAnimationPlaying drives native GIF frame cycling).
         bool opaque = false;

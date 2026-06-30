@@ -153,23 +153,39 @@ XML
 # generated R.java target; if link errors on "no resources", add a minimal res/values/strings.xml (app
 # label) under ${work}/res, aapt2 compile it, and pass the compiled .flat via -R.
 
-# ---- 4. assemble: add classes.dex (root) + lib/<abi>/<so> into the APK ----
+# ---- 4. assemble: add classes.dex (root) + lib/<abi>/<so> + assets/* into the APK ----
 cp "${app_so}" "${work}/lib/${abi}/libmaui_android_apphost.so"
-echo "[apphost] adding classes.dex + lib/${abi}/*.so..." >&2
-# aapt2 add stores files into the APK uncompressed-as-needed; run from ${work} so the in-APK paths are
-# relative (classes.dex at the root, lib/<abi>/<so> under lib/). VERIFY: .so must be stored with the
-# correct path AND (on modern android) uncompressed + page-aligned for extractNativeLibs=false; the
-# manifest does not set extractNativeLibs, so the default (extract on install) applies and plain `aapt2
-# add` / zip is fine. If a "couldn't find libmaui_android_apphost.so" UnsatisfiedLinkError appears at
-# runtime, set android:extractNativeLibs="true" in the manifest <application> or align the .so (zipalign
-# -p 4) — see the hand-off uncertainties.
+
+# Package the gallery image/font resources into the APK under assets/. The gallery pages name them by bare
+# filename (image_source::from_file("dotnet_bot.png")), and the android image_handler resolves a from_file()
+# name against the Context's AssetManager (context.getAssets().open(name)) — the robust, SELinux-/uid-/
+# reinstall-immune on-device mechanism (an installed app cannot read /data/local/tmp under enforcing
+# SELinux: those files are labelled shell_data_file, denied to the untrusted_app domain). Assets are stored
+# RAW in the zip (aapt2 does not process the assets/ tree), so we just add them alongside classes.dex.
+gallery_res_dir="${cpp_root}/examples/gallery/resources"
+mkdir -p "${work}/assets"
+asset_count=0
+if [[ -d "${gallery_res_dir}" ]]; then
+  for f in "${gallery_res_dir}"/*; do
+    name="$(basename "${f}")"
+    [[ -f "${f}" && "${name}" != "README.md" ]] || continue
+    cp "${f}" "${work}/assets/${name}"
+    asset_count=$((asset_count + 1))
+  done
+fi
+echo "[apphost] staged ${asset_count} gallery asset(s) into assets/ (from ${gallery_res_dir})" >&2
+[[ "${asset_count}" -gt 0 ]] || echo "[apphost] WARNING: no gallery assets found — image pages will render blank" >&2
+
+echo "[apphost] adding classes.dex + lib/${abi}/*.so + assets/*..." >&2
+# aapt2 has NO `add` subcommand (that was the old `aapt`); the APK is a zip, so add the dex (root), the
+# .so (under lib/<abi>/), and the assets (under assets/) with `zip`. Store the .so UNCOMPRESSED (-0) so the
+# next `zipalign -p 4` page-aligns it, letting the loader map it from the APK directly (no extractNativeLibs
+# needed). Assets are stored compressed (default) — AssetManager.open() inflates them transparently.
 unaligned_apk="${work}/app-unaligned.apk"
 cp "${base_apk}" "${unaligned_apk}"
-# aapt2 has NO `add` subcommand (that was the old `aapt`); the APK is a zip, so add the dex (root) + the
-# .so (under lib/<abi>/) with `zip`. Store the .so UNCOMPRESSED (-0) so the next `zipalign -p 4` page-aligns
-# it, letting the loader map it from the APK directly (no extractNativeLibs needed).
 ( cd "${work}" && zip -X "${unaligned_apk}" classes.dex >&2 \
-    && zip -X -0 "${unaligned_apk}" "lib/${abi}/libmaui_android_apphost.so" >&2 ) \
+    && zip -X -0 "${unaligned_apk}" "lib/${abi}/libmaui_android_apphost.so" >&2 \
+    && { [[ "${asset_count}" -eq 0 ]] || zip -X -r "${unaligned_apk}" assets >&2 ; } ) \
   || maui_die "zip-assembling the APK failed"
 
 # ---- 5. zipalign + apksigner (throwaway debug keystore) ----
