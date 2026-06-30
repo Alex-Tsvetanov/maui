@@ -131,12 +131,24 @@ while IFS= read -r -d '' f; do class_files+=("${f}"); done \
 # link needs a -R/compiled resources flag only when there are resources; with none, --manifest alone is
 # enough to produce a base APK carrying the binary manifest + an (empty) resource table.
 base_apk="${work}/base.apk"
-echo "[apphost] aapt2 link..." >&2
+echo "[apphost] aapt2 compile (minimal res) + link..." >&2
+# aapt2 link needs at least one compiled-resource input; with only --manifest it prints usage and makes
+# nothing. Provide a minimal values resource (an app_name string) so the link has a compiled input.
+mkdir -p "${work}/res/values"
+cat > "${work}/res/values/strings.xml" <<'XML'
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MAUI C++ Gallery</string>
+</resources>
+XML
+"${aapt2}" compile --dir "${work}/res" -o "${work}/res-compiled.zip" >&2 || maui_die "aapt2 compile failed"
 "${aapt2}" link \
+  -o "${base_apk}" \
   -I "${android_jar}" \
   --manifest "${manifest}" \
   --min-sdk-version 24 --target-sdk-version 34 \
-  -o "${base_apk}" >&2
+  "${work}/res-compiled.zip" >&2 || maui_die "aapt2 link failed"
+[[ -f "${base_apk}" ]] || maui_die "aapt2 link produced no base APK"
 # VERIFY: some aapt2 versions require at least one resource or an explicit --no-resource-deduping / a
 # generated R.java target; if link errors on "no resources", add a minimal res/values/strings.xml (app
 # label) under ${work}/res, aapt2 compile it, and pass the compiled .flat via -R.
@@ -153,7 +165,12 @@ echo "[apphost] adding classes.dex + lib/${abi}/*.so..." >&2
 # -p 4) — see the hand-off uncertainties.
 unaligned_apk="${work}/app-unaligned.apk"
 cp "${base_apk}" "${unaligned_apk}"
-( cd "${work}" && "${aapt2}" add "${unaligned_apk}" classes.dex "lib/${abi}/libmaui_android_apphost.so" >&2 )
+# aapt2 has NO `add` subcommand (that was the old `aapt`); the APK is a zip, so add the dex (root) + the
+# .so (under lib/<abi>/) with `zip`. Store the .so UNCOMPRESSED (-0) so the next `zipalign -p 4` page-aligns
+# it, letting the loader map it from the APK directly (no extractNativeLibs needed).
+( cd "${work}" && zip -X "${unaligned_apk}" classes.dex >&2 \
+    && zip -X -0 "${unaligned_apk}" "lib/${abi}/libmaui_android_apphost.so" >&2 ) \
+  || maui_die "zip-assembling the APK failed"
 
 # ---- 5. zipalign + apksigner (throwaway debug keystore) ----
 aligned_apk="${work}/app-aligned.apk"
