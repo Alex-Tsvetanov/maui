@@ -66,8 +66,8 @@
 },
 {
 "key": "border_clip_playground",
-"status": "yellow",
-"note": "CONFIRM. Labels/sliders render (RoundRectangle, W5, TL60/BR12). Preview is an empty red CIRCLE outline, no fill, NO dog image; iOS shows the dog clipped in a red RoundRectangle."
+"status": "red",
+"note": "CONFIRMED red. iOS clips pug to a red-stroked RoundRectangle (TL radius 60). Android draws a red CIRCLE behind a plain SQUARE photo; image not clipped and shape is wrong (circle vs rounded-rect)."
 },
 {
 "key": "border_layout",
@@ -82,7 +82,7 @@
 {
 "key": "border_resize_content",
 "status": "yellow",
-"note": "CONFIRM. Left column (red fill+green border+'+') matches. Right column is plain light-blue, NO dog image (iOS shows photo in each); bottom-right is a rounded square, not the iOS triangle."
+"note": "CONFIRMED yellow. Ellipse + RoundRectangle clips work on Android (circle + rounded photo/placeholder both rows). But the 3rd Triangle/Geometry-clip row present on iOS is entirely MISSING on Android."
 },
 {
 "key": "border_stroke",
@@ -126,18 +126,18 @@
 },
 {
 "key": "clip",
-"status": "yellow",
-"note": "CONFIRM. All 4 labels (Image/Rectangle/Ellipse/GeometryGroup) render but every submarine image is missing - iOS shows the purple sub clipped to each shape; Android leaves empty gaps."
+"status": "green",
+"note": "Android shows submarine photo clipped to Rectangle, Ellipse, and GeometryGroup shapes — same clipped content as iOS ref. Image.Clip works."
 },
 {
 "key": "clip_corner_radius",
-"status": "yellow",
-"note": "CONFIRM. Title + all 4 corner sliders with thumbs + image container box render, but dog photo inside is missing. Android shows empty grey placeholder where iOS shows the pug."
+"status": "green",
+"note": "Android shows dog clipped to RoundRectangle plus the four corner-radius sliders — same content as iOS ref."
 },
 {
 "key": "clip_gallery",
-"status": "yellow",
-"note": "CONFIRM. All 4 labels (Image/Rectangle/RoundRectangle/Ellipse) render but every dog photo is missing - iOS shows the pug under each label; Android leaves empty gaps."
+"status": "green",
+"note": "Android shows dog photo, then clipped to Rectangle and RoundRectangle (rounded corners) — matches iOS ref content. Image.Clip works."
 },
 {
 "key": "clip_views",
