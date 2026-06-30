@@ -143,6 +143,14 @@ namespace maui::controls
         void send_disappearing() override;
 
         // FlyoutPage hosts its two PANES (flyout_/detail_), NOT the inherited content() surface — so the
+        // base content_page::measure (which measures content_, null here) never reaches the panes and the
+        // detail pane's content has zero desired size → it collapses (the slider/buttons render as a
+        // zero-height sliver). Override to MEASURE both panes against the full constraint (each pane is a
+        // content_page the split VC / drawer gives the whole column), mirroring tabbed_page::measure and the
+        // arrange override below — without this the arrange-only path lays a never-measured tree out flat.
+        maui::graphics::size measure(double width_constraint, double height_constraint) override;
+
+        // FlyoutPage hosts its two PANES (flyout_/detail_), NOT the inherited content() surface — so the
         // base content_page::arrange (which arranges content_, null here) never reaches the panes and the
         // detail pane's content renders blank. Override to arrange both panes within this page's frame
         // (host-relative {0,0,w,h}: the native split VC positions the columns, and on a collapsed phone the

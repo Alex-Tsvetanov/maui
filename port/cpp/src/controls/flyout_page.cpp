@@ -249,6 +249,27 @@ namespace maui::controls
         content_page::send_disappearing();
     }
 
+    maui::graphics::size flyout_page::measure(double width_constraint, double height_constraint)
+    {
+        // Measure both panes against the full constraint (each pane is a content_page the split VC / drawer
+        // gives the whole column — the tabbed_page::measure precedent). content_page::measure (the inherited
+        // base) only measures the single `content_` (null on a flyout page), so without this the detail
+        // pane's content tree is NEVER measured: its scroll_view / stack children report zero desired size
+        // and collapse to a sliver when arranged. The page itself fills the constraint (the container-page
+        // convention shared by content_page / tabbed_page).
+        if (detail_ != nullptr)
+        {
+            detail_->measure(width_constraint, height_constraint);
+        }
+        if (flyout_ != nullptr)
+        {
+            flyout_->measure(width_constraint, height_constraint);
+        }
+        const maui::graphics::size measured{width_constraint, height_constraint};
+        desired_size_ = measured;
+        return measured;
+    }
+
     maui::graphics::size flyout_page::arrange(const maui::graphics::rect& bounds)
     {
         // Frame this page + size the native split-view host (the flyout handler's platform_arrange), exactly
