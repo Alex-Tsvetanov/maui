@@ -95,6 +95,21 @@ namespace maui::core
         // 0×0-at-map-time fix).
         void update_clip(const maui::graphics::i_shape* value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_ANDROID
+        // Android backend: a non-editable android.widget.EditText stand-in for MauiPicker (the selected
+        // item is the field text, the title is the hint). Generic IView pushes over JNI
+        // (src/platform/android/picker_handler.cpp); base body FIRST then widget push. IsEnabled IS pushed
+        // (interactive); shadow/clip/input_transparent keep ONLY the base mirror.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        void update_transform(const maui::core::transform_spec& value) override;
+        void update_flow_direction(maui::core::flow_direction value) override;
+        void update_semantics(const maui::core::semantics* value) override;
+#endif
     };
 
     class picker_handler : public view_handler<picker_handler, i_picker, picker_platform>

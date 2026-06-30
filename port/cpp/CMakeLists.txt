@@ -496,6 +496,12 @@ else()
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/radio_button_handler.cpp)
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/shape_view_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/box_view_handler.cpp)
+    # wave 4 — border (MauiLayout host + GradientDrawable stroke/corner/fill) + picker (non-editable EditText
+    # stand-in: selected item as text, title as hint).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/border_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/border_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/picker_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/picker_handler.cpp)
     # container fan-out — the rendering blocker: the leaf widgets above have no VISIBLE parent until the
     # layout/container handlers create a real android ViewGroup. dev.mauicpp.MauiLayout
     # (src/platform/android/java/MauiLayout.java) is a no-op-onLayout ViewGroup so maui's absolute
@@ -747,6 +753,9 @@ if(MAUI_BACKEND STREQUAL "android")
     # is a TextView-base CompoundButton (testhost AutofillManager SecurityException), so its test stays
     # unwired and is verified via the app host.
     tests/platform/android_box_view_tests.cpp
+    # wave 4: border (a plain MauiLayout host — constructs in the testhost) seam test. picker is an
+    # EditText stand-in (testhost AutofillManager SecurityException), so its test stays unwired (app-host only).
+    tests/platform/android_border_tests.cpp
     # switch (Switch) + check_box (CheckBox) seam tests are NOT wired — like EditText they cannot be
     # constructed in the app_process testhost: their TextView base calls setText() in the ctor →
     # notifyListeningManagersAfterTextChanged → AutofillManager → a Settings ContentProvider the shell-uid
