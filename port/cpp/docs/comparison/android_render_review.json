@@ -96,8 +96,8 @@
 },
 {
 "key": "box_view",
-"status": "yellow",
-"note": "Default/Using Color/Using CornerRadius boxes correct, but 'Background' box shows solid green instead of yellow-to-green gradient fill seen in iOS."
+"status": "green",
+"note": "All 4 sections present incl. Background's gradient BoxView (real yellow→green smooth fill, not flat); colors/shapes match iOS ref."
 },
 {
 "key": "button",
@@ -326,8 +326,8 @@
 },
 {
 "key": "gradient",
-"status": "yellow",
-"note": "Both brushes render as flat solid color blocks (no actual gradient interpolation) where iOS shows true linear/radial color transitions; labels and block placement otherwise match."
+"status": "green",
+"note": "Both linear (yellow→green) and radial (red→navy) brushes render as smooth real gradients on Android, matching iOS ref colors/direction exactly."
 },
 {
 "key": "grid",
