@@ -851,8 +851,8 @@
 },
 {
 "key": "web_view",
-"status": "yellow",
-"note": "Nav buttons and status text render fine, but WebView content area is blank — missing 'Welcome' heading and 'Served from a static HtmlWebViewSource.' text shown inside iOS web view."
+"status": "green",
+"note": "Android shows full WebView static HTML: 'Welcome' heading + 'Served from a static HtmlWebViewSource.' text above all 6 nav buttons, matching iOS content."
 },
 {
 "key": "z_index",
