@@ -90,6 +90,16 @@ rendering, simple gallery pages can show meaningful content once it exists. Then
 rest (entry, stepper, picker, date+time_picker, search_bar, border, box_view, shapes/…) — non-text ones
 seam-test in the testhost, text/interactive ones verify in the app host. See `docs/ANDROID_STATUS.md`.
 
+**App host build path (toolchain confirmed in the env):** no gradle, but `build-tools/34.0.0` ships aapt2 + d8
++ apksigner + zipalign and `platforms/android-34/android.jar` is present — and the widget testhost already
+proves a `javac → d8 → app_process` pipeline on the emulator (`tools/android-testhost-run.sh`). So the app host
+= a minimal **signed APK**: `AndroidManifest.xml` + a `MauiHostActivity.java` that `System.loadLibrary`s the
+android gallery lib and JNI-calls a native entry which mounts the maui view tree into the Activity's content
+view; built via aapt2 link (manifest) → d8 (dex the Activity) → zip/zipalign/apksigner → `adb install` →
+`am start`, then `adb exec-out screencap` per page (mirroring the macOS/iOS capture pipelines) for the 3-way
+MAUI ┃ C++ ┃ C++&XAML board. The native gallery already cross-compiles for arm64-android; the ~9 wired handlers
+mean simple pages render meaningful content on day one.
+
 ## Build-system note
 Each backend builds in its own dir via a CMake option/preset (headless/apple/ios/maccatalyst/android),
 per the chosen "enabling options, keep separate dirs" approach.
