@@ -47,19 +47,49 @@ Criterion (per user): every coded/XAML element PRESENT in all renders; `appkit_c
   - **image_button Animated GIF** — draws black (route the apple image_button load through the GIF-aware
     CGImageSource decode the image handler uses). The only remaining AppKit element gap.
 
-## 3. Android — builds + core verified on-device ✅ (UI handlers deferred)
-`cmake --preset android && cmake --build --preset android -j` (skip the experimental `maui_ui` codegen
-target). Cross-compiles for arm64-android (NDK r27.2). Core suites pass on the `maui-test` emulator:
-graphics 207, core 146, layout 116, animations 40 = **509 on-device**
-(`MAUI_ANDROID_SDK_ROOT=/opt/homebrew/share/android-commandlinetools tools/parity/... tools/android-emu-run.sh build/android/<suite>`).
-**Gaps (the bulk of remaining Android work):** only button/navigation/window handlers exist under
-`src/platform/android/` (~27 controls need JNI/View handlers); no Android app host (so no on-device visual
-parity yet). See `docs/ANDROID_STATUS.md`.
+## 3. Android — handler fan-out underway, widget-tested on the emulator ✅
+Build + run the widget seam suite (needs `VCPKG_ROOT` + `MAUI_ANDROID_SDK_ROOT=/opt/homebrew/share/android-commandlinetools`):
+`cmake --preset android && cmake --build --preset android --target maui_android_widget_tests && ctest --test-dir build/android -R android_testhost_widget_suite --output-on-failure`
+(the host is `app_process` via `tools/android-testhost-run.sh`). Cross-compiles for arm64-android (NDK 27.2);
+core suites still **509 on-device** (graphics 207 / core 146 / layout 116 / animations 40).
+
+**Real `android.widget` handlers** (each = a `src/platform/android/<ctrl>_handler.cpp` JNI partial + a header
+`#ifdef MAUI_PLATFORM_ANDROID` override block + a CMake fan-out pair + emulator seam tests):
+button, navigation, window (pre-existing) · **label** (TextView — 14 tests) · **progress_bar** (ProgressBar
+horizontal — 7) · **activity_indicator** (ProgressBar indeterminate — 4) · **image** (ImageView — 6) ·
+**editor** (EditText — handler compiles + wired; seam test deferred, see lesson 3). The recipe: port
+`<Ctrl>Handler.Android.cs` → a partial mirroring `button_handler.cpp` (scoped_env/app_context VM-less
+guards, headless-mirror-first then widget push, `default_jni_cache`, global-ref lifecycle, to_pixels/density).
+Hand-port the foundational ones; agent-port the rest via `code-changes` agents (button + label + editor are
+the templates). The cross-platform `<ctrl>_handler.cpp` + mapper registration are reused unchanged — only the
+platform partial swaps via the CMake `list(REMOVE_ITEM headless…)/list(APPEND android…)` pair.
+
+**LESSONS the emulator surfaced — apply to every new handler:**
+1. **Static fields need `GetStaticFieldID` + `GetStatic*Field`, NOT `jni_cache::field()`** (that is
+   `GetFieldID` = instance-only → returns null for statics; there is no `static_field()` — call `env`
+   directly). Bit progress_bar (`R.style`) + activity_indicator (`PorterDuff.Mode`).
+2. **Theme-dependent widget ctors throw in the bare `app_process` testhost** (no Activity theme): the default
+   ctors of horizontal-ProgressBar (`progressBarStyleHorizontal`) and EditText (`editTextStyle`) resolve a
+   theme style attr. Construct theme-independently — 4-arg `(Context, null, 0, R.style.X)` or 3-arg
+   `(Context, null, 0)` with `defStyleAttr=0` — plus a plain-ctor fallback. (TextView/Button are fine.)
+3. **EditText cannot be constructed in the `app_process` testhost at all** — its `Editor` eagerly queries
+   Settings/DeviceConfig (`SelectionActionModeHelper` → `TextClassificationConstants`), which the shell-uid
+   (2000) process may not reach → `SecurityException`. So **editor/entry/search_bar (any EditText) can only
+   be verified via a real Activity** (the Android app host). Their seam-test files are kept but unwired.
+
+**Remaining Android work:** entry (hand-port the EditText handler — no testhost seam test possible) + ~20 more
+controls (slider/switch/check_box/stepper/picker/date+time_picker/search_bar/border/box_view/shapes/…) +
+**the Android app host** (a real Activity that mounts the view tree) — now the critical path, since it is the
+only route to on-device VISUAL parity (the user's acceptance criterion) AND the only way to verify
+EditText-backed controls. See `docs/ANDROID_STATUS.md`.
 
 ## Build-system note
 Each backend builds in its own dir via a CMake option/preset (headless/apple/ios/maccatalyst/android),
 per the chosen "enabling options, keep separate dirs" approach.
 
 ## Suggested resume order
-3. Catalyst collectionview/items spacing (native get_desired_size).
-4. Android: port more control handlers + stand up an Android app host for visual parity.
+1. Android: continue the handler fan-out — entry next (hand-port; EditText, no testhost seam test), then
+   slider/switch/check_box/stepper/… via `code-changes` agents (brief them with the 3 lessons above).
+2. Android app host: a real Activity that mounts the maui view tree + an emulator capture pipeline — the
+   critical path for on-device VISUAL parity and for verifying EditText-backed controls.
+3. Catalyst collectionview/items spacing (native get_desired_size — a supervised layout-model refactor).
