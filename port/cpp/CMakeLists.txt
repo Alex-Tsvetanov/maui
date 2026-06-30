@@ -483,6 +483,13 @@ else()
     # editor: android.widget.EditText (multiline) partial.
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/editor_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/editor_handler.cpp)
+    # wave 2 — interactive widgets (theme-independent ctors; deferred value-change listeners):
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/slider_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/slider_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/switch_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/switch_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/check_box_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/check_box_handler.cpp)
     # (W4-34d) navigation + window: the FrameLayout-based page-stack container + the Activity
     # content-view stand-in. The android partials keep the headless mirrors live (VM-less suite) and
     # additionally drive the real FrameLayout child swap when a VM + app context exist (the test host).
@@ -713,6 +720,14 @@ if(MAUI_BACKEND STREQUAL "android")
     # which the shell-uid (2000) app_process is not allowed to reach. A plain TextView (label) has no
     # Editor and is unaffected. EditText-backed controls therefore need a real Activity context and are
     # verified via the Android app host; tests/platform/android_editor_tests.cpp is kept ready for it.
+    # wave 2: slider (SeekBar — value/min/max → progress + tint colors) read back over JNI. SeekBar has no
+    # TextView base, so it constructs fine in the testhost.
+    tests/platform/android_slider_tests.cpp
+    # switch (Switch) + check_box (CheckBox) seam tests are NOT wired — like EditText they cannot be
+    # constructed in the app_process testhost: their TextView base calls setText() in the ctor →
+    # notifyListeningManagersAfterTextChanged → AutofillManager → a Settings ContentProvider the shell-uid
+    # (2000) process may not reach → java.lang.SecurityException. They are verified via the Android app
+    # host (a real Activity); tests/platform/android_{switch,check_box}_tests.cpp are kept ready for it.
     # (W4-34d) navigation + window: the real navigation_page / window controls + handlers drive a real
     # android.widget.FrameLayout — set window content → the root container hosts it; push/pop → the
     # visible native child swaps; push/pop modal → the overlay child appears/clears.
