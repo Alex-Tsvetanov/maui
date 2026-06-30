@@ -92,6 +92,20 @@ namespace maui::core
         // 0×0-at-map-time fix).
         void update_clip(const maui::graphics::i_shape* value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_ANDROID
+        // Android backend: a non-editable android.widget.EditText stand-in for MauiDatePicker (the field text
+        // is the formatted Date; the DatePickerDialog is deferred). Defined in
+        // src/platform/android/date_picker_handler.cpp; base body FIRST then widget push. IsEnabled IS pushed.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        void update_transform(const maui::core::transform_spec& value) override;
+        void update_flow_direction(maui::core::flow_direction value) override;
+        void update_semantics(const maui::core::semantics* value) override;
+#endif
     };
 
     class date_picker_handler : public view_handler<date_picker_handler, i_date_picker, date_picker_platform>
