@@ -132,7 +132,7 @@ def main():
                f"MAUI {real['maui']} / {n}, C++&amp;XAML {real['xaml']} / {n}.")
     out.append("")
     if reviewed:
-        out.append("**Classification — C++ render-health** (Sonnet `claude-sonnet-4-6` vision review of the C++ "
+        out.append("**Classification — C++ render-health** (**Sonnet 5** `claude-sonnet-5` vision review of the C++ "
                    "Android render vs the **iOS C++ reference** board, double-checked adversarially; this is render "
                    "completeness, *not* MAUI-vs-C++ pixel parity — that still needs the MAUI Android column). Each "
                    "non-green verdict was independently re-checked to overturn or confirm:")
@@ -169,7 +169,7 @@ def main():
     out.append(f"| C++ | {real['cpp']} | {ph['cpp']} |")
     out.append(f"| C++&amp;XAML | {real['xaml']} | {ph['xaml']} |")
     out.append("")
-    out.append("| # | Example | Android — MAUI ┃ C++ ┃ C++&amp;XAML | Description | Sonnet `claude-sonnet-4-6` | Gemini |")
+    out.append("| # | Example | Android — MAUI ┃ C++ ┃ C++&amp;XAML | Description | Sonnet 5 `claude-sonnet-5` | Gemini |")
     out.append("| --- | --- | --- | --- | --- | --- |")
     for i, k in enumerate(keys, 1):
         desc = description_for(k, descs)

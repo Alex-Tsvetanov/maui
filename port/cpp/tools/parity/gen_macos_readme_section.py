@@ -158,7 +158,7 @@ def main():
         out.append(f"| {fw} | {real[fw]} | {ph[fw]} |")
     out.append("")
     out.append("| # | Example | macOS — Catalyst (MAUI ┃ C++ ┃ C++&amp;XAML) over AppKit ( ┃ C++ ┃ C++&amp;XAML) | "
-               "Description | Sonnet `claude-sonnet-4-6` | Gemini |")
+               "Description | Sonnet 5 `claude-sonnet-5` | Gemini |")
     out.append("| --- | --- | --- | --- | --- | --- |")
     for i, k in enumerate(keys, 1):
         desc = description_for(k, descs)
