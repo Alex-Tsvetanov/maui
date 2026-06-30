@@ -130,8 +130,11 @@ def main():
         else:
             keys.append(args[i]); i += 1
 
-    cpp_keys = sorted(os.path.splitext(os.path.basename(f))[0]
-                      for f in glob.glob(os.path.join(ROOT, "examples", "gallery_xaml", "Views", "*.xaml")))
+    # The keys that have a hand-written XAML twin (examples/gallery_xaml/Views/*.xaml) — the ONLY keys the
+    # C++ & XAML column can render. The MAUI + C++ (builder) columns cover the full 172 (the builder gallery
+    # renders every MAUI_GALLERY_PAGES key, exactly as the iOS capture does).
+    xaml_twins = set(os.path.splitext(os.path.basename(f))[0]
+                     for f in glob.glob(os.path.join(ROOT, "examples", "gallery_xaml", "Views", "*.xaml")))
     builtins = {"controls_stack", "alignment", "shapes", "border", "collectionview", "fonts", "grid", "gradient"}
     def snake(p):
         import re
@@ -139,7 +142,10 @@ def main():
     maui_keys = builtins | {snake(os.path.basename(f)[:-7])  # strip "Page.cs"
                             for f in glob.glob(f"{HOME}/maui-compare/Pages/*Page.cs")}
     if not keys:
-        keys = cpp_keys
+        # The full 172-example key list (the same page_keys.txt the iOS capture uses) so the macOS board
+        # mirrors iOS row-for-row — the C++ mirror is cross-platform, so every iOS page gets a macOS render.
+        with open(os.path.join(ROOT, "tools", "parity", "page_keys.txt"), encoding="utf-8") as kf:
+            keys = [line.strip() for line in kf if line.strip()]
 
     print(f"theme={theme}  pages={len(keys)}  (montage_only={montage_only})")
 
@@ -162,6 +168,8 @@ def main():
                     continue  # no MAUI counterpart -> don't capture MAUI's ControlsStack fallback
                 if app_key == "cpp" and key in NON_BUILDER:
                     continue  # builder gallery has no page for this key -> would fall back to value_controls
+                if app_key == "xaml" and key not in xaml_twins:
+                    continue  # C++ & XAML column only exists for the hand-written XAML twins
                 shot(app_key, key, theme, os.path.join(OUT, app_key, theme, f"{key}.png"))
         montage(key, theme)
     # cleanup
