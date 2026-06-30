@@ -56,8 +56,8 @@
 },
 {
 "key": "behaviors",
-"status": "yellow",
-"note": "Title text renders correctly but the 'Enter a System.Double' Entry box (visible on iOS) is completely absent on Android — no input field at all."
+"status": "green",
+"note": "Matches iOS: 'Red when the number isn't valid' heading + Entry with placeholder 'Enter a System.Double', underline chrome visible."
 },
 {
 "key": "border",
@@ -172,7 +172,7 @@
 {
 "key": "context_flyout",
 "status": "yellow",
-"note": "Confirmed: Android has toggle+hint text but is missing the Entry textbox ('Has a custom context menu' placeholder) and the COOL stamp image entirely, present in iOS."
+"note": "Increment button, switch, and 'Has a custom context menu' Entry render fine, but the 'COOL' ImageButton shown in iOS (below the entry) is missing entirely from Android."
 },
 {
 "key": "controls_stack",
@@ -231,8 +231,8 @@
 },
 {
 "key": "effects",
-"status": "yellow",
-"note": "Both Entry labels render but their bordered text-input boxes are completely missing (blank gaps); buttons + status text render fine vs iOS."
+"status": "green",
+"note": "Both Entry fields visible with underline chrome and 'Alert Simple' text; both action buttons present (Android Material-button style vs iOS text-link style); status text matches iOS."
 },
 {
 "key": "ellipse_gallery",
@@ -301,8 +301,8 @@
 },
 {
 "key": "focus",
-"status": "yellow",
-"note": "Buttons (Focus/Unfocus Entry) and 'IsFocused: false' render correctly; the 'Focus target' Entry box that iOS shows at the top is completely missing."
+"status": "green",
+"note": "Matches iOS: 'Focus target' Entry with underline visible, Focus Entry / Unfocus Entry buttons, 'IsFocused: false' label all present."
 },
 {
 "key": "fonts",
@@ -431,18 +431,18 @@
 },
 {
 "key": "ios_date_picker",
-"status": "yellow",
-"note": "Date value '12/31/2020' text IS present (unlike claim of total absence) but renders as bare unboxed text, not the bordered DatePicker field widget iOS shows — control chrome/touch target missing."
+"status": "green",
+"note": "DatePicker field shows '12/31/2020' with underline chrome, matches iOS content (31.12.2020); Toggle button present below."
 },
 {
 "key": "ios_entry",
-"status": "yellow",
-"note": "Confirmed: iOS shows bordered Entry with placeholder 'Enter text here...'; Android has only blank space there — Entry field totally absent, only the toggle button renders."
+"status": "green",
+"note": "Entry field text plus 'Toggle AdjustsFontSizeToFitWidth' button both visible, matching iOS content; underline chrome vs iOS box is platform styling only."
 },
 {
 "key": "ios_first_responder",
-"status": "yellow",
-"note": "Confirmed: both bordered 'First Entry'/'Second Entry' placeholder fields from iOS are completely absent in Android; surrounding text/buttons/status lines render fine."
+"status": "green",
+"note": "Both Entry fields (First/Second) visible with underline chrome, both OK buttons, Focus First/Focus Second buttons, and all three status text lines all present matching iOS."
 },
 {
 "key": "ios_pan_gesture",
@@ -451,8 +451,8 @@
 },
 {
 "key": "ios_picker",
-"status": "yellow",
-"note": "'Select a monkey' picker-title text IS present (not absent as claimed) but renders as bare text, not the bordered Picker field widget iOS shows — control box/chrome missing."
+"status": "green",
+"note": "'Select a monkey' picker field (underlined) plus 'Toggle Picker UpdateMode' button both visible, matching iOS content exactly."
 },
 {
 "key": "ios_safe_area",
@@ -466,8 +466,8 @@
 },
 {
 "key": "ios_search_bar",
-"status": "yellow",
-"note": "SearchBar renders as bare 'Enter search term' text with no pill-box chrome or magnifier icon (iOS has clear rounded field + magnifier). Toggle buttons below render fine. Confirmed yellow."
+"status": "green",
+"note": "SearchBar shows 'Enter search term' placeholder with underline; both toggle buttons (Style, Background) present, matches iOS content."
 },
 {
 "key": "ios_slider_update_on_tap",
@@ -676,8 +676,8 @@
 },
 {
 "key": "search_bar",
-"status": "yellow",
-"note": "All SearchBar rows render as bare plain text with no pill background, no magnifier icon, no clear/cancel button; iOS shows full pill-shaped search fields with icons."
+"status": "green",
+"note": "All 7 rows present matching text/colors (Search..., Green text, Placeholder, Italic 24pt, end of the line, Cancel is red, Numeric keyboard); underline chrome vs iOS pill is just platform styling."
 },
 {
 "key": "selection_command_param",
@@ -691,8 +691,8 @@
 },
 {
 "key": "semantics",
-"status": "yellow",
-"note": "Entry field 'Entry text, DTH' is completely missing on Android (present as bordered box on iOS); Editor and SearchBar render as bare unstyled text instead of input chrome."
+"status": "green",
+"note": "All content matches iOS: labels, buttons, Entry/Editor/SearchBar fields with visible underline chrome, heading levels, StackLayout labels, semantic-focus button/label."
 },
 {
 "key": "shadow_playground",
@@ -826,8 +826,8 @@
 },
 {
 "key": "triggers",
-"status": "yellow",
-"note": "CONFIRMED yellow: title, instructions, 'Highlight off', and Toggle highlight button render, but the bordered 'Enter a System.Double' Entry field is completely missing."
+"status": "green",
+"note": "Title, instructional text, Entry with underline chrome showing placeholder, 'Highlight off' label, and Toggle highlight button all present, matches iOS."
 },
 {
 "key": "update_path_data",
@@ -846,8 +846,8 @@
 },
 {
 "key": "visual_states",
-"status": "yellow",
-"note": "Both buttons render with correct text/labels. But both Entry controls are completely missing: no green VSM entry box and no bordered/placeholder 2nd entry, just blank gaps under their labels."
+"status": "green",
+"note": "Matches iOS: green VSM Entry bar, 'Type something to enable 2nd Entry' field with underline visible, both buttons with explanatory text present."
 },
 {
 "key": "web_view",
