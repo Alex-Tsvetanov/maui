@@ -109,7 +109,15 @@ namespace maui::samples
 
             update_readout(list_.selected_item()); // initial "Selected: (none)"
 
-            // ---- assemble the Grid (Auto / Auto / Auto / *) ----
+            // ---- assemble the Grid (Auto / Auto / Auto / Auto / *) ----
+            // The C# XAML is Auto/Auto/Auto/* (instructions / SearchBar / Reset / CollectionView). The port
+            // adds a diagnostic readout Label the C# page lacks (selection has no headless cell-visual analog).
+            // It used to share the Reset row, relying on the button being transparent so the label showed
+            // through to its left (true on iOS, where the native UIButton has no opaque fill). On Android the
+            // native android.widget.Button carries an OPAQUE Material background that paints over the whole
+            // cell, hiding the overlapped label. Give the readout its own Auto row so the two never collide on
+            // any backend — a strict improvement that matches the iOS reference's intent (both fully visible).
+            grid_.add_row_definition(maui::core::grid_length::automatic());
             grid_.add_row_definition(maui::core::grid_length::automatic());
             grid_.add_row_definition(maui::core::grid_length::automatic());
             grid_.add_row_definition(maui::core::grid_length::automatic());
@@ -121,9 +129,9 @@ namespace maui::samples
             grid_.add(reset_button_);
             grid_.set_row(reset_button_, 2);
             grid_.add(readout_);
-            grid_.set_row(readout_, 2); // the readout shares the Reset row visually; placement is incidental
+            grid_.set_row(readout_, 3); // the readout gets its own row (was shared with Reset — overlap fix)
             grid_.add(list_);
-            grid_.set_row(list_, 3);
+            grid_.set_row(list_, 4);
 
             page_.set_content(grid_);
         }
