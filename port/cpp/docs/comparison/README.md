@@ -287,3 +287,187 @@ The Demo column now carries a **third sub-column, C++&XAML** — the gallery pag
 | 58 | **Vertical Stack Layout** | <table><tr><td align="center">Catalyst light<br><img src="maccatalyst/montages/light/vertical_stack_layout.png" height="240"></td></tr></table> | — |
 | 59 | **Z Index** | <table><tr><td align="center">Catalyst light<br><img src="maccatalyst/montages/light/z_index.png" height="240"></td></tr><tr><td align="center">Catalyst dark<br><img src="maccatalyst/montages/dark/z_index.png" height="240"></td></tr></table> | <table><tr><td align="center">AppKit light<br><img src="maccatalyst/montages_appkit/light/z_index.png" height="240"></td></tr><tr><td align="center">AppKit dark<br><img src="maccatalyst/montages_appkit/dark/z_index.png" height="240"></td></tr></table> |
 <!-- MACOS:END -->
+
+<!-- ANDROID:BEGIN -->
+
+## Android — C++ MAUI port on the emulator
+
+The C++ port's gallery pages rendered by the **Android app host** (a real Activity/APK built by `tools/parity/build_android_apphost.sh` — aapt2/d8/apksigner, no gradle) on the `maui-test` emulator, captured via `adb screencap`. Per the cross-platform goal, every iOS example has an Android render here. Pages built on controls whose **Android handler is not yet implemented** (CollectionView, Picker, Date/TimePicker, Border/Shapes, …) render blank or partial — the honest current state of the Android backend (the layout/container handlers + ~12 widget handlers are done; see [../MACOS_ANDROID_RESUME.md](../MACOS_ANDROID_RESUME.md)). The MAUI and C++&amp;XAML Android columns are future work (need MauiCompare-android + the gallery_xaml app host); the table already reserves their cells.
+
+**Coverage:** 172 / 172 pages captured (C++ column).
+
+| # | Example | Android — MAUI ┃ C++ ┃ C++&amp;XAML |
+| --- | --- | --- |
+| 1 | **Absolute Layout** | <table><tr><td align="center">C++<br><img src="android/cpp/absolute_layout.png" height="360"></td></tr></table> |
+| 2 | **Activity Indicator** | <table><tr><td align="center">C++<br><img src="android/cpp/activity_indicator.png" height="360"></td></tr></table> |
+| 3 | **Adaptive Collection** | <table><tr><td align="center">C++<br><img src="android/cpp/adaptive_collection.png" height="360"></td></tr></table> |
+| 4 | **Alerts** | <table><tr><td align="center">C++<br><img src="android/cpp/alerts.png" height="360"></td></tr></table> |
+| 5 | **Alignment** | <table><tr><td align="center">C++<br><img src="android/cpp/alignment.png" height="360"></td></tr></table> |
+| 6 | **Animation** | <table><tr><td align="center">C++<br><img src="android/cpp/animation.png" height="360"></td></tr></table> |
+| 7 | **App Theme Binding** | <table><tr><td align="center">C++<br><img src="android/cpp/app_theme_binding.png" height="360"></td></tr></table> |
+| 8 | **Application Control** | <table><tr><td align="center">C++<br><img src="android/cpp/application_control.png" height="360"></td></tr></table> |
+| 9 | **Auto Size Shapes** | <table><tr><td align="center">C++<br><img src="android/cpp/auto_size_shapes.png" height="360"></td></tr></table> |
+| 10 | **Basic Grouping** | <table><tr><td align="center">C++<br><img src="android/cpp/basic_grouping.png" height="360"></td></tr></table> |
+| 11 | **Basic Swipe** | <table><tr><td align="center">C++<br><img src="android/cpp/basic_swipe.png" height="360"></td></tr></table> |
+| 12 | **Behaviors** | <table><tr><td align="center">C++<br><img src="android/cpp/behaviors.png" height="360"></td></tr></table> |
+| 13 | **Border** | <table><tr><td align="center">C++<br><img src="android/cpp/border.png" height="360"></td></tr></table> |
+| 14 | **Border Clip Playground** | <table><tr><td align="center">C++<br><img src="android/cpp/border_clip_playground.png" height="360"></td></tr></table> |
+| 15 | **Border Layout** | <table><tr><td align="center">C++<br><img src="android/cpp/border_layout.png" height="360"></td></tr></table> |
+| 16 | **Border Playground** | <table><tr><td align="center">C++<br><img src="android/cpp/border_playground.png" height="360"></td></tr></table> |
+| 17 | **Border Resize Content** | <table><tr><td align="center">C++<br><img src="android/cpp/border_resize_content.png" height="360"></td></tr></table> |
+| 18 | **Border Stroke** | <table><tr><td align="center">C++<br><img src="android/cpp/border_stroke.png" height="360"></td></tr></table> |
+| 19 | **Borderless** | <table><tr><td align="center">C++<br><img src="android/cpp/borderless.png" height="360"></td></tr></table> |
+| 20 | **Box View** | <table><tr><td align="center">C++<br><img src="android/cpp/box_view.png" height="360"></td></tr></table> |
+| 21 | **Button** | <table><tr><td align="center">C++<br><img src="android/cpp/button.png" height="360"></td></tr></table> |
+| 22 | **Carousel Page** | <table><tr><td align="center">C++<br><img src="android/cpp/carousel_page.png" height="360"></td></tr></table> |
+| 23 | **Chat Example** | <table><tr><td align="center">C++<br><img src="android/cpp/chat_example.png" height="360"></td></tr></table> |
+| 24 | **Check Box** | <table><tr><td align="center">C++<br><img src="android/cpp/check_box.png" height="360"></td></tr></table> |
+| 25 | **Chrome** | <table><tr><td align="center">C++<br><img src="android/cpp/chrome.png" height="360"></td></tr></table> |
+| 26 | **Clip** | <table><tr><td align="center">C++<br><img src="android/cpp/clip.png" height="360"></td></tr></table> |
+| 27 | **Clip Corner Radius** | <table><tr><td align="center">C++<br><img src="android/cpp/clip_corner_radius.png" height="360"></td></tr></table> |
+| 28 | **Clip Gallery** | <table><tr><td align="center">C++<br><img src="android/cpp/clip_gallery.png" height="360"></td></tr></table> |
+| 29 | **Clip Views** | <table><tr><td align="center">C++<br><img src="android/cpp/clip_views.png" height="360"></td></tr></table> |
+| 30 | **Clipping** | <table><tr><td align="center">C++<br><img src="android/cpp/clipping.png" height="360"></td></tr></table> |
+| 31 | **Collectionview** | <table><tr><td align="center">C++<br><img src="android/cpp/collectionview.png" height="360"></td></tr></table> |
+| 32 | **Composition Gallery** | <table><tr><td align="center">C++<br><img src="android/cpp/composition_gallery.png" height="360"></td></tr></table> |
+| 33 | **Containers** | <table><tr><td align="center">C++<br><img src="android/cpp/containers.png" height="360"></td></tr></table> |
+| 34 | **Content View** | <table><tr><td align="center">C++<br><img src="android/cpp/content_view.png" height="360"></td></tr></table> |
+| 35 | **Context Flyout** | <table><tr><td align="center">C++<br><img src="android/cpp/context_flyout.png" height="360"></td></tr></table> |
+| 36 | **Controls Stack** | <table><tr><td align="center">C++<br><img src="android/cpp/controls_stack.png" height="360"></td></tr></table> |
+| 37 | **Custom Layout** | <table><tr><td align="center">C++<br><img src="android/cpp/custom_layout.png" height="360"></td></tr></table> |
+| 38 | **Custom Size Swipe** | <table><tr><td align="center">C++<br><img src="android/cpp/custom_size_swipe.png" height="360"></td></tr></table> |
+| 39 | **Custom Swipe Item View** | <table><tr><td align="center">C++<br><img src="android/cpp/custom_swipe_item_view.png" height="360"></td></tr></table> |
+| 40 | **Cv Visual States** | <table><tr><td align="center">C++<br><img src="android/cpp/cv_visual_states.png" height="360"></td></tr></table> |
+| 41 | **Data Template Selector** | <table><tr><td align="center">C++<br><img src="android/cpp/data_template_selector.png" height="360"></td></tr></table> |
+| 42 | **Date Picker** | <table><tr><td align="center">C++<br><img src="android/cpp/date_picker.png" height="360"></td></tr></table> |
+| 43 | **Device** | <table><tr><td align="center">C++<br><img src="android/cpp/device.png" height="360"></td></tr></table> |
+| 44 | **Dispatcher** | <table><tr><td align="center">C++<br><img src="android/cpp/dispatcher.png" height="360"></td></tr></table> |
+| 45 | **Drag Drop** | <table><tr><td align="center">C++<br><img src="android/cpp/drag_drop.png" height="360"></td></tr></table> |
+| 46 | **Editor** | <table><tr><td align="center">C++<br><img src="android/cpp/editor.png" height="360"></td></tr></table> |
+| 47 | **Effects** | <table><tr><td align="center">C++<br><img src="android/cpp/effects.png" height="360"></td></tr></table> |
+| 48 | **Ellipse Gallery** | <table><tr><td align="center">C++<br><img src="android/cpp/ellipse_gallery.png" height="360"></td></tr></table> |
+| 49 | **Empty View** | <table><tr><td align="center">C++<br><img src="android/cpp/empty_view.png" height="360"></td></tr></table> |
+| 50 | **Empty View Load Simulate** | <table><tr><td align="center">C++<br><img src="android/cpp/empty_view_load_simulate.png" height="360"></td></tr></table> |
+| 51 | **Empty View Null** | <table><tr><td align="center">C++<br><img src="android/cpp/empty_view_null.png" height="360"></td></tr></table> |
+| 52 | **Empty View Rtl** | <table><tr><td align="center">C++<br><img src="android/cpp/empty_view_rtl.png" height="360"></td></tr></table> |
+| 53 | **Empty View Selector** | <table><tr><td align="center">C++<br><img src="android/cpp/empty_view_selector.png" height="360"></td></tr></table> |
+| 54 | **Empty View Swap** | <table><tr><td align="center">C++<br><img src="android/cpp/empty_view_swap.png" height="360"></td></tr></table> |
+| 55 | **Empty View Template** | <table><tr><td align="center">C++<br><img src="android/cpp/empty_view_template.png" height="360"></td></tr></table> |
+| 56 | **Empty View View** | <table><tr><td align="center">C++<br><img src="android/cpp/empty_view_view.png" height="360"></td></tr></table> |
+| 57 | **Entry** | <table><tr><td align="center">C++<br><img src="android/cpp/entry.png" height="360"></td></tr></table> |
+| 58 | **Filter Collection** | <table><tr><td align="center">C++<br><img src="android/cpp/filter_collection.png" height="360"></td></tr></table> |
+| 59 | **Filter Selection** | <table><tr><td align="center">C++<br><img src="android/cpp/filter_selection.png" height="360"></td></tr></table> |
+| 60 | **Flex Layout** | <table><tr><td align="center">C++<br><img src="android/cpp/flex_layout.png" height="360"></td></tr></table> |
+| 61 | **Focus** | <table><tr><td align="center">C++<br><img src="android/cpp/focus.png" height="360"></td></tr></table> |
+| 62 | **Fonts** | <table><tr><td align="center">C++<br><img src="android/cpp/fonts.png" height="360"></td></tr></table> |
+| 63 | **Footer Only String** | <table><tr><td align="center">C++<br><img src="android/cpp/footer_only_string.png" height="360"></td></tr></table> |
+| 64 | **Formatted Text** | <table><tr><td align="center">C++<br><img src="android/cpp/formatted_text.png" height="360"></td></tr></table> |
+| 65 | **Gestures** | <table><tr><td align="center">C++<br><img src="android/cpp/gestures.png" height="360"></td></tr></table> |
+| 66 | **Gradient** | <table><tr><td align="center">C++<br><img src="android/cpp/gradient.png" height="360"></td></tr></table> |
+| 67 | **Grid** | <table><tr><td align="center">C++<br><img src="android/cpp/grid.png" height="360"></td></tr></table> |
+| 68 | **Grid Grouping** | <table><tr><td align="center">C++<br><img src="android/cpp/grid_grouping.png" height="360"></td></tr></table> |
+| 69 | **Grouping No Templates** | <table><tr><td align="center">C++<br><img src="android/cpp/grouping_no_templates.png" height="360"></td></tr></table> |
+| 70 | **Grouping Plus Selection** | <table><tr><td align="center">C++<br><img src="android/cpp/grouping_plus_selection.png" height="360"></td></tr></table> |
+| 71 | **Header Footer** | <table><tr><td align="center">C++<br><img src="android/cpp/header_footer.png" height="360"></td></tr></table> |
+| 72 | **Header Footer Grid** | <table><tr><td align="center">C++<br><img src="android/cpp/header_footer_grid.png" height="360"></td></tr></table> |
+| 73 | **Header Footer Grid Horizontal** | <table><tr><td align="center">C++<br><img src="android/cpp/header_footer_grid_horizontal.png" height="360"></td></tr></table> |
+| 74 | **Header Footer Template** | <table><tr><td align="center">C++<br><img src="android/cpp/header_footer_template.png" height="360"></td></tr></table> |
+| 75 | **Header Footer View** | <table><tr><td align="center">C++<br><img src="android/cpp/header_footer_view.png" height="360"></td></tr></table> |
+| 76 | **Hit Testing** | <table><tr><td align="center">C++<br><img src="android/cpp/hit_testing.png" height="360"></td></tr></table> |
+| 77 | **Horizontal Stack** | <table><tr><td align="center">C++<br><img src="android/cpp/horizontal_stack.png" height="360"></td></tr></table> |
+| 78 | **Hybrid Web View** | <table><tr><td align="center">C++<br><img src="android/cpp/hybrid_web_view.png" height="360"></td></tr></table> |
+| 79 | **Image** | <table><tr><td align="center">C++<br><img src="android/cpp/image.png" height="360"></td></tr></table> |
+| 80 | **Image Button** | <table><tr><td align="center">C++<br><img src="android/cpp/image_button.png" height="360"></td></tr></table> |
+| 81 | **Indicator** | <table><tr><td align="center">C++<br><img src="android/cpp/indicator.png" height="360"></td></tr></table> |
+| 82 | **Input Controls** | <table><tr><td align="center">C++<br><img src="android/cpp/input_controls.png" height="360"></td></tr></table> |
+| 83 | **Input Transparent** | <table><tr><td align="center">C++<br><img src="android/cpp/input_transparent.png" height="360"></td></tr></table> |
+| 84 | **Invalidate Brush** | <table><tr><td align="center">C++<br><img src="android/cpp/invalidate_brush.png" height="360"></td></tr></table> |
+| 85 | **Invalidate Shadow Host** | <table><tr><td align="center">C++<br><img src="android/cpp/invalidate_shadow_host.png" height="360"></td></tr></table> |
+| 86 | **Ios Blur Effect** | <table><tr><td align="center">C++<br><img src="android/cpp/ios_blur_effect.png" height="360"></td></tr></table> |
+| 87 | **Ios Date Picker** | <table><tr><td align="center">C++<br><img src="android/cpp/ios_date_picker.png" height="360"></td></tr></table> |
+| 88 | **Ios Entry** | <table><tr><td align="center">C++<br><img src="android/cpp/ios_entry.png" height="360"></td></tr></table> |
+| 89 | **Ios First Responder** | <table><tr><td align="center">C++<br><img src="android/cpp/ios_first_responder.png" height="360"></td></tr></table> |
+| 90 | **Ios Pan Gesture** | <table><tr><td align="center">C++<br><img src="android/cpp/ios_pan_gesture.png" height="360"></td></tr></table> |
+| 91 | **Ios Picker** | <table><tr><td align="center">C++<br><img src="android/cpp/ios_picker.png" height="360"></td></tr></table> |
+| 92 | **Ios Safe Area** | <table><tr><td align="center">C++<br><img src="android/cpp/ios_safe_area.png" height="360"></td></tr></table> |
+| 93 | **Ios Scroll View** | <table><tr><td align="center">C++<br><img src="android/cpp/ios_scroll_view.png" height="360"></td></tr></table> |
+| 94 | **Ios Search Bar** | <table><tr><td align="center">C++<br><img src="android/cpp/ios_search_bar.png" height="360"></td></tr></table> |
+| 95 | **Ios Slider Update On Tap** | <table><tr><td align="center">C++<br><img src="android/cpp/ios_slider_update_on_tap.png" height="360"></td></tr></table> |
+| 96 | **Ios Swipe Transition** | <table><tr><td align="center">C++<br><img src="android/cpp/ios_swipe_transition.png" height="360"></td></tr></table> |
+| 97 | **Ios Time Picker** | <table><tr><td align="center">C++<br><img src="android/cpp/ios_time_picker.png" height="360"></td></tr></table> |
+| 98 | **Items** | <table><tr><td align="center">C++<br><img src="android/cpp/items.png" height="360"></td></tr></table> |
+| 99 | **Items Updating Scroll Mode** | <table><tr><td align="center">C++<br><img src="android/cpp/items_updating_scroll_mode.png" height="360"></td></tr></table> |
+| 100 | **Label** | <table><tr><td align="center">C++<br><img src="android/cpp/label.png" height="360"></td></tr></table> |
+| 101 | **Layout Is Enabled** | <table><tr><td align="center">C++<br><img src="android/cpp/layout_is_enabled.png" height="360"></td></tr></table> |
+| 102 | **Line Gallery** | <table><tr><td align="center">C++<br><img src="android/cpp/line_gallery.png" height="360"></td></tr></table> |
+| 103 | **Line Join Gallery** | <table><tr><td align="center">C++<br><img src="android/cpp/line_join_gallery.png" height="360"></td></tr></table> |
+| 104 | **Measure First Strategy** | <table><tr><td align="center">C++<br><img src="android/cpp/measure_first_strategy.png" height="360"></td></tr></table> |
+| 105 | **Menu Bar** | <table><tr><td align="center">C++<br><img src="android/cpp/menu_bar.png" height="360"></td></tr></table> |
+| 106 | **Modal** | <table><tr><td align="center">C++<br><img src="android/cpp/modal.png" height="360"></td></tr></table> |
+| 107 | **Multiple Bound Selection** | <table><tr><td align="center">C++<br><img src="android/cpp/multiple_bound_selection.png" height="360"></td></tr></table> |
+| 108 | **Navigation Gallery** | <table><tr><td align="center">C++<br><img src="android/cpp/navigation_gallery.png" height="360"></td></tr></table> |
+| 109 | **Nested Collection** | <table><tr><td align="center">C++<br><img src="android/cpp/nested_collection.png" height="360"></td></tr></table> |
+| 110 | **Pan Gesture Events** | <table><tr><td align="center">C++<br><img src="android/cpp/pan_gesture_events.png" height="360"></td></tr></table> |
+| 111 | **Path Aspect Gallery** | <table><tr><td align="center">C++<br><img src="android/cpp/path_aspect_gallery.png" height="360"></td></tr></table> |
+| 112 | **Path Gallery** | <table><tr><td align="center">C++<br><img src="android/cpp/path_gallery.png" height="360"></td></tr></table> |
+| 113 | **Path Transform String** | <table><tr><td align="center">C++<br><img src="android/cpp/path_transform_string.png" height="360"></td></tr></table> |
+| 114 | **Picker** | <table><tr><td align="center">C++<br><img src="android/cpp/picker.png" height="360"></td></tr></table> |
+| 115 | **Pickers** | <table><tr><td align="center">C++<br><img src="android/cpp/pickers.png" height="360"></td></tr></table> |
+| 116 | **Pointer Gesture** | <table><tr><td align="center">C++<br><img src="android/cpp/pointer_gesture.png" height="360"></td></tr></table> |
+| 117 | **Polygon Gallery** | <table><tr><td align="center">C++<br><img src="android/cpp/polygon_gallery.png" height="360"></td></tr></table> |
+| 118 | **Polyline Gallery** | <table><tr><td align="center">C++<br><img src="android/cpp/polyline_gallery.png" height="360"></td></tr></table> |
+| 119 | **Preselected Item** | <table><tr><td align="center">C++<br><img src="android/cpp/preselected_item.png" height="360"></td></tr></table> |
+| 120 | **Preselected Items** | <table><tr><td align="center">C++<br><img src="android/cpp/preselected_items.png" height="360"></td></tr></table> |
+| 121 | **Progress Bar** | <table><tr><td align="center">C++<br><img src="android/cpp/progress_bar.png" height="360"></td></tr></table> |
+| 122 | **Radio Button Border** | <table><tr><td align="center">C++<br><img src="android/cpp/radio_button_border.png" height="360"></td></tr></table> |
+| 123 | **Radio Button Content** | <table><tr><td align="center">C++<br><img src="android/cpp/radio_button_content.png" height="360"></td></tr></table> |
+| 124 | **Radio Button Group** | <table><tr><td align="center">C++<br><img src="android/cpp/radio_button_group.png" height="360"></td></tr></table> |
+| 125 | **Radio Button Group Binding** | <table><tr><td align="center">C++<br><img src="android/cpp/radio_button_group_binding.png" height="360"></td></tr></table> |
+| 126 | **Radio Button Group Gallery** | <table><tr><td align="center">C++<br><img src="android/cpp/radio_button_group_gallery.png" height="360"></td></tr></table> |
+| 127 | **Radio Content Properties** | <table><tr><td align="center">C++<br><img src="android/cpp/radio_content_properties.png" height="360"></td></tr></table> |
+| 128 | **Radio Template From Style** | <table><tr><td align="center">C++<br><img src="android/cpp/radio_template_from_style.png" height="360"></td></tr></table> |
+| 129 | **Rectangle Gallery** | <table><tr><td align="center">C++<br><img src="android/cpp/rectangle_gallery.png" height="360"></td></tr></table> |
+| 130 | **Refresh View** | <table><tr><td align="center">C++<br><img src="android/cpp/refresh_view.png" height="360"></td></tr></table> |
+| 131 | **Relative Layout** | <table><tr><td align="center">C++<br><img src="android/cpp/relative_layout.png" height="360"></td></tr></table> |
+| 132 | **Scattered Radio Button** | <table><tr><td align="center">C++<br><img src="android/cpp/scattered_radio_button.png" height="360"></td></tr></table> |
+| 133 | **Scroll Mode Test** | <table><tr><td align="center">C++<br><img src="android/cpp/scroll_mode_test.png" height="360"></td></tr></table> |
+| 134 | **Scroll To Group** | <table><tr><td align="center">C++<br><img src="android/cpp/scroll_to_group.png" height="360"></td></tr></table> |
+| 135 | **Scroll View** | <table><tr><td align="center">C++<br><img src="android/cpp/scroll_view.png" height="360"></td></tr></table> |
+| 136 | **Search Bar** | <table><tr><td align="center">C++<br><img src="android/cpp/search_bar.png" height="360"></td></tr></table> |
+| 137 | **Selection Command Param** | <table><tr><td align="center">C++<br><img src="android/cpp/selection_command_param.png" height="360"></td></tr></table> |
+| 138 | **Selection Synchronization** | <table><tr><td align="center">C++<br><img src="android/cpp/selection_synchronization.png" height="360"></td></tr></table> |
+| 139 | **Semantics** | <table><tr><td align="center">C++<br><img src="android/cpp/semantics.png" height="360"></td></tr></table> |
+| 140 | **Shadow Playground** | <table><tr><td align="center">C++<br><img src="android/cpp/shadow_playground.png" height="360"></td></tr></table> |
+| 141 | **Shape App Theme** | <table><tr><td align="center">C++<br><img src="android/cpp/shape_app_theme.png" height="360"></td></tr></table> |
+| 142 | **Shapes** | <table><tr><td align="center">C++<br><img src="android/cpp/shapes.png" height="360"></td></tr></table> |
+| 143 | **Single Bound Selection** | <table><tr><td align="center">C++<br><img src="android/cpp/single_bound_selection.png" height="360"></td></tr></table> |
+| 144 | **Slider** | <table><tr><td align="center">C++<br><img src="android/cpp/slider.png" height="360"></td></tr></table> |
+| 145 | **Some Empty Groups** | <table><tr><td align="center">C++<br><img src="android/cpp/some_empty_groups.png" height="360"></td></tr></table> |
+| 146 | **Stack Layout** | <table><tr><td align="center">C++<br><img src="android/cpp/stack_layout.png" height="360"></td></tr></table> |
+| 147 | **Staggered Layout** | <table><tr><td align="center">C++<br><img src="android/cpp/staggered_layout.png" height="360"></td></tr></table> |
+| 148 | **Stepper** | <table><tr><td align="center">C++<br><img src="android/cpp/stepper.png" height="360"></td></tr></table> |
+| 149 | **Styles** | <table><tr><td align="center">C++<br><img src="android/cpp/styles.png" height="360"></td></tr></table> |
+| 150 | **Swipe Gesture** | <table><tr><td align="center">C++<br><img src="android/cpp/swipe_gesture.png" height="360"></td></tr></table> |
+| 151 | **Swipe Item Position** | <table><tr><td align="center">C++<br><img src="android/cpp/swipe_item_position.png" height="360"></td></tr></table> |
+| 152 | **Swipe Item Size** | <table><tr><td align="center">C++<br><img src="android/cpp/swipe_item_size.png" height="360"></td></tr></table> |
+| 153 | **Swipe Refresh** | <table><tr><td align="center">C++<br><img src="android/cpp/swipe_refresh.png" height="360"></td></tr></table> |
+| 154 | **Swipe Threshold** | <table><tr><td align="center">C++<br><img src="android/cpp/swipe_threshold.png" height="360"></td></tr></table> |
+| 155 | **Swipe View Margin** | <table><tr><td align="center">C++<br><img src="android/cpp/swipe_view_margin.png" height="360"></td></tr></table> |
+| 156 | **Swipe View Shadow** | <table><tr><td align="center">C++<br><img src="android/cpp/swipe_view_shadow.png" height="360"></td></tr></table> |
+| 157 | **Switch** | <table><tr><td align="center">C++<br><img src="android/cpp/switch.png" height="360"></td></tr></table> |
+| 158 | **Switch Grouping** | <table><tr><td align="center">C++<br><img src="android/cpp/switch_grouping.png" height="360"></td></tr></table> |
+| 159 | **Tabbed Flyout** | <table><tr><td align="center">C++<br><img src="android/cpp/tabbed_flyout.png" height="360"></td></tr></table> |
+| 160 | **Templated View** | <table><tr><td align="center">C++<br><img src="android/cpp/templated_view.png" height="360"></td></tr></table> |
+| 161 | **Time Picker** | <table><tr><td align="center">C++<br><img src="android/cpp/time_picker.png" height="360"></td></tr></table> |
+| 162 | **Title Bar** | <table><tr><td align="center">C++<br><img src="android/cpp/title_bar.png" height="360"></td></tr></table> |
+| 163 | **Toolbar** | <table><tr><td align="center">C++<br><img src="android/cpp/toolbar.png" height="360"></td></tr></table> |
+| 164 | **Transform Playground** | <table><tr><td align="center">C++<br><img src="android/cpp/transform_playground.png" height="360"></td></tr></table> |
+| 165 | **Transformations** | <table><tr><td align="center">C++<br><img src="android/cpp/transformations.png" height="360"></td></tr></table> |
+| 166 | **Triggers** | <table><tr><td align="center">C++<br><img src="android/cpp/triggers.png" height="360"></td></tr></table> |
+| 167 | **Update Path Data** | <table><tr><td align="center">C++<br><img src="android/cpp/update_path_data.png" height="360"></td></tr></table> |
+| 168 | **Varied Size Selector** | <table><tr><td align="center">C++<br><img src="android/cpp/varied_size_selector.png" height="360"></td></tr></table> |
+| 169 | **Vertical Stack** | <table><tr><td align="center">C++<br><img src="android/cpp/vertical_stack.png" height="360"></td></tr></table> |
+| 170 | **Visual States** | <table><tr><td align="center">C++<br><img src="android/cpp/visual_states.png" height="360"></td></tr></table> |
+| 171 | **Web View** | <table><tr><td align="center">C++<br><img src="android/cpp/web_view.png" height="360"></td></tr></table> |
+| 172 | **Z Index** | <table><tr><td align="center">C++<br><img src="android/cpp/z_index.png" height="360"></td></tr></table> |
+<!-- ANDROID:END -->
