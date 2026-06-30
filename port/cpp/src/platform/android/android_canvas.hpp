@@ -31,11 +31,26 @@
 // onDraw, so it never crosses threads — but it still uses scoped_env so it is robust to being built from
 // any attached thread.
 //
-// DEFERRED (documented, none reached by a shape page — shapes carry no text and the gallery's fills are
-// solid/transparent; verify against PlatformCanvas.Android if a gradient/image shape page is added):
-//   - gradient / pattern / image fills: set_fill_paint handles solid + falls back to the paint's
-//     background_color for the rest (a flat fill). A LinearGradient/RadialGradient Shader port is the
-//     follow-up. // TODO: gradient/image fills via android.graphics.{LinearGradient,RadialGradient,Bitmap}Shader.
+// GRADIENT FILLS (wave 17): set_fill_paint now installs an android.graphics.LinearGradient /
+// RadialGradient Shader on the fill Paint for a linear_gradient_paint / radial_gradient_paint
+// (Paint.setShader), faithfully mirroring PlatformCanvas.Android.SetFillPaint — so a gradient-backed
+// BoxView/Shape (the `gradient` + `box_view` pages) renders a true color ramp, not the prior flat
+// midpoint fall-back. Coordinates are in the SAME point space as the path being filled: the bridge applies
+// one canvas.scale(density) at construction, so the path AND the shader endpoints (derived from the
+// set_fill_paint `rectangle`, which arrives in points) are both mapped to pixels by that single CTM — no
+// per-coordinate density multiply (that would double-scale). A solid fill clears the shader (setShader(null))
+// so a stale ramp never bleeds into the next fill.
+//   LIMITATIONS (documented, faithful to the framework): non-even stop offsets ARE honored on the canvas
+//   path (the shader ctors take a float[] stops array — unlike the view-background GradientDrawable, which
+//   is even-spacing only). Per-stop state-alpha pre-multiply is omitted (the Paint's own alpha modulates
+//   the shader; see build_gradient_arrays). A non-positive radial radius is widened to the rect diagonal
+//   (C#'s GeometryUtil.GetDistance fall-back).
+//
+// DEFERRED (documented, none reached by a shape page — shapes carry no text and the gallery's image/pattern
+// fills are not exercised on a shape; verify against PlatformCanvas.Android if such a shape page is added):
+//   - pattern / image fills: set_fill_paint handles solid + gradient; a Bitmap/PatternPaint paint falls
+//     back to the paint's background_color (a flat fill). A BitmapShader port is the follow-up.
+//     // TODO: image/pattern fills via android.graphics.BitmapShader.
 //   - text ops (draw_string/draw_text/get_string_size): no shape renders text. They no-op / return {0,0}
 //     with this TODO rather than wiring Canvas.drawText. // TODO: text via android.graphics.Canvas.drawText.
 //   - draw_image: shapes never blit an image; deferred with the same marker.
@@ -167,8 +182,12 @@ namespace maui::platform::android
         // Fill `path_obj` honouring the winding rule (Path.setFillType WINDING/EVEN_ODD) with the fill
         // paint; used by fill_path and the clip path's even-odd fill rule.
         void fill_built_path(jobject path_obj, maui::graphics::winding_mode winding);
-        // Set the fill paint's color (Paint.setColor(argb)); clears any staged fill mode.
+        // Set the fill paint's color (Paint.setColor(argb)); clears any prior gradient shader first
+        // (Paint.setShader(null)) so a solid fill never inherits a stale ramp.
         void apply_fill_color(const maui::graphics::color& value);
+        // Install (or clear, when null) a Shader on the fill paint (Paint.setShader). The gradient path of
+        // set_fill_paint mints a LinearGradient/RadialGradient and routes it here; the solid path clears it.
+        void set_fill_shader(jobject shader);
 
         JNIEnv* env_ = nullptr;          // the calling-thread env (the onDraw thread; valid for the bridge's life)
         jobject canvas_ = nullptr;       // BORROWED android.graphics.Canvas (the Java onDraw owns it)

@@ -13,9 +13,14 @@
 #include <cmath>
 #include <vector>
 
+#include "maui/graphics/colors.hpp"
+#include "maui/graphics/gradient_paint.hpp"
+#include "maui/graphics/gradient_stop.hpp"
+#include "maui/graphics/linear_gradient_paint.hpp"
 #include "maui/graphics/paint.hpp"
 #include "maui/graphics/path_operation.hpp"
 #include "maui/graphics/point_f.hpp"
+#include "maui/graphics/radial_gradient_paint.hpp"
 #include "maui/graphics/solid_paint.hpp"
 
 namespace maui::platform::android
@@ -32,6 +37,9 @@ namespace maui::platform::android
         constexpr const char* k_path_filltype_class = "android/graphics/Path$FillType";
         constexpr const char* k_dash_path_effect_class = "android/graphics/DashPathEffect";
         constexpr const char* k_region_op_class = "android/graphics/Region$Op";
+        constexpr const char* k_linear_gradient_class = "android/graphics/LinearGradient";
+        constexpr const char* k_radial_gradient_class = "android/graphics/RadialGradient";
+        constexpr const char* k_shader_tilemode_class = "android/graphics/Shader$TileMode";
 
         // Clears any pending Java exception (the bridge must never leak JNI pending-exception state); true
         // when one was pending. Mirrors the box/button partials' clear_pending.
@@ -70,6 +78,77 @@ namespace maui::platform::android
         jint to_argb(const maui::graphics::color& value)
         {
             return static_cast<jint>(value.to_int());
+        }
+
+        // android.graphics.Shader.TileMode.CLAMP (the C# Shader.TileMode.Clamp both gradients use). The
+        // enum's constants are public static final fields of the enum's own type.
+        local_ref<jobject> clamp_tile_mode(JNIEnv* env)
+        {
+            return static_enum(env, k_shader_tilemode_class, "CLAMP", "Landroid/graphics/Shader$TileMode;");
+        }
+
+        // Build the parallel int[] colors / float[] stops a LinearGradient/RadialGradient ctor takes from a
+        // gradient paint's SORTED stops (C# SetFillPaint: `GetSortedStops()` → colors[i]/stops[i]). The two
+        // arrays are returned as fresh local refs; both empty on a JNI failure. The shader ctors require at
+        // least two colors, so a <2-stop paint is widened to a flat two-color ramp of the lone/first color
+        // (the visible result that gradient yields) — matching android_visual_ops::stop_color_array.
+        //
+        // DEVIATION from the C# oracle: C# multiplies each stop color by CurrentState.Alpha
+        // (Color.MultiplyAlpha(Alpha).ToInt()). This bridge does not track a separate state alpha — the
+        // global alpha is pushed straight onto the Paint (set_alpha → Paint.setAlpha), which still modulates
+        // a shader's output, so the stop colors are used un-pre-multiplied (color.to_int()). No gallery
+        // gradient page sets a non-1 fill alpha, so the rendered result is identical; documented as a port
+        // decision (the Paint-level alpha covers the common case the state-alpha multiply would).
+        struct gradient_arrays
+        {
+            local_ref<jintArray> colors;
+            local_ref<jfloatArray> stops;
+        };
+
+        gradient_arrays build_gradient_arrays(JNIEnv* env, const maui::graphics::gradient_paint& gradient)
+        {
+            const std::vector<maui::graphics::gradient_stop> sorted = gradient.get_sorted_stops();
+            const auto count = static_cast<jsize>(sorted.size() < 2 ? 2 : sorted.size());
+            local_ref<jintArray> colors{env, env->NewIntArray(count)};
+            local_ref<jfloatArray> stops{env, env->NewFloatArray(count)};
+            if (!colors || !stops)
+            {
+                env->ExceptionClear();
+                return {};
+            }
+            std::vector<jint> argb(static_cast<std::size_t>(count));
+            std::vector<jfloat> offsets(static_cast<std::size_t>(count));
+            if (sorted.empty())
+            {
+                // No stops: a transparent two-color ramp at 0..1 (a deliberately-emptied paint — render it
+                // transparent rather than crash; GradientPaint defaults to white-to-white, so this is rare).
+                argb.assign(static_cast<std::size_t>(count), 0);
+                offsets[0] = 0.0F;
+                offsets[1] = 1.0F;
+            }
+            else if (sorted.size() == 1)
+            {
+                argb[0] = static_cast<jint>(sorted[0].color().to_int());
+                argb[1] = argb[0];
+                offsets[0] = 0.0F;
+                offsets[1] = 1.0F;
+            }
+            else
+            {
+                for (std::size_t i = 0; i < sorted.size(); ++i)
+                {
+                    argb[i] = static_cast<jint>(sorted[i].color().to_int());
+                    offsets[i] = static_cast<jfloat>(sorted[i].offset());
+                }
+            }
+            env->SetIntArrayRegion(colors.get(), 0, count, argb.data());
+            env->SetFloatArrayRegion(stops.get(), 0, count, offsets.data());
+            if (env->ExceptionCheck() == JNI_TRUE)
+            {
+                env->ExceptionClear();
+                return {};
+            }
+            return {.colors = std::move(colors), .stops = std::move(stops)};
         }
     } // namespace
 
@@ -255,10 +334,30 @@ namespace maui::platform::android
         {
             return;
         }
+        // A solid color must drop any gradient shader staged by a prior set_fill_paint (Android draws the
+        // shader IN PREFERENCE to the color while one is set), so clear it before pushing the color.
+        set_fill_shader(nullptr);
         jmethodID set_color = default_jni_cache().method(env_, k_paint_class, "setColor", "(I)V");
         if (set_color != nullptr)
         {
             env_->CallVoidMethod(fill_paint_, set_color, to_argb(value));
+            clear_pending(env_);
+        }
+    }
+
+    void android_canvas::set_fill_shader(jobject shader)
+    {
+        if (fill_paint_ == nullptr)
+        {
+            return;
+        }
+        // Paint.setShader(Shader) returns the passed-in shader; wrap the returned local ref so it is freed
+        // (it is the same object, but JNI still mints a local ref per ObjectMethod call). A null clears it.
+        jmethodID set_shader = default_jni_cache().method(env_, k_paint_class, "setShader",
+                                                          "(Landroid/graphics/Shader;)Landroid/graphics/Shader;");
+        if (set_shader != nullptr)
+        {
+            const local_ref<jobject> prior{env_, env_->CallObjectMethod(fill_paint_, set_shader, shader)};
             clear_pending(env_);
         }
     }
@@ -978,11 +1077,13 @@ namespace maui::platform::android
         // IView property routed elsewhere). // TODO: verify against PlatformCanvas.Android (setShadowLayer).
     }
 
-    void android_canvas::set_fill_paint(const maui::graphics::paint* fill_paint, const maui::graphics::rect_f& /*rect*/)
+    void android_canvas::set_fill_paint(const maui::graphics::paint* fill_paint, const maui::graphics::rect_f& rect)
     {
-        // C# SetFillPaint(null) -> a solid white fill. A solid paint maps to its color; gradient/pattern/
-        // image fills fall back to the paint's background_color (a flat fill) until the Shader port lands
-        // (header note). Clears any prior staged shader (none yet — solid-only today).
+        // Ports PlatformCanvas.Android.SetFillPaint (src/Graphics/.../Platforms/Android/PlatformCanvas.cs).
+        // C# SetFillPaint(null) -> a solid white fill. A solid paint maps to its color (apply_fill_color
+        // clears any prior shader). A linear/radial gradient mints a matching Shader on the fill Paint; a
+        // shader-ctor / JNI failure falls to the paint's blended start/end color (C#'s catch → FillColor =
+        // BlendStartAndEndColors). Pattern/image remain a flat background_color fall-back (header note).
         if (fill_paint == nullptr)
         {
             apply_fill_color(maui::graphics::color(1, 1, 1, 1));
@@ -993,7 +1094,72 @@ namespace maui::platform::android
             apply_fill_color(solid->color());
             return;
         }
-        // gradient / pattern / image — flat fallback. // TODO: gradient/image via android Shader.
+
+        if (const auto* const linear = dynamic_cast<const maui::graphics::linear_gradient_paint*>(fill_paint))
+        {
+            // C#: x1 = StartPoint.X * rect.Width + rect.X (etc.) — the relative endpoints scaled into the
+            // fill rectangle's POINT space (the canvas CTM maps points→pixels, like the path coords).
+            const auto x1 = static_cast<jfloat>((linear->start_point().x * rect.width) + rect.x);
+            const auto y1 = static_cast<jfloat>((linear->start_point().y * rect.height) + rect.y);
+            const auto x2 = static_cast<jfloat>((linear->end_point().x * rect.width) + rect.x);
+            const auto y2 = static_cast<jfloat>((linear->end_point().y * rect.height) + rect.y);
+            const gradient_arrays arrays = build_gradient_arrays(env_, *linear);
+            const local_ref<jobject> clamp = clamp_tile_mode(env_);
+            jclass shader_class = default_jni_cache().find_class(env_, k_linear_gradient_class);
+            jmethodID shader_ctor = default_jni_cache().method(env_, k_linear_gradient_class, "<init>",
+                                                               "(FFFF[I[FLandroid/graphics/Shader$TileMode;)V");
+            if (arrays.colors && arrays.stops && clamp && shader_class != nullptr && shader_ctor != nullptr)
+            {
+                const local_ref<jobject> shader{env_,
+                                                env_->NewObject(shader_class, shader_ctor, x1, y1, x2, y2,
+                                                                arrays.colors.get(), arrays.stops.get(), clamp.get())};
+                if (!clear_pending(env_) && shader)
+                {
+                    // C# sets FillColor = White before staging the shader; a solid color also clears any
+                    // prior shader, so set the white base first, THEN install the gradient over it.
+                    apply_fill_color(maui::graphics::colors::white);
+                    set_fill_shader(shader.get());
+                    return;
+                }
+            }
+            apply_fill_color(linear->blend_start_and_end_colors()); // C# catch fall-back
+            return;
+        }
+
+        if (const auto* const radial = dynamic_cast<const maui::graphics::radial_gradient_paint*>(fill_paint))
+        {
+            // C#: center = Center.{X,Y} * rect.{Width,Height} + rect.{X,Y}; radius = Radius * max(W,H), or
+            // the rect diagonal when the radius is non-positive (GeometryUtil.GetDistance corner-to-corner).
+            const auto cx = static_cast<jfloat>((radial->center().x * rect.width) + rect.x);
+            const auto cy = static_cast<jfloat>((radial->center().y * rect.height) + rect.y);
+            auto radius =
+                static_cast<jfloat>(radial->radius() * static_cast<double>(std::max(rect.height, rect.width)));
+            if (!(radius > 0.0F))
+            {
+                radius = std::hypot(rect.width, rect.height);
+            }
+            const gradient_arrays arrays = build_gradient_arrays(env_, *radial);
+            const local_ref<jobject> clamp = clamp_tile_mode(env_);
+            jclass shader_class = default_jni_cache().find_class(env_, k_radial_gradient_class);
+            jmethodID shader_ctor = default_jni_cache().method(env_, k_radial_gradient_class, "<init>",
+                                                               "(FFF[I[FLandroid/graphics/Shader$TileMode;)V");
+            if (arrays.colors && arrays.stops && clamp && shader_class != nullptr && shader_ctor != nullptr)
+            {
+                const local_ref<jobject> shader{env_,
+                                                env_->NewObject(shader_class, shader_ctor, cx, cy, radius,
+                                                                arrays.colors.get(), arrays.stops.get(), clamp.get())};
+                if (!clear_pending(env_) && shader)
+                {
+                    apply_fill_color(maui::graphics::colors::white);
+                    set_fill_shader(shader.get());
+                    return;
+                }
+            }
+            apply_fill_color(radial->blend_start_and_end_colors()); // C# catch fall-back
+            return;
+        }
+
+        // pattern / image — flat fallback. // TODO: image/pattern fills via android BitmapShader.
         apply_fill_color(fill_paint->background_color());
     }
 
