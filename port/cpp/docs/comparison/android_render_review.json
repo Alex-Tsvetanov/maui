@@ -106,8 +106,8 @@
 },
 {
 "key": "carousel_page",
-"status": "yellow",
-"note": "Carousel fails to page: shows 'Item 1Item 2Item 3' concatenated on one line instead of only current item 'Item 1' like iOS. Prev/Next + Position text correct."
+"status": "green",
+"note": "Shows current item 'Item 1', Prev/Next, position label — matches iOS ref; single current item, no concatenation."
 },
 {
 "key": "chat_example",
@@ -402,7 +402,7 @@
 {
 "key": "indicator",
 "status": "yellow",
-"note": "All section title labels render but the actual indicator dot graphics are entirely absent under every section (Basic, Colors, Shape, Size, etc)."
+"note": "Dot rows (Basic/Colors/Shape/Size/MaxVisible) match iOS. CarouselView row: dots at label but 'Item 1' content detached far below, not inline like iOS."
 },
 {
 "key": "input_controls",
