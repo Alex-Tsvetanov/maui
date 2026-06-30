@@ -100,6 +100,22 @@ view; built via aapt2 link (manifest) → d8 (dex the Activity) → zip/zipalign
 MAUI ┃ C++ ┃ C++&XAML board. The native gallery already cross-compiles for arm64-android; the ~9 wired handlers
 mean simple pages render meaningful content on day one.
 
+**Confirmed mechanism (de-risks it):** `src/platform/android/window_handler.cpp` ALREADY mounts the root page's
+native View into a plain `android.widget.FrameLayout` (its `host_content` does the `SetContentView(rootView)`
+dance; navigation_handler does the same for page stacks) — so the rendering plumbing EXISTS; the Activity just
+needs `setContentView(window's FrameLayout)`. Four pieces to build:
+1. **Native JNI `nativeMount(Activity, pageKey)`** — set_java_vm + set_app_context(activity), build the gallery
+   page for the key, connect a window to it, return the window's FrameLayout. Analogous to
+   `src/platform/android/testhost/test_host.cpp`'s `nativeRun`, but mounting a page instead of running gtest.
+2. **`MauiHostActivity.java` + `AndroidManifest.xml`** — onCreate: System.loadLibrary the app-host .so, call
+   nativeMount, `setContentView` the returned root view. (Model the JNI bootstrap on `testhost/Bootstrap.java`.)
+3. **CMake `SHARED` app-host .so target** — gallery page-builder sources + `maui_controls` + the JNI entry,
+   mirroring the `maui_android_widget_tests` target. NOTE: `examples/cmake/maui_add_app.cmake` has no android
+   branch yet (only headless/apple/maccatalyst) — either add one or build the .so directly in the root CMake.
+4. **Build+run script** — compile .so → aapt2 link (manifest) → d8 (dex the Activity) → zip/zipalign/apksigner →
+   `adb install` → `am start` → `adb exec-out screencap`. The page-by-key builder is the gallery's
+   `MAUI_SAMPLE_PAGE` switcher. EditText/Switch/CheckBox-based pages will finally render + be verifiable here.
+
 ## Build-system note
 Each backend builds in its own dir via a CMake option/preset (headless/apple/ios/maccatalyst/android),
 per the chosen "enabling options, keep separate dirs" approach.

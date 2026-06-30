@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Minimal manifest for the C++ MAUI gallery app host. Built with the in-SDK build-tools (34.0.0):
+     aapt2 link this manifest, d8 dexes MauiHostActivity, the libmaui_android_apphost.so goes under
+     lib/<abi>/, then zipalign + apksigner produce an installable APK (no gradle). One launchable
+     Activity; no permissions or resources beyond the manifest. minSdk 24 matches the android preset's
+     ANDROID_PLATFORM (android-34 compileSdk; the NDK 27 libc++ floor is well below 24). -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="dev.mauicpp.apphost">
+
+    <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34" />
+
+    <application
+        android:label="MAUI C++ Gallery"
+        android:hasCode="true"
+        android:allowBackup="false">
+        <activity
+            android:name=".MauiHostActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
