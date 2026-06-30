@@ -49,6 +49,7 @@
 #include <string_view>
 #include <vector>
 
+#include "android_clip_ops.hpp"
 #include "android_semantics_ops.hpp"
 #include "android_view_ops.hpp"
 #include "android_visual_ops.hpp"
@@ -472,6 +473,31 @@ namespace maui::core
         maui::platform::android::apply_semantics(native, value);
     }
 
+    // VisualElement.Clip on the layout (wave 24): a ViewOutlineProvider + setClipToOutline(true) clips the
+    // ViewGroup AND its children to the convex shape (the clip_views Grid clips its red panel + its "Grid"
+    // label child to the shared EllipseGeometry). The base mirror runs FIRST (the VM-less suite observes
+    // it). The borrow is stashed so the host's platform_arrange re-resolves the bounds-dependent geometry
+    // after layout — the panel is 0×0 at map time (apply_outline_clip clears the clip then; the arrange
+    // pass rebuilds it at the live size).
+    void layout_platform::update_clip(const maui::graphics::i_shape* value)
+    {
+        view_platform_base::update_clip(value);
+        clip_shape = value;
+        if (native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        // At map time the panel has no size yet — pass {0,0} so apply_outline_clip clears any prior clip;
+        // platform_arrange re-resolves it against the live frame. (display_density needs the panel handle.)
+        const float density = display_density(env.get(), panel_of(*this));
+        maui::platform::android::apply_outline_clip(native, value, density, 0.0, 0.0);
+    }
+
     std::unique_ptr<layout_platform> layout_handler::create_platform_view()
     {
         auto platform = std::make_unique<layout_platform>();
@@ -813,5 +839,14 @@ namespace maui::core
         }
         env->CallVoidMethod(panel, layout, left, top, left + width, top + height);
         clear_pending(env.get());
+
+        // Re-resolve the clip against the just-laid-out bounds (the iOS reapply_clip analog): the outline
+        // geometry resolves against the live frame size in points, and update_clip cleared it at map time
+        // when the panel was 0×0. frame is in points.
+        if (platform->clip_shape != nullptr)
+        {
+            maui::platform::android::apply_outline_clip(platform->native, platform->clip_shape, density, frame.width,
+                                                        frame.height);
+        }
     }
 } // namespace maui::core

@@ -113,6 +113,7 @@
 #include <string>
 #include <string_view>
 
+#include "android_clip_ops.hpp"
 #include "android_semantics_ops.hpp"
 #include "android_view_ops.hpp"
 #include "android_visual_ops.hpp"
@@ -324,6 +325,33 @@ namespace
         }
         memoized.store(density, std::memory_order_relaxed);
         return density;
+    }
+
+    // The view's CURRENT size in POINTS (getWidth/getHeight pixels / density). {0,0} before the first
+    // layout (apply_outline_clip skips a 0-sized view; platform_arrange re-resolves once laid out). The
+    // generic-IView clip op resolves the geometry against rect{0,0,w,h} in points (the WrapperView.SetClip
+    // convention), so the clip lands in the same point space the apple apply_clip twin uses.
+    struct point_size
+    {
+        double width;
+        double height;
+    };
+    [[nodiscard]] point_size view_point_size(JNIEnv* env, jobject widget, float density)
+    {
+        auto& cache = default_jni_cache();
+        jmethodID get_width = cache.method(env, k_edit_text_class, "getWidth", "()I");
+        jmethodID get_height = cache.method(env, k_edit_text_class, "getHeight", "()I");
+        if (get_width == nullptr || get_height == nullptr || density == 0.0F)
+        {
+            return {.width = 0.0, .height = 0.0};
+        }
+        const jint w = env->CallIntMethod(widget, get_width);
+        const jint h = env->CallIntMethod(widget, get_height);
+        if (clear_pending(env))
+        {
+            return {.width = 0.0, .height = 0.0};
+        }
+        return {.width = static_cast<double>(w) / density, .height = static_cast<double>(h) / density};
     }
 
     // AlignmentExtensions.ToTextAlignment: Center → Center, End → ViewEnd, else ViewStart. (The EditText
@@ -613,6 +641,30 @@ namespace maui::core
     {
         view_platform_base::update_semantics(value);
         maui::platform::android::apply_semantics(native, value);
+    }
+
+    // VisualElement.Clip on a generic view (wave 24): install a ViewOutlineProvider + setClipToOutline so
+    // the framework clips the whole EditText to the convex shape (the clip_views EllipseGeometry). The base
+    // mirror runs FIRST (the VM-less cross-platform suite observes it). The borrow is stashed so
+    // platform_arrange can re-resolve the bounds-dependent geometry after layout (the view is 0×0 at map
+    // time — apply_outline_clip clears the clip then, and the arrange pass rebuilds it at the live size).
+    void search_bar_platform::update_clip(const maui::graphics::i_shape* value)
+    {
+        view_platform_base::update_clip(value);
+        clip_shape = value;
+        if (native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        jobject widget = widget_of(*this);
+        const float density = display_density(env.get(), widget);
+        const point_size size = view_point_size(env.get(), widget, density);
+        maui::platform::android::apply_outline_clip(native, value, density, size.width, size.height);
     }
 
     std::unique_ptr<search_bar_platform> search_bar_handler::create_platform_view()
@@ -1390,5 +1442,14 @@ namespace maui::core
         }
         env->CallVoidMethod(widget, layout, left, top, left + width, top + height);
         clear_pending(env.get());
+
+        // Re-resolve the clip against the just-laid-out bounds (the iOS reapply_clip analog): the outline
+        // geometry is resolved against the live frame size in points, and update_clip may have run before
+        // the first layout when the view was 0×0 (apply_outline_clip cleared it then). frame is in points.
+        if (platform->clip_shape != nullptr)
+        {
+            maui::platform::android::apply_outline_clip(platform->native, platform->clip_shape, density, frame.width,
+                                                        frame.height);
+        }
     }
 } // namespace maui::core

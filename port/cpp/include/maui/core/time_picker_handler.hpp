@@ -93,6 +93,12 @@ namespace maui::core
         // Android backend: a non-editable android.widget.EditText stand-in for MauiTimePicker (the field text
         // is the formatted Time; the TimePickerDialog + 24h-view mode are deferred). Defined in
         // src/platform/android/time_picker_handler.cpp; base body FIRST then widget push. IsEnabled IS pushed.
+        // Clip IS pushed (wave 24): the generic-view clip rides a ViewOutlineProvider + setClipToOutline(true)
+        // (android_clip_ops.hpp apply_outline_clip) — convex shapes (ellipse/rect/rounded-rect, the
+        // clip_views page's shared EllipseGeometry) clip exactly; a non-convex path keeps the headless mirror
+        // (the honest deferral documented there). update_clip stashes the borrow in clip_shape so
+        // platform_arrange re-resolves it against the live bounds (the geometry is bounds-dependent — the
+        // iOS reapply_clip analog).
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
@@ -101,6 +107,9 @@ namespace maui::core
         void update_transform(const maui::core::transform_spec& value) override;
         void update_flow_direction(maui::core::flow_direction value) override;
         void update_semantics(const maui::core::semantics* value) override;
+        void update_clip(const maui::graphics::i_shape* value) override;
+        // The clip borrow platform_arrange re-resolves against the live bounds (null = no clip). Android-gated.
+        const maui::graphics::i_shape* clip_shape = nullptr;
 #endif
     };
 

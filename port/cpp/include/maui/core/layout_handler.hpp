@@ -125,10 +125,15 @@ namespace maui::core
         // pure-native cross-platform suite on the emulator WITHOUT a Java VM, and that suite observes the
         // headless mirrors — then pushes to the ViewGroup when one exists. Visibility/opacity/automation_id
         // push directly; transform/flow_direction/background/semantics push through the shared android
-        // view/visual/semantics ops (the same set the button partial widens). Shadow, Clip, and
-        // InputTransparent keep ONLY the base mirror: on Android those are WrapperView-only (no plain
-        // android.view.ViewGroup analog), exactly as the button partial documents. update_clips_to_bounds
-        // (declared once above) pushes ViewGroup.setClipChildren/setClipToPadding via the JNI body.
+        // view/visual/semantics ops (the same set the button partial widens). Shadow and InputTransparent
+        // keep ONLY the base mirror: on Android those are WrapperView-only (no plain ViewGroup analog),
+        // exactly as the button partial documents. update_clips_to_bounds (declared once above) pushes
+        // ViewGroup.setClipChildren/setClipToPadding via the JNI body. Clip IS pushed (wave 24): a
+        // ViewOutlineProvider + setClipToOutline(true) on the ViewGroup clips the panel AND its children to
+        // the convex shape (android_clip_ops.hpp apply_outline_clip) — the clip_views Grid clips its red
+        // background and its "Grid" label child to the shared EllipseGeometry. Non-convex paths keep the
+        // headless mirror (the honest deferral). update_clip stashes the borrow so the host's
+        // platform_arrange re-resolves it against the live bounds (the iOS reapply_clip analog).
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_automation_id(std::string_view value) override;
@@ -136,6 +141,10 @@ namespace maui::core
         void update_flow_direction(maui::core::flow_direction value) override;
         void update_background(const maui::graphics::paint* value) override;
         void update_semantics(const maui::core::semantics* value) override;
+        void update_clip(const maui::graphics::i_shape* value) override;
+        // The clip borrow the host's platform_arrange re-resolves against the live bounds (null = no clip).
+        // Android-gated (Apple stashes via an associated object).
+        const maui::graphics::i_shape* clip_shape = nullptr;
 #endif
     };
 

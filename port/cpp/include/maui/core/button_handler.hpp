@@ -130,9 +130,15 @@ namespace maui::core
         // cross-platform suite on the emulator WITHOUT a Java VM, and that suite observes the
         // headless mirrors — then pushes to the widget when one exists. The render transform, flow
         // direction, and semantics push through the shared android view/semantics ops (W4-34e). Shadow,
-        // Clip, and InputTransparent keep ONLY the base mirror: on Android those are WrapperView-only
-        // (no plain-android.view.View analog), so an unwrapped View receives no update in C# either
-        // (see src/platform/android/android_visual_ops.hpp / android_semantics_ops.hpp deviations).
+        // and InputTransparent keep ONLY the base mirror: on Android those are WrapperView-only (no
+        // plain-android.view.View analog), so an unwrapped View receives no update in C# either (see
+        // src/platform/android/android_visual_ops.hpp / android_semantics_ops.hpp deviations). Clip IS
+        // pushed (wave 24): the generic-view clip rides a ViewOutlineProvider + setClipToOutline(true)
+        // (android_clip_ops.hpp apply_outline_clip) — convex shapes (ellipse/rect/rounded-rect, the
+        // clip_views page's shared EllipseGeometry) clip exactly; a non-convex path keeps the headless
+        // mirror (the honest deferral documented there). update_clip stashes the borrow in clip_shape so
+        // platform_arrange re-resolves it against the live bounds (the geometry is bounds-dependent — the
+        // iOS reapply_clip analog).
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
@@ -141,6 +147,10 @@ namespace maui::core
         void update_transform(const maui::core::transform_spec& value) override;
         void update_flow_direction(maui::core::flow_direction value) override;
         void update_semantics(const maui::core::semantics* value) override;
+        void update_clip(const maui::graphics::i_shape* value) override;
+        // The clip borrow platform_arrange re-resolves against the live bounds (null = no clip). Unused on
+        // headless/Apple (Apple stashes via an associated object), so it is android-gated.
+        const maui::graphics::i_shape* clip_shape = nullptr;
 #endif
     };
 
