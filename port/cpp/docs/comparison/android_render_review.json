@@ -51,8 +51,8 @@
 },
 {
 "key": "basic_swipe",
-"status": "yellow",
-"note": "Android shows only the 'Swipe a row, then invoke Delete' label. The five grey SwipeView rows (Up/Down/Right/Left/any direction) in the iOS ref are all missing. Confirmed."
+"status": "green",
+"note": "All 5 closed SwipeView content boxes present (Swipe Up/Down/Right/Left/any direction) plus bottom 'Swipe a row, then invoke Delete' text — same rows and layout as iOS ref."
 },
 {
 "key": "behaviors",
@@ -186,13 +186,13 @@
 },
 {
 "key": "custom_size_swipe",
-"status": "yellow",
-"note": "CONFIRM. Android shows only the 'RightItems revealed (open=1, threshold=0)' label. Green SwipeView block ('This is the SwipeView Content' + 'Test Click from Content' button) from iOS ref absent."
+"status": "green",
+"note": "Green content box with 'This is the SwipeView Content' label + 'Test Click from Content' button, plus 'RightItems revealed (open=1, threshold=0)'. Matches iOS (button native gray chrome)."
 },
 {
 "key": "custom_swipe_item_view",
-"status": "yellow",
-"note": "CONFIRM. Android shows only 'Right items revealed (Favourite)' label. The large blue SwipeView content card ('Welcome to .NET MAUI' / 'June 19, 2026') from the iOS ref is entirely missing."
+"status": "green",
+"note": "'Right items revealed (Favourite)' text and blue card with 'Welcome to .NET MAUI' / 'June 19, 2026'. Matches iOS ref content and layout."
 },
 {
 "key": "cv_visual_states",
@@ -476,8 +476,8 @@
 },
 {
 "key": "ios_swipe_transition",
-"status": "yellow",
-"note": "CONFIRM yellow. Android shows 'SwipeTransitionMode:' label, Reveal/Drag buttons, both status labels, but the grey SwipeView item 'Swipe right' is missing — empty gap where iOS ref shows it."
+"status": "green",
+"note": "Matches iOS: 'SwipeTransitionMode:' + Reveal/Drag buttons, gray 'Swipe right' box, instruction text, 'SwipeTransitionMode: Drag' status. Android buttons gray boxes vs iOS blue text; content same."
 },
 {
 "key": "ios_time_picker",
@@ -746,18 +746,18 @@
 },
 {
 "key": "swipe_gesture",
-"status": "yellow",
-"note": "CONFIRM yellow. Android renders the instruction header and 'TapCommand (double-tap)' label, but the SwipeView card (Welcome to .NET MAUI! / June 2026 / subtitle) is missing."
+"status": "green",
+"note": "Black header banner, 'Welcome to .NET MAUI!' card with 'June 2026' right-aligned, gray subtext lines, and 'TapCommand (double-tap)'. Matches iOS ref."
 },
 {
 "key": "swipe_item_position",
-"status": "blank",
-"note": "CONFIRM blank. Below app bar Android is fully empty grey; iOS ref shows a framed 'Reveal' box and 'Swipe in any direction' label, neither of which renders."
+"status": "green",
+"note": "'Reveal' content row box and 'Swipe in any direction' label below it. Matches iOS resting content."
 },
 {
 "key": "swipe_item_size",
-"status": "yellow",
-"note": "CONFIRM yellow. All headers/labels render (icon sizes 128/256/512, SwipeView 128/256 Height) but every gray 'Swipe to Left' SwipeView content box from iOS ref is missing, leaving gaps."
+"status": "green",
+"note": "All resting content present: intro, 'Different icon sizes' (128/256/512) and 'SwipeView sizes' (128/256 Height), each gray 'Swipe to Left' box. iOS centers text, Android left-aligns."
 },
 {
 "key": "swipe_refresh",
@@ -766,18 +766,18 @@
 },
 {
 "key": "swipe_threshold",
-"status": "yellow",
-"note": "CONFIRM yellow. Instruction, 4 labels, both blue sliders, 'Reveal/Execute threshold=80' render; but the 4 blue SwipeView content boxes the iOS ref shows are all missing."
+"status": "green",
+"note": "Matches iOS: banner + Default/Custom Reveal-mode and Default/Custom Execute-mode sections, each blue Content box; both Custom rows label+slider; 'threshold=80' footer present."
 },
 {
 "key": "swipe_view_margin",
-"status": "yellow",
-"note": "CONFIRM yellow. Header, black intro box, both Margin+Padding sliders render; but the two gray 'Horizontal/Vertical SwipeItems' content boxes below the sliders are missing."
+"status": "green",
+"note": "Matches iOS: 'Horizontal items revealed', black banner, Content Margin + Content Padding sliders, two gray cards (outer+inner) 'Horizontal SwipeItems' and 'Vertical SwipeItems'."
 },
 {
 "key": "swipe_view_shadow",
-"status": "yellow",
-"note": "CONFIRM yellow. Only the heading and 'SwipeItems'/'SwipeItemViews' labels render. Both bordered/shadowed 'Content' boxes under each label in the iOS ref are missing."
+"status": "green",
+"note": "Matches iOS: header, 'SwipeItems'+rounded bordered 'Content' box, 'SwipeItemViews'+rounded bordered 'Content' box. iOS box has inner gradient/shadow; Android flatter but box present."
 },
 {
 "key": "switch",
