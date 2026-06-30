@@ -12,17 +12,16 @@ MAUI ┃ C++ ┃ C++&XAML per row). Status:
   RUN hijacks the host screen (`screencapture` + frontmost), so it is an **away/overnight job**:
   `python3 tools/parity/capture_maccatalyst.py` then `--theme dark`, then `gen_macos_readme_section.py` to
   regenerate the README block. (Also extend AppKit similarly via `capture_appkit.py`.)
-- **Android ⏳ 0→172** — the **app host WORKS end-to-end** (`tools/parity/build_android_apphost.sh <key>` builds
-  the .so + APK via aapt2/d8/apksigner, installs, launches `MauiHostActivity`, and `adb screencap`s to
-  `docs/comparison/android/cpp/`; the Activity launches + displays cleanly, no crash). **BUT pages render BLANK.**
-  ROOT CAUSE (confirmed): the android backend has the LEAF widget handlers (button/label/image/slider/switch/
-  check_box/editor/progress_bar/activity_indicator) but **NO LAYOUT/CONTAINER handlers** — `layout_handler`,
-  `content_view`, `content_page`, `scroll_view`, stack, grid are HEADLESS-ONLY (no native android `ViewGroup`),
-  so the leaf TextViews have no visible parent. **NEXT (the rendering blocker):** implement android layout/
-  container partials — a custom `android.view.ViewGroup` that `addView`s the maui children and whose `onLayout`
-  does NOT re-lay-out (maui positions children absolutely via each handler's `platform_arrange` → child.layout();
-  a standard ViewGroup would override that). Wire `src/platform/android/layout_handler.cpp` (+ content_view/
-  content_page/scroll_view) into the CMake android fan-out like the widget handlers. Then `adb screencap` all 172.
+- **Android ✅ 172 (C++ column) DONE** — the app host renders maui pages on the emulator and all 172 gallery
+  pages are captured + committed to `docs/comparison/android/cpp/` with an Android section in the README
+  (`gen_android_readme_section.py`). The blank-render blocker was the missing layout/container handlers — FIXED:
+  `MauiLayout.java` (no-op `onLayout` ViewGroup) + `layout_handler`/`content_page`/`scroll_view` android partials
+  (commit fc95e827cd). Capture: `tools/parity/build_android_apphost.sh` (no args = all 172; dismisses the
+  transient SystemUI ANR via CLOSE_SYSTEM_DIALOGS). Pages on implemented controls render correctly; pages needing
+  not-yet-ported handlers (CollectionView/Picker/Date+TimePicker/Border/Shapes/RadioButton/CheckBox-glyph/…)
+  render blank/partial. **REMAINING Android:** (a) port the rest of the control handlers so those pages fill in;
+  (b) the **MAUI** Android column (build+install MauiCompare for android, capture the same 172) + the **C++&XAML**
+  column (a gallery_xaml app host) for the 3-way board; (c) dark-theme pass (`MAUI_APPEARANCE=dark`).
 
 ## Milestones (this session, on the branch)
 | commit | what |
