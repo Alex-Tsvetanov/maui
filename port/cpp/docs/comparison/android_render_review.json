@@ -461,8 +461,8 @@
 },
 {
 "key": "ios_scroll_view",
-"status": "blank",
-"note": "Only app bar + empty gray background; iOS shows a back button, a slider, and two link-style labels, all missing on Android."
+"status": "green",
+"note": "Android shows slider (partial fill) + both action lines with full text, matching iOS ref content (iOS renders them as plain links, not chrome - known harness quirk)."
 },
 {
 "key": "ios_search_bar",
@@ -791,8 +791,8 @@
 },
 {
 "key": "tabbed_flyout",
-"status": "blank",
-"note": "Only app bar + empty background; iOS shows 'This is the Home tab' text plus Home/Settings tab bar — nothing rendered."
+"status": "green",
+"note": "Android shows 'This is the Home tab.' text plus Home/Settings tab bar with Home selected (blue), matching iOS ref content exactly."
 },
 {
 "key": "templated_view",
