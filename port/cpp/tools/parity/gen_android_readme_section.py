@@ -23,6 +23,7 @@ Output goes to stdout; the caller splices it between the <!-- ANDROID:BEGIN --> 
 
 Usage: python3 tools/parity/gen_android_readme_section.py > /tmp/android_section.md
 """
+import json
 import os
 
 from readme_common import (
@@ -38,6 +39,34 @@ AND = os.path.join(COMP, "android")
 H = 360
 COLUMNS = (("maui", "MAUI"), ("cpp", "C++"), ("xaml", "C++&amp;XAML"))
 PENDING = "_pending — Android vision review not run yet_"
+
+# Render-health review (C++ Android vs the iOS C++ reference board), produced by the
+# `android-render-health-audit` workflow and written to android_render_review.json as
+# [{"key","status","note"}]. status ∈ {green,yellow,red,blank}. Absent file => not run yet.
+REVIEW_JSON = os.path.join(COMP, "android_render_review.json")
+STATUS_EMOJI = {
+    "green": "🟢 renders",
+    "yellow": "🟡 partial",
+    "red": "🔴 wrong",
+    "blank": "⬛ blank",
+}
+
+
+def load_render_review():
+    """key -> {"status","note"} from android_render_review.json, or {} if absent/bad."""
+    if not os.path.exists(REVIEW_JSON):
+        return {}
+    try:
+        with open(REVIEW_JSON, encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (OSError, ValueError):
+        return {}
+    out = {}
+    for row in data:
+        k = row.get("key")
+        if k:
+            out[k] = {"status": row.get("status", ""), "note": row.get("note", "")}
+    return out
 
 
 def all_keys():
@@ -70,6 +99,13 @@ def main():
     ph = {col: sum(0 if has_png(col, k) else 1 for k in keys) for col, _ in COLUMNS}
     real = {col: n - ph[col] for col, _ in COLUMNS}
     descs = ios_descriptions()
+    review = load_render_review()
+    rh = {"green": 0, "yellow": 0, "red": 0, "blank": 0}
+    for k in keys:
+        st = review.get(k, {}).get("status")
+        if st in rh:
+            rh[st] += 1
+    reviewed = sum(rh.values())
 
     out = []
     out.append("<details>")
@@ -79,10 +115,15 @@ def main():
         "The C++ port's gallery pages rendered by the **Android app host** (a real Activity/APK built by "
         "`tools/parity/build_android_apphost.sh` — aapt2/d8/apksigner, no gradle) on the `maui-test` emulator, "
         "captured via `adb screencap`. Per the cross-platform goal, every iOS example has an Android render "
-        "here. Pages built on controls whose **Android handler is not yet implemented** (CollectionView, "
-        "Picker, Date/TimePicker, Border/Shapes, …) render blank or partial — the honest current state of the "
-        "Android backend (the layout/container handlers + ~12 widget handlers are done; see "
-        "[../MACOS_ANDROID_RESUME.md](../MACOS_ANDROID_RESUME.md)). The **MAUI** and **C++&amp;XAML** Android "
+        "here. Implemented Android handlers: the layout/container/scroll stack plus ~22 widget handlers — "
+        "label, image, button, entry, editor, activity_indicator, progress_bar, slider, switch, check_box, "
+        "radio_button, picker, date_picker, time_picker, stepper, search_bar, border, box_view and the full "
+        "**shapes family** (ellipse/line/polyline/polygon/path/rectangle) via the `android.graphics.Canvas` "
+        "bridge (the Android twin of MAUI's `PlatformGraphicsView`). Pages built on controls still missing an "
+        "Android handler (the **CollectionView** family, SwipeView, RefreshView, WebView, Carousel/Indicator, "
+        "gesture-driven demos) render blank or partial — the honest current state, made precise by the "
+        "render-health classification below (see also [../MACOS_ANDROID_RESUME.md](../MACOS_ANDROID_RESUME.md)). "
+        "The **MAUI** and **C++&amp;XAML** Android "
         "columns are future work (need MauiCompare-android + the gallery_xaml app host); until those land "
         "every cell in them is a `pending` placeholder so the row footprint matches the eventual 3-up board."
     )
@@ -90,17 +131,35 @@ def main():
     out.append(f"**Coverage:** {real['cpp']} / {n} pages captured (C++ column); "
                f"MAUI {real['maui']} / {n}, C++&amp;XAML {real['xaml']} / {n}.")
     out.append("")
-    out.append("**Classification:** the C++-vs-MAUI visual review has **not run yet** for Android (it needs the "
-               "MAUI Android column as the oracle), so every example is currently *pending*. The table below "
-               "keeps the iOS consensus shape so it can be filled in the same way once the MAUI captures exist.")
-    out.append("")
-    out.append("| Classification | Count | Notes |")
-    out.append("| --- | --- | --- |")
-    out.append("| 🟢 Pixel-perfect | 0 | — |")
-    out.append("| 🟢 Match | 0 | — |")
-    out.append("| 🟡 C++ minor | 0 | — |")
-    out.append("| 🔴 C++ major | 0 | — |")
-    out.append(f"| ⏳ Pending review | {n} | C++ column captured; MAUI/XAML columns + vision review outstanding |")
+    if reviewed:
+        out.append("**Classification — C++ render-health** (Sonnet `claude-sonnet-4-6` vision review of the C++ "
+                   "Android render vs the **iOS C++ reference** board, double-checked adversarially; this is render "
+                   "completeness, *not* MAUI-vs-C++ pixel parity — that still needs the MAUI Android column). Each "
+                   "non-green verdict was independently re-checked to overturn or confirm:")
+        out.append("")
+        out.append("| Classification | Count | Meaning |")
+        out.append("| --- | --- | --- |")
+        out.append(f"| 🟢 Renders | {rh['green']} | shows the same substantive content as the iOS C++ reference |")
+        out.append(f"| 🟡 Partial | {rh['yellow']} | some intended content renders; a meaningful chunk missing/empty |")
+        out.append(f"| 🔴 Wrong | {rh['red']} | renders content that doesn't match the page intent (e.g. routing mismatch) |")
+        out.append(f"| ⬛ Blank | {rh['blank']} | app bar + empty background only; no page content (handler not yet implemented) |")
+        if reviewed < n:
+            out.append(f"| ⏳ Unreviewed | {n - reviewed} | not yet covered by the render-health audit |")
+        out.append("")
+        out.append("The per-row **Sonnet** column gives each page's render-health verdict + note. The **Gemini** "
+                   "column and the MAUI-vs-C++ **parity** review remain pending the MAUI Android capture column.")
+    else:
+        out.append("**Classification:** the C++-vs-MAUI visual review has **not run yet** for Android (it needs the "
+                   "MAUI Android column as the oracle), so every example is currently *pending*. The table below "
+                   "keeps the iOS consensus shape so it can be filled in the same way once the MAUI captures exist.")
+        out.append("")
+        out.append("| Classification | Count | Notes |")
+        out.append("| --- | --- | --- |")
+        out.append("| 🟢 Pixel-perfect | 0 | — |")
+        out.append("| 🟢 Match | 0 | — |")
+        out.append("| 🟡 C++ minor | 0 | — |")
+        out.append("| 🔴 C++ major | 0 | — |")
+        out.append(f"| ⏳ Pending review | {n} | C++ column captured; MAUI/XAML columns + vision review outstanding |")
     out.append("")
     out.append("**Placeholders per framework** (cells showing `_placeholder.png` because no real capture exists yet):")
     out.append("")
@@ -114,7 +173,13 @@ def main():
     out.append("| --- | --- | --- | --- | --- | --- |")
     for i, k in enumerate(keys, 1):
         desc = description_for(k, descs)
-        out.append(f"| {i} | **{title(k)}** | {cell(k)} | {desc} | {PENDING} | {PENDING} |")
+        rv = review.get(k)
+        if rv and rv.get("status") in STATUS_EMOJI:
+            note = (rv.get("note") or "").replace("|", "\\|").replace("\n", " ")
+            sonnet = f"{STATUS_EMOJI[rv['status']]} — {note}" if note else STATUS_EMOJI[rv["status"]]
+        else:
+            sonnet = PENDING
+        out.append(f"| {i} | **{title(k)}** | {cell(k)} | {desc} | {sonnet} | {PENDING} |")
     out.append("")
     out.append("</details>")
     print("\n".join(out))
