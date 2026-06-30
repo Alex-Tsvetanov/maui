@@ -30,6 +30,7 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/font.hpp"
+#include "maui/detail/charconv_compat.hpp"
 #include "maui/graphics/colors.hpp"
 
 namespace maui::samples
@@ -71,7 +72,10 @@ namespace maui::samples
             double value = 0.0;
             const char* const begin = text.data();
             const char* const end = begin + text.size();
-            const auto [ptr, ec] = std::from_chars(begin, end, value);
+            // from_chars_general: the floating-point std::from_chars is `= delete`d on some libc++ (the
+            // Android NDK), so route through the toolchain-compat shim (charconv_compat.hpp) — identical
+            // behavior where the real one exists.
+            const auto [ptr, ec] = maui::detail::from_chars_general(begin, end, value);
             return ec == std::errc{} && ptr == end;
         }
 

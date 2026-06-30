@@ -1720,6 +1720,40 @@ if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     OBJCXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
 
+# ---- Android APP HOST shared library (the real-Activity gallery .so) ----
+# The native side of the gallery APK: src/platform/android/apphost/app_host.cpp's JNI nativeMount builds a
+# gallery page (MAUI_GALLERY_PAGES dispatch) and mounts it through maui_hosting's generic mount_window +
+# drive_layout, returning the window's content-view FrameLayout to MauiHostActivity.setContentView. It is
+# the android twin of the apple/ios host_run.mm run loop — except android has no run_app, so this JNI
+# entry IS the boot (it returns a view instead of spinning a loop). Built as a SHARED library
+# System.loadLibrary("maui_android_apphost")s — like maui_android_widget_tests, but it links maui_hosting
+# (for mount_window / drive_layout / the builder + the seeded controls handler table) rather than GTest,
+# and adds examples/gallery to the include path so app_host.cpp can include gallery_host.hpp + the
+# header-only pages/*.hpp it expands. tools/parity/build_android_apphost.sh packages it into the APK.
+#
+# The gallery pages are header-only, so this target compiles exactly ONE extra TU (app_host.cpp) beyond
+# what maui_hosting already provides — the whole gallery-page corpus is pulled in through the one
+# gallery_host.hpp include. No examples/ project build is needed (the example exe has no android branch;
+# only the .so is required for the capture pipeline).
+if(MAUI_BACKEND STREQUAL "android")
+  add_library(maui_android_apphost SHARED
+    src/platform/android/apphost/app_host.cpp)
+  # The JNI seam headers (jni/app_context.hpp, jni/jni_env.hpp, jni/jni_ref.hpp, jni/jni_string.hpp) are
+  # under src/platform/android; the gallery host + pages are under examples/gallery. app_host.cpp includes
+  # both ("jni/..." and "gallery_host.hpp" / "pages/...").
+  target_include_directories(maui_android_apphost PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/android
+    ${CMAKE_CURRENT_SOURCE_DIR}/examples/gallery)
+  # maui_hosting brings mount_window / drive_layout / maui_app_builder + the seeded controls handler table,
+  # and transitively maui_controls / maui_core (with the android JNI handler partials swapped in by the
+  # android preset) / maui_layouts / maui_essentials. android NDK liblog for any os-level logging the
+  # handlers do (linked the same way maui_core already links the platform libs).
+  target_link_libraries(maui_android_apphost PRIVATE maui_hosting maui_sanitizers)
+  if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+    set_target_properties(maui_android_apphost PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+  endif()
+endif()
+
 # ---- Hosting tests (GoogleTest). Backend-agnostic pure C++; wired like maui_xaml_tests — built on
 # headless + apple but SKIPPED on ios (no device-specific coverage; the GCD dispatcher's on-simulator
 # coverage lives in maui_core_tests' gcd_dispatcher_tests.mm instead). ----
