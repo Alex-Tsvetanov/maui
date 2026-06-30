@@ -490,12 +490,19 @@ else()
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/switch_handler.cpp)
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/check_box_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/check_box_handler.cpp)
-    # wave 3 — radio_button (RadioButton) + box_view (the shared shape_view_handler partial; a plain View
-    # with a GradientDrawable fill + corner radius as the canvas-render stand-in).
+    # wave 3 — radio_button (RadioButton) + box_view (the shared shape_view_handler partial).
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/radio_button_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/radio_button_handler.cpp)
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/shape_view_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/box_view_handler.cpp)
+    # wave 7 — the shapes family via the android.graphics.Canvas bridge. box_view_handler.cpp's android
+    # partial now creates a dev.mauicpp.MauiShapeView (java/MauiShapeView.java) whose onDraw replays the
+    # shared shape_drawable through android_canvas (an i_canvas over android.graphics.Canvas), the Android
+    # twin of MauiShapeView : PlatformGraphicsView. This subsumes the old GradientDrawable box shortcut and
+    # unblocks ellipse/line/polyline/polygon/path/rectangle/rounded-rectangle. android_canvas is its own TU
+    # (android-only; guarded by MAUI_PLATFORM_ANDROID where it leaks into shared headers — it does not, it
+    # is reached only by the android box_view partial).
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/android_canvas.cpp)
     # wave 4 — border (MauiLayout host + GradientDrawable stroke/corner/fill) + picker (non-editable EditText
     # stand-in: selected item as text, title as hint).
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/border_handler.cpp)
