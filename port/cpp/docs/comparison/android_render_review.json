@@ -392,12 +392,12 @@
 {
 "key": "image",
 "status": "yellow",
-"note": "CONFIRM. Android shows all source labels plus Start/Stop and Use Online Source buttons, but NO images draw. iOS shows MS-building photo, purple submarine, green Xbox font-image. All image slots empty."
+"note": "FileSource (dotnet_bot submarine) + Animating-a-gif (animated_heart) now decode+display via APK assets + BitmapFactory (wave 10, first bitmaps on Android). UriSource (network) + 2 Font Image Sources still empty (deferred)."
 },
 {
 "key": "image_button",
 "status": "yellow",
-"note": "CONFIRM. Android renders labels (AspectFit/Fill/BorderColor/CornerRadius/Padding) and yellow sliders, but every ImageButton body is an empty gap. iOS shows green/red/purple buttons and a submarine."
+"note": "Labels, sliders, 'Use Online Source' button + Background toggle render, but the ImageButton bot images are absent — no Android image_button_handler yet (uses headless twin)."
 },
 {
 "key": "indicator",
