@@ -3,6 +3,19 @@
 Branch `cpp-port-kit-qol-changes`. Everything below is committed + pushed to origin. This doc is the single
 entry point; see also `docs/comparison/maccatalyst/APPKIT_FINDINGS.md` and `docs/ANDROID_STATUS.md`.
 
+## GOAL (user, 2026-06-30): 172 captures × 3 platforms in docs/comparison
+The C++ mirror must be cross-platform like MAUI — every example buildable + runnable on every platform. The
+comparison README must show **172 screenshots/recordings for EACH of iOS / macOS / Android** (3-way
+MAUI ┃ C++ ┃ C++&XAML per row). Status:
+- **iOS ✅ 172** (done).
+- **macOS ⏳ 59→172** — `tools/parity/capture_maccatalyst.py` now keys off the full `page_keys.txt` (172). The
+  RUN hijacks the host screen (`screencapture` + frontmost), so it is an **away/overnight job**:
+  `python3 tools/parity/capture_maccatalyst.py` then `--theme dark`, then `gen_macos_readme_section.py` to
+  regenerate the README block. (Also extend AppKit similarly via `capture_appkit.py`.)
+- **Android ⏳ 0→172** — needs the **app host** (below) so pages render on the emulator; then `adb exec-out
+  screencap` per page, which grabs the EMULATOR framebuffer and does NOT hijack the host screen (so it can run
+  while the Mac is in use). The 9-widget handler fan-out is the prerequisite that makes pages render.
+
 ## Milestones (this session, on the branch)
 | commit | what |
 |---|---|
