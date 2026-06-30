@@ -535,6 +535,13 @@ else()
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/content_page_handler.cpp)
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/scroll_view_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/scroll_view_handler.cpp)
+    # (W9) swipe_view: the MauiLayout swipe host that re-parents the single Content child (the STATIC
+    # render the 10 partial gallery pages need). The android partial keeps the headless mirror + the shared
+    # swipe_machine live (VM-less suite) and drives the real Content re-parent + Exactly-frame when a VM +
+    # app context exist (the test host). The live drag-to-reveal pan is the documented deviation (apple
+    # AppKit twin scope) — see src/platform/android/swipe_view_handler.cpp's header.
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/swipe_view_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/swipe_view_handler.cpp)
     # (W4-34d) navigation + window: the FrameLayout-based page-stack container + the Activity
     # content-view stand-in. The android partials keep the headless mirrors live (VM-less suite) and
     # additionally drive the real FrameLayout child swap when a VM + app context exist (the test host).

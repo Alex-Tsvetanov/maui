@@ -101,6 +101,26 @@ namespace maui::core
         void update_semantics(const maui::core::semantics* value) override;
         void update_input_transparent(bool value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_ANDROID
+        // Android backend: push the generic IView properties to the real dev.mauicpp.MauiLayout swipe
+        // host (defined in src/platform/android/swipe_view_handler.cpp). The host hosts the single swipe
+        // Content as its child — the STATIC render the gallery captures need (the live drag-to-reveal pan
+        // is the documented deviation; see the .cpp header). is_enabled is intentionally NOT overridden — a
+        // plain ViewGroup host has no enabled state, matching the apple/ios twins. Each override calls the
+        // view_platform_base body FIRST (the VM-less cross-platform suite observes the headless mirror),
+        // then pushes to the ViewGroup when one exists. Visibility/opacity/automation_id push directly;
+        // transform/flow_direction/background/semantics push through the shared android ops. Shadow / Clip /
+        // InputTransparent keep ONLY the base mirror (WrapperView-only on Android, no plain-View analog —
+        // the same scope the content_page/layout partials document).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_transform(const maui::core::transform_spec& value) override;
+        void update_flow_direction(maui::core::flow_direction value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        void update_semantics(const maui::core::semantics* value) override;
+#endif
     };
 
     class swipe_view_handler : public view_handler<swipe_view_handler, i_swipe_view, swipe_view_platform>
