@@ -3,10 +3,17 @@
 // container) and the real-native sibling of the headless child-count mirror
 // (src/platform/headless/layout_handler.cpp). Translated from LayoutHandler.cs + LayoutHandler.Android.cs
 // (Microsoft.Maui's LayoutViewGroup → the port's MauiLayout):
-//   - The ViewGroup only HOSTS — it never positions its own children. MAUI positions children
-//     ABSOLUTELY: each child control's handler::platform_arrange calls the child View's own
-//     View.layout(l,t,r,b) (see button_handler.cpp). MauiLayout.onLayout is a NO-OP so those absolute
-//     frames survive — see src/platform/android/java/MauiLayout.java for the full rationale.
+//   - The ViewGroup hosts the children and, on every system layout traversal, re-runs the cross-platform
+//     arrange so the children land where maui's layout_manager places them. MauiLayout.onLayout crosses
+//     back into native_arrange (RegisterNatives) -> the control's i_cross_platform_layout::
+//     cross_platform_arrange over the panel's LOCAL, 0-origin bounds (children-only — the host's own frame
+//     is owned by its handler's platform_arrange). This mirrors MAUI's LayoutViewGroup.OnLayout, which
+//     likewise calls CrossPlatformArrange on each pass with a 0-origin destination. A one-shot child frame
+//     does NOT survive on Android: any requestLayout() in the subtree (addView, setText, a property push)
+//     fires a system traversal that re-lays-out children via onLayout, so a no-op onLayout strands any
+//     nested layout (its no-op MauiLayout parent never re-lays it out) — re-arranging here fixes nesting.
+//     on_connect_handler seeds the panel's cross-platform peer (this handler) + binds nativeArrange;
+//     on_disconnect_handler clears the peer (0 = no-op). See java/MauiLayout.java for the full rationale.
 //   - add / insert position the child at GetLayoutHandlerIndex (the z-ordered slot), exactly like
 //     LayoutHandler.Add inserting at that index; the C++ children mirror tracks the same order so the
 //     headless tests and the on-device subview order agree.
@@ -34,6 +41,7 @@
 #include <jni.h>
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <cmath>
 #include <cstddef>
@@ -49,6 +57,7 @@
 #include "jni/jni_env.hpp"
 #include "jni/jni_ref.hpp"
 #include "jni/jni_string.hpp"
+#include "maui/core/i_cross_platform_layout.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_layout.hpp"
 #include "maui/core/i_view.hpp"
@@ -264,6 +273,52 @@ namespace
         env->CallVoidMethod(panel, add_view_indexed, child, index);
         clear_pending(env);
     }
+
+    // dev.mauicpp.MauiLayout.nativeArrange(long peer, int widthPx, int heightPx) — the JNI callback the
+    // ViewGroup's onLayout crosses into on every system layout traversal (the MAUI LayoutViewGroup.OnLayout
+    // analog). The peer is the child's layout_handler; resolve its cross-platform layout and re-arrange the
+    // children into this panel's LOCAL, 0-origin bounds (children-only — the host's own frame is not touched
+    // here). `thiz` is the MauiLayout instance, used to read the display density: onLayout passes the size
+    // in PIXELS, but the cross-platform layer speaks dp, so divide by density. A null/0 peer or an unbacked
+    // control is a no-op (the VM-less / disconnected guard, like MauiShapeView.nativeDraw's null peer).
+    void JNICALL native_arrange(JNIEnv* env, jobject thiz, jlong peer, jint width_px, jint height_px)
+    {
+        if (env == nullptr || peer == 0)
+        {
+            return;
+        }
+        auto* handler = reinterpret_cast<maui::core::layout_handler*>(peer);
+        auto* cross_platform = dynamic_cast<maui::core::i_cross_platform_layout*>(handler->virtual_view());
+        if (cross_platform == nullptr)
+        {
+            return;
+        }
+        const float density = display_density(env, thiz);
+        const float scale = density > 0 ? density : 1.0F;
+        const double width_dp = static_cast<double>(width_px) / scale;
+        const double height_dp = static_cast<double>(height_px) / scale;
+        // 0-origin: a subview's frame is in its superview's coordinate space (origin 0,0); carrying the
+        // absolute window origin would double-offset every child. The manager re-positions the children only.
+        cross_platform->cross_platform_arrange(maui::graphics::rect{0, 0, width_dp, height_dp});
+    }
+
+    // Binds nativeArrange to MauiLayout (RegisterNatives — no Java_* export needed). Idempotent
+    // (RegisterNatives replaces an existing binding), so connecting handlers need no once-flag coordination.
+    [[nodiscard]] bool register_arrange_natives(JNIEnv* env, jclass layout_class)
+    {
+        static const std::array<JNINativeMethod, 1> k_methods{
+            JNINativeMethod{.name = const_cast<char*>("nativeArrange"),
+                            .signature = const_cast<char*>("(JII)V"),
+                            .fnPtr = reinterpret_cast<void*>(&native_arrange)},
+        };
+        const jint status = env->RegisterNatives(layout_class, k_methods.data(), static_cast<jint>(k_methods.size()));
+        if (status != JNI_OK)
+        {
+            clear_pending(env);
+            return false;
+        }
+        return true;
+    }
 } // namespace
 
 namespace maui::core
@@ -442,6 +497,55 @@ namespace maui::core
         }
         platform->native = env->NewGlobalRef(panel.get()); // released in ~layout_platform
         return platform;
+    }
+
+    // Wire the MauiLayout's onLayout callback to this handler: bind nativeArrange (RegisterNatives) and seed
+    // the panel's cross-platform peer with this handler's address, so a system layout traversal re-runs the
+    // cross-platform arrange (children re-positioned host-relative every pass — the nested-layout fix; see
+    // java/MauiLayout.java). Detected by the view_handler base via `requires`; runs once per connect, after
+    // create_platform_view (the panel + virtual_view are live here). VM-less / panel-less is a quiet skip.
+    void layout_handler::on_connect_handler(layout_platform& platform)
+    {
+        if (platform.native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        auto& cache = default_jni_cache();
+        jclass layout_class = cache.find_class(env.get(), k_maui_layout_class);
+        jmethodID set_peer = cache.method(env.get(), k_maui_layout_class, "setCrossPlatformPeer", "(J)V");
+        if (layout_class == nullptr || set_peer == nullptr || !register_arrange_natives(env.get(), layout_class))
+        {
+            return; // the MauiLayout class / method is host-provided; without it onLayout stays a no-op
+        }
+        env->CallVoidMethod(panel_of(platform), set_peer, reinterpret_cast<jlong>(this));
+        clear_pending(env.get());
+    }
+
+    // Clear the panel's peer before the handler dies, so a later onLayout (the View may outlive the handler
+    // briefly during teardown) is a no-op rather than a dangling dereference — the MauiShapeView setNativePtr(0)
+    // recipe. The natives binding can stay (it is class-wide and idempotent).
+    void layout_handler::on_disconnect_handler(layout_platform& platform)
+    {
+        if (platform.native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        jmethodID set_peer = default_jni_cache().method(env.get(), k_maui_layout_class, "setCrossPlatformPeer", "(J)V");
+        if (set_peer != nullptr)
+        {
+            env->CallVoidMethod(panel_of(platform), set_peer, static_cast<jlong>(0));
+            clear_pending(env.get());
+        }
     }
 
     // C# LayoutHandler.Add inserts the subview at GetLayoutHandlerIndex (the child's z-ordered slot), so

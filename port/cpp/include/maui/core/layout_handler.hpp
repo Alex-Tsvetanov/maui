@@ -173,5 +173,16 @@ namespace maui::core
         static void map_insert(layout_handler& handler, i_layout& layout, const std::any& args);
         static void map_update(layout_handler& handler, i_layout& layout, const std::any& args);
         static void map_update_z_index(layout_handler& handler, i_layout& layout, const std::any& args);
+
+#ifdef MAUI_PLATFORM_ANDROID
+        // Android container fan-out: wire the MauiLayout's onLayout callback to this handler so a system
+        // layout traversal re-runs the cross-platform arrange (children re-positioned host-relative on every
+        // pass — the nested-layout fix; see java/MauiLayout.java + src/Core's LayoutViewGroup.OnLayout). The
+        // peer (this handler) is installed on connect and cleared on disconnect, before the handler dies.
+        // Detected by the view_handler base via `requires` (so the Apple/iOS twins, which omit these,
+        // compile unchanged — AppKit/UIKit never re-lay-out subviews, so they need no onLayout callback).
+        void on_connect_handler(layout_platform& platform);
+        void on_disconnect_handler(layout_platform& platform);
+#endif
     };
 } // namespace maui::core
