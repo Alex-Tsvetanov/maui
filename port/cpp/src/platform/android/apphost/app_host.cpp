@@ -243,11 +243,151 @@ namespace
         return env->NewLocalRef(native);
     }
 
+    // The system-chrome height (in PIXELS) the Activity's content view does NOT get: the status bar plus
+    // the Activity's title/action bar. MauiHostActivity extends the plain android.app.Activity, whose
+    // default theme paints a status bar at the top and a title bar (the "MAUI C++ Gallery" toolbar in the
+    // captures) above setContentView's content frame — so the content area is SHORTER than the raw
+    // DisplayMetrics height by these two. display_size lays the page out over the device display, so
+    // without this subtraction a page whose bottom row is anchored to the content bottom (a Grid with a
+    // `*` row over an `Auto` row — update_path_data) places that row at displayHeight, BELOW the visible
+    // content frame, and it never appears. Both heights are read from the framework: the status bar from
+    // the android `status_bar_height` dimen resource, the action bar from the theme's actionBarSize
+    // attribute. Returns 0 on any failure (so the page still mounts, just over the full display as before).
+    [[nodiscard]] jint content_chrome_height_px(JNIEnv* env, jobject activity)
+    {
+        if (env == nullptr || activity == nullptr)
+        {
+            return 0;
+        }
+        const auto clear = [&]() {
+            if (env->ExceptionCheck() == JNI_TRUE)
+            {
+                env->ExceptionClear();
+            }
+        };
+        jint total = 0;
+        const maui::platform::android::local_ref<jclass> activity_class{env, env->GetObjectClass(activity)};
+        if (!activity_class)
+        {
+            clear();
+            return 0;
+        }
+        jmethodID get_resources =
+            env->GetMethodID(activity_class.get(), "getResources", "()Landroid/content/res/Resources;");
+        if (get_resources == nullptr)
+        {
+            clear();
+            return 0;
+        }
+        const maui::platform::android::local_ref<jobject> resources{env,
+                                                                    env->CallObjectMethod(activity, get_resources)};
+        if (env->ExceptionCheck() == JNI_TRUE || !resources)
+        {
+            clear();
+            return 0;
+        }
+        const maui::platform::android::local_ref<jclass> resources_class{env, env->GetObjectClass(resources.get())};
+
+        // --- status bar: getDimensionPixelSize(getIdentifier("status_bar_height", "dimen", "android")) ---
+        jmethodID get_identifier = env->GetMethodID(resources_class.get(), "getIdentifier",
+                                                    "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I");
+        jmethodID get_dimension_pixel_size = env->GetMethodID(resources_class.get(), "getDimensionPixelSize", "(I)I");
+        if (get_identifier != nullptr && get_dimension_pixel_size != nullptr)
+        {
+            const maui::platform::android::local_ref<jstring> name{env, env->NewStringUTF("status_bar_height")};
+            const maui::platform::android::local_ref<jstring> deftype{env, env->NewStringUTF("dimen")};
+            const maui::platform::android::local_ref<jstring> defpkg{env, env->NewStringUTF("android")};
+            const jint res_id =
+                env->CallIntMethod(resources.get(), get_identifier, name.get(), deftype.get(), defpkg.get());
+            if (env->ExceptionCheck() == JNI_TRUE)
+            {
+                clear();
+            }
+            else if (res_id > 0)
+            {
+                const jint status_px = env->CallIntMethod(resources.get(), get_dimension_pixel_size, res_id);
+                if (env->ExceptionCheck() == JNI_TRUE)
+                {
+                    clear();
+                }
+                else if (status_px > 0)
+                {
+                    total += status_px;
+                }
+            }
+        }
+
+        // --- action/title bar: getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true), then
+        //     TypedValue.complexToDimensionPixelSize(tv.data, getDisplayMetrics()) ---
+        jmethodID get_theme =
+            env->GetMethodID(activity_class.get(), "getTheme", "()Landroid/content/res/Resources$Theme;");
+        const maui::platform::android::local_ref<jclass> typed_value_class{env,
+                                                                           env->FindClass("android/util/TypedValue")};
+        if (get_theme != nullptr && typed_value_class)
+        {
+            const maui::platform::android::local_ref<jobject> theme{env, env->CallObjectMethod(activity, get_theme)};
+            jmethodID tv_ctor = env->GetMethodID(typed_value_class.get(), "<init>", "()V");
+            jmethodID resolve = nullptr;
+            if (theme)
+            {
+                const maui::platform::android::local_ref<jclass> theme_class{env, env->GetObjectClass(theme.get())};
+                resolve = env->GetMethodID(theme_class.get(), "resolveAttribute", "(ILandroid/util/TypedValue;Z)Z");
+            }
+            jmethodID get_metrics_m =
+                env->GetMethodID(resources_class.get(), "getDisplayMetrics", "()Landroid/util/DisplayMetrics;");
+            jmethodID complex_to_px = env->GetStaticMethodID(typed_value_class.get(), "complexToDimensionPixelSize",
+                                                             "(ILandroid/util/DisplayMetrics;)I");
+            jfieldID data_field = env->GetFieldID(typed_value_class.get(), "data", "I");
+            constexpr jint k_attr_action_bar_size = 0x01010057; // android.R.attr.actionBarSize
+            if (theme && tv_ctor != nullptr && resolve != nullptr && get_metrics_m != nullptr &&
+                complex_to_px != nullptr && data_field != nullptr)
+            {
+                const maui::platform::android::local_ref<jobject> tv{env,
+                                                                     env->NewObject(typed_value_class.get(), tv_ctor)};
+                if (tv)
+                {
+                    const jboolean ok =
+                        env->CallBooleanMethod(theme.get(), resolve, k_attr_action_bar_size, tv.get(), JNI_TRUE);
+                    if (env->ExceptionCheck() == JNI_TRUE)
+                    {
+                        clear();
+                    }
+                    else if (ok == JNI_TRUE)
+                    {
+                        const jint data = env->GetIntField(tv.get(), data_field);
+                        const maui::platform::android::local_ref<jobject> dm{
+                            env, env->CallObjectMethod(resources.get(), get_metrics_m)};
+                        const bool dm_failed = env->ExceptionCheck() == JNI_TRUE;
+                        if (dm_failed)
+                        {
+                            clear();
+                        }
+                        if (!dm_failed && dm)
+                        {
+                            const jint bar_px =
+                                env->CallStaticIntMethod(typed_value_class.get(), complex_to_px, data, dm.get());
+                            if (env->ExceptionCheck() == JNI_TRUE)
+                            {
+                                clear();
+                            }
+                            else if (bar_px > 0)
+                            {
+                                total += bar_px;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return total;
+    }
+
     // The Activity's display metrics (widthPixels x heightPixels) via JNI:
     // activity.getResources().getDisplayMetrics().{widthPixels,heightPixels}, divided by the metrics
-    // `density` to yield framework POINTS. Falls back to a portrait phone viewport (the headless/ios
-    // default) when any step fails, so the mount still settles. The Activity is reached through
-    // app_context() — the JNI export below pinned the Activity as the process context (it IS-A Context).
+    // `density` to yield framework POINTS. The height is reduced by the system chrome the content view does
+    // not receive (status bar + action/title bar — see content_chrome_height_px). Falls back to a portrait
+    // phone viewport (the headless/ios default) when any step fails, so the mount still settles. The
+    // Activity is reached through app_context() — the JNI export below pinned it as the process context.
     size2 display_size(JNIEnv* env)
     {
         constexpr size2 fallback{402.0, 874.0}; // the ios/headless gallery default (host_run.cpp)
@@ -315,7 +455,16 @@ namespace
         {
             return fallback;
         }
-        return {static_cast<double>(width_px) / density, static_cast<double>(height_px) / density};
+        // Reduce the height by the system chrome the content view never receives (status bar + title/action
+        // bar). Without this, a bottom-anchored row (a `*`-over-`Auto` Grid like update_path_data) lands
+        // below the visible content frame. Clamp so a bogus chrome read can never zero/invert the height.
+        const jint chrome_px = content_chrome_height_px(env, activity);
+        jint content_height_px = height_px;
+        if (chrome_px > 0 && chrome_px < height_px)
+        {
+            content_height_px -= chrome_px;
+        }
+        return {static_cast<double>(width_px) / density, static_cast<double>(content_height_px) / density};
     }
 } // namespace
 

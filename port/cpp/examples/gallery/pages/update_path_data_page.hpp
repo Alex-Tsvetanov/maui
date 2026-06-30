@@ -58,9 +58,15 @@ namespace maui::samples
         {
             page_.set_title("Update Path Data Gallery");
 
-            // The 2-row grid (RowSpacing 0): * (the path) / Auto (the button).
+            // The grid (RowSpacing 0): * (the path) / Auto (the readout) / Auto (the button). The C# XAML is
+            // just *(path) / Auto(button); the port adds a diagnostic readout Label (header note). It used to
+            // share the button's Auto row, relying on the button being transparent so the label showed through
+            // (true on iOS — native UIButton has no opaque fill). On Android the native android.widget.Button
+            // carries an OPAQUE Material background that paints over the whole cell, hiding the overlapped
+            // readout. Give the readout its own Auto row so the two never collide on any backend.
             outer_.set_row_spacing(0);
             outer_.add_row_definition(maui::core::grid_length::star());
+            outer_.add_row_definition(maui::core::grid_length::automatic());
             outer_.add_row_definition(maui::core::grid_length::automatic());
 
             // Row 0 — the black-stroked cubic Bézier path (initial Data, counter 0).
@@ -69,7 +75,12 @@ namespace maui::samples
             outer_.add(path_);
             outer_.set_row(path_, 0);
 
-            // Row 1 — the "Update Path Data" button: each tap bumps the counter and replaces the geometry.
+            // Row 1 — a status readout (port addition — surfaces the current counter / Data; see header note).
+            outer_.add(readout_);
+            outer_.set_row(readout_, 1);
+            update_readout();
+
+            // Row 2 — the "Update Path Data" button: each tap bumps the counter and replaces the geometry.
             update_button_.set_text("Update Path Data");
             update_button_.clicked.connect([this]() {
                 counter_ += 10; // C# `_counter += 10`
@@ -77,12 +88,7 @@ namespace maui::samples
                 update_readout();
             });
             outer_.add(update_button_);
-            outer_.set_row(update_button_, 1);
-
-            // A status readout (port addition — surfaces the current counter / Data; see header note).
-            outer_.add(readout_);
-            outer_.set_row(readout_, 1);
-            update_readout();
+            outer_.set_row(update_button_, 2);
 
             page_.set_content(outer_);
         }
