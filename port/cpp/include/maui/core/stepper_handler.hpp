@@ -100,6 +100,24 @@ namespace maui::core
         // 0×0-at-map-time fix).
         void update_clip(const maui::graphics::i_shape* value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_ANDROID
+        // Android: MauiStepper = a horizontal android.widget.LinearLayout (`native`) hosting two Buttons. The
+        // value lives in the cross-platform view; only the buttons' enabled state is pushed (UpdateButtons).
+        // Defined in src/platform/android/stepper_handler.cpp. on_minus/on_plus carry the deferred +/- click.
+        void* down_button = nullptr;
+        void* up_button = nullptr;
+        move_only_function<void()> on_minus;
+        move_only_function<void()> on_plus;
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        void update_transform(const maui::core::transform_spec& value) override;
+        void update_flow_direction(maui::core::flow_direction value) override;
+        void update_semantics(const maui::core::semantics* value) override;
+#endif
     };
 
     class stepper_handler : public view_handler<stepper_handler, i_stepper, stepper_platform>

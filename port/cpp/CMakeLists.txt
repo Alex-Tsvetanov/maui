@@ -508,6 +508,12 @@ else()
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/date_picker_handler.cpp)
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/time_picker_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/time_picker_handler.cpp)
+    # wave 6 — stepper (LinearLayout + two Buttons; enabled state pushed, +/- click deferred) + search_bar
+    # (non-editable-chrome EditText stand-in). Tests unwired (TextView/Button base → testhost; app-host only).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/stepper_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/stepper_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/search_bar_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/search_bar_handler.cpp)
     # container fan-out — the rendering blocker: the leaf widgets above have no VISIBLE parent until the
     # layout/container handlers create a real android ViewGroup. dev.mauicpp.MauiLayout
     # (src/platform/android/java/MauiLayout.java) is a no-op-onLayout ViewGroup so maui's absolute
