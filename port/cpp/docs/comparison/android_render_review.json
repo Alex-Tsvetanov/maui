@@ -11,8 +11,8 @@
 },
 {
 "key": "adaptive_collection",
-"status": "yellow",
-"note": "Android shows only the 'Layout: Linear (single column)' header. The 8 CollectionView rows (Item 1-8) the iOS ref lists are entirely missing — empty collection body. Confirmed."
+"status": "green",
+"note": "Matches iOS: 'Layout: Linear (single column)' header plus Item 1 through Item 8. iOS centers text, Android left-aligns, but all 8 render."
 },
 {
 "key": "alerts",
@@ -46,8 +46,8 @@
 },
 {
 "key": "basic_grouping",
-"status": "blank",
-"note": "Android shows only app bar over empty grey background — no header, group titles, members or footers. iOS ref shows the full grouped list. Confirmed blank."
+"status": "green",
+"note": "Android shows 'This is a header' then Avengers/Fantastic Four/Defenders groups with members and 'Total members' footers, matching iOS. 'Heroes for Hire' just below fold."
 },
 {
 "key": "basic_swipe",
@@ -151,8 +151,8 @@
 },
 {
 "key": "collectionview",
-"status": "blank",
-"note": "CONFIRMED. Android shows only app bar + empty grey bg; no header text, no items. iOS ref shows 'This is the header' + 3-col grid of 24 items. Zero content."
+"status": "green",
+"note": "Matches iOS: 'This is the header' plus the 24-item 3-column grid (cover1.jpg,0 through Vegetables.jpg,23). All rows present."
 },
 {
 "key": "composition_gallery",
@@ -196,13 +196,13 @@
 },
 {
 "key": "cv_visual_states",
-"status": "yellow",
-"note": "CONFIRM. Android shows 'Single Selection' and 'Multi Selection' headers but both CollectionViews are empty. iOS ref shows Item 1-3 under Single and Item 1-4 under Multi; Android renders zero items."
+"status": "green",
+"note": "Matches iOS: 'Single Selection' (Item 1-3) and 'Multi Selection' (Item 1-4) sections both render with all rows and section titles."
 },
 {
 "key": "data_template_selector",
-"status": "blank",
-"note": "CONFIRM. Android shows only app bar + empty grey background. Missing the 'Day of Week Filter' search bar and the entire weekday/'It's the weekend! Woot!' list that fills the iOS ref."
+"status": "green",
+"note": "Android shows 'Day of Week Filter' header then templated rows alternating weekday names (Mon-Fri) with 'It's the weekend! Woot!' for weekends, matching iOS reference exactly."
 },
 {
 "key": "date_picker",
@@ -241,43 +241,43 @@
 },
 {
 "key": "empty_view",
-"status": "blank",
-"note": "Only the MAUI C++ Gallery app bar over empty grey background. iOS ref shows a 'Filter' search bar plus a long CollectionView list (cover1.jpg 0, oasis.jpg 1, ...). No page content renders."
+"status": "green",
+"note": "Android shows the 'Filter' search bar and populated item list (cover1.jpg 0..cover1.jpg 28+), matching iOS. Empty-view only shows when filter empties list; default state matches."
 },
 {
 "key": "empty_view_load_simulate",
-"status": "blank",
-"note": "Only the app bar over empty grey background. iOS ref shows centered 'Items loading simulation...' text. The EmptyView text does not render on Android."
+"status": "green",
+"note": "Android shows 'Items loading simulation...' empty-view text, same as iOS. Content intent present (top-aligned vs iOS centered, layout only)."
 },
 {
 "key": "empty_view_null",
-"status": "blank",
-"note": "Only the app bar over empty grey background. iOS ref shows centered 'Nothing to display.' text mid-page. The EmptyView string does not render on Android."
+"status": "green",
+"note": "Android shows 'Nothing to display.' empty-view text, matching iOS. Android positions it at top vs iOS centered (layout only); intended content present."
 },
 {
 "key": "empty_view_rtl",
-"status": "blank",
-"note": "Android shows only the dark app bar over an empty grey background. No 'Left to Right' label, no Filter bar, no item grid. iOS shows label + Filter + full 3-column grid."
+"status": "green",
+"note": "Android shows 'Left to Right' toggle, Filter search, and full 3-col grid cover1.jpg 0 ... cover1.jpg 49 — same items as iOS."
 },
 {
 "key": "empty_view_selector",
-"status": "yellow",
-"note": "Android renders only the 3-step instructions header. Missing vs iOS: the Filter search bar and the 'Baboon — Africa & Asia' list item below it. Content list absent."
+"status": "green",
+"note": "Android shows the instruction paragraph, Filter bar, and the single item 'Baboon — Africa & Asia' — same content as iOS."
 },
 {
 "key": "empty_view_swap",
-"status": "yellow",
-"note": "Android shows 'Toggle Between EmptyViews' label + Clear/Fill buttons. Missing vs iOS: the Filter search bar and the entire 3-column cover1/oasis/photo item grid below the buttons."
+"status": "green",
+"note": "Android shows Filter, 'Toggle Between EmptyViews' label, Clear/Fill buttons, and full 3-col item grid 0..49 — matches iOS content."
 },
 {
 "key": "empty_view_template",
-"status": "blank",
-"note": "Android shows only the app bar + empty grey background. iOS shows a Filter bar and a full 3-column item grid (cover1/oasis/photo). No page content renders on Android."
+"status": "green",
+"note": "Android shows the same 3-column image grid (cover1.jpg/oasis.jpg/photo.jpg/... with indices 0-49) and the Filter field, matching the iOS ref."
 },
 {
 "key": "empty_view_view",
-"status": "blank",
-"note": "Android shows only the app bar + empty grey background. iOS shows a Filter bar and a full 3-column item grid (cover1/oasis/photo). No page content renders on Android."
+"status": "green",
+"note": "Android renders the same 3-column image grid (cover1.jpg/oasis.jpg/... 0-49) plus the Filter field, identical content to the iOS ref."
 },
 {
 "key": "entry",
@@ -286,13 +286,13 @@
 },
 {
 "key": "filter_collection",
-"status": "yellow",
-"note": "CONFIRM. Android shows only the 'Use EmptyView' label on a blank page. The toggle switch, Filter search bar, and entire 2-column item grid (cover1.jpg 0, photo.jpg 2...) are all absent vs iOS."
+"status": "green",
+"note": "Android shows the 'Use EmptyView' toggle, Filter field, and full 2-column image list (cover1.jpg/oasis.jpg/... 0-49) same as iOS ref."
 },
 {
 "key": "filter_selection",
-"status": "yellow",
-"note": "CONFIRM. Android shows instruction text, a 'Selected: (none)' label half-hidden behind Reset, and the Reset button. Filter search bar and the whole CollectionView item list are missing vs iOS."
+"status": "green",
+"note": "Android shows instruction text, Filter field, 'Selected:' readout, Reset button, and single-column image list (cover1.jpg... 0-24), matching iOS ref content."
 },
 {
 "key": "flex_layout",
@@ -311,8 +311,8 @@
 },
 {
 "key": "footer_only_string",
-"status": "blank",
-"note": "CONFIRM blank. Android shows only the app bar over empty grey; iOS ref's CollectionView (cover1.jpg,0 ... FlowerBuds.jpg,19) and 'This is a footer' text are entirely absent."
+"status": "green",
+"note": "Android shows items cover1.jpg 0 through FlowerBuds.jpg 19 plus the 'This is a footer' string footer, identical to iOS reference."
 },
 {
 "key": "formatted_text",
@@ -336,43 +336,43 @@
 },
 {
 "key": "grid_grouping",
-"status": "blank",
-"note": "Android: only the app bar over empty grey background. None of iOS's grouped list renders (no header, no group headers, no two-column members, no totals, no footer). CONFIRM blank."
+"status": "green",
+"note": "Android shows 'This is a header' then all groups (Avengers..Great Lakes Avengers) in a 2-col grid with titles and 'Total members' footers, matching iOS. Last group/footer below fold."
 },
 {
 "key": "grouping_no_templates",
-"status": "blank",
-"note": "Android shows only the app bar over an empty grey background. The iOS member-name list (Thor, Captain America, Iron Man, The Hulk, Ant-Man, Wasp...) is entirely absent. CONFIRM blank."
+"status": "green",
+"note": "Android shows flat list of all member names (Thor, Captain America, Iron Man... Hawkeye, Mockingbird) with no group templates, matching iOS reference's same names/order; Android denser."
 },
 {
 "key": "grouping_plus_selection",
-"status": "blank",
-"note": "Android shows only the app bar over an empty grey background. The iOS grouped list (green group headers, member names, orange 'Total members' rows) does not render at all. CONFIRM blank."
+"status": "green",
+"note": "Android shows all group headers (Avengers/Fantastic Four/Defenders/Heroes for Hire) green, all member rows, and orange 'Total members: N' footers matching iOS ref."
 },
 {
 "key": "header_footer",
-"status": "blank",
-"note": "Android shows only the app bar over an empty grey background. The iOS 'Just a string as a header', cover1/oasis/photo.jpg items, and 'This footer is also a string' are all missing. CONFIRM blank."
+"status": "green",
+"note": "Android shows the string header 'Just a string as a header', three items (cover1/oasis/photo .jpg 0-2), and string footer 'This footer is also a string', matching iOS."
 },
 {
 "key": "header_footer_grid",
 "status": "yellow",
-"note": "Android renders only the Toggle Header/Footer buttons. Whole CollectionView missing: header img+'This Is A Header', Add Content, the 10-item grid, footer (all on iOS). CONFIRM yellow."
+"note": "CONFIRMED. 3-col grid (cover1.jpg 0..photo.jpg 9) + Toggle Header/Footer buttons render. Templated header+footer (dog image, 'This Is A Header/Footer', 'Add Content') both missing vs iOS."
 },
 {
 "key": "header_footer_grid_horizontal",
-"status": "yellow",
-"note": "CONFIRM. Android shows only Toggle Header/Footer buttons. Missing the vertical 'This Is A Header' text, dog header image, and the 0-8 horizontal item grid iOS renders."
+"status": "green",
+"note": "Android shows the same horizontal grid items (cover1 0, oasis 1, photo 2, Vegetables 3, Fruits 4, FlowerBuds 5, Legumes 6, cover1 7, oasis 8, photo 9) plus a header, matching iOS."
 },
 {
 "key": "header_footer_template",
-"status": "blank",
-"note": "CONFIRM. Android is only app bar + empty grey bg, zero content. iOS shows date/time 'This Is A Header', a blue band with cover1/oasis/photo items, and the date/time 'This Is A Footer'."
+"status": "green",
+"note": "Android shows templated header (date + 'This Is A Header'), blue item list (cover1.jpg 0, oasis.jpg 1, photo.jpg 2) and templated footer (date + 'This Is A Footer'), matching iOS."
 },
 {
 "key": "header_footer_view",
 "status": "blank",
-"note": "CONFIRM. Android is only app bar + empty grey bg. iOS shows header image 'This Is A Header', footer image 'This Is A Footer', and 'Add 2 Items'/'Clear All Items' buttons. None render on Android."
+"note": "CONFIRMED. Android renders only app bar + empty gray bg. iOS shows header image+'This Is A Header', footer image+'This Is A Footer', and 'Add 2 Items'/'Clear All Items' buttons. All missing."
 },
 {
 "key": "hit_testing",
@@ -486,13 +486,13 @@
 },
 {
 "key": "items",
-"status": "yellow",
-"note": "CONFIRM yellow. Android renders only the 'Pick a task' footer label. The bold 'Today' header and 3 items (Water the plants / Review the port / Ship wave 2) from iOS ref are absent."
+"status": "green",
+"note": "Android shows the 'Today' header, all 3 items (Water the plants, Review the port, Ship wave 2), and the 'Pick a task' footer at the same position as the iOS ref."
 },
 {
 "key": "items_updating_scroll_mode",
-"status": "yellow",
-"note": "CONFIRM. Android shows header (KeepItemsInView/KeepScrollOffset buttons, Add Item, 'Mode: KeepItemsInView, Items: 50') but CV body empty; iOS lists 30+ 'Title N - Subtitle N' rows."
+"status": "green",
+"note": "Android shows UpdatingScrollMode label, KeepItemsInView/KeepScrollOffset buttons, Add Item button, 'Mode: KeepItemsInView Items: 50' readout, and the Title-Subtitle list. Matches iOS."
 },
 {
 "key": "label",
@@ -516,8 +516,8 @@
 },
 {
 "key": "measure_first_strategy",
-"status": "yellow",
-"note": "CONFIRM. Android shows description, 'Toggle Sizing Strategy' button, 'ItemSizingStrategy: MeasureFirstItem' label, but grouped CV body empty; iOS lists Avengers/FF/Defenders + Total footers."
+"status": "green",
+"note": "Android shows the description, Toggle Sizing Strategy button, strategy readout, green group headers (Avengers/Fantastic Four/Defenders), member rows, and orange 'Total members' footers. Matches iOS."
 },
 {
 "key": "menu_bar",
@@ -531,8 +531,8 @@
 },
 {
 "key": "multiple_bound_selection",
-"status": "yellow",
-"note": "CONFIRM. Android shows instruction, 'Selected: Item 1, Item 2', and 3 bottom buttons, but no CV body: missing 'This is the header', Item 0-3 list, and selection highlight iOS shows."
+"status": "green",
+"note": "Shows intro, 'Selected: Item 1, Item 2', 'This is the header', Item 0-3, and all 3 buttons (Clear and Add/Reset/Direct Update) like iOS. Selection-row highlight not visible (styling-only)."
 },
 {
 "key": "navigation_gallery",
@@ -542,7 +542,7 @@
 {
 "key": "nested_collection",
 "status": "yellow",
-"note": "CONFIRM. Android renders only the 'It's CollectionViews all the way down.' header; nested CV body (red Source 0-7 rows, blue Caption N-M columns iOS shows) entirely absent."
+"note": "CONFIRMED. Android shows only header 'It's CollectionViews all the way down.' + empty bg. iOS shows red Source 0-7 rows with horizontal blue Caption inner CVs; entire nested list missing."
 },
 {
 "key": "pan_gesture_events",
@@ -591,13 +591,13 @@
 },
 {
 "key": "preselected_item",
-"status": "yellow",
-"note": "CONFIRM. Android shows only 'Preselected: photo.jpg, 2' label; entire CollectionView absent. iOS shows 'This is the header' plus the long item list with photo.jpg highlighted. List body missing."
+"status": "green",
+"note": "Shows 'Preselected: photo.jpg, 2', 'This is the header', and full list (cover1.jpg 0, oasis.jpg 1, photo.jpg 2...) matching iOS. Highlight on photo.jpg 2 not visible (styling-only)."
 },
 {
 "key": "preselected_items",
-"status": "yellow",
-"note": "CONFIRM. Android renders header prose + 'Preselected: photo.jpg, 2, Fruits.jpg, 4, FlowerBuds.jpg, 5' only; the whole multi-column CollectionView grid with highlighted cells (iOS) is missing."
+"status": "green",
+"note": "Shows intro, 'Preselected: photo.jpg 2, Fruits.jpg 4, FlowerBuds.jpg 5', 'This is the header', and multi-column grid of all items matching iOS. Highlights not visible (styling-only)."
 },
 {
 "key": "progress_bar",
@@ -661,13 +661,13 @@
 },
 {
 "key": "scroll_mode_test",
-"status": "yellow",
-"note": "CONFIRM. Android shows header, 4 buttons, 'Mode: KeepItemsInView Items: 20'. Picker value box and the entire 20-item CollectionView (cover1.jpg 0 ... FlowerBuds.jpg 19) missing vs iOS."
+"status": "green",
+"note": "Android shows ItemsUpdatingScrollMode header, all 4 action buttons, 'Mode: KeepItemsInView Items: 20' readout, and the image-name list (cover1.jpg 0, oasis.jpg 1...). Matches iOS."
 },
 {
 "key": "scroll_to_group",
-"status": "yellow",
-"note": "CONFIRM. Android shows Group/Item/Group Name/Item Name labels, two Go buttons, 'No scroll requested yet'. Entry boxes and grouped CollectionView (Avengers/Fantastic Four/Defenders) absent."
+"status": "green",
+"note": "Android shows Group/Item/Go controls, 'No scroll requested yet' readout, and grouped list (Avengers+members+Total:12, Fantastic Four+Total:4) matching iOS. Defenders just below fold."
 },
 {
 "key": "scroll_view",
@@ -681,13 +681,13 @@
 },
 {
 "key": "selection_command_param",
-"status": "yellow",
-"note": "CONFIRM. Android shows ONLY 'Pending...' label; rest empty. iOS ref shows bold 'This is the header' + full CollectionView (Item 0..9 with 'This is item N') — all list content missing."
+"status": "green",
+"note": "Shows 'Pending...', 'This is the header', and Item 0-9 each with 'This is item N' subtitle — identical content to iOS ref."
 },
 {
 "key": "selection_synchronization",
-"status": "yellow",
-"note": "CONFIRM. Both explanatory paragraphs + both 'Selected: Item 3, Item 2' labels render, but BOTH CollectionViews are empty. iOS shows Item 1-4 rows w/ Item 2/3 grey-highlighted; none render on Android."
+"status": "green",
+"note": "Both CV sections render: intro, 'Selected: Item 3, Item 2' readouts, Item 1-4 each, plus 3rd section heading at bottom — matches iOS. Gray selection highlight not visible (styling-only)."
 },
 {
 "key": "semantics",
@@ -711,8 +711,8 @@
 },
 {
 "key": "single_bound_selection",
-"status": "yellow",
-"note": "CONFIRM. Instruction text and 'Selected: (none)' render, but the CollectionView country list (United States/Canada/Mexico/Brazil/Argentina) shown on iOS is entirely missing below the label."
+"status": "green",
+"note": "Android renders the instruction text, 'Selected: (none)' readout, and country list (United States/Canada/Mexico/Brazil/Argentina) identical to iOS ref."
 },
 {
 "key": "slider",
@@ -721,8 +721,8 @@
 },
 {
 "key": "some_empty_groups",
-"status": "yellow",
-"note": "CONFIRM. Only instruction text renders; the entire grouped CollectionView (green headers Avengers/Thundercats/Bionic Six/Fantastic Four, member items, orange 'Total members' footers) is missing."
+"status": "green",
+"note": "Android matches iOS exactly: description text, all group headers incl. empty Thundercats/Bionic Six (green) with 'Total members: 0' footers, and all populated groups."
 },
 {
 "key": "stack_layout",
@@ -731,8 +731,8 @@
 },
 {
 "key": "staggered_layout",
-"status": "blank",
-"note": "CONFIRM blank. Android shows only app bar + empty grey background; none of Item 0..Item 17 render, while iOS ref shows all 18 items in 3 columns."
+"status": "green",
+"note": "Matches iOS: 3-column staggered grid of Item N. Android shows Item 0-23, iOS 0-17 (variable heights), same content/layout intent."
 },
 {
 "key": "stepper",
@@ -787,7 +787,7 @@
 {
 "key": "switch_grouping",
 "status": "yellow",
-"note": "CONFIRMED. Android shows only the 'Is Grouped:' label. The green toggle and the entire grouped hero list (teams, hero names, 'Total members' counts) the iOS ref shows are absent."
+"note": "CONFIRMED. Grouped list renders fully (Avengers/Fantastic Four/Defenders headers, rows, orange 'Total members:' footers match iOS). But the green ON switch by 'Is Grouped:' is missing."
 },
 {
 "key": "tabbed_flyout",
@@ -836,8 +836,8 @@
 },
 {
 "key": "varied_size_selector",
-"status": "yellow",
-"note": "CONFIRM. Insert/Add/Remove buttons + Index label render, but CollectionView body is empty/grey. None of the 6 items (Coffee0/Milk1/Coffee2/Coffee3/Milk4/Coffee5) iOS shows render."
+"status": "green",
+"note": "Android renders all 6 colored rows (Coffee0-5, Milk1/4 with brown/tan backgrounds), the Insert/Add/Remove buttons and the 'Index' label, matching iOS."
 },
 {
 "key": "vertical_stack",
