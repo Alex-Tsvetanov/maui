@@ -96,6 +96,20 @@ namespace maui::core
         void update_semantics(const maui::core::semantics* value) override;
         void update_input_transparent(bool value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_ANDROID
+        // Android backend: push the generic IView properties to the real android.view.View (a GradientDrawable
+        // stand-in for the box's solid fill + corner radius) over JNI (src/platform/android/box_view_handler.cpp).
+        // Base body FIRST then widget push; shadow/clip/input_transparent keep ONLY the base mirror (an unwrapped
+        // View has no analog, matching C#). No is_enabled — a shape view is non-interactive.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        void update_transform(const maui::core::transform_spec& value) override;
+        void update_flow_direction(maui::core::flow_direction value) override;
+        void update_semantics(const maui::core::semantics* value) override;
+#endif
     };
 
     class shape_view_handler : public view_handler<shape_view_handler, i_shape_view, shape_view_platform>

@@ -100,6 +100,21 @@ namespace maui::core
         void update_transform(const maui::core::transform_spec& value) override;
         void update_background(const maui::graphics::paint* value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_ANDROID
+        // Android backend: push the generic IView properties to the real android.widget.RadioButton over JNI
+        // (src/platform/android/radio_button_handler.cpp). Each calls the view_platform_base body FIRST (the
+        // VM-less suite observes the headless mirror) then pushes when a widget exists. IsEnabled IS pushed
+        // (a radio is interactive); shadow/clip/input_transparent keep ONLY the base mirror (WrapperView-only).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        void update_transform(const maui::core::transform_spec& value) override;
+        void update_flow_direction(maui::core::flow_direction value) override;
+        void update_semantics(const maui::core::semantics* value) override;
+#endif
     };
 
     class radio_button_handler : public view_handler<radio_button_handler, i_radio_button, radio_button_platform>

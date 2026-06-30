@@ -490,6 +490,12 @@ else()
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/switch_handler.cpp)
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/check_box_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/check_box_handler.cpp)
+    # wave 3 — radio_button (RadioButton) + box_view (the shared shape_view_handler partial; a plain View
+    # with a GradientDrawable fill + corner radius as the canvas-render stand-in).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/radio_button_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/radio_button_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/shape_view_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/box_view_handler.cpp)
     # container fan-out — the rendering blocker: the leaf widgets above have no VISIBLE parent until the
     # layout/container handlers create a real android ViewGroup. dev.mauicpp.MauiLayout
     # (src/platform/android/java/MauiLayout.java) is a no-op-onLayout ViewGroup so maui's absolute
@@ -737,6 +743,10 @@ if(MAUI_BACKEND STREQUAL "android")
     # wave 2: slider (SeekBar — value/min/max → progress + tint colors) read back over JNI. SeekBar has no
     # TextView base, so it constructs fine in the testhost.
     tests/platform/android_slider_tests.cpp
+    # wave 3: box_view (a plain android.view.View — constructs fine in the testhost) seam test. radio_button
+    # is a TextView-base CompoundButton (testhost AutofillManager SecurityException), so its test stays
+    # unwired and is verified via the app host.
+    tests/platform/android_box_view_tests.cpp
     # switch (Switch) + check_box (CheckBox) seam tests are NOT wired — like EditText they cannot be
     # constructed in the app_process testhost: their TextView base calls setText() in the ctor →
     # notifyListeningManagersAfterTextChanged → AutofillManager → a Settings ContentProvider the shell-uid
