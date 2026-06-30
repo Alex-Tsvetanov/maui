@@ -88,6 +88,21 @@ namespace
     // All instance methods are resolved through the widget's own class (GetMethodID walks the
     // superclasses, so the CompoundButton/TextView/View surface resolves through android/widget/Switch).
     constexpr const char* k_switch_class = "android/widget/Switch";
+    constexpr const char* k_style_class = "android/R$style";
+    // The concrete platform style that carries the Switch's thumb + track drawables, resolved
+    // theme-independently as a defStyleRes so the bare app_process testhost (and the app host) construct a
+    // Switch that actually HAS its thumb/track (defStyleAttr=0 with no defStyleRes resolves no thumb/track
+    // drawable → an invisible, drawable-less, size-0 toggle — empirically the missing-glyph bug here).
+    //
+    // UNLIKE CheckBox/RadioButton there is NO `Widget_CompoundButton_Switch` field in android.R.style
+    // (verified against API-34 android.jar: the CompoundButton family ships CheckBox/RadioButton/Star but
+    // the Switch style lives ONLY under the Material namespace). So the Switch's concrete style is
+    // android.R.style.Widget_Material_Light_CompoundButton_Switch (the light-theme variant the gallery's
+    // light Activity theme uses; the dark twin is Widget_Material_CompoundButton_Switch). The k_*_alt field
+    // is the non-Light Material fallback tried if the Light id is absent on some API level. (Read with
+    // GetStaticFieldID — these are static fields.)
+    constexpr const char* k_switch_style_field = "Widget_Material_Light_CompoundButton_Switch";
+    constexpr const char* k_switch_style_field_alt = "Widget_Material_CompoundButton_Switch";
     constexpr const char* k_drawable_class = "android/graphics/drawable/Drawable";
     constexpr const char* k_color_state_list_class = "android/content/res/ColorStateList";
     constexpr const char* k_porter_duff_mode_class = "android/graphics/PorterDuff$Mode";
@@ -374,19 +389,52 @@ namespace maui::core
         // android.widget.Switch resolves the `switchStyle` theme attribute against the Context's THEME —
         // which the app_process widget test host (a bare, Activity-less Context) does NOT carry, so that
         // ctor THROWS there → null widget (the same trap progress_bar_handler.cpp's header documents).
-        // Construct THEME-INDEPENDENTLY via the 3-arg (Context, AttributeSet, int defStyleAttr) ctor with
-        // a null AttributeSet and defStyleAttr = 0 (no theme attribute to resolve), then fall back to the
-        // plain (Context) ctor so the widget is never null on a themed Context (the gallery's Activity).
+        //
+        // The 3-arg (Context, AttributeSet, int defStyleAttr) ctor with defStyleAttr=0 constructs fine, but
+        // with NO defStyleRes it resolves NO thumb/track drawable — so the Switch renders as an invisible,
+        // drawable-less toggle (the exact missing-glyph bug the slider's thumb/track hit, fixed there with
+        // defStyleRes=Widget_SeekBar). So construct THEME-INDEPENDENTLY via the 4-arg (Context, AttributeSet,
+        // int defStyleAttr, int defStyleRes) ctor with defStyleAttr=0 and defStyleRes =
+        // android.R.style.Widget_CompoundButton_Switch (a concrete style resource that CARRIES the thumb +
+        // track drawables — read with GetStaticFieldID since it is a static field). Then fall back to the
+        // 3-arg defStyleAttr=0 form, and finally the plain (Context) ctor, so the widget is never null.
         jobject created = nullptr;
-        jmethodID ctor_styleable = cache.method(env.get(), k_switch_class, "<init>",
-                                                "(Landroid/content/Context;Landroid/util/AttributeSet;I)V");
-        if (ctor_styleable != nullptr)
+        jmethodID ctor_styled = cache.method(env.get(), k_switch_class, "<init>",
+                                             "(Landroid/content/Context;Landroid/util/AttributeSet;II)V");
+        jclass style_class = cache.find_class(env.get(), k_style_class);
+        jfieldID style_field =
+            style_class != nullptr ? env->GetStaticFieldID(style_class, k_switch_style_field, "I") : nullptr;
+        clear_pending(env.get()); // a missing-field lookup raises NoSuchFieldError — clear it, then try the alt
+        if (style_class != nullptr && style_field == nullptr)
         {
-            created = env->NewObject(switch_class, ctor_styleable, context, static_cast<jobject>(nullptr),
-                                     static_cast<jint>(0));
-            if (clear_pending(env.get()))
+            style_field = env->GetStaticFieldID(style_class, k_switch_style_field_alt, "I");
+            clear_pending(env.get());
+        }
+        if (ctor_styled != nullptr && style_class != nullptr && style_field != nullptr)
+        {
+            const jint style_res = env->GetStaticIntField(style_class, style_field);
+            if (!clear_pending(env.get()))
             {
-                created = nullptr;
+                created = env->NewObject(switch_class, ctor_styled, context, static_cast<jobject>(nullptr),
+                                         static_cast<jint>(0), style_res);
+                if (clear_pending(env.get()))
+                {
+                    created = nullptr;
+                }
+            }
+        }
+        if (created == nullptr)
+        {
+            jmethodID ctor_styleable = cache.method(env.get(), k_switch_class, "<init>",
+                                                    "(Landroid/content/Context;Landroid/util/AttributeSet;I)V");
+            if (ctor_styleable != nullptr)
+            {
+                created = env->NewObject(switch_class, ctor_styleable, context, static_cast<jobject>(nullptr),
+                                         static_cast<jint>(0));
+                if (clear_pending(env.get()))
+                {
+                    created = nullptr;
+                }
             }
         }
         if (created == nullptr)

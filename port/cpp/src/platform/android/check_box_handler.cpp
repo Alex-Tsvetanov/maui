@@ -81,6 +81,12 @@ namespace
     // All instance methods are resolved through the widget's own class (GetMethodID walks the
     // superclasses, so the View/CompoundButton surface resolves through android/widget/CheckBox too).
     constexpr const char* k_check_box_class = "android/widget/CheckBox";
+    constexpr const char* k_style_class = "android/R$style";
+    // android.R.style.Widget_CompoundButton_CheckBox — the concrete platform style that carries the
+    // checkbox buttonDrawable (the checkmark-in-box glyph). Resolved theme-independently as a defStyleRes
+    // so the bare app_process testhost (and the app host) construct a checkbox that actually HAS its glyph
+    // (defStyleAttr=0 with no defStyleRes resolves no buttonDrawable → an invisible, drawable-less box).
+    constexpr const char* k_check_box_style_field = "Widget_CompoundButton_CheckBox";
     constexpr const char* k_color_state_list_class = "android/content/res/ColorStateList";
     constexpr const char* k_porter_duff_mode_class = "android/graphics/PorterDuff$Mode";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
@@ -388,19 +394,49 @@ namespace maui::core
         // (Material deviation). `new CheckBox(Context)` resolves the `checkboxStyle` theme attr against
         // the Context's THEME, which the app_process widget test host (a bare, Activity-less Context)
         // does not carry, so that ctor may THROW → null widget (the agent flagged this; same shape as
-        // progress_bar's styled-ctor throw). Construct THEME-INDEPENDENTLY with the 3-arg (Context,
-        // AttributeSet, int defStyleAttr) ctor passing a null AttributeSet + defStyleAttr 0 (no theme
-        // attr resolved), and FALL BACK to the plain (Context) ctor so the widget is never null.
+        // progress_bar's styled-ctor throw).
+        //
+        // The 3-arg (Context, AttributeSet, int defStyleAttr) ctor with defStyleAttr=0 constructs fine on
+        // the bare Context, but with NO defStyleRes it resolves NO buttonDrawable — so the checkbox renders
+        // its label but the checkmark-in-box GLYPH is INVISIBLE (the exact missing-glyph bug the slider's
+        // thumb/track hit, fixed there with defStyleRes=Widget_SeekBar). So construct THEME-INDEPENDENTLY
+        // via the 4-arg (Context, AttributeSet, int defStyleAttr, int defStyleRes) ctor with defStyleAttr=0
+        // and defStyleRes = android.R.style.Widget_CompoundButton_CheckBox (a concrete style resource that
+        // CARRIES the buttonDrawable — read with GetStaticFieldID since it is a static field). Then fall
+        // back to the 3-arg defStyleAttr=0 form, and finally the plain (Context) ctor, so the widget is
+        // never null.
         jobject created = nullptr;
-        jmethodID ctor_attr = cache.method(env.get(), k_check_box_class, "<init>",
-                                           "(Landroid/content/Context;Landroid/util/AttributeSet;I)V");
-        if (ctor_attr != nullptr)
+        jmethodID ctor_styled = cache.method(env.get(), k_check_box_class, "<init>",
+                                             "(Landroid/content/Context;Landroid/util/AttributeSet;II)V");
+        jclass style_class = cache.find_class(env.get(), k_style_class);
+        jfieldID style_field =
+            style_class != nullptr ? env->GetStaticFieldID(style_class, k_check_box_style_field, "I") : nullptr;
+        clear_pending(env.get());
+        if (ctor_styled != nullptr && style_class != nullptr && style_field != nullptr)
         {
-            created = env->NewObject(check_box_class, ctor_attr, context, static_cast<jobject>(nullptr),
-                                     static_cast<jint>(0));
-            if (clear_pending(env.get()))
+            const jint style_res = env->GetStaticIntField(style_class, style_field);
+            if (!clear_pending(env.get()))
             {
-                created = nullptr;
+                created = env->NewObject(check_box_class, ctor_styled, context, static_cast<jobject>(nullptr),
+                                         static_cast<jint>(0), style_res);
+                if (clear_pending(env.get()))
+                {
+                    created = nullptr;
+                }
+            }
+        }
+        if (created == nullptr)
+        {
+            jmethodID ctor_attr = cache.method(env.get(), k_check_box_class, "<init>",
+                                               "(Landroid/content/Context;Landroid/util/AttributeSet;I)V");
+            if (ctor_attr != nullptr)
+            {
+                created = env->NewObject(check_box_class, ctor_attr, context, static_cast<jobject>(nullptr),
+                                         static_cast<jint>(0));
+                if (clear_pending(env.get()))
+                {
+                    created = nullptr;
+                }
             }
         }
         if (created == nullptr)

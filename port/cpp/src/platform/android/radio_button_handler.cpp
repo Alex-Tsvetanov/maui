@@ -91,6 +91,13 @@ namespace
     // All instance methods are resolved through the widget's own class (GetMethodID walks the
     // superclasses, so the View/TextView/CompoundButton surface resolves through android/widget/RadioButton).
     constexpr const char* k_radio_button_class = "android/widget/RadioButton";
+    constexpr const char* k_style_class = "android/R$style";
+    // android.R.style.Widget_CompoundButton_RadioButton — the concrete platform style that carries the
+    // radio buttonDrawable (the selectable-circle glyph). Resolved theme-independently as a defStyleRes so
+    // the bare app_process testhost (and the app host) construct a radio button that actually HAS its
+    // circle glyph (defStyleAttr=0 with no defStyleRes resolves no buttonDrawable → an invisible,
+    // drawable-less circle, label only).
+    constexpr const char* k_radio_button_style_field = "Widget_CompoundButton_RadioButton";
     constexpr const char* k_color_state_list_class = "android/content/res/ColorStateList";
     constexpr const char* k_typeface_class = "android/graphics/Typeface";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
@@ -382,19 +389,49 @@ namespace maui::core
         // RadioButton here (AppCompat deviation). `new RadioButton(Context)` resolves the
         // `radioButtonStyle` theme attr against the Context's THEME, which the app_process widget test host
         // (a bare, Activity-less Context) does not carry, so that ctor may THROW → null widget (the same
-        // shape check_box / progress_bar document). Construct THEME-INDEPENDENTLY with the 3-arg (Context,
-        // AttributeSet, int defStyleAttr) ctor passing a null AttributeSet + defStyleAttr 0 (no theme attr
-        // resolved), and FALL BACK to the plain (Context) ctor so the widget is never null.
+        // shape check_box / progress_bar document).
+        //
+        // The 3-arg (Context, AttributeSet, int defStyleAttr) ctor with defStyleAttr=0 constructs fine, but
+        // with NO defStyleRes it resolves NO buttonDrawable — so the radio renders its label but the
+        // selectable-CIRCLE glyph is INVISIBLE (the exact missing-glyph bug the slider's thumb/track hit,
+        // fixed there with defStyleRes=Widget_SeekBar; identical to the check_box/switch fix in this wave).
+        // So construct THEME-INDEPENDENTLY via the 4-arg (Context, AttributeSet, int defStyleAttr, int
+        // defStyleRes) ctor with defStyleAttr=0 and defStyleRes =
+        // android.R.style.Widget_CompoundButton_RadioButton (a concrete style resource that CARRIES the
+        // buttonDrawable — read with GetStaticFieldID since it is a static field). Then fall back to the
+        // 3-arg defStyleAttr=0 form, and finally the plain (Context) ctor, so the widget is never null.
         jobject created = nullptr;
-        jmethodID ctor_attr = cache.method(env.get(), k_radio_button_class, "<init>",
-                                           "(Landroid/content/Context;Landroid/util/AttributeSet;I)V");
-        if (ctor_attr != nullptr)
+        jmethodID ctor_styled = cache.method(env.get(), k_radio_button_class, "<init>",
+                                             "(Landroid/content/Context;Landroid/util/AttributeSet;II)V");
+        jclass style_class = cache.find_class(env.get(), k_style_class);
+        jfieldID style_field =
+            style_class != nullptr ? env->GetStaticFieldID(style_class, k_radio_button_style_field, "I") : nullptr;
+        clear_pending(env.get());
+        if (ctor_styled != nullptr && style_class != nullptr && style_field != nullptr)
         {
-            created = env->NewObject(radio_button_class, ctor_attr, context, static_cast<jobject>(nullptr),
-                                     static_cast<jint>(0));
-            if (clear_pending(env.get()))
+            const jint style_res = env->GetStaticIntField(style_class, style_field);
+            if (!clear_pending(env.get()))
             {
-                created = nullptr;
+                created = env->NewObject(radio_button_class, ctor_styled, context, static_cast<jobject>(nullptr),
+                                         static_cast<jint>(0), style_res);
+                if (clear_pending(env.get()))
+                {
+                    created = nullptr;
+                }
+            }
+        }
+        if (created == nullptr)
+        {
+            jmethodID ctor_attr = cache.method(env.get(), k_radio_button_class, "<init>",
+                                               "(Landroid/content/Context;Landroid/util/AttributeSet;I)V");
+            if (ctor_attr != nullptr)
+            {
+                created = env->NewObject(radio_button_class, ctor_attr, context, static_cast<jobject>(nullptr),
+                                         static_cast<jint>(0));
+                if (clear_pending(env.get()))
+                {
+                    created = nullptr;
+                }
             }
         }
         if (created == nullptr)
