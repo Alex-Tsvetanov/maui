@@ -62,17 +62,17 @@
 {
 "key": "border",
 "status": "green",
-"note": "Matches MAUI: same yellow card, thick red rounded border, centered 'Bordered content' text, same position. No stray shadow (correct, border unshadowed)."
+"note": "Uniform rounded-rectangle clip matches MAUI; cream fill, red stroke, centered label all match. Regression check passes, shape unchanged."
 },
 {
 "key": "border_clip_playground",
-"status": "red",
-"note": "MAUI clips image to the actual RoundRectangle shape (asymmetric corners per sliders); port renders a plain circle/ellipse clip instead"
+"status": "green",
+"note": "Per-corner clip matches MAUI: top-left large radius round, top-right/bottom-left square, bottom-right slight round. Minor: cpp stroke thinner than MAUI's thicker stroke (non-blocking residual)."
 },
 {
 "key": "border_layout",
 "status": "green",
-"note": "Matches MAUI: rounded gray border, red/Center/blue/green content blocks identical. Dashed stroke renders (thin at this thickness, close to solid per known approx); no gradient fill needed here."
+"note": "Border corners: rounded pill shape (left+right ends rounded, uniform) matches MAUI exactly; red/Center-green/blue/green fill order, size, stroke all match."
 },
 {
 "key": "border_playground",
@@ -142,7 +142,7 @@
 {
 "key": "clip_views",
 "status": "yellow",
-"note": "Layout, red-clipped shapes, and text all match; cpp is missing the Material underline chrome under Entry/Editor/DatePicker/TimePicker rows that MAUI shows."
+"note": "Per-corner/curved diagonal clip shapes on all 7 rows match MAUI exactly (regression OK); residual: cpp is missing native underline chrome on Entry/Editor/DatePicker/TimePicker rows that MAUI shows."
 },
 {
 "key": "clipping",
