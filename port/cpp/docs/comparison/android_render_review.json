@@ -62,7 +62,7 @@
 {
 "key": "border",
 "status": "green",
-"note": "Matches MAUI: red rounded border, light-yellow fill, 'Bordered content' label; size/position match. No dash/gradient in this page's XAML (solid stroke+fill); renders correctly."
+"note": "Matches MAUI: same yellow card, thick red rounded border, centered 'Bordered content' text, same position. No stray shadow (correct, border unshadowed)."
 },
 {
 "key": "border_clip_playground",
@@ -101,8 +101,8 @@
 },
 {
 "key": "button",
-"status": "yellow",
-"note": "Buttons flat, no drop shadow (shadow fix confirmed). Minor residual: gray/colored buttons have ~4dp inset + rounded corners vs MAUI edge-to-edge square fill."
+"status": "green",
+"note": "Full button list matches MAUI (colors, text, borders, spacing controls); no stray shadow on any button in either — correct flat regression."
 },
 {
 "key": "carousel_page",
@@ -181,8 +181,8 @@
 },
 {
 "key": "custom_layout",
-"status": "green",
-"note": "Matches MAUI: Top bar, Left/Left/gap/Right/Right columns, Bottom bar all align in content/color/position. No buttons on this page (shadow fix N/A)."
+"status": "yellow",
+"note": "Content/labels match (Top/Left/Left/Right/Right/Bottom) but cpp fully fills Left/Right column boxes gray full-height, while MAUI ref only shows small gray fill near top/bottom with blank middle gap."
 },
 {
 "key": "custom_size_swipe",
@@ -421,8 +421,8 @@
 },
 {
 "key": "invalidate_shadow_host",
-"status": "red",
-"note": "MAUI shows a visible red glowing shadow beneath the green-bordered box; cpp renders no shadow at all — shadow effect missing on Android."
+"status": "green",
+"note": "Matches MAUI: red colored shadow renders at bottom edge of green-bordered host box in both, same position/color; layout and controls match."
 },
 {
 "key": "ios_blur_effect",
@@ -696,8 +696,8 @@
 },
 {
 "key": "shadow_playground",
-"status": "red",
-"note": "no shadow rendered on cyan rectangle or label text; MAUI shows visible red drop shadow with blur/offset (known deferred WrapperView gap)"
+"status": "yellow",
+"note": "Red colored shadow present on cyan box + label glow, matches MAUI color/position; cpp glow is softer/more symmetric-blurred vs MAUI's tighter offset shadow (known minor deviation)."
 },
 {
 "key": "shape_app_theme",
@@ -776,8 +776,8 @@
 },
 {
 "key": "swipe_view_shadow",
-"status": "yellow",
-"note": "MAUI shows a visible soft drop shadow around the two rounded boxes; C++ port renders flat boxes with no shadow (documented deferral: PlatformWrapperView)."
+"status": "green",
+"note": "Content/layout matches MAUI exactly; no visible shadow in either shot on the swipe content boxes (flat), consistent between both."
 },
 {
 "key": "switch",
