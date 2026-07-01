@@ -24,17 +24,25 @@
 // So this partial reuses the SAME deviation the android button partial established
 // (src/platform/android/button_handler.cpp's update_button_stroke) and the box_view partial documents:
 // ONE android.graphics.drawable.GradientDrawable installed as the host MauiLayout's background, with
-//   - i_border_view::stroke() paint color  → GradientDrawable.setStroke(widthPx, argb)   (Stroke brush)
+//   - i_border_view::stroke() paint color  → GradientDrawable.setStroke(widthPx, argb[, dashW, dashG])
+//                                            (Stroke brush; the 4-arg overload when a dash array is set)
 //   - i_border_view::stroke_thickness()     → that setStroke width (dp → px via ToPixels)
+//   - i_border_view::stroke_dash_array()    → the dashW/dashG of the 4-arg setStroke (SetBorderDash: each
+//                                            dash entry × strokeThickness px — a canvas-free DashPathEffect)
 //   - the StrokeShape's rounded-rect corner → setCornerRadius(px)                          (Shape radius)
-//   - the generic IView background paint    → setColor(argb)                               (the fill)
-// This is a FAITHFUL expression for the common Border (a solid stroke of uniform thickness around a
-// RoundRectangle/Rectangle shape with a solid background fill). It is lossy only for the shape family
-// at large — arbitrary paths, gradient stroke/fill brushes, per-corner-distinct radii, dash patterns,
-// non-miter joins — which the GradientDrawable surface cannot express; those funnel through
-// update_border, keep the headless border_stroke_spec mirror current, and no-op on the native side
-// (exactly as the apple twin's CAShapeLayer is the only place dashes/caps/joins land). The
-// dev.mauicpp.MauiLayout ctor is theme-independent (the same no-op ViewGroup content_page hosts into),
+//   - the generic IView background paint    → setColor(argb) for a SolidPaint, OR setColors(int[]) +
+//                                            setOrientation/setGradientType for a gradient brush (the fill)
+// This is a FAITHFUL expression for the common Border AND now for the two facets GradientDrawable models
+// natively: a DASHED stroke (setStroke's dashWidth/dashGap) and a GRADIENT FILL (setColors' multi-stop
+// linear/radial ramp). It stays lossy where the framework GradientDrawable cannot reach — a GRADIENT
+// STROKE brush (setStroke takes one solid color, so a gradient stroke renders as the paint's representative
+// blended color), a dash array of more than two segments (collapsed to the first on/off pair — the single
+// pair setStroke exposes), a gradient angle other than the eight cardinal Orientations, per-corner-distinct
+// radii, non-miter joins, and arbitrary StrokeShape paths — exactly the surface MAUI routes through
+// MauiDrawable's ShapeDrawable canvas, which this backend still lacks. Those remaining pieces funnel
+// through update_border, keep the headless border_stroke_spec mirror current, and degrade gracefully on
+// the native side (as the apple twin's CAShapeLayer is the only place caps/joins/gradient-strokes land).
+// The dev.mauicpp.MauiLayout ctor is theme-independent (the same no-op ViewGroup content_page hosts into),
 // so it constructs in the bare app_process testhost (LESSON 2 in docs/MACOS_ANDROID_RESUME.md — unlike
 // the EditText / horizontal-ProgressBar ctors that resolve a theme style attr).
 //
@@ -64,6 +72,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "android_semantics_ops.hpp"
 #include "android_view_ops.hpp"
@@ -78,9 +87,15 @@
 #include "maui/core/view_platform_base.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/corner_radius.hpp"
+#include "maui/graphics/gradient_paint.hpp"
+#include "maui/graphics/gradient_stop.hpp"
 #include "maui/graphics/i_shape.hpp"
+#include "maui/graphics/linear_gradient_paint.hpp"
+#include "maui/graphics/paint.hpp"
 #include "maui/graphics/path_f.hpp"
+#include "maui/graphics/point.hpp"
 #include "maui/graphics/point_f.hpp"
+#include "maui/graphics/radial_gradient_paint.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/rect_f.hpp"
 #include "maui/graphics/size.hpp"
@@ -101,7 +116,14 @@ namespace
     constexpr const char* k_view_group_class = "android/view/ViewGroup";
     constexpr const char* k_layout_params_class = "android/view/ViewGroup$LayoutParams";
     constexpr const char* k_gradient_drawable_class = "android/graphics/drawable/GradientDrawable";
+    constexpr const char* k_gradient_orientation_class = "android/graphics/drawable/GradientDrawable$Orientation";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
+
+    // GradientDrawable.GradientType.RADIAL_GRADIENT (LINEAR_GRADIENT is the drawable's constructed default = 0).
+    constexpr jint k_radial_gradient_type = 1;
+    // A nominal px extent scaling a relative (0..1) radial radius into GradientDrawable's px-only radius (the
+    // plain-drawable expression of a radial ramp, mirroring android_visual_ops's apply_background).
+    constexpr float k_nominal_radial_extent = 100.0F;
 
     // GeometryUtil.Epsilon — ContextExtensions.ToPixels subtracts it before ceiling (see to_pixels).
     constexpr double k_to_pixels_epsilon = 0.0000000001;
@@ -260,6 +282,155 @@ namespace
         return fresh;
     }
 
+    // The ordered gradient stop colors as a jint[] (ARGB), for GradientDrawable.setColors(int[]). Mirrors
+    // android_visual_ops's stop_color_array: setColors needs ≥ 2 colors, so a single-stop gradient widens to
+    // a flat two-color ramp of that color (kept standalone so the border partial stays independently
+    // buildable — the two share no TU). An empty ref on any JNI failure.
+    [[nodiscard]] local_ref<jintArray> gradient_color_array(JNIEnv* env, const maui::graphics::gradient_paint& gradient)
+    {
+        const std::vector<maui::graphics::gradient_stop> stops = gradient.get_sorted_stops();
+        const auto count = static_cast<jsize>(stops.size() < 2 ? 2 : stops.size());
+        local_ref<jintArray> colors{env, env->NewIntArray(count)};
+        if (!colors)
+        {
+            env->ExceptionClear();
+            return {};
+        }
+        std::vector<jint> argb(static_cast<std::size_t>(count));
+        if (stops.empty())
+        {
+            argb.assign(static_cast<std::size_t>(count), 0); // a deliberately-emptied paint → transparent ramp
+        }
+        else if (stops.size() == 1)
+        {
+            argb[0] = static_cast<jint>(stops[0].color().to_int());
+            argb[1] = argb[0];
+        }
+        else
+        {
+            for (std::size_t i = 0; i < stops.size(); ++i)
+            {
+                argb[i] = static_cast<jint>(stops[i].color().to_int());
+            }
+        }
+        env->SetIntArrayRegion(colors.get(), 0, count, argb.data());
+        if (env->ExceptionCheck() == JNI_TRUE)
+        {
+            env->ExceptionClear();
+            return {};
+        }
+        return colors;
+    }
+
+    // Paint the border fill onto the maui GradientDrawable. A SolidPaint (or any non-gradient) uses
+    // setColor(argb) — the flat fill C#'s BorderHandler.MapBackground draws into the border layer. A
+    // gradient paint installs the multi-stop ramp via setColors(int[]) + the orientation/type — the plain
+    // GradientDrawable stand-in for MauiDrawable.SetBackground(LinearGradientPaint/RadialGradientPaint),
+    // faithful for the common two-plus-stop linear/radial ramp, lossy for angles other than the eight
+    // cardinal orientations (the documented no-MauiDrawable gap, same as android_visual_ops). The gradient
+    // and stroke live on the SAME drawable, so the dashed/solid stroke set in push_border_to_host is
+    // preserved. Returns true when the fill was applied (the caller skips the flat fallback).
+    bool apply_border_fill(JNIEnv* env, jobject drawable, const maui::graphics::paint& paint)
+    {
+        auto& cache = default_jni_cache();
+        const auto* const gradient = dynamic_cast<const maui::graphics::gradient_paint*>(&paint);
+        if (gradient == nullptr)
+        {
+            jmethodID set_color = cache.method(env, k_gradient_drawable_class, "setColor", "(I)V");
+            if (set_color == nullptr)
+            {
+                return false;
+            }
+            env->CallVoidMethod(drawable, set_color, static_cast<jint>(paint.background_color().to_int()));
+            if (env->ExceptionCheck() == JNI_TRUE)
+            {
+                env->ExceptionClear();
+                return false;
+            }
+            return true;
+        }
+
+        const local_ref<jintArray> colors = gradient_color_array(env, *gradient);
+        if (!colors)
+        {
+            return false;
+        }
+        jmethodID set_colors = cache.method(env, k_gradient_drawable_class, "setColors", "([I)V");
+        if (set_colors == nullptr)
+        {
+            return false;
+        }
+        env->CallVoidMethod(drawable, set_colors, colors.get());
+        if (env->ExceptionCheck() == JNI_TRUE)
+        {
+            env->ExceptionClear();
+            return false;
+        }
+        // A radial gradient switches the drawable's gradient type + a representative px radius; a linear
+        // gradient keeps the constructed LINEAR type (orientation set below). The orientation for a linear
+        // ramp is derived from the start→end line, mapped onto the nearest cardinal Orientation.
+        if (const auto* const radial = dynamic_cast<const maui::graphics::radial_gradient_paint*>(gradient))
+        {
+            jmethodID set_type = cache.method(env, k_gradient_drawable_class, "setGradientType", "(I)V");
+            jmethodID set_radius = cache.method(env, k_gradient_drawable_class, "setGradientRadius", "(F)V");
+            if (set_type != nullptr)
+            {
+                env->CallVoidMethod(drawable, set_type, k_radial_gradient_type);
+                env->ExceptionClear();
+            }
+            if (set_radius != nullptr)
+            {
+                env->CallVoidMethod(drawable, set_radius,
+                                    static_cast<jfloat>(radial->radius()) * k_nominal_radial_extent);
+                env->ExceptionClear();
+            }
+            return true;
+        }
+
+        // Linear: pick the cardinal GradientDrawable.Orientation nearest the start→end line (the
+        // plain-drawable expression of the gradient angle — full angle support is the MauiDrawable gap).
+        const auto* const linear = dynamic_cast<const maui::graphics::linear_gradient_paint*>(gradient);
+        const char* orientation_name = "TOP_BOTTOM"; // GradientDrawable's own default
+        if (linear != nullptr)
+        {
+            const maui::graphics::point start = linear->start_point();
+            const maui::graphics::point end = linear->end_point();
+            const double dx = end.x - start.x;
+            const double dy = end.y - start.y;
+            if (std::abs(dx) >= std::abs(dy))
+            {
+                orientation_name = dx >= 0 ? "LEFT_RIGHT" : "RIGHT_LEFT";
+            }
+            else
+            {
+                orientation_name = dy >= 0 ? "TOP_BOTTOM" : "BOTTOM_TOP";
+            }
+        }
+        jclass orientation_class = cache.find_class(env, k_gradient_orientation_class);
+        jmethodID set_orientation = cache.method(env, k_gradient_drawable_class, "setOrientation",
+                                                 "(Landroid/graphics/drawable/GradientDrawable$Orientation;)V");
+        if (orientation_class == nullptr || set_orientation == nullptr)
+        {
+            return true; // colors already applied; leave the drawable's default orientation
+        }
+        jfieldID orientation_field = env->GetStaticFieldID(orientation_class, orientation_name,
+                                                           "Landroid/graphics/drawable/GradientDrawable$Orientation;");
+        if (orientation_field == nullptr)
+        {
+            env->ExceptionClear();
+            return true;
+        }
+        const local_ref<jobject> orientation{env, env->GetStaticObjectField(orientation_class, orientation_field)};
+        if (env->ExceptionCheck() == JNI_TRUE || !orientation)
+        {
+            env->ExceptionClear();
+            return true;
+        }
+        env->CallVoidMethod(drawable, set_orientation, orientation.get());
+        env->ExceptionClear();
+        return true;
+    }
+
     // The border shape's uniform corner radius (dp), recovered off the i_shape bounds path. The
     // StrokeShape corner radius does NOT reach this seam as a value (the union mapper's "stroke_shape"
     // KEY funnels to update_border with no value — header). So the radius is read back out of the
@@ -397,15 +568,42 @@ namespace
         }
         auto& cache = default_jni_cache();
         const float density = display_density(env.get(), host);
-        // StrokeExtensions.UpdateStrokeColor/Thickness → GradientDrawable.setStroke(widthPx, argb). A
-        // zero-thickness/no-stroke border leaves a 0-width (invisible) stroke, matching C#'s no-stroke.
-        jmethodID set_stroke = cache.method(env.get(), k_gradient_drawable_class, "setStroke", "(II)V");
-        if (set_stroke != nullptr)
+        const jint width_px = to_pixels(thickness, density);
+        const jint argb = spec.has_stroke ? static_cast<jint>(spec.stroke_color.to_int()) : 0;
+        // StrokeExtensions.UpdateStrokeColor/Thickness + MauiDrawable.SetBorderDash → the stroke outline.
+        // When StrokeDashArray is set, MauiDrawable.SetBorderDash builds a DashPathEffect whose dash lengths
+        // are each strokeDashArray[i] * strokeThickness (px) and whose phase is strokeDashOffset *
+        // strokeThickness. The framework GradientDrawable expresses a dash via the 4-arg
+        // setStroke(int width, int color, float dashWidth, float dashGap) — a single on/off pair, so the
+        // port scales the first two dash entries by the px thickness (the same DashArray→px convention as
+        // the C# oracle) and routes to that overload; longer/odd patterns collapse to that first pair (the
+        // documented GradientDrawable lossiness — a canvas DashPathEffect would carry the full array).
+        // A solid (empty-dash) border keeps the 2-arg setStroke, exactly matching C#'s null PathEffect.
+        const std::vector<float>& dash = spec.dash_pattern;
+        const bool dashed = thickness > 0 && dash.size() >= 2 && (dash[0] > 0 || dash[1] > 0);
+        if (dashed)
         {
-            const jint width_px = to_pixels(thickness, density);
-            const jint argb = spec.has_stroke ? static_cast<jint>(spec.stroke_color.to_int()) : 0;
-            env->CallVoidMethod(drawable.get(), set_stroke, width_px, argb);
-            clear_pending(env.get());
+            jmethodID set_stroke_dashed = cache.method(env.get(), k_gradient_drawable_class, "setStroke", "(IIFF)V");
+            if (set_stroke_dashed != nullptr)
+            {
+                // MauiDrawable.SetBorderDash: strokeDash[i] = strokeDashArray[i] * strokeThickness (px).
+                const auto stroke_px = static_cast<float>(to_pixels(thickness, density));
+                const auto dash_width = dash[0] * stroke_px;
+                const auto dash_gap = dash[1] * stroke_px;
+                env->CallVoidMethod(drawable.get(), set_stroke_dashed, width_px, argb, static_cast<jfloat>(dash_width),
+                                    static_cast<jfloat>(dash_gap));
+                clear_pending(env.get());
+            }
+        }
+        else
+        {
+            // A zero-thickness/no-stroke border leaves a 0-width (invisible) solid stroke, matching C#.
+            jmethodID set_stroke = cache.method(env.get(), k_gradient_drawable_class, "setStroke", "(II)V");
+            if (set_stroke != nullptr)
+            {
+                env->CallVoidMethod(drawable.get(), set_stroke, width_px, argb);
+                clear_pending(env.get());
+            }
         }
         // The StrokeShape corner radius (uniform) → setCornerRadius(px); a 0 radius keeps it sharp.
         jmethodID set_corner_radius = cache.method(env.get(), k_gradient_drawable_class, "setCornerRadius", "(F)V");
@@ -537,8 +735,10 @@ namespace maui::core
 
     // C#'s BorderHandler MapBackground draws the background INTO the border layer (clipped to the shape).
     // The port's GradientDrawable already clips the fill to its own corner radius, so the IView.Background
-    // push lands as that drawable's setColor — the same drawable update_border installs for the stroke.
-    // A null background leaves the stroke drawable's fill alone (no clobber).
+    // push lands on that same drawable (the one update_border installs for the stroke). A SolidPaint fills
+    // with setColor(argb); a gradient paint fills with the multi-stop ramp (setColors + orientation/type)
+    // — the plain-drawable stand-in for MauiDrawable.SetBackground(gradient). A null background leaves the
+    // stroke drawable's fill alone (no clobber).
     void border_platform::update_background(const maui::graphics::paint* value)
     {
         view_platform_base::update_background(value);
@@ -560,12 +760,7 @@ namespace maui::core
         {
             return;
         }
-        jmethodID set_color = default_jni_cache().method(env.get(), k_gradient_drawable_class, "setColor", "(I)V");
-        if (set_color != nullptr)
-        {
-            env->CallVoidMethod(drawable.get(), set_color, static_cast<jint>(value->background_color().to_int()));
-            clear_pending(env.get());
-        }
+        apply_border_fill(env.get(), drawable.get(), *value);
     }
 
     void border_platform::update_semantics(const maui::core::semantics* value)
