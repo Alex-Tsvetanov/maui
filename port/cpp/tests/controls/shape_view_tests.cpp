@@ -218,6 +218,27 @@ namespace
         EXPECT_NEAR(bounds.x, 0, 1e-3);
     }
 
+    TEST(shape_controls, border_resize_content_triangle_stays_literal_size_under_aspect_none)
+    {
+        // The BorderResizeContent gallery Polygon (Points="40,10 70,80 10,50", the triangle StrokeShape of
+        // a 101x101 Border). A Polygon defaults to Stretch.None (aspect=none), so PathForBounds must keep
+        // the literal 60x70 geometry (x:[10,70], y:[10,80]) and only TRANSLATE it to sit inside the
+        // stroke-inset bounds — it must NOT scale to fill the box. (Real MAUI renders exactly this small
+        // triangle; a stretched-to-fill triangle is the divergence the fix guards against.) The points
+        // already fit within the inset 101-box, so with the default 1.0 stroke the translate is zero.
+        const shapes::polygon triangle(shapes::point_collection{{40, 10}, {70, 80}, {10, 50}});
+        EXPECT_EQ(triangle.aspect(), path_aspect::none); // Polygon inherits Shape's Stretch.None default
+
+        const path_f fitted = triangle.path_for_bounds(maui::graphics::rect(0, 0, 101, 101));
+        const rect_f bounds = fitted.get_bounds_by_flattening(1);
+        // Literal size preserved (NOT stretched to ~93x93 to fill the inset box).
+        EXPECT_NEAR(bounds.width, 60, 1e-3);
+        EXPECT_NEAR(bounds.height, 70, 1e-3);
+        // Fits inside the inset box, so it stays at its authored position (no translation needed).
+        EXPECT_NEAR(bounds.x, 10, 1e-3);
+        EXPECT_NEAR(bounds.y, 10, 1e-3);
+    }
+
     // ---- MeasureOverride (Shape.cs) ----
 
     TEST(shape_controls, measure_fill_uses_the_requests_and_adds_the_stroke)
