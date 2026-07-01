@@ -148,7 +148,6 @@ namespace
     // android.view.View.MeasureSpec modes.
     constexpr auto k_measure_spec_exactly = static_cast<jint>(0x40000000U);
     constexpr auto k_measure_spec_unspecified = static_cast<jint>(0x00000000U);
-    constexpr auto k_measure_spec_at_most = static_cast<jint>(0x80000000U);
     // GeometryUtil.Epsilon — ContextExtensions.ToPixels subtracts it before ceiling.
     constexpr double k_to_pixels_epsilon = 0.0000000001;
     // A modest default supplemental/item extent fallback (dp) for views that measure to nothing (e.g. a
@@ -310,40 +309,6 @@ namespace
         }
         const jint extent =
             vertical ? env->CallIntMethod(view, get_measured_height) : env->CallIntMethod(view, get_measured_width);
-        clear_pending(env);
-        return extent;
-    }
-
-    // Measure a HORIZONTAL supplemental (header/footer) with the cross axis (height) EXACTLY cross_px and
-    // the MAIN axis (width) AT_MOST main_bound_px, then read back its measured WIDTH. AT_MOST lets a tall
-    // caption stack wrap its text down to the bounded width (the iOS narrow-header look) and report its
-    // natural width (<= the bound), instead of laying the label on one line and consuming the viewport.
-    [[nodiscard]] jint measure_main_extent_bounded(JNIEnv* env, jobject view, jint cross_px, jint main_bound_px)
-    {
-        auto& cache = default_jni_cache();
-        jmethodID make_measure_spec = cache.static_method(env, k_measure_spec_class, "makeMeasureSpec", "(II)I");
-        jmethodID measure = cache.method(env, k_view_class, "measure", "(II)V");
-        jmethodID get_measured_width = cache.method(env, k_view_class, "getMeasuredWidth", "()I");
-        jclass measure_spec_class = cache.find_class(env, k_measure_spec_class);
-        if (make_measure_spec == nullptr || measure == nullptr || get_measured_width == nullptr ||
-            measure_spec_class == nullptr)
-        {
-            return 0;
-        }
-        const jint width_spec = env->CallStaticIntMethod(measure_spec_class, make_measure_spec,
-                                                         std::max<jint>(0, main_bound_px), k_measure_spec_at_most);
-        const jint height_spec =
-            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, cross_px, k_measure_spec_exactly);
-        if (clear_pending(env))
-        {
-            return 0;
-        }
-        env->CallVoidMethod(view, measure, width_spec, height_spec);
-        if (clear_pending(env))
-        {
-            return 0;
-        }
-        const jint extent = env->CallIntMethod(view, get_measured_width);
         clear_pending(env);
         return extent;
     }
@@ -806,7 +771,8 @@ namespace maui::controls
         const double cross_extent_dp = vertical ? frame.width : frame.height;
         const double main_viewport_dp = vertical ? frame.height : frame.width;
         const jint cross_px = std::max<jint>(1, to_pixels(cross_extent_dp, density));
-        const jint col_px = std::max<jint>(1, cross_px / span);
+        // The per-column cross extent (cross_px / span) is computed inside the items region as item_col_px,
+        // where a HORIZONTAL CV further reduces it by the top header band (see item_cross_origin_px below).
 
         auto* view = virtual_view();
         const std::shared_ptr<i_items_view_source>& src = items_view_source();
@@ -819,72 +785,100 @@ namespace maui::controls
         double content_main_dp = 0;
         double cursor_dp = 0; // main-axis position in dp (header → items/empty → footer all advance it)
 
+        // HORIZONTAL header/footer band model (the port's no-horizontal-scroll deviation): MAUI's Android
+        // GridLayoutSpanSizeLookup gives a Header/Footer the FULL span (it always occupies the entire cross
+        // axis — GridLayoutSpanSizeLookup.GetSpanSize returns GridItemsLayout.Span for a header/footer of ANY
+        // orientation), and in MAUI's rendered horizontal frame the header shows as a FULL-WIDTH band with the
+        // items flowing beside it. Without real horizontal scrolling the port cannot pin a full-height header
+        // to the left while items scroll past it, so the wave-27 one-column bound instead squeezed the header
+        // into a narrow left column with 3-line-wrapped text (the header_footer_grid_horizontal red). The
+        // faithful match to MAUI's VISIBLE frame is to render the horizontal header/footer as full-VIEWPORT-
+        // WIDTH bands at the top / bottom (exactly like the vertical case) and flow the item columns in the
+        // vertical band BETWEEN them. `band_top_dp` is the vertical offset the top header band consumes (the
+        // horizontal items start below it); the bottom footer band is appended after the items. For a VERTICAL
+        // CV these are unused (header/footer advance cursor_dp along the main axis as before).
+        double band_top_dp = 0;    // vertical extent already consumed by the horizontal top header band
+        double band_bottom_dp = 0; // vertical extent consumed by the horizontal bottom footer band
+        // The viewport width in dp — the cross extent of a horizontal band (= the vertical CV's cross extent).
+        const double viewport_width_dp = frame.width;
+        const jint viewport_width_px = std::max<jint>(1, to_pixels(viewport_width_dp, density));
+
         // The source is empty (UpdateEmptyView) — but the global Header/Footer STILL render around the empty
         // region (the C# `Header is View` arm is independent of item count; HeaderFooterView's source starts
         // EMPTY yet shows its View header+footer). So the header/footer realization below runs UNCONDITIONALLY;
         // only the ITEMS region is swapped for the empty view.
         const bool empty = view == nullptr || !src || src->item_count() == 0;
 
-        // Place a realized supplemental/empty native full cross-width at the cursor and advance it. Prefers
-        // the realized content's CROSS-PLATFORM measure for the main extent when it is a MAUI view (a boxed
-        // Grid/StackLayout header measures its true height INCLUDING its children, the iOS supplementary's
-        // preferredLayoutAttributesFittingAttributes path); falls back to the native View.measure for a plain
-        // text mirror. After placing, runs the cross-platform arrange so the realized view's children land.
-        auto place_full_width = [&](jobject child,
-                                    const std::shared_ptr<maui::core::bindable_object>& realized) -> double {
+        // Place a realized supplemental (header/footer) native FULL VIEWPORT WIDTH and advance the flow. On
+        // BOTH orientations a header/footer spans the whole cross axis (MAUI's Android GridLayoutSpanSizeLookup
+        // gives it the full Span for any orientation) — so it is always a full-viewport-width band with its
+        // natural height, exactly like the vertical case. For a VERTICAL CV that band advances the main-axis
+        // cursor (header at the top of the scroll, footer at the bottom). For a HORIZONTAL CV it advances the
+        // vertical band offset instead (`is_footer` selects the bottom band), and the item COLUMNS flow in the
+        // vertical space between the two bands (band_top_dp .. viewport_height - band_bottom_dp). This mirrors
+        // MAUI's rendered horizontal frame (a full-width header band, items beside/below it) — the port cannot
+        // pin a full-height header while items scroll horizontally past it (no horizontal scroll; the wave-27
+        // narrow-column bound that squeezed the header is removed). Measures the realized MAUI view first (a
+        // boxed StackLayout header takes its true height incl. children), falling back to / max-with the native
+        // View.measure; then places, arranges the children over the placed rect, and returns the band height.
+        auto place_full_width = [&](jobject child, const std::shared_ptr<maui::core::bindable_object>& realized,
+                                    bool is_footer) -> double {
             if (child == nullptr)
             {
                 return 0.0;
             }
-            // Main extent: cross-platform measure for a realized MAUI view, else native. A VERTICAL CV
-            // measures the supplemental with an unbounded main axis (height) — a header stack takes its
-            // natural height. A HORIZONTAL CV must instead BOUND the main axis (width): the header/footer
-            // are pinned at the flow start/end while the ITEMS scroll horizontally past them (iOS pins the
-            // boundary supplementary at an estimated main dimension). Android has no horizontal scroll, so
-            // an unbounded header width would consume the whole viewport and push every item off-screen
-            // (the header rendered full-width, the items+footer blank). Bound the horizontal header/footer
-            // main extent to one item-column width so it stays narrow — its tall caption wraps down the
-            // column exactly like the iOS reference, and the item columns follow it inside the viewport.
-            const double main_bound_dp =
-                vertical ? std::numeric_limits<double>::infinity() : (cross_extent_dp / static_cast<double>(span));
-            double extent_dp = 0.0;
+            // The band's height (dp): measure the content at the full viewport width with an UNBOUNDED height
+            // (a header stack takes its natural height), then max with the native measure and the min floor.
+            double height_dp = 0.0;
             if (auto* const v = dynamic_cast<maui::core::i_view*>(realized.get()); v != nullptr)
             {
-                const maui::graphics::size desired =
-                    vertical ? v->measure(cross_extent_dp, main_bound_dp) : v->measure(main_bound_dp, cross_extent_dp);
-                extent_dp = vertical ? desired.height : desired.width;
+                height_dp = v->measure(viewport_width_dp, std::numeric_limits<double>::infinity()).height;
             }
-            jint extent_px = to_pixels(extent_dp, density);
-            // Native re-measure: a vertical supplemental frees its main axis; a horizontal one bounds the
-            // main axis (width) to the column width so the native content wraps to that width too.
-            extent_px =
-                std::max<jint>(extent_px, vertical ? measure_main_extent(env, child, cross_px, vertical)
-                                                   : measure_main_extent_bounded(env, child, cross_px,
-                                                                                 to_pixels(main_bound_dp, density)));
-            extent_px = std::max<jint>(extent_px, to_pixels(k_min_row_extent, density));
-            const jint start_px = to_pixels(cursor_dp, density);
+            jint height_px = to_pixels(height_dp, density);
+            height_px =
+                std::max<jint>(height_px, measure_main_extent(env, child, viewport_width_px, /*vertical=*/true));
+            height_px = std::max<jint>(height_px, to_pixels(k_min_row_extent, density));
+            const double band_height_dp = static_cast<double>(height_px) / static_cast<double>(density);
+            // The band's top (dp): a VERTICAL CV places header/footer inline along the main-axis cursor; a
+            // HORIZONTAL CV places the header at the very top (band_top_dp) and the footer at the very bottom
+            // (below the viewport-tall items region), the two vertical bands the item columns sit between.
+            double top_dp = 0.0;
             if (vertical)
             {
-                add_and_frame(env, host, child, 0, start_px, cross_px, start_px + extent_px);
+                top_dp = cursor_dp;
+            }
+            else if (is_footer)
+            {
+                top_dp = std::max(main_viewport_dp, band_top_dp) + band_bottom_dp; // stack below the items band
             }
             else
             {
-                add_and_frame(env, host, child, start_px, 0, start_px + extent_px, cross_px);
+                top_dp = band_top_dp; // the top header band grows downward
             }
-            const double placed_main_dp = static_cast<double>(extent_px) / static_cast<double>(density);
-            // Frame the realized view's CHILDREN (header Image/Label/Buttons, a nested CV's own cells) via the
-            // cross-platform arrange over the placed rect — add_and_frame only laid out the realized ROOT.
-            const maui::graphics::rect placed =
-                vertical ? maui::graphics::rect{0.0, cursor_dp, cross_extent_dp, placed_main_dp}
-                         : maui::graphics::rect{cursor_dp, 0.0, placed_main_dp, cross_extent_dp};
-            arrange_realized_view(realized, placed);
-            cursor_dp += placed_main_dp;
-            return placed_main_dp;
+            const jint top_px = to_pixels(top_dp, density);
+            add_and_frame(env, host, child, 0, top_px, viewport_width_px, top_px + height_px);
+            // Frame the realized view's CHILDREN (header Image/Label/Buttons) via the cross-platform arrange
+            // over the placed rect — add_and_frame only laid out the realized ROOT.
+            arrange_realized_view(realized, maui::graphics::rect{0.0, top_dp, viewport_width_dp, band_height_dp});
+            if (vertical)
+            {
+                cursor_dp += band_height_dp;
+            }
+            else if (is_footer)
+            {
+                band_bottom_dp += band_height_dp;
+            }
+            else
+            {
+                band_top_dp += band_height_dp;
+            }
+            return band_height_dp;
         };
 
         // Realize a supplemental (header/footer/group header/footer): template content > boxed view >
         // text mirror, hosted full cross-width. Returns nothing — appends to the host + retains.
-        auto realize_supplemental_native = [&](const std::shared_ptr<data_template>& tmpl, const boxed_item& value) {
+        auto realize_supplemental_native = [&](const std::shared_ptr<data_template>& tmpl, const boxed_item& value,
+                                               bool is_footer) {
             if (!tmpl && !value.has_value())
             {
                 return; // nothing to show
@@ -911,7 +905,7 @@ namespace maui::controls
                     native = text_view.get();
                 }
             }
-            place_full_width(native, realized);
+            place_full_width(native, realized, is_footer);
             if (realized && realized != value.as_bindable())
             {
                 platform->retained_natives.push_back(std::move(realized));
@@ -976,7 +970,7 @@ namespace maui::controls
         auto* structured = dynamic_cast<structured_items_view*>(view);
         if (!is_carousel && view != nullptr && structured != nullptr)
         {
-            realize_supplemental_native(structured->header_template(), structured->header());
+            realize_supplemental_native(structured->header_template(), structured->header(), /*is_footer=*/false);
         }
 
         if (is_carousel)
@@ -1047,12 +1041,24 @@ namespace maui::controls
                 groupable != nullptr ? groupable->group_footer_template() : nullptr;
             const std::shared_ptr<data_template> item_t = view->item_template();
 
+            // HORIZONTAL item band: the item COLUMNS flow in the vertical space BELOW the top header band (a
+            // full-width band consumed band_top_dp). So the columns' cross axis (vertical) starts at band_top
+            // and spans the remaining viewport height, divided by the grid span. (A vertical CV is unaffected:
+            // its columns span the full width from the top, item_cross_origin_px = 0 and item_band_cross_px =
+            // cross_px, so item_col_px == cross_px / span, the prior behavior.)
+            const jint item_cross_origin_px = vertical ? 0 : to_pixels(band_top_dp, density);
+            const jint item_band_cross_px = vertical ? cross_px : std::max<jint>(1, cross_px - item_cross_origin_px);
+            const jint item_col_px = std::max<jint>(1, item_band_cross_px / span);
+
             const int sections = src->group_count();
             for (int section = 0; section < sections; ++section)
             {
                 if (grouped && group_header_t)
                 {
-                    realize_supplemental_native(group_header_t, src->group(index_path{.section = section, .item = -1}));
+                    // A group header/footer only occurs in a (vertical) grouped list — it advances the main
+                    // cursor inline (is_footer=false keeps it on the vertical flow, not a horizontal band).
+                    realize_supplemental_native(group_header_t, src->group(index_path{.section = section, .item = -1}),
+                                                /*is_footer=*/false);
                 }
                 const int count = src->item_count_in_group(section);
                 // Lay items across `span` columns; each row's height is the max measured of its columns.
@@ -1099,7 +1105,7 @@ namespace maui::controls
                             // MauiLayout.onMeasure resolveSize(0, UNSPECIFIED) == 0, so the native measure returns
                             // 0, every row floors to k_min_row_extent, and adjacent rows OVERLAP (the Android
                             // collectionview / nested_collection parity red).
-                            const double col_cross_dp = static_cast<double>(col_px) / static_cast<double>(density);
+                            const double col_cross_dp = static_cast<double>(item_col_px) / static_cast<double>(density);
                             if (auto* const cell_view = dynamic_cast<maui::core::i_view*>(col.retain.get());
                                 cell_view != nullptr)
                             {
@@ -1111,7 +1117,7 @@ namespace maui::controls
                                 row_extent_px = std::max(row_extent_px, to_pixels(desired_main_dp, density));
                             }
                             row_extent_px =
-                                std::max(row_extent_px, measure_main_extent(env, col.native, col_px, vertical));
+                                std::max(row_extent_px, measure_main_extent(env, col.native, item_col_px, vertical));
                         }
                         cols.push_back(std::move(col));
                     }
@@ -1122,20 +1128,23 @@ namespace maui::controls
                         {
                             continue;
                         }
-                        const jint col_start = static_cast<jint>(c) * col_px;
+                        // The cross-axis origin of this column: horizontal offsets it below the top header band
+                        // (item_cross_origin_px), vertical starts at 0. Column width is item_col_px (the band
+                        // cross-extent / span).
+                        const jint col_start = item_cross_origin_px + static_cast<jint>(c) * item_col_px;
                         const double col_main_dp = static_cast<double>(row_extent_px) / static_cast<double>(density);
-                        const double col_cross_dp = static_cast<double>(col_px) / static_cast<double>(density);
+                        const double col_cross_dp = static_cast<double>(item_col_px) / static_cast<double>(density);
                         const double col_cross_origin_dp =
                             static_cast<double>(col_start) / static_cast<double>(density);
                         if (vertical)
                         {
                             add_and_frame(env, host, cols[static_cast<std::size_t>(c)].native, col_start, row_start_px,
-                                          col_start + col_px, row_start_px + row_extent_px);
+                                          col_start + item_col_px, row_start_px + row_extent_px);
                         }
                         else
                         {
                             add_and_frame(env, host, cols[static_cast<std::size_t>(c)].native, row_start_px, col_start,
-                                          row_start_px + row_extent_px, col_start + col_px);
+                                          row_start_px + row_extent_px, col_start + item_col_px);
                         }
                         // The "Selected" VisualState fill (the C# CommonStates Selected highlight; iOS shows
                         // the cell's selectedBackgroundView while isSelected). This realized cell is selected
@@ -1170,7 +1179,8 @@ namespace maui::controls
                 }
                 if (grouped && group_footer_t)
                 {
-                    realize_supplemental_native(group_footer_t, src->group(index_path{.section = section, .item = -1}));
+                    realize_supplemental_native(group_footer_t, src->group(index_path{.section = section, .item = -1}),
+                                                /*is_footer=*/false);
                 }
             }
         }
@@ -1180,7 +1190,7 @@ namespace maui::controls
         // Add/Clear buttons). A carousel carries no footer (its paged path realized only the current item).
         if (!is_carousel && view != nullptr && structured != nullptr)
         {
-            realize_supplemental_native(structured->footer_template(), structured->footer());
+            realize_supplemental_native(structured->footer_template(), structured->footer(), /*is_footer=*/true);
         }
         content_main_dp = cursor_dp;
 

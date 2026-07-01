@@ -64,10 +64,12 @@
 //     arrives. // TODO: verify against src/Core/src/Platform/Android/ImageViewExtensions.cs UpdateIsAnimationPlaying.
 //
 //   - PlatformArrange's center-crop clip (ImageHandler.Android.cs: PlatformInterop.IsImageViewCenterCrop →
-//     SetClipBounds for AspectFill) is deferred: SetClipBounds is a PlatformInterop helper class this
-//     backend's java/ does not yet provide, and clipping is a WrapperView concern in the same family the
-//     button partial defers. The measure-Exactly + layout body is ported. // TODO: verify against
-//     src/Core/src/Handlers/Image/ImageHandler.Android.cs PlatformArrange.
+//     SetClipBounds for AspectFill) is now PORTED (set_center_crop_clip_bounds below): rather than the C#
+//     PlatformInterop helper, the port calls the stock View.setClipBounds(Rect) directly (a plain View API
+//     since API 18). It clips a CENTER_CROP (AspectFill) ImageView's over-scaled draw to the view's own
+//     pixel bounds so the drawable does not spill over its siblings — the header/footer StackLayout Images
+//     that were rendering OVER their captions/buttons (the header_footer_grid parity red). Every non-fill
+//     aspect gets ClipBounds cleared to null, exactly as the C# arrange does.
 //
 // VM-less degradation: the android preset also runs the PURE-NATIVE cross-platform suite on the emulator
 // (tools/android-emu-run.sh) where no Java VM exists. Every JNI path here checks scoped_env / app_context()
@@ -140,6 +142,9 @@ namespace
     // non-zero union, not an even-odd hollow. // TODO: thread a fill rule through i_shape if a future page
     // depends on the even-odd hollow centre (it would diverge from the current iOS render).
     constexpr const char* k_path_class = "android/graphics/Path";
+    // android.graphics.Rect — the clip-bounds rectangle View.setClipBounds takes (the AspectFill
+    // center-crop clip, ImageHandler.Android.PlatformArrange → PlatformInterop.SetClipBounds).
+    constexpr const char* k_rect_class = "android/graphics/Rect";
 
     // GeometryUtil.Epsilon — ContextExtensions.ToPixels subtracts it before ceiling (see to_pixels).
     constexpr double k_to_pixels_epsilon = 0.0000000001;
@@ -650,6 +655,45 @@ namespace
         env->CallVoidMethod(widget, set_clip_path, path_obj.get());
         clear_pending(env);
     }
+
+    // ImageHandler.Android.PlatformArrange's AspectFill center-crop clip
+    // (PlatformInterop.IsImageViewCenterCrop → SetClipBounds). A CENTER_CROP (AspectFill) ImageView scales
+    // the bitmap to COVER the view, so the drawable exceeds the view size in one dimension and — since a
+    // MauiLayout host does NOT clip its children (setClipChildren(false), the ClipBounds=null default) — the
+    // overflowing image draws OVER its siblings (a header StackLayout's caption/button rendered UNDER the
+    // over-scaled Image; the header_footer_grid parity red). C# clips the draw to the view's OWN bounds via
+    // View.setClipBounds(new Rect(0,0,w,h)) for a center-crop view, and clears it (setClipBounds(null)) for
+    // every other aspect. `is_center_crop` is AspectFill (the ONLY aspect ImageViewExtensions maps to
+    // CENTER_CROP). Sizes are the just-laid-out PIXEL bounds. No-op on any JNI failure.
+    void set_center_crop_clip_bounds(JNIEnv* env, jobject widget, bool is_center_crop, jint width_px, jint height_px)
+    {
+        auto& cache = default_jni_cache();
+        jmethodID set_clip_bounds =
+            cache.method(env, k_image_view_class, "setClipBounds", "(Landroid/graphics/Rect;)V");
+        if (set_clip_bounds == nullptr)
+        {
+            return;
+        }
+        if (!is_center_crop)
+        {
+            env->CallVoidMethod(widget, set_clip_bounds, static_cast<jobject>(nullptr)); // ClipBounds = null
+            clear_pending(env);
+            return;
+        }
+        jclass rect_class = cache.find_class(env, k_rect_class);
+        jmethodID rect_ctor = cache.method(env, k_rect_class, "<init>", "(IIII)V");
+        if (rect_class == nullptr || rect_ctor == nullptr)
+        {
+            return;
+        }
+        const local_ref<jobject> rect{env, env->NewObject(rect_class, rect_ctor, 0, 0, width_px, height_px)};
+        if (clear_pending(env) || !rect)
+        {
+            return;
+        }
+        env->CallVoidMethod(widget, set_clip_bounds, rect.get());
+        clear_pending(env);
+    }
 } // namespace
 
 namespace maui::core
@@ -1034,6 +1078,13 @@ namespace maui::core
         }
         env->CallVoidMethod(widget, layout, left, top, left + width, top + height);
         clear_pending(env.get());
+        // AspectFill center-crop clip (ImageHandler.Android.PlatformArrange → IsImageViewCenterCrop /
+        // SetClipBounds): a CENTER_CROP ImageView over-scales its bitmap to COVER the view, so the drawable
+        // exceeds the view bounds in one axis; clip the draw to the view's own pixel rect so it does not spill
+        // over its siblings (the header_footer_grid stack's caption/button were rendered UNDER the over-scaled
+        // 60dp header Image). Cleared (ClipBounds = null) for every other aspect. Mirrors the C# order (clip
+        // set/cleared as part of arrange).
+        set_center_crop_clip_bounds(env.get(), widget, platform->image_aspect == aspect::aspect_fill, width, height);
         // Re-install the clip mask against the just-laid-out bounds (the iOS reapply_clip analog): the clip
         // geometry resolves against the live frame, and update_clip may have run before the first layout when
         // the view was 0×0 (install_clip skipped it then). A resize likewise lands here, so the Path tracks
