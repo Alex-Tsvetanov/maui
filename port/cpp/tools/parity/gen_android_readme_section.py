@@ -51,6 +51,11 @@ STATUS_EMOJI = {
     "blank": "⬛ blank",
 }
 
+# Gemini second-model parity review, written by `gemini_android_sweep.py` to
+# android_gemini_review.json as [{"key","status","note","model"}], status ∈ {green,yellow,red,blank}.
+GEMINI_REVIEW_JSON = os.path.join(COMP, "android_gemini_review.json")
+GEMINI_PENDING = "_pending — Gemini review not run yet_"
+
 
 def load_render_review():
     """key -> {"status","note"} from android_render_review.json, or {} if absent/bad."""
@@ -66,6 +71,24 @@ def load_render_review():
         k = row.get("key")
         if k:
             out[k] = {"status": row.get("status", ""), "note": row.get("note", "")}
+    return out
+
+
+def load_gemini_review():
+    """key -> {"status","note"} from android_gemini_review.json, or {} if absent/bad.
+    Only rows with a real status (green/yellow/red/blank) are kept; pending/"" are dropped."""
+    if not os.path.exists(GEMINI_REVIEW_JSON):
+        return {}
+    try:
+        with open(GEMINI_REVIEW_JSON, encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (OSError, ValueError):
+        return {}
+    out = {}
+    for row in data:
+        k = row.get("key")
+        if k and row.get("status") in STATUS_EMOJI:
+            out[k] = {"status": row["status"], "note": row.get("note", "")}
     return out
 
 
@@ -106,6 +129,13 @@ def main():
         if st in rh:
             rh[st] += 1
     reviewed = sum(rh.values())
+    gemini = load_gemini_review()
+    gh = {"green": 0, "yellow": 0, "red": 0, "blank": 0}
+    for k in keys:
+        st = gemini.get(k, {}).get("status")
+        if st in gh:
+            gh[st] += 1
+    gemini_reviewed = sum(gh.values())
 
     out = []
     out.append("<details>")
@@ -149,7 +179,32 @@ def main():
             out.append(f"| ⏳ Unreviewed | {n - reviewed} | not yet covered by the parity review |")
         out.append("")
         out.append("The per-row **Sonnet 5** column gives each page's MAUI-vs-C++ parity verdict + the specific diff "
-                   "(or \"matches MAUI\"). The **Gemini** column is a future second-model pass.")
+                   "(or \"matches MAUI\").")
+    if gemini_reviewed:
+        out.append("")
+        out.append("**Classification — MAUI-vs-C++ parity (Gemini** `gemini-2.5-flash` second-model pass — the SAME "
+                   "MAUI-vs-C++ comparison and parity policy as the Sonnet column, run independently by Google Gemini "
+                   "vision. Carried alongside Sonnet 5 because the two models diverge: Gemini tends to be stricter and "
+                   "flag more, so a page green in both is high-confidence parity, while a Sonnet-green/Gemini-flagged "
+                   "split marks a page worth a closer look):")
+        out.append("")
+        out.append("| Classification | Count | Meaning |")
+        out.append("| --- | --- | --- |")
+        out.append(f"| 🟢 Match | {gh['green']} | Gemini judges the port matches MAUI's content |")
+        out.append(f"| 🟡 Minor diff | {gh['yellow']} | small content differences |")
+        out.append(f"| 🔴 Major diff | {gh['red']} | the port differs substantially from MAUI |")
+        out.append(f"| ⬛ Port blank | {gh['blank']} | the port's page is blank/crashed |")
+        if gemini_reviewed < n:
+            out.append(f"| ⏳ Unreviewed | {n - gemini_reviewed} | not yet covered by the Gemini pass |")
+        out.append("")
+        agree = sum(1 for k in keys if review.get(k, {}).get("status")
+                    and review[k]["status"] == gemini.get(k, {}).get("status"))
+        both = sum(1 for k in keys if review.get(k, {}).get("status") in STATUS_EMOJI
+                   and gemini.get(k, {}).get("status") in STATUS_EMOJI)
+        if both:
+            out.append(f"**Model agreement:** Sonnet 5 and Gemini give the SAME verdict on **{agree} / {both}** "
+                       f"pages reviewed by both. Divergences (one model stricter) are the value of carrying two "
+                       f"independent reviewers — compare the two columns per row below.")
     else:
         out.append("**Classification:** the C++-vs-MAUI visual review has **not run yet** for Android (it needs the "
                    "MAUI Android column as the oracle), so every example is currently *pending*. The table below "
@@ -181,7 +236,13 @@ def main():
             sonnet = f"{STATUS_EMOJI[rv['status']]} — {note}" if note else STATUS_EMOJI[rv["status"]]
         else:
             sonnet = PENDING
-        out.append(f"| {i} | **{title(k)}** | {cell(k)} | {desc} | {sonnet} | {PENDING} |")
+        gv = gemini.get(k)
+        if gv and gv.get("status") in STATUS_EMOJI:
+            gnote = (gv.get("note") or "").replace("|", "\\|").replace("\n", " ")
+            gemini_cell = f"{STATUS_EMOJI[gv['status']]} — {gnote}" if gnote else STATUS_EMOJI[gv["status"]]
+        else:
+            gemini_cell = GEMINI_PENDING
+        out.append(f"| {i} | **{title(k)}** | {cell(k)} | {desc} | {sonnet} | {gemini_cell} |")
     out.append("")
     out.append("</details>")
     print("\n".join(out))

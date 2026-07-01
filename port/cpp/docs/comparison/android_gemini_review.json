@@ -1,0 +1,1034 @@
+[
+{
+"key": "absolute_layout",
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "activity_indicator",
+"status": "red",
+"note": "ActivityIndicator renders as a static diamond shape instead of a spinning circle.",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "adaptive_collection",
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "alerts",
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "alignment",
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "animation",
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "app_theme_binding",
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "application_control",
+"status": "yellow",
+"note": "main window title text differs: (untitled) vs MAUI C++ - gallery",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "auto_size_shapes",
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "basic_grouping",
+"status": "red",
+"note": "Extra text 'This is a header' at the top of the list.",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "basic_swipe",
+"status": "green",
+"note": "The layout and content match the ground truth.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "behaviors",
+"status": "green",
+"note": "The content, layout, and styling of the page match the MAUI ground truth.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "border",
+"status": "green",
+"note": "The bordered content element matches the ground truth in size, color, and layout.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "border_clip_playground",
+"status": "red",
+"note": "The image border shape and corner radius rendering are significantly different in the C++ port compared to the MAUI ground truth.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "border_layout",
+"status": "yellow",
+"note": "The container border radius is slightly different and the slider track styling is inconsistent.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "border_playground",
+"status": "red",
+"note": "The border dash effect is missing in the C++ port, rendering a solid line instead.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "border_resize_content",
+"status": "red",
+"note": "The third row of shapes is missing in the C++ port, replaced by a duplicate of the second row.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "border_stroke",
+"status": "red",
+"note": "The C++ port is missing the stroke borders around the buttons that are present in the MAUI version.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "borderless",
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "box_view",
+"status": "green",
+"note": "The layout, colors, gradients, and corner radii match the MAUI reference.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "button",
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "carousel_page",
+"status": "green",
+"note": "The layout and content match the ground truth.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "chat_example",
+"status": "red",
+"note": "The C++ port includes an extra 'Hi there!' text element that is not present in the MAUI ground truth.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "check_box",
+"status": "green",
+"note": "The layout and controls match the MAUI reference.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "chrome",
+"status": "green",
+"note": "The content and layout of the page match the ground truth.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "clip",
+"status": "green",
+"note": "The rendering of the clipped images and layout structure matches the MAUI ground truth.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "clip_corner_radius",
+"status": "green",
+"note": "The layout and content match the MAUI reference.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "clip_gallery",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "clip_views",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "clipping",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "collectionview",
+"status": "red",
+"note": "The C++ port includes an extra 'This is the header' text and displays different content in the list items compared to MAUI.",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "composition_gallery",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "containers",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "content_view",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "context_flyout",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "controls_stack",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "custom_layout",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "custom_size_swipe",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "custom_swipe_item_view",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "cv_visual_states",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "data_template_selector",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "date_picker",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "device",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "dispatcher",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "drag_drop",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "editor",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "effects",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "ellipse_gallery",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "empty_view",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "empty_view_load_simulate",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "empty_view_null",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "empty_view_rtl",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "empty_view_selector",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "empty_view_swap",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "empty_view_template",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "empty_view_view",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "entry",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "filter_collection",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "filter_selection",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "flex_layout",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "focus",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "fonts",
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "footer_only_string",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "formatted_text",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "gestures",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "gradient",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "grid",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "grid_grouping",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "grouping_no_templates",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "grouping_plus_selection",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "header_footer",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "header_footer_grid",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "header_footer_grid_horizontal",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "header_footer_template",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "header_footer_view",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "hit_testing",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "horizontal_stack",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "hybrid_web_view",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "image",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "image_button",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "indicator",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "input_controls",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "input_transparent",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "invalidate_brush",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "invalidate_shadow_host",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "ios_blur_effect",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "ios_date_picker",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "ios_entry",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "ios_first_responder",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "ios_pan_gesture",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "ios_picker",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "ios_safe_area",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "ios_scroll_view",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "ios_search_bar",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "ios_slider_update_on_tap",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "ios_swipe_transition",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "ios_time_picker",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "items",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "items_updating_scroll_mode",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "label",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "layout_is_enabled",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "line_gallery",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "line_join_gallery",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "measure_first_strategy",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "menu_bar",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "modal",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "multiple_bound_selection",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "navigation_gallery",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "nested_collection",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "pan_gesture_events",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "path_aspect_gallery",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "path_gallery",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "path_transform_string",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "picker",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "pickers",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "pointer_gesture",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "polygon_gallery",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "polyline_gallery",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "preselected_item",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "preselected_items",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "progress_bar",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "radio_button_border",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "radio_button_content",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "radio_button_group",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "radio_button_group_binding",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "radio_button_group_gallery",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "radio_content_properties",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "radio_template_from_style",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "rectangle_gallery",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "refresh_view",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "relative_layout",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "scattered_radio_button",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "scroll_mode_test",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "scroll_to_group",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "scroll_view",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "search_bar",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "selection_command_param",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "selection_synchronization",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "semantics",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "shadow_playground",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "shape_app_theme",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "shapes",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "single_bound_selection",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "slider",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "some_empty_groups",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "stack_layout",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "staggered_layout",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "stepper",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "styles",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "swipe_gesture",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "swipe_item_position",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "swipe_item_size",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "swipe_refresh",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "swipe_threshold",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "swipe_view_margin",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "swipe_view_shadow",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "switch",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "switch_grouping",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "tabbed_flyout",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "templated_view",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "time_picker",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "title_bar",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "toolbar",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "transform_playground",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "transformations",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "triggers",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "update_path_data",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "varied_size_selector",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "vertical_stack",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "visual_states",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "web_view",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "z_index",
+"status": "",
+"note": "",
+"model": "gemini-2.5-flash"
+}
+]
