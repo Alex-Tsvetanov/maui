@@ -396,8 +396,8 @@
 },
 {
 "key": "image_button",
-"status": "red",
-"note": "Missing red border on BorderColor image; CornerRadius shows plain lines not MAUI's cog corner icons; Padding shows solid red block not red-border+green+gap; GIF shows black box not controls."
+"status": "green",
+"note": "Matches. BorderColor red bar now solid full-width (fix confirmed). Green boxes, CornerRadius lines, custom-size icon, Padding nested box all match MAUI. Cog SVG absent in both (deferral, not a diff)."
 },
 {
 "key": "indicator",
