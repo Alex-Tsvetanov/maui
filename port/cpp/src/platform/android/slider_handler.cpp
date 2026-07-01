@@ -38,8 +38,18 @@
 //   - The port's colors are non-nullable value types, so C#'s `MinimumTrackColor is not null` /
 //     `MaximumTrackColor is not null` / `ThumbColor is not null` guards collapse to the `color != color{}`
 //     sentinel the ios/apple partials use: an UNSET (default-constructed) color leaves the SeekBar's
-//     native default tint (the C# null branch is a no-op — it never sets the tint), rather than forcing a
+//     default tint (the C# null branch is a no-op — it never sets the tint), rather than forcing a
 //     black/transparent fill. Only an explicitly-set color takes the ColorStateList.valueOf tint path.
+//   - PARITY P1 (UNSET default color = MAUI's gray, not this host's dark-blue accent): real MAUI renders the
+//     SeekBar as an AppCompatSeekBar under Theme.MaterialComponents.DayNight, whose unset track/thumb resolve
+//     to the Material light GRAYS (#D7D7D7 track, #E0E0E0 thumb — measured off the maui-compare baseline).
+//     This AAR-less host uses the framework Theme.DeviceDefault.Light, whose colorAccent is the DeviceDefault
+//     dark INDIGO, so a bare SeekBar draws its default progress + thumb in dark blue. To reproduce MAUI's
+//     RENDERED default, create_platform_view seeds those same Material grays as the SeekBar's baseline tints
+//     (seed_default_material_tints). This is NOT a semantic deviation from SliderExtensions — MAUI leaves the
+//     native default *because that default is already gray*; the port pins the equivalent gray because its
+//     host theme's default is not. An explicitly-set color still overrides via the mappers (the LightBlue /
+//     Pink / Orange / Custom rows verify this). Fixes the dark-blue-slider parity cluster.
 //   - The PorterDuff tint *mode* C# sets alongside each tint (ProgressTintMode / ProgressBackgroundTintMode
 //     = SrcIn) is the SeekBar default for tint lists, so it is left at the default rather than read through
 //     a static PorterDuff.Mode field (no behavioral difference for an opaque tint; documented for fidelity).
@@ -256,15 +266,42 @@ namespace
         call_void_int(env, widget, "setProgress", progress);
     }
 
+    // The Material light-theme SeekBar default track + thumb colors (PARITY P1). Real .NET MAUI renders its
+    // SeekBar as an AppCompatSeekBar under Theme.MaterialComponents.DayNight, whose UNSET (native-default)
+    // track + thumb resolve through colorControlNormal / colorControlActivated to the Material light GRAYS —
+    // measured off the maui-compare Android baseline (docs/comparison/android/maui/slider.png): the track is
+    // #D7D7D7 and the thumb #E0E0E0. This AAR-less app host has no AndroidX/Material theme; its Activity uses
+    // the framework Theme.DeviceDefault.Light (see apphost/res/values/styles.xml), whose colorAccent is the
+    // DeviceDefault holo/Material INDIGO — so a bare framework SeekBar (this backend's) draws its default
+    // progress + thumb in that dark blue, NOT MAUI's gray. That accent is the sole cause of the "thick dark-
+    // blue filled track + dark-blue thumb vs MAUI's thin gray Material" parity diff across slider /
+    // ios_scroll_view / ios_slider_update_on_tap / transform_playground / transformations / border_layout /
+    // controls_stack. (The same DeviceDefault accent is why the switch/checkbox thumbs also read dark blue —
+    // a shared theme-accent cluster the switch/checkbox partials carry; only the slider is corrected here.)
+    //
+    // The fix restores MAUI's RENDERED pixels: seed the freshly-built SeekBar's progress (min track),
+    // progress-background (max track), and thumb tints with these Material grays as the UNSET baseline (see
+    // seed_default_material_tints), so the DeviceDefault dark-blue accent is replaced by MAUI's gray. This
+    // does not deviate from SliderExtensions' semantics — MAUI leaves the native default *because MAUI's
+    // native default is already gray*; here the native default is dark blue, so reproducing MAUI's default
+    // requires pinning the same gray the Material theme would have supplied. An explicitly-set
+    // MinimumTrackColor / MaximumTrackColor / ThumbColor still overrides the baseline through the mappers
+    // below (push_tint_list on a set color wins; on an unset color it early-returns, leaving this gray) —
+    // verified against the LightBlue / Pink / Orange / Custom rows on the slider page.
+    constexpr int k_material_track_gray = 0xD7; // #D7D7D7 — MAUI default track (measured)
+    constexpr int k_material_thumb_gray = 0xE0; // #E0E0E0 — MAUI default thumb (measured)
+
     // The shared track-color push: an explicitly-set color installs ColorStateList.valueOf(argb) onto the
     // named tint property (setProgressTintList / setProgressBackgroundTintList / setThumbTintList); an unset
-    // (default) color leaves the native default tint — the collapsed C# `is not null` guard. Mirrors
+    // (default) color leaves the tint as-is — the collapsed C# `is not null` guard. Because create_platform_
+    // view has already seeded the Material-gray baseline (see the note above), "leave as-is" for an unset
+    // color means keeping that MAUI-matching gray rather than the DeviceDefault dark-blue accent. Mirrors
     // progress_bar_handler.cpp's ColorStateList tint push.
     void push_tint_list(JNIEnv* env, jobject widget, const char* setter, const maui::graphics::color& color)
     {
         if (color == maui::graphics::color{})
         {
-            return; // unset → leave the SeekBar's native default tint (C# null branch is a no-op)
+            return; // unset → keep the seeded Material-gray baseline (C# null branch is a no-op)
         }
         auto& cache = default_jni_cache();
         jmethodID value_of =
@@ -283,6 +320,22 @@ namespace
         }
         env->CallVoidMethod(widget, set_tint, tint_list.get());
         clear_pending(env);
+    }
+
+    // Seed the just-created SeekBar with the Material light-theme default track + thumb grays (see the
+    // k_material_*_gray note) so its UNSET chrome matches real MAUI instead of the DeviceDefault dark-blue
+    // accent. Reuses push_tint_list (a concrete, non-unset color, so it takes the ColorStateList.valueOf
+    // path). Called once at construction; the per-property mappers override any of the three when the
+    // developer sets an explicit color.
+    void seed_default_material_tints(JNIEnv* env, jobject widget)
+    {
+        const auto track =
+            maui::graphics::color::from_rgb(k_material_track_gray, k_material_track_gray, k_material_track_gray);
+        const auto thumb =
+            maui::graphics::color::from_rgb(k_material_thumb_gray, k_material_thumb_gray, k_material_thumb_gray);
+        push_tint_list(env, widget, "setProgressTintList", track);           // min (active) track
+        push_tint_list(env, widget, "setProgressBackgroundTintList", track); // max (inactive) track
+        push_tint_list(env, widget, "setThumbTintList", thumb);              // thumb
     }
 } // namespace
 
@@ -530,6 +583,11 @@ namespace maui::core
         // PlatformMaxValue }.
         call_void_bool(env.get(), widget.get(), "setDuplicateParentStateEnabled", JNI_FALSE);
         call_void_int(env.get(), widget.get(), "setMax", k_platform_max_value);
+        // PARITY P1: pin the Material light-theme default track + thumb grays so the UNSET SeekBar chrome
+        // matches real MAUI instead of the DeviceDefault dark-blue accent this bare-framework host inherits
+        // (see the k_material_*_gray / seed_default_material_tints note). The three color mappers override any
+        // of these when an explicit MinimumTrackColor / MaximumTrackColor / ThumbColor is set.
+        seed_default_material_tints(env.get(), widget.get());
         // Wrap-content LayoutParams up front (parentless View measure/layout safety — the android container
         // fan-out has not arrived; the partial stands in for the parent ViewGroup attach, exactly like
         // button_handler.cpp / progress_bar_handler.cpp do).
