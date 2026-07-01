@@ -71,16 +71,20 @@
 //   - MapBackground rides the shared view_mapper (the C# MapBackground delegates straight to
 //     PlatformView.UpdateBackground); update_background pushes the solid/gradient/image background to the
 //     View via the shared android op (VM-less safe), like the editor partial.
-//   - The port's colors are non-nullable value types, so C#'s null-color branches collapse exactly as
-//     they did in the editor/apple/ios partials: UpdateTextColor's / UpdatePlaceholderColor's "restore
-//     the theme default" (TryGetDefaultStateColor) else-branches have no value-type analog and are
-//     dropped (an unset color is a real value here, pushed through setTextColor / setHintTextColor like
-//     every other color). The magnifier IS present now (a compound drawable), but its co-tint inside
-//     UpdateTextColor / UpdatePlaceholderColor (C# tints search_mag_icon to the text/placeholder colour
-//     as a fallback) is NOT applied here — the loupe tint is driven by SearchIconColor (map_search_icon_
-//     color) instead; the text/placeholder-colour co-tint is a minor fallback the ISearchBar contract
-//     does not require. // TODO: verify against SearchViewExtensions.cs (UpdateTextColor /
-//     UpdatePlaceholderColor search_mag_icon co-tint) if that fallback tint is ever needed.
+//   - The port's colors are non-nullable value types (default color{} = opaque BLACK), so C#'s null-color
+//     branches have no direct value-type analog. UpdateTextColor's "restore the theme default"
+//     (TryGetDefaultStateColor) else-branch is dropped (an unset TextColor is pushed through setTextColor
+//     like every other color — TextColor is not one of the parity yellows). UpdatePlaceholderColor's null
+//     branch (resolve android.R.attr.textColorHint, SetHintTextColor to it) IS honored: map_placeholder_
+//     color discriminates on BindableObject.IsSet and, when UNSET, asserts the measured native EditText
+//     hint gray (#666666) instead of black — the unset-color-default family fix (see map_placeholder_color
+//     / entry_handler / editor_handler), so an empty search bar shows a gray query-hint matching MAUI, not
+//     solid black. An explicit PlaceholderColor still overrides. The magnifier IS present now (a compound
+//     drawable), but its co-tint inside UpdateTextColor / UpdatePlaceholderColor (C# tints search_mag_icon
+//     to the text/placeholder colour as a fallback) is NOT applied here — the loupe tint is driven by
+//     SearchIconColor (map_search_icon_color) instead; the text/placeholder-colour co-tint is a minor
+//     fallback the ISearchBar contract does not require. // TODO: verify against SearchViewExtensions.cs
+//     (UpdateTextColor / UpdatePlaceholderColor search_mag_icon co-tint) if that fallback tint is ever needed.
 //   - The native EditText color setters take a ColorStateList (C# routes through
 //     PlatformInterop.CreateEditTextColorStateList). The plain-widget cut uses the single-int overloads
 //     setTextColor(int) / setHintTextColor(int) — the ColorStateList path's enabled-state coloring is an
@@ -1111,11 +1115,26 @@ namespace maui::core
         const scoped_env env;
         if (env)
         {
-            // SearchViewExtensions.UpdatePlaceholderColor → inner EditText.SetHintTextColor(color). Null
-            // branch (default + the search_mag_icon co-tint) collapses + ColorStateList→int overload
-            // (header deviations).
-            call_void_int(env.get(), widget_of(*platform), "setHintTextColor",
-                          static_cast<jint>(view.placeholder_color().to_int()));
+            // SearchViewExtensions.UpdatePlaceholderColor → EditTextExtensions.UpdatePlaceholderColor on the
+            // inner EditText, which discriminates on `placeholderTextColor is null`: SET →
+            // SetHintTextColor(color); UNSET → resolve android.R.attr.textColorHint from the theme and
+            // SetHintTextColor to THAT (the native EditText hint gray). The port's Color is a NON-nullable
+            // value type (default color{} = opaque BLACK), so a `!= color{}` compare cannot stand in for
+            // `!= null` — it misreads an explicit PlaceholderColor=Black as unset AND (the bug this fix
+            // closes) rendered every unset query-hint solid BLACK, indistinguishable from real text.
+            // Discriminate instead on BindableObject.IsSet (is_property_set("placeholder_color")) — the
+            // faithful stand-in for `!= null`, exactly as editor_handler / entry_handler::map_placeholder_color
+            // do. On the UNSET branch, positively assert the measured native EditText hint gray (#666666, the
+            // android textColorHint the maui-compare reference samples) instead of black — reproducing C#'s
+            // theme-textColorHint result deterministically. An explicit PlaceholderColor still overrides via
+            // the SET branch. (The search_mag_icon co-tint stays deferred to SearchIconColor — header
+            // deviations; ColorStateList → int overload — header deviations.)
+            constexpr jint k_native_default_hint_color = static_cast<jint>(0xFF666666U);
+            const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+            const bool color_is_set = bindable != nullptr && bindable->is_property_set("placeholder_color");
+            const jint argb =
+                color_is_set ? static_cast<jint>(view.placeholder_color().to_int()) : k_native_default_hint_color;
+            call_void_int(env.get(), widget_of(*platform), "setHintTextColor", argb);
         }
     }
 
