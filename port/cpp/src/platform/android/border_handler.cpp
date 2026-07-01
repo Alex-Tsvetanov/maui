@@ -76,6 +76,7 @@
 #include <string_view>
 #include <vector>
 
+#include "android_canvas.hpp"
 #include "android_clip_ops.hpp"
 #include "android_semantics_ops.hpp"
 #include "android_view_ops.hpp"
@@ -103,11 +104,14 @@
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/rect_f.hpp"
 #include "maui/graphics/shapes/ellipse.hpp"
+#include "maui/graphics/shapes/rectangle.hpp"
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/size.hpp"
+#include "maui/graphics/winding_mode.hpp"
 
 namespace
 {
+    using maui::platform::android::android_canvas;
     using maui::platform::android::app_context;
     using maui::platform::android::default_jni_cache;
     using maui::platform::android::local_ref;
@@ -118,7 +122,6 @@ namespace
     // uses) — also the surface carrying the border's GradientDrawable background. GetMethodID walks
     // superclasses, so the ViewGroup/View surface resolves through this class directly.
     constexpr const char* k_maui_layout_class = "dev/mauicpp/MauiLayout";
-    constexpr const char* k_view_class = "android/view/View";
     constexpr const char* k_view_group_class = "android/view/ViewGroup";
     constexpr const char* k_layout_params_class = "android/view/ViewGroup$LayoutParams";
     constexpr const char* k_gradient_drawable_class = "android/graphics/drawable/GradientDrawable";
@@ -556,6 +559,75 @@ namespace
         return path;
     }
 
+    // Whether the Border's StrokeShape needs the CANVAS draw (dispatchDraw + android_canvas) rather than
+    // the GradientDrawable + Outline-clip fast path. The GradientDrawable expresses a rounded rect (incl. a
+    // plain rectangle = 0 radius) and, with the outline clip, an ellipse — the convex shapes the last fix
+    // handled. ANY other StrokeShape (a Polygon triangle, a PathGeometry, a Line) cannot be traced by a
+    // rectangular drawable, so it routes to the canvas path (the port twin of MAUI's MauiDrawable canvas
+    // draw). A null shape (a plain Border) is NOT arbitrary — it keeps the default background. The check is
+    // by exclusion: a shape that is neither a round_rectangle nor an ellipse (the two the GradientDrawable +
+    // clip already cover faithfully) is arbitrary. round_rectangle covers the plain-rectangle case too (a
+    // rectangle StrokeShape is a round_rectangle with 0 radius on the port's shape hierarchy) — but the
+    // graphics::shapes::rectangle primitive is a distinct type, so it is excluded explicitly as well.
+    [[nodiscard]] bool shape_needs_canvas(const maui::graphics::i_shape* shape)
+    {
+        if (shape == nullptr)
+        {
+            return false; // no StrokeShape → default background, no canvas draw
+        }
+        if (dynamic_cast<const maui::graphics::shapes::round_rectangle*>(shape) != nullptr ||
+            dynamic_cast<const maui::graphics::shapes::ellipse*>(shape) != nullptr ||
+            dynamic_cast<const maui::graphics::shapes::rectangle*>(shape) != nullptr)
+        {
+            return false; // GradientDrawable + Outline clip already handle these convex shapes
+        }
+        return true; // Polygon / Path / Line / any other geometry → canvas draw
+    }
+
+    // The Border's shape path fitted to the STROKE bounds, in POINTS — the fill + stroke both trace this.
+    // Mirrors MauiDrawable.Android.cs's shape bounds: the path is laid into Rect(sw/2, sw/2, fw-sw, fh-sw)
+    // so a stroke of width sw centred on the path has its OUTER edge flush with the view boundary (fw/fh are
+    // the view size in points; sw is the stroke thickness). An unstroked border fits the full box.
+    [[nodiscard]] maui::graphics::path_f border_shape_path_points(const maui::core::border_stroke_spec& spec,
+                                                                  double width_pt, double height_pt)
+    {
+        if (spec.shape == nullptr || width_pt <= 0.0 || height_pt <= 0.0)
+        {
+            return {};
+        }
+        const double sw = spec.has_stroke && spec.thickness > 0 ? spec.thickness : 0.0;
+        const double x = sw / 2.0;
+        const double y = sw / 2.0;
+        const double w = width_pt - sw;
+        const double h = height_pt - sw;
+        if (w <= 0.0 || h <= 0.0)
+        {
+            return {};
+        }
+        return spec.shape->path_for_bounds(maui::graphics::rect{x, y, w, h});
+    }
+
+    // The Border's CONTENT clip path fitted to the INNER (stroke-inset) bounds, in POINTS — the children are
+    // clipped to this so the content is confined strictly inside the stroke. Mirrors C#'s
+    // ContentViewGroup.GetClipPath: inset the shape by the full stroke thickness on every side (x=y=st,
+    // w=fw-2*st). Empty when there is no shape or the stroke swallows the box.
+    [[nodiscard]] maui::graphics::path_f border_arbitrary_clip_points(const maui::core::border_stroke_spec& spec,
+                                                                      double width_pt, double height_pt)
+    {
+        if (spec.shape == nullptr || width_pt <= 0.0 || height_pt <= 0.0)
+        {
+            return {};
+        }
+        const double st = spec.has_stroke && spec.thickness > 0 ? spec.thickness : 0.0;
+        const double w = width_pt - (2.0 * st);
+        const double h = height_pt - (2.0 * st);
+        if (w <= 0.0 || h <= 0.0)
+        {
+            return {};
+        }
+        return spec.shape->path_for_bounds(maui::graphics::rect{st, st, w, h});
+    }
+
     // The content's native android.view.View, via its view-handler's native_view() (C#'s ToPlatform()
     // = ContainerView ?? PlatformView). Null when the content is unattached. Mirrors
     // content_page_handler.cpp's native_child.
@@ -641,6 +713,26 @@ namespace
         }
         jobject host = host_of(platform);
         const maui::core::border_stroke_spec& spec = platform.border;
+        // ARBITRARY StrokeShape (a Polygon triangle / a Path): the GradientDrawable can only draw a rounded
+        // RECTANGLE, so it would paint a competing box behind the canvas-drawn triangle. Clear our drawable
+        // background (setBackground(null)) — the MauiLayout.dispatchDraw canvas draws the fill + stroke along
+        // the shape path instead (arrange_native installs the borderPeer). Nothing else to push here.
+        if (shape_needs_canvas(spec.shape))
+        {
+            if (jmethodID set_background = default_jni_cache().method(env.get(), k_maui_layout_class, "setBackground",
+                                                                      "(Landroid/graphics/drawable/Drawable;)V"))
+            {
+                // Only null OUR GradientDrawable, never a foreign background (guard with the same instanceof
+                // maui_border_drawable uses): getBackground()==GradientDrawable ⇒ ours ⇒ clear it.
+                const local_ref<jobject> ours = maui_border_drawable(env.get(), host, /*install=*/false);
+                if (ours)
+                {
+                    env->CallVoidMethod(host, set_background, static_cast<jobject>(nullptr));
+                    clear_pending(env.get());
+                }
+            }
+            return;
+        }
         // GetStrokeProperties with the port's non-nullable color: thickness < 0 → width 0; the radius is
         // recovered from the shape geometry below. A border is "visible" once it strokes or rounds.
         const double thickness = spec.has_stroke && spec.thickness > 0 ? spec.thickness : 0;
@@ -734,6 +826,166 @@ namespace
             }
         }
     }
+
+    // ── ARBITRARY-STROKESHAPE canvas draw (MauiLayout.dispatchDraw callbacks) ────────────────────────────
+    // The port twin of MAUI's Android Border render for a StrokeShape the GradientDrawable cannot trace (a
+    // Polygon triangle / a Path): MauiDrawable draws the fill + stroke ALONG the shape path on the canvas,
+    // and ContentViewGroup.dispatchDraw clips the content to the shape path. These three JNI callbacks are
+    // bound onto MauiLayout (RegisterNatives) and invoked from its dispatchDraw: fill behind the children,
+    // clip the children, stroke over them. The peer is the border_platform*; it is cleared to 0 in
+    // ~border_platform before the struct dies, so a late draw is a safe no-op.
+
+    // The border host's display density from the canvas draw thread (memoized via display_density, keyed off
+    // the host View). The dispatchDraw canvas is in PIXELS; the shape geometry + stroke width are in POINTS,
+    // so the android_canvas applies canvas.scale(density) and every op below stays in point units.
+    [[nodiscard]] float border_density(JNIEnv* env, jobject host)
+    {
+        return display_density(env, host);
+    }
+
+    // Phase 1 — fill the arbitrary shape path with the Border's background paint, behind the children.
+    void JNICALL native_draw_border_fill(JNIEnv* env, jobject host, jlong peer, jobject canvas, jint width, jint height)
+    {
+        auto* platform = reinterpret_cast<maui::core::border_platform*>(peer);
+        if (platform == nullptr || canvas == nullptr || env == nullptr || width <= 0 || height <= 0)
+        {
+            return;
+        }
+        if (platform->background == nullptr)
+        {
+            return; // an unfilled border draws no fill (the stroke still traces the outline)
+        }
+        const float density = border_density(env, host);
+        const float scale = density > 0 ? density : 1.0F;
+        const auto w_pt = static_cast<double>(width) / scale;
+        const auto h_pt = static_cast<double>(height) / scale;
+        const maui::graphics::path_f path = border_shape_path_points(platform->border, w_pt, h_pt);
+        if (path.count() == 0)
+        {
+            return;
+        }
+        android_canvas bridge(env, canvas);
+        bridge.set_display_scale(scale);
+        // The fill honours a solid OR gradient paint (set_fill_paint installs the shader for a gradient),
+        // resolved over the path's bounds. winding non_zero matches a simple closed polygon/path fill.
+        bridge.set_fill_paint(platform->background,
+                              maui::graphics::rect_f(0.0F, 0.0F, static_cast<float>(w_pt), static_cast<float>(h_pt)));
+        bridge.fill_path(path, maui::graphics::winding_mode::non_zero);
+    }
+
+    // Build the content clip Path (the stroke-inset inner shape, in PIXELS) for MauiLayout.dispatchDraw to
+    // clipPath the children. Returns null (→ no clip) when there is no shape or the stroke swallows the box.
+    jobject JNICALL native_border_clip_path(JNIEnv* env, jobject host, jlong peer, jint width, jint height)
+    {
+        auto* platform = reinterpret_cast<maui::core::border_platform*>(peer);
+        if (platform == nullptr || env == nullptr || width <= 0 || height <= 0)
+        {
+            return nullptr;
+        }
+        const float density = border_density(env, host);
+        const float scale = density > 0 ? density : 1.0F;
+        const auto w_pt = static_cast<double>(width) / scale;
+        const auto h_pt = static_cast<double>(height) / scale;
+        const maui::graphics::path_f path = border_arbitrary_clip_points(platform->border, w_pt, h_pt);
+        if (path.count() == 0)
+        {
+            return nullptr;
+        }
+        // Reuse the shared clip-path builder (points → android.graphics.Path scaled to pixels), returning a
+        // LOCAL ref that JNI hands back to Java (Java owns it after return; do not release it here).
+        local_ref<jobject> path_obj = maui::platform::android::detail::build_clip_path(env, path, scale);
+        return path_obj.release();
+    }
+
+    // Phase 3 — stroke the arbitrary shape outline with the Border's stroke paint, over the children.
+    void JNICALL native_draw_border_stroke(JNIEnv* env, jobject host, jlong peer, jobject canvas, jint width,
+                                           jint height)
+    {
+        auto* platform = reinterpret_cast<maui::core::border_platform*>(peer);
+        if (platform == nullptr || canvas == nullptr || env == nullptr || width <= 0 || height <= 0)
+        {
+            return;
+        }
+        const maui::core::border_stroke_spec& spec = platform->border;
+        if (!spec.has_stroke || spec.thickness <= 0)
+        {
+            return; // no stroke → nothing to trace
+        }
+        const float density = border_density(env, host);
+        const float scale = density > 0 ? density : 1.0F;
+        const auto w_pt = static_cast<double>(width) / scale;
+        const auto h_pt = static_cast<double>(height) / scale;
+        const maui::graphics::path_f path = border_shape_path_points(spec, w_pt, h_pt);
+        if (path.count() == 0)
+        {
+            return;
+        }
+        android_canvas bridge(env, canvas);
+        bridge.set_display_scale(scale);
+        bridge.set_stroke_color(spec.stroke_color);
+        bridge.set_stroke_size(static_cast<float>(spec.thickness));
+        bridge.set_stroke_line_cap(spec.line_cap);
+        bridge.set_stroke_line_join(spec.line_join);
+        bridge.set_miter_limit(spec.miter_limit > 0 ? spec.miter_limit : 10.0F);
+        if (spec.dash_pattern.size() >= 2)
+        {
+            bridge.set_stroke_dash_pattern(spec.dash_pattern);
+            bridge.set_stroke_dash_offset(spec.dash_offset);
+        }
+        bridge.draw_path(path);
+    }
+
+    // Binds the three arbitrary-border draw callbacks onto MauiLayout (RegisterNatives — no Java_* export,
+    // the same reflection-free recipe layout_handler's nativeArrange + box_view's nativeDraw use). Idempotent
+    // (RegisterNatives replaces an existing binding), so it is safe to call on every border host creation.
+    [[nodiscard]] bool register_border_draw_natives(JNIEnv* env)
+    {
+        jclass layout_class = default_jni_cache().find_class(env, k_maui_layout_class);
+        if (layout_class == nullptr)
+        {
+            return false;
+        }
+        static const std::array<JNINativeMethod, 3> k_methods{
+            JNINativeMethod{.name = const_cast<char*>("nativeDrawBorderFill"),
+                            .signature = const_cast<char*>("(JLandroid/graphics/Canvas;II)V"),
+                            .fnPtr = reinterpret_cast<void*>(&native_draw_border_fill)},
+            JNINativeMethod{.name = const_cast<char*>("nativeBorderClipPath"),
+                            .signature = const_cast<char*>("(JII)Landroid/graphics/Path;"),
+                            .fnPtr = reinterpret_cast<void*>(&native_border_clip_path)},
+            JNINativeMethod{.name = const_cast<char*>("nativeDrawBorderStroke"),
+                            .signature = const_cast<char*>("(JLandroid/graphics/Canvas;II)V"),
+                            .fnPtr = reinterpret_cast<void*>(&native_draw_border_stroke)},
+        };
+        const jint status = env->RegisterNatives(layout_class, k_methods.data(), static_cast<jint>(k_methods.size()));
+        if (status != JNI_OK)
+        {
+            clear_pending(env);
+            return false;
+        }
+        return true;
+    }
+
+    // Install (or clear, peer=0) the MauiLayout's borderPeer so its dispatchDraw runs the arbitrary-shape
+    // canvas draw. call_void_long — the setBorderPeer(long) push.
+    void set_border_peer(JNIEnv* env, jobject host, jlong peer)
+    {
+        if (jmethodID method = default_jni_cache().method(env, k_maui_layout_class, "setBorderPeer", "(J)V"))
+        {
+            env->CallVoidMethod(host, method, peer);
+            clear_pending(env);
+        }
+    }
+
+    // Invalidate the border host so its dispatchDraw re-runs (a shape/stroke/fill change — the MauiShapeView
+    // invalidate twin). A plain View.invalidate().
+    void invalidate_host(JNIEnv* env, jobject host)
+    {
+        if (jmethodID method = default_jni_cache().method(env, k_maui_layout_class, "invalidate", "()V"))
+        {
+            env->CallVoidMethod(host, method);
+            clear_pending(env);
+        }
+    }
 } // namespace
 
 namespace maui::core
@@ -747,6 +999,17 @@ namespace maui::core
             const scoped_env env; // any-thread teardown, exactly like global_ref::reset
             if (env)
             {
+                // Clear the borderPeer FIRST so a late MauiLayout.dispatchDraw cannot dereference this
+                // struct mid-teardown (the MauiShapeView.setNativePtr(0) doctrine).
+                if (jmethodID clear_peer =
+                        default_jni_cache().method(env.get(), k_maui_layout_class, "setBorderPeer", "(J)V"))
+                {
+                    env->CallVoidMethod(static_cast<jobject>(native), clear_peer, static_cast<jlong>(0));
+                    if (env->ExceptionCheck() == JNI_TRUE)
+                    {
+                        env->ExceptionClear();
+                    }
+                }
                 env->DeleteGlobalRef(static_cast<jobject>(native));
             }
             native = nullptr;
@@ -872,6 +1135,18 @@ namespace maui::core
             return;
         }
         jobject host = host_of(*this);
+        // ARBITRARY StrokeShape: the fill is drawn along the shape path by MauiLayout.dispatchDraw (which
+        // reads this->background — already stored by the base body above), NOT by a rectangular
+        // GradientDrawable. Skip the drawable install and just invalidate so the canvas re-fills.
+        if (shape_needs_canvas(border.shape))
+        {
+            if (jmethodID inval = default_jni_cache().method(env.get(), k_maui_layout_class, "invalidate", "()V"))
+            {
+                env->CallVoidMethod(host, inval);
+                clear_pending(env.get());
+            }
+            return;
+        }
         // Install the maui GradientDrawable so the fill clips to the border's corner radius (rather than
         // the generic apply_background painting a flat rectangle behind the shape), matching the C#
         // background-into-the-border-layer behavior.
@@ -940,6 +1215,10 @@ namespace maui::core
         {
             return platform; // MauiLayout is host-provided (java/MauiLayout.java)
         }
+        // Bind the arbitrary-StrokeShape draw callbacks onto MauiLayout (RegisterNatives, idempotent) before
+        // any border host draws — the reflection-free recipe layout_handler/box_view share. A bind failure
+        // (a stripped-down host without the border natives) degrades to no canvas draw, never a crash.
+        static_cast<void>(register_border_draw_natives(env.get()));
         const local_ref<jobject> host{env.get(), env->NewObject(layout_class, ctor, context)};
         if (clear_pending(env.get()) || !host)
         {
@@ -1061,6 +1340,38 @@ namespace maui::core
         }
         env->CallVoidMethod(host, layout, left, top, left + width, top + height);
         clear_pending(env.get());
+
+        // ARBITRARY StrokeShape (a Polygon triangle / a Path): the GradientDrawable + Outline clip cannot
+        // trace it, so the border draws through MauiLayout.dispatchDraw (fill + clip + stroke on the canvas —
+        // the port twin of MAUI's MauiDrawable canvas draw + ContentViewGroup clip). Install the borderPeer
+        // (the dispatchDraw activation) and clear any stale Outline clip (the dispatchDraw clipPath does the
+        // clipping now). push_border_to_host already suppressed the GradientDrawable for an arbitrary shape,
+        // so no rectangle chrome competes. A colored shadow is still expressed via the Outline (it wins the
+        // one slot, same deviation as below); without a shadow the Outline clip is cleared here.
+        if (shape_needs_canvas(platform->border.shape))
+        {
+            set_border_peer(env.get(), host, reinterpret_cast<jlong>(platform));
+            if (platform->shadow != nullptr)
+            {
+                const maui::graphics::corner_radius radius = corner_radii_of(platform->border.shape);
+                maui::platform::android::apply_shadow(host, platform->shadow, density, frame.width, frame.height,
+                                                      radius.top_left);
+            }
+            else
+            {
+                // Clear any Outline clip so it does not contend with the dispatchDraw clipPath (an arbitrary
+                // shape has no convex Outline clip anyway; pass an empty path → apply_outline_clip_path clears).
+                maui::platform::android::apply_outline_clip_path(host, maui::graphics::path_f{}, density, frame.width,
+                                                                 frame.height);
+            }
+            invalidate_host(env.get(), host); // redraw with the new size/shape
+            return;
+        }
+
+        // A GradientDrawable-expressible shape (rounded rect / ellipse / plain rect): clear the borderPeer so
+        // dispatchDraw stays the plain ViewGroup default (no canvas draw), then keep the existing shadow /
+        // Outline-clip path — the working border/border_layout/border_clip_playground/clip_views behavior.
+        set_border_peer(env.get(), host, 0);
 
         // Re-resolve the (bounds-dependent) native shadow outline against the just-laid-out size + the border's
         // recovered corner radius — update_shadow ran before layout when the host was 0×0 (apply_shadow cleared

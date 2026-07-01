@@ -41,14 +41,33 @@
 // and the gallery app host both dex every *.java here (tools/android-testhost-run.sh and
 // tools/parity/build_android_apphost.sh glob this dir), so MauiLayout.java is picked up automatically
 // alongside NativeOnClickListener.java — no script edits needed.
+// ARBITRARY-STROKESHAPE BORDER (dispatchDraw + canvas): a Border whose StrokeShape is NOT a shape the
+// GradientDrawable background can express (a rounded rect / ellipse / plain rect — all handled by
+// border_handler.cpp's GradientDrawable + Outline clip) needs a canvas draw to trace an arbitrary path
+// (a Polygon triangle, a PathGeometry). This is the port twin of MAUI's Android Border render: MAUI's
+// ContentViewGroup (a PlatformContentViewGroup) draws the MauiDrawable (fill + stroke tracing the shape
+// path) as its background and clips its content in dispatchDraw via canvas.clipPath (see
+// src/Core/AndroidNative/.../PlatformContentViewGroup.java getClipPath + dispatchDraw, and
+// MauiDrawable.Android.cs). When the border handler installs a borderPeer (a border_platform*), this
+// MauiLayout runs the same three-phase draw: fill the shape path BEHIND the children, clip the children
+// to the (stroke-inset) shape path, then stroke the shape path ON TOP. A 0 borderPeer (every non-border
+// host: content_page / layout / scroll_view, and a border whose shape IS GradientDrawable-expressible)
+// leaves dispatchDraw as the plain ViewGroup default — no regression to the working cases.
 package dev.mauicpp;
 
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Path;
 import android.view.View;
 import android.view.ViewGroup;
 
 public final class MauiLayout extends ViewGroup {
     private long crossPlatformPeer;
+    // The border_platform* whose arbitrary StrokeShape this host draws on the canvas, or 0 (the default —
+    // no border draw, the plain ViewGroup dispatchDraw). Installed by border_handler.cpp's arrange_native
+    // only for a Border whose shape needs the canvas (a Polygon / Path); cleared to 0 in ~border_platform
+    // before the struct dies so a late dispatchDraw never dereferences a dangling pointer.
+    private long borderPeer;
 
     public MauiLayout(Context context) {
         super(context);
@@ -69,6 +88,48 @@ public final class MauiLayout extends ViewGroup {
     // disconnect, before the native handler is destroyed.
     public void setCrossPlatformPeer(long peer) {
         this.crossPlatformPeer = peer;
+    }
+
+    // The border handler installs the border_platform* here (for an arbitrary-StrokeShape Border) and
+    // clears it (0) in ~border_platform before the struct dies. Invalidate so the canvas draw refreshes
+    // when the shape / stroke / fill changes (the handler calls setBorderPeer again from arrange_native).
+    public void setBorderPeer(long peer) {
+        this.borderPeer = peer;
+        invalidate();
+    }
+
+    // Draw an arbitrary-StrokeShape Border (a Polygon / Path the GradientDrawable cannot trace): fill the
+    // shape path BEHIND the children, clip the children to the stroke-inset shape path, then stroke the
+    // shape outline ON TOP — the port twin of MAUI's MauiDrawable draw + ContentViewGroup.dispatchDraw
+    // clip. A 0 borderPeer is the plain ViewGroup default (every non-arbitrary-border host).
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+        final long peer = borderPeer;
+        if (peer == 0L) {
+            super.dispatchDraw(canvas);
+            return;
+        }
+        final int w = canvas.getWidth();
+        final int h = canvas.getHeight();
+        // Phase 1 — fill the shape path behind the content. Each native draw builds an android_canvas that
+        // applies canvas.scale(density) to map its point-space geometry to pixels; that scale must NOT leak
+        // into the child draw or the next phase, so every native call is bracketed by save()/restore().
+        final int fillMark = canvas.save();
+        nativeDrawBorderFill(peer, canvas, w, h);
+        canvas.restoreToCount(fillMark);
+        // Phase 2 — clip the content to the (stroke-inset) inner shape path, then draw the children. save/
+        // restore so the clip never leaks into the on-top stroke draw or a sibling's draw pass.
+        final int checkpoint = canvas.save();
+        final Path clip = nativeBorderClipPath(peer, w, h);
+        if (clip != null && !clip.isEmpty()) {
+            canvas.clipPath(clip);
+        }
+        super.dispatchDraw(canvas);
+        canvas.restoreToCount(checkpoint);
+        // Phase 3 — stroke the shape outline on top of the content (unclipped, so the full stroke shows).
+        final int strokeMark = canvas.save();
+        nativeDrawBorderStroke(peer, canvas, w, h);
+        canvas.restoreToCount(strokeMark);
     }
 
     // Re-run the cross-platform arrange so the children are positioned where maui's layout_manager places
@@ -100,4 +161,15 @@ public final class MauiLayout extends ViewGroup {
     // cross-platform layout and arranges the children into the given 0-origin size. Valid while the peer is
     // installed (the handler clears it on disconnect).
     private native void nativeArrange(long peer, int widthPx, int heightPx);
+
+    // The arbitrary-StrokeShape border draw callbacks, bound from C++ via RegisterNatives in
+    // border_handler.cpp (the same reflection-free binding nativeArrange / MauiShapeView.nativeDraw use —
+    // no Java_* export symbol). The peer is a border_platform*; width/height are the canvas PIXEL size.
+    //   nativeDrawBorderFill  — fill the shape path with the Border's background paint (behind children).
+    //   nativeBorderClipPath  — build the stroke-inset inner shape Path (PIXEL coords) to clip children;
+    //                           null / empty = no clip (a square/degenerate border).
+    //   nativeDrawBorderStroke— stroke the shape outline with the Border's stroke paint (over children).
+    private native void nativeDrawBorderFill(long peer, Canvas canvas, int widthPx, int heightPx);
+    private native Path nativeBorderClipPath(long peer, int widthPx, int heightPx);
+    private native void nativeDrawBorderStroke(long peer, Canvas canvas, int widthPx, int heightPx);
 }
