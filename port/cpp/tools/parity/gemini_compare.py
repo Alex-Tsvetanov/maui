@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
-"""Compare one parity page (real .NET MAUI vs the C++ port) with Google Gemini vision.
+"""Compare one iOS parity page (real .NET MAUI vs a C++ framework) with Google Gemini vision.
 
-This is the *default* image-comparison engine for the iOS parity loop. It judges the
-LIGHT pair (MAUI-light vs C++-light) and the DARK pair (MAUI-dark vs C++-dark) for one
-page and prints a single JSON verdict that is a drop-in match for the per-page records in
-`docs/comparison/parity_status.json` and the `parity_assess_wf.js` workflow schema:
+This is the *default* image-comparison engine for the iOS parity loop. It judges the LIGHT pair
+(MAUI-light vs framework-light) and the DARK pair (MAUI-dark vs framework-dark) for one page,
+reading captures from the canonical layout captures/ios/{maui,<framework>}/<key>_<theme>.png. The
+framework is cpp (default) or xaml — the user wants cpp and xaml reviewed SEPARATELY against maui.
+It prints a single JSON verdict:
 
-    {"key", "light", "dark", "light_note", "dark_note"}
+    {"key", "framework", "light", "dark", "light_note", "dark_note", "maui_quirks", "port_diffs"}
     light/dark in: match | minor | diff | cpp_blank | cs_blank
+
+With --write-comparison it also folds the verdict (worst-of-light/dark -> board status, notes joined)
+into comparison.json's platforms.ios review slot: cpp -> `gemini`, xaml -> `gemini_xaml`
+(comparison_paths.review_slot). Without it, it only prints — a caller (e.g. run_parity.py) consumes
+the JSON. --dry-run prints the 4 source paths + target slot with no API call.
 
 Quota handling — the whole reason this is a separate process: when Gemini returns a
 quota / rate-limit error (HTTP 429 or status RESOURCE_EXHAUSTED) the script exits with
@@ -17,7 +23,7 @@ Any other hard failure exits 1; missing input images exit 2.
 No third-party deps (urllib + base64 only) so it runs anywhere python3 does.
 
 Key resolution order:  $GEMINI_API_KEY  ->  ~/.config/maui-parity/gemini_api_key
-Model:                 $GEMINI_MODEL    (default: gemini-flash-latest)
+Model:                 $GEMINI_MODEL    (default: gemini-2.5-flash)
 """
 from __future__ import annotations
 
@@ -39,19 +45,24 @@ EXIT_QUOTA = 75       # quota / rate limit hit -> caller should fall back to Cla
 # Default for single-page calls: a full-flash model (reliable bucketing). NOT gemini-flash-latest —
 # that resolves to gemini-3.5-flash, capped at only 20 requests/day. For batch sweeps run_parity.py
 # drives a quota-aware cascade (premium full-flash first, then the 500-RPD gemini-3.1-flash-lite).
-DEFAULT_MODEL = "gemini-2.5-flash"
-DEFAULT_CMP_ROOT = os.path.normpath(
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "docs", "comparison")
-)
-KEY_FILE = os.path.expanduser("~/.config/maui-parity/gemini_api_key")
+import comparison_paths as cp
 
-# The four capture dirs, in (label, subdir) order the model sees them.
-PANES = [
-    ("MAUI (light)", "csharp_ios_light"),
-    ("C++ port (light)", "cpp_ios_light"),
-    ("MAUI (dark)", "csharp_ios_dark"),
-    ("C++ port (dark)", "cpp_ios_dark"),
-]
+DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_CMP_ROOT = cp.COMP
+KEY_FILE = os.path.expanduser("~/.config/maui-parity/gemini_api_key")
+PLATFORM = "ios"
+FW_LABEL = {"cpp": "C++ port", "xaml": "C++ & XAML port"}
+
+# The four panes, in (label, framework, theme) order the model sees them: MAUI vs the framework under
+# test, light then dark. Captures resolve via comparison_paths (captures/ios/<fw>/<key>_<theme>.png).
+def panes(framework):
+    fw = FW_LABEL[framework]
+    return [
+        ("MAUI (light)", "maui", "light"),
+        (f"{fw} (light)", framework, "light"),
+        ("MAUI (dark)", "maui", "dark"),
+        (f"{fw} (dark)", framework, "dark"),
+    ]
 
 ENUM = ["match", "minor", "diff", "cpp_blank", "cs_blank"]
 
@@ -137,12 +148,17 @@ def read_key() -> str:
     return key
 
 
-def load_image_parts(key: str, cmp_root: str):
+def pane_path(cmp_root: str, framework: str, key: str, theme: str) -> str:
+    """Absolute capture path under `cmp_root` using the canonical relative layout."""
+    return os.path.join(cmp_root, cp.rel_capture(PLATFORM, framework, key, theme, "png"))
+
+
+def load_image_parts(key: str, cmp_root: str, framework: str):
     """Return interleaved [text-label, inline-image] parts, or exit(EXIT_MISSING)."""
     parts = []
     missing = []
-    for label, subdir in PANES:
-        path = os.path.join(cmp_root, subdir, f"{key}.png")
+    for label, fw, theme in panes(framework):
+        path = pane_path(cmp_root, fw, key, theme)
         if not os.path.isfile(path):
             missing.append(path)
             continue
@@ -226,23 +242,59 @@ def extract_verdict(resp: dict) -> dict:
     return verdict
 
 
+_SEV = {"green": 0, "yellow": 1, "red": 2, "blank": 3}
+
+
+def board_and_note(verdict: dict) -> tuple[str, str]:
+    """Fold the iOS light/dark categories + notes into ONE board status + review line for a slot.
+
+    The status is the WORST of the two themes (green<yellow<red<blank); the review joins the two
+    theme notes (prefixing when they differ) so the single slot still carries per-theme detail.
+    """
+    lb, db = cp.normalize_ios_status(verdict["light"]), cp.normalize_ios_status(verdict["dark"])
+    status = lb if _SEV[lb] >= _SEV[db] else db
+    ln, dn = verdict.get("light_note", "").strip(), verdict.get("dark_note", "").strip()
+    if ln and dn and ln != dn:
+        review = f"Light: {ln} · Dark: {dn}"
+    else:
+        review = ln or dn
+    return status, review
+
+
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Compare one parity page with Gemini vision.")
-    ap.add_argument("key", help="page key, e.g. 'button' (matches <root>/<dir>/<key>.png)")
+    ap = argparse.ArgumentParser(description="Compare one iOS parity page with Gemini vision.")
+    ap.add_argument("key", help="page key, e.g. 'button' (matches captures/ios/<fw>/<key>_<theme>.png)")
+    ap.add_argument("--framework", default="cpp", choices=("cpp", "xaml"),
+                    help="which C++ column to compare against MAUI (default cpp)")
     ap.add_argument("--root", default=DEFAULT_CMP_ROOT, help="comparison root (default: docs/comparison)")
     ap.add_argument("--model", default=os.environ.get("GEMINI_MODEL", DEFAULT_MODEL))
     ap.add_argument("--timeout", type=int, default=120)
     ap.add_argument("--retries", type=int, default=2, help="retries for 5xx/network (NOT quota)")
+    ap.add_argument("--write-comparison", action="store_true",
+                    help="fold the verdict into comparison.json's platforms.ios gemini/gemini_xaml slot "
+                         "(in addition to printing the JSON)")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="print the 4 source capture paths + target slot WITHOUT calling Gemini")
     args = ap.parse_args()
 
+    if args.dry_run:
+        for label, fw, theme in panes(args.framework):
+            p = pane_path(args.root, fw, args.key, theme)
+            print(f"{'OK' if os.path.isfile(p) else 'MISSING':7} {label:24} {os.path.relpath(p, args.root)}")
+        if args.write_comparison:
+            print(f"-> platforms.{PLATFORM}.{cp.review_slot('gemini', args.framework)}")
+        print("DRY_RUN_DONE")
+        return
+
     api_key = read_key()
-    parts = load_image_parts(args.key, args.root)
+    parts = load_image_parts(args.key, args.root, args.framework)
     resp = call_gemini(args.model, api_key, parts, args.timeout, args.retries)
     verdict = extract_verdict(resp)
     # Stable field order. light/dark/notes stay parity_status.json-compatible; the two buckets
     # (maui_quirks / port_diffs) are the review-time separation of MAUI imperfections from port bugs.
     out = {
         "key": args.key,
+        "framework": args.framework,
         "light": verdict["light"],
         "dark": verdict["dark"],
         "light_note": verdict.get("light_note", ""),
@@ -252,6 +304,15 @@ def main() -> None:
         "model": args.model,  # which model produced this verdict (for the review / trust weighting)
     }
     print(json.dumps(out))
+
+    if args.write_comparison:
+        status, review = board_and_note(verdict)
+        data = cp.load_comparison()
+        if cp.write_review(data, args.key, PLATFORM, "gemini", args.framework, status, review):
+            cp.save_comparison(data)
+            log(f"wrote platforms.{PLATFORM}.{cp.review_slot('gemini', args.framework)} = {status} for {args.key}")
+        else:
+            log(f"WARNING: key {args.key!r} not in comparison.json — verdict printed but not written")
 
 
 if __name__ == "__main__":

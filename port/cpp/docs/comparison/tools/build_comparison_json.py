@@ -7,11 +7,19 @@ comparison.json is an array of one object per gallery page:
       "name": "<key>", "title": "<Title>", "description": "<what the screen shows>",
       "platforms": {
         "ios":         {"screenshots": {"maui":{"light","dark"}, "cpp":{...}, "xaml":{...}},
-                        "sonnet": {"status","review"}, "gemini": {"status","review"}},
+                        "sonnet": {"status","review"}, "gemini": {"status","review"},
+                        "sonnet_xaml": {"status","review"}, "gemini_xaml": {"status","review"}},
         "maccatalyst": {"screenshots": {"maui","cpp","xaml","appkit_cpp","appkit_xaml"}, ...},
         "android":     {"screenshots": {"maui","cpp","xaml"}, ...}
       }
     }
+
+`sonnet`/`gemini` are the cpp-vs-maui verdict (the columns tools/gen_readme.py renders). The OPTIONAL
+`sonnet_xaml`/`gemini_xaml` slots are the SEPARATE xaml-vs-maui verdict — the user wants cpp and xaml
+reviewed independently. They are added only when a framework=xaml sweep has produced them (so pages
+without an xaml review are byte-identical to before and the current README is unchanged); a future
+template can surface them. tools/parity/comparison_paths.review_slot(model, framework) encodes the
+cpp->bare / xaml->`_xaml` slot-naming.
 
 Screenshot paths point at `captures/<platform>/<framework>/<key>_<theme>.{png,gif}` when the file
 exists, else null (the README generator renders null as `_placeholder.png`). This script only
@@ -77,11 +85,20 @@ def main():
         }
         for plat in PLATFORM_FW:
             op = old_plats.get(plat, {})
-            page["platforms"][plat] = {
+            entry = {
                 "screenshots": shots(plat, k),
                 "sonnet": op.get("sonnet") or dict(EMPTY_REVIEW),
                 "gemini": op.get("gemini") or dict(EMPTY_REVIEW),
             }
+            # Preserve the OPTIONAL per-framework xaml review slots when present. `sonnet`/`gemini`
+            # above are the cpp-vs-maui verdict (what gen_readme.py renders); `sonnet_xaml`/`gemini_xaml`
+            # are the separate xaml-vs-maui verdict a framework=xaml sweep writes. They are only added
+            # when a sweep has produced them, so pages without an xaml review stay byte-identical and the
+            # current README output is unchanged. See tools/parity/comparison_paths.review_slot().
+            for slot in ("sonnet_xaml", "gemini_xaml"):
+                if op.get(slot):
+                    entry[slot] = op[slot]
+            page["platforms"][plat] = entry
         data.append(page)
 
     json.dump(data, open(JSON, "w", encoding="utf-8"), ensure_ascii=False, indent=1)

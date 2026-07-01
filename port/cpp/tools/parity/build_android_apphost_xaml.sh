@@ -9,7 +9,7 @@
 #   1. build target / .so     : maui_android_apphost_xaml → libmaui_android_apphost_xaml.so
 #   2. apphost dir            : examples/gallery_xaml/apphost (its own Activity + manifest)
 #   3. package id / activity  : dev.mauicpp.apphost.xaml/.MauiHostActivity (coexists with the C++ host)
-#   4. out dir                : docs/comparison/android/xaml/<key>.png (the C++&XAML column)
+#   4. out dir                : docs/comparison/captures/android/xaml/<key>_<theme>.png (the C++&XAML column)
 #
 # The bytes-mode .xaml.cpp TUs the .so compiles are generated at CMake CONFIGURE time (gen_pages.py
 # --embed-mode=bytes) — see the maui_android_apphost_xaml target in CMakeLists.txt. The NDK's Clang 18 has
@@ -21,8 +21,9 @@
 #   build_android_apphost_xaml.sh --no-capture           # build+install+launch the default page only (smoke)
 #   MAUI_APPEARANCE=dark build_android_apphost_xaml.sh    # dark-theme shots
 #
-# Output: docs/comparison/android/xaml/<key>.png (light) or <key>_dark.png (dark) — read by
-# gen_android_readme_section.py's "C++&XAML" column (which also fills the placeholder counts).
+# Output: docs/comparison/captures/android/xaml/<key>_<theme>.png — the canonical C++&XAML Android
+# column the build_comparison_json.py + gen_readme.py layout reads (theme always suffixed; Android is
+# captured single-theme=light on the board). --dry-run prints the paths without building/capturing.
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -32,10 +33,12 @@ source "${cpp_root}/tools/android-emu-lib.sh"
 
 # ---- args ----
 do_capture=1
+dry_run=0
 declare -a requested_keys=()
 for arg in "$@"; do
   case "${arg}" in
   --no-capture) do_capture=0 ;;
+  --dry-run) dry_run=1 ;;
   --*) maui_die "unknown flag: ${arg}" ;;
   *) requested_keys+=("${arg}") ;;
   esac
@@ -43,8 +46,29 @@ done
 
 appearance="${MAUI_APPEARANCE:-light}"
 [[ "${appearance}" == "dark" || "${appearance}" == "light" ]] || maui_die "MAUI_APPEARANCE must be light|dark"
-suffix=""
-[[ "${appearance}" == "dark" ]] && suffix="_dark"
+# Canonical layout ALWAYS suffixes the theme: captures/android/xaml/<key>_<theme>.png.
+suffix="_${appearance}"
+
+# --dry-run: resolve the key set and print each canonical output path WITHOUT building/installing/
+# capturing. The XAML column mirrors the gallery_xaml twin's OWN page set (Views/<name>.xaml), so the
+# default key list is derived from the checked-in twins (matching the real run below), not page_keys.txt.
+if [[ "${dry_run}" -eq 1 ]]; then
+  out_dir_rel="docs/comparison/captures/android/xaml"
+  declare -a dry_keys=()
+  if [[ "${#requested_keys[@]}" -gt 0 ]]; then
+    dry_keys=("${requested_keys[@]}")
+  else
+    views_dir="${cpp_root}/examples/gallery_xaml/Views"
+    [[ -d "${views_dir}" ]] || maui_die "missing ${views_dir}"
+    while IFS= read -r f; do dry_keys+=("$(basename "${f}" .xaml)"); done \
+      < <(find "${views_dir}" -maxdepth 1 -name '*.xaml' ! -name '*.xaml.*' | sort)
+  fi
+  for key in "${dry_keys[@]}"; do
+    echo "${out_dir_rel}/${key}${suffix}.png"
+  done
+  echo "DRY_RUN_DONE"
+  exit 0
+fi
 
 # ---- 0. resolve the SDK + build-tools (highest installed) ----
 maui_android_resolve_tools
@@ -204,7 +228,7 @@ echo "[apphost-xaml] post-install warm-up launch..." >&2
 sleep 2
 "${maui_adb}" -s "${maui_serial}" shell am force-stop "${pkg}" > /dev/null 2>&1 || true
 
-out_dir="${cpp_root}/docs/comparison/android/xaml"
+out_dir="${cpp_root}/docs/comparison/captures/android/xaml"
 mkdir -p "${out_dir}"
 
 # Wait until our process is actually GONE (not just asked to stop) — am force-stop is async; a screencap

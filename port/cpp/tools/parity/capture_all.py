@@ -4,9 +4,10 @@
 Supersedes capture_all_cpp.py + capture_all_csharp.py for the pixel-perfect rebuild:
   - Captures the C++ gallery (dev.maui-cpp.ios-gallery) AND the real-.NET-MAUI baseline
     (com.companyname.mauicompare) on the SAME booted sim, at NATIVE resolution (NO sips downsize),
-    into docs/comparison/captures/{cpp,maui}_{light,dark}/<key>.png.
+    into docs/comparison/captures/ios/{cpp,maui}/<key>_{light,dark}.png (the canonical layout that
+    docs/comparison/tools/build_comparison_json.py + gen_readme.py read).
   - For the animated pages, records a short mp4 via `simctl io recordVideo` and converts it to a
-    paletted GIF via ffmpeg, into the same dirs as <key>.{mp4,gif}.
+    paletted GIF via ffmpeg, into the same dir as <key>_{theme}.{mp4,gif}.
 
 Both apps MUST be installed on the sim first (the C++ gallery rebuilt from the current port; maui-compare
 rebuilt on the pinned stable MAUI with UILaunchScreen). This script does NOT build or install.
@@ -50,9 +51,13 @@ import signal
 import subprocess
 import time
 
+import comparison_paths as cp
+
 HERE = os.path.dirname(os.path.abspath(__file__))
-CMP = os.path.normpath(os.path.join(HERE, "..", "..", "docs", "comparison"))
-CAP = os.path.join(CMP, "captures")
+CMP = cp.COMP
+CAP = cp.CAPTURES
+# Both apps here are iOS captures; the app label IS the framework column name (cpp / maui).
+PLATFORM = "ios"
 UDID = os.environ.get("MAUI_SIM_UDID", "C4926671-2FA7-428E-B4A4-480692EE742B")
 
 # Per-app launch contract: bundle id + the SIMCTL_CHILD_* env keys for page + theme, and a settle time.
@@ -101,10 +106,17 @@ def launch(app, key, theme):
                    env=env, capture_output=True, text=True)
 
 
+def out_path(app, key, theme, ext):
+    """Canonical capture path for (framework=app, theme, ext); makes the parent dir."""
+    p = cp.capture_path(PLATFORM, app, key, theme, ext)
+    os.makedirs(os.path.dirname(p), exist_ok=True)
+    return p
+
+
 def shoot_static(app, key, theme):
     launch(app, key, theme)
     time.sleep(APPS[app]["settle"])
-    out = os.path.join(CAP, f"{app}_{theme}", f"{key}.png")
+    out = out_path(app, key, theme, "png")
     run("xcrun", "simctl", "io", UDID, "screenshot", "--type=png", out)
     return out
 
@@ -113,8 +125,8 @@ def shoot_animated(app, key, theme, record_secs):
     """Launch, settle, record a short mp4, convert to a paletted GIF (downscaled for the README)."""
     launch(app, key, theme)
     time.sleep(APPS[app]["settle"])
-    mp4 = os.path.join(CAP, f"{app}_{theme}", f"{key}.mp4")
-    gif = os.path.join(CAP, f"{app}_{theme}", f"{key}.gif")
+    gif = out_path(app, key, theme, "gif")
+    mp4 = gif[:-4] + ".mp4"  # scratch intermediate next to the gif (same canonical key stem)
     proc = subprocess.Popen(["xcrun", "simctl", "io", UDID, "recordVideo", "--codec=h264", "--force", mp4],
                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     time.sleep(record_secs)
@@ -137,6 +149,8 @@ def main():
     ap.add_argument("--mode", choices=["static", "animated", "both"], default="both")
     ap.add_argument("--only", default="")
     ap.add_argument("--record-secs", type=float, default=4.0)
+    ap.add_argument("--dry-run", action="store_true",
+                    help="print the output path for each (app,theme,key) WITHOUT booting the sim, then exit")
     args = ap.parse_args()
 
     apps = [a for a in args.apps.split(",") if a in APPS]
@@ -145,9 +159,15 @@ def main():
     if args.only:
         want = set(args.only.split(","))
         keys = [k for k in keys if k in want]
-    for app in apps:
-        for theme in themes:
-            os.makedirs(os.path.join(CAP, f"{app}_{theme}"), exist_ok=True)
+
+    if args.dry_run:
+        for app in apps:
+            for theme in themes:
+                for key in keys:
+                    ext = "gif" if key in ANIMATED and args.mode in ("animated", "both") else "png"
+                    print(cp.rel_capture(PLATFORM, app, key, theme, ext))
+        print("DRY_RUN_DONE", flush=True)
+        return
 
     static_keys = [k for k in keys if args.mode != "animated" or k not in ANIMATED]
     if args.mode == "animated":

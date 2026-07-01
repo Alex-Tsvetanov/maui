@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """Gemini second opinion for the C++&XAML parity column (the Sonnet xaml-twin-parity sibling).
 
-For one gallery page, compares the THREE light captures:
-  A = MAUI reference   docs/comparison/captures/maui_light/<key>.png
-  B = C++ builder      docs/comparison/captures/cpp_light/<key>.png
-  C = C++ & XAML       docs/comparison/captures/xaml_light/<key>.png
+For one gallery page, compares the THREE iOS LIGHT captures (canonical layout):
+  A = MAUI reference   docs/comparison/captures/ios/maui/<key>_light.png
+  B = C++ builder      docs/comparison/captures/ios/cpp/<key>_light.png
+  C = C++ & XAML       docs/comparison/captures/ios/xaml/<key>_light.png
 and judges the C++&XAML render (C) on two axes — vs the builder (B, a markup/loader-faithfulness signal,
-same renderer) and vs MAUI (A, the 1-to-1 goal) — mirroring tools/parity/<the Sonnet workflow>. Prints a
-JSON verdict {page, xaml_vs_builder, xaml_vs_maui, notes}. Quota/availability -> exit 3 (like
-gemini_compare.py). Key: $GEMINI_API_KEY or ~/.config/maui-parity/gemini_api_key.
+same renderer) and vs MAUI (A, the 1-to-1 goal). Prints a JSON verdict {page, xaml_vs_builder,
+xaml_vs_maui, notes}. With --write-comparison it also folds the xaml_vs_maui verdict into
+comparison.json's platforms.ios `gemini_xaml` slot (comparison_paths.review_slot). --dry-run prints the
+3 source paths with no API call. Quota/availability -> exit 3. Key: $GEMINI_API_KEY or
+~/.config/maui-parity/gemini_api_key.
 
-Usage:  python3 gemini_xaml_parity.py <key> [--model gemini-2.5-flash]
+Usage:  python3 gemini_xaml_parity.py <key> [--framework unused] [--write-comparison] [--dry-run]
 """
 import argparse
 import base64
@@ -21,17 +23,20 @@ import time
 import urllib.error
 import urllib.request
 
+import comparison_paths as cp
+
 KEY_FILE = os.path.expanduser("~/.config/maui-parity/gemini_api_key")
-DEFAULT_CMP_ROOT = os.path.normpath(
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "docs", "comparison", "captures"))
+# Root is docs/comparison (paths resolve via the captures/ios/<fw>/<key>_light.png layout).
+DEFAULT_CMP_ROOT = cp.COMP
 DEFAULT_MODEL = "gemini-2.5-flash"
+PLATFORM, THEME = "ios", "light"
 EXIT_OK, EXIT_ERROR, EXIT_MISSING, EXIT_QUOTA = 0, 1, 2, 3
 
-# (label, subdir) in the order the model sees them. LIGHT theme only (the Sonnet workflow's axis).
+# (label, framework) in the order the model sees them. LIGHT theme only (the Sonnet workflow's axis).
 PANES = [
-    ("A = MAUI reference", "maui_light"),
-    ("B = C++ port, hand-written builder", "cpp_light"),
-    ("C = C++ port, rendered from XAML markup (the new column)", "xaml_light"),
+    ("A = MAUI reference", "maui"),
+    ("B = C++ port, hand-written builder", "cpp"),
+    ("C = C++ port, rendered from XAML markup (the new column)", "xaml"),
 ]
 
 ENUM = ["match", "minor", "major"]
@@ -80,10 +85,15 @@ def read_key():
     return key
 
 
+def pane_path(cmp_root, framework, key):
+    """Absolute LIGHT capture path under `cmp_root` using the canonical relative layout."""
+    return os.path.join(cmp_root, cp.rel_capture(PLATFORM, framework, key, THEME, "png"))
+
+
 def load_image_parts(key, cmp_root):
     parts, missing = [], []
-    for label, subdir in PANES:
-        path = os.path.join(cmp_root, subdir, f"{key}.png")
+    for label, framework in PANES:
+        path = pane_path(cmp_root, framework, key)
         if not os.path.isfile(path):
             missing.append(path)
             continue
@@ -158,13 +168,26 @@ def extract_verdict(resp):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Gemini second opinion for one C++&XAML parity page.")
-    ap.add_argument("key", help="page key, e.g. 'items' (matches <root>/<dir>/<key>.png)")
+    ap = argparse.ArgumentParser(description="Gemini second opinion for one C++&XAML iOS parity page.")
+    ap.add_argument("key", help="page key, e.g. 'items' (matches captures/ios/<fw>/<key>_light.png)")
     ap.add_argument("--root", default=DEFAULT_CMP_ROOT)
     ap.add_argument("--model", default=os.environ.get("GEMINI_MODEL", DEFAULT_MODEL))
     ap.add_argument("--timeout", type=int, default=120)
     ap.add_argument("--retries", type=int, default=2)
+    ap.add_argument("--write-comparison", action="store_true",
+                    help="fold the xaml_vs_maui verdict into comparison.json's platforms.ios gemini_xaml slot")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="print the 3 source capture paths (+ target slot) WITHOUT calling Gemini")
     args = ap.parse_args()
+
+    if args.dry_run:
+        for label, framework in PANES:
+            p = pane_path(args.root, framework, args.key)
+            print(f"{'OK' if os.path.isfile(p) else 'MISSING':7} {framework:5} {os.path.relpath(p, args.root)}")
+        if args.write_comparison:
+            print(f"-> platforms.{PLATFORM}.{cp.review_slot('gemini', 'xaml')}")
+        print("DRY_RUN_DONE")
+        sys.exit(EXIT_OK)
 
     api_key = read_key()
     parts = load_image_parts(args.key, args.root)
@@ -172,6 +195,19 @@ def main():
     verdict = extract_verdict(resp)
     verdict["page"] = args.key
     print(json.dumps(verdict, indent=2))
+
+    if args.write_comparison:
+        # This tool's 1-to-1 goal axis is xaml_vs_maui -> the ios gemini_xaml slot. Keep the builder
+        # cross-check (xaml_vs_builder) in the review text so it isn't lost.
+        status = cp.normalize_status(verdict["xaml_vs_maui"])
+        review = (verdict.get("notes", "").strip()
+                  + f" (xaml_vs_builder={verdict.get('xaml_vs_builder', '?')})").strip()
+        data = cp.load_comparison()
+        if cp.write_review(data, args.key, PLATFORM, "gemini", "xaml", status, review):
+            cp.save_comparison(data)
+            log(f"wrote platforms.{PLATFORM}.{cp.review_slot('gemini', 'xaml')} = {status} for {args.key}")
+        else:
+            log(f"WARNING: key {args.key!r} not in comparison.json — verdict printed but not written")
     sys.exit(EXIT_OK)
 
 

@@ -21,9 +21,12 @@
 #   build_android_apphost.sh --no-capture           # build+install+launch the default page only (smoke)
 #   MAUI_APPEARANCE=dark build_android_apphost.sh    # dark-theme shots (the env the app host reads)
 #
-# Output: docs/comparison/android/cpp/<key>.png (light) or <key>_dark.png (dark) — the C++ column. The XAML
-# column would build the gallery_xaml twin the same way once it has an android app target; this script does
-# the C++ builder column the user's 172-Android-captures goal needs first.
+# Output: docs/comparison/captures/android/cpp/<key>_<theme>.png — the canonical C++ Android column the
+# build_comparison_json.py + gen_readme.py layout reads (theme is always suffixed; Android is captured
+# single-theme=light on the board). The XAML column is build_android_apphost_xaml.sh's job.
+#
+# --dry-run: print the output path each requested key WOULD write and exit WITHOUT building/installing/
+# capturing (device-free verification of the path layout).
 #
 # BEST-EFFORT — several steps are first-run on this env (no prior android APK build in-tree). Steps the
 # integrator must verify are marked "VERIFY:" inline; the most load-bearing assumptions are also listed at
@@ -39,10 +42,12 @@ source "${cpp_root}/tools/android-emu-lib.sh"
 
 # ---- args ----
 do_capture=1
+dry_run=0
 declare -a requested_keys=()
 for arg in "$@"; do
   case "${arg}" in
   --no-capture) do_capture=0 ;;
+  --dry-run) dry_run=1 ;;
   --*) maui_die "unknown flag: ${arg}" ;;
   *) requested_keys+=("${arg}") ;;
   esac
@@ -50,8 +55,26 @@ done
 
 appearance="${MAUI_APPEARANCE:-light}"
 [[ "${appearance}" == "dark" || "${appearance}" == "light" ]] || maui_die "MAUI_APPEARANCE must be light|dark"
-suffix=""
-[[ "${appearance}" == "dark" ]] && suffix="_dark"
+# Canonical layout ALWAYS suffixes the theme: captures/android/cpp/<key>_<theme>.png. Android is
+# captured single-theme (light) on the board, but keep the theme in the name for the layout convention.
+suffix="_${appearance}"
+
+# --dry-run: resolve the key set and print each canonical output path WITHOUT building/installing/
+# capturing (device-free verification of the new captures/android/cpp/<key>_<theme>.png layout).
+if [[ "${dry_run}" -eq 1 ]]; then
+  out_dir_rel="docs/comparison/captures/android/cpp"
+  declare -a dry_keys=()
+  if [[ "${#requested_keys[@]}" -gt 0 ]]; then
+    dry_keys=("${requested_keys[@]}")
+  else
+    while IFS= read -r line; do [[ -n "${line}" ]] && dry_keys+=("${line}"); done < "${script_dir}/page_keys.txt"
+  fi
+  for key in "${dry_keys[@]}"; do
+    echo "${out_dir_rel}/${key}${suffix}.png"
+  done
+  echo "DRY_RUN_DONE"
+  exit 0
+fi
 
 # ---- 0. resolve the SDK + build-tools (highest installed; 34.0.0 confirmed present) ----
 maui_android_resolve_tools
@@ -224,7 +247,7 @@ sleep 2
 # empty under a normal `am start` — to drive dark mode either (a) set it via `adb shell setprop` + read the
 # prop in the app host, or (b) forward the extra in MauiHostActivity into the native call. For light-theme
 # captures (the default) this does not matter. See the hand-off uncertainties.
-out_dir="${cpp_root}/docs/comparison/android/cpp"
+out_dir="${cpp_root}/docs/comparison/captures/android/cpp"
 mkdir -p "${out_dir}"
 # Wait until our process is actually GONE (not just asked to stop). am force-stop is asynchronous: it
 # returns before the process dies, and — crucially — before its Activity's window/frame is torn down. If

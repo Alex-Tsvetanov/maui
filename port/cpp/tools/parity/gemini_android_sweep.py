@@ -1,26 +1,27 @@
 #!/usr/bin/env python3
-"""Gemini second-model parity sweep for the ANDROID column (MAUI vs the C++ port).
+"""Gemini second-model parity sweep for the ANDROID column (MAUI vs a C++ framework).
 
 Twin of `gemini_compare.py` but for Android's SINGLE pair per page (there is no
 light/dark split on the Android board): for each of the 172 canonical page keys it
-loads `docs/comparison/android/{maui,cpp}/<key>.png`, asks Google Gemini to judge
-MAUI-vs-C++ parity, and writes one verdict per page to
-`docs/comparison/android_gemini_review.json` as:
+loads `docs/comparison/captures/android/{maui,<framework>}/<key>_light.png` (framework in
+{cpp, xaml}), asks Google Gemini to judge MAUI-vs-<framework> parity, and writes the verdict
+DIRECTLY into the single `docs/comparison/comparison.json` — the `platforms.android` review
+slot for the framework: cpp -> `gemini`, xaml -> `gemini_xaml` (see comparison_paths.review_slot).
+Each slot is `{"status", "review"}` with status in green | yellow | red | blank
+(green=match, yellow=minor, red=major/diff, blank=port page blank/crashed).
 
-    [{"key", "status", "note", "model"}]   status in: green | yellow | red | blank
-
-(green=match, yellow=minor, red=major/diff, blank=port page blank/crashed — the same
-buckets `android_render_review.json` uses so `gen_android_readme_section.py` can render
-the Gemini column exactly like the Sonnet one.)
+The user wants cpp and xaml reviewed SEPARATELY against maui — pass --framework cpp (default)
+or --framework xaml to target the matching column + review slot.
 
 Quota-aware: on HTTP 429 / RESOURCE_EXHAUSTED it backs off and retries a few times, then
-records the remaining pages as status "" (pending) and stops rather than failing the run,
-so a partial sweep is still committable. Resumes: pages already in the output file with a
-real status are skipped, so re-running continues where a quota cut it off.
+stops rather than failing the run, persisting what it judged so a partial sweep is committable.
+Resumes: pages that already have a real status in the target slot are skipped unless --only /
+--force, so re-running continues where a quota cut it off.
 
 Key:   $GEMINI_API_KEY -> ~/.config/maui-parity/gemini_api_key
 Model: $GEMINI_MODEL (default gemini-2.5-flash)
-Usage: python3 tools/parity/gemini_android_sweep.py [--limit N] [--only key1,key2]
+Usage: python3 tools/parity/gemini_android_sweep.py [--framework cpp|xaml] [--limit N]
+                                                    [--only key1,key2] [--force] [--dry-run]
 """
 from __future__ import annotations
 
@@ -33,11 +34,13 @@ import time
 import urllib.error
 import urllib.request
 
+import comparison_paths as cp
+
 HERE = os.path.dirname(os.path.abspath(__file__))
-COMP = os.path.normpath(os.path.join(HERE, "..", "..", "docs", "comparison"))
+COMP = cp.COMP
 KEY_FILE = os.path.expanduser("~/.config/maui-parity/gemini_api_key")
-OUT = os.path.join(COMP, "android_gemini_review.json")
-PAGE_KEYS = os.path.join(HERE, "page_keys.txt")
+PLATFORM = "android"
+THEME = "light"  # Android is captured single-theme on the board.
 DEFAULT_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 
 # Gemini enum -> board status.
@@ -55,10 +58,10 @@ RESPONSE_SCHEMA = {
 }
 
 PROMPT = """\
-Assess ANDROID layout/render PARITY between real .NET MAUI and the C++23 port of MAUI for ONE demo page.
+Assess ANDROID layout/render PARITY between real .NET MAUI and the {fw_label} of MAUI for ONE demo page.
 You are given TWO screenshots of the SAME page, captured on the SAME Android emulator, in this order:
   1. MAUI (the real Microsoft .NET MAUI render — GROUND TRUTH, native-default)
-  2. C++ port (under test)
+  2. {fw_label} (under test)
 
 GROUND TRUTH: MAUI's render IS the source of truth for all page CONTENT — colors, control sizes, internal
 spacing, text, corner radius, fonts. Any CONTENT difference in the port vs MAUI (including any color
@@ -83,10 +86,12 @@ Pick exactly one verdict:
             style nit) that don't change the page's substance.
   - diff  : a MAJOR difference — a missing/extra/mis-sized control, absent image/shadow/gradient/effect,
             wrong layout, wrong/garbled text, overlap, or the wrong content entirely.
-  - cpp_blank : the C++ port's page is blank/empty/crashed while MAUI shows content.
+  - cpp_blank : the port's page is blank/empty/crashed while MAUI shows content.
 
 For "note" give ONE precise, terse line naming the SPECIFIC port-relevant difference (or "matches MAUI").
 """
+
+FW_LABEL = {"cpp": "C++23 port", "xaml": "C++23 & XAML port"}
 
 
 def log(m):
@@ -101,26 +106,22 @@ def read_key():
         return fh.read().strip()
 
 
-def load_keys():
-    with open(PAGE_KEYS, encoding="utf-8") as fh:
-        return [ln.strip() for ln in fh if ln.strip() and not ln.startswith("#")]
-
-
 def img_part(path):
     with open(path, "rb") as fh:
         return {"inline_data": {"mime_type": "image/png", "data": base64.b64encode(fh.read()).decode("ascii")}}
 
 
-def call_gemini(model, api_key, key, timeout=120):
+def call_gemini(model, api_key, key, framework, timeout=120):
     """Return (board_status, note) or raise QuotaError / returns None on missing images."""
-    maui = os.path.join(COMP, "android", "maui", f"{key}.png")
-    cpp = os.path.join(COMP, "android", "cpp", f"{key}.png")
-    if not (os.path.isfile(maui) and os.path.isfile(cpp)):
+    fw_label = FW_LABEL[framework]
+    maui = cp.find_capture(PLATFORM, "maui", key, THEME)
+    port = cp.find_capture(PLATFORM, framework, key, THEME)
+    if not (maui and port):
         return None
     parts = [
         {"text": "Image: MAUI"}, img_part(maui),
-        {"text": "Image: C++ port"}, img_part(cpp),
-        {"text": PROMPT},
+        {"text": f"Image: {fw_label}"}, img_part(port),
+        {"text": PROMPT.format(fw_label=fw_label)},
     ]
     body = json.dumps({
         "contents": [{"parts": parts}],
@@ -154,51 +155,74 @@ class QuotaError(Exception):
     pass
 
 
+ENUM_BOARD = {"green", "yellow", "red", "blank"}
+
+
+def slot_status(page, slot):
+    """Existing board status in this page's android review slot, or '' if unset."""
+    return (page.get("platforms", {}).get(PLATFORM, {}).get(slot, {}) or {}).get("status") or ""
+
+
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--framework", default="cpp", choices=("cpp", "xaml"),
+                    help="which C++ column to review against MAUI (writes gemini or gemini_xaml slot)")
     ap.add_argument("--limit", type=int, default=0, help="only process the first N unreviewed keys")
     ap.add_argument("--only", default="", help="comma-separated keys to (re)review")
+    ap.add_argument("--force", action="store_true", help="re-review even keys that already have a status")
     ap.add_argument("--model", default="", help="force ONE model (disables cascade)")
     ap.add_argument("--cascade", default="gemini-3.1-flash-lite,gemini-2.5-flash-lite,gemini-2.0-flash-lite,gemini-3.5-flash,gemini-2.5-flash",
                     help="quota-aware model cascade (best 500-RPD workhorse first); rotates on 429")
     ap.add_argument("--sleep", type=float, default=1.2, help="delay between calls (rate-limit courtesy)")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="print each key's source captures + target review slot WITHOUT calling Gemini")
     args = ap.parse_args()
 
-    api_key = read_key()
-    keys = load_keys()
-    existing = {}
-    if os.path.exists(OUT):
-        try:
-            existing = {r["key"]: r for r in json.load(open(OUT, encoding="utf-8"))}
-        except (OSError, ValueError):
-            existing = {}
+    slot = cp.review_slot("gemini", args.framework)
+    data = cp.load_comparison()
+    by_name = {p["name"]: p for p in data}
+    keys = [k for k in cp.load_keys() if k in by_name]
 
     only = set(k.strip() for k in args.only.split(",") if k.strip())
-    todo = [k for k in keys if (k in only if only else existing.get(k, {}).get("status", "") not in ENUM_BOARD)]
+    if only:
+        todo = [k for k in keys if k in only]
+    elif args.force:
+        todo = list(keys)
+    else:
+        todo = [k for k in keys if slot_status(by_name[k], slot) not in ENUM_BOARD]
     if args.limit:
         todo = todo[: args.limit]
-    log(f"android gemini sweep: {len(todo)} to review (of {len(keys)}), model={args.model}")
+
+    if args.dry_run:
+        for k in todo:
+            maui = cp.find_capture(PLATFORM, "maui", k, THEME)
+            port = cp.find_capture(PLATFORM, args.framework, k, THEME)
+            ok = "OK" if (maui and port) else "MISSING"
+            print(f"{k}: {ok} maui={maui and os.path.relpath(maui, COMP)} "
+                  f"{args.framework}={port and os.path.relpath(port, COMP)} -> "
+                  f"platforms.{PLATFORM}.{slot}")
+        print(f"DRY_RUN_DONE ({len(todo)} keys, framework={args.framework}, slot={slot})")
+        return
+
+    api_key = read_key()
+    log(f"android gemini sweep: {len(todo)} to review (of {len(keys)}), framework={args.framework}, "
+        f"slot={slot}, model={args.model or 'cascade'}")
 
     cascade = [args.model] if args.model else [m.strip() for m in args.cascade.split(",") if m.strip()]
     mi, done, exhausted = 0, 0, False
-
-    def persist():
-        rows = [existing.get(kk, {"key": kk, "status": "", "note": "", "model": ""}) for kk in keys]
-        json.dump(rows, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, indent=0)
 
     for i, k in enumerate(todo, 1):
         res = None
         while mi < len(cascade):
             model = cascade[mi]
             try:
-                res = call_gemini(model, api_key, k)
+                res = call_gemini(model, api_key, k, args.framework)
                 break
             except QuotaError as e:
                 log(f"[{i}/{len(todo)}] {k}: QUOTA on {model} -> rotate to next model ({e})")
                 mi += 1
             except RuntimeError as e:
-                log(f"[{i}/{len(todo)}] {k}: ERROR {e} — marking pending")
-                existing[k] = {"key": k, "status": "", "note": f"(gemini error: {e})", "model": model}
+                log(f"[{i}/{len(todo)}] {k}: ERROR {e} — skipping")
                 res = "ERR"
                 break
         else:
@@ -211,20 +235,17 @@ def main():
             log(f"[{i}/{len(todo)}] {k}: missing image(s) — skip")
             continue
         status, note = res
-        existing[k] = {"key": k, "status": status, "note": note, "model": cascade[mi]}
+        cp.write_review(data, k, PLATFORM, "gemini", args.framework, status, note)
         done += 1
         log(f"[{i}/{len(todo)}] {k}: {status} [{cascade[mi]}] — {note[:60]}")
-        persist()
+        cp.save_comparison(data)  # persist after each verdict so a quota cut leaves a committable file
         time.sleep(args.sleep)
 
-    persist()
+    cp.save_comparison(data)
     from collections import Counter
-    rows = json.load(open(OUT, encoding="utf-8"))
-    log(f"DONE: reviewed {done} this run; board {dict(Counter(r['status'] or 'pending' for r in rows))}"
+    tally = Counter(slot_status(by_name[k], slot) or "pending" for k in keys)
+    log(f"DONE: reviewed {done} this run; {PLATFORM}.{slot} board {dict(tally)}"
         + (" [ALL MODELS EXHAUSTED: re-run tomorrow to finish]" if exhausted else ""))
-
-
-ENUM_BOARD = {"green", "yellow", "red", "blank"}
 
 if __name__ == "__main__":
     main()

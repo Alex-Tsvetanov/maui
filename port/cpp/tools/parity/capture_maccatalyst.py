@@ -3,8 +3,9 @@
 
 For each gallery page key, launches each app's macabi .app DIRECTLY with the page/theme env, brings it
 frontmost (screencapture -l window capture is broken on this macOS — ScreenCaptureKit restriction — so we
-must region-capture the frontmost window), grabs its window rect, and saves a PNG. Then builds a per-page
-montage (3-way for pages the MAUI reference implements, 2-way C++-vs-XAML otherwise).
+must region-capture the frontmost window), grabs its window rect, and saves a PNG into the canonical
+layout captures/maccatalyst/<framework>/<key>_<theme>.png (framework in maui/cpp/xaml), the form
+build_comparison_json.py + gen_readme.py read.
 
 NOTE: this steals window focus ~once per (app,page) while it runs — it's the one disruptive phase; judging
 and fixing afterward are GUI-free. Re-run with explicit keys to re-capture only pages you changed.
@@ -12,15 +13,16 @@ and fixing afterward are GUI-free. Re-run with explicit keys to re-capture only 
 Prereqs: the three apps built (examples/build-maccatalyst + ~/maui-compare maccatalyst) and ad-hoc signed.
 
 Usage:
-  python3 tools/parity/capture_maccatalyst.py [--theme light|dark] [--montage-only] [key ...]
+  python3 tools/parity/capture_maccatalyst.py [--theme light|dark] [--dry-run] [key ...]
 """
 import os, sys, subprocess, time, glob
+
+import comparison_paths as cp
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
 MC = os.path.join(ROOT, "examples", "build-maccatalyst")
 HOME = os.path.expanduser("~")
-OUT = os.path.join(ROOT, "docs", "comparison", "maccatalyst")
-HELV = "/System/Library/Fonts/Helvetica.ttc"
+PLATFORM = "maccatalyst"
 
 # Twin keys with NO hand-written page in the builder gallery (gallery_host.hpp MAUI_GALLERY_PAGES) -> the
 # builder gallery falls back to value_controls for these, so the "cpp" column is meaningless. Skip it (the
@@ -100,33 +102,17 @@ def shot(app_key, key, theme, out_png):
         time.sleep(0.4)
 
 
-def montage(key, theme):
-    cols = []
-    for app_key, label in (("maui", "MAUI"), ("cpp", "C++ builder"), ("xaml", "C++ & XAML")):
-        p = os.path.join(OUT, app_key, theme, f"{key}.png")
-        if os.path.exists(p):
-            cols += ["-label", label, p]
-    if len(cols) < 6:  # need >=2 images (each contributes -label, label, path = 3 tokens)
-        return
-    mont = os.path.join(OUT, "montages", theme, f"{key}.png")
-    os.makedirs(os.path.dirname(mont), exist_ok=True)
-    n = len(cols) // 3
-    subprocess.run(["magick", "montage", *cols, "-tile", f"{n}x1", "-geometry", "620x466+10+10",
-                    "-background", "white", "-font", HELV, "-pointsize", "22", mont])
-    print(f"  montage {key} ({n}-up) -> {mont}")
-
-
 def main():
     args = sys.argv[1:]
     theme = "light"
-    montage_only = False
+    dry_run = False
     keys = []
     i = 0
     while i < len(args):
         if args[i] == "--theme":
             theme = args[i + 1]; i += 2
-        elif args[i] == "--montage-only":
-            montage_only = True; i += 1
+        elif args[i] == "--dry-run":
+            dry_run = True; i += 1
         else:
             keys.append(args[i]); i += 1
 
@@ -147,39 +133,50 @@ def main():
         with open(os.path.join(ROOT, "tools", "parity", "page_keys.txt"), encoding="utf-8") as kf:
             keys = [line.strip() for line in kf if line.strip()]
 
-    print(f"theme={theme}  pages={len(keys)}  (montage_only={montage_only})")
+    print(f"theme={theme}  pages={len(keys)}  (dry_run={dry_run})")
+
+    # DRY-RUN: print the canonical output path each (app, key) WOULD write, no GUI/capture. Applies the
+    # same maui_keys / NON_BUILDER / xaml_twins gating the real run does, so it shows exactly what lands.
+    if dry_run:
+        for key in keys:
+            for app_key in ("maui", "cpp", "xaml"):
+                if app_key == "maui" and key not in maui_keys:
+                    continue
+                if app_key == "cpp" and key in NON_BUILDER:
+                    continue
+                if app_key == "xaml" and key not in xaml_twins:
+                    continue
+                print(cp.rel_capture(PLATFORM, app_key, key, theme, "png"))
+        print("DRY_RUN_DONE", flush=True)
+        return
 
     # Suppress the macOS crash-reporter dialog for the run: SIGTERM'ing the .NET MAUI app makes it
     # crash-report, and that dialog lingers center-screen polluting later region captures. Save/restore.
     prev_dialog = subprocess.run(["defaults", "read", "com.apple.CrashReporter", "DialogType"],
                                  capture_output=True, text=True).stdout.strip()
-    if not montage_only:
-        subprocess.run(["defaults", "write", "com.apple.CrashReporter", "DialogType", "none"])
-        subprocess.run(["killall", "-9", "ReportCrash"], stderr=subprocess.DEVNULL)  # clear any existing dialogs
+    subprocess.run(["defaults", "write", "com.apple.CrashReporter", "DialogType", "none"])
+    subprocess.run(["killall", "-9", "ReportCrash"], stderr=subprocess.DEVNULL)  # clear any existing dialogs
 
     for key in keys:
         if key in NON_BUILDER:  # drop any stale builder fallback (value_controls) capture for these
-            stale = os.path.join(OUT, "cpp", theme, f"{key}.png")
+            stale = cp.capture_path(PLATFORM, "cpp", key, theme, "png")
             if os.path.exists(stale):
                 os.remove(stale)
-        if not montage_only:
-            for app_key in ("maui", "cpp", "xaml"):
-                if app_key == "maui" and key not in maui_keys:
-                    continue  # no MAUI counterpart -> don't capture MAUI's ControlsStack fallback
-                if app_key == "cpp" and key in NON_BUILDER:
-                    continue  # builder gallery has no page for this key -> would fall back to value_controls
-                if app_key == "xaml" and key not in xaml_twins:
-                    continue  # C++ & XAML column only exists for the hand-written XAML twins
-                shot(app_key, key, theme, os.path.join(OUT, app_key, theme, f"{key}.png"))
-        montage(key, theme)
+        for app_key in ("maui", "cpp", "xaml"):
+            if app_key == "maui" and key not in maui_keys:
+                continue  # no MAUI counterpart -> don't capture MAUI's ControlsStack fallback
+            if app_key == "cpp" and key in NON_BUILDER:
+                continue  # builder gallery has no page for this key -> would fall back to value_controls
+            if app_key == "xaml" and key not in xaml_twins:
+                continue  # C++ & XAML column only exists for the hand-written XAML twins
+            shot(app_key, key, theme, cp.capture_path(PLATFORM, app_key, key, theme, "png"))
     # cleanup
     for a in APPS.values():
         subprocess.run(["pkill", "-f", a["bin"]], stderr=subprocess.DEVNULL)
-    if not montage_only:  # restore the user's crash-reporter setting
-        if prev_dialog:
-            subprocess.run(["defaults", "write", "com.apple.CrashReporter", "DialogType", prev_dialog])
-        else:
-            subprocess.run(["defaults", "delete", "com.apple.CrashReporter", "DialogType"], stderr=subprocess.DEVNULL)
+    if prev_dialog:  # restore the user's crash-reporter setting
+        subprocess.run(["defaults", "write", "com.apple.CrashReporter", "DialogType", prev_dialog])
+    else:
+        subprocess.run(["defaults", "delete", "com.apple.CrashReporter", "DialogType"], stderr=subprocess.DEVNULL)
     print("done.")
 
 
