@@ -504,6 +504,15 @@ namespace maui::controls
             return candidate;
         }
 
+        // Forward declaration: recursively mount a boxed VIEW / template-content subtree (defined below).
+        // realize_template_content calls it so a template whose ROOT is a CONTAINER (a photo_cell /
+        // chrome_cell stack owning Image + Label children — header_footer_template) hosts those children:
+        // set_handler on the root alone attaches only the root's handler, leaving the children's native views
+        // unbuilt (the layout_handler's panel then has nothing to host). ensure_mounted walks the realized
+        // subtree post-order, attaches each descendant's handler, and re-fires the container host command —
+        // the same on-demand mount the boxed-VIEW header/footer path already uses.
+        void ensure_mounted(maui::core::i_maui_context* context, maui::controls::element& root);
+
         // Realize a type-activated template's content into a native android.view.View (the C#
         // TemplatedCell.Bind: CreateContent → set BindingContext → ToPlatform(mauiContext)). Returns the
         // realized content (which OWNS its attached handler + native view — the caller keeps it alive for as
@@ -538,6 +547,16 @@ namespace maui::controls
             }
             child_handler->set_maui_context(context);
             element->set_handler(child_handler); // creates the platform view + runs the mapper
+
+            // If the realized ROOT is a CONTAINER that owns children (a header_footer_template photo_cell /
+            // chrome_cell stack of Image + Label), set_handler attached only the ROOT's handler — its children
+            // have no native view yet, so the layout_handler's panel hosts nothing. Mount the subtree so each
+            // child's handler is attached and re-hosted (the boxed-VIEW header/footer path's on-demand mount).
+            // A single-leaf template root (of<label>()) has no logical children, so this is a no-op there.
+            if (auto* chrome = dynamic_cast<maui::controls::element*>(content.get()); chrome != nullptr)
+            {
+                ensure_mounted(context, *chrome);
+            }
 
             if (auto* view_handler = dynamic_cast<maui::core::i_view_handler*>(child_handler.get()))
             {
