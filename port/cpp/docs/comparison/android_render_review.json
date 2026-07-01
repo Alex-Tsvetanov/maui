@@ -72,7 +72,7 @@
 {
 "key": "border_layout",
 "status": "yellow",
-"note": "Colored bars/Center label/rounded border match; slider shows filled yellow track vs MAUI's native minimal track, label text black vs MAUI's gray."
+"note": "Border shape/corners/stroke, segment colors/sizes, slider position match MAUI. Only recurring slider thumb/track chrome diff remains (filled thumb+fill vs hollow-ring+uniform track)."
 },
 {
 "key": "border_playground",
@@ -177,7 +177,7 @@
 {
 "key": "controls_stack",
 "status": "red",
-"note": "Button text wrong color; SearchBar missing search icon; ActivityIndicator renders as a diamond not a spinner; Slider has unwanted yellow fill; ProgressBar thick/black vs MAUI thin bar."
+"note": "SearchBar missing search icon; ActivityIndicator is a tiny blue diamond vs MAUI's spinner ring; ProgressBar bold black fill vs MAUI subtle grey; checkbox/switch bold blue vs MAUI's pale state."
 },
 {
 "key": "custom_layout",
@@ -461,8 +461,8 @@
 },
 {
 "key": "ios_scroll_view",
-"status": "red",
-"note": "slider chrome wrong: cpp shows thick yellow/gray filled pill track+large rounded thumb; MAUI shows thin gray track+small circular thumb (native Android style)"
+"status": "yellow",
+"note": "Matches MAUI: slider position, buttons text/layout identical. Same recurring slider thumb/track chrome diff (filled thumb+fill vs hollow-ring thumb+uniform track)."
 },
 {
 "key": "ios_search_bar",
@@ -471,8 +471,8 @@
 },
 {
 "key": "ios_slider_update_on_tap",
-"status": "red",
-"note": "slider chrome wrong: cpp shows thick dark pill-shaped track + large rounded-rect thumb; MAUI shows thin gray line track + small circular thumb"
+"status": "yellow",
+"note": "Content matches (text/button/thumb pos). Same issue: port solid filled thumb vs MAUI hollow-ring thumb; port filled track segment vs MAUI uniform thin track."
 },
 {
 "key": "ios_swipe_transition",
@@ -716,8 +716,8 @@
 },
 {
 "key": "slider",
-"status": "red",
-"note": "all sliders use wrong style: cpp renders thick colored rounded-bar tracks with large gray pill thumbs, MAUI renders thin flat line tracks with small circular thumbs (native Material default)"
+"status": "yellow",
+"note": "Layout/colors/text match. Thumb differs: MAUI hollow light-grey ring vs port solid filled circle; port also shows filled colored track segment vs MAUI's uniform thin track (all rows)."
 },
 {
 "key": "some_empty_groups",
