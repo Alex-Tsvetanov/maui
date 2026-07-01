@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+"""(Re)build docs/comparison/comparison.json — the single source of truth for the parity board.
+
+comparison.json is an array of one object per gallery page:
+
+    {
+      "name": "<key>", "title": "<Title>", "description": "<what the screen shows>",
+      "platforms": {
+        "ios":         {"screenshots": {"maui":{"light","dark"}, "cpp":{...}, "xaml":{...}},
+                        "sonnet": {"status","review"}, "gemini": {"status","review"}},
+        "maccatalyst": {"screenshots": {"maui","cpp","xaml","appkit_cpp","appkit_xaml"}, ...},
+        "android":     {"screenshots": {"maui","cpp","xaml"}, ...}
+      }
+    }
+
+Screenshot paths point at `captures/<platform>/<framework>/<key>_<theme>.{png,gif}` when the file
+exists, else null (the README generator renders null as `_placeholder.png`). This script only
+REFRESHES the screenshot paths (by scanning captures/); it PRESERVES the description and the
+Sonnet/Gemini reviews already in comparison.json, and adds any newly-listed pages with empty
+reviews. Reviews are authored/updated directly in comparison.json (or by a parity sweep that writes
+into it). Run after any capture change, then regenerate the README with tools/gen_readme.py.
+
+Usage: python3 tools/build_comparison_json.py
+"""
+import json
+import os
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+COMP = os.path.normpath(os.path.join(HERE, ".."))
+JSON = os.path.join(COMP, "comparison.json")
+KEYS_FILE = os.path.normpath(os.path.join(COMP, "..", "..", "tools", "parity", "page_keys.txt"))
+
+THEMES = ("light", "dark")
+PLATFORM_FW = {
+    "ios": ("maui", "cpp", "xaml"),
+    "maccatalyst": ("maui", "cpp", "xaml", "appkit_cpp", "appkit_xaml"),
+    "android": ("maui", "cpp", "xaml"),
+}
+EMPTY_REVIEW = {"status": None, "review": ""}
+
+
+def keys():
+    with open(KEYS_FILE, encoding="utf-8") as f:
+        return [l.strip() for l in f if l.strip() and not l.startswith("#")]
+
+
+def title(k):
+    return k.replace("_", " ").title()
+
+
+def shot_path(platform, fw, k, th):
+    for ext in ("gif", "png"):
+        rel = f"captures/{platform}/{fw}/{k}_{th}.{ext}"
+        if os.path.isfile(os.path.join(COMP, rel)):
+            return rel
+    return None
+
+
+def shots(platform, k):
+    return {fw: {th: shot_path(platform, fw, k, th) for th in THEMES} for fw in PLATFORM_FW[platform]}
+
+
+def main():
+    prev = {}
+    if os.path.isfile(JSON):
+        prev = {r["name"]: r for r in json.load(open(JSON, encoding="utf-8"))}
+
+    data = []
+    for k in keys():
+        old = prev.get(k, {})
+        old_plats = old.get("platforms", {})
+        page = {
+            "name": k,
+            "title": old.get("title") or title(k),
+            "description": old.get("description") or title(k),
+            "platforms": {},
+        }
+        for plat in PLATFORM_FW:
+            op = old_plats.get(plat, {})
+            page["platforms"][plat] = {
+                "screenshots": shots(plat, k),
+                "sonnet": op.get("sonnet") or dict(EMPTY_REVIEW),
+                "gemini": op.get("gemini") or dict(EMPTY_REVIEW),
+            }
+        data.append(page)
+
+    json.dump(data, open(JSON, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    real = sum(1 for p in data for plat in PLATFORM_FW for fw in PLATFORM_FW[plat]
+               for th in THEMES if p["platforms"][plat]["screenshots"][fw][th])
+    print(f"wrote comparison.json: {len(data)} pages, {real} real screenshot cells")
+
+
+if __name__ == "__main__":
+    main()

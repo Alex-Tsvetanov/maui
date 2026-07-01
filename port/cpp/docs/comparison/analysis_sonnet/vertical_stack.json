@@ -1,1 +1,0 @@
-{"category": "cpp_minor", "notes": ["C++ colored boxes (red/yellow/blue/green/orange/purple) are narrower/smaller than MAUI's", "Both show the same 6-color vertical stack in the same order", "'VerticalStackLayout' label is present on both sides", "Dark mode shows the same size discrepancy — C++ stack is more compact"], "model": "claude-sonnet-4-6"}

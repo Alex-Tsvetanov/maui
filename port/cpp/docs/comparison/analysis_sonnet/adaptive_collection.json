@@ -1,1 +1,0 @@
-{"category": "cpp_minor", "notes": ["C++ items are right-aligned while MAUI items are left-aligned (text alignment differs)", "C++ has slightly more left-padding/margin before item text", "Both show 8 items in single-column layout with correct labels", "Dark mode both render correctly with white text on black"], "model": "claude-sonnet-4-6"}
