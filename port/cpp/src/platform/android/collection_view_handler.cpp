@@ -92,6 +92,8 @@
 #include <string>
 #include <vector>
 
+#include "android_clip_ops.hpp"
+#include "android_visual_ops.hpp"
 #include "jni/app_context.hpp"
 #include "jni/jni_cache.hpp"
 #include "jni/jni_env.hpp"
@@ -412,7 +414,6 @@ namespace
     // No-op when the View has no setBackgroundColor (never, for an android.view.View) or on any JNI failure.
     constexpr jint k_selected_highlight_fallback_argb =
         static_cast<jint>(0xFF8E8E93U); // gray, only if theme lookup fails
-    constexpr jint k_transparent_argb = 0;
     // android.R.attr.colorActivatedHighlight — the public framework attribute id
     // (Resources.getIdentifier("colorActivatedHighlight","attr","android") == 0x01010390 on API 24-34; the
     // same id GetSelectedDrawable resolves). On the emulator's DeviceDefault theme this is opaque orange
@@ -474,20 +475,49 @@ namespace
         return data;
     }
 
-    void apply_selection_highlight(JNIEnv* env, jobject native, bool selected)
+    // `content` is the realized cell's virtual view (its retained bindable_object), or nullptr for the
+    // text-mirror default cell. In the port's single-root cell reduction the cell ROOT native view IS the
+    // content view (e.g. the chat_example bubble Label), so forcing a TRANSPARENT background on the unselected
+    // branch would CLOBBER the content's OWN background — the styled-bubble fill the template staged. C#
+    // never has this collision because the "Selected" drawable rides on the ItemContentView WRAPPER
+    // (SelectableViewHolder: `ItemView.Background = _selectedDrawable`, null when unselected), a distinct view
+    // from the content, so the content's own background is untouched. Mirror that here: SELECTED paints the
+    // resolved highlight over the cell; UNSELECTED RESTORES the content's own Background paint (via the shared
+    // apply_background) instead of zeroing it, then re-installs the content's own Clip outline so the restored
+    // fill keeps its rounding (the chat bubble's RoundRectangle). With no content view (default text cell)
+    // there is no own-background to restore, so the historical transparent clear stands.
+    void apply_selection_highlight(JNIEnv* env, jobject native, bool selected,
+                                   const std::shared_ptr<maui::core::bindable_object>& content, float density)
     {
         if (native == nullptr)
         {
             return;
         }
-        jmethodID set_background_color = default_jni_cache().method(env, k_view_class, "setBackgroundColor", "(I)V");
-        if (set_background_color == nullptr)
+        if (selected)
         {
+            jmethodID set_background_color =
+                default_jni_cache().method(env, k_view_class, "setBackgroundColor", "(I)V");
+            if (set_background_color != nullptr)
+            {
+                env->CallVoidMethod(native, set_background_color, selected_highlight_argb(env, native));
+                clear_pending(env);
+            }
             return;
         }
-        const jint fill = selected ? selected_highlight_argb(env, native) : k_transparent_argb;
-        env->CallVoidMethod(native, set_background_color, fill);
-        clear_pending(env);
+        // Unselected: restore the content's OWN background (nullptr paint clears to transparent inside
+        // apply_background — the same visible result as the old transparent clear for a cell with no own
+        // fill), then re-apply the content's own convex Clip so the restored fill stays rounded.
+        auto* const view = dynamic_cast<maui::core::i_view*>(content.get());
+        maui::graphics::paint* const own_background = view != nullptr ? view->background() : nullptr;
+        maui::platform::android::apply_background(native, own_background);
+        if (view != nullptr)
+        {
+            if (const maui::graphics::i_shape* const own_clip = view->clip(); own_clip != nullptr)
+            {
+                const maui::graphics::rect bounds = view->frame();
+                maui::platform::android::apply_outline_clip(native, own_clip, density, bounds.width, bounds.height);
+            }
+        }
     }
 } // namespace
 
@@ -1110,13 +1140,16 @@ namespace maui::controls
                         // The "Selected" VisualState fill (the C# CommonStates Selected highlight; iOS shows
                         // the cell's selectedBackgroundView while isSelected). This realized cell is selected
                         // iff its index path is in the cross-platform selected_paths mirror (kept current by
-                        // update_platform_selection on every backend); push the gray fill (or transparent for
-                        // an unselected cell, so a re-realized formerly-selected cell does not keep a stale
-                        // highlight). The fill goes onto the cell ROOT, behind its content (the bound label).
+                        // update_platform_selection on every backend); a selected cell gets the resolved
+                        // highlight fill, an unselected cell RESTORES its own content Background (not a blind
+                        // transparent clear — which would clobber a styled single-root cell like the
+                        // chat_example bubble Label; see apply_selection_highlight). The retained content view
+                        // (col.retain) carries that own Background + Clip.
                         const index_path cell_path{.section = section, .item = first + c};
                         const bool selected =
                             std::ranges::find(platform->selected_paths, cell_path) != platform->selected_paths.end();
-                        apply_selection_highlight(env, cols[static_cast<std::size_t>(c)].native, selected);
+                        apply_selection_highlight(env, cols[static_cast<std::size_t>(c)].native, selected,
+                                                  cols[static_cast<std::size_t>(c)].retain, density);
                         // Frame the cell's CHILDREN / inner cells via the cross-platform arrange at the cell's
                         // ABSOLUTE placed rect — a templated cell whose root is itself a CollectionView (the
                         // nested_collection inner CV) needs its own arrange_native to run so its inner cells

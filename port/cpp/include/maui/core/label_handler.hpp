@@ -124,14 +124,25 @@ namespace maui::core
         // override calls the view_platform_base body FIRST — the android preset also runs the pure-native
         // cross-platform suite on the emulator WITHOUT a Java VM, and that suite observes the headless
         // mirrors — then pushes to the widget when one exists. Background pushes a solid fill; transform /
-        // flow-direction / semantics route through the shared android ops (W4-34e). Shadow, Clip, and
+        // flow-direction / semantics route through the shared android ops (W4-34e). Shadow and
         // InputTransparent keep ONLY the base mirror (WrapperView-only on Android, no plain-View analog),
         // exactly as the button partial documents.
+        //
+        // Clip IS pushed for the label (unlike button): a CONVEX outline clip via the shared
+        // apply_outline_clip (android_clip_ops.hpp) — setOutlineProvider + setClipToOutline(true). A Label
+        // CAN carry a Clip (the chat_example bubble stages a RoundRectangle{CornerRadius=12} on the cell
+        // Label to round its background fill, the single-root reduction of the oracle's rounded Border), and
+        // a round-rect / ellipse / rectangle is convex so the framework clips it exactly. Without this push
+        // the bubble's staged background painted a SQUARE fill (no rounding) — the Android chat_example RED.
+        // The geometry is bounds-dependent (resolved against the view's live size), so update_clip is a
+        // best-effort push at map time (0×0 before the first layout) and platform_arrange re-installs it once
+        // the label has its final bounds — the image_handler / iOS reapply_clip pattern.
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
         void update_background(const maui::graphics::paint* value) override;
+        void update_clip(const maui::graphics::i_shape* value) override;
         void update_transform(const maui::core::transform_spec& value) override;
         void update_flow_direction(maui::core::flow_direction value) override;
         void update_semantics(const maui::core::semantics* value) override;

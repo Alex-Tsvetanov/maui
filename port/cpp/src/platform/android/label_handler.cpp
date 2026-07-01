@@ -58,6 +58,7 @@
 #include <string_view>
 #include <vector>
 
+#include "android_clip_ops.hpp"
 #include "android_semantics_ops.hpp"
 #include "android_view_ops.hpp"
 #include "android_visual_ops.hpp"
@@ -76,6 +77,7 @@
 #include "maui/core/thickness.hpp"
 #include "maui/core/view_platform_base.hpp"
 #include "maui/core/visibility.hpp"
+#include "maui/graphics/i_shape.hpp"
 #include "maui/graphics/paint.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
@@ -590,6 +592,37 @@ namespace maui::core
         // transparent.
         const jint argb = value != nullptr ? static_cast<jint>(value->background_color().to_int()) : 0;
         call_void_int(env.get(), widget_of(*this), "setBackgroundColor", argb);
+    }
+
+    // VisualElement.Clip → the shared apply_outline_clip (android_clip_ops.hpp): a CONVEX outline clip on the
+    // stock TextView via setOutlineProvider + setClipToOutline(true). The base body runs FIRST (the headless
+    // mirror — view_platform_base::clip — must stay live for the VM-less cross-platform suite), then the
+    // native push installs the outline. The clip geometry is bounds-dependent, so at map time the view is
+    // usually 0×0 (not laid out yet) and apply_outline_clip clears/defers — platform_arrange re-installs it
+    // against the live bounds once the label has its final size (the image_handler / iOS reapply_clip
+    // pattern). The borrow the base body stashed in `clip` is what platform_arrange re-resolves. Convex-only
+    // (round-rect / ellipse / rectangle clip exactly; a non-convex PathGeometry silently no-ops — the honest
+    // constraint android_clip_ops documents), which is exactly the chat_example bubble's RoundRectangle(12).
+    void label_platform::update_clip(const maui::graphics::i_shape* value)
+    {
+        view_platform_base::update_clip(value); // headless mirror first (the VM-less suite observes it)
+        if (native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        // The clip geometry is bounds-dependent and the label is typically 0×0 at map time (not laid out
+        // yet): apply_outline_clip with 0×0 clears any stale outline and defers — platform_arrange
+        // re-installs it against the label's final frame (reading the `clip` borrow the base body just
+        // stashed). A null value (clip removed) also lands here and clears the outline. This is the
+        // image_handler / iOS reapply_clip pattern; the real install happens in platform_arrange once the
+        // bounds exist.
+        const float density = display_density(env.get(), widget_of(*this));
+        maui::platform::android::apply_outline_clip(native, value, density, 0.0, 0.0);
     }
 
     void label_platform::update_transform(const maui::core::transform_spec& value)
@@ -1239,5 +1272,18 @@ namespace maui::core
         }
         env->CallVoidMethod(widget, layout, left, top, left + width, top + height);
         clear_pending(env.get());
+
+        // Re-install the outline clip against the just-laid-out bounds (the image_handler / iOS reapply_clip
+        // analog): the clip geometry resolves against the live frame, and update_clip runs before the first
+        // layout when the label is 0×0 (apply_outline_clip deferred it then). A resize likewise lands here, so
+        // the round-rect outline tracks the new size. Only when a clip is stashed — an unclipped label needs
+        // no outline (apply_outline_clip's own 0×0 / null branch handles clear). The bounds are the frame in
+        // POINTS (the WrapperView.SetClip convention apply_outline_clip resolves against). This is what rounds
+        // the chat_example bubble's staged background fill (the RoundRectangle{CornerRadius=12} clip).
+        if (platform->clip != nullptr)
+        {
+            maui::platform::android::apply_outline_clip(platform->native, platform->clip, density, frame.width,
+                                                        frame.height);
+        }
     }
 } // namespace maui::core
