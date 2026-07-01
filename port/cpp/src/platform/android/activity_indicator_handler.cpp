@@ -16,21 +16,26 @@
 //     Components library is a gradle/AAR dependency this APK-less backend does not carry. So the
 //     public ActivityIndicatorHandler (plain ProgressBar) is the faithful target; the Material
 //     subclass's centering PlatformArrange override is not ported (it belongs to that subclass only).
-//   - The port's colors are non-nullable value types, so C#'s `color != null` branch collapses
-//     exactly as it did in the ios/apple partials (see map_color): an unset (default-constructed)
-//     color takes the ClearColorFilter path (restore the platform default tint), a set color takes
-//     the SetColorFilter path. This is the same unset-color convention button_handler/the apple
-//     partials use, derived from C#'s null-color semantics.
-//   - The generic-IView pushes (opacity/automation_id/background/transform/flow_direction/semantics)
-//     are NOT pushed to the real ProgressBar here: activity_indicator_handler.hpp declares no
-//     `#ifdef MAUI_PLATFORM_ANDROID` override block on activity_indicator_platform (unlike
-//     button_platform), and the deliverable touches only this .cpp + its test. They remain the
-//     view_platform_base headless mirrors. This mirrors C# faithfully for the two ported keys:
-//     ActivityIndicatorHandler.Android.cs implements ONLY MapIsRunning + MapColor; the remaining
-//     IView properties flow through the base ViewHandler, which is the deferred android container
-//     fan-out. Visibility is NOT a generic push here either — the mapper replaces the Visibility key
-//     with MapIsRunning, so visibility reaches the widget through map_is_running (the C# override).
-//     // TODO: verify against src/Core/src/Handlers/ActivityIndicator/ActivityIndicatorHandler.Android.cs
+//   - The port's Color is a non-nullable value type (default = opaque BLACK), so C#'s `color != null`
+//     is stood in for by the BindableObject.IsSet sentinel (is_property_set("color")) — a value compare
+//     against color{} both misreads an explicit Color=Black as unset and (here) mis-tinted every unset
+//     indicator. SET → SetColorFilter(color, SrcIn); UNSET → the native-default pale gray (#E0E0E0)
+//     asserted via the same SrcIn filter (see map_color): C#'s unset path is ClearColorFilter, but this
+//     backend force-styles the drawable to get a circular spinner on a bare Context and that style's
+//     baseline is navy, so ClearColorFilter would leave navy — asserting the gray reproduces MAUI's
+//     native-default ClearColorFilter *result*. Same is_property_set + reproduce-the-restore-result
+//     convention button_handler::map_text_color uses (unset TextColor → Material default white).
+//   - The generic-IView BACKGROUND push IS wired (activity_indicator_platform overrides
+//     update_background under `#ifdef MAUI_PLATFORM_ANDROID`, twin of the iOS override) so the
+//     ViewHandler.MapBackground path reaches the real ProgressBar — this is the band behind the
+//     spinner (the gallery's `BackgroundColor=Yellow` fill). The remaining generic-IView pushes
+//     (opacity/automation_id/transform/flow_direction/semantics/shadow/clip) are NOT pushed to the
+//     real ProgressBar here — they remain the view_platform_base headless mirrors (the deferred
+//     android container fan-out). This mirrors C# faithfully for the two mapped keys:
+//     ActivityIndicatorHandler.Android.cs implements ONLY MapIsRunning + MapColor, and the remaining
+//     IView properties (incl. Background) flow through the base ViewHandler's shared ViewMapper.
+//     Visibility is NOT a generic push here either — the mapper replaces the Visibility key with
+//     MapIsRunning, so visibility reaches the widget through map_is_running (the C# override).
 //
 // VM-less degradation: the android preset also runs the PURE-NATIVE cross-platform suite on the
 // emulator where no Java VM exists. Every JNI path here checks scoped_env/app_context() and quietly
@@ -46,13 +51,16 @@
 #include <cmath>
 #include <memory>
 
+#include "android_visual_ops.hpp"
 #include "jni/app_context.hpp"
 #include "jni/jni_cache.hpp"
 #include "jni/jni_env.hpp"
 #include "jni/jni_ref.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/i_activity_indicator.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
+#include "maui/graphics/paint.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -207,6 +215,18 @@ namespace maui::core
             }
             native = nullptr;
         }
+    }
+
+    // BackgroundColor / Background brush fills the band behind the spinner (a ProgressBar has no bezel):
+    // ViewExtensions.UpdateBackground → View.setBackgroundColor(ARGB) for a solid, or a GradientDrawable
+    // for a gradient — the shared android apply_background (VM-less safe; a null paint clears our
+    // background). Twin of the iOS override; the generic-IView map_background reaches the real ProgressBar
+    // only through this (the base view_platform_base::update_background is the headless mirror). This is
+    // what renders the gallery's `BackgroundColor=Yellow` indicator's yellow fill.
+    void activity_indicator_platform::update_background(const maui::graphics::paint* value)
+    {
+        view_platform_base::update_background(value); // keep the headless mirror (the VM-less suite reads it)
+        maui::platform::android::apply_background(native, value);
     }
 
     std::unique_ptr<activity_indicator_platform> activity_indicator_handler::create_platform_view()
@@ -380,48 +400,55 @@ namespace maui::core
         {
             return;
         }
-        // The port's color is a non-nullable value type, so C#'s `color != null` becomes
-        // `color != default` (the unset-color convention — see the header and the ios/apple twins):
-        //   set color   → IndeterminateDrawable.SetColorFilter(color.ToPlatform(), FilterMode.SrcIn)
-        //   unset color → IndeterminateDrawable.ClearColorFilter()  (restore the platform default)
-        if (view.color() != maui::graphics::color{})
+        // ActivityIndicatorExtensions.UpdateColor tints the IndeterminateDrawable ONLY when the color is
+        // set: `if (color != null) SetColorFilter(color.ToPlatform(), SrcIn) else ClearColorFilter()`.
+        // The port's Color is a NON-nullable value type whose default-constructed value (color{}) is
+        // opaque BLACK, so a `!= color{}` value compare cannot stand in for C#'s `!= null` — it both
+        // misreads an explicit Color=Black as unset AND (worse here) took the ClearColorFilter branch on
+        // every UNSET indicator. Discriminate on whether Color was explicitly SET (BindableObject.IsSet),
+        // the faithful stand-in for `!= null` — exactly as button_handler::map_text_color /
+        // label_handler::map_text_color do for the same unset-color sentinel collision.
+        const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+        const bool color_is_set = bindable != nullptr && bindable->is_property_set("color");
+
+        // Native-default deviation (this AAR-less backend only): C#'s unset path is ClearColorFilter,
+        // which on MAUI's NATIVE-DEFAULT (unstyled) indeterminate ProgressBar reveals the platform
+        // default — a pale light-gray arc (sampled #E0E0E0 in the maui-compare reference). This backend
+        // must force a concrete Material defStyleRes onto the bare, Activity-less Context to get a
+        // circular spinner drawable at all (see create_platform_view / k_indeterminate_style_field), and
+        // that styled drawable's BASELINE tint is the theme accent (navy, sampled #495D92) — so plain
+        // ClearColorFilter would leave navy, NOT MAUI's pale gray. Positively assert the native-default
+        // gray on the unset path instead, reproducing MAUI's ClearColorFilter *result* on the force-styled
+        // drawable — the same reproduce-the-restore-result technique button_handler uses (unset TextColor
+        // → the Material default white). On a real themed native-default Context this equals C#'s
+        // ClearColorFilter exactly. LightGray (Android's Widget.Material default progress gray).
+        constexpr jint k_native_default_indicator_color = static_cast<jint>(0xFFE0E0E0U);
+        const jint tint = color_is_set ? static_cast<jint>(view.color().to_int()) : k_native_default_indicator_color;
+
+        // Drawable.setColorFilter(int color, PorterDuff.Mode mode) with PorterDuff.Mode.SRC_IN —
+        // FilterMode.SrcIn in C#. (Deprecated in API 29 in favor of setColorFilter(ColorFilter), but
+        // still functional and the exact oracle path; the prompt's setIndeterminateTintList alternative
+        // is NOT what ActivityIndicatorExtensions.UpdateColor does.)
+        jmethodID set_color_filter =
+            cache.method(env.get(), k_drawable_class, "setColorFilter", "(ILandroid/graphics/PorterDuff$Mode;)V");
+        jclass mode_class = cache.find_class(env.get(), k_porter_duff_mode_class);
+        // SRC_IN is a STATIC field — jni_cache::field() is GetFieldID (instance) and returns null for
+        // it, so resolve it directly with GetStaticFieldID.
+        jfieldID src_in_field = mode_class != nullptr
+                                    ? env->GetStaticFieldID(mode_class, "SRC_IN", "Landroid/graphics/PorterDuff$Mode;")
+                                    : nullptr;
+        clear_pending(env.get());
+        if (set_color_filter == nullptr || src_in_field == nullptr || mode_class == nullptr)
         {
-            // Drawable.setColorFilter(int color, PorterDuff.Mode mode) with PorterDuff.Mode.SRC_IN —
-            // FilterMode.SrcIn in C#. (Deprecated in API 29 in favor of setColorFilter(ColorFilter),
-            // but still functional and the exact oracle path; the prompt's setIndeterminateTintList
-            // alternative is NOT what ActivityIndicatorExtensions.UpdateColor does.)
-            jmethodID set_color_filter =
-                cache.method(env.get(), k_drawable_class, "setColorFilter", "(ILandroid/graphics/PorterDuff$Mode;)V");
-            jclass mode_class = cache.find_class(env.get(), k_porter_duff_mode_class);
-            // SRC_IN is a STATIC field — jni_cache::field() is GetFieldID (instance) and returns null
-            // for it, so resolve it directly with GetStaticFieldID.
-            jfieldID src_in_field = mode_class != nullptr ? env->GetStaticFieldID(mode_class, "SRC_IN",
-                                                                                  "Landroid/graphics/PorterDuff$Mode;")
-                                                          : nullptr;
-            clear_pending(env.get());
-            if (set_color_filter == nullptr || src_in_field == nullptr || mode_class == nullptr)
-            {
-                return;
-            }
-            const local_ref<jobject> src_in{env.get(), env->GetStaticObjectField(mode_class, src_in_field)};
-            if (clear_pending(env.get()) || !src_in)
-            {
-                return;
-            }
-            env->CallVoidMethod(drawable.get(), set_color_filter, static_cast<jint>(view.color().to_int()),
-                                src_in.get());
-            clear_pending(env.get());
+            return;
         }
-        else
+        const local_ref<jobject> src_in{env.get(), env->GetStaticObjectField(mode_class, src_in_field)};
+        if (clear_pending(env.get()) || !src_in)
         {
-            jmethodID clear_color_filter = cache.method(env.get(), k_drawable_class, "clearColorFilter", "()V");
-            if (clear_color_filter == nullptr)
-            {
-                return;
-            }
-            env->CallVoidMethod(drawable.get(), clear_color_filter);
-            clear_pending(env.get());
+            return;
         }
+        env->CallVoidMethod(drawable.get(), set_color_filter, tint, src_in.get());
+        clear_pending(env.get());
     }
 
     maui::graphics::size activity_indicator_handler::get_desired_size(double width_constraint,

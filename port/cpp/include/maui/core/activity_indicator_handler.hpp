@@ -78,10 +78,20 @@ namespace maui::core
         // spinner (the shared apply_background; MauiIosActivityIndicator.layoutSubviews keeps a gradient
         // fill sized to bounds).
         void update_background(const maui::graphics::paint* value) override;
-        // Clip IS pushed: WrapperView.SetClip masks the MauiIosActivityIndicator (UIActivityIndicatorView)'s layer (the shared
-        // apply_and_store_clip; MauiIosActivityIndicator.layoutSubviews re-frames the mask to the live bounds, the
-        // 0×0-at-map-time fix).
+        // Clip IS pushed: WrapperView.SetClip masks the MauiIosActivityIndicator (UIActivityIndicatorView)'s layer (the
+        // shared apply_and_store_clip; MauiIosActivityIndicator.layoutSubviews re-frames the mask to the live bounds,
+        // the 0×0-at-map-time fix).
         void update_clip(const maui::graphics::i_shape* value) override;
+#endif
+
+#ifdef MAUI_PLATFORM_ANDROID
+        // Android backend: BackgroundColor / Background brush IS pushed to the ProgressBar — the band
+        // behind the spinner (ViewExtensions.UpdateBackground → View.setBackgroundColor / a GradientDrawable,
+        // via the shared android apply_background). Defined in src/platform/android/activity_indicator_handler.cpp.
+        // Twin of the iOS override above; without it the generic-IView map_background pushes to the
+        // view_platform_base no-op mirror and the yellow BackgroundColor never reaches the real widget.
+        // The remaining generic-IView pushes stay the base mirrors here (see the .cpp header note).
+        void update_background(const maui::graphics::paint* value) override;
 #endif
     };
 
