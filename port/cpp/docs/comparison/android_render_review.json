@@ -417,7 +417,7 @@
 {
 "key": "invalidate_brush",
 "status": "red",
-"note": "MAUI's green brush indicator bar is left-aligned directly below the 'Change color' button; cpp's bar is horizontally offset to the right, not aligned under the button."
+"note": "Start-alignment fix (71e65cb7f5) left-aligned the green brush bar (partial), but the Line still draws FULL-WIDTH — the Line shape does not size to its X2=150 geometry width on Android (shape-measure gap). MAUI shows a short ~150px bar."
 },
 {
 "key": "invalidate_shadow_host",
