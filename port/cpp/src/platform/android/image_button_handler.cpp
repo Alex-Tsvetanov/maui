@@ -342,6 +342,38 @@ namespace
         clear_pending(env);
     }
 
+    // Push the effective content padding onto the ImageView (the button partial has no analog — this is
+    // ImageButtonExtensions.UpdatePadding, unique to the ImageButton). C# adds the STROKE WIDTH to the
+    // developer's Padding as "additional padding" (SetContentPadding = padding + strokeWidth on every side),
+    // then zeroes View.setPadding — because ShapeableImageView's content-padding and the stroke overlap. On
+    // this bare-ImageView backend there is no content-padding channel, so the combined value rides the plain
+    // setPadding directly. The stroke contribution is exactly GetStrokeProperties' strokeWidth: the set
+    // StrokeThickness when a border is present (thickness > 0), else 0 — so a BorderWidth-only ImageButton
+    // (no Padding, no size request, an undecodable cog.png) still measures to 2×strokeWidth and renders as
+    // the thin red bar MAUI shows, instead of collapsing to 0×0 and vanishing. (C#'s "StrokeColor set but
+    // thickness unset → 1dp default" sub-case has no page witness and the port carries no stroke-color-set
+    // flag, so thickness>0 is the faithful, contained rule — documented deviation.) A NaN Padding keeps the
+    // View default (0) with no stroke add, exactly as MapPadding's NaN gate does.
+    void apply_padding(JNIEnv* env, jobject widget, const maui::core::image_button_platform& platform)
+    {
+        if (platform.padding.is_nan())
+        {
+            return;
+        }
+        const double stroke_extra = platform.stroke_thickness > 0 ? platform.stroke_thickness : 0.0;
+        const float density = display_density(env, widget);
+        jmethodID set_padding = default_jni_cache().method(env, k_image_view_class, "setPadding", "(IIII)V");
+        if (set_padding == nullptr)
+        {
+            return;
+        }
+        env->CallVoidMethod(widget, set_padding, to_pixels(platform.padding.left + stroke_extra, density),
+                            to_pixels(platform.padding.top + stroke_extra, density),
+                            to_pixels(platform.padding.right + stroke_extra, density),
+                            to_pixels(platform.padding.bottom + stroke_extra, density));
+        clear_pending(env);
+    }
+
     // ---- source bytes: APK asset → on-disk file (the image partial's resolver verbatim) ----
     [[nodiscard]] maui::core::image_bytes drain_input_stream(JNIEnv* env, jobject stream)
     {
@@ -916,22 +948,10 @@ namespace maui::core
         {
             return;
         }
-        jobject widget = widget_of(*platform);
-        // UIButtonExtensions.UpdatePadding → SetPadding (the android Button's MapPadding shape); NaN keeps
-        // the View default (0) — ImageButton has no Material default-padding derivation, so no fallback.
-        maui::core::thickness padding = view.padding();
-        if (padding.is_nan())
-        {
-            return;
-        }
-        const float density = display_density(env.get(), widget);
-        jmethodID set_padding = default_jni_cache().method(env.get(), k_image_view_class, "setPadding", "(IIII)V");
-        if (set_padding != nullptr)
-        {
-            env->CallVoidMethod(widget, set_padding, to_pixels(padding.left, density), to_pixels(padding.top, density),
-                                to_pixels(padding.right, density), to_pixels(padding.bottom, density));
-            clear_pending(env.get());
-        }
+        // ImageButtonExtensions.UpdatePadding → SetContentPadding(padding + strokeWidth) (the ImageButton's
+        // MapPadding shape, distinct from the Button's plain SetPadding): the stroke width is folded into the
+        // content padding so a bordered button reserves room for its stroke. NaN keeps the View default (0).
+        apply_padding(env.get(), widget_of(*platform), *platform);
     }
 
     // MapStrokeColor / MapStrokeThickness / MapCornerRadius all push onto the SAME shared chrome
@@ -971,6 +991,10 @@ namespace maui::core
         if (env)
         {
             apply_stroke_and_corner(env.get(), widget_of(*platform), *platform);
+            // C#'s MapStrokeThickness re-runs MapPadding (handler.UpdateValue(nameof(IImageButton.Padding)))
+            // because the stroke width folds into content padding — so a new border thickness re-reserves its
+            // room, and a border-only button gains a non-zero measured size.
+            apply_padding(env.get(), widget_of(*platform), *platform);
         }
     }
 
@@ -990,6 +1014,9 @@ namespace maui::core
         if (env)
         {
             apply_stroke_and_corner(env.get(), widget_of(*platform), *platform);
+            // C#'s MapCornerRadius also re-runs MapPadding (the stroke/corner/padding recompute is
+            // intertwined); harmless when the stroke is unchanged, and keeps the content padding coherent.
+            apply_padding(env.get(), widget_of(*platform), *platform);
         }
     }
 
