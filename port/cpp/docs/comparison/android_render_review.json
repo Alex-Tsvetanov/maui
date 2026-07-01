@@ -226,8 +226,8 @@
 },
 {
 "key": "editor",
-"status": "yellow",
-"note": "placeholder text 'Type here...' rendered solid black in port vs proper gray placeholder color in MAUI"
+"status": "green",
+"note": "Matches MAUI: all fields/fonts/spacing identical. Placeholder text now gray (not black), matching MAUI. No checkbox/TextAlignment=End control present on this page."
 },
 {
 "key": "effects",
@@ -282,7 +282,7 @@
 {
 "key": "entry",
 "status": "yellow",
-"note": "Checkbox now gray, matches MAUI. Residuals: checkbox not horizontally centered like MAUI, and last entry text not right-aligned (TextAlignment=End not applied, pre-existing alignment bug)."
+"note": "Placeholder gray + progress fill OK now. Residual: 'This should be on the end' Entry TextAlignment=End not applied (left-aligned vs MAUI right-aligned). Checkbox centering matches MAUI."
 },
 {
 "key": "filter_collection",
@@ -601,8 +601,8 @@
 },
 {
 "key": "progress_bar",
-"status": "yellow",
-"note": "Default/Disabled progress bar fill renders solid black in C++ vs MAUI's light gray fill; track color also slightly off (blue-gray vs gray). ProgressColor/ProgressTo match."
+"status": "green",
+"note": "Matches MAUI: layout, orange ProgressColor bars, Disabled gray bar, ProgressTo button identical. Default fill now light gray (not black), matching MAUI exactly."
 },
 {
 "key": "radio_button_border",
