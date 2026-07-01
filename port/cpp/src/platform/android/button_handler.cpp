@@ -59,6 +59,7 @@
 #include "jni/jni_env.hpp"
 #include "jni/jni_ref.hpp"
 #include "jni/jni_string.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/i_button.hpp"
 #include "maui/core/i_image_source.hpp"
@@ -87,6 +88,26 @@ namespace
     constexpr const char* k_typeface_class = "android/graphics/Typeface";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
     constexpr const char* k_click_listener_class = "dev/mauicpp/NativeOnClickListener";
+    constexpr const char* k_style_class = "android/R$style";
+
+    // ButtonHandler.CreatePlatformView constructs a MauiMaterialButton (Google.Android.Material's
+    // MaterialButton, wrapped in MauiMaterialContextThemeWrapper). Real .NET MAUI thus renders a FILLED
+    // Material button: a light-gray fill, rounded corners, compact Material insets, and — the dominant
+    // Android parity diff this fixes — WHITE label text (the Material theme's onSurface/onPrimary
+    // default that ButtonHandler captures as _defaultTextColors). This AAR-less backend cannot link the
+    // Material Components library (it packages against android.jar only — no gradle, no maven egress), so
+    // the port constructs a plain android.widget.Button through the theme-INDEPENDENT 4-arg ctor (Context,
+    // AttributeSet=null, defStyleAttr=0, defStyleRes) with the framework's concrete Material button style
+    // as defStyleRes — the same pattern progress_bar_handler.cpp / slider_handler.cpp use for their thin
+    // Material look. A concrete defStyleRes applies the filled Material button appearance (fill + rounded
+    // background + insets) WITHOUT needing a theme attribute, so it constructs on the bare, Activity-less
+    // widget test host too. Widget_Material_Light_Button is the light-theme filled variant matching MAUI's
+    // light capture; Widget_Material_Button is the generic/dark twin, tried if the light field is absent
+    // (the primary→alt GetStaticFieldID fallback the progress-bar/slider handlers share). Both are STATIC
+    // fields (GetStaticFieldID, not the instance field() helper). The WHITE text itself is asserted in
+    // map_text_color's unset branch (mirroring C#'s _defaultTextColors restore — see there).
+    constexpr const char* k_button_style_field = "Widget_Material_Light_Button";
+    constexpr const char* k_button_style_field_alt = "Widget_Material_Button";
 
     // ButtonHandler.DefaultPadding (Android) — "the Material Components minimum size" derivation:
     // horizontal 16dp, vertical 8.5dp; substituted when the cross-platform Padding is NaN.
@@ -590,18 +611,61 @@ namespace maui::core
         }
         auto& cache = default_jni_cache();
         jclass button_class = cache.find_class(env.get(), k_button_class);
-        jmethodID ctor = cache.method(env.get(), k_button_class, "<init>", "(Landroid/content/Context;)V");
-        if (button_class == nullptr || ctor == nullptr)
+        if (button_class == nullptr)
         {
             return platform;
         }
         // ButtonHandler.CreatePlatformView: new MauiMaterialButton(Context) { SoundEffectsEnabled =
-        // false, … } — the Icon* initializers are Material-only (header deviations).
-        const local_ref<jobject> widget{env.get(), env->NewObject(button_class, ctor, context)};
-        if (clear_pending(env.get()) || !widget)
+        // false, … } — the Icon* initializers are Material-only (header deviations). To reproduce the
+        // filled Material button (light-gray fill + rounded corners + white text) that MauiMaterialButton
+        // renders, construct through the theme-INDEPENDENT 4-arg ctor with the framework's concrete
+        // Material button style as defStyleRes (see the k_button_style_field note). Try the light field,
+        // then the generic/dark alt, then fall back to the plain (Context) ctor so the widget is never
+        // null (a valid Button; only the filled Material *look* is lost on that fallback).
+        jobject created = nullptr;
+        jmethodID ctor_styled = cache.method(env.get(), k_button_class, "<init>",
+                                             "(Landroid/content/Context;Landroid/util/AttributeSet;II)V");
+        jclass style_class = cache.find_class(env.get(), k_style_class);
+        // The Material button style is a STATIC field — the jni_cache's field() is GetFieldID (instance)
+        // and returns null for it, so resolve it directly with GetStaticFieldID.
+        jfieldID button_style_field =
+            style_class != nullptr ? env->GetStaticFieldID(style_class, k_button_style_field, "I") : nullptr;
+        clear_pending(env.get()); // a missing-field lookup raises NoSuchFieldError — clear it, then try the alt
+        if (style_class != nullptr && button_style_field == nullptr)
+        {
+            button_style_field = env->GetStaticFieldID(style_class, k_button_style_field_alt, "I");
+            clear_pending(env.get());
+        }
+        if (ctor_styled != nullptr && style_class != nullptr && button_style_field != nullptr)
+        {
+            const jint style_res = env->GetStaticIntField(style_class, button_style_field);
+            if (!clear_pending(env.get()))
+            {
+                created = env->NewObject(button_class, ctor_styled, context, static_cast<jobject>(nullptr),
+                                         static_cast<jint>(0), style_res);
+                if (clear_pending(env.get()))
+                {
+                    created = nullptr;
+                }
+            }
+        }
+        if (created == nullptr)
+        {
+            jmethodID ctor_plain = cache.method(env.get(), k_button_class, "<init>", "(Landroid/content/Context;)V");
+            if (ctor_plain != nullptr)
+            {
+                created = env->NewObject(button_class, ctor_plain, context);
+                if (clear_pending(env.get()))
+                {
+                    created = nullptr;
+                }
+            }
+        }
+        if (created == nullptr)
         {
             return platform;
         }
+        const local_ref<jobject> widget{env.get(), created};
         call_void_bool(env.get(), widget.get(), "setSoundEffectsEnabled", JNI_FALSE);
         // Wrap-content LayoutParams up front: a parentless TextView with null LayoutParams NPEs in
         // checkForRelayout on any setText AFTER the first measure (TextView.java reads
@@ -749,13 +813,28 @@ namespace maui::core
             return;
         }
         const scoped_env env;
-        if (env)
+        if (!env)
         {
-            // TextViewExtensions.UpdateTextColor: SetTextColor(textColor.ToPlatform()) — the ARGB int.
-            // MapTextColor's null branch (restore the Material defaults) collapses (header deviations).
-            call_void_int(env.get(), widget_of(*platform), "setTextColor",
-                          static_cast<jint>(view.text_color().to_int()));
+            return;
         }
+        // ButtonHandler.MapTextColor: `if (button.TextColor is null) SetTextColor(_defaultTextColors)`
+        // else `UpdateTextColor(button)`. C#'s ITextStyle.TextColor is a Color? defaulting to null → the
+        // Material theme default the handler captured before any mapping (_defaultTextColors), which on a
+        // filled MaterialButton is WHITE. The port models TextColor as a NON-nullable value type whose
+        // default-constructed value (color{}) is opaque BLACK, so pushing view.text_color() unconditionally
+        // set BLACK text on every unset (default) button — the dominant Android parity diff (MAUI renders
+        // WHITE). Discriminate on whether the property was explicitly SET (BindableObject.IsSet), the
+        // faithful stand-in for C#'s `!= null` — exactly as label_handler.mm does for the unset-color
+        // sentinel collision. Unset → assert the Material default (white); a value compare can't be used
+        // here because an explicit TextColor=White would equal that default and be misread. This AAR-less
+        // backend has no captured _defaultTextColors ColorStateList, but the Material button's default
+        // label IS white, so a white constant reproduces the same on-screen result MAUI's restore does.
+        constexpr jint k_material_default_text_color = static_cast<jint>(0xFFFFFFFFU); // opaque white
+        const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+        const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
+        // TextViewExtensions.UpdateTextColor: SetTextColor(textColor.ToPlatform()) — the ARGB int.
+        const jint argb = color_is_set ? static_cast<jint>(view.text_color().to_int()) : k_material_default_text_color;
+        call_void_int(env.get(), widget_of(*platform), "setTextColor", argb);
     }
 
     void button_handler::map_font(button_handler& handler, i_text_button& view)
