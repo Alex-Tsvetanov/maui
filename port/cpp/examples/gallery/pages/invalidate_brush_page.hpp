@@ -28,11 +28,13 @@
 //   note: the button's Background is a paint (VisualElement.Background); set_background over a solid_paint
 //         is the documented Brush→Paint bridge (there is no set_background_color on a view). The line's
 //         Stroke takes the same paint via set_stroke.
-//   note: HorizontalOptions=Start (on the button and the line) and the layout Padding=12 are layout
-//         options the port does not model on these controls today, so they are omitted (best-effort);
-//         the controls, their wiring, and the color cycle are what the page demonstrates. A status readout
-//         label is added (not in the C# XAML) to surface the current color name for the headless tests and
-//         the static capture — it never changes the demonstrated brush-invalidation behavior.
+//   note: HorizontalOptions=Start is applied to BOTH the button and the line (set_horizontal_layout_alignment
+//         (start)) — matching the C# XAML — so the line renders as a short left-aligned bar directly under the
+//         button rather than a centered/floating one (an explicit-width view left at the default Fill coerces
+//         to Center in view.hpp align_horizontal). The layout Padding=12 is not modeled on the stack today, so
+//         it is omitted (best-effort). A status readout label is added (not in the C# XAML) to surface the
+//         current color name for the headless tests and the static capture — it never changes the demonstrated
+//         brush-invalidation behavior.
 
 #include <array>
 #include <memory>
@@ -75,6 +77,11 @@ namespace maui::samples
             line_.set_stroke_thickness(4);
             line_.set_width_request(150);
             line_.set_height_request(4);
+            line_.set_horizontal_layout_alignment(
+                maui::core::layout_alignment::start); // C# HorizontalOptions=Start — left-align the bar under
+                                                      // the button. Without this, an explicit-width view under
+                                                      // the default Fill alignment coerces to Center (view.hpp
+                                                      // align_horizontal), floating the bar in mid-container.
             stack_.add(line_);
 
             // A status readout (port addition — surfaces the current color name; see header note).
