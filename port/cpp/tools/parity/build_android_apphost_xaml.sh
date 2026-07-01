@@ -109,6 +109,18 @@ done
 [[ -n "${app_so}" ]] || maui_die "could not find libmaui_android_apphost_xaml.so under ${build_dir}"
 echo "[apphost-xaml] .so: ${app_so}" >&2
 
+# Strip debug info from the .so before packaging. A -g build of the 181 embedded-XAML byte-array TUs
+# produces a ~922 MB .so; its uncompressed native lib then fails to install on the emulator
+# (INSTALL_FAILED_INSUFFICIENT_STORAGE / CONTAINER_ERROR res=-18). --strip-debug keeps the exported JNI
+# symbols and shrinks it to ~130 MB, which installs cleanly. (cmake --build above relinks the full .so
+# each run, so this strip must run every time, after the build and before the APK is assembled.)
+strip_bin="$(find "${ANDROID_HOME:-/opt/homebrew/share/android-commandlinetools}/ndk" -path '*/bin/llvm-strip' 2>/dev/null | sort | tail -1)"
+if [[ -n "${strip_bin}" ]]; then
+  echo "[apphost-xaml] stripping .so (was $(du -h "${app_so}" | cut -f1))..." >&2
+  "${strip_bin}" --strip-debug "${app_so}" >&2 || echo "[apphost-xaml] WARNING: strip failed; continuing unstripped" >&2
+  echo "[apphost-xaml]   stripped .so: $(du -h "${app_so}" | cut -f1)" >&2
+fi
+
 # ---- 2. javac + d8: dex the XAML Activity + the runtime java support classes ----
 apphost_dir="${cpp_root}/examples/gallery_xaml/apphost"
 manifest="${apphost_dir}/AndroidManifest.xml"
