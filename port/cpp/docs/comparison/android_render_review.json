@@ -531,8 +531,8 @@
 },
 {
 "key": "multiple_bound_selection",
-"status": "red",
-"note": "selected rows (Item1/Item2) render gray in port vs MAUI's distinct orange highlight color"
+"status": "green",
+"note": "Matches MAUI exactly; Item 1 & Item 2 both show orange accent highlight in cpp, same as MAUI."
 },
 {
 "key": "navigation_gallery",
@@ -591,13 +591,13 @@
 },
 {
 "key": "preselected_item",
-"status": "yellow",
-"note": "Selected row 'photo.jpg, 2' highlighted grey in cpp vs orange (accent) in MAUI; layout/text otherwise matches."
+"status": "green",
+"note": "Matches MAUI; photo.jpg,2 shows orange accent highlight in cpp, same as MAUI. List content identical."
 },
 {
 "key": "preselected_items",
-"status": "yellow",
-"note": "4-col grid layout and header text match, but cpp shows no orange highlight for the 3 preselected items (photo.jpg/Fruits.jpg/FlowerBuds.jpg) vs MAUI's orange selection highlight."
+"status": "green",
+"note": "Matches MAUI. Selected items (photo.jpg2, Fruits.jpg4, FlowerBuds.jpg5) now show orange accent highlight, same as MAUI."
 },
 {
 "key": "progress_bar",
@@ -686,8 +686,8 @@
 },
 {
 "key": "selection_synchronization",
-"status": "yellow",
-"note": "content matches (labels, selected items, 4-item lists) but selection highlight color differs: cpp uses gray, MAUI uses orange"
+"status": "green",
+"note": "Matches MAUI. Item 2 and Item 3 show orange accent highlight in both CollectionViews, matching MAUI exactly."
 },
 {
 "key": "semantics",
