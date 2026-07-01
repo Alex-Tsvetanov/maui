@@ -69,37 +69,52 @@ namespace maui::samples
         calendar_radio_template()
         {
             // <Border Stroke="#F3F2F1" BackgroundColor="#F3F2F1" HeightRequest="100" WidthRequest="100"
-            //         Padding="0">
+            //         HorizontalOptions="Start" VerticalOptions="Start" Padding="0">
             const maui::graphics::color tile_bg = maui::graphics::color::from_argb("#F3F2F1");
             set_background(std::make_shared<maui::graphics::solid_paint>(tile_bg));
             set_stroke(std::make_shared<maui::graphics::solid_paint>(tile_bg));
             set_width_request(100);
             set_height_request(100);
             set_padding(maui::core::thickness(0));
+            // HorizontalOptions/VerticalOptions="Start" (XAML line 11): the tile hugs the top-left of its
+            // slot rather than centering — the flush-left column MAUI renders.
+            set_horizontal_layout_alignment(maui::core::layout_alignment::start);
+            set_vertical_layout_alignment(maui::core::layout_alignment::start);
 
             // The outer <Grid Margin="4" WidthRequest="100" Padding="2">.
             tile_grid_.set_width_request(100);
             tile_grid_.set_padding(maui::core::thickness(2));
 
-            // The upper-right 18x18 indicator <Grid> with the two Ellipses.
+            // The upper-right 18x18 indicator <Grid HorizontalOptions="End" VerticalOptions="Start">
+            // holding the two Ellipses — pinned to the tile's top-right corner (XAML line 37).
             indicator_grid_.set_width_request(18);
             indicator_grid_.set_height_request(18);
+            indicator_grid_.set_horizontal_layout_alignment(maui::core::layout_alignment::end);
+            indicator_grid_.set_vertical_layout_alignment(maui::core::layout_alignment::start);
 
             // <Ellipse Stroke="Blue" WidthRequest="16" HeightRequest="16" StrokeThickness="0.5"
-            //          Fill="White"/> — the ring.
+            //          VerticalOptions="Center" HorizontalOptions="Center" Fill="White"/> — the ring.
             ring_.set_stroke(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::blue));
             ring_.set_stroke_thickness(0.5);
             ring_.set_fill(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::white));
             ring_.set_width_request(16);
             ring_.set_height_request(16);
+            ring_.set_horizontal_layout_alignment(maui::core::layout_alignment::center);
+            ring_.set_vertical_layout_alignment(maui::core::layout_alignment::center);
 
-            // <Ellipse x:Name="Check" WidthRequest="8" HeightRequest="8" Fill="Blue"/> — the dot. In the
-            // XAML the Checked VisualState flips its Opacity 0→1; that state flip belongs to the
-            // radio_button visual-state machine and is noted as deferred here (this template is hosted on
-            // a content_view stand-in, not on a radio_button).
+            // <Ellipse x:Name="Check" WidthRequest="8" HeightRequest="8" Fill="Blue"
+            //          VerticalOptions="Center" HorizontalOptions="Center"/> — the dot. The XAML's Checked
+            // VisualState flips its Opacity 0→1; the DEFAULT (Unchecked) state the tiles render with sets
+            // Opacity 0, so MAUI shows only the empty blue ring on a fresh page (no filled dot). The port
+            // must render that same default: the Checked-state flip is the radio_button visual-state
+            // machine's job and stays deferred (this template is hosted on a content_view stand-in), so the
+            // dot is set to the unchecked-default Opacity 0 rather than left visible.
             check_.set_fill(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::blue));
             check_.set_width_request(8);
             check_.set_height_request(8);
+            check_.set_horizontal_layout_alignment(maui::core::layout_alignment::center);
+            check_.set_vertical_layout_alignment(maui::core::layout_alignment::center);
+            check_.set_opacity(0.0); // Unchecked default (VisualState "Unchecked" → Check Opacity 0)
 
             indicator_grid_.add(ring_);
             indicator_grid_.add(check_);
@@ -176,6 +191,11 @@ namespace maui::samples
         void add_tile(const std::string& text)
         {
             auto tile = std::make_shared<maui::controls::content_view>();
+            // The XAML's HorizontalOptions="Start" lives on the template-root Border; on the port the stack
+            // arranges the outer content_view, so mirror the Start alignment onto the tile too — otherwise a
+            // Fill/Center content_view re-centers the 100pt tile mid-screen (the wide-margin bug).
+            tile->set_horizontal_layout_alignment(maui::core::layout_alignment::start);
+            tile->set_vertical_layout_alignment(maui::core::layout_alignment::start);
             tile->set_control_template(maui::controls::control_template::of<calendar_radio_template>());
 
             auto content = std::make_shared<maui::controls::label>();
