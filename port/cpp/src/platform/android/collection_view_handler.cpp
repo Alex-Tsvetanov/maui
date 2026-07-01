@@ -145,6 +145,7 @@ namespace
     // android.view.View.MeasureSpec modes.
     constexpr auto k_measure_spec_exactly = static_cast<jint>(0x40000000U);
     constexpr auto k_measure_spec_unspecified = static_cast<jint>(0x00000000U);
+    constexpr auto k_measure_spec_at_most = static_cast<jint>(0x80000000U);
     // GeometryUtil.Epsilon — ContextExtensions.ToPixels subtracts it before ceiling.
     constexpr double k_to_pixels_epsilon = 0.0000000001;
     // A modest default supplemental/item extent fallback (dp) for views that measure to nothing (e.g. a
@@ -306,6 +307,40 @@ namespace
         }
         const jint extent =
             vertical ? env->CallIntMethod(view, get_measured_height) : env->CallIntMethod(view, get_measured_width);
+        clear_pending(env);
+        return extent;
+    }
+
+    // Measure a HORIZONTAL supplemental (header/footer) with the cross axis (height) EXACTLY cross_px and
+    // the MAIN axis (width) AT_MOST main_bound_px, then read back its measured WIDTH. AT_MOST lets a tall
+    // caption stack wrap its text down to the bounded width (the iOS narrow-header look) and report its
+    // natural width (<= the bound), instead of laying the label on one line and consuming the viewport.
+    [[nodiscard]] jint measure_main_extent_bounded(JNIEnv* env, jobject view, jint cross_px, jint main_bound_px)
+    {
+        auto& cache = default_jni_cache();
+        jmethodID make_measure_spec = cache.static_method(env, k_measure_spec_class, "makeMeasureSpec", "(II)I");
+        jmethodID measure = cache.method(env, k_view_class, "measure", "(II)V");
+        jmethodID get_measured_width = cache.method(env, k_view_class, "getMeasuredWidth", "()I");
+        jclass measure_spec_class = cache.find_class(env, k_measure_spec_class);
+        if (make_measure_spec == nullptr || measure == nullptr || get_measured_width == nullptr ||
+            measure_spec_class == nullptr)
+        {
+            return 0;
+        }
+        const jint width_spec = env->CallStaticIntMethod(measure_spec_class, make_measure_spec,
+                                                         std::max<jint>(0, main_bound_px), k_measure_spec_at_most);
+        const jint height_spec =
+            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, cross_px, k_measure_spec_exactly);
+        if (clear_pending(env))
+        {
+            return 0;
+        }
+        env->CallVoidMethod(view, measure, width_spec, height_spec);
+        if (clear_pending(env))
+        {
+            return 0;
+        }
+        const jint extent = env->CallIntMethod(view, get_measured_width);
         clear_pending(env);
         return extent;
     }
@@ -701,16 +736,31 @@ namespace maui::controls
             {
                 return 0.0;
             }
-            // Main extent: cross-platform measure (unbounded main axis) for a realized MAUI view, else native.
+            // Main extent: cross-platform measure for a realized MAUI view, else native. A VERTICAL CV
+            // measures the supplemental with an unbounded main axis (height) — a header stack takes its
+            // natural height. A HORIZONTAL CV must instead BOUND the main axis (width): the header/footer
+            // are pinned at the flow start/end while the ITEMS scroll horizontally past them (iOS pins the
+            // boundary supplementary at an estimated main dimension). Android has no horizontal scroll, so
+            // an unbounded header width would consume the whole viewport and push every item off-screen
+            // (the header rendered full-width, the items+footer blank). Bound the horizontal header/footer
+            // main extent to one item-column width so it stays narrow — its tall caption wraps down the
+            // column exactly like the iOS reference, and the item columns follow it inside the viewport.
+            const double main_bound_dp =
+                vertical ? std::numeric_limits<double>::infinity() : (cross_extent_dp / static_cast<double>(span));
             double extent_dp = 0.0;
             if (auto* const v = dynamic_cast<maui::core::i_view*>(realized.get()); v != nullptr)
             {
                 const maui::graphics::size desired =
-                    v->measure(cross_extent_dp, std::numeric_limits<double>::infinity());
+                    vertical ? v->measure(cross_extent_dp, main_bound_dp) : v->measure(main_bound_dp, cross_extent_dp);
                 extent_dp = vertical ? desired.height : desired.width;
             }
             jint extent_px = to_pixels(extent_dp, density);
-            extent_px = std::max<jint>(extent_px, measure_main_extent(env, child, cross_px, vertical));
+            // Native re-measure: a vertical supplemental frees its main axis; a horizontal one bounds the
+            // main axis (width) to the column width so the native content wraps to that width too.
+            extent_px =
+                std::max<jint>(extent_px, vertical ? measure_main_extent(env, child, cross_px, vertical)
+                                                   : measure_main_extent_bounded(env, child, cross_px,
+                                                                                 to_pixels(main_bound_dp, density)));
             extent_px = std::max<jint>(extent_px, to_pixels(k_min_row_extent, density));
             const jint start_px = to_pixels(cursor_dp, density);
             if (vertical)
