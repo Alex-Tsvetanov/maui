@@ -176,8 +176,8 @@
 },
 {
 "key": "controls_stack",
-"status": "green",
-"note": "Matches MAUI: layout/colors/text all match; slider is gray (thumb filled-vs-outline shape-only residual, per policy = green); switch thumb gray filled; spinner arc pale-gray visible."
+"status": "yellow",
+"note": "Switch gray (fixed), checkbox blue matches MAUI (not navy). Residuals: search icon faded/light vs MAUI's solid dark icon; ActivityIndicator nearly invisible vs MAUI's visible spinner ring."
 },
 {
 "key": "custom_layout",
@@ -407,7 +407,7 @@
 {
 "key": "input_controls",
 "status": "yellow",
-"note": "Radio selected fill is dark navy in C++ vs pale gray in MAUI; search icon bolder/darker than MAUI's lighter icon."
+"note": "Matches MAUI overall; radio dots now gray (UPPER filled gray, lower gray outline) matching MAUI. Residual: search-bar magnifier icon is lighter/thinner gray vs MAUI's darker icon shade."
 },
 {
 "key": "input_transparent",
@@ -606,8 +606,8 @@
 },
 {
 "key": "radio_button_border",
-"status": "yellow",
-"note": "Selected radio (Option 4) dot renders solid navy/blue in C++ vs MAUI's light gray dot; layout, borders, highlights otherwise match exactly."
+"status": "green",
+"note": "Matches MAUI: layout, yellow/red/green highlights, text identical. Radio dot (Option 4) is gray-filled matching MAUI; unselected radios gray outline. No residual."
 },
 {
 "key": "radio_button_content",
@@ -617,7 +617,7 @@
 {
 "key": "radio_button_group",
 "status": "green",
-"note": "Matches MAUI exactly: layout, text, spacing, radio styling all identical."
+"note": "Matches MAUI: radio dots are gray-outline (not navy), layout/text/spacing for Option A-D (incl. grid) all match."
 },
 {
 "key": "radio_button_group_binding",
@@ -656,8 +656,8 @@
 },
 {
 "key": "scattered_radio_button",
-"status": "green",
-"note": "matches MAUI: same radio buttons A/B/C highlighted row, same text and D radio below"
+"status": "yellow",
+"note": "Radio dots correctly gray, matches MAUI content. Minor: light-blue highlight band behind A/B/C row is narrower/shorter than MAUI's wider band."
 },
 {
 "key": "scroll_mode_test",
@@ -782,12 +782,12 @@
 {
 "key": "switch",
 "status": "green",
-"note": "All switch rows (default, background color, disabled, on/thumb color) match MAUI exactly."
+"note": "All switches (Default/BackgroundColor/Background/Disabled/OnColor/ThumbColor) match MAUI; track/thumb are Material gray, ThumbColor orange thumb matches too."
 },
 {
 "key": "switch_grouping",
 "status": "green",
-"note": "Grouped list content, colors, and text match MAUI; only the toggle's on/off runtime state differs (ignored per policy)."
+"note": "Is Grouped toggle is Material gray matching MAUI; group content/colors match. No checkbox on this page to check for navy residual."
 },
 {
 "key": "tabbed_flyout",
