@@ -1239,7 +1239,7 @@
     },
     "sonnet": {
      "status": "yellow",
-     "review": "\"Center\" text is now vertically centered in the colored bar between the red and blue squares, matching MAUI (the prior top-alignment bug is fixed) · Structure red square | Center | blue square | green band renders correctly in both light and dark · Minor residual: blue segment proportion slightly narrower than MAUI in light mode · Rounded-rect silver stroke around the bar matches MAUI in dark mode"
+     "review": "\"Center\" text is now vertically centered in the colored bar between the red and blue squares, matching MAUI (the prior top-alignment bug is fixed) · Structure red square / Center / blue square / green band renders correctly in both light and dark · Minor residual: blue segment proportion slightly narrower than MAUI in light mode · Rounded-rect silver stroke around the bar matches MAUI in dark mode"
     },
     "gemini": {
      "status": "yellow",
@@ -9156,7 +9156,7 @@
     },
     "sonnet": {
      "status": "green",
-     "review": "Both sides show 'Modal Page 1' title, five navigation buttons (Push Page, Push Modal Page, Push Modal Navigation Page, Push Modal Flyout Page, Pop Modal Page grayed out), and a status line ('Modal depth: 0 | page stack depth: 1') · Button text and link colors (blue) match in both light and dark themes · Pop Modal Page is correctly grayed/disabled in both sides · Diff_pct ~2.49% is attributable to harness inset margin difference; no content defects"
+     "review": "Both sides show 'Modal Page 1' title, five navigation buttons (Push Page, Push Modal Page, Push Modal Navigation Page, Push Modal Flyout Page, Pop Modal Page grayed out), and a status line ('Modal depth: 0 / page stack depth: 1') · Button text and link colors (blue) match in both light and dark themes · Pop Modal Page is correctly grayed/disabled in both sides · Diff_pct ~2.49% is attributable to harness inset margin difference; no content defects"
     },
     "gemini": {
      "status": "green",
@@ -9330,7 +9330,7 @@
     },
     "sonnet": {
      "status": "green",
-     "review": "Status line 'Stack depth: 1 | top: PAGE NUMBER 1 | secondary toolbar items: 0' renders identically in both · All 6 navigation buttons (Push Page, Pop Page, Insert Page Before Current, Remove Page Before Current, Pop To Root, Toggle Secondary Toolbar Item) present and blue in both · Dark mode matches: white text links on black background · Diff 3.0% is from harness inset only; content is structurally identical"
+     "review": "Status line 'Stack depth: 1 / top: PAGE NUMBER 1 / secondary toolbar items: 0' renders identically in both · All 6 navigation buttons (Push Page, Pop Page, Insert Page Before Current, Remove Page Before Current, Pop To Root, Toggle Secondary Toolbar Item) present and blue in both · Dark mode matches: white text links on black background · Diff 3.0% is from harness inset only; content is structurally identical"
     },
     "gemini": {
      "status": "yellow",
@@ -14463,11 +14463,11 @@
     },
     "sonnet": {
      "status": "yellow",
-     "review": "Light mode: both show the same bezier/curve path shape drawn in the upper area of the screen with counter label and 'Update Path Data' blue button at bottom · MAUI path curve is positioned slightly more to the left; C++ curve is shifted slightly right and appears marginally larger/wider · Dark mode: MAUI shows completely black screen with path (path may be black-on-black, invisible); C++ also shows dark screen with same invisible path — both dark modes appear blank/very dark · Counter text '= 0 | Data: M 10,100 C 10,300 300,-200 300,100' and 'Update Path Data' button visible in both light modes and at very bottom of dark modes"
+     "review": "Light mode: both show the same bezier/curve path shape drawn in the upper area of the screen with counter label and 'Update Path Data' blue button at bottom · MAUI path curve is positioned slightly more to the left; C++ curve is shifted slightly right and appears marginally larger/wider · Dark mode: MAUI shows completely black screen with path (path may be black-on-black, invisible); C++ also shows dark screen with same invisible path — both dark modes appear blank/very dark · Counter text '= 0 / Data: M 10,100 C 10,300 300,-200 300,100' and 'Update Path Data' button visible in both light modes and at very bottom of dark modes"
     },
     "gemini": {
      "status": "green",
-     "review": "The path rendering is visually identical across both implementations in both light and dark modes. · The text labels 'counter = 0 | Data: M 10,100 C 10,300 300,-200 300,100' and 'Update Path Data' are correctly positioned and styled in both versions. · The background colors and overall layout structure match perfectly between the MAUI reference and the C++ port."
+     "review": "The path rendering is visually identical across both implementations in both light and dark modes. · The text labels 'counter = 0 / Data: M 10,100 C 10,300 300,-200 300,100' and 'Update Path Data' are correctly positioned and styled in both versions. · The background colors and overall layout structure match perfectly between the MAUI reference and the C++ port."
     }
    },
    "maccatalyst": {
