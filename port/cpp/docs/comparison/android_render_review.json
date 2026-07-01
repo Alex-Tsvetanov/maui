@@ -47,7 +47,7 @@
 {
 "key": "basic_grouping",
 "status": "green",
-"note": "matches MAUI: grouped list with green group headers, orange 'Total members' rows, gray item text, same content/order"
+"note": "Matches MAUI: group headers, member lists, orange Total-members footers identical; only scroll position differs (runtime state)."
 },
 {
 "key": "basic_swipe",
@@ -111,8 +111,8 @@
 },
 {
 "key": "chat_example",
-"status": "red",
-"note": "MAUI renders chat messages as rounded colored bubbles (light blue bubble with padding); C++ renders plain unstyled text with no bubble/background/rounding at all."
+"status": "green",
+"note": "Chat bubbles render as rounded colored bubbles (blue left, green right in cpp); MAUI shot scrolled to hide green bubble but same blue bubble matches exactly."
 },
 {
 "key": "check_box",
@@ -152,7 +152,7 @@
 {
 "key": "collectionview",
 "status": "green",
-"note": "3-column grid list matches MAUI exactly in items, text, and spacing; only difference is scroll-position framing (ignored)."
+"note": "Matches MAUI: same 3-col text list (cover1.jpg,0 etc.) + header. No images/selection/bubbles on this page."
 },
 {
 "key": "composition_gallery",
@@ -532,7 +532,7 @@
 {
 "key": "multiple_bound_selection",
 "status": "green",
-"note": "matches MAUI: identical CollectionView with Item0-3, orange highlight on Item1/Item2, same 3 action buttons"
+"note": "matches MAUI: Item 1/Item 2 orange-highlighted selection, Selected label, header, all 3 buttons render correctly"
 },
 {
 "key": "navigation_gallery",
@@ -597,7 +597,7 @@
 {
 "key": "preselected_items",
 "status": "yellow",
-"note": "Port omits intro line 'CollectionView below should have several items already selected' and left-aligns header instead of MAUI's centered header."
+"note": "Grid, items, and 3 orange-selected cells (photo.jpg2/Fruits.jpg4/FlowerBuds.jpg5) all match MAUI; header text alignment differs (centered in MAUI vs left in cpp)."
 },
 {
 "key": "progress_bar",
@@ -687,7 +687,7 @@
 {
 "key": "selection_synchronization",
 "status": "green",
-"note": "matches MAUI: identical orange selection highlight, item text, layout"
+"note": "matches MAUI: both CollectionViews show Item 2/Item 3 orange selection highlight correctly, text and layout match"
 },
 {
 "key": "semantics",
