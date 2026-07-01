@@ -50,10 +50,11 @@
 //     the horizontal scroller swap is deferred with the scroll_view_handler's same documented deviation.
 //   - estimated self-sizing is reduced to: each view measured at its column width with an unbounded main
 //     axis, then laid out at its measured main extent (deterministic, matches the text-height rows).
-//   - selection highlight / interactive reorder-drag have no plain-View analog and are not drawn here (the
-//     cross-platform selection mirror is still maintained; the simulator is the asserted surface). The
-//     selection STATE pages (single/multiple/preselected) still render their items — selection chrome is
-//     the only missing piece, documented.
+//   - the selection highlight IS drawn: a selected cell gets the theme's colorActivatedHighlight fill
+//     (SelectableViewHolder.GetSelectedDrawable() — orange on the emulator's Material theme), painted onto
+//     the cell View from the cross-platform selected_paths mirror (see apply_selection_highlight below).
+//     Interactive reorder-drag has no plain-View analog and is not drawn (the cross-platform mirror carries
+//     it as state; the emulator is the asserted surface).
 //   - snap points / peek insets / scroll-bar-visibility nuances are iOS-only knobs with no plain-ScrollView
 //     analog (the cross-platform mirror carries them as state) — same as the other android container
 //     deviations.
@@ -393,17 +394,85 @@ namespace
         clear_pending(env);
     }
 
-    // The CollectionView default "Selected" VisualState fill (the C# CommonStates Selected highlight; the
-    // iOS twin is the cell's selectedBackgroundView = systemGray while isSelected — see
-    // src/platform/ios/collection_view_handler.mm). MAUI's default selection fill on iOS is the system gray
-    // (≈ #8E8E93); the android twin paints that same opaque gray onto the realized cell's native View via
-    // View.setBackgroundColor when the cell's index path is in the handler's selected_paths mirror (kept
-    // current by the cross-platform update_platform_selection on every backend). An UNselected cell gets a
-    // TRANSPARENT background, so a re-realized previously-selected cell (arrange_native rebuilds every cell
-    // each pass) does not keep a stale highlight. No-op when the View has no setBackgroundColor (never, for
-    // an android.view.View) or on any JNI failure.
-    constexpr jint k_selected_highlight_argb = static_cast<jint>(0xFF8E8E93U); // iOS systemGray (light)
+    // The CollectionView default "Selected" VisualState fill (the C# CommonStates Selected highlight). The
+    // per-backend default selection color is NATIVE, not shared: iOS paints the cell's selectedBackgroundView
+    // = systemGray while isSelected (src/platform/ios/collection_view_handler.mm), but ANDROID resolves the
+    // theme's activated-highlight color — SelectableViewHolder.GetSelectedDrawable() (Handlers/Items/Android/
+    // SelectableViewHolder.cs) does exactly this: context.Theme.ResolveAttribute(colorActivatedHighlight, tv,
+    // true) → Color.FromUint((uint)tv.Data) → a StateListDrawable keyed on state_activated. On the emulator's
+    // DeviceDefault/Material theme that attribute is the translucent accent (orange), NOT gray — the port
+    // previously hardcoded iOS systemGray here, so selected cells rendered gray instead of MAUI's orange.
+    //
+    // We paint that resolved color onto the realized cell's native View via View.setBackgroundColor when the
+    // cell's index path is in the handler's selected_paths mirror (kept current by the cross-platform
+    // update_platform_selection on every backend). MAUI's StateListDrawable only shows the fill in the
+    // activated state; the port paints only when `selected`, so a solid ColorDrawable of the resolved color
+    // is the faithful visible result. An UNselected cell gets a TRANSPARENT background, so a re-realized
+    // previously-selected cell (arrange_native rebuilds every cell each pass) does not keep a stale highlight.
+    // No-op when the View has no setBackgroundColor (never, for an android.view.View) or on any JNI failure.
+    constexpr jint k_selected_highlight_fallback_argb =
+        static_cast<jint>(0xFF8E8E93U); // gray, only if theme lookup fails
     constexpr jint k_transparent_argb = 0;
+    // android.R.attr.colorActivatedHighlight — the public framework attribute id
+    // (Resources.getIdentifier("colorActivatedHighlight","attr","android") == 0x01010390 on API 24-34; the
+    // same id GetSelectedDrawable resolves). On the emulator's DeviceDefault theme this is opaque orange
+    // (≈ #FFF17A0A) — the accent-derived activated fill MAUI shows for a selected cell.
+    constexpr jint k_attr_color_activated_highlight = 0x01010390;
+
+    // Resolve the theme's activated-highlight color from a cell's Context, mirroring GetSelectedDrawable():
+    // getContext().getTheme().resolveAttribute(colorActivatedHighlight, TypedValue, true) → TypedValue.data.
+    // Memoized process-wide (the app theme is fixed for a run, exactly like display_density). Returns the gray
+    // fallback if any JNI/resolve step fails so a selected cell still gets *a* highlight.
+    [[nodiscard]] jint selected_highlight_argb(JNIEnv* env, jobject native)
+    {
+        static std::atomic<jint> memoized{0}; // 0 (fully transparent) = not resolved yet — a real highlight is never 0
+        if (const jint cached = memoized.load(std::memory_order_relaxed); cached != 0)
+        {
+            return cached;
+        }
+        auto& cache = default_jni_cache();
+        jmethodID get_context = cache.method(env, k_view_class, "getContext", "()Landroid/content/Context;");
+        jmethodID get_theme =
+            cache.method(env, "android/content/Context", "getTheme", "()Landroid/content/res/Resources$Theme;");
+        jmethodID resolve = cache.method(env, "android/content/res/Resources$Theme", "resolveAttribute",
+                                         "(ILandroid/util/TypedValue;Z)Z");
+        jmethodID tv_ctor = cache.method(env, "android/util/TypedValue", "<init>", "()V");
+        jfieldID data_field = cache.field(env, "android/util/TypedValue", "data", "I");
+        jclass typed_value_class = cache.find_class(env, "android/util/TypedValue");
+        if (get_context == nullptr || get_theme == nullptr || resolve == nullptr || tv_ctor == nullptr ||
+            data_field == nullptr || typed_value_class == nullptr)
+        {
+            return k_selected_highlight_fallback_argb;
+        }
+        const local_ref<jobject> context{env, env->CallObjectMethod(native, get_context)};
+        if (clear_pending(env) || !context)
+        {
+            return k_selected_highlight_fallback_argb;
+        }
+        const local_ref<jobject> theme{env, env->CallObjectMethod(context.get(), get_theme)};
+        if (clear_pending(env) || !theme)
+        {
+            return k_selected_highlight_fallback_argb;
+        }
+        const local_ref<jobject> tv{env, env->NewObject(typed_value_class, tv_ctor)};
+        if (clear_pending(env) || !tv)
+        {
+            return k_selected_highlight_fallback_argb;
+        }
+        const jboolean ok =
+            env->CallBooleanMethod(theme.get(), resolve, k_attr_color_activated_highlight, tv.get(), JNI_TRUE);
+        if (clear_pending(env) || ok != JNI_TRUE)
+        {
+            return k_selected_highlight_fallback_argb;
+        }
+        const jint data = env->GetIntField(tv.get(), data_field);
+        if (clear_pending(env) || data == 0)
+        {
+            return k_selected_highlight_fallback_argb;
+        }
+        memoized.store(data, std::memory_order_relaxed);
+        return data;
+    }
 
     void apply_selection_highlight(JNIEnv* env, jobject native, bool selected)
     {
@@ -416,7 +485,8 @@ namespace
         {
             return;
         }
-        env->CallVoidMethod(native, set_background_color, selected ? k_selected_highlight_argb : k_transparent_argb);
+        const jint fill = selected ? selected_highlight_argb(env, native) : k_transparent_argb;
+        env->CallVoidMethod(native, set_background_color, fill);
         clear_pending(env);
     }
 } // namespace
