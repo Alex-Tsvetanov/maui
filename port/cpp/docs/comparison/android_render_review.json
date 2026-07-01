@@ -1,8 +1,8 @@
 [
 {
 "key": "absolute_layout",
-"status": "yellow",
-"note": "Positioned color boxes match MAUI exactly; 'Centered text' label renders black in port vs grey/muted in MAUI."
+"status": "green",
+"note": "Matches MAUI: colored boxes, centered text (gray), AutoSized box all match position/size/color."
 },
 {
 "key": "activity_indicator",
@@ -46,18 +46,18 @@
 },
 {
 "key": "basic_grouping",
-"status": "yellow",
-"note": "Group headers (green) and 'Total members' (orange) match, but item rows are black text in port vs MAUI's gray (~rgb 117,117,117)."
+"status": "green",
+"note": "Matches MAUI: header, group headers (green), items (gray), Total members footers (orange) all match; text gray-matching."
 },
 {
 "key": "basic_swipe",
-"status": "yellow",
-"note": "Swipe row layout/sizes match; row labels and footer text are black in port vs MAUI's default gray (~rgb 97,97,97)."
+"status": "green",
+"note": "matches MAUI; swipe row labels gray-matching, layout/spacing identical"
 },
 {
 "key": "behaviors",
-"status": "yellow",
-"note": "Layout/wrap matches; header label 'Red when the number isn't valid' is black in port vs MAUI's gray."
+"status": "green",
+"note": "matches MAUI; heading + entry placeholder text gray-matching, layout identical"
 },
 {
 "key": "border",
@@ -291,8 +291,8 @@
 },
 {
 "key": "filter_selection",
-"status": "yellow",
-"note": "Same SearchBar rendering gap as filter_collection: no search icon, has underline instead of MAUI's icon-based borderless style."
+"status": "green",
+"note": "Matches MAUI: search bar w/ magnifier icon, gray label text, Reset button, filtered list all match. Text color now gray-matching."
 },
 {
 "key": "flex_layout",
@@ -306,8 +306,8 @@
 },
 {
 "key": "fonts",
-"status": "yellow",
-"note": "All label text is solid black in the port; MAUI renders it in the default secondary gray text color."
+"status": "green",
+"note": "matches MAUI; all text rows now gray (Title/Subtitle/Header/Body/Caption/Bold/Italic/spacing) same as MAUI's default gray"
 },
 {
 "key": "footer_only_string",
@@ -316,8 +316,8 @@
 },
 {
 "key": "formatted_text",
-"status": "yellow",
-"note": "Plain text label is black in the port vs MAUI's default gray; the formatted red/italic/underlined/kerned span matches."
+"status": "green",
+"note": "matches MAUI; bold red, italic underlined, kerned spacing, and plain gray label all match exactly"
 },
 {
 "key": "gestures",
@@ -406,8 +406,8 @@
 },
 {
 "key": "input_controls",
-"status": "yellow",
-"note": "SearchBar missing magnifying-glass icon in C++; selected radio button is blue/purple in C++ vs plain gray/black outline in MAUI."
+"status": "green",
+"note": "Matches MAUI: Entry, SearchBar with magnifier icon renders, radio buttons UPPER/lower same style/selection, gray label text matches."
 },
 {
 "key": "input_transparent",
