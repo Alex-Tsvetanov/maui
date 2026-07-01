@@ -836,8 +836,8 @@
 },
 {
 "key": "varied_size_selector",
-"status": "red",
-"note": "MAUI shows alternating brown (Coffee) / tan (Milk) colored list-item backgrounds with taller cells; cpp shows plain white background, no item colors/sizing applied."
+"status": "green",
+"note": "Matches: both show Coffee0/Milk1/Coffee2/Coffee3/Milk4/Coffee5 with correct brown(Coffee)/tan(Milk) backgrounds and varied heights (milk taller than coffee), same sequence and coloring as MAUI."
 },
 {
 "key": "vertical_stack",
