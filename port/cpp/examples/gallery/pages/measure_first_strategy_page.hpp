@@ -52,6 +52,7 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/font.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/graphics/colors.hpp"
 
@@ -96,11 +97,17 @@ namespace maui::samples
                                                         [](const member& value) { return value.name; });
             list_.set_item_template(item_cell);
 
-            // ---- the group header template: a LightGreen bold Label bound to Team.Name ----
+            // ---- the group header template: a LightGreen bold FontSize-16 Label bound to Team.Name ----
+            // FontAttributes="Bold" + FontSize="16" (XAML) → the bold system font at size 16; Bold folds
+            // into the font's weight (FontExtensions.WithAttributes: Bold → font_weight::bold). Without this
+            // the header rendered regular weight vs MAUI's bold (the "bold group headers render regular"
+            // Android parity diff). Size 16 matches the maui-compare reference for this page.
             auto group_header = maui::controls::data_template::of<maui::controls::label>();
             group_header->set_binding<std::string, team_key>(maui::controls::label::text_property(),
                                                              [](const team_key& key) { return key.name; });
             group_header->set_value(maui::controls::label::text_color_property(), maui::graphics::colors::light_green);
+            group_header->set_value(maui::controls::label::font_property(),
+                                    maui::core::font::system_font_of_size(16, maui::core::font_weight::bold));
             list_.set_group_header_template(group_header);
 
             // ---- the group footer template: an Orange Label bound to Team.Count, formatted like

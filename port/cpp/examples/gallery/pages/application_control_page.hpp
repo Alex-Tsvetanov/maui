@@ -32,6 +32,7 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/controls/window.hpp"
+#include "maui/core/font.hpp"
 #include "maui/hosting/maui_app.hpp"
 
 namespace maui::samples
@@ -45,6 +46,10 @@ namespace maui::samples
             stack_.set_spacing(12);
 
             headline_.set_text("Quits the application"); // C# headline label (Style=Headline)
+            // The maui-compare reference renders the headline as FontSize=18, FontAttributes=Bold set
+            // directly in code (the "Headline" style resolves to bold/larger). Without this the port
+            // rendered the headline in regular weight/smaller size vs MAUI's bold (an Android parity diff).
+            headline_.set_font(maui::core::font::system_font_of_size(18, maui::core::font_weight::bold));
 
             terminate_button_.set_text("Terminate Application"); // C# "Terminate Application"
             terminate_button_.clicked.connect([this] { terminate(); });

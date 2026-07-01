@@ -39,6 +39,7 @@
 #include "maui/controls/gestures/pan_gesture_recognizer.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/font.hpp"
 #include "maui/core/gesture_status.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/hosting/maui_app.hpp"
@@ -59,7 +60,13 @@ namespace maui::samples
             stack_.set_spacing(12);
 
             // C# _messageLabel (FontAttributes="Bold") — the readout the pan + toggle both write into.
+            // FontAttributes="Bold" folds into the font's weight (FontExtensions.WithAttributes: Bold →
+            // font_weight::bold); no explicit FontSize (system default), matching the maui-compare reference.
+            // Without this the message rendered regular weight vs MAUI's bold (an Android parity diff). The
+            // bold typeface survives the later set_text updates the pan/toggle drive (Android TextView.setText
+            // preserves the Typeface — the typeface and text are independent state on the widget).
             message_.set_text("Pan the target. If you pan it, this Label will change.");
+            message_.set_font(maui::core::font::system_font_of_weight(maui::core::font_weight::bold));
 
             // C# "Toggle Simultaneous Gesture Recognition" button — flips the iOSSpecific Application knob.
             toggle_.set_text("Toggle Simultaneous Gesture Recognition");
