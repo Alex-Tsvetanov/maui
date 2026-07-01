@@ -193,7 +193,16 @@ namespace maui::samples
 
                 double child_x = 0;
                 double child_y = 0;
-                const maui::graphics::size request = child.desired_size(); // == sizeRequest read in C#
+                // C# reads `Size request = sizeRequest;` — and sizeRequest is Size.Zero (never reassigned
+                // to child.DesiredSize). So request is (0,0) in the real sample: this looks like a bug in
+                // the user's DockLayoutManager, but MAUI's actual render IS the ground truth (parity policy
+                // §1), and it renders every docked child as a zero-size sliver (a thin edge whose only
+                // visible mark is the native button chrome / clipped label). An earlier port revision
+                // "fixed" this by reading desired_size(), which produced WIDE solid Left/Right panels and a
+                // narrow center — the opposite of MAUI. Match the C# line-for-line: request is the zero
+                // size_request, so child_width/child_height start at 0 (a dock case may override one axis
+                // to the full remaining width/height, but never both).
+                const maui::graphics::size request = size_request; // C#: `Size request = sizeRequest;` (== Size.Zero)
                 double child_width = std::min(width, request.width);
                 double child_height = std::min(height, request.height);
 
