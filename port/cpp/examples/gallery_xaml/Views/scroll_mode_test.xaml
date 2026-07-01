@@ -1,0 +1,56 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="ScrollModeTest Gallery">
+    <!-- Twin of ScrollModeTestGallery.xaml: a VerticalStackLayout with an EnumSelector row (caption +
+         Picker WidthRequest=200 over the three ItemsUpdatingScrollMode values), four action buttons, a
+         readout, and a CollectionView (default vertical linear layout) over 20 captioned items. Button /
+         picker handlers are interaction-only (omitted per the dialect); the readout shows the resting
+         Mode: KeepItemsInView · Items: 20. Picker uses the element-form <Picker.Items>. -->
+    <VerticalStackLayout Spacing="8">
+        <HorizontalStackLayout Spacing="8">
+            <Label Text="ItemsUpdatingScrollMode:" />
+            <Picker WidthRequest="200" SelectedIndex="0">
+                <Picker.Items>
+                    <x:String>KeepItemsInView</x:String>
+                    <x:String>KeepScrollOffset</x:String>
+                    <x:String>KeepLastItemInView</x:String>
+                </Picker.Items>
+            </Picker>
+        </HorizontalStackLayout>
+        <Button Text="Scroll To Middle" />
+        <Button Text="Add Item Above" />
+        <Button Text="Add Item Below" />
+        <Button Text="Add Item To End" />
+        <Label Text="Mode: KeepItemsInView  ·  Items: 20" />
+        <CollectionView>
+            <CollectionView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>cover1.jpg, 0</x:String>
+                    <x:String>oasis.jpg, 1</x:String>
+                    <x:String>photo.jpg, 2</x:String>
+                    <x:String>Vegetables.jpg, 3</x:String>
+                    <x:String>Fruits.jpg, 4</x:String>
+                    <x:String>FlowerBuds.jpg, 5</x:String>
+                    <x:String>Legumes.jpg, 6</x:String>
+                    <x:String>cover1.jpg, 7</x:String>
+                    <x:String>oasis.jpg, 8</x:String>
+                    <x:String>photo.jpg, 9</x:String>
+                    <x:String>Vegetables.jpg, 10</x:String>
+                    <x:String>Fruits.jpg, 11</x:String>
+                    <x:String>FlowerBuds.jpg, 12</x:String>
+                    <x:String>Legumes.jpg, 13</x:String>
+                    <x:String>cover1.jpg, 14</x:String>
+                    <x:String>oasis.jpg, 15</x:String>
+                    <x:String>photo.jpg, 16</x:String>
+                    <x:String>Vegetables.jpg, 17</x:String>
+                    <x:String>Fruits.jpg, 18</x:String>
+                    <x:String>FlowerBuds.jpg, 19</x:String>
+                </x:Array>
+            </CollectionView.ItemsSource>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding .}" Margin="6" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </VerticalStackLayout>
+</ContentPage>

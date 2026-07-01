@@ -1,0 +1,40 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="DataTemplateSelector">
+    <Grid Padding="12" RowSpacing="6">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Row 0: the day-of-week filter SearchBar -->
+        <SearchBar Placeholder="Day of Week Filter" Grid.Row="0" />
+
+        <!-- Row 1: the CollectionView. WeekendSelector (weekday name vs "It's the weekend!")
+             collapses to a single representative day-name DataTemplate. -->
+        <CollectionView Grid.Row="1">
+            <CollectionView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>Sunday</x:String>
+                    <x:String>Monday</x:String>
+                    <x:String>Tuesday</x:String>
+                    <x:String>Wednesday</x:String>
+                    <x:String>Thursday</x:String>
+                    <x:String>Friday</x:String>
+                    <x:String>Saturday</x:String>
+                    <x:String>Sunday</x:String>
+                    <x:String>Monday</x:String>
+                    <x:String>Tuesday</x:String>
+                    <x:String>Wednesday</x:String>
+                    <x:String>Thursday</x:String>
+                    <x:String>Friday</x:String>
+                    <x:String>Saturday</x:String>
+                </x:Array>
+            </CollectionView.ItemsSource>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding .}" Margin="6" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

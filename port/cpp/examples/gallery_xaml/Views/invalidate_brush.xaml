@@ -1,0 +1,11 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Invalidate Brushes Playground">
+    <!-- One shared solid brush paints both the button background and the line stroke; the initial state
+         (before any tap) is Green — reproduced here at rest. -->
+    <VerticalStackLayout Spacing="4" Padding="12">
+        <Button Text="Change color" BackgroundColor="Green" HorizontalOptions="Start" />
+        <Line X1="0" Y1="0" X2="150" Y2="0" Stroke="Green" StrokeThickness="4"
+              WidthRequest="150" HeightRequest="4" />
+        <Label Text="Brush color: Green" />
+    </VerticalStackLayout>
+</ContentPage>

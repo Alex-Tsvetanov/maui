@@ -1,0 +1,9 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Entry FontSize and CursorColor">
+    <!-- The iOSSpecific Entry knobs (AdjustsFontSizeToFitWidth, CursorColor) are platform attached
+         properties (no XAML dialect analog); the resting Entry + toggle button are reproduced. -->
+    <VerticalStackLayout Spacing="12">
+        <Entry Placeholder="Enter text here to see the font size change" FontSize="22" />
+        <Button Text="Toggle AdjustsFontSizeToFitWidth" />
+    </VerticalStackLayout>
+</ContentPage>

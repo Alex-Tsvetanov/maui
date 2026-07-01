@@ -1,0 +1,22 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Pointer gesture">
+    <!-- Twin of PointerGestureGalleryPage.xaml: a StackLayout of labels carrying PointerGestureRecognizers
+         (hover / press / release + live position readouts). The recognizers are interaction-only — the
+         GestureRecognizers layer is omitted per the dialect — so this static twin reproduces the RESTING
+         UI: the three sections' instruction labels before any pointer input. -->
+    <StackLayout Spacing="8">
+        <!-- Section 1: the full pointer family (pgrLabel). -->
+        <Label Text="Hover, press, and release me!" />
+        <Label Text="Hover above label to reveal pointer position" />
+        <Label Text="" />
+        <Label Text="" />
+        <!-- Section 2: hover-only (hoverLabel). -->
+        <Label Text="Hover me!" />
+        <Label Text="Hover above label to reveal pointer position" />
+        <Label Text="" />
+        <Label Text="" />
+        <!-- Section 3: command-driven (colorfulHoverLabel). -->
+        <Label Text="Hover me green!" />
+        <Label Text="Hover above label to make it turn green" />
+    </StackLayout>
+</ContentPage>

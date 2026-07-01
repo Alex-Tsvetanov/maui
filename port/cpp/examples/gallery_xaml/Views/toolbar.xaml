@@ -1,0 +1,17 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Toolbar">
+    <!-- Twin of ToolbarPage.xaml: a set of Page.ToolbarItems (two primary + four secondary) plus a vertical
+         stack of buttons that mutate those items at runtime, with a readout label. note: Page.ToolbarItems
+         are window/navigation chrome with no markup sink in the supported dialect (like chrome.xaml), so
+         they are DEGRADED away; the twin reproduces only the at-rest VISIBLE content — the readout label
+         and the six runtime-mutator buttons. -->
+    <VerticalStackLayout Spacing="8">
+        <Label Text="You clicked on ToolbarItem: {none}" />
+        <Button Text="Enable/Disable Test (1)" />
+        <Button Text="Enable/Disable Test Secondary (4)" />
+        <Button Text="Enable/Disable Test Secondary (2)" />
+        <Button Text="Change text on Test Secondary (1)" />
+        <Button Text="Remove/Add Secondary (3)" />
+        <Button Text="Change Command Property on Secondary (3)" />
+    </VerticalStackLayout>
+</ContentPage>

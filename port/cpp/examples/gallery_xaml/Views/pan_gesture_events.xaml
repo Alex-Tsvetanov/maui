@@ -1,0 +1,12 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="PanGesture Events Gallery">
+    <!-- Twin of PanGestureEventsGallery.xaml: a two-row Grid (*,*). Top row = a GREEN Grid with a white
+         readout Label (the pan target); bottom row = a plain RED backdrop Grid. The PanGestureRecognizer
+         is omitted per the supported dialect; the resting readout reflects the final synthetic-pan line. -->
+    <Grid RowDefinitions="*,*">
+        <Grid Grid.Row="0" BackgroundColor="Green">
+            <Label Text="StatusType: Completed, TotalX: 12, TotalY: -8" TextColor="White" />
+        </Grid>
+        <Grid Grid.Row="1" BackgroundColor="Red" />
+    </Grid>
+</ContentPage>

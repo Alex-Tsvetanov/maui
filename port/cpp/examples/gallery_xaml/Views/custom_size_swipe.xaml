@@ -1,0 +1,22 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Custom Size SwipeView">
+    <!-- Twin of CustomSizeSwipeViewGallery.xaml: a SwipeView whose Left/Right/Top item collections reveal
+         CUSTOM-SIZED content (200-wide / 100-tall SwipeItemViews). DEGRADES: only <SwipeView.Content> loads
+         — the Left/Right/TopItems collections have no markup sink — so the twin keeps just the Content
+         (a light-green Grid with a label + a button), which is exactly the resting appearance (the custom
+         swipe panels are hidden until a swipe gesture). The .xaml.cs DisplayAlert click handlers are
+         interactivity, omitted; the gallery's readout label stands in for the resting status. -->
+    <VerticalStackLayout Spacing="8">
+        <SwipeView>
+            <SwipeView.Content>
+                <Grid BackgroundColor="LightGreen">
+                    <VerticalStackLayout>
+                        <Label Text="This is the SwipeView Content" />
+                        <Button Text="Test Click from Content" />
+                    </VerticalStackLayout>
+                </Grid>
+            </SwipeView.Content>
+        </SwipeView>
+        <Label Text="Ready (swipe a side to reveal its custom-sized content)" />
+    </VerticalStackLayout>
+</ContentPage>

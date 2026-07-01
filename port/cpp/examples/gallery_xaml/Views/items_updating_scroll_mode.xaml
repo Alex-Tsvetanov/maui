@@ -1,0 +1,78 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="ItemsUpdatingScrollMode Gallery">
+    <!-- Twin of ItemsUpdatingScrollModeGallery.xaml: an "UpdatingScrollMode:" selector row (the
+         EnumPicker → three mode buttons in the port), an "Add Item" button, a readout Label, and a
+         CollectionView bound to 50 seeded "Title N — Subtitle N" items. The C# cell is a 2-row Grid of a
+         bold + an italic label; the port joins both bound strings into one Label, mirrored here. -->
+    <VerticalStackLayout Spacing="12">
+        <HorizontalStackLayout Spacing="8">
+            <Label Text="UpdatingScrollMode:" />
+            <Button Text="KeepItemsInView" />
+            <Button Text="KeepScrollOffset" />
+            <Button Text="KeepLastItemInView" />
+        </HorizontalStackLayout>
+        <Button Text="Add Item" />
+        <Label Text="Mode: KeepItemsInView  ·  Items: 50" />
+        <CollectionView>
+            <CollectionView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>Title 1 — Subtitle 1</x:String>
+                    <x:String>Title 2 — Subtitle 2</x:String>
+                    <x:String>Title 3 — Subtitle 3</x:String>
+                    <x:String>Title 4 — Subtitle 4</x:String>
+                    <x:String>Title 5 — Subtitle 5</x:String>
+                    <x:String>Title 6 — Subtitle 6</x:String>
+                    <x:String>Title 7 — Subtitle 7</x:String>
+                    <x:String>Title 8 — Subtitle 8</x:String>
+                    <x:String>Title 9 — Subtitle 9</x:String>
+                    <x:String>Title 10 — Subtitle 10</x:String>
+                    <x:String>Title 11 — Subtitle 11</x:String>
+                    <x:String>Title 12 — Subtitle 12</x:String>
+                    <x:String>Title 13 — Subtitle 13</x:String>
+                    <x:String>Title 14 — Subtitle 14</x:String>
+                    <x:String>Title 15 — Subtitle 15</x:String>
+                    <x:String>Title 16 — Subtitle 16</x:String>
+                    <x:String>Title 17 — Subtitle 17</x:String>
+                    <x:String>Title 18 — Subtitle 18</x:String>
+                    <x:String>Title 19 — Subtitle 19</x:String>
+                    <x:String>Title 20 — Subtitle 20</x:String>
+                    <x:String>Title 21 — Subtitle 21</x:String>
+                    <x:String>Title 22 — Subtitle 22</x:String>
+                    <x:String>Title 23 — Subtitle 23</x:String>
+                    <x:String>Title 24 — Subtitle 24</x:String>
+                    <x:String>Title 25 — Subtitle 25</x:String>
+                    <x:String>Title 26 — Subtitle 26</x:String>
+                    <x:String>Title 27 — Subtitle 27</x:String>
+                    <x:String>Title 28 — Subtitle 28</x:String>
+                    <x:String>Title 29 — Subtitle 29</x:String>
+                    <x:String>Title 30 — Subtitle 30</x:String>
+                    <x:String>Title 31 — Subtitle 31</x:String>
+                    <x:String>Title 32 — Subtitle 32</x:String>
+                    <x:String>Title 33 — Subtitle 33</x:String>
+                    <x:String>Title 34 — Subtitle 34</x:String>
+                    <x:String>Title 35 — Subtitle 35</x:String>
+                    <x:String>Title 36 — Subtitle 36</x:String>
+                    <x:String>Title 37 — Subtitle 37</x:String>
+                    <x:String>Title 38 — Subtitle 38</x:String>
+                    <x:String>Title 39 — Subtitle 39</x:String>
+                    <x:String>Title 40 — Subtitle 40</x:String>
+                    <x:String>Title 41 — Subtitle 41</x:String>
+                    <x:String>Title 42 — Subtitle 42</x:String>
+                    <x:String>Title 43 — Subtitle 43</x:String>
+                    <x:String>Title 44 — Subtitle 44</x:String>
+                    <x:String>Title 45 — Subtitle 45</x:String>
+                    <x:String>Title 46 — Subtitle 46</x:String>
+                    <x:String>Title 47 — Subtitle 47</x:String>
+                    <x:String>Title 48 — Subtitle 48</x:String>
+                    <x:String>Title 49 — Subtitle 49</x:String>
+                    <x:String>Title 50 — Subtitle 50</x:String>
+                </x:Array>
+            </CollectionView.ItemsSource>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding .}" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </VerticalStackLayout>
+</ContentPage>

@@ -1,0 +1,52 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Varied Size DataTemplateSelector">
+    <!-- Twin of VariedSizeDataTemplateSelectorGallery.xaml: a Grid (*, Auto) with a CollectionView of
+         drinks over a control panel (Insert/Add/Remove buttons, an Index Entry, a template Picker).
+         DEGRADES: (1) the DrinkTemplateSelector (three varied-height Milk/Coffee/Latte templates) collapses
+         to a single representative DataTemplate per the loader rules — a Wheat Border wrapping the bound
+         Name label; (2) items are the seeded drink Names inlined via x:Array; (3) the Picker uses
+         <Picker.Items> element strings. The resting seed (Coffee0/Milk1/Coffee2/Coffee3/Milk4/Coffee5) is
+         shown. -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <CollectionView Grid.Row="0">
+            <CollectionView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>Coffee0</x:String>
+                    <x:String>Milk1</x:String>
+                    <x:String>Coffee2</x:String>
+                    <x:String>Coffee3</x:String>
+                    <x:String>Milk4</x:String>
+                    <x:String>Coffee5</x:String>
+                </x:Array>
+            </CollectionView.ItemsSource>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border BackgroundColor="Wheat" HeightRequest="100" Padding="8">
+                        <Label Text="{Binding .}" VerticalTextAlignment="Center" />
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <VerticalStackLayout Grid.Row="1" Spacing="8">
+            <Grid ColumnDefinitions="*,*,*">
+                <Button Grid.Column="0" Text="Insert" />
+                <Button Grid.Column="1" Text="Add" />
+                <Button Grid.Column="2" Text="Remove" />
+            </Grid>
+            <Label Text="Index" />
+            <Entry Text="1" />
+            <Picker Title="Select a template">
+                <Picker.Items>
+                    <x:String>Coffee</x:String>
+                    <x:String>Milk</x:String>
+                    <x:String>Latte</x:String>
+                </Picker.Items>
+            </Picker>
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

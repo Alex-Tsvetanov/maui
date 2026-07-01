@@ -1,0 +1,80 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Preselected Item">
+    <!-- Twin of PreselectedItemGallery.xaml: a Grid (rows Auto/Auto/Auto/*) with a readout Label (row 0),
+         two blank diagnostic Labels (SelectedItemsEvent row 1, SelectedItemsCommand row 2, left blank by
+         this gallery) and a CollectionView (row 3, Header="This is the header", Single selection). The
+         code-behind preselects the index-2 item; the headless port surfaces that via the readout — mirrored
+         statically here. The PhotoTemplate collapses to the Caption label per the dialect. -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Label Grid.Row="0" Text="Preselected: photo.jpg, 2" />
+        <Label Grid.Row="1" Text="" />
+        <Label Grid.Row="2" Text="" />
+        <CollectionView Grid.Row="3" Header="This is the header" SelectionMode="Single">
+            <CollectionView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>cover1.jpg, 0</x:String>
+                    <x:String>oasis.jpg, 1</x:String>
+                    <x:String>photo.jpg, 2</x:String>
+                    <x:String>Vegetables.jpg, 3</x:String>
+                    <x:String>Fruits.jpg, 4</x:String>
+                    <x:String>FlowerBuds.jpg, 5</x:String>
+                    <x:String>Legumes.jpg, 6</x:String>
+                    <x:String>cover1.jpg, 7</x:String>
+                    <x:String>oasis.jpg, 8</x:String>
+                    <x:String>photo.jpg, 9</x:String>
+                    <x:String>Vegetables.jpg, 10</x:String>
+                    <x:String>Fruits.jpg, 11</x:String>
+                    <x:String>FlowerBuds.jpg, 12</x:String>
+                    <x:String>Legumes.jpg, 13</x:String>
+                    <x:String>cover1.jpg, 14</x:String>
+                    <x:String>oasis.jpg, 15</x:String>
+                    <x:String>photo.jpg, 16</x:String>
+                    <x:String>Vegetables.jpg, 17</x:String>
+                    <x:String>Fruits.jpg, 18</x:String>
+                    <x:String>FlowerBuds.jpg, 19</x:String>
+                    <x:String>Legumes.jpg, 20</x:String>
+                    <x:String>cover1.jpg, 21</x:String>
+                    <x:String>oasis.jpg, 22</x:String>
+                    <x:String>photo.jpg, 23</x:String>
+                    <x:String>Vegetables.jpg, 24</x:String>
+                    <x:String>Fruits.jpg, 25</x:String>
+                    <x:String>FlowerBuds.jpg, 26</x:String>
+                    <x:String>Legumes.jpg, 27</x:String>
+                    <x:String>cover1.jpg, 28</x:String>
+                    <x:String>oasis.jpg, 29</x:String>
+                    <x:String>photo.jpg, 30</x:String>
+                    <x:String>Vegetables.jpg, 31</x:String>
+                    <x:String>Fruits.jpg, 32</x:String>
+                    <x:String>FlowerBuds.jpg, 33</x:String>
+                    <x:String>Legumes.jpg, 34</x:String>
+                    <x:String>cover1.jpg, 35</x:String>
+                    <x:String>oasis.jpg, 36</x:String>
+                    <x:String>photo.jpg, 37</x:String>
+                    <x:String>Vegetables.jpg, 38</x:String>
+                    <x:String>Fruits.jpg, 39</x:String>
+                    <x:String>FlowerBuds.jpg, 40</x:String>
+                    <x:String>Legumes.jpg, 41</x:String>
+                    <x:String>cover1.jpg, 42</x:String>
+                    <x:String>oasis.jpg, 43</x:String>
+                    <x:String>photo.jpg, 44</x:String>
+                    <x:String>Vegetables.jpg, 45</x:String>
+                    <x:String>Fruits.jpg, 46</x:String>
+                    <x:String>FlowerBuds.jpg, 47</x:String>
+                    <x:String>Legumes.jpg, 48</x:String>
+                    <x:String>cover1.jpg, 49</x:String>
+                </x:Array>
+            </CollectionView.ItemsSource>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding .}" Margin="6" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,82 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="SwipeItem Size Gallery">
+    <!-- Twin of SwipeItemSizeGallery.xaml: a scrolling stack of SwipeViews demonstrating icon size /
+         content size interactions. Group 1 = three rows over a 60-tall gray grid; Group 2 = four rows
+         over content of height 128 / 256 / 512 / unset. note: the loader registers only
+         SwipeView.Content — the left "Delete" SwipeItem has no markup sink — so each SwipeView is
+         DEGRADED to just its LightGray content, which is the RESTING appearance (the Delete item is
+         hidden until a swipe). -->
+    <ScrollView>
+        <VerticalStackLayout Padding="12">
+            <Label Text="Swipe a row left to reveal Delete" />
+
+            <Label Text="Different icon sizes" FontAttributes="Bold" />
+
+            <Label Text="128x128 Icon" />
+            <SwipeView>
+                <SwipeView.Content>
+                    <Grid HeightRequest="60" BackgroundColor="LightGray">
+                        <Label Text="Swipe to Left" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                    </Grid>
+                </SwipeView.Content>
+            </SwipeView>
+
+            <Label Text="256x256 Icon" />
+            <SwipeView>
+                <SwipeView.Content>
+                    <Grid HeightRequest="60" BackgroundColor="LightGray">
+                        <Label Text="Swipe to Left" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                    </Grid>
+                </SwipeView.Content>
+            </SwipeView>
+
+            <Label Text="512x512 Icon" />
+            <SwipeView>
+                <SwipeView.Content>
+                    <Grid HeightRequest="60" BackgroundColor="LightGray">
+                        <Label Text="Swipe to Left" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                    </Grid>
+                </SwipeView.Content>
+            </SwipeView>
+
+            <Label Text="Different SwipeView sizes" FontAttributes="Bold" />
+
+            <Label Text="SwipeView 128 Height" />
+            <SwipeView>
+                <SwipeView.Content>
+                    <Grid HeightRequest="128" BackgroundColor="LightGray">
+                        <Label Text="Swipe to Left" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                    </Grid>
+                </SwipeView.Content>
+            </SwipeView>
+
+            <Label Text="SwipeView 256 Height" />
+            <SwipeView>
+                <SwipeView.Content>
+                    <Grid HeightRequest="256" BackgroundColor="LightGray">
+                        <Label Text="Swipe to Left" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                    </Grid>
+                </SwipeView.Content>
+            </SwipeView>
+
+            <Label Text="SwipeView 512 Height" />
+            <SwipeView>
+                <SwipeView.Content>
+                    <Grid HeightRequest="512" BackgroundColor="LightGray">
+                        <Label Text="Swipe to Left" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                    </Grid>
+                </SwipeView.Content>
+            </SwipeView>
+
+            <Label Text="SwipeView No Size" />
+            <SwipeView>
+                <SwipeView.Content>
+                    <StackLayout BackgroundColor="LightGray">
+                        <Label Text="Swipe to Left" />
+                        <Label Text="SwipeView without Size" FontAttributes="Bold" />
+                    </StackLayout>
+                </SwipeView.Content>
+            </SwipeView>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

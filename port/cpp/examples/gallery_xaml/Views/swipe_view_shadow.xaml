@@ -1,0 +1,41 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Swipe ViewShadow Gallery">
+    <!-- Twin of SwipeViewShadowGallery.xaml: a headline + two labelled SwipeViews proving a drop Shadow
+         renders on SwipeView content, each over a black-stroked RoundRectangle Border (corner radius 10)
+         around a centered "Content" label. note: the loader registers only SwipeView.Content — the
+         Delete/Add SwipeItems and custom SwipeItemViews have no markup sink — so each SwipeView is
+         DEGRADED to just its bordered content (the RESTING appearance, items hidden until a swipe). The
+         Border.Shadow complex property is outside the supported dialect, so the drop shadow is omitted;
+         the bordered content is otherwise faithful. -->
+    <VerticalStackLayout Padding="12">
+        <Label Text="Shadow in SwipeView Content" />
+
+        <Label Text="SwipeItems" />
+        <SwipeView>
+            <SwipeView.Content>
+                <Border Stroke="Black" StrokeThickness="3" HeightRequest="60">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10" />
+                    </Border.StrokeShape>
+                    <Grid>
+                        <Label Text="Content" HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+            </SwipeView.Content>
+        </SwipeView>
+
+        <Label Text="SwipeItemViews" />
+        <SwipeView>
+            <SwipeView.Content>
+                <Border Stroke="Black" StrokeThickness="3" HeightRequest="60">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10" />
+                    </Border.StrokeShape>
+                    <Grid>
+                        <Label Text="Content" HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+            </SwipeView.Content>
+        </SwipeView>
+    </VerticalStackLayout>
+</ContentPage>

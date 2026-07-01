@@ -1,0 +1,14 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Triggers">
+    <!-- Twin of TriggersPage.xaml: a heading, an instructions label, an Entry that turns red on invalid
+         input (EventTrigger), a status label, and a "Toggle highlight" button (property trigger). The
+         Trigger / EventTrigger layers are interactive and omitted — only the resting appearance is shown
+         (entry default color, status "Highlight off"). -->
+    <VerticalStackLayout Spacing="12">
+        <Label Text="Triggers" FontSize="32" FontAttributes="Bold" />
+        <Label Text="Text must be a valid double or it will turn red." />
+        <Entry Placeholder="Enter a System.Double" />
+        <Label Text="Highlight off" />
+        <Button Text="Toggle highlight" />
+    </VerticalStackLayout>
+</ContentPage>

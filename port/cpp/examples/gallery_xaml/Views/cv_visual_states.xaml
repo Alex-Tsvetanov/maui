@@ -1,0 +1,55 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="VisualStates">
+    <!-- Twin of VisualStatesGallery.xaml: a VerticalStackLayout with two labeled CollectionViews —
+         "Single Selection" (SelectionMode=Single, 3 items) and "Multi Selection" (SelectionMode=Multiple,
+         4 items). Each cell's DataTemplate is a Grid carrying a CommonStates VSM group
+         (Normal=White base / Selected=>BackgroundColor=Yellow) around a Large NoWrap bound Label.
+         DEGRADES: (1) VisualStateManager.VisualStateGroups on a cell has no markup sink in the loader, so
+         the per-cell Normal/Selected VSM is omitted — the resting (unselected) look is the base White Grid
+         cell, which is what a static capture shows anyway; (2) the items bind {Binding ItemName} from
+         LineItem view-models — collapsed to inline x:Array strings bound via {Binding .}; (3) LineBreakMode
+         =NoWrap and EmptyView="No items defined" are omitted (both invisible at rest with the lists
+         populated). ItemSizingStrategy=MeasureFirstItem + FontSize=Large are kept. -->
+    <VerticalStackLayout Spacing="4">
+        <Label Text="Single Selection" />
+        <CollectionView SelectionMode="Single" ItemSizingStrategy="MeasureFirstItem">
+            <CollectionView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>Item 1</x:String>
+                    <x:String>Item 2</x:String>
+                    <x:String>Item 3</x:String>
+                </x:Array>
+            </CollectionView.ItemsSource>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid BackgroundColor="White">
+                        <Grid>
+                            <Label Text="{Binding .}" FontSize="Large" />
+                        </Grid>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Label Text="Multi Selection" />
+        <CollectionView SelectionMode="Multiple" ItemSizingStrategy="MeasureFirstItem">
+            <CollectionView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>Item 1</x:String>
+                    <x:String>Item 2</x:String>
+                    <x:String>Item 3</x:String>
+                    <x:String>Item 4</x:String>
+                </x:Array>
+            </CollectionView.ItemsSource>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid BackgroundColor="White">
+                        <Grid>
+                            <Label Text="{Binding .}" FontSize="Large" />
+                        </Grid>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </VerticalStackLayout>
+</ContentPage>

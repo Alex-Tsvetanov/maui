@@ -1,0 +1,27 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Gradient">
+    <!-- Twin of the maui-compare "gradient" demo: two captioned 60px BoxViews — a horizontal
+         LinearGradientBrush (Yellow->Green, (0,0)->(1,0)) and a RadialGradientBrush (Red->DarkBlue,
+         center (0.5,0.5), radius 0.7) — each under a bold caption. -->
+    <VerticalStackLayout Spacing="12" Padding="16">
+        <Label Text="LinearGradientBrush (yellow→green)" FontAttributes="Bold" />
+        <BoxView HeightRequest="60">
+            <BoxView.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="Yellow" Offset="0.0" />
+                    <GradientStop Color="Green" Offset="1.0" />
+                </LinearGradientBrush>
+            </BoxView.Background>
+        </BoxView>
+
+        <Label Text="RadialGradientBrush (red→navy)" FontAttributes="Bold" />
+        <BoxView HeightRequest="60">
+            <BoxView.Background>
+                <RadialGradientBrush Center="0.5,0.5" Radius="0.7">
+                    <GradientStop Color="Red" Offset="0.0" />
+                    <GradientStop Color="DarkBlue" Offset="1.0" />
+                </RadialGradientBrush>
+            </BoxView.Background>
+        </BoxView>
+    </VerticalStackLayout>
+</ContentPage>

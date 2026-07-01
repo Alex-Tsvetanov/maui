@@ -1,0 +1,37 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Transformations">
+    <!-- Twin of TransformationsPage.xaml: a "SCALE AND ROTATE" target button whose render transforms are
+         driven by a column of knobs — Sliders for Scale/ScaleX/ScaleY (Max 10) and
+         Rotation/RotationX/RotationY (Max 360), Steppers for AnchorX/AnchorY (Increment 0.5, -1..2), plus
+         TranslationX/TranslationY Sliders (-100..100). Each row's readout Label echoes the at-rest value.
+         Two-way binding wiring is interactive and omitted. -->
+    <ScrollView>
+        <VerticalStackLayout Spacing="6">
+            <Button Text="SCALE AND ROTATE" />
+
+            <Label Text="Scale = 1" />
+            <Slider Maximum="10" Value="1" />
+            <Label Text="ScaleX = 1" />
+            <Slider Maximum="10" Value="1" />
+            <Label Text="ScaleY = 1" />
+            <Slider Maximum="10" Value="1" />
+
+            <Label Text="Rotation = 0" />
+            <Slider Maximum="360" Value="0" />
+            <Label Text="RotationX = 0" />
+            <Slider Maximum="360" Value="0" />
+            <Label Text="RotationY = 0" />
+            <Slider Maximum="360" Value="0" />
+
+            <Label Text="AnchorX = 0.5" />
+            <Stepper Minimum="-1" Maximum="2" Increment="0.5" Value="0.5" />
+            <Label Text="AnchorY = 0.5" />
+            <Stepper Minimum="-1" Maximum="2" Increment="0.5" Value="0.5" />
+
+            <Label Text="TranslationX = 0" />
+            <Slider Minimum="-100" Maximum="100" Value="0" />
+            <Label Text="TranslationY = 0" />
+            <Slider Minimum="-100" Maximum="100" Value="0" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

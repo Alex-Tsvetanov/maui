@@ -1,0 +1,19 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Web view">
+    <!-- Twin of the web_view demo page: a WebView over a status label, an eval-result label, and
+         Page A/Page B/Back/Forward/Reload/Eval buttons. The navigation / eval wiring is interactive and
+         omitted. DEGRADE: the page loads a static HtmlWebViewSource (not text-convertible in the loader),
+         so the WebView.Source is a representative url string; the status/result labels carry their
+         resting text. -->
+    <VerticalStackLayout Spacing="8">
+        <WebView Source="https://demo.test/welcome" HeightRequest="240" />
+        <Label Text="new_page -> https://demo.test/welcome" />
+        <Label Text="Eval result: &lt;none&gt;" />
+        <Button Text="Page A" />
+        <Button Text="Page B" />
+        <Button Text="Back" />
+        <Button Text="Forward" />
+        <Button Text="Reload" />
+        <Button Text="Eval 1+1" />
+    </VerticalStackLayout>
+</ContentPage>

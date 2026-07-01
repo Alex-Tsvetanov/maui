@@ -1,0 +1,65 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="ScrollTo Group">
+    <!-- Twin of ScrollToGroup.xaml: a StackLayout with two 3-row / 2-col Grids (Group/Item index entries +
+         "Go"; Group Name/Item Name entries + "Go"), a readout, and a grouped CollectionView (IsGrouped)
+         with an ItemTemplate ({Binding Name}), GroupHeaderTemplate (LightGreen bold {Binding Name}) and
+         GroupFooterTemplate (Orange {Binding Count} "Total members: N"). note: like BasicGrouping, the
+         grouped SuperTeams() source is assigned in code-behind — there is no supported inline x:Array
+         form for a grouped source — so this static twin renders the entries, buttons, readout and the
+         (source-less) template definitions. Button Clicked handlers are omitted per the dialect. -->
+    <VerticalStackLayout Spacing="12">
+        <Grid RowSpacing="6" ColumnSpacing="6">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Label Grid.Row="0" Grid.Column="0" Text="Group:" />
+            <Entry Grid.Row="0" Grid.Column="1" Text="0" />
+            <Label Grid.Row="1" Grid.Column="0" Text="Item:" />
+            <Entry Grid.Row="1" Grid.Column="1" Text="0" />
+            <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Text="Go" />
+        </Grid>
+
+        <Grid RowSpacing="6" ColumnSpacing="6">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Label Grid.Row="0" Grid.Column="0" Text="Group Name:" />
+            <Entry Grid.Row="0" Grid.Column="1" />
+            <Label Grid.Row="1" Grid.Column="0" Text="Item Name:" />
+            <Entry Grid.Row="1" Grid.Column="1" />
+            <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Text="Go" />
+        </Grid>
+
+        <Label Text="No scroll requested yet" />
+
+        <CollectionView IsGrouped="True">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding Name}" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+            <CollectionView.GroupHeaderTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding Name}" TextColor="LightGreen" FontAttributes="Bold" />
+                </DataTemplate>
+            </CollectionView.GroupHeaderTemplate>
+            <CollectionView.GroupFooterTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding Count, StringFormat='Total members: {0}'}" TextColor="Orange" />
+                </DataTemplate>
+            </CollectionView.GroupFooterTemplate>
+        </CollectionView>
+    </VerticalStackLayout>
+</ContentPage>

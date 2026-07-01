@@ -1,0 +1,29 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Multiple Bound Selection">
+    <!-- Twin of MultipleBoundSelection.xaml: an instructions Label, a "Selected: {0}" readout, a
+         SelectionMode=Multiple CollectionView (Header="This is the header", four "Item n" captions) and
+         three action buttons (Clear and Add / Reset / Direct Update). Selection binding + mutation paths
+         are interactive; the resting readout shows the seeded selection (Item 1, Item 2). -->
+    <VerticalStackLayout Spacing="2">
+        <Label Text="The selected items in the CollectionView should always match the 'Selected' Label below. If it does not, this test has failed." />
+        <Label Text="Selected: Item 1, Item 2" />
+        <CollectionView Header="This is the header" SelectionMode="Multiple">
+            <CollectionView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>Item 0</x:String>
+                    <x:String>Item 1</x:String>
+                    <x:String>Item 2</x:String>
+                    <x:String>Item 3</x:String>
+                </x:Array>
+            </CollectionView.ItemsSource>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding .}" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <Button Text="Clear and Add" />
+        <Button Text="Reset" />
+        <Button Text="Direct Update" />
+    </VerticalStackLayout>
+</ContentPage>

@@ -1,0 +1,33 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="RefreshView">
+    <!-- Twin of RefreshViewPage.xaml: a two-row Grid — row 0 a controls column (header + item-count +
+         toggle buttons + status labels), row 1 a RefreshView (teal spinner) wrapping a ScrollView over a
+         count readout. Button handlers are interaction-only (omitted per the dialect); the status labels
+         echo the resting IsRefreshing=False / IsEnabled=True state. The C# BindableLayout color-box grid
+         collapses to the count label the port renders. -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <VerticalStackLayout Grid.Row="0" Spacing="6" Padding="12">
+            <Label Text="Pull the items down to refresh the ScrollView." />
+            <Label Text="Number of items: 50" />
+            <HorizontalStackLayout Spacing="6">
+                <Button Text="Toggle Refresh Color" />
+                <Button Text="Toggle Background Color" />
+            </HorizontalStackLayout>
+            <HorizontalStackLayout Spacing="6">
+                <Button Text="Toggle Refresh" />
+                <Button Text="Toggle Is Enabled" />
+            </HorizontalStackLayout>
+            <Label Text="Is Refreshing: False" />
+            <Label Text="Is Enabled: True" />
+        </VerticalStackLayout>
+        <RefreshView Grid.Row="1" RefreshColor="Teal">
+            <ScrollView>
+                <Label Text="50 items loaded. Pull to add more." />
+            </ScrollView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

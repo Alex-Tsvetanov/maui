@@ -1,0 +1,21 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Update Path Data Gallery">
+    <!-- Twin of UpdatePathDataGallery.xaml: a Grid (*, Auto, Auto — RowSpacing 0) proving a Path repaints
+         when its Data geometry is replaced. Row 0 = a black-stroked cubic Bézier
+         ("M 10,100 C 10,300 300,-200 300,100", counter 0); Row 1 = a diagnostic readout label (port
+         addition); Row 2 = the "Update Path Data" button. The counter/re-parse wiring is interactive and
+         omitted — the initial (counter 0) resting state is shown. -->
+    <Grid RowSpacing="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <!-- Path.Data geometry is unsupported; the cubic Bézier "M 10,100 C 10,300 300,-200 300,100" is
+             approximated by a Polyline sampling its S-curve (a downward then upward swing between the two
+             endpoints) — the same resting silhouette. -->
+        <Polyline Grid.Row="0" Stroke="Black" Points="10,100 80,180 150,100 220,20 300,100" />
+        <Label Grid.Row="1" Text="counter = 0 | Data: M 10,100 C 10,300 300,-200 300,100" />
+        <Button Grid.Row="2" Text="Update Path Data" />
+    </Grid>
+</ContentPage>

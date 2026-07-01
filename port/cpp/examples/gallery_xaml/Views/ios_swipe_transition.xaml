@@ -1,0 +1,24 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="SwipeView SwipeTransitionMode">
+    <!-- Twin of iOSSwipeViewTransitionModePage.xaml: a "SwipeTransitionMode:" selector row (the
+         EnumPicker → Reveal / Drag buttons in the port) over a SwipeView showing a gray "Swipe right"
+         Grid, plus a readout + status label. note: only SwipeView.Content loads — the LeftItems "Delete"
+         SwipeItem has no markup sink and is hidden at rest — and the iOS SwipeTransitionMode knob is a
+         platform-config with no markup sink; both are omitted. -->
+    <VerticalStackLayout Spacing="12" Margin="20">
+        <HorizontalStackLayout Spacing="8">
+            <Label Text="SwipeTransitionMode:" />
+            <Button Text="Reveal" />
+            <Button Text="Drag" />
+        </HorizontalStackLayout>
+        <SwipeView HeightRequest="60" WidthRequest="300">
+            <SwipeView.Content>
+                <Grid HeightRequest="60" WidthRequest="300" BackgroundColor="LightGray">
+                    <Label Text="Swipe right" />
+                </Grid>
+            </SwipeView.Content>
+        </SwipeView>
+        <Label Text="Swipe right to reveal Delete; pick a SwipeTransitionMode above" />
+        <Label Text="SwipeTransitionMode: Drag" />
+    </VerticalStackLayout>
+</ContentPage>

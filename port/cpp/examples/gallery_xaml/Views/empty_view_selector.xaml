@@ -1,0 +1,38 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="EmptyView (template selector)">
+    <Grid Padding="12" RowSpacing="6">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Row 0: the instruction text (folded from the C# instruction StackLayout) -->
+        <Label Grid.Row="0"
+               Text="1. Filter the items below by search term.  2. Filtering 'Xamarin' (no matched results) shows 'No items to display.'  3. Filtering to no data (except Xamarin) shows 'No results matched your filter.' and 'Try a broader filter?'" />
+
+        <!-- Row 1: the SearchBar (SearchCommand -> FilterCommand omitted) -->
+        <SearchBar Grid.Row="1" Placeholder="Filter" />
+
+        <!-- Row 2: the CollectionView. EmptyView is the search string; the
+             SearchTermDataTemplateSelector picking Basic vs Advanced collapses to a
+             single representative EmptyViewTemplate. Source seeded with one "Baboon". -->
+        <CollectionView Grid.Row="2">
+            <CollectionView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>Baboon — Africa &amp; Asia</x:String>
+                </x:Array>
+            </CollectionView.ItemsSource>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding .}" Margin="6" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+            <CollectionView.EmptyViewTemplate>
+                <DataTemplate>
+                    <Label Text="No results matched your filter. Try a broader filter?" />
+                </DataTemplate>
+            </CollectionView.EmptyViewTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

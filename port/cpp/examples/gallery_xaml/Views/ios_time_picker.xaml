@@ -1,0 +1,11 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="TimePicker UpdateMode">
+    <!-- Twin of iOSTimePickerPage.xaml: a TimePicker (Time="14:00", iOS UpdateMode knob omitted:
+         platform-config, no markup sink) over a toggle Button and a readout Label showing the current
+         UpdateMode (WhenFinished at rest). StackLayout Margin="10". -->
+    <VerticalStackLayout Spacing="12" Margin="10">
+        <TimePicker Time="14:00:00" />
+        <Button Text="Toggle TimePicker UpdateMode" />
+        <Label Text="UpdateMode: WhenFinished" />
+    </VerticalStackLayout>
+</ContentPage>

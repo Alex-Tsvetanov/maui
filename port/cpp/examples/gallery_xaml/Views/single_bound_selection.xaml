@@ -1,0 +1,31 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Single Bound Selection">
+    <!-- Twin of SingleBoundSelection.xaml: an instructions Label, a "Selected: …" readout Label, Reset/Clear
+         Buttons, and a single-selection CollectionView bound TwoWay to SelectedItem. note: the TwoWay
+         SelectedItem binding and the Reset (SelectedItem=Items[0]) / Clear (SelectedItem=null) handlers are
+         interaction wiring with no resting markup sink — degraded; the readout starts at "(none)". The
+         Frame cell binds Image + Caption; the twin flattens it to the Caption label ({Binding .}), the port's
+         cell reduction. -->
+    <VerticalStackLayout Spacing="5">
+        <Label Text="The selected item in the CollectionView should match the 'Selected' Label below. If it does not, this test has failed." />
+        <Label Text="Selected: (none)" />
+        <Button Text="Reset" />
+        <Button Text="Clear" />
+        <CollectionView SelectionMode="Single">
+            <CollectionView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>United States</x:String>
+                    <x:String>Canada</x:String>
+                    <x:String>Mexico</x:String>
+                    <x:String>Brazil</x:String>
+                    <x:String>Argentina</x:String>
+                </x:Array>
+            </CollectionView.ItemsSource>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding .}" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </VerticalStackLayout>
+</ContentPage>

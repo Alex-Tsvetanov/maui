@@ -1,0 +1,34 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Clip">
+    <!-- Twin of ClipPage.xaml: a ScrollView over a StackLayout showing the same dotnet_bot.png image five
+         times, each captioned, each successive copy carrying a different Image.Clip geometry
+         (Rectangle / Ellipse / GeometryGroup / Path). DEGRADES: the loader registers no Clip property and
+         no geometry element types (EllipseGeometry / RectangleGeometry / PathGeometry / GeometryGroup), so
+         the clip layer is omitted — the images render un-clipped as the LightGray 200x200 AspectFill boxes
+         they share (the Style's resting appearance). The captions + gray boxes are the visible resting UI.
+         The .xaml.cs has no code-behind; the gallery's Toggle button + status readout are the code-first
+         extension (omitted here, structural resting twin). -->
+    <ScrollView>
+        <StackLayout Spacing="6">
+            <Label Text="Image" />
+            <Image Source="dotnet_bot.png" Aspect="AspectFill" HorizontalOptions="Start"
+                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray" />
+
+            <Label Text="Clipped Image using RectangleGeometry" />
+            <Image Source="dotnet_bot.png" Aspect="AspectFill" HorizontalOptions="Start"
+                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray" />
+
+            <Label Text="Clipped Image using EllipseGeometry" />
+            <Image Source="dotnet_bot.png" Aspect="AspectFill" HorizontalOptions="Start"
+                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray" />
+
+            <Label Text="Clipped Image using GeometryGroup" />
+            <Image Source="dotnet_bot.png" Aspect="AspectFill" HorizontalOptions="Start"
+                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray" />
+
+            <Label Text="Clipped Image using PathGeometry" />
+            <Image Source="dotnet_bot.png" Aspect="AspectFill" HorizontalOptions="Start"
+                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray" />
+        </StackLayout>
+    </ScrollView>
+</ContentPage>

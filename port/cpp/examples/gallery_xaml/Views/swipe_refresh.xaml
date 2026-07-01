@@ -1,0 +1,18 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Swipe + Refresh">
+    <!-- Twin of the swipe + refresh page: a RefreshView wrapping a column of a SwipeView (over a labeled
+         row) and a readout. note: the loader registers only SwipeView.Content — the right "Delete"
+         SwipeItem has no markup sink — so the SwipeView is DEGRADED to just its content label, which is
+         the RESTING appearance (the Delete item is hidden until a swipe; the pull-to-refresh spinner is
+         also hidden at rest). -->
+    <RefreshView>
+        <VerticalStackLayout Spacing="8">
+            <SwipeView>
+                <SwipeView.Content>
+                    <Label Text="Swipe left to delete, pull to refresh" />
+                </SwipeView.Content>
+            </SwipeView>
+            <Label Text="Ready" />
+        </VerticalStackLayout>
+    </RefreshView>
+</ContentPage>

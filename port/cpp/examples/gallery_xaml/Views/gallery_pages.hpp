@@ -29,32 +29,110 @@
 #include "Views/borderless.xaml.hpp"
 #include "Views/box_view.xaml.hpp"
 #include "Views/button.xaml.hpp"
+#include "Views/carousel_page.xaml.hpp"
 #include "Views/carousel_view.xaml.hpp"
 #include "Views/chat_example.xaml.hpp"
 #include "Views/check_box.xaml.hpp"
 #include "Views/chrome.xaml.hpp"
+#include "Views/clip.xaml.hpp"
+#include "Views/clip_corner_radius.xaml.hpp"
+#include "Views/clip_gallery.xaml.hpp"
+#include "Views/clip_views.xaml.hpp"
+#include "Views/clipping.xaml.hpp"
 #include "Views/collectionview.xaml.hpp"
+#include "Views/composition_gallery.xaml.hpp"
 #include "Views/containers.xaml.hpp"
 #include "Views/content_view.xaml.hpp"
+#include "Views/context_flyout.xaml.hpp"
 #include "Views/controls_stack.xaml.hpp"
 #include "Views/custom_layout.xaml.hpp"
+#include "Views/custom_size_swipe.xaml.hpp"
+#include "Views/custom_swipe_item_view.xaml.hpp"
+#include "Views/cv_visual_states.xaml.hpp"
+#include "Views/data_template_selector.xaml.hpp"
 #include "Views/date_picker.xaml.hpp"
+#include "Views/device.xaml.hpp"
+#include "Views/dispatcher.xaml.hpp"
+#include "Views/drag_drop.xaml.hpp"
 #include "Views/editor.xaml.hpp"
+#include "Views/effects.xaml.hpp"
+#include "Views/ellipse_gallery.xaml.hpp"
+#include "Views/empty_view.xaml.hpp"
+#include "Views/empty_view_load_simulate.xaml.hpp"
+#include "Views/empty_view_null.xaml.hpp"
+#include "Views/empty_view_rtl.xaml.hpp"
+#include "Views/empty_view_selector.xaml.hpp"
+#include "Views/empty_view_swap.xaml.hpp"
+#include "Views/empty_view_template.xaml.hpp"
+#include "Views/empty_view_view.xaml.hpp"
 #include "Views/entry.xaml.hpp"
+#include "Views/filter_collection.xaml.hpp"
+#include "Views/filter_selection.xaml.hpp"
 #include "Views/flex_layout.xaml.hpp"
+#include "Views/focus.xaml.hpp"
+#include "Views/fonts.xaml.hpp"
+#include "Views/footer_only_string.xaml.hpp"
 #include "Views/formatted_text.xaml.hpp"
 #include "Views/frame.xaml.hpp"
+#include "Views/gestures.xaml.hpp"
+#include "Views/gradient.xaml.hpp"
 #include "Views/grid.xaml.hpp"
 #include "Views/grid_definitions.xaml.hpp"
+#include "Views/grid_grouping.xaml.hpp"
 #include "Views/grid_layout.xaml.hpp"
+#include "Views/grouping_no_templates.xaml.hpp"
+#include "Views/grouping_plus_selection.xaml.hpp"
+#include "Views/header_footer.xaml.hpp"
+#include "Views/header_footer_grid.xaml.hpp"
+#include "Views/header_footer_grid_horizontal.xaml.hpp"
+#include "Views/header_footer_template.xaml.hpp"
+#include "Views/header_footer_view.xaml.hpp"
+#include "Views/hit_testing.xaml.hpp"
+#include "Views/horizontal_stack.xaml.hpp"
 #include "Views/horizontal_stack_layout.xaml.hpp"
+#include "Views/hybrid_web_view.xaml.hpp"
 #include "Views/image.xaml.hpp"
 #include "Views/image_button.xaml.hpp"
+#include "Views/indicator.xaml.hpp"
 #include "Views/input_controls.xaml.hpp"
+#include "Views/input_transparent.xaml.hpp"
+#include "Views/invalidate_brush.xaml.hpp"
+#include "Views/invalidate_shadow_host.xaml.hpp"
+#include "Views/ios_blur_effect.xaml.hpp"
+#include "Views/ios_date_picker.xaml.hpp"
+#include "Views/ios_entry.xaml.hpp"
+#include "Views/ios_first_responder.xaml.hpp"
+#include "Views/ios_pan_gesture.xaml.hpp"
+#include "Views/ios_picker.xaml.hpp"
+#include "Views/ios_safe_area.xaml.hpp"
+#include "Views/ios_scroll_view.xaml.hpp"
+#include "Views/ios_search_bar.xaml.hpp"
+#include "Views/ios_slider_update_on_tap.xaml.hpp"
+#include "Views/ios_swipe_transition.xaml.hpp"
+#include "Views/ios_time_picker.xaml.hpp"
 #include "Views/items.xaml.hpp"
+#include "Views/items_updating_scroll_mode.xaml.hpp"
 #include "Views/label.xaml.hpp"
+#include "Views/layout_is_enabled.xaml.hpp"
+#include "Views/line_gallery.xaml.hpp"
+#include "Views/line_join_gallery.xaml.hpp"
+#include "Views/measure_first_strategy.xaml.hpp"
+#include "Views/menu_bar.xaml.hpp"
+#include "Views/modal.xaml.hpp"
+#include "Views/multiple_bound_selection.xaml.hpp"
+#include "Views/navigation_gallery.xaml.hpp"
+#include "Views/nested_collection.xaml.hpp"
+#include "Views/pan_gesture_events.xaml.hpp"
+#include "Views/path_aspect_gallery.xaml.hpp"
+#include "Views/path_gallery.xaml.hpp"
+#include "Views/path_transform_string.xaml.hpp"
 #include "Views/picker.xaml.hpp"
 #include "Views/pickers.xaml.hpp"
+#include "Views/pointer_gesture.xaml.hpp"
+#include "Views/polygon_gallery.xaml.hpp"
+#include "Views/polyline_gallery.xaml.hpp"
+#include "Views/preselected_item.xaml.hpp"
+#include "Views/preselected_items.xaml.hpp"
 #include "Views/progress_bar.xaml.hpp"
 #include "Views/radio_button_border.xaml.hpp"
 #include "Views/radio_button_content.xaml.hpp"
@@ -63,19 +141,51 @@
 #include "Views/radio_button_group_gallery.xaml.hpp"
 #include "Views/radio_content_properties.xaml.hpp"
 #include "Views/radio_template_from_style.xaml.hpp"
+#include "Views/rectangle_gallery.xaml.hpp"
+#include "Views/refresh_view.xaml.hpp"
 #include "Views/relative_layout.xaml.hpp"
 #include "Views/scattered_radio_button.xaml.hpp"
+#include "Views/scroll_mode_test.xaml.hpp"
+#include "Views/scroll_to_group.xaml.hpp"
 #include "Views/scroll_view.xaml.hpp"
 #include "Views/search_bar.xaml.hpp"
+#include "Views/selection_command_param.xaml.hpp"
+#include "Views/selection_synchronization.xaml.hpp"
+#include "Views/semantics.xaml.hpp"
+#include "Views/shadow_playground.xaml.hpp"
+#include "Views/shape_app_theme.xaml.hpp"
+#include "Views/shapes.xaml.hpp"
+#include "Views/single_bound_selection.xaml.hpp"
 #include "Views/slider.xaml.hpp"
+#include "Views/some_empty_groups.xaml.hpp"
 #include "Views/stack_layout.xaml.hpp"
+#include "Views/staggered_layout.xaml.hpp"
 #include "Views/stepper.xaml.hpp"
 #include "Views/styles.xaml.hpp"
+#include "Views/swipe_gesture.xaml.hpp"
+#include "Views/swipe_item_position.xaml.hpp"
+#include "Views/swipe_item_size.xaml.hpp"
+#include "Views/swipe_refresh.xaml.hpp"
+#include "Views/swipe_threshold.xaml.hpp"
+#include "Views/swipe_view_margin.xaml.hpp"
+#include "Views/swipe_view_shadow.xaml.hpp"
 #include "Views/switch.xaml.hpp"
+#include "Views/switch_grouping.xaml.hpp"
+#include "Views/tabbed_flyout.xaml.hpp"
 #include "Views/templated_view.xaml.hpp"
 #include "Views/time_picker.xaml.hpp"
+#include "Views/title_bar.xaml.hpp"
+#include "Views/toolbar.xaml.hpp"
+#include "Views/transform_playground.xaml.hpp"
+#include "Views/transformations.xaml.hpp"
+#include "Views/triggers.xaml.hpp"
+#include "Views/update_path_data.xaml.hpp"
 #include "Views/value_controls.xaml.hpp"
+#include "Views/varied_size_selector.xaml.hpp"
+#include "Views/vertical_stack.xaml.hpp"
 #include "Views/vertical_stack_layout.xaml.hpp"
+#include "Views/visual_states.xaml.hpp"
+#include "Views/web_view.xaml.hpp"
 #include "Views/z_index.xaml.hpp"
 
 // One X(<name>) per twin; main.cpp expands it to a `selected == "<name>"` -> <name>_page() dispatch.
@@ -103,32 +213,110 @@
     X(borderless)                                                                                                      \
     X(box_view)                                                                                                        \
     X(button)                                                                                                          \
+    X(carousel_page)                                                                                                   \
     X(carousel_view)                                                                                                   \
     X(chat_example)                                                                                                    \
     X(check_box)                                                                                                       \
     X(chrome)                                                                                                          \
+    X(clip)                                                                                                            \
+    X(clip_corner_radius)                                                                                              \
+    X(clip_gallery)                                                                                                    \
+    X(clip_views)                                                                                                      \
+    X(clipping)                                                                                                        \
     X(collectionview)                                                                                                  \
+    X(composition_gallery)                                                                                             \
     X(containers)                                                                                                      \
     X(content_view)                                                                                                    \
+    X(context_flyout)                                                                                                  \
     X(controls_stack)                                                                                                  \
     X(custom_layout)                                                                                                   \
+    X(custom_size_swipe)                                                                                               \
+    X(custom_swipe_item_view)                                                                                          \
+    X(cv_visual_states)                                                                                                \
+    X(data_template_selector)                                                                                          \
     X(date_picker)                                                                                                     \
+    X(device)                                                                                                          \
+    X(dispatcher)                                                                                                      \
+    X(drag_drop)                                                                                                       \
     X(editor)                                                                                                          \
+    X(effects)                                                                                                         \
+    X(ellipse_gallery)                                                                                                 \
+    X(empty_view)                                                                                                      \
+    X(empty_view_load_simulate)                                                                                        \
+    X(empty_view_null)                                                                                                 \
+    X(empty_view_rtl)                                                                                                  \
+    X(empty_view_selector)                                                                                             \
+    X(empty_view_swap)                                                                                                 \
+    X(empty_view_template)                                                                                             \
+    X(empty_view_view)                                                                                                 \
     X(entry)                                                                                                           \
+    X(filter_collection)                                                                                               \
+    X(filter_selection)                                                                                                \
     X(flex_layout)                                                                                                     \
+    X(focus)                                                                                                           \
+    X(fonts)                                                                                                           \
+    X(footer_only_string)                                                                                              \
     X(formatted_text)                                                                                                  \
     X(frame)                                                                                                           \
+    X(gestures)                                                                                                        \
+    X(gradient)                                                                                                        \
     X(grid)                                                                                                            \
     X(grid_definitions)                                                                                                \
+    X(grid_grouping)                                                                                                   \
     X(grid_layout)                                                                                                     \
+    X(grouping_no_templates)                                                                                           \
+    X(grouping_plus_selection)                                                                                         \
+    X(header_footer)                                                                                                   \
+    X(header_footer_grid)                                                                                              \
+    X(header_footer_grid_horizontal)                                                                                   \
+    X(header_footer_template)                                                                                          \
+    X(header_footer_view)                                                                                              \
+    X(hit_testing)                                                                                                     \
+    X(horizontal_stack)                                                                                                \
     X(horizontal_stack_layout)                                                                                         \
+    X(hybrid_web_view)                                                                                                 \
     X(image)                                                                                                           \
     X(image_button)                                                                                                    \
+    X(indicator)                                                                                                       \
     X(input_controls)                                                                                                  \
+    X(input_transparent)                                                                                               \
+    X(invalidate_brush)                                                                                                \
+    X(invalidate_shadow_host)                                                                                          \
+    X(ios_blur_effect)                                                                                                 \
+    X(ios_date_picker)                                                                                                 \
+    X(ios_entry)                                                                                                       \
+    X(ios_first_responder)                                                                                             \
+    X(ios_pan_gesture)                                                                                                 \
+    X(ios_picker)                                                                                                      \
+    X(ios_safe_area)                                                                                                   \
+    X(ios_scroll_view)                                                                                                 \
+    X(ios_search_bar)                                                                                                  \
+    X(ios_slider_update_on_tap)                                                                                        \
+    X(ios_swipe_transition)                                                                                            \
+    X(ios_time_picker)                                                                                                 \
     X(items)                                                                                                           \
+    X(items_updating_scroll_mode)                                                                                      \
     X(label)                                                                                                           \
+    X(layout_is_enabled)                                                                                               \
+    X(line_gallery)                                                                                                    \
+    X(line_join_gallery)                                                                                               \
+    X(measure_first_strategy)                                                                                          \
+    X(menu_bar)                                                                                                        \
+    X(modal)                                                                                                           \
+    X(multiple_bound_selection)                                                                                        \
+    X(navigation_gallery)                                                                                              \
+    X(nested_collection)                                                                                               \
+    X(pan_gesture_events)                                                                                              \
+    X(path_aspect_gallery)                                                                                             \
+    X(path_gallery)                                                                                                    \
+    X(path_transform_string)                                                                                           \
     X(picker)                                                                                                          \
     X(pickers)                                                                                                         \
+    X(pointer_gesture)                                                                                                 \
+    X(polygon_gallery)                                                                                                 \
+    X(polyline_gallery)                                                                                                \
+    X(preselected_item)                                                                                                \
+    X(preselected_items)                                                                                               \
     X(progress_bar)                                                                                                    \
     X(radio_button_border)                                                                                             \
     X(radio_button_content)                                                                                            \
@@ -137,17 +325,49 @@
     X(radio_button_group_gallery)                                                                                      \
     X(radio_content_properties)                                                                                        \
     X(radio_template_from_style)                                                                                       \
+    X(rectangle_gallery)                                                                                               \
+    X(refresh_view)                                                                                                    \
     X(relative_layout)                                                                                                 \
     X(scattered_radio_button)                                                                                          \
+    X(scroll_mode_test)                                                                                                \
+    X(scroll_to_group)                                                                                                 \
     X(scroll_view)                                                                                                     \
     X(search_bar)                                                                                                      \
+    X(selection_command_param)                                                                                         \
+    X(selection_synchronization)                                                                                       \
+    X(semantics)                                                                                                       \
+    X(shadow_playground)                                                                                               \
+    X(shape_app_theme)                                                                                                 \
+    X(shapes)                                                                                                          \
+    X(single_bound_selection)                                                                                          \
     X(slider)                                                                                                          \
+    X(some_empty_groups)                                                                                               \
     X(stack_layout)                                                                                                    \
+    X(staggered_layout)                                                                                                \
     X(stepper)                                                                                                         \
     X(styles)                                                                                                          \
+    X(swipe_gesture)                                                                                                   \
+    X(swipe_item_position)                                                                                             \
+    X(swipe_item_size)                                                                                                 \
+    X(swipe_refresh)                                                                                                   \
+    X(swipe_threshold)                                                                                                 \
+    X(swipe_view_margin)                                                                                               \
+    X(swipe_view_shadow)                                                                                               \
     X(switch)                                                                                                          \
+    X(switch_grouping)                                                                                                 \
+    X(tabbed_flyout)                                                                                                   \
     X(templated_view)                                                                                                  \
     X(time_picker)                                                                                                     \
+    X(title_bar)                                                                                                       \
+    X(toolbar)                                                                                                         \
+    X(transform_playground)                                                                                            \
+    X(transformations)                                                                                                 \
+    X(triggers)                                                                                                        \
+    X(update_path_data)                                                                                                \
     X(value_controls)                                                                                                  \
+    X(varied_size_selector)                                                                                            \
+    X(vertical_stack)                                                                                                  \
     X(vertical_stack_layout)                                                                                           \
+    X(visual_states)                                                                                                   \
+    X(web_view)                                                                                                        \
     X(z_index)

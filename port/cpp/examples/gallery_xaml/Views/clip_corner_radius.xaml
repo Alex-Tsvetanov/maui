@@ -1,0 +1,28 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Clip CornerRadius Gallery">
+    <!-- Twin of ClipCornerRadiusGallery.xaml: a StackLayout (Padding 12) that DRIVES a
+         RoundRectangleGeometry's per-corner CornerRadius from four sliders while it clips an oasis.jpg image.
+         DEGRADES: the loader registers no Clip property and no RoundRectangleGeometry element, so the
+         geometry-clip layer is omitted — the image renders as the LightGray 200x200 AspectFill box inside a
+         200x200 Grid container. The OnCornerChanged code-behind (rebuilding the clip's corner radius live)
+         is interactivity, omitted; each slider shows its resting Value=0 (square corners initially). The
+         Slider track colors (MinimumTrackColor / MaximumTrackColor) are best-effort, left default. -->
+    <StackLayout Spacing="6" Padding="12">
+        <Label Text="Clipped Image using RoundRectangleGeometry" />
+        <Grid WidthRequest="200" HeightRequest="200" HorizontalOptions="Start" BackgroundColor="LightGray">
+            <Image Source="oasis.jpg" Aspect="AspectFill" WidthRequest="200" HeightRequest="200" />
+        </Grid>
+
+        <Label Text="Top Left Corner" />
+        <Slider Minimum="0" Maximum="60" Value="0" />
+
+        <Label Text="Top Right Corner" />
+        <Slider Minimum="0" Maximum="60" Value="0" />
+
+        <Label Text="Bottom Left Corner" />
+        <Slider Minimum="0" Maximum="60" Value="0" />
+
+        <Label Text="Bottom Right Corner" />
+        <Slider Minimum="0" Maximum="60" Value="0" />
+    </StackLayout>
+</ContentPage>
