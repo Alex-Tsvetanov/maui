@@ -18,20 +18,23 @@
 //
 // The page OWNS its whole element tree (the sample_app pattern). It is backend-agnostic — a sample main
 // attaches handlers bottom-up via the hosting layer and hosts page() in a window; the headless/apple/ios
-// test trees exercise the same controls directly. The target here is a label stand-in for the C#
-// dotnet_bot.png image: a label is a view<…> too, so every transform setter / animation extension applies
-// to it identically and it needs no image asset to render in the headless gallery (note: the C# original
-// animates an Image — swap the label for an image + set_source to mirror the asset exactly).
+// test trees exercise the same controls directly. The animation target is the C# page's
+// <Image Source="dotnet_bot.png" VerticalOptions="CenterAndExpand"> (AnimationPage.xaml) — an image is a
+// view<…> too, so every transform setter / animation extension (fade/scale/rotate/translate + cancel)
+// applies to it identically. The C# sample renders it static at rest and only animates on a button click,
+// so the port shows the bot icon above the buttons until Start/Custom is pressed.
 
-#include <string>
+#include <memory>
 
 #include "maui/animations/easing.hpp"
 #include "maui/controls/animation.hpp"
 #include "maui/controls/button.hpp"
 #include "maui/controls/content_page.hpp"
-#include "maui/controls/label.hpp"
+#include "maui/controls/file_image_source.hpp"
+#include "maui/controls/image.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/controls/view_extensions.hpp"
+#include "maui/core/layout_alignment.hpp"
 
 namespace maui::samples
 {
@@ -43,9 +46,14 @@ namespace maui::samples
             page_.set_title("Animations");
             stack_.set_spacing(12);
 
-            // The animation target — a label stand-in for the C# dotnet_bot.png Image (a label is a
-            // view<…>, so fade/scale/rotate/translate + cancel apply to it identically).
-            target_.set_text(".NET bot (animation target)");
+            // The animation target — the C# <Image Source="dotnet_bot.png" VerticalOptions="CenterAndExpand">
+            // (AnimationPage.xaml). An image is a view<…>, so fade/scale/rotate/translate + cancel apply to
+            // it identically. Sized so the bot icon renders clearly above the buttons at rest.
+            target_.set_source(std::make_shared<maui::controls::file_image_source>("dotnet_bot.png"));
+            target_.set_width_request(120);
+            target_.set_height_request(120);
+            target_.set_horizontal_layout_alignment(maui::core::layout_alignment::center);
+            target_.set_vertical_layout_alignment(maui::core::layout_alignment::center);
 
             start_button_.set_text("Start Animation");
             start_button_.clicked.connect([this] { on_start_animation(); });
@@ -70,7 +78,7 @@ namespace maui::samples
         }
 
         // Owned controls, exposed for tests / the hosting main.
-        [[nodiscard]] maui::controls::label& target()
+        [[nodiscard]] maui::controls::image& target()
         {
             return target_;
         }
@@ -161,7 +169,7 @@ namespace maui::samples
 
         maui::controls::content_page page_;
         maui::controls::vertical_stack_layout stack_;
-        maui::controls::label target_;
+        maui::controls::image target_;
         maui::controls::button start_button_;
         maui::controls::button custom_button_;
         maui::controls::button cancel_button_;

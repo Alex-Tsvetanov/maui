@@ -30,8 +30,9 @@
 //     image + caption Grid; the headless sim measures the displayable caption text);
 //   - set_items_updating_scroll_mode wires the mode; the EnumSelector is a caption Label + a Picker over the
 //     three ItemsUpdatingScrollMode values (KeepItemsInView / KeepScrollOffset / KeepLastItemInView) whose
-//     SelectedIndexChanged gets/sets ItemsUpdatingScrollMode — the faithful EnumSelector<T> shape (a single
-//     value shown, matching MAUI, rather than three side-by-side buttons that overflow the row);
+//     SelectedIndexChanged gets/sets ItemsUpdatingScrollMode — the faithful EnumSelector<T> shape (the real
+//     MAUI EnumSelector<T> is a Label + a Picker WidthRequest=200 showing a single value, NOT a row of
+//     buttons — see src/Controls/samples/.../CollectionViewGalleries/EnumSelector.cs);
 //   - scroll_to_middle()/add_item_above()/add_item_below()/add_item_to_end() reproduce the four C# handlers
 //     verbatim (ScrollTo with Start/no-animate; the two positional Inserts; the Add). The ScrollTo request
 //     is observed through the collection_view's scroll_to_requested event into a readout (the
