@@ -69,6 +69,23 @@ namespace
     constexpr const char* k_drawable_class = "android/graphics/drawable/Drawable";
     constexpr const char* k_porter_duff_mode_class = "android/graphics/PorterDuff$Mode";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
+    constexpr const char* k_style_class = "android/R$style";
+
+    // The indeterminate ProgressBar's defStyleRes (see create_platform_view). PARITY P2: real .NET MAUI
+    // constructs `new ProgressBar(Context) { Indeterminate = true }` against a real themed Activity Context,
+    // whose `progressBarStyle` theme attribute resolves to the theme's CIRCULAR indeterminate spinner (the
+    // Material spinning-arc glyph MAUI captures). This APK-less backend's app_host / widget-test Context is
+    // bare (Activity-less, themeless), so the plain `new ProgressBar(Context)` ctor resolves that theme attr
+    // against a themeless Context → a degenerate, drawable-less ProgressBar that shows NO spinner arc (the
+    // port's blank indicator). A concrete defStyleRes needs no theme attribute, so it applies the circular
+    // spinner drawable on the bare Context too. Widget_Material_Light_ProgressBar is the light-theme circular
+    // indeterminate style (the plain, NON-_Horizontal one) — the spinning-arc glyph, matching the gallery's
+    // default light Material theme and MAUI's light capture; Widget_Material_ProgressBar is the generic/dark
+    // twin, tried if the light field is absent — the same primary→alt GetStaticFieldID pattern
+    // slider_handler.cpp/switch_handler.cpp use. NOT the _Horizontal bar style (that is the flat determinate
+    // track, not a spinner). Both are static fields (GetStaticFieldID, not the instance field() helper).
+    constexpr const char* k_indeterminate_style_field = "Widget_Material_Light_ProgressBar";
+    constexpr const char* k_indeterminate_style_field_alt = "Widget_Material_ProgressBar";
 
     // android.view.View visibility states (ViewExtensions.ToPlatformVisibility's targets).
     constexpr jint k_view_visible = 0;
@@ -203,17 +220,64 @@ namespace maui::core
         }
         auto& cache = default_jni_cache();
         jclass progress_bar_class = cache.find_class(env.get(), k_progress_bar_class);
-        jmethodID ctor = cache.method(env.get(), k_progress_bar_class, "<init>", "(Landroid/content/Context;)V");
-        if (progress_bar_class == nullptr || ctor == nullptr)
+        if (progress_bar_class == nullptr)
         {
             return platform;
         }
-        // ActivityIndicatorHandler.CreatePlatformView: new ProgressBar(Context) { Indeterminate = true }.
-        const local_ref<jobject> widget{env.get(), env->NewObject(progress_bar_class, ctor, context)};
-        if (clear_pending(env.get()) || !widget)
+        // ActivityIndicatorHandler.CreatePlatformView: `new ProgressBar(Context) { Indeterminate = true }`.
+        // The plain (Context) ctor resolves the `progressBarStyle` theme attribute against the Context's
+        // THEME — which the bare, Activity-less app_host / widget-test Context does NOT carry, so it yields a
+        // degenerate, drawable-less indeterminate ProgressBar (NO visible spinner arc — the port's blank
+        // indicator). PARITY P2: construct instead via the theme-INDEPENDENT 4-arg
+        // `(Context, AttributeSet, int defStyleAttr, int defStyleRes)` ctor with the concrete CIRCULAR
+        // Material spinner style as defStyleRes (see the k_indeterminate_style_field note) — a concrete style
+        // resource resolves no theme attribute, so it applies the spinning-arc drawable on the bare Context
+        // too, matching real MAUI's Material spinner. Try the light field, then the generic/dark alt, then
+        // fall back to the plain (Context) ctor so the widget is never null (a valid indeterminate bar; only
+        // the circular *look* is lost, e.g. on a real themed Context this matches C#'s plain ctor exactly).
+        jobject created = nullptr;
+        jmethodID ctor_styled = cache.method(env.get(), k_progress_bar_class, "<init>",
+                                             "(Landroid/content/Context;Landroid/util/AttributeSet;II)V");
+        jclass style_class = cache.find_class(env.get(), k_style_class);
+        jfieldID style_field =
+            style_class != nullptr ? env->GetStaticFieldID(style_class, k_indeterminate_style_field, "I") : nullptr;
+        clear_pending(env.get()); // a missing-field lookup raises NoSuchFieldError — clear it, then try the alt
+        if (style_class != nullptr && style_field == nullptr)
+        {
+            style_field = env->GetStaticFieldID(style_class, k_indeterminate_style_field_alt, "I");
+            clear_pending(env.get());
+        }
+        if (ctor_styled != nullptr && style_class != nullptr && style_field != nullptr)
+        {
+            const jint style_res = env->GetStaticIntField(style_class, style_field);
+            if (!clear_pending(env.get()))
+            {
+                created = env->NewObject(progress_bar_class, ctor_styled, context, static_cast<jobject>(nullptr),
+                                         static_cast<jint>(0), style_res);
+                if (clear_pending(env.get()))
+                {
+                    created = nullptr;
+                }
+            }
+        }
+        if (created == nullptr)
+        {
+            jmethodID ctor_plain =
+                cache.method(env.get(), k_progress_bar_class, "<init>", "(Landroid/content/Context;)V");
+            if (ctor_plain != nullptr)
+            {
+                created = env->NewObject(progress_bar_class, ctor_plain, context);
+                if (clear_pending(env.get()))
+                {
+                    created = nullptr;
+                }
+            }
+        }
+        if (created == nullptr)
         {
             return platform;
         }
+        const local_ref<jobject> widget{env.get(), created};
         // Indeterminate = true: the spinner-style ProgressBar (the indeterminate drawable is what
         // map_color tints). setIndeterminate(boolean) is a ProgressBar (not a base View) method.
         call_void_bool(env.get(), widget.get(), "setIndeterminate", JNI_TRUE);

@@ -75,6 +75,22 @@ namespace
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
     constexpr const char* k_style_class = "android/R$style";
 
+    // The horizontal ProgressBar's defStyleRes (see create_platform_view). PARITY P2: real .NET MAUI renders
+    // its determinate ProgressBar through the AppCompat/Material theme → a THIN flat track (a ~2dp hairline
+    // with a flat colored fill, no shadow). The classic android.R.style.Widget_ProgressBar_Horizontal (used
+    // before this fix) is the pre-Holo Gingerbread style → a THICK rounded bar with a heavy dark/gray
+    // gradient and drop shadow, which does NOT match MAUI. This AAR-less backend has no AndroidX (no
+    // AppCompat ProgressBar), but the framework carries the concrete Material horizontal style resource, and
+    // a concrete defStyleRes needs no theme attribute (so it constructs on the bare, Activity-less testhost
+    // Context too). Widget_Material_Light_ProgressBar_Horizontal is the light-theme thin variant the
+    // gallery's default light Material theme renders under (matching MAUI's light capture);
+    // Widget_Material_ProgressBar_Horizontal is the generic/dark twin, tried if the light field is absent —
+    // the same primary→alt GetStaticFieldID pattern slider_handler.cpp/switch_handler.cpp use. Both are
+    // static fields (GetStaticFieldID, not the instance field() helper). The ProgressColor tint push in
+    // map_progress_color is unchanged and still tints on the new style.
+    constexpr const char* k_horizontal_style_field = "Widget_Material_Light_ProgressBar_Horizontal";
+    constexpr const char* k_horizontal_style_field_alt = "Widget_Material_ProgressBar_Horizontal";
+
     // ProgressBarExtensions.Maximum — MAUI scales the [0,1] fraction onto this fixed integer range.
     constexpr jint k_progress_maximum = 10000;
 
@@ -344,18 +360,27 @@ namespace maui::core
         // but that resolves the style attribute against the Context's THEME — which the app_process widget
         // test host (a bare, Activity-less Context) does not carry, so that ctor throws (the agent flagged
         // this). Use instead the theme-INDEPENDENT 4-arg ctor (Context, AttributeSet, int defStyleAttr,
-        // int defStyleRes) with defStyleRes = android.R.style.Widget_ProgressBar_Horizontal — a concrete
-        // style resource that applies the horizontal look without a theme. Fall back to the plain (Context)
-        // ctor so the widget is never null (a valid determinate bar; only the horizontal *look* is lost).
+        // int defStyleRes) with a concrete horizontal style resource as defStyleRes (applies the horizontal
+        // look without a theme). PARITY P2: that defStyleRes is the THIN Material style
+        // Widget_Material_Light_ProgressBar_Horizontal (see the k_horizontal_style_field note) — NOT the
+        // classic Widget_ProgressBar_Horizontal, whose thick pre-Holo bar + heavy gradient/shadow did not
+        // match real MAUI's thin flat AppCompat/Material track. Try the light field, then the generic/dark
+        // alt, then fall back to the plain (Context) ctor so the widget is never null (a valid determinate
+        // bar; only the horizontal *look* is lost).
         jobject created = nullptr;
         jmethodID ctor_styled = cache.method(env.get(), k_progress_bar_class, "<init>",
                                              "(Landroid/content/Context;Landroid/util/AttributeSet;II)V");
         jclass style_class = cache.find_class(env.get(), k_style_class);
-        // Widget_ProgressBar_Horizontal is a STATIC field — the jni_cache's field() is GetFieldID
+        // The Material horizontal style is a STATIC field — the jni_cache's field() is GetFieldID
         // (instance) and returns null for it, so resolve it directly with GetStaticFieldID.
         jfieldID horizontal_style_field =
-            style_class != nullptr ? env->GetStaticFieldID(style_class, "Widget_ProgressBar_Horizontal", "I") : nullptr;
-        clear_pending(env.get());
+            style_class != nullptr ? env->GetStaticFieldID(style_class, k_horizontal_style_field, "I") : nullptr;
+        clear_pending(env.get()); // a missing-field lookup raises NoSuchFieldError — clear it, then try the alt
+        if (style_class != nullptr && horizontal_style_field == nullptr)
+        {
+            horizontal_style_field = env->GetStaticFieldID(style_class, k_horizontal_style_field_alt, "I");
+            clear_pending(env.get());
+        }
         if (ctor_styled != nullptr && style_class != nullptr && horizontal_style_field != nullptr)
         {
             const jint style_res = env->GetStaticIntField(style_class, horizontal_style_field);
