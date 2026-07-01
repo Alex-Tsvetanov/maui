@@ -100,12 +100,15 @@ namespace maui::core
 #ifdef MAUI_PLATFORM_ANDROID
         // Android backend: push the generic IView properties to the real android.view.View (a GradientDrawable
         // stand-in for the box's solid fill + corner radius) over JNI (src/platform/android/box_view_handler.cpp).
-        // Base body FIRST then widget push; shadow/clip/input_transparent keep ONLY the base mirror (an unwrapped
-        // View has no analog, matching C#). No is_enabled — a shape view is non-interactive.
+        // Base body FIRST then widget push. shadow is pushed NATIVELY (setElevation + a colored spot/ambient
+        // outline shadow, android_visual_ops apply_shadow) — the API-28 colored-elevation expression of
+        // IView.Shadow; clip/input_transparent keep ONLY the base mirror. No is_enabled — a shape view is
+        // non-interactive.
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_automation_id(std::string_view value) override;
         void update_background(const maui::graphics::paint* value) override;
+        void update_shadow(const maui::core::i_shadow* value) override;
         void update_transform(const maui::core::transform_spec& value) override;
         void update_flow_direction(maui::core::flow_direction value) override;
         void update_semantics(const maui::core::semantics* value) override;

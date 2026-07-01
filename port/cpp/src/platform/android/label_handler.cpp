@@ -625,6 +625,27 @@ namespace maui::core
         maui::platform::android::apply_outline_clip(native, value, density, 0.0, 0.0);
     }
 
+    // IView.Shadow → the native colored elevation shadow (android_visual_ops apply_shadow): setElevation +
+    // a rounded-rect (here square, a label has no corner radius) spot/ambient outline shadow tinted to
+    // Shadow.Color × Opacity. Base mirror FIRST, then the widget push. Like update_clip, the label is 0×0 at
+    // map time, so this clears/defers and platform_arrange re-installs the shadow at the live frame size (the
+    // outline is bounds-dependent). Reads the `shadow` borrow the base body just stashed.
+    void label_platform::update_shadow(const maui::core::i_shadow* value)
+    {
+        view_platform_base::update_shadow(value); // headless mirror first (the VM-less suite observes it)
+        if (native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        const float density = display_density(env.get(), widget_of(*this));
+        maui::platform::android::apply_shadow(native, value, density, 0.0, 0.0, 0.0);
+    }
+
     void label_platform::update_transform(const maui::core::transform_spec& value)
     {
         view_platform_base::update_transform(value);
@@ -1284,6 +1305,15 @@ namespace maui::core
         {
             maui::platform::android::apply_outline_clip(platform->native, platform->clip, density, frame.width,
                                                         frame.height);
+        }
+
+        // Re-install the native shadow against the just-laid-out bounds (the same reapply pattern as the clip):
+        // update_shadow ran before the first layout when the label was 0×0 (apply_shadow cleared the elevation
+        // then), and a resize must rebuild the caster rect. A label has no corner radius → a square outline.
+        if (platform->shadow != nullptr)
+        {
+            maui::platform::android::apply_shadow(platform->native, platform->shadow, density, frame.width,
+                                                  frame.height, 0.0);
         }
     }
 } // namespace maui::core

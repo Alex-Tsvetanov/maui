@@ -118,11 +118,14 @@ namespace maui::core
         // Android backend: the border hosts its content child in a dev/mauicpp/MauiLayout and draws the
         // border as a maui-managed GradientDrawable (stroke + corner radius + fill). Generic IView pushes
         // over JNI (src/platform/android/border_handler.cpp); base body FIRST then widget push. No
-        // is_enabled (a border is non-interactive); shadow/clip/input_transparent keep ONLY the base mirror.
+        // is_enabled (a border is non-interactive). shadow is pushed NATIVELY (setElevation + a colored
+        // spot/ambient outline shadow shaped by the border's corner radius — android_visual_ops apply_shadow);
+        // clip/input_transparent keep ONLY the base mirror.
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_automation_id(std::string_view value) override;
         void update_background(const maui::graphics::paint* value) override;
+        void update_shadow(const maui::core::i_shadow* value) override;
         void update_transform(const maui::core::transform_spec& value) override;
         void update_flow_direction(maui::core::flow_direction value) override;
         void update_semantics(const maui::core::semantics* value) override;

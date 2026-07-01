@@ -124,9 +124,10 @@ namespace maui::core
         // override calls the view_platform_base body FIRST — the android preset also runs the pure-native
         // cross-platform suite on the emulator WITHOUT a Java VM, and that suite observes the headless
         // mirrors — then pushes to the widget when one exists. Background pushes a solid fill; transform /
-        // flow-direction / semantics route through the shared android ops (W4-34e). Shadow and
-        // InputTransparent keep ONLY the base mirror (WrapperView-only on Android, no plain-View analog),
-        // exactly as the button partial documents.
+        // flow-direction / semantics route through the shared android ops (W4-34e). Shadow is pushed
+        // NATIVELY (setElevation + a colored spot/ambient outline shadow, android_visual_ops apply_shadow —
+        // the API-28 colored-elevation expression of IView.Shadow); InputTransparent keeps ONLY the base
+        // mirror (no plain-View analog), as the button partial documents.
         //
         // Clip IS pushed for the label (unlike button): a CONVEX outline clip via the shared
         // apply_outline_clip (android_clip_ops.hpp) — setOutlineProvider + setClipToOutline(true). A Label
@@ -142,6 +143,7 @@ namespace maui::core
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
         void update_background(const maui::graphics::paint* value) override;
+        void update_shadow(const maui::core::i_shadow* value) override;
         void update_clip(const maui::graphics::i_shape* value) override;
         void update_transform(const maui::core::transform_spec& value) override;
         void update_flow_direction(maui::core::flow_direction value) override;

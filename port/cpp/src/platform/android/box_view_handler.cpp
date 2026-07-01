@@ -374,6 +374,31 @@ namespace maui::core
         maui::platform::android::apply_semantics(native, value);
     }
 
+    // IView.Shadow on a shape view → the native colored elevation shadow (android_visual_ops apply_shadow).
+    // Base mirror FIRST (the VM-less cross-platform suite observes the borrow), then the widget push. The
+    // view is 0×0 at map time, so apply_shadow clears here and arrange_native re-invokes it at the live size
+    // (the shadow outline is bounds-dependent, exactly like update_clip's outline). The shape's silhouette is
+    // approximated by a plain rounded-rect outline of corner radius 0 (a rect glow) — the exact per-shape
+    // shadow silhouette needs the software WrapperView port (documented on apply_shadow).
+    void shape_view_platform::update_shadow(const maui::core::i_shadow* value)
+    {
+        view_platform_base::update_shadow(value);
+        if (native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        jobject view_obj = view_of(*this);
+        const float density = display_density(env.get(), view_obj);
+        const double width = maui::platform::android::detail::view_width_dp(env.get(), view_obj, density);
+        const double height = maui::platform::android::detail::view_height_dp(env.get(), view_obj, density);
+        maui::platform::android::apply_shadow(native, value, density, width, height, 0.0);
+    }
+
     std::unique_ptr<shape_view_platform> shape_view_handler::create_platform_view()
     {
         auto platform = std::make_unique<shape_view_platform>();
@@ -500,5 +525,13 @@ namespace maui::core
         }
         env->CallVoidMethod(view_obj, layout, left, top, left + width, top + height);
         clear_pending(env.get());
+
+        // Re-resolve the (bounds-dependent) native shadow outline against the just-laid-out size — update_shadow
+        // may have run before layout when the view was 0×0 (apply_shadow cleared the elevation then), and a
+        // resize must rebuild the caster rect. Mirrors the clip reapply pattern (button_handler platform_arrange).
+        if (platform->shadow != nullptr)
+        {
+            maui::platform::android::apply_shadow(view_obj, platform->shadow, density, frame.width, frame.height, 0.0);
+        }
     }
 } // namespace maui::core

@@ -76,6 +76,7 @@
 
 #include "android_semantics_ops.hpp"
 #include "android_view_ops.hpp"
+#include "android_visual_ops.hpp"
 #include "jni/app_context.hpp"
 #include "jni/jni_cache.hpp"
 #include "jni/jni_env.hpp"
@@ -769,12 +770,36 @@ namespace maui::core
         maui::platform::android::apply_semantics(native, value);
     }
 
-    // Shadow / Clip / InputTransparent keep ONLY the base mirror on Android: C#'s ViewExtensions applies
-    // them on a WrapperView, so an unwrapped plain ViewGroup host receives no shadow/clip/input-transparent
-    // update in C# either (there is no apply_shadow / apply_input_transparent android op — the same scope
-    // the content_page/button/layout partials document). No overrides are declared for them in the android
-    // block of border_handler.hpp; the base view_platform_base bodies run. update_clip additionally must
-    // not run because the border SHAPE owns the corner geometry on the GradientDrawable (apple block note).
+    // IView.Shadow on the border host → the native colored elevation shadow (android_visual_ops apply_shadow),
+    // shaped by the border's corner radius so the glow follows the rounded box. Base mirror FIRST, then the
+    // widget push. The host is 0×0 at map time (apply_shadow clears the elevation then); arrange_native
+    // re-invokes apply_shadow at the live size + the recovered corner radius (the outline is bounds-dependent,
+    // like update_border's stroke path). The corner radius is not on the shadow, so update_shadow uses 0 here
+    // and arrange_native supplies the real radius via corner_radii_of(virtual_view()->shape()).
+    void border_platform::update_shadow(const maui::core::i_shadow* value)
+    {
+        view_platform_base::update_shadow(value);
+        if (native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        jobject host = host_of(*this);
+        const float density = display_density(env.get(), host);
+        const double width = maui::platform::android::detail::view_width_dp(env.get(), host, density);
+        const double height = maui::platform::android::detail::view_height_dp(env.get(), host, density);
+        maui::platform::android::apply_shadow(native, value, density, width, height, 0.0);
+    }
+
+    // Clip / InputTransparent keep ONLY the base mirror on Android: C#'s ViewExtensions applies them on a
+    // WrapperView, so an unwrapped plain ViewGroup host receives no clip/input-transparent update in C#
+    // either. No overrides are declared for them in the android block of border_handler.hpp; the base
+    // view_platform_base bodies run. update_clip additionally must not run because the border SHAPE owns the
+    // corner geometry on the GradientDrawable (apple block note).
 
     std::unique_ptr<border_platform> border_handler::create_platform_view()
     {
@@ -917,5 +942,15 @@ namespace maui::core
         }
         env->CallVoidMethod(host, layout, left, top, left + width, top + height);
         clear_pending(env.get());
+
+        // Re-resolve the (bounds-dependent) native shadow outline against the just-laid-out size + the border's
+        // recovered corner radius — update_shadow ran before layout when the host was 0×0 (apply_shadow cleared
+        // the elevation then). Mirrors the stroke-path refresh: the shadow silhouette follows the rounded box.
+        if (platform->shadow != nullptr)
+        {
+            const maui::graphics::corner_radius radius = corner_radii_of(platform->border.shape);
+            maui::platform::android::apply_shadow(host, platform->shadow, density, frame.width, frame.height,
+                                                  radius.top_left);
+        }
     }
 } // namespace maui::core
