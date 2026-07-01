@@ -116,8 +116,8 @@
 },
 {
 "key": "check_box",
-"status": "red",
-"note": "Checkboxes render at the far left edge (x~37) in the C++ port, but MAUI centers them around x~460-495 — a clear horizontal alignment/layout bug, not a crop artifact (same 1080x2340 canvas)."
+"status": "green",
+"note": "All 4 standalone checkboxes now center-aligned matching MAUI (Default/Colored/Disabled/Disabled Colored); row checkbox next to button stays left, matches MAUI."
 },
 {
 "key": "chrome",
@@ -177,7 +177,7 @@
 {
 "key": "controls_stack",
 "status": "yellow",
-"note": "SearchBar magnifier icon is faint gray outline vs MAUI's solid black icon; ActivityIndicator spinner not visible (blank) vs MAUI's visible spinning ring; rest matches."
+"note": "Checkbox stays left, matches MAUI (row context, correct). Residuals: SearchBar magnifier icon faded gray vs MAUI's solid black; ActivityIndicator renders as faint dot not visible spinner ring."
 },
 {
 "key": "custom_layout",
@@ -282,7 +282,7 @@
 {
 "key": "entry",
 "status": "yellow",
-"note": "Checkbox and 'This should be on the end' entry are right-aligned in MAUI but left-aligned in cpp port; rest matches."
+"note": "Standalone Fill checkbox now centers matching MAUI. Residual: 'This should be on the end' entry text is left-aligned in cpp vs right/end-aligned in MAUI (HorizontalTextAlignment=End not applied)."
 },
 {
 "key": "filter_collection",
