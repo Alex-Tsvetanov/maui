@@ -611,13 +611,13 @@
 },
 {
 "key": "radio_button_content",
-"status": "red",
-"note": "C++ renders large black coffee-cup graphics for the ControlTemplate radio group; MAUI shows only two thin colored lines there (icons don't render); MAUI also has a subtle divider box C++ lacks"
+"status": "yellow",
+"note": "content/layout match MAUI exactly (coffee.png fallback correct); templated row has a drop-shadow/card elevation in cpp vs MAUI's flat thin-divider row"
 },
 {
 "key": "radio_button_group",
 "status": "green",
-"note": "matches MAUI: same 4 options, same layout with Option D in grid to the right"
+"note": "matches MAUI: header text, Options A-D with unfilled rings, Option D in Grid, spacing all align"
 },
 {
 "key": "radio_button_group_binding",
@@ -636,8 +636,8 @@
 },
 {
 "key": "radio_template_from_style",
-"status": "red",
-"note": "C++ centers the A/B/C grid mid-screen with wide margins and FILLED blue radio dots; MAUI is flush-left, narrower, shorter rows, and UNFILLED (unselected) radio outlines"
+"status": "green",
+"note": "matches MAUI: flush-left A/B/C tiles with empty blue-ring radio in top-right corner"
 },
 {
 "key": "rectangle_gallery",
