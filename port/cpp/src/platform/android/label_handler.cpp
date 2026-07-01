@@ -139,6 +139,21 @@ namespace
     constexpr jint k_gravity_center_vertical = 0x10;
     constexpr jint k_gravity_bottom = 0x50;
     constexpr jint k_gravity_vertical_mask = 0x70;
+    // android.view.Gravity horizontal bits (AlignmentExtensions.ToHorizontalGravityFlags — the RELATIVE
+    // Start/End, so FlowDirection is honored by the OS gravity resolver; CenterHorizontal is direction-free).
+    // MAUI's Label path (TextViewExtensions.UpdateHorizontalTextAlignment) sets only View.TextAlignment when
+    // Rtl.IsSupported, relying on the attached-window layout pass to resolve it. This APK-less backend measures
+    // and lays a DETACHED TextView by hand (no window → the text-direction/gravity resolution that TextAlignment
+    // needs never runs → TextAlignment is silently ignored, exactly the runtime failure MAUI's own
+    // TextAlignmentExtensions comment documents: "The text alignment does not work at runtime, so we also need
+    // to update the gravity."). So the port pushes BOTH: setTextAlignment (correct for an attached widget-host
+    // run) AND the horizontal Gravity bits (the reliable path here), combined with the current vertical bits.
+    constexpr jint k_gravity_center_horizontal = 0x01;
+    constexpr jint k_gravity_relative_layout_direction = 0x00800000;
+    constexpr jint k_gravity_start = k_gravity_relative_layout_direction | 0x03; // RELATIVE | LEFT
+    constexpr jint k_gravity_end = k_gravity_relative_layout_direction | 0x05;   // RELATIVE | RIGHT
+    // TextAlignmentExtensions.HorizontalGravityMask = CenterHorizontal | Start | End (clears prior H bits).
+    constexpr jint k_gravity_horizontal_mask = k_gravity_center_horizontal | k_gravity_start | k_gravity_end;
     // android.graphics.Paint flags (UpdateTextDecorations toggles these).
     constexpr jint k_paint_underline = 0x08;
     constexpr jint k_paint_strike_thru = 0x10;
@@ -796,22 +811,49 @@ namespace maui::core
             return;
         }
         jobject widget = widget_of(*platform);
+        auto& cache = default_jni_cache();
+        const text_alignment horizontal = view.horizontal_text_alignment();
         // TextViewExtensions.UpdateHorizontalTextAlignment (Rtl supported on min API): View.TextAlignment =
-        // ToTextAlignment(h); Center→CENTER, End→VIEW_END, else VIEW_START.
+        // ToTextAlignment(h); Center→CENTER, End→VIEW_END, else VIEW_START. Kept for the attached widget-host.
         jint alignment = k_text_alignment_view_start;
-        if (view.horizontal_text_alignment() == text_alignment::center)
+        if (horizontal == text_alignment::center)
         {
             alignment = k_text_alignment_center;
         }
-        else if (view.horizontal_text_alignment() == text_alignment::end)
+        else if (horizontal == text_alignment::end)
         {
             alignment = k_text_alignment_view_end;
         }
         call_void_int(env.get(), widget, "setTextAlignment", alignment);
+        // ALSO push the horizontal Gravity bits (AlignmentExtensions.ToHorizontalGravityFlags): Center→
+        // CenterHorizontal, End→End, else Start. TextAlignment is silently ignored on the detached, hand-laid
+        // TextView this backend uses (header on the constants) — Gravity is the reliable horizontal-alignment
+        // path here and is what makes the center/end rows visually align. Read-modify-write over the current
+        // Gravity so the vertical bits (set by map_vertical_text_alignment) survive; clear the prior horizontal
+        // bits with HorizontalGravityMask first, exactly like TextAlignmentExtensions.UpdateHorizontalAlignment.
+        jmethodID get_gravity = cache.method(env.get(), k_text_view_class, "getGravity", "()I");
+        jmethodID set_gravity = cache.method(env.get(), k_text_view_class, "setGravity", "(I)V");
+        if (get_gravity != nullptr && set_gravity != nullptr)
+        {
+            const jint current = env->CallIntMethod(widget, get_gravity);
+            if (!clear_pending(env.get()))
+            {
+                jint horizontal_bits = k_gravity_start;
+                if (horizontal == text_alignment::center)
+                {
+                    horizontal_bits = k_gravity_center_horizontal;
+                }
+                else if (horizontal == text_alignment::end)
+                {
+                    horizontal_bits = k_gravity_end;
+                }
+                env->CallVoidMethod(widget, set_gravity, (current & ~k_gravity_horizontal_mask) | horizontal_bits);
+                clear_pending(env.get());
+            }
+        }
         // API 26+: JustificationMode = InterWord for Justify, else None.
-        const jint justification = view.horizontal_text_alignment() == text_alignment::justify
-                                       ? k_justification_inter_word
-                                       : k_justification_none;
+        const jint justification =
+            horizontal == text_alignment::justify ? k_justification_inter_word : k_justification_none;
         call_void_int(env.get(), widget, "setJustificationMode", justification);
     }
 
