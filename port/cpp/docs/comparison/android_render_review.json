@@ -116,8 +116,8 @@
 },
 {
 "key": "check_box",
-"status": "yellow",
-"note": "Checkbox content/colors/states match MAUI but C++ left-aligns checkboxes near screen edge while MAUI centers them in the column."
+"status": "green",
+"note": "Matches MAUI; default checkbox is gray outline (fix confirmed, not navy); colored/disabled/disabled-colored/IsChecked states all match with explicit purple/red colors intact."
 },
 {
 "key": "chrome",
@@ -177,7 +177,7 @@
 {
 "key": "controls_stack",
 "status": "yellow",
-"note": "Switch gray (fixed), checkbox blue matches MAUI (not navy). Residuals: search icon faded/light vs MAUI's solid dark icon; ActivityIndicator nearly invisible vs MAUI's visible spinner ring."
+"note": "Checkbox now MATCHES MAUI gray. Residuals: search-icon lighter shade + spinner arc rendering differ slightly (both pre-known minors); layout otherwise matches."
 },
 {
 "key": "custom_layout",
@@ -282,7 +282,7 @@
 {
 "key": "entry",
 "status": "yellow",
-"note": "CheckBox renders solid blue/enabled in port vs washed-out light-gray in MAUI; 'This should be on the end' Entry text is left-aligned in port but right-aligned (End) in MAUI"
+"note": "Checkbox now gray, matches MAUI. Residuals: checkbox not horizontally centered like MAUI, and last entry text not right-aligned (TextAlignment=End not applied, pre-existing alignment bug)."
 },
 {
 "key": "filter_collection",
