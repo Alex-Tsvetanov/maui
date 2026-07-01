@@ -25,18 +25,5 @@
              land on pure white. -->
         <item name="android:windowBackground">@android:color/white</item>
         <item name="android:colorBackground">@android:color/white</item>
-        <!-- Match MAUI's default label text color. LabelHandler captures the TextView's default text color
-             once (getCurrentTextColor) and restores it for any label with no explicit TextColor. A plain
-             framework TextView resolves its default color from its textAppearance, which on
-             DeviceDefault.Light lands on a light bluish-gray (the FlexLayout CONTENT label read as barely
-             legible, glyph ~#747481 on the gray body vs MAUI's ~#3B3B3B). Real .NET MAUI parents on
-             Theme.MaterialComponents.DayNight.Light, whose primary text is #DE000000 (87% black). A bare
-             TextView does not necessarily read textColorPrimary (it may resolve textColorSecondary/Tertiary
-             via the default appearance), so pin all three neutral text-color slots to the same dark value —
-             unset labels then match MAUI's dark, neutral default whichever slot the appearance resolves.
-             Scoped to the capture-harness theme; no handler/shared code changes. -->
-        <item name="android:textColorPrimary">#DE000000</item>
-        <item name="android:textColorSecondary">#DE000000</item>
-        <item name="android:textColorTertiary">#DE000000</item>
     </style>
 </resources>
