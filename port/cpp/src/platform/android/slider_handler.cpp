@@ -109,6 +109,21 @@ namespace
     constexpr const char* k_seek_bar_class = "android/widget/SeekBar";
     constexpr const char* k_color_state_list_class = "android/content/res/ColorStateList";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
+    constexpr const char* k_style_class = "android/R$style";
+
+    // The SeekBar's defStyleRes (see create_platform_view). PARITY P1: real .NET MAUI renders its SeekBar
+    // through the AppCompat/Material theme (AppCompatSeekBar under a Material theme) → the THIN modern
+    // Material track + small round thumb. The classic android.R.style.Widget_SeekBar (used before this fix)
+    // is the pre-Holo Gingerbread style → a THICK rounded bar with a large gray pill thumb, which does NOT
+    // match MAUI. This AAR-less backend has no AndroidX (no AppCompatSeekBar), but the framework carries the
+    // concrete Material SeekBar style resources, and a concrete defStyleRes needs no theme attribute (so it
+    // constructs on the bare, Activity-less testhost Context too). Widget_Material_Light_SeekBar is the
+    // light-theme variant the gallery's default light Material theme renders under (matching MAUI's light
+    // capture); Widget_Material_SeekBar is the generic/dark twin, tried if the light field is absent — the
+    // same primary→alt pattern switch_handler.cpp uses (Widget_Material_Light_CompoundButton_Switch →
+    // Widget_Material_CompoundButton_Switch). Both are read with GetStaticFieldID (static fields).
+    constexpr const char* k_seek_bar_style_field = "Widget_Material_Light_SeekBar";
+    constexpr const char* k_seek_bar_style_field_alt = "Widget_Material_SeekBar";
 
     // SliderExtensions.PlatformMaxValue — MAUI scales [Minimum,Maximum] onto this fixed integer SeekBar
     // range. The oracle defines it as `int.MaxValue` (NOT the ProgressBar's 10000) — read, not guessed.
@@ -439,24 +454,34 @@ namespace maui::core
         // Max = (int)PlatformMaxValue }`. The plain `new SeekBar(Context)` ctor resolves the seekBarStyle
         // theme attribute against the Context's THEME — which the app_process widget test host (a bare,
         // Activity-less Context) does NOT carry, so that ctor throws there (the agent flagged this exact
-        // failure for ProgressBar). Use the theme-INDEPENDENT 3-arg `(Context, AttributeSet, int
-        // defStyleAttr)` ctor with a null AttributeSet + 0 defStyleAttr (no theme-attr resolution), and
-        // fall back to the plain (Context) ctor so the widget is never null (only relevant on a real,
-        // themed Context, where it matches C#'s `new SeekBar(Context)`).
+        // failure for ProgressBar). Use the theme-INDEPENDENT 4-arg `(Context, AttributeSet, int
+        // defStyleAttr, int defStyleRes)` ctor with a null AttributeSet, 0 defStyleAttr, and the concrete
+        // THIN Material SeekBar style as defStyleRes (see the k_seek_bar_style_field note — PARITY P1). On a
+        // real, themed Context this matches real MAUI's AppCompat/Material SeekBar (thin track, small round
+        // thumb), and it also constructs on the bare testhost since a concrete style needs no theme attr.
         jobject created = nullptr;
         // A horizontal SeekBar needs its STYLE for the thumb/track drawables (and thus a non-zero intrinsic
         // size); defStyleAttr=0 yields a degenerate, size-0, drawable-less SeekBar (measure → 0×0). The
         // plain SeekBar(Context) resolves the seekBarStyle theme attr, which the bare app_process testhost
-        // lacks (throws). So construct via the theme-INDEPENDENT 4-arg ctor with defStyleRes =
-        // android.R.style.Widget_SeekBar (a concrete style resource — like progress_bar's horizontal style;
-        // read with GetStaticFieldID since it is a static field), then fall back to the 3-arg defStyleAttr=0
-        // and finally the plain (Context) ctor so the widget is never null.
+        // lacks (throws). So construct via the theme-INDEPENDENT 4-arg ctor with a concrete defStyleRes.
+        //
+        // PARITY P1: the defStyleRes is the THIN Material style Widget_Material_Light_SeekBar (see the field
+        // note above) — NOT the classic Widget_SeekBar, whose thick pre-Holo bar + large pill thumb did not
+        // match real MAUI's thin AppCompat/Material track + small round thumb. A concrete style resource
+        // resolves no theme attribute, so it constructs on the bare testhost too (identical to the
+        // switch/entry Material-style fix). Try the light field, then the generic/dark alt, then fall back
+        // to the 3-arg defStyleAttr=0 and finally the plain (Context) ctor so the widget is never null.
         jmethodID ctor_styled = cache.method(env.get(), k_seek_bar_class, "<init>",
                                              "(Landroid/content/Context;Landroid/util/AttributeSet;II)V");
-        jclass style_class = cache.find_class(env.get(), "android/R$style");
+        jclass style_class = cache.find_class(env.get(), k_style_class);
         jfieldID seek_bar_style_field =
-            style_class != nullptr ? env->GetStaticFieldID(style_class, "Widget_SeekBar", "I") : nullptr;
-        clear_pending(env.get());
+            style_class != nullptr ? env->GetStaticFieldID(style_class, k_seek_bar_style_field, "I") : nullptr;
+        clear_pending(env.get()); // a missing-field lookup raises NoSuchFieldError — clear it, then try the alt
+        if (style_class != nullptr && seek_bar_style_field == nullptr)
+        {
+            seek_bar_style_field = env->GetStaticFieldID(style_class, k_seek_bar_style_field_alt, "I");
+            clear_pending(env.get());
+        }
         if (ctor_styled != nullptr && style_class != nullptr && seek_bar_style_field != nullptr)
         {
             const jint style_res = env->GetStaticIntField(style_class, seek_bar_style_field);
