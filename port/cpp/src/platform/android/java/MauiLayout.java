@@ -52,6 +52,17 @@ public final class MauiLayout extends ViewGroup {
 
     public MauiLayout(Context context) {
         super(context);
+        // Match MAUI's LayoutViewGroup default: do NOT clip children to the panel bounds. MAUI's
+        // LayoutViewGroup.OnLayout sets ClipBounds = null whenever ClipsToBounds is false (the ILayout
+        // default), so a child positioned outside the panel's own frame still renders. An Android ViewGroup
+        // instead defaults clipChildren/clipToPadding to TRUE, which would hide any child the cross-platform
+        // arrange places past the panel edge — e.g. a FlexLayout column whose Grow="1" body pushes the
+        // trailing FOOTER a few dp below the panel bottom (a known flex measure quirk shared with C#: a grow
+        // child measured to the full available height makes the outer flex slightly over-allocate). Clearing
+        // the clip here is the port twin of MAUI's ClipBounds = null default; update_clips_to_bounds re-enables
+        // clipping (setClipChildren(true)) for a layout that explicitly sets ClipsToBounds = true.
+        setClipChildren(false);
+        setClipToPadding(false);
     }
 
     // The handler installs the peer (the layout_handler address) after construction and clears it (0) on

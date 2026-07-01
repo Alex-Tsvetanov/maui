@@ -243,16 +243,22 @@ namespace
         return env->NewLocalRef(native);
     }
 
-    // The system-chrome height (in PIXELS) the Activity's content view does NOT get: the status bar plus
-    // the Activity's title/action bar. MauiHostActivity extends the plain android.app.Activity, whose
-    // default theme paints a status bar at the top and a title bar (the "MAUI C++ Gallery" toolbar in the
-    // captures) above setContentView's content frame — so the content area is SHORTER than the raw
-    // DisplayMetrics height by these two. display_size lays the page out over the device display, so
-    // without this subtraction a page whose bottom row is anchored to the content bottom (a Grid with a
-    // `*` row over an `Auto` row — update_path_data) places that row at displayHeight, BELOW the visible
-    // content frame, and it never appears. Both heights are read from the framework: the status bar from
-    // the android `status_bar_height` dimen resource, the action bar from the theme's actionBarSize
-    // attribute. Returns 0 on any failure (so the page still mounts, just over the full display as before).
+    // The system-chrome height (in PIXELS) the Activity's content view does NOT get: the status bar and the
+    // Activity's title/action bar ABOVE the content frame, plus the system navigation bar BELOW it.
+    // MauiHostActivity extends the plain android.app.Activity, whose default theme paints a status bar at the
+    // top, a title bar (the "MAUI C++ Gallery" toolbar in the captures) above setContentView's content frame,
+    // and a navigation/gesture bar at the bottom — so the content area is SHORTER than the raw DisplayMetrics
+    // height by all three (confirmed on the maui-test AVD: content=[0,290..2274] of a 2340px display, i.e.
+    // status 136 + actionBar 154 above, nav 66 below). display_size lays the page out over the device
+    // display, so without this subtraction a page whose bottom child is anchored to the content bottom (a
+    // Grid `*`-over-`Auto` row, or a FlexLayout column's FOOTER after a Grow="1" body) is placed BELOW the
+    // visible content frame and never appears — the FlexLayout footer bug this height reconciles. The three
+    // heights are read from the framework: status bar + nav bar from the android `status_bar_height` /
+    // `navigation_bar_height` dimen resources (same getIdentifier/getDimensionPixelSize read), the action bar
+    // from the theme's actionBarSize attribute. Returns 0 on any failure (page still mounts, over the full
+    // display as before). Note: `navigation_bar_height` is the classic (3-button) inset value; on a
+    // gesture-nav device the bottom inset is smaller, so this may over-subtract a little there — the safe
+    // direction (the footer sits just inside the content bottom, never off it).
     [[nodiscard]] jint content_chrome_height_px(JNIEnv* env, jobject activity)
     {
         if (env == nullptr || activity == nullptr)
@@ -288,31 +294,38 @@ namespace
         }
         const maui::platform::android::local_ref<jclass> resources_class{env, env->GetObjectClass(resources.get())};
 
-        // --- status bar: getDimensionPixelSize(getIdentifier("status_bar_height", "dimen", "android")) ---
+        // --- status bar (top) + navigation bar (bottom): for each, getDimensionPixelSize(getIdentifier(
+        //     "<name>", "dimen", "android")). Both framework dimens read identically; sum whichever resolve. ---
         jmethodID get_identifier = env->GetMethodID(resources_class.get(), "getIdentifier",
                                                     "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I");
         jmethodID get_dimension_pixel_size = env->GetMethodID(resources_class.get(), "getDimensionPixelSize", "(I)I");
         if (get_identifier != nullptr && get_dimension_pixel_size != nullptr)
         {
-            const maui::platform::android::local_ref<jstring> name{env, env->NewStringUTF("status_bar_height")};
             const maui::platform::android::local_ref<jstring> deftype{env, env->NewStringUTF("dimen")};
             const maui::platform::android::local_ref<jstring> defpkg{env, env->NewStringUTF("android")};
-            const jint res_id =
-                env->CallIntMethod(resources.get(), get_identifier, name.get(), deftype.get(), defpkg.get());
-            if (env->ExceptionCheck() == JNI_TRUE)
+            for (const char* const dimen_name : {"status_bar_height", "navigation_bar_height"})
             {
-                clear();
-            }
-            else if (res_id > 0)
-            {
-                const jint status_px = env->CallIntMethod(resources.get(), get_dimension_pixel_size, res_id);
+                const maui::platform::android::local_ref<jstring> name{env, env->NewStringUTF(dimen_name)};
+                const jint res_id =
+                    env->CallIntMethod(resources.get(), get_identifier, name.get(), deftype.get(), defpkg.get());
                 if (env->ExceptionCheck() == JNI_TRUE)
                 {
                     clear();
+                    continue;
                 }
-                else if (status_px > 0)
+                if (res_id <= 0)
                 {
-                    total += status_px;
+                    continue;
+                }
+                const jint bar_px = env->CallIntMethod(resources.get(), get_dimension_pixel_size, res_id);
+                if (env->ExceptionCheck() == JNI_TRUE)
+                {
+                    clear();
+                    continue;
+                }
+                if (bar_px > 0)
+                {
+                    total += bar_px;
                 }
             }
         }
