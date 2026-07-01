@@ -1866,6 +1866,60 @@ if(MAUI_BACKEND STREQUAL "android")
   endif()
 endif()
 
+# ---- Android C++&XAML APP HOST shared library (the real-Activity gallery_xaml .so) ----
+# The XAML twin of maui_android_apphost: same real-Activity boot + generic mount, but every page is built
+# from Views/<name>.xaml markup at COMPILE TIME (examples::Views::<name>_page() factories) instead of a
+# hand-written C++ page type. It backs the Android C++&XAML parity column.
+#
+# WHY BYTES-MODE (not the committed #embed TUs): examples/gallery_xaml/Views/<name>.xaml.cpp use #embed,
+# which the NDK's bundled Clang (18 as of NDK 27) does NOT implement — those TUs fail to preprocess on
+# android. So we generate a bytes-mode twin of each TU (gen_pages.py --embed-mode=bytes) that inlines the
+# .xaml as an `unsigned char[]` byte-array literal fed into the SAME fixed_string/build_page path (plain
+# C++23, Clang-18 clean). The generation runs at CONFIGURE time into the build tree (android-only, NEVER
+# into Views/, so the committed #embed TUs the iOS/macOS lanes need are untouched). The bytes-mode TUs
+# reuse the committed Views/<name>.xaml.hpp declarations + Views/gallery_pages.hpp X-macro verbatim.
+if(MAUI_BACKEND STREQUAL "android")
+  set(GALLERY_XAML_DIR ${CMAKE_CURRENT_SOURCE_DIR}/examples/gallery_xaml)
+  set(GALLERY_XAML_BYTES_DIR ${CMAKE_BINARY_DIR}/generated/gallery_xaml_bytes/Views)
+
+  # The generator is a plain stdlib python3 script (argparse only). Locate an interpreter (no numpy/etc,
+  # so no find_package(Python3) machinery needed — just the executable).
+  find_program(MAUI_PYTHON3 NAMES python3 python REQUIRED)
+
+  # Generate the bytes-mode .xaml.cpp TUs at CONFIGURE time (so file(GLOB) below sees them). A new/removed
+  # twin needs a re-configure to be picked up — the same convention gallery_xaml/CMakeLists.txt uses for
+  # its #embed GLOB. The generator reads every Views/*.xaml and emits one .xaml.cpp per twin here.
+  execute_process(
+    COMMAND ${MAUI_PYTHON3} ${GALLERY_XAML_DIR}/tools/gen_pages.py
+            --embed-mode=bytes --out-dir ${GALLERY_XAML_BYTES_DIR}
+    RESULT_VARIABLE gen_xaml_bytes_rc
+    OUTPUT_VARIABLE gen_xaml_bytes_out
+    ERROR_VARIABLE gen_xaml_bytes_err)
+  if(NOT gen_xaml_bytes_rc EQUAL 0)
+    message(FATAL_ERROR "gen_pages.py --embed-mode=bytes failed (rc=${gen_xaml_bytes_rc}):\n${gen_xaml_bytes_err}")
+  endif()
+  message(STATUS "gallery_xaml bytes-mode codegen: ${gen_xaml_bytes_out}")
+
+  file(GLOB GALLERY_XAML_BYTES_SOURCES ${GALLERY_XAML_BYTES_DIR}/*.xaml.cpp)
+
+  add_library(maui_android_apphost_xaml SHARED
+    examples/gallery_xaml/apphost/app_host.cpp
+    ${GALLERY_XAML_BYTES_SOURCES})
+  # The JNI seam headers live under src/platform/android ("jni/..."); the per-page factory decls +
+  # gallery_pages.hpp live under examples/gallery_xaml ("Views/..."). Both are on the include path.
+  target_include_directories(maui_android_apphost_xaml PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/android
+    ${GALLERY_XAML_DIR})
+  # maui_hosting brings mount_window / drive_layout / the builder + seeded controls handler table (and
+  # transitively maui_controls / maui_core with the android handler partials swapped in). maui_xaml brings
+  # the runtime xaml_loader build_page hydrates the byte-array markup through — the ONLY extra link vs the
+  # C++ apphost (the XAML twin parses at mount instead of dispatching a C++ page type).
+  target_link_libraries(maui_android_apphost_xaml PRIVATE maui_hosting maui_xaml maui_sanitizers)
+  if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
+    set_target_properties(maui_android_apphost_xaml PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+  endif()
+endif()
+
 # ---- Hosting tests (GoogleTest). Backend-agnostic pure C++; wired like maui_xaml_tests — built on
 # headless + apple but SKIPPED on ios (no device-specific coverage; the GCD dispatcher's on-simulator
 # coverage lives in maui_core_tests' gcd_dispatcher_tests.mm instead). ----

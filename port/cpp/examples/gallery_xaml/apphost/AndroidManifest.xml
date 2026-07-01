@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Minimal manifest for the C++&XAML MAUI gallery app host. The XAML twin of
+     src/platform/android/apphost/AndroidManifest.xml — same build (aapt2 link, d8 dex, .so under
+     lib/<abi>, zipalign + apksigner, no gradle), but a DIFFERENT package (dev.mauicpp.apphost.xaml) so
+     it installs alongside the C++ builder host (dev.mauicpp.apphost) and both can be captured. One
+     launchable Activity; no permissions or resources beyond the manifest. minSdk 24 matches the android
+     preset's ANDROID_PLATFORM. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="dev.mauicpp.apphost.xaml">
+
+    <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34" />
+
+    <application
+        android:label="MAUI C++ Gallery (XAML)"
+        android:hasCode="true"
+        android:allowBackup="false">
+        <activity
+            android:name=".MauiHostActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
