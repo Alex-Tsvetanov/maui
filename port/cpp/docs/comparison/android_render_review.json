@@ -127,17 +127,17 @@
 {
 "key": "clip",
 "status": "green",
-"note": "Matches MAUI: Image, Clipped-RectangleGeometry, Clipped-EllipseGeometry, Clipped-GeometryGroup all identical; gray placeholder box renders, submarine image Start-aligned in each section."
+"note": "Rectangle/Ellipse/GeometryGroup clips match MAUI clip shapes and crop regions exactly"
 },
 {
 "key": "clip_corner_radius",
 "status": "green",
-"note": "Matches MAUI: dog image sits Start-aligned in gray placeholder box (top-left), size/position match; sliders, labels, spacing match."
+"note": "matches MAUI: round-rect clipped dog image + 4 corner sliders (all at min) identical layout and content"
 },
 {
 "key": "clip_gallery",
 "status": "green",
-"note": "Matches MAUI: plain Image, RectangleGeometry-clipped, RoundRectangleGeometry-clipped (rounded corners) all correspond; gray placeholder box present and correctly positioned/aligned."
+"note": "matches MAUI: dog photo + rect/round-rect clipped images correctly bounded in gray box, no spill/wrong-crop; cpp just scrolled less far than maui shot"
 },
 {
 "key": "clip_views",
@@ -352,27 +352,27 @@
 {
 "key": "header_footer",
 "status": "green",
-"note": "Matches MAUI: 'Just a string as a header', 3 file rows, 'This footer is also a string' footer, same text and order."
+"note": "matches MAUI; header string, 3 list items, footer string all present and correctly ordered (maui shot just scrolled/cropped lower)"
 },
 {
 "key": "header_footer_grid",
-"status": "red",
-"note": "Footer's rotated 'This Is A Footer' label is essentially missing in cpp (only a tiny clipped fragment visible) vs MAUI's clearly rendered diagonal text overlay."
+"status": "green",
+"note": "matches MAUI: header image/title/Add Content, 3-col filename grid, footer image with overlapping rotated footer caption"
 },
 {
 "key": "header_footer_grid_horizontal",
-"status": "red",
-"note": "Header text wraps to 3 lines instead of 1; header image renders full-height not a short strip; content items overlap/misaligned vs MAUI's clean horizontal-grid layout."
+"status": "yellow",
+"note": "structural: port has no horizontal scroll so header/items/footer render stacked+fit-to-width; MAUI shot is horizontally scrolled (header text cut at right edge) per documented deviation"
 },
 {
 "key": "header_footer_template",
 "status": "red",
-"note": "Header/footer text nearly invisible (faint) vs MAUI's solid readable text; list items jumbled/overlapping with random gaps instead of MAUI's clean sequential rows."
+"note": "Header/footer entirely missing the cover photo image (text-only); middle 'oasis.jpg' item renders as blue placeholder box instead of actual photo thumbnail"
 },
 {
 "key": "header_footer_view",
 "status": "green",
-"note": "Matches MAUI: header dog image with 'This Is A Header' title, footer image with 'This Is A Footer' + Add/Clear buttons, same layout and colors."
+"note": "Header + footer images and buttons all render correctly, full width, no spill/overlap; matches MAUI content"
 },
 {
 "key": "hit_testing",
@@ -392,7 +392,7 @@
 {
 "key": "image",
 "status": "green",
-"note": "FileSource submarine image matches MAUI exactly, same crop/fill/position; no gray box needed (not clipped/font-image). Only diff is scroll offset (maui shows further sections)."
+"note": "Submarine photo renders correctly, not over-scaled/cropped; matches MAUI content/order"
 },
 {
 "key": "image_button",
@@ -542,7 +542,7 @@
 {
 "key": "nested_collection",
 "status": "green",
-"note": "matches MAUI: same red italic 'Source N' headers + blue horizontal-scrolling Caption items per nested CollectionView row"
+"note": "Matches MAUI: captions sit below Source N headers (not overlapping), same 7 sections, same layout/spacing rhythm."
 },
 {
 "key": "pan_gesture_events",
