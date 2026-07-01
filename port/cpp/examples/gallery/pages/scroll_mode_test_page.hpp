@@ -87,6 +87,7 @@ namespace maui::samples
             mode_items_->add("KeepItemsInView");
             mode_items_->add("KeepScrollOffset");
             mode_items_->add("KeepLastItemInView");
+            mode_picker_.set_width_request(200); // EnumSelector<T>'s Picker { WidthRequest = 200 }
             mode_picker_.set_items_source(mode_items_);
             mode_picker_.set_selected_index(0); // KeepItemsInView (the default mode_)
             mode_picker_.selected_index_changed.connect([this] { on_mode_picked(); });
