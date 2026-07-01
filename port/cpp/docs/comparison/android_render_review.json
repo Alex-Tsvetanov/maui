@@ -26,8 +26,8 @@
 },
 {
 "key": "animation",
-"status": "red",
-"note": "MAUI shows a small bot/emoji glyph icon above the buttons (animation target); cpp shows no icon at all, only truncated text label"
+"status": "yellow",
+"note": "PORT FIXED (ce534d5f80) — now renders the dotnet_bot Image target (faithful to real MAUI AnimationPage.xaml, was a Label stand-in). maui-compare reference still shows a Label; reference recapture pending."
 },
 {
 "key": "app_theme_binding",
@@ -131,8 +131,8 @@
 },
 {
 "key": "clip_corner_radius",
-"status": "red",
-"note": "Wrong image: cpp shows purple submarine/robot image, MAUI shows a black pug dog photo. Also slider thumbs are filled/thick vs MAUI's thin hollow Material thumbs."
+"status": "yellow",
+"note": "PORT CORRECT — faithful to real MAUI (Source=oasis.jpg=pug dog). Board diff is a maui-compare REFERENCE artifact (it uses dotnet_bot.png=submarine); reference-fix+recapture pending, not a port bug."
 },
 {
 "key": "clip_gallery",
@@ -662,7 +662,7 @@
 {
 "key": "scroll_mode_test",
 "status": "yellow",
-"note": "port shows only 'KeepItemsInView' button; MAUI shows two segmented buttons side-by-side ('KeepItemsInView' + 'KeepScrollOffset' cut off) - second option missing/not visible"
+"note": "PORT CORRECT — faithful to real MAUI EnumSelector (Label+Picker, WidthRequest=200). Board diff is a maui-compare REFERENCE artifact (3 buttons); reference-fix+recapture pending."
 },
 {
 "key": "scroll_to_group",
