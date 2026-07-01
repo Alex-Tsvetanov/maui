@@ -704,21 +704,13 @@ namespace maui::core
                 clear_pending(env.get());
             }
         }
-        // LabelHandler._labelTextColorDefault: capture the TextView's default text color ONCE, from the
-        // freshly-created widget, before any map_* touches it (TextView.getCurrentTextColor returns the
-        // theme's textColorPrimary — a dark gray, ~0xDE000000, NOT pure black). map_text_color restores
-        // this on the unset branch, mirroring TextViewExtensions.UpdateTextColor's "leave the native
-        // default when TextColor is null" behavior. (The button partial hard-codes white instead because
-        // its Material-styled default label IS white; a plain TextView's captured default is the theme
-        // gray, so the port reads it rather than assuming a constant.)
-        if (jmethodID get_current_text_color = cache.method(env.get(), k_text_view_class, "getCurrentTextColor", "()I"))
-        {
-            const jint captured = env->CallIntMethod(widget.get(), get_current_text_color);
-            if (!clear_pending(env.get()))
-            {
-                platform->default_text_color = static_cast<int>(captured);
-            }
-        }
+        // TextColor default: the port does NOT capture-and-restore the TextView's default text color. MAUI's
+        // TextViewExtensions.UpdateTextColor is a no-op when Label.TextColor is null, so the freshly-created
+        // TextView's theme default — the textColorPrimary ColorStateList (a dark gray, ~0xDE000000, that also
+        // encodes the disabled-state dimming) — stays in place untouched. map_text_color pushes setTextColor
+        // only for an EXPLICIT color; leaving the native ColorStateList alone on unset both yields the
+        // correct default gray AND preserves the disabled dimming (layout_is_enabled). Re-applying a captured
+        // getCurrentTextColor() int would collapse that ColorStateList to a flat color and kill the dimming.
         platform->native = env->NewGlobalRef(widget.get()); // released in ~label_platform
         return platform;
     }
@@ -769,17 +761,22 @@ namespace maui::core
             return;
         }
         // TextViewExtensions.UpdateTextColor: `if (textColor != null) SetTextColor(textColor.ToPlatform())`
-        // — MAUI sets the color ONLY when non-null, leaving the TextView's captured default (the theme's
-        // textColorPrimary, a dark GRAY) in place when Label.TextColor is unset. The port models TextColor
-        // as a NON-nullable value type whose default-constructed value (color{}) is opaque BLACK, so
-        // pushing view.text_color() unconditionally set BLACK text on every unset (default) label — the
-        // "black vs MAUI gray" Android parity diff (fonts / formatted_text / absolute_layout /
+        // — MAUI sets the color ONLY when non-null and does NOTHING when Label.TextColor is unset, so the
+        // TextView keeps the multi-state ColorStateList the theme installed for textColorPrimary. The port
+        // models TextColor as a NON-nullable value type whose default-constructed value (color{}) is opaque
+        // BLACK, so pushing view.text_color() unconditionally set BLACK text on every unset (default) label
+        // — the "black vs MAUI gray" Android parity diff (fonts / formatted_text / absolute_layout /
         // basic_grouping / basic_swipe / behaviors). Discriminate on whether the property was explicitly
         // SET (BindableObject.IsSet), the faithful stand-in for C#'s `!= null` — exactly as
         // label_handler.mm does on iOS for the unset-color sentinel collision (a value compare can't be
-        // used: an explicit TextColor=Black would equal the default and be misread as unset). Unset →
-        // restore the captured default_text_color (the LabelHandler._labelTextColorDefault twin, read from
-        // the freshly-created TextView in create_platform_view); explicit → push the ARGB int unchanged.
+        // used: an explicit TextColor=Black would equal the default and be misread as unset).
+        //
+        // On the UNSET branch, MIRROR C# exactly and touch NOTHING. The earlier port re-applied the captured
+        // getCurrentTextColor() int via setTextColor(int) — but that collapses the theme's per-state
+        // ColorStateList into a single flat color, which then never dims when the view (or an ancestor
+        // layout) is disabled. Leaving the native ColorStateList intact both keeps the correct default gray
+        // AND lets setEnabled(false) dim the text, matching MAUI's disabled appearance (layout_is_enabled's
+        // whole-layout-disabled column). setTextColor is called ONLY for an explicit color, never on unset.
         const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
         const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
         if (color_is_set)
@@ -787,14 +784,9 @@ namespace maui::core
             call_void_int(env.get(), widget_of(*platform), "setTextColor",
                           static_cast<jint>(view.text_color().to_int()));
         }
-        else if (platform->default_text_color != 0)
-        {
-            // Restore the captured theme default (0 = capture failed → leave whatever the widget has,
-            // exactly as C#'s UpdateTextColor never calls SetTextColor when TextColor is null; NEVER push 0,
-            // which would be a fully-transparent = invisible text color).
-            call_void_int(env.get(), widget_of(*platform), "setTextColor",
-                          static_cast<jint>(platform->default_text_color));
-        }
+        // else: unset → leave the widget's original theme ColorStateList untouched (C# UpdateTextColor's
+        // null-TextColor path is a no-op). This preserves the disabled-state dimming the ColorStateList
+        // encodes — a flat setTextColor(default_text_color) would have destroyed it.
     }
 
     void label_handler::map_font(label_handler& handler, i_label& view)
