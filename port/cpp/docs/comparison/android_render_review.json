@@ -61,8 +61,8 @@
 },
 {
 "key": "border",
-"status": "yellow",
-"note": "Border shape/size/colors match; 'Bordered content' text is top-left aligned in port vs centered in MAUI, and black vs MAUI's gray."
+"status": "green",
+"note": "Bordered content now centered both ways in the yellow border — matches MAUI"
 },
 {
 "key": "border_clip_playground",
@@ -496,8 +496,8 @@
 },
 {
 "key": "label",
-"status": "red",
-"note": "'This should be at the center of the line' and 'at the end of the line' rows are left-aligned in the port instead of center/end-aligned as in MAUI; HorizontalTextAlignment not applied."
+"status": "green",
+"note": "Center/End rows now aligned via TextView gravity — matches MAUI"
 },
 {
 "key": "layout_is_enabled",
