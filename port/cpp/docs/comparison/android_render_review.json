@@ -2,747 +2,747 @@
 {
 "key": "absolute_layout",
 "status": "green",
-"note": "All 5 colored boxes (blue top, green/red sides, black bottom) and centered/autosized text match MAUI in position, size, and color."
+"note": "Matches MAUI: same blue/green/red/black absolute-positioned boxes, AutoSized label, centered text — colors/sizes/positions identical."
 },
 {
 "key": "activity_indicator",
-"status": "red",
-"note": "MAUI shows visible spinning arc indicators (gray default, blue styled, large gray, small gray); C++ port renders NO visible spinner in any of the 4 instances - just blank space."
+"status": "green",
+"note": "Matches MAUI: same spinner sizes/colors (gray default, blue styled, larger/smaller variants) and yellow background section."
 },
 {
 "key": "adaptive_collection",
 "status": "green",
-"note": "Linear single-column list of Item 1-8 matches MAUI exactly in text, spacing, and layout."
+"note": "Matches MAUI: identical single-column list of Item 1-8 with same spacing/text color/font."
 },
 {
 "key": "alerts",
 "status": "green",
-"note": "All 6 buttons (Alert Simple/Yes-No, ActionSheet Simple/Cancel-Delete, Question 1/2) and header text match MAUI in text, color, and spacing."
+"note": "Matches MAUI: same button labels, gray button chrome, section headers, and OnAppearing text."
 },
 {
 "key": "alignment",
 "status": "green",
-"note": "Start/Center/End/Fill blue buttons with red borders match MAUI exactly in position and size for each alignment section."
+"note": "Matches MAUI: Start/Center/End/Fill blue buttons with red border, same alignment and sizing."
 },
 {
 "key": "animation",
 "status": "yellow",
-"note": "Submarine image and Start Animation/Start Custom Animation buttons match; Cancel Animation button renders near-invisible/very light gray in C++ vs clearly visible disabled-gray in MAUI."
+"note": "Cancel Animation button renders near-white/very low-contrast in cpp vs MAUI's solid opaque gray disabled button; submarine image and other buttons match."
 },
 {
 "key": "app_theme_binding",
 "status": "green",
-"note": "Green/orange themed text, gray toggle button, and status line all match MAUI in color, text, and layout."
+"note": "Matches MAUI: identical green/orange theme-bound text, gray toggle button, and theme status line."
 },
 {
 "key": "application_control",
-"status": "yellow",
-"note": "Buttons and layout match; status line text differs - C++ shows 'main window: MAUI C++ — gallery' vs MAUI's 'main window: (untitled)' (window title content differs)."
+"status": "green",
+"note": "Matches MAUI layout/colors/buttons exactly; only diff is window-title string in status text (MAUI shows \"(untitled)\", cpp shows real title) — not a rendering issue."
 },
 {
 "key": "auto_size_shapes",
 "status": "green",
-"note": "matches MAUI: yellow bg, green ellipse w/ blue stroke sized to half available space, orange strip below"
+"note": "Ellipse size/position, yellow/orange split, green fill, blue border thickness all match MAUI."
 },
 {
 "key": "basic_grouping",
 "status": "green",
-"note": "Matches MAUI: group headers, member lists, orange Total-members footers identical; only scroll position differs (runtime state)."
+"note": "Group headers (green), items (gray), 'Total members' (orange) text/colors match MAUI exactly."
 },
 {
 "key": "basic_swipe",
 "status": "green",
-"note": "matches MAUI: 5 gray swipe rows with matching labels, identical layout and spacing"
+"note": "Swipe row cards, gray backgrounds, labels, footer text match MAUI."
 },
 {
 "key": "behaviors",
 "status": "green",
-"note": "matches MAUI: gray heading text, underlined entry with placeholder 'Enter a System.Double', same layout"
+"note": "Title text, entry field placeholder and underline styling match MAUI."
 },
 {
 "key": "border",
 "status": "green",
-"note": "Matches MAUI: red rounded-rect border, light-yellow fill, 'Bordered content' text same size/color/position. No regression."
+"note": "Yellow content box, red border color/thickness, rounded corners, text match MAUI."
 },
 {
 "key": "border_clip_playground",
 "status": "green",
-"note": "Matches MAUI: per-corner radii (60/0/0/12) clip dog image identically, red 5px stroke follows same asymmetric rounded shape. No triangle here; regression unchanged."
+"note": "Dog image, red clip border shape, slider positions/values, all labels match MAUI."
 },
 {
 "key": "border_layout",
 "status": "green",
-"note": "Matches MAUI: red/green/blue segmented row centered in rounded-rect border, same stroke/corner radius. No triangle shape on this page (regression only)."
+"note": "Red/green/blue segment colors and widths, 'Center' text, stroke-thickness slider match MAUI."
 },
 {
 "key": "border_playground",
 "status": "green",
-"note": "Matches MAUI: dashed yellow border now renders (was solid) and gradient fill ramps blue-to-teal correctly; form fields below align with MAUI content."
+"note": "Gradient blue background, dashed yellow/olive border, all color hex fields and labels match MAUI."
 },
 {
 "key": "border_resize_content",
 "status": "yellow",
-"note": "Triangle now renders, content clipped inside — fix confirmed, no regression. Minor: C++ content sits closer to green stroke, missing MAUI's light-blue padding ring (all 3 rows)."
+"note": "MAUI shows an extra light-blue/gray secondary ring inside the green border on every shape; C++ port only draws the single green stroke, missing that inner ring layer."
 },
 {
 "key": "border_stroke",
 "status": "yellow",
-"note": "Colors/thickness/text match MAUI (red stroke 1/5/10, orange fill). Minor: MAUI has thin white gap between stroke and fill; C++ fill sits flush to stroke. No dash/gradient used here."
+"note": "MAUI shows concentric white inner stroke lines inside the red/orange boxes; C++ port renders only the outer red border with no white inner stroke."
 },
 {
 "key": "borderless",
 "status": "green",
-"note": "Matches MAUI: yellow full-bleed background, switch control, and label text/color identical."
+"note": "Matches MAUI: yellow fullscreen background, borderless switch top-right, same label text and position."
 },
 {
 "key": "box_view",
 "status": "green",
-"note": "Matches MAUI: default blue, purple color, yellow-green gradient, and rounded-corner green box all match in color/size."
+"note": "Matches MAUI: same 4 swatches (blue, purple, gradient, rounded green), same sizes, colors, and corner radius."
 },
 {
 "key": "button",
-"status": "green",
-"note": "Full button list matches MAUI (colors, text, borders, spacing controls); no stray shadow on any button in either — correct flat regression."
+"status": "yellow",
+"note": "MAUI's green 'BorderColor' button shows a thin red border ring; C++ port's BorderColor button has no visible border/ring, otherwise button list matches."
 },
 {
 "key": "carousel_page",
 "status": "green",
-"note": "Matches MAUI: same 'Item 1' label, Prev/Next buttons (gray, disabled Prev), and position text; only vertical spacing differs from viewport crop."
+"note": "Matches MAUI: 'Item 1' centered, Prev/Next buttons, 'Position 0 — current: Item 1' text, same layout and styling."
 },
 {
 "key": "chat_example",
 "status": "green",
-"note": "Chat bubbles render as rounded colored bubbles (blue left, green right in cpp); MAUI shot scrolled to hide green bubble but same blue bubble matches exactly."
+"note": "Matches MAUI: rounded chat bubbles present with correct colors/alignment (green right-aligned 'Hi there!', blue left-aligned 'Hello...' reply)."
 },
 {
 "key": "check_box",
-"status": "yellow",
-"note": "Colors, checked states, and text match MAUI exactly; checkbox glyphs are left-aligned in C++ vs horizontally centered in MAUI's render."
+"status": "red",
+"note": "Checkboxes render at the far left edge (x~37) in the C++ port, but MAUI centers them around x~460-495 — a clear horizontal alignment/layout bug, not a crop artifact (same 1080x2340 canvas)."
 },
 {
 "key": "chrome",
-"status": "yellow",
-"note": "Button/label content matches MAUI exactly (color, size, text); cpp shows a top app-bar 'MAUI C++ Gallery' toolbar that MAUI's capture lacks."
+"status": "green",
+"note": "Button + Ready label match MAUI exactly; port additionally shows the gallery nav title bar (chrome, not page content)."
 },
 {
 "key": "clip",
-"status": "green",
-"note": "Rectangle/Ellipse/GeometryGroup clips match MAUI clip shapes and crop regions exactly"
+"status": "yellow",
+"note": "Layout/images/clip shapes match; section labels (Image, Clipped Image using...) are bold in MAUI but regular weight in port."
 },
 {
 "key": "clip_corner_radius",
 "status": "green",
-"note": "matches MAUI: round-rect clipped dog image + 4 corner sliders (all at min) identical layout and content"
+"note": "Correct dog image, sliders, and layout match MAUI exactly."
 },
 {
 "key": "clip_gallery",
 "status": "green",
-"note": "matches MAUI: dog photo + rect/round-rect clipped images correctly bounded in gray box, no spill/wrong-crop; cpp just scrolled less far than maui shot"
+"note": "Images, labels, and clip geometries match MAUI exactly."
 },
 {
 "key": "clip_views",
 "status": "yellow",
-"note": "Clip shapes match on all rows (red diagonal curved clip, consistent w/ triangle fix). MINOR: MAUI shows underline under Entry/Editor/DatePicker/TimePicker, C++ omits it."
+"note": "Layout/colors/clip shape match; MAUI shows a native underline under Entry/Editor/DatePicker text, port omits it."
 },
 {
 "key": "clipping",
-"status": "yellow",
-"note": "Matches MAUI: orange bg, red overlay, purple He/Hey boxes, coffee cups, blue bar align. Residual: numbered buttons wider than MAUI (Material minWidth), fewer fit per row — known minor."
+"status": "red",
+"note": "Numbered button row: MAUI fits 8 narrow buttons (~97px) in view; port shows only ~4.5 much wider buttons (~192px) — button sizing/count differs substantially."
 },
 {
 "key": "collectionview",
 "status": "green",
-"note": "Matches MAUI: same 3-col text list (cover1.jpg,0 etc.) + header. No images/selection/bubbles on this page."
+"note": "Grid content, columns, spacing all match MAUI exactly (MAUI capture just starts lower due to top crop)."
 },
 {
 "key": "composition_gallery",
 "status": "green",
-"note": "Shapes, colors, sizes, and line diagram all match MAUI; cpp lacks the small vertical gap MAUI shows between the two canvas panels (minor)."
+"note": "Both canvases same size (687px) with identical shapes/lines/colors; only horizontal centering vs MAUI's left-inset position differs (harness-inset style diff)."
 },
 {
 "key": "containers",
-"status": "green",
-"note": "Matches MAUI exactly: dashed blue border box, solid red frame border, and content_view label all identical in layout/colors."
+"status": "yellow",
+"note": "Border dashed corners slightly less rounded/tighter fit and Frame shadow/margin slightly different vs MAUI; content and colors otherwise match."
 },
 {
 "key": "content_view",
 "status": "green",
-"note": "Matches MAUI: same title, indented 'Content' line, 'Content' line, layout identical."
+"note": "Matches MAUI: ContentView/Content labels, Swap content button identical layout, spacing, and colors."
 },
 {
 "key": "context_flyout",
 "status": "red",
-"note": "cpp shows a broken WebView 'Webpage not available / ERR_CACHE_MISS' instead of MAUI's actual page content (toggle switch, entry, COOL image button)."
+"note": "WebView fails to load (net::ERR_CACHE_MISS) so entire top half is blank error page; MAUI shows the toggle, entry, and blue COOL image button with context menu content."
 },
 {
 "key": "controls_stack",
 "status": "yellow",
-"note": "Matches overall layout/controls; SearchBar magnifier icon is light-gray in cpp vs black in MAUI; activity indicator renders as a tiny dot in cpp vs a visible circular ring spinner in MAUI."
+"note": "SearchBar magnifier icon is faint gray outline vs MAUI's solid black icon; ActivityIndicator spinner not visible (blank) vs MAUI's visible spinning ring; rest matches."
 },
 {
 "key": "custom_layout",
-"status": "yellow",
-"note": "Content/labels match (Top/Left/Left/Right/Right/Bottom) but cpp fully fills Left/Right column boxes gray full-height, while MAUI ref only shows small gray fill near top/bottom with blank middle gap."
+"status": "red",
+"note": "Custom layout differs: C++ renders wide solid side panels near full height; MAUI renders thin near-invisible slivers with corner triangle markers and a much wider white center area."
 },
 {
 "key": "custom_size_swipe",
 "status": "green",
-"note": "Matches MAUI: green swipe content banner, gray 'Test Click from Content' button, and revealed-items text all identical."
+"note": "Matches MAUI: SwipeView content, 'Test Click from Content' button, and RightItems revealed text render identically."
 },
 {
 "key": "custom_swipe_item_view",
 "status": "green",
-"note": "Matches MAUI: purple card with 'Welcome to .NET MAUI' light-blue text and date, identical sizing/spacing."
+"note": "Matches MAUI: revealed favourite card with blue background, title, and date text render identically in position, size, and color."
 },
 {
 "key": "cv_visual_states",
-"status": "green",
-"note": "Matches MAUI: Single/Multi Selection lists with Item 1-3/1-4, same spacing and text styling."
+"status": "yellow",
+"note": "Content and text match MAUI, but CollectionView item vertical spacing is larger in C++ (extra gap between 'Item 3' and 'Multi Selection' header) vs MAUI's tight spacing."
 },
 {
 "key": "data_template_selector",
 "status": "green",
-"note": "Matches MAUI: SearchBar with magnifier icon, same list items/colors/order (weekend/weekday rows)."
+"note": "List content, colors, and DataTemplateSelector item text all match MAUI exactly."
 },
 {
 "key": "date_picker",
 "status": "yellow",
-"note": "Disabled DatePicker text renders solid black in cpp vs MAUI's dimmed light-gray (disabled styling not applied); random gradient color differs but that field is intentionally randomized."
+"note": "Third 'Background' gradient row wrong colors: cpp shows pink-to-purple gradient, MAUI shows blue-to-cyan gradient."
 },
 {
 "key": "device",
 "status": "green",
-"note": "Matches MAUI: Platform/Idiom/Version text identical, same layout and colors."
+"note": "Matches MAUI exactly: Platform/Idiom/Version text identical."
 },
 {
 "key": "dispatcher",
 "status": "green",
-"note": "Matches MAUI: same buttons, status text, and layout."
+"note": "All buttons and status text match MAUI exactly."
 },
 {
 "key": "drag_drop",
 "status": "green",
-"note": "Matches MAUI: same color swatches, Rainbow row, and position-tracking text."
+"note": "Color swatches, rainbow list, and drag-position text all match MAUI exactly."
 },
 {
 "key": "editor",
 "status": "green",
-"note": "Matches MAUI: same Editor fields, placeholder colors, FontSize(Large) styling, and layout."
+"note": "All editor fields, placeholder colors, font sizes match MAUI exactly."
 },
 {
 "key": "effects",
 "status": "green",
-"note": "Matches MAUI: same Entry fields, buttons, and status text."
+"note": "Entry fields and buttons match MAUI exactly, including disabled button gray styling."
 },
 {
 "key": "ellipse_gallery",
 "status": "green",
-"note": "Matches MAUI: same rectangle/circle/ellipse shapes, stroke colors, and dash pattern."
+"note": "Rectangle, circle, and ellipse shapes with strokes/dash patterns match MAUI exactly."
 },
 {
 "key": "empty_view",
 "status": "green",
-"note": "matches MAUI: filter search field, 1-column list with same items/text/colors"
+"note": "Filter field + populated list of items match MAUI exactly in layout, spacing, and text color."
 },
 {
 "key": "empty_view_load_simulate",
 "status": "green",
-"note": "matches MAUI: 'Items loading simulation...' label position, style, and color match"
+"note": "Both show 'Items loading simulation...' text in same gray color and position; matches MAUI."
 },
 {
 "key": "empty_view_null",
 "status": "green",
-"note": "matches MAUI: centered 'Nothing to display.' text, same style/color/position"
+"note": "Both show centered 'Nothing to display.' text; matches MAUI content and layout."
 },
 {
 "key": "empty_view_rtl",
 "status": "green",
-"note": "matches MAUI: 'Left to Right' label, filter field, 3-column list layout and content identical"
+"note": "Both show 'Left to Right' toggle label + 3-column filtered list identically; matches MAUI."
 },
 {
 "key": "empty_view_selector",
 "status": "green",
-"note": "matches MAUI: instructional text block, filter field, single result row all match"
+"note": "Instruction text, filter field, and 'Baboon — Africa & Asia' result line match MAUI exactly."
 },
 {
 "key": "empty_view_swap",
 "status": "green",
-"note": "matches MAUI: filter field, 'Toggle Between EmptyViews' switch, Clear/Fill buttons, 3-column list all match"
+"note": "Toggle switch, Clear/Fill buttons (gray chrome, no purple), and 3-column list all match MAUI."
 },
 {
 "key": "empty_view_template",
 "status": "green",
-"note": "matches MAUI: filter field and 3-column list layout/content identical"
+"note": "3-column filtered item list layout, spacing and text match MAUI exactly."
 },
 {
 "key": "empty_view_view",
 "status": "green",
-"note": "matches MAUI: filter field and 3-column list layout/content identical"
+"note": "3-column filtered item list layout, spacing and text match MAUI exactly."
 },
 {
 "key": "entry",
-"status": "green",
-"note": "All entry variants, text colors (purple for Text/Placeholder-tinted), checkbox, cursor slider match MAUI closely."
+"status": "yellow",
+"note": "Checkbox and 'This should be on the end' entry are right-aligned in MAUI but left-aligned in cpp port; rest matches."
 },
 {
 "key": "filter_collection",
 "status": "green",
-"note": "Switch, search icon+Filter field, and 2-column list of filenames match MAUI's layout, spacing, and colors."
+"note": "Matches MAUI: filter bar, toggle, two-column list all align in content/spacing."
 },
 {
 "key": "filter_selection",
-"status": "green",
-"note": "Instructions text, search filter, Reset button, Selected label, and list all match MAUI in content/layout."
+"status": "yellow",
+"note": "MAUI overlaps 'Selected: (none)' label behind/above the Reset button (search bar sits closer to top); cpp stacks Reset button below the label cleanly, no overlap."
 },
 {
 "key": "flex_layout",
 "status": "green",
-"note": "Matches MAUI: header/nav/aside/gray content (legible dark text)/pink footer all present, layout matches. Header/footer text edges clipped by app chrome (inset artifact, ignore)."
+"note": "Header/blue/gray-content/green/footer color bands and CONTENT text match MAUI exactly."
 },
 {
 "key": "focus",
 "status": "green",
-"note": "Entry field, Focus/Unfocus buttons, and IsFocused label match MAUI in text, color, and layout."
+"note": "Entry, Focus Entry / Unfocus Entry buttons, and IsFocused label match MAUI in size/position/color."
 },
 {
 "key": "fonts",
 "status": "green",
-"note": "Title/Subtitle/Header/Body/Caption sizes, Bold/Italic/Bold+Italic styling, and character-spacing text all match MAUI."
+"note": "All font style rows (Title/Subtitle/Header/Body/Caption/Bold/Italic/Bold+Italic/spacing) match MAUI in size and styling."
 },
 {
 "key": "footer_only_string",
 "status": "green",
-"note": "List items and 'This is a footer' text match MAUI; only vertical scroll offset differs (runtime state, ignored)."
+"note": "List content and 'This is a footer' line match MAUI; only vertical scroll position differs (not content)."
 },
 {
 "key": "formatted_text",
 "status": "green",
-"note": "Bold red / italic underlined / kerned spans and plain text label match MAUI's colors, styles, and letter-spacing."
+"note": "Formatted spans (bold red, italic underlined, kerned letters) and plain text label match MAUI exactly."
 },
 {
 "key": "gestures",
 "status": "green",
-"note": "Matches MAUI: same title, blue gesture-target box, gray last-gesture label; only runtime state (last gesture text) differs, which is ignored."
+"note": "Matches MAUI: same layout/colors; only diff is runtime gesture-state text ('Pointer exited' vs '(none)'), which is ignored runtime state."
 },
 {
 "key": "gradient",
 "status": "green",
-"note": "Matches MAUI: linear (yellow->green) and radial (red->navy) gradient bars identical in position, size, and colors."
+"note": "Pixel-perfect match: linear (yellow->green) and radial (red->navy) gradients identical in color, size, and position."
 },
 {
 "key": "grid",
 "status": "green",
-"note": "Matches MAUI: 2x2 grid with red/green/blue/orange cells, same sizes, spacing, and gutter."
+"note": "Matches MAUI: 2x2 colored grid identical in colors, spacing, and cell proportions."
 },
 {
 "key": "grid_grouping",
 "status": "green",
-"note": "Matches MAUI: group headers in green, member names in two columns, orange 'Total members' lines, same content and styling."
+"note": "Matches MAUI: same group headers (green), member counts (orange), two-column item layout; only scroll position differs (runtime state)."
 },
 {
 "key": "grouping_no_templates",
 "status": "green",
-"note": "Matches MAUI: flat ungrouped list of hero names, same order/content, no header styling in either (as expected for no-templates)."
+"note": "Matches MAUI: single flat list, same font/color/spacing; only scroll position differs."
 },
 {
 "key": "grouping_plus_selection",
 "status": "green",
-"note": "Matches MAUI: green group headers, gray member rows, orange totals; same content and layout at matching scroll position."
+"note": "Matches MAUI: same green headers/orange totals/gray items styling; only scroll position differs."
 },
 {
 "key": "header_footer",
 "status": "green",
-"note": "matches MAUI; header string, 3 list items, footer string all present and correctly ordered (maui shot just scrolled/cropped lower)"
+"note": "Matches MAUI: identical header/footer text content and list items; only scroll position differs."
 },
 {
 "key": "header_footer_grid",
-"status": "green",
-"note": "matches MAUI: header image/title/Add Content, 3-col filename grid, footer image with overlapping rotated footer caption"
+"status": "red",
+"note": "MAUI's footer Label 'This Is A Footer' renders with a visible rotation/tilt transform; port shows only a tiny illegible text fragment - rotation/text not rendering correctly."
 },
 {
 "key": "header_footer_grid_horizontal",
-"status": "yellow",
-"note": "structural: port has no horizontal scroll so header/items/footer render stacked+fit-to-width; MAUI shot is horizontally scrolled (header text cut at right edge) per documented deviation"
+"status": "red",
+"note": "cpp shows raw grid-cell text as plain rows of filenames (no horizontal-grid layout/spacing) vs MAUI's cut header; grid content structurally wrong, not a horizontal grid"
 },
 {
 "key": "header_footer_template",
-"status": "yellow",
-"note": "MAJOR gap FIXED (3c5aae14f9): header/footer cover-photo bands + compact Grid photo item cells now render (was text-only/blue-placeholder). Residual: caption/photo ORDER — port renders photo-top/caption-below per the C# PhotoTemplate oracle (Image in Grid row 0); the maui-compare reference shows caption-top (likely a reference-app divergence, cf. clip_corner_radius). Order-reconciliation, not a major defect."
+"status": "green",
+"note": "matches MAUI: same header/footer datetime+text overlay, same image thumbnails and blue filename boxes in same order"
 },
 {
 "key": "header_footer_view",
 "status": "green",
-"note": "Header + footer images and buttons all render correctly, full width, no spill/overlap; matches MAUI content"
+"note": "matches MAUI: header/footer images, footer italic text, and Add/Clear buttons all match in content and layout"
 },
 {
 "key": "hit_testing",
 "status": "green",
-"note": "Matches MAUI: same labels, checkbox, rotated/scaled gray bars, green rounded rect, green ellipse outline; Scale=1 vs Scale=2 is runtime state only."
+"note": "matches MAUI: same labels, checkbox, Scale=1/2 boxes, rotated Rotation=20 bar, green rounded rect, and ellipse outline all match"
 },
 {
 "key": "horizontal_stack",
 "status": "green",
-"note": "Pixel-identical: same 6 colored swatches (red/yellow/blue/green/orange/purple) in same position and size."
+"note": "pixel-perfect match: identical 6 colored boxes (red/yellow/blue/green/orange/purple) in same position and size"
 },
 {
 "key": "hybrid_web_view",
-"status": "yellow",
-"note": "DEFERRED: no Android hybrid_web_view_handler JNI partial (only apple/headless) — the control falls back to the headless mirror, instantiates no native WebView, so it can't render Chromium's error page like MAUI. Needs a real Android HybridWebView (WebViewAssetLoader + JS bridge) — disproportionate infra."
+"status": "red",
+"note": "WebView content area is blank in cpp vs MAUI showing an actual 'Webpage not available / ERR_INVALID_RESPONSE' error page; also button labels wrap to 2 lines in cpp vs 1 in MAUI"
 },
 {
 "key": "image",
-"status": "green",
-"note": "Submarine photo renders correctly, not over-scaled/cropped; matches MAUI content/order"
+"status": "red",
+"note": "missing the Stream Source 50%-opacity submarine image entirely; cpp instead shows an unrelated black box with a heart glyph placeholder where MAUI shows the actual dimmed image"
 },
 {
 "key": "image_button",
-"status": "green",
-"note": "Matches. BorderColor red bar now solid full-width (fix confirmed). Green boxes, CornerRadius lines, custom-size icon, Padding nested box all match MAUI. Cog SVG absent in both (deferral, not a diff)."
+"status": "yellow",
+"note": "core sections match (aspect boxes, border, cornerradius slider, padding, custom-size icon); missing cog/arrow glyphs (known deferral) and missing Use-Online-Source button + gif render at bottom"
 },
 {
 "key": "indicator",
-"status": "red",
-"note": "MAUI's CarouselView shows concatenated 'Item 1Item 2Item 3' text (3 items) below dots; cpp shows only 'Item 1' — missing carousel items, content differs."
+"status": "yellow",
+"note": "Dots/indicator rows match MAUI well; but MAUI shows CarouselView content as concatenated \"Item 1Item 2Item 3\" while C++ shows only \"Item 1\" cleanly."
 },
 {
 "key": "input_controls",
 "status": "green",
-"note": "Matches MAUI: entry, search bar with magnifier icon, radio buttons all match in layout/color/text."
+"note": "Matches MAUI: same entry, search bar with icon, radio buttons UPPER/lower, colors and spacing all align."
 },
 {
 "key": "input_transparent",
 "status": "green",
-"note": "Matches MAUI: all buttons, toggle switch, and text layout are identical."
+"note": "Matches MAUI: identical button rows, labels, toggle switch, and text content/spacing."
 },
 {
 "key": "invalidate_brush",
 "status": "green",
-"note": "PORT CORRECT (verified by pixel measurement + direct view): the green brush-indicator Line is ~150dp wide, left-aligned under the Change color button, matching MAUI. The prior 🔴 was a re-audit VISUAL MISREAD (called the 150dp bar full-width) propagated by a stale note; the Line was already fixed by 71e65cb7f5 (WidthRequest=150 + HorizontalOptions=Start). Shape measure mirrors C# Shape.MeasureOverride (Stretch=None → path extent + stroke); headless shape/line 153/153 green."
+"note": "Matches MAUI: button and bar are both content-sized (~same width, not full-screen) in both; only the outer inset shifts position (ignored per policy)."
 },
 {
 "key": "invalidate_shadow_host",
 "status": "green",
-"note": "Matches MAUI: red colored shadow renders at bottom edge of green-bordered host box in both, same position/color; layout and controls match."
+"note": "Matches MAUI: identical sliders, values (OffsetX/Y 10, Radius 10, Opacity 1.00), green-bordered box, and red shadow gradient."
 },
 {
 "key": "ios_blur_effect",
 "status": "green",
-"note": "Matches MAUI: image and all four blur buttons plus status text are identical."
+"note": "Matches MAUI: same dog image, same 4 blur buttons, same 'BlurEffect: ExtraLight' label, no blur rendered on either (Android no-op)."
 },
 {
 "key": "ios_date_picker",
 "status": "green",
-"note": "Matches MAUI: date entry field and toggle button identical in text, size, and position."
+"note": "Matches MAUI: identical date value 12/31/2020 and 'Toggle DatePicker UpdateMode' button."
 },
 {
 "key": "ios_entry",
 "status": "green",
-"note": "Matches MAUI: entry placeholder text and toggle button identical in text, size, and position."
+"note": "Matches MAUI: identical placeholder text and 'Toggle AdjustsFontSizeToFitWidth' button."
 },
 {
 "key": "ios_first_responder",
 "status": "green",
-"note": "matches MAUI: text, entries, OK buttons, focus buttons, status text all identical"
+"note": "matches MAUI: entries, OK buttons, focus buttons, and status text all identical"
 },
 {
 "key": "ios_pan_gesture",
 "status": "green",
-"note": "matches MAUI: panned text, toggle button, pan target label, recognition state all identical"
+"note": "matches MAUI: panned coords, toggle button, pan target label, SimultaneousRecognition text identical"
 },
 {
 "key": "ios_picker",
 "status": "green",
-"note": "matches MAUI: entry placeholder and toggle button identical, both empty picker list below"
+"note": "matches MAUI: picker placeholder text and toggle button identical"
 },
 {
 "key": "ios_safe_area",
-"status": "yellow",
-"note": "port adds a small vertical gap between paragraph and button; MAUI has button flush below text"
+"status": "green",
+"note": "matches MAUI: lorem ipsum text and Disable Use Safe Area button identical"
 },
 {
 "key": "ios_scroll_view",
 "status": "green",
-"note": "matches MAUI: slider position, both buttons, thin Material slider chrome identical"
+"note": "matches MAUI: thin slider chrome, both toggle buttons and text identical"
 },
 {
 "key": "ios_search_bar",
 "status": "yellow",
-"note": "search icon is light gray in port vs solid black/dark in MAUI; text and buttons otherwise match"
+"note": "search icon color lighter gray vs MAUI's dark/black icon; underline slightly heavier/darker than MAUI's thin light-gray line"
 },
 {
 "key": "ios_slider_update_on_tap",
 "status": "green",
-"note": "matches MAUI: instruction text, slider thumb position, toggle button identical"
+"note": "matches MAUI: thin slider track/thumb at same position, toggle button and text identical"
 },
 {
 "key": "ios_swipe_transition",
 "status": "yellow",
-"note": "instructional text missing trailing word \"above\" (port: \"pick a SwipeTransitionMode\" vs MAUI: \"...SwipeTransitionMode above\"); layout/buttons otherwise match"
+"note": "instructional text truncated: C++ shows 'pick a SwipeTransitionMode' missing trailing 'above' present in MAUI"
 },
 {
 "key": "ios_time_picker",
 "status": "green",
-"note": "matches MAUI: TimePicker value, toggle button, and mode label all match"
+"note": "matches MAUI: black '2:00 PM' text, full-width underline, identical layout/spacing"
 },
 {
 "key": "items",
 "status": "green",
-"note": "matches MAUI: CollectionView list items and selection label match exactly"
+"note": "matches MAUI: same task list text, gray color, spacing, 'Pick a task' placeholder"
 },
 {
 "key": "items_updating_scroll_mode",
 "status": "green",
-"note": "matches MAUI: mode buttons, Add Item button, and numbered item list match"
+"note": "matches MAUI: same header buttons, Add Item button, mode text, numbered title/subtitle rows"
 },
 {
 "key": "label",
 "status": "green",
-"note": "matches MAUI: colors, backgrounds, alignment, formatted-string spans, wrap all match"
+"note": "matches MAUI: identical colors (red text, cyan bg, gray bg blocks), alignment demos, formatted-string spans"
 },
 {
 "key": "layout_is_enabled",
-"status": "yellow",
-"note": "right-column IsEnabled=false cascade doesn't dim label text/backgrounds like MAUI (MAUI fades header text + desaturates card colors when layout disabled; port renders full-opacity/full-saturation)"
+"status": "red",
+"note": "right column (whole-layout-disabled demo) not visually disabled: MAUI grays out headings + mutes button text there, cpp renders it identical to the enabled left column"
 },
 {
 "key": "line_gallery",
 "status": "green",
-"note": "matches MAUI: line stroke, dash pattern, and thickness all match"
+"note": "matches MAUI: same basic/dash/stroke-thickness line colors, positions, thickness"
 },
 {
 "key": "line_join_gallery",
 "status": "green",
-"note": "matches MAUI: miter/bevel/round line joins render identically"
+"note": "matches MAUI: miter/bevel/round joins identical shape, color, size"
 },
 {
 "key": "measure_first_strategy",
 "status": "green",
-"note": "matches MAUI: CollectionView grouped list, header colors, and totals match"
+"note": "matches MAUI: identical group headers (green), member lists, 'Total members' (orange) counts"
 },
 {
 "key": "menu_bar",
 "status": "green",
-"note": "matches MAUI: identical header text, gray button 'Toggle Menu Bar Item' same size/style/position"
+"note": "Matches MAUI: title text, gray 'Toggle Menu Bar Item' button, same layout modulo inset/crop."
 },
 {
 "key": "modal",
 "status": "green",
-"note": "matches MAUI: identical 5 buttons (Push Page/Push Modal Page/Push Modal Navigation Page/Push Modal Flyout Page/Pop Modal Page) and depth text"
+"note": "Matches MAUI: 'Modal Page 1' title, 5 buttons (Push Page/Push Modal Page/Push Modal Navigation Page/Push Modal Flyout Page/Pop Modal Page), depth text identical."
 },
 {
 "key": "multiple_bound_selection",
 "status": "green",
-"note": "matches MAUI: Item 1/Item 2 orange-highlighted selection, Selected label, header, all 3 buttons render correctly"
+"note": "Matches MAUI: same text, orange-highlighted Item 1/Item 2 selection, same 3 action buttons."
 },
 {
 "key": "navigation_gallery",
 "status": "green",
-"note": "matches MAUI: identical stack-depth text and 6 buttons (Push/Pop/Insert/Remove/PopToRoot/Toggle Secondary Toolbar)"
+"note": "Matches MAUI: same status text and 6 buttons (Push/Pop/Insert/Remove/Pop To Root/Toggle Secondary Toolbar Item)."
 },
 {
 "key": "nested_collection",
-"status": "green",
-"note": "Matches MAUI: captions sit below Source N headers (not overlapping), same 7 sections, same layout/spacing rhythm."
+"status": "yellow",
+"note": "Content matches (Source N rows + Caption items in red/blue) but cpp's horizontal caption rows show fewer items before cutoff than MAUI's, minor spacing/measure difference."
 },
 {
 "key": "pan_gesture_events",
 "status": "green",
-"note": "matches MAUI: identical status text plus green/red half-split background blocks"
+"note": "Matches MAUI: identical green/red halves and status text 'StatusType: Completed, TotalX: 0, TotalY: 0'."
 },
 {
 "key": "path_aspect_gallery",
 "status": "green",
-"note": "matches MAUI: same 4 heart-shaped Path aspect examples (None/Fill/Uniform/UniformToFill) same colors/sizes"
+"note": "Matches MAUI: same 4 heart-shaped path aspect examples (None/Fill/Uniform/UniformToFill) with identical sizing and colors."
 },
 {
 "key": "path_gallery",
 "status": "green",
-"note": "matches MAUI: identical line segment, triangle, bezier curve, concentric-ring composite, overlapping red squares, and orange/green ellipse geometry"
+"note": "Matches MAUI: all visible shapes match colors/shapes; MAUI shows extra 6th item only due to less top crop (ignored per policy)."
 },
 {
 "key": "path_transform_string",
 "status": "green",
-"note": "Both triangles (with/without RenderTransform) match MAUI in shape, size, stroke, and text position."
+"note": "Both triangle shapes (without/with RenderTransform) match MAUI in size, position, and stroke."
 },
 {
 "key": "picker",
 "status": "green",
-"note": "All picker rows, colors (blue text/title), yellow italic background, and buttons match MAUI exactly."
+"note": "All picker rows, colors (blue text/title, yellow italic), and button states match MAUI."
 },
 {
 "key": "pickers",
 "status": "green",
-"note": "Room/date/time pickers and result text match MAUI in content, spacing and layout."
+"note": "Room/date/time pickers and result label match MAUI exactly (values, layout, font)."
 },
 {
 "key": "pointer_gesture",
 "status": "yellow",
-"note": "Labels 'Thanks for releasing/hovering me!' and 'Hover me green!' render at small body font in port vs MAUI's larger emphasized/header-style font size."
+"note": "MAUI renders the 3 status labels ('Thanks for releasing...', 'Thanks for hovering...', 'Hover me green!') in a larger font; C++ port uses body-size font for all."
 },
 {
 "key": "polygon_gallery",
 "status": "green",
-"note": "All four polygons (basic, dash, EvenOdd star, NonZero star) match MAUI in shape, color and stroke style."
+"note": "All 4 polygons (basic, dash, EvenOdd star, NonZero star) match MAUI in shape, color, and fill rule."
 },
 {
 "key": "polyline_gallery",
 "status": "green",
-"note": "Basic and dash polyline rows match MAUI; both are cut off just below label identically (harness scroll state)."
+"note": "Basic and dash polylines match MAUI in position, color, and dash pattern."
 },
 {
 "key": "preselected_item",
-"status": "green",
-"note": "Header text, preselected orange row (photo.jpg,2) and full item list match MAUI content and order."
+"status": "yellow",
+"note": "C++ port is missing the header label 'The CollectionView below should have several items already selected.' that MAUI shows above 'Preselected:'."
 },
 {
 "key": "preselected_items",
-"status": "yellow",
-"note": "Grid, items, and 3 orange-selected cells (photo.jpg2/Fruits.jpg4/FlowerBuds.jpg5) all match MAUI; header text alignment differs (centered in MAUI vs left in cpp)."
+"status": "green",
+"note": "Grid CollectionView with 4-column layout, header text, and orange multi-selection highlighting all match MAUI."
 },
 {
 "key": "progress_bar",
 "status": "green",
-"note": "matches MAUI: same 5 progress bars (Default/ProgressColor/Disabled/ProgressColor/ProgressTo), same orange fill color, same gray ProgressTo button"
+"note": "Matches MAUI: bar thickness, gray/orange colors, disabled state, ProgressTo button all identical."
 },
 {
 "key": "radio_button_border",
 "status": "green",
-"note": "matches MAUI: identical yellow highlight rows, red/green border outlines, radio dot states all match"
+"note": "Matches MAUI: red/yellow/green highlight borders, radio circle sizes and rounded pill backgrounds identical."
 },
 {
 "key": "radio_button_content",
 "status": "yellow",
-"note": "content/layout match MAUI exactly (coffee.png fallback correct); templated row has a drop-shadow/card elevation in cpp vs MAUI's flat thin-divider row"
+"note": "Port draws a drop shadow around the 'Can't use View for Content' card; MAUI shows a flat bordered box with no shadow."
 },
 {
 "key": "radio_button_group",
 "status": "green",
-"note": "matches MAUI: header text, Options A-D with unfilled rings, Option D in Grid, spacing all align"
+"note": "Matches MAUI: layout, spacing, and radio positions (including Grid-nested Option D) identical."
 },
 {
 "key": "radio_button_group_binding",
 "status": "yellow",
-"note": "the two action buttons ('Set selection'/'Clear selection') render as two separate spaced/shadowed buttons in C++, but MAUI merges them into one contiguous block with no gap"
+"note": "Port's two action buttons ('Set selection'/'Clear selection') have visible white gap between them; MAUI renders them touching with no gap."
 },
 {
 "key": "radio_button_group_gallery",
 "status": "green",
-"note": "pixel-perfect match: all group/GroupName rows and text identical to MAUI"
+"note": "Matches MAUI: all group listings, spacing, and radio circle rendering identical."
 },
 {
 "key": "radio_content_properties",
 "status": "green",
-"note": "pixel-perfect match: all styled text (color/italic/bold/size) and layout identical to MAUI"
+"note": "Matches MAUI: text colors, italics, bold, uppercase/lowercase transforms, fonts all identical."
 },
 {
 "key": "radio_template_from_style",
 "status": "green",
-"note": "matches MAUI: flush-left A/B/C tiles with empty blue-ring radio in top-right corner"
+"note": "Matches MAUI: three gray cards with blue-outlined radio circles in top-right, identical layout and colors."
 },
 {
 "key": "rectangle_gallery",
 "status": "green",
-"note": "matches MAUI: same shapes, colors, strokes, dash pattern, and curved-corner rectangle, identical spacing between sections"
+"note": "matches MAUI: identical shapes, colors, strokes, dash pattern, and rounded-corner rectangle."
 },
 {
 "key": "refresh_view",
 "status": "green",
-"note": "matches MAUI: identical labels, button chrome/sizing, and status text"
+"note": "matches MAUI: identical text, buttons, and layout."
 },
 {
 "key": "relative_layout",
 "status": "green",
-"note": "matches MAUI: same four corner color blocks and centered gray box with black inner rect, same positions/sizes"
+"note": "matches MAUI: identical corner-colored squares, gray box with black inner box, same positions."
 },
 {
 "key": "scattered_radio_button",
 "status": "green",
-"note": "matches MAUI: same text, radio circle style/size, highlighted-row background, and layout of grouped radios A/B/C and D"
+"note": "matches MAUI: identical radio buttons, labels, and highlighted-row background."
 },
 {
 "key": "scroll_mode_test",
 "status": "green",
-"note": "matches MAUI: identical picker value, buttons, and list rows/spacing (different scroll offset is just runtime state)"
+"note": "matches MAUI: identical picker, buttons, and list content/order."
 },
 {
 "key": "scroll_to_group",
-"status": "yellow",
-"note": "MAUI bolds the group header rows (Avengers/Fantastic Four/Defenders); C++ renders them in regular weight, otherwise identical content"
+"status": "green",
+"note": "matches MAUI: identical fields, buttons, and grouped list content/colors (MAUI just scrolled further from crop, same content)."
 },
 {
 "key": "scroll_view",
 "status": "green",
-"note": "matches MAUI: identical row text/spacing (different scroll position is just runtime state)"
+"note": "matches MAUI: identical row list content (MAUI shown at a different scroll offset only due to inset/crop)."
 },
 {
 "key": "search_bar",
 "status": "yellow",
-"note": "HorizontalTextAlignment=End not applied on the 'end of the line' SearchBar: MAUI right-aligns that text/placeholder, C++ leaves it left-aligned; all other bars match"
+"note": "minor: 'end of the line' entry text is right-aligned/scrolled in MAUI (cursor at end) but left-aligned in port; clear-X icons slightly thinner/gray vs MAUI's bold black."
 },
 {
 "key": "selection_command_param",
 "status": "green",
-"note": "matches MAUI: same header/item list text, colors, spacing"
+"note": "Matches MAUI: identical list content, text, spacing, and gray text color."
 },
 {
 "key": "selection_synchronization",
 "status": "green",
-"note": "matches MAUI: both CollectionViews show Item 2/Item 3 orange selection highlight correctly, text and layout match"
+"note": "Matches MAUI: orange selection highlight bars, same items selected, same layout/spacing."
 },
 {
 "key": "semantics",
 "status": "green",
-"note": "matches MAUI: identical text, button chrome, entry/editor underlines, search bar icon"
+"note": "Matches MAUI: same labels, gray buttons, entry/editor underlines, search bar with magnifier+clear icon, headings all present."
 },
 {
 "key": "shadow_playground",
 "status": "yellow",
-"note": "Red colored shadow present on cyan box + label glow, matches MAUI color/position; cpp glow is softer/more symmetric-blurred vs MAUI's tighter offset shadow (known minor deviation)."
+"note": "Shadow render differs: MAUI shows a sharp, strongly saturated red shadow offset down-right; port shows a faint, blurred, near-symmetric pink halo."
 },
 {
 "key": "shape_app_theme",
 "status": "green",
-"note": "matches MAUI: same green rectangle size/position, same title color/text"
+"note": "Matches MAUI: same green rectangle size/position and green heading text."
 },
 {
 "key": "shapes",
 "status": "green",
-"note": "matches MAUI: ellipse, round rectangle, pentagram, and line all match in color, size, stroke"
+"note": "Matches MAUI: ellipse, round rectangle, pentagram polygon, and line all match colors/sizes/positions."
 },
 {
 "key": "single_bound_selection",
 "status": "green",
-"note": "matches MAUI: identical instructional text and unselected list items"
+"note": "Matches MAUI: identical instructional text and country list, same layout."
 },
 {
 "key": "slider",
 "status": "green",
-"note": "matches MAUI: same thin Material-style track/thumb chrome for all slider variants and colors"
+"note": "Matches MAUI: thin Material slider chrome, same track colors, thumb colors, and layout for all variants shown."
 },
 {
 "key": "some_empty_groups",
 "status": "green",
-"note": "matches MAUI: same grouped list content, colors (green headers, orange footers, gray items), text"
+"note": "Matches MAUI: same grouped list, header/footer colors, empty groups still show headers/footers."
 },
 {
 "key": "stack_layout",
 "status": "green",
-"note": "matches MAUI: same vertical/horizontal color swatches, sizes, spacing, section headers"
+"note": "Matches MAUI: identical vertical/horizontal color-box stacks, sizes, spacing."
 },
 {
 "key": "staggered_layout",
 "status": "green",
-"note": "matches MAUI: same staggered grid item positions/offsets and text; only scroll offset differs (runtime state)"
+"note": "Matches MAUI: same staggered grid item positions/labels; only scroll offset differs (state, ignored)."
 },
 {
 "key": "stepper",
-"status": "yellow",
-"note": "Stepper buttons stretch to fill container width in C++ vs MAUI's compact intrinsic width (buttons ~2x wider in C++)"
+"status": "red",
+"note": "In BackgroundColor row the port's Stepper buttons render at a tiny fixed width leaving huge red empty space, while MAUI's Stepper stretches to fill the row width."
 },
 {
 "key": "styles",
 "status": "green",
-"note": "matches MAUI: same base/pink/default text styles, yellow-outlined button, layout and spacing"
+"note": "Matches MAUI: same base/derived/pink style text and outlined 'Style Me' button."
 },
 {
 "key": "swipe_gesture",
@@ -752,111 +752,111 @@
 {
 "key": "swipe_item_position",
 "status": "green",
-"note": "matches MAUI: same section headers, gray swipe rows with 'Swipe to Left' text, sizes and spacing"
+"note": "Matches MAUI: identical Reveal swipe demo layout and text."
 },
 {
 "key": "swipe_item_size",
 "status": "green",
-"note": "matches MAUI: same icon-size and SwipeView-size section rows, identical gray box heights and text"
+"note": "Matches MAUI: identical icon-size and SwipeView-size rows; only extra visible row from smaller inset (ignored)."
 },
 {
 "key": "swipe_refresh",
 "status": "green",
-"note": "Matches MAUI: same header text, gray subtitle, blank list area; content identical modulo outer inset."
+"note": "Matches MAUI: header text, 'Ready' status, layout all identical modulo crop/inset."
 },
 {
 "key": "swipe_threshold",
 "status": "green",
-"note": "Matches MAUI: identical instructional text, section labels, slider positions/colors, and purple SwipeView bars."
+"note": "Matches MAUI: purple bars, sliders, thumb positions, all section labels identical."
 },
 {
 "key": "swipe_view_margin",
-"status": "green",
-"note": "Matches MAUI: identical text, sliders at same position, gray SwipeView boxes with same labels/sizing."
+"status": "yellow",
+"note": "'Horizontal SwipeItems'/'Vertical SwipeItems' labels render near-invisible low-contrast gray-on-gray vs MAUI's clearly readable dark text; layout/sliders otherwise match."
 },
 {
 "key": "swipe_view_shadow",
 "status": "green",
-"note": "Content/layout matches MAUI exactly; no visible shadow in either shot on the swipe content boxes (flat), consistent between both."
+"note": "Matches MAUI: rounded-rect outlined boxes, 'Content' labels, gradient background all identical."
 },
 {
 "key": "switch",
 "status": "green",
-"note": "Matches MAUI: identical switch states/colors (gray off, blue bg, gradient bg, disabled gray, orange thumb) and labels."
+"note": "Matches MAUI: switch colors (blue/green tracks, orange thumb), disabled gray thumb, all identical."
 },
 {
 "key": "switch_grouping",
 "status": "green",
-"note": "Matches MAUI: same grouped list content, colors (green headers, orange totals), and toggle; extra visible rows are just the ignored outer-inset/crop difference."
+"note": "Matches MAUI: group header colors (green headers, orange totals), list content and switch toggle all identical."
 },
 {
 "key": "tabbed_flyout",
 "status": "red",
-"note": "C++ shows tab content (Home text + bottom Home/Settings bar) while MAUI shows the Flyout menu screen (Menu header, action buttons, status text) - wrong navigation state."
+"note": "Port shows plain tab content with bottom Home/Settings tab bar; MAUI shows FlyoutPage menu w/ 'Home tab'/'Settings tab'/'Toggle flyout' buttons - wrong structure."
 },
 {
 "key": "templated_view",
 "status": "green",
-"note": "Matches MAUI: identical CardView text, ControlTemplate compact-card rows with names/lorem text and same gray placeholder image blocks."
+"note": "Matches MAUI: red italic captions, card layout, gray placeholder image boxes, all text and spacing identical."
 },
 {
 "key": "time_picker",
 "status": "yellow",
-"note": "3rd 'Background' entry gradient wrong: cpp shows red-to-purple/magenta, MAUI shows blue-to-teal; all else (colors, text, layout) matches."
+"note": "3rd gradient Background swatch differs: MAUI shows blue-to-teal gradient, C++ shows pink-to-purple/red gradient (different GradientStop colors)."
 },
 {
 "key": "title_bar",
 "status": "green",
-"note": "Matches MAUI: identical layout, checkboxes, text fields, buttons, two-column Content/Color Options."
+"note": "matches MAUI: identical layout, checkboxes, text fields, and button states."
 },
 {
 "key": "toolbar",
 "status": "green",
-"note": "Matches MAUI: identical button list, text, spacing, colors."
+"note": "matches MAUI: identical button list, text, and colors."
 },
 {
 "key": "transform_playground",
 "status": "green",
-"note": "Matches MAUI: red/blue square, gray canvas, sliders and labels identical."
+"note": "matches MAUI: red/blue square, gray canvas, and all sliders/labels identical (page scroll position differs only due to inset, not content)."
 },
 {
 "key": "transformations",
 "status": "green",
-"note": "Matches MAUI: SCALE AND ROTATE button, sliders, anchor +/- buttons, translation sliders all identical."
+"note": "matches MAUI: identical button, sliders, +/- controls, and labels."
 },
 {
 "key": "triggers",
 "status": "green",
-"note": "Matches MAUI: Triggers title, instructional text, entry field, Highlight off label, Toggle highlight button all identical."
+"note": "matches MAUI: identical title, instructions, entry, label, and button."
 },
 {
 "key": "update_path_data",
 "status": "green",
-"note": "Matches MAUI: identical bezier path curve shape/position, counter text, Update Path Data button."
+"note": "matches MAUI: identical path curve shape/stroke and label/button content (MAUI's own text/button overlap is a MAUI-side layout quirk, not a port diff)."
 },
 {
 "key": "varied_size_selector",
-"status": "green",
-"note": "Matches: both show Coffee0/Milk1/Coffee2/Coffee3/Milk4/Coffee5 with correct brown(Coffee)/tan(Milk) backgrounds and varied heights (milk taller than coffee), same sequence and coloring as MAUI."
+"status": "yellow",
+"note": "Coffee-row item text renders in default gray (like Milk rows) instead of MAUI's dark brown/near-black text color, reducing contrast on the brown background."
 },
 {
 "key": "vertical_stack",
 "status": "green",
-"note": "Matches MAUI: 6 colored boxes (red/yellow/blue/green/orange/purple), identical size/order/spacing."
+"note": "Colored bar stack (red/yellow/blue/green/orange/purple) matches MAUI exactly in order, size, and color."
 },
 {
 "key": "visual_states",
 "status": "green",
-"note": "Matches MAUI: green Entry, enable-2nd-entry field, two gray buttons with identical text/layout."
+"note": "All text, entry underlines, green VSM entry, and button chrome match MAUI precisely."
 },
 {
 "key": "web_view",
 "status": "yellow",
-"note": "Heading \"Welcome\" now large+bold, matches MAUI. Residual: MAUI's <p> paragraph below heading not visible in port (WebView cell measures to heading only, documented limitation). Minor."
+"note": "WebView content text differs: MAUI shows 'Served from a static HtmlWebViewSource.' + nav status line; C++ shows 'No navigation yet' placeholder instead."
 },
 {
 "key": "z_index",
 "status": "green",
-"note": "Matches MAUI: identical stacked/offset colored label bars, same z-order, colors, and text."
+"note": "Layered label stack order, colors, and text match MAUI exactly; +/- controls match."
 }
 ]
