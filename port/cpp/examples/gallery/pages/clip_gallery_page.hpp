@@ -54,6 +54,7 @@
 #include "maui/controls/shapes/round_rectangle_geometry.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/aspect.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/corner_radius.hpp"
@@ -179,6 +180,10 @@ namespace maui::samples
             picture.set_aspect(maui::core::aspect::aspect_fill);
             picture.set_width_request(200);
             picture.set_height_request(200);
+            // HorizontalOptions="Start" (the Style setter) — left-align the 200-wide box so it (and its gray
+            // background) frames the left edge, matching MAUI. Without this the default fill/center placement
+            // centers the box, which diverged from the reference.
+            picture.set_horizontal_layout_alignment(maui::core::layout_alignment::start);
             picture.set_background(std::make_shared<maui::graphics::solid_paint>(
                 maui::graphics::color::from_rgb(211, 211, 211))); // LightGray = #D3D3D3
         }

@@ -27,9 +27,10 @@
 //     (The box_view's own shape Fill rides its Color property; the C# oracle sets the VisualElement
 //     Background brush, so we mirror that paint layer faithfully — the translucent-red square.)
 //   - Image Source="coffee.png"  -> image::set_source(file_image_source("coffee.png")).
-//     note: coffee.png is an SVG-only/unrasterized asset in this port (documented asset gap), so the image
-//           pixels render blank; the source is still set faithfully and the LightBlue row background +
-//           50×50 sizing are correct regardless.
+//     note: coffee.png is a real 48×56 raster packaged into the apphost APK assets, so the android image
+//           handler's file fast-path decodes + renders the two coffee-cup images (the earlier "SVG-only /
+//           renders blank" note was stale — pre-dated the wave-10 android BitmapFactory decode). The
+//           LightBlue row background + 50×50 sizing are correct alongside.
 //
 // HEADLESS-SAFE maui:: API only; the page owns its whole element tree (the generic mount in app_host.hpp
 // attaches every owned view's handler and hosts the tree).
@@ -143,8 +144,9 @@ namespace maui::samples
             // _row3.Background = new SolidColorBrush(Colors.LightBlue);
             row3_.set_background(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::light_blue));
             // _row3.Add(new Image { Source = "coffee.png", WidthRequest = 50, HeightRequest = 50 });
-            // note: coffee.png is SVG-only/unrasterized in this port (documented asset gap) — the image
-            //       renders blank, but the source is set faithfully and the row sizing/background is correct.
+            // note: coffee.png is a real 48×56 raster packaged into the apphost APK assets — the android
+            //       image handler decodes + renders it (the row's two coffee-cup images show); the source is
+            //       set faithfully and the row sizing/background is correct.
             auto image0 = std::make_shared<maui::controls::image>();
             image0->set_source(std::make_shared<maui::controls::file_image_source>("coffee.png"));
             image0->set_width_request(50);

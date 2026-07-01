@@ -134,6 +134,14 @@ namespace maui::core
         // native-Path-clip to any view's VisualElement.Clip (a shared android clip op + a custom-View host
         // per control) is future work. // TODO: a shared android clip op once more controls need a native clip.
         void update_clip(const maui::graphics::i_shape* value) override;
+        // Background IS pushed (the clip/clip_gallery pages frame each image with a LightGray box —
+        // VisualElement.BackgroundColor). C# ViewHandler.UpdateBackground sets the View's background to the
+        // paint's drawable; for a solid_paint the faithful plain-View analog is View.setBackgroundColor(argb)
+        // (the same primitive the collection_view cell background uses). A non-solid/absent paint clears it
+        // (setBackgroundColor(TRANSPARENT)), keeping the base mirror. The remaining generic-IView pushes still
+        // keep only the view_platform_base mirrors. // TODO: gradient/tiled brushes when a shared android
+        // paint→drawable bridge lands.
+        void update_background(const maui::graphics::paint* value) override;
 #endif
     };
 

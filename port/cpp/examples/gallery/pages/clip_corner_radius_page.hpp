@@ -51,6 +51,7 @@
 #include "maui/controls/slider.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/aspect.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/corner_radius.hpp"
@@ -79,6 +80,10 @@ namespace maui::samples
             // Grid container (ImageContainerStyle: LightGray, 200x200, Start) holding the clipped image.
             container_.set_height_request(200);
             container_.set_width_request(200);
+            // HorizontalOptions="Start" (ImageContainerStyle) — left-align the 200-wide container + its gray
+            // box (matching the maui-compare reference). Without it the default fill/center placement centered
+            // the container.
+            container_.set_horizontal_layout_alignment(maui::core::layout_alignment::start);
             container_.set_background(std::make_shared<maui::graphics::solid_paint>(
                 maui::graphics::color::from_rgb(211, 211, 211))); // LightGray = #D3D3D3
             // Image Source="oasis.jpg" AspectFill 200x200, clipped by the named round-rectangle geometry.

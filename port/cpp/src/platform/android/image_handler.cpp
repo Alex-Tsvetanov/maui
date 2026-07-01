@@ -101,12 +101,15 @@
 #include "maui/core/image_source_loader.hpp"   // configure_loader parameter type
 #include "maui/core/image_source_result.hpp"
 #include "maui/core/uri_bytes.hpp" // read_uri_bytes (disk fallback)
+#include "maui/graphics/color.hpp"
 #include "maui/graphics/i_shape.hpp"
+#include "maui/graphics/paint.hpp"
 #include "maui/graphics/path_f.hpp"
 #include "maui/graphics/path_operation.hpp"
 #include "maui/graphics/point_f.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+#include "maui/graphics/solid_paint.hpp"
 
 namespace
 {
@@ -445,6 +448,33 @@ namespace
         return {.width = static_cast<double>(w), .height = static_cast<double>(h)};
     }
 
+    // ARGB transparent — the "no background" fill (View.setBackgroundColor(TRANSPARENT)) used to clear a
+    // previously-painted background when the paint becomes null / non-solid.
+    constexpr jint k_transparent_argb = 0;
+
+    // VisualElement.Background (a solid color) → View.setBackgroundColor(argb). The C# ViewHandler.
+    // UpdateBackground sets the View's background to the paint's drawable; for a solid_paint the faithful
+    // plain-View analog is setBackgroundColor(int) — the same primitive the collection_view cell background
+    // uses. A null / non-solid paint clears the background to transparent (a gradient/tiled brush awaits a
+    // shared android paint→drawable bridge; see the header note). color::to_int() already packs 0xAARRGGBB,
+    // exactly what setBackgroundColor(int) expects (mirrors android_canvas::to_argb).
+    void set_view_background(JNIEnv* env, jobject widget, const maui::graphics::paint* paint)
+    {
+        jmethodID set_background_color =
+            default_jni_cache().method(env, k_image_view_class, "setBackgroundColor", "(I)V");
+        if (set_background_color == nullptr)
+        {
+            return;
+        }
+        jint argb = k_transparent_argb;
+        if (const auto* solid = dynamic_cast<const maui::graphics::solid_paint*>(paint))
+        {
+            argb = static_cast<jint>(solid->color().to_int());
+        }
+        env->CallVoidMethod(widget, set_background_color, argb);
+        clear_pending(env);
+    }
+
     // Push a decoded Bitmap (or null to clear) into the ImageView via setImageBitmap(Bitmap).
     void set_image_bitmap(JNIEnv* env, jobject widget, jobject bitmap)
     {
@@ -663,6 +693,27 @@ namespace maui::core
         }
         jobject widget = widget_of(*this);
         install_clip(env.get(), widget, value, display_density(env.get(), widget));
+    }
+
+    // ViewMapper map_background → ViewHandler.UpdateBackground: paint the MauiImageView's background with the
+    // VisualElement.Background paint (the clip/clip_gallery pages' LightGray frame). The shared view_mapper
+    // drives this through view_platform_base::update_background. The base body runs FIRST (the headless mirror
+    // must stay live for the VM-less cross-platform suite), then the native push sets the View's background
+    // color for a solid_paint (a gradient/tiled brush is deferred — header note). Mirrors the button partial's
+    // update_background structure (base mirror first, then the native push).
+    void image_platform::update_background(const maui::graphics::paint* value)
+    {
+        view_platform_base::update_background(value); // headless mirror first (the VM-less suite observes it)
+        if (native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        set_view_background(env.get(), widget_of(*this), value);
     }
 
     std::unique_ptr<image_platform> image_handler::create_platform_view()
