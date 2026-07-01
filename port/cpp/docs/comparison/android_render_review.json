@@ -26,8 +26,8 @@
 },
 {
 "key": "animation",
-"status": "yellow",
-"note": "PORT FIXED (ce534d5f80) — now renders the dotnet_bot Image target (faithful to real MAUI AnimationPage.xaml, was a Label stand-in). maui-compare reference still shows a Label; reference recapture pending."
+"status": "green",
+"note": "PORT MATCHES — both render the dotnet_bot Image target static at rest (faithful to real MAUI AnimationPage.xaml). maui-compare reference fixed (was a Label stand-in) + recaptured."
 },
 {
 "key": "app_theme_binding",
@@ -131,8 +131,8 @@
 },
 {
 "key": "clip_corner_radius",
-"status": "yellow",
-"note": "PORT CORRECT — faithful to real MAUI (Source=oasis.jpg=pug dog). Board diff is a maui-compare REFERENCE artifact (it uses dotnet_bot.png=submarine); reference-fix+recapture pending, not a port bug."
+"status": "green",
+"note": "PORT MATCHES — both show the oasis.jpg pug dog clipped by RoundRectangleGeometry (faithful to real MAUI ClipCornerRadiusGallery.xaml). maui-compare reference fixed (was dotnet_bot.png submarine) + recaptured."
 },
 {
 "key": "clip_gallery",
@@ -661,8 +661,8 @@
 },
 {
 "key": "scroll_mode_test",
-"status": "yellow",
-"note": "PORT CORRECT — faithful to real MAUI EnumSelector (Label+Picker, WidthRequest=200). Board diff is a maui-compare REFERENCE artifact (3 buttons); reference-fix+recapture pending."
+"status": "green",
+"note": "PORT MATCHES — both show the EnumSelector (Label + single-value Picker, WidthRequest=200) selecting KeepItemsInView (faithful to real MAUI EnumSelector<T>). maui-compare reference fixed (was 3 buttons) + recaptured."
 },
 {
 "key": "scroll_to_group",
