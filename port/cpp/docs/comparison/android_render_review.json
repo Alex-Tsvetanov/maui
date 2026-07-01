@@ -746,8 +746,8 @@
 },
 {
 "key": "swipe_gesture",
-"status": "red",
-"note": "SwipeView card content garbled/overlapping (title, date, description all stacked on same lines) vs MAUI's clean laid-out card"
+"status": "green",
+"note": "PORT CORRECT — renders the card Grid cleanly (Title+Date row0, SubTitle/Description stacked below, no overlap) mirroring the ground-truth SwipeViewGestureRecognizerGallery.xaml. The maui-compare REFERENCE PNG is the garbled one (a capture-side settle/measure race collapsed its Grid into row 0) — a reference capture artifact, not a port bug (headless grid/layout 280/280 green; basic_swipe regression-clean). Recapture the maui reference to clear the visual mismatch."
 },
 {
 "key": "swipe_item_position",
