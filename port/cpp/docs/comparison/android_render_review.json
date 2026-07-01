@@ -37,7 +37,7 @@
 {
 "key": "application_control",
 "status": "yellow",
-"note": "Buttons and status line content match; 'Quits the application' header is bold in MAUI but regular weight in port."
+"note": "'Quits the application' header now bold, matches MAUI. Minor: status line shows real window title 'MAUI C++ — gallery' vs MAUI's '(untitled)'."
 },
 {
 "key": "auto_size_shapes",
@@ -336,8 +336,8 @@
 },
 {
 "key": "grid_grouping",
-"status": "yellow",
-"note": "Group header text (e.g. 'Avengers') is regular weight in the port vs bold in MAUI; all other content (list items, colors, totals) matches."
+"status": "green",
+"note": "Matches MAUI: 2-col grid, bold green group headers (Avengers, Fantastic Four, etc.), orange Total members lines, header/footer text all match."
 },
 {
 "key": "grouping_no_templates",
@@ -346,8 +346,8 @@
 },
 {
 "key": "grouping_plus_selection",
-"status": "yellow",
-"note": "Group header text (e.g. 'Fantastic Four', 'Defenders') renders regular weight in the port vs bold in MAUI; list items/totals/colors otherwise match."
+"status": "green",
+"note": "Matches MAUI: single-col list, bold green group headers (Avengers, Fantastic Four, Defenders), orange Total members lines all match; bold renders correctly."
 },
 {
 "key": "header_footer",
@@ -446,8 +446,8 @@
 },
 {
 "key": "ios_pan_gesture",
-"status": "yellow",
-"note": "MAUI renders 'panned x:45 y:-12' label in bold; cpp port renders it in regular weight"
+"status": "green",
+"note": "Matches MAUI: header, button, labels align; 'panned x:45 y:-12' now bold, matching MAUI's bold weight/size."
 },
 {
 "key": "ios_picker",
@@ -516,8 +516,8 @@
 },
 {
 "key": "measure_first_strategy",
-"status": "yellow",
-"note": "Group header labels ('Avengers', 'Fantastic Four', 'Defenders') are regular weight in the port but bold in MAUI; text/colors/order otherwise match."
+"status": "green",
+"note": "Matches MAUI. 'Avengers'/group headers render bold+green as MAUI does; content, counts, orange totals all match."
 },
 {
 "key": "menu_bar",
