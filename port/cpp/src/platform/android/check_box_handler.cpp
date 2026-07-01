@@ -20,7 +20,13 @@
 //     CompoundButton setButtonTintList/setButtonTintMode that CheckBoxExtensions.UpdateForeground drives
 //     through CompoundButtonCompat (the AppCompat shim is unnecessary on the plain widget — the methods
 //     are on the View directly). C#'s SoundEffectsEnabled = false is ported (a plain View property);
-//     SetClipToOutline(true) is ported (also a plain View property).
+//     SetClipToOutline(true) is ported (also a plain View property). One RENDERED-GEOMETRY consequence of
+//     the plain-widget substitution is corrected in platform_arrange: MaterialCheckBox draws its glyph
+//     horizontally CENTERED in its (Fill) bounds, the plain CompoundButton pins the buttonDrawable at the
+//     widget's LEFT edge (honoring neither gravity nor padding for it) — so the arrange pass lays the widget
+//     out at its natural glyph width, centered in the allotted frame, so the left-drawn glyph lands at the
+//     frame center (see center_glyph_in_frame; the rendered-geometry twin of the seed_default_material_button
+//     _tint colour fix, matching MAUI's RENDERED pixels).
 //   - CheckBoxExtensions.UpdateForeground builds the tint with ColorStateListExtensions.CreateCheckBox
 //     (a FOUR-state ColorStateList: enabledChecked/enabledUnchecked/disabledChecked/disabledUnchecked).
 //     For a developer-set SolidPaint that single overload is CreateCheckBox(all,all,all,all) — every
@@ -227,6 +233,34 @@ namespace
             return 1.0F;
         }
         return density;
+    }
+
+    // The intrinsic PIXEL width of the CompoundButton's buttonDrawable (the checkmark-in-box glyph):
+    // getButtonDrawable() (API 23+) → Drawable.getIntrinsicWidth(). 0 on any resolution failure or a
+    // drawable-less widget, so the caller falls back to the unchanged full-frame layout (the pre-fix
+    // left-glyph geometry) rather than mispositioning. See center_glyph_in_frame in platform_arrange.
+    [[nodiscard]] jint button_drawable_width_px(JNIEnv* env, jobject widget)
+    {
+        auto& cache = default_jni_cache();
+        jmethodID get_button_drawable =
+            cache.method(env, k_check_box_class, "getButtonDrawable", "()Landroid/graphics/drawable/Drawable;");
+        jmethodID get_intrinsic_width =
+            cache.method(env, "android/graphics/drawable/Drawable", "getIntrinsicWidth", "()I");
+        if (get_button_drawable == nullptr || get_intrinsic_width == nullptr)
+        {
+            return 0;
+        }
+        const local_ref<jobject> drawable{env, env->CallObjectMethod(widget, get_button_drawable)};
+        if (clear_pending(env) || !drawable)
+        {
+            return 0;
+        }
+        const jint width = env->CallIntMethod(drawable.get(), get_intrinsic_width);
+        if (clear_pending(env) || width < 0)
+        {
+            return 0;
+        }
+        return width;
     }
 
     // PorterDuff.Mode.SRC_IN — a STATIC enum field. The jni_cache's field() is GetFieldID (instance) and
@@ -759,8 +793,38 @@ namespace maui::core
         const jint top = to_pixels(frame.y, density);
         const jint width = to_pixels(frame.width, density);
         const jint height = to_pixels(frame.height, density);
+        // center_glyph_in_frame — PARITY (buttonDrawable CENTERING, the geometry twin of the tint seed).
+        // A text-less CheckBox in a VerticalStackLayout is arranged Fill (View's default HorizontalOptions),
+        // so the layout hands the widget the FULL cross-axis width — LayoutExtensions.ComputeFrame leaves a
+        // no-explicit-width Fill child at the leading edge spanning the whole bounds, exactly what
+        // view<>::compute_frame reproduces (uiautomator confirms the standalone boxes get bounds [0..1080]).
+        // Real .NET MAUI's MaterialCheckBox draws its checkmark-in-box glyph HORIZONTALLY CENTERED within
+        // those full-width bounds (measured off the maui-compare baseline
+        // docs/comparison/android/maui/check_box.png: the Colored/Disabled-Colored boxes center on the 1080px
+        // canvas, x≈540). The plain android.widget.CheckBox this AAR-less host substitutes (the documented
+        // MaterialCheckBox deviation) draws its buttonDrawable pinned at the widget's LEFT edge — a plain
+        // CompoundButton positions the glyph from getScrollX() and honors NEITHER android:gravity NOR
+        // horizontal padding for it (both were tried and confirmed inert against the framebuffer) — so a
+        // full-width layout renders the glyph jammed to x≈0 (the check_box RED parity diff, every standalone
+        // box at x≈37). Since the glyph cannot be re-centered WITHIN the widget on the plain control, we
+        // instead lay the widget out at its NATURAL glyph width, horizontally centered in the allotted frame:
+        // the glyph — drawn at the widget's left — then lands at the frame center, reproducing
+        // MaterialCheckBox's rendered pixels (glyph centered on x≈540). This mirrors MAUI's RENDERED result
+        // rather than its internal view geometry, the same rendered-default-fidelity contract as
+        // seed_default_material_button_tint (which pins the Material gray the host theme doesn't resolve). It
+        // is scoped to the Fill-stretched case (glyph NARROWER than the frame): a natural-width frame
+        // (glyph ≥ frame — the HorizontalStackLayout row) is laid out unchanged and stays where ComputeFrame
+        // put it, matching MAUI (the "Change IsChecked" row's checkbox is left in the row in both columns).
+        const jint glyph_width = button_drawable_width_px(env.get(), widget);
+        jint layout_left = left;
+        jint layout_width = width;
+        if (glyph_width > 0 && glyph_width < width)
+        {
+            layout_left = left + ((width - glyph_width) / 2);
+            layout_width = glyph_width;
+        }
         const jint width_spec =
-            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, width, k_measure_spec_exactly);
+            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, layout_width, k_measure_spec_exactly);
         const jint height_spec =
             env->CallStaticIntMethod(measure_spec_class, make_measure_spec, height, k_measure_spec_exactly);
         if (clear_pending(env.get()))
@@ -772,7 +836,7 @@ namespace maui::core
         {
             return;
         }
-        env->CallVoidMethod(widget, layout, left, top, left + width, top + height);
+        env->CallVoidMethod(widget, layout, layout_left, top, layout_left + layout_width, top + height);
         clear_pending(env.get());
     }
 } // namespace maui::core
