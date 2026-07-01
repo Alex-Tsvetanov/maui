@@ -62,17 +62,17 @@
 {
 "key": "border",
 "status": "green",
-"note": "Uniform rounded-rectangle clip matches MAUI; cream fill, red stroke, centered label all match. Regression check passes, shape unchanged."
+"note": "Matches MAUI: red rounded-rect border, light-yellow fill, 'Bordered content' text same size/color/position. No regression."
 },
 {
 "key": "border_clip_playground",
 "status": "green",
-"note": "Per-corner clip matches MAUI: top-left large radius round, top-right/bottom-left square, bottom-right slight round. Minor: cpp stroke thinner than MAUI's thicker stroke (non-blocking residual)."
+"note": "Matches MAUI: per-corner radii (60/0/0/12) clip dog image identically, red 5px stroke follows same asymmetric rounded shape. No triangle here; regression unchanged."
 },
 {
 "key": "border_layout",
 "status": "green",
-"note": "Border corners: rounded pill shape (left+right ends rounded, uniform) matches MAUI exactly; red/Center-green/blue/green fill order, size, stroke all match."
+"note": "Matches MAUI: red/green/blue segmented row centered in rounded-rect border, same stroke/corner radius. No triangle shape on this page (regression only)."
 },
 {
 "key": "border_playground",
@@ -81,8 +81,8 @@
 },
 {
 "key": "border_resize_content",
-"status": "red",
-"note": "MAUI's third shape (row 3) renders as a triangle StrokeShape; C++ renders it as a plain square — missing arbitrary-StrokeShape support."
+"status": "yellow",
+"note": "Triangle now renders, content clipped inside — fix confirmed, no regression. Minor: C++ content sits closer to green stroke, missing MAUI's light-blue padding ring (all 3 rows)."
 },
 {
 "key": "border_stroke",
@@ -142,7 +142,7 @@
 {
 "key": "clip_views",
 "status": "yellow",
-"note": "Per-corner/curved diagonal clip shapes on all 7 rows match MAUI exactly (regression OK); residual: cpp is missing native underline chrome on Entry/Editor/DatePicker/TimePicker rows that MAUI shows."
+"note": "Clip shapes match on all rows (red diagonal curved clip, consistent w/ triangle fix). MINOR: MAUI shows underline under Entry/Editor/DatePicker/TimePicker, C++ omits it."
 },
 {
 "key": "clipping",
