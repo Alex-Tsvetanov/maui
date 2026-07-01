@@ -1285,6 +1285,7 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/multi_binding_tests.cpp
     tests/controls/relative_source_binding_tests.cpp
     tests/controls/view_extensions_tests.cpp # (W1-14) backend-agnostic animation surface
+    tests/controls/animation_page_tests.cpp # the gallery Animations page: code-vs-capture diagnosis (backend-agnostic)
     # (W3-31 table_view + cells) backend-agnostic: the cell family + the table model/control/handler.
     tests/controls/cells_tests.cpp
     tests/controls/table_view_tests.cpp
@@ -1474,6 +1475,7 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/multi_binding_tests.cpp
     tests/controls/relative_source_binding_tests.cpp
     tests/controls/view_extensions_tests.cpp # (W1-14) backend-agnostic animation surface
+    tests/controls/animation_page_tests.cpp # the gallery Animations page: code-vs-capture diagnosis (backend-agnostic)
     # (W3-31 table_view + cells) backend-agnostic: the cell family + the table model/control/handler.
     tests/controls/cells_tests.cpp
     tests/controls/table_view_tests.cpp
@@ -1558,6 +1560,7 @@ else()
     tests/controls/size_request_tests.cpp # the VisualElement size-request surface (view<> IView mapping)
     tests/controls/margin_tests.cpp # backend-agnostic; the View.Margin measure/arrange seam on view<>
     tests/controls/view_extensions_tests.cpp # (W1-14) the animation surface over the manual ticker
+    tests/controls/animation_page_tests.cpp # the gallery Animations page: code-vs-capture diagnosis (backend-agnostic)
     tests/controls/lifecycle_tests.cpp
     tests/controls/effect_tests.cpp # (G3) effects: registry + resolve + element attach/detach + routing/platform
     tests/controls/data_template_tests.cpp    # backend-agnostic (W1-09 templates)
