@@ -47,12 +47,22 @@ namespace maui::samples
             // "Large" font size is a device-dependent named size; 18pt stands in (see header note).
             const auto large_font = maui::core::font::system_font_of_size(18.0);
 
+            // The C# XAML sets NO explicit TextColor on these labels, so MAUI renders them in the
+            // platform DEFAULT label text color — on Android that is a dark neutral gray (measured
+            // #3B3B3B from docs/comparison/android/maui/flex_layout.png). The port's DeviceDefault
+            // theme resolves the unset text color to a much LIGHTER bluish-gray (~#74757F), which is
+            // near-invisible on this page's gray CONTENT region. Pin the dark default explicitly on
+            // these labels (page-local — NOT a global theme change) so they read on the colored
+            // FlexLayout regions exactly as MAUI does. See PROFILE parity policy §1 (MAUI is truth).
+            const auto default_label_text = maui::graphics::color::from_rgb(59, 59, 59); // #3B3B3B
+
             // Outer flex: a vertical column (header / body / footer).
             root_.set_direction(maui::layouts::flex_direction::column);
 
             // HEADER — an aqua title bar at content height.
             header_.set_text("HEADER");
             header_.set_font(large_font);
+            header_.set_text_color(default_label_text);
             header_.set_background(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::aqua));
             header_.set_horizontal_text_alignment(maui::core::text_alignment::center);
             root_.add(header_);
@@ -62,6 +72,7 @@ namespace maui::samples
             //   The body's own three children (content / nav / aside) get their attached values from BODY.
             content_.set_text("CONTENT");
             content_.set_font(large_font);
+            content_.set_text_color(default_label_text);
             content_.set_background(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::gray));
             content_.set_horizontal_text_alignment(maui::core::text_alignment::center);
             content_.set_vertical_text_alignment(maui::core::text_alignment::center);
@@ -85,6 +96,7 @@ namespace maui::samples
             // FOOTER — a pink bar at content height.
             footer_.set_text("FOOTER");
             footer_.set_font(large_font);
+            footer_.set_text_color(default_label_text);
             footer_.set_background(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::pink));
             footer_.set_horizontal_text_alignment(maui::core::text_alignment::center);
             root_.add(footer_);
