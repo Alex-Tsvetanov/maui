@@ -16,8 +16,8 @@
 },
 {
 "key": "alerts",
-"status": "yellow",
-"note": "Layout/buttons/text all match MAUI, but button label text renders black in port vs white/light-grey in MAUI."
+"status": "green",
+"note": "Matches MAUI: same header text, same 6 buttons (gray fill, white text), identical layout/spacing."
 },
 {
 "key": "alignment",
@@ -26,8 +26,8 @@
 },
 {
 "key": "animation",
-"status": "yellow",
-"note": "Buttons match; .NET bot animation-target image missing in port, shown as literal caption text instead of the bot image MAUI displays."
+"status": "green",
+"note": "Matches MAUI: 3 buttons (Start Animation/Start Custom Animation/Cancel Animation) same gray fill/white text style; bot label/icon cropped in both."
 },
 {
 "key": "app_theme_binding",
@@ -101,8 +101,8 @@
 },
 {
 "key": "button",
-"status": "yellow",
-"note": "Content matches (colors/labels/order) but port's buttons are taller/more padded than MAUI's, so fewer rows fit in view (cuts off before 'Increase Spacing' that MAUI shows)."
+"status": "green",
+"note": "Matches MAUI: gray/blue/red/green/purple buttons all same fill colors and white text; letter-spaced pink 'Button' and black settings rows match."
 },
 {
 "key": "carousel_page",
@@ -121,8 +121,8 @@
 },
 {
 "key": "chrome",
-"status": "yellow",
-"note": "Button has dark border/shadow chrome in cpp vs flat MAUI button; button text black in cpp vs white in MAUI; 'Ready' label black in cpp vs gray in MAUI."
+"status": "green",
+"note": "Matches MAUI: 'Press or right-click me' button (gray fill, white text) and 'Ready' label identical."
 },
 {
 "key": "clip",
@@ -142,12 +142,12 @@
 {
 "key": "clip_views",
 "status": "yellow",
-"note": "Structure matches well; Button text is black in cpp vs white in MAUI; Entry/Editor/date/time rows missing MAUI's underline; SearchBar magnifying-glass icon missing in cpp (blank red bar)."
+"note": "Red clip shapes/text match MAUI exactly, but the SearchBar row is missing its magnifier icon glyph (MAUI shows a search icon, C++ shows blank)."
 },
 {
 "key": "clipping",
-"status": "yellow",
-"note": "Only 4 of 8 numbered boxes visible in cpp (oversized) vs MAUI's 8 smaller boxes; button text black in cpp vs white in MAUI; coffee-cup icons visible in cpp's blue bar but not MAUI's."
+"status": "green",
+"note": "Matches MAUI: buttons now show white text on grey/Material buttons, overlapping rects, purple Hey pills, coffee icons all correct."
 },
 {
 "key": "collectionview",
@@ -167,7 +167,7 @@
 {
 "key": "content_view",
 "status": "yellow",
-"note": "\"Swap content\" button text is dark/black in C++ vs white in MAUI; layout/spacing otherwise match."
+"note": "Layout/text/button (white text) match MAUI exactly; port background is light lavender-gray vs MAUI's pure white."
 },
 {
 "key": "context_flyout",
@@ -186,8 +186,8 @@
 },
 {
 "key": "custom_size_swipe",
-"status": "yellow",
-"note": "\"Test Click from Content\" button text is dark/black in C++ vs white in MAUI; everything else matches."
+"status": "green",
+"note": "Matches MAUI: green SwipeView content bar, grey button with white text, RightItems text all identical."
 },
 {
 "key": "custom_swipe_item_view",
@@ -216,8 +216,8 @@
 },
 {
 "key": "dispatcher",
-"status": "yellow",
-"note": "MAUI buttons (Fail Access/Access/3 Seconds Later/etc.) render with washed-out light-gray text vs cpp's normal dark button text"
+"status": "green",
+"note": "Matches MAUI: all 5 buttons show white text on grey Material buttons, full text content identical."
 },
 {
 "key": "drag_drop",
@@ -231,8 +231,8 @@
 },
 {
 "key": "effects",
-"status": "yellow",
-"note": "MAUI's Detach/Re-attach routing effect buttons show washed-out light-gray text vs cpp's normal dark button text"
+"status": "green",
+"note": "Matches MAUI: Entry fields with underline, grey buttons with white text, status text all identical."
 },
 {
 "key": "ellipse_gallery",
@@ -266,8 +266,8 @@
 },
 {
 "key": "empty_view_swap",
-"status": "yellow",
-"note": "Content matches, but Clear/Fill button label text is dark/black in port vs white in MAUI's disabled-style gray buttons."
+"status": "green",
+"note": "Matches MAUI: list content, toggle, Clear/Fill buttons identical layout/colors/text; only status bar and outer inset differ (ignored)."
 },
 {
 "key": "empty_view_template",
@@ -301,8 +301,8 @@
 },
 {
 "key": "focus",
-"status": "yellow",
-"note": "Button text color wrong: MAUI shows light/near-white text on the gray buttons (disabled-tint default), port renders solid black text."
+"status": "green",
+"note": "Matches MAUI: Entry, Focus/Unfocus Entry buttons, IsFocused label all identical in text/color/layout."
 },
 {
 "key": "fonts",
@@ -411,13 +411,13 @@
 },
 {
 "key": "input_transparent",
-"status": "yellow",
-"note": "All button label text renders black in C++ vs white (bold) in MAUI on the same gray button background; layout/content otherwise matches."
+"status": "green",
+"note": "Matches MAUI: all button rows, text, toggle, and status label render identically; layout and spacing match."
 },
 {
 "key": "invalidate_brush",
-"status": "yellow",
-"note": "Button text black vs MAUI white; C++ button has square corners vs MAUI's rounded corners; otherwise green brush swatch/label match."
+"status": "green",
+"note": "Matches MAUI: green filled 'Change color' button with white text, green brush swatch bar, and label all match exactly."
 },
 {
 "key": "invalidate_shadow_host",
@@ -426,18 +426,18 @@
 },
 {
 "key": "ios_blur_effect",
-"status": "yellow",
-"note": "Image and blur-effect label match; only diff is button label text black in C++ vs white in MAUI."
+"status": "green",
+"note": "Matches MAUI: dog image, 4 gray blur buttons with white text, and BlurEffect label all match in layout/colors."
 },
 {
 "key": "ios_date_picker",
-"status": "yellow",
-"note": "Date text field and layout match; only diff is button label text black in C++ vs white in MAUI."
+"status": "green",
+"note": "Matches MAUI: entry text + Toggle button now correctly white text on filled rounded gray button."
 },
 {
 "key": "ios_entry",
-"status": "yellow",
-"note": "Entry text/placeholder and layout match; only diff is button label text black in C++ vs white in MAUI."
+"status": "green",
+"note": "Matches MAUI: entry placeholder + Toggle AdjustsFontSizeToFitWidth button white text on gray, same layout."
 },
 {
 "key": "ios_first_responder",
@@ -502,7 +502,7 @@
 {
 "key": "layout_is_enabled",
 "status": "yellow",
-"note": "Enabled-state Button text is white/bold in MAUI (native Android default) but rendered black/plain in the port; layout structure and colors otherwise match."
+"note": "Colors/enabled-state boxes match, but MAUI fades section-title labels to gray when layout disabled; port keeps titles full black always."
 },
 {
 "key": "line_gallery",
@@ -567,7 +567,7 @@
 {
 "key": "picker",
 "status": "yellow",
-"note": "Clear/Add/Replace Items buttons render with black enabled-looking text in cpp vs greyed disabled text in MAUI."
+"note": "All visible rows match (colors, text, buttons white-on-gray); port screenshot crops right at the green 'Items(markup)' picker so its populated Item 1 content isn't visible to confirm."
 },
 {
 "key": "pickers",
@@ -692,7 +692,7 @@
 {
 "key": "semantics",
 "status": "yellow",
-"note": "buttons: cpp shows dark text on gray, MAUI shows white text on gray; search bar: cpp renders as plain underlined entry, MAUI renders full native SearchView with magnifier icon and clear (X) button"
+"note": "Text/buttons match (white on gray); MAUI's SearchBar row shows magnifier icon + clear X chrome, port renders it as a plain underlined entry with no icon."
 },
 {
 "key": "shadow_playground",
