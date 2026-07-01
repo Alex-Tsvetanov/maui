@@ -27,10 +27,14 @@
 //     plain TextView/EditText properties.
 //   - MapBackground rides the shared view_mapper (no per-handler override needed); the maui background
 //     drawable / corner-radius / stroke machinery the button partial carries does not apply to an editor.
-//   - The port's colors are non-nullable value types, so C#'s null-color branches collapse exactly as
-//     they did in the apple/ios partials: UpdateTextColor's / UpdatePlaceholderColor's "restore the
-//     theme default" else-branches have no value-type analog and are dropped (an unset color is a real
-//     value here, pushed through to setTextColor / setHintTextColor like every other color).
+//   - The port's colors are non-nullable value types (default color{} = opaque BLACK), so C#'s null-color
+//     branches have no direct value-type analog. UpdateTextColor's "restore the theme default" else-branch
+//     is dropped (an unset TextColor is pushed through to setTextColor like every other color — TextColor
+//     is not one of the parity yellows). UpdatePlaceholderColor's null branch (resolve
+//     android.R.attr.textColorHint, SetHintTextColor to it) IS honored: map_placeholder_color discriminates
+//     on BindableObject.IsSet and, when UNSET, asserts the measured native hint gray (#666666) instead of
+//     black — the unset-color-default family fix (see map_placeholder_color), so an empty editor shows a
+//     gray placeholder matching MAUI, not solid black. An explicit PlaceholderColor still overrides.
 //   - The native EditText color setters take a ColorStateList (C# routes through
 //     PlatformInterop.CreateEditTextColorStateList). The plain-widget cut uses the single-int overloads
 //     setTextColor(int) / setHintTextColor(int) — the ColorStateList path's enabled-state coloring is an
@@ -83,6 +87,7 @@
 #include "jni/jni_env.hpp"
 #include "jni/jni_ref.hpp"
 #include "jni/jni_string.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/i_editor.hpp"
 #include "maui/core/keyboard.hpp"
@@ -891,10 +896,26 @@ namespace maui::core
         const scoped_env env;
         if (env)
         {
-            // EditTextExtensions.UpdatePlaceholderColor: SetHintTextColor(placeholderColor.ToPlatform()).
-            // Null branch collapses + ColorStateList→int overload (header deviations).
-            call_void_int(env.get(), widget_of(*platform), "setHintTextColor",
-                          static_cast<jint>(view.placeholder_color().to_int()));
+            // EditTextExtensions.UpdatePlaceholderColor discriminates on `placeholderTextColor is null`:
+            // SET → SetHintTextColor(color); UNSET → resolve android.R.attr.textColorHint from the theme
+            // and SetHintTextColor to THAT (the native EditText hint gray). The port's Color is a
+            // NON-nullable value type (default color{} = opaque BLACK), so a `!= color{}` compare cannot
+            // stand in for `!= null` — it misreads an explicit PlaceholderColor=Black as unset AND (the bug
+            // this fix closes) rendered every unset placeholder solid BLACK, indistinguishable from real
+            // text. Discriminate instead on BindableObject.IsSet (is_property_set("placeholder_color")) —
+            // the faithful stand-in for `!= null`, exactly the sentinel activity_indicator_handler::map_color
+            // / button_handler::map_text_color use. On the UNSET branch, positively assert the measured
+            // native EditText hint gray (#666666, the android textColorHint the maui-compare reference
+            // samples) instead of black — reproducing C#'s theme-textColorHint *result* deterministically
+            // (this AAR-less backend cannot rely on the force-styled Context resolving the theme attr to
+            // that gray). An explicit PlaceholderColor still overrides via the SET branch. (ColorStateList
+            // → int overload — header deviations.)
+            constexpr jint k_native_default_hint_color = static_cast<jint>(0xFF666666U);
+            const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+            const bool color_is_set = bindable != nullptr && bindable->is_property_set("placeholder_color");
+            const jint argb =
+                color_is_set ? static_cast<jint>(view.placeholder_color().to_int()) : k_native_default_hint_color;
+            call_void_int(env.get(), widget_of(*platform), "setHintTextColor", argb);
         }
     }
 

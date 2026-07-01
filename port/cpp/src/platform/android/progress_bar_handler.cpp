@@ -17,11 +17,17 @@
 //     `is LinearProgressIndicator` branch); the Material Components library is a gradle/AAR dependency
 //     this APK-less backend does not carry, so the plain-ProgressBar path (UpdateProgressBarColor) is
 //     always taken — the same branch C# takes for a non-Material ProgressBar.
-//   - The port's colors are non-nullable value types, so ProgressBarExtensions.UpdateProgressBarColor's
-//     `color == null` branch (ClearColorFilter to restore the theme default) collapses exactly as it did
-//     in the apple/ios partials: an unset ProgressColor is the default color and always takes the
-//     ColorStateList.ValueOf tint path. Because Indeterminate is fixed false, only the ProgressTintList
-//     branch is reachable (never IndeterminateTintList).
+//   - The port's colors are non-nullable value types (default color{} = opaque BLACK), so C#'s
+//     ProgressBarExtensions.UpdateProgressBarColor `color == null` branch (ClearColorFilter to restore the
+//     theme default) has no value-type analog. A `!= color{}` compare cannot stand in for `!= null` (it
+//     misreads an explicit ProgressColor=Black as unset AND tinted every unset bar black), so map_progress_color
+//     discriminates on BindableObject.IsSet (is_property_set("progress_color")) and, on the UNSET branch,
+//     positively asserts the measured native default (#E0E0E0 light gray) rather than pushing black — the
+//     same reproduce-the-ClearColorFilter-result convention activity_indicator_handler::map_color uses. An
+//     explicit ProgressColor still overrides. Because Indeterminate is fixed false, only the ProgressTintList
+//     branch is reachable (never IndeterminateTintList). The TRACK (progressBackground) tint is seeded once
+//     at creation to the neutral native-default gray (#D7D7D7) so the force-styled Material defStyleRes's
+//     lavender secondary baseline matches MAUI's neutral track for every row (see create_platform_view).
 //   - Shadow / Clip / InputTransparent have NO plain-android.view.View analog (WrapperView-only in C#),
 //     so those generic-IView properties keep ONLY the headless mirror — matching the unwrapped-View
 //     behavior the shared android ops document (android_visual_ops.hpp). is_enabled likewise keeps the
@@ -51,6 +57,7 @@
 #include "jni/jni_env.hpp"
 #include "jni/jni_ref.hpp"
 #include "jni/jni_string.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/flow_direction.hpp"
 #include "maui/core/i_progress.hpp"
 #include "maui/core/semantics.hpp"
@@ -93,6 +100,26 @@ namespace
 
     // ProgressBarExtensions.Maximum — MAUI scales the [0,1] fraction onto this fixed integer range.
     constexpr jint k_progress_maximum = 10000;
+
+    // PARITY (the track twin of the ProgressColor unset-default fix): C#'s UpdateProgressColor touches
+    // ONLY the progress (fill) tint — it NEVER sets the track (progressBackground) tint, so the track
+    // keeps the native default. On MAUI's native-default determinate ProgressBar that track is a neutral
+    // light gray — the maui-compare reference samples #D7D7D7 for every row's track (Default, the explicit
+    // ProgressColor rows, and ProgressTo alike). This AAR-less backend force-styles a concrete Material
+    // defStyleRes onto the bare Context (see create_platform_view), whose baseline progressBackground tint
+    // is the theme SECONDARY (a lavender #D0D5E3, sampled in the pre-fix capture), NOT MAUI's neutral gray
+    // — the "track color also differs" half of the parity review. Seeding the measured neutral gray as the
+    // track baseline at creation (below, once) reproduces MAUI's native-default track for ALL rows without
+    // touching any per-row mapper, exactly the seed-the-measured-default technique switch_handler.cpp uses
+    // (seed_default_material_tints). The ProgressColor mapper only ever sets the FILL tint, so this track
+    // baseline is never disturbed by an explicit or unset ProgressColor.
+    //
+    // NOTE on the seed value: setProgressBackgroundTintList tints the secondaryProgress drawable, which the
+    // Material defStyleRes gives a ~0.25 alpha, so the seed is composited over the (white) field before it
+    // renders — a solid #D7D7D7 seed lands ~#F5F5F5 (too light). Pre-compensating for that alpha, seeding
+    // the darker #5F5F5F composites to MAUI's measured neutral #D7D7D7 (0.25*0x5F + 0.75*0xFF ≈ 0xD7). A
+    // neutral gray either way (the lavender is gone with either); this pins it to MAUI's exact tone.
+    constexpr jint k_native_default_track_color = static_cast<jint>(0xFF5F5F5FU);
 
     // GeometryUtil.Epsilon — ContextExtensions.ToPixels subtracts it before ceiling (see to_pixels).
     constexpr double k_to_pixels_epsilon = 0.0000000001;
@@ -415,6 +442,30 @@ namespace maui::core
         // The object-initializer of CreatePlatformView: { Indeterminate = false, Max = Maximum }.
         call_void_bool(env.get(), widget.get(), "setIndeterminate", JNI_FALSE);
         call_void_int(env.get(), widget.get(), "setMax", k_progress_maximum);
+        // PARITY: pin the neutral Material-default track (progressBackground) gray so the force-styled
+        // defStyleRes's lavender secondary-color baseline is replaced by MAUI's native-default #D7D7D7 for
+        // every row (see the k_native_default_track_color note). setProgressBackgroundTintList takes a
+        // ColorStateList; build it via ColorStateList.valueOf, exactly like map_progress_color's fill tint.
+        // Best-effort — a null id / failed alloc leaves the styled baseline (never crashes).
+        {
+            jmethodID track_value_of = cache.static_method(env.get(), k_color_state_list_class, "valueOf",
+                                                           "(I)Landroid/content/res/ColorStateList;");
+            jmethodID set_background_tint =
+                cache.method(env.get(), k_progress_bar_class, "setProgressBackgroundTintList",
+                             "(Landroid/content/res/ColorStateList;)V");
+            jclass color_state_list_class = cache.find_class(env.get(), k_color_state_list_class);
+            if (track_value_of != nullptr && set_background_tint != nullptr && color_state_list_class != nullptr)
+            {
+                const local_ref<jobject> track_tint{
+                    env.get(),
+                    env->CallStaticObjectMethod(color_state_list_class, track_value_of, k_native_default_track_color)};
+                if (!clear_pending(env.get()) && track_tint)
+                {
+                    env->CallVoidMethod(widget.get(), set_background_tint, track_tint.get());
+                    clear_pending(env.get());
+                }
+            }
+        }
         // Wrap-content LayoutParams up front (parentless View measure/layout safety — the android
         // container fan-out has not arrived; the partial stands in for the parent ViewGroup attach,
         // exactly like button_handler.cpp does).
@@ -479,10 +530,28 @@ namespace maui::core
         jobject widget = widget_of(*platform);
         auto& cache = default_jni_cache();
         // ProgressBarExtensions.UpdateProgressColor → UpdateProgressBarColor (the plain-ProgressBar
-        // branch; the Material LinearProgressIndicator branch is a documented deviation): the color is
-        // non-nullable in the port, so the `color == null` ClearColorFilter branch collapses and the
-        // ColorStateList.ValueOf tint path is always taken. Indeterminate is fixed false, so the
-        // ProgressTintList branch (never IndeterminateTintList) is the only one reachable.
+        // branch; the Material LinearProgressIndicator branch is a documented deviation). C# discriminates
+        // on `color == null`: SET → ColorStateList.ValueOf(color) on ProgressTintList; UNSET → the
+        // (Indeterminate?…:ProgressDrawable)?.ClearColorFilter() that restores the platform default. The
+        // port's Color is a NON-nullable value type whose default-constructed value (color{}) is opaque
+        // BLACK, so a `!= color{}` value compare cannot stand in for C#'s `!= null` — it BOTH misreads an
+        // explicit ProgressColor=Black as unset AND (the bug this fix closes) tinted every UNSET progress
+        // bar solid BLACK. Discriminate instead on whether ProgressColor was explicitly SET
+        // (BindableObject.IsSet) — the faithful stand-in for `!= null`, exactly the sentinel
+        // activity_indicator_handler::map_color / button_handler::map_text_color use.
+        //
+        // Native-default deviation (this AAR-less backend only, the activity_indicator twin): C#'s unset
+        // path is ClearColorFilter, which on MAUI's native-default determinate ProgressBar reveals the
+        // platform's pale fill — the maui-compare reference samples #E0E0E0 (light gray) for both the
+        // Default and Disabled bars. This backend force-styles a concrete Material defStyleRes onto the
+        // bare Context (see create_platform_view), whose baseline progress tint is the theme accent, so a
+        // plain ClearColorFilter would NOT reveal MAUI's gray. Positively assert the measured native
+        // default (#E0E0E0) on the unset branch instead — reproducing MAUI's ClearColorFilter *result* via
+        // the same ColorStateList.ValueOf path an explicit color takes. An explicitly-set ProgressColor
+        // still overrides through the SET branch.
+        constexpr jint k_native_default_progress_color = static_cast<jint>(0xFFE0E0E0U);
+        const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+        const bool color_is_set = bindable != nullptr && bindable->is_property_set("progress_color");
         jmethodID value_of = cache.static_method(env.get(), k_color_state_list_class, "valueOf",
                                                  "(I)Landroid/content/res/ColorStateList;");
         jmethodID set_progress_tint = cache.method(env.get(), k_progress_bar_class, "setProgressTintList",
@@ -492,7 +561,8 @@ namespace maui::core
         {
             return;
         }
-        const auto argb = static_cast<jint>(view.progress_color().to_int());
+        const jint argb =
+            color_is_set ? static_cast<jint>(view.progress_color().to_int()) : k_native_default_progress_color;
         const local_ref<jobject> tint_list{env.get(),
                                            env->CallStaticObjectMethod(color_state_list_class, value_of, argb)};
         if (clear_pending(env.get()) || !tint_list)
