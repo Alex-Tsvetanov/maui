@@ -67,6 +67,8 @@
 
 #include <jni.h>
 
+#include <algorithm>
+#include <array>
 #include <atomic>
 #include <cmath>
 #include <memory>
@@ -74,6 +76,7 @@
 #include <string_view>
 #include <vector>
 
+#include "android_clip_ops.hpp"
 #include "android_semantics_ops.hpp"
 #include "android_view_ops.hpp"
 #include "android_visual_ops.hpp"
@@ -99,6 +102,8 @@
 #include "maui/graphics/radial_gradient_paint.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/rect_f.hpp"
+#include "maui/graphics/shapes/ellipse.hpp"
+#include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/size.hpp"
 
 namespace
@@ -471,6 +476,86 @@ namespace
         return maui::graphics::corner_radius(tl);
     }
 
+    // The border shape's FULL four per-corner radii (dp) — the per-corner counterpart to corner_radii_of.
+    // A RoundRectangle StrokeShape can carry four DISTINCT corner radii (CornerRadius(TL,TR,BL,BR), e.g.
+    // border_clip_playground's TL=60/TR=0/BL=0/BR=12); GradientDrawable.setCornerRadius is uniform-only, so
+    // the four values are needed for setCornerRadii(float[8]) (below) and for the per-corner CONTENT clip
+    // path (apply_outline_clip resolves the shape geometry itself, but the STROKE drawable must be told the
+    // four radii explicitly). The port owns the round_rectangle shape the Border carries, so the exact four
+    // values are read straight off it (dynamic_cast) — no geometry-recovery imprecision. For any OTHER
+    // i_shape (a future custom RoundRectangleGeometry, or a shape the cast misses) it degrades to the
+    // uniform top-left recovery (corner_radii_of), which stays exact for a uniform-radius shape and a
+    // conservative rounded box otherwise — never a crash, never a wrong SHAPE kind. Returns {0} (square)
+    // when the shape is absent / a Rectangle / an Ellipse (Ellipse rounds via the clip path, not the
+    // rounded-rect drawable radii — its corner_radii are 0 so the drawable stays a sharp rect under the
+    // ellipse clip, matching how a sharp GradientDrawable sits behind the outline clip).
+    [[nodiscard]] maui::graphics::corner_radius corner_radii_all_of(const maui::graphics::i_shape* shape)
+    {
+        if (const auto* rr = dynamic_cast<const maui::graphics::shapes::round_rectangle*>(shape))
+        {
+            return rr->corner_radius();
+        }
+        // Non-round_rectangle shape: fall back to the uniform top-left recovery (a Rectangle/Ellipse yields
+        // {0}, a uniform RoundRectangleGeometry yields its uniform radius on all four corners).
+        return corner_radii_of(shape);
+    }
+
+    // Whether the four per-corner radii are all equal (within a sub-pixel epsilon). A uniform border keeps
+    // the setCornerRadius(float) path (which the android_border headless tests read back via
+    // getCornerRadius()); only a genuinely per-corner-distinct radius set switches to setCornerRadii.
+    [[nodiscard]] bool corner_radii_are_uniform(const maui::graphics::corner_radius& r)
+    {
+        constexpr double k_eps = 0.01;
+        return std::abs(r.top_left - r.top_right) < k_eps && std::abs(r.top_left - r.bottom_left) < k_eps &&
+               std::abs(r.top_left - r.bottom_right) < k_eps;
+    }
+
+    // The Border CONTENT clip path (in POINTS, over the host's laid-out size) — the port's mirror of C#'s
+    // ContentViewGroup.GetClipPath: the StrokeShape inset by the stroke thickness so the content is confined
+    // strictly INSIDE the stroke (C# insets bounds by strokeThickness and, for a RoundRectangle, reduces
+    // each corner radius by the thickness via GetInnerPath; the offset is strokeThickness/2 on every side).
+    // Returns an empty path (→ apply_outline_clip_path clears the clip) when there is no rounding shape to
+    // clip to: a null shape, a plain Rectangle (a square Border does not round its content — the content
+    // already fills the box), or a degenerate size. A RoundRectangle builds the inner rounded rect (honoring
+    // per-corner radii); an Ellipse builds the inset ellipse.
+    [[nodiscard]] maui::graphics::path_f border_content_clip_path(const maui::core::border_stroke_spec& spec,
+                                                                  double width, double height)
+    {
+        maui::graphics::path_f path;
+        const maui::graphics::i_shape* shape = spec.shape;
+        if (shape == nullptr || width <= 0.0 || height <= 0.0)
+        {
+            return path; // no clip
+        }
+        const double t = spec.has_stroke && spec.thickness > 0 ? spec.thickness : 0.0;
+        const auto x = static_cast<float>(t / 2.0);
+        const auto y = static_cast<float>(t / 2.0);
+        const auto w = static_cast<float>(width - t);
+        const auto h = static_cast<float>(height - t);
+        if (w <= 0 || h <= 0)
+        {
+            return path; // stroke swallows the box → nothing to clip
+        }
+        if (const auto* rr = dynamic_cast<const maui::graphics::shapes::round_rectangle*>(shape))
+        {
+            const maui::graphics::corner_radius& r = rr->corner_radius();
+            // GetInnerPath: each corner radius reduced by the stroke thickness, clamped ≥0.
+            const auto reduce = [t](double radius) { return static_cast<float>(std::max(0.0, radius - t)); };
+            path.append_rounded_rectangle(x, y, w, h, reduce(r.top_left), reduce(r.top_right), reduce(r.bottom_left),
+                                          reduce(r.bottom_right));
+            return path;
+        }
+        if (dynamic_cast<const maui::graphics::shapes::ellipse*>(shape) != nullptr)
+        {
+            path.append_ellipse(x, y, w, h);
+            return path;
+        }
+        // A Rectangle (or any other non-rounding shape): a square Border leaves the content unclipped — the
+        // content already fills the box, and an outline clip to a plain rect is a visual no-op that would
+        // needlessly contend with the shadow slot. Return empty → clip cleared.
+        return path;
+    }
+
     // The content's native android.view.View, via its view-handler's native_view() (C#'s ToPlatform()
     // = ContainerView ?? PlatformView). Null when the content is unattached. Mirrors
     // content_page_handler.cpp's native_child.
@@ -559,8 +644,12 @@ namespace
         // GetStrokeProperties with the port's non-nullable color: thickness < 0 → width 0; the radius is
         // recovered from the shape geometry below. A border is "visible" once it strokes or rounds.
         const double thickness = spec.has_stroke && spec.thickness > 0 ? spec.thickness : 0;
-        const maui::graphics::corner_radius radius = corner_radii_of(spec.shape);
-        const bool rounds = radius.top_left > 0;
+        // Recover the FULL per-corner radii (border_clip_playground carries TL=60/TR=0/BL=0/BR=12) — the
+        // stroke drawable is told each corner explicitly (setCornerRadii) so the rounded rect matches the
+        // per-corner CONTENT clip apply_outline_clip installs from the same shape (arrange_native).
+        const maui::graphics::corner_radius radius = corner_radii_all_of(spec.shape);
+        const bool rounds =
+            radius.top_left > 0 || radius.top_right > 0 || radius.bottom_left > 0 || radius.bottom_right > 0;
         const bool visible = thickness > 0 || rounds;
         const local_ref<jobject> drawable = maui_border_drawable(env.get(), host, /*install=*/visible);
         if (!drawable)
@@ -606,13 +695,43 @@ namespace
                 clear_pending(env.get());
             }
         }
-        // The StrokeShape corner radius (uniform) → setCornerRadius(px); a 0 radius keeps it sharp.
-        jmethodID set_corner_radius = cache.method(env.get(), k_gradient_drawable_class, "setCornerRadius", "(F)V");
-        if (set_corner_radius != nullptr)
+        // The StrokeShape corner radius → the GradientDrawable's rounded-rect corners.
+        //   - UNIFORM (all four equal, incl. the common single-radius RoundRectangle and a sharp 0): keep
+        //     setCornerRadius(px). The android_border headless tests read this back via getCornerRadius().
+        //   - PER-CORNER DISTINCT (border_clip_playground's TL=60/TR=0/BL=0/BR=12): setCornerRadii(float[8]).
+        //     The float[8] order is [TLx,TLy, TRx,TRy, BRx,BRy, BLx,BLy] — the same X==Y-per-corner circular
+        //     radii MAUI's MauiDrawable builds for its per-corner stroke path (Android's addRoundRect radii
+        //     array order). NOTE the C# CornerRadius / the port's corner_radius order is TL,TR,BL,BR, but the
+        //     drawable's array order is TL,TR,BR,BL — BR and BL are swapped when packing.
+        if (corner_radii_are_uniform(radius))
         {
-            env->CallVoidMethod(drawable.get(), set_corner_radius,
-                                static_cast<jfloat>(to_pixels(radius.top_left, density)));
-            clear_pending(env.get());
+            jmethodID set_corner_radius = cache.method(env.get(), k_gradient_drawable_class, "setCornerRadius", "(F)V");
+            if (set_corner_radius != nullptr)
+            {
+                env->CallVoidMethod(drawable.get(), set_corner_radius,
+                                    static_cast<jfloat>(to_pixels(radius.top_left, density)));
+                clear_pending(env.get());
+            }
+        }
+        else
+        {
+            jmethodID set_corner_radii = cache.method(env.get(), k_gradient_drawable_class, "setCornerRadii", "([F)V");
+            if (set_corner_radii != nullptr)
+            {
+                const auto tl = static_cast<jfloat>(to_pixels(radius.top_left, density));
+                const auto tr = static_cast<jfloat>(to_pixels(radius.top_right, density));
+                const auto br = static_cast<jfloat>(to_pixels(radius.bottom_right, density));
+                const auto bl = static_cast<jfloat>(to_pixels(radius.bottom_left, density));
+                // [TLx,TLy, TRx,TRy, BRx,BRy, BLx,BLy] — circular corners, so X==Y per corner.
+                const std::array<jfloat, 8> radii{tl, tl, tr, tr, br, br, bl, bl};
+                const local_ref<jfloatArray> radii_array{env.get(), env->NewFloatArray(8)};
+                if (radii_array)
+                {
+                    env->SetFloatArrayRegion(radii_array.get(), 0, 8, radii.data());
+                    env->CallVoidMethod(drawable.get(), set_corner_radii, radii_array.get());
+                    clear_pending(env.get());
+                }
+            }
         }
     }
 } // namespace
@@ -946,11 +1065,32 @@ namespace maui::core
         // Re-resolve the (bounds-dependent) native shadow outline against the just-laid-out size + the border's
         // recovered corner radius — update_shadow ran before layout when the host was 0×0 (apply_shadow cleared
         // the elevation then). Mirrors the stroke-path refresh: the shadow silhouette follows the rounded box.
+        //
+        // SHADOW vs CONTENT-CLIP share the ONE ViewOutlineProvider slot: a shadow needs its silhouette
+        // outline with clipToOutline OFF; a content clip needs the shape outline with clipToOutline ON. A
+        // single View has one outline provider, so a Border cannot express BOTH a colored shadow AND a
+        // per-corner content clip at once. Precedence = shadow wins (it was the earlier-shipped native
+        // effect and its silhouette already follows the rounded box); a Border that carries BOTH is a
+        // documented deviation (the iOS WrapperView layers them; the Android outline path cannot). The
+        // common case — a clipping Border with NO shadow (border_clip_playground, clip_views) — installs the
+        // clip; a shadowed Border keeps the shadow.
         if (platform->shadow != nullptr)
         {
             const maui::graphics::corner_radius radius = corner_radii_of(platform->border.shape);
             maui::platform::android::apply_shadow(host, platform->shadow, density, frame.width, frame.height,
                                                   radius.top_left);
+        }
+        else
+        {
+            // ContentViewGroup content clip: clip the border's single content child to the StrokeShape's
+            // per-corner INNER path (C#'s ContentViewGroup.GetClipPath → RoundRectangle.GetInnerPath): the
+            // content is confined strictly INSIDE the stroke, so the shape is inset by the stroke thickness
+            // and each corner radius is reduced by the thickness (clamped ≥0). The port builds that inner
+            // path_f here (mirroring GetInnerPath) and hands it to apply_outline_clip_path (Outline.setPath —
+            // a rounded rect is convex, so the framework clips the hosted image to it). A square/absent shape
+            // yields an empty path → the clip clears (a square Border does not clip, matching C#).
+            const maui::graphics::path_f inner = border_content_clip_path(platform->border, frame.width, frame.height);
+            maui::platform::android::apply_outline_clip_path(host, inner, density, frame.width, frame.height);
         }
     }
 } // namespace maui::core

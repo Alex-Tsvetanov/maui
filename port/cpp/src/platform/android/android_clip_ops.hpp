@@ -141,6 +141,89 @@ namespace maui::platform::android
             }
             return path_obj;
         }
+
+        // Clear our outline clip on `view`: restore the framework's BACKGROUND outline provider (tracks the
+        // background drawable so shadows still cast) and turn clipToOutline off — mirrors
+        // WrapperView.SetClip(null). Shared by the shape and pre-built-path apply_outline_clip entry points
+        // (both clear the same way on a null/empty clip or a 0-sized view).
+        inline void clear_outline_clip(JNIEnv* env, jobject view, jmethodID set_provider, jmethodID set_clip_to_outline,
+                                       jmethodID invalidate_outline)
+        {
+            auto& cache = default_jni_cache();
+            jclass provider_base = cache.find_class(env, "android/view/ViewOutlineProvider");
+            // BACKGROUND is a STATIC field, so it needs GetStaticFieldID (cache.field resolves INSTANCE
+            // fields — mirrors how android_visual_ops reads the GradientDrawable$Orientation static enum).
+            jfieldID background_field =
+                provider_base != nullptr
+                    ? env->GetStaticFieldID(provider_base, "BACKGROUND", "Landroid/view/ViewOutlineProvider;")
+                    : nullptr;
+            if (background_field == nullptr)
+            {
+                env->ExceptionClear();
+            }
+            if (provider_base != nullptr && background_field != nullptr)
+            {
+                const local_ref<jobject> background{env, env->GetStaticObjectField(provider_base, background_field)};
+                if (env->ExceptionCheck() == JNI_TRUE)
+                {
+                    env->ExceptionClear();
+                }
+                else
+                {
+                    env->CallVoidMethod(view, set_provider, background.get());
+                }
+            }
+            env->CallVoidMethod(view, set_clip_to_outline, static_cast<jboolean>(false));
+            env->CallVoidMethod(view, invalidate_outline);
+            if (env->ExceptionCheck() == JNI_TRUE)
+            {
+                env->ExceptionClear();
+            }
+        }
+
+        // Install a MauiClipOutlineProvider(path_obj) on `view`, enable outline clipping, force a getOutline,
+        // and read back hasClip() (true = the convex clip landed; false = non-convex fallback). Shared by
+        // both apply_outline_clip entry points once the pixel-space Path is built.
+        [[nodiscard]] inline bool install_outline_clip_path(JNIEnv* env, jobject view, jobject path_obj,
+                                                            jmethodID set_provider, jmethodID set_clip_to_outline,
+                                                            jmethodID invalidate_outline)
+        {
+            auto& cache = default_jni_cache();
+            jclass provider_class = cache.find_class(env, k_clip_provider_class);
+            jmethodID provider_ctor = provider_class != nullptr ? cache.method(env, k_clip_provider_class, "<init>",
+                                                                               "(Landroid/graphics/Path;)V")
+                                                                : nullptr;
+            if (provider_class == nullptr || provider_ctor == nullptr)
+            {
+                return false; // MauiClipOutlineProvider is host-provided (java/MauiClipOutlineProvider.java)
+            }
+            const local_ref<jobject> provider{env, env->NewObject(provider_class, provider_ctor, path_obj)};
+            if (env->ExceptionCheck() == JNI_TRUE || !provider)
+            {
+                env->ExceptionClear();
+                return false;
+            }
+            env->CallVoidMethod(view, set_provider, provider.get());
+            env->CallVoidMethod(view, set_clip_to_outline, static_cast<jboolean>(true));
+            env->CallVoidMethod(view, invalidate_outline);
+            if (env->ExceptionCheck() == JNI_TRUE)
+            {
+                env->ExceptionClear();
+                return false;
+            }
+            jmethodID has_clip = cache.method(env, k_clip_provider_class, "hasClip", "()Z");
+            if (has_clip == nullptr)
+            {
+                return true; // installed; assume it took (the convex shapes this page uses do)
+            }
+            const jboolean landed = env->CallBooleanMethod(provider.get(), has_clip);
+            if (env->ExceptionCheck() == JNI_TRUE)
+            {
+                env->ExceptionClear();
+                return true;
+            }
+            return landed == JNI_TRUE;
+        }
     } // namespace detail
 
     // Install (or clear, when shape is null or width/height is 0) the outline clip on `native`. Returns true
@@ -171,41 +254,10 @@ namespace maui::platform::android
             return false;
         }
 
-        // Null shape (clip removed) OR a not-yet-laid-out 0-sized view: clear our outline clip. Restore the
-        // framework's BACKGROUND outline provider (the default — it tracks the background drawable's shape so
-        // shadows still cast correctly) and turn clipToOutline off, mirroring WrapperView.SetClip(null).
+        // Null shape (clip removed) OR a not-yet-laid-out 0-sized view: clear our outline clip.
         if (shape == nullptr || width <= 0.0 || height <= 0.0)
         {
-            jclass provider_base = cache.find_class(env.get(), "android/view/ViewOutlineProvider");
-            // BACKGROUND is a STATIC field, so it needs GetStaticFieldID (cache.field resolves INSTANCE
-            // fields — mirrors how android_visual_ops reads the GradientDrawable$Orientation static enum).
-            jfieldID background_field =
-                provider_base != nullptr
-                    ? env->GetStaticFieldID(provider_base, "BACKGROUND", "Landroid/view/ViewOutlineProvider;")
-                    : nullptr;
-            if (background_field == nullptr)
-            {
-                env->ExceptionClear();
-            }
-            if (provider_base != nullptr && background_field != nullptr)
-            {
-                const local_ref<jobject> background{env.get(),
-                                                    env->GetStaticObjectField(provider_base, background_field)};
-                if (env->ExceptionCheck() == JNI_TRUE)
-                {
-                    env->ExceptionClear();
-                }
-                else
-                {
-                    env->CallVoidMethod(view, set_provider, background.get());
-                }
-            }
-            env->CallVoidMethod(view, set_clip_to_outline, static_cast<jboolean>(false));
-            env->CallVoidMethod(view, invalidate_outline);
-            if (env->ExceptionCheck() == JNI_TRUE)
-            {
-                env->ExceptionClear();
-            }
+            detail::clear_outline_clip(env.get(), view, set_provider, set_clip_to_outline, invalidate_outline);
             return false;
         }
 
@@ -217,46 +269,50 @@ namespace maui::platform::android
         {
             return false;
         }
+        return detail::install_outline_clip_path(env.get(), view, path_obj.get(), set_provider, set_clip_to_outline,
+                                                 invalidate_outline);
+    }
 
-        // new MauiClipOutlineProvider(path): the ViewOutlineProvider that clips to this convex path.
-        jclass provider_class = cache.find_class(env.get(), detail::k_clip_provider_class);
-        jmethodID provider_ctor = provider_class != nullptr ? cache.method(env.get(), detail::k_clip_provider_class,
-                                                                           "<init>", "(Landroid/graphics/Path;)V")
-                                                            : nullptr;
-        if (provider_class == nullptr || provider_ctor == nullptr)
+    // Pre-built-path overload — the same outline clip, but the caller supplies the resolved path_f (in POINT
+    // coordinates) directly instead of an i_shape. This is what the Border content clip uses: it builds the
+    // INNER clip path (the shape inset by the stroke thickness, per-corner radii reduced — C#'s
+    // ContentViewGroup.GetClipPath / RoundRectangle.GetInnerPath) so the content is confined strictly INSIDE
+    // the stroke, which the generic shape-only entry point cannot express (it resolves the outer shape at
+    // origin 0). An empty path (path.count()==0) OR a 0-sized view clears the clip, exactly like the shape
+    // overload's null branch. Returns true when the convex clip landed.
+    inline bool apply_outline_clip_path(void* native, const maui::graphics::path_f& path, float density, double width,
+                                        double height)
+    {
+        if (native == nullptr)
         {
-            return false; // MauiClipOutlineProvider is host-provided (java/MauiClipOutlineProvider.java)
-        }
-        const local_ref<jobject> provider{env.get(), env->NewObject(provider_class, provider_ctor, path_obj.get())};
-        if (env->ExceptionCheck() == JNI_TRUE || !provider)
-        {
-            env->ExceptionClear();
             return false;
         }
-
-        // Install the provider, enable outline clipping, and force the framework to re-query getOutline. The
-        // getOutline call (driven by invalidateOutline) sets the provider's hasClip flag, which we then read
-        // back to report whether the convex clip actually landed.
-        env->CallVoidMethod(view, set_provider, provider.get());
-        env->CallVoidMethod(view, set_clip_to_outline, static_cast<jboolean>(true));
-        env->CallVoidMethod(view, invalidate_outline);
-        if (env->ExceptionCheck() == JNI_TRUE)
+        const scoped_env env;
+        if (!env)
         {
-            env->ExceptionClear();
             return false;
         }
-
-        jmethodID has_clip = cache.method(env.get(), detail::k_clip_provider_class, "hasClip", "()Z");
-        if (has_clip == nullptr)
+        auto* const view = static_cast<jobject>(native);
+        auto& cache = default_jni_cache();
+        jmethodID set_provider = cache.method(env.get(), detail::k_clip_view_class, "setOutlineProvider",
+                                              "(Landroid/view/ViewOutlineProvider;)V");
+        jmethodID set_clip_to_outline = cache.method(env.get(), detail::k_clip_view_class, "setClipToOutline", "(Z)V");
+        jmethodID invalidate_outline = cache.method(env.get(), detail::k_clip_view_class, "invalidateOutline", "()V");
+        if (set_provider == nullptr || set_clip_to_outline == nullptr || invalidate_outline == nullptr)
         {
-            return true; // installed; assume it took (the convex shapes this page uses do)
+            return false;
         }
-        const jboolean landed = env->CallBooleanMethod(provider.get(), has_clip);
-        if (env->ExceptionCheck() == JNI_TRUE)
+        if (path.count() == 0 || width <= 0.0 || height <= 0.0)
         {
-            env->ExceptionClear();
-            return true;
+            detail::clear_outline_clip(env.get(), view, set_provider, set_clip_to_outline, invalidate_outline);
+            return false;
         }
-        return landed == JNI_TRUE;
+        const local_ref<jobject> path_obj = detail::build_clip_path(env.get(), path, density);
+        if (!path_obj)
+        {
+            return false;
+        }
+        return detail::install_outline_clip_path(env.get(), view, path_obj.get(), set_provider, set_clip_to_outline,
+                                                 invalidate_outline);
     }
 } // namespace maui::platform::android
