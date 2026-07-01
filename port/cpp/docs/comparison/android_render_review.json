@@ -367,7 +367,7 @@
 {
 "key": "header_footer_template",
 "status": "red",
-"note": "Header/footer entirely missing the cover photo image (text-only); middle 'oasis.jpg' item renders as blue placeholder box instead of actual photo thumbnail"
+"note": "Images now RENDER (cover photo band + item thumbnails — fix ef1a3ac386 closed the blue-placeholder gap). Residual: PhotoTemplate child ORDER reversed (port image-then-label vs MAUI label-then-image) + large extra vertical gaps vs MAUI compact rows."
 },
 {
 "key": "header_footer_view",
