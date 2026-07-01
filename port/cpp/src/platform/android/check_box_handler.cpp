@@ -25,11 +25,16 @@
 //     (a FOUR-state ColorStateList: enabledChecked/enabledUnchecked/disabledChecked/disabledUnchecked).
 //     For a developer-set SolidPaint that single overload is CreateCheckBox(all,all,all,all) — every
 //     state the SAME color — which collapses exactly to ColorStateList.valueOf(argb), the single-color
-//     CSL the progress_bar tint deviation already documents. The port's colors are non-nullable value
-//     types, so C#'s Material3-theme-tint / accent-color fallbacks (reached only when Foreground is not
-//     a SolidPaint) are unreachable: an unset Foreground is the control's Color?.AsPaint() solid, and
-//     map_foreground is re-run by the control whenever Color changes — so the valueOf tint path is
-//     always taken, mirroring the apple/iOS twins' collapse of the null-color branch.
+//     CSL the progress_bar tint deviation already documents. So map_foreground applies valueOf(argb)
+//     whenever the control carries an explicit Color (foreground() != null, the Color?.AsPaint() solid).
+//     When Color is UNSET, foreground() is null and CheckBoxExtensions.GetColorStateList would return the
+//     widget's ORIGINAL THEME buttonTint (Material3) / the theme accent (Material2) — a THEME-resolved
+//     color the port cannot get from this AAR-less host without a mismatch: the app-host framework theme
+//     is Theme.DeviceDefault.Light (navy accent), real MAUI's is Theme.MaterialComponents.DayNight (gray
+//     accent). So create_platform_view SEEDS the unset baseline itself with valueOf(#E0E0E0) — the Material
+//     gray real MAUI resolves — via seed_default_material_button_tint, and map_foreground's unset branch
+//     leaves that seed untouched (returns on null). This is the CheckBox twin of the switch/radio/slider
+//     theme-accent parity fix (commits 3bec64c267 / bbb632f301). See the k_material_check_box_gray note.
 //   - The CheckedChange listener (CompoundButton.OnCheckedChangeListener → OnCheckedChange:
 //     VirtualView.IsChecked = e.IsChecked) is DEFERRED with the gesture/event fan-out: there is no
 //     host-provided listener Java class for it (the test host ships only dev.mauicpp.NativeOnClickListener
@@ -90,6 +95,30 @@ namespace
     constexpr const char* k_color_state_list_class = "android/content/res/ColorStateList";
     constexpr const char* k_porter_duff_mode_class = "android/graphics/PorterDuff$Mode";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
+
+    // The Material light-theme CheckBox default buttonDrawable color (PARITY, the CheckBox twin of the
+    // slider's seed_default_material_tints fix commit bbb632f301, and the exact analog of
+    // radio_button_handler.cpp's seed_default_material_button_tint). CheckBoxExtensions.UpdateForeground
+    // NEVER tints the buttonDrawable when Color is unset — GetColorStateList returns the widget's ORIGINAL
+    // theme buttonTint (Material3 branch) or the theme accent (Material2) — so the checkmark/box color comes
+    // ENTIRELY from the theme: real .NET MAUI renders an AppCompatCheckBox under
+    // Theme.MaterialComponents.DayNight, whose buttonDrawable resolves through colorControlActivated (the
+    // checked box fill) / colorControlNormal (the unchecked outline) to the SAME Material light gray
+    // #E0E0E0 — measured off the maui-compare baselines: the CHECKED filled box (docs/comparison/android/
+    // maui/controls_stack.png + entry.png) and the UNCHECKED outline box (check_box.png "Default") both
+    // sample (224,224,224). This AAR-less app host uses the framework Theme.DeviceDefault.Light, whose
+    // colorControlActivated is the DeviceDefault dark INDIGO — so a bare CheckBox draws its checked box in
+    // dark navy (#495D92 measured on controls_stack/entry), NOT MAUI's neutral gray. That accent mismatch
+    // is the sole cause of the "checkbox navy vs MAUI light Material gray" parity diff (controls_stack, and
+    // the enabled+checked entry checkbox — which only LOOKS washed-out because Material's neutral gray box
+    // is that pale, not because it is disabled: ~/maui-compare/Pages/EntryPage.cs is `new CheckBox {
+    // IsChecked = true }`, enabled, unset color, exactly like entry_page.hpp). Seeding a single-color
+    // ColorStateList.valueOf(#E0E0E0) on setButtonTintList reproduces MAUI's RENDERED default without any
+    // semantic deviation — MAUI leaves the native default *because that default is already this gray*; the
+    // port pins the equivalent gray because its host theme's default is not. An explicit CheckBox.Color
+    // still OVERRIDES it: map_foreground re-tints with valueOf(argb) whenever foreground() is non-null (the
+    // Colored/Disabled-Colored/Change-IsChecked purple+red boxes on check_box.png verify this).
+    constexpr int k_material_check_box_gray = 0xE0; // #E0E0E0 — MAUI default box/checkmark tint (measured)
 
     // GeometryUtil.Epsilon — ContextExtensions.ToPixels subtracts it before ceiling (see to_pixels).
     constexpr double k_to_pixels_epsilon = 0.0000000001;
@@ -222,6 +251,55 @@ namespace
             return {};
         }
         return mode;
+    }
+
+    // Seed the just-created CheckBox's buttonDrawable (the box + checkmark glyph) with the Material light
+    // gray #E0E0E0 via CompoundButton.setButtonTintList(ColorStateList.valueOf) + setButtonTintMode(SrcIn),
+    // so its UNSET glyph matches real MAUI instead of the DeviceDefault navy accent (see the
+    // k_material_check_box_gray note). A single-color valueOf CSL is the right shape here: MAUI's checked box
+    // fill and unchecked outline BOTH measure #E0E0E0, so one color covers every state (checked/unchecked/
+    // disabled), exactly the collapse CheckBoxExtensions.CreateCheckBox(all) already documents. The CheckBox
+    // is a CompoundButton, so setButtonTintList/setButtonTintMode are on the widget directly (no
+    // CompoundButtonCompat shim — the same plain-widget path map_foreground takes). Called once at
+    // construction; an explicit CheckBox.Color re-tints via map_foreground's valueOf(argb) (foreground() !=
+    // null), OVERRIDING this seed — the seed is only the unset baseline. Best-effort: any JNI resolution
+    // failure leaves the theme default (the widget still renders — only the accent-vs-gray tint remains).
+    void seed_default_material_button_tint(JNIEnv* env, jobject widget)
+    {
+        auto& cache = default_jni_cache();
+        jmethodID value_of =
+            cache.static_method(env, k_color_state_list_class, "valueOf", "(I)Landroid/content/res/ColorStateList;");
+        jmethodID set_button_tint =
+            cache.method(env, k_check_box_class, "setButtonTintList", "(Landroid/content/res/ColorStateList;)V");
+        jmethodID set_button_tint_mode =
+            cache.method(env, k_check_box_class, "setButtonTintMode", "(Landroid/graphics/PorterDuff$Mode;)V");
+        jclass color_state_list_class = cache.find_class(env, k_color_state_list_class);
+        if (value_of == nullptr || set_button_tint == nullptr || set_button_tint_mode == nullptr ||
+            color_state_list_class == nullptr)
+        {
+            return;
+        }
+        const auto gray =
+            static_cast<jint>(maui::graphics::color::from_rgb(k_material_check_box_gray, k_material_check_box_gray,
+                                                              k_material_check_box_gray)
+                                  .to_int());
+        const local_ref<jobject> tint_list{env, env->CallStaticObjectMethod(color_state_list_class, value_of, gray)};
+        if (clear_pending(env) || !tint_list)
+        {
+            return;
+        }
+        env->CallVoidMethod(widget, set_button_tint, tint_list.get());
+        if (clear_pending(env))
+        {
+            return;
+        }
+        const local_ref<jobject> src_in = porter_duff_src_in(env);
+        if (!src_in)
+        {
+            return;
+        }
+        env->CallVoidMethod(widget, set_button_tint_mode, src_in.get());
+        clear_pending(env);
     }
 } // namespace
 
@@ -460,6 +538,11 @@ namespace maui::core
         // (both plain-View properties — the Material wrapper is the only deviation).
         call_void_bool(env.get(), widget.get(), "setSoundEffectsEnabled", JNI_FALSE);
         call_void_bool(env.get(), widget.get(), "setClipToOutline", JNI_TRUE);
+        // Seed the UNSET buttonDrawable tint to MAUI's Material gray #E0E0E0 (not the DeviceDefault navy
+        // accent this host theme resolves) so a bare CheckBox matches real MAUI; an explicit CheckBox.Color
+        // still overrides via map_foreground (see the k_material_check_box_gray + seed note). The radio /
+        // switch / slider twin of the same theme-accent parity fix.
+        seed_default_material_button_tint(env.get(), widget.get());
         // Wrap-content LayoutParams up front (parentless View measure/layout safety — the android
         // container fan-out has not arrived; the partial stands in for the parent ViewGroup attach,
         // exactly like button_handler.cpp / progress_bar_handler.cpp do).
@@ -552,7 +635,11 @@ namespace maui::core
         const maui::graphics::paint* foreground = view.foreground();
         if (foreground == nullptr)
         {
-            return; // unset Foreground: the headless mirror is enough; no tint to push (collapsed branch)
+            // Unset Foreground: leave the create_platform_view seed (the Material gray #E0E0E0 baseline,
+            // seed_default_material_button_tint) in place — MAUI's unset checkbox draws that theme gray, not
+            // the DeviceDefault navy this host would otherwise resolve. Re-tinting here is unnecessary (and
+            // must not clear the seed). The headless mirror above is enough for the VM-less suite.
+            return;
         }
         jmethodID value_of = cache.static_method(env.get(), k_color_state_list_class, "valueOf",
                                                  "(I)Landroid/content/res/ColorStateList;");
