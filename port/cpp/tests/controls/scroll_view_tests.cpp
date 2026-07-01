@@ -260,6 +260,29 @@ namespace
         EXPECT_EQ(scroller.content_size(), size(100, 500));
     }
 
+    TEST(scroll_view, arrange_places_content_host_relative_at_a_non_zero_origin)
+    {
+        // The scroller's content is a native subview of the UIScrollView, so its frame is expressed in the
+        // scroller's own content coordinate space (origin 0), NOT the page origin. Arranging the scroller at
+        // a non-zero page origin must still arrange the content at the scroller-relative origin (the padding
+        // inset), never at bounds.x/bounds.y — otherwise iOS double-offsets it (the border_playground gap).
+        scroll_view scroller; // vertical
+        scroller.set_padding(thickness(5));
+        mock_view child;
+        child.configure({50, 500});
+        scroller.set_content(child);
+
+        scroller.measure(100, 200);
+        scroller.arrange(rect(16, 216, 100, 200)); // framed at a non-zero page origin
+
+        // Host-relative: origin at the padding inset (5,5), NOT (16+5, 216+5). Height overflows (content 500
+        // + 2*5 padding = 510 > the 200 viewport) so the inner arrange height is 510 - 10 = 500; the width
+        // fills the viewport (100 - 10 padding = 90).
+        EXPECT_EQ(child.last_arrange, rect(5, 5, 90, 500));
+        // ContentSize follows the arranged content frame (+ margin, zero here) — origin-independent.
+        EXPECT_EQ(scroller.content_size(), size(90, 500));
+    }
+
     TEST(scroll_view, measure_without_content_resets_content_size)
     {
         scroll_view scroller;
