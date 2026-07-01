@@ -141,8 +141,8 @@
 },
 {
 "key": "clip_views",
-"status": "yellow",
-"note": "Red clip shapes/text match MAUI exactly, but the SearchBar row is missing its magnifier icon glyph (MAUI shows a search icon, C++ shows blank)."
+"status": "green",
+"note": "Matches MAUI: same diagonal-clip red bars on every row (Button/date/entry/editor/grid/search/time), same clip geometry & row order. SearchBar magnifier renders on clipped search row like MAUI."
 },
 {
 "key": "clipping",
@@ -177,7 +177,7 @@
 {
 "key": "controls_stack",
 "status": "yellow",
-"note": "Missing magnifying-glass search icon next to 'A SearchBar' that MAUI renders; other controls (button, entry, editor, checkbox, switch, indicator, slider, stepper, progress bar) match."
+"note": "SearchBar FIXED: magnifier icon, inset entry, 'A SearchBar' text now match MAUI. Remaining diff: ActivityIndicator spinner glyph (visible ring in MAUI next to switch) not rendered in cpp."
 },
 {
 "key": "custom_layout",
@@ -286,8 +286,8 @@
 },
 {
 "key": "filter_collection",
-"status": "yellow",
-"note": "SearchBar missing magnifying-glass icon and shows an underline like a plain Entry; MAUI's SearchBar is borderless with a leading search icon."
+"status": "green",
+"note": "Matches MAUI: magnifier icon + inset Filter entry render correctly, list content/order identical. Toggle on/off is runtime state, ignored."
 },
 {
 "key": "filter_selection",
@@ -466,8 +466,8 @@
 },
 {
 "key": "ios_search_bar",
-"status": "red",
-"note": "missing search (magnifying glass) icon entirely; MAUI shows icon + indented inset entry, cpp shows plain full-width underlined entry with no icon"
+"status": "green",
+"note": "Matches MAUI: magnifier icon left, placeholder 'Enter search term', two toggle buttons below. Only cosmetic outline-vs-solid glyph nit."
 },
 {
 "key": "ios_slider_update_on_tap",
@@ -676,8 +676,8 @@
 },
 {
 "key": "search_bar",
-"status": "red",
-"note": "C++ SearchBar entries are missing the native search (magnifying-glass) icon and the clear/cancel 'X' button that MAUI shows on every populated field"
+"status": "yellow",
+"note": "Magnifier+clear-X now render on all rows, red X correct. Diff: MAUI right-aligns 'end of the line' text before the X; port left-aligns. Glyph outline-vs-solid is cosmetic."
 },
 {
 "key": "selection_command_param",
@@ -691,8 +691,8 @@
 },
 {
 "key": "semantics",
-"status": "yellow",
-"note": "Text/buttons match (white on gray); MAUI's SearchBar row shows magnifier icon + clear X chrome, port renders it as a plain underlined entry with no icon."
+"status": "green",
+"note": "Matches MAUI: identical text content, gray pill buttons, underlined Entry/Editor, headings list, focus button. SearchBar shows magnifier left + inset text + clear X right, matching MAUI."
 },
 {
 "key": "shadow_playground",
