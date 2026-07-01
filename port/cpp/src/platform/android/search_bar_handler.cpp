@@ -30,24 +30,44 @@
 // stand-in approach — and addresses every text map against android/widget/EditText. This is faithful:
 // the inner queryEditor IS an EditText, and the C# maps target it, not the SearchView chrome.
 //
+// THE SEARCHVIEW CHROME (magnifier + inset + clear-X), reproduced with FRAMEWORK compound drawables:
+// MAUI's visible SearchView chrome is a LEFT magnifier (search_mag_icon), an inset/indented query field,
+// and a RIGHT clear-X (search_close_btn) that appears only with text. The EditText stand-in reproduces
+// all three WITHOUT any SearchView by hanging framework drawables (android.R.drawable.ic_menu_search /
+// ic_menu_close_clear_cancel) on the EditText as compound drawables
+// (setCompoundDrawablesWithIntrinsicBounds) plus a setCompoundDrawablePadding inset. FRAMEWORK drawables
+// are the deliberate choice: they resolve theme-independently (via Context.getDrawable(int)) so they load
+// in the bare, Activity-less app_process testhost too — unlike the AppCompat abc_ic_* set the entry
+// partial documents as unavailable (no AAR), and unlike the framework android.widget.SearchView itself
+// (in android.jar since API 11 but inflating a fragile themed layout — its SearchAutoComplete needs
+// ?attr/autoCompleteTextViewStyle etc. — that is prone to crash in the theme-less host, so the real
+// SearchView is DEFERRED). This gives the SAME visual (loupe + inset + text-gated clear-X) in BOTH the
+// bare testhost and the real app host. Mirrored C#: MauiSearchView.Initialize's SetIconifiedByDefault
+// (false) → the always-shown magnifier; SearchViewExtensions.UpdateSearchIconColor / UpdateCancelButton
+// Color → the LEFT / RIGHT drawable tints (see map_search_icon_color / map_cancel_button_color); the
+// search_close_btn's text-gated visibility → the clear-X-shown-only-with-text rule (see map_text).
+//
 // DOCUMENTED DEVIATIONS from the C# oracle (each is a library / infrastructure gap, not a behavior
 // guess):
 //   - The widget is a plain android.widget.EditText, not a SearchView's inner SearchAutoComplete: the
-//     AndroidX AppCompat library is a gradle/AAR dependency this backend does not carry (as above). The
-//     SearchView-only chrome therefore has NO plain-EditText analog and is DEFERRED to mirror-only:
-//       * cancel_button_color (UpdateCancelButtonColor — tints search_close_btn's ImageView drawable),
-//       * search_icon_color   (UpdateSearchIconColor   — tints search_mag_icon's ImageView drawable),
-//       * return_type         (UpdateReturnType        — sets SearchView.ImeOptions + the inner
-//                              EditText.ImeOptions and RestartInput); the IME-options push and the
-//                              cancel/search icons have no plain-EditText surface here.
-//     map_cancel_button_color / map_search_icon_color / map_return_type therefore record the cross-
-//     platform mirror only, EXACTLY like the apple/AppKit twin (NSSearchFieldCell has no public tint).
-//     // TODO: verify against src/Core/src/Platform/Android/SearchViewExtensions.cs
-//     (UpdateCancelButtonColor / UpdateSearchIconColor / UpdateReturnType) when an AppCompat-equivalent
-//     SearchView (or a custom cancel/loupe overlay) lands.
-//   - SetIconifiedByDefault(false) / MaxWidth = int.MaxValue / the queryEditor LayoutParams FillVertical
-//     tweaks / the search_close_btn min-width (MauiSearchView.Initialize) are SearchView-shell setup with
-//     no plain-EditText analog; skipped. A plain wrap-content EditText already shows its text + hint.
+//     AndroidX AppCompat library is a gradle/AAR dependency this backend does not carry (as above), and
+//     the framework android.widget.SearchView is DEFERRED (fragile themed inflation in the Activity-less
+//     host). The SearchView's magnifier + clear-X ARE rendered — as framework compound drawables on the
+//     EditText (see the SEARCHVIEW CHROME note above) — so cancel_button_color / search_icon_color are NO
+//     LONGER mirror-only: UpdateCancelButtonColor tints the RIGHT clear-X drawable and UpdateSearchIcon
+//     Color tints the LEFT magnifier drawable (map_cancel_button_color / map_search_icon_color). Still
+//     DEFERRED to mirror-only (no plain-EditText / framework-drawable analog):
+//       * return_type (UpdateReturnType — sets SearchView.ImeOptions + the inner EditText.ImeOptions and
+//                      RestartInput); the IME-options push has no observable surface on the bare testhost
+//                      (no soft keyboard) and there is no SearchView ImeOptions target.
+//     map_return_type therefore records the cross-platform mirror only, like the apple/AppKit twin.
+//     // TODO: verify against src/Core/src/Platform/Android/SearchViewExtensions.cs (UpdateReturnType)
+//     when a soft-keyboard-aware app host lands, and re-point the icon tints at the real search_mag_icon /
+//     search_close_btn ImageViews if an AppCompat-equivalent SearchView shell ever lands.
+//   - MaxWidth = int.MaxValue / the queryEditor LayoutParams FillVertical tweaks / the search_close_btn
+//     min-width (MauiSearchView.Initialize) are SearchView-shell setup with no plain-EditText analog;
+//     skipped. SetIconifiedByDefault(false) — the expand-to-show-the-magnifier call — is reproduced not
+//     by a SearchView method but by the always-installed LEFT magnifier compound drawable (above).
 //   - MapBackground rides the shared view_mapper (the C# MapBackground delegates straight to
 //     PlatformView.UpdateBackground); update_background pushes the solid/gradient/image background to the
 //     View via the shared android op (VM-less safe), like the editor partial.
@@ -55,8 +75,12 @@
 //     they did in the editor/apple/ios partials: UpdateTextColor's / UpdatePlaceholderColor's "restore
 //     the theme default" (TryGetDefaultStateColor) else-branches have no value-type analog and are
 //     dropped (an unset color is a real value here, pushed through setTextColor / setHintTextColor like
-//     every other color). The search_mag_icon co-tint inside UpdateTextColor/UpdatePlaceholderColor is
-//     part of the deferred SearchView chrome (no icon to tint).
+//     every other color). The magnifier IS present now (a compound drawable), but its co-tint inside
+//     UpdateTextColor / UpdatePlaceholderColor (C# tints search_mag_icon to the text/placeholder colour
+//     as a fallback) is NOT applied here — the loupe tint is driven by SearchIconColor (map_search_icon_
+//     color) instead; the text/placeholder-colour co-tint is a minor fallback the ISearchBar contract
+//     does not require. // TODO: verify against SearchViewExtensions.cs (UpdateTextColor /
+//     UpdatePlaceholderColor search_mag_icon co-tint) if that fallback tint is ever needed.
 //   - The native EditText color setters take a ColorStateList (C# routes through
 //     PlatformInterop.CreateEditTextColorStateList). The plain-widget cut uses the single-int overloads
 //     setTextColor(int) / setHintTextColor(int) — the ColorStateList path's enabled-state coloring is an
@@ -122,6 +146,7 @@
 #include "jni/jni_env.hpp"
 #include "jni/jni_ref.hpp"
 #include "jni/jni_string.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/i_search_bar.hpp"
 #include "maui/core/keyboard.hpp"
@@ -154,13 +179,34 @@ namespace
     // 9-patch underline) that renders in the bare app_process host; the Material_Light variant resolves its
     // background to a theme attr the host can't satisfy and paints NOTHING (verified in wave 14), so it is
     // only a fallback. The *_alt fields are tried in turn if absent. (GetStaticFieldID — static fields.)
-    // The SearchView's OWN magnifier/cancel icons + the search-field rounded background remain DEFERRED
-    // (header deviation: no SearchView chrome here); this restores the EditText field chrome only.
+    // The SearchView's magnifier + clear-X are reproduced as FRAMEWORK compound drawables on this EditText
+    // (see k_r_drawable_class below); the search-field rounded background remains DEFERRED (header
+    // deviation: no SearchView shell here).
     constexpr const char* k_edit_text_style_field = "Widget_EditText";
     constexpr const char* k_edit_text_style_field_alt = "Widget_Material_EditText";
     constexpr const char* k_edit_text_style_field_alt2 = "Widget_Material_Light_EditText";
     constexpr const char* k_typeface_class = "android/graphics/Typeface";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
+
+    // FRAMEWORK drawables (android.R.drawable.*) reproducing MAUI's SearchView chrome on the EditText
+    // stand-in: the LEFT magnifier (SearchView's search_mag_icon, always shown once
+    // MauiSearchView.Initialize's SetIconifiedByDefault(false) expands the field) and the RIGHT clear-X
+    // (SearchView's search_close_btn, gated on non-empty text — SearchViewExtensions' text-driven
+    // UpdateCancelButtonState). Both are android.R.drawable resources (NOT AppCompat), so they resolve
+    // theme-independently in the bare app_process host too — the whole reason framework drawables are
+    // chosen over the unavailable AppCompat abc_ic_* set. Read with GetStaticFieldID on android/R$drawable
+    // (static ints), exactly like the style fields above. // TODO: verify against
+    // src/Core/src/Platform/Android/{MauiSearchView.cs (SetIconifiedByDefault(false) → the always-shown
+    // magnifier), SearchViewExtensions.cs (UpdateSearchIconColor/UpdateCancelButtonColor tints, the
+    // search_close_btn text-gated visibility)} when an AppCompat-equivalent SearchView (with the real
+    // search_mag_icon/search_close_btn ImageViews) lands.
+    constexpr const char* k_r_drawable_class = "android/R$drawable";
+    constexpr const char* k_search_icon_field = "ic_menu_search";            // the LEFT magnifier
+    constexpr const char* k_clear_icon_field = "ic_menu_close_clear_cancel"; // the RIGHT clear-X
+    constexpr const char* k_drawable_class = "android/graphics/drawable/Drawable";
+    // The icon-to-text inset (CompoundDrawablePadding), a modest gap matching the SearchView's
+    // magnifier-to-query indent so the text sits inset from the loupe like MAUI's expanded field.
+    constexpr double k_compound_drawable_padding_dp = 8.0;
 
     // FontManager.DefaultFontSize (Android) — 14sp. (FontManager.GetFontSize fallback.)
     constexpr float k_default_font_size = 14.0F;
@@ -483,6 +529,126 @@ namespace
 
         call_void_int(env, widget, "setInputType", input_type);
     }
+
+    // Resolve a framework drawable (android.R.drawable.<field_name>) to a live android.graphics.drawable
+    // .Drawable via context.getDrawable(int) (API 21+, in android.jar), tinting it to `tint` when
+    // `apply_tint` is set. Returns a MOVED local ref (null on any failure — every id/lookup is guarded,
+    // and the caller skips cleanly, mirroring the VM-less degradation discipline the rest of the file
+    // uses). Framework resources need no theme, so this loads in the bare app_process host too. The tint
+    // uses Drawable.mutate() first so the shared constant-state drawable is not tinted process-wide
+    // (SearchViewExtensions.SafeSetTint's "mutate before tinting" rule).
+    [[nodiscard]] local_ref<jobject> resolve_framework_drawable(JNIEnv* env, jobject widget, const char* field_name,
+                                                                bool apply_tint, jint tint)
+    {
+        auto& cache = default_jni_cache();
+        jclass drawable_r_class = cache.find_class(env, k_r_drawable_class);
+        if (drawable_r_class == nullptr)
+        {
+            return {};
+        }
+        jfieldID drawable_field = env->GetStaticFieldID(drawable_r_class, field_name, "I");
+        if (clear_pending(env) || drawable_field == nullptr)
+        {
+            return {}; // a missing-field lookup raises NoSuchFieldError — cleared above
+        }
+        const jint drawable_res = env->GetStaticIntField(drawable_r_class, drawable_field);
+        if (clear_pending(env))
+        {
+            return {};
+        }
+        // Context.getDrawable(int) — the widget's own Context resolves the framework resource.
+        jmethodID get_context = cache.method(env, k_edit_text_class, "getContext", "()Landroid/content/Context;");
+        jmethodID get_drawable =
+            cache.method(env, "android/content/Context", "getDrawable", "(I)Landroid/graphics/drawable/Drawable;");
+        if (get_context == nullptr || get_drawable == nullptr)
+        {
+            return {};
+        }
+        const local_ref<jobject> context{env, env->CallObjectMethod(widget, get_context)};
+        if (clear_pending(env) || !context)
+        {
+            return {};
+        }
+        local_ref<jobject> drawable{env, env->CallObjectMethod(context.get(), get_drawable, drawable_res)};
+        if (clear_pending(env) || !drawable)
+        {
+            return {};
+        }
+        if (apply_tint)
+        {
+            // SafeSetTint: Drawable.mutate() (copy the shared constant state) then setTint(argb). mutate()
+            // returns the (possibly new) drawable to tint; guard it, fall back to the original on failure.
+            jmethodID mutate = cache.method(env, k_drawable_class, "mutate", "()Landroid/graphics/drawable/Drawable;");
+            if (mutate != nullptr)
+            {
+                local_ref<jobject> mutated{env, env->CallObjectMethod(drawable.get(), mutate)};
+                if (!clear_pending(env) && mutated)
+                {
+                    drawable = std::move(mutated);
+                }
+            }
+            jmethodID set_tint = cache.method(env, k_drawable_class, "setTint", "(I)V");
+            if (set_tint != nullptr)
+            {
+                env->CallVoidMethod(drawable.get(), set_tint, tint);
+                clear_pending(env);
+            }
+        }
+        return drawable;
+    }
+
+    // Reproduce MAUI's SearchView chrome on the EditText: the LEFT magnifier (always shown, mirroring
+    // MauiSearchView.Initialize's SetIconifiedByDefault(false)) + the RIGHT clear-X (only when there is
+    // text — SearchViewExtensions' text-gated UpdateCancelButtonState) via TextView compound drawables,
+    // plus the icon-to-text inset. `left_tint`/`right_tint` are applied only when the corresponding
+    // *_is_set flag is true (the BindableObject.IsSet discriminator, so an unset icon keeps the framework
+    // drawable's own dark tint — which already matches the reference's dark magnifier/X — rather than
+    // being forced to the default sentinel value). Every JNI id is guarded; on any failure the icon is
+    // simply omitted (the VM-less / lookup-miss degradation the rest of the file uses).
+    void set_search_compound_icons(JNIEnv* env, jobject widget, bool has_text, bool left_is_set, jint left_tint,
+                                   bool right_is_set, jint right_tint, float density)
+    {
+        auto& cache = default_jni_cache();
+        jmethodID set_compound = cache.method(env, k_edit_text_class, "setCompoundDrawablesWithIntrinsicBounds",
+                                              "(Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/"
+                                              "Drawable;Landroid/graphics/drawable/Drawable;Landroid/graphics/"
+                                              "drawable/Drawable;)V");
+        if (set_compound == nullptr)
+        {
+            return;
+        }
+        const local_ref<jobject> left =
+            resolve_framework_drawable(env, widget, k_search_icon_field, left_is_set, left_tint);
+        local_ref<jobject> right;
+        if (has_text)
+        {
+            right = resolve_framework_drawable(env, widget, k_clear_icon_field, right_is_set, right_tint);
+        }
+        env->CallVoidMethod(widget, set_compound, left.get(), static_cast<jobject>(nullptr), right.get(),
+                            static_cast<jobject>(nullptr));
+        clear_pending(env);
+        // CompoundDrawablePadding: the magnifier-to-text inset (dp → px). A modest gap so the query text
+        // sits indented from the loupe, matching the SearchView's expanded-field inset.
+        call_void_int(env, widget, "setCompoundDrawablePadding", to_pixels(k_compound_drawable_padding_dp, density));
+    }
+
+    // The single DRY entry point every icon-touching map/create calls: recompute the LEFT magnifier (always
+    // on) + the RIGHT clear-X (text-gated) + their tints straight from the virtual view. The tints follow
+    // SearchIconColor / CancelButtonColor, applied only when BindableObject.IsSet marks them explicit (an
+    // unset icon keeps the framework drawable's own dark tint, which already matches the reference). The
+    // set-ness discriminator is the same dynamic_cast<bindable_object> + is_property_set idiom the button /
+    // ios partials use for the unset-color sentinel collision.
+    void refresh_search_compound_icons(JNIEnv* env, jobject widget, const maui::core::i_search_bar& view)
+    {
+        const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+        const bool left_is_set = bindable != nullptr && bindable->is_property_set("search_icon_color");
+        const bool right_is_set = bindable != nullptr && bindable->is_property_set("cancel_button_color");
+        const auto left_tint = static_cast<jint>(view.search_icon_color().to_int());
+        const auto right_tint = static_cast<jint>(view.cancel_button_color().to_int());
+        const bool has_text = !view.text().empty();
+        const float density = display_density(env, widget);
+        set_search_compound_icons(env, widget, has_text, left_is_set, left_tint, right_is_set, right_tint, density);
+    }
 } // namespace
 
 namespace maui::core
@@ -782,6 +948,17 @@ namespace maui::core
                 clear_pending(env.get());
             }
         }
+
+        // Install the SearchView chrome up front: the LEFT magnifier (always shown, mirroring
+        // MauiSearchView.Initialize's SetIconifiedByDefault(false)) + the icon-to-text inset, with the
+        // RIGHT clear-X omitted (the field starts empty — SearchViewExtensions gates it on non-empty
+        // text). No virtual view is available in CreatePlatformView (the maps push properties later), so
+        // this is the default-tint / no-text initial state; map_text re-evaluates the clear-X and
+        // map_search_icon_color / map_cancel_button_color re-tint from the real view.
+        const float density = display_density(env.get(), widget.get());
+        set_search_compound_icons(env.get(), widget.get(), /*has_text=*/false, /*left_is_set=*/false, /*left_tint=*/0,
+                                  /*right_is_set=*/false, /*right_tint=*/0, density);
+
         platform->native = env->NewGlobalRef(widget.get()); // released in ~search_bar_platform
         return platform;
     }
@@ -860,6 +1037,10 @@ namespace maui::core
             env->CallVoidMethod(widget, set_selection, static_cast<jint>(view.text().size()));
             clear_pending(env.get());
         }
+        // Re-evaluate the RIGHT clear-X: SearchViewExtensions shows search_close_btn only with text (an
+        // empty field hides it). Recomputes both icons + their tints from the view so the magnifier and
+        // any explicit tints survive the text change.
+        refresh_search_compound_icons(env.get(), widget, view);
     }
 
     void search_bar_handler::map_text_color(search_bar_handler& handler, i_search_bar& view)
@@ -1298,24 +1479,50 @@ namespace maui::core
 
     void search_bar_handler::map_cancel_button_color(search_bar_handler& handler, i_search_bar& view)
     {
-        // SearchViewExtensions.UpdateCancelButtonColor tints the search_close_btn ImageView's drawable.
-        // The plain-EditText stand-in carries no SearchView cancel button (header deviations — DEFERRED,
-        // exactly like the apple/AppKit twin whose NSSearchFieldCell cancel cell has no public tint); the
-        // mirror records the value.
-        if (auto* platform = handler.typed_platform_view())
+        // SearchViewExtensions.UpdateCancelButtonColor tints the search_close_btn ImageView's drawable via
+        // SafeSetTint. On the EditText stand-in the search_close_btn is the RIGHT clear-X compound drawable
+        // (framework ic_menu_close_clear_cancel), so this tints it — CancelButtonColor set → the clear-X
+        // takes that colour (the reference's "Cancel is red" row's red X); unset → the framework drawable's
+        // own dark tint. (The apple/AppKit twin stays mirror-only: NSSearchFieldCell's cancel cell has no
+        // public tint.)
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
         {
-            platform->cancel_button_color = view.cancel_button_color();
+            return;
+        }
+        platform->cancel_button_color = view.cancel_button_color();
+        if (platform->native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (env)
+        {
+            refresh_search_compound_icons(env.get(), widget_of(*platform), view);
         }
     }
 
     void search_bar_handler::map_search_icon_color(search_bar_handler& handler, i_search_bar& view)
     {
-        // SearchViewExtensions.UpdateSearchIconColor tints the search_mag_icon ImageView's drawable. No
-        // SearchView loupe on the plain-EditText stand-in (header deviations — DEFERRED, like the apple
-        // twin); the mirror records the value.
-        if (auto* platform = handler.typed_platform_view())
+        // SearchViewExtensions.UpdateSearchIconColor tints the search_mag_icon ImageView's drawable via
+        // SafeSetTint. On the EditText stand-in the search_mag_icon is the LEFT magnifier compound drawable
+        // (framework ic_menu_search), so this tints it — SearchIconColor set → the loupe takes that colour;
+        // unset → the framework drawable's own dark tint (which matches the reference). (The apple twin
+        // stays mirror-only.)
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
         {
-            platform->search_icon_color = view.search_icon_color();
+            return;
+        }
+        platform->search_icon_color = view.search_icon_color();
+        if (platform->native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (env)
+        {
+            refresh_search_compound_icons(env.get(), widget_of(*platform), view);
         }
     }
 
