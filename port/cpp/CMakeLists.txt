@@ -2022,6 +2022,16 @@ else()
   foreach(feature IN LISTS MAUI_ESSENTIALS_FEATURES)
     list(APPEND MAUI_ESSENTIALS_PLATFORM_SOURCES src/platform/headless/essentials_${feature}.cpp)
   endforeach()
+  # Android essentials partials (control-by-control, twin of the android handler fan-out): swap the
+  # headless fake for the real android/os/Build-reading partial where one exists. device_info must be
+  # real on android — the unconfigured headless fake's version_string()/model() THROW
+  # feature_not_supported, which terminated the DevicePage's construction on the emulator (it showed
+  # the launcher, not the app). The android partial reads Build via JNI and degrades to defaults, so
+  # the page renders Platform/Idiom/Version instead of crashing.
+  if(MAUI_BACKEND STREQUAL "android")
+    list(REMOVE_ITEM MAUI_ESSENTIALS_PLATFORM_SOURCES src/platform/headless/essentials_device_info.cpp)
+    list(APPEND MAUI_ESSENTIALS_PLATFORM_SOURCES src/platform/android/essentials_device_info.cpp)
+  endif()
 endif()
 
 add_library(maui_essentials STATIC
