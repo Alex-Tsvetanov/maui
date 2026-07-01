@@ -135,6 +135,16 @@ namespace maui::core
         void update_transform(const maui::core::transform_spec& value) override;
         void update_flow_direction(maui::core::flow_direction value) override;
         void update_semantics(const maui::core::semantics* value) override;
+
+        // LabelHandler._labelTextColorDefault twin: the TextView's captured default text color, read
+        // ONCE from the freshly-created android.widget.TextView (getCurrentTextColor, before any
+        // map_text_color) — the theme's textColorPrimary (a dark gray, ~0xDE000000, NOT pure black).
+        // map_text_color restores it on the unset (TextColor is-not-set) branch, exactly as C#'s
+        // TextViewExtensions.UpdateTextColor leaves the native default in place when TextColor is null.
+        // Kept theme-independent (whatever the freshly-built widget reports) so the Activity-less widget
+        // host and a themed activity each see their own correct default. 0 = "not captured" (a real
+        // default text color is opaque, never fully transparent 0x00000000).
+        int default_text_color = 0;
 #endif
     };
 
