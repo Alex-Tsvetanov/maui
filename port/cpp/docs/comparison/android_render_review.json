@@ -387,7 +387,7 @@
 {
 "key": "hybrid_web_view",
 "status": "yellow",
-"note": "Neither shows real embedded web content (cpp blank; MAUI shows native 'Webpage not available' error) - buttons/label match, only load-failure UI differs."
+"note": "DEFERRED: no Android hybrid_web_view_handler JNI partial (only apple/headless) — the control falls back to the headless mirror, instantiates no native WebView, so it can't render Chromium's error page like MAUI. Needs a real Android HybridWebView (WebViewAssetLoader + JS bridge) — disproportionate infra."
 },
 {
 "key": "image",
@@ -852,7 +852,7 @@
 {
 "key": "web_view",
 "status": "yellow",
-"note": "WebView HTML underrenders: 'Welcome' shows as small thin gray text vs MAUI's large bold black heading; buttons/layout otherwise match."
+"note": "Heading \"Welcome\" now large+bold, matches MAUI. Residual: MAUI's <p> paragraph below heading not visible in port (WebView cell measures to heading only, documented limitation). Minor."
 },
 {
 "key": "z_index",
