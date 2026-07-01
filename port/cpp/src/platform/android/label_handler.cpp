@@ -1307,5 +1307,24 @@ namespace maui::core
             maui::platform::android::apply_shadow(platform->native, platform->shadow, density, frame.width,
                                                   frame.height, 0.0);
         }
+
+        // Re-apply the render transform against the just-laid-out bounds (the same reapply pattern as the clip
+        // and shadow). apply_transform's pivot is AnchorX/Y × the View's laid-out size (mirroring MAUI's
+        // ViewExtensions.Initialize pivotX = AnchorX × ToPixels(view.Frame.Width)); at map time the TextView is
+        // 0×0 (not laid out yet), so the pivot resolved to (0,0) and a rotated/scaled label pivoted about its
+        // top-left corner instead of its center — the header_footer_grid footer Label (Rotation="10") swung out
+        // of its band and was clipped to a sliver. Post-layout getWidth()/getHeight() are the real size, so
+        // re-pushing the stored spec lands the pivot correctly. Only when the transform actually depends on the
+        // pivot (any rotation, or a scale ≠ 1) — a pure translation/identity is pivot-independent and already
+        // correct from the map-time push, so it needs no reapply.
+        {
+            const auto& t = platform->transform;
+            const bool pivot_matters = t.rotation != 0.0 || t.rotation_x != 0.0 || t.rotation_y != 0.0 ||
+                                       t.scale != 1.0 || t.scale_x != 1.0 || t.scale_y != 1.0;
+            if (pivot_matters)
+            {
+                maui::platform::android::apply_transform(platform->native, t);
+            }
+        }
     }
 } // namespace maui::core
