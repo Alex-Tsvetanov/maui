@@ -736,8 +736,8 @@
 },
 {
 "key": "stepper",
-"status": "red",
-"note": "In BackgroundColor row the port's Stepper buttons render at a tiny fixed width leaving huge red empty space, while MAUI's Stepper stretches to fill the row width."
+"status": "green",
+"note": "Fix confirmed: stepper buttons compact/left-packed both; red row fills remaining space matching MAUI. All rows match. Minor: red row slightly taller in C++ than MAUI's uniform heights."
 },
 {
 "key": "styles",
