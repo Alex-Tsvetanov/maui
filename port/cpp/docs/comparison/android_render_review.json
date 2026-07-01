@@ -211,8 +211,8 @@
 },
 {
 "key": "device",
-"status": "red",
-"note": "Android shows the device's home launcher screen (wallpaper, app icons, search bar) — not the app at all. iOS ref shows simple text 'Platform: iOS / Idiom: Phone / Version: 26.5'."
+"status": "green",
+"note": "Shows real app content (Platform: Android/Idiom: Phone/Version: 14.0), not OS launcher; matches iOS ref's Platform/Idiom/Version structure exactly."
 },
 {
 "key": "dispatcher",
@@ -361,8 +361,8 @@
 },
 {
 "key": "header_footer_grid_horizontal",
-"status": "red",
-"note": "Header image+text renders, but entire grid body below header is blank — none of the 9 grid items (cover1.jpg/oasis.jpg/Vegetables.jpg/etc.) render; footer also absent."
+"status": "green",
+"note": "Toggle buttons, dog image, wrapped rotated header text, horizontal grid rows (cover1/oasis/photo.jpg items w/ numbers), Add Content footer all present, matching iOS content."
 },
 {
 "key": "header_footer_template",
