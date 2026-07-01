@@ -106,6 +106,22 @@ namespace
     // (the primary→alt GetStaticFieldID fallback the progress-bar/slider handlers share). Both are STATIC
     // fields (GetStaticFieldID, not the instance field() helper). The WHITE text itself is asserted in
     // map_text_color's unset branch (mirroring C#'s _defaultTextColors restore — see there).
+    //
+    // CHROME CAVEAT: that concrete framework style also ships chrome the native-default MAUI button does NOT
+    // have — (a) a default stateListAnimator that raises translationZ on rest (a DROP SHADOW), (b) an
+    // InsetDrawable background (inset fill → small GAPS between adjacent docked buttons), and (c) rounded
+    // corners. Real .NET MAUI here renders FLAT / edge-to-edge / near-square (its MauiMaterialButton inherits
+    // a non-MaterialComponents base theme; verified against docs/comparison/android/maui/{button,
+    // custom_layout}.png — pure white below every button, #E0E0E0 contiguous fill). create_platform_view
+    // fixes (a) by calling strip_elevation on the constructed widget → shadowless, which clears the dominant
+    // custom_layout parity RED (the drop shadow + the perceived card separation the shadow created).
+    // DEFERRED — (b)+(c) the inset + rounded corners: they live in the framework background's
+    // InsetDrawable/GradientDrawable, which ALSO carries the button's intrinsic min-height + content padding.
+    // Swapping it for a bare flat GradientDrawable was tried and collapsed the default (no-size-request)
+    // buttons to zero size (they lost their intrinsic sizing) → a blank page. Removing the inset/corners
+    // safely needs the android container/measure fan-out to supply the button sizing independently of the
+    // background; until then the port keeps the framework fill (correct #E0E0E0 color, minor extra corner
+    // radius + ~4dp inset). See strip_elevation's tail comment.
     constexpr const char* k_button_style_field = "Widget_Material_Light_Button";
     constexpr const char* k_button_style_field_alt = "Widget_Material_Button";
 
@@ -187,6 +203,50 @@ namespace
         if (jmethodID method = default_jni_cache().method(env, k_button_class, name, "(Z)V"))
         {
             env->CallVoidMethod(widget, method, value);
+            clear_pending(env);
+        }
+    }
+
+    // Strip the framework Material button style's default ELEVATION so the widget renders FLAT, matching the
+    // native-default MAUI reference (parity policy §4). The port constructs the button through a framework
+    // Material defStyleRes (see create_platform_view / k_button_style_field) because this AAR-less backend
+    // can't link Material Components; that concrete style carries a default stateListAnimator that animates
+    // translationZ (elevation) on rest → a DROP SHADOW under the button. Real .NET MAUI here renders under a
+    // non-MaterialComponents base theme, so its MauiMaterialButton falls back to a flat, shadowless fill
+    // (verified in docs/comparison/android/maui/{button,custom_layout}.png: pure white below every button,
+    // no elevation). MauiMaterialButton.cs itself never sets elevation — the flatness is the theme's. To
+    // reproduce that flat look on the styled widget, drop the animator and zero the resting elevation:
+    //   setStateListAnimator(null); setElevation(0); setTranslationZ(0)
+    // All three are android.view.View methods (GetMethodID walks the superclasses, so they resolve through
+    // android/widget/Button). VM-less/failure-safe: each lookup is guarded and pending exceptions cleared.
+    //
+    // NOT flattened here — the framework background's INSET + rounded CORNERS (see the DEFERRED note in the
+    // header block): those live in the style's InsetDrawable/GradientDrawable background, which ALSO carries
+    // the button's intrinsic min-height + content padding. Swapping it for a bare flat GradientDrawable was
+    // tried and COLLAPSED the default (no-size-request) buttons to nothing (they lost their intrinsic size) —
+    // so the inset/corner cleanup is deferred to the android container/measure fan-out that will supply the
+    // sizing independently. The shadow strip below is the safe, self-contained part.
+    void strip_elevation(JNIEnv* env, jobject widget)
+    {
+        auto& cache = default_jni_cache();
+        // setStateListAnimator(android.animation.StateListAnimator) — pass null to remove the default
+        // Material animator that drives the elevation-on-rest shadow.
+        if (jmethodID set_animator =
+                cache.method(env, k_button_class, "setStateListAnimator", "(Landroid/animation/StateListAnimator;)V"))
+        {
+            env->CallVoidMethod(widget, set_animator, static_cast<jobject>(nullptr));
+            clear_pending(env);
+        }
+        // Zero the resting elevation + translationZ (View.setElevation / View.setTranslationZ) so no shadow
+        // is cast even if a residual Z remains after the animator is gone.
+        if (jmethodID set_elevation = cache.method(env, k_button_class, "setElevation", "(F)V"))
+        {
+            env->CallVoidMethod(widget, set_elevation, static_cast<jfloat>(0));
+            clear_pending(env);
+        }
+        if (jmethodID set_translation_z = cache.method(env, k_button_class, "setTranslationZ", "(F)V"))
+        {
+            env->CallVoidMethod(widget, set_translation_z, static_cast<jfloat>(0));
             clear_pending(env);
         }
     }
@@ -687,6 +747,10 @@ namespace maui::core
                 clear_pending(env.get());
             }
         }
+        // Strip the framework Material style's default elevation so the button renders shadowless, matching
+        // the native-default MAUI reference (see strip_elevation). Harmless on the plain-ctor fallback (that
+        // widget has no animator/elevation, so the calls are no-ops).
+        strip_elevation(env.get(), widget.get());
         platform->native = env->NewGlobalRef(widget.get()); // released in ~button_platform
         return platform;
     }
