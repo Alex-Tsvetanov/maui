@@ -366,8 +366,8 @@
 },
 {
 "key": "header_footer_template",
-"status": "red",
-"note": "Images now RENDER (cover photo band + item thumbnails — fix ef1a3ac386 closed the blue-placeholder gap). Residual: PhotoTemplate child ORDER reversed (port image-then-label vs MAUI label-then-image) + large extra vertical gaps vs MAUI compact rows."
+"status": "yellow",
+"note": "MAJOR gap FIXED (3c5aae14f9): header/footer cover-photo bands + compact Grid photo item cells now render (was text-only/blue-placeholder). Residual: caption/photo ORDER — port renders photo-top/caption-below per the C# PhotoTemplate oracle (Image in Grid row 0); the maui-compare reference shows caption-top (likely a reference-app divergence, cf. clip_corner_radius). Order-reconciliation, not a major defect."
 },
 {
 "key": "header_footer_view",
