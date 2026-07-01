@@ -296,8 +296,8 @@
 },
 {
 "key": "flex_layout",
-"status": "red",
-"note": "CONTENT text is near-invisible dark-gray-on-gray (~116,117,127 vs bg 128,128,128); MAUI renders it solid black, fully legible."
+"status": "green",
+"note": "Matches MAUI: header/nav/aside/gray content (legible dark text)/pink footer all present, layout matches. Header/footer text edges clipped by app chrome (inset artifact, ignore)."
 },
 {
 "key": "focus",
