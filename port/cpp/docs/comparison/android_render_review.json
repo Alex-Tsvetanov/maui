@@ -101,8 +101,8 @@
 },
 {
 "key": "button",
-"status": "green",
-"note": "All visible button rows match MAUI in color, text, and size (gray/blue/red/green/purple/pink/black); extra rows below are just more of the same list shown due to viewport, not a content diff."
+"status": "yellow",
+"note": "Buttons flat, no drop shadow (shadow fix confirmed). Minor residual: gray/colored buttons have ~4dp inset + rounded corners vs MAUI edge-to-edge square fill."
 },
 {
 "key": "carousel_page",
@@ -181,8 +181,8 @@
 },
 {
 "key": "custom_layout",
-"status": "red",
-"note": "MAUI renders Top/Left/Left/Right/Right/Bottom as one contiguous gray region with a white gap; cpp renders separate rounded cards with shadows and gaps between them."
+"status": "green",
+"note": "Matches MAUI: Top bar, Left/Left/gap/Right/Right columns, Bottom bar all align in content/color/position. No buttons on this page (shadow fix N/A)."
 },
 {
 "key": "custom_size_swipe",
