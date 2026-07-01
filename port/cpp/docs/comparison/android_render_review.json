@@ -7,7 +7,7 @@
 {
 "key": "activity_indicator",
 "status": "red",
-"note": "MAUI shows visible spinning arc glyphs for every indicator; port shows no visible spinner glyph in any row (only yellow bg row shows a faint outline)."
+"note": "Default/Larger/Smaller indicators are dark navy-blue in cpp vs MAUI's pale light-gray; also cpp is missing the yellow BackgroundColor fill behind 'Styled - BackgroundColor=Yellow' entirely."
 },
 {
 "key": "adaptive_collection",
@@ -176,8 +176,8 @@
 },
 {
 "key": "controls_stack",
-"status": "red",
-"note": "SearchBar missing search icon; ActivityIndicator is a tiny blue diamond vs MAUI's spinner ring; ProgressBar bold black fill vs MAUI subtle grey; checkbox/switch bold blue vs MAUI's pale state."
+"status": "yellow",
+"note": "Missing magnifying-glass search icon next to 'A SearchBar' that MAUI renders; other controls (button, entry, editor, checkbox, switch, indicator, slider, stepper, progress bar) match."
 },
 {
 "key": "custom_layout",
@@ -601,8 +601,8 @@
 },
 {
 "key": "progress_bar",
-"status": "red",
-"note": "cpp renders thick dark/black+gray rounded bars with heavy shadow; MAUI shows thin flat orange/light-gray square-ended bars. Wrong track/fill styling."
+"status": "green",
+"note": "Matches MAUI: Default black bar, ProgressColor orange bar, Disabled grayed bar, second ProgressColor orange bar, ProgressTo track+button all match colors/proportions/spacing."
 },
 {
 "key": "radio_button_border",
