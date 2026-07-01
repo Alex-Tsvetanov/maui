@@ -169,8 +169,10 @@ namespace
         return env->NewLocalRef(native);
     }
 
-    // The system-chrome height (PIXELS) the content view does NOT receive: status bar + title/action bar.
-    // Verbatim from the C++ host — a bottom-anchored row otherwise lands below the visible content frame.
+    // The system-chrome height (PIXELS) the content view does NOT receive: the status bar (top).
+    // NO action/title bar (2026-07-01): the XAML host's manifest now references MauiAppHost.Theme, which is
+    // NoActionBar (build_android_apphost_xaml.sh writes a matching values/styles.xml), so there is no title
+    // bar above the content frame to reserve — matching the C++ host and MAUI's native-default ContentPage.
     [[nodiscard]] jint content_chrome_height_px(JNIEnv* env, jobject activity)
     {
         if (env == nullptr || activity == nullptr)
@@ -235,67 +237,9 @@ namespace
             }
         }
 
-        // --- action/title bar ---
-        jmethodID get_theme =
-            env->GetMethodID(activity_class.get(), "getTheme", "()Landroid/content/res/Resources$Theme;");
-        const maui::platform::android::local_ref<jclass> typed_value_class{env,
-                                                                           env->FindClass("android/util/TypedValue")};
-        if (get_theme != nullptr && typed_value_class)
-        {
-            const maui::platform::android::local_ref<jobject> theme{env, env->CallObjectMethod(activity, get_theme)};
-            jmethodID tv_ctor = env->GetMethodID(typed_value_class.get(), "<init>", "()V");
-            jmethodID resolve = nullptr;
-            if (theme)
-            {
-                const maui::platform::android::local_ref<jclass> theme_class{env, env->GetObjectClass(theme.get())};
-                resolve = env->GetMethodID(theme_class.get(), "resolveAttribute", "(ILandroid/util/TypedValue;Z)Z");
-            }
-            jmethodID get_metrics_m =
-                env->GetMethodID(resources_class.get(), "getDisplayMetrics", "()Landroid/util/DisplayMetrics;");
-            jmethodID complex_to_px = env->GetStaticMethodID(typed_value_class.get(), "complexToDimensionPixelSize",
-                                                             "(ILandroid/util/DisplayMetrics;)I");
-            jfieldID data_field = env->GetFieldID(typed_value_class.get(), "data", "I");
-            constexpr jint k_attr_action_bar_size = 0x01010057; // android.R.attr.actionBarSize
-            if (theme && tv_ctor != nullptr && resolve != nullptr && get_metrics_m != nullptr &&
-                complex_to_px != nullptr && data_field != nullptr)
-            {
-                const maui::platform::android::local_ref<jobject> tv{env,
-                                                                     env->NewObject(typed_value_class.get(), tv_ctor)};
-                if (tv)
-                {
-                    const jboolean ok =
-                        env->CallBooleanMethod(theme.get(), resolve, k_attr_action_bar_size, tv.get(), JNI_TRUE);
-                    if (env->ExceptionCheck() == JNI_TRUE)
-                    {
-                        clear();
-                    }
-                    else if (ok == JNI_TRUE)
-                    {
-                        const jint data = env->GetIntField(tv.get(), data_field);
-                        const maui::platform::android::local_ref<jobject> dm{
-                            env, env->CallObjectMethod(resources.get(), get_metrics_m)};
-                        const bool dm_failed = env->ExceptionCheck() == JNI_TRUE;
-                        if (dm_failed)
-                        {
-                            clear();
-                        }
-                        if (!dm_failed && dm)
-                        {
-                            const jint bar_px =
-                                env->CallStaticIntMethod(typed_value_class.get(), complex_to_px, data, dm.get());
-                            if (env->ExceptionCheck() == JNI_TRUE)
-                            {
-                                clear();
-                            }
-                            else if (bar_px > 0)
-                            {
-                                total += bar_px;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        // NO action/title-bar measurement: MauiAppHost.Theme is NoActionBar, so there is no title bar above
+        // the content frame to reserve height for. Removed 2026-07-01 to match the C++ host + MAUI's Android
+        // gallery, which render these native-default ContentPages with no top app-title bar.
         return total;
     }
 

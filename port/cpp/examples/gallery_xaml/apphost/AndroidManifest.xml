@@ -4,7 +4,13 @@
      lib/<abi>, zipalign + apksigner, no gradle), but a DIFFERENT package (dev.mauicpp.apphost.xaml) so
      it installs alongside the C++ builder host (dev.mauicpp.apphost) and both can be captured. One
      launchable Activity; no permissions or resources beyond the manifest. minSdk 24 matches the android
-     preset's ANDROID_PLATFORM. -->
+     preset's ANDROID_PLATFORM.
+
+     android:theme mirrors the non-xaml host's MauiAppHost.Theme (NoActionBar + white bg) so both hosts
+     render identically: NO top app-title bar (previously this manifest declared no theme, so it inherited
+     DeviceDefault and painted a "MAUI C++ Gallery (XAML)" ActionBar — a parity DIFF vs MAUI) and a pure
+     white page background. build_android_apphost_xaml.sh writes a matching values/styles.xml so this
+     @style reference resolves at aapt2 link time. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="dev.mauicpp.apphost.xaml">
 
@@ -13,6 +19,7 @@
     <application
         android:label="MAUI C++ Gallery (XAML)"
         android:hasCode="true"
+        android:theme="@style/MauiAppHost.Theme"
         android:allowBackup="false">
         <activity
             android:name=".MauiHostActivity"

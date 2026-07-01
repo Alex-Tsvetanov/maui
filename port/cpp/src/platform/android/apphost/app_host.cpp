@@ -243,22 +243,27 @@ namespace
         return env->NewLocalRef(native);
     }
 
-    // The system-chrome height (in PIXELS) the Activity's content view does NOT get: the status bar and the
-    // Activity's title/action bar ABOVE the content frame, plus the system navigation bar BELOW it.
-    // MauiHostActivity extends the plain android.app.Activity, whose default theme paints a status bar at the
-    // top, a title bar (the "MAUI C++ Gallery" toolbar in the captures) above setContentView's content frame,
-    // and a navigation/gesture bar at the bottom — so the content area is SHORTER than the raw DisplayMetrics
-    // height by all three (confirmed on the maui-test AVD: content=[0,290..2274] of a 2340px display, i.e.
-    // status 136 + actionBar 154 above, nav 66 below). display_size lays the page out over the device
-    // display, so without this subtraction a page whose bottom child is anchored to the content bottom (a
-    // Grid `*`-over-`Auto` row, or a FlexLayout column's FOOTER after a Grow="1" body) is placed BELOW the
-    // visible content frame and never appears — the FlexLayout footer bug this height reconciles. The three
-    // heights are read from the framework: status bar + nav bar from the android `status_bar_height` /
-    // `navigation_bar_height` dimen resources (same getIdentifier/getDimensionPixelSize read), the action bar
-    // from the theme's actionBarSize attribute. Returns 0 on any failure (page still mounts, over the full
-    // display as before). Note: `navigation_bar_height` is the classic (3-button) inset value; on a
-    // gesture-nav device the bottom inset is smaller, so this may over-subtract a little there — the safe
-    // direction (the footer sits just inside the content bottom, never off it).
+    // The system-chrome height (in PIXELS) the Activity's content view does NOT get: the status bar ABOVE
+    // the content frame plus the system navigation bar BELOW it. (NO action/title bar — see below.)
+    //
+    // NO ACTION BAR (2026-07-01): MauiHostActivity now uses MauiAppHost.Theme, which parents on the
+    // NoActionBar framework theme (res/values/styles.xml). Real .NET MAUI's Android gallery renders these
+    // native-default ContentPages with NO top app-title bar, so the port previously painting one (the
+    // "MAUI C++ Gallery" toolbar) was a parity DIFF; MAUI's render is the ground truth, so the bar is gone.
+    // Consequently this function NO LONGER measures/subtracts the theme's actionBarSize — with NoActionBar
+    // there is no title bar above setContentView's content frame, and the content starts directly below the
+    // status bar (exactly where a native-default MAUI ContentPage's content starts). The action-bar
+    // measurement block was removed; only the status bar (top) + navigation bar (bottom) remain.
+    //
+    // display_size lays the page out over the device display, so without this subtraction a page whose
+    // bottom child is anchored to the content bottom (a Grid `*`-over-`Auto` row, or a FlexLayout column's
+    // FOOTER after a Grow="1" body) is placed BELOW the visible content frame and never appears — the
+    // FlexLayout footer bug this height reconciles. Both remaining heights are read from the framework's
+    // `status_bar_height` / `navigation_bar_height` dimen resources (getIdentifier/getDimensionPixelSize).
+    // Returns 0 on any failure (page still mounts, over the full display as before). Note:
+    // `navigation_bar_height` is the classic (3-button) inset value; on a gesture-nav device the bottom
+    // inset is smaller, so this may over-subtract a little there — the safe direction (the footer sits just
+    // inside the content bottom, never off it).
     [[nodiscard]] jint content_chrome_height_px(JNIEnv* env, jobject activity)
     {
         if (env == nullptr || activity == nullptr)
@@ -330,75 +335,16 @@ namespace
             }
         }
 
-        // --- action/title bar: getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true), then
-        //     TypedValue.complexToDimensionPixelSize(tv.data, getDisplayMetrics()) ---
-        jmethodID get_theme =
-            env->GetMethodID(activity_class.get(), "getTheme", "()Landroid/content/res/Resources$Theme;");
-        const maui::platform::android::local_ref<jclass> typed_value_class{env,
-                                                                           env->FindClass("android/util/TypedValue")};
-        if (get_theme != nullptr && typed_value_class)
-        {
-            const maui::platform::android::local_ref<jobject> theme{env, env->CallObjectMethod(activity, get_theme)};
-            jmethodID tv_ctor = env->GetMethodID(typed_value_class.get(), "<init>", "()V");
-            jmethodID resolve = nullptr;
-            if (theme)
-            {
-                const maui::platform::android::local_ref<jclass> theme_class{env, env->GetObjectClass(theme.get())};
-                resolve = env->GetMethodID(theme_class.get(), "resolveAttribute", "(ILandroid/util/TypedValue;Z)Z");
-            }
-            jmethodID get_metrics_m =
-                env->GetMethodID(resources_class.get(), "getDisplayMetrics", "()Landroid/util/DisplayMetrics;");
-            jmethodID complex_to_px = env->GetStaticMethodID(typed_value_class.get(), "complexToDimensionPixelSize",
-                                                             "(ILandroid/util/DisplayMetrics;)I");
-            jfieldID data_field = env->GetFieldID(typed_value_class.get(), "data", "I");
-            constexpr jint k_attr_action_bar_size = 0x01010057; // android.R.attr.actionBarSize
-            if (theme && tv_ctor != nullptr && resolve != nullptr && get_metrics_m != nullptr &&
-                complex_to_px != nullptr && data_field != nullptr)
-            {
-                const maui::platform::android::local_ref<jobject> tv{env,
-                                                                     env->NewObject(typed_value_class.get(), tv_ctor)};
-                if (tv)
-                {
-                    const jboolean ok =
-                        env->CallBooleanMethod(theme.get(), resolve, k_attr_action_bar_size, tv.get(), JNI_TRUE);
-                    if (env->ExceptionCheck() == JNI_TRUE)
-                    {
-                        clear();
-                    }
-                    else if (ok == JNI_TRUE)
-                    {
-                        const jint data = env->GetIntField(tv.get(), data_field);
-                        const maui::platform::android::local_ref<jobject> dm{
-                            env, env->CallObjectMethod(resources.get(), get_metrics_m)};
-                        const bool dm_failed = env->ExceptionCheck() == JNI_TRUE;
-                        if (dm_failed)
-                        {
-                            clear();
-                        }
-                        if (!dm_failed && dm)
-                        {
-                            const jint bar_px =
-                                env->CallStaticIntMethod(typed_value_class.get(), complex_to_px, data, dm.get());
-                            if (env->ExceptionCheck() == JNI_TRUE)
-                            {
-                                clear();
-                            }
-                            else if (bar_px > 0)
-                            {
-                                total += bar_px;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        // NO action/title-bar measurement: MauiAppHost.Theme is NoActionBar (res/values/styles.xml), so
+        // there is no title bar above the content frame to reserve height for. Removed 2026-07-01 to match
+        // MAUI's Android gallery, which renders these native-default ContentPages with no top app-title bar.
         return total;
     }
 
     // The Activity's display metrics (widthPixels x heightPixels) via JNI:
     // activity.getResources().getDisplayMetrics().{widthPixels,heightPixels}, divided by the metrics
     // `density` to yield framework POINTS. The height is reduced by the system chrome the content view does
-    // not receive (status bar + action/title bar — see content_chrome_height_px). Falls back to a portrait
+    // not receive (status bar + navigation bar; NO action bar — see content_chrome_height_px). Falls back to a portrait
     // phone viewport (the headless/ios default) when any step fails, so the mount still settles. The
     // Activity is reached through app_context() — the JNI export below pinned it as the process context.
     size2 display_size(JNIEnv* env)
@@ -468,9 +414,10 @@ namespace
         {
             return fallback;
         }
-        // Reduce the height by the system chrome the content view never receives (status bar + title/action
-        // bar). Without this, a bottom-anchored row (a `*`-over-`Auto` Grid like update_path_data) lands
-        // below the visible content frame. Clamp so a bogus chrome read can never zero/invert the height.
+        // Reduce the height by the system chrome the content view never receives (status bar + navigation
+        // bar; NO action bar — the NoActionBar theme has none). Without this, a bottom-anchored row (a
+        // `*`-over-`Auto` Grid like update_path_data) lands below the visible content frame. Clamp so a
+        // bogus chrome read can never zero/invert the height.
         const jint chrome_px = content_chrome_height_px(env, activity);
         jint content_height_px = height_px;
         if (chrome_px > 0 && chrome_px < height_px)

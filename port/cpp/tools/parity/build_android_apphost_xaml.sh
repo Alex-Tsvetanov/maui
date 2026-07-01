@@ -121,6 +121,21 @@ cat > "${work}/res/values/strings.xml" <<'XML'
     <string name="app_name">MAUI C++ Gallery (XAML)</string>
 </resources>
 XML
+# MauiAppHost.Theme — identical to the non-xaml host's src/platform/android/apphost/res/values/styles.xml
+# (NoActionBar + pure-white window/colorBackground). The XAML manifest references @style/MauiAppHost.Theme,
+# so this MUST be present for aapt2 link to resolve it. Kept inline (not linked from the shared res dir) so
+# the XAML pipeline stays self-contained, but the CONTENTS must mirror the checked-in host theme: NoActionBar
+# removes the top app-title bar (parity with MAUI's Android gallery — MAUI's render is the ground truth),
+# white bg matches MAUI's native-default light-mode ContentPage background.
+cat > "${work}/res/values/styles.xml" <<'XML'
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="MauiAppHost.Theme" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:colorBackground">@android:color/white</item>
+    </style>
+</resources>
+XML
 "${aapt2}" compile --dir "${work}/res" -o "${work}/res-compiled.zip" >&2 || maui_die "aapt2 compile failed"
 "${aapt2}" link \
   -o "${base_apk}" \

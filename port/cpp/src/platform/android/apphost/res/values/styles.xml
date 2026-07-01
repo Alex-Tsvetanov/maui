@@ -10,15 +10,24 @@
      background (#FFFFFF) in light mode. That mismatch is what the parity review flagged as "port page
      background is light lavender-gray vs MAUI's white" (content_view, menu_bar, and every sparse page).
 
-     THE FIX:
-     Pin an explicit light theme and force the window / colorBackground to pure white so it matches MAUI's
-     rendered background exactly, instead of inheriting the M3 tonal surface. We parent on the framework
-     DeviceDefault.Light.DarkActionBar (no Material Components AAR on the app-host classpath — the app-host
-     links android.jar only, no gradle) and KEEP the action bar: app_host.cpp's content_chrome_height_px
-     measures the status-bar + action-bar height to lay the page out below the chrome, so removing the
-     action bar would change every page's layout. The scoped change here is the background color only. -->
+     TWO FIXES PINNED HERE:
+
+     (1) NO ACTION BAR (2026-07-01). We previously parented on DeviceDefault.Light.DarkActionBar and KEPT
+     the action bar — it painted a top app-title bar showing android:label ("MAUI C++ Gallery"). Real
+     .NET MAUI's Android gallery renders these ContentPages with NO such top bar (its shell/toolbar is
+     empty on these native-default pages), so the port's title bar was a parity DIFF. Per the parity
+     policy (MAUI's render is the ground truth), we now parent on the NoActionBar framework theme, so the
+     content starts directly below the status bar — exactly where a native-default MAUI ContentPage's
+     content starts. app_host.cpp's content_chrome_height_px NO LONGER reserves action-bar height; it
+     subtracts only the status bar (top) + navigation bar (bottom), so the page layout still positions
+     correctly under this theme.
+
+     (2) WHITE BACKGROUND. Pin the window / colorBackground to pure white so it matches MAUI's rendered
+     background exactly, instead of inheriting the DeviceDefault/Material3 tonal surface (#F1F0F7
+     lavender). We parent on the framework DeviceDefault.Light.NoActionBar (no Material Components AAR on
+     the app-host classpath — the app-host links android.jar only, no gradle). -->
 <resources>
-    <style name="MauiAppHost.Theme" parent="@android:style/Theme.DeviceDefault.Light.DarkActionBar">
+    <style name="MauiAppHost.Theme" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
         <!-- Match MAUI's white light-mode page background (Theme.MaterialComponents.DayNight resolves to
              white), instead of the DeviceDefault/Material3 tonal surface (#F1F0F7 lavender). Both the
              window drawable and the colorBackground attribute are pinned so surfaces that read either one
