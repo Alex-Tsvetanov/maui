@@ -1,0 +1,38 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Chat Example">
+    <!-- Twin of ChatExample.xaml: the variable-height-items demo — a header row of three buttons over a
+         CollectionView of chat bubbles (MeasureAllItems). DEGRADES: (1) the ChatTemplateSelector picking
+         a Local (green, right) vs Remote (blue, left) bubble per message is NOT expressible in markup (a
+         custom selector type, unregistered) — collapsed to a SINGLE representative Frame bubble
+         ItemTemplate (the Remote blue/left form) bound to {Binding Text}. (2) No ItemsSource: the C#
+         markup binds {Binding ChatMessages} from a view-model (omitted in the structural twin), so the
+         list renders empty — the header buttons + template define the page's static structure. (3)
+         ItemsLayout uses the "VerticalList" string form (the <LinearItemsLayout> element with ItemSpacing
+         needs ctor-arg reflection the loader lacks), losing only the 5px inter-item spacing. -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackLayout Orientation="Horizontal">
+            <Button Text="Append Random Message" Margin="2" />
+            <Button Text="Clear" Margin="2" />
+            <Button Text="Add 1000 Messages" Margin="2" />
+        </StackLayout>
+
+        <CollectionView Grid.Row="1" ItemSizingStrategy="MeasureAllItems" ItemsLayout="VerticalList">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Padding="5,0,5,0">
+                        <Frame BorderColor="Blue" BackgroundColor="LightBlue" CornerRadius="5">
+                            <StackLayout Margin="2">
+                                <Label Text="{Binding Text}" FontSize="10" HorizontalTextAlignment="Start" />
+                            </StackLayout>
+                        </Frame>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

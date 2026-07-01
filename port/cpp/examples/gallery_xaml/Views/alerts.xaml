@@ -1,0 +1,23 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Alerts">
+    <!-- Twin of AlertsPage.xaml: three Page-dialog sections (Alert / ActionSheet / Prompt), each a
+         headline label + buttons, plus the two prompt result labels. The Page dialog services and the
+         Clicked handlers are omitted (structural twin — no view-model / code-behind). The section
+         headings use FontSize/Bold inline because the {StaticResource Headline} style is not in the
+         twin scope. -->
+    <StackLayout Margin="12">
+        <Label Text="Display Alert" FontSize="24" FontAttributes="Bold" />
+        <Button Text="Alert Simple" />
+        <Button Text="Alert Yes/No" />
+
+        <Label Text="Display ActionSheet" FontSize="24" FontAttributes="Bold" />
+        <Button Text="ActionSheet Simple" />
+        <Button Text="ActionSheet Cancel/Delete" />
+
+        <Label Text="Display Prompt" FontSize="24" FontAttributes="Bold" />
+        <Button Text="Question 1" />
+        <Label />
+        <Button Text="Question 2" />
+        <Label />
+    </StackLayout>
+</ContentPage>

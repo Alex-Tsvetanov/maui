@@ -1,0 +1,17 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="AppThemeBinding">
+    <!-- Twin of AppThemeBindingPage.xaml: labels whose TextColor is set via {AppThemeBinding Light=…,
+         Dark=…}. A static capture resolves the Light branch (Green / Orange). The second label's colors
+         come from literal AppThemeBinding values rather than {StaticResource LightPrimaryColor} — see
+         note: the port has no <Color x:Key> resource-element hydration, so the resource indirection is
+         degraded to the same resolved colors (Orange light / Teal dark). Headings inline-sized because
+         {StaticResource Headline} is out of the twin scope. -->
+    <StackLayout Margin="12">
+        <Label Text="AppThemeBinding" FontSize="24" FontAttributes="Bold" />
+        <Label Text="This text is green in light mode, and red in dark mode."
+               TextColor="{AppThemeBinding Light=Green, Dark=Red}" />
+        <Label Text="Using AppThemeBinding in a ResourceDictionary" FontSize="24" FontAttributes="Bold" />
+        <Label Text="This text uses LightPrimaryColor (Orange) in light mode, and DarkPrimaryColor (Teal) in dark mode."
+               TextColor="{AppThemeBinding Light=Orange, Dark=Teal}" />
+    </StackLayout>
+</ContentPage>

@@ -8,19 +8,31 @@
 
 #include "Views/absolute_layout.xaml.hpp"
 #include "Views/activity_indicator.xaml.hpp"
+#include "Views/adaptive_collection.xaml.hpp"
+#include "Views/alerts.xaml.hpp"
 #include "Views/alignment.xaml.hpp"
+#include "Views/animation.xaml.hpp"
+#include "Views/app_theme_binding.xaml.hpp"
 #include "Views/application_control.xaml.hpp"
+#include "Views/auto_size_shapes.xaml.hpp"
+#include "Views/basic_grouping.xaml.hpp"
+#include "Views/basic_swipe.xaml.hpp"
+#include "Views/behaviors.xaml.hpp"
 #include "Views/border.xaml.hpp"
 #include "Views/border_alignment.xaml.hpp"
+#include "Views/border_clip_playground.xaml.hpp"
 #include "Views/border_layout.xaml.hpp"
 #include "Views/border_playground.xaml.hpp"
 #include "Views/border_resize_content.xaml.hpp"
 #include "Views/border_stroke.xaml.hpp"
 #include "Views/border_styles.xaml.hpp"
+#include "Views/borderless.xaml.hpp"
 #include "Views/box_view.xaml.hpp"
 #include "Views/button.xaml.hpp"
 #include "Views/carousel_view.xaml.hpp"
+#include "Views/chat_example.xaml.hpp"
 #include "Views/check_box.xaml.hpp"
+#include "Views/chrome.xaml.hpp"
 #include "Views/collectionview.xaml.hpp"
 #include "Views/containers.xaml.hpp"
 #include "Views/content_view.xaml.hpp"
@@ -70,19 +82,31 @@
 #define MAUI_XAML_GALLERY_PAGES(X)                                                                                     \
     X(absolute_layout)                                                                                                 \
     X(activity_indicator)                                                                                              \
+    X(adaptive_collection)                                                                                             \
+    X(alerts)                                                                                                          \
     X(alignment)                                                                                                       \
+    X(animation)                                                                                                       \
+    X(app_theme_binding)                                                                                               \
     X(application_control)                                                                                             \
+    X(auto_size_shapes)                                                                                                \
+    X(basic_grouping)                                                                                                  \
+    X(basic_swipe)                                                                                                     \
+    X(behaviors)                                                                                                       \
     X(border)                                                                                                          \
     X(border_alignment)                                                                                                \
+    X(border_clip_playground)                                                                                          \
     X(border_layout)                                                                                                   \
     X(border_playground)                                                                                               \
     X(border_resize_content)                                                                                           \
     X(border_stroke)                                                                                                   \
     X(border_styles)                                                                                                   \
+    X(borderless)                                                                                                      \
     X(box_view)                                                                                                        \
     X(button)                                                                                                          \
     X(carousel_view)                                                                                                   \
+    X(chat_example)                                                                                                    \
     X(check_box)                                                                                                       \
+    X(chrome)                                                                                                          \
     X(collectionview)                                                                                                  \
     X(containers)                                                                                                      \
     X(content_view)                                                                                                    \
