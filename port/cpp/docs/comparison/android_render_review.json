@@ -151,8 +151,8 @@
 },
 {
 "key": "collectionview",
-"status": "red",
-"note": "cpp grid rows severely overlap vertically, text from adjacent rows stacks illegibly; MAUI shows clean, properly spaced rows with readable 'Fruits.jpg, 3' style text."
+"status": "green",
+"note": "Rows cleanly spaced, no overlap. Same items/order/3-col grid as MAUI; only diff is MAUI's scroll-cropped header (out-of-scope crop)."
 },
 {
 "key": "composition_gallery",
@@ -196,8 +196,8 @@
 },
 {
 "key": "cv_visual_states",
-"status": "red",
-"note": "Single Selection CollectionView reserves a huge empty vertical gap before Multi Selection header, unlike MAUI's compact contiguous layout."
+"status": "yellow",
+"note": "Rows properly spaced, no overlap (fix confirmed). Residual: large empty gap between Single/Multi Selection lists vs MAUI's tight packing."
 },
 {
 "key": "data_template_selector",
@@ -486,8 +486,8 @@
 },
 {
 "key": "items",
-"status": "green",
-"note": "matches MAUI: item list and 'Pick a task' placeholder identical"
+"status": "yellow",
+"note": "Rows properly spaced, no overlap (fix confirmed). Residual: large empty gap before 'Pick a task' section vs MAUI's tight packing."
 },
 {
 "key": "items_updating_scroll_mode",
@@ -541,8 +541,8 @@
 },
 {
 "key": "nested_collection",
-"status": "red",
-"note": "MAUI shows each nested row with generous vertical spacing (row height); cpp packs rows with almost no spacing, causing wrong layout density and far more rows visible per screen."
+"status": "green",
+"note": "Matches MAUI: same Source/Caption content, red/blue colors, nested horizontal rows spaced without overlap; truncated-caption edge matches MAUI's own cropping."
 },
 {
 "key": "pan_gesture_events",
