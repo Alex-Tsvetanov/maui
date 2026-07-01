@@ -29,10 +29,21 @@
 //     comment preserves by avoiding SetColorFilter is preserved here for the same reason (tint list, not
 //     color filter).
 //   - The port's colors are non-nullable value types, so SwitchExtensions' `color is not null` branches
-//     collapse exactly as in the apple/ios partials: an UNSET TrackColor (the default-black sentinel)
-//     takes ClearColorFilter (restore the theme track), and an unset ThumbColor leaves the thumb tint
-//     untouched — UpdateThumbColor(ASwitch)'s C# body only sets a tint when a custom color is present
-//     (no else branch), so the default thumb keeps the theme tint.
+//     collapse exactly as in the apple/ios partials: an UNSET TrackColor (the default-black sentinel) and
+//     an unset ThumbColor keep the widget's DEFAULT track/thumb — UpdateThumbColor(ASwitch)'s C# body only
+//     sets a tint when a custom color is present (no else branch).
+//   - PARITY (UNSET default = MAUI's gray, not this host's dark-blue accent): real MAUI renders the toggle
+//     as a SwitchCompat under Theme.MaterialComponents.DayNight, whose unset track/thumb resolve to the
+//     Material light GRAYS (#B2B2B2 track / #ECECEC thumb — measured off the maui-compare baseline). This
+//     AAR-less host uses the framework Theme.DeviceDefault.Light, whose colorAccent is the DeviceDefault
+//     INDIGO, so a bare Switch draws its CHECKED thumb (+ a faint blue track tint) in dark navy. To
+//     reproduce MAUI's RENDERED default, create_platform_view seeds those Material grays as the Switch's
+//     baseline tints (seed_default_material_tints); map_track_color's UNSET branch re-applies the same
+//     track gray instead of ClearColorFilter (which would restore the accent), and map_thumb_color's UNSET
+//     branch leaves the seeded thumb gray. This is NOT a deviation from SwitchExtensions — MAUI leaves the
+//     native default *because that default is already gray*; the port pins the equivalent gray because its
+//     host theme's default is not. An explicit TrackColor/ThumbColor still overrides via the mappers (the
+//     BackgroundColor/OnColor/ThumbColor rows verify this). The Switch twin of the slider fix (bbb632f301).
 //   - The OnCheckedChangeListener (CheckedChangeListener → OnCheckedChanged → VirtualView.IsOn write,
 //     guarded against echo) is DEFERRED with the gesture/event fan-out, exactly like button_handler.cpp
 //     defers the OnTouchListener. on_value_changed stays a wired, invokable C++ callback carrying that
@@ -110,6 +121,30 @@ namespace
 
     // GeometryUtil.Epsilon — ContextExtensions.ToPixels subtracts it before ceiling (see to_pixels).
     constexpr double k_to_pixels_epsilon = 0.0000000001;
+
+    // The Material light-theme Switch default track + thumb colors (PARITY, the Switch twin of the slider's
+    // seed_default_material_tints fix, commit bbb632f301). Real .NET MAUI renders its toggle as a
+    // SwitchCompat under Theme.MaterialComponents.DayNight, whose UNSET (native-default) track + thumb
+    // resolve through colorControlNormal / colorControlActivated to the Material light GRAYS. Measured off
+    // the maui-compare Android baseline (docs/comparison/android/{switch,controls_stack}.png): the OFF track
+    // is #B2B2B2 with an #ECECEC thumb, and the ON track lightens to #DCDCDC with a white thumb — i.e. a
+    // neutral-gray Material toggle in BOTH states. This AAR-less app host has no AndroidX/Material theme;
+    // its Activity uses the framework Theme.DeviceDefault.Light (see apphost/res/values/styles.xml), whose
+    // colorAccent / colorControlActivated is the DeviceDefault INDIGO — so a bare framework Switch draws its
+    // CHECKED thumb (and a faint blue tint on the track) in that dark navy (#485B8F measured), NOT MAUI's
+    // gray. That accent mismatch is the sole cause of the "thick dark-blue thumb/track vs MAUI's thin gray
+    // Material" parity diff on controls_stack (and any page with a checked, unset-color Switch). The fix
+    // seeds these Material grays as the Switch's UNSET baseline (seed_default_material_tints) so the
+    // DeviceDefault indigo is replaced by MAUI's gray. This is NOT a deviation from SwitchExtensions' plain-
+    // ASwitch semantics — MAUI leaves the native default *because that default is already gray*; the port
+    // pins the equivalent gray because its host theme's default is not. An explicitly-set TrackColor /
+    // ThumbColor still overrides through the mappers below (the BackgroundColor/OnColor/ThumbColor rows on
+    // the switch page verify the override path). A single filter/tint cannot reproduce Material's per-state
+    // track transition (#B2B2B2 off → #DCDCDC on); the neutral off-state gray is the faithful "unset
+    // baseline" (the same single-value choice the slider made for its track), and it removes the offending
+    // blue entirely.
+    constexpr int k_material_track_gray = 0xB2; // #B2B2B2 — MAUI default track (measured, off state)
+    constexpr int k_material_thumb_gray = 0xEC; // #ECECEC — MAUI default thumb (measured)
 
     // android.view.View visibility states (ViewExtensions.ToPlatformVisibility's targets).
     constexpr jint k_view_visible = 0;
@@ -216,6 +251,88 @@ namespace
             return 1.0F;
         }
         return density;
+    }
+
+    // Push a SrcAtop color filter onto the Switch's track drawable (SwitchExtensions.UpdateTrackColor's
+    // set branch). A null track drawable no-ops (C#'s `TrackDrawable?.`). Shared by map_track_color (an
+    // explicit TrackColor) and seed_default_material_tints (the Material-gray baseline). Returns false only
+    // on a JNI resolution failure (the caller then leaves the track as-is).
+    bool apply_track_filter(JNIEnv* env, jobject widget, const maui::graphics::color& color)
+    {
+        auto& cache = default_jni_cache();
+        jmethodID get_track_drawable =
+            cache.method(env, k_switch_class, "getTrackDrawable", "()Landroid/graphics/drawable/Drawable;");
+        if (get_track_drawable == nullptr)
+        {
+            return false;
+        }
+        const local_ref<jobject> drawable{env, env->CallObjectMethod(widget, get_track_drawable)};
+        if (clear_pending(env) || !drawable)
+        {
+            return true; // no track drawable yet — C#'s `TrackDrawable?.` null-conditional no-op
+        }
+        jmethodID set_color_filter =
+            cache.method(env, k_drawable_class, "setColorFilter", "(ILandroid/graphics/PorterDuff$Mode;)V");
+        jclass mode_class = cache.find_class(env, k_porter_duff_mode_class);
+        // SRC_ATOP is a STATIC field — jni_cache::field() is GetFieldID (instance) and returns null for it,
+        // so resolve it directly with GetStaticFieldID (lesson 1).
+        jfieldID src_atop_field =
+            mode_class != nullptr ? env->GetStaticFieldID(mode_class, "SRC_ATOP", "Landroid/graphics/PorterDuff$Mode;")
+                                  : nullptr;
+        clear_pending(env);
+        if (set_color_filter == nullptr || src_atop_field == nullptr || mode_class == nullptr)
+        {
+            return false;
+        }
+        const local_ref<jobject> src_atop{env, env->GetStaticObjectField(mode_class, src_atop_field)};
+        if (clear_pending(env) || !src_atop)
+        {
+            return false;
+        }
+        env->CallVoidMethod(drawable.get(), set_color_filter, static_cast<jint>(color.to_int()), src_atop.get());
+        clear_pending(env);
+        return true;
+    }
+
+    // Push a single-color ColorStateList onto the Switch's thumb (SwitchExtensions.UpdateThumbColor's set
+    // branch — ThumbTintList, NOT SetColorFilter, to preserve the thumb shadow, as the C# comment notes).
+    // Shared by map_thumb_color (an explicit ThumbColor) and seed_default_material_tints (the Material-gray
+    // baseline).
+    void apply_thumb_tint(JNIEnv* env, jobject widget, const maui::graphics::color& color)
+    {
+        auto& cache = default_jni_cache();
+        jmethodID value_of =
+            cache.static_method(env, k_color_state_list_class, "valueOf", "(I)Landroid/content/res/ColorStateList;");
+        jmethodID set_thumb_tint =
+            cache.method(env, k_switch_class, "setThumbTintList", "(Landroid/content/res/ColorStateList;)V");
+        jclass color_state_list_class = cache.find_class(env, k_color_state_list_class);
+        if (value_of == nullptr || set_thumb_tint == nullptr || color_state_list_class == nullptr)
+        {
+            return;
+        }
+        const auto argb = static_cast<jint>(color.to_int());
+        const local_ref<jobject> tint_list{env, env->CallStaticObjectMethod(color_state_list_class, value_of, argb)};
+        if (clear_pending(env) || !tint_list)
+        {
+            return;
+        }
+        env->CallVoidMethod(widget, set_thumb_tint, tint_list.get());
+        clear_pending(env);
+    }
+
+    // Seed the just-created Switch with the Material light-theme default track + thumb grays (see the
+    // k_material_*_gray note) so its UNSET chrome matches real MAUI instead of the DeviceDefault dark-blue
+    // accent. Called once at construction; map_track_color / map_thumb_color override either when the
+    // developer sets an explicit color, and map_track_color's unset branch re-applies this same gray (so an
+    // UNSET track never falls back to the theme accent via ClearColorFilter).
+    void seed_default_material_tints(JNIEnv* env, jobject widget)
+    {
+        const auto track =
+            maui::graphics::color::from_rgb(k_material_track_gray, k_material_track_gray, k_material_track_gray);
+        const auto thumb =
+            maui::graphics::color::from_rgb(k_material_thumb_gray, k_material_thumb_gray, k_material_thumb_gray);
+        apply_track_filter(env, widget, track);
+        apply_thumb_tint(env, widget, thumb);
     }
 } // namespace
 
@@ -473,6 +590,11 @@ namespace maui::core
                 clear_pending(env.get());
             }
         }
+        // PARITY: pin the Material light-theme default track + thumb grays so the UNSET Switch chrome
+        // matches real MAUI instead of the DeviceDefault dark-blue accent this bare-framework host inherits
+        // (see the k_material_*_gray / seed_default_material_tints note). The TrackColor / ThumbColor mappers
+        // override either of these when an explicit color is set. Mirrors the slider's seed (bbb632f301).
+        seed_default_material_tints(env.get(), widget.get());
         platform->native = env->NewGlobalRef(widget.get()); // released in ~switch_platform
         return platform;
     }
@@ -543,60 +665,23 @@ namespace maui::core
             return;
         }
         jobject widget = widget_of(*platform);
-        auto& cache = default_jni_cache();
         // SwitchExtensions.UpdateTrackColor (the plain-ASwitch overload): TrackDrawable?.SetColorFilter
-        // (trackColor, FilterMode.SrcAtop) when set, else TrackDrawable?.ClearColorFilter(). A null track
-        // drawable collapses both branches (C#'s `?.`). The color is non-nullable in the port, so
-        // `trackColor is not null` becomes `!= color{}` (the default-black sentinel = unset → clear).
-        jmethodID get_track_drawable =
-            cache.method(env.get(), k_switch_class, "getTrackDrawable", "()Landroid/graphics/drawable/Drawable;");
-        if (get_track_drawable == nullptr)
-        {
-            return;
-        }
-        const local_ref<jobject> drawable{env.get(), env->CallObjectMethod(widget, get_track_drawable)};
-        if (clear_pending(env.get()) || !drawable)
-        {
-            return; // no track drawable yet — C#'s `TrackDrawable?.` null-conditional no-op
-        }
+        // (trackColor, FilterMode.SrcAtop) when set, else TrackDrawable?.ClearColorFilter(). The color is
+        // non-nullable in the port, so `trackColor is not null` becomes `!= color{}` (the default-black
+        // sentinel = unset). PARITY: on the unset branch the port does NOT ClearColorFilter (that would
+        // restore the DeviceDefault indigo track); instead it re-applies the seeded Material gray
+        // (k_material_track_gray) — the same "leave the MAUI-matching default" outcome the slider achieves,
+        // since MAUI's own default is already that gray (see the seed note). An explicit TrackColor takes
+        // the SrcAtop filter with that color (BackgroundColor/OnColor rows on the switch page verify it).
         if (view.track_color() != maui::graphics::color{})
         {
-            // Drawable.setColorFilter(int color, PorterDuff.Mode mode) with PorterDuff.Mode.SRC_ATOP —
-            // FilterMode.SrcAtop in C#. (Deprecated in API 29 in favor of setColorFilter(ColorFilter),
-            // but still functional and the exact oracle path; the same shape activity_indicator_handler.cpp
-            // uses with SRC_IN.)
-            jmethodID set_color_filter =
-                cache.method(env.get(), k_drawable_class, "setColorFilter", "(ILandroid/graphics/PorterDuff$Mode;)V");
-            jclass mode_class = cache.find_class(env.get(), k_porter_duff_mode_class);
-            // SRC_ATOP is a STATIC field — jni_cache::field() is GetFieldID (instance) and returns null
-            // for it, so resolve it directly with GetStaticFieldID (lesson 1).
-            jfieldID src_atop_field =
-                mode_class != nullptr
-                    ? env->GetStaticFieldID(mode_class, "SRC_ATOP", "Landroid/graphics/PorterDuff$Mode;")
-                    : nullptr;
-            clear_pending(env.get());
-            if (set_color_filter == nullptr || src_atop_field == nullptr || mode_class == nullptr)
-            {
-                return;
-            }
-            const local_ref<jobject> src_atop{env.get(), env->GetStaticObjectField(mode_class, src_atop_field)};
-            if (clear_pending(env.get()) || !src_atop)
-            {
-                return;
-            }
-            env->CallVoidMethod(drawable.get(), set_color_filter, static_cast<jint>(view.track_color().to_int()),
-                                src_atop.get());
-            clear_pending(env.get());
+            apply_track_filter(env.get(), widget, view.track_color());
         }
         else
         {
-            jmethodID clear_color_filter = cache.method(env.get(), k_drawable_class, "clearColorFilter", "()V");
-            if (clear_color_filter == nullptr)
-            {
-                return;
-            }
-            env->CallVoidMethod(drawable.get(), clear_color_filter);
-            clear_pending(env.get());
+            apply_track_filter(
+                env.get(), widget,
+                maui::graphics::color::from_rgb(k_material_track_gray, k_material_track_gray, k_material_track_gray));
         }
     }
 
@@ -615,7 +700,11 @@ namespace maui::core
         // SwitchExtensions.UpdateThumbColor (the plain-ASwitch overload): only sets a tint when a custom
         // color is present (C#: `if (thumbColor is not null) ThumbTintList = CreateDefault(...)`, NO else
         // branch — the default thumb keeps the theme tint). The port's color is non-nullable, so the gate
-        // is `!= color{}` (the default-black sentinel = unset).
+        // is `!= color{}` (the default-black sentinel = unset). PARITY: an UNSET thumb early-returns and so
+        // KEEPS the Material gray (k_material_thumb_gray) seed_default_material_tints installed at
+        // construction — that is the port's "theme default" here, matching MAUI's light thumb rather than
+        // the DeviceDefault indigo. An explicit ThumbColor overrides it via the shared apply_thumb_tint
+        // (ThumbColor row on the switch page verifies the orange override).
         if (view.thumb_color() == maui::graphics::color{})
         {
             return;
@@ -625,29 +714,10 @@ namespace maui::core
         {
             return;
         }
-        jobject widget = widget_of(*platform);
-        auto& cache = default_jni_cache();
         // ColorStateListExtensions.CreateDefault(color) → ColorStateList.valueOf(int) (the framework
         // equivalent of PlatformInterop.GetDefaultColorStateList — see the header deviation). setThumbTintList
         // (not SetColorFilter) preserves the thumb shadow, as the C# comment notes.
-        jmethodID value_of = cache.static_method(env.get(), k_color_state_list_class, "valueOf",
-                                                 "(I)Landroid/content/res/ColorStateList;");
-        jmethodID set_thumb_tint =
-            cache.method(env.get(), k_switch_class, "setThumbTintList", "(Landroid/content/res/ColorStateList;)V");
-        jclass color_state_list_class = cache.find_class(env.get(), k_color_state_list_class);
-        if (value_of == nullptr || set_thumb_tint == nullptr || color_state_list_class == nullptr)
-        {
-            return;
-        }
-        const auto argb = static_cast<jint>(view.thumb_color().to_int());
-        const local_ref<jobject> tint_list{env.get(),
-                                           env->CallStaticObjectMethod(color_state_list_class, value_of, argb)};
-        if (clear_pending(env.get()) || !tint_list)
-        {
-            return;
-        }
-        env->CallVoidMethod(widget, set_thumb_tint, tint_list.get());
-        clear_pending(env.get());
+        apply_thumb_tint(env.get(), widget_of(*platform), view.thumb_color());
     }
 
     maui::graphics::size switch_handler::get_desired_size(double width_constraint, double height_constraint) const

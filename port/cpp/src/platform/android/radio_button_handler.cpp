@@ -26,6 +26,18 @@
 //   - map_text_color: TextViewExtensions.UpdateTextColor's `textColor != null` guard collapses (the port's
 //     color is a non-nullable value type), exactly as in the label/button partials — the valueOf/ToPlatform
 //     path is always taken. RadioButton's text-color is the TextView SetTextColor (the same one label uses).
+//   - PARITY (the selectable-circle glyph color): RadioButtonExtensions.cs NEVER tints the buttonDrawable —
+//     the dot/ring color comes entirely from the theme (colorControlActivated / colorControlNormal). Under
+//     this AAR-less host's framework Theme.DeviceDefault.Light that resolves to the DeviceDefault INDIGO
+//     (checked dot navy #495D92, unchecked ring bluish #45464F); real MAUI's AppCompatRadioButton under
+//     Theme.MaterialComponents.DayNight resolves to the Material light GRAYS (checked dot #E0E0E0, unchecked
+//     ring #666666 — measured off the maui-compare baseline). create_platform_view therefore seeds a
+//     two-state ColorStateList (checked→#E0E0E0, unchecked→#666666) on setButtonTintList
+//     (seed_default_material_button_tint) so the UNSET glyph reproduces MAUI's RENDERED default. This is NOT
+//     a semantic deviation — MAUI leaves the native default *because that default is already these grays*;
+//     the port pins the equivalent grays because its host theme's default is not. Nothing overrides it (no
+//     dot-color property); the stroke/corner/background mappers touch the SEPARATE background drawable, so
+//     they compose independently. The radio twin of the slider fix (bbb632f301).
 //   - The CheckedChange listener (CompoundButton.CheckedChange += OnCheckChanged → VirtualView.IsChecked =
 //     e.IsChecked) is DEFERRED with the gesture/event fan-out, exactly as check_box: there is no
 //     host-provided OnCheckedChangeListener Java class (the test host ships only dev.mauicpp's button click
@@ -63,6 +75,7 @@
 
 #include <jni.h>
 
+#include <array>
 #include <cmath>
 #include <memory>
 #include <string>
@@ -109,6 +122,32 @@ namespace
     constexpr const char* k_color_state_list_class = "android/content/res/ColorStateList";
     constexpr const char* k_typeface_class = "android/graphics/Typeface";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
+    // android.R.attr — the attribute-id namespace; state_checked keys the CHECKED row of the buttonDrawable
+    // tint ColorStateList (see seed_default_material_button_tint). Read theme-independently with
+    // GetStaticFieldID, exactly like k_style_field above.
+    constexpr const char* k_attr_class = "android/R$attr";
+    constexpr const char* k_state_checked_field = "state_checked";
+
+    // The Material light-theme RadioButton default buttonDrawable colors (PARITY, the radio twin of the
+    // slider's seed_default_material_tints fix, commit bbb632f301). The radio's selectable-circle glyph
+    // (buttonDrawable) has NO explicit tint in RadioButtonExtensions.cs — its color comes ENTIRELY from the
+    // theme: real .NET MAUI renders an AppCompatRadioButton under Theme.MaterialComponents.DayNight, whose
+    // buttonDrawable resolves through colorControlNormal (unchecked ring) / colorControlActivated (checked
+    // dot) to the Material light GRAYS — measured off the maui-compare baseline
+    // (docs/comparison/android/maui/radio_button_border.png): the CHECKED inner dot is #E0E0E0 and the
+    // UNCHECKED ring is #666666. This AAR-less app host uses the framework Theme.DeviceDefault.Light, whose
+    // colorControlActivated is the DeviceDefault INDIGO and whose colorControlNormal is a bluish dark gray —
+    // so a bare RadioButton draws its checked dot in dark navy (#495D92 measured) and its unchecked ring in
+    // a bluish #45464F, NOT MAUI's neutral grays. That accent mismatch is the sole cause of the "selected
+    // radio dot solid navy/blue vs MAUI's light gray dot" parity diff (radio_button_border / input_controls
+    // and every radio page). Since RadioButtonExtensions never tints the buttonDrawable, seeding a two-state
+    // ColorStateList (checked→#E0E0E0, unchecked→#666666) on setButtonTintList reproduces MAUI's RENDERED
+    // default without any semantic deviation — MAUI leaves the native default *because that default is
+    // already these grays*; the port pins the equivalent grays because its host theme's default is not.
+    // Nothing overrides this (the radio exposes no dot-color property); the stroke/corner/background mappers
+    // touch the separate BACKGROUND drawable, not the buttonDrawable, so they compose independently.
+    constexpr int k_material_radio_dot_gray = 0xE0;  // #E0E0E0 — MAUI default checked dot (measured)
+    constexpr int k_material_radio_ring_gray = 0x66; // #666666 — MAUI default unchecked ring (measured)
     // The maui-managed border drawable class (the GradientDrawable stand-in for the custom BorderDrawable
     // — header deviation; the same one button_handler.cpp / border_handler.cpp install).
     constexpr const char* k_gradient_drawable_class = "android/graphics/drawable/GradientDrawable";
@@ -276,6 +315,97 @@ namespace
             return {};
         }
         return fresh;
+    }
+
+    // Seed the just-created RadioButton's buttonDrawable (the selectable circle) with a two-state Material
+    // ColorStateList — checked→#E0E0E0 (the light inner dot), unchecked→#666666 (the neutral ring) — via
+    // CompoundButton.setButtonTintList, so its UNSET glyph matches real MAUI instead of the DeviceDefault
+    // navy accent / bluish normal (see the k_material_radio_* note). The RadioButton is a CompoundButton,
+    // so setButtonTintList is on the widget directly (no CompoundButtonCompat shim — the same plain-widget
+    // path check_box_handler.cpp's UpdateForeground takes). Called once at construction; nothing overrides
+    // it (the radio has no dot-color property). state_checked is read theme-independently with
+    // GetStaticFieldID. Best-effort: any JNI resolution failure leaves the theme default (the widget still
+    // renders — only the accent-vs-gray tint would remain).
+    void seed_default_material_button_tint(JNIEnv* env, jobject widget)
+    {
+        auto& cache = default_jni_cache();
+        // state_checked (android.R.attr.state_checked) keys the CHECKED row; the empty {} row is the
+        // catch-all default (unchecked). A ColorStateList matches the FIRST row whose states are all set on
+        // the view, so [ {state_checked}, {} ] gives checked→dot, everything-else→ring.
+        jclass attr_class = cache.find_class(env, k_attr_class);
+        jfieldID state_checked_field =
+            attr_class != nullptr ? env->GetStaticFieldID(attr_class, k_state_checked_field, "I") : nullptr;
+        clear_pending(env);
+        jclass color_state_list_class = cache.find_class(env, k_color_state_list_class);
+        jmethodID csl_ctor = cache.method(env, k_color_state_list_class, "<init>", "([[I[I)V");
+        jmethodID set_button_tint =
+            cache.method(env, k_radio_button_class, "setButtonTintList", "(Landroid/content/res/ColorStateList;)V");
+        if (attr_class == nullptr || state_checked_field == nullptr || color_state_list_class == nullptr ||
+            csl_ctor == nullptr || set_button_tint == nullptr)
+        {
+            return;
+        }
+        const jint state_checked = env->GetStaticIntField(attr_class, state_checked_field);
+        if (clear_pending(env))
+        {
+            return;
+        }
+        // states = int[2][]: row 0 = { state_checked }, row 1 = {} (empty = default/unchecked).
+        jclass int_array_class = cache.find_class(env, "[I");
+        if (int_array_class == nullptr)
+        {
+            return;
+        }
+        const local_ref<jobjectArray> states{env, env->NewObjectArray(2, int_array_class, nullptr)};
+        if (clear_pending(env) || !states)
+        {
+            return;
+        }
+        const local_ref<jintArray> checked_row{env, env->NewIntArray(1)};
+        const local_ref<jintArray> default_row{env, env->NewIntArray(0)};
+        if (clear_pending(env) || !checked_row || !default_row)
+        {
+            return;
+        }
+        env->SetIntArrayRegion(checked_row.get(), 0, 1, &state_checked);
+        if (clear_pending(env))
+        {
+            return;
+        }
+        env->SetObjectArrayElement(states.get(), 0, checked_row.get());
+        env->SetObjectArrayElement(states.get(), 1, default_row.get());
+        if (clear_pending(env))
+        {
+            return;
+        }
+        // colors = int[2]: { dot (checked), ring (unchecked) } — parallel to the states rows.
+        const jint dot =
+            static_cast<jint>(maui::graphics::color::from_rgb(k_material_radio_dot_gray, k_material_radio_dot_gray,
+                                                              k_material_radio_dot_gray)
+                                  .to_int());
+        const jint ring =
+            static_cast<jint>(maui::graphics::color::from_rgb(k_material_radio_ring_gray, k_material_radio_ring_gray,
+                                                              k_material_radio_ring_gray)
+                                  .to_int());
+        const std::array<jint, 2> color_values = {dot, ring};
+        const local_ref<jintArray> colors{env, env->NewIntArray(2)};
+        if (clear_pending(env) || !colors)
+        {
+            return;
+        }
+        env->SetIntArrayRegion(colors.get(), 0, 2, color_values.data());
+        if (clear_pending(env))
+        {
+            return;
+        }
+        const local_ref<jobject> tint_list{
+            env, env->NewObject(color_state_list_class, csl_ctor, states.get(), colors.get())};
+        if (clear_pending(env) || !tint_list)
+        {
+            return;
+        }
+        env->CallVoidMethod(widget, set_button_tint, tint_list.get());
+        clear_pending(env);
     }
 } // namespace
 
@@ -558,6 +688,12 @@ namespace maui::core
                 clear_pending(env.get());
             }
         }
+        // PARITY: seed the buttonDrawable (the selectable circle) with MAUI's two-state Material grays
+        // (checked dot #E0E0E0 / unchecked ring #666666) so the UNSET glyph matches real MAUI instead of the
+        // DeviceDefault navy accent this bare-framework host inherits (see the k_material_radio_* /
+        // seed_default_material_button_tint note). Nothing overrides it — the radio exposes no dot-color
+        // property. The radio twin of the slider fix (bbb632f301).
+        seed_default_material_button_tint(env.get(), widget.get());
         platform->native = env->NewGlobalRef(widget.get()); // released in ~radio_button_platform
         return platform;
     }
