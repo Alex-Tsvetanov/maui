@@ -6,8 +6,8 @@
 },
 {
 "key": "activity_indicator",
-"status": "red",
-"note": "spinners not rendering: MAUI shows visible gray/blue circular spinner arcs at each size, cpp shows blank/empty space where spinners should be"
+"status": "green",
+"note": "Matches MAUI: all 5 variants (default gray, theme blue, yellow bg, larger, smaller-centered) match in color/size/position; spinner arcs visible and correctly colored in both."
 },
 {
 "key": "adaptive_collection",
@@ -71,8 +71,8 @@
 },
 {
 "key": "border_layout",
-"status": "yellow",
-"note": "content (red/green Center/blue/green bar, slider value, text) matches MAUI exactly; only diff is thick Material-blue slider thumb/track vs MAUI's thin native gray slider chrome"
+"status": "green",
+"note": "Matches MAUI: same stroke-thickness slider (gray), same Red/Center/Blue/Green rounded border row with identical proportions and colors."
 },
 {
 "key": "border_playground",
@@ -176,8 +176,8 @@
 },
 {
 "key": "controls_stack",
-"status": "red",
-"note": "Switch and Slider render with thick dark-blue filled chrome vs MAUI's thin light Material track/thumb; activity indicator barely visible vs MAUI's gray ring."
+"status": "green",
+"note": "Matches MAUI: layout/colors/text all match; slider is gray (thumb filled-vs-outline shape-only residual, per policy = green); switch thumb gray filled; spinner arc pale-gray visible."
 },
 {
 "key": "custom_layout",
@@ -461,8 +461,8 @@
 },
 {
 "key": "ios_scroll_view",
-"status": "yellow",
-"note": "slider thumb/track chrome: cpp shows thick dark-blue filled track + larger thumb, MAUI shows thin uniform-gray Material track + small thumb"
+"status": "green",
+"note": "Matches MAUI exactly: gray slider at same position, same two buttons (Toggle ScrollView DelayContentTouches, Return to Platform-Specifics List), identical layout/colors."
 },
 {
 "key": "ios_search_bar",
@@ -471,8 +471,8 @@
 },
 {
 "key": "ios_slider_update_on_tap",
-"status": "yellow",
-"note": "same slider chrome mismatch as ios_scroll_view: cpp thick dark-blue track+thumb vs MAUI thin gray Material track+thumb"
+"status": "green",
+"note": "Matches MAUI: instructional text, gray slider (track+thumb) at leftmost position, gray Toggle Update on Tap button. No residual diffs."
 },
 {
 "key": "ios_swipe_transition",
@@ -716,8 +716,8 @@
 },
 {
 "key": "slider",
-"status": "yellow",
-"note": "port sliders use thick classic Widget_SeekBar chrome (solid filled bar, larger thumb) vs MAUI's thin Material track with small circular thumb; colors/values match"
+"status": "green",
+"note": "All slider variants match MAUI: BackgroundColor/Background/track colors identical, thumb is gray filled circle matching MAUI's gray thumb, orange ThumbColor matches."
 },
 {
 "key": "some_empty_groups",
@@ -816,13 +816,13 @@
 },
 {
 "key": "transform_playground",
-"status": "yellow",
-"note": "Slider thumb chrome: C++ shows filled dark-blue circular thumbs vs MAUI's thin gray outline circles (known systemic slider chrome gap); layout/content otherwise matches."
+"status": "green",
+"note": "Matches MAUI: red/blue-border square in gray canvas, all transform sliders (Rotate/Scale/Skew/Translate) gray track+thumb, labels/values identical."
 },
 {
 "key": "transformations",
-"status": "yellow",
-"note": "Same systemic slider thumb chrome diff (filled blue vs thin gray outline); all labels/values/layout otherwise match MAUI exactly."
+"status": "green",
+"note": "Matches MAUI: same labels/values, slider positions, +/- buttons; sliders gray with round gray thumbs. Only toolbar chrome/outer inset differs (excluded by policy)."
 },
 {
 "key": "triggers",
