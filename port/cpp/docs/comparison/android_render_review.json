@@ -62,7 +62,7 @@
 {
 "key": "border",
 "status": "green",
-"note": "matches MAUI: light-yellow rounded rect with red border and 'Bordered content' label, same size/position/colors"
+"note": "Matches MAUI: red rounded border, light-yellow fill, 'Bordered content' label; size/position match. No dash/gradient in this page's XAML (solid stroke+fill); renders correctly."
 },
 {
 "key": "border_clip_playground",
@@ -72,12 +72,12 @@
 {
 "key": "border_layout",
 "status": "green",
-"note": "matches MAUI: red/blue/green swatches with 'Center' label inside a gray rounded stroke bar, same layout"
+"note": "Matches MAUI: rounded gray border, red/Center/blue/green content blocks identical. Dashed stroke renders (thin at this thickness, close to solid per known approx); no gradient fill needed here."
 },
 {
 "key": "border_playground",
-"status": "red",
-"note": "MAUI border is dashed olive/yellow with a diagonal gradient fill + dark teal label text; port shows solid non-dashed border, flat cyan fill (no gradient), pink/red label text"
+"status": "green",
+"note": "Matches MAUI: dashed yellow border now renders (was solid) and gradient fill ramps blue-to-teal correctly; form fields below align with MAUI content."
 },
 {
 "key": "border_resize_content",
@@ -86,8 +86,8 @@
 },
 {
 "key": "border_stroke",
-"status": "green",
-"note": "Matches MAUI: same orange fill, red border thicknesses (1/5/10), slider, and content-height boxes."
+"status": "yellow",
+"note": "Colors/thickness/text match MAUI (red stroke 1/5/10, orange fill). Minor: MAUI has thin white gap between stroke and fill; C++ fill sits flush to stroke. No dash/gradient used here."
 },
 {
 "key": "borderless",
@@ -161,8 +161,8 @@
 },
 {
 "key": "containers",
-"status": "yellow",
-"note": "Border 'Inside a border' outline is solid blue in cpp but MAUI renders it dashed; frame (red) and content_view match."
+"status": "green",
+"note": "Matches MAUI exactly: dashed blue border box, solid red frame border, and content_view label all identical in layout/colors."
 },
 {
 "key": "content_view",
