@@ -501,8 +501,8 @@
 },
 {
 "key": "layout_is_enabled",
-"status": "red",
-"note": "right column (whole-layout-disabled demo) not visually disabled: MAUI grays out headings + mutes button text there, cpp renders it identical to the enabled left column"
+"status": "green",
+"note": "Matches MAUI: all 5 sections align, disabled column headings dim, enabled buttons full-contrast, disabled buttons muted in both. No regression."
 },
 {
 "key": "line_gallery",
