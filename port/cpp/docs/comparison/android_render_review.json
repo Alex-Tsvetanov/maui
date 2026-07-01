@@ -181,8 +181,8 @@
 },
 {
 "key": "custom_layout",
-"status": "red",
-"note": "Custom layout differs: C++ renders wide solid side panels near full height; MAUI renders thin near-invisible slivers with corner triangle markers and a much wider white center area."
+"status": "yellow",
+"note": "Sliver fix confirmed vs MAUI DockLayout. Residual: port's zero-width Left/Right labels clip to edge ('eft'/'Rig') vs MAUI's inset labels (known minor); missing tiny triangle glyphs at sliver edges."
 },
 {
 "key": "custom_size_swipe",
