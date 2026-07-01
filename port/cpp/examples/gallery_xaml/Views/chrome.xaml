@@ -1,0 +1,13 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Chrome">
+    <!-- Twin of chrome_page: the W1-11 window-chrome family (Page.ToolbarItems, Page.MenuBarItems, a
+         Button.ContextFlyout, and a ToolTip). note: NONE of ToolbarItem / MenuBarItem / MenuFlyout* /
+         ToolTipProperties are registered on the XAML loader (they are chrome attached to the Page/Window,
+         not view children), so this twin is DEGRADED to the page's only at-rest VISIBLE content — the
+         action button + the readout label. The toolbar/menu/context-flyout/tooltip surfaces cannot be
+         expressed in the supported markup subset. -->
+    <VerticalStackLayout Spacing="12">
+        <Button Text="Press or right-click me" />
+        <Label Text="Ready" />
+    </VerticalStackLayout>
+</ContentPage>

@@ -1,0 +1,46 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="SwipeView">
+    <!-- Twin of BasicSwipeGallery.xaml: five SwipeViews over gray labeled Grids, each demonstrating a
+         different revealed side / SwipeMode. note: the loader registers only SwipeView.Content — the
+         SwipeItems collections (Left/Right/Top/BottomItems) have no markup sink — so every SwipeView is
+         DEGRADED to just its content Grid. This actually matches the RESTING appearance: swipe items are
+         hidden until a swipe gesture, so at rest each row shows only its gray "Swipe …" Grid, exactly as
+         a captured screenshot would. The SwipeItems (Delete/View/Test…) are the swipe-revealed layer. -->
+    <StackLayout>
+        <SwipeView HorizontalOptions="Center" VerticalOptions="Center" Margin="12">
+            <SwipeView.Content>
+                <Grid HeightRequest="60" WidthRequest="300" BackgroundColor="LightGray">
+                    <Label HorizontalOptions="Center" VerticalOptions="Center" Text="Swipe Up (Execute)" />
+                </Grid>
+            </SwipeView.Content>
+        </SwipeView>
+        <SwipeView HeightRequest="60" WidthRequest="300" HorizontalOptions="Center" VerticalOptions="Center" Margin="12">
+            <SwipeView.Content>
+                <Grid BackgroundColor="LightGray">
+                    <Label HorizontalOptions="Center" VerticalOptions="Center" Text="Swipe Down (Reveal)" />
+                </Grid>
+            </SwipeView.Content>
+        </SwipeView>
+        <SwipeView HeightRequest="60" WidthRequest="300" HorizontalOptions="Center" VerticalOptions="Center" Margin="12">
+            <SwipeView.Content>
+                <Grid BackgroundColor="LightGray">
+                    <Label HorizontalOptions="Center" VerticalOptions="Center" Text="Swipe Right (Reveal)" />
+                </Grid>
+            </SwipeView.Content>
+        </SwipeView>
+        <SwipeView HeightRequest="60" WidthRequest="300" HorizontalOptions="Center" VerticalOptions="Center" Margin="12">
+            <SwipeView.Content>
+                <Grid BackgroundColor="LightGray">
+                    <Label HorizontalOptions="Center" VerticalOptions="Center" Text="Swipe Left (Execute)" />
+                </Grid>
+            </SwipeView.Content>
+        </SwipeView>
+        <SwipeView HeightRequest="60" WidthRequest="300" HorizontalOptions="Center" VerticalOptions="Center" Margin="12">
+            <SwipeView.Content>
+                <Grid BackgroundColor="LightGray">
+                    <Label HorizontalOptions="Center" VerticalOptions="Center" Text="Swipe in any direction" />
+                </Grid>
+            </SwipeView.Content>
+        </SwipeView>
+    </StackLayout>
+</ContentPage>

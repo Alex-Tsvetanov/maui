@@ -1,0 +1,31 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Adaptive CollectionView">
+    <!-- Twin of AdaptiveCollectionView.xaml: a CollectionView over eight inline strings, each cell a
+         HeightRequest=60 / Padding=12 Grid with a centered Label bound to {Binding}. The "adaptive"
+         SizeChanged swap (Width>600 -> 3-across grid, else single column) is code-behind only; at rest a
+         narrow page renders the linear single-column layout — which is the CollectionView default — so
+         this twin is faithful to the resting appearance. -->
+    <Grid>
+        <CollectionView>
+            <CollectionView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>Item 1</x:String>
+                    <x:String>Item 2</x:String>
+                    <x:String>Item 3</x:String>
+                    <x:String>Item 4</x:String>
+                    <x:String>Item 5</x:String>
+                    <x:String>Item 6</x:String>
+                    <x:String>Item 7</x:String>
+                    <x:String>Item 8</x:String>
+                </x:Array>
+            </CollectionView.ItemsSource>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid HeightRequest="60" Padding="12">
+                        <Label HorizontalOptions="Center" VerticalOptions="Center" Text="{Binding .}" />
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>
