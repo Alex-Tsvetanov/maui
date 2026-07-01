@@ -139,6 +139,18 @@ namespace maui::controls
     // its desired size + Padding (the overflow is the scrollable range); ContentSize then follows the
     // arranged content frame + margin (ScrollView.ContentSizeChanged). The handler frames the native
     // scroller AFTER the content settles, so its scrollable-extent push reads fresh values.
+    //
+    // The content is hosted as a SUBVIEW of the native UIScrollView (ScrollViewHandler UpdateContentView),
+    // and that subview's frame is expressed in the scroller's own CONTENT coordinate space — which starts
+    // at the scroller's origin (0,0), not the page origin. So the content is arranged HOST-RELATIVE: the
+    // padding inset measured from the scroller's top-left, with `bounds.x/bounds.y` dropped. Carrying the
+    // absolute page origin here would double-offset the content (the scroller is already framed at `bounds`
+    // by platform_arrange, then the content would be pushed by the same origin AGAIN inside it — a phantom
+    // gap the size of the page offset, e.g. the border_playground ScrollView shoved its whole controls
+    // panel ~200pt down). In C# MauiScrollView.LayoutSubviews calls CrossPlatformArrange(Bounds) with the
+    // UIScrollView's own Bounds (origin 0), so the absolute origin never enters the child rect; the port
+    // drives arrange top-down with absolute coordinates, so the container subtracts its origin instead.
+    // Mirrors border::arrange / templated_view::arrange (the sibling single-content hosts).
     maui::graphics::size scroll_view::arrange(const maui::graphics::rect& bounds)
     {
         frame_ = bounds;
@@ -148,9 +160,9 @@ namespace maui::controls
             const maui::graphics::size desired = content_->desired_size();
             const double expanded_width = std::max(bounds.width, desired.width + inset.horizontal_thickness());
             const double expanded_height = std::max(bounds.height, desired.height + inset.vertical_thickness());
-            // ArrangeContent within the expanded bounds: the padding insets off the expanded rect.
-            content_->arrange({bounds.x + inset.left, bounds.y + inset.top,
-                               expanded_width - inset.horizontal_thickness(),
+            // ArrangeContent within the expanded bounds: the padding insets off the expanded rect, at the
+            // scroller-relative origin (bounds.x/bounds.y dropped — see the header note above).
+            content_->arrange({inset.left, inset.top, expanded_width - inset.horizontal_thickness(),
                                expanded_height - inset.vertical_thickness()});
 
             const maui::graphics::rect content_frame = content_->frame();
