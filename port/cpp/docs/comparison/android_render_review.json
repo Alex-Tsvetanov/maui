@@ -356,8 +356,8 @@
 },
 {
 "key": "header_footer_grid",
-"status": "red",
-"note": "MAUI's footer Label 'This Is A Footer' renders with a visible rotation/tilt transform; port shows only a tiny illegible text fragment - rotation/text not rendering correctly."
+"status": "green",
+"note": "Rotated 'This Is A Footer' label renders ~10deg full-size over footer image, matching MAUI position/scale. Header, buttons, item list all match. No regression."
 },
 {
 "key": "header_footer_grid_horizontal",
@@ -372,7 +372,7 @@
 {
 "key": "header_footer_view",
 "status": "green",
-"note": "matches MAUI: header/footer images, footer italic text, and Add/Clear buttons all match in content and layout"
+"note": "Rotated footer label renders full-size at matching angle/position vs MAUI, no longer a clipped sliver. Header text, buttons match. No regression."
 },
 {
 "key": "hit_testing",
@@ -817,7 +817,7 @@
 {
 "key": "transform_playground",
 "status": "green",
-"note": "matches MAUI: red/blue square, gray canvas, and all sliders/labels identical (page scroll position differs only due to inset, not content)."
+"note": "Regression check: box transforms unchanged/match MAUI at default (all sliders 0/1.00). No rotation active in this capture, layout/sizing identical."
 },
 {
 "key": "transformations",
