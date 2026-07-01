@@ -6,8 +6,8 @@
 },
 {
 "key": "activity_indicator",
-"status": "red",
-"note": "Default/Larger/Smaller indicators are dark navy-blue in cpp vs MAUI's pale light-gray; also cpp is missing the yellow BackgroundColor fill behind 'Styled - BackgroundColor=Yellow' entirely."
+"status": "green",
+"note": "Matches MAUI: all 5 spinners are pale gray (not navy), yellow bg fills correctly on 'BackgroundColor=Yellow' row, blue themed spinner matches; only status-bar/spacing differ (ignored)."
 },
 {
 "key": "adaptive_collection",
@@ -177,7 +177,7 @@
 {
 "key": "controls_stack",
 "status": "yellow",
-"note": "SearchBar FIXED: magnifier icon, inset entry, 'A SearchBar' text now match MAUI. Remaining diff: ActivityIndicator spinner glyph (visible ring in MAUI next to switch) not rendered in cpp."
+"note": "Mostly matches; cpp row with checkbox/switch is missing the small activity-indicator spinner circle visible next to the switch in MAUI (present but very faint/absent in cpp capture)."
 },
 {
 "key": "custom_layout",
