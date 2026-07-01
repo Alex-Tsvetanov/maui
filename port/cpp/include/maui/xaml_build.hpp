@@ -126,9 +126,11 @@ namespace maui
     template <class VM, fixed_string Xaml>
     [[nodiscard]] std::unique_ptr<page_impl<VM>> build_page(const maui::xaml::xaml_load_options& options = {})
     {
-        static_assert(MAUI_HAS_COMPILE_TIME_XAML,
-                      "build_page<VM, Xaml> needs #embed + class-type NTTPs; this toolchain lacks one. Use "
-                      "the runtime xaml_loader or the build-time codegen path instead.");
+        static_assert(MAUI_HAS_BUILD_PAGE,
+                      "build_page<VM, Xaml> needs class-type NTTPs to carry the markup bytes; this toolchain "
+                      "lacks them. Use the runtime xaml_loader or the build-time codegen path instead. (The "
+                      "bytes may come from #embed OR a byte-array literal — build_page needs neither #embed "
+                      "nor reflection, only class-type NTTP + the runtime loader.)");
         // Ensure markup {Binding}s have a real applier (idempotent, process-wide) so a fully markup-bound
         // page resolves once bind_to supplies the BindingContext. No-op for binding-free markup.
         maui::xaml::register_runtime_bindings();
