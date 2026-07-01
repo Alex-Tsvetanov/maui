@@ -1,0 +1,1034 @@
+[
+{
+"key": "absolute_layout",
+"status": "green",
+"note": "The C++ port matches the .NET MAUI layout, colors, and content in both light and dark themes.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "activity_indicator",
+"status": "green",
+"note": "The C++ port matches the .NET MAUI render in both light and dark themes.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "adaptive_collection",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "alerts",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "alignment",
+"status": "green",
+"note": "The C++ port matches the .NET MAUI layout, colors, and spacing in both light and dark themes.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "animation",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "app_theme_binding",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "application_control",
+"status": "yellow",
+"note": "The window title text differs between the MAUI and C++ port versions.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "auto_size_shapes",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "basic_grouping",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "basic_swipe",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "behaviors",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "border",
+"status": "green",
+"note": "The C++ port matches the .NET MAUI layout, colors, and styling in both light and dark themes.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "border_clip_playground",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "border_layout",
+"status": "green",
+"note": "The C++ port matches the .NET MAUI render in both light and dark themes.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "border_playground",
+"status": "red",
+"note": "The C++ port is missing the majority of the UI controls, including the Border Dash Array, Offset, LineJoin, LineCap, and Corner Radius sliders.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "border_resize_content",
+"status": "yellow",
+"note": "The plus sign icon inside the triangle shape is missing or incorrectly rendered in both themes in the C++ port.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "border_stroke",
+"status": "green",
+"note": "The C++ port matches the .NET MAUI render in both light and dark themes.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "borderless",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "box_view",
+"status": "yellow",
+"note": "The 'Using Complex CornerRadius' element in the C++ port has a slightly different corner radius implementation compared to the MAUI ground truth.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "button",
+"status": "yellow",
+"note": "The C++ port uses icons for the settings buttons instead of text labels, which differs from the MAUI implementation.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "carousel_page",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "chat_example",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "check_box",
+"status": "green",
+"note": "The C++ port matches the .NET MAUI render in both light and dark themes.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "chrome",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "clip",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "clip_corner_radius",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "clip_gallery",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "clip_views",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "clipping",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "collectionview",
+"status": "green",
+"note": "The C++ port matches the .NET MAUI layout, colors, and text rendering in both light and dark themes.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "composition_gallery",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "containers",
+"status": "green",
+"note": "The C++ port matches the .NET MAUI render in both light and dark themes.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "content_view",
+"status": "yellow",
+"note": "The window title text differs ('MauiCompare' vs 'MAUI C++ — gallery').",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "context_flyout",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "controls_stack",
+"status": "green",
+"note": "The C++ port matches the .NET MAUI Catalyst render in both light and dark themes.",
+"model": "gemini-3.1-flash-lite"
+},
+{
+"key": "custom_layout",
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-2.5-flash-lite"
+},
+{
+"key": "custom_size_swipe",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "custom_swipe_item_view",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "cv_visual_states",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "data_template_selector",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "date_picker",
+"status": "red",
+"note": "C++ port renders DatePickers with text field borders and has an incorrect pink gradient on the third Background item.",
+"model": "gemini-3.5-flash"
+},
+{
+"key": "device",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "dispatcher",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "drag_drop",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "editor",
+"status": "green",
+"note": "matches MAUI in both themes",
+"model": "gemini-2.5-flash"
+},
+{
+"key": "effects",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "ellipse_gallery",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "empty_view",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "empty_view_load_simulate",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "empty_view_null",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "empty_view_rtl",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "empty_view_selector",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "empty_view_swap",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "empty_view_template",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "empty_view_view",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "entry",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "filter_collection",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "filter_selection",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "flex_layout",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "focus",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "fonts",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "footer_only_string",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "formatted_text",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "gestures",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "gradient",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "grid",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "grid_grouping",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "grouping_no_templates",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "grouping_plus_selection",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "header_footer",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "header_footer_grid",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "header_footer_grid_horizontal",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "header_footer_template",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "header_footer_view",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "hit_testing",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "horizontal_stack",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "hybrid_web_view",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "image",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "image_button",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "indicator",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "input_controls",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "input_transparent",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "invalidate_brush",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "invalidate_shadow_host",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "ios_blur_effect",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "ios_date_picker",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "ios_entry",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "ios_first_responder",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "ios_pan_gesture",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "ios_picker",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "ios_safe_area",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "ios_scroll_view",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "ios_search_bar",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "ios_slider_update_on_tap",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "ios_swipe_transition",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "ios_time_picker",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "items",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "items_updating_scroll_mode",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "label",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "layout_is_enabled",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "line_gallery",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "line_join_gallery",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "measure_first_strategy",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "menu_bar",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "modal",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "multiple_bound_selection",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "navigation_gallery",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "nested_collection",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "pan_gesture_events",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "path_aspect_gallery",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "path_gallery",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "path_transform_string",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "picker",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "pickers",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "pointer_gesture",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "polygon_gallery",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "polyline_gallery",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "preselected_item",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "preselected_items",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "progress_bar",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "radio_button_border",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "radio_button_content",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "radio_button_group",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "radio_button_group_binding",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "radio_button_group_gallery",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "radio_content_properties",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "radio_template_from_style",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "rectangle_gallery",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "refresh_view",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "relative_layout",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "scattered_radio_button",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "scroll_mode_test",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "scroll_to_group",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "scroll_view",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "search_bar",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "selection_command_param",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "selection_synchronization",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "semantics",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "shadow_playground",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "shape_app_theme",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "shapes",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "single_bound_selection",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "slider",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "some_empty_groups",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "stack_layout",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "staggered_layout",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "stepper",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "styles",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "swipe_gesture",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "swipe_item_position",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "swipe_item_size",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "swipe_refresh",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "swipe_threshold",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "swipe_view_margin",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "swipe_view_shadow",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "switch",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "switch_grouping",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "tabbed_flyout",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "templated_view",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "time_picker",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "title_bar",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "toolbar",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "transform_playground",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "transformations",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "triggers",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "update_path_data",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "varied_size_selector",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "vertical_stack",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "visual_states",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "web_view",
+"status": "",
+"note": "",
+"model": ""
+},
+{
+"key": "z_index",
+"status": "",
+"note": "",
+"model": ""
+}
+]
