@@ -769,9 +769,21 @@ namespace maui::core
         }
         jobject panel = panel_of(*platform);
         auto& cache = default_jni_cache();
-        // ViewHandler.PlatformArrange: the dp frame becomes pixels, the LinearLayout measures Exactly at the
-        // final size (Android requires a measure pass before layout — which also lays out the two child
-        // buttons) and lays out. The same two-step every leaf android handler uses.
+        // ViewHandler.PlatformArrange (ViewHandlerExtensions.PlatformArrangeHandler, Android): the dp frame
+        // becomes pixels and the platform view is LAID OUT at the final size — MAUI calls **only**
+        // `platformView.Layout(left, top, right, bottom)`; it does NOT re-`measure()` here. The measure state
+        // it lays out from is the prior AtMost/wrap pass (GetDesiredSizeFromHandler → CreateMeasureSpec), so
+        // the MauiStepper's two `WrapContent`-width, weight-1 buttons keep their NATURAL widths and the
+        // LinearLayout left-packs them inside the (Fill) frame — the red BackgroundColor then shows in the
+        // remaining space. On-device (uiautomator) proof: the stepper LinearLayout is 1014px (Fill) yet each
+        // button is only ~242px (the Button minWidth), not stretched.
+        //
+        // The port previously re-`measure()`d the LinearLayout **Exactly** at the frame width right before
+        // layout (the generic leaf-handler two-step). For a plain View that is byte-identical, but a
+        // LinearLayout distributes its weight EXCESS during an EXACTLY measure — so the Exactly re-measure
+        // stretched the two weight-1 buttons to 50/50 and buried the red band (the parity RED). Mirror MAUI:
+        // measure AtMost (which does NOT distribute weight-excess — same as the natural GetDesiredSize pass),
+        // guaranteeing a valid measured state without stretching, then layout at the full frame.
         jmethodID make_measure_spec = cache.static_method(env.get(), k_measure_spec_class, "makeMeasureSpec", "(II)I");
         jmethodID measure = cache.method(env.get(), k_linear_layout_class, "measure", "(II)V");
         jmethodID layout = cache.method(env.get(), k_linear_layout_class, "layout", "(IIII)V");
@@ -785,10 +797,13 @@ namespace maui::core
         const jint top = to_pixels(frame.y, density);
         const jint width = to_pixels(frame.width, density);
         const jint height = to_pixels(frame.height, density);
+        // AtMost (NOT Exactly): the LinearLayout measures its two buttons at their natural WrapContent widths
+        // and does not spread the weight excess across them — the buttons stay compact, exactly like MAUI's
+        // GetDesiredSize AtMost pass that PlatformArrangeHandler lays out from.
         const jint width_spec =
-            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, width, k_measure_spec_exactly);
+            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, width, k_measure_spec_at_most);
         const jint height_spec =
-            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, height, k_measure_spec_exactly);
+            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, height, k_measure_spec_at_most);
         if (clear_pending(env.get()))
         {
             return;
