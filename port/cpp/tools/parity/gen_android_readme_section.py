@@ -121,33 +121,35 @@ def main():
         "**shapes family** (ellipse/line/polyline/polygon/path/rectangle) via the `android.graphics.Canvas` "
         "bridge (the Android twin of MAUI's `PlatformGraphicsView`). Pages built on controls still missing an "
         "Android handler (the **CollectionView** family, SwipeView, RefreshView, WebView, Carousel/Indicator, "
-        "gesture-driven demos) render blank or partial — the honest current state, made precise by the "
-        "render-health classification below (see also [../MACOS_ANDROID_RESUME.md](../MACOS_ANDROID_RESUME.md)). "
-        "The **MAUI** and **C++&amp;XAML** Android "
-        "columns are future work (need MauiCompare-android + the gallery_xaml app host); until those land "
-        "every cell in them is a `pending` placeholder so the row footprint matches the eventual 3-up board."
+        "gesture-driven demos) may still differ from MAUI — quantified by the **MAUI-vs-C++ parity** "
+        "classification below (see also [../MACOS_ANDROID_RESUME.md](../MACOS_ANDROID_RESUME.md)). All three "
+        "columns are now captured on the same emulator: **MAUI** is real .NET MAUI (built from `~/maui-compare` "
+        "for `net10.0-android`, native-default — Styles.xaml omitted to match the port); **C++** is the port; "
+        "**C++&amp;XAML** is the compile-time-XAML gallery (`gallery_xaml`, its ~59-page coverage, built via a "
+        "byte-literal codegen that sidesteps the NDK's missing `#embed`). Cells with no capture use a "
+        "`_placeholder.png` at the same size."
     )
     out.append("")
     out.append(f"**Coverage:** {real['cpp']} / {n} pages captured (C++ column); "
                f"MAUI {real['maui']} / {n}, C++&amp;XAML {real['xaml']} / {n}.")
     out.append("")
     if reviewed:
-        out.append("**Classification — C++ render-health** (**Sonnet 5** `claude-sonnet-5` vision review of the C++ "
-                   "Android render vs the **iOS C++ reference** board, double-checked adversarially; this is render "
-                   "completeness, *not* MAUI-vs-C++ pixel parity — that still needs the MAUI Android column). Each "
-                   "non-green verdict was independently re-checked to overturn or confirm:")
+        out.append("**Classification — MAUI-vs-C++ parity** (**Sonnet 5** `claude-sonnet-5` vision review comparing "
+                   "the **C++ port** against the **real .NET MAUI** render of each page — both captured on the same "
+                   "Android emulator, native-default. MAUI is the content ground truth; the outer page-inset/margin "
+                   "and status-bar are ignored per the parity policy):")
         out.append("")
         out.append("| Classification | Count | Meaning |")
         out.append("| --- | --- | --- |")
-        out.append(f"| 🟢 Renders | {rh['green']} | shows the same substantive content as the iOS C++ reference |")
-        out.append(f"| 🟡 Partial | {rh['yellow']} | some intended content renders; a meaningful chunk missing/empty |")
-        out.append(f"| 🔴 Wrong | {rh['red']} | renders content that doesn't match the page intent (e.g. routing mismatch) |")
-        out.append(f"| ⬛ Blank | {rh['blank']} | app bar + empty background only; no page content (handler not yet implemented) |")
+        out.append(f"| 🟢 Match | {rh['green']} | the port matches MAUI's content (colors/sizes/spacing/text) — pixel-perfect or effectively identical |")
+        out.append(f"| 🟡 Minor diff | {rh['yellow']} | small content differences that don't change the page's substance |")
+        out.append(f"| 🔴 Major diff | {rh['red']} | the port differs substantially from MAUI (missing controls/images/effects, wrong layout) |")
+        out.append(f"| ⬛ Port blank | {rh['blank']} | the port's page is blank/crashed while MAUI shows content |")
         if reviewed < n:
-            out.append(f"| ⏳ Unreviewed | {n - reviewed} | not yet covered by the render-health audit |")
+            out.append(f"| ⏳ Unreviewed | {n - reviewed} | not yet covered by the parity review |")
         out.append("")
-        out.append("The per-row **Sonnet** column gives each page's render-health verdict + note. The **Gemini** "
-                   "column and the MAUI-vs-C++ **parity** review remain pending the MAUI Android capture column.")
+        out.append("The per-row **Sonnet 5** column gives each page's MAUI-vs-C++ parity verdict + the specific diff "
+                   "(or \"matches MAUI\"). The **Gemini** column is a future second-model pass.")
     else:
         out.append("**Classification:** the C++-vs-MAUI visual review has **not run yet** for Android (it needs the "
                    "MAUI Android column as the oracle), so every example is currently *pending*. The table below "

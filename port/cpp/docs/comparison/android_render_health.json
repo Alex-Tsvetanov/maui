@@ -1,0 +1,862 @@
+[
+{
+"key": "absolute_layout",
+"status": "green",
+"note": "All AbsoluteLayout-positioned elements render correctly: top blue bar, centered text, green/red side bars, bottom-left blue AutoSized label, matching iOS."
+},
+{
+"key": "activity_indicator",
+"status": "green",
+"note": "All 6 spinners render with correct colors/sizes/background (Default, theme-blue, yellow-bg, larger, smaller-centered, not-running) matching iOS content."
+},
+{
+"key": "adaptive_collection",
+"status": "green",
+"note": "All 8 'Item N' rows render in single-column layout matching iOS reference exactly."
+},
+{
+"key": "alerts",
+"status": "green",
+"note": "All 6 action buttons present (Alert Simple/Yes-No, ActionSheet Simple/Cancel-Delete, Question 1/2); rendered as filled gray Material buttons vs iOS plain blue text links, cosmetic only."
+},
+{
+"key": "alignment",
+"status": "green",
+"note": "All 4 alignment boxes (Start/Center/End/Fill) render with correct red border, blue fill, label text, and positions matching iOS."
+},
+{
+"key": "animation",
+"status": "green",
+"note": "All 3 buttons present (Start Animation, Start Custom Animation, disabled greyed-out Cancel Animation) matching iOS content and disabled state."
+},
+{
+"key": "app_theme_binding",
+"status": "green",
+"note": "Green/orange theme-bound text, 'Toggle theme' button, and 'Theme: Light' status line all render matching iOS content."
+},
+{
+"key": "application_control",
+"status": "green",
+"note": "Title, body text, 3 buttons (rendered as filled grey boxes vs iOS's text links), and status line all present and match iOS content."
+},
+{
+"key": "auto_size_shapes",
+"status": "green",
+"note": "Header text, yellow background, blue-bordered green ellipse occupying half the space, orange band below all match iOS reference."
+},
+{
+"key": "basic_grouping",
+"status": "green",
+"note": "Grouped list with header, group titles (Avengers/Fantastic Four/Defenders), members, and 'Total members' footers all render correctly; difference is just scroll viewport."
+},
+{
+"key": "basic_swipe",
+"status": "green",
+"note": "All 5 swipe rows (Up/Down/Right/Left/any direction) plus instructional text render with matching layout and content vs iOS."
+},
+{
+"key": "behaviors",
+"status": "green",
+"note": "Matches iOS: 'Red when the number isn't valid' heading + Entry with placeholder 'Enter a System.Double', underline chrome visible."
+},
+{
+"key": "border",
+"status": "green",
+"note": "Red-bordered, rounded, light-yellow box with 'Bordered content' text matches iOS reference in position, shape, and color."
+},
+{
+"key": "border_clip_playground",
+"status": "green",
+"note": "Border-clipped circle image with red round border renders correctly with dog photo clipped to circle, matching iOS content."
+},
+{
+"key": "border_layout",
+"status": "green",
+"note": "Slider, red/Center/blue/green border bar all present and match the iOS reference content."
+},
+{
+"key": "border_playground",
+"status": "green",
+"note": "Teal content, yellow border, label 'Just a Label', and shape/color controls below match iOS; border solid not dashed, but that's native chrome not content."
+},
+{
+"key": "border_resize_content",
+"status": "yellow",
+"note": "Rows 1-2 (circle/square borders w/ content) render correctly, but row 3 triangle-shaped border missing/wrong: shows plain square instead of triangle outline like iOS."
+},
+{
+"key": "border_stroke",
+"status": "green",
+"note": "Same StrokeThickness 1/5/10 bars and content-height bars/slider as iOS; only text alignment (left vs center) differs, which is cosmetic."
+},
+{
+"key": "borderless",
+"status": "green",
+"note": "Yellow fill page with toggle switch matches iOS; switch on/off state difference is just runtime state, not content."
+},
+{
+"key": "box_view",
+"status": "green",
+"note": "All 4 sections present incl. Background's gradient BoxView (real yellow→green smooth fill, not flat); colors/shapes match iOS ref."
+},
+{
+"key": "button",
+"status": "green",
+"note": "All rows render: counter, button states, colored/bordered buttons, pink text button, two black 'settings' rows. Minor: gear icon glyph missing in black rows (text-only) vs iOS icon+text."
+},
+{
+"key": "carousel_page",
+"status": "green",
+"note": "Shows current item 'Item 1', Prev/Next, position label — matches iOS ref; single current item, no concatenation."
+},
+{
+"key": "chat_example",
+"status": "green",
+"note": "Both chat bubbles (green outgoing, blue incoming) render with correct text and colors, matching iOS reference content."
+},
+{
+"key": "check_box",
+"status": "green",
+"note": "All 5 checkbox states render correctly with right colors/checked states; square vs iOS circular style is native platform styling, not a bug."
+},
+{
+"key": "chrome",
+"status": "green",
+"note": "Button 'Press or right-click me' and 'Ready' status text both render matching iOS reference content."
+},
+{
+"key": "clip",
+"status": "green",
+"note": "All three clipped-image sections (RectangleGeometry, EllipseGeometry, GeometryGroup circle) render correctly matching iOS reference shapes and content."
+},
+{
+"key": "clip_corner_radius",
+"status": "green",
+"note": "Rounded-corner clipped dog image plus all 4 corner-radius sliders render correctly matching iOS reference."
+},
+{
+"key": "clip_gallery",
+"status": "green",
+"note": "Android shows Image header + dog photo + Clipped Image using RectangleGeometry/RoundRectangleGeometry sections, matching iOS reference content and order."
+},
+{
+"key": "clip_views",
+"status": "green",
+"note": "All 7 rows (Button/date/Entry/Editor/Grid/time) render red bars masked to the leaf/petal clip outline, matching iOS ref's clip-to-shape effect; text labels present."
+},
+{
+"key": "clipping",
+"status": "green",
+"note": "Not clipping label, toggle text, numbered buttons (1-4 visible, rest off right edge same as iOS's 8-button row), He y purple/blue clip boxes all render matching iOS content."
+},
+{
+"key": "collectionview",
+"status": "green",
+"note": "Header 'This is the header' plus full 3-column grid of filename/index items (cover1.jpg,0 through Vegetables.jpg,23) renders, matching iOS content and order."
+},
+{
+"key": "composition_gallery",
+"status": "green",
+"note": "Shapes (triangle, circle, diagonal pencil-stripe) and three colored lines (blue/green/red) render in the same layout and colors as iOS."
+},
+{
+"key": "containers",
+"status": "green",
+"note": "Scrolled-to label, bordered box 'Inside a border', framed box 'Inside a frame', and 'Inside a content_view' text all present; only cosmetic difference is solid vs iOS's dashed border style."
+},
+{
+"key": "content_view",
+"status": "green",
+"note": "ContentView/Content/Content text rows and 'Swap content' button all render matching iOS, just styled as a filled button instead of plain blue text link."
+},
+{
+"key": "context_flyout",
+"status": "yellow",
+"note": "Increment button, toggle, Entry field, counter all present, but COOL image button (between Entry and WebView) is missing entirely."
+},
+{
+"key": "controls_stack",
+"status": "green",
+"note": "Button/Editor/SearchBar label/checkbox/switch/spinner/slider/stepper/progressbar all present, laid out like iOS; SearchBar lacks pill chrome but text shows (cosmetic)."
+},
+{
+"key": "custom_layout",
+"status": "green",
+"note": "Top/Bottom buttons + Left/Left/Right/Right column labels with gray backgrounds all present, matching iOS ref content."
+},
+{
+"key": "custom_size_swipe",
+"status": "green",
+"note": "Matches iOS reference: same text content and layout, no missing elements."
+},
+{
+"key": "custom_swipe_item_view",
+"status": "green",
+"note": "Matches iOS: 'Right items revealed' label plus purple card with 'Welcome to .NET MAUI' / date, same content and position."
+},
+{
+"key": "cv_visual_states",
+"status": "green",
+"note": "Matches iOS: Single Selection (Item 1-3) and Multi Selection (Item 1-4) lists both fully present with same labels."
+},
+{
+"key": "data_template_selector",
+"status": "green",
+"note": "Filtered list ('It's the weekend! Woot!' / weekdays) matches iOS; SearchBar shows placeholder text but lacks rounded pill/icon chrome (cosmetic, same as controls_stack)."
+},
+{
+"key": "date_picker",
+"status": "green",
+"note": "All labeled rows/dates/colors match iOS (Default, BackgroundColor, gradients, buttons, Disabled, TextColor, Format, IsFocused); pickers render as plain text not boxed fields."
+},
+{
+"key": "device",
+"status": "green",
+"note": "Shows real app content (Platform: Android/Idiom: Phone/Version: 14.0), not OS launcher; matches iOS ref's Platform/Idiom/Version structure exactly."
+},
+{
+"key": "dispatcher",
+"status": "green",
+"note": "All text blocks and buttons (Fail Access, Access, 3 Seconds Later, 3 Second Timer, Device.StartTimer) present and match iOS reference content/order."
+},
+{
+"key": "drag_drop",
+"status": "green",
+"note": "All 6 color swatches, Rainbow label, red swatch, and the drag/drop position text block all render matching the iOS reference."
+},
+{
+"key": "editor",
+"status": "green",
+"note": "All editor fields and labels (Length, Text, Placeholder, FontSize Large, read-only, 123, bottom text, autosize) present matching iOS; placeholders just lack greyed styling (cosmetic)."
+},
+{
+"key": "effects",
+"status": "green",
+"note": "Both Entry fields visible with underline chrome and 'Alert Simple' text; both action buttons present (Android Material-button style vs iOS text-link style); status text matches iOS."
+},
+{
+"key": "ellipse_gallery",
+"status": "green",
+"note": "All 5 shapes (filled rectangle/ellipse, stroked circle, stroked ellipse, filled+stroked ellipse, dashed-stroke ellipse) render matching the iOS reference."
+},
+{
+"key": "empty_view",
+"status": "green",
+"note": "Filter field plus long cover1/oasis/photo/... numbered list all render matching iOS content; only the search-box pill styling differs (cosmetic)."
+},
+{
+"key": "empty_view_load_simulate",
+"status": "green",
+"note": "Shows 'Items loading simulation...' message exactly matching iOS reference content."
+},
+{
+"key": "empty_view_null",
+"status": "green",
+"note": "Shows 'Nothing to display.' message exactly matching iOS reference content."
+},
+{
+"key": "empty_view_rtl",
+"status": "green",
+"note": "Full 50-item filtered 3-column grid renders (cover1.jpg,0 ... cover1.jpg,49) matching iOS list content; Filter entry shows as plain text not a search box but content is all present."
+},
+{
+"key": "empty_view_selector",
+"status": "green",
+"note": "Shows full instructional text plus 'Baboon — Africa & Asia' item, matching iOS reference."
+},
+{
+"key": "empty_view_swap",
+"status": "green",
+"note": "Matches: Filter field, 'Toggle Between EmptyViews' switch, Clear/Fill buttons, and identical 3-column grid items with same filenames/indices."
+},
+{
+"key": "empty_view_template",
+"status": "green",
+"note": "Full 50-item 3-column item grid renders matching iOS reference content."
+},
+{
+"key": "empty_view_view",
+"status": "green",
+"note": "Full 50-item 3-column item grid renders matching iOS reference content."
+},
+{
+"key": "entry",
+"status": "green",
+"note": "Matches: all entry rows present (Type here, Text, Placeholder, checkbox, password dots, read-only, Text, end-aligned text, cursor slider+label) same as iOS."
+},
+{
+"key": "filter_collection",
+"status": "green",
+"note": "Matches: 'Use EmptyView' toggle, Filter field, and identical 2-column item grid with same filenames/indices as iOS."
+},
+{
+"key": "filter_selection",
+"status": "green",
+"note": "Full content renders: instructions, Filter entry, Reset button, Selected:(none) readout, scrollable item list — no overlap, all distinct."
+},
+{
+"key": "flex_layout",
+"status": "green",
+"note": "HEADER cyan bar, blue/grey/green columns, and CONTENT text all render matching iOS layout; pink FOOTER bar not visible in this capture frame but content otherwise matches."
+},
+{
+"key": "focus",
+"status": "green",
+"note": "Matches iOS: 'Focus target' Entry with underline visible, Focus Entry / Unfocus Entry buttons, 'IsFocused: false' label all present."
+},
+{
+"key": "fonts",
+"status": "green",
+"note": "All text style samples (Title, Subtitle, Header, Body, Caption, Bold, Italic, Bold+Italic, Character spacing) render matching iOS reference."
+},
+{
+"key": "footer_only_string",
+"status": "green",
+"note": "Full CollectionView list plus 'This is a footer' text render matching iOS; only minor styling (weight/color) differs on the footer text."
+},
+{
+"key": "formatted_text",
+"status": "green",
+"note": "Android renders all FormattedString spans: bold red, italic underlined, and kerned segments match iOS ref content/styling."
+},
+{
+"key": "gestures",
+"status": "green",
+"note": "Matches iOS reference: gesture-target blue box, instruction text, and 'Last gesture: Pointer exited' status line all present."
+},
+{
+"key": "gradient",
+"status": "green",
+"note": "Both linear (yellow→green) and radial (red→navy) brushes render as smooth real gradients on Android, matching iOS ref colors/direction exactly."
+},
+{
+"key": "grid",
+"status": "green",
+"note": "2x2 colored grid (red/green/blue/orange) renders identically to iOS reference, same layout and colors."
+},
+{
+"key": "grid_grouping",
+"status": "green",
+"note": "Header, group headers (green), member rows in two columns, and orange 'Total members' lines all match iOS reference content and structure."
+},
+{
+"key": "grouping_no_templates",
+"status": "green",
+"note": "Flat list of all hero names in same order as iOS reference; same plain ungrouped list content."
+},
+{
+"key": "grouping_plus_selection",
+"status": "green",
+"note": "Grouped list with green group headers, member names, and orange 'Total members' counts matches iOS reference content and order."
+},
+{
+"key": "header_footer",
+"status": "green",
+"note": "Header string, 3 list items (cover1.jpg/oasis.jpg/photo.jpg), footer string all present and match iOS reference."
+},
+{
+"key": "header_footer_grid",
+"status": "green",
+"note": "Header image+title+Add Content, full 3-col grid of 10 file-name rows, footer image+title+Add Content all present, matching iOS layout/content."
+},
+{
+"key": "header_footer_grid_horizontal",
+"status": "green",
+"note": "Toggle buttons, dog image, wrapped rotated header text, horizontal grid rows (cover1/oasis/photo.jpg items w/ numbers), Add Content footer all present, matching iOS content."
+},
+{
+"key": "header_footer_template",
+"status": "green",
+"note": "Timestamp+'This Is A Header' header, blue list row with 3 items, timestamp+'This Is A Footer' footer all present, matching iOS (alignment differs cosmetically)."
+},
+{
+"key": "header_footer_view",
+"status": "green",
+"note": "Header image+title, footer image+title, both action buttons render correctly, matching iOS content (item list empty pre-Add in both, not Android-specific)."
+},
+{
+"key": "hit_testing",
+"status": "green",
+"note": "All elements present: checkbox, two Lorem ipsum labels, Scale=1 box, large Scale=2 box, rotated Rotation=20 box, green ellipse outline, green rounded rect — matches iOS content."
+},
+{
+"key": "horizontal_stack",
+"status": "green",
+"note": "Title text plus 6-color horizontal stack (red/yellow/blue/green/orange/purple) renders matching iOS reference."
+},
+{
+"key": "hybrid_web_view",
+"status": "green",
+"note": "Label 'HybridWebView here' + all 5 action buttons render correctly; webview area blank in both Android and iOS refs (expected, no native webview headless)."
+},
+{
+"key": "image",
+"status": "yellow",
+"note": "Labels render but UriSource image is missing entirely; FontImageSource glyphs blank; gif shows static heart placeholder not decoded frame; Stream Source image missing."
+},
+{
+"key": "image_button",
+"status": "yellow",
+"note": "AspectFit/Fill/Custom-size/blob match iOS. But BorderColor+BorderWidth box is missing (no green/red rect, just slider) and CornerRadius's 3 purple rounded bars are missing (only thin lines)."
+},
+{
+"key": "indicator",
+"status": "yellow",
+"note": "Dot rows (Basic/Colors/Shape/Size/MaxVisible) match iOS. CarouselView row: dots at label but 'Item 1' content detached far below, not inline like iOS."
+},
+{
+"key": "input_controls",
+"status": "green",
+"note": "Entry, LENGTH counter, search bar, and both UPPER/lower radio buttons all render matching iOS reference content and layout."
+},
+{
+"key": "input_transparent",
+"status": "green",
+"note": "All 5 buttons and instructional text render correctly, same content/order as iOS; Android shows filled button chrome vs iOS plain links (cosmetic)."
+},
+{
+"key": "invalidate_brush",
+"status": "green",
+"note": "Green 'Change color' button and 'Brush color: Green' text both render correctly, matching iOS reference content."
+},
+{
+"key": "invalidate_shadow_host",
+"status": "green",
+"note": "Host label, Update Host Size button, 4 sliders (OffsetX/Y, Radius, Opacity) with correct values, and green-bordered white shadow box all render matching iOS reference."
+},
+{
+"key": "ios_blur_effect",
+"status": "green",
+"note": "Dog photo, No Blur/Extra Light/Light/Dark Blur buttons, and 'BlurEffect: ExtraLight' label all present, matching iOS reference content."
+},
+{
+"key": "ios_date_picker",
+"status": "green",
+"note": "DatePicker field shows '12/31/2020' with underline chrome, matches iOS content (31.12.2020); Toggle button present below."
+},
+{
+"key": "ios_entry",
+"status": "green",
+"note": "Entry field text plus 'Toggle AdjustsFontSizeToFitWidth' button both visible, matching iOS content; underline chrome vs iOS box is platform styling only."
+},
+{
+"key": "ios_first_responder",
+"status": "green",
+"note": "Both Entry fields (First/Second) visible with underline chrome, both OK buttons, Focus First/Focus Second buttons, and all three status text lines all present matching iOS."
+},
+{
+"key": "ios_pan_gesture",
+"status": "green",
+"note": "Panned x/y label, Toggle Simultaneous Gesture Recognition button, 'Pan target' text and SimultaneousRecognition status all match the iOS reference content."
+},
+{
+"key": "ios_picker",
+"status": "green",
+"note": "'Select a monkey' picker field (underlined) plus 'Toggle Picker UpdateMode' button both visible, matching iOS content exactly."
+},
+{
+"key": "ios_safe_area",
+"status": "green",
+"note": "Lorem ipsum text + 'Disable Use Safe Area' button render correctly, matching iOS content."
+},
+{
+"key": "ios_scroll_view",
+"status": "green",
+"note": "Android shows slider (partial fill) + both action lines with full text, matching iOS ref content (iOS renders them as plain links, not chrome - known harness quirk)."
+},
+{
+"key": "ios_search_bar",
+"status": "green",
+"note": "SearchBar shows 'Enter search term' placeholder with underline; both toggle buttons (Style, Background) present, matches iOS content."
+},
+{
+"key": "ios_slider_update_on_tap",
+"status": "green",
+"note": "Label, slider track+thumb, and 'Toggle Update on Tap' button all present, matching iOS layout."
+},
+{
+"key": "ios_swipe_transition",
+"status": "green",
+"note": "Mode label, Reveal/Drag buttons, swipe box with 'Swipe right', and both status text lines all present, matching iOS."
+},
+{
+"key": "ios_time_picker",
+"status": "green",
+"note": "Time value '2:00 PM', toggle button, and UpdateMode text all present; iOS just shows 24h '14:00' locale format, same content."
+},
+{
+"key": "items",
+"status": "green",
+"note": "'Today' header, three task rows (Water the plants/Review the port/Ship wave 2), and 'Pick a task' footer all present, matching iOS."
+},
+{
+"key": "items_updating_scroll_mode",
+"status": "green",
+"note": "Mode buttons, Add Item button, 'Mode: KeepItemsInView · Items: 50' status line, and the full Title/Subtitle list all render matching iOS content."
+},
+{
+"key": "label",
+"status": "green",
+"note": "All label variants render: red text, cyan background, start/center/end alignment bars, lorem ipsum paragraph, vertical-align boxes, all matching iOS content."
+},
+{
+"key": "layout_is_enabled",
+"status": "green",
+"note": "Both columns of enabled/disabled child buttons render with correct backgrounds (blue/pink/teal) and labels, matching iOS layout and content."
+},
+{
+"key": "line_gallery",
+"status": "green",
+"note": "Basic line, dash line, and stroke-thickness line all render with correct colors (purple, dashed orange, thick black) matching iOS."
+},
+{
+"key": "line_join_gallery",
+"status": "green",
+"note": "Miter, Bevel, and Round line-join chevrons all render in cyan with correct join shapes, matching iOS exactly."
+},
+{
+"key": "measure_first_strategy",
+"status": "green",
+"note": "Toggle button, ItemSizingStrategy label, and full CollectionView list of Avengers/Fantastic Four/Defenders items with colored headers/totals all render matching iOS."
+},
+{
+"key": "menu_bar",
+"status": "green",
+"note": "Shows 'You clicked on Menu Item:' label and 'Toggle Menu Bar Item' button — matches iOS content exactly (MenuBar itself isn't visible on either platform's capture)."
+},
+{
+"key": "modal",
+"status": "green",
+"note": "Android shows Modal Page 1 title, all 5 buttons (Push Page/Push Modal Page/Push Modal Navigation Page/Push Modal Flyout Page/Pop Modal Page) and the depth status line, matching iOS content."
+},
+{
+"key": "multiple_bound_selection",
+"status": "green",
+"note": "Android shows instructions, Selected line, header, Item 0-3, and all 3 buttons matching iOS content; only cosmetic diffs (no gray selection highlight on Item1/2, header not bold)."
+},
+{
+"key": "navigation_gallery",
+"status": "green",
+"note": "Android shows the stack-depth status line and all 6 nav buttons (Push/Pop/Insert/Remove/Pop To Root/Toggle Secondary Toolbar) matching iOS content exactly."
+},
+{
+"key": "nested_collection",
+"status": "green",
+"note": "Outer CollectionView rows (Source N) each host nested inner CollectionView with Caption N-0..N-3 items, matching iOS content; only spacing/density differs."
+},
+{
+"key": "pan_gesture_events",
+"status": "green",
+"note": "Android shows the same StatusType: Completed, TotalX: 0, TotalY: 0 label plus green/red colored panable area blocks, matching iOS layout and content."
+},
+{
+"key": "path_aspect_gallery",
+"status": "green",
+"note": "All 4 aspect modes (None/Fill/Uniform/UniformToFill) render the heart-with-pulse path correctly, matching iOS layout and scaling."
+},
+{
+"key": "path_gallery",
+"status": "green",
+"note": "All path shapes (line segment, triangle, bezier wave, composite rings, overlapping rectangles, ellipse geometry) render matching iOS in shape, color, and order."
+},
+{
+"key": "path_transform_string",
+"status": "green",
+"note": "Both triangles (with/without RenderTransform) render identically to iOS ref; shapes, labels, layout all match."
+},
+{
+"key": "picker",
+"status": "green",
+"note": "All sections render: basic, selected-index=1, selected-index-changed, text/title color blue, italic+yellow bg, dynamic-add buttons, items-markup green row. Matches iOS content."
+},
+{
+"key": "pickers",
+"status": "green",
+"note": "Room picker, date picker, time picker, and 'No room on...' result text all present and correct; only locale date format differs (cosmetic)."
+},
+{
+"key": "pointer_gesture",
+"status": "green",
+"note": "All pointer-position labels, hover text, and colors (yellow banner, green text) match iOS reference exactly."
+},
+{
+"key": "polygon_gallery",
+"status": "green",
+"note": "All 4 polygons (basic, dash, EvenOdd star, NonZero star) render with correct shapes, fills and colors matching iOS reference."
+},
+{
+"key": "polyline_gallery",
+"status": "green",
+"note": "Basic and dash polylines render identically to iOS ref, including the same left-edge clipping behavior."
+},
+{
+"key": "preselected_item",
+"status": "green",
+"note": "Header + full list of items with correct preselected label present. Missing the gray row-highlight on the preselected item (iOS shows it shaded) but content/list itself is complete."
+},
+{
+"key": "preselected_items",
+"status": "green",
+"note": "CollectionView header + 4-col grid of 50 items render fully; preselected highlighting omitted (cosmetic, harness selection-color not drawn) but all content present."
+},
+{
+"key": "progress_bar",
+"status": "green",
+"note": "All 5 sections (Default/ProgressColor/Disabled/ProgressColor/ProgressTo) + button render with bars and correct relative fills, matching iOS layout."
+},
+{
+"key": "radio_button_border",
+"status": "green",
+"note": "Matches iOS ref: Option1 yellow+red border, Option2 yellow only, Option3 plain, Option4 selected with green border+filled dot. VSM styling intact."
+},
+{
+"key": "radio_button_content",
+"status": "green",
+"note": "All sections render: Option A/C, indented custom-template radio, coffee.png text fallback, and both coffee-cup ControlTemplate group rows with sliders, matching iOS."
+},
+{
+"key": "radio_button_group",
+"status": "green",
+"note": "Option A/B/C stack plus the Grid-nested Option D all render correctly, matching iOS layout and text."
+},
+{
+"key": "radio_button_group_binding",
+"status": "green",
+"note": "2x2 grid of Option A-D plus both 'Set selection'/'Clear selection' buttons render, matching iOS content and state text."
+},
+{
+"key": "radio_button_group_gallery",
+"status": "green",
+"note": "All three group-name test sections (no-group, group A, mixed A/B/B/C/null) render complete with all radio rows and labels, matching iOS."
+},
+{
+"key": "radio_content_properties",
+"status": "green",
+"note": "All 6 radio rows with styled content (Option A italic red, Option B bold blue, button-in-button rows) render matching iOS text/colors/order."
+},
+{
+"key": "radio_template_from_style",
+"status": "green",
+"note": "Three labeled radio cards A/B/C with selected blue dot indicator render matching iOS layout and styling."
+},
+{
+"key": "rectangle_gallery",
+"status": "green",
+"note": "All 5 rectangle variants (basic, square outline, stroke, dashed stroke, rounded corners) render matching iOS colors and shapes."
+},
+{
+"key": "refresh_view",
+"status": "green",
+"note": "Android renders all labels, item count, 4 action buttons (Material gray vs iOS link-text style), refresh/enabled status, footer text — matches iOS content; neither shows list rows below."
+},
+{
+"key": "relative_layout",
+"status": "green",
+"note": "Matches iOS: gray RelativeLayout box with centered black inner rectangle and corner color swatches, same proportions/content."
+},
+{
+"key": "scattered_radio_button",
+"status": "green",
+"note": "Matches iOS: same instructional text, nested A/B/C radio row highlighted, and standalone D radio below, all rendered correctly."
+},
+{
+"key": "scroll_mode_test",
+"status": "green",
+"note": "Matches iOS: same heading, 4 action buttons, mode/count line, and scrollable Row list 0-19 with matching filenames/indices."
+},
+{
+"key": "scroll_to_group",
+"status": "green",
+"note": "Matches iOS: same Group/Item inputs, Go actions, 'No scroll requested yet', and grouped Avengers/Fantastic Four lists with matching members and totals."
+},
+{
+"key": "scroll_view",
+"status": "green",
+"note": "Matches iOS: 'Scrolled to: 0/0 (done)' header and identical scrollable Row 0-14 of 40 list content."
+},
+{
+"key": "search_bar",
+"status": "green",
+"note": "All 7 rows present matching text/colors (Search..., Green text, Placeholder, Italic 24pt, end of the line, Cancel is red, Numeric keyboard); underline chrome vs iOS pill is just platform styling."
+},
+{
+"key": "selection_command_param",
+"status": "green",
+"note": "Matches iOS exactly: Pending..., header, Item 0-9 with descriptions all render correctly."
+},
+{
+"key": "selection_synchronization",
+"status": "green",
+"note": "Matches iOS ref: both CollectionViews show Item2/Item3 gray-highlighted as selected, rest unselected, text content identical."
+},
+{
+"key": "semantics",
+"status": "green",
+"note": "All content matches iOS: labels, buttons, Entry/Editor/SearchBar fields with visible underline chrome, heading levels, StackLayout labels, semantic-focus button/label."
+},
+{
+"key": "shadow_playground",
+"status": "yellow",
+"note": "Controls/sliders/label all render, but the shadow effect itself (red glow behind cyan rect, text shadow) is completely missing vs iOS."
+},
+{
+"key": "shape_app_theme",
+"status": "green",
+"note": "Matches iOS: green label text and green-filled rectangle shape render identically."
+},
+{
+"key": "shapes",
+"status": "green",
+"note": "Matches iOS: Ellipse, RoundRectangle, EvenOdd pentagram polygon, and Line all render with correct colors/shapes/positions."
+},
+{
+"key": "single_bound_selection",
+"status": "green",
+"note": "Matches iOS: instructions text, 'Selected: (none)' label, and the 5-item country CollectionView (US, Canada, Mexico, Brazil, Argentina) all render."
+},
+{
+"key": "slider",
+"status": "green",
+"note": "All slider variants render with correct track/thumb colors (default, blue/yellow-green bg, disabled, lightblue/pink tracks, orange thumb) matching iOS."
+},
+{
+"key": "some_empty_groups",
+"status": "green",
+"note": "Grouped CollectionView renders correctly: Avengers/Thundercats/Avengers/Bionic Six/Fantastic Four groups with headers, members, 'Total members' footers matching iOS."
+},
+{
+"key": "stack_layout",
+"status": "green",
+"note": "Vertical and Horizontal colored box stacks (red/yellow/blue/green/orange/purple) render identically to iOS reference."
+},
+{
+"key": "staggered_layout",
+"status": "green",
+"note": "OVERTURNED: Android DOES render a 3-column grid (Item0/1/2, Item3/4/5, ...) matching iOS's 3-col layout, not a single-column list. Rows are uniform height (not staggered) but content/columns match."
+},
+{
+"key": "stepper",
+"status": "green",
+"note": "All stepper rows (Default, Disabled, Enable button, BackgroundColor red-highlighted, Background, Min/Max, Increment, ValueChanged, Value: 0) render matching iOS."
+},
+{
+"key": "styles",
+"status": "green",
+"note": "All three labeled text rows render with correct colors/text plus the bordered 'Style Me' button, matching iOS reference."
+},
+{
+"key": "swipe_gesture",
+"status": "green",
+"note": "Instruction banner, card title 'Welcome to .NET MAUI!', date, subtitle text, and 'TapCommand (double-tap)' all render matching iOS."
+},
+{
+"key": "swipe_item_position",
+"status": "green",
+"note": "Shows 'Reveal' label and 'Swipe in any direction' text matching iOS reference content."
+},
+{
+"key": "swipe_item_size",
+"status": "green",
+"note": "All icon-size and SwipeView-size labeled rows with grey swipe boxes and 'Swipe to Left' text render, matching iOS structure."
+},
+{
+"key": "swipe_refresh",
+"status": "yellow",
+"note": "Android shows both status lines but the SwipeView/list rows area is blank below 'Ready' — same blank area in iOS ref too, likely shared empty-list state, not unique to Android."
+},
+{
+"key": "swipe_threshold",
+"status": "green",
+"note": "All threshold rows render: labels, purple SwipeView blocks, and both custom-threshold sliders with correct positions, matching iOS."
+},
+{
+"key": "swipe_view_margin",
+"status": "green",
+"note": "Matches iOS ref: instruction box, two sliders (Margin/Padding), Horizontal/Vertical Swipeitems content boxes all present and correctly labeled."
+},
+{
+"key": "swipe_view_shadow",
+"status": "green",
+"note": "Matches content: 'SwipeItems'/'SwipeItemViews' labels with rounded 'Content' boxes; only missing the shadow gradient effect (cosmetic)."
+},
+{
+"key": "switch",
+"status": "green",
+"note": "All 6 switch rows present (Default, BackgroundColor blue, Background gradient, Disabled, OnColor, ThumbColor orange) matching iOS content/order."
+},
+{
+"key": "switch_grouping",
+"status": "green",
+"note": "Is Grouped toggle plus grouped Avengers/Fantastic Four/Defenders lists with member names and 'Total members' counts match iOS."
+},
+{
+"key": "tabbed_flyout",
+"status": "green",
+"note": "Android shows 'This is the Home tab.' text plus Home/Settings tab bar with Home selected (blue), matching iOS ref content exactly."
+},
+{
+"key": "templated_view",
+"status": "green",
+"note": "Matches iOS: standard card + three ControlTemplate compact cards with names/text/gray image placeholders all present and correctly laid out."
+},
+{
+"key": "time_picker",
+"status": "green",
+"note": "All rows present: Default, BackgroundColor, gradient Backgrounds, Update/Clear Background buttons, Default with time, Disabled, TextColor, Format, IsFocused, Set to null — matches iOS content."
+},
+{
+"key": "title_bar",
+"status": "green",
+"note": "All content renders: checkboxes, Title/Subtitle fields, color fields, Set Color/Foreground buttons, Toggle Title Bar button, live status text. Matches iOS content; only native Android chrome differs."
+},
+{
+"key": "toolbar",
+"status": "green",
+"note": "Matches iOS: 'You clicked on ToolbarItem: {none}' text plus all 6 action buttons/links (Enable/Disable Test, Secondary variants, Change text, Remove/Add, Change Command) present in same order."
+},
+{
+"key": "transform_playground",
+"status": "green",
+"note": "Red square with blue border in gray box matches iOS; RotateTransform/ScaleTransform/SkewTransform sliders with labels (Rotation, CenterX/Y, ScaleX/Y, SkewX) all present and laid out the same."
+},
+{
+"key": "transformations",
+"status": "green",
+"note": "SCALE AND ROTATE button plus all labeled sliders (Scale, ScaleX, ScaleY, Rotation, RotationX/Y) and AnchorX/Y +/- button pairs and TranslationX/Y sliders all present, matching iOS."
+},
+{
+"key": "triggers",
+"status": "green",
+"note": "Title, instructional text, Entry with underline chrome showing placeholder, 'Highlight off' label, and Toggle highlight button all present, matches iOS."
+},
+{
+"key": "update_path_data",
+"status": "green",
+"note": "Bezier curve, counter/Data label, and Update Path Data button all visible and non-overlapping; matches intended content."
+},
+{
+"key": "varied_size_selector",
+"status": "green",
+"note": "CollectionView with Coffee/Milk items and Insert/Add/Remove buttons + Index field all render matching iOS reference content."
+},
+{
+"key": "vertical_stack",
+"status": "green",
+"note": "VerticalStackLayout with 6 colored boxes (red/yellow/blue/green/orange/purple) and title label matches iOS reference."
+},
+{
+"key": "visual_states",
+"status": "green",
+"note": "Matches iOS: green VSM Entry bar, 'Type something to enable 2nd Entry' field with underline visible, both buttons with explanatory text present."
+},
+{
+"key": "web_view",
+"status": "green",
+"note": "Android shows full WebView static HTML: 'Welcome' heading + 'Served from a static HtmlWebViewSource.' text above all 6 nav buttons, matching iOS content."
+},
+{
+"key": "z_index",
+"status": "green",
+"note": "All 10 stacked colored labels with correct z-ordering/colors plus title and -/+ buttons match iOS reference."
+}
+]
