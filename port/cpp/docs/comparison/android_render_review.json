@@ -126,18 +126,18 @@
 },
 {
 "key": "clip",
-"status": "red",
-"note": "MAUI clipped images render narrow (~half width) with a visible gray background box; cpp images render full-width with no gray bg box, wrong sizing/framing."
+"status": "green",
+"note": "Matches MAUI: Image, Clipped-RectangleGeometry, Clipped-EllipseGeometry, Clipped-GeometryGroup all identical; gray placeholder box renders, submarine image Start-aligned in each section."
 },
 {
 "key": "clip_corner_radius",
 "status": "green",
-"note": "Matches MAUI: same dog image, same gray clip-box sizing/position, same 4 corner sliders with matching labels and positions."
+"note": "Matches MAUI: dog image sits Start-aligned in gray placeholder box (top-left), size/position match; sliders, labels, spacing match."
 },
 {
 "key": "clip_gallery",
-"status": "red",
-"note": "Same as clip: MAUI shows narrower clipped images with gray background boxes framing them; cpp images are full-width/centered with no gray bg box."
+"status": "green",
+"note": "Matches MAUI: plain Image, RectangleGeometry-clipped, RoundRectangleGeometry-clipped (rounded corners) all correspond; gray placeholder box present and correctly positioned/aligned."
 },
 {
 "key": "clip_views",
@@ -146,8 +146,8 @@
 },
 {
 "key": "clipping",
-"status": "red",
-"note": "MAUI shows 8 small numbered boxes (1-8, ~96px) plus visible coffee-cup images in the bottom bar; cpp boxes are ~2x larger (only 1-4/5 fit) and the bottom bar is blank (missing coffee cup images)."
+"status": "yellow",
+"note": "Matches MAUI: orange bg, red overlay, purple He/Hey boxes, coffee cups, blue bar align. Residual: numbered buttons wider than MAUI (Material minWidth), fewer fit per row — known minor."
 },
 {
 "key": "collectionview",
@@ -391,8 +391,8 @@
 },
 {
 "key": "image",
-"status": "yellow",
-"note": "FileSource image in cpp has white/transparent background vs MAUI's solid purple/magenta background behind the submarine; other rows match."
+"status": "green",
+"note": "FileSource submarine image matches MAUI exactly, same crop/fill/position; no gray box needed (not clipped/font-image). Only diff is scroll offset (maui shows further sections)."
 },
 {
 "key": "image_button",
