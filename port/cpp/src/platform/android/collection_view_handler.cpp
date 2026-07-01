@@ -1059,6 +1059,27 @@ namespace maui::controls
                         }
                         if (col.native != nullptr)
                         {
+                            // Main extent: prefer the realized cell's CROSS-PLATFORM measure (it includes the
+                            // cell's children — the whole point of a templated row), falling back to / taking
+                            // the max with the native View.measure. This mirrors MAUI's Android
+                            // ItemContentView.OnMeasure, which delegates to View.Measure(w,h) (the virtual
+                            // view's cross-platform measure) rather than a naked ViewGroup measure — and the
+                            // port's own place_full_width supplemental path, which already measures the realized
+                            // MAUI view first. WITHOUT this a templated cell whose root is a MauiLayout collapses:
+                            // MauiLayout.onMeasure resolveSize(0, UNSPECIFIED) == 0, so the native measure returns
+                            // 0, every row floors to k_min_row_extent, and adjacent rows OVERLAP (the Android
+                            // collectionview / nested_collection parity red).
+                            const double col_cross_dp = static_cast<double>(col_px) / static_cast<double>(density);
+                            if (auto* const cell_view = dynamic_cast<maui::core::i_view*>(col.retain.get());
+                                cell_view != nullptr)
+                            {
+                                const maui::graphics::size desired =
+                                    vertical
+                                        ? cell_view->measure(col_cross_dp, std::numeric_limits<double>::infinity())
+                                        : cell_view->measure(std::numeric_limits<double>::infinity(), col_cross_dp);
+                                const double desired_main_dp = vertical ? desired.height : desired.width;
+                                row_extent_px = std::max(row_extent_px, to_pixels(desired_main_dp, density));
+                            }
                             row_extent_px =
                                 std::max(row_extent_px, measure_main_extent(env, col.native, col_px, vertical));
                         }
