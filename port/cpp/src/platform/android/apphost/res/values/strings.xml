@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- App label string, referenced by AndroidManifest.xml's android:label. Kept in the checked-in res/
+     tree so the app-host build (aapt2 compiles this res dir) links a single deterministic resource set
+     (formerly generated inline by tools/parity/build_android_apphost.sh). -->
+<resources>
+    <string name="app_name">MAUI C++ Gallery</string>
+</resources>

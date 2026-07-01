@@ -127,21 +127,16 @@ while IFS= read -r -d '' f; do class_files+=("${f}"); done \
 [[ -f "${work}/classes.dex" ]] || maui_die "d8 produced no classes.dex"
 
 # ---- 3. aapt2 link the manifest -> a base APK (compiled manifest + resource table) ----
-# No app resources (the manifest declares none), so we link with just the manifest + android.jar. aapt2
-# link needs a -R/compiled resources flag only when there are resources; with none, --manifest alone is
-# enough to produce a base APK carrying the binary manifest + an (empty) resource table.
+# The manifest references app resources (android:label string + android:theme style), so link them in.
+# The resource set is the checked-in tree under src/platform/android/apphost/res/ (values/strings.xml +
+# values/styles.xml: the app_name string and MauiAppHost.Theme — the white-background parity theme that
+# matches MAUI's light-mode window background, replacing the DeviceDefault/Material3 tonal-surface lavender
+# an unthemed Activity would inherit on API-34). Linking the theme is what forces the pure-white page bg.
 base_apk="${work}/base.apk"
-echo "[apphost] aapt2 compile (minimal res) + link..." >&2
-# aapt2 link needs at least one compiled-resource input; with only --manifest it prints usage and makes
-# nothing. Provide a minimal values resource (an app_name string) so the link has a compiled input.
-mkdir -p "${work}/res/values"
-cat > "${work}/res/values/strings.xml" <<'XML'
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">MAUI C++ Gallery</string>
-</resources>
-XML
-"${aapt2}" compile --dir "${work}/res" -o "${work}/res-compiled.zip" >&2 || maui_die "aapt2 compile failed"
+echo "[apphost] aapt2 compile (apphost res: strings + theme) + link..." >&2
+apphost_res_dir="${apphost_dir}/res"
+[[ -d "${apphost_res_dir}/values" ]] || maui_die "missing apphost res dir ${apphost_res_dir}/values"
+"${aapt2}" compile --dir "${apphost_res_dir}" -o "${work}/res-compiled.zip" >&2 || maui_die "aapt2 compile failed"
 "${aapt2}" link \
   -o "${base_apk}" \
   -I "${android_jar}" \

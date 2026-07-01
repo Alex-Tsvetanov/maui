@@ -12,6 +12,7 @@
     <application
         android:label="MAUI C++ Gallery"
         android:hasCode="true"
+        android:theme="@style/MauiAppHost.Theme"
         android:allowBackup="false">
         <activity
             android:name=".MauiHostActivity"
