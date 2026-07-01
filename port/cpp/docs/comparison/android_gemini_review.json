@@ -163,21 +163,21 @@
 },
 {
 "key": "clip_gallery",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-2.5-flash-lite"
 },
 {
 "key": "clip_views",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "red",
+"note": "The C++ port has an extra header 'MAUI C++ Gallery' which is not present in the MAUI version.",
+"model": "gemini-2.5-flash-lite"
 },
 {
 "key": "clipping",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "red",
+"note": "The C++ port is missing the last two buttons in the first row and the last button in the second row. The text on the second row buttons is also different.",
+"model": "gemini-2.5-flash-lite"
 },
 {
 "key": "collectionview",
@@ -187,170 +187,170 @@
 },
 {
 "key": "composition_gallery",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-2.5-flash-lite"
 },
 {
 "key": "containers",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "yellow",
+"note": "The border color of the first input field is blue in the C++ port and dashed blue in MAUI.",
+"model": "gemini-2.5-flash-lite"
 },
 {
 "key": "content_view",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-2.5-flash-lite"
 },
 {
 "key": "context_flyout",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "red",
+"note": "C++ port shows webpage not available error instead of the expected content.",
+"model": "gemini-2.5-flash-lite"
 },
 {
 "key": "controls_stack",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-2.5-flash-lite"
 },
 {
 "key": "custom_layout",
 "status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"note": "(gemini error: HTTP 503: {\n  \"error\": {\n    \"code\": 503,\n    \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.\",\n    \"status\": \"UNAVAILABLE\"\n  }\n}\n)",
+"model": "gemini-2.5-flash-lite"
 },
 {
 "key": "custom_size_swipe",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-2.5-flash-lite"
 },
 {
 "key": "custom_swipe_item_view",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-3.5-flash"
 },
 {
 "key": "cv_visual_states",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "red",
+"note": "Large unexpected vertical gap between the Single Selection list and the Multi Selection header in the C++ port.",
+"model": "gemini-3.5-flash"
 },
 {
 "key": "data_template_selector",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "yellow",
+"note": "The search bar in the C++ port has a different search icon style and a darker bottom border line compared to MAUI.",
+"model": "gemini-3.5-flash"
 },
 {
 "key": "date_picker",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "red",
+"note": "The second Background field has a solid magenta background instead of a blue-to-cyan gradient.",
+"model": "gemini-3.5-flash"
 },
 {
 "key": "device",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-3.5-flash"
 },
 {
 "key": "dispatcher",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "yellow",
+"note": "C++ buttons have a subtle drop shadow/elevation compared to the flat buttons in MAUI",
+"model": "gemini-3.5-flash"
 },
 {
 "key": "drag_drop",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-3.5-flash"
 },
 {
 "key": "editor",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-3.5-flash"
 },
 {
 "key": "effects",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-3.5-flash"
 },
 {
 "key": "ellipse_gallery",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "green",
+"note": "matches MAUI",
+"model": "gemini-3.5-flash"
 },
 {
 "key": "empty_view",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "yellow",
+"note": "minor style differences in the search bar icon and bottom border color",
+"model": "gemini-3.5-flash"
 },
 {
 "key": "empty_view_load_simulate",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "red",
+"note": "\"Items loading simulation...\" text is centered in MAUI but top-left aligned in the C++ port",
+"model": "gemini-3.5-flash"
 },
 {
 "key": "empty_view_null",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "red",
+"note": "\"Nothing to display.\" is top-left aligned in the C++ port instead of centered",
+"model": "gemini-3.5-flash"
 },
 {
 "key": "empty_view_rtl",
-"status": "",
-"note": "",
-"model": "gemini-2.5-flash"
+"status": "yellow",
+"note": "The search icon in the filter bar has a different style and orientation in the C++ port",
+"model": "gemini-3.5-flash"
 },
 {
 "key": "empty_view_selector",
-"status": "",
-"note": "",
+"status": "green",
+"note": "matches MAUI",
 "model": "gemini-2.5-flash"
 },
 {
 "key": "empty_view_swap",
-"status": "",
-"note": "",
+"status": "yellow",
+"note": "Search bar and button background/border styles differ from MAUI.",
 "model": "gemini-2.5-flash"
 },
 {
 "key": "empty_view_template",
-"status": "",
-"note": "",
+"status": "yellow",
+"note": "Search bar height and text vertical alignment are slightly off in the C++ port.",
 "model": "gemini-2.5-flash"
 },
 {
 "key": "empty_view_view",
-"status": "",
-"note": "",
+"status": "green",
+"note": "matches MAUI",
 "model": "gemini-2.5-flash"
 },
 {
 "key": "entry",
-"status": "",
-"note": "",
+"status": "green",
+"note": "matches MAUI",
 "model": "gemini-2.5-flash"
 },
 {
 "key": "filter_collection",
-"status": "",
-"note": "",
+"status": "yellow",
+"note": "Toggle switch track color and search bar underline/icon color differ from MAUI.",
 "model": "gemini-2.5-flash"
 },
 {
 "key": "filter_selection",
-"status": "",
-"note": "",
+"status": "green",
+"note": "matches MAUI",
 "model": "gemini-2.5-flash"
 },
 {

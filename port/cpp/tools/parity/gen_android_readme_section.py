@@ -182,11 +182,13 @@ def main():
                    "(or \"matches MAUI\").")
     if gemini_reviewed:
         out.append("")
-        out.append("**Classification — MAUI-vs-C++ parity (Gemini** `gemini-2.5-flash` second-model pass — the SAME "
-                   "MAUI-vs-C++ comparison and parity policy as the Sonnet column, run independently by Google Gemini "
-                   "vision. Carried alongside Sonnet 5 because the two models diverge: Gemini tends to be stricter and "
-                   "flag more, so a page green in both is high-confidence parity, while a Sonnet-green/Gemini-flagged "
-                   "split marks a page worth a closer look):")
+        out.append("**Classification — MAUI-vs-C++ parity (Gemini** second-model pass, Google Gemini vision via a "
+                   "quota-aware cascade — `gemini-2.5-flash` then the 500-RPD `gemini-3.1-flash-lite` workhorse — the "
+                   "SAME MAUI-vs-C++ comparison and parity policy as the Sonnet column, run independently. Carried "
+                   "alongside Sonnet 5 because the two models diverge: Gemini tends to be stricter and flag more, so a "
+                   "page green in both is high-confidence parity, while a Sonnet-green/Gemini-flagged split marks a page "
+                   "worth a closer look. The free-tier daily quota caps a single run, so the column fills incrementally "
+                   "across runs):")
         out.append("")
         out.append("| Classification | Count | Meaning |")
         out.append("| --- | --- | --- |")
