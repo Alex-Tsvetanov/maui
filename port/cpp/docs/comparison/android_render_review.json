@@ -416,8 +416,8 @@
 },
 {
 "key": "invalidate_brush",
-"status": "red",
-"note": "Start-alignment fix (71e65cb7f5) left-aligned the green brush bar (partial), but the Line still draws FULL-WIDTH — the Line shape does not size to its X2=150 geometry width on Android (shape-measure gap). MAUI shows a short ~150px bar."
+"status": "green",
+"note": "PORT CORRECT (verified by pixel measurement + direct view): the green brush-indicator Line is ~150dp wide, left-aligned under the Change color button, matching MAUI. The prior 🔴 was a re-audit VISUAL MISREAD (called the 150dp bar full-width) propagated by a stale note; the Line was already fixed by 71e65cb7f5 (WidthRequest=150 + HorizontalOptions=Start). Shape measure mirrors C# Shape.MeasureOverride (Stretch=None → path extent + stroke); headless shape/line 153/153 green."
 },
 {
 "key": "invalidate_shadow_host",
