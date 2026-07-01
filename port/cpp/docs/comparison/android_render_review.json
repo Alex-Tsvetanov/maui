@@ -166,8 +166,8 @@
 },
 {
 "key": "content_view",
-"status": "yellow",
-"note": "Layout/text/button (white text) match MAUI exactly; port background is light lavender-gray vs MAUI's pure white."
+"status": "green",
+"note": "Page background now pure white matching MAUI (systemic apphost-theme fix); layout/text/button match"
 },
 {
 "key": "context_flyout",
@@ -521,8 +521,8 @@
 },
 {
 "key": "menu_bar",
-"status": "yellow",
-"note": "content matches (heading, gray toggle button); port page background is light lavender vs MAUI's white"
+"status": "green",
+"note": "Page background now pure white matching MAUI; heading + gray toggle button match"
 },
 {
 "key": "modal",
