@@ -415,9 +415,17 @@ namespace maui::core
             return platform; // WebView.<init> threw (no provider / data dir) — headless mirror it is
         }
         const local_ref<jobject> widget{env.get(), created};
-        // WebViewHandler.Android: platformView.Settings.JavaScriptEnabled = true. getSettings() returns the
-        // WebSettings; setJavaScriptEnabled(true). Best-effort — a missing settings surface does not block
-        // the static HTML render.
+        // WebViewHandler.Android.CreatePlatformView applies EXACTLY these WebSettings and no more:
+        //   Settings.JavaScriptEnabled = true; Settings.DomStorageEnabled = true;
+        //   Settings.SetSupportMultipleWindows(true);
+        // getSettings() returns the WebSettings; each set is best-effort — a missing settings surface does
+        // not block the static HTML render. Crucially, C# leaves the layout-viewport settings at the Android
+        // WebView DEFAULTS (UseWideViewPort=false, LoadWithOverviewMode=false), which renders a source with
+        // no <meta viewport> at device-width using the browser's default UA stylesheet — so an <h1> is LARGE
+        // and BOLD, matching the MAUI parity ground truth. (A prior port revision force-enabled
+        // setUseWideViewPort(true)+setLoadWithOverviewMode(true) to shrink the page to a WKWebView-like
+        // overview fit; that was an INVENTED deviation from the C# oracle and it shrank the <h1> to body-text
+        // size — the exact web_view parity RED. Removed: mirror C# and let the defaults stand.)
         jmethodID get_settings =
             cache.method(env.get(), k_web_view_class, "getSettings", "()Landroid/webkit/WebSettings;");
         if (get_settings != nullptr)
@@ -431,27 +439,20 @@ namespace maui::core
                     env->CallVoidMethod(settings.get(), set_js, JNI_TRUE);
                     clear_pending(env.get());
                 }
-                // Overview/wide-viewport rendering so the static document fits the view width at a compact
-                // text size — Android WebView's default is device-width (large text) where iOS WKWebView
-                // fits-to-overview by default. The parity ground truth (the iOS reference) renders this HTML
-                // small, and a smaller, content-fitting render keeps the whole document (the <h1> AND the
-                // <p>) inside the natural-content cell the no-HeightRequest WebView measures to — the port's
-                // layout pass is measure-once (view::invalidate_measure is the M3 no-op seam), so there is no
-                // post-load re-measure to grow the cell after Chromium's async content layout arrives. These
-                // are pure render settings (no content edit): setUseWideViewPort(true) + setLoadWithOverview
-                // Mode(true), the WebSettings analog of WKWebView's default overview fit.
-                jmethodID set_wide_viewport =
-                    cache.method(env.get(), k_web_settings_class, "setUseWideViewPort", "(Z)V");
-                if (set_wide_viewport != nullptr)
+                // Settings.DomStorageEnabled = true (C# CreatePlatformView).
+                jmethodID set_dom_storage =
+                    cache.method(env.get(), k_web_settings_class, "setDomStorageEnabled", "(Z)V");
+                if (set_dom_storage != nullptr)
                 {
-                    env->CallVoidMethod(settings.get(), set_wide_viewport, JNI_TRUE);
+                    env->CallVoidMethod(settings.get(), set_dom_storage, JNI_TRUE);
                     clear_pending(env.get());
                 }
-                jmethodID set_overview_mode =
-                    cache.method(env.get(), k_web_settings_class, "setLoadWithOverviewMode", "(Z)V");
-                if (set_overview_mode != nullptr)
+                // Settings.SetSupportMultipleWindows(true) (C# CreatePlatformView).
+                jmethodID set_multiple_windows =
+                    cache.method(env.get(), k_web_settings_class, "setSupportMultipleWindows", "(Z)V");
+                if (set_multiple_windows != nullptr)
                 {
-                    env->CallVoidMethod(settings.get(), set_overview_mode, JNI_TRUE);
+                    env->CallVoidMethod(settings.get(), set_multiple_windows, JNI_TRUE);
                     clear_pending(env.get());
                 }
             }
