@@ -67,19 +67,21 @@
 #include "maui/controls/command.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/file_image_source.hpp"
+#include "maui/controls/grid.hpp"
 #include "maui/controls/image.hpp"
 #include "maui/controls/items/boxed_item.hpp"
 #include "maui/controls/items/collection_view.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
-#include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/aspect.hpp"
 #include "maui/core/font.hpp"
+#include "maui/core/grid_length.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/layout_alignment.hpp"
 #include "maui/core/layout_handler.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
@@ -103,30 +105,43 @@ namespace maui::samples
         friend bool operator==(const header_footer_model&, const header_footer_model&) = default;
     };
 
-    // ---- the item template root: ExampleTemplates.PhotoTemplate() (Image over a blue caption Label) ----
-    // A vertical_stack_layout subclass that OWNS its Image + caption Label children as members (layout::add
-    // is non-owning, so a template cell must own the children it hosts). The Image's Source is the row's
-    // {Binding Image} and the Label's Text is {Binding Caption}, both pushed on BindingContext change (the
-    // realize path sets the cell's context to the header_footer_demo_item). Default-constructible so a
-    // data_template::of<photo_cell>() activates it; its handler is the shared layout_handler (registered in
-    // register_handlers), matching MAUI's PhotoTemplate cell.
-    class photo_cell : public maui::controls::vertical_stack_layout
+    // ---- the item template root: ExampleTemplates.PhotoTemplate() ----
+    // A grid subclass that reproduces PhotoTemplate() EXACTLY: a two-star-row Grid sized WidthRequest=200,
+    // HeightRequest=100 (so each item cell is a fixed 100pt tall regardless of content — the compact MAUI
+    // row height), with the Image (WidthRequest=100, centered, Margin(2,5,2,2)) in ROW 0 and the blue-
+    // background caption Label (centered, Margin(2,0,2,2)) in ROW 1 (Grid.SetRow(caption, 1)). It OWNS its
+    // Image + Label children as members (layout::add is non-owning, so a template cell must own the children
+    // it hosts). The Image's Source is the row's {Binding Image} and the Label's Text is {Binding Caption},
+    // both pushed on BindingContext change (the realize path sets the cell's context to the
+    // header_footer_demo_item). Default-constructible so a data_template::of<photo_cell>() activates it; its
+    // handler is the shared layout_handler (grid uses it; registered in register_handlers).
+    class photo_cell : public maui::controls::grid
     {
     public:
         photo_cell()
         {
-            set_spacing(0);
-            // Image (WidthRequest=100, centered) — ExampleTemplates.PhotoTemplate's image.
+            // Grid { RowDefinitions = { new RowDefinition(), new RowDefinition() }, WidthRequest=200,
+            // HeightRequest=100 } — two star rows, fixed 100pt cell.
+            add_row_definition(maui::core::grid_length::star());
+            add_row_definition(maui::core::grid_length::star());
+            set_width_request(200);
+            set_height_request(100);
+            // Image { WidthRequest=100, HorizontalOptions=Center, VerticalOptions=Center, Margin(2,5,2,2) }.
             image_.set_width_request(100);
-            image_.set_height_request(100);
             image_.set_aspect(maui::core::aspect::aspect_fit);
             image_.set_horizontal_layout_alignment(maui::core::layout_alignment::center);
-            // The blue-background caption Label (BackgroundColor=Blue, centered) bound to {Binding Caption}.
+            image_.set_vertical_layout_alignment(maui::core::layout_alignment::center);
+            image_.set_margin(maui::core::thickness(2, 5, 2, 2));
+            // Label { FontSize=12, HorizontalOptions=Fill, HorizontalTextAlignment=Center,
+            // Margin(2,0,2,2), BackgroundColor=Blue } — the blue caption, bound to {Binding Caption}.
+            caption_.set_font(maui::core::font::system_font_of_size(12));
             caption_.set_horizontal_text_alignment(maui::core::text_alignment::center);
+            caption_.set_margin(maui::core::thickness(2, 0, 2, 2));
             caption_.set_background(std::static_pointer_cast<maui::graphics::paint>(
                 std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::blue)));
-            add(image_);
-            add(caption_);
+            add(image_);   // row 0 (default)
+            add(caption_); // row 1
+            set_row(caption_, 1);
         }
 
     protected:
@@ -134,7 +149,7 @@ namespace maui::samples
         // BindingContext (the header_footer_demo_item) is set by the realize path.
         void on_binding_context_changed() override
         {
-            maui::controls::vertical_stack_layout::on_binding_context_changed(); // propagate to children first
+            maui::controls::grid::on_binding_context_changed(); // propagate to children first
             if (const auto item = binding_context<header_footer_demo_item>())
             {
                 caption_.set_text(item->caption);
@@ -147,30 +162,38 @@ namespace maui::samples
         maui::controls::label caption_;
     };
 
-    // ---- the header/footer template root: the two-row Grid (Image + {Binding CurrentTime} + static) ----
-    // A vertical_stack_layout subclass owning the cover-photo Image, the bold AntiqueWhite {Binding
-    // CurrentTime} Label, and the static "This Is A Header/Footer" Label. The image file, font size, and
-    // static caption differ between header and footer, but a data_template::of<T>() default-constructs the
-    // root — so those differences are baked into two concrete subclasses (header_chrome_cell /
-    // footer_chrome_cell) via a shared base whose ctor takes them.
-    class chrome_cell : public maui::controls::vertical_stack_layout
+    // ---- the header/footer template root: the two-row Grid (HeaderTemplate/FooterTemplate) ----
+    // A grid subclass reproducing the XAML Grid EXACTLY: two rows RowDefinition Height=50 + Height=20. The
+    // cover-photo Image (Aspect=AspectFill, HeightRequest=80 header / 50 footer) and the bold AntiqueWhite
+    // {Binding CurrentTime} Label (InputTransparent) are BOTH in row 0 (the Image with no Grid.Row, the time
+    // Label with no Grid.Row — they overlap: the time reads over the cover photo). The static "This Is A
+    // Header/Footer" Label sits in row 1 (Grid.Row=1). It OWNS its Image + two Label children. The image
+    // file, font size, and static caption differ between header and footer, but a data_template::of<T>()
+    // default-constructs the root — so those differences are baked into two concrete subclasses
+    // (header_chrome_cell / footer_chrome_cell) via a shared base whose ctor takes them.
+    class chrome_cell : public maui::controls::grid
     {
     public:
         chrome_cell(std::string image_file, double time_font_size, double image_height, std::string static_caption)
         {
-            set_spacing(0);
+            // RowDefinitions: Height=50 (the cover-photo + overlaid time), Height=20 (the static caption).
+            add_row_definition(maui::core::grid_length{50});
+            add_row_definition(maui::core::grid_length{20});
+            // Image { Source, Aspect=AspectFill, HeightRequest=80|50 } in row 0.
             image_.set_source(maui::controls::image_source::from_file(std::move(image_file)));
-            image_.set_aspect(maui::core::aspect::aspect_fill); // XAML Aspect="AspectFill"
-            image_.set_height_request(image_height);            // header 80 / footer 50 (XAML HeightRequest)
-            // The bold AntiqueWhite centered {Binding CurrentTime} Label.
+            image_.set_aspect(maui::core::aspect::aspect_fill);
+            image_.set_height_request(image_height);
+            // Label { Text={Binding CurrentTime}, TextColor=AntiqueWhite, HorizontalTextAlignment=Center,
+            // FontAttributes=Bold, FontSize=36|20 } in row 0 — overlaps the Image (the time over the photo).
             time_.set_text_color(maui::graphics::colors::antique_white);
             time_.set_horizontal_text_alignment(maui::core::text_alignment::center);
             time_.set_font(maui::core::font::system_font_of_size(time_font_size, maui::core::font_weight::bold));
-            // The static "This Is A Header/Footer" Label (Grid.Row=1 in the XAML).
+            // Label { Grid.Row=1, Text="This Is A Header/Footer" } — the static caption below.
             static_.set_text(std::move(static_caption));
-            add(image_);
-            add(time_);
+            add(image_); // row 0 (default)
+            add(time_);  // row 0 (default) — overlaps the image
             add(static_);
+            set_row(static_, 1); // Grid.Row="1"
         }
 
     protected:
@@ -178,7 +201,7 @@ namespace maui::samples
         // header_footer_model) is set by the realize path.
         void on_binding_context_changed() override
         {
-            maui::controls::vertical_stack_layout::on_binding_context_changed();
+            maui::controls::grid::on_binding_context_changed();
             if (const auto model = binding_context<header_footer_model>())
             {
                 time_.set_text(model->current_time);
