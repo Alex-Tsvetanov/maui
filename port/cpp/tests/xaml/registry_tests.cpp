@@ -246,13 +246,20 @@ namespace
         EXPECT_EQ(reg.properties.content_property(type_tag::of<controls::button>()), nullptr);
     }
 
+    // try_add_child takes the loader's OWNING shared_ptr; for test-scope stack objects a non-owning
+    // alias is the honest handle (the test scope owns and outlives the container).
+    template <class T> std::shared_ptr<maui::core::bindable_object> borrowed(T& object)
+    {
+        return {std::shared_ptr<void>{}, &object};
+    }
+
     TEST(xaml_property_registry, add_child_hosts_content_on_a_content_page)
     {
         const registries reg;
         controls::content_page page;
         controls::button child;
 
-        ASSERT_TRUE(reg.properties.try_add_child(type_tag::of<controls::content_page>(), page, child));
+        ASSERT_TRUE(reg.properties.try_add_child(type_tag::of<controls::content_page>(), page, borrowed(child)));
         EXPECT_EQ(page.content(), &child);
     }
 
@@ -263,8 +270,10 @@ namespace
         controls::button first;
         controls::label second;
 
-        ASSERT_TRUE(reg.properties.try_add_child(type_tag::of<controls::vertical_stack_layout>(), stack, first));
-        ASSERT_TRUE(reg.properties.try_add_child(type_tag::of<controls::vertical_stack_layout>(), stack, second));
+        ASSERT_TRUE(
+            reg.properties.try_add_child(type_tag::of<controls::vertical_stack_layout>(), stack, borrowed(first)));
+        ASSERT_TRUE(
+            reg.properties.try_add_child(type_tag::of<controls::vertical_stack_layout>(), stack, borrowed(second)));
         ASSERT_EQ(stack.count(), 2);
         EXPECT_EQ(&stack.at(0), static_cast<maui::core::i_view*>(&first));
         EXPECT_EQ(&stack.at(1), static_cast<maui::core::i_view*>(&second));
@@ -276,7 +285,7 @@ namespace
         controls::content_page root; // outlives the nav whose internal tracker subscribes to it (§8)
         controls::navigation_page navigation;
 
-        ASSERT_TRUE(reg.properties.try_add_child(type_tag::of<controls::navigation_page>(), navigation, root));
+        ASSERT_TRUE(reg.properties.try_add_child(type_tag::of<controls::navigation_page>(), navigation, borrowed(root)));
         EXPECT_EQ(navigation.current_page(), &root);
         EXPECT_TRUE(root.has_appeared());
     }
@@ -287,7 +296,7 @@ namespace
         controls::content_page page; // outlives the hosting window's chrome subscriptions (§8)
         controls::window host;
 
-        ASSERT_TRUE(reg.properties.try_add_child(type_tag::of<controls::window>(), host, page));
+        ASSERT_TRUE(reg.properties.try_add_child(type_tag::of<controls::window>(), host, borrowed(page)));
         EXPECT_EQ(host.content_element(), &page);
     }
 
@@ -297,19 +306,20 @@ namespace
         controls::content_page page;
         controls::window not_a_view; // a window is a bindable_object but not an i_view
 
-        EXPECT_FALSE(reg.properties.try_add_child(type_tag::of<controls::content_page>(), page, not_a_view));
+        EXPECT_FALSE(reg.properties.try_add_child(type_tag::of<controls::content_page>(), page, borrowed(not_a_view)));
         EXPECT_EQ(page.content(), nullptr);
 
         // NavigationPage only hosts pages — a button child is rejected.
         controls::navigation_page navigation;
         controls::button not_a_page;
-        EXPECT_FALSE(reg.properties.try_add_child(type_tag::of<controls::navigation_page>(), navigation, not_a_page));
+        EXPECT_FALSE(
+            reg.properties.try_add_child(type_tag::of<controls::navigation_page>(), navigation, borrowed(not_a_page)));
         EXPECT_EQ(navigation.current_page(), nullptr);
 
         // A leaf control has no child sink at all.
         controls::button leaf;
         controls::label child;
-        EXPECT_FALSE(reg.properties.try_add_child(type_tag::of<controls::button>(), leaf, child));
+        EXPECT_FALSE(reg.properties.try_add_child(type_tag::of<controls::button>(), leaf, borrowed(child)));
     }
 
     // ---- xaml_converter_registry: the built-ins (TypeConversionExtensions invariant behavior) --------
@@ -435,7 +445,7 @@ namespace
             watch = child;
 
             // Wire the borrowed reference, then hand BOTH owning handles to the graph.
-            ASSERT_TRUE(reg.properties.try_add_child(reg.types.find("VerticalStackLayout")->type, *stack, *child));
+            ASSERT_TRUE(reg.properties.try_add_child(reg.types.find("VerticalStackLayout")->type, *stack, child));
             graph.set_root(stack);
             graph.add(std::move(stack));
             graph.add(std::move(child));
@@ -493,9 +503,9 @@ namespace
         EXPECT_TRUE(reg.properties.try_set_from_text(button_tag, *button, "Text", "Go", reg.converters));
         EXPECT_TRUE(reg.properties.try_set_from_text(button_tag, *button, "IsEnabled", "false", reg.converters));
 
-        ASSERT_TRUE(reg.properties.try_add_child(stack_tag, *stack, *label));
-        ASSERT_TRUE(reg.properties.try_add_child(stack_tag, *stack, *button));
-        ASSERT_TRUE(reg.properties.try_add_child(page_tag, *page, *stack));
+        ASSERT_TRUE(reg.properties.try_add_child(stack_tag, *stack, label));
+        ASSERT_TRUE(reg.properties.try_add_child(stack_tag, *stack, button));
+        ASSERT_TRUE(reg.properties.try_add_child(page_tag, *page, stack));
 
         graph.set_root(page);
         graph.add(std::move(page));

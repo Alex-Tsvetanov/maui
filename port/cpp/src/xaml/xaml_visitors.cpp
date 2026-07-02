@@ -136,6 +136,17 @@ namespace maui::xaml
             return object != nullptr ? object->get() : nullptr;
         }
 
+        // The OWNING handle behind as_bindable (the child-sink seam passes it through so a co-owning
+        // collection sink — GradientStops, Spans — can keep it; see xaml_property_registry::add_child_fn).
+        [[nodiscard]] const std::shared_ptr<maui::core::bindable_object>* as_bindable_shared(const std::any* value)
+        {
+            if (value == nullptr)
+            {
+                return nullptr;
+            }
+            return std::any_cast<std::shared_ptr<maui::core::bindable_object>>(value);
+        }
+
         [[nodiscard]] maui::controls::resource_dictionary* as_dictionary(const std::any* value)
         {
             if (value == nullptr)
@@ -918,7 +929,7 @@ namespace maui::xaml
             // stand-in for C#'s IEnumerable + Add() / settable-property walk).
             if (env.properties->is_child_property(target_type, local_name))
             {
-                maui::core::bindable_object* child = as_bindable(&value);
+                const std::shared_ptr<maui::core::bindable_object>* child = as_bindable_shared(&value);
                 if (child != nullptr && env.properties->try_add_child(target_type, target, *child))
                 {
                     return;
@@ -2242,7 +2253,7 @@ namespace maui::xaml
                     return;
                 }
                 // … then the child sink (C#'s IEnumerable + Add() walk).
-                maui::core::bindable_object* child = as_bindable(&value);
+                const std::shared_ptr<maui::core::bindable_object>* child = as_bindable_shared(&value);
                 if (child != nullptr && context_->property_registry().try_add_child(*target_type, *target, *child))
                 {
                     return;
@@ -2313,7 +2324,7 @@ namespace maui::xaml
                 add_to_resource_dictionary(owner->resources(), value, x_key, node.line_number(), node.line_position());
                 return;
             }
-            maui::core::bindable_object* child = as_bindable(&value);
+            const std::shared_ptr<maui::core::bindable_object>* child = as_bindable_shared(&value);
             if (child != nullptr && context_->property_registry().is_child_property(*target_type, list_name) &&
                 context_->property_registry().try_add_child(*target_type, *target, *child))
             {

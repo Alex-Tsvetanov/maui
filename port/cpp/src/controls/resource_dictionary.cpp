@@ -84,9 +84,12 @@ namespace maui::controls
         {
             detach_merged(*merged_.back().dictionary);
         }
-        for (resource_dictionary* outer : merged_into_)
+        // Drain-style loop: each detach_merged(*this) erases that outer from merged_into_, so a
+        // range-for over the vector would increment an invalidated iterator (caught by the MSVC STL's
+        // debug iterators on Windows; silent element-shifting on libc++).
+        while (!merged_into_.empty())
         {
-            outer->detach_merged(*this);
+            merged_into_.back()->detach_merged(*this);
         }
     }
 

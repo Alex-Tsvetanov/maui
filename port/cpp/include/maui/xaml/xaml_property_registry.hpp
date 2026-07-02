@@ -40,6 +40,7 @@
 
 #include <any>
 #include <functional>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -62,9 +63,14 @@ namespace maui::xaml
         using setter = std::function<bool(maui::core::bindable_object& target, const std::any& value)>;
 
         // How a parsed child element is attached to a container ([ContentProperty] child sink).
-        // Returns false when the child is not of the type the container accepts.
-        using add_child_fn =
-            std::function<bool(maui::core::bindable_object& parent, maui::core::bindable_object& child)>;
+        // Returns false when the child is not of the type the container accepts. The child arrives as
+        // the loader's OWNING shared_ptr: most sinks wire a borrowed reference (the PROFILE §8
+        // non-owning tree APIs — the xaml_object_graph owns the tree), but a sink whose collection
+        // must CO-OWN its items (GradientStops, FormattedString.Spans — C#'s collections own via GC,
+        // and the owner subscribes to the items' events, so the items must not die first) keeps the
+        // shared_ptr (register_add_child_owned).
+        using add_child_fn = std::function<bool(maui::core::bindable_object& parent,
+                                                const std::shared_ptr<maui::core::bindable_object>& child)>;
 
         struct property_entry
         {
@@ -144,12 +150,24 @@ namespace maui::xaml
         // to what the container accepts and returns false otherwise.
         template <class TParent, class F> void register_add_child(F add)
         {
-            set_add_child(
-                maui::core::type_tag::of<TParent>(),
-                [add = std::move(add)](maui::core::bindable_object& parent, maui::core::bindable_object& child) {
-                    auto* typed_parent = dynamic_cast<TParent*>(&parent);
-                    return typed_parent != nullptr && add(*typed_parent, child);
-                });
+            set_add_child(maui::core::type_tag::of<TParent>(),
+                          [add = std::move(add)](maui::core::bindable_object& parent,
+                                                 const std::shared_ptr<maui::core::bindable_object>& child) {
+                              auto* typed_parent = dynamic_cast<TParent*>(&parent);
+                              return typed_parent != nullptr && child != nullptr && add(*typed_parent, *child);
+                          });
+        }
+
+        // The OWNING child sink: `add` is `bool(TParent&, const std::shared_ptr<bindable_object>&)`
+        // and keeps the shared_ptr, co-owning the item with the xaml_object_graph (see add_child_fn).
+        template <class TParent, class F> void register_add_child_owned(F add)
+        {
+            set_add_child(maui::core::type_tag::of<TParent>(),
+                          [add = std::move(add)](maui::core::bindable_object& parent,
+                                                 const std::shared_ptr<maui::core::bindable_object>& child) {
+                              auto* typed_parent = dynamic_cast<TParent*>(&parent);
+                              return typed_parent != nullptr && child != nullptr && add(*typed_parent, child);
+                          });
         }
 
         // The named variant: also record the CLR collection-property name the sink stands in for
@@ -187,8 +205,9 @@ namespace maui::xaml
 
         // Attach `child` to `parent` through the container's registered child sink: false when the
         // parent type has none, the parent instance is not that type, or the child type is rejected.
+        // `child` is the loader's owning handle (see add_child_fn).
         [[nodiscard]] bool try_add_child(maui::core::type_tag parent_type, maui::core::bindable_object& parent,
-                                         maui::core::bindable_object& child) const;
+                                         const std::shared_ptr<maui::core::bindable_object>& child) const;
 
         // Whether `xaml_name` is the registered child-sink property name of `type` (the
         // <Type.Children> / <Type.Content> property-element spelling — see the named

@@ -76,7 +76,7 @@ namespace maui::xaml
     }
 
     bool xaml_property_registry::try_add_child(maui::core::type_tag parent_type, maui::core::bindable_object& parent,
-                                               maui::core::bindable_object& child) const
+                                               const std::shared_ptr<maui::core::bindable_object>& child) const
     {
         const auto it = types_.find(parent_type);
         return it != types_.end() && it->second.add_child && it->second.add_child(parent, child);

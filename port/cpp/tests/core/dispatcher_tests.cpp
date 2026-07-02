@@ -3,7 +3,7 @@
 // delayed ordering against the virtual clock, and timer repeat/one-shot/stop behaviour.
 #include "maui/core/manual_dispatcher.hpp"
 
-#include <__chrono/duration.h>
+#include <chrono>
 #include <memory>
 #include <thread>
 #include <vector>

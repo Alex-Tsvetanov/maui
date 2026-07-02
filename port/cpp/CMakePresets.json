@@ -89,6 +89,31 @@
       }
     },
     {
+      "name": "windows",
+      "inherits": "headless",
+      "displayName": "Windows (WinUI 3 / Windows App SDK, C++/WinRT)",
+      "description": "Windows backend: WinUI 3 controls via the C++/WinRT projection (Windows App SDK, unpackaged). Host-built on Windows with LLVM clang targeting the MSVC ABI; the projection headers are generated at configure time from the NuGet-cached .winmds (cmake/windows_appsdk.cmake).",
+      "binaryDir": "${sourceDir}/build/windows",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "cacheVariables": {
+        "MAUI_BACKEND": "windows",
+        "CMAKE_C_COMPILER": "C:/Program Files/LLVM/bin/clang.exe",
+        "CMAKE_CXX_COMPILER": "C:/Program Files/LLVM/bin/clang++.exe"
+      }
+    },
+    {
+      "name": "windows-headless",
+      "inherits": "headless",
+      "displayName": "Headless on a Windows host (clang, MSVC ABI)",
+      "description": "The headless backend built natively on Windows (the W0 bring-up lane): the standard headless preset plus the LLVM clang compiler pins (the repo's GNU-style warning flags rule out cl.exe).",
+      "binaryDir": "${sourceDir}/build/headless",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "C:/Program Files/LLVM/bin/clang.exe",
+        "CMAKE_CXX_COMPILER": "C:/Program Files/LLVM/bin/clang++.exe"
+      }
+    },
+    {
       "name": "android",
       "inherits": "headless",
       "displayName": "Android (NDK / emulator, arm64-v8a)",
@@ -110,6 +135,8 @@
   ],
   "buildPresets": [
     { "name": "headless", "configurePreset": "headless" },
+    { "name": "windows", "configurePreset": "windows" },
+    { "name": "windows-headless", "configurePreset": "windows-headless" },
     { "name": "tidy", "configurePreset": "tidy" },
     { "name": "asan-ubsan", "configurePreset": "asan-ubsan" },
     { "name": "tsan", "configurePreset": "tsan" },
@@ -123,6 +150,18 @@
     {
       "name": "headless",
       "configurePreset": "headless",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+    },
+    {
+      "name": "windows",
+      "configurePreset": "windows",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+    },
+    {
+      "name": "windows-headless",
+      "configurePreset": "windows-headless",
       "output": { "outputOnFailure": true },
       "execution": { "noTestsAction": "error", "stopOnFailure": false }
     },

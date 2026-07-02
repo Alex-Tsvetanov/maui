@@ -36,20 +36,23 @@ namespace maui::xaml
     namespace
     {
         // GradientBrush's [ContentProperty("GradientStops")] child sink: each <GradientStop> child is added
-        // to the brush's stops collection. The stop is owned by the XAML object graph, so the collection
-        // takes a NON-OWNING aliasing shared_ptr (the content_view pattern) — no double free.
+        // to the brush's stops collection. The collection CO-OWNS the stop (register_add_child_owned):
+        // C#'s GradientStopCollection owns its stops via GC, and gradient_brush subscribes to each stop's
+        // property_changed — a non-owning alias here dangled when the xaml_object_graph (the loader-side
+        // owner) died before the brush, whose destructor then disconnected against freed events (the UAF
+        // the Windows bring-up's ASan run caught).
         template <class TBrush> void register_gradient_stops_sink(xaml_property_registry& properties)
         {
-            properties.register_add_child<TBrush>([](TBrush& brush, maui::core::bindable_object& child) {
-                auto* stop = dynamic_cast<maui::controls::gradient_stop*>(&child);
-                if (stop == nullptr)
-                {
-                    return false;
-                }
-                brush.gradient_stops().add(
-                    std::shared_ptr<maui::controls::gradient_stop>(std::shared_ptr<void>{}, stop));
-                return true;
-            });
+            properties.register_add_child_owned<TBrush>(
+                [](TBrush& brush, const std::shared_ptr<maui::core::bindable_object>& child) {
+                    auto stop = std::dynamic_pointer_cast<maui::controls::gradient_stop>(child);
+                    if (stop == nullptr)
+                    {
+                        return false;
+                    }
+                    brush.gradient_stops().add(std::move(stop));
+                    return true;
+                });
         }
     } // namespace
 

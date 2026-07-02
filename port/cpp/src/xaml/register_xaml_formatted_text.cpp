@@ -117,17 +117,19 @@ namespace maui::xaml
         properties.register_bindable_property<controls::span>("LineHeight", controls::span::line_height_property());
 
         // ---- FormattedString ([ContentProperty("Spans")]: each <Span> child is added to the spans
-        //      collection. The span is owned by the XAML graph, so add_span takes a NON-OWNING aliasing
-        //      shared_ptr (the W7 gradient-stop pattern) — no double free). ----
+        //      collection. The collection CO-OWNS the span (register_add_child_owned) — C#'s
+        //      FormattedString owns its Spans via GC and subscribes to each span's changes, so a
+        //      non-owning alias dangled once the xaml_object_graph died before the formatted_string
+        //      (the gradient-stop UAF's twin, caught by the Windows bring-up's ASan run). ----
         types.register_type<controls::formatted_string>("FormattedString");
-        properties.register_add_child<controls::formatted_string>(
-            [](controls::formatted_string& formatted, maui::core::bindable_object& child) {
-                auto* span = dynamic_cast<controls::span*>(&child);
+        properties.register_add_child_owned<controls::formatted_string>(
+            [](controls::formatted_string& formatted, const std::shared_ptr<maui::core::bindable_object>& child) {
+                auto span = std::dynamic_pointer_cast<controls::span>(child);
                 if (span == nullptr)
                 {
                     return false;
                 }
-                formatted.add_span(std::shared_ptr<controls::span>(std::shared_ptr<void>{}, span));
+                formatted.add_span(std::move(span));
                 return true;
             });
 

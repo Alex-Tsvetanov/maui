@@ -4,7 +4,6 @@
 
 #include "maui/core/date_time.hpp"
 
-#include <__chrono/duration.h> // include-cleaner: std::chrono::days lives here on libc++
 #include <array>
 #include <chrono>
 #include <cstddef>
