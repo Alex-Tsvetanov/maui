@@ -101,6 +101,16 @@ namespace maui::samples
             {
                 h->set_font(maui::core::font::system_font_of_size(18.0, maui::core::font_weight::bold));
             }
+            // maui-compare's Info() style = FontSize 8: the small value/color sub-captions. The port had
+            // left them at the default label size, which inflates every row and makes the page taller than
+            // MAUI (set_caption/wire_corner only rewrite the text, so styling the font up-front sticks).
+            for (maui::controls::label* info :
+                 {&bg_start_caption_, &bg_end_caption_, &border_start_caption_, &border_end_caption_,
+                  &dash_array_caption_, &width_caption_, &dash_offset_caption_, &top_left_caption_, &top_right_caption_,
+                  &bottom_left_caption_, &bottom_right_caption_})
+            {
+                info->set_font(maui::core::font::system_font_of_size(8.0));
+            }
             border_view_.set_content(border_content_label_);
             grid_.add(border_view_);
             grid_.set_row(border_view_, 0);
