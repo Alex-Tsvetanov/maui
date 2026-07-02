@@ -301,9 +301,9 @@ namespace
             element.Fill(wnative::to_brush(solid->color()));
             return;
         }
-        // deferred: gradient / image / pattern fills as real XAML brushes (Paint.ToPlatform) — the
-        // resolved background color (the first-gradient-stop projection) stands in (header note).
-        element.Fill(wnative::to_brush(fill->background_color()));
+        // Paint.ToPlatform: linear/radial gradients map to the real XAML gradient brushes (relative
+        // stop coordinates match 1:1); image/pattern paints keep the resolved-color solid fallback.
+        element.Fill(wnative::to_paint_brush(fill));
     }
 
     // ShapeDrawable.DrawStrokePath: no stroke paint or a non-positive thickness draws no outline
@@ -316,9 +316,9 @@ namespace
         {
             return;
         }
-        // C# stroke.ToColor() — the solid/first-gradient-stop projection (paint::background_color(),
-        // the border_stroke_spec precedent). deferred: gradient strokes as real brushes.
-        element.Stroke(wnative::to_brush(stroke->background_color()));
+        // Paint.ToPlatform for the stroke: gradient strokes map to the real XAML gradient brushes;
+        // image/pattern paints keep the C# stroke.ToColor() solid projection (background_color()).
+        element.Stroke(wnative::to_paint_brush(stroke));
         element.StrokeThickness(view.stroke_thickness());
         // StrokeDashPattern → StrokeDashArray: both speak stroke-thickness multiples (the D2D
         // dash-style unit XAML Shapes and Win2D's CanvasStrokeStyle share), so the values and the
@@ -530,8 +530,9 @@ namespace maui::core
             host.Background(wnative::to_brush(solid->color()));
             return;
         }
-        // deferred: gradient / image-source paints (Paint.ToPlatform) — the base mirror above keeps
-        // the borrow observable.
+        // Paint.ToPlatform: gradient container backgrounds map to the real XAML gradient brushes;
+        // image-source paints keep the resolved-color fallback inside to_paint_brush.
+        host.Background(wnative::to_paint_brush(value));
     }
 
     std::unique_ptr<shape_view_platform> shape_view_handler::create_platform_view()

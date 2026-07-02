@@ -22,6 +22,7 @@
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
 #include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Microsoft.UI.Xaml.h>
+#include <winrt/Windows.Foundation.Collections.h> // GradientStops().Append (IVector)
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.UI.h>
 #include <winrt/base.h>
@@ -29,6 +30,8 @@
 #include "maui/core/thickness.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/color.hpp"
+#include "maui/graphics/linear_gradient_paint.hpp"
+#include "maui/graphics/radial_gradient_paint.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -101,6 +104,57 @@ namespace maui::platform::win
     {
         return winrt::Microsoft::UI::Xaml::Thickness{
             .Left = value.left, .Top = value.top, .Right = value.right, .Bottom = value.bottom};
+    }
+
+    // Paint.ToPlatform (PaintExtensions.Windows.cs): the full paint → WinUI Brush bridge. Solid →
+    // SolidColorBrush; linear/radial gradients → the matching XAML gradient brush with the stop list
+    // (start/end + center/radius are RELATIVE coordinates on both sides — WinUI's default
+    // RelativeToBoundingBox MappingMode matches the port's 0..1 points 1:1). Anything else (image /
+    // pattern paints) falls back to the resolved background_color() solid — the remaining honest
+    // deferral. Null paint → null brush (callers ClearValue / keep the theme default).
+    [[nodiscard]] inline winrt::Microsoft::UI::Xaml::Media::Brush to_paint_brush(
+        const maui::graphics::paint* value)
+    {
+        namespace muxmedia = winrt::Microsoft::UI::Xaml::Media;
+        if (value == nullptr)
+        {
+            return nullptr;
+        }
+        if (const auto* linear = dynamic_cast<const maui::graphics::linear_gradient_paint*>(value))
+        {
+            muxmedia::LinearGradientBrush brush;
+            brush.StartPoint({static_cast<float>(linear->start_point().x),
+                              static_cast<float>(linear->start_point().y)});
+            brush.EndPoint({static_cast<float>(linear->end_point().x),
+                            static_cast<float>(linear->end_point().y)});
+            for (const auto& stop : linear->gradient_stops())
+            {
+                muxmedia::GradientStop native_stop;
+                native_stop.Color(to_ui_color(stop.color()));
+                native_stop.Offset(static_cast<double>(stop.offset()));
+                brush.GradientStops().Append(native_stop);
+            }
+            return brush;
+        }
+        if (const auto* radial = dynamic_cast<const maui::graphics::radial_gradient_paint*>(value))
+        {
+            muxmedia::RadialGradientBrush brush;
+            const auto center = winrt::Windows::Foundation::Point{static_cast<float>(radial->center().x),
+                                                                  static_cast<float>(radial->center().y)};
+            brush.Center(center);
+            brush.GradientOrigin(center);
+            brush.RadiusX(radial->radius());
+            brush.RadiusY(radial->radius());
+            for (const auto& stop : radial->gradient_stops())
+            {
+                muxmedia::GradientStop native_stop;
+                native_stop.Color(to_ui_color(stop.color()));
+                native_stop.Offset(static_cast<double>(stop.offset()));
+                brush.GradientStops().Append(native_stop);
+            }
+            return brush;
+        }
+        return to_brush(value->background_color()); // solid + the image/pattern fallback projection
     }
 
     [[nodiscard]] inline winrt::hstring to_hstring_utf8(std::string_view value)
