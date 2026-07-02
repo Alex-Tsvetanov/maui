@@ -94,6 +94,23 @@ namespace maui::core
         // shared apply_background paints the host ViewGroup, exactly like the iOS UIPageControl band.
         void update_background(const maui::graphics::paint* value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend: WinUI has no UIPageControl analog in this first cut, so the dots
+        // are drawn by hand — `native` holds a horizontal StackPanel of Ellipse/Rectangle Shape dots,
+        // rebuilt by the mappers (the C# UpdateIndicatorCount / ResetIndicators collapsed), the direct
+        // twin of the android hand-drawn dot row / the apple NSStackView-of-dots (defined in
+        // src/platform/windows/indicator_view_handler.cpp). Each override calls the view_platform_base
+        // body FIRST — the windows preset also runs the cross-platform suite on the host WITHOUT a XAML
+        // runtime (create_platform_view degrades to a null native there), and that suite observes the
+        // headless mirrors — then pushes to the panel when one exists. Background fills the band behind
+        // the dots (Panel.Background), exactly like the iOS UIPageControl band. No winrt types here —
+        // the void* `native` slot only.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
     };
 
     class indicator_view_handler

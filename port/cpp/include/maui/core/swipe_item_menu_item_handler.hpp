@@ -47,7 +47,11 @@ namespace maui::core
     struct swipe_item_menu_item_platform
     {
         swipe_item_menu_item_platform() = default;
-        ~swipe_item_menu_item_platform(); // backend-defined: releases the retained UI/NSButton + frame KVO
+        // Backend-defined: releases the retained UI/NSButton + frame KVO (iOS/apple) / the one strong
+        // WinRT ref pinning the Microsoft.UI.Xaml.Controls.Button (windows). No extra windows fields —
+        // the void* native slot carries the button; no native events are wired (the swipe machine drives
+        // activation), so no tokens.
+        ~swipe_item_menu_item_platform();
         swipe_item_menu_item_platform(const swipe_item_menu_item_platform&) = delete;
         swipe_item_menu_item_platform(swipe_item_menu_item_platform&&) = delete;
         swipe_item_menu_item_platform& operator=(const swipe_item_menu_item_platform&) = delete;

@@ -645,6 +645,43 @@ else()
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/progress_bar_handler.cpp)
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/activity_indicator_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/activity_indicator_handler.cpp)
+    # wave 2 — containers (Border-chrome-in-Canvas / ScrollViewer with a Canvas extent shim).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/border_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/border_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/scroll_view_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/scroll_view_handler.cpp)
+    # wave 2 — image family (Image + BitmapImage file/local-uri sources; ImageButton = Button
+    # composing an inner Image; the source services stay bookkeeping — the C# StorageFile/Win2D
+    # lanes are the partials' documented deferrals).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/image_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/image_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/image_button_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/image_button_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/image_source_services.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/image_source_services.cpp)
+    # wave 3 — the page hosts (static-hosting v1, the android convention: current page / current tab
+    # / detail pane re-hosted into a Canvas; drawers + transitions deferred per the partials' headers).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/navigation_page_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/navigation_page_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/tabbed_page_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/tabbed_page_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/flyout_page_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/flyout_page_handler.cpp)
+    # wave 2 — the shapes family (Microsoft.UI.Xaml.Shapes primitives in a Canvas container — the
+    # documented deviation from C#'s Win2D graphics view; box_view/rect/ellipse/line/poly/path map 1:1).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/shape_view_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/shape_view_handler.cpp)
+    # wave 3 — swipe + refresh (static content hosts; live gestures deferred like the android twins).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/swipe_view_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/swipe_view_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/swipe_item_menu_item_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/swipe_item_menu_item_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/refresh_view_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/refresh_view_handler.cpp)
+    # wave 3 — web_view (a real WinUI 3 WebView2: NavigateToString with the MauiWebView base-insertion
+    # script, EnsureCoreWebView2Async pending-load bridge, full navigation-event pipeline).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/web_view_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/web_view_handler.cpp)
   endif()
 endif()
 
@@ -983,6 +1020,10 @@ elseif(MAUI_BACKEND STREQUAL "android")
   # device render. Guarded internally by scoped_env / app_context (VM-less degradation). MAUI_PLATFORM_
   # ANDROID is already PUBLIC on maui_core for this backend (so the header's android struct slots compile).
   set(MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES src/platform/android/collection_view_handler.cpp)
+elseif(MAUI_BACKEND STREQUAL "windows")
+  # The windows CollectionView partial: a ScrollViewer→Canvas host realizing a native view per element
+  # with absolute frames (the android convention on WinUI vocabulary).
+  set(MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES src/platform/windows/collection_view_handler.cpp)
 else()
   set(MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES src/platform/headless/collection_view_handler.cpp)
 endif()
@@ -1003,6 +1044,9 @@ elseif(MAUI_BACKEND STREQUAL "android")
   # position / shape; this is the on-device render. Guarded internally by scoped_env / app_context (VM-less
   # degradation). MAUI_PLATFORM_ANDROID is already PUBLIC on maui_core for this backend.
   set(MAUI_CONTROLS_INDICATOR_PLATFORM_SOURCES src/platform/android/indicator_view_handler.cpp)
+elseif(MAUI_BACKEND STREQUAL "windows")
+  # The windows dot-row partial: a StackPanel of Ellipse/Rectangle dots (the apple NSStackView twin).
+  set(MAUI_CONTROLS_INDICATOR_PLATFORM_SOURCES src/platform/windows/indicator_view_handler.cpp)
 else()
   set(MAUI_CONTROLS_INDICATOR_PLATFORM_SOURCES src/platform/headless/indicator_view_handler.cpp)
 endif()

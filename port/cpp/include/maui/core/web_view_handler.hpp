@@ -150,6 +150,37 @@ namespace maui::core
         void update_background(const maui::graphics::paint* value) override;
         void update_semantics(const maui::core::semantics* value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend (src/platform/windows/web_view_handler.cpp): `native` holds a real
+        // Microsoft.UI.Xaml.Controls.WebView2 (WebViewHandler.Windows.cs + Platform/Windows/
+        // MauiWebView.cs). The generic-IView pushes call the view_platform_base body FIRST — the windows
+        // preset also runs the cross-platform suite on the host WITHOUT a XAML runtime
+        // (create_platform_view degrades to a null native there), and on that host the partial ALSO
+        // replays the headless twin's synchronous navigation simulation so the suite observes exactly
+        // the headless behavior — then push to the control when one exists. is_enabled keeps the base
+        // mirror (a WebView2 is a FrameworkElement, not a Control); transform / flow_direction /
+        // background / semantics / shadow / clip / input_transparent keep the base mirrors in this
+        // first cut (deferred; C#'s Windows MapFlowDirection deliberately no-ops anyway).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+        // Native event wiring state (NO winrt types in shared headers — opaque ints only): the
+        // NavigationStarting / NavigationCompleted / CoreWebView2Initialized winrt::event_token values
+        // (the WebView2Proxy wiring of WebViewHandler.Windows.cs), revoked in on_disconnect_handler
+        // (the dtor releases the control, dropping any remainder with it).
+        std::int64_t navigation_starting_token = 0;
+        std::int64_t navigation_completed_token = 0;
+        std::int64_t core_initialized_token = 0;
+        // C#'s _navigationResult = WebNavigationResult.Cancel gate: NavigationStarting sets it when the
+        // virtual view cancelled; NavigationCompleted then skips send_navigated (the proxy's
+        // `is not WebNavigationResult.Cancel` check).
+        bool navigation_cancelled = false;
+        // MauiWebView.LoadHtml's `await EnsureCoreWebView2Async()` gap: NavigateToString needs a live
+        // CoreWebView2, so an HTML load issued before initialization parks here and the
+        // CoreWebView2Initialized handler replays it from the last_html/last_base_url mirrors.
+        bool pending_source_load = false;
+#endif
     };
 
     class web_view_handler : public view_handler<web_view_handler, i_web_view, web_view_platform>

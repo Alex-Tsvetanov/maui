@@ -24,6 +24,8 @@
 // "items_source" on every pages change AND on a child Title change, per TabbedPage's
 // OnHandlerChangingCore wiring), then re-applies the selection and bar styling.
 
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <string>
@@ -33,6 +35,7 @@
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/event.hpp"
 #include "maui/core/i_view.hpp"
+#include "maui/core/move_only_function.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/view_handler.hpp"
 #include "maui/core/view_platform_base.hpp"
@@ -125,6 +128,34 @@ namespace maui::core
         void update_flow_direction(maui::core::flow_direction value) override;
         void update_background(const maui::graphics::paint* value) override;
         void update_semantics(const maui::core::semantics* value) override;
+#endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend (src/platform/windows/tabbed_page_handler.cpp): the host is a real
+        // Microsoft.UI.Xaml.Controls.Canvas hosting the CURRENT tab's content + a TOP tab bar (a
+        // horizontal StackPanel of one Button per tab — the plain-panel stand-in for the WinUI
+        // NavigationView top-tabs chrome; documented deviation in the .cpp header). A tab Button's
+        // Click routes native→virtual through on_tab_select → i_tabbed_view::on_tab_selected (wired by
+        // on_connect_handler — the live tab switch the android twin defers). The retained native slots
+        // (NO winrt types in shared headers — opaque pointers/ints only):
+        void* tab_bar = nullptr;                    // the bar StackPanel (strong ref; rebuilt by set_pages)
+        std::vector<void*> tab_buttons;             // one Button per tab (strong refs; rebuilt by set_pages)
+        std::vector<std::int64_t> tab_click_tokens; // the Buttons' Click winrt::event_token values (parallel)
+        // The native→virtual selection callback (the button_platform on_click shape): set by
+        // on_connect_handler; each tab Button's Click invokes it with the tab index. Stays invokable
+        // XAML-less so the cross-platform suite can drive the selection seam.
+        move_only_function<void(std::size_t)> on_tab_select;
+
+        // Each override calls the view_platform_base body FIRST — the windows preset also runs the
+        // cross-platform suite on the host WITHOUT a XAML runtime (create_platform_view degrades to a
+        // null native there), and that suite observes the headless mirrors — then pushes to the real
+        // host when one exists. is_enabled keeps only the base mirror (a Canvas is not a Control,
+        // matching the apple/ios/android twins); transform / flow_direction / semantics keep the base
+        // mirrors in this first cut (deferred — see the partial's header).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
 #endif
     };
 

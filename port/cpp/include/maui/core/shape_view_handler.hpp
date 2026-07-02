@@ -113,6 +113,32 @@ namespace maui::core
         void update_flow_direction(maui::core::flow_direction value) override;
         void update_semantics(const maui::core::semantics* value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend (src/platform/windows/shape_view_handler.cpp): the seat is a real
+        // Microsoft.UI.Xaml.Controls.Canvas CONTAINER holding the current shape as its single
+        // Microsoft.UI.Xaml.Shapes child (Rectangle / Ellipse / Line / Polygon / Polyline / Path per
+        // the virtual view's concrete kind), REBUILT whenever the drawable changes — the shape kind
+        // can change after create, so the container is the stable native the measure/arrange seam
+        // targets. FAITHFUL-ENOUGH v1 (documented deviation): C# renders every shape through a Win2D
+        // graphics view (ShapeViewHandler.Windows.cs → W2DGraphicsView), which the port does not
+        // have; the port maps the same shape model onto native XAML Shapes primitives instead (see
+        // the partial's header for the per-kind fidelity notes). Each override calls the
+        // view_platform_base body FIRST — the windows preset also runs the cross-platform suite on
+        // the host WITHOUT a XAML runtime (create_platform_view degrades to a null native there),
+        // and that suite observes the headless mirrors (drawable + invalidations) — then pushes to
+        // the elements when they exist. No is_enabled (a shape view is non-interactive); background
+        // rides the CANVAS container (the C# both-Background-and-Fill container split — the shape
+        // FILL owns the child's Fill). transform / flow_direction / shadow / clip / semantics /
+        // input_transparent keep the base mirrors in this first cut (deferred — see the partial).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        // The current Shapes child: ONE strong WinRT ref held as an opaque pointer (NO winrt types in
+        // shared headers), stored/released through the wnative helpers and swapped on every rebuild.
+        void* shape_element = nullptr;
+#endif
     };
 
     class shape_view_handler : public view_handler<shape_view_handler, i_shape_view, shape_view_platform>

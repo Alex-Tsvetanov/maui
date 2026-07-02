@@ -21,6 +21,7 @@
 // headless tests observe the load; and the on_click/on_press/on_release hooks are the inbound channel
 // (the button_platform convention).
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -133,6 +134,43 @@ namespace maui::core
         // never rasterizes, exactly as on iOS — the fill is the chrome).
         void update_background(const maui::graphics::paint* value) override;
         void update_semantics(const maui::core::semantics* value) override;
+#endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend (src/platform/windows/image_button_handler.cpp): the native is a
+        // real Microsoft.UI.Xaml.Controls.Button whose Content is an inner
+        // Microsoft.UI.Xaml.Controls.Image (`image` below — ImageButtonHandler.Windows.cs's _image).
+        // Each override calls the view_platform_base body FIRST — the windows preset also runs the
+        // cross-platform suite on the host WITHOUT a XAML runtime (create_platform_view degrades to a
+        // null native there), and that suite observes the headless mirrors — then pushes to the button
+        // when one exists (the android partial's dual-drive pattern). Background joins the four
+        // because C#'s ImageButtonHandler has a Windows-specific MapBackground
+        // (ButtonExtensions.UpdateBackground). transform / flow_direction / shadow / clip / semantics
+        // / input_transparent keep the base mirrors in this first cut (deferred — see the partial's
+        // header).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        // The inner winrt Image the source/aspect primitives drive (one strong WinRT ref, the wnative
+        // store/borrow/release shape — NO winrt types in shared headers). Released in
+        // ~image_button_platform.
+        void* image = nullptr;
+        // Native event wiring state (the button_platform convention — opaque ints/pointers only):
+        // click_token holds the Button.Click winrt::event_token's value; the two handler slots hold
+        // the detached boxed PointerEventHandler delegates ImageButtonHandler.Windows.cs
+        // ConnectHandler AddHandler-installs with handledEventsToo=true (kept so DisconnectHandler can
+        // RemoveHandler the exact same instances). Revoked/released in on_disconnect_handler; the dtor
+        // sweeps any remainder.
+        std::int64_t click_token = 0;
+        void* pointer_pressed_handler = nullptr;
+        void* pointer_released_handler = nullptr;
+        // The inner Image's ImageOpened token (ImageButtonHandler.Windows.cs ConnectHandler:
+        // _image.ImageOpened += OnImageOpened → VirtualView.UpdateIsLoading(false); the port also
+        // re-runs measure there — the BitmapImage decode is asynchronous, so the Button's content
+        // measures 0×0 until the source opens). Revoked in on_disconnect_handler; 0 = not wired.
+        std::int64_t image_opened_token = 0;
 #endif
     };
 

@@ -130,6 +130,28 @@ namespace maui::core
         void update_flow_direction(maui::core::flow_direction value) override;
         void update_semantics(const maui::core::semantics* value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend (src/platform/windows/border_handler.cpp): the host is a
+        // Microsoft.UI.Xaml.Controls.Canvas (the port's manual-frame content host) carrying a child
+        // Microsoft.UI.Xaml.Controls.Border as the stroke/fill CHROME layer (`chrome` below — the
+        // ContentPanel border-path stand-in). Each override calls the view_platform_base body FIRST —
+        // the windows preset also runs the cross-platform suite on the host WITHOUT a XAML runtime
+        // (create_platform_view degrades to a null native there), and that suite observes the headless
+        // mirrors — then pushes to the real elements when they exist (the android partial's dual-drive
+        // pattern). update_background pushes onto the CHROME Border (not the Canvas) so the fill
+        // respects the corner radius, mirroring how C# paints the background along the border path.
+        // No is_enabled (a border is non-interactive); transform / flow_direction / shadow / clip /
+        // semantics / input_transparent keep the base mirrors in this first cut (deferred — see the
+        // partial's header).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        // The chrome winrt Border (one strong WinRT ref, the wnative store/borrow/release shape — NO
+        // winrt types in shared headers). Child 0 of the Canvas host; released in ~border_platform.
+        void* chrome = nullptr;
+#endif
     };
 
     class border_handler : public view_handler<border_handler, i_border_view, border_platform>

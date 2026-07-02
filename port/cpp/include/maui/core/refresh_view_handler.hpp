@@ -113,6 +113,23 @@ namespace maui::core
         void update_background(const maui::graphics::paint* value) override;
         void update_semantics(const maui::core::semantics* value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend: push the generic IView properties to the real
+        // Microsoft.UI.Xaml.Controls.Canvas refresh host (defined in
+        // src/platform/windows/refresh_view_handler.cpp). The host hosts the single scrollable Content
+        // as its child — the STATIC render (the pull gesture + spinner are the documented deviation: C#
+        // Windows rides Microsoft.UI.Xaml.Controls.RefreshContainer, deferred; see the .cpp header).
+        // is_enabled is intentionally NOT overridden — a Canvas is not a Control, matching the
+        // apple/ios/android twins. Each override calls the view_platform_base body FIRST (the XAML-less
+        // cross-platform suite observes the headless mirror), then pushes to the panel when one exists.
+        // transform / flow_direction / semantics / shadow / clip / input_transparent keep the base
+        // mirrors in this first cut (deferred — see the partial's header). No winrt types here.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
     };
 
     class refresh_view_handler : public view_handler<refresh_view_handler, i_refresh_view, refresh_view_platform>

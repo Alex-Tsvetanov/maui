@@ -25,6 +25,7 @@
 // into `native` instead). It derives view_platform_base (the shared ViewMapper face) so the generic IView
 // properties (Visibility/Opacity/IsEnabled/AutomationId) map onto the NSImageView too.
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -143,6 +144,27 @@ namespace maui::core
         // paint→drawable bridge lands.
         void update_background(const maui::graphics::paint* value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend (src/platform/windows/image_handler.cpp): push the fundamental
+        // IView properties to the real Microsoft.UI.Xaml.Controls.Image. Each override calls the
+        // view_platform_base body FIRST — the windows preset also runs the cross-platform suite on the
+        // host WITHOUT a XAML runtime (create_platform_view degrades to a null native there), and that
+        // suite observes the headless mirrors — then pushes to the element when one exists (the
+        // android partial's dual-drive pattern). No is_enabled (a WinUI Image is a FrameworkElement,
+        // not a Control — C#'s ControlExtensions.UpdateIsEnabled has no seat) and no background (a
+        // plain Image has no Background property; C# rides a container WrapperView — deferred).
+        // transform / flow_direction / shadow / clip / semantics / input_transparent keep the base
+        // mirrors in this first cut (deferred — see the partial's header).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+        // Image.ImageOpened wiring state (the opaque winrt::event_token value — NO winrt types in
+        // shared headers): a BitmapImage decodes ASYNCHRONOUSLY, so the Image measures 0×0 until the
+        // source opens and the handler must re-run layout then (ImageHandler.Windows.cs
+        // ConnectHandler → OnImageOpened). Revoked in on_disconnect_handler; 0 = not wired.
+        std::int64_t image_opened_token = 0;
+#endif
     };
 
     class image_handler : public view_handler<image_handler, i_image, image_platform>
@@ -154,6 +176,19 @@ namespace maui::core
         static command_mapper<i_image, image_handler>& command_mapper();
 
         static std::unique_ptr<image_platform> create_platform_view();
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // ImageHandler.Windows.cs ConnectHandler/DisconnectHandler: wire Image.ImageOpened → the
+        // IsAnimationPlaying re-push + virtual_view()->invalidate_measure(). A BitmapImage decodes
+        // asynchronously, so the Image measures 0×0 until the source opens; the opened natural size
+        // must re-run layout (C#'s OnImageOpened → UpdateValue(IsAnimationPlaying) +
+        // UpdatePlatformMaxConstraints, whose layout refresh XAML performs implicitly). Detected by
+        // the view_handler CRTP hooks; defined in src/platform/windows/image_handler.cpp. The other
+        // backends decode synchronously (apple/ios) or at file fast-path time (android), so only
+        // windows needs the connect seam.
+        void on_connect_handler(image_platform& platform);
+        static void on_disconnect_handler(image_platform& platform);
+#endif
 
         [[nodiscard]] maui::graphics::size get_desired_size(double width_constraint,
                                                             double height_constraint) const override;

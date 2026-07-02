@@ -177,6 +177,25 @@ namespace maui::controls
         std::vector<std::shared_ptr<maui::core::bindable_object>> retained_natives;
 #endif
 
+        // --- windows (W-CV) ---
+        // The Windows (WinUI 3) native render stack — a real Microsoft.UI.Xaml.Controls.ScrollViewer
+        // whose Content is a Canvas host panel (the manual-frame container every windows handler uses:
+        // C++ drives measure/arrange and children keep the absolute Canvas frames their own
+        // platform_arrange set). arrange_native realizes one native element per collection element into
+        // the host and positions each absolutely — the windows twin of the android ScrollView →
+        // MauiCollectionContent recipe (static realization, no ItemsRepeater/ListView virtualization —
+        // documented deviation in the .cpp header). The cross-platform simulator above still runs as the
+        // in-memory state mirror; on the XAML-less test host all three slots stay null and that mirror
+        // is the observable surface. NO winrt types here — void* slots only (windows_native.hpp
+        // store/borrow/release localize the ABI dance to the windows .cpp TU); `native` aliases `scroll`
+        // (not separately retained). retained_natives keeps each realized template-content C++ subtree
+        // (which owns its attached handler + native view) alive while hosted — the android twin's field.
+#ifdef MAUI_PLATFORM_WINDOWS
+        void* scroll = nullptr; // the ScrollViewer (the composed native; one strong ref via wnative::store)
+        void* host = nullptr;   // the inner Canvas hosting the realized children (one strong ref)
+        std::vector<std::shared_ptr<maui::core::bindable_object>> retained_natives;
+#endif
+
         // ---- the fake viewport ----
         double viewport_main_extent = 400;  // along the scroll axis
         double viewport_cross_extent = 400; // across it

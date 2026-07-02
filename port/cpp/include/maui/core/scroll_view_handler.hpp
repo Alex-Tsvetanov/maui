@@ -25,12 +25,14 @@
 // src/platform/<backend>/scroll_view_handler.{cpp,mm}.
 
 #include <any>
+#include <cstdint>
 #include <memory>
 #include <string_view>
 #include <vector>
 
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/i_scroll_view.hpp"
+#include "maui/core/move_only_function.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/scroll_bar_visibility.hpp"
 #include "maui/core/scroll_orientation.hpp"
@@ -115,6 +117,35 @@ namespace maui::core
         void update_flow_direction(maui::core::flow_direction value) override;
         void update_background(const maui::graphics::paint* value) override;
         void update_semantics(const maui::core::semantics* value) override;
+#endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend (src/platform/windows/scroll_view_handler.cpp): the generic IView
+        // pushes onto the real Microsoft.UI.Xaml.Controls.ScrollViewer. Each override calls the
+        // view_platform_base body FIRST — the windows preset also runs the cross-platform suite on the
+        // host WITHOUT a XAML runtime (create_platform_view degrades to a null native there), and that
+        // suite observes the headless mirrors — then pushes to the scroller when one exists (the
+        // android partial's dual-drive pattern). is_enabled keeps the base mirror (scroll-ability is
+        // derived from orientation, the apple/android twins' scope); transform / flow_direction /
+        // shadow / clip / semantics / input_transparent keep the base mirrors in this first cut
+        // (deferred — see the partial's header).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        // Inbound scrolled write-back (wired by on_connect_handler; the native ViewChanged routes
+        // through it — C#'s ScrollViewHandler.Windows ViewChanged: offsets write back on every change,
+        // ScrollFinished only when !IsIntermediate). Cleared on disconnect.
+        move_only_function<void(double offset_x, double offset_y, bool is_final)> on_scrolled;
+        // Native event wiring state (NO winrt types in shared headers — opaque ints/pointers only):
+        // view_changed_token holds the ScrollViewer.ViewChanged winrt::event_token's value (revoked in
+        // on_disconnect_handler; the dtor sweeps any remainder).
+        std::int64_t view_changed_token = 0;
+        // The Canvas shim hosting the content at its manual frame (the C# ContentPanel padding shim
+        // analog — ScrollViewer forces its Content to the origin, so the shim carries the absolutely
+        // positioned content and its explicit size IS the scrollable extent). One strong WinRT ref
+        // (wnative store/borrow/release); released in ~scroll_view_platform.
+        void* content_host = nullptr;
 #endif
     };
 
