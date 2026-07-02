@@ -22,6 +22,7 @@
 // NSWindowDidBecomeKey notification dance (no macOS backend here yet).
 
 #include <atomic>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -137,6 +138,26 @@ namespace maui::core
         void update_transform(const maui::core::transform_spec& value) override;
         void update_flow_direction(maui::core::flow_direction value) override;
         void update_semantics(const maui::core::semantics* value) override;
+#endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend: push the fundamental IView properties to the real
+        // Microsoft.UI.Xaml.Controls.ToggleSwitch (defined in src/platform/windows/switch_handler.cpp).
+        // Each override calls the view_platform_base body FIRST — the windows preset also runs the
+        // cross-platform suite on the host WITHOUT a XAML runtime (create_platform_view degrades to a
+        // null native there) and that suite observes the headless mirrors — then pushes to the control
+        // when one exists (the android partial's dual-drive pattern). IsEnabled IS pushed (a
+        // ToggleSwitch is a Control). transform / flow_direction / background / shadow / clip /
+        // semantics / input_transparent keep the base mirrors in this first cut (see the partial's
+        // header for the deferrals).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        // Native event wiring state (NO winrt types in shared headers — opaque ints only): the
+        // ToggleSwitch.Toggled winrt::event_token's value (SwitchHandler.Windows.cs ConnectHandler
+        // `platformView.Toggled += OnToggled`). Revoked in on_disconnect_handler.
+        std::int64_t toggled_token = 0;
 #endif
     };
 

@@ -70,7 +70,11 @@ namespace maui::controls
 
     const maui::core::bindable_property<int>& button::corner_radius_property()
     {
-        static const maui::core::bindable_property<int> descriptor{"corner_radius", 0};
+        // C# Button.CornerRadiusProperty default = BorderElement.DefaultCornerRadius = -1 (the "keep
+        // the native default corner radius" sentinel every backend's MapCornerRadius honors) — NOT 0,
+        // which squares off toolkits whose native buttons are rounded (WinUI's 4px ControlCornerRadius;
+        // the Windows bring-up's parity capture caught the difference).
+        static const maui::core::bindable_property<int> descriptor{"corner_radius", -1};
         return descriptor;
     }
 

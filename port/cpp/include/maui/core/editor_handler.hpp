@@ -24,6 +24,7 @@
 // edit supply the *old* value, and the move_only_function hooks are the inbound channel the platform
 // partial wires up (headless tests invoke them directly to simulate a native edit / end-of-edit).
 
+#include <cstdint>
 #include <limits>
 #include <memory>
 #include <string>
@@ -142,6 +143,30 @@ namespace maui::core
         void update_clip(const maui::graphics::i_shape* value) override;
         // The clip borrow platform_arrange re-resolves against the live bounds (null = no clip). Android-gated.
         const maui::graphics::i_shape* clip_shape = nullptr;
+#endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend: push the fundamental IView properties + Background to the real
+        // Microsoft.UI.Xaml.Controls.TextBox (AcceptsReturn + Wrap; defined in
+        // src/platform/windows/editor_handler.cpp). Each override calls the view_platform_base body
+        // FIRST — the windows preset also runs the cross-platform suite on the host WITHOUT a XAML
+        // runtime (create_platform_view degrades to a null native there), and that suite observes the
+        // headless mirrors — then pushes to the control when one exists (the android partial's
+        // dual-drive pattern). Background joins the four because C#'s EditorHandler has a
+        // Windows-specific MapBackground (TextBoxExtensions.UpdateBackground). transform /
+        // flow_direction / semantics / shadow / clip / input_transparent keep the base mirrors in this
+        // first cut (deferred — see the partial's header).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        // Native event wiring state (NO winrt types in shared headers — opaque ints only): the
+        // TextChanged / LostFocus winrt::event_token values EditorHandler.Windows.cs ConnectHandler
+        // installs (OnTextChanged / OnLostFocus — losing focus → Completed). Revoked in
+        // on_disconnect_handler.
+        std::int64_t text_changed_token = 0;
+        std::int64_t lost_focus_token = 0;
 #endif
     };
 

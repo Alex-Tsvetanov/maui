@@ -49,6 +49,12 @@ endif()
 # ---- Warnings (PROFILE.md §1: treat as errors in CI once green) ----
 add_compile_options(-Wall -Wextra -Wpedantic)
 
+# ---- Windows App SDK (WinUI 3) consumption — the `windows` backend's native toolkit. Included early
+# so the maui_windows_appsdk INTERFACE target exists before maui_core links it. ----
+if(MAUI_BACKEND STREQUAL "windows")
+  include(cmake/windows_appsdk.cmake)
+endif()
+
 enable_testing()
 
 # ---- Dependencies (vcpkg manifest: gtest, benchmark) ----
@@ -589,6 +595,57 @@ else()
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/tabbed_page_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/tabbed_page_handler.cpp)
   endif()
+  if(MAUI_BACKEND STREQUAL "windows")
+    # Windows (WinUI 3) per-control fan-out: the C++/WinRT partial REPLACES the headless one control by
+    # control — the ios/android bring-up pattern replayed. Each partial drives the real
+    # Microsoft.UI.Xaml control (created on the XAML thread by run_app's Application) and keeps the
+    # shared platform struct's headless mirrors for what it does not push natively yet.
+    # window: the real Microsoft.UI.Xaml.Window (created by the handler, shown by host_run).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/window_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/window_handler.cpp)
+    # content_page: a Canvas host (the manual-frame container — the flipped_container twin).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/content_page_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/content_page_handler.cpp)
+    # layout: a Canvas whose children are absolutely positioned by platform_arrange.
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/layout_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/layout_handler.cpp)
+    # label: TextBlock (LabelHandler.Windows.cs).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/label_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/label_handler.cpp)
+    # button: Button (ButtonHandler.Windows.cs).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/button_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/button_handler.cpp)
+    # wave 1 — text inputs (TextBox / AutoSuggestBox; Entry/Editor/SearchBarHandler.Windows.cs).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/entry_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/entry_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/editor_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/editor_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/search_bar_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/search_bar_handler.cpp)
+    # wave 1 — pickers + radio (ComboBox / CalendarDatePicker / TimePicker / RadioButton).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/picker_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/picker_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/date_picker_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/date_picker_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/time_picker_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/time_picker_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/radio_button_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/radio_button_handler.cpp)
+    # wave 1 — toggles + ranges (ToggleSwitch / CheckBox / Slider / MauiStepper-grid / ProgressBar /
+    # ProgressRing).
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/switch_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/switch_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/check_box_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/check_box_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/slider_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/slider_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/stepper_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/stepper_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/progress_bar_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/progress_bar_handler.cpp)
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/activity_indicator_handler.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/activity_indicator_handler.cpp)
+  endif()
 endif()
 
 add_library(maui_core STATIC
@@ -718,6 +775,21 @@ endif()
 if(MAUI_BACKEND STREQUAL "android")
   target_compile_definitions(maui_core PUBLIC MAUI_PLATFORM_ANDROID)
   target_include_directories(maui_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/android)
+endif()
+# The windows twin of the platform blocks above: MAUI_PLATFORM_WINDOWS (PUBLIC, the same ODR rule)
+# selects the windows update_* override blocks in the shared platform structs for every TU of the
+# build. maui_windows_appsdk (PUBLIC) carries the generated C++/WinRT projection include dirs + the
+# WindowsAppRuntime bootstrap import lib to every consumer; the windows partials' shared helpers
+# (windows_native.hpp) are PRIVATE — only the windows/*.cpp TUs reach them.
+if(MAUI_BACKEND STREQUAL "windows")
+  target_compile_definitions(maui_core PUBLIC MAUI_PLATFORM_WINDOWS)
+  # maui_windows_appsdk joins the mauiTargets export set (the conditional install below), so it links
+  # PUBLIC unwrapped: an installed windows-lane package carries the bootstrap import lib + WindowsApp
+  # link deps (absolute NuGet-cache paths — same-machine consumption, exactly how this lane resolves
+  # them at build time too). Its include dirs stay $<BUILD_INTERFACE>-scoped inside windows_appsdk.cmake
+  # (no consumer TU includes winrt headers — the projection is a framework-internal concern).
+  target_link_libraries(maui_core PUBLIC maui_windows_appsdk)
+  target_include_directories(maui_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows)
 endif()
 # The headless twin of the platform blocks above: MAUI_PLATFORM_HEADLESS (PUBLIC, the same ODR rule) marks
 # the in-memory backend. It also gates the headless-only run_app entry (host_run.hpp / src/platform/headless/
@@ -1813,7 +1885,13 @@ add_library(maui_hosting STATIC
   $<$<STREQUAL:${MAUI_BACKEND},headless>:src/platform/headless/host_run.cpp>
   $<$<STREQUAL:${MAUI_BACKEND},apple>:src/platform/apple/host_run.mm>
   $<$<STREQUAL:${MAUI_BACKEND},ios>:src/platform/ios/host_run.mm>
+  $<$<STREQUAL:${MAUI_BACKEND},windows>:src/platform/windows/host_run.cpp>
 )
+# The windows host_run drives the WinUI Application/bootstrap directly and borrows the window
+# handler's native Window through the shared windows helpers.
+if(MAUI_BACKEND STREQUAL "windows")
+  target_include_directories(maui_hosting PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows)
+endif()
 # The apple/ios run_app lanes are Objective-C++ (AppKit/UIKit) and must compile under ARC like every other
 # .mm partial. AppKit (apple) / UIKit (ios) are already linked PUBLIC through maui_core (the window_handler
 # .mm uses them); host_run only needs the ARC flag on its own .mm.
@@ -2312,6 +2390,11 @@ include(CMakePackageConfigHelpers)
 # whether the target exists — so there is NOTHING backend-conditional to install here. maui_sanitizers
 # is in the set because the framework libs PRIVATE-link it (the exported targets reference it; an export
 # set must contain every target its members link, even INTERFACE ones); the umbrella carries maui::maui.
+# The windows lane's WinAppSDK INTERFACE target must ride the same export set (maui_core PUBLIC-links
+# it there): INTERFACE libs export cleanly; the link deps are absolute same-machine NuGet-cache paths.
+if(MAUI_BACKEND STREQUAL "windows")
+  install(TARGETS maui_windows_appsdk EXPORT mauiTargets)
+endif()
 install(TARGETS
     maui_graphics maui_core maui_controls maui_layouts maui_xaml maui_hosting maui_essentials
     maui_sanitizers maui_umbrella

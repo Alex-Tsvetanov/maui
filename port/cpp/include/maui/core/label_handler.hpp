@@ -154,6 +154,25 @@ namespace maui::core
         // untouched on the unset branch. Re-applying a captured getCurrentTextColor() int would flatten that
         // ColorStateList and break the disabled appearance (layout_is_enabled), so it is deliberately gone.
 #endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend: push the fundamental IView properties to the real
+        // Microsoft.UI.Xaml.Controls.TextBlock (defined in src/platform/windows/label_handler.cpp). Each
+        // override calls the view_platform_base body FIRST — the windows preset also runs the
+        // cross-platform suite on the host WITHOUT a XAML runtime (create_platform_view degrades to a
+        // null native there), and that suite observes the headless mirrors — then pushes to the control
+        // when one exists (the android partial's dual-drive pattern). is_enabled is intentionally NOT
+        // overridden: a TextBlock is not a Control, and C#'s ViewExtensions.UpdateIsEnabled
+        // (`platformView as Control`) no-ops on it, so the base mirror is the faithful behavior.
+        // background keeps the base mirror too: a TextBlock has no Background property — C# paints a
+        // label background through the WrapperView container (LabelHandler.Windows.MapBackground →
+        // ContainerView), which this first cut defers alongside the container infra. transform /
+        // flow_direction / semantics / shadow / clip / input_transparent also keep the base mirrors
+        // (deferred — see the partial's header).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+#endif
     };
 
     class label_handler : public view_handler<label_handler, i_label, label_platform>

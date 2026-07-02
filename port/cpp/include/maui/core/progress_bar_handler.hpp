@@ -101,6 +101,21 @@ namespace maui::core
         void update_flow_direction(maui::core::flow_direction value) override;
         void update_semantics(const maui::core::semantics* value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend: push the fundamental IView properties to the real
+        // Microsoft.UI.Xaml.Controls.ProgressBar (defined in
+        // src/platform/windows/progress_bar_handler.cpp). Each override calls the view_platform_base
+        // body FIRST (the XAML-less cross-platform suite observes the headless mirrors) then pushes to
+        // the control when one exists. UNLIKE the apple/android twins, IsEnabled IS pushed here: the
+        // WinUI ProgressBar IS a Control, so C#'s generic ViewExtensions.UpdateIsEnabled
+        // (`(platformView as Control)?.IsEnabled = ...`) lands on it. transform / background / shadow /
+        // clip / semantics / input_transparent keep the base mirrors in this first cut.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+#endif
     };
 
     class progress_bar_handler : public view_handler<progress_bar_handler, i_progress, progress_bar_platform>

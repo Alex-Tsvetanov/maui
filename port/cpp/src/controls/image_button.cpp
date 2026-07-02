@@ -69,7 +69,9 @@ namespace maui::controls
 
     const maui::core::bindable_property<int>& image_button::corner_radius_property()
     {
-        static const maui::core::bindable_property<int> descriptor{"corner_radius", 0};
+        // C# ImageButton.DefaultCornerRadius = -1 (the "keep the native default" sentinel — see the
+        // button.cpp twin; corrected during the Windows bring-up's parity pass).
+        static const maui::core::bindable_property<int> descriptor{"corner_radius", -1};
         return descriptor;
     }
 } // namespace maui::controls

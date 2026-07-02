@@ -93,6 +93,24 @@ namespace maui::core
         // The remaining generic-IView pushes stay the base mirrors here (see the .cpp header note).
         void update_background(const maui::graphics::paint* value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend: push the fundamental IView properties to the real
+        // Microsoft.UI.Xaml.Controls.ProgressRing (defined in
+        // src/platform/windows/activity_indicator_handler.cpp). Each override calls the
+        // view_platform_base body FIRST (the XAML-less cross-platform suite observes the headless
+        // mirrors) then pushes to the ring when one exists. NO update_visibility override: the shared
+        // mapper routes the "visibility" key to map_is_running (the header note above), which performs
+        // the generic Windows UpdateVisibility push itself. IsEnabled IS pushed (ProgressRing is a
+        // Control — C#'s generic ViewExtensions.UpdateIsEnabled lands on it). Background IS pushed:
+        // C#'s Windows-specific MapBackground paints the wrapper container (NeedsContainer when a
+        // Background is set); the port's windows backend has no container seam yet, so the brush lands
+        // on the ring's own Control.Background (deviation documented in the partial).
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
     };
 
     class activity_indicator_handler

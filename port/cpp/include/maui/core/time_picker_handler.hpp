@@ -17,6 +17,7 @@
 // `text` is the formatted display string. `on_done` is the inbound channel: the headless stand-in for
 // the Done-accessory tap (MauiTimePicker's dateSelected callback → SetVirtualViewTime).
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -110,6 +111,27 @@ namespace maui::core
         void update_clip(const maui::graphics::i_shape* value) override;
         // The clip borrow platform_arrange re-resolves against the live bounds (null = no clip). Android-gated.
         const maui::graphics::i_shape* clip_shape = nullptr;
+#endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend: push the fundamental IView properties + Background to the real
+        // Microsoft.UI.Xaml.Controls.TimePicker (src/platform/windows/time_picker_handler.cpp). Each
+        // override calls the view_platform_base body FIRST — the windows preset also runs the
+        // cross-platform suite on the host WITHOUT a XAML runtime (create_platform_view degrades to a
+        // null native there) and that suite observes the headless mirrors — then pushes to the control
+        // when one exists. Background joins the four because C#'s TimePickerHandler.Windows.cs has a
+        // Windows-specific MapBackground (TimePickerExtensions.UpdateBackground). transform /
+        // flow_direction / semantics / shadow / clip / input_transparent keep the base mirrors in this
+        // first cut (deferred — see the partial).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        // Native event wiring state (NO winrt types in shared headers — opaque ints only): the
+        // winrt::event_token value of the SelectedTimeChanged subscription
+        // TimePickerHandler.Windows.cs ConnectHandler installs; revoked in on_disconnect_handler.
+        std::int64_t selected_time_changed_token = 0;
 #endif
     };
 

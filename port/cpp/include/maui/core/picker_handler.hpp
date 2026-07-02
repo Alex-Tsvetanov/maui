@@ -19,6 +19,7 @@
 // `on_done` is the inbound channel: the headless stand-in for the Done-accessory tap that commits the
 // native wheel row (FinishSelectItem); tests invoke it directly with the picked row.
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -109,6 +110,34 @@ namespace maui::core
         void update_transform(const maui::core::transform_spec& value) override;
         void update_flow_direction(maui::core::flow_direction value) override;
         void update_semantics(const maui::core::semantics* value) override;
+#endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend: push the fundamental IView properties + Background to the real
+        // Microsoft.UI.Xaml.Controls.ComboBox (src/platform/windows/picker_handler.cpp). Each override
+        // calls the view_platform_base body FIRST — the windows preset also runs the cross-platform
+        // suite on the host WITHOUT a XAML runtime (create_platform_view degrades to a null native
+        // there) and that suite observes the headless mirrors — then pushes to the control when one
+        // exists (the android partial's dual-drive pattern). Background joins the four because C#'s
+        // PickerHandler.Windows.cs has a Windows-specific MapBackground (PickerExtensions
+        // .UpdateBackground). transform / flow_direction / semantics / shadow / clip /
+        // input_transparent keep the base mirrors in this first cut (deferred — see the partial).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        // Native event wiring state (NO winrt types in shared headers — opaque ints only): the
+        // winrt::event_token values of the SelectionChanged / DropDownOpened / DropDownClosed
+        // subscriptions PickerHandler.Windows.cs ConnectHandler installs; revoked in
+        // on_disconnect_handler.
+        std::int64_t selection_changed_token = 0;
+        std::int64_t drop_down_opened_token = 0;
+        std::int64_t drop_down_closed_token = 0;
+        // PickerHandler.Windows.cs UpdatingItemSource: rebuilding the item list resets the native
+        // SelectedIndex (which would propagate -1 to the virtual view through SelectionChanged); the
+        // flag suppresses that write-back for the rebuild's duration.
+        bool updating_item_source = false;
 #endif
     };
 

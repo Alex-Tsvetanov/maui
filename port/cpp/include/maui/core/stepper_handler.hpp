@@ -18,6 +18,7 @@
 // GetDesiredSize (a cosmetic, empirically-measured overflow constant; the port keeps the native
 // fitting size).
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -117,6 +118,36 @@ namespace maui::core
         void update_transform(const maui::core::transform_spec& value) override;
         void update_flow_direction(maui::core::flow_direction value) override;
         void update_semantics(const maui::core::semantics* value) override;
+#endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend: MauiStepper's template is ported STRUCTURALLY — `native` is a
+        // Microsoft.UI.Xaml.Controls.Grid with two star columns hosting two Buttons ("-" minus /
+        // "+" plus, MauiStepperStyle.xaml's exact template), each held as its own detached strong ref
+        // (defined in src/platform/windows/stepper_handler.cpp). The value lives in the mirrors (like
+        // the android twin); the buttons carry the enabled state (MauiStepper.UpdateEnabled) and the
+        // inbound Click channel. Each override calls the view_platform_base body FIRST (the XAML-less
+        // cross-platform suite observes the headless mirrors) then pushes to the panel/buttons.
+        // Background IS pushed (StepperHandler.Windows.cs MapBackground → StepperExtensions
+        // .UpdateBackground → MauiStepper.ButtonBackground lands on BOTH buttons); IsEnabled re-derives
+        // the buttons' enabled state (MauiStepper is a Control in C#; the port's Grid is not, so the
+        // push lands on the buttons — the template children Control.IsEnabled would have disabled).
+        void* down_button = nullptr;
+        void* up_button = nullptr;
+        // Inbound minus/plus channel (MauiStepper.OnMinusClicked/OnPlusClicked → UpdateValue(∓Increment)
+        // → the clamped Value write + ValueChanged): wired to the two Buttons' Click events; the
+        // callbacks stay invokable XAML-less so the cross-platform suite can drive them.
+        move_only_function<void()> on_minus;
+        move_only_function<void()> on_plus;
+        // The two Button.Click winrt::event_token values (opaque ints — NO winrt types in shared
+        // headers). Revoked in on_disconnect_handler.
+        std::int64_t minus_click_token = 0;
+        std::int64_t plus_click_token = 0;
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
 #endif
     };
 

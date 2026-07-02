@@ -17,6 +17,7 @@
 // headless), `title` is the headless text mirror, and the callbacks are the inbound event hooks the
 // platform partial wires up.
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -163,6 +164,32 @@ namespace maui::core
         // The clip borrow platform_arrange re-resolves against the live bounds (null = no clip). Unused on
         // headless/Apple (Apple stashes via an associated object), so it is android-gated.
         const maui::graphics::i_shape* clip_shape = nullptr;
+#endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend: push the fundamental IView properties + Background to the real
+        // Microsoft.UI.Xaml.Controls.Button (defined in src/platform/windows/button_handler.cpp). Each
+        // override calls the view_platform_base body FIRST — the windows preset also runs the
+        // cross-platform suite on the host WITHOUT a XAML runtime (create_platform_view degrades to a
+        // null native there), and that suite observes the headless mirrors — then pushes to the control
+        // when one exists (the android partial's dual-drive pattern). Background joins the four because
+        // C#'s ButtonHandler has a Windows-specific MapBackground (ButtonExtensions.UpdateBackground).
+        // transform / flow_direction / semantics / shadow / clip / input_transparent keep the base
+        // mirrors in this first cut (deferred — see the partial's header).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        // Native event wiring state (NO winrt types in shared headers — opaque ints/pointers only):
+        // click_token holds the Button.Click winrt::event_token's value; the two handler slots hold the
+        // detached boxed PointerEventHandler delegates that ButtonHandler.Windows.cs ConnectHandler
+        // AddHandler-installs with handledEventsToo=true (kept so DisconnectHandler can RemoveHandler
+        // the exact same instances). Revoked/released in on_disconnect_handler; the dtor sweeps any
+        // remainder.
+        std::int64_t click_token = 0;
+        void* pointer_pressed_handler = nullptr;
+        void* pointer_released_handler = nullptr;
 #endif
     };
 

@@ -146,6 +146,26 @@ namespace maui::core
         // Android-gated (Apple stashes via an associated object).
         const maui::graphics::i_shape* clip_shape = nullptr;
 #endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend: push the generic IView properties to the real
+        // Microsoft.UI.Xaml.Controls.Canvas panel (defined in src/platform/windows/layout_handler.cpp
+        // — the manual-frame container, the apple flipped_container twin). Each override calls the
+        // view_platform_base body FIRST — the windows preset also runs the cross-platform suite on the
+        // host WITHOUT a XAML runtime (create_platform_view degrades to a null native there), and that
+        // suite observes the headless mirrors — then pushes to the panel when one exists. is_enabled is
+        // intentionally NOT overridden: a Canvas is not a Control (C#'s UpdateIsEnabled no-ops on it),
+        // matching the apple/ios/android twins. background pushes a solid paint onto Panel.Background
+        // (C# LayoutHandler.Windows MapBackground → UpdatePlatformViewBackground); gradients keep the
+        // base mirror (deferred). transform / flow_direction / semantics / shadow / clip /
+        // input_transparent keep the base mirrors in this first cut (deferred — see the partial's
+        // header). update_clips_to_bounds (declared once above) applies a full-frame RectangleGeometry
+        // Clip at arrange time, porting LayoutPanel.ArrangeOverride's ClipsToBounds branch.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
     };
 
     class layout_handler : public view_handler<layout_handler, i_layout, layout_platform>, public i_layout_handler

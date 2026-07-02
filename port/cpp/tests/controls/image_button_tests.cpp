@@ -74,7 +74,9 @@ namespace
         EXPECT_FALSE(control.is_pressed());
         EXPECT_FALSE(control.is_animation_playing()); // pinned false (IImageSourcePart explicit impl)
         EXPECT_EQ(control.stroke_thickness(), 0.0);
-        EXPECT_EQ(control.corner_radius(), 0);
+        // C# ImageButton.DefaultCornerRadius = -1 (the keep-native-default sentinel; the old 0 here
+        // encoded a port bug that squared native-rounded buttons — caught by the Windows parity pass).
+        EXPECT_EQ(control.corner_radius(), -1);
     }
 
     // ImageButtonUnitTest.TestSource + TestSourceDoubleSet.

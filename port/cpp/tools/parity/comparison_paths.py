@@ -38,19 +38,21 @@ CAPTURES = os.path.join(COMP, "captures")
 COMPARISON_JSON = os.path.join(COMP, "comparison.json")
 PAGE_KEYS = os.path.join(HERE, "page_keys.txt")
 
-PLATFORMS = ("ios", "maccatalyst", "android")
+PLATFORMS = ("ios", "maccatalyst", "android", "windows")
 THEMES = ("light", "dark")
 # The frameworks each platform has a capture column for (mirrors build_comparison_json.PLATFORM_FW).
 PLATFORM_FW = {
     "ios": ("maui", "cpp", "xaml"),
     "maccatalyst": ("maui", "cpp", "xaml", "appkit_cpp", "appkit_xaml"),
     "android": ("maui", "cpp", "xaml"),
+    "windows": ("maui", "cpp", "xaml"),
 }
 # Android is captured single-theme; its dark cells are always placeholders.
 PLATFORM_THEMES = {
     "ios": ("light", "dark"),
     "maccatalyst": ("light", "dark"),
     "android": ("light",),
+    "windows": ("light", "dark"),
 }
 MODELS = ("sonnet", "gemini")
 

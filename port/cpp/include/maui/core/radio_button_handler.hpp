@@ -31,6 +31,7 @@
 // mirror every mapped property; and on_select is the inbound channel (the platform partial wires it;
 // headless tests invoke it directly to simulate a native tap).
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -114,6 +115,29 @@ namespace maui::core
         void update_transform(const maui::core::transform_spec& value) override;
         void update_flow_direction(maui::core::flow_direction value) override;
         void update_semantics(const maui::core::semantics* value) override;
+#endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Windows (WinUI 3) backend: push the fundamental IView properties + Background to the real
+        // Microsoft.UI.Xaml.Controls.RadioButton (src/platform/windows/radio_button_handler.cpp). Each
+        // override calls the view_platform_base body FIRST — the windows preset also runs the
+        // cross-platform suite on the host WITHOUT a XAML runtime (create_platform_view degrades to a
+        // null native there) and that suite observes the headless mirrors — then pushes to the control
+        // when one exists. Background joins the four because C#'s RadioButtonHandler.Windows.cs has a
+        // Windows-specific MapBackground (RadioButtonExtensions.UpdateBackground). transform /
+        // flow_direction / semantics / shadow / clip / input_transparent keep the base mirrors in this
+        // first cut (deferred — see the partial).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        // Native event wiring state (NO winrt types in shared headers — opaque ints only): the
+        // winrt::event_token values of the Checked / Unchecked subscriptions
+        // RadioButtonHandler.Windows.cs ConnectHandler installs (both route into the one
+        // OnCheckedOrUnchecked write-back); revoked in on_disconnect_handler.
+        std::int64_t checked_token = 0;
+        std::int64_t unchecked_token = 0;
 #endif
     };
 

@@ -105,13 +105,19 @@ function(maui_add_app name)
         COMMENT "Bundling resources into ${name}.app")
     endif()
   else()
-    # headless / apple: a plain executable. Copy any resources next to the binary (the loader resolves
-    # from_file() paths against the CWD — same convention as the framework's plain macOS gallery).
+    # headless / apple / windows: a plain executable. Copy any resources next to the binary (the loader
+    # resolves from_file() paths against the CWD — same convention as the framework's plain macOS gallery).
     if(ARG_RESOURCES)
       add_custom_command(TARGET ${name} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ARG_RESOURCES}
                 "$<TARGET_FILE_DIR:${name}>"
         COMMENT "Copying resources next to ${name}")
+    endif()
+    # windows (WinUI 3, unpackaged): every app exe must carry the WindowsAppRuntime bootstrap DLL +
+    # the framework resources.pri beside itself (cmake/windows_appsdk.cmake's deploy helper — defined
+    # when the framework is consumed in-tree on the windows backend).
+    if(MAUI_BACKEND STREQUAL "windows" AND COMMAND maui_windows_deploy)
+      maui_windows_deploy(${name})
     endif()
   endif()
 endfunction()
