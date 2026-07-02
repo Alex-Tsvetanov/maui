@@ -955,6 +955,13 @@ namespace maui::controls
         }
         platform->layout = (__bridge_retained void*)layout;
         [controller.collectionView setCollectionViewLayout:layout animated:NO];
+        // Force a fresh geometry pass. A newly-installed compositional layout that carries GLOBAL boundary
+        // supplementary items (a CV-level Header/Footer on config.boundarySupplementaryItems) can otherwise
+        // reuse geometry computed before those boundaries existed, so the header/footer supplementary is
+        // never vended (viewForSupplementaryElementOfKind is not called) and a view/template-hosting
+        // header/footer renders blank. Invalidating is idempotent and cheap; the reload that follows
+        // (native_reload, paired with every rebuild in the mappers) then re-vends the supplementaries.
+        [layout invalidateLayout];
     }
 
     void collection_view_handler::native_update_selection_mode()
@@ -1429,7 +1436,38 @@ namespace maui::controls
 - (NSInteger)numberOfSectionsInCollectionView:(UICollectionView*)collectionView
 {
     auto source = [self source];
-    return source != nullptr ? source->group_count() : 0;
+    if (source == nullptr)
+    {
+        return 0;
+    }
+    const NSInteger count = source->group_count();
+
+    // StructuredItemsViewController2.NumberOfSections: UICollectionViewCompositionalLayout does not render
+    // GLOBAL boundary supplementary items (a Header/Footer set on the layout configuration) when there are
+    // 0 sections. Return at least 1 so the CV-level Header/Footer stays visible with an empty ItemsSource.
+    // Only for a NON-grouped CV with a Header/Footer set (a grouped CV puts group headers in per-section
+    // supplementaries, which would crash on the empty group source). Our ungrouped source reports
+    // group_count()==1 even when empty, so this typically no-ops there; it still guards the genuine
+    // 0-section shape (e.g. a source that reports 0 groups) exactly like MAUI.
+    if (count == 0)
+    {
+        auto* const handler = [self handler];
+        auto* const items_view = handler != nullptr ? handler->virtual_view() : nullptr;
+        auto* const groupable = dynamic_cast<maui::controls::groupable_items_view*>(items_view);
+        const bool is_grouped = groupable != nullptr && groupable->is_grouped();
+        if (auto* const structured = dynamic_cast<maui::controls::structured_items_view*>(items_view);
+            structured != nullptr && !is_grouped)
+        {
+            const bool has_header = structured->header().has_value() || structured->header_template() != nullptr;
+            const bool has_footer = structured->footer().has_value() || structured->footer_template() != nullptr;
+            if (has_header || has_footer)
+            {
+                return 1;
+            }
+        }
+    }
+
+    return count;
 }
 
 - (NSInteger)collectionView:(UICollectionView*)collectionView numberOfItemsInSection:(NSInteger)section
