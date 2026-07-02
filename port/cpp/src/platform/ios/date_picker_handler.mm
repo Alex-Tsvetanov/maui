@@ -66,6 +66,26 @@
 }
 @end
 
+#if TARGET_OS_MACCATALYST
+// MauiMacDatePicker — the bare UIDatePicker DatePickerHandler.MacCatalyst.cs presents (there is no wrapping
+// MauiDatePicker UITextField on Catalyst). It carries the SAME layoutSubviews hook the iOS MauiIosDatePicker
+// does: apply_background installs a gradient/image background sublayer before arrange (bounds 0×0), so
+// without a resize on each layout the brush fill would stay zero-/content-sized (rendering only text-width)
+// instead of filling the picker's full frame — matching MAUI's full-width gradient DatePicker fill. A solid
+// BackgroundColor needs no resize (it is the UIView backgroundColor property, which already fills bounds).
+@interface MauiMacDatePicker : UIDatePicker
+@end
+
+@implementation MauiMacDatePicker
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    maui::platform::ios::resize_background_layers((__bridge void*)self);
+    maui::platform::ios::reapply_clip((__bridge void*)self);
+}
+@end
+#endif // TARGET_OS_MACCATALYST
+
 // Obj-C trampoline for the Done accessory tap — MauiDatePicker's DoneClicked feeding
 // DatePickerHandler.OnDoneClicked → SetVirtualViewDate.
 @interface MauiIosDatePickerDoneTarget : NSObject
@@ -395,7 +415,7 @@ namespace maui::core
         // UIDatePicker { Mode = Date, TimeZone = UTC } used directly — no wrapping MauiDatePicker UITextField
         // and no RoundedRect box. On Catalyst UIKit renders this as an inline segmented field with bare,
         // left-aligned, device-locale text (removing the bordered field boxes the reused iOS recipe drew).
-        UIDatePicker* const picker = [[UIDatePicker alloc] initWithFrame:CGRectZero];
+        UIDatePicker* const picker = [[MauiMacDatePicker alloc] initWithFrame:CGRectZero];
         picker.datePickerMode = UIDatePickerModeDate;
         picker.timeZone = [NSTimeZone timeZoneWithName:@"UTC"];
         platform->native = (__bridge_retained void*)picker; // the void* slot owns one reference
