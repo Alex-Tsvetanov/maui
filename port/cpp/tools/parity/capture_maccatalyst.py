@@ -13,7 +13,7 @@ and fixing afterward are GUI-free. Re-run with explicit keys to re-capture only 
 Prereqs: the three apps built (examples/build-maccatalyst + ~/maui-compare maccatalyst) and ad-hoc signed.
 
 Usage:
-  python3 tools/parity/capture_maccatalyst.py [--theme light|dark] [--dry-run] [key ...]
+  python3 tools/parity/capture_maccatalyst.py [--theme light|dark] [--framework cpp[,maui,xaml]] [--dry-run] [key ...]
 """
 import os, sys, subprocess, time, glob
 
@@ -106,6 +106,7 @@ def main():
     args = sys.argv[1:]
     theme = "light"
     dry_run = False
+    only_fw = None  # None = all columns; else a set of {"maui","cpp","xaml"} to restrict to
     keys = []
     i = 0
     while i < len(args):
@@ -113,6 +114,8 @@ def main():
             theme = args[i + 1]; i += 2
         elif args[i] == "--dry-run":
             dry_run = True; i += 1
+        elif args[i] == "--framework":
+            only_fw = set(f.strip() for f in args[i + 1].split(",") if f.strip()); i += 2
         else:
             keys.append(args[i]); i += 1
 
@@ -140,6 +143,8 @@ def main():
     if dry_run:
         for key in keys:
             for app_key in ("maui", "cpp", "xaml"):
+                if only_fw and app_key not in only_fw:
+                    continue
                 if app_key == "maui" and key not in maui_keys:
                     continue
                 if app_key == "cpp" and key in NON_BUILDER:
@@ -163,6 +168,8 @@ def main():
             if os.path.exists(stale):
                 os.remove(stale)
         for app_key in ("maui", "cpp", "xaml"):
+            if only_fw and app_key not in only_fw:
+                continue  # --framework restricts which columns get (re)captured
             if app_key == "maui" and key not in maui_keys:
                 continue  # no MAUI counterpart -> don't capture MAUI's ControlsStack fallback
             if app_key == "cpp" and key in NON_BUILDER:
