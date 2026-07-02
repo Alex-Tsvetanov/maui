@@ -193,16 +193,18 @@ namespace maui::samples
 
                 double child_x = 0;
                 double child_y = 0;
-                // C# reads `Size request = sizeRequest;` — and sizeRequest is Size.Zero (never reassigned
-                // to child.DesiredSize). So request is (0,0) in the real sample: this looks like a bug in
-                // the user's DockLayoutManager, but MAUI's actual render IS the ground truth (parity policy
-                // §1), and it renders every docked child as a zero-size sliver (a thin edge whose only
-                // visible mark is the native button chrome / clipped label). An earlier port revision
-                // "fixed" this by reading desired_size(), which produced WIDE solid Left/Right panels and a
-                // narrow center — the opposite of MAUI. Match the C# line-for-line: request is the zero
-                // size_request, so child_width/child_height start at 0 (a dock case may override one axis
-                // to the full remaining width/height, but never both).
-                const maui::graphics::size request = size_request; // C#: `Size request = sizeRequest;` (== Size.Zero)
+                // The src sample's DockLayoutManager reads `Size request = Size.Zero` (a bug in the user
+                // code — it never reassigns request to child.DesiredSize — that would collapse every docked
+                // child to a zero-size frame). But MAUI's actual RENDER is the ground truth (parity policy
+                // §1): shipped MAUI has NO public DockLayout, so the maui-compare reference approximates this
+                // page with a Grid (Top/Bottom full-width 50-tall bands; the two Left buttons in 60-wide
+                // columns hugging the left; the two Right buttons in 80-wide columns hugging the right;
+                // center empty), i.e. every child laid out at its REQUESTED size. So read the child's
+                // DesiredSize here to reproduce that arrangement. (An earlier revision's "wide solid panels"
+                // came from the pre-native-default era when buttons carried wide chrome/padding; native-
+                // default buttons here honor the explicit WidthRequest 60/80 + HeightRequest 50, so the
+                // Left/Right panels are exactly 60/80 wide with a wide empty center, matching MAUI.)
+                const maui::graphics::size request = child.desired_size();
                 double child_width = std::min(width, request.width);
                 double child_height = std::min(height, request.height);
 
