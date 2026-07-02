@@ -31,6 +31,7 @@
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+#include "maui/graphics/solid_paint.hpp"
 
 namespace
 {
@@ -146,17 +147,47 @@ namespace
 }
 @end
 
-// MauiIosStepper — the UIStepper the handler presents. Its layoutSubviews override re-sizes any gradient/
-// image background sublayer apply_background installed (a solid BackgroundColor needs no resize — it is the
-// backing layer's backgroundColor), so a Background brush fills the band behind the −|+ buttons and tracks
-// bounds. apply_background runs before arrange, when bounds is zero, so the hook is needed for gradients.
+// MauiIosStepper — the UIStepper the handler presents. A UIStepper CLAMPS its own bounds to its intrinsic
+// (~140pt) width even when the handler arranges it Fill, so a solid BackgroundColor (the layer's own
+// backgroundColor) fills only that compact width. MAUI paints a Background FULL-WIDTH behind the compact
+// −|+ control. To match, a solid Background also drives a dedicated full-width _mauiFillLayer sized to the
+// ARRANGED width (mauiFillWidth, stashed by platform_arrange) inserted BEHIND the control, with the
+// layer's masksToBounds=NO so it overflows the clamped bounds — the −|+ buttons then sit at the left on a
+// full-width band. layoutSubviews also re-sizes any gradient/image background sublayer apply_background
+// installed (it tracks bounds; apply_background runs before arrange when bounds is zero).
 @interface MauiIosStepper : UIStepper
+@property(nonatomic) CGFloat mauiFillWidth;          // full arranged width (platform_arrange); 0 = unset
+@property(nonatomic, strong) CALayer* mauiFillLayer; // solid Background, full-width behind the control
+- (void)setMauiFillColor:(UIColor*)color;
 @end
 
 @implementation MauiIosStepper
+- (void)setMauiFillColor:(UIColor*)color
+{
+    if (color == nil)
+    {
+        [self.mauiFillLayer removeFromSuperlayer];
+        self.mauiFillLayer = nil;
+        return;
+    }
+    if (self.mauiFillLayer == nil)
+    {
+        self.mauiFillLayer = [CALayer layer];
+        [self.layer insertSublayer:self.mauiFillLayer atIndex:0];
+        self.layer.masksToBounds = NO; // let the full-width fill overflow the intrinsic-clamped bounds
+    }
+    self.mauiFillLayer.backgroundColor = color.CGColor;
+    [self setNeedsLayout];
+}
+
 - (void)layoutSubviews
 {
     [super layoutSubviews];
+    if (self.mauiFillLayer != nil)
+    {
+        const CGFloat w = self.mauiFillWidth > 0 ? self.mauiFillWidth : self.bounds.size.width;
+        self.mauiFillLayer.frame = CGRectMake(0, 0, w, self.bounds.size.height);
+    }
     maui::platform::ios::resize_background_layers((__bridge void*)self);
     // Re-frame the clip mask to the new bounds (WrapperView.LayoutSubviews re-runs SetClip): a
     // UIKit-driven resize / rotation that bypasses the handler would otherwise leave the mask sized
@@ -219,10 +250,17 @@ namespace maui::core
 
     void stepper_platform::update_background(const maui::graphics::paint* value)
     {
-        // BackgroundColor / Background brush fills the stepper's frame behind the −|+ buttons (MAUI paints
-        // it full-width when the stepper is laid out Fill). The shared helper paints a solid color onto the
-        // backing layer or installs a gradient/image sublayer (MauiIosStepper.layoutSubviews keeps it sized);
-        // a null paint clears it.
+        // BackgroundColor / Background brush fills the stepper's frame behind the −|+ buttons. A UIStepper
+        // clamps its bounds to the intrinsic width, so a SOLID color also drives the full-width fill layer
+        // (MauiIosStepper) so the band spans the whole row like MAUI; a gradient/image or null paint clears
+        // it. The shared helper still paints the solid onto the backing layer / installs a gradient sublayer.
+        UIStepper* const stepper = as_stepper(native);
+        if ([stepper isKindOfClass:[MauiIosStepper class]])
+        {
+            const auto* const solid = dynamic_cast<const maui::graphics::solid_paint*>(value);
+            [(MauiIosStepper*)stepper
+                setMauiFillColor:(solid != nullptr ? maui::platform::ios::to_ui_color(solid->color()) : nil)];
+        }
         maui::platform::ios::apply_background(native, value);
     }
 
@@ -354,7 +392,15 @@ namespace maui::core
         {
             return;
         }
-        [as_stepper(platform->native) setFrame:CGRectMake(frame.x, frame.y, frame.width, frame.height)];
+        UIStepper* const stepper = as_stepper(platform->native);
+        [stepper setFrame:CGRectMake(frame.x, frame.y, frame.width, frame.height)];
+        // Stash the full arranged width so the full-width solid-Background fill layer (which must overflow
+        // the UIStepper's intrinsic-clamped bounds) can size itself in layoutSubviews.
+        if ([stepper isKindOfClass:[MauiIosStepper class]])
+        {
+            ((MauiIosStepper*)stepper).mauiFillWidth = frame.width;
+            [stepper setNeedsLayout];
+        }
     }
 
     // Render transform pushed to the native UIView via the shared ios apply_transform helper
