@@ -102,8 +102,8 @@
       "dark": "captures/ios/cpp/activity_indicator_dark.gif"
      },
      "xaml": {
-      "light": "captures/ios/xaml/activity_indicator_light.png",
-      "dark": "captures/ios/xaml/activity_indicator_dark.png"
+      "light": "captures/ios/xaml/activity_indicator_light.gif",
+      "dark": "captures/ios/xaml/activity_indicator_dark.gif"
      }
     },
     "sonnet": {
@@ -189,8 +189,8 @@
       "dark": "captures/ios/cpp/adaptive_collection_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/adaptive_collection_light.png",
+      "dark": "captures/ios/xaml/adaptive_collection_dark.png"
      }
     },
     "sonnet": {
@@ -205,23 +205,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/adaptive_collection_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/adaptive_collection_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/adaptive_collection_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/adaptive_collection_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/adaptive_collection_light.png",
       "dark": null
      }
     },
@@ -245,7 +245,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/adaptive_collection_light.png",
       "dark": null
      }
     },
@@ -276,8 +276,8 @@
       "dark": "captures/ios/cpp/alerts_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/alerts_light.png",
+      "dark": "captures/ios/xaml/alerts_dark.png"
      }
     },
     "sonnet": {
@@ -292,23 +292,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/alerts_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/alerts_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/alerts_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/alerts_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/alerts_light.png",
       "dark": null
      }
     },
@@ -332,7 +332,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/alerts_light.png",
       "dark": null
      }
     },
@@ -450,8 +450,8 @@
       "dark": "captures/ios/cpp/animation_dark.gif"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/animation_light.gif",
+      "dark": "captures/ios/xaml/animation_dark.gif"
      }
     },
     "sonnet": {
@@ -466,23 +466,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/animation_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/animation_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/animation_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/animation_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/animation_light.png",
       "dark": null
      }
     },
@@ -506,7 +506,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/animation_light.png",
       "dark": null
      }
     },
@@ -537,8 +537,8 @@
       "dark": "captures/ios/cpp/app_theme_binding_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/app_theme_binding_light.png",
+      "dark": "captures/ios/xaml/app_theme_binding_dark.png"
      }
     },
     "sonnet": {
@@ -553,23 +553,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/app_theme_binding_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/app_theme_binding_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/app_theme_binding_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/app_theme_binding_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/app_theme_binding_light.png",
       "dark": null
      }
     },
@@ -593,7 +593,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/app_theme_binding_light.png",
       "dark": null
      }
     },
@@ -711,8 +711,8 @@
       "dark": "captures/ios/cpp/auto_size_shapes_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/auto_size_shapes_light.png",
+      "dark": "captures/ios/xaml/auto_size_shapes_dark.png"
      }
     },
     "sonnet": {
@@ -727,23 +727,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/auto_size_shapes_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/auto_size_shapes_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/auto_size_shapes_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/auto_size_shapes_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/auto_size_shapes_light.png",
       "dark": null
      }
     },
@@ -767,7 +767,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/auto_size_shapes_light.png",
       "dark": null
      }
     },
@@ -798,8 +798,8 @@
       "dark": "captures/ios/cpp/basic_grouping_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/basic_grouping_light.png",
+      "dark": "captures/ios/xaml/basic_grouping_dark.png"
      }
     },
     "sonnet": {
@@ -814,23 +814,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/basic_grouping_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/basic_grouping_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/basic_grouping_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/basic_grouping_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/basic_grouping_light.png",
       "dark": null
      }
     },
@@ -854,7 +854,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/basic_grouping_light.png",
       "dark": null
      }
     },
@@ -885,8 +885,8 @@
       "dark": "captures/ios/cpp/basic_swipe_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/basic_swipe_light.png",
+      "dark": "captures/ios/xaml/basic_swipe_dark.png"
      }
     },
     "sonnet": {
@@ -901,23 +901,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/basic_swipe_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/basic_swipe_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/basic_swipe_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/basic_swipe_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/basic_swipe_light.png",
       "dark": null
      }
     },
@@ -941,7 +941,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/basic_swipe_light.png",
       "dark": null
      }
     },
@@ -972,8 +972,8 @@
       "dark": "captures/ios/cpp/behaviors_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/behaviors_light.png",
+      "dark": "captures/ios/xaml/behaviors_dark.png"
      }
     },
     "sonnet": {
@@ -988,23 +988,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/behaviors_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/behaviors_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/behaviors_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/behaviors_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/behaviors_light.png",
       "dark": null
      }
     },
@@ -1028,7 +1028,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/behaviors_light.png",
       "dark": null
      }
     },
@@ -1146,8 +1146,8 @@
       "dark": "captures/ios/cpp/border_clip_playground_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/border_clip_playground_light.png",
+      "dark": "captures/ios/xaml/border_clip_playground_dark.png"
      }
     },
     "sonnet": {
@@ -1162,23 +1162,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/border_clip_playground_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/border_clip_playground_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/border_clip_playground_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/border_clip_playground_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/border_clip_playground_light.png",
       "dark": null
      }
     },
@@ -1202,7 +1202,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/border_clip_playground_light.png",
       "dark": null
      }
     },
@@ -1581,8 +1581,8 @@
       "dark": "captures/ios/cpp/borderless_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/borderless_light.png",
+      "dark": "captures/ios/xaml/borderless_dark.png"
      }
     },
     "sonnet": {
@@ -1597,23 +1597,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/borderless_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/borderless_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/borderless_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/borderless_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/borderless_light.png",
       "dark": null
      }
     },
@@ -1637,7 +1637,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/borderless_light.png",
       "dark": null
      }
     },
@@ -1842,8 +1842,8 @@
       "dark": "captures/ios/cpp/carousel_page_dark.gif"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/carousel_page_light.gif",
+      "dark": "captures/ios/xaml/carousel_page_dark.gif"
      }
     },
     "sonnet": {
@@ -1858,23 +1858,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/carousel_page_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/carousel_page_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/carousel_page_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/carousel_page_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/carousel_page_light.png",
       "dark": null
      }
     },
@@ -1898,7 +1898,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/carousel_page_light.png",
       "dark": null
      }
     },
@@ -1929,8 +1929,8 @@
       "dark": "captures/ios/cpp/chat_example_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/chat_example_light.png",
+      "dark": "captures/ios/xaml/chat_example_dark.png"
      }
     },
     "sonnet": {
@@ -1945,23 +1945,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/chat_example_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/chat_example_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/chat_example_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/chat_example_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/chat_example_light.png",
       "dark": null
      }
     },
@@ -1985,7 +1985,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/chat_example_light.png",
       "dark": null
      }
     },
@@ -2103,8 +2103,8 @@
       "dark": "captures/ios/cpp/chrome_dark.gif"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/chrome_light.gif",
+      "dark": "captures/ios/xaml/chrome_dark.gif"
      }
     },
     "sonnet": {
@@ -2119,23 +2119,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/chrome_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/chrome_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/chrome_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/chrome_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/chrome_light.png",
       "dark": null
      }
     },
@@ -2159,7 +2159,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/chrome_light.png",
       "dark": null
      }
     },
@@ -2190,8 +2190,8 @@
       "dark": "captures/ios/cpp/clip_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/clip_light.png",
+      "dark": "captures/ios/xaml/clip_dark.png"
      }
     },
     "sonnet": {
@@ -2206,23 +2206,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/clip_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/clip_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/clip_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/clip_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/clip_light.png",
       "dark": null
      }
     },
@@ -2246,7 +2246,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/clip_light.png",
       "dark": null
      }
     },
@@ -2277,8 +2277,8 @@
       "dark": "captures/ios/cpp/clip_corner_radius_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/clip_corner_radius_light.png",
+      "dark": "captures/ios/xaml/clip_corner_radius_dark.png"
      }
     },
     "sonnet": {
@@ -2293,23 +2293,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/clip_corner_radius_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/clip_corner_radius_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/clip_corner_radius_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/clip_corner_radius_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/clip_corner_radius_light.png",
       "dark": null
      }
     },
@@ -2333,7 +2333,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/clip_corner_radius_light.png",
       "dark": null
      }
     },
@@ -2364,8 +2364,8 @@
       "dark": "captures/ios/cpp/clip_gallery_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/clip_gallery_light.png",
+      "dark": "captures/ios/xaml/clip_gallery_dark.png"
      }
     },
     "sonnet": {
@@ -2380,23 +2380,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/clip_gallery_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/clip_gallery_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/clip_gallery_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/clip_gallery_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/clip_gallery_light.png",
       "dark": null
      }
     },
@@ -2420,7 +2420,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/clip_gallery_light.png",
       "dark": null
      }
     },
@@ -2451,8 +2451,8 @@
       "dark": "captures/ios/cpp/clip_views_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/clip_views_light.png",
+      "dark": "captures/ios/xaml/clip_views_dark.png"
      }
     },
     "sonnet": {
@@ -2467,23 +2467,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/clip_views_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/clip_views_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/clip_views_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/clip_views_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/clip_views_light.png",
       "dark": null
      }
     },
@@ -2507,7 +2507,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/clip_views_light.png",
       "dark": null
      }
     },
@@ -2538,8 +2538,8 @@
       "dark": "captures/ios/cpp/clipping_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/clipping_light.png",
+      "dark": "captures/ios/xaml/clipping_dark.png"
      }
     },
     "sonnet": {
@@ -2554,23 +2554,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/clipping_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/clipping_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/clipping_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/clipping_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/clipping_light.png",
       "dark": null
      }
     },
@@ -2594,7 +2594,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/clipping_light.png",
       "dark": null
      }
     },
@@ -2712,8 +2712,8 @@
       "dark": "captures/ios/cpp/composition_gallery_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/composition_gallery_light.png",
+      "dark": "captures/ios/xaml/composition_gallery_dark.png"
      }
     },
     "sonnet": {
@@ -2728,23 +2728,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/composition_gallery_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/composition_gallery_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/composition_gallery_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/composition_gallery_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/composition_gallery_light.png",
       "dark": null
      }
     },
@@ -2768,7 +2768,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/composition_gallery_light.png",
       "dark": null
      }
     },
@@ -2973,8 +2973,8 @@
       "dark": "captures/ios/cpp/context_flyout_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/context_flyout_light.png",
+      "dark": "captures/ios/xaml/context_flyout_dark.png"
      }
     },
     "sonnet": {
@@ -2989,23 +2989,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/context_flyout_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/context_flyout_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/context_flyout_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/context_flyout_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/context_flyout_light.png",
       "dark": null
      }
     },
@@ -3029,7 +3029,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/context_flyout_light.png",
       "dark": null
      }
     },
@@ -3234,8 +3234,8 @@
       "dark": "captures/ios/cpp/custom_size_swipe_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/custom_size_swipe_light.png",
+      "dark": "captures/ios/xaml/custom_size_swipe_dark.png"
      }
     },
     "sonnet": {
@@ -3250,23 +3250,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/custom_size_swipe_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/custom_size_swipe_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/custom_size_swipe_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/custom_size_swipe_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/custom_size_swipe_light.png",
       "dark": null
      }
     },
@@ -3290,7 +3290,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/custom_size_swipe_light.png",
       "dark": null
      }
     },
@@ -3321,8 +3321,8 @@
       "dark": "captures/ios/cpp/custom_swipe_item_view_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/custom_swipe_item_view_light.png",
+      "dark": "captures/ios/xaml/custom_swipe_item_view_dark.png"
      }
     },
     "sonnet": {
@@ -3337,23 +3337,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/custom_swipe_item_view_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/custom_swipe_item_view_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/custom_swipe_item_view_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/custom_swipe_item_view_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/custom_swipe_item_view_light.png",
       "dark": null
      }
     },
@@ -3377,7 +3377,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/custom_swipe_item_view_light.png",
       "dark": null
      }
     },
@@ -3408,8 +3408,8 @@
       "dark": "captures/ios/cpp/cv_visual_states_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/cv_visual_states_light.png",
+      "dark": "captures/ios/xaml/cv_visual_states_dark.png"
      }
     },
     "sonnet": {
@@ -3424,23 +3424,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/cv_visual_states_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/cv_visual_states_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/cv_visual_states_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/cv_visual_states_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/cv_visual_states_light.png",
       "dark": null
      }
     },
@@ -3464,7 +3464,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/cv_visual_states_light.png",
       "dark": null
      }
     },
@@ -3495,8 +3495,8 @@
       "dark": "captures/ios/cpp/data_template_selector_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/data_template_selector_light.png",
+      "dark": "captures/ios/xaml/data_template_selector_dark.png"
      }
     },
     "sonnet": {
@@ -3511,23 +3511,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/data_template_selector_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/data_template_selector_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/data_template_selector_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/data_template_selector_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/data_template_selector_light.png",
       "dark": null
      }
     },
@@ -3551,7 +3551,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/data_template_selector_light.png",
       "dark": null
      }
     },
@@ -3669,8 +3669,8 @@
       "dark": "captures/ios/cpp/device_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/device_light.png",
+      "dark": "captures/ios/xaml/device_dark.png"
      }
     },
     "sonnet": {
@@ -3685,23 +3685,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/device_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/device_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/device_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/device_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/device_light.png",
       "dark": null
      }
     },
@@ -3725,7 +3725,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/device_light.png",
       "dark": null
      }
     },
@@ -3756,8 +3756,8 @@
       "dark": "captures/ios/cpp/dispatcher_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/dispatcher_light.png",
+      "dark": "captures/ios/xaml/dispatcher_dark.png"
      }
     },
     "sonnet": {
@@ -3772,23 +3772,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/dispatcher_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/dispatcher_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/dispatcher_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/dispatcher_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/dispatcher_light.png",
       "dark": null
      }
     },
@@ -3812,7 +3812,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/dispatcher_light.png",
       "dark": null
      }
     },
@@ -3843,8 +3843,8 @@
       "dark": "captures/ios/cpp/drag_drop_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/drag_drop_light.png",
+      "dark": "captures/ios/xaml/drag_drop_dark.png"
      }
     },
     "sonnet": {
@@ -3859,23 +3859,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/drag_drop_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/drag_drop_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/drag_drop_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/drag_drop_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/drag_drop_light.png",
       "dark": null
      }
     },
@@ -3899,7 +3899,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/drag_drop_light.png",
       "dark": null
      }
     },
@@ -4017,8 +4017,8 @@
       "dark": "captures/ios/cpp/effects_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/effects_light.png",
+      "dark": "captures/ios/xaml/effects_dark.png"
      }
     },
     "sonnet": {
@@ -4033,23 +4033,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/effects_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/effects_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/effects_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/effects_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/effects_light.png",
       "dark": null
      }
     },
@@ -4073,7 +4073,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/effects_light.png",
       "dark": null
      }
     },
@@ -4104,8 +4104,8 @@
       "dark": "captures/ios/cpp/ellipse_gallery_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/ellipse_gallery_light.png",
+      "dark": "captures/ios/xaml/ellipse_gallery_dark.png"
      }
     },
     "sonnet": {
@@ -4120,23 +4120,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/ellipse_gallery_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/ellipse_gallery_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/ellipse_gallery_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/ellipse_gallery_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/ellipse_gallery_light.png",
       "dark": null
      }
     },
@@ -4160,7 +4160,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/ellipse_gallery_light.png",
       "dark": null
      }
     },
@@ -4191,8 +4191,8 @@
       "dark": "captures/ios/cpp/empty_view_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/empty_view_light.png",
+      "dark": "captures/ios/xaml/empty_view_dark.png"
      }
     },
     "sonnet": {
@@ -4207,23 +4207,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/empty_view_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/empty_view_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/empty_view_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/empty_view_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/empty_view_light.png",
       "dark": null
      }
     },
@@ -4247,7 +4247,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/empty_view_light.png",
       "dark": null
      }
     },
@@ -4278,8 +4278,8 @@
       "dark": "captures/ios/cpp/empty_view_load_simulate_dark.gif"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/empty_view_load_simulate_light.gif",
+      "dark": "captures/ios/xaml/empty_view_load_simulate_dark.gif"
      }
     },
     "sonnet": {
@@ -4294,23 +4294,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/empty_view_load_simulate_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/empty_view_load_simulate_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/empty_view_load_simulate_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/empty_view_load_simulate_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/empty_view_load_simulate_light.png",
       "dark": null
      }
     },
@@ -4334,7 +4334,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/empty_view_load_simulate_light.png",
       "dark": null
      }
     },
@@ -4365,8 +4365,8 @@
       "dark": "captures/ios/cpp/empty_view_null_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/empty_view_null_light.png",
+      "dark": "captures/ios/xaml/empty_view_null_dark.png"
      }
     },
     "sonnet": {
@@ -4381,23 +4381,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/empty_view_null_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/empty_view_null_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/empty_view_null_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/empty_view_null_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/empty_view_null_light.png",
       "dark": null
      }
     },
@@ -4421,7 +4421,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/empty_view_null_light.png",
       "dark": null
      }
     },
@@ -4452,8 +4452,8 @@
       "dark": "captures/ios/cpp/empty_view_rtl_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/empty_view_rtl_light.png",
+      "dark": "captures/ios/xaml/empty_view_rtl_dark.png"
      }
     },
     "sonnet": {
@@ -4468,23 +4468,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/empty_view_rtl_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/empty_view_rtl_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/empty_view_rtl_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/empty_view_rtl_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/empty_view_rtl_light.png",
       "dark": null
      }
     },
@@ -4508,7 +4508,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/empty_view_rtl_light.png",
       "dark": null
      }
     },
@@ -4539,8 +4539,8 @@
       "dark": "captures/ios/cpp/empty_view_selector_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/empty_view_selector_light.png",
+      "dark": "captures/ios/xaml/empty_view_selector_dark.png"
      }
     },
     "sonnet": {
@@ -4555,23 +4555,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/empty_view_selector_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/empty_view_selector_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/empty_view_selector_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/empty_view_selector_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/empty_view_selector_light.png",
       "dark": null
      }
     },
@@ -4595,7 +4595,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/empty_view_selector_light.png",
       "dark": null
      }
     },
@@ -4626,8 +4626,8 @@
       "dark": "captures/ios/cpp/empty_view_swap_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/empty_view_swap_light.png",
+      "dark": "captures/ios/xaml/empty_view_swap_dark.png"
      }
     },
     "sonnet": {
@@ -4642,23 +4642,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/empty_view_swap_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/empty_view_swap_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/empty_view_swap_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/empty_view_swap_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/empty_view_swap_light.png",
       "dark": null
      }
     },
@@ -4682,7 +4682,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/empty_view_swap_light.png",
       "dark": null
      }
     },
@@ -4713,8 +4713,8 @@
       "dark": "captures/ios/cpp/empty_view_template_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/empty_view_template_light.png",
+      "dark": "captures/ios/xaml/empty_view_template_dark.png"
      }
     },
     "sonnet": {
@@ -4729,23 +4729,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/empty_view_template_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/empty_view_template_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/empty_view_template_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/empty_view_template_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/empty_view_template_light.png",
       "dark": null
      }
     },
@@ -4769,7 +4769,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/empty_view_template_light.png",
       "dark": null
      }
     },
@@ -4800,8 +4800,8 @@
       "dark": "captures/ios/cpp/empty_view_view_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/empty_view_view_light.png",
+      "dark": "captures/ios/xaml/empty_view_view_dark.png"
      }
     },
     "sonnet": {
@@ -4816,23 +4816,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/empty_view_view_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/empty_view_view_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/empty_view_view_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/empty_view_view_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/empty_view_view_light.png",
       "dark": null
      }
     },
@@ -4856,7 +4856,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/empty_view_view_light.png",
       "dark": null
      }
     },
@@ -4974,8 +4974,8 @@
       "dark": "captures/ios/cpp/filter_collection_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/filter_collection_light.png",
+      "dark": "captures/ios/xaml/filter_collection_dark.png"
      }
     },
     "sonnet": {
@@ -4990,23 +4990,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/filter_collection_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/filter_collection_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/filter_collection_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/filter_collection_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/filter_collection_light.png",
       "dark": null
      }
     },
@@ -5030,7 +5030,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/filter_collection_light.png",
       "dark": null
      }
     },
@@ -5061,8 +5061,8 @@
       "dark": "captures/ios/cpp/filter_selection_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/filter_selection_light.png",
+      "dark": "captures/ios/xaml/filter_selection_dark.png"
      }
     },
     "sonnet": {
@@ -5077,23 +5077,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/filter_selection_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/filter_selection_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/filter_selection_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/filter_selection_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/filter_selection_light.png",
       "dark": null
      }
     },
@@ -5117,7 +5117,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/filter_selection_light.png",
       "dark": null
      }
     },
@@ -5235,8 +5235,8 @@
       "dark": "captures/ios/cpp/focus_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/focus_light.png",
+      "dark": "captures/ios/xaml/focus_dark.png"
      }
     },
     "sonnet": {
@@ -5251,23 +5251,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/focus_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/focus_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/focus_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/focus_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/focus_light.png",
       "dark": null
      }
     },
@@ -5291,7 +5291,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/focus_light.png",
       "dark": null
      }
     },
@@ -5322,8 +5322,8 @@
       "dark": "captures/ios/cpp/fonts_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/fonts_light.png",
+      "dark": "captures/ios/xaml/fonts_dark.png"
      }
     },
     "sonnet": {
@@ -5338,23 +5338,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/fonts_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/fonts_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/fonts_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/fonts_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/fonts_light.png",
       "dark": null
      }
     },
@@ -5378,7 +5378,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/fonts_light.png",
       "dark": null
      }
     },
@@ -5409,8 +5409,8 @@
       "dark": "captures/ios/cpp/footer_only_string_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/footer_only_string_light.png",
+      "dark": "captures/ios/xaml/footer_only_string_dark.png"
      }
     },
     "sonnet": {
@@ -5425,23 +5425,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/footer_only_string_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/footer_only_string_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/footer_only_string_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/footer_only_string_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/footer_only_string_light.png",
       "dark": null
      }
     },
@@ -5465,7 +5465,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/footer_only_string_light.png",
       "dark": null
      }
     },
@@ -5583,8 +5583,8 @@
       "dark": "captures/ios/cpp/gestures_dark.gif"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/gestures_light.gif",
+      "dark": "captures/ios/xaml/gestures_dark.gif"
      }
     },
     "sonnet": {
@@ -5599,23 +5599,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/gestures_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/gestures_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/gestures_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/gestures_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/gestures_light.png",
       "dark": null
      }
     },
@@ -5639,7 +5639,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/gestures_light.png",
       "dark": null
      }
     },
@@ -5670,8 +5670,8 @@
       "dark": "captures/ios/cpp/gradient_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/gradient_light.png",
+      "dark": "captures/ios/xaml/gradient_dark.png"
      }
     },
     "sonnet": {
@@ -5686,23 +5686,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/gradient_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/gradient_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/gradient_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/gradient_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/gradient_light.png",
       "dark": null
      }
     },
@@ -5726,7 +5726,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/gradient_light.png",
       "dark": null
      }
     },
@@ -5844,8 +5844,8 @@
       "dark": "captures/ios/cpp/grid_grouping_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/grid_grouping_light.png",
+      "dark": "captures/ios/xaml/grid_grouping_dark.png"
      }
     },
     "sonnet": {
@@ -5860,23 +5860,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/grid_grouping_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/grid_grouping_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/grid_grouping_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/grid_grouping_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/grid_grouping_light.png",
       "dark": null
      }
     },
@@ -5900,7 +5900,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/grid_grouping_light.png",
       "dark": null
      }
     },
@@ -5931,8 +5931,8 @@
       "dark": "captures/ios/cpp/grouping_no_templates_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/grouping_no_templates_light.png",
+      "dark": "captures/ios/xaml/grouping_no_templates_dark.png"
      }
     },
     "sonnet": {
@@ -5947,23 +5947,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/grouping_no_templates_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/grouping_no_templates_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/grouping_no_templates_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/grouping_no_templates_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/grouping_no_templates_light.png",
       "dark": null
      }
     },
@@ -5987,7 +5987,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/grouping_no_templates_light.png",
       "dark": null
      }
     },
@@ -6018,8 +6018,8 @@
       "dark": "captures/ios/cpp/grouping_plus_selection_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/grouping_plus_selection_light.png",
+      "dark": "captures/ios/xaml/grouping_plus_selection_dark.png"
      }
     },
     "sonnet": {
@@ -6034,23 +6034,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/grouping_plus_selection_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/grouping_plus_selection_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/grouping_plus_selection_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/grouping_plus_selection_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/grouping_plus_selection_light.png",
       "dark": null
      }
     },
@@ -6074,7 +6074,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/grouping_plus_selection_light.png",
       "dark": null
      }
     },
@@ -6105,8 +6105,8 @@
       "dark": "captures/ios/cpp/header_footer_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/header_footer_light.png",
+      "dark": "captures/ios/xaml/header_footer_dark.png"
      }
     },
     "sonnet": {
@@ -6121,23 +6121,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/header_footer_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/header_footer_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/header_footer_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/header_footer_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/header_footer_light.png",
       "dark": null
      }
     },
@@ -6161,7 +6161,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/header_footer_light.png",
       "dark": null
      }
     },
@@ -6192,8 +6192,8 @@
       "dark": "captures/ios/cpp/header_footer_grid_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/header_footer_grid_light.png",
+      "dark": "captures/ios/xaml/header_footer_grid_dark.png"
      }
     },
     "sonnet": {
@@ -6208,23 +6208,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/header_footer_grid_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/header_footer_grid_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/header_footer_grid_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/header_footer_grid_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/header_footer_grid_light.png",
       "dark": null
      }
     },
@@ -6248,7 +6248,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/header_footer_grid_light.png",
       "dark": null
      }
     },
@@ -6279,8 +6279,8 @@
       "dark": "captures/ios/cpp/header_footer_grid_horizontal_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/header_footer_grid_horizontal_light.png",
+      "dark": "captures/ios/xaml/header_footer_grid_horizontal_dark.png"
      }
     },
     "sonnet": {
@@ -6295,23 +6295,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/header_footer_grid_horizontal_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/header_footer_grid_horizontal_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/header_footer_grid_horizontal_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/header_footer_grid_horizontal_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/header_footer_grid_horizontal_light.png",
       "dark": null
      }
     },
@@ -6335,7 +6335,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/header_footer_grid_horizontal_light.png",
       "dark": null
      }
     },
@@ -6366,8 +6366,8 @@
       "dark": "captures/ios/cpp/header_footer_template_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/header_footer_template_light.png",
+      "dark": "captures/ios/xaml/header_footer_template_dark.png"
      }
     },
     "sonnet": {
@@ -6382,23 +6382,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/header_footer_template_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/header_footer_template_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/header_footer_template_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/header_footer_template_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/header_footer_template_light.png",
       "dark": null
      }
     },
@@ -6422,7 +6422,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/header_footer_template_light.png",
       "dark": null
      }
     },
@@ -6453,8 +6453,8 @@
       "dark": "captures/ios/cpp/header_footer_view_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/header_footer_view_light.png",
+      "dark": "captures/ios/xaml/header_footer_view_dark.png"
      }
     },
     "sonnet": {
@@ -6469,23 +6469,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/header_footer_view_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/header_footer_view_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/header_footer_view_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/header_footer_view_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/header_footer_view_light.png",
       "dark": null
      }
     },
@@ -6509,7 +6509,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/header_footer_view_light.png",
       "dark": null
      }
     },
@@ -6540,8 +6540,8 @@
       "dark": "captures/ios/cpp/hit_testing_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/hit_testing_light.png",
+      "dark": "captures/ios/xaml/hit_testing_dark.png"
      }
     },
     "sonnet": {
@@ -6556,23 +6556,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/hit_testing_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/hit_testing_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/hit_testing_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/hit_testing_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/hit_testing_light.png",
       "dark": null
      }
     },
@@ -6596,7 +6596,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/hit_testing_light.png",
       "dark": null
      }
     },
@@ -6627,8 +6627,8 @@
       "dark": "captures/ios/cpp/horizontal_stack_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/horizontal_stack_light.png",
+      "dark": "captures/ios/xaml/horizontal_stack_dark.png"
      }
     },
     "sonnet": {
@@ -6643,23 +6643,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/horizontal_stack_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/horizontal_stack_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/horizontal_stack_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/horizontal_stack_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/horizontal_stack_light.png",
       "dark": null
      }
     },
@@ -6683,7 +6683,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/horizontal_stack_light.png",
       "dark": null
      }
     },
@@ -6714,8 +6714,8 @@
       "dark": "captures/ios/cpp/hybrid_web_view_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/hybrid_web_view_light.png",
+      "dark": "captures/ios/xaml/hybrid_web_view_dark.png"
      }
     },
     "sonnet": {
@@ -6730,23 +6730,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/hybrid_web_view_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/hybrid_web_view_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/hybrid_web_view_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/hybrid_web_view_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/hybrid_web_view_light.png",
       "dark": null
      }
     },
@@ -6770,7 +6770,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/hybrid_web_view_light.png",
       "dark": null
      }
     },
@@ -6975,8 +6975,8 @@
       "dark": "captures/ios/cpp/indicator_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/indicator_light.png",
+      "dark": "captures/ios/xaml/indicator_dark.png"
      }
     },
     "sonnet": {
@@ -6991,23 +6991,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/indicator_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/indicator_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/indicator_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/indicator_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/indicator_light.png",
       "dark": null
      }
     },
@@ -7031,7 +7031,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/indicator_light.png",
       "dark": null
      }
     },
@@ -7149,8 +7149,8 @@
       "dark": "captures/ios/cpp/input_transparent_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/input_transparent_light.png",
+      "dark": "captures/ios/xaml/input_transparent_dark.png"
      }
     },
     "sonnet": {
@@ -7165,23 +7165,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/input_transparent_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/input_transparent_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/input_transparent_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/input_transparent_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/input_transparent_light.png",
       "dark": null
      }
     },
@@ -7205,7 +7205,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/input_transparent_light.png",
       "dark": null
      }
     },
@@ -7236,8 +7236,8 @@
       "dark": "captures/ios/cpp/invalidate_brush_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/invalidate_brush_light.png",
+      "dark": "captures/ios/xaml/invalidate_brush_dark.png"
      }
     },
     "sonnet": {
@@ -7252,23 +7252,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/invalidate_brush_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/invalidate_brush_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/invalidate_brush_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/invalidate_brush_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/invalidate_brush_light.png",
       "dark": null
      }
     },
@@ -7292,7 +7292,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/invalidate_brush_light.png",
       "dark": null
      }
     },
@@ -7323,8 +7323,8 @@
       "dark": "captures/ios/cpp/invalidate_shadow_host_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/invalidate_shadow_host_light.png",
+      "dark": "captures/ios/xaml/invalidate_shadow_host_dark.png"
      }
     },
     "sonnet": {
@@ -7339,23 +7339,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/invalidate_shadow_host_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/invalidate_shadow_host_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/invalidate_shadow_host_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/invalidate_shadow_host_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/invalidate_shadow_host_light.png",
       "dark": null
      }
     },
@@ -7379,7 +7379,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/invalidate_shadow_host_light.png",
       "dark": null
      }
     },
@@ -7410,8 +7410,8 @@
       "dark": "captures/ios/cpp/ios_blur_effect_dark.gif"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/ios_blur_effect_light.gif",
+      "dark": "captures/ios/xaml/ios_blur_effect_dark.gif"
      }
     },
     "sonnet": {
@@ -7426,23 +7426,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/ios_blur_effect_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/ios_blur_effect_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/ios_blur_effect_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/ios_blur_effect_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/ios_blur_effect_light.png",
       "dark": null
      }
     },
@@ -7466,7 +7466,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/ios_blur_effect_light.png",
       "dark": null
      }
     },
@@ -7497,8 +7497,8 @@
       "dark": "captures/ios/cpp/ios_date_picker_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/ios_date_picker_light.png",
+      "dark": "captures/ios/xaml/ios_date_picker_dark.png"
      }
     },
     "sonnet": {
@@ -7513,23 +7513,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/ios_date_picker_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/ios_date_picker_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/ios_date_picker_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/ios_date_picker_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/ios_date_picker_light.png",
       "dark": null
      }
     },
@@ -7553,7 +7553,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/ios_date_picker_light.png",
       "dark": null
      }
     },
@@ -7584,8 +7584,8 @@
       "dark": "captures/ios/cpp/ios_entry_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/ios_entry_light.png",
+      "dark": "captures/ios/xaml/ios_entry_dark.png"
      }
     },
     "sonnet": {
@@ -7600,23 +7600,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/ios_entry_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/ios_entry_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/ios_entry_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/ios_entry_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/ios_entry_light.png",
       "dark": null
      }
     },
@@ -7640,7 +7640,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/ios_entry_light.png",
       "dark": null
      }
     },
@@ -7671,8 +7671,8 @@
       "dark": "captures/ios/cpp/ios_first_responder_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/ios_first_responder_light.png",
+      "dark": "captures/ios/xaml/ios_first_responder_dark.png"
      }
     },
     "sonnet": {
@@ -7687,23 +7687,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/ios_first_responder_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/ios_first_responder_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/ios_first_responder_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/ios_first_responder_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/ios_first_responder_light.png",
       "dark": null
      }
     },
@@ -7727,7 +7727,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/ios_first_responder_light.png",
       "dark": null
      }
     },
@@ -7758,8 +7758,8 @@
       "dark": "captures/ios/cpp/ios_pan_gesture_dark.gif"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/ios_pan_gesture_light.gif",
+      "dark": "captures/ios/xaml/ios_pan_gesture_dark.gif"
      }
     },
     "sonnet": {
@@ -7774,23 +7774,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/ios_pan_gesture_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/ios_pan_gesture_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/ios_pan_gesture_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/ios_pan_gesture_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/ios_pan_gesture_light.png",
       "dark": null
      }
     },
@@ -7814,7 +7814,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/ios_pan_gesture_light.png",
       "dark": null
      }
     },
@@ -7845,8 +7845,8 @@
       "dark": "captures/ios/cpp/ios_picker_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/ios_picker_light.png",
+      "dark": "captures/ios/xaml/ios_picker_dark.png"
      }
     },
     "sonnet": {
@@ -7861,23 +7861,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/ios_picker_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/ios_picker_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/ios_picker_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/ios_picker_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/ios_picker_light.png",
       "dark": null
      }
     },
@@ -7901,7 +7901,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/ios_picker_light.png",
       "dark": null
      }
     },
@@ -7932,8 +7932,8 @@
       "dark": "captures/ios/cpp/ios_safe_area_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/ios_safe_area_light.png",
+      "dark": "captures/ios/xaml/ios_safe_area_dark.png"
      }
     },
     "sonnet": {
@@ -7948,23 +7948,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/ios_safe_area_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/ios_safe_area_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/ios_safe_area_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/ios_safe_area_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/ios_safe_area_light.png",
       "dark": null
      }
     },
@@ -7988,7 +7988,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/ios_safe_area_light.png",
       "dark": null
      }
     },
@@ -8019,8 +8019,8 @@
       "dark": "captures/ios/cpp/ios_scroll_view_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/ios_scroll_view_light.png",
+      "dark": "captures/ios/xaml/ios_scroll_view_dark.png"
      }
     },
     "sonnet": {
@@ -8035,23 +8035,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/ios_scroll_view_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/ios_scroll_view_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/ios_scroll_view_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/ios_scroll_view_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/ios_scroll_view_light.png",
       "dark": null
      }
     },
@@ -8075,7 +8075,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/ios_scroll_view_light.png",
       "dark": null
      }
     },
@@ -8106,8 +8106,8 @@
       "dark": "captures/ios/cpp/ios_search_bar_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/ios_search_bar_light.png",
+      "dark": "captures/ios/xaml/ios_search_bar_dark.png"
      }
     },
     "sonnet": {
@@ -8122,23 +8122,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/ios_search_bar_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/ios_search_bar_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/ios_search_bar_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/ios_search_bar_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/ios_search_bar_light.png",
       "dark": null
      }
     },
@@ -8162,7 +8162,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/ios_search_bar_light.png",
       "dark": null
      }
     },
@@ -8193,8 +8193,8 @@
       "dark": "captures/ios/cpp/ios_slider_update_on_tap_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/ios_slider_update_on_tap_light.png",
+      "dark": "captures/ios/xaml/ios_slider_update_on_tap_dark.png"
      }
     },
     "sonnet": {
@@ -8209,23 +8209,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/ios_slider_update_on_tap_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/ios_slider_update_on_tap_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/ios_slider_update_on_tap_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/ios_slider_update_on_tap_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/ios_slider_update_on_tap_light.png",
       "dark": null
      }
     },
@@ -8249,7 +8249,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/ios_slider_update_on_tap_light.png",
       "dark": null
      }
     },
@@ -8280,8 +8280,8 @@
       "dark": "captures/ios/cpp/ios_swipe_transition_dark.gif"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/ios_swipe_transition_light.gif",
+      "dark": "captures/ios/xaml/ios_swipe_transition_dark.gif"
      }
     },
     "sonnet": {
@@ -8296,23 +8296,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/ios_swipe_transition_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/ios_swipe_transition_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/ios_swipe_transition_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/ios_swipe_transition_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/ios_swipe_transition_light.png",
       "dark": null
      }
     },
@@ -8336,7 +8336,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/ios_swipe_transition_light.png",
       "dark": null
      }
     },
@@ -8367,8 +8367,8 @@
       "dark": "captures/ios/cpp/ios_time_picker_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/ios_time_picker_light.png",
+      "dark": "captures/ios/xaml/ios_time_picker_dark.png"
      }
     },
     "sonnet": {
@@ -8383,23 +8383,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/ios_time_picker_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/ios_time_picker_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/ios_time_picker_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/ios_time_picker_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/ios_time_picker_light.png",
       "dark": null
      }
     },
@@ -8423,7 +8423,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/ios_time_picker_light.png",
       "dark": null
      }
     },
@@ -8541,8 +8541,8 @@
       "dark": "captures/ios/cpp/items_updating_scroll_mode_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/items_updating_scroll_mode_light.png",
+      "dark": "captures/ios/xaml/items_updating_scroll_mode_dark.png"
      }
     },
     "sonnet": {
@@ -8557,23 +8557,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/items_updating_scroll_mode_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/items_updating_scroll_mode_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/items_updating_scroll_mode_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/items_updating_scroll_mode_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/items_updating_scroll_mode_light.png",
       "dark": null
      }
     },
@@ -8597,7 +8597,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/items_updating_scroll_mode_light.png",
       "dark": null
      }
     },
@@ -8715,8 +8715,8 @@
       "dark": "captures/ios/cpp/layout_is_enabled_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/layout_is_enabled_light.png",
+      "dark": "captures/ios/xaml/layout_is_enabled_dark.png"
      }
     },
     "sonnet": {
@@ -8731,23 +8731,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/layout_is_enabled_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/layout_is_enabled_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/layout_is_enabled_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/layout_is_enabled_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/layout_is_enabled_light.png",
       "dark": null
      }
     },
@@ -8771,7 +8771,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/layout_is_enabled_light.png",
       "dark": null
      }
     },
@@ -8802,8 +8802,8 @@
       "dark": "captures/ios/cpp/line_gallery_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/line_gallery_light.png",
+      "dark": "captures/ios/xaml/line_gallery_dark.png"
      }
     },
     "sonnet": {
@@ -8818,23 +8818,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/line_gallery_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/line_gallery_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/line_gallery_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/line_gallery_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/line_gallery_light.png",
       "dark": null
      }
     },
@@ -8858,7 +8858,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/line_gallery_light.png",
       "dark": null
      }
     },
@@ -8889,8 +8889,8 @@
       "dark": "captures/ios/cpp/line_join_gallery_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/line_join_gallery_light.png",
+      "dark": "captures/ios/xaml/line_join_gallery_dark.png"
      }
     },
     "sonnet": {
@@ -8905,23 +8905,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/line_join_gallery_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/line_join_gallery_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/line_join_gallery_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/line_join_gallery_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/line_join_gallery_light.png",
       "dark": null
      }
     },
@@ -8945,7 +8945,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/line_join_gallery_light.png",
       "dark": null
      }
     },
@@ -8976,8 +8976,8 @@
       "dark": "captures/ios/cpp/measure_first_strategy_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/measure_first_strategy_light.png",
+      "dark": "captures/ios/xaml/measure_first_strategy_dark.png"
      }
     },
     "sonnet": {
@@ -8992,23 +8992,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/measure_first_strategy_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/measure_first_strategy_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/measure_first_strategy_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/measure_first_strategy_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/measure_first_strategy_light.png",
       "dark": null
      }
     },
@@ -9032,7 +9032,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/measure_first_strategy_light.png",
       "dark": null
      }
     },
@@ -9063,8 +9063,8 @@
       "dark": "captures/ios/cpp/menu_bar_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/menu_bar_light.png",
+      "dark": "captures/ios/xaml/menu_bar_dark.png"
      }
     },
     "sonnet": {
@@ -9079,23 +9079,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/menu_bar_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/menu_bar_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/menu_bar_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/menu_bar_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/menu_bar_light.png",
       "dark": null
      }
     },
@@ -9119,7 +9119,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/menu_bar_light.png",
       "dark": null
      }
     },
@@ -9150,8 +9150,8 @@
       "dark": "captures/ios/cpp/modal_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/modal_light.png",
+      "dark": "captures/ios/xaml/modal_dark.png"
      }
     },
     "sonnet": {
@@ -9166,23 +9166,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/modal_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/modal_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/modal_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/modal_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/modal_light.png",
       "dark": null
      }
     },
@@ -9206,7 +9206,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/modal_light.png",
       "dark": null
      }
     },
@@ -9237,8 +9237,8 @@
       "dark": "captures/ios/cpp/multiple_bound_selection_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/multiple_bound_selection_light.png",
+      "dark": "captures/ios/xaml/multiple_bound_selection_dark.png"
      }
     },
     "sonnet": {
@@ -9253,23 +9253,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/multiple_bound_selection_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/multiple_bound_selection_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/multiple_bound_selection_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/multiple_bound_selection_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/multiple_bound_selection_light.png",
       "dark": null
      }
     },
@@ -9293,7 +9293,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/multiple_bound_selection_light.png",
       "dark": null
      }
     },
@@ -9324,8 +9324,8 @@
       "dark": "captures/ios/cpp/navigation_gallery_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/navigation_gallery_light.png",
+      "dark": "captures/ios/xaml/navigation_gallery_dark.png"
      }
     },
     "sonnet": {
@@ -9340,23 +9340,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/navigation_gallery_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/navigation_gallery_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/navigation_gallery_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/navigation_gallery_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/navigation_gallery_light.png",
       "dark": null
      }
     },
@@ -9380,7 +9380,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/navigation_gallery_light.png",
       "dark": null
      }
     },
@@ -9411,8 +9411,8 @@
       "dark": "captures/ios/cpp/nested_collection_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/nested_collection_light.png",
+      "dark": "captures/ios/xaml/nested_collection_dark.png"
      }
     },
     "sonnet": {
@@ -9427,23 +9427,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/nested_collection_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/nested_collection_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/nested_collection_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/nested_collection_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/nested_collection_light.png",
       "dark": null
      }
     },
@@ -9467,7 +9467,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/nested_collection_light.png",
       "dark": null
      }
     },
@@ -9498,8 +9498,8 @@
       "dark": "captures/ios/cpp/pan_gesture_events_dark.gif"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/pan_gesture_events_light.gif",
+      "dark": "captures/ios/xaml/pan_gesture_events_dark.gif"
      }
     },
     "sonnet": {
@@ -9514,23 +9514,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/pan_gesture_events_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/pan_gesture_events_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/pan_gesture_events_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/pan_gesture_events_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/pan_gesture_events_light.png",
       "dark": null
      }
     },
@@ -9554,7 +9554,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/pan_gesture_events_light.png",
       "dark": null
      }
     },
@@ -9585,8 +9585,8 @@
       "dark": "captures/ios/cpp/path_aspect_gallery_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/path_aspect_gallery_light.png",
+      "dark": "captures/ios/xaml/path_aspect_gallery_dark.png"
      }
     },
     "sonnet": {
@@ -9601,23 +9601,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/path_aspect_gallery_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/path_aspect_gallery_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/path_aspect_gallery_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/path_aspect_gallery_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/path_aspect_gallery_light.png",
       "dark": null
      }
     },
@@ -9641,7 +9641,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/path_aspect_gallery_light.png",
       "dark": null
      }
     },
@@ -9672,8 +9672,8 @@
       "dark": "captures/ios/cpp/path_gallery_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/path_gallery_light.png",
+      "dark": "captures/ios/xaml/path_gallery_dark.png"
      }
     },
     "sonnet": {
@@ -9688,23 +9688,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/path_gallery_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/path_gallery_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/path_gallery_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/path_gallery_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/path_gallery_light.png",
       "dark": null
      }
     },
@@ -9728,7 +9728,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/path_gallery_light.png",
       "dark": null
      }
     },
@@ -9759,8 +9759,8 @@
       "dark": "captures/ios/cpp/path_transform_string_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/path_transform_string_light.png",
+      "dark": "captures/ios/xaml/path_transform_string_dark.png"
      }
     },
     "sonnet": {
@@ -9775,23 +9775,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/path_transform_string_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/path_transform_string_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/path_transform_string_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/path_transform_string_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/path_transform_string_light.png",
       "dark": null
      }
     },
@@ -9815,7 +9815,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/path_transform_string_light.png",
       "dark": null
      }
     },
@@ -10020,8 +10020,8 @@
       "dark": "captures/ios/cpp/pointer_gesture_dark.gif"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/pointer_gesture_light.gif",
+      "dark": "captures/ios/xaml/pointer_gesture_dark.gif"
      }
     },
     "sonnet": {
@@ -10036,23 +10036,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/pointer_gesture_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/pointer_gesture_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/pointer_gesture_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/pointer_gesture_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/pointer_gesture_light.png",
       "dark": null
      }
     },
@@ -10076,7 +10076,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/pointer_gesture_light.png",
       "dark": null
      }
     },
@@ -10107,8 +10107,8 @@
       "dark": "captures/ios/cpp/polygon_gallery_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/polygon_gallery_light.png",
+      "dark": "captures/ios/xaml/polygon_gallery_dark.png"
      }
     },
     "sonnet": {
@@ -10123,23 +10123,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/polygon_gallery_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/polygon_gallery_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/polygon_gallery_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/polygon_gallery_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/polygon_gallery_light.png",
       "dark": null
      }
     },
@@ -10163,7 +10163,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/polygon_gallery_light.png",
       "dark": null
      }
     },
@@ -10194,8 +10194,8 @@
       "dark": "captures/ios/cpp/polyline_gallery_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/polyline_gallery_light.png",
+      "dark": "captures/ios/xaml/polyline_gallery_dark.png"
      }
     },
     "sonnet": {
@@ -10210,23 +10210,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/polyline_gallery_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/polyline_gallery_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/polyline_gallery_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/polyline_gallery_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/polyline_gallery_light.png",
       "dark": null
      }
     },
@@ -10250,7 +10250,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/polyline_gallery_light.png",
       "dark": null
      }
     },
@@ -10281,8 +10281,8 @@
       "dark": "captures/ios/cpp/preselected_item_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/preselected_item_light.png",
+      "dark": "captures/ios/xaml/preselected_item_dark.png"
      }
     },
     "sonnet": {
@@ -10297,23 +10297,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/preselected_item_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/preselected_item_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/preselected_item_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/preselected_item_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/preselected_item_light.png",
       "dark": null
      }
     },
@@ -10337,7 +10337,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/preselected_item_light.png",
       "dark": null
      }
     },
@@ -10368,8 +10368,8 @@
       "dark": "captures/ios/cpp/preselected_items_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/preselected_items_light.png",
+      "dark": "captures/ios/xaml/preselected_items_dark.png"
      }
     },
     "sonnet": {
@@ -10384,23 +10384,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/preselected_items_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/preselected_items_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/preselected_items_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/preselected_items_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/preselected_items_light.png",
       "dark": null
      }
     },
@@ -10424,7 +10424,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/preselected_items_light.png",
       "dark": null
      }
     },
@@ -11151,8 +11151,8 @@
       "dark": "captures/ios/cpp/rectangle_gallery_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/rectangle_gallery_light.png",
+      "dark": "captures/ios/xaml/rectangle_gallery_dark.png"
      }
     },
     "sonnet": {
@@ -11167,23 +11167,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/rectangle_gallery_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/rectangle_gallery_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/rectangle_gallery_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/rectangle_gallery_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/rectangle_gallery_light.png",
       "dark": null
      }
     },
@@ -11207,7 +11207,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/rectangle_gallery_light.png",
       "dark": null
      }
     },
@@ -11238,8 +11238,8 @@
       "dark": "captures/ios/cpp/refresh_view_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/refresh_view_light.png",
+      "dark": "captures/ios/xaml/refresh_view_dark.png"
      }
     },
     "sonnet": {
@@ -11254,23 +11254,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/refresh_view_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/refresh_view_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/refresh_view_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/refresh_view_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/refresh_view_light.png",
       "dark": null
      }
     },
@@ -11294,7 +11294,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/refresh_view_light.png",
       "dark": null
      }
     },
@@ -11499,8 +11499,8 @@
       "dark": "captures/ios/cpp/scroll_mode_test_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/scroll_mode_test_light.png",
+      "dark": "captures/ios/xaml/scroll_mode_test_dark.png"
      }
     },
     "sonnet": {
@@ -11515,23 +11515,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/scroll_mode_test_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/scroll_mode_test_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/scroll_mode_test_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/scroll_mode_test_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/scroll_mode_test_light.png",
       "dark": null
      }
     },
@@ -11555,7 +11555,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/scroll_mode_test_light.png",
       "dark": null
      }
     },
@@ -11586,8 +11586,8 @@
       "dark": "captures/ios/cpp/scroll_to_group_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/scroll_to_group_light.png",
+      "dark": "captures/ios/xaml/scroll_to_group_dark.png"
      }
     },
     "sonnet": {
@@ -11602,23 +11602,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/scroll_to_group_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/scroll_to_group_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/scroll_to_group_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/scroll_to_group_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/scroll_to_group_light.png",
       "dark": null
      }
     },
@@ -11642,7 +11642,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/scroll_to_group_light.png",
       "dark": null
      }
     },
@@ -11847,8 +11847,8 @@
       "dark": "captures/ios/cpp/selection_command_param_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/selection_command_param_light.png",
+      "dark": "captures/ios/xaml/selection_command_param_dark.png"
      }
     },
     "sonnet": {
@@ -11863,23 +11863,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/selection_command_param_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/selection_command_param_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/selection_command_param_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/selection_command_param_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/selection_command_param_light.png",
       "dark": null
      }
     },
@@ -11903,7 +11903,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/selection_command_param_light.png",
       "dark": null
      }
     },
@@ -11934,8 +11934,8 @@
       "dark": "captures/ios/cpp/selection_synchronization_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/selection_synchronization_light.png",
+      "dark": "captures/ios/xaml/selection_synchronization_dark.png"
      }
     },
     "sonnet": {
@@ -11950,23 +11950,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/selection_synchronization_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/selection_synchronization_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/selection_synchronization_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/selection_synchronization_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/selection_synchronization_light.png",
       "dark": null
      }
     },
@@ -11990,7 +11990,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/selection_synchronization_light.png",
       "dark": null
      }
     },
@@ -12021,8 +12021,8 @@
       "dark": "captures/ios/cpp/semantics_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/semantics_light.png",
+      "dark": "captures/ios/xaml/semantics_dark.png"
      }
     },
     "sonnet": {
@@ -12037,23 +12037,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/semantics_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/semantics_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/semantics_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/semantics_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/semantics_light.png",
       "dark": null
      }
     },
@@ -12077,7 +12077,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/semantics_light.png",
       "dark": null
      }
     },
@@ -12108,8 +12108,8 @@
       "dark": "captures/ios/cpp/shadow_playground_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/shadow_playground_light.png",
+      "dark": "captures/ios/xaml/shadow_playground_dark.png"
      }
     },
     "sonnet": {
@@ -12124,23 +12124,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/shadow_playground_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/shadow_playground_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/shadow_playground_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/shadow_playground_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/shadow_playground_light.png",
       "dark": null
      }
     },
@@ -12164,7 +12164,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/shadow_playground_light.png",
       "dark": null
      }
     },
@@ -12195,8 +12195,8 @@
       "dark": "captures/ios/cpp/shape_app_theme_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/shape_app_theme_light.png",
+      "dark": "captures/ios/xaml/shape_app_theme_dark.png"
      }
     },
     "sonnet": {
@@ -12211,23 +12211,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/shape_app_theme_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/shape_app_theme_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/shape_app_theme_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/shape_app_theme_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/shape_app_theme_light.png",
       "dark": null
      }
     },
@@ -12251,7 +12251,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/shape_app_theme_light.png",
       "dark": null
      }
     },
@@ -12282,8 +12282,8 @@
       "dark": "captures/ios/cpp/shapes_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/shapes_light.png",
+      "dark": "captures/ios/xaml/shapes_dark.png"
      }
     },
     "sonnet": {
@@ -12298,23 +12298,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/shapes_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/shapes_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/shapes_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/shapes_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/shapes_light.png",
       "dark": null
      }
     },
@@ -12338,7 +12338,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/shapes_light.png",
       "dark": null
      }
     },
@@ -12369,8 +12369,8 @@
       "dark": "captures/ios/cpp/single_bound_selection_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/single_bound_selection_light.png",
+      "dark": "captures/ios/xaml/single_bound_selection_dark.png"
      }
     },
     "sonnet": {
@@ -12385,23 +12385,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/single_bound_selection_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/single_bound_selection_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/single_bound_selection_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/single_bound_selection_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/single_bound_selection_light.png",
       "dark": null
      }
     },
@@ -12425,7 +12425,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/single_bound_selection_light.png",
       "dark": null
      }
     },
@@ -12543,8 +12543,8 @@
       "dark": "captures/ios/cpp/some_empty_groups_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/some_empty_groups_light.png",
+      "dark": "captures/ios/xaml/some_empty_groups_dark.png"
      }
     },
     "sonnet": {
@@ -12559,23 +12559,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/some_empty_groups_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/some_empty_groups_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/some_empty_groups_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/some_empty_groups_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/some_empty_groups_light.png",
       "dark": null
      }
     },
@@ -12599,7 +12599,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/some_empty_groups_light.png",
       "dark": null
      }
     },
@@ -12717,8 +12717,8 @@
       "dark": "captures/ios/cpp/staggered_layout_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/staggered_layout_light.png",
+      "dark": "captures/ios/xaml/staggered_layout_dark.png"
      }
     },
     "sonnet": {
@@ -12733,23 +12733,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/staggered_layout_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/staggered_layout_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/staggered_layout_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/staggered_layout_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/staggered_layout_light.png",
       "dark": null
      }
     },
@@ -12773,7 +12773,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/staggered_layout_light.png",
       "dark": null
      }
     },
@@ -12978,8 +12978,8 @@
       "dark": "captures/ios/cpp/swipe_gesture_dark.gif"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/swipe_gesture_light.gif",
+      "dark": "captures/ios/xaml/swipe_gesture_dark.gif"
      }
     },
     "sonnet": {
@@ -12994,23 +12994,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/swipe_gesture_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/swipe_gesture_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/swipe_gesture_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/swipe_gesture_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/swipe_gesture_light.png",
       "dark": null
      }
     },
@@ -13034,7 +13034,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/swipe_gesture_light.png",
       "dark": null
      }
     },
@@ -13065,8 +13065,8 @@
       "dark": "captures/ios/cpp/swipe_item_position_dark.gif"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/swipe_item_position_light.gif",
+      "dark": "captures/ios/xaml/swipe_item_position_dark.gif"
      }
     },
     "sonnet": {
@@ -13081,23 +13081,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/swipe_item_position_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/swipe_item_position_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/swipe_item_position_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/swipe_item_position_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/swipe_item_position_light.png",
       "dark": null
      }
     },
@@ -13121,7 +13121,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/swipe_item_position_light.png",
       "dark": null
      }
     },
@@ -13152,8 +13152,8 @@
       "dark": "captures/ios/cpp/swipe_item_size_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/swipe_item_size_light.png",
+      "dark": "captures/ios/xaml/swipe_item_size_dark.png"
      }
     },
     "sonnet": {
@@ -13168,23 +13168,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/swipe_item_size_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/swipe_item_size_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/swipe_item_size_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/swipe_item_size_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/swipe_item_size_light.png",
       "dark": null
      }
     },
@@ -13208,7 +13208,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/swipe_item_size_light.png",
       "dark": null
      }
     },
@@ -13239,8 +13239,8 @@
       "dark": "captures/ios/cpp/swipe_refresh_dark.gif"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/swipe_refresh_light.gif",
+      "dark": "captures/ios/xaml/swipe_refresh_dark.gif"
      }
     },
     "sonnet": {
@@ -13255,23 +13255,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/swipe_refresh_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/swipe_refresh_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/swipe_refresh_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/swipe_refresh_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/swipe_refresh_light.png",
       "dark": null
      }
     },
@@ -13295,7 +13295,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/swipe_refresh_light.png",
       "dark": null
      }
     },
@@ -13326,8 +13326,8 @@
       "dark": "captures/ios/cpp/swipe_threshold_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/swipe_threshold_light.png",
+      "dark": "captures/ios/xaml/swipe_threshold_dark.png"
      }
     },
     "sonnet": {
@@ -13342,23 +13342,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/swipe_threshold_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/swipe_threshold_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/swipe_threshold_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/swipe_threshold_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/swipe_threshold_light.png",
       "dark": null
      }
     },
@@ -13382,7 +13382,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/swipe_threshold_light.png",
       "dark": null
      }
     },
@@ -13413,8 +13413,8 @@
       "dark": "captures/ios/cpp/swipe_view_margin_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/swipe_view_margin_light.png",
+      "dark": "captures/ios/xaml/swipe_view_margin_dark.png"
      }
     },
     "sonnet": {
@@ -13429,23 +13429,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/swipe_view_margin_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/swipe_view_margin_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/swipe_view_margin_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/swipe_view_margin_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/swipe_view_margin_light.png",
       "dark": null
      }
     },
@@ -13469,7 +13469,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/swipe_view_margin_light.png",
       "dark": null
      }
     },
@@ -13500,8 +13500,8 @@
       "dark": "captures/ios/cpp/swipe_view_shadow_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/swipe_view_shadow_light.png",
+      "dark": "captures/ios/xaml/swipe_view_shadow_dark.png"
      }
     },
     "sonnet": {
@@ -13516,23 +13516,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/swipe_view_shadow_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/swipe_view_shadow_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/swipe_view_shadow_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/swipe_view_shadow_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/swipe_view_shadow_light.png",
       "dark": null
      }
     },
@@ -13556,7 +13556,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/swipe_view_shadow_light.png",
       "dark": null
      }
     },
@@ -13674,8 +13674,8 @@
       "dark": "captures/ios/cpp/switch_grouping_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/switch_grouping_light.png",
+      "dark": "captures/ios/xaml/switch_grouping_dark.png"
      }
     },
     "sonnet": {
@@ -13690,23 +13690,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/switch_grouping_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/switch_grouping_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/switch_grouping_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/switch_grouping_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/switch_grouping_light.png",
       "dark": null
      }
     },
@@ -13730,7 +13730,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/switch_grouping_light.png",
       "dark": null
      }
     },
@@ -13761,8 +13761,8 @@
       "dark": "captures/ios/cpp/tabbed_flyout_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/tabbed_flyout_light.png",
+      "dark": "captures/ios/xaml/tabbed_flyout_dark.png"
      }
     },
     "sonnet": {
@@ -13777,23 +13777,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/tabbed_flyout_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/tabbed_flyout_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/tabbed_flyout_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/tabbed_flyout_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/tabbed_flyout_light.png",
       "dark": null
      }
     },
@@ -13817,7 +13817,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/tabbed_flyout_light.png",
       "dark": null
      }
     },
@@ -14022,8 +14022,8 @@
       "dark": "captures/ios/cpp/title_bar_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/title_bar_light.png",
+      "dark": "captures/ios/xaml/title_bar_dark.png"
      }
     },
     "sonnet": {
@@ -14038,23 +14038,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/title_bar_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/title_bar_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/title_bar_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/title_bar_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/title_bar_light.png",
       "dark": null
      }
     },
@@ -14078,7 +14078,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/title_bar_light.png",
       "dark": null
      }
     },
@@ -14109,8 +14109,8 @@
       "dark": "captures/ios/cpp/toolbar_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/toolbar_light.png",
+      "dark": "captures/ios/xaml/toolbar_dark.png"
      }
     },
     "sonnet": {
@@ -14125,23 +14125,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/toolbar_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/toolbar_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/toolbar_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/toolbar_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/toolbar_light.png",
       "dark": null
      }
     },
@@ -14165,7 +14165,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/toolbar_light.png",
       "dark": null
      }
     },
@@ -14196,8 +14196,8 @@
       "dark": "captures/ios/cpp/transform_playground_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/transform_playground_light.png",
+      "dark": "captures/ios/xaml/transform_playground_dark.png"
      }
     },
     "sonnet": {
@@ -14212,23 +14212,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/transform_playground_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/transform_playground_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/transform_playground_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/transform_playground_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/transform_playground_light.png",
       "dark": null
      }
     },
@@ -14252,7 +14252,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/transform_playground_light.png",
       "dark": null
      }
     },
@@ -14283,8 +14283,8 @@
       "dark": "captures/ios/cpp/transformations_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/transformations_light.png",
+      "dark": "captures/ios/xaml/transformations_dark.png"
      }
     },
     "sonnet": {
@@ -14299,23 +14299,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/transformations_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/transformations_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/transformations_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/transformations_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/transformations_light.png",
       "dark": null
      }
     },
@@ -14339,7 +14339,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/transformations_light.png",
       "dark": null
      }
     },
@@ -14370,8 +14370,8 @@
       "dark": "captures/ios/cpp/triggers_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/triggers_light.png",
+      "dark": "captures/ios/xaml/triggers_dark.png"
      }
     },
     "sonnet": {
@@ -14386,23 +14386,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/triggers_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/triggers_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/triggers_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/triggers_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/triggers_light.png",
       "dark": null
      }
     },
@@ -14426,7 +14426,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/triggers_light.png",
       "dark": null
      }
     },
@@ -14457,8 +14457,8 @@
       "dark": "captures/ios/cpp/update_path_data_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/update_path_data_light.png",
+      "dark": "captures/ios/xaml/update_path_data_dark.png"
      }
     },
     "sonnet": {
@@ -14473,23 +14473,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/update_path_data_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/update_path_data_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/update_path_data_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/update_path_data_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/update_path_data_light.png",
       "dark": null
      }
     },
@@ -14513,7 +14513,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/update_path_data_light.png",
       "dark": null
      }
     },
@@ -14544,8 +14544,8 @@
       "dark": "captures/ios/cpp/varied_size_selector_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/varied_size_selector_light.png",
+      "dark": "captures/ios/xaml/varied_size_selector_dark.png"
      }
     },
     "sonnet": {
@@ -14560,23 +14560,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/varied_size_selector_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/varied_size_selector_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/varied_size_selector_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/varied_size_selector_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/varied_size_selector_light.png",
       "dark": null
      }
     },
@@ -14600,7 +14600,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/varied_size_selector_light.png",
       "dark": null
      }
     },
@@ -14631,8 +14631,8 @@
       "dark": "captures/ios/cpp/vertical_stack_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/vertical_stack_light.png",
+      "dark": "captures/ios/xaml/vertical_stack_dark.png"
      }
     },
     "sonnet": {
@@ -14647,23 +14647,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/vertical_stack_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/vertical_stack_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/vertical_stack_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/vertical_stack_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/vertical_stack_light.png",
       "dark": null
      }
     },
@@ -14687,7 +14687,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/vertical_stack_light.png",
       "dark": null
      }
     },
@@ -14718,8 +14718,8 @@
       "dark": "captures/ios/cpp/visual_states_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/visual_states_light.png",
+      "dark": "captures/ios/xaml/visual_states_dark.png"
      }
     },
     "sonnet": {
@@ -14734,23 +14734,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/visual_states_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/visual_states_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/visual_states_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/visual_states_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/visual_states_light.png",
       "dark": null
      }
     },
@@ -14774,7 +14774,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/visual_states_light.png",
       "dark": null
      }
     },
@@ -14805,8 +14805,8 @@
       "dark": "captures/ios/cpp/web_view_dark.png"
      },
      "xaml": {
-      "light": null,
-      "dark": null
+      "light": "captures/ios/xaml/web_view_light.png",
+      "dark": "captures/ios/xaml/web_view_dark.png"
      }
     },
     "sonnet": {
@@ -14821,23 +14821,23 @@
    "maccatalyst": {
     "screenshots": {
      "maui": {
-      "light": null,
+      "light": "captures/maccatalyst/maui/web_view_light.png",
       "dark": null
      },
      "cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/cpp/web_view_light.png",
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/xaml/web_view_light.png",
       "dark": null
      },
      "appkit_cpp": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_cpp/web_view_light.png",
       "dark": null
      },
      "appkit_xaml": {
-      "light": null,
+      "light": "captures/maccatalyst/appkit_xaml/web_view_light.png",
       "dark": null
      }
     },
@@ -14861,7 +14861,7 @@
       "dark": null
      },
      "xaml": {
-      "light": null,
+      "light": "captures/android/xaml/web_view_light.png",
       "dark": null
      }
     },
