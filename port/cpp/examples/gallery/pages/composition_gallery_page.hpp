@@ -27,8 +27,8 @@
 //         250x250 WidthRequest is treated as Center by MAUI's LayoutExtensions.AlignHorizontal (the
 //         Fill+explicit-width → Center rule the port mirrors in view::align_horizontal), so the beige
 //         grids would center; Start left-aligns them like maui-compare.
-//   note: the C# Grids' Margin="12" uses View.Margin, which is not in the ported view surface, so it is
-//         omitted (deferred). BackgroundColor="Beige" → set_background(solid_paint(colors::beige)).
+//   note: the C# Grids' Margin="12" (View.Margin) is applied via set_margin — it is the visible GAP between
+//         the two beige cards (and their inset from the left). BackgroundColor="Beige" → set_background.
 //   note: the first Path's Data "M100 100 200 200" is a move-to (100,100) + implicit line-to (200,200)
 //         per the WPF abbreviated-geometry grammar — parsed via parse_path_figure_collection.
 //   note: the ellipse Path uses an EllipseGeometry (center 150,150, radii 50) directly as the Path.Data
@@ -51,6 +51,7 @@
 #include "maui/controls/shapes/polygon.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/layout_alignment.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/solid_paint.hpp"
@@ -69,7 +70,8 @@ namespace maui::samples
             grid_one_.set_width_request(250);
             grid_one_.set_height_request(250);
             grid_one_.set_horizontal_layout_alignment(
-                maui::core::layout_alignment::start); // C# Grid HorizontalOptions="Start"
+                maui::core::layout_alignment::start);        // C# Grid HorizontalOptions="Start"
+            grid_one_.set_margin(maui::core::thickness(12)); // C# Grid Margin="12" (the gap between the cards)
 
             // Path "M100 100 200 200" — blue diagonal stroke, thickness 5, opacity .5.
             auto diagonal_geometry = std::make_shared<maui::controls::shapes::path_geometry>();
@@ -110,7 +112,8 @@ namespace maui::samples
             grid_two_.set_width_request(250);
             grid_two_.set_height_request(250);
             grid_two_.set_horizontal_layout_alignment(
-                maui::core::layout_alignment::start); // C# Grid HorizontalOptions="Start"
+                maui::core::layout_alignment::start);        // C# Grid HorizontalOptions="Start"
+            grid_two_.set_margin(maui::core::thickness(12)); // C# Grid Margin="12" (the gap between the cards)
 
             red_line_.set_x1(100);
             red_line_.set_y1(100);
