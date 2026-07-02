@@ -22,8 +22,11 @@
 // headless/apple/ios test trees exercise the same wiring directly.
 //
 // PORT NOTES (faithful best-effort, never invented):
-//   note: the C# Grids HorizontalOptions="Start". HorizontalOptions is not in the ported view surface,
-//         so it is omitted (the fixed 250x250 size is preserved; deferred, not invented).
+//   note: the C# Grids HorizontalOptions="Start", reproduced via set_horizontal_layout_alignment(start)
+//         on each Grid. Without Start, a Grid's default Fill layout alignment combined with its explicit
+//         250x250 WidthRequest is treated as Center by MAUI's LayoutExtensions.AlignHorizontal (the
+//         Fill+explicit-width → Center rule the port mirrors in view::align_horizontal), so the beige
+//         grids would center; Start left-aligns them like maui-compare.
 //   note: the C# Grids' Margin="12" uses View.Margin, which is not in the ported view surface, so it is
 //         omitted (deferred). BackgroundColor="Beige" → set_background(solid_paint(colors::beige)).
 //   note: the first Path's Data "M100 100 200 200" is a move-to (100,100) + implicit line-to (200,200)
@@ -47,6 +50,7 @@
 #include "maui/controls/shapes/path_markup_parser.hpp"
 #include "maui/controls/shapes/polygon.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/solid_paint.hpp"
@@ -64,6 +68,8 @@ namespace maui::samples
             grid_one_.set_background(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::beige));
             grid_one_.set_width_request(250);
             grid_one_.set_height_request(250);
+            grid_one_.set_horizontal_layout_alignment(
+                maui::core::layout_alignment::start); // C# Grid HorizontalOptions="Start"
 
             // Path "M100 100 200 200" — blue diagonal stroke, thickness 5, opacity .5.
             auto diagonal_geometry = std::make_shared<maui::controls::shapes::path_geometry>();
@@ -103,6 +109,8 @@ namespace maui::samples
             grid_two_.set_background(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::beige));
             grid_two_.set_width_request(250);
             grid_two_.set_height_request(250);
+            grid_two_.set_horizontal_layout_alignment(
+                maui::core::layout_alignment::start); // C# Grid HorizontalOptions="Start"
 
             red_line_.set_x1(100);
             red_line_.set_y1(100);

@@ -30,7 +30,13 @@
 //   note: the C# fill/stroke colors are named brushes ("Red", "DarkBlue", "Blue", "Black"); the port
 //         wraps each in a solid_paint (the shape Fill/Stroke accept a graphics::paint), the documented
 //         brush→paint bridge.
+//   note: C# ShapesPage.xaml sets HorizontalOptions="Start" on every shape, reproduced via
+//         set_horizontal_layout_alignment(start) on each. Without Start, a shape's default Fill layout
+//         alignment combined with an explicit WidthRequest is treated as Center by MAUI's
+//         LayoutExtensions.AlignHorizontal (the Fill+explicit-width → Center rule the port mirrors in
+//         view::align_horizontal), so the shapes would center; Start left-aligns them like maui-compare.
 
+#include <array>
 #include <memory>
 #include <string>
 
@@ -47,7 +53,9 @@
 #include "maui/controls/shapes/polygon.hpp"
 #include "maui/controls/shapes/polyline.hpp"
 #include "maui/controls/shapes/rectangle.hpp"
+#include "maui/controls/shapes/shape.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/core/path_aspect.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
@@ -158,6 +166,15 @@ namespace maui::samples
             stack_.add(more_samples_);
             readout_.set_text("Tap 'More samples'");
             stack_.add(readout_);
+
+            // C# ShapesPage.xaml sets HorizontalOptions="Start" on every shape: left-align each, matching
+            // maui-compare, instead of the Fill+explicit-width center default (view::align_horizontal).
+            const std::array<maui::controls::shapes::shape*, 7> shapes_start{
+                &ellipse_, &rect_, &round_rect_, &line_, &polyline_, &polygon_, &path_};
+            for (auto* shape : shapes_start)
+            {
+                shape->set_horizontal_layout_alignment(maui::core::layout_alignment::start);
+            }
 
             scroll_.set_content(stack_);
             page_.set_content(scroll_);

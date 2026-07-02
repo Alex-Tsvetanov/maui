@@ -61,6 +61,7 @@
 #include "maui/controls/shapes/translate_transform.hpp"
 #include "maui/controls/slider.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
@@ -84,6 +85,9 @@ namespace maui::samples
             panel_.set_background(solid(maui::graphics::color::from_argb("#e5e5e5"))); // C# BackgroundColor
             panel_.set_width_request(200);
             panel_.set_height_request(200);
+            // C# PathContainerStyle: HorizontalOptions="Start" — left-align the 200-wide panel instead of
+            // the Fill+explicit-width center default (view::align_horizontal), matching maui-compare.
+            panel_.set_horizontal_layout_alignment(maui::core::layout_alignment::start);
             panel_.add(path_);
 
             controls_stack_.set_spacing(0);

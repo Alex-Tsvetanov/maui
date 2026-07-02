@@ -40,8 +40,11 @@
 //         authoring is the XAML wave's job — the resolved geometry is identical to the markup tree.
 //   note: the C# <Style TargetType="Path"> (Aspect=Uniform, HorizontalOptions=Start) is a XAML resource
 //         style applied to every Path; the port inlines Aspect via aspect_fit on each path
-//         (Uniform→aspect_fit, shape.hpp). HorizontalOptions=Start is a layout-option the port does not
-//         model on shapes today, so it is omitted (best-effort).
+//         (Uniform→aspect_fit, shape.hpp) and reproduces HorizontalOptions=Start via
+//         set_horizontal_layout_alignment(start) on every Path. Without Start, a Path's default Fill
+//         layout alignment combined with an explicit WidthRequest is treated as Center by MAUI's
+//         LayoutExtensions.AlignHorizontal (the Fill+explicit-width → Center rule the port mirrors in
+//         view::align_horizontal), so the shapes would center; Start left-aligns them like maui-compare.
 //   note: the two caption-only Labels in the C# page that show the raw glyph markup strings (FontSize 9)
 //         are reproduced as caption labels so the page reads the same; their long Data strings are the
 //         very strings fed to the matching Paths below them.
@@ -70,6 +73,7 @@
 #include "maui/controls/shapes/path_segment.hpp"
 #include "maui/controls/shapes/rectangle_geometry.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/core/path_aspect.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
@@ -253,6 +257,14 @@ namespace maui::samples
             leaf_.set_width_request(100);
             leaf_.set_height_request(100);
             stack_.add(leaf_);
+
+            // C# <Style TargetType="Path"> HorizontalOptions="Start": left-align every Path, matching
+            // maui-compare, instead of the Fill+explicit-width center default (view::align_horizontal).
+            for (auto* path :
+                 {&line_seg_, &geom_, &cubic_, &composite_, &rects_, &ellipses_, &multi_seg_, &four_quadrant_, &leaf_})
+            {
+                path->set_horizontal_layout_alignment(maui::core::layout_alignment::start);
+            }
 
             scroll_.set_content(stack_);
             page_.set_content(scroll_);
