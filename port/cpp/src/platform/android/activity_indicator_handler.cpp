@@ -21,10 +21,12 @@
 //     against color{} both misreads an explicit Color=Black as unset and (here) mis-tinted every unset
 //     indicator. SET → SetColorFilter(color, SrcIn); UNSET → the native-default pale gray (#E0E0E0)
 //     asserted via the same SrcIn filter (see map_color): C#'s unset path is ClearColorFilter, but this
-//     backend force-styles the drawable to get a circular spinner on a bare Context and that style's
-//     baseline is navy, so ClearColorFilter would leave navy — asserting the gray reproduces MAUI's
-//     native-default ClearColorFilter *result*. Same is_property_set + reproduce-the-restore-result
-//     convention button_handler::map_text_color uses (unset TextColor → Material default white).
+//     backend's host theme is Theme.DeviceDefault(.Light) whose indeterminate spinner baseline is the
+//     DeviceDefault accent (navy), while real MAUI renders under Theme.MaterialComponents.DayNight whose
+//     baseline is the pale gray — so a plain ClearColorFilter would leave navy, NOT MAUI's gray. Asserting
+//     the gray reproduces MAUI's native-default ClearColorFilter *result* (the same host-theme-vs-MAUI-theme
+//     gap check_box/radio/switch document). Same is_property_set + reproduce-the-restore-result convention
+//     button_handler::map_text_color uses (unset TextColor → Material default white).
 //   - The generic-IView BACKGROUND push IS wired (activity_indicator_platform overrides
 //     update_background under `#ifdef MAUI_PLATFORM_ANDROID`, twin of the iOS override) so the
 //     ViewHandler.MapBackground path reaches the real ProgressBar — this is the band behind the
@@ -77,23 +79,13 @@ namespace
     constexpr const char* k_drawable_class = "android/graphics/drawable/Drawable";
     constexpr const char* k_porter_duff_mode_class = "android/graphics/PorterDuff$Mode";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
-    constexpr const char* k_style_class = "android/R$style";
 
-    // The indeterminate ProgressBar's defStyleRes (see create_platform_view). PARITY P2: real .NET MAUI
-    // constructs `new ProgressBar(Context) { Indeterminate = true }` against a real themed Activity Context,
-    // whose `progressBarStyle` theme attribute resolves to the theme's CIRCULAR indeterminate spinner (the
-    // Material spinning-arc glyph MAUI captures). This APK-less backend's app_host / widget-test Context is
-    // bare (Activity-less, themeless), so the plain `new ProgressBar(Context)` ctor resolves that theme attr
-    // against a themeless Context → a degenerate, drawable-less ProgressBar that shows NO spinner arc (the
-    // port's blank indicator). A concrete defStyleRes needs no theme attribute, so it applies the circular
-    // spinner drawable on the bare Context too. Widget_Material_Light_ProgressBar is the light-theme circular
-    // indeterminate style (the plain, NON-_Horizontal one) — the spinning-arc glyph, matching the gallery's
-    // default light Material theme and MAUI's light capture; Widget_Material_ProgressBar is the generic/dark
-    // twin, tried if the light field is absent — the same primary→alt GetStaticFieldID pattern
-    // slider_handler.cpp/switch_handler.cpp use. NOT the _Horizontal bar style (that is the flat determinate
-    // track, not a spinner). Both are static fields (GetStaticFieldID, not the instance field() helper).
-    constexpr const char* k_indeterminate_style_field = "Widget_Material_Light_ProgressBar";
-    constexpr const char* k_indeterminate_style_field_alt = "Widget_Material_ProgressBar";
+    // NOTE (2026-07-02): the indeterminate spinner style is NO LONGER forced via a defStyleRes here.
+    // create_platform_view now matches the C# oracle's plain `new ProgressBar(Context)` ctor, which resolves
+    // the CIRCULAR spinner from the themed Context's `progressBarStyle` attribute (both host Contexts are
+    // themed — see the ctor comment). The old k_style_class / k_indeterminate_style_field* constants (forcing
+    // android.R.style.Widget_Material_Light_ProgressBar) were removed: on a themed Context that override
+    // produced a degenerate square/diamond drawable instead of the theme's arc.
 
     // android.view.View visibility states (ViewExtensions.ToPlatformVisibility's targets).
     constexpr jint k_view_visible = 0;
@@ -245,53 +237,30 @@ namespace maui::core
             return platform;
         }
         // ActivityIndicatorHandler.CreatePlatformView: `new ProgressBar(Context) { Indeterminate = true }`.
-        // The plain (Context) ctor resolves the `progressBarStyle` theme attribute against the Context's
-        // THEME — which the bare, Activity-less app_host / widget-test Context does NOT carry, so it yields a
-        // degenerate, drawable-less indeterminate ProgressBar (NO visible spinner arc — the port's blank
-        // indicator). PARITY P2: construct instead via the theme-INDEPENDENT 4-arg
-        // `(Context, AttributeSet, int defStyleAttr, int defStyleRes)` ctor with the concrete CIRCULAR
-        // Material spinner style as defStyleRes (see the k_indeterminate_style_field note) — a concrete style
-        // resource resolves no theme attribute, so it applies the spinning-arc drawable on the bare Context
-        // too, matching real MAUI's Material spinner. Try the light field, then the generic/dark alt, then
-        // fall back to the plain (Context) ctor so the widget is never null (a valid indeterminate bar; only
-        // the circular *look* is lost, e.g. on a real themed Context this matches C#'s plain ctor exactly).
-        jobject created = nullptr;
-        jmethodID ctor_styled = cache.method(env.get(), k_progress_bar_class, "<init>",
-                                             "(Landroid/content/Context;Landroid/util/AttributeSet;II)V");
-        jclass style_class = cache.find_class(env.get(), k_style_class);
-        jfieldID style_field =
-            style_class != nullptr ? env->GetStaticFieldID(style_class, k_indeterminate_style_field, "I") : nullptr;
-        clear_pending(env.get()); // a missing-field lookup raises NoSuchFieldError — clear it, then try the alt
-        if (style_class != nullptr && style_field == nullptr)
+        // Construct EXACTLY as the C# oracle does — the plain `(Context)` ctor resolves the `progressBarStyle`
+        // theme attribute against the Context's THEME, which yields the theme's CIRCULAR indeterminate spinner
+        // (the spinning-arc glyph MAUI captures). Both host Contexts this backend runs under ARE properly
+        // themed and so carry that attribute: the gallery app_host pins the MauiHostActivity itself
+        // (@style/MauiAppHost.Theme, parent Theme.DeviceDefault.Light.NoActionBar — see apphost/res/values/
+        // styles.xml + app_host.cpp's set_app_context(activity)) and the widget-test host wraps its system
+        // Context in a ContextThemeWrapper(Theme.DeviceDefault) (testhost/Bootstrap.java). PARITY (2026-07-02):
+        // this REPLACES the earlier defStyleRes force-styling — that path was added (commit dab0856881) for a
+        // then-themeless "bare, Activity-less" Context, but the app-host had already begun registering the
+        // themed Activity, so forcing android.R.style.Widget_Material_Light_ProgressBar as defStyleRes OVERRODE
+        // the theme's correct circular spinner with a degenerate drawable that rendered as a tiny rotating
+        // SQUARE/DIAMOND fragment (the parity RED). Matching C#'s plain ctor lets the themed context resolve
+        // the proper circular arc, exactly like MAUI. If a future host ever registers a genuinely themeless
+        // Context the arc would be lost (a valid indeterminate bar, just no circular look) — the faithful
+        // trade, since inventing a style diverges from the oracle and mis-renders on themed contexts.
+        jmethodID ctor_plain = cache.method(env.get(), k_progress_bar_class, "<init>", "(Landroid/content/Context;)V");
+        if (ctor_plain == nullptr)
         {
-            style_field = env->GetStaticFieldID(style_class, k_indeterminate_style_field_alt, "I");
-            clear_pending(env.get());
+            return platform;
         }
-        if (ctor_styled != nullptr && style_class != nullptr && style_field != nullptr)
+        jobject created = env->NewObject(progress_bar_class, ctor_plain, context);
+        if (clear_pending(env.get()))
         {
-            const jint style_res = env->GetStaticIntField(style_class, style_field);
-            if (!clear_pending(env.get()))
-            {
-                created = env->NewObject(progress_bar_class, ctor_styled, context, static_cast<jobject>(nullptr),
-                                         static_cast<jint>(0), style_res);
-                if (clear_pending(env.get()))
-                {
-                    created = nullptr;
-                }
-            }
-        }
-        if (created == nullptr)
-        {
-            jmethodID ctor_plain =
-                cache.method(env.get(), k_progress_bar_class, "<init>", "(Landroid/content/Context;)V");
-            if (ctor_plain != nullptr)
-            {
-                created = env->NewObject(progress_bar_class, ctor_plain, context);
-                if (clear_pending(env.get()))
-                {
-                    created = nullptr;
-                }
-            }
+            created = nullptr;
         }
         if (created == nullptr)
         {
@@ -411,17 +380,18 @@ namespace maui::core
         const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
         const bool color_is_set = bindable != nullptr && bindable->is_property_set("color");
 
-        // Native-default deviation (this AAR-less backend only): C#'s unset path is ClearColorFilter,
-        // which on MAUI's NATIVE-DEFAULT (unstyled) indeterminate ProgressBar reveals the platform
-        // default — a pale light-gray arc (sampled #E0E0E0 in the maui-compare reference). This backend
-        // must force a concrete Material defStyleRes onto the bare, Activity-less Context to get a
-        // circular spinner drawable at all (see create_platform_view / k_indeterminate_style_field), and
-        // that styled drawable's BASELINE tint is the theme accent (navy, sampled #495D92) — so plain
-        // ClearColorFilter would leave navy, NOT MAUI's pale gray. Positively assert the native-default
-        // gray on the unset path instead, reproducing MAUI's ClearColorFilter *result* on the force-styled
-        // drawable — the same reproduce-the-restore-result technique button_handler uses (unset TextColor
-        // → the Material default white). On a real themed native-default Context this equals C#'s
-        // ClearColorFilter exactly. LightGray (Android's Widget.Material default progress gray).
+        // Native-default deviation (host-theme gap): C#'s unset path is ClearColorFilter, which on MAUI's
+        // NATIVE-DEFAULT indeterminate ProgressBar (rendered under Theme.MaterialComponents.DayNight)
+        // reveals a pale light-gray arc (sampled #E0E0E0 in the maui-compare reference). This backend's
+        // circular spinner drawable comes from the host Context's `progressBarStyle` (see
+        // create_platform_view), but that host theme is Theme.DeviceDefault(.Light) whose baseline
+        // indeterminate tint is the DeviceDefault accent (navy, sampled #495D92) — so a plain
+        // ClearColorFilter would leave navy, NOT MAUI's pale gray. Positively assert the native-default gray
+        // on the unset path instead, reproducing MAUI's ClearColorFilter *result* under its theme — the same
+        // reproduce-the-restore-result technique button_handler uses (unset TextColor → the Material default
+        // white) and the same host-theme-vs-MAUI-theme gap check_box/radio/switch document. On a host that
+        // ran under MAUI's own theme this would equal C#'s ClearColorFilter exactly. LightGray (Android's
+        // Widget.Material default progress gray).
         constexpr jint k_native_default_indicator_color = static_cast<jint>(0xFFE0E0E0U);
         const jint tint = color_is_set ? static_cast<jint>(view.color().to_int()) : k_native_default_indicator_color;
 
