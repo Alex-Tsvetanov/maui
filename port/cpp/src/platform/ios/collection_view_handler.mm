@@ -750,6 +750,12 @@ namespace maui::controls
         // the cell's lifetime) and, out-param, its native UIView. Yields {nullptr, nil} when the template
         // is loader-only (no static control type) or no handler is registered for that type — the cell
         // then falls back to the item-text mirror, exactly as before.
+        // Forward declaration: a composite template (a Grid/Stack holding Image+Label children) realizes its
+        // top-level handler here but its CHILDREN are not logical children of the page tree, so — exactly like a
+        // boxed Header/Footer VIEW — they need an on-demand recursive mount (defined below, reused by
+        // realize_boxed_view).
+        void ensure_mounted(maui::core::i_maui_context* context, maui::controls::element& root);
+
         std::shared_ptr<maui::core::bindable_object> realize_template_content(
             collection_view_handler& handler, const std::shared_ptr<data_template>& tmpl, const boxed_item& value,
             UIView** out_native)
@@ -778,6 +784,17 @@ namespace maui::controls
             }
             child_handler->set_maui_context(context);
             element->set_handler(child_handler); // creates the platform view + runs the mapper
+
+            // A COMPOSITE template (e.g. HeaderFooterTemplate's two-row Grid holding an Image + Label) attaches
+            // only its top-level handler above; its children are not logical children of the page tree, so the
+            // page-level mount never builds their native views and the composite renders as an EMPTY container
+            // (header_footer_template's blank header/footer/items). Recursively mount the children on demand +
+            // re-host them, exactly as realize_boxed_view does for a boxed VIEW. A leaf template (a single
+            // Label/Image) has no children, so this is a cheap no-op there.
+            if (auto* content_element = dynamic_cast<maui::controls::element*>(content.get()))
+            {
+                ensure_mounted(context, *content_element);
+            }
 
             if (auto* view_handler = dynamic_cast<maui::core::i_view_handler*>(child_handler.get()))
             {
