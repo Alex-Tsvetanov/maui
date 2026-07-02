@@ -118,6 +118,18 @@ namespace maui::core
         // apply_and_store_clip; the handler's platform_arrange re-frames the mask to the live bounds, the
         // 0×0-at-map-time fix).
         void update_clip(const maui::graphics::i_shape* value) override;
+        // The ORIGINAL (un-resized) button-image size + CGImage identity, mirroring Button.iOS.cs's
+        // _originalImageSize / _originalCGImage. get_desired_size ports CrossPlatformMeasure, which resizes
+        // the CurrentImage DOWN to fit the content area; these let repeated measures resize from the source
+        // instead of ratcheting a shrunk image ever smaller, and clamp the max back to the original size
+        // (ResizeImageSource). original_image_valid gates the "captured yet" check (C#'s CGSize.Empty
+        // sentinel); original_cg_image is a NON-owning CGImageRef stored as void* purely for the identity
+        // recheck (== image.CGImage) — never dereferenced/retained here, so no CoreGraphics type leaks into
+        // the shared header. Reset on a source clear (mirrors OnHandlerChangingCore + clear_source_native).
+        double original_image_width = 0.0;
+        double original_image_height = 0.0;
+        bool original_image_valid = false;
+        void* original_cg_image = nullptr;
 #endif
 
 #ifdef MAUI_PLATFORM_ANDROID

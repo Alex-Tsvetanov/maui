@@ -16,6 +16,7 @@
 // not a port one.
 #import <UIKit/UIKit.h>
 
+#include <limits>
 #include <memory>
 #include <string>
 
@@ -78,17 +79,19 @@ namespace
         }
     }
 
-    // Writes a tiny 2x2 PNG to a unique path under NSTemporaryDirectory() (the image test convention).
-    std::string write_temp_png()
+    // Writes a square PNG of the given point-size (scale 1, so .Size == pixels) to a unique path under
+    // NSTemporaryDirectory(). The tiny-image tests pass 2; the oversize measure test passes 256 to
+    // reproduce a settings-icon-sized source.
+    std::string write_temp_png_sized(CGFloat side)
     {
         UIGraphicsImageRendererFormat* const format = [[UIGraphicsImageRendererFormat alloc] init];
         format.opaque = NO;
         format.scale = 1;
-        UIGraphicsImageRenderer* const renderer = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(2, 2)
+        UIGraphicsImageRenderer* const renderer = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(side, side)
                                                                                          format:format];
         UIImage* const image = [renderer imageWithActions:^(UIGraphicsImageRendererContext* context) {
           [[UIColor colorWithRed:0 green:0 blue:1 alpha:1] setFill];
-          [context fillRect:CGRectMake(0, 0, 2, 2)];
+          [context fillRect:CGRectMake(0, 0, side, side)];
         }];
         NSData* const png = image != nil ? UIImagePNGRepresentation(image) : nil;
         if (png == nil)
@@ -102,6 +105,12 @@ namespace
             return {};
         }
         return to_std_string(path);
+    }
+
+    // Writes a tiny 2x2 PNG to a unique path under NSTemporaryDirectory() (the image test convention).
+    std::string write_temp_png()
+    {
+        return write_temp_png_sized(2);
     }
 
     void remove_file(const std::string& path)
@@ -441,6 +450,127 @@ namespace
         // The 2x2 image adds to the empty button's fitted size once the forced layout takes effect.
         EXPECT_GT(after.width, before.width);
         remove_file(path);
+    }
+
+    // Regression (the reported bug): a Button with a LARGE image whose natural width exceeds the WIDTH
+    // constraint — the exact StackLayout case: a VerticalStackLayout measures children with a finite width
+    // and INFINITE height (see vertical_stack_layout_manager). get_desired_size ports Button.iOS.cs
+    // CrossPlatformMeasure, which resizes the image DOWN by the aspect-preserving factor = min(availW/imgW,
+    // availH/imgH); a narrow width therefore tames the HEIGHT too, so the reported height follows the
+    // shrunk image, NOT the raw pixels. Before the fix a raw -[UIButton sizeThatFits:] returned the full
+    // ~256px height, which content_is_minimum_size()==true floored — shoving the following controls
+    // off-screen.
+    TEST(ios_button_seam, large_image_button_width_constrained_tames_the_height)
+    {
+        const std::string path = write_temp_png_sized(256); // a square icon far larger than a button
+        ASSERT_FALSE(path.empty());
+
+        button control;
+        control.set_image_source(image_source::from_file(path));
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        // A 100pt-wide stack cell with infinite height (the real StackLayout measure). The 256px image is
+        // wider than the ~76pt available content width, so it aspect-shrinks — and the square image's height
+        // shrinks with it, well under the raw 256px source.
+        const maui::graphics::size measured = handler->get_desired_size(100.0, std::numeric_limits<double>::infinity());
+        EXPECT_LT(measured.height, 130.0);      // tamed, NOT ~256+px (the bug)
+        EXPECT_LE(measured.width, 100.0 + 0.5); // clamped to the width constraint (+ceil tolerance)
+        EXPECT_GT(measured.height, 0.0);
+        remove_file(path);
+    }
+
+    // A big image with a bounded HEIGHT constraint narrower than the image also tames it (the height axis of
+    // the same min-factor resize). Guards the height-driven branch of CrossPlatformMeasure.
+    TEST(ios_button_seam, large_image_button_height_constrained_tames_the_image)
+    {
+        const std::string path = write_temp_png_sized(256);
+        ASSERT_FALSE(path.empty());
+
+        button control;
+        control.set_image_source(image_source::from_file(path));
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        // Plenty of width, but a 60pt height budget: the image must shrink to fit the height.
+        const maui::graphics::size measured = handler->get_desired_size(400.0, 60.0);
+        EXPECT_LE(measured.height, 60.0 + 0.5); // clamped to the height constraint
+        EXPECT_GT(measured.height, 0.0);
+        remove_file(path);
+    }
+
+    // A big image with NO width/height constraint (infinite) keeps roughly its natural size + insets —
+    // matching MAUI when there's infinite space (the resize is a no-op on an unconstrained axis). This
+    // guards against over-shrinking an unconstrained image button.
+    TEST(ios_button_seam, large_image_button_unconstrained_keeps_natural_image_size)
+    {
+        const std::string path = write_temp_png_sized(64);
+        ASSERT_FALSE(path.empty());
+
+        button control;
+        control.set_image_source(image_source::from_file(path));
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        const maui::graphics::size measured =
+            handler->get_desired_size(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity());
+        // 64px image + default padding (7 top/bottom) → about 78pt tall, at least the image height.
+        EXPECT_GE(measured.height, 64.0);
+        EXPECT_LT(measured.height, 200.0);
+        remove_file(path);
+    }
+
+    // The gallery's settings buttons use ContentLayout Top (image stacked ABOVE the title). get_desired_size
+    // reads i_text_button::content_layout_spec() and composes image + title on the HEIGHT axis for Top/Bottom
+    // (C#'s layout.Position branch), so a Top button is TALLER than the same button with the image beside the
+    // title (Left) — image_h + title_h + spacing vs max(image_h, title_h). This is the exact case the report
+    // bug hit (a settings-sized icon above "settings"): it must still be a sane, bounded height, taller than
+    // the Left composition but nowhere near the raw stacked pixel blow-up the old raw-sizeThatFits produced.
+    TEST(ios_button_seam, top_content_layout_stacks_image_and_title_on_the_height_axis)
+    {
+        const std::string path = write_temp_png_sized(48); // a modest icon that fits the constraint unshrunk
+        ASSERT_FALSE(path.empty());
+
+        button top_control;
+        top_control.set_text("settings");
+        top_control.set_image_source(image_source::from_file(path));
+        top_control.set_content_layout(button_content_layout{button_content_layout::image_position::top, 10.0});
+        auto top_handler = std::make_shared<button_handler>();
+        top_control.set_handler(top_handler);
+
+        button left_control;
+        left_control.set_text("settings");
+        left_control.set_image_source(image_source::from_file(path));
+        left_control.set_content_layout(button_content_layout{button_content_layout::image_position::left, 10.0});
+        auto left_handler = std::make_shared<button_handler>();
+        left_control.set_handler(left_handler);
+
+        const maui::graphics::size top = top_handler->get_desired_size(320.0, 600.0);
+        const maui::graphics::size left = left_handler->get_desired_size(320.0, 600.0);
+
+        // Top stacks (image_h + title_h + spacing); Left is max(image_h, title_h). So Top is strictly taller.
+        EXPECT_GT(top.height, left.height);
+        // Still a sane, bounded height — the 48pt image + a line of text + spacing + insets, well under the
+        // runaway height the raw sizeThatFits floor produced for the reported bug.
+        EXPECT_LT(top.height, 160.0);
+        EXPECT_GE(top.height, 48.0); // at least the (unshrunk) image height
+        remove_file(path);
+    }
+
+    // Text-only buttons keep the native SizeThatFits path (the fix does NOT change them): a plain titled
+    // button still measures to its intrinsic title + insets, unaffected by the image branch.
+    TEST(ios_button_seam, text_only_button_measure_is_unchanged)
+    {
+        button control;
+        control.set_text("Hello");
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        const maui::graphics::size measured = handler->get_desired_size(CGFLOAT_MAX, CGFLOAT_MAX);
+        UIButton* const view = native_button(handler);
+        const CGSize native = [view sizeThatFits:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX)];
+        EXPECT_NEAR(measured.width, native.width, 0.5);
+        EXPECT_NEAR(measured.height, native.height, 0.5);
     }
 
     TEST(ios_button_seam, clearing_image_source_removes_the_normal_state_image)

@@ -14,6 +14,26 @@
 
 namespace maui::core
 {
+    // The measure-relevant projection of Button.ContentLayout (position + spacing) — the two scalars the
+    // iOS CrossPlatformMeasure needs to know whether the image/title compose along the WIDTH axis
+    // (Left/Right) or the HEIGHT axis (Top/Bottom), and by how much spacing. Kept as a bare POD in the
+    // CORE layer (i_text_button lives in maui::core and must not depend on maui::controls, where the richer
+    // maui::controls::button_content_layout lives). image_position mirrors
+    // Button.ButtonContentLayout.ImagePosition {Left, Top, Right, Bottom} 1:1 by ordinal, so the concrete
+    // Button converts by ordinal. NARROW, like image_source(): only the measure path reads it.
+    struct button_content_spec
+    {
+        enum class image_position
+        {
+            left,
+            top,
+            right,
+            bottom
+        };
+        image_position position = image_position::left;
+        double spacing = 10.0; // Button.cs DefaultSpacing = 10.
+    };
+
     class i_text_button : public i_button, public i_text
     {
     public:
@@ -28,6 +48,18 @@ namespace maui::core
         [[nodiscard]] virtual maui::core::i_image_source* image_source() const
         {
             return nullptr;
+        }
+
+        // The button's ContentLayout, projected to the measure-relevant (position, spacing) POD. NARROW,
+        // like image_source(): C#'s Button.iOS.cs CrossPlatformMeasure reads button.ContentLayout to decide
+        // the image/title composition axis (Left/Right → width, Top/Bottom → height) and the spacing between
+        // them, and the iOS get_desired_size ports that measure — so it needs this read. The value stays
+        // owned control-side (Button.ContentLayout); this is a pure read. Defaulted to the C# default
+        // ButtonContentLayout (Left, spacing 10) so a non-image or default button behaves exactly as MAUI's
+        // default, and no future i_text_button implementer is forced to carry ContentLayout.
+        [[nodiscard]] virtual maui::core::button_content_spec content_layout_spec() const
+        {
+            return {};
         }
 
         // C# Button.IImageSourcePart.UpdateIsLoading (Button.cs:499-505): the handler's image mapper pushes

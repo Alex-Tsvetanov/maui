@@ -11,6 +11,7 @@
 // dispatch-table walk over the REAL registrations the handler made on the REAL UIButton.
 #import <UIKit/UIKit.h>
 
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -71,17 +72,18 @@ namespace
         }
     }
 
-    // Writes a tiny 2x2 PNG to a unique path under NSTemporaryDirectory() (the image test convention).
-    std::string write_temp_png()
+    // Writes a square PNG of the given point-size (scale 1, so .Size == pixels) to a unique path under
+    // NSTemporaryDirectory(). The seam tests pass 2; the oversize measure test passes 256.
+    std::string write_temp_png_sized(CGFloat side)
     {
         UIGraphicsImageRendererFormat* const format = [[UIGraphicsImageRendererFormat alloc] init];
         format.opaque = NO;
         format.scale = 1;
-        UIGraphicsImageRenderer* const renderer = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(2, 2)
+        UIGraphicsImageRenderer* const renderer = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(side, side)
                                                                                          format:format];
         UIImage* const image = [renderer imageWithActions:^(UIGraphicsImageRendererContext* context) {
           [[UIColor colorWithRed:0 green:0 blue:1 alpha:1] setFill];
-          [context fillRect:CGRectMake(0, 0, 2, 2)];
+          [context fillRect:CGRectMake(0, 0, side, side)];
         }];
         NSData* const png = image != nil ? UIImagePNGRepresentation(image) : nil;
         if (png == nil)
@@ -95,6 +97,12 @@ namespace
             return {};
         }
         return to_std_string(path);
+    }
+
+    // Writes a tiny 2x2 PNG to a unique path under NSTemporaryDirectory() (the image test convention).
+    std::string write_temp_png()
+    {
+        return write_temp_png_sized(2);
     }
 
     void remove_file(const std::string& path)
@@ -253,6 +261,46 @@ namespace
         control.set_handler(nullptr);
         EXPECT_EQ(handler->platform_view(), nullptr);
         EXPECT_EQ(handler->virtual_view(), nullptr);
+    }
+
+    // Regression: a large image in an aspect-fit image_button must measure to fit its WIDTH constraint, not
+    // the raw image pixel size. get_desired_size ports ImageButton.iOS.cs CrossPlatformMeasure, which uses
+    // ImageView.SizeThatFitsImage (aspect-aware, respects constraints) — the shared size_that_fits_image.
+    // Before the fix, a raw -[UIButton sizeThatFits:] returned the full 256px source, which
+    // content_is_minimum_size-style flooring in view::measure would have blown up the layout.
+    TEST(ios_image_button_seam, large_image_measures_to_fit_the_width_constraint)
+    {
+        const std::string path = write_temp_png_sized(256);
+        ASSERT_FALSE(path.empty());
+
+        image_button control;
+        control.set_aspect(aspect::aspect_fit); // the default; aspect-fit drives the aspect-aware fit
+        control.set_source(image_source::from_file(path));
+        auto handler = std::make_shared<image_button_handler>();
+        control.set_handler(handler);
+
+        // A 100pt-wide cell: the 256px square must aspect-fit down to ~100x100, not report ~256px.
+        const maui::graphics::size measured = handler->get_desired_size(100.0, 600.0);
+        EXPECT_LE(measured.width, 100.5);
+        EXPECT_LE(measured.height, 100.5); // square image → height tracks the shrunk width
+        EXPECT_GT(measured.width, 0.0);
+        remove_file(path);
+    }
+
+    // No image → the source-less button keeps the native -[UIButton sizeThatFits:] fallback (C#'s else
+    // branch). This guards that the image branch does not swallow the empty case.
+    TEST(ios_image_button_seam, no_image_uses_the_native_size_that_fits_fallback)
+    {
+        image_button control;
+        auto handler = std::make_shared<image_button_handler>();
+        control.set_handler(handler);
+
+        UIButton* const button = native_button(handler);
+        const CGSize native = [button sizeThatFits:CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX)];
+        const maui::graphics::size measured =
+            handler->get_desired_size(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity());
+        EXPECT_NEAR(measured.width, native.width, 0.5);
+        EXPECT_NEAR(measured.height, native.height, 0.5);
     }
 
     TEST(ios_image_button_seam, handler_resolved_from_default_registry)

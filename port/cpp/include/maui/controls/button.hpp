@@ -133,6 +133,16 @@ namespace maui::controls
         {
             return content_layout_.get();
         }
+        // The i_text_button seam the iOS get_desired_size reads to compose the image+title (Left/Right →
+        // width, Top/Bottom → height) — the measure-relevant projection of ContentLayout. image_position
+        // mirrors ButtonContentLayout.ImagePosition {Left, Top, Right, Bottom} 1:1 by ordinal, so we convert
+        // by ordinal. (See i_text_button::content_layout_spec — NARROW, like image_source().)
+        [[nodiscard]] maui::core::button_content_spec content_layout_spec() const override
+        {
+            const button_content_layout layout = content_layout_.get();
+            return {static_cast<maui::core::button_content_spec::image_position>(static_cast<int>(layout.position)),
+                    layout.spacing};
+        }
         // C# Button.IImageSourcePart.UpdateIsLoading (Button.cs:499-505) — the handler/loader pushes the
         // in-flight loading state through the i_text_button seam (overrides the defaulted no-op there;
         // narrow approach — Button is not widened to i_image). Unlike ImageButton, Button has NO public

@@ -18,6 +18,7 @@
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <memory>
@@ -162,6 +163,40 @@ namespace
         UIImage* const resolved = [image imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
         [button setImage:resolved forState:UIControlStateNormal];
         [button layoutIfNeeded];
+    }
+
+    // Port of UIImageExtensions.ResizeImageSource (Graphics/Platforms/iOS/UIImageExtensions.cs): scale the
+    // button image to fit (max_width, max_height), clamped so it never exceeds the ORIGINAL image size, and
+    // skip scaling UP unless asked. Returns the source unchanged when no resize is needed, else a new
+    // UIImage built at CurrentScale/factor (which shrinks its point .Size) preserving the rendering mode.
+    UIImage* resize_image_source(UIImage* source_image, CGFloat max_width, CGFloat max_height,
+                                 CGSize original_image_size, bool should_scale_up)
+    {
+        if (source_image == nil || source_image.CGImage == nullptr)
+        {
+            return nil;
+        }
+        max_width = static_cast<CGFloat>(std::min<double>(max_width, original_image_size.width));
+        max_height = static_cast<CGFloat>(std::min<double>(max_height, original_image_size.height));
+        const CGSize source_size = source_image.size;
+        if (source_size.width <= 0 || source_size.height <= 0)
+        {
+            return source_image;
+        }
+        const auto max_resize_factor =
+            static_cast<float>(std::min(max_width / source_size.width, max_height / source_size.height));
+        if (max_resize_factor > 1.0F && !should_scale_up)
+        {
+            return source_image;
+        }
+        // C#'s UIImage.CurrentScale is the Obj-C `scale` property; a higher scale → smaller point .Size, so
+        // dividing by the (<1) factor scales the image DOWN in points.
+        UIImage* resized = [UIImage imageWithCGImage:source_image.CGImage
+                                               scale:source_image.scale / max_resize_factor
+                                         orientation:source_image.imageOrientation];
+        // Preserve the rendering mode to maintain color behavior (matches C#).
+        resized = [resized imageWithRenderingMode:source_image.renderingMode];
+        return resized;
     }
 } // namespace
 
@@ -477,7 +512,7 @@ namespace maui::core
 
     maui::graphics::size button_handler::get_desired_size(double width_constraint, double height_constraint) const
     {
-        const auto* platform = typed_platform_view();
+        auto* platform = typed_platform_view();
         if (platform == nullptr || platform->native == nullptr)
         {
             return {0, 0};
@@ -486,8 +521,196 @@ namespace maui::core
         // maximum, then the native view measures itself (UIView.SizeThatFits).
         const CGFloat width = std::isfinite(width_constraint) ? static_cast<CGFloat>(width_constraint) : CGFLOAT_MAX;
         const CGFloat height = std::isfinite(height_constraint) ? static_cast<CGFloat>(height_constraint) : CGFLOAT_MAX;
-        const CGSize fitting = [as_button(platform->native) sizeThatFits:CGSizeMake(width, height)];
-        return {fitting.width, fitting.height};
+        UIButton* const button = as_button(platform->native);
+
+        UIImage* image = [button imageForState:UIControlStateNormal];
+        if (image == nil)
+        {
+            // No image: a text-only (or empty) button. Keep the native measure — SizeThatFits is correct for
+            // a title + content insets — and drop any captured original image (Button.iOS.cs's else branch
+            // and OnHandlerChangingCore both reset _originalImageSize / _originalCGImage).
+            platform->original_image_valid = false;
+            platform->original_cg_image = nullptr;
+            const CGSize fitting = [button sizeThatFits:CGSizeMake(width, height)];
+            return {fitting.width, fitting.height};
+        }
+
+        // ---- Port of Button.iOS.cs ICrossPlatformLayout.CrossPlatformMeasure (the image path) ----
+        //
+        // Why this exists: the port has no WrapperView/container, so a Button with an ImageSource never ran
+        // MAUI's CrossPlatformMeasure — get_desired_size fell through to a raw -[UIButton sizeThatFits:],
+        // which returns the button's intrinsic size grown to the FULL image pixel size. Combined with
+        // content_is_minimum_size()==true (below), view::measure treats that as a hard floor, so a big icon
+        // (settings.png = 128×128 @1x) made the button render at the full ~128pt+ image height (Top position
+        // stacks image + title, larger still) and shoved the following controls off-screen. This replicates
+        // CrossPlatformMeasure so the image is resized DOWN to the available content area and the reported
+        // size follows the resized image, not the raw pixels. NOTE: this is NOT a scale/loading bug —
+        // settings.png is a 128×128 @1x asset (UIImage.size = 128pt), so the height came from measure
+        // ignoring the constraint, not from loading a @2x/@3x source at the wrong scale.
+        //
+        // ContentLayout (image position + spacing) is read through the i_text_button::content_layout_spec()
+        // seam (a narrow projection of Button.ContentLayout, like image_source()), so the measure composes
+        // the image + title along the correct axis: Left/Right → WIDTH, Top/Bottom → HEIGHT (C#'s
+        // layout.Position branches). The gallery's settings buttons use Top, so this axis choice matters.
+        const i_button* const vv = virtual_view();
+        const auto* const tvv = dynamic_cast<const i_text_button*>(vv);
+        const maui::core::button_content_spec content_layout =
+            tvv != nullptr ? tvv->content_layout_spec() : maui::core::button_content_spec{};
+        const double spacing = content_layout.spacing;
+        using image_position = maui::core::button_content_spec::image_position;
+        const bool position_is_vertical =
+            content_layout.position == image_position::top || content_layout.position == image_position::bottom;
+
+        // C#: borderWidth = button.BorderWidth < 0 ? 0 : button.BorderWidth (clamp negatives to 0).
+        const double border_width = vv != nullptr && vv->stroke_thickness() > 0 ? vv->stroke_thickness() : 0.0;
+
+        maui::core::thickness padding = vv != nullptr ? vv->padding() : maui::core::thickness{};
+        if (padding.is_nan())
+        {
+            padding = maui::core::thickness(k_default_padding_horizontal, k_default_padding_vertical);
+        }
+
+        NSString* const title = [button titleForState:UIControlStateNormal];
+        const bool has_title = title != nil && title.length > 0;
+
+        // ResizeImageIfNecessary: shrink CurrentImage to fit the content area, resizing from the ORIGINAL
+        // source each pass so repeated measures don't ratchet it ever smaller (Button.iOS.cs's
+        // _originalImageSize / _originalCGImage). Capture the original the first time or when a new image is
+        // loaded (identity recheck against the stored CGImageRef).
+        void* const cg_image = (__bridge void*)(id)image.CGImage;
+        if (!platform->original_image_valid || platform->original_cg_image != cg_image)
+        {
+            platform->original_cg_image = cg_image;
+            platform->original_image_width = image.size.width;
+            platform->original_image_height = image.size.height;
+            platform->original_image_valid = true;
+        }
+        const CGSize original_size = CGSizeMake(static_cast<CGFloat>(platform->original_image_width),
+                                                static_cast<CGFloat>(platform->original_image_height));
+
+        // additionalHorizontalSpace / additionalVerticalSpace: base padding + border, plus (when a title is
+        // present) the spacing on the image-position axis — Left/Right add it to width, Top/Bottom to height
+        // (C#'s ResizeImageIfNecessary layout.Position branch).
+        double additional_horizontal_space = padding.left + padding.right + (border_width * 2);
+        double additional_vertical_space = padding.top + padding.bottom + (border_width * 2);
+        if (has_title)
+        {
+            if (position_is_vertical)
+            {
+                additional_vertical_space += spacing;
+            }
+            else
+            {
+                additional_horizontal_space += spacing;
+            }
+        }
+
+        const double current_image_width = image.size.width;
+        const double current_image_height = image.size.height;
+        constexpr double k_buffer = 0.1; // C#'s off-by-a-fraction tolerance
+
+        // C# guards on !double.IsNaN(constraint); the port receives CGFLOAT_MAX for an unconstrained axis, so
+        // an available* stays at the (huge) constraint there and the resize is a no-op on that axis — an
+        // unconstrained button keeps its natural image size, exactly as MAUI does with infinite space.
+        double available_width = width;
+        double available_height = height;
+        const double content_width = width - additional_horizontal_space;
+        if (current_image_width - content_width > k_buffer)
+        {
+            available_width = content_width;
+        }
+        const double content_height = height - additional_vertical_space;
+        if (current_image_height - content_height > k_buffer)
+        {
+            available_height = content_height;
+        }
+        available_width = std::max(available_width, 0.1);
+        available_height = std::max(available_height, 0.1);
+
+        if (current_image_height - available_height > k_buffer || current_image_width - available_width > k_buffer)
+        {
+            UIImage* const resized = resize_image_source(image, static_cast<CGFloat>(available_width),
+                                                         static_cast<CGFloat>(available_height), original_size, false);
+            if (resized != nil && resized != image)
+            {
+                set_button_image(button, resized);
+                image = [button imageForState:UIControlStateNormal];
+            }
+        }
+
+        // Title rect (ComputeTitleRect): measure the title bounded by the space left after the image +
+        // spacing + padding. Faithfully mirrors the C# THREE subtraction blocks (Button.iOS.cs:287-306),
+        // including its `&&`-before-`||` precedence quirks — the guards are literal ports so a Top/Bottom
+        // title gets the full width (C# subtracts the image/spacing only for Left/Right), which is why the
+        // gallery's Top settings button measures correctly. An empty title contributes a zero rect.
+        const bool position_is_left = content_layout.position == image_position::left;
+        const bool position_is_right = content_layout.position == image_position::right;
+        CGSize title_rect = CGSizeZero;
+        if (has_title)
+        {
+            const CGFloat img_w = image != nil ? image.size.width : 0;
+            double title_width_constraint = width - (border_width * 2);
+            // Block 1 (C#:290-296): image present, finite width, Left/Right → subtract the image width.
+            if (image != nil && std::isfinite(title_width_constraint) && (position_is_left || position_is_right))
+            {
+                title_width_constraint -= img_w;
+            }
+            // Block 2 (C#:298-301): `image!=null && Left || Right` == (image && Left) || Right → subtract
+            // spacing + horizontal padding. Block 3 else-if (image==null) subtracts just the padding.
+            if ((image != nil && position_is_left) || position_is_right)
+            {
+                title_width_constraint -= spacing + padding.left + padding.right;
+            }
+            else if (image == nil)
+            {
+                title_width_constraint -= padding.left + padding.right;
+            }
+            const double title_height_constraint = height - (border_width * 2);
+            UIFont* const font = button.titleLabel.font;
+            NSDictionary* const attrs = font != nil ? @{NSFontAttributeName : font} : @{};
+            const CGSize bound =
+                std::isfinite(title_width_constraint)
+                    ? [title
+                          boundingRectWithSize:CGSizeMake(static_cast<CGFloat>(std::max(title_width_constraint, 0.0)),
+                                                          static_cast<CGFloat>(std::isfinite(title_height_constraint)
+                                                                                   ? title_height_constraint
+                                                                                   : CGFLOAT_MAX))
+                                       options:NSStringDrawingUsesLineFragmentOrigin
+                                    attributes:attrs
+                                       context:nil]
+                          .size
+                    : [title sizeWithAttributes:attrs];
+            title_rect = bound;
+        }
+
+        const double image_w = image != nil ? image.size.width : 0.0;
+        const double image_h = image != nil ? image.size.height : 0.0;
+
+        double button_content_width =
+            std::max<double>(title_rect.width, image_w) + padding.left + padding.right + (border_width * 2);
+        double button_content_height =
+            std::max<double>(title_rect.height, image_h) + padding.top + padding.bottom + (border_width * 2);
+
+        // Both image and title present → add spacing + the smaller of the two on the image-position axis
+        // (Left/Right → width; Top/Bottom → height, where image and title stack), matching C#.
+        if (has_title && image != nil)
+        {
+            if (position_is_vertical)
+            {
+                button_content_height += spacing;
+                button_content_height += std::min<double>(title_rect.height, image_h);
+            }
+            else
+            {
+                button_content_width += spacing;
+                button_content_width += std::min<double>(title_rect.width, image_w);
+            }
+        }
+
+        const double return_width = std::min<double>(button_content_width, width);
+        const double return_height = std::min<double>(button_content_height, height);
+        // Ceil to match UIView.SizeThatFits (C# casts to int after Math.Ceiling).
+        return {std::ceil(return_width), std::ceil(return_height)};
     }
 
     // A UIButton cannot render smaller than its intrinsic content (title + content insets). MAUI surfaces

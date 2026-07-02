@@ -412,7 +412,22 @@ namespace maui::core
         }
         const CGFloat width = std::isfinite(width_constraint) ? static_cast<CGFloat>(width_constraint) : CGFLOAT_MAX;
         const CGFloat height = std::isfinite(height_constraint) ? static_cast<CGFloat>(height_constraint) : CGFLOAT_MAX;
-        const CGSize fitting = [as_button(platform->native) sizeThatFits:CGSizeMake(width, height)];
+        UIButton* const button = as_button(platform->native);
+        // Port of ImageButton.iOS.cs ICrossPlatformLayout.CrossPlatformMeasure: with an image loaded, a
+        // plain -[UIButton sizeThatFits:] (and -[UIImageView sizeThatFits:]) returns the raw image PIXEL
+        // size, ignoring the constraint — so a large icon (e.g. a 128px @2x/@3x source) measured the button
+        // to the full image height and blew past a normal button in a constrained stack. C# instead calls
+        // ImageView.SizeThatFitsImage(constraint, Padding), the aspect-aware fit already ported as
+        // maui::platform::ios::size_that_fits_image; the imageView contentMode (map_aspect) drives it. No
+        // image → keep the SizeThatFits fallback (C#'s else branch), correct for a source-less button.
+        UIImageView* const image_view = button.imageView;
+        if (image_view != nil && image_view.image != nil)
+        {
+            const CGSize fitting =
+                maui::platform::ios::size_that_fits_image(image_view, CGSizeMake(width, height), platform->padding);
+            return {fitting.width, fitting.height};
+        }
+        const CGSize fitting = [button sizeThatFits:CGSizeMake(width, height)];
         return {fitting.width, fitting.height};
     }
 
