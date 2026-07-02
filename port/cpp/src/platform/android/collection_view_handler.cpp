@@ -148,6 +148,11 @@ namespace
     // android.view.View.MeasureSpec modes.
     constexpr auto k_measure_spec_exactly = static_cast<jint>(0x40000000U);
     constexpr auto k_measure_spec_unspecified = static_cast<jint>(0x00000000U);
+    // android.view.Gravity.CENTER (== CENTER_HORIZONTAL | CENTER_VERTICAL == 0x01 | 0x10 == 0x11). Applied to
+    // the empty-view TextView so its text centers within the viewport-sized bounds add_and_frame gives it —
+    // mirroring MAUI's SimpleViewHolder.FromText fill path, which wraps the text in a
+    // Label{HorizontalOptions=Center, VerticalOptions=Center} filling the available space.
+    constexpr jint k_gravity_center = 0x11;
     // GeometryUtil.Epsilon — ContextExtensions.ToPixels subtracts it before ceiling.
     constexpr double k_to_pixels_epsilon = 0.0000000001;
     // A modest default supplemental/item extent fallback (dp) for views that measure to nothing (e.g. a
@@ -247,7 +252,13 @@ namespace
     // Construct a plain android.widget.TextView showing `text` (the DefaultCell label / the supplemental
     // text mirror). Theme-independent ctor (TextView(Context)) so it builds in the bare app_process testhost
     // (the LESSON-2 constraint). Returns a local ref (caller adds it to the host / measures it).
-    [[nodiscard]] local_ref<jobject> make_text_view(JNIEnv* env, jobject context, const std::string& text)
+    // When `center` is set, apply Gravity.CENTER so the text centers within the view's own (later
+    // Exactly-measured) bounds — used for the empty view, which add_and_frame sizes to the whole viewport,
+    // mirroring MAUI's SimpleViewHolder.FromText fill path (a Label{HorizontalOptions=Center,
+    // VerticalOptions=Center} filling the available space). Default (top-start gravity) leaves a plain
+    // wrap-content caption for header/footer/cell text, matching MAUI's FromText(fill:false) bare TextView.
+    [[nodiscard]] local_ref<jobject> make_text_view(JNIEnv* env, jobject context, const std::string& text,
+                                                    bool center = false)
     {
         auto& cache = default_jni_cache();
         jclass text_view_class = cache.find_class(env, k_text_view_class);
@@ -265,6 +276,15 @@ namespace
         const local_ref<jstring> text_str = to_jstring(env, text);
         env->CallVoidMethod(view.get(), set_text, text_str.get());
         clear_pending(env);
+        if (center)
+        {
+            if (jmethodID set_gravity = cache.method(env, k_text_view_class, "setGravity", "(I)V");
+                set_gravity != nullptr)
+            {
+                env->CallVoidMethod(view.get(), set_gravity, k_gravity_center);
+                clear_pending(env);
+            }
+        }
         return view;
     }
 
@@ -1023,7 +1043,9 @@ namespace maui::controls
                 local_ref<jobject> text_view; // keep alive until added
                 if (empty_native == nullptr)
                 {
-                    text_view = make_text_view(env, context, view->empty_view().text());
+                    // Gravity.CENTER so the placeholder text centers h+v within the viewport-sized bounds below,
+                    // matching MAUI's SimpleViewHolder.FromText fill path (Label centered in the fill container).
+                    text_view = make_text_view(env, context, view->empty_view().text(), /*center=*/true);
                     empty_native = text_view.get();
                 }
                 if (empty_native != nullptr)
