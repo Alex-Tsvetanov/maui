@@ -37,6 +37,7 @@
 #include <cmath>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -1135,6 +1136,63 @@ namespace maui::controls
         // are allowed to write Position back (set_position_from_scroll's initial_position_set_ guard).
         mark_initial_position_set();
         return static_cast<int>(collection_view.visibleCells.count);
+    }
+
+    // C# ItemsViewHandler2.GetDesiredSize → Controller.GetSize() (= collectionViewContentSize) +
+    // EnsureContentSizeForScrollDirection. Return the REAL laid-out content size of the native
+    // UICollectionView so get_desired_size uses it instead of the flat item_extent=100 estimate (which
+    // is the headless simulator default and never reflects self-sized cell heights, leaving the
+    // over-tall CV / empty gap on iOS + Catalyst). std::nullopt = no rendered size available yet — the
+    // caller then keeps the estimate (the C# fallback to base.GetDesiredSize).
+    std::optional<maui::graphics::size> collection_view_handler::native_content_size(double width_constraint,
+                                                                                     double height_constraint)
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || platform->controller == nullptr)
+        {
+            return std::nullopt; // no native tree — headless-style estimate
+        }
+        auto* const controller = (__bridge MauiItemsCollectionViewController*)platform->controller;
+        UICollectionView* const collection_view = controller.collectionView;
+        UICollectionViewLayout* const layout = collection_view.collectionViewLayout;
+        if (layout == nil)
+        {
+            return std::nullopt;
+        }
+
+        const bool horizontal = handler_is_horizontal(*this);
+
+        // EnsureContentSizeForScrollDirection: give the layout a finite frame so the compositional layout
+        // can run and compute a real content size (pre-mount, before the CV is in a window, its content
+        // size is still 0). Clamp non-finite / negative constraints to the C# expanded-fitting fallback,
+        // then force a layout pass and restore the frame — the exact C# choreography (SetNeedsLayout +
+        // LayoutIfNeeded, frame restored in a finally). Framing/laying out is idempotent and does not
+        // disturb the arranged frame (platform_arrange re-frames from the cross-platform arrange).
+        auto clamp_constraint = [](double constraint, CGFloat fallback) -> CGFloat {
+            if (!std::isfinite(constraint) || constraint < 0)
+            {
+                return fallback;
+            }
+            return static_cast<CGFloat>(constraint);
+        };
+        const CGRect previous_frame = collection_view.frame;
+        const CGFloat frame_width = clamp_constraint(width_constraint, UILayoutFittingExpandedSize.width);
+        const CGFloat frame_height = clamp_constraint(height_constraint, UILayoutFittingExpandedSize.height);
+        collection_view.frame = CGRectMake(0, 0, frame_width, frame_height);
+        [collection_view setNeedsLayout];
+        [collection_view layoutIfNeeded];
+        const CGSize content = layout.collectionViewContentSize;
+        collection_view.frame = previous_frame;
+
+        // If the layout still produced no extent on the scroll axis, nothing is realized — fall back to
+        // the flat estimate (C# EnsureContentSizeForScrollDirection's `base.GetDesiredSize` branch), never
+        // report 0 here (that would collapse a real list to nothing).
+        const CGFloat main_extent = horizontal ? content.width : content.height;
+        if (main_extent <= 0)
+        {
+            return std::nullopt;
+        }
+        return maui::graphics::size{static_cast<double>(content.width), static_cast<double>(content.height)};
     }
 
     int collection_view_handler::native_visible_cell_count() const

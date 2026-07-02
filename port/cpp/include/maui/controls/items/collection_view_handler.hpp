@@ -429,6 +429,21 @@ namespace maui::controls
         void apply_scroll(double offset); // shared by simulate_scroll + scroll_to: move, realize, report
         void report_scrolled();           // the ItemsViewDelegator.Scrolled port (event + threshold)
 
+        // The native content-size hook (C# ItemsViewController2.GetSize() +
+        // ItemsViewHandler2.EnsureContentSizeForScrollDirection). On the visual backends (iOS/Catalyst)
+        // this forces the compositional layout to run, then returns the real
+        // `collectionView.collectionViewLayout.collectionViewContentSize` — the true self-sized cell
+        // heights MAUI's GetDesiredSize reports via `Controller.GetSize()`. Returns std::nullopt to mean
+        // "no rendered content size is available" — the headless/apple/android backends (which have no
+        // laid-out iOS UICollectionView) and, on iOS/Catalyst, a not-yet-realized layout whose content
+        // size is still 0 — in which case get_desired_size keeps the flat item_extent estimate (the C#
+        // fallback to base.GetDesiredSize). NON-const because forcing a native layout mutates the native
+        // view (C# GetDesiredSize is likewise mutating); get_desired_size const_casts at the sole call
+        // site. Defined per-backend: the ios .mm returns the real size, a default in the .cpp
+        // (#ifndef MAUI_PLATFORM_IOS) returns std::nullopt.
+        [[nodiscard]] std::optional<maui::graphics::size> native_content_size(double width_constraint,
+                                                                              double height_constraint);
+
         [[nodiscard]] std::vector<layout_entry> build_entries() const;
         [[nodiscard]] double max_scroll_offset() const;
         [[nodiscard]] int flat_item_ordinal(const index_path& path) const;

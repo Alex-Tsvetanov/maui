@@ -185,12 +185,28 @@ namespace maui::controls
 
         // Controller.GetSize(): the main-axis content extent (sum of row extents + inter-row spacing)
         // from the flat layout model, independent of the current viewport/scroll (build_entries is the
-        // full content, not just the realized window).
+        // full content, not just the realized window). This is the HEADLESS Controller.GetSize() and the
+        // fallback the visual backends drop back to when nothing is rendered yet.
         const std::vector<layout_entry> entries = build_entries();
         double main_content = 0;
         for (const layout_entry& entry : entries)
         {
             main_content = std::max(main_content, entry.start + entry.extent);
+        }
+
+        // On the visual backends (iOS/Catalyst), Controller.GetSize() is the REAL native content size, not
+        // the flat item_extent estimate (which is the headless simulator default of 100pt/row and never
+        // reflects self-sized cells). Ask the native backend for its laid-out content size and, when it has
+        // one, use its main-axis extent in place of the estimate. nullopt = no rendered size available
+        // (headless/apple/android, or a not-yet-laid-out native view) → keep the estimate (the C# fallback
+        // to base.GetDesiredSize). Only the pre-clamp MAIN-axis content changes; the cross-axis fill and the
+        // per-dimension clamp below are untouched, so explicit-size / horizontal / infinite-constraint
+        // semantics are identical. (const_cast: forcing the native layout mutates the native view, exactly
+        // as the mutating C# GetDesiredSize does; the measure seam itself stays logically const.)
+        if (const std::optional<maui::graphics::size> native =
+                const_cast<collection_view_handler*>(this)->native_content_size(width_constraint, height_constraint))
+        {
+            main_content = platform->orientation == items_layout_orientation::vertical ? native->height : native->width;
         }
 
         // Map (main, cross) onto (width, height) by the scroll orientation, then clamp each dimension to
@@ -212,6 +228,18 @@ namespace maui::controls
         return {clamp_to_constraint(main_content, width_constraint),
                 clamp_to_constraint(cross_content, height_constraint)};
     }
+
+#ifndef MAUI_PLATFORM_IOS
+    // The non-iOS default (headless / apple / android): there is no laid-out iOS UICollectionView to read
+    // a real content size from, so get_desired_size keeps its flat item_extent estimate (the headless
+    // Controller.GetSize()). The iOS/Catalyst backend overrides this in src/platform/ios/
+    // collection_view_handler.mm with the real collectionViewContentSize. Headless behavior is unchanged.
+    std::optional<maui::graphics::size> collection_view_handler::native_content_size(double /*width_constraint*/,
+                                                                                     double /*height_constraint*/)
+    {
+        return std::nullopt;
+    }
+#endif
 
     void collection_view_handler::platform_arrange(const maui::graphics::rect& frame)
     {
