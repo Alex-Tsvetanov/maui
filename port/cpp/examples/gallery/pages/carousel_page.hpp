@@ -63,17 +63,18 @@ namespace maui::samples
 
             headline_.set_text("Basic Horizontal Carousel"); // the Headline Label
 
-            // ItemTemplate: a centered Large Label bound to {Binding} — the item string itself (identity
-            // bind). The C# cell centers the Label in its Grid and styles it Large; stage both on the cell
-            // so each carousel item reads as a big, centered caption rather than small top-left text.
+            // ItemTemplate: a centered Label bound to {Binding} — the item string itself (identity bind).
+            // maui-compare centers the Label in its cell via HorizontalOptions/VerticalOptions=Center +
+            // FontSize=24. Use LAYOUT alignment (not text alignment): the label sits at its natural height,
+            // so text-alignment can only center within that small frame (leaving it at the cell top) —
+            // layout-alignment centers the whole label frame in the cell's full height, matching MAUI.
             auto cell = maui::controls::data_template::of<maui::controls::label>();
             cell->set_binding<std::string, std::string>(maui::controls::label::text_property(),
                                                         [](const std::string& value) { return value; });
-            cell->set_value(maui::controls::label::horizontal_text_alignment_property(),
-                            maui::core::text_alignment::center);
-            cell->set_value(maui::controls::label::vertical_text_alignment_property(),
-                            maui::core::text_alignment::center);
-            cell->set_value(maui::controls::label::font_property(), maui::core::font::system_font_of_size(28));
+            cell->set_value(maui::controls::horizontal_layout_alignment_property(),
+                            maui::core::layout_alignment::center);
+            cell->set_value(maui::controls::vertical_layout_alignment_property(), maui::core::layout_alignment::center);
+            cell->set_value(maui::controls::label::font_property(), maui::core::font::system_font_of_size(24));
             carousel_.set_item_template(cell);
             carousel_.set_items_source(items_);
             // Give the carousel a finite, tall viewport so it fills the stack's remaining height instead of
