@@ -69,6 +69,7 @@ namespace maui::samples
 
             // ---- section 1: the full pointer family (pgrLabel) -----------------------------------------
             pgr_label_.set_text("Hover, press, and release me!");
+            pgr_label_.set_font(maui::core::font::system_font_of_size(24.0)); // C# pgrLabel FontSize="24"
             pgr_position_label_.set_text("Hover above label to reveal pointer position");
             pgr_position_to_window_.set_text("");
             pgr_position_to_this_label_.set_text("");
@@ -100,6 +101,7 @@ namespace maui::samples
 
             // ---- section 2: hover-only label (hoverLabel) ----------------------------------------------
             hover_label_.set_text("Hover me!");
+            hover_label_.set_font(maui::core::font::system_font_of_size(24.0)); // C# hoverLabel FontSize="24"
             position_label_.set_text("Hover above label to reveal pointer position");
             position_to_window_.set_text("");
             position_to_this_label_.set_text("");
@@ -120,6 +122,8 @@ namespace maui::samples
             // only by the CommandParameter (Green on enter, Black on exit). The command recolors the label
             // text — the C# HandleHoverCommand(Color). U-CMD command-before-event path.
             colorful_hover_label_.set_text("Hover me green!");
+            colorful_hover_label_.set_font(
+                maui::core::font::system_font_of_size(24.0)); // C# colorfulHoverLabel FontSize="24"
             hover_command_ = std::make_shared<maui::controls::command>([this](const std::any& parameter) {
                 if (const std::optional<maui::graphics::color> color =
                         maui::core::try_unbox<maui::graphics::color>(parameter))
