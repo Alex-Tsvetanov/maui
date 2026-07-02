@@ -155,6 +155,46 @@ namespace
         EXPECT_EQ(child.last_arrange, rect(0, 0, 100, 100));
     }
 
+    // A NESTED grow flex_layout (a flex row as a grow child of a flex column) must measure its content
+    // height with the column's MAIN axis unconstrained, not stretch to the full height — else it overflows
+    // and trailing siblings spill below (regression guard for flex_layout_page's missing footer).
+    TEST(flex_layout_control, nested_grow_flex_child_keeps_trailing_sibling)
+    {
+        flex_layout outer;
+        outer.set_direction(flex_direction::column);
+        mock_view header;
+        header.configure({400, 14});
+        mock_view footer;
+        footer.configure({400, 14});
+
+        flex_layout body; // nested flex ROW that grows to fill the column's slack
+        body.set_direction(flex_direction::row);
+        mock_view content;
+        content.configure({100, 14});
+        mock_view nav;
+        nav.configure({50, 0});
+        mock_view aside;
+        aside.configure({50, 0});
+        body.add(content);
+        body.set_grow(content, 1.0F);
+        body.add(nav);
+        body.set_basis(nav, flex_basis{50.0F, false});
+        body.add(aside);
+        body.set_basis(aside, flex_basis{50.0F, false});
+
+        outer.add(header);
+        outer.add(body);
+        outer.set_grow(body, 1.0F);
+        outer.add(footer);
+
+        outer.measure(400, 600);
+        outer.arrange(rect(0, 0, 400, 600));
+
+        // header at the top, body grows to the free space (600 - 14 - 14 = 572), footer pinned at the bottom.
+        EXPECT_EQ(header.last_arrange, rect(0, 0, 400, 14));
+        EXPECT_EQ(footer.last_arrange, rect(0, 586, 400, 14));
+    }
+
     // ---- handler seam ----
 
     TEST(flex_layout_seam, panel_child_count_tracks_mutations)

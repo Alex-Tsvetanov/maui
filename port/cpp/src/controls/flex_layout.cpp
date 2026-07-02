@@ -143,11 +143,23 @@ namespace maui::controls
             // would supply its own root as the item and skip this; the port treats every child as a leaf
             // for measurement (nested flex layouts still measure correctly through the child's own manager).
             maui::core::i_view* child_ptr = &child;
-            item->self_sizing = [child_ptr](maui::layouts::flex::item& it, float& w, float& h, bool measure_mode) {
+            const bool child_is_flex = dynamic_cast<flex_layout*>(child_ptr) != nullptr;
+            item->self_sizing = [child_ptr, child_is_flex](maui::layouts::flex::item& it, float& w, float& h,
+                                                           bool measure_mode) {
                 maui::graphics::size request;
                 if (measure_mode)
                 {
-                    maui::graphics::size constraints = engine_constraints(it);
+                    // C# grafts a nested FlexLayout's own root into the parent tree and only self-sizes
+                    // NON-flex children (FlexLayout.cs). The port measures every child as a leaf, so a NESTED
+                    // flex_layout must be measured with the parent's MAIN axis UNCONSTRAINED (the flexbox
+                    // max-content basis) — otherwise align-items=stretch inflates it to the full main-axis
+                    // constraint and it overflows the parent (e.g. flex_layout_page's footer spilling below
+                    // the window). The engine's incoming frame dims already carry cross = parent-cross-size
+                    // and main = 0; the 0→inf rule then unconstrains only the main axis. A non-flex leaf keeps
+                    // the walk-up-the-parents constraint (leaves don't stretch, so the main-axis value is inert).
+                    maui::graphics::size constraints =
+                        child_is_flex ? maui::graphics::size{static_cast<double>(w), static_cast<double>(h)}
+                                      : engine_constraints(it);
                     // C#: a 0 constraint in measure mode becomes +inf (measure unconstrained).
                     constraints.width =
                         (constraints.width == 0) ? std::numeric_limits<double>::infinity() : constraints.width;
