@@ -150,6 +150,24 @@ namespace
         EXPECT_NE([button titleColorForState:UIControlStateNormal], nil);
     }
 
+    // An unset FontSize resolves to UIFont.SystemFontSize (14pt on iOS), NOT UIFont.ButtonFontSize (18pt):
+    // RadioButton.FontSizeDefaultValueCreator() (RadioButton.cs:353) returns this.GetDefaultFontSize() ==
+    // IFontManager.DefaultFontSize == UIFont.SystemFontSize, so a MAUI RadioButton's template Label renders
+    // at SystemFontSize. The port renders the radio natively through the TitleLabel, so map_font must supply
+    // SystemFontSize as its default. Regression guard for the "radio label renders larger than MAUI" fix
+    // (was buttonFontSize == 18pt → ~1.29× too large, 18/14).
+    TEST(ios_radio_button_seam, unset_font_size_uses_system_font_size)
+    {
+        radio_button control;
+        control.set_content("Option");
+        auto handler = std::make_shared<radio_button_handler>();
+        control.set_handler(handler);
+
+        UIButton* const button = native_button(handler);
+        EXPECT_EQ(button.titleLabel.font.pointSize, UIFont.systemFontSize);
+        EXPECT_NE(button.titleLabel.font.pointSize, UIFont.buttonFontSize);
+    }
+
     // UpdateTextColor's null-vs-set discriminator (the dark-mode sibling of the label chat-bubble bug):
     // an UNSTYLED radio button has no explicit TextColor → the adaptive UIColor.labelColor; an EXPLICIT
     // TextColor=Black must reach the UIButton title as a CONCRETE opaque black, not the dynamic default

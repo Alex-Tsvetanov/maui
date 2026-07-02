@@ -262,8 +262,16 @@ namespace maui::core
         auto* platform = handler.typed_platform_view();
         if (platform != nullptr)
         {
+            // MAUI renders RadioButton via a ControlTemplate whose text is a Label; RadioButton's
+            // FontSizeDefaultValueCreator() (RadioButton.cs:353) returns this.GetDefaultFontSize() ==
+            // IFontManager.DefaultFontSize == UIFont.SystemFontSize (14pt on iOS), so an unset-FontSize
+            // radio renders at SystemFontSize — NOT UIFont.ButtonFontSize (18pt). The port renders the
+            // radio natively through the ButtonExtensions recipe (TitleLabel), so it must supply the same
+            // SystemFontSize default the creator would; buttonFontSize (18pt) made the title ~1.29× too
+            // large (18/14), matching the Button map_font fix. See ios_conversions.hpp's
+            // default_text_font_size() note.
             as_button(platform->native).titleLabel.font =
-                to_ui_font(view.font(), static_cast<double>(UIFont.buttonFontSize));
+                to_ui_font(view.font(), maui::platform::ios::default_text_font_size());
         }
     }
 

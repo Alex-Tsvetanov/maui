@@ -258,6 +258,26 @@ namespace
         EXPECT_EQ(view.layer.cornerRadius, 7.0);
     }
 
+    // An unset FontSize must resolve to UIFont.SystemFontSize (14pt on iOS), NOT UIFont.ButtonFontSize
+    // (18pt): in MAUI, Button.FontSizeDefaultValueCreator() (Button.cs:391) returns this.GetDefaultFontSize()
+    // == IFontManager.DefaultFontSize == UIFont.SystemFontSize, so the BindableProperty pre-fills FontSize
+    // to 14 before the mapper runs — the ButtonFontSize fallback inside ButtonExtensions.UpdateFont is dead
+    // code for a real Button. The port has no default-value-creator, so map_font must supply SystemFontSize
+    // as its own default (identical to Label). Regression guard for the "button text renders larger than
+    // MAUI" fix (was buttonFontSize == 18pt → ~1.29× too large, 18/14).
+    TEST(ios_button_seam, unset_font_size_uses_system_font_size)
+    {
+        button control;
+        control.set_text("Change Formatted String");
+        auto handler = std::make_shared<button_handler>();
+        control.set_handler(handler);
+
+        UIButton* const view = native_button(handler);
+        EXPECT_EQ(view.titleLabel.font.pointSize, UIFont.systemFontSize);
+        // And specifically NOT the UIButton-native ButtonFontSize (the pre-fix value).
+        EXPECT_NE(view.titleLabel.font.pointSize, UIFont.buttonFontSize);
+    }
+
     // MAUI's iOS Button does NOT visibly apply CharacterSpacing (a runtime mapper-order quirk — see
     // refresh_button_title_formatting). Per the 2026-06-23 user ruling the maui-compare RUNTIME is ground
     // truth (it renders "Button", never "B u t t o n"), so the port treats button CharacterSpacing as a

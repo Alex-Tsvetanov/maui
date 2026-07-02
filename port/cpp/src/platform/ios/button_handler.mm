@@ -427,9 +427,22 @@ namespace maui::core
         auto* platform = handler.typed_platform_view();
         if (platform != nullptr)
         {
-            // ButtonExtensions.UpdateFont targets TitleLabel with UIFont.ButtonFontSize as the default.
+            // ButtonExtensions.UpdateFont passes UIFont.ButtonFontSize (18pt) as the default to
+            // TitleLabel.UpdateFont → FontManager.GetFont(font, defaultSize). BUT that 18pt fallback is
+            // DEAD for a real Button: Button.FontSizeDefaultValueCreator() (Button.cs:391) returns
+            // this.GetDefaultFontSize() == IFontManager.DefaultFontSize == UIFont.SystemFontSize (14pt on
+            // iOS, FontManager.iOS.cs:52), so the BindableProperty pre-fills FontSize to 14 before the
+            // mapper runs and GetFontSize returns font.Size (14) — never the 18pt ButtonFontSize fallback.
+            // So a MAUI Button with an unset FontSize renders at SystemFontSize, identical to Label (whose
+            // creator is the SAME GetDefaultFontSize — which is why the port's already-correct Label uses
+            // default_text_font_size() too). The port has no default-value-creator, so an unset font has
+            // size 0 and the handler's default IS the effective default; it must be SystemFontSize
+            // (default_text_font_size()) to match MAUI — using UIFont.buttonFontSize (18pt) here rendered
+            // every implicit-size button ~1.29× too large (18/14), the "button text larger than MAUI" bug.
+            // Same trap the text controls already avoid; Button was missed. See ios_conversions.hpp's
+            // default_text_font_size() note.
             as_button(platform->native).titleLabel.font =
-                to_ui_font(view.font(), static_cast<double>(UIFont.buttonFontSize));
+                to_ui_font(view.font(), maui::platform::ios::default_text_font_size());
         }
     }
 

@@ -174,6 +174,11 @@ namespace maui::core
         }
         const maui::core::font item_font = item_view_->font();
         platform->item_font = item_font;
+        // UIFont.ButtonFontSize (18pt) is CORRECT here (unlike button/radio_button, which use
+        // SystemFontSize): a SwipeItemMenuItem is a MenuItem, which has NO IFontElement FontSize property
+        // and thus NO GetDefaultFontSize creator — its Font reaches the handler genuinely unset, so MAUI's
+        // SwipeItemMenuItemHandler.MapFont → UIButton.UpdateFont (the no-defaultSize overload) really does
+        // fall back to UIFont.ButtonFontSize. Do NOT change this to default_text_font_size().
         as_button(platform->native).titleLabel.font = maui::platform::ios::to_ui_font(item_font, UIFont.buttonFontSize);
     }
 
