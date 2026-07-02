@@ -55,6 +55,7 @@
 #include "maui/graphics/radial_gradient_paint.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/solid_paint.hpp"
+#include "maui/graphics/system_background_paint.hpp"
 
 #include "ios_conversions.hpp"
 
@@ -428,6 +429,58 @@ namespace maui::platform::ios
         return installed;
     }
 
+    // Resolve UIColor.systemBackground against a SPECIFIC view's trait collection, NOT the global one.
+    // `UIColor.systemBackgroundColor.CGColor` resolves the dynamic color against UITraitCollection.current,
+    // which — outside a view draw/layout callback (apply_background runs at map time) — is the SCREEN's
+    // trait (e.g. the Mac's dark appearance under Catalyst), so it would bake a black CGColor onto the
+    // layer even when the window forces Light (host_run.mm overrideUserInterfaceStyle). The frame fill is
+    // on a CALayer (for the rounded-corner clip), and a CALayer never auto-resolves a dynamic color, so we
+    // resolve MANUALLY against the view's own trait — which inherits the window's forced appearance — the
+    // way MAUI's FrameRenderer relies on its platform view's appearance.
+    inline CGColorRef system_background_cg_color(UIView* view)
+    {
+        UITraitCollection* const traits = view != nil ? view.traitCollection : UITraitCollection.currentTraitCollection;
+        return [UIColor.systemBackgroundColor resolvedColorWithTraitCollection:traits].CGColor;
+    }
+
+    // The associated-object key holding the UITraitUserInterfaceStyle change registration installed for a
+    // system_background_paint fill, so a live light/dark flip re-resolves the layer color (the solid
+    // background is set once at map/update time and is NOT re-applied on layoutSubviews, which only resizes
+    // gradient/image sublayers). A non-marker paint removes the registration.
+    inline const void* k_system_bg_trait_key = &k_system_bg_trait_key;
+
+    // Install (idempotently) or remove the trait-change re-resolution for a system-background fill.
+    inline void set_system_background_trait_tracking(UIView* view, bool track)
+    {
+        if (view == nil)
+        {
+            return;
+        }
+        if (!track)
+        {
+            objc_setAssociatedObject(view, k_system_bg_trait_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            return;
+        }
+        if (objc_getAssociatedObject(view, k_system_bg_trait_key) != nil)
+        {
+            return; // already registered — keep the single token
+        }
+        if (@available(iOS 17, *))
+        {
+            __weak UIView* const weak_view = view;
+            id<UITraitChangeRegistration> const registration = [view
+                registerForTraitChanges:@[ UITraitUserInterfaceStyle.class ]
+                            withHandler:^(__kindof id<UITraitEnvironment> /*env*/, UITraitCollection* /*previous*/) {
+                              UIView* const strong = weak_view;
+                              if (strong != nil)
+                              {
+                                  strong.layer.backgroundColor = system_background_cg_color(strong);
+                              }
+                            }];
+            objc_setAssociatedObject(view, k_system_bg_trait_key, registration, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+    }
+
     inline void apply_background(void* native, const maui::graphics::paint* p)
     {
         if (native == nullptr)
@@ -443,6 +496,7 @@ namespace maui::platform::ios
         // are skipped.
         if (const auto* const image_paint = dynamic_cast<const maui::core::image_source_paint*>(p))
         {
+            set_system_background_trait_tracking(view, false); // leaving any system-background fill
             remove_background_gradient_layer(layer);
             if (apply_image_source_background_layer(layer, image_paint->image_source()))
             {
@@ -458,7 +512,8 @@ namespace maui::platform::ios
         const auto* const gradient = dynamic_cast<const maui::graphics::gradient_paint*>(p);
         if (gradient != nullptr)
         {
-            layer.backgroundColor = nil; // the gradient sublayer carries the fill, not the base color
+            set_system_background_trait_tracking(view, false); // leaving any system-background fill
+            layer.backgroundColor = nil;                       // the gradient sublayer carries the fill
             remove_background_gradient_layer(layer);
 
             CAGradientLayer* const gradient_layer = [CAGradientLayer layer];
@@ -511,9 +566,23 @@ namespace maui::platform::ios
         const auto* const solid = dynamic_cast<const maui::graphics::solid_paint*>(p);
         if (solid == nullptr)
         {
+            set_system_background_trait_tracking(view, false);
             layer.backgroundColor = nil;
             return;
         }
+        // The legacy Frame's default fill: system_background_paint resolves to the DYNAMIC system
+        // background (UIColor.systemBackground = white in light, ~black in dark) against the VIEW's own
+        // trait — the compatibility FrameRenderer.SetupLayer sets ColorExtensions.BackgroundColor (also
+        // UIColor.systemBackground) when BackgroundColor is null. Register for trait changes so a live
+        // light/dark flip re-resolves the layer. On Mac Catalyst this file is the Catalyst handler (aliased
+        // iOS backend), so the frame adapts there too. A plain solid_paint keeps its static color.
+        if (dynamic_cast<const maui::graphics::system_background_paint*>(p) != nullptr)
+        {
+            layer.backgroundColor = system_background_cg_color(view);
+            set_system_background_trait_tracking(view, true);
+            return;
+        }
+        set_system_background_trait_tracking(view, false);
         layer.backgroundColor = to_ui_color(solid->color()).CGColor;
     }
 

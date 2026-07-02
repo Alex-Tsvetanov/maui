@@ -49,6 +49,7 @@
 #include "maui/graphics/radial_gradient_paint.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/solid_paint.hpp"
+#include "maui/graphics/system_background_paint.hpp"
 
 #include "apple_conversions.hpp"
 
@@ -287,6 +288,25 @@ namespace maui::platform::apple
         return installed;
     }
 
+    // Resolve NSColor.windowBackgroundColor against a SPECIFIC view's appearance, NOT the global one.
+    // A dynamic NSColor only resolves to a concrete CGColor within a drawing appearance context; taken
+    // outside one it uses the app's current appearance, which can differ from the view's window. The frame
+    // fill lives on a CALayer (for the rounded-corner clip) and never auto-resolves, so evaluate the
+    // CGColor inside the view's effectiveAppearance — the AppKit analog of iOS resolvedColorWithTraitCollection.
+    inline CGColorRef system_background_cg_color(NSView* view)
+    {
+        NSColor* const dynamic = NSColor.windowBackgroundColor;
+        __block CGColorRef resolved = nullptr;
+        NSAppearance* const appearance = view != nil ? view.effectiveAppearance : NSAppearance.currentDrawingAppearance;
+        if (appearance != nil)
+        {
+            [appearance performAsCurrentDrawingAppearance:^{
+              resolved = dynamic.CGColor; // resolved against the view's appearance (light/dark)
+            }];
+        }
+        return resolved != nullptr ? resolved : dynamic.CGColor;
+    }
+
     inline void apply_background(void* native, const maui::graphics::paint* p)
     {
         if (native == nullptr)
@@ -365,6 +385,14 @@ namespace maui::platform::apple
         if (solid == nullptr)
         {
             layer.backgroundColor = nil;
+            return;
+        }
+        // The legacy Frame's default fill: resolve system_background_paint to the DYNAMIC AppKit window
+        // background against the view's own appearance so the frame card tracks light/dark, mirroring the
+        // iOS UIColor.systemBackground resolution (see ios_visual_ops). A plain solid_paint keeps its color.
+        if (dynamic_cast<const maui::graphics::system_background_paint*>(p) != nullptr)
+        {
+            layer.backgroundColor = system_background_cg_color(view);
             return;
         }
         layer.backgroundColor = to_ns_color(solid->color()).CGColor;

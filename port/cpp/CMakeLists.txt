@@ -157,6 +157,7 @@ add_library(maui_graphics STATIC
   src/graphics/path_f.cpp
   src/graphics/path_builder.cpp
   src/graphics/solid_paint.cpp
+  src/graphics/system_background_paint.cpp
   src/graphics/gradient_paint.cpp
   src/graphics/linear_gradient_paint.cpp
   src/graphics/radial_gradient_paint.cpp

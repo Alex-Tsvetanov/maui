@@ -16,9 +16,9 @@
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/point.hpp"
-#include "maui/graphics/shapes/rectangle.hpp"
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
+#include "maui/graphics/system_background_paint.hpp"
 
 namespace maui::controls
 {
@@ -35,6 +35,17 @@ namespace maui::controls
             value->set_offset({0.0, 0.0});
             return value;
         }
+
+        // The compatibility FrameRenderer.SetupLayer maps an UNSET CornerRadius (-1) to 5 at render time
+        // (`if (cornerRadius == -1f) cornerRadius = 5f`). The port folds that renderer default into the
+        // facade's StrokeShape: the sentinel resolves to a round_rectangle(5), not a plain rectangle.
+        constexpr float k_default_corner_radius = 5.0F;
+
+        std::shared_ptr<maui::graphics::i_shape> default_frame_stroke_shape()
+        {
+            return std::make_shared<maui::graphics::shapes::round_rectangle>(
+                static_cast<double>(k_default_corner_radius));
+        }
     } // namespace
 
     frame::frame() : border(padding_property())
@@ -45,6 +56,18 @@ namespace maui::controls
         // HasShadow=true materializes the canned frame shadow.
         set_stroke_thickness(0.0);
         set_shadow(make_frame_shadow());
+
+        // The two FrameRenderer.SetupLayer defaults the border facade otherwise omits, so a bare
+        // `new Frame { Content = … }` renders as MAUI's visible white rounded card (and the shadow has an
+        // opaque body to cast around) instead of an invisible plain rectangle:
+        //   (a) the CornerRadius=-1 sentinel → a round_rectangle(5) StrokeShape (see corner_radius_property);
+        //   (b) a system-background fill when the developer has NOT set a Background. system_background_paint
+        //       is resolved to the DYNAMIC UIColor.systemBackground handler-side (Apple backends, resolved
+        //       against the native view's own trait/appearance) so it tracks light/dark; a developer-set
+        //       Background overwrites it (last-write-wins), so containers_page's #2E249E fill and
+        //       custom_swipe_item_view's explicit fills still win.
+        set_stroke_shape(default_frame_stroke_shape());
+        set_background(std::make_shared<maui::graphics::system_background_paint>());
     }
 
     const maui::core::bindable_property<maui::core::thickness>& frame::padding_property()
@@ -84,15 +107,11 @@ namespace maui::controls
             -1.0F,
             {.property_changed = [](maui::core::bindable_object& owner, const float& /*old*/, const float& value) {
                 auto& self = static_cast<frame&>(owner);
-                if (value >= 0.0F)
-                {
-                    self.set_stroke_shape(
-                        std::make_shared<maui::graphics::shapes::round_rectangle>(static_cast<double>(value)));
-                }
-                else
-                {
-                    self.set_stroke_shape(std::make_shared<maui::graphics::shapes::rectangle>());
-                }
+                // FrameRenderer.SetupLayer maps the -1 sentinel to 5 at render time, so BOTH the default
+                // AND an explicit CornerRadius=-1 render as a round_rectangle(5) — not a plain rectangle.
+                const double radius =
+                    value >= 0.0F ? static_cast<double>(value) : static_cast<double>(k_default_corner_radius);
+                self.set_stroke_shape(std::make_shared<maui::graphics::shapes::round_rectangle>(radius));
             }}};
         return descriptor;
     }

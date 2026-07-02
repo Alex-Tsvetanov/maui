@@ -156,7 +156,12 @@ namespace
     TEST(ios_border_seam, frame_facade_rides_the_same_machinery)
     {
         frame view;
-        view.set_border_color(color(0.0F, 0.0F, 0.0F));
+        // A clearly-set (non-default) border color. NB: color's value-type default is opaque BLACK, which
+        // is also border_color_property's default, so set_border_color(0,0,0) collides with the unset
+        // sentinel (property::set skips propertyChanged when value == default) and would NOT materialize
+        // the stroke — the documented unset-color-sentinel collision. Use a distinct color so the facade's
+        // BorderColor -> 1px stroke translation actually fires (which is what this test exercises).
+        view.set_border_color(color(0.86F, 0.20F, 0.27F));
         auto handler = std::make_shared<border_handler>();
         view.set_handler(handler);
         view.arrange(rect(0, 0, 120, 60));

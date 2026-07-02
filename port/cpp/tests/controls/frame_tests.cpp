@@ -26,6 +26,8 @@
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/size.hpp"
+#include "maui/graphics/solid_paint.hpp"
+#include "maui/graphics/system_background_paint.hpp"
 #include "tests/layouts/layout_test_helpers.hpp"
 #include <gtest/gtest.h>
 
@@ -48,8 +50,37 @@ namespace
         EXPECT_EQ(view.content(), nullptr);
         EXPECT_EQ(view.padding(), thickness(20, 20, 20, 20));
         EXPECT_FALSE(view.border_color().has_value());
-        EXPECT_EQ(view.corner_radius(), -1.0F);
+        EXPECT_EQ(view.corner_radius(), -1.0F); // the CornerRadius bindable stays at the -1 sentinel
         EXPECT_TRUE(view.has_shadow());
+    }
+
+    // FrameRenderer.SetupLayer gives an UNSET Frame two defaults the port folds into the facade so a bare
+    // `new Frame { Content = … }` renders as MAUI's visible white rounded card, not an invisible plain
+    // rectangle: (a) the -1 CornerRadius sentinel resolves to a round_rectangle(5) StrokeShape, and (b)
+    // an unset Background gets the system-background fill (system_background_paint, resolved to the
+    // dynamic UIColor.systemBackground handler-side). corner_radius() itself still reads the -1 sentinel.
+    TEST(frame, unset_defaults_render_a_rounded_system_background_card)
+    {
+        const frame view;
+
+        auto* rounded = dynamic_cast<maui::graphics::shapes::round_rectangle*>(view.shape());
+        ASSERT_NE(rounded, nullptr); // NOT a plain rectangle — the -1 sentinel renders as radius 5
+        EXPECT_EQ(rounded->corner_radius().top_left, 5.0);
+
+        ASSERT_NE(view.background(), nullptr);
+        EXPECT_NE(dynamic_cast<maui::graphics::system_background_paint*>(view.background()), nullptr);
+    }
+
+    // A developer-set Background must overwrite the default system-background fill (last-write-wins),
+    // exactly as containers_page (#2E249E fill) and custom_swipe_item_view rely on.
+    TEST(frame, developer_background_overrides_the_default_system_fill)
+    {
+        frame view;
+        auto fill = std::make_shared<maui::graphics::solid_paint>(color(0.18F, 0.14F, 0.62F));
+        view.set_background(fill);
+
+        EXPECT_EQ(view.background(), fill.get());
+        EXPECT_EQ(dynamic_cast<maui::graphics::system_background_paint*>(view.background()), nullptr);
     }
 
     TEST(frame, set_and_replace_child_parents) // C# TestSetChild / TestReplaceChild
@@ -133,8 +164,13 @@ namespace
         ASSERT_NE(rounded, nullptr);
         EXPECT_EQ(rounded->corner_radius().top_left, 8.0);
 
-        view.set_corner_radius(-1.0F); // back to the sentinel -> the plain rectangle
-        EXPECT_EQ(dynamic_cast<maui::graphics::shapes::round_rectangle*>(view.shape()), nullptr);
+        // Back to the -1 sentinel: FrameRenderer.SetupLayer maps -1 -> 5 at render time, so the shape is
+        // a round_rectangle(5), NOT a plain rectangle (the prior assertion encoded the invisible-frame
+        // bug — an unset/-1 Frame renders as a 5pt rounded card in MAUI).
+        view.set_corner_radius(-1.0F);
+        auto* sentinel_rounded = dynamic_cast<maui::graphics::shapes::round_rectangle*>(view.shape());
+        ASSERT_NE(sentinel_rounded, nullptr);
+        EXPECT_EQ(sentinel_rounded->corner_radius().top_left, 5.0);
     }
 
     TEST(frame, corner_radius_validates_like_csharp)
