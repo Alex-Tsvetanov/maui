@@ -4,6 +4,58 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## Windows (WinUI 3) backend — 🚧 BRING-UP COMPLETE, fan-out in progress (2026-07-02, `2a65c88f0c`)
+
+The 5th backend, host-built ON Windows (VS 2026 box) with **LLVM clang 22 → MSVC ABI + lld-link** —
+no MSBuild anywhere. One session took it from unstarted to **the gallery rendering natively at
+visual parity with real .NET MAUI** on the `button` page (light+dark, 480×800 client):
+
+- **W0 — headless-on-Windows**: the FULL portable suite is green on Windows — **3490/3490**
+  (`windows-headless` preset). Only ONE source fix was needed to compile (a libc++-internal
+  `<__chrono/duration.h>` include); the MSVC STL's debug iterators + a Release-CRT ASan lane then
+  surfaced **two genuine latent bugs now fixed for all backends**: `~resource_dictionary` iterating
+  `merged_into_` while `detach_merged(*this)` erased from it, and the XAML GradientStops/Spans child
+  sinks handing collections NON-owning aliases of loader-created stops/spans (UAF at teardown once
+  the `xaml_object_graph` died first — the sink seam now passes the loader's owning `shared_ptr`,
+  `register_add_child_owned`, matching C#'s GC-owned collections).
+- **W1 — Windows App SDK lane** (`cmake/windows_appsdk.cmake`, preset `windows`): WinAppSDK 1.8
+  consumed straight from the NuGet cache; C++/WinRT projection generated at configure time
+  (~3.5 s; the WebView2 winmd is a REQUIRED projection input — Microsoft.UI.Xaml.winmd references
+  it); unpackaged deployment = app-local `Microsoft.WindowsAppRuntime.Bootstrap.dll` + the
+  framework `resources.pri` extracted from the runtime MSIX (without it XamlControlsResources dies
+  at startup, 0xC000027B). clang-cl AND clang++ GNU-driver both verified against the projection.
+- **W2 — host + core handlers**: `src/platform/windows/host_run.cpp` = a code-only WinUI 3
+  Application (IXamlMetadataProvider delegated to `XamlControlsXamlMetaDataProvider`,
+  XamlControlsResources merged programmatically), `MddBootstrapInitialize2`, RequestedTheme forced
+  from `application::requested_theme()`, MAUI-reference page background pinned from rendered ground
+  truth (light `#EDEDED` / dark `#181818`), and **layout re-driven on root Loaded** — XAML applies
+  control templates on load, so the pre-activation measure under-reports (the clipped-title first
+  render). Canvas-based manual arrange (the flipped_container twin) via `windows_native.hpp`
+  (`measure_native`/`arrange_native`, detach_abi ownership in the `void*` native slots).
+- **W3 — 18 handlers live** (window, content_page, layout, label, button, entry, editor,
+  search_bar, picker, date_picker, time_picker, radio_button, switch, check_box, slider, stepper,
+  progress_bar, activity_indicator), each ported from `*Handler.Windows.cs` + the
+  Platform/Windows extension bodies with headless-mirror dual-drive and `// deferred:` markers
+  (per-state resource-key theming, MauiPasswordTextBox, template walks). REMAINING ⬜: border,
+  scroll_view, image(+button), box_view/shapes, swipe/refresh, web_view, collection_view,
+  indicator_view, nav/tabbed/flyout/shell, graphics_view (D2D canvas), fonts via DWrite.
+- **Fidelity fix found by the parity capture**: `Button`/`ImageButton` `corner_radius` default was
+  0 — C# `BorderElement.DefaultCornerRadius` is **-1** (keep-native-default). 0 squared WinUI's
+  rounded buttons; -1 restores them on every backend (oracle updated to the C# value).
+- **Parity pipeline**: `tools/parity/capture_windows.py` (client-area captures; `windows` platform
+  registered in `comparison_paths.py`) drives all three columns: `maui` = the rebuilt
+  `~/maui-compare` reference app for Windows (**154/172 pages**, net10.0-windows10.0.19041.0,
+  WinUI 3, native-default styles, `MAUI_COMPARE_PAGE`/`MAUI_THEME`, exact 480×800 client,
+  no NavigationPage — its own repo at `C:\Users\alext\maui-compare`), `cpp` = examples/gallery,
+  `xaml` = examples/gallery_xaml (both build + run on the windows preset unchanged).
+
+**Build**: `cmake --preset windows && cmake --build --preset windows` (needs `VCPKG_ROOT`;
+projection + deploy self-contained). Examples: install to `build/windows-prefix`, then configure
+`examples/build-windows` against it (see the session's commands in git log `2a65c88f0c`).
+**Resume**: swap in the remaining handlers (border/scroll_view/image first — they unblock the most
+gallery pages), then run the review sweep (`capture_windows.py` + the Gemini/Claude judge) over
+`page_keys.txt` and fix port_diffs per the parity policy.
+
 ## Cross-platform entry point — Stage 5b (gallery → examples; src/samples retired) — ✅ DONE (2026-06-24)
 
 The final, destructive packaging stage: the runnable demo gallery moved OUT of the framework tree into the
