@@ -146,7 +146,7 @@ def main() -> int:
             keys.append(args[i]); i += 1
 
     if not keys:
-        keys = cp.page_keys()
+        keys = cp.load_keys()
     frameworks = [f for f in cp.PLATFORM_FW[PLATFORM] if only_fw is None or f in only_fw]
 
     failed: list[str] = []
