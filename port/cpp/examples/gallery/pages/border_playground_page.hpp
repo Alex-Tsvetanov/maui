@@ -53,6 +53,7 @@
 #include "maui/controls/entry.hpp"
 #include "maui/controls/file_image_source.hpp"
 #include "maui/controls/grid.hpp"
+#include "maui/controls/horizontal_stack_layout.hpp"
 #include "maui/controls/image.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/observable_collection.hpp"
@@ -184,13 +185,20 @@ namespace maui::samples
             bg_end_entry_.text_changed.connect([this](std::string, std::string) { update_background(); });
             controls_.add(bg_end_entry_);
 
-            // Content background toggle.
+            // Content background toggle. maui-compare BorderPlaygroundPage.cs lays the checkbox
+            // (WidthRequest=48, VerticalOptions=Center) and its "Show Content Background" label in a
+            // HORIZONTAL StackLayout row UNDER the caption — not stacked. Mirror that so the checkbox and
+            // its label stay on one compact line (a bare vertical stack detaches them onto two rows).
             content_bg_caption_.set_text("Content Background");
             controls_.add(content_bg_caption_);
             content_bg_check_.checked_changed.connect([this](bool) { update_content_background(); });
-            controls_.add(content_bg_check_);
+            content_bg_check_.set_width_request(48);
+            content_bg_check_.set_vertical_layout_alignment(maui::core::layout_alignment::center);
             content_bg_label_.set_text("Show Content Background");
-            controls_.add(content_bg_label_);
+            content_bg_label_.set_vertical_layout_alignment(maui::core::layout_alignment::center);
+            content_bg_row_.add(content_bg_check_);
+            content_bg_row_.add(content_bg_label_);
+            controls_.add(content_bg_row_);
 
             // Border gradient color entries.
             border_caption_.set_text("Border");
@@ -513,6 +521,7 @@ namespace maui::samples
         maui::controls::label bg_end_caption_;
         maui::controls::entry bg_end_entry_;
         maui::controls::label content_bg_caption_;
+        maui::controls::horizontal_stack_layout content_bg_row_;
         maui::controls::check_box content_bg_check_;
         maui::controls::label content_bg_label_;
         maui::controls::label border_caption_;
