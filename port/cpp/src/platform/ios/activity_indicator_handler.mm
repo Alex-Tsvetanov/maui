@@ -134,11 +134,12 @@ namespace maui::core
         }
         else
         {
-            if (native.isAnimating)
-            {
-                [native stopAnimating];
-            }
-            native.hidden = !visible;
+            // Always stop (idempotent) so hidesWhenStopped fires even for an indicator created with
+            // IsRunning=false that was never started. Not running OR not visible -> hidden: the previous
+            // `native.hidden = !visible` left a static, non-animating spinner glyph visible when
+            // IsRunning=false but the view was visible (the 'Not Running' row bug); MAUI shows nothing.
+            [native stopAnimating];
+            native.hidden = YES;
         }
     }
 

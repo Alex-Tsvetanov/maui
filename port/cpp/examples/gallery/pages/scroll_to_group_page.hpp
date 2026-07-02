@@ -245,6 +245,10 @@ namespace maui::samples
             group_header->set_binding<std::string, team_key>(maui::controls::label::text_property(),
                                                              [](const team_key& key) { return key.name; });
             group_header->set_value(maui::controls::label::text_color_property(), maui::graphics::colors::light_green);
+            // C# ScrollToGroupPage GroupHeaderTemplate sets FontAttributes=Bold — mirror the basic_grouping
+            // page: bold the green group headers (the port page previously set only the text color).
+            group_header->set_value(maui::controls::label::font_property(),
+                                    maui::core::font::system_font_of_weight(maui::core::font_weight::bold));
             list_.set_group_header_template(group_header);
 
             // GroupFooterTemplate: an Orange Label bound to Team.Count ("Total members: N").

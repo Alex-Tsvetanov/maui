@@ -295,6 +295,10 @@ namespace maui::samples
             const auto start = color_from_string(bg_start_entry_.text());
             const auto end = color_from_string(bg_end_entry_.text());
             border_view_.set_background(make_gradient(start, end));
+            // C# UpdateBackground also tints each color-value Entry's background with its own value
+            // (_backgroundStartColor/_backgroundEndColor.BackgroundColor = color) — mirror that.
+            bg_start_entry_.set_background(std::make_shared<maui::graphics::solid_paint>(start));
+            bg_end_entry_.set_background(std::make_shared<maui::graphics::solid_paint>(end));
         }
 
         // C# UpdateContentBackground: tint the content view #99FF0000 while checked, else transparent.
@@ -372,6 +376,10 @@ namespace maui::samples
             const auto start = color_from_string(border_start_entry_.text());
             const auto end = color_from_string(border_end_entry_.text());
             border_view_.set_stroke(make_gradient(start, end));
+            // C# UpdateBorder also tints each border-color Entry's background with its own value
+            // (_borderStartColor/_borderEndColor.BackgroundColor = color) — mirror that.
+            border_start_entry_.set_background(std::make_shared<maui::graphics::solid_paint>(start));
+            border_end_entry_.set_background(std::make_shared<maui::graphics::solid_paint>(end));
 
             // Thickness, dash array (parsed from the entry), dash offset.
             border_view_.set_stroke_thickness(width_slider_.value());

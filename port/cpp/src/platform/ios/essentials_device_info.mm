@@ -74,11 +74,22 @@ namespace maui::devices
 
             [[nodiscard]] device_platform platform() const override
             {
+                // C# DeviceInfo.ios: `#if MACCATALYST DevicePlatform.MacCatalyst #else DevicePlatform.iOS`.
+                // The macabi toolchain defines TARGET_OS_MACCATALYST==1; it is 0 for iOS/simulator.
+#if TARGET_OS_MACCATALYST
+                return device_platform::mac_catalyst();
+#else
                 return device_platform::ios();
+#endif
             }
 
             [[nodiscard]] device_idiom idiom() const override
             {
+                // C# DeviceInfo.ios reports DeviceIdiom.Desktop on Mac Catalyst regardless of the
+                // (Pad) UIUserInterfaceIdiom the process reports.
+#if TARGET_OS_MACCATALYST
+                return device_idiom::desktop();
+#else
                 switch ([UIDevice currentDevice].userInterfaceIdiom)
                 {
                     case UIUserInterfaceIdiomPad:
@@ -90,6 +101,7 @@ namespace maui::devices
                     default:
                         return device_idiom::unknown();
                 }
+#endif
             }
 
             [[nodiscard]] enum device_type device_type() const override

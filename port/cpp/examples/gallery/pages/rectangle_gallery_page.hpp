@@ -20,12 +20,11 @@
 // headless/apple/ios test trees exercise the same wiring directly.
 //
 // PORT NOTES (faithful best-effort, never invented):
-//   note: the C# <Style TargetType="Rectangle"> sets HorizontalOptions="Start" on every rectangle,
-//         reproduced via set_horizontal_layout_alignment(start) on each shape. Without Start, a
-//         rectangle's default Fill layout alignment combined with an explicit WidthRequest is treated as
-//         Center by MAUI's LayoutExtensions.AlignHorizontal (the Fill+explicit-width → Center rule the
-//         port mirrors in view::align_horizontal), so the rectangles would center; Start left-aligns
-//         them like maui-compare.
+//   note: the maui-compare RectangleGalleryPage.cs (the app rendered in the MAUI reference column) does
+//         NOT set HorizontalOptions on the rectangles — so each rectangle's default Fill alignment plus an
+//         explicit WidthRequest is treated as Center by MAUI's LayoutExtensions.AlignHorizontal (the
+//         Fill+explicit-width → Center rule the port mirrors in view::align_horizontal). The rectangles
+//         therefore center, matching the MAUI capture; the port sets no Start override.
 //   note: the C# curved-corners rectangle has RadiusX="12" RadiusY="24" — but the port's Rectangle
 //         (faithful to Rectangle.cs GetPath, which keeps the C# `TODO: one radius`) draws corners with
 //         max(RadiusX, RadiusY) = 24. Both radii are still set so the property surface matches; the
@@ -41,7 +40,6 @@
 #include "maui/controls/scroll_view.hpp"
 #include "maui/controls/shapes/rectangle.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
-#include "maui/core/layout_alignment.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
@@ -108,12 +106,9 @@ namespace maui::samples
             curved_rect_.set_height_request(50);
             stack_.add(curved_rect_);
 
-            // C# <Style TargetType="Rectangle"> HorizontalOptions="Start": left-align every rectangle,
-            // matching maui-compare, instead of the Fill+explicit-width center default.
-            for (auto* rect : {&basic_, &square_, &stroke_rect_, &filled_stroke_rect_, &dash_rect_, &curved_rect_})
-            {
-                rect->set_horizontal_layout_alignment(maui::core::layout_alignment::start);
-            }
+            // C# RectangleGalleryPage (maui-compare, the rendered ground truth) does NOT set
+            // HorizontalOptions on the rectangles, so they keep the default Fill+explicit-width behaviour
+            // which view::align_horizontal centers — matching the MAUI capture. (No Start override here.)
 
             scroll_.set_content(stack_);
             page_.set_content(scroll_);
