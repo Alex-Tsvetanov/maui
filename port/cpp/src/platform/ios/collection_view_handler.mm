@@ -199,18 +199,20 @@ namespace
     }
     const CGRect bounds = self.contentView.bounds;
     auto* const view = dynamic_cast<maui::core::i_view*>(_realizedContent.get());
-    if (view == nullptr || view->horizontal_layout_alignment() == maui::core::layout_alignment::fill)
+    if (view == nullptr)
     {
-        // Fill (or a non-view root): the content spans the whole cell. Flexible autoresizing keeps it
-        // stretched across UIKit's own layout passes (the prior behavior — most templates rely on this).
+        // A non-view root can't be arranged — stretch it across the whole cell via flexible autoresizing.
         _templatedContent.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         _templatedContent.frame = bounds;
         return;
     }
-    // Content-width: measure the root against the cell, then arrange it within the cell bounds. arrange
-    // resolves the aligned frame (compute_frame) and sets the native view's frame via platform_arrange,
-    // so a Start/Center/End bubble lands content-width at the correct edge. autoresizing is cleared —
-    // layoutSubviews re-runs this on every bounds change.
+    // Measure the root against the cell, then arrange it within the cell bounds. arrange resolves the
+    // aligned frame (compute_frame) and sets native frames via platform_arrange: a Fill root spans the
+    // full cell, a Start/Center/End root bubbles to content-width at the correct edge, AND — critically —
+    // a COMPOSITE root's children (a Grid/Stack's Image+Label) get positioned. The prior Fill fast-path
+    // used flexible autoresizing, which only stretches the outer view and never arranges a composite's
+    // children, so a composite Fill template (e.g. header_footer_template's photo cell) rendered BLANK.
+    // autoresizing is cleared — layoutSubviews re-runs this on every bounds change.
     _templatedContent.autoresizingMask = UIViewAutoresizingNone;
     view->measure(bounds.size.width, bounds.size.height);
     view->arrange(maui::graphics::rect{0.0, 0.0, bounds.size.width, bounds.size.height});
