@@ -41,6 +41,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "maui/controls/element.hpp"
 #include "maui/controls/items/boxed_item.hpp"
 #include "maui/controls/items/carousel_view.hpp"
 #include "maui/controls/items/collection_view_handler.hpp"
@@ -112,9 +113,26 @@ namespace
     self = [super initWithFrame:frame];
     if (self != nil)
     {
+        // The DEFAULT (no-template) cell label. MAUI's DefaultCell2/ItemsViewCell2 pins the label to the
+        // contentView with Auto Layout (TranslatesAutoresizingMaskIntoConstraints=false + single line +
+        // PreferredBody font) so the compositional layout's estimatedDimension:44 self-sizing shrinks the
+        // cell to the label's natural one-line height (~29px) instead of parking at the 44pt estimate (the
+        // grouping_no_templates ~2x-too-tall bug). Autoresizing alone can't do this: with a flexible mask
+        // the cell can never report a height smaller than the estimate. Constraints let systemLayoutSizeFitting
+        // (via preferredLayoutAttributesFittingAttributes -> [super ...]) compute the tight height. The
+        // templated-content path (showTemplatedContent / layoutTemplatedContent) hides this label and drives
+        // its own measure, so it is unaffected.
         _label = [[UILabel alloc] initWithFrame:self.contentView.bounds];
-        _label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        _label.translatesAutoresizingMaskIntoConstraints = NO;
+        _label.numberOfLines = 1;
+        _label.font = [UIFont preferredFontForTextStyle:UIFontTextStyleBody]; // UIFont.PreferredBody
         [self.contentView addSubview:_label];
+        [NSLayoutConstraint activateConstraints:@[
+            [_label.topAnchor constraintEqualToAnchor:self.contentView.topAnchor],
+            [_label.bottomAnchor constraintEqualToAnchor:self.contentView.bottomAnchor],
+            [_label.leadingAnchor constraintEqualToAnchor:self.contentView.leadingAnchor],
+            [_label.trailingAnchor constraintEqualToAnchor:self.contentView.trailingAnchor],
+        ]];
 
         // Selected-cell visual state (the C# CollectionView default selection highlight). UIKit shows
         // selectedBackgroundView automatically while the cell isSelected; the handler only ever selects a
@@ -312,13 +330,28 @@ namespace
     self = [super initWithFrame:frame];
     if (self != nil)
     {
-        _label = [[UILabel alloc] initWithFrame:self.bounds];
-        _label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         // The default (non-templated) string Header/Footer renders in the iOS headline text style — the C#
         // VerticalDefaultSupplementalView2 sets Label.Font = PreferredHeadline (#138). A templated /
         // boxed-view supplementary hides this label, so this only styles the bare string case.
+        //
+        // Pin the label with Auto Layout (like MAUI's DefaultCell2 / VerticalDefaultSupplementalView2:
+        // TranslatesAutoresizingMaskIntoConstraints=false + edge pins) so the boundary supplementary
+        // self-sizes to the label's intrinsic headline height (~20pt) instead of parking at the
+        // estimatedDimension:44 boundary estimate — the header_footer surplus-whitespace bug. With plain
+        // autoresizing the boundary can never shrink below the 44pt estimate. Once constrained,
+        // preferredLayoutAttributesFittingAttributes -> [super ...] (the no-realized-view branch) computes
+        // the tight height. The templated/boxed-view path hides this label and overrides the frame with its
+        // own measure, so it is unaffected.
+        _label = [[UILabel alloc] initWithFrame:self.bounds];
+        _label.translatesAutoresizingMaskIntoConstraints = NO;
         _label.font = [UIFont preferredFontForTextStyle:UIFontTextStyleHeadline];
         [self addSubview:_label];
+        [NSLayoutConstraint activateConstraints:@[
+            [_label.topAnchor constraintEqualToAnchor:self.topAnchor],
+            [_label.bottomAnchor constraintEqualToAnchor:self.bottomAnchor],
+            [_label.leadingAnchor constraintEqualToAnchor:self.leadingAnchor],
+            [_label.trailingAnchor constraintEqualToAnchor:self.trailingAnchor],
+        ]];
     }
     return self;
 }
@@ -394,8 +427,10 @@ namespace
 // PreferredLayoutAttributesFittingAttributes auto-measure). The compositional layout vends the estimated
 // boundary frame; this measures the hosted MAUI view at that width with an unbounded main axis and reports
 // its desired extent, so a 100pt header Grid (or a one-line group-header Label) occupies its true height
-// instead of the 44pt estimate. No hosted view (the bare-string default label case) keeps the attributes
-// as-is — UILabel autoresizing already fits the estimated frame.
+// instead of the 44pt estimate. No hosted view (the bare-string default label case) defers to
+// [super ...] — systemLayoutSizeFitting now collapses the boundary to the label's intrinsic headline height
+// because the label is pinned with Auto Layout constraints (see initWithFrame); autoresizing alone would
+// keep it parked at the estimatedDimension:44 estimate.
 - (UICollectionViewLayoutAttributes*)preferredLayoutAttributesFittingAttributes:
     (UICollectionViewLayoutAttributes*)layoutAttributes
 {
@@ -406,7 +441,17 @@ namespace
     }
     CGRect frame = layoutAttributes.frame;
     const maui::graphics::size desired = view->measure(frame.size.width, std::numeric_limits<double>::infinity());
-    frame.size.height = static_cast<CGFloat>(std::ceil(desired.height));
+    // Floor the main-axis extent to a positive minimum. A CV-level (global) boundary supplementary that hosts
+    // a real/templated view can measure 0 before its subtree has laid out (freshly realized, bounds still
+    // zero) — and a zero-height global boundary makes UIKit's compositional layout drop the whole section,
+    // rendering the page BLANK (header_footer_view / header_footer_template). Never let self-sizing yield a
+    // non-positive extent; fall back to the estimated boundary dimension the layout already reserves.
+    CGFloat measured_height = static_cast<CGFloat>(std::ceil(desired.height));
+    if (measured_height <= 0)
+    {
+        measured_height = k_estimated_item_extent;
+    }
+    frame.size.height = measured_height;
     layoutAttributes.frame = frame;
     return layoutAttributes;
 }
@@ -740,18 +785,61 @@ namespace maui::controls
             return content;
         }
 
+        // On-demand mount for a boxed Header/Footer VIEW's native subtree. The CV Header/Footer boxed VIEWs
+        // (boxed_item::of(grid_/stack_)) are NOT logical children of collection_view (structured_items_view
+        // registers no logical children), so the generic mount (app_host::mount_tree, which walks
+        // visit_logical_children only) never attaches their handlers — the chrome arrives here UNMOUNTED, its
+        // native view unbuilt. This is the direct analog of Android's ensure_mounted
+        // (src/platform/android/collection_view_handler.cpp:600) and mirrors app_host::mount_tree EXACTLY:
+        // depth-first POST-ORDER (children first, so each child's native view exists before its parent hosts
+        // it), attach each element's registered handler by its runtime handler_type_tag (SetMauiContext
+        // before SetVirtualView, the C# order), then re-fire the container host command (mount_into_handler)
+        // so the now-attached children's native views are hosted. Idempotent: an element that already carries
+        // a handler is skipped (the gallery path may have mounted it — re-attaching would rebuild + orphan the
+        // old native view). This is what makes the VIEW header/footer (HeaderFooterGrid / HeaderFooterView)
+        // realize on iOS/Catalyst — the analog of iOS reusing a page-attached native_view, but built on demand.
+        void ensure_mounted(maui::core::i_maui_context* context, maui::controls::element& root)
+        {
+            if (context == nullptr)
+            {
+                return;
+            }
+            root.visit_logical_children([context](maui::controls::element& child) { ensure_mounted(context, child); });
+
+            auto* element_face = dynamic_cast<maui::core::i_element*>(&root);
+            if (element_face == nullptr)
+            {
+                return;
+            }
+            if (!element_face->handler()) // skip an already-mounted element (idempotent re-mount guard)
+            {
+                if (const std::optional<maui::core::type_tag> tag = root.handler_type_tag(); tag.has_value())
+                {
+                    if (std::shared_ptr<maui::core::i_element_handler> handler =
+                            context->handlers().create_handler(*tag))
+                    {
+                        handler->set_maui_context(context);            // SetMauiContext precedes SetVirtualView (C#)
+                        element_face->set_handler(std::move(handler)); // the view owns its handler (PROFILE §11)
+                    }
+                }
+            }
+            root.mount_into_handler(); // re-host the (now-attached) children's native views
+        }
+
         // Realize a boxed VIEW (a Header/Footer set to a live View/Grid via boxed_item::of(view), NOT a
         // string and NOT a DataTemplate) into a native UIView — the C# `Header is View` / `Footer is View`
         // arm that hosts the View directly outside the scroll extent, and the headless oracle's
-        // realize_supplemental `value.as_bindable()` branch (reuse_id "view"). The boxed view is already a
-        // fully-built element tree; in the gallery path the page's attach_handlers has ALREADY attached its
-        // handler + built its native view (gallery_attach.hpp), so this reuses that native_view() (the C#
-        // ToPlatform on a view whose PlatformHandler is already set). A boxed view carries no static
-        // content_type, so when it has no attached handler yet there is nothing to look the handler up by:
-        // yield {nullptr, nil} and let the caller fall back to the text mirror. Returns the bindable (held
-        // by the supplementary so the hosted native view outlives this call) + its native UIView out-param.
+        // realize_supplemental `value.as_bindable()` branch (reuse_id "view"). The boxed view is a fully-built
+        // element tree but usually arrives UNMOUNTED here (it is not a CV logical child, so the page-level
+        // mount never walks it): ensure_mounted builds its whole native subtree on demand first (the C#
+        // `Header is View` arm where ToPlatform builds the platform view from the MauiContext on demand),
+        // exactly like Android. In the rare already-mounted case ensure_mounted is a no-op and this reuses the
+        // existing native_view(). Yields {nullptr, nil} when the value is not an element or has no view handler
+        // even after mounting (the caller then falls back to the text mirror). Returns the bindable (held by
+        // the supplementary so the hosted native view outlives this call) + its native UIView out-param.
         std::shared_ptr<maui::core::bindable_object> realize_boxed_view(
-            const std::shared_ptr<maui::core::bindable_object>& bindable, UIView** out_native)
+            collection_view_handler& handler, const std::shared_ptr<maui::core::bindable_object>& bindable,
+            UIView** out_native)
         {
             *out_native = nil;
             if (!bindable)
@@ -763,8 +851,14 @@ namespace maui::controls
             {
                 return nullptr;
             }
-            // Common (gallery) case: the view already has a handler with a built native view — reuse it
-            // (the C# View whose PlatformHandler is already set; ToPlatform returns the existing native view).
+            // Build the boxed chrome's native subtree on demand if the page-level mount never reached it (the
+            // usual case for a non-logical-child CV Header/Footer). Idempotent when already mounted.
+            if (auto* chrome = dynamic_cast<maui::controls::element*>(bindable.get()); chrome != nullptr)
+            {
+                ensure_mounted(handler.maui_context(), *chrome);
+            }
+            // The view now has a handler with a built native view — reuse it (the C# View whose PlatformHandler
+            // is set; ToPlatform returns the existing native view).
             if (const std::shared_ptr<maui::core::i_element_handler>& existing = element->handler())
             {
                 if (auto* view_handler = dynamic_cast<maui::core::i_view_handler*>(existing.get()))
@@ -811,7 +905,7 @@ namespace maui::controls
             if (const std::shared_ptr<maui::core::bindable_object>& bindable = context.as_bindable())
             {
                 UIView* boxed = nil;
-                std::shared_ptr<maui::core::bindable_object> realized = realize_boxed_view(bindable, &boxed);
+                std::shared_ptr<maui::core::bindable_object> realized = realize_boxed_view(handler, bindable, &boxed);
                 if (realized != nullptr && boxed != nil)
                 {
                     [view showTemplatedContent:boxed retainingRealized:std::move(realized)];
