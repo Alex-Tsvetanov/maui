@@ -27,8 +27,6 @@ import subprocess
 import sys
 import time
 
-from PIL import ImageGrab
-
 import comparison_paths as cp
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
@@ -89,12 +87,48 @@ def find_main_window(pid: int, timeout: float = 15.0) -> int:
     return 0
 
 
-def client_rect_on_screen(hwnd: int) -> tuple[int, int, int, int]:
+def capture_client(hwnd: int) -> "object | None":
+    """PrintWindow(PW_CLIENTONLY|PW_RENDERFULLCONTENT) → PIL image of the window's OWN surface.
+
+    Unlike a screen-region grab, this reads the window's composition surface, so an OVERLAPPING or
+    focus-stealing window on a busy desktop cannot pollute the capture (SetForegroundWindow is
+    routinely denied while the user works — a full sweep must not depend on z-order)."""
+    from PIL import Image
+
     rect = wt.RECT()
     user32.GetClientRect(hwnd, ctypes.byref(rect))
-    origin = wt.POINT(0, 0)
-    user32.ClientToScreen(hwnd, ctypes.byref(origin))
-    return (origin.x, origin.y, origin.x + rect.right, origin.y + rect.bottom)
+    width, height = rect.right, rect.bottom
+    if width <= 0 or height <= 0:
+        return None
+    gdi32 = ctypes.windll.gdi32
+    hdc_window = user32.GetDC(hwnd)
+    hdc_mem = gdi32.CreateCompatibleDC(hdc_window)
+    bitmap = gdi32.CreateCompatibleBitmap(hdc_window, width, height)
+    try:
+        gdi32.SelectObject(hdc_mem, bitmap)
+        PW_CLIENTONLY, PW_RENDERFULLCONTENT = 0x1, 0x2
+        if not user32.PrintWindow(hwnd, hdc_mem, PW_CLIENTONLY | PW_RENDERFULLCONTENT):
+            return None
+
+        class BITMAPINFOHEADER(ctypes.Structure):
+            _fields_ = [("biSize", wt.DWORD), ("biWidth", wt.LONG), ("biHeight", wt.LONG),
+                        ("biPlanes", wt.WORD), ("biBitCount", wt.WORD), ("biCompression", wt.DWORD),
+                        ("biSizeImage", wt.DWORD), ("biXPelsPerMeter", wt.LONG),
+                        ("biYPelsPerMeter", wt.LONG), ("biClrUsed", wt.DWORD),
+                        ("biClrImportant", wt.DWORD)]
+
+        info = BITMAPINFOHEADER()
+        info.biSize = ctypes.sizeof(BITMAPINFOHEADER)
+        info.biWidth, info.biHeight = width, -height  # top-down rows
+        info.biPlanes, info.biBitCount, info.biCompression = 1, 32, 0  # BI_RGB
+        buffer = ctypes.create_string_buffer(width * height * 4)
+        if gdi32.GetDIBits(hdc_mem, bitmap, 0, height, buffer, ctypes.byref(info), 0) != height:
+            return None
+        return Image.frombuffer("RGB", (width, height), buffer, "raw", "BGRX", 0, 1)
+    finally:
+        gdi32.DeleteObject(bitmap)
+        gdi32.DeleteDC(hdc_mem)
+        user32.ReleaseDC(hwnd, hdc_window)
 
 
 def shot(app_key: str, key: str, theme: str, out_png: str) -> bool:
@@ -111,14 +145,14 @@ def shot(app_key: str, key: str, theme: str, out_png: str) -> bool:
             print(f"  {app_key:5} {key:28} FAIL (no window)")
             return False
         time.sleep(2.0)  # first layout + WinUI composition settle
-        user32.SetForegroundWindow(hwnd)
-        time.sleep(0.6)
-        bbox = client_rect_on_screen(hwnd)
+        image = capture_client(hwnd)
+        if image is None:
+            print(f"  {app_key:5} {key:28} FAIL (PrintWindow)")
+            return False
         os.makedirs(os.path.dirname(out_png), exist_ok=True)
-        ImageGrab.grab(bbox=bbox, all_screens=True).save(out_png)
-        ok = os.path.exists(out_png)
-        print(f"  {app_key:5} {key:28} {'ok' if ok else 'FAIL'} ({bbox[2]-bbox[0]}x{bbox[3]-bbox[1]})")
-        return ok
+        image.save(out_png)
+        print(f"  {app_key:5} {key:28} ok ({image.width}x{image.height})")
+        return True
     finally:
         proc.kill()
         try:

@@ -4,7 +4,26 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
-## Windows (WinUI 3) backend — 🚧 BRING-UP COMPLETE, fan-out in progress (2026-07-02, `2a65c88f0c`)
+## Windows (WinUI 3) backend — FULL HANDLER SURFACE + FULL 3-WAY SWEEP (2026-07-02, second pass)
+
+Continuation of the bring-up below, same day: **all 33 windows handler partials integrated and
+linking** (adds border, scroll_view, image, image_button + image_source_services, the shapes family
+on Microsoft.UI.Xaml.Shapes incl. a real PathGeometry walk, navigation/tabbed/flyout static page
+hosts with live tab switch, indicator_view dots, swipe/refresh static hosts, collection_view,
+web_view on a real WebView2) plus the **Paint.ToPlatform gradient bridge** (linear/radial gradient
+paints → real XAML gradient brushes — box_view's gradient page now matches MAUI exactly).
+
+**Full parity sweep captured: 172 pages × {maui, cpp, xaml} × {light, dark} = 1020 captures**
+(510 ok per theme; capture_windows.py switched to PrintWindow(PW_RENDERFULLCONTENT) client-surface
+capture so an occluded/busy desktop cannot pollute frames). Reproducible boot failures, both themes:
+4 cpp pages crash on mount — `device` + the 3 `header_footer_*` collection_view header/footer
+variants (follow-up task filed); 2 maui-side reference-app crashes (`effects`, `refresh_view`).
+Spot-judged at parity: button (light+dark), input_controls, box_view (incl. gradient), label.
+**Next:** run the review-only judge sweep (gemini/claude verdicts per page over
+captures/windows) → PARITY_REVIEW.md → fix port_diffs; fix the 4 crash pages; then the deferral
+tails (per-state resource-key theming, MauiPasswordTextBox, DWrite font manager, D2D graphics_view).
+
+## Windows (WinUI 3) backend — 🚧 BRING-UP (2026-07-02, `2a65c88f0c`)
 
 The 5th backend, host-built ON Windows (VS 2026 box) with **LLVM clang 22 → MSVC ABI + lld-link** —
 no MSBuild anywhere. One session took it from unstarted to **the gallery rendering natively at
