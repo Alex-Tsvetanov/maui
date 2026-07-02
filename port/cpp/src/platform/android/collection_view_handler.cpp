@@ -1316,4 +1316,183 @@ namespace maui::controls
         env->CallVoidMethod(scroll, layout, left, top, left + width, top + height);
         clear_pending(env);
     }
+
+    // native_content_size (Android) — the MEASURE-pass content extent, the Android twin of the iOS
+    // .mm's collectionViewContentSize read. C# ItemsViewHandler.Android.cs GetDesiredSize sizes the CV to
+    // its RecyclerView content; the port's Android render (arrange_native) lays cells at their MEASURED
+    // heights, but that runs during ARRANGE — AFTER the parent VerticalStackLayout's MEASURE already asked
+    // get_desired_size, which without this hook falls back to the flat item_extent=100/row estimate and
+    // over-reports a text list's height, so the parent leaves a large empty gap below the CV
+    // (cv_visual_states / items / multiple_bound_selection).
+    //
+    // Instead of caching arrange's result (too late in the cycle), this reproduces MAUI's DEFAULT
+    // ItemSizingStrategy.MeasureFirstItem here in the measure pass: realize + measure ONE representative
+    // cell (the first item) OFF-TREE against the per-column cross constraint to get its uniform main-axis
+    // extent, then total = header + footer + Σ_sections( groupHeader + rowCount*cellExtent + groupFooter ),
+    // rowCount = ceil(itemCount / span). The realized measurement cells are NEVER added to the host (only
+    // arrange_native hosts) — realize_template_content builds them off-tree and the cross-platform
+    // i_view::measure is pure C++, so the visible list is untouched. Returns nullopt (flat estimate stands)
+    // whenever nothing can be measured yet: no native tree / no maui_context (the VM-less cross-platform
+    // suite — headless-identical), an empty source, or the horizontal band model (whose main extent the
+    // measure-first-item shape does not confidently reproduce — arrange_native still renders it).
+    std::optional<maui::graphics::size> collection_view_handler::native_content_size(double width_constraint,
+                                                                                     double height_constraint)
+    {
+        auto* platform = typed_platform_view();
+        // No native tree (headless / VM-less android cross-platform suite) → keep the flat estimate so the
+        // vertical_list_measurement contract (3 rows × 100 = 300) is byte-identical to headless.
+        if (platform == nullptr || platform->scroll == nullptr || platform->host == nullptr)
+        {
+            return std::nullopt;
+        }
+        auto* view = virtual_view();
+        const std::shared_ptr<i_items_view_source>& src = items_view_source();
+        if (view == nullptr || !src || src->item_count() == 0)
+        {
+            return std::nullopt; // empty / pre-realization: a real list never reports 0, so the estimate stands
+        }
+
+        // A CAROUSEL pages (one item, full viewport) — its extent is exactly the viewport main axis, which
+        // the flat estimate does not model; but the carousel's own arrange fills the viewport and the
+        // gallery CarouselView sits in a fixed-size slot, so leave it on the estimate (nullopt) rather than
+        // risk a wrong number. The MEASURE-FIRST-ITEM shape below targets the plain CollectionView gap.
+        if (dynamic_cast<carousel_view*>(view) != nullptr)
+        {
+            return std::nullopt;
+        }
+
+        // Horizontal CVs use arrange_native's full-width-band model (items flow in the vertical space between
+        // header/footer bands); the measure-first-item main (width) extent does not map onto that cleanly.
+        // Return nullopt so the existing flat estimate stands (unchanged from today) rather than a wrong
+        // width — arrange_native still renders horizontal CVs correctly.
+        const bool vertical = platform->orientation == items_layout_orientation::vertical;
+        if (!vertical)
+        {
+            return std::nullopt;
+        }
+
+        const scoped_env env_guard;
+        if (!env_guard)
+        {
+            return std::nullopt; // no JNI env → cannot native-measure a default text cell; keep the estimate
+        }
+        JNIEnv* env = env_guard.get();
+        auto* const scroll = static_cast<jobject>(platform->scroll);
+        const float density = display_density(env, scroll);
+
+        // Resolve the cross-axis geometry the same way arrange_native does: the vertical CV fills the finite
+        // width constraint (the cross axis), falling back to the viewport mirror when it is non-finite (the
+        // infinite axis a stack passes); each of `span` grid columns gets 1/span of it.
+        const int span = std::max(1, platform->span);
+        const double cross_extent_dp =
+            std::isfinite(width_constraint) ? width_constraint : platform->viewport_cross_extent;
+        const double col_cross_dp = std::max(1.0, cross_extent_dp / static_cast<double>(span));
+        const jint col_cross_px = std::max<jint>(1, to_pixels(col_cross_dp, density));
+        const jint viewport_width_px = std::max<jint>(1, to_pixels(cross_extent_dp, density));
+        auto* container = dynamic_cast<maui::core::bindable_object*>(view);
+
+        // Measure one element (template content > default text mirror) OFF-TREE and return its main-axis dp
+        // extent, floored to the k_min_row_extent so a row never collapses — the exact per-column measure
+        // arrange_native runs, minus the hosting (add_and_frame). `cross_dp`/`cross_px` are the element's
+        // cross-axis constraint (a column width for an item, the full viewport width for a supplemental).
+        auto measure_element = [&](const std::shared_ptr<data_template>& tmpl, const boxed_item& value, double cross_dp,
+                                   jint cross_px) -> double {
+            jint main_px = to_pixels(k_min_row_extent, density);
+            const std::shared_ptr<data_template> resolved =
+                tmpl ? resolve_item_template(tmpl, value, container) : nullptr;
+            jobject native = nullptr;
+            std::shared_ptr<maui::core::bindable_object> realized =
+                realize_template_content(*this, resolved, value, &native);
+            if (auto* const v = dynamic_cast<maui::core::i_view*>(realized.get()); v != nullptr)
+            {
+                // Prefer the realized cell's cross-platform measure (it includes the cell's children — the
+                // whole point of a templated row), exactly like arrange_native's per-column measure.
+                const maui::graphics::size desired = v->measure(cross_dp, std::numeric_limits<double>::infinity());
+                main_px = std::max(main_px, to_pixels(desired.height, density));
+            }
+            if (native == nullptr && value.has_value())
+            {
+                if (jobject context = app_context(); context != nullptr)
+                {
+                    const local_ref<jobject> text_view = make_text_view(env, context, value.text());
+                    main_px = std::max(main_px, measure_main_extent(env, text_view.get(), cross_px, /*vertical=*/true));
+                }
+            }
+            else if (native != nullptr)
+            {
+                main_px = std::max(main_px, measure_main_extent(env, native, cross_px, /*vertical=*/true));
+            }
+            // `realized` (and its off-tree native view) is dropped here — never hosted, never retained.
+            return static_cast<double>(main_px) / static_cast<double>(density);
+        };
+
+        double total_dp = 0;
+
+        // CV-level (structured) header/footer bands — full viewport width, independent of item count.
+        auto* structured = dynamic_cast<structured_items_view*>(view);
+        double footer_dp = 0;
+        if (structured != nullptr)
+        {
+            if (structured->header_template() != nullptr || structured->header().has_value())
+            {
+                total_dp += measure_element(structured->header_template(), structured->header(), cross_extent_dp,
+                                            viewport_width_px);
+            }
+            if (structured->footer_template() != nullptr || structured->footer().has_value())
+            {
+                footer_dp = measure_element(structured->footer_template(), structured->footer(), cross_extent_dp,
+                                            viewport_width_px);
+            }
+        }
+
+        // Grouped supplementals: measure the FIRST section's group header/footer once and reuse the extent
+        // per section (the measure-first-item uniform assumption), exactly as the item cell is reused.
+        const auto* groupable = dynamic_cast<const groupable_items_view*>(view);
+        const bool grouped = platform->grouped;
+        const std::shared_ptr<data_template> group_header_t =
+            grouped && groupable != nullptr ? groupable->group_header_template() : nullptr;
+        const std::shared_ptr<data_template> group_footer_t =
+            grouped && groupable != nullptr ? groupable->group_footer_template() : nullptr;
+        double group_header_dp = 0;
+        double group_footer_dp = 0;
+        if (group_header_t)
+        {
+            group_header_dp = measure_element(group_header_t, src->group(index_path{.section = 0, .item = -1}),
+                                              cross_extent_dp, viewport_width_px);
+        }
+        if (group_footer_t)
+        {
+            group_footer_dp = measure_element(group_footer_t, src->group(index_path{.section = 0, .item = -1}),
+                                              cross_extent_dp, viewport_width_px);
+        }
+
+        // MEASURE-FIRST-ITEM: measure the very first item ONCE and treat every row as that height (MAUI's
+        // default ItemSizingStrategy.MeasureFirstItem). arrange_native lays rows with no inter-row spacing,
+        // so the total below adds none either — keeping the reported extent consistent with the render.
+        const std::shared_ptr<data_template> item_t = view->item_template();
+        const boxed_item first_value = src->item(index_path{.section = 0, .item = 0});
+        const double cell_extent_dp = measure_element(item_t, first_value, col_cross_dp, col_cross_px);
+
+        const int sections = src->group_count();
+        for (int section = 0; section < sections; ++section)
+        {
+            total_dp += group_header_dp;
+            const int count = src->item_count_in_group(section);
+            const int row_count = (count + span - 1) / span; // ceil(count / span) — grid rows this section
+            total_dp += static_cast<double>(row_count) * cell_extent_dp;
+            total_dp += group_footer_dp;
+        }
+
+        total_dp += footer_dp;
+
+        // A real list never sizes to nothing; if the whole measure yielded nothing (every element measured to
+        // 0 — e.g. templates whose handlers built no measurable native view), fall back to the flat estimate.
+        if (total_dp <= 0)
+        {
+            return std::nullopt;
+        }
+        // Return the pre-clamp MAIN (height) extent; the shared get_desired_size clamps it and fills the
+        // cross axis. The cross component is informational only (the shared code reads height for vertical).
+        return maui::graphics::size{cross_extent_dp, total_dp};
+    }
 } // namespace maui::controls
