@@ -1,6 +1,28 @@
 # Windows parity fix queue (Sonnet-reviewed)
 
-## ⛔ BLOCKER (2026-07-03) — gallery renders EVERY page blank after a maui_core rebuild+install+relink
+## ⛔ BLOCKER (2026-07-03, REFINED) — environment/runtime regression: gallery paints NOTHING
+**Confirmed it is an ENVIRONMENT change, not port code.** Evidence chain:
+- Port CODE at HEAD == the last-known-good `2a65c88f0c`/`aec4afe43c` (only docs + a reverted button
+  commit since) — the code that SHIPPED yesterday's working captures (last good capture 2026-07-02 20:34).
+- The gallery bootstraps OK, `mux::Application::Start` runs, the window mounts, measure+arrange log real
+  numbers — but NOTHING paints (even the `label` page's raw TextBlock text is blank on a real desktop
+  screenshot, not just a capture artifact). "Nothing paints, not even text" ⇒ NOT a template/style issue.
+- **resources.pri mismatch RULED OUT:** the loaded runtime is `Microsoft.WindowsAppRuntime.1.8_8000.879.2017.0`
+  (bootstrap picks the highest installed 1.8; also present: 859.21.0). Deployed that exact runtime's
+  resources.pri (1351648 B) beside gallery.exe replacing the stale Nov one (1349064 B) → STILL blank. So a
+  matched pri+runtime still fails.
+- The machine now has **two 1.8 runtimes** (859.21.0 and 879.2017.0); 879 looks like an overnight Store/
+  Windows update. The SAME app binary + code that rendered yesterday renders blank today ⇒ the WinAppSDK
+  **runtime 879.2017.0 broke unpackaged-app rendering** (or a half-applied update left it inconsistent).
+- **Can't cleanly force the older 859 from code:** MddBootstrapInitialize2 takes a minVersion floor and
+  picks the HIGHEST match, so it can't exclude the newer 879 via the bootstrap API alone.
+- **Fix is environment-level (user domain):** repair/complete the pending Windows/Store updates + reboot,
+  or remove/repair the 879.2017.0 runtime so the app resolves the working 859, or install the runtime that
+  matches the app's SDK nuget (1.8.251104000) and pin the bootstrap to it. Port code needs no change.
+- State is safe: all working captures + scores are the committed versions (git). Button icon+text fix is
+  intact in reverted commit `46030899bc`, reappliable once the gallery renders again.
+
+## (superseded) earlier BLOCKER note — gallery blank after rebuild+install+relink
 The cpp/xaml gallery now renders **all pages blank/white** (window mounts, measure+arrange run with
 correct numbers, but NO control paints — confirmed on a real desktop screenshot, not a capture
 artifact). Signature = **templateless controls**: a Button measures 19px (content only, no chrome).
