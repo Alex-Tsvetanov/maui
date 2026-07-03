@@ -87,16 +87,6 @@ namespace maui::controls
             return content_type_;
         }
 
-        // Set the content type after construction — the XAML loader path mints an empty data_template
-        // (set_load_template only) then, once the template body's root element is known, records its
-        // type_tag here so a native cell realizes the actual inflated content (with its styled attributes)
-        // instead of falling back to the item-text mirror. The code-first path uses the type-activated
-        // ctor instead; this setter is additive and leaves that path untouched.
-        void set_content_type(maui::core::type_tag value)
-        {
-            content_type_ = value;
-        }
-
         // ---- Values (DataTemplate.SetValue / the Values dictionary) ----
         // SetValue: stage `descriptor` = `value` on every created content (manual specificity) and
         // drop a staged binding for the same property (C# Bindings.Remove). The descriptor reference
