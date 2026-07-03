@@ -11870,8 +11870,8 @@
      "review": "In both light and dark themes the cpp port reproduces the per-row checkbox column, correctly renders Item 1 and Item 2 as red filled checkboxes with checkmarks (matching MAUI's selected rows) while Item 0 and Item 3 stay empty outlines, and draws the selected-row highlight band behind Item 1/Item 2. Selection state exactly matches MAUI's 'Selected: Item 1, Item 2'; only trivial checkbox-outline weight and button vertical-gap differences remain within crop/global-shift tolerance."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "In both light and dark themes the xaml render is a clear selection bug: all four checkboxes are empty outlines with NO red fill or checkmark on Item 1 or Item 2, and there is NO selected-row highlight band, despite the 'Selected: Item 1, Item 2' label. The bound multi-selection state and highlight that MAUI shows are entirely missing, so the wrong (no) items appear checked."
+     "status": "green",
+     "review": "Identical parity to MAUI in both themes: Items 1 and 2 show the correct red checkboxes with checkmarks and row highlight, Items 0 and 3 empty, matching the seeded selection exactly. Text, header, and buttons all correct; the only deltas are the excused outer-inset/top-crop layout shift and the non-replicable Mica wallpaper tint."
     }
    }
   }
@@ -13313,8 +13313,8 @@
      "review": "In both light and dark themes the cpp port reproduces the checkbox column and correctly renders the three preselected items with red-filled checkmarks (photo.jpg/2, Fruits.jpg/4, FlowerBuds.jpg/5), matching MAUI's selection state; the selection highlight band is present though marginally fainter than MAUI's crisp red row outline (AA-level trivia)."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "The xaml port renders the checkbox column but ALL checkboxes are empty in both light and dark themes — the three preselected items (photo.jpg/2, Fruits.jpg/4, FlowerBuds.jpg/5) show no red-filled checkmarks and there is no selection highlight band anywhere, so the entire preselection state is missing versus MAUI. This is a clear selection bug."
+     "status": "yellow",
+     "review": "Both themes: the same three seeded items (photo.jpg/2, Fruits.jpg/4, FlowerBuds.jpg/5) are correctly checked with red-filled checkmark boxes and a gray row highlight, others empty, matching MAUI's seeding. Same minor drift as cpp: MAUI's red per-cell selection outline is not reproduced and the rows are slightly denser than MAUI, but the selection state itself is accurate in light and dark."
     }
    }
   }
@@ -15311,8 +15311,8 @@
      "review": "In both light and dark themes the cpp port faithfully reproduces MAUI: the checkbox column is present, and in the first two sections Item 2 and Item 3 show filled red-accent checkboxes with checkmarks plus the selected-row highlight band while Item 1/4 remain empty — matching MAUI's selection state exactly. The only nit is the checkbox glyph being slightly more rounded than MAUI's, which is AA trivia; selection sync, checked items, and highlight all correct in both themes."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Clear selection bug in both light and dark themes: MAUI has Item 2 and Item 3 checked (filled accent checkbox + checkmark) with a highlight band in the first two sections, but the xaml port renders ALL checkboxes empty and shows NO highlight on any row — no items are selected anywhere. The checkbox column exists, but the multi-select SelectedItems synchronization is entirely unreflected, so the correct-items-checked and highlight requirements both fail."
+     "status": "green",
+     "review": "Both light and dark match MAUI's ground-truth selection exactly: filled red checkboxes with checkmarks on Item 2/3, subtle selected-row highlight, Items 1 and 4 empty, and Item 2 highlighted in the third CollectionView. Renders essentially pixel-identical to MAUI apart from the excused outer inset/crop and Mica wallpaper tint."
     }
    }
   }
