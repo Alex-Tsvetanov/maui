@@ -73,6 +73,8 @@
 #include <winrt/Microsoft.UI.Xaml.h>
 #include <winrt/Windows.Foundation.Collections.h> // the Children UIElementCollection consume methods
 #include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.UI.ViewManagement.h> // UISettings — the system accent for the multi-select adorner
+#include <winrt/Windows.UI.h>
 #include <winrt/base.h>
 
 #include "maui/controls/element.hpp"
@@ -81,6 +83,8 @@
 #include "maui/controls/items/groupable_items_view.hpp"
 #include "maui/controls/items/items_layout_orientation.hpp"
 #include "maui/controls/items/items_view_source.hpp"
+#include "maui/controls/items/selectable_items_view.hpp"
+#include "maui/controls/items/selection_mode.hpp"
 #include "maui/controls/items/structured_items_view.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/templates/data_template_selector.hpp"
@@ -170,6 +174,52 @@ namespace
         block.HorizontalAlignment(mux::HorizontalAlignment::Center);
         block.VerticalAlignment(mux::VerticalAlignment::Center);
         grid.Children().Append(block);
+        return grid;
+    }
+
+    // ---- multi-select adornment (SelectionMode.Multiple) ----
+    // MAUI's Windows CollectionView wraps a native ListViewBase; its multi-select mode draws a selection
+    // CHECKBOX on each row plus a selected-row highlight band. The port's custom-canvas layout has no
+    // native ListView, so it renders that chrome itself. These are used STRICTLY when the view's
+    // selection_mode is `multiple`, so single/none CV pages are byte-identical to before.
+    constexpr double k_cb_gutter = 34.0; // leading checkbox column width (dp) reserved in a vertical list
+    constexpr double k_cb_box = 20.0;    // the checkbox glyph square (dp)
+
+    // A display-only selection-checkbox glyph mirroring the item's selected state. A full native
+    // muxc::CheckBox per cell is far too heavy for large collections (a 50-item grid does not paint
+    // within the capture-settle window); this is a LIGHTWEIGHT Border + checkmark that matches the native
+    // multi-select adorner: a checked box is filled with the system ACCENT (the exact red/blue the native
+    // ListView uses) + a white check; an unchecked box is a thin gray rounded outline. Purely chrome —
+    // selection is driven by the cross-platform SelectedItems, not a tap here.
+    [[nodiscard]] muxc::Border make_selection_checkbox(bool checked, const mux::Media::Brush& accent)
+    {
+        muxc::Border box;
+        box.CornerRadius(mux::CornerRadius{4.0, 4.0, 4.0, 4.0});
+        if (checked)
+        {
+            box.Background(accent);
+            muxc::TextBlock mark;
+            mark.Text(winrt::hstring{L"✓"}); // ✓
+            mark.Foreground(wnative::to_brush(maui::graphics::color::from_rgba(255, 255, 255, 255)));
+            mark.FontSize(13.0);
+            mark.HorizontalAlignment(mux::HorizontalAlignment::Center);
+            mark.VerticalAlignment(mux::VerticalAlignment::Center);
+            box.Child(mark);
+        }
+        else
+        {
+            box.BorderThickness(mux::Thickness{1.0, 1.0, 1.0, 1.0});
+            box.BorderBrush(wnative::to_brush(maui::graphics::color::from_rgba(140, 140, 140, 200)));
+        }
+        return box;
+    }
+
+    // The selected-row highlight band (the ListViewItem selected background) — a subtle translucent gray
+    // Grid framed behind the row content.
+    [[nodiscard]] muxc::Grid make_selection_highlight()
+    {
+        muxc::Grid grid;
+        grid.Background(wnative::to_brush(maui::graphics::color::from_rgba(128, 128, 128, 46)));
         return grid;
     }
 } // namespace
@@ -411,6 +461,29 @@ namespace maui::controls
         auto* view = virtual_view();
         const std::shared_ptr<i_items_view_source>& src = items_view_source();
         auto* container = dynamic_cast<maui::core::bindable_object*>(view);
+
+        // SelectionMode.Multiple draws native multi-select chrome (a per-row checkbox + a selected-row
+        // highlight) on MAUI's Windows CollectionView; the custom-canvas layout renders it below. Gated
+        // strictly on `multiple` so single/none selection CV pages are unaffected.
+        auto* selectable = dynamic_cast<maui::controls::selectable_items_view*>(view);
+        const bool multi_select =
+            selectable != nullptr && selectable->selection_mode() == maui::controls::selection_mode::multiple;
+        // The checked-box fill: the system accent (the exact color the native ListView multi-select
+        // adorner uses). Resolved once per pass from UISettings; a WinUI-blue fallback if unavailable.
+        mux::Media::Brush selection_accent{nullptr};
+        if (multi_select)
+        {
+            try
+            {
+                const winrt::Windows::UI::ViewManagement::UISettings ui;
+                selection_accent = mux::Media::SolidColorBrush{
+                    ui.GetColorValue(winrt::Windows::UI::ViewManagement::UIColorType::Accent)};
+            }
+            catch (const winrt::hresult_error&)
+            {
+                selection_accent = wnative::to_brush(maui::graphics::color::from_rgba(0, 120, 215, 255));
+            }
+        }
 
         // The main-axis flow position (dp); header → items/empty → footer all advance it. The
         // HORIZONTAL header/footer band model mirrors the android partial: a header/footer always spans
@@ -660,6 +733,7 @@ namespace maui::controls
                     {
                         mux::UIElement native{nullptr};
                         std::shared_ptr<maui::core::bindable_object> retain;
+                        bool selected = false; // in SelectedItems (multi-select chrome)
                     };
                     std::vector<realized_col> cols;
                     cols.reserve(static_cast<std::size_t>(row_n));
@@ -668,6 +742,7 @@ namespace maui::controls
                         const index_path path{.section = section, .item = first + c};
                         const boxed_item value = src->item(path);
                         realized_col col;
+                        col.selected = multi_select && selectable->selected_items().contains(value);
                         const std::shared_ptr<data_template> resolved =
                             item_t ? resolve_item_template(item_t, value, container) : nullptr;
                         col.retain = realize_template_content(*this, resolved, value, col.native);
@@ -701,15 +776,26 @@ namespace maui::controls
                             continue;
                         }
                         const double col_start = item_cross_origin + (static_cast<double>(c) * item_col);
+                        // Multi-select chrome (SelectionMode.Multiple, vertical only): a leading checkbox
+                        // gutter indents a LIST cell's content; a GRID cell keeps its width and gets a
+                        // corner checkbox overlay. Non-multi passes leave `indent` 0 → identical to before.
+                        const bool is_list = span == 1;
+                        const double indent = (multi_select && vertical && is_list) ? k_cb_gutter : 0.0;
                         const maui::graphics::rect cell_rect =
-                            vertical ? maui::graphics::rect{col_start, cursor, item_col, row_extent}
+                            vertical ? maui::graphics::rect{col_start + indent, cursor,
+                                                           (std::max)(item_col - indent, 1.0), row_extent}
                                      : maui::graphics::rect{cursor, col_start, row_extent, item_col};
+                        // The selected-row highlight band, framed BEHIND the cell content (added first).
+                        if (multi_select && vertical && col.selected)
+                        {
+                            auto highlight = make_selection_highlight();
+                            add_child(highlight);
+                            frame_element(highlight,
+                                          is_list ? maui::graphics::rect{0.0, cursor, cross_extent, row_extent}
+                                                  : maui::graphics::rect{col_start, cursor, item_col, row_extent});
+                        }
                         add_child(col.native);
                         frame_element(col.native, cell_rect);
-                        // deferred: the "Selected" VisualState highlight — the realized cell ROOT is an
-                        // arbitrary FrameworkElement with no uniform Background slot (C#'s highlight
-                        // rides the ItemContainer wrapper); the cross-platform selected_paths mirror
-                        // carries the selection state (file header deviations).
                         if (col.retain)
                         {
                             // Frame the cell's CHILDREN / inner cells via the cross-platform arrange at
@@ -717,6 +803,18 @@ namespace maui::controls
                             // CollectionView (nested_collection) re-runs its own arrange_native here.
                             arrange_realized_view(col.retain, cell_rect);
                             platform->retained_natives.push_back(std::move(col.retain));
+                        }
+                        // The selection checkbox, framed ON TOP of the cell (added last): left of a LIST
+                        // row (vertically centered in the gutter), top-right corner of a GRID cell.
+                        if (multi_select && vertical)
+                        {
+                            auto checkbox = make_selection_checkbox(col.selected, selection_accent);
+                            add_child(checkbox);
+                            const double cb_y = cursor + (std::max)((row_extent - k_cb_box) / 2.0, 0.0);
+                            frame_element(checkbox,
+                                          is_list ? maui::graphics::rect{col_start + 7.0, cb_y, k_cb_box, k_cb_box}
+                                                  : maui::graphics::rect{col_start + item_col - k_cb_box - 6.0,
+                                                                         cursor + 6.0, k_cb_box, k_cb_box});
                         }
                     }
                     cursor += row_extent;
