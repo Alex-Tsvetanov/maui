@@ -1,9 +1,23 @@
 # Windows parity fix queue (Sonnet-reviewed)
 
-## ⏸ LOOP PAUSED (2026-07-03) — user is fixing the runtime; auto-resume when the gallery renders
-User ruling: **"You fix the runtime, I resume."** The user will repair/complete the pending Windows/Store
-updates + reboot (or repair the WinAppSDK 1.8 runtime) so the gallery paints again. Do NOT make invasive
-machine changes (no AppX removal, no forced runtime pin).
+## ✅ RESOLVED (2026-07-03) — runtime fixed by user; loop RESUMED
+The user repaired the environment; the gallery paints again (verified: `label` + `button` render fully).
+The blank was 100% the overnight WinAppSDK runtime regression — NOT port code.
+
+**Button icon+text composition: VALIDATED + shipped.** Reapplied the reverted fix (`6aa7284240`) and it
+renders correctly now: gear icon + "settings" text compose, CharacterSpacing lands ("B u t t o n").
+Then capped the icon to natural size (ImageOpened → MaxWidth/Height = decoded PixelWidth/Height; Uniform
+scales DOWN only) so the 128px gear no longer upscales to fill the 456px button. button 18.7%→**76.7%**
+(light) / 41.0%→**74.0%** (dark); image_button ~**80%**. Two natural-size gear+"settings" buttons now
+match MAUI's structure. (`0716…` image-cap commit.)
+
+**IN FLIGHT:** a detached FULL recapture (all pages, cpp+xaml, both themes, PNG + animated GIF) is running
+to refresh every stale (pre-outage) capture against the restored gallery, then a full rescore. Next fire:
+when `$env:TEMP/full_recap_done.marker` exists → commit fresh captures+scores, then run the Sonnet vision
+judge (Workflow) across all pages for cpp-vs-maui AND xaml-vs-maui, and work the confirmed real-bug queue
+(button image-box height, border_playground gradient/dash, header_footer empty-collapse, …).
+
+## (historical) ⏸ LOOP PAUSED (2026-07-03) — user was fixing the runtime
 
 **Every fire until then — cheap gate (do this FIRST, ~5s, then exit if still blank):**
 1. `python tools/parity/capture_windows.py label --framework cpp --theme light --mode static`
