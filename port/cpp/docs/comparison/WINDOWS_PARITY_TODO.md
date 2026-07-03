@@ -16,7 +16,22 @@ Update as items land. `pixel_score.py` re-scores; `capture_windows.py --mode bot
   background highlight (the "Colors" cyan box) needs a TextHighlighter; xaml renders spans blue.
 
 ## High value (both cpp+xaml, confirmed real)
-2. **flex_layout** (19%) — FlexLayout bands don't fill/position: HEADER/CONTENT labels overlap top-left,
+2. **flex_layout footer off-screen** — PRECISELY DIAGNOSED (2026-07-03). After the label fix the page
+   is minor for light, but the pink FOOTER band is pushed below the 800px viewport. Root cause: the
+   BODY (a nested Row FlexLayout with `Grow=1` inside the outer Column) measures its height as the FULL
+   available 800px instead of its content max (24px). Chain: `flex_layout_manager::measure` calls the
+   engine with a DEFINITE cross-axis; in `flex.cpp layout_item`, a stretch child with `align_dim > 0`
+   (the definite available cross) IGNORES its measured natural cross and fills the available — so a
+   row whose children are all cross-stretch reports the available height as its basis. The outer
+   column then sees body_basis≈800, so header(24)+body(800)+footer(24) overflows and the footer lands
+   at y≈824. Instrumented: labels themselves measure a correct 24px (HEADER 66×24, CONTENT 80×24,
+   FOOTER 65×24) with wc=480 hc=800 — the inflation is the nested-flex measure, not the label.
+   FIX (needs care + the headless flex tests green): during the MEASURE pass the container's cross-axis
+   should be content-derived, not the available constraint — i.e. `align_dim` should come from the
+   item's EXPLICIT width/height (NaN → no stretch) not from the passed measure constraint, matching
+   Xamarin.Flex (stretch only against a DEFINITE cross, which only arrange supplies). Look at
+   `flex::flex_layout::init` (how align_dim is set) + `layout_item` line ~557.
+3. **flex_layout (other)** (19%) — FlexLayout bands don't fill/position: HEADER/CONTENT labels overlap top-left,
    the left/right colored side strips and the FOOTER band are missing, CONTENT gray fill missing. Root:
    flex layout arrange on the windows Canvas (nested-layout measure/arrange).
 3. **CharacterSpacing** — not applied (button's `B u t t o n` row renders tight). Root: label/button
