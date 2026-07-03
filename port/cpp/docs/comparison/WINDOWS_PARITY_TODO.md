@@ -14,9 +14,15 @@ Update as items land. `pixel_score.py` re-scores; `capture_windows.py --mode bot
   WrapperView stand-in); update_background paints it, and the fixed-height slot makes vertical
   alignment work. cpp 42%→95%, xaml 39%→92%. (`8b63845b4e`) — REMAINING: FormattedString per-run
   background highlight (the "Colors" cyan box) needs a TextHighlighter; xaml renders spans blue.
+- **flex measure content cross-size** — detail/flex.cpp stretched cross-align children to the parent
+  cross during the MEASURE pass, so a nested Row of stretch children reported the full viewport height
+  as its basis and the outer Column pushed the footer off-screen. Gated the stretch-keep with
+  `!in_measure_mode` (stretch is an arrange concern). flex_layout 19% → **match×4** (pixel-identical
+  all columns+themes); headless 3490/3490 green. Cross-platform correctness — likely helps other
+  nested-flex pages (staggered_layout, custom_layout, chat_example…).
 
 ## High value (both cpp+xaml, confirmed real)
-2. **flex_layout footer off-screen** — PRECISELY DIAGNOSED (2026-07-03). After the label fix the page
+2. **[DONE — see above] flex_layout footer off-screen** — was: after the label fix the page
    is minor for light, but the pink FOOTER band is pushed below the 800px viewport. Root cause: the
    BODY (a nested Row FlexLayout with `Grow=1` inside the outer Column) measures its height as the FULL
    available 800px instead of its content max (24px). Chain: `flex_layout_manager::measure` calls the

@@ -544,8 +544,14 @@ namespace maui::layouts::flex
                 }
             }
 
-            // self_sizing callback: only non-NaN values are honored; stretch on the cross axis ignores the
-            // returned cross size.
+            // self_sizing callback: only non-NaN values are honored; on the cross axis a stretch child
+            // fills the parent cross — but ONLY during ARRANGE. During MEASURE the container's cross-size
+            // must be CONTENT-derived (the max of the children's natural cross-sizes) so a nested flex
+            // reports its content height, not the available space; stretch to a definite cross is an
+            // arrange concern (Xamarin.Flex measures content, then stretches on layout). Without the
+            // `!in_measure_mode` guard, a Row of all-cross-stretch children measured inside a Column
+            // reported the full available height as its basis, over-allocating the Column's grow child
+            // and pushing later siblings (the flex_layout footer) off-screen.
             if (child.self_sizing)
             {
                 std::array<float, 2> size{child.frame[2], child.frame[3]};
@@ -555,7 +561,7 @@ namespace maui::layouts::flex
                 {
                     const std::size_t size_off = static_cast<std::size_t>(j) + 2;
                     if (size_off == layout.frame_size2_i && child_align(child, it) == align_items::stretch &&
-                        layout.align_dim > 0)
+                        layout.align_dim > 0 && !in_measure_mode)
                     {
                         continue;
                     }
