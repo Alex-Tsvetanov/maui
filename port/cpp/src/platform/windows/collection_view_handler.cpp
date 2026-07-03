@@ -156,6 +156,22 @@ namespace
         }
         return block;
     }
+
+    // A viewport-filling Grid that centers a text label on BOTH axes — the EmptyView's centered host.
+    // MAUI shows the empty-view text at the exact center of the CollectionView bounds; framing a bare
+    // TextBlock to the region only horizontal-centered it (text pinned to the top). The Grid honors the
+    // child's Vertical/HorizontalAlignment, so the label centers vertically too once framed to the region.
+    [[nodiscard]] muxc::Grid make_centered_text_host(const std::string& text)
+    {
+        muxc::Grid grid;
+        muxc::TextBlock block;
+        block.Text(wnative::to_hstring_utf8(text));
+        block.TextAlignment(mux::TextAlignment::Center);
+        block.HorizontalAlignment(mux::HorizontalAlignment::Center);
+        block.VerticalAlignment(mux::VerticalAlignment::Center);
+        grid.Children().Append(block);
+        return grid;
+    }
 } // namespace
 
 namespace maui::controls
@@ -575,7 +591,9 @@ namespace maui::controls
                 }
                 if (empty_native == nullptr)
                 {
-                    empty_native = make_text_block(view->empty_view().text(), /*center=*/true);
+                    // Center the text on BOTH axes in the reserved viewport region (MAUI's centered
+                    // EmptyView host) — a bare TextBlock would top-align within the tall region.
+                    empty_native = make_centered_text_host(view->empty_view().text());
                 }
                 if (empty_native != nullptr)
                 {
