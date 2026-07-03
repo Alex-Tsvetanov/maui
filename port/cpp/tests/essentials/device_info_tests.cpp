@@ -2,6 +2,11 @@
 // partial (model/manufacturer/name/version throw; platform/idiom/device-type unknown), the
 // configured fake exposes the full surface through the static facade, and set_current is the
 // DeviceInfo.SetCurrent seam (nullptr restores the lazy default).
+//
+// On the WINDOWS preset the lazy default is the REAL partial (DeviceInfo.windows.cs over
+// EasClientDeviceInformation/AnalyticsInfo — the android lane's swap), so the netstandard-mirror
+// expectations flip: reads must NOT throw, the platform is WinUI, and the idiom/type/version carry
+// live desktop values. The configured-fake facade tests are backend-agnostic and run everywhere.
 
 #include <memory>
 
@@ -30,6 +35,24 @@ namespace
         }
     };
 
+#ifdef MAUI_PLATFORM_WINDOWS
+    TEST_F(device_info_test, windows_lazy_default_is_the_real_device)
+    {
+        // The real partial: no read throws (every failure degrades to a default — the page-boot
+        // doctrine), the platform is pinned WinUI, and a desktop host reports live values.
+        EXPECT_NO_THROW((void)device_info::model());
+        EXPECT_NO_THROW((void)device_info::manufacturer());
+        EXPECT_NO_THROW((void)device_info::name());
+        EXPECT_NO_THROW((void)device_info::version_string());
+        EXPECT_TRUE(device_info::platform() == device_platform::win_ui());
+        // A windows dev/CI host is a desktop family machine: Desktop (or Tablet in tablet mode),
+        // a physical-or-virtual type (never unknown), and an OS version with a real major part.
+        const device_idiom idiom = device_info::idiom();
+        EXPECT_TRUE(idiom == device_idiom::desktop() || idiom == device_idiom::tablet());
+        EXPECT_NE(device_info::device_type(), device_type::unknown);
+        EXPECT_GT(device_info::version().major, 0);
+    }
+#else
     TEST_F(device_info_test, netstandard_mirror_throws_until_configured)
     {
         EXPECT_THROW((void)device_info::model(), feature_not_supported);
@@ -41,6 +64,7 @@ namespace
         EXPECT_TRUE(device_info::idiom() == device_idiom::unknown());
         EXPECT_EQ(device_info::device_type(), device_type::unknown);
     }
+#endif
 
     TEST_F(device_info_test, configured_fake_flows_through_facade)
     {
@@ -72,6 +96,12 @@ namespace
         EXPECT_EQ(device_info::model(), "custom");
 
         device_info::set_current(nullptr);
+#ifdef MAUI_PLATFORM_WINDOWS
+        // The windows lazy default is the real partial — the fake's value is gone, no throw.
+        EXPECT_NO_THROW((void)device_info::model());
+        EXPECT_NE(device_info::model(), "custom");
+#else
         EXPECT_THROW((void)device_info::model(), feature_not_supported);
+#endif
     }
 } // namespace

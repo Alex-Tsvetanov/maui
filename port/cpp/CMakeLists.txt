@@ -2211,6 +2211,15 @@ else()
     list(REMOVE_ITEM MAUI_ESSENTIALS_PLATFORM_SOURCES src/platform/headless/essentials_device_info.cpp)
     list(APPEND MAUI_ESSENTIALS_PLATFORM_SOURCES src/platform/android/essentials_device_info.cpp)
   endif()
+  # Windows essentials partials: the same control-by-control swap. device_info must be real on
+  # windows too — the unconfigured headless fake's version_string()/model() THROW
+  # feature_not_supported, which terminated the DevicePage's boot on the gallery (the android
+  # lane's identical lesson). The windows partial reads EasClientDeviceInformation/AnalyticsInfo
+  # and degrades to defaults, so the page renders Platform/Idiom/Version instead of crashing.
+  if(MAUI_BACKEND STREQUAL "windows")
+    list(REMOVE_ITEM MAUI_ESSENTIALS_PLATFORM_SOURCES src/platform/headless/essentials_device_info.cpp)
+    list(APPEND MAUI_ESSENTIALS_PLATFORM_SOURCES src/platform/windows/essentials_device_info.cpp)
+  endif()
 endif()
 
 add_library(maui_essentials STATIC
@@ -2266,6 +2275,12 @@ target_include_directories(maui_essentials PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 # Essentials sits on core (event/move_only_function/cancellation_token) which carries graphics
 # (vector3/quaternion for the sensor readings) transitively.
 target_link_libraries(maui_essentials PUBLIC maui_core PRIVATE maui_sanitizers)
+if(MAUI_BACKEND STREQUAL "windows")
+  # The windows device_info partial's tablet-mode probe: PowerDeterminePlatformRoleEx lives in
+  # powrprof (DeviceInfo.windows.cs's Powrprof.dll DllImport); GetSystemMetrics/GetAutoRotationState
+  # ride user32.lib, already PUBLIC via maui_windows_appsdk.
+  target_link_libraries(maui_essentials PRIVATE powrprof.lib)
+endif()
 # The macOS partials reach beyond Cocoa (already PUBLIC on maui_core): IOKit (battery power
 # sources + the keep-screen-on power assertion), SystemConfiguration (SCDynamicStoreCopyComputerName)
 # and CoreLocation (geolocation/geocoding).

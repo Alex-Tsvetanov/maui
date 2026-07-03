@@ -82,9 +82,21 @@ namespace
     }
 
     // InsertAt with the C# CachedChildren.Insert clamp (the mirror's insert_at semantics on the native
-    // vector): a target beyond the native count appends.
+    // vector): a target beyond the native count appends. Detaches the element from any prior parent
+    // first (the android add_view_at twin, wnative::detach_from_parent): the mount replay re-fires
+    // "add" for an already-hosted child on every boxed-chrome realize pass, and a WinUI InsertAt of a
+    // parented element throws E_CHILD_ALREADY_EXISTS — the silent header_footer_* boot fail-fast.
     void native_insert_at(const muxc::UIElementCollection& children, int index, const mux::UIElement& element)
     {
+        // Already in THIS collection (the mount replay re-firing "add" for a hosted child): move it,
+        // don't double-insert. Checked directly against the target — parent-based detach alone can
+        // miss it (a never-loaded subtree reports no logical parent — the wnative helper's note).
+        std::uint32_t existing = 0;
+        if (children.IndexOf(element, existing))
+        {
+            children.RemoveAt(existing);
+        }
+        wnative::detach_from_parent(element); // a child arriving from ANOTHER panel
         const auto count = children.Size();
         const auto position = std::min(static_cast<std::uint32_t>(std::max(index, 0)), count);
         children.InsertAt(position, element);
@@ -284,7 +296,12 @@ namespace maui::core
             {
                 if (index >= 0 && static_cast<std::uint32_t>(index) < children.Size())
                 {
-                    children.SetAt(static_cast<std::uint32_t>(index), element);
+                    // Swap the slot in place as RemoveAt + detach-and-insert (the android update's
+                    // removeViewAt + addView, the apple removeFromSuperview + reinsert): a plain SetAt
+                    // throws E_CHILD_ALREADY_EXISTS when the incoming element is parented anywhere —
+                    // including already sitting in this very slot.
+                    children.RemoveAt(static_cast<std::uint32_t>(index));
+                    native_insert_at(children, index, element);
                 }
             }
         }

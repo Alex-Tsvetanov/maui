@@ -80,6 +80,31 @@ namespace
     constexpr double k_window_width = 480.0;
     constexpr double k_window_height = 800.0;
 
+    // Drive the generic layout from inside a XAML delegate (SizeChanged / Loaded), attributing any
+    // escaping exception first: an exception leaving the delegate is stowed by XAML and fail-fasts
+    // the process (0xC000027B) — the UnhandledException hook logs the WinRT-visible message, but
+    // this line says WHICH layout pass raised it, and covers plain C++ exceptions the hook's
+    // message would render opaquely. Log-then-rethrow: the fail-fast behavior itself is unchanged.
+    void drive_layout_attributed(const char* site, maui::controls::window& window, double width, double height)
+    {
+        try
+        {
+            maui::hosting::drive_layout(window, width, height);
+        }
+        catch (winrt::hresult_error const& error)
+        {
+            std::fprintf(stderr, "[host_run] %s drive_layout threw (hresult 0x%08X): %s\n", site,
+                         static_cast<unsigned>(error.code().value),
+                         winrt::to_string(error.message()).c_str());
+            throw;
+        }
+        catch (const std::exception& error)
+        {
+            std::fprintf(stderr, "[host_run] %s drive_layout threw: %s\n", site, error.what());
+            throw;
+        }
+    }
+
     // Boot the app + show its window through the generic mount (the apple boot_window recipe, WinUI
     // vocabulary). Returns true on a shown window.
     bool boot_window()
@@ -170,7 +195,7 @@ namespace
         // subscription precedes ResizeClient so the resize it causes re-drives the layout too.
         native_window.SizeChanged([window](winrt::Windows::Foundation::IInspectable const&,
                                            mux::WindowSizeChangedEventArgs const& args) {
-            maui::hosting::drive_layout(*window, args.Size().Width, args.Size().Height);
+            drive_layout_attributed("SizeChanged", *window, args.Size().Width, args.Size().Height);
         });
         if (auto app_window = native_window.AppWindow())
         {
@@ -186,7 +211,7 @@ namespace
         {
             root.Loaded([window](winrt::Windows::Foundation::IInspectable const&,
                                  mux::RoutedEventArgs const&) {
-                maui::hosting::drive_layout(*window, k_window_width, k_window_height);
+                drive_layout_attributed("Loaded", *window, k_window_width, k_window_height);
             });
         }
 
@@ -204,6 +229,22 @@ namespace
     // XamlControlsXamlMetaDataProvider covers every built-in WinUI type without a XAML compiler.
     struct maui_host_app : mux::ApplicationT<maui_host_app, muxm::IXamlMetadataProvider>
     {
+        maui_host_app()
+        {
+            // A XAML-raised error (one thrown inside a framework callback — a layout pass, an event
+            // delegate) never unwinds through OnLaunched's catch: XAML stows it and fail-fasts the
+            // process (0xC000027B) with NO stderr. This hook logs the code + message first, so a boot
+            // crash is diagnosable from the console (the port's analog of MAUI's
+            // MauiWinUIApplication.OnApplicationUnhandledException log-then-rethrow).
+            UnhandledException([](winrt::Windows::Foundation::IInspectable const&,
+                                  mux::UnhandledExceptionEventArgs const& args) {
+                std::fprintf(stderr, "[host_run] unhandled XAML exception (hresult 0x%08X): %s\n",
+                             static_cast<unsigned>(args.Exception().value),
+                             winrt::to_string(args.Message()).c_str());
+                std::fflush(stderr);
+            });
+        }
+
         muxm::IXamlType GetXamlType(winrt::Windows::UI::Xaml::Interop::TypeName const& type)
         {
             return provider_.GetXamlType(type);
@@ -252,6 +293,11 @@ namespace maui::hosting
 {
     int run_app(int /*argc*/, char** /*argv*/, app_configurator configure)
     {
+        // Unbuffered stderr: redirected-to-file stderr is FULLY buffered on the MSVC CRT, and a XAML
+        // fail-fast (0xC000027B) kills the process without the CRT shutdown flush — every breadcrumb
+        // before the crash would be lost. The boot log is small; unbuffered keeps it truthful.
+        std::setvbuf(stderr, nullptr, _IONBF, 0);
+
         // Per-monitor-V2 DPI awareness before any HWND exists — crisp native rendering for the parity
         // captures without an embedded manifest (the runtime call is the manifest's equivalent).
         ::SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);

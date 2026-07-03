@@ -170,12 +170,21 @@ namespace maui::core
         }
         if (const auto* solid = dynamic_cast<const maui::graphics::solid_paint*>(value))
         {
+            // Borrow BEFORE constructing the brush: XAML-less (null native/buttons) even the
+            // SolidColorBrush activation throws, and this push must degrade to the base mirror like
+            // every other windows partial (their bodies null-check the borrowed native first).
+            auto minus = wnative::borrow<muxc::Button>(down_button);
+            auto plus = wnative::borrow<muxc::Button>(up_button);
+            if (minus == nullptr && plus == nullptr)
+            {
+                return;
+            }
             const auto brush = wnative::to_brush(solid->color());
-            if (auto minus = wnative::borrow<muxc::Button>(down_button))
+            if (minus != nullptr)
             {
                 minus.Background(brush);
             }
-            if (auto plus = wnative::borrow<muxc::Button>(up_button))
+            if (plus != nullptr)
             {
                 plus.Background(brush);
             }

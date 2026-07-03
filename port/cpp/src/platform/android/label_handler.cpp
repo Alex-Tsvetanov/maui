@@ -68,6 +68,7 @@
 #include "jni/jni_ref.hpp"
 #include "jni/jni_string.hpp"
 #include "maui/core/bindable_object.hpp"
+#include "maui/core/dimension.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/i_label.hpp"
 #include "maui/core/label_run.hpp"
@@ -1196,7 +1197,36 @@ namespace maui::core
         {
             // VM-less degradation: the headless partial's placeholder metric (~7pt/char, 16pt line) so
             // the backend-agnostic size-request suites see consistent numbers in the pure-native run.
-            return {static_cast<double>(platform->text.size()) * 7.0, 16.0};
+            // The FULL headless body (keep in sync with src/platform/headless/label_handler.cpp
+            // get_desired_size), not just the single-line product: the cross-platform suite also asserts
+            // its padding-inflation (MauiLabel.SizeThatFits) and explicit-Width wrap
+            // (PreferredMaxLayoutWidth) branches against this fallback
+            // (label_seam.padding_inflates_desired_size / .explicit_width_wraps_to_multiple_lines).
+            constexpr double per_char = 7.0;
+            constexpr double line = 16.0;
+            const thickness& pad = platform->padding;
+            const double text_width = static_cast<double>(platform->text.size()) * per_char;
+            const double fallback_virtual_width =
+                virtual_view() != nullptr ? virtual_view()->width() : dimension::unset;
+            double wrap_width =
+                dimension::is_explicit_set(fallback_virtual_width) ? fallback_virtual_width : width_constraint;
+            if (dimension::is_explicit_set(fallback_virtual_width) && std::isfinite(width_constraint) &&
+                width_constraint < wrap_width)
+            {
+                wrap_width = width_constraint;
+            }
+            double content_width = text_width;
+            double lines = 1.0;
+            if (std::isfinite(wrap_width) && wrap_width > 0)
+            {
+                const double available = wrap_width - pad.left - pad.right;
+                if (available > 0 && text_width > available)
+                {
+                    lines = std::ceil(text_width / available);
+                    content_width = available;
+                }
+            }
+            return {content_width + pad.left + pad.right, (lines * line) + pad.top + pad.bottom};
         }
         const scoped_env env;
         if (!env)

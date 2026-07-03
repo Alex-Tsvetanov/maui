@@ -106,29 +106,6 @@ namespace
     // 0 — the android partial's constant.
     constexpr double k_min_row_extent = 24;
 
-    // Detach `child` from a Panel parent so Children().Append never throws "element is already the
-    // child of another element" (the android detach_from_parent twin — a boxed View header re-hosted
-    // across passes arrives parented). Only Panel parents occur in the port's Canvas world.
-    void detach_from_parent(const mux::UIElement& child)
-    {
-        auto element = child.try_as<mux::FrameworkElement>();
-        if (element == nullptr)
-        {
-            return;
-        }
-        auto parent = element.Parent();
-        auto panel = parent != nullptr ? parent.try_as<muxc::Panel>() : muxc::Panel{nullptr};
-        if (panel == nullptr)
-        {
-            return;
-        }
-        std::uint32_t index = 0;
-        if (panel.Children().IndexOf(child, index))
-        {
-            panel.Children().RemoveAt(index);
-        }
-    }
-
     // Pin `child` to a host-relative rect inside the Canvas host (Canvas.SetLeft/SetTop + explicit
     // Width/Height — the shared Canvas recipe, the android add_and_frame layout half).
     void frame_element(const mux::UIElement& child, const maui::graphics::rect& rect)
@@ -433,9 +410,10 @@ namespace maui::controls
         // empty region (the C# `Header is View` arm is independent of item count).
         const bool empty = view == nullptr || !src || src->item_count() == 0;
 
-        // Append `child` to the host (detaching from a stale parent first — the re-parent guard).
+        // Append `child` to the host (detaching from a stale parent first — the re-parent guard, the
+        // shared wnative helper: a boxed View header re-hosted across passes arrives parented).
         auto add_child = [&host](const mux::UIElement& child) {
-            detach_from_parent(child);
+            wnative::detach_from_parent(child);
             host.Children().Append(child);
         };
 

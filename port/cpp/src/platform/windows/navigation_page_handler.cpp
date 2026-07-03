@@ -80,37 +80,12 @@ namespace
         return wnative::borrow_as<mux::UIElement>(handler->native_view());
     }
 
-    // Detach `element` from any current Panel parent (XAML throws "element is already the child of
-    // another element" on a double-parent Append; this is the re-parent guard the android twin's
-    // remove_from_parent provides).
-    void detach_from_parent(const mux::UIElement& element)
-    {
-        const auto framework = element.try_as<mux::FrameworkElement>();
-        if (framework == nullptr)
-        {
-            return;
-        }
-        const auto parent = framework.Parent();
-        if (parent == nullptr)
-        {
-            return;
-        }
-        if (const auto panel = parent.try_as<muxc::Panel>())
-        {
-            std::uint32_t index = 0;
-            if (panel.Children().IndexOf(element, index))
-            {
-                panel.Children().RemoveAt(index);
-            }
-        }
-    }
-
     // Append `element` to the container as its top-most child, re-parenting it first (the android
     // add_filling_child shape — the element's frame comes from its own platform_arrange, the Canvas
     // manual-frame model).
     void append_child(const muxc::Canvas& container, const mux::UIElement& element)
     {
-        detach_from_parent(element);
+        wnative::detach_from_parent(element);
         container.Children().Append(element);
     }
 } // namespace
@@ -285,7 +260,7 @@ namespace maui::core
         {
             if (auto old_element = native_child(*previous_modal))
             {
-                detach_from_parent(old_element);
+                wnative::detach_from_parent(old_element);
             }
         }
         if (top_modal == nullptr)

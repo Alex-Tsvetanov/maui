@@ -99,29 +99,6 @@ namespace
         return wnative::borrow_as<mux::UIElement>(handler->native_view());
     }
 
-    // Detach `element` from any current Panel parent (the re-parent guard — XAML throws on a
-    // double-parent Append; the android twin's detach_from_parent).
-    void detach_from_parent(const mux::UIElement& element)
-    {
-        const auto framework = element.try_as<mux::FrameworkElement>();
-        if (framework == nullptr)
-        {
-            return;
-        }
-        const auto parent = framework.Parent();
-        if (parent == nullptr)
-        {
-            return;
-        }
-        if (const auto panel = parent.try_as<muxc::Panel>())
-        {
-            std::uint32_t index = 0;
-            if (panel.Children().IndexOf(element, index))
-            {
-                panel.Children().RemoveAt(index);
-            }
-        }
-    }
 } // namespace
 
 namespace maui::core
@@ -366,13 +343,13 @@ namespace maui::core
         {
             if (auto element = native_child(*platform->hosted_current))
             {
-                detach_from_parent(element);
+                wnative::detach_from_parent(element);
                 host.Children().Append(element);
             }
         }
         if (auto bar = wnative::borrow_as<mux::UIElement>(platform->tab_bar))
         {
-            detach_from_parent(bar);
+            wnative::detach_from_parent(bar);
             host.Children().Append(bar);
         }
 

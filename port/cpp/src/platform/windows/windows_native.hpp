@@ -174,6 +174,41 @@ namespace maui::platform::win
         return static_cast<std::int32_t>(std::lround(pt * static_cast<double>(0.0624F) * 1000.0));
     }
 
+    // Detach `child` from a Panel parent so a follow-up Children().Append/InsertAt never throws
+    // "Element is already the child of another element" (E_CHILD_ALREADY_EXISTS). The windows twin of
+    // the android add_view_at detach-first / AppKit's implicit addSubview re-parent: the port's mount
+    // replay (ensure_mounted → mount_into_handler re-fires each container's "add" on every realize
+    // pass) re-hosts already-parented natives, and WinUI is the only lane whose native add throws on
+    // that instead of re-parenting. Only Panel parents occur in the port's Canvas world.
+    inline void detach_from_parent(winrt::Microsoft::UI::Xaml::UIElement const& child)
+    {
+        auto element = child.try_as<winrt::Microsoft::UI::Xaml::FrameworkElement>();
+        if (element == nullptr)
+        {
+            return;
+        }
+        // The LOGICAL parent first — but FrameworkElement.Parent stays NULL for a subtree that has
+        // never entered the LIVE tree (the boxed header/footer chrome, realized off-screen), while
+        // the element still sits in a Children collection and a re-add still throws. The VISUAL
+        // parent — set by the Children add itself — covers that state.
+        winrt::Microsoft::UI::Xaml::DependencyObject parent = element.Parent();
+        if (parent == nullptr)
+        {
+            parent = winrt::Microsoft::UI::Xaml::Media::VisualTreeHelper::GetParent(element);
+        }
+        auto panel = parent != nullptr ? parent.try_as<winrt::Microsoft::UI::Xaml::Controls::Panel>()
+                                       : winrt::Microsoft::UI::Xaml::Controls::Panel{nullptr};
+        if (panel == nullptr)
+        {
+            return;
+        }
+        std::uint32_t index = 0;
+        if (panel.Children().IndexOf(child, index))
+        {
+            panel.Children().RemoveAt(index);
+        }
+    }
+
     // ---- measure / arrange (the shared per-view seam bodies) --------------------------------------
     // ViewHandlerExtensions.Windows.cs GetDesiredSizeFromHandler: negative constraints → Size.Zero;
     // AdjustForExplicitSize widens each constraint to max(constraint, explicit). C# reads the explicit
