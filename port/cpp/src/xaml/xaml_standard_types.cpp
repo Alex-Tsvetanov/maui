@@ -182,6 +182,10 @@ namespace maui::xaml
         // uses ImageSource="settings.png" on its icon buttons.
         properties.register_bindable_property<controls::button>("ImageSource",
                                                                 controls::button::image_source_property());
+        // Button.ContentLayout (icon position + spacing) — a string like "Top, 10" routes through
+        // convert_button_content_layout (registered for button_content_layout in register_xaml_extra_converters).
+        properties.register_bindable_property<controls::button>("ContentLayout",
+                                                                controls::button::content_layout_property());
 
         // ---- Label (Label.cs; [ContentProperty(nameof(Text))]) ----
         register_view_properties<controls::label>(properties);

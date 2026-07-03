@@ -33,11 +33,13 @@
         <!-- CharacterSpacing = 20 (HotPink text) -->
         <Button Text="Button" TextColor="HotPink" CharacterSpacing="20" />
 
-        <!-- ImageSource icon button (W15: Button.ImageSource); ContentLayout positioning omitted -->
-        <Button Text="settings" TextColor="White" BackgroundColor="Black" ImageSource="settings.png" />
+        <!-- ImageSource icon button (W15: Button.ImageSource) with ContentLayout=Top,10 (icon above text) -->
+        <Button Text="settings" TextColor="White" BackgroundColor="Black" ImageSource="settings.png"
+                ContentLayout="Top, 10" />
 
-        <!-- ContentLayout positioning button (ContentLayout omitted) -->
-        <Button Text="settings" TextColor="White" BackgroundColor="Black" ImageSource="settings.png" />
+        <!-- ContentLayout positioning button (icon above text, spacing 10) -->
+        <Button Text="settings" TextColor="White" BackgroundColor="Black" ImageSource="settings.png"
+                ContentLayout="Top, 10" />
 
         <!-- Decrease spacing (handler omitted) -->
         <Button Text="Decrease Spacing" TextColor="White" BackgroundColor="Black" />

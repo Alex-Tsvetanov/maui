@@ -40,6 +40,7 @@
 #include <string_view>
 #include <vector>
 
+#include "maui/controls/button_content_layout.hpp"
 #include "maui/controls/editor_auto_size_option.hpp"
 #include "maui/controls/flyout_layout_behavior.hpp"
 #include "maui/controls/indicator_shape.hpp"
@@ -214,6 +215,59 @@ namespace maui::xaml
                 {.name = "Square", .value = indicator_shape::square},
             }};
             return parse_enum<indicator_shape>(text, names, "maui::controls::indicator_shape");
+        }
+
+        // Microsoft.Maui.Controls.Button.ButtonContentLayout — the ButtonContentTypeConverter.ConvertFrom
+        // form: a comma-separated pair of an ImagePosition name {Left,Top,Right,Bottom} and a numeric
+        // spacing, in EITHER order, both optional (defaults Left / 10). e.g. "Top, 10", "10, Top", "Top",
+        // "8". Each token is a number (spacing) if it parses as one, else an ImagePosition name.
+        maui::controls::button_content_layout convert_button_content_layout(std::string_view text)
+        {
+            using maui::controls::button_content_layout;
+            using image_position = button_content_layout::image_position;
+            static constexpr std::array<enum_entry<image_position>, 4> names{{
+                {.name = "Left", .value = image_position::left},
+                {.name = "Top", .value = image_position::top},
+                {.name = "Right", .value = image_position::right},
+                {.name = "Bottom", .value = image_position::bottom},
+            }};
+            button_content_layout result; // defaults: {left, DefaultSpacing = 10}
+            bool any = false;
+            std::size_t start = 0;
+            while (true)
+            {
+                const std::size_t comma = text.find(',', start);
+                const std::string_view token = detail::trim(
+                    comma == std::string_view::npos ? text.substr(start) : text.substr(start, comma - start));
+                if (!token.empty())
+                {
+                    double spacing = 0.0;
+                    if (try_parse_number(token, spacing))
+                    {
+                        result.spacing = spacing;
+                        any = true;
+                    }
+                    else if (const auto pos = try_parse_enum<image_position>(token, names))
+                    {
+                        result.position = *pos;
+                        any = true;
+                    }
+                    else
+                    {
+                        throw_cannot_convert_local(text, "maui::controls::button_content_layout");
+                    }
+                }
+                if (comma == std::string_view::npos)
+                {
+                    break;
+                }
+                start = comma + 1;
+            }
+            if (!any)
+            {
+                throw_cannot_convert_local(text, "maui::controls::button_content_layout");
+            }
+            return result;
         }
 
         // ---- shapes group ----
@@ -630,6 +684,9 @@ namespace maui::xaml
             registry_converter(&convert_swipe_transition_mode));
         // maui::controls::indicator_shape  (IndicatorView.IndicatorsShape)
         converters.register_converter<maui::controls::indicator_shape>(registry_converter(&convert_indicator_shape));
+        // maui::controls::button_content_layout  (Button.ContentLayout — icon position + spacing)
+        converters.register_converter<maui::controls::button_content_layout>(
+            registry_converter(&convert_button_content_layout));
 
         // ---- shapes group ----
         // maui::graphics::line_cap  (shape StrokeLineCap)
