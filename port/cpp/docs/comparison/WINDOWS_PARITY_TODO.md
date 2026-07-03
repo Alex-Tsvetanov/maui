@@ -9,23 +9,29 @@ artifact). Signature = **templateless controls**: a Button measures 19px (conten
   are all blank too → global, not button-specific.
 - **NOT resources.pri** — it + Bootstrap.dll next to gallery.exe are UNCHANGED (Nov mtimes); only
   gallery.exe/maui_core.lib changed. No resource/theme/exception logged at startup.
-- **Root cause (traced):** the prior *working* gallery (which produced the committed captures) linked an
-  OLDER installed `windows-prefix/lib/maui_core.lib`. This session's `cmake --install ... --prefix
-  build/windows-prefix` refreshed that lib to the current build/windows one, which now includes the
-  **uncommitted WIP Windows-handler expansion** (untracked: border/collection_view/flyout_page/image/
-  indicator_view/navigation_page/refresh_view/scroll_view/swipe_item_menu_item/swipe_view/tabbed_page
-  `_handler.cpp` + their modified `.hpp`). Relinking activated that code → global templateless render.
-  Most likely a resource-dictionary corruption (the class of bug fixed earlier — resource_dictionary
-  iterator-invalidation UB / XAML GradientStops-Spans UAF — possibly reintroduced by one WIP handler).
-- **State is safe:** all working captures + `windows_pixel_scores.json` were RESTORED from git (the
-  committed versions render correctly). Only the local gallery.exe binary is bad; committed source +
-  captures are intact.
-- **NEXT FIRE — restore a working gallery FIRST (prerequisite to all parity work):** bisect the WIP
-  handlers — temporarily exclude them from the maui_core windows sources (or stash the untracked .cpp +
-  checkout the .hpp), rebuild+install+relink, capture `label`; add them back one at a time until `label`
-  goes blank. Prime suspects: any handler that touches the app ResourceDictionary or a XAML brush/shape
-  resource (border/shape/swipe). Then fix that handler, THEN resume the button icon+text fix (its code is
-  in the reverted commit `46030899bc` — cleanly reappliable once the gallery renders again).
+- **Root cause (revised — the git tree is CLEAN, so the Windows handlers are all COMMITTED, not WIP):**
+  building from HEAD (button reverted → source == the last docs commit `a4434b48b8`) produces a gallery
+  that renders blank. So the **committed parity captures were made by an OLDER gallery.exe binary that no
+  longer matches** what the current committed source builds — this session's rebuild was the first actual
+  gallery build in a while and exposed the true current-source render. The break is therefore EITHER (a) a
+  latent global-render regression already sitting in committed Windows source (never rebuilt+run until
+  now), OR (b) an environment/runtime change since the last gallery run (e.g. a Windows App SDK framework
+  update — resources.pri + Bootstrap.dll are unchanged, but the *installed* WinAppSDK runtime the bootstrap
+  resolves could have moved). Templateless-everything + no logged exception fits a resource/theme-merge
+  failure at framework init more than a single handler bug.
+- **State is safe:** all working captures + `windows_pixel_scores.json` were RESTORED from git (the older
+  binary's correct output). Committed source + captures are intact; only the local gallery.exe binary
+  renders blank.
+- **NEXT FIRE — restore a working gallery FIRST (prerequisite to all parity work):**
+  1. Rule out environment: check the installed Windows App SDK runtime version vs what the gallery links
+     (the bootstrap MddBootstrapInitialize2 major/minor); a mismatch/newer runtime is the fastest
+     explanation. Confirm host_run's app-resource/theme merge still finds the WinUI control templates.
+  2. If env is fine, `git bisect` the Windows *code* commits (last-known-good ≈ `2a65c88f0c` WinUI 3
+     backend / `aec4afe43c` first sweep — those SHIPPED working captures, so that binary rendered) → HEAD,
+     rebuilding + `capture_windows.py label --framework cpp` at each step until `label` goes blank.
+  3. Fix the culprit, THEN resume the button icon+text fix — its code is intact in reverted commit
+     `46030899bc`, cleanly reappliable once the gallery renders again (it compiled + linked fine; it was
+     never the cause of the blank).
 
 
 
