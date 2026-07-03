@@ -110,6 +110,14 @@ namespace
     // 0 — the android partial's constant.
     constexpr double k_min_row_extent = 24;
 
+    // The vertical GRID row-height floor (dp). A WinUI CollectionView grid is a GridView whose
+    // GridViewItem container keeps its native default MinHeight (StructuredItemsViewHandler.Windows.cs
+    // GetItemContainerStyle does NOT reset it), which floors a short cell's row taller than the content
+    // needs. Measured directly from the MAUI reference captures (collectionview / preselected_items /
+    // grid_grouping all render a 44dp grid pitch). A vertical LIST instead forces ListViewItem.MinHeight
+    // to 0, so its row is the measured content (~19dp single line) — hence the mode split below.
+    constexpr double k_grid_min_row_extent = 44;
+
     // Pin `child` to a host-relative rect inside the Canvas host (Canvas.SetLeft/SetTop + explicit
     // Width/Height — the shared Canvas recipe, the android add_and_frame layout half).
     void frame_element(const mux::UIElement& child, const maui::graphics::rect& rect)
@@ -728,7 +736,9 @@ namespace maui::controls
                 for (int first = 0; first < count; first += span)
                 {
                     const int row_n = (std::min)(span, count - first);
-                    double row_extent = k_min_row_extent;
+                    // MAUI item rows are content-measured (WinUI ListViewItem MinHeight is forced to 0);
+                    // seed at 0 and let the measure loop raise it, then apply the per-mode floor below.
+                    double row_extent = 0.0;
                     struct realized_col
                     {
                         mux::UIElement native{nullptr};
@@ -767,6 +777,23 @@ namespace maui::controls
                             row_extent = (std::max)(row_extent, measure_native_main(col.native, item_col, vertical));
                         }
                         cols.push_back(std::move(col));
+                    }
+                    // Per-mode row-height floor mirroring the WinUI item-container defaults
+                    // (StructuredItemsViewHandler.Windows.cs): a vertical GRID (GridView/GridViewItem)
+                    // keeps its default MinHeight (~44dp) which floors a short cell taller; a vertical
+                    // LIST/GROUPED (ListView/ListViewItem) forces MinHeight to 0, so the row is the
+                    // measured content (~19dp single line). Horizontal keeps the modest prior floor.
+                    if (!vertical)
+                    {
+                        row_extent = (std::max)(row_extent, k_min_row_extent);
+                    }
+                    else if (platform->is_grid)
+                    {
+                        row_extent = (std::max)(row_extent, k_grid_min_row_extent);
+                    }
+                    else if (row_extent < 1.0)
+                    {
+                        row_extent = k_min_row_extent; // anti-collapse guard for a zero-measured list cell
                     }
                     for (int c = 0; c < static_cast<int>(cols.size()); ++c)
                     {

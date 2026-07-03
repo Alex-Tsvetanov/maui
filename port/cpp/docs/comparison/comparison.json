@@ -327,7 +327,7 @@
     },
     "sonnet_xaml": {
      "status": "red",
-     "review": "Both themes: layout is clearly wrong. Items are left-aligned and tightly stacked at the top (~24px pitch, no inter-item spacing) filling only the top ~180px, versus MAUI's right-aligned items with generous ~60px vertical spacing spread down the viewport. The item spacing/rhythm and horizontal alignment are both wrong, so the collection layout does not match MAUI. Theme colors are correct in light and dark, but the layout bug applies to both."
+     "review": "Broken in both themes: the 'Layout: Linear (single column)' header is missing entirely, the items are packed at a tight ~19px list row pitch instead of MAUI's ~60px spacing (Item 8 sits at y~143 vs MAUI ~482), and the items are left-aligned at the top-left corner instead of MAUI's right-aligned placement. Multiple concurrent content defects."
     }
    }
   }
@@ -1100,7 +1100,7 @@
     },
     "sonnet_cpp": {
      "status": "green",
-     "review": "Match in both themes. cpp renders the full grouped list identically to MAUI: 'This is a header' at top, then all four green group headers (Avengers, Fantastic Four, Defenders, Heroes for Hire), the black member names under each (Thor, Captain America ... Shang-Chi), and the orange 'Total members: N' group footers (12, 4, 7). Group-header green, member-text color, and orange totals all match MAUI in light and dark. Only differences are the allowed harness-wrapper inset (content sits nearer the top-left edge) and marginally tighter row spacing (a couple px) that scrolls slightly more content into view — same content and intent. No content, color, or structural bug."
+     "review": "The cpp port faithfully reproduces MAUI's grouped CollectionView in both light and dark themes: identical 'This is a header', green group titles (Avengers, Fantastic Four, Defenders, Heroes for Hire), black/white member rows, and orange 'Total members: N' footers. Row pitch matches MAUI's tight single-line list rows; the only difference is the excused top/bottom crop (cpp shows slightly more, e.g. West Coast Avengers). Group-header spacing is marginally tighter than MAUI but within trivial tolerance."
     },
     "sonnet_xaml": {
      "status": "red",
@@ -3430,12 +3430,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "red",
-     "review": "Content matches MAUI in both themes — 3-column grid, 24 items (0-23), header, and text all correct, and the dark background is now the corrected #272727 (matches MAUI exactly). However the LIGHT theme background is a flat neutral gray (#EDEDED) instead of MAUI's warm rose/pink gradient (~#F6E8EC), a clear whole-page color bug; additionally item row pitch is ~31px vs MAUI's ~44px so the grid is noticeably vertically compressed in both themes."
+     "status": "green",
+     "review": "3-column grid CollectionView matches MAUI: header 'This is the header', all 24 items (0-23) with correct text, correct 3-column alignment, and grid row pitch (~44px) matching MAUI's grid rows in both themes. Only nit is the light-theme page background being a neutral light-gray wash vs MAUI's very subtle pink gradient tint (page-level, not CollectionView-internal); dark theme matches closely."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Same defects as cpp plus worse layout: LIGHT background is flat gray (#EDEDED) not MAUI's rose gradient (dark theme #272727 matches correctly), and item row spacing is the tightest of all (~24px vs MAUI's ~44px). It also drops the item left indent entirely — text sits flush at x=0 versus MAUI's ~12px indent — so every cell's content is mis-aligned against the ground truth in both themes."
+     "status": "green",
+     "review": "Grid CollectionView matches MAUI: header, all 24 items with correct text, 3-column alignment, and grid row pitch (~44px) equal to MAUI in both light and dark. Rows start a couple px higher (within the excused global-shift tolerance) and the light background is neutral vs MAUI's faint pink page wash — both minor page-level details, with all CollectionView content and pitch faithful."
     }
    }
   }
@@ -4434,7 +4434,7 @@
     },
     "sonnet_xaml": {
      "status": "red",
-     "review": "The Multi Selection checkbox column and selection state match MAUI (all four boxes empty, no items checked, no highlight band) in both light and dark. However the Single Selection items (Item 1/2/3) are rendered in a small/normal font, whereas MAUI renders them in a distinctly larger font — a clear content/typography bug visible in both themes. The same large inter-section vertical gap layout drift is also present, but the font-size mismatch alone is a red-level content difference."
+     "review": "xaml has two defects present in both themes: (1) the Single Selection items render in SMALL text with a compact ~20px pitch, whereas MAUI renders these items in LARGE text — a clear font-size/row-height mismatch; and (2) the same large empty band splits the two sections, pushing Multi Selection down to ~y=337 instead of MAUI's adjacent ~y=118. The undersized first-section rows are the more severe, clearly-wrong deviation from the MAUI ground truth."
     }
    }
   }
@@ -4541,11 +4541,11 @@
     },
     "sonnet_cpp": {
      "status": "green",
-     "review": "Both themes match MAUI. SearchBar placeholder 'Day of Week Filter' with accent underline present; the DataTemplateSelector works correctly — weekday rows show plain names (Monday/Tuesday/...) and weekend rows show the bold 'It's the weekend! Woot!' template, with matching bold weight. List length and repeating pattern match MAUI in both light and dark. Only nit: MAUI's SearchBar underline reads as a heavier red/orange accent while cpp's is a slightly lighter accent tone (AA-level), and the trivial global top-inset difference (ignored). No content bugs."
+     "review": "The cpp port faithfully reproduces MAUI: the DataTemplateSelector correctly renders 'It's the weekend! Woot!' for weekend items and plain day names for weekdays, with the same compact single-line list row pitch (~19px) filling the full page and the same 'Day of Week Filter' search bar with accent underline. Text color, font, alignment, and density match in both light and dark themes; only the excused outer-inset/global-shift differs."
     },
     "sonnet_xaml": {
      "status": "red",
-     "review": "Clear bug in BOTH themes: the DataTemplateSelector is not applied to weekend rows. MAUI (and cpp) replace Saturday/Sunday with a bold 'It's the weekend! Woot!' template; xaml instead renders the raw day names ('Sunday','Saturday') for those rows, so the weekend template never appears. Additionally the list is far too short — xaml stops after ~13 rows ending at 'Saturday', whereas MAUI shows a long repeating list running off the bottom of the page. SearchBar itself renders fine (placeholder + underline), but the ListView content is wrong: missing weekend template and truncated data set."
+     "review": "The xaml port fails the entire point of this demo: the DataTemplateSelector is not selecting the alternate template, so every row renders the plain day name ('Sunday'...'Saturday') and 'It's the weekend! Woot!' never appears, unlike MAUI. It also shows a wrong/short dataset (~14 Sunday-Saturday items ending mid-page instead of MAUI's long weekday-only list filling the page), and the search-bar underline accent color differs. These defects appear in both light and dark themes."
     }
    }
   }
@@ -5429,11 +5429,11 @@
     },
     "sonnet_cpp": {
      "status": "green",
-     "review": "In both light and dark, the cpp port matches MAUI's ground truth: the 'Filter' SearchBar renders identically and the CollectionView lists all items ('cover1.jpg, 0', 'oasis.jpg, 1', ...) in the same order, spacing, and typography, with no spurious empty-view text. The corrected dark page background (#272727) now matches MAUI; only the excused top-crop/global-shift differs."
+     "review": "The cpp port matches MAUI in both light and dark themes: the same 'Filter' search box with its red/orange bottom accent line, identical list-row content and formatting ('cover1.jpg, 0' ... running past index 40), the same tight single-line list row pitch, correct left alignment, and correct light/dark colors. Only the excused outer-inset/global-shift differs."
     },
     "sonnet_xaml": {
-     "status": "green",
-     "review": "Light and dark both match MAUI: same populated item-cell list, Filter box, left alignment, index numbering, font, and spacing, with no EmptyView placeholder. The xaml viewport shows fewer visible rows (ends at index 17 with empty space below) versus MAUI's longer list, but that is an excused viewport/crop/global-shift framing difference, not a per-cell content, layout, or color bug."
+     "status": "red",
+     "review": "In both light and dark themes the xaml port's CollectionView is truncated: it renders only ~18 items (stops at 'Vegetables.jpg, 17') and leaves roughly the lower 60% of the viewport empty, whereas MAUI fills the viewport with items continuing well past index 40. Per-item formatting and row pitch are correct, but the missing/cut-off content is a clear completeness defect in both themes."
     }
    }
   }
@@ -5761,12 +5761,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "yellow",
-     "review": "Both themes: content matches MAUI. FlowDirection ComboBox correctly shows 'Left to Right', Filter box shows 'Filter' placeholder, and the CollectionView renders the same 3-column item grid (cover1.jpg,0 / oasis.jpg,1 / photo.jpg,2 ...) with correct text, colors and column layout, no empty-view shown. Only drift: item row height/vertical spacing is slightly tighter than MAUI (rows are more compact so a couple more rows fit on screen), and the grid content starts marginally higher. Same intent and content, minor spacing drift only."
+     "status": "green",
+     "review": "The cpp port matches MAUI in both light and dark: the CollectionView is fully populated with items 0-47 in a 3-column grid, the FlowDirection Picker reads \"Left to Right\", the Filter box is empty, and row pitch/colors/alignment all match the ground truth. Only the excused outer-inset/global-shift differs."
     },
     "sonnet_xaml": {
      "status": "red",
-     "review": "Rendering bug in BOTH light and dark themes. (1) The FlowDirection ComboBox is blank -- its selected value 'Left to Right' is missing/not rendered (empty combo box), whereas MAUI shows 'Left to Right'. (2) The EmptyView text 'No results matched your filter.' (plus a stray '...der filter?' fragment) is drawn OVERLAPPING the item grid: the collection is clearly non-empty (cover1.jpg,3 / Fruits.jpg,4 / oasis.jpg,8 etc. are visible) yet the no-results empty view is composited on top of the first rows, colliding with the item labels. The empty view should be hidden when items are present. MAUI shows a full ~48-item grid with no empty-view overlay; the xaml port shows only ~15 items with the empty view wrongly overlaid and a blank combo box."
+     "review": "The xaml port is broken in BOTH themes: it wrongly renders the EmptyView text (\"No results matched your filter.\" / \"Maybe try a broader filter?\") overlapping a truncated CollectionView showing only items 0-14, whereas MAUI shows the full unfiltered grid (0-47) with no empty view. The FlowDirection Picker is also blank (missing the \"Left to Right\" selection), and the overlaid empty-view text garbles the header/item rows."
     }
    }
   }
@@ -5984,11 +5984,11 @@
     },
     "sonnet_cpp": {
      "status": "green",
-     "review": "Both themes match MAUI. Filter search box, 'Toggle Between EmptyViews' label with off toggle, and Clear/Fill buttons all render identically in position, weight, and color. The 3-column CollectionView is fully populated in the Fill state exactly like MAUI (cover1.jpg,0 ... running down the full page). Row height, column gutters, item text, and font weight match in both light and dark. Only difference is the data extent runs to item 49 vs MAUI's 47 (a couple extra rows), which is harmless list length, not a rendering defect. Toggle track/thumb colors and button chrome correct per theme."
+     "review": "cpp matches MAUI on all substantive content in both light and dark: the Filter entry spans edge-to-edge (x=1..478, same as MAUI), the toggle/Clear/Fill header and 3-column CollectionView grid render identically, and the grid row pitch is a precise match (~41.5px, same as MAUI's layout-mode-aware grid rows). The only difference is that MAUI's capture shows the Filter entry in a focused state with a full-width orange accent underline (y=30) which neither port reproduces — a capture-time focus-state artifact affecting both ports equally, not a rendering-fidelity defect."
     },
     "sonnet_xaml": {
      "status": "yellow",
-     "review": "Content, 3-column layout, item data, buttons, toggle, and colors match MAUI in both light and dark, but like the cpp build the CollectionView row pitch is compressed to ~24px versus MAUI's ~44px, so the list is about twice as dense as ground truth — an internal spacing drift beyond the excusable page inset. Additional minor drift: the whole top block sits lower (larger inset, itself excusable) and the Filter box uses a slightly larger corner radius than MAUI in both themes."
+     "review": "xaml renders the correct content, colors, toggle, buttons, and a grid whose row pitch matches MAUI exactly (~41.5px) in both themes, but the header region drifts: the Filter entry is inset with visible side margins (x=14..465, ~452px wide vs MAUI's edge-to-edge 478px) and sits ~30px lower, and the whole grid content is inset ~12px from the left edge where MAUI/cpp start at x~0. These are minor, roughly-uniform spacing/inset differences present in both light and dark, not a broken render — hence yellow rather than red."
     }
    }
   }
@@ -6094,12 +6094,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "yellow",
-     "review": "Content parity is strong in both themes: the 3-column CollectionView list (49 items) matches MAUI text, order, and row rhythm, and the dark page background now reads as the corrected #272727. The one drift in both themes is the Filter SearchBar chrome — MAUI shows an active accent outline (red in light, orange underline in dark) that the cpp box renders as a plain neutral border, and cpp's third column sits slightly further right than MAUI's."
+     "status": "green",
+     "review": "The cpp port matches the MAUI 3-column grid CollectionView faithfully in both themes: identical items (0-49), column alignment, tight row pitch (~44px matching MAUI), the 'Filter' SearchBar with its accent underline (red in light, orange in dark), and correct text colors (black-on-white light, white-on-dark). Only the excused outer-inset/crop differs."
     },
     "sonnet_xaml": {
-     "status": "green",
-     "review": "Both themes match MAUI closely: the light capture reproduces the red-outlined Filter SearchBar and the 3-column item list with correct text/order/spacing, and the dark capture matches the #272727 page background and list layout. Only trivial AA-level differences (dark Filter box lacks the visible orange accent) remain, within acceptable tolerance."
+     "status": "yellow",
+     "review": "The xaml port renders the same content, columns, and colors correctly in both themes, but its grid row pitch/density is visibly looser than MAUI/cpp — the same 50 items are spread with more inter-row whitespace (a taller row height than MAUI's tightly-packed rows). This row-pitch drift is a minor but real content difference present in both light and dark themes."
     }
    }
   }
@@ -6206,11 +6206,11 @@
     },
     "sonnet_cpp": {
      "status": "green",
-     "review": "Both themes match MAUI. The 3-column grid renders all 50 items 'cover1.jpg,0'...'cover1.jpg,49' in the exact same order and content as MAUI, with correct per-theme text/background colors (dark grey-on-near-black in dark, black-on-white in light). SearchBar 'Filter' present at top and the EmptyView is correctly hidden while items exist. Only trivial drift: MAUI's SearchBar shows a red focus border (focused state) while cpp's is a neutral unfocused border, and cpp row spacing is a hair tighter — neither is a content bug. Aside from the ignorable page-inset/global-shift, this is a faithful match in both light and dark."
+     "review": "The 3-column CollectionView grid matches MAUI closely in both themes: identical items (0-49), correct row pitch/density (12 rows above the fold matching MAUI), correct bg/text colors, and Filter search box present. Only the transient red/orange focus outline on the Filter box is subtler than MAUI's, which is a trivial focus-state difference. Row height aligns tightly with MAUI."
     },
     "sonnet_xaml": {
      "status": "yellow",
-     "review": "Both themes correctly render the fully-populated 3-column grid with all 50 items and NO EmptyView placeholder, and the Filter SearchBar is fully visible. However, the SearchBar lacks MAUI's distinct red/orange border (xaml shows a plain neutral border in both themes), and item row spacing is slightly looser than MAUI's tighter rhythm — minor chrome/spacing drift, not a content or structural bug."
+     "review": "Content, colors, columns, and text all match MAUI in both light and dark themes, but the grid row pitch is visibly looser — inter-row spacing is noticeably larger than MAUI/cpp, so items are spread further apart vertically (this iteration's row-height change). The taller row pitch is a real but modest density difference present in both themes."
     }
    }
   }
@@ -6428,11 +6428,11 @@
     },
     "sonnet_cpp": {
      "status": "green",
-     "review": "Both themes match MAUI. Header 'Use EmptyView' + red/orange toggle (ON), 'Filter' search box, and the two-column CollectionView all render identically to MAUI: same item text (cover1.jpg,0 ... cover1.jpg,49 cycling through the filename set), same two-column alignment, row spacing, font weight, and theme colors (black-on-white light, white-on-dark dark). cpp shows more rows (down through item 49) because it does not replicate MAUI's top/bottom crop — that is the ignorable framing/crop difference, not a content diff. No stray EmptyView placeholder. Clean match in light and dark."
+     "review": "Pixel-faithful to MAUI in both light and dark themes: identical two-column grid, matching row pitch (~44px), same orange 'Use EmptyView' switch, 'Filter' search box with magnifier, correct text and index numbering, and correct text color per theme. Only the excused outer-inset/global vertical shift differs; no internal-spacing, color, or content defect in either theme."
     },
     "sonnet_xaml": {
      "status": "green",
-     "review": "The xaml render is an equally faithful match in both themes: same red toggle, same dark/light Filter box and magnifier, and the identical two-column item list (0-49) with matching typography, spacing, and theme colors. Differences from MAUI are limited to the excused top-crop/scroll position and Mica background tint."
+     "review": "Content and row pitch match MAUI (~44px) in both themes with the full two-column list, correct switch/search chrome, and correct per-theme text colors. The page sits slightly lower and the switch renders marginally chunkier than MAUI, but that falls within the excused outer-inset/global-shift and native-default tolerance rather than an internal-spacing bug."
     }
    }
   }
@@ -6539,11 +6539,11 @@
     },
     "sonnet_cpp": {
      "status": "green",
-     "review": "Both themes match MAUI. Instruction text (3 lines), Filter SearchBar with right-aligned magnifier icon, Reset button, 'Selected: (none)' label, and the full scrolling item list (cover1.jpg,0 ... 30+) all render at correct sizes, fonts, weights, spacing, and colors in light and dark. Row text/indices align with MAUI. Only nit: MAUI light shows a purple SearchBar focus underline while cpp shows the unfocused border — a focus-state artifact, not a port defect. Colors and layout otherwise identical."
+     "review": "The cpp port matches MAUI faithfully in both light and dark themes: the header text, Filter entry (with its orange bottom accent line and magnifier icon), full-width Reset button, 'Selected: (none)' label, and the CollectionView list all align. The list row pitch is tight single-line height matching MAUI's list rows, and colors/chrome match in both themes. Only the excused outer-inset/global-shift differs."
     },
     "sonnet_xaml": {
      "status": "yellow",
-     "review": "Header controls, colors, and text content match MAUI in both light and dark. It shows the same taller-row drift as cpp — list item pitch ~24px vs MAUI's ~19px (~26% taller, fitting only ~26-27 items vs MAUI's ~35), consistent across both themes — plus slightly looser instruction-text line spacing that pushes the header/list down a touch more. Same underlying row-height divergence, non-fatal but clearly visible."
+     "review": "Content, text, colors, and controls all match MAUI in both themes, but the CollectionView rows are rendered with visibly larger vertical row pitch than MAUI's tight single-line list rows, making the list noticeably less dense (fewer/more-spread rows per unit height). The wider padding also pushes the header instructional text to wrap to three lines instead of MAUI's two; both drifts appear in light and dark."
     }
    }
   }
@@ -6982,12 +6982,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "yellow",
-     "review": "Both themes: same 20 list items (0-19), correct ordering, correct text, and correct theming (dark text on light-gray bg in light; near-white text on near-black bg in dark) - all match MAUI. Two visible layout drifts vs MAUI: (1) FOOTER POSITION - MAUI pins 'This is a footer' to the very bottom of the page with a large gap after the list; the cpp port places the footer immediately below item 19 (flow-after-list, not bottom-anchored). (2) LINE SPACING - MAUI's list uses tighter ~19px line height; the cpp port uses looser ~24px line height, so its list block is taller and ends higher. Content/color/text all identical to MAUI; the drift is spacing + footer vertical placement only - clearly the same content and intent, so yellow not red."
+     "status": "green",
+     "review": "The CollectionView list rows (cover1.jpg,0 … FlowerBuds.jpg,19) match MAUI exactly in single-line list-mode row pitch, font, left alignment, text colors, and the plain-Label 'This is a footer' rendering, in both light and dark themes. The only difference is that MAUI pins the footer near the bottom of a taller cropped card while the port places it directly after the last row, which is a consequence of the excused outer-inset/crop and CV available-height fill, not a content/size/spacing defect."
     },
     "sonnet_xaml": {
-     "status": "yellow",
-     "review": "Both themes: identical to the cpp port and shows the exact same drift vs MAUI. All 20 list items, ordering, text, and theming (light: dark text on light-gray; dark: near-white text on near-black) match MAUI. Same two drifts: (1) FOOTER POSITION - MAUI bottom-anchors 'This is a footer'; the xaml port renders it directly under item 19 (flow-after-list, not pinned to page bottom). (2) LINE SPACING - MAUI ~19px per line vs the port's looser ~24px, making the port's list block taller. No missing/extra/clipped/wrong-colored elements - same content and intent, so yellow not red. cpp and xaml are pixel-equivalent to each other."
+     "status": "green",
+     "review": "The xaml render is identical to the cpp render and to MAUI for the list-mode row pitch, font, alignment, colors, and the footer text, across both light and dark themes. Same excused footer-position difference (footer immediately after row 19 vs. pinned near the bottom in MAUI's taller cropped card) with no row-height, color, or alignment deviation."
     }
    }
   }
@@ -7538,7 +7538,7 @@
     },
     "sonnet_cpp": {
      "status": "yellow",
-     "review": "Both themes: content matches MAUI faithfully — same 'This is a header', same green group titles (Avengers, Fantastic Four, Defenders, Heroes for Hire, ...), same two-column member names, same orange 'Total members: N' lines, correct group order, correct text colors and weights in light and dark. The one drift is vertical row density: cpp packs member rows tighter than MAUI's generous line spacing (~24px vs MAUI ~32px between entries), so more groups fit on screen (cpp reaches 'Great Lakes Avengers' vs MAUI 'Heroes for Hire'). No color/weight/text/column bugs; the tighter inter-row spacing is minor drift, not a rendering fault. Same verdict both themes."
+     "review": "Content, colors (green group headers, orange 'Total members' footers, black/white item text), 2-column grid layout, and alignment all match MAUI in both light and dark themes. But the item row pitch is visibly tighter than MAUI (MAUI spreads rows ~44px apart fitting ~3 groups before crop; cpp compresses them so it also shows the 'Heroes for Hire' group and Luke Cage/Iron Fist rows), and the group header/footer sit closer to items — a real but minor density/spacing drift present in both themes."
     },
     "sonnet_xaml": {
      "status": "red",
@@ -7649,7 +7649,7 @@
     },
     "sonnet_cpp": {
      "status": "red",
-     "review": "Content mismatch in BOTH themes: MAUI renders each item as the literal string 'Microsoft.Maui.Controls.Platform.ItemTemplateContext' (the grouping-with-no-template fallback) with visible blank-line group separators, whereas the cpp port renders the underlying model names (Thor, Captain America, Iron Man...) as a flat continuous list with no group gaps — a clear content/data-binding and grouping-layout divergence. The dark background now correctly matches MAUI at #272727 (39,39,39); the light background is slightly off (#EDEDED vs MAUI #F4F4F4), a minor secondary drift."
+     "review": "Two clear content bugs in BOTH themes. (1) Wrong text: MAUI renders the fallback ToString of the wrapping object ('Microsoft.Maui.Controls.Platform.ItemTemplateContext' on every row), but the port renders the underlying data values ('Thor', 'Captain America', 'Iron Man'...). (2) No grouping: MAUI shows distinct grouped blocks separated by blank gaps, whereas the port renders one continuous, uniformly-spaced flat list with no group separators or inter-group spacing. Row pitch itself is tight single-line and comparable, but the grouping structure and item text are both wrong."
     },
     "sonnet_xaml": {
      "status": "red",
@@ -7760,7 +7760,7 @@
     },
     "sonnet_cpp": {
      "status": "green",
-     "review": "Both themes match MAUI. Grouped list renders correctly: green bold group headers (Avengers, Fantastic Four, Defenders, Heroes for Hire), member rows in black (light) / white (dark), and orange 'Total members: N' footers — all with matching text, color, and weight. Minor drift only in group-header left indent (cpp headers sit flush-left vs MAUI's slight indent) and slightly looser vertical rhythm, so cpp shows fewer rows before the fold — both fall under the ignorable page-inset/scroll-offset allowance. No missing/extra elements, no color or weight errors."
+     "review": "The cpp port faithfully reproduces MAUI's grouped CollectionView: matching green section headers (Avengers, Fantastic Four, Defenders, Heroes for Hire), member-name list rows in the correct order, and the orange 'Total members: N' footers, in both light and dark themes. List-row pitch is tight single-line matching MAUI, header/footer colors and text alignment match; the only difference is the port showing slightly more content below (West Coast Avengers group), which is the excused top/bottom crop and not a content bug."
     },
     "sonnet_xaml": {
      "status": "red",
@@ -7870,12 +7870,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "yellow",
-     "review": "Content matches MAUI in both light and dark: header 'Just a string as a header', the three list rows (cover1.jpg, 0 / oasis.jpg, 1 / photo.jpg, 2), and footer 'This footer is also a string' — all correct text, colors (dark-gray/white on light/dark bg), and font. One layout drift: in MAUI the footer is pushed to the very BOTTOM of the page with a large empty vertical gap between the list and the footer, whereas in the cpp port the footer sits immediately below the last list row (no gap). Same content and intent, but the ListView header/footer vertical distribution differs. Everything else is a match in both themes."
+     "status": "green",
+     "review": "All content matches MAUI in both themes: header 'Just a string as a header', the three list rows (cover1.jpg 0 / oasis.jpg 1 / photo.jpg 2) at the correct single-line list row pitch, and the footer text, with correct native colors (dark-on-light, light-on-dark). The footer sits directly under the list instead of pinned to the page bottom, but that is the excused inset/full-height-card artifact — the header/list/footer content, colors, alignment, and row spacing are faithful."
     },
     "sonnet_xaml": {
-     "status": "yellow",
-     "review": "Identical to the cpp port and matches MAUI content in both light and dark: header, the three list rows (cover1.jpg, 0 / oasis.jpg, 1 / photo.jpg, 2), and footer text/colors/font all correct. Same single layout drift as cpp: MAUI pins the footer to the page bottom with a large empty gap after the list, while the xaml port renders the footer directly under the last list row with no gap. The xaml and cpp renders are pixel-identical to each other. Content and intent match; only footer vertical placement differs."
+     "status": "green",
+     "review": "The xaml capture is identical to cpp and equally faithful to MAUI in both light and dark themes: same header, three list rows at correct list-mode row pitch, footer text, and correct native theme colors. Only difference vs MAUI is the footer flowing right below the list rather than pinned to the bottom edge, which is the excused full-height inset artifact, not a content bug."
     }
    }
   }
@@ -7981,12 +7981,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "yellow",
-     "review": "Content, colors, header/footer and both 'Add Content' buttons all match MAUI in both themes. Header 'This Is A Header' (bold peach) and footer 'This Is A Footer' render with correct color; dog images in header/footer render correctly; all 10 grid items (cover1.jpg,0 through photo.jpg,9) present in a 3-column grid with correct text. Only drift: the item grid uses noticeably tighter vertical row spacing than MAUI. In MAUI (light) the rows sit at roughly y=184/232/280/328 (generous spacing); cpp packs them at ~178/202/226/250, so the grid is ~90px shorter and the footer/second section sit higher up. Same compression in dark. Same content and intent, so minor spacing drift rather than a rendering bug."
+     "status": "red",
+     "review": "The footer is broken in BOTH themes: the 'This Is A Footer' label overlaps/collides with the footer dog-image band and the footer 'Add Content' button is missing/cut off entirely, whereas MAUI shows a clean footer band, a legible 'This Is A Footer' label, and a full-width 'Add Content' button below it. The grid rows are also slightly tighter (rows packed higher) than MAUI's pitch, but the missing footer button and text/image overlap are the decisive defect."
     },
     "sonnet_xaml": {
      "status": "yellow",
-     "review": "Same result as the code-first port: in both light and dark all content matches MAUI — bold peach 'This Is A Header', 'This Is A Footer', header/footer dog images, both 'Add Content' buttons, and all 10 grid items across 3 columns with correct filenames/indexes and correct colors. Only drift is the same compressed item-row vertical spacing: MAUI spreads the four item rows generously (~y=184/232/280/328 in light) while xaml packs them tightly (~178/202/226/250), making the grid shorter and pulling the footer/second section upward. Consistent in dark. Same content and intent, so minor spacing drift, not a rendering bug."
+     "review": "All content renders correctly in both light and dark: toggle buttons, header band + label + 'Add Content', the full 3-column 10-item grid, and a complete footer (band, 'This Is A Footer' label, and footer 'Add Content' button) matching MAUI's structure and colors. The only real difference is spacing/density — the grid content is top-anchored with noticeably more vertical whitespace between the grid and the footer than in MAUI (grid rows sit tighter/higher and the footer is pushed lower), a minor layout drift present in both themes rather than a broken render."
     }
    }
   }
@@ -8203,12 +8203,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "red",
-     "review": "The corrected dark page background now matches MAUI (#272727), and header, blue item boxes, item text, and both header/footer background-image bands are faithful in both themes. However, the per-item thumbnail images that sit above each blue rectangle are entirely missing (those regions are flat page background, stdev 0.0, vs MAUI's real photos), and the footer is not anchored to the page bottom — it renders immediately after the third item (~y400) instead of at the bottom (~y730 in MAUI), identically wrong in light and dark."
+     "status": "yellow",
+     "review": "The header (clock + \"This Is A Header\") and footer (clock + \"This Is A Footer\") render correctly, and the three blue item rectangles with text (\"cover1.jpg, 0\" etc.) match MAUI in size, color, and row pitch in both themes. The one real difference is that MAUI shows a small thumbnail image above each of the first two blue rectangles, whereas the cpp port omits these per-item thumbnails in both light and dark themes."
     },
     "sonnet_xaml": {
      "status": "red",
-     "review": "Near-total failure of the header/footer template in both light and dark: the page shows only the three plain text lines (cover1.jpg 0 / oasis.jpg 1 / photo.jpg 2) with zero blue-boxed item rectangles, no thumbnails, no header or footer date labels, and none of the header/footer background images MAUI renders. This bears no resemblance to the MAUI ground truth beyond the raw item strings."
+     "review": "The xaml port is badly broken in both themes: it renders only three plain text lines (\"cover1.jpg, 0\", \"oasis.jpg, 1\", \"photo.jpg, 2\") at the top-left, with no header, no footer, no clock, no blue item rectangles, and no thumbnails. The header/footer template and the item DataTemplate are effectively not applied at all, versus MAUI's fully composed header/list/footer layout."
     }
    }
   }
@@ -10867,12 +10867,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "red",
-     "review": "Both light and dark: RED. Same content and text as MAUI (Today / Water the plants / Review the port / Ship wave 2 / Pick a task), but two clear layout bugs vs the MAUI ground truth. (1) Row vertical spacing is too large: MAUI packs the four header rows at ~19px line-height (Today y=10, Water y=29, Review y=48, Ship y=67); the cpp port spreads them at ~24px (Today y=10, Water y=34, Review y=58, Ship y=82), so each row sits progressively lower. (2) The 'Pick a task' item is grossly mispositioned: MAUI places it right below the group at y~98, but cpp drops it far down the page at y~322 — a large extra vertical gap (~200px of empty space) that MAUI does not have. This is a wrong-layout rendering bug, not anti-aliasing. Text color/weight and left inset otherwise match."
+     "status": "yellow",
+     "review": "Content, colors, font, left alignment, and the in-group row pitch (~19px for the three 'Today' items) all match MAUI in both light and dark themes. The one real divergence, present identically in both themes: the vertical gap between 'Ship wave 2' and 'Pick a task' balloons to ~250px in the port vs ~31px in MAUI (port places 'Pick a task' at y≈322 vs MAUI's y≈98), so the second section is pushed far down by an oversized inter-section spacer."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Both light and dark: RED. The xaml capture is pixel-identical to the cpp capture and exhibits the exact same layout bugs vs MAUI. Content/text match (Today / Water the plants / Review the port / Ship wave 2 / Pick a task). (1) Row spacing too tall: ~24px line-height vs MAUI's ~19px, so Water/Review/Ship rows drift downward (Ship at y=82 vs MAUI y=67). (2) 'Pick a task' is placed at y~322 instead of MAUI's y~98, leaving a large ~200px empty gap that MAUI does not have. Wrong-layout rendering bug in both themes; colors and left inset otherwise match MAUI."
+     "status": "yellow",
+     "review": "Pixel-identical to the cpp capture and exhibits the same single defect in both light and dark themes: header, three items, colors, font, alignment, and in-group row pitch match MAUI, but the gap before 'Pick a task' is ~250px (port y≈322) versus MAUI's ~31px (y≈98), inflating the space between the two sections."
     }
    }
   }
@@ -10978,12 +10978,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "yellow",
-     "review": "In both light and dark themes the content matches MAUI exactly (header, three UpdatingScrollMode toggle buttons, Add Item button, 'Mode: KeepItemsInView · Items: 50' status line, and the Title N — Subtitle N list), and the corrected dark page background (#272727) now matches MAUI. The one drift is row density: cpp uses a taller line-height so only ~29 rows fit the visible area where MAUI fits ~36 — a minor per-row vertical-spacing difference visible in both themes, not the excused global shift."
+     "status": "green",
+     "review": "Matches MAUI in both light and dark themes: identical header, three scroll-mode toggle buttons, full-width 'Add Item' button, 'Mode: KeepItemsInView · Items: 50' status line, and the 'Title N — Subtitle N' list. List row pitch is single-line and tightly packed, tracking MAUI's ~19px rows (both reach row 36 at the bottom crop). Only differences are the excused global vertical shift from MAUI's larger top inset and trivial native-button chrome anti-aliasing."
     },
     "sonnet_xaml": {
-     "status": "yellow",
-     "review": "The xaml render is effectively identical to cpp against MAUI in both themes: all content (header, toggle buttons, Add Item, status line, list rows) and the dark #272727 background match MAUI. It shares the same minor drift — larger list-item row height (~29 rows visible vs MAUI's ~36) — a per-row spacing difference in both light and dark, distinct from the excused page-inset/crop."
+     "status": "green",
+     "review": "Pixel-equivalent to the cpp capture and matches MAUI in both themes: same buttons, status line, em-dash 'Title N — Subtitle N' rows, correct light/dark colors, and single-line list row pitch matching MAUI's row density (rows 1-36 visible). Only the excused outer-inset global shift and negligible native 'Add Item' button chrome differ."
     }
    }
   }
@@ -11534,7 +11534,7 @@
     },
     "sonnet_cpp": {
      "status": "green",
-     "review": "Both themes match MAUI. Header text ('Using ItemSizingStrategy.MeasureFirstItem...'), the 'Toggle Sizing Strategy' button, and the 'ItemSizingStrategy: MeasureFirstItem' label all render identically. The grouped CollectionView renders fully and correctly: green group headers (Avengers, Fantastic Four, Defenders, Heroes for Hire), all black/white member rows in correct order, and the orange 'Total members: N' footers all present and correctly colored/positioned in both light and dark. Only differences are the known outer page-inset/global-shift (cpp content sits slightly higher/tighter, per harness-wrapper rule) and sub-pixel row spacing — content, colors, and intent are identical. Match."
+     "review": "The cpp port faithfully reproduces MAUI's grouped CollectionView: same green group headers (Avengers, Fantastic Four, Defenders, Heroes for Hire), black member names, orange 'Total members' lines, and correct list row pitch matching MAUI in both light and dark themes. Only the excused outer-inset/top-crop differs (the port shows slightly more of the page), and colors/fonts/alignment all match."
     },
     "sonnet_xaml": {
      "status": "red",
@@ -11866,12 +11866,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "green",
-     "review": "In both light and dark themes the cpp port reproduces the per-row checkbox column, correctly renders Item 1 and Item 2 as red filled checkboxes with checkmarks (matching MAUI's selected rows) while Item 0 and Item 3 stay empty outlines, and draws the selected-row highlight band behind Item 1/Item 2. Selection state exactly matches MAUI's 'Selected: Item 1, Item 2'; only trivial checkbox-outline weight and button vertical-gap differences remain within crop/global-shift tolerance."
+     "status": "yellow",
+     "review": "Content, text, checkbox checkmarks (red), and selection-band colors all match MAUI in both light and dark. The real difference is CollectionView vertical extent: MAUI packs the four rows tightly (~19px pitch) and places the three buttons immediately below (~y=174/208/242), whereas cpp spreads the rows and reserves a large over-sized CollectionView, pushing the buttons ~300px lower (~y=478/510/542) with a big empty gap. Rows themselves are close, but the list-mode height/button placement drift is visible in both themes."
     },
     "sonnet_xaml": {
-     "status": "green",
-     "review": "Identical parity to MAUI in both themes: Items 1 and 2 show the correct red checkboxes with checkmarks and row highlight, Items 0 and 3 empty, matching the seeded selection exactly. Text, header, and buttons all correct; the only deltas are the excused outer-inset/top-crop layout shift and the non-replicable Mica wallpaper tint."
+     "status": "yellow",
+     "review": "Identical to the cpp port: content, colors, red checkmarks, and selection band match MAUI in both themes. Same single defect — the CollectionView is over-sized so the four rows sit near the top with a large empty gap and the three buttons are pushed ~300px lower than MAUI's tightly-packed layout (buttons at ~y=478/510/542 vs MAUI ~y=174/208/242), present in both light and dark."
     }
    }
   }
@@ -13199,11 +13199,11 @@
     },
     "sonnet_cpp": {
      "status": "yellow",
-     "review": "Light & dark: all list content matches MAUI exactly (header 'Preselected: photo.jpg, 2', 'This is the header', and the full CollectionView list cover1.jpg 0 -> oasis.jpg 29) with identical fonts, sizes, spacing, and text colors; dark theme correctly renders white-on-dark. One real difference in BOTH themes: MAUI shows a selection highlight band plus a small red marker glyph on the preselected 'photo.jpg, 2' row; the cpp port renders that row plain with no highlight band and no red marker. Since MAUI is ground truth, this is a missing selection-visual on the preselected item — minor drift (single-row selection chrome absent), same content and layout otherwise, so yellow not red. Outer page-inset/uniform shift ignored per harness rule."
+     "review": "Content, item text, colors, font, and list-mode row pitch (~19px) all match MAUI in both light and dark themes, and row height is correct. The one real defect: MAUI renders a visible selection highlight band on the preselected 'photo.jpg, 2' row (the defining feature of this demo — light-gray band in light, lighter-gray band in dark), but the cpp port shows that row as plain unhighlighted text in both themes."
     },
     "sonnet_xaml": {
      "status": "yellow",
-     "review": "Light & dark: identical to MAUI in all list content, text, fonts, sizes, spacing, and colors (header 'Preselected: photo.jpg, 2', 'This is the header', list cover1.jpg 0 -> oasis.jpg 29); dark theme white-on-dark correct. Same single defect as the cpp port: MAUI's preselected 'photo.jpg, 2' row has a selection-highlight band and a small red marker glyph in both themes, which the xaml port does not render (row shown plain). Missing selection-state chrome on one row = minor drift, not a content/layout/color bug, so yellow. Outer page-inset/uniform shift ignored per harness rule. xaml and cpp are visually equivalent to each other here."
+     "review": "Identical to cpp: item list text, colors, font, and list row pitch all match MAUI in both themes with correct row height. Same single defect present in both themes — the preselected 'photo.jpg, 2' row lacks the selection-highlight band that MAUI draws to mark the preselected item, rendering as plain text instead."
     }
    }
   }
@@ -13310,11 +13310,11 @@
     },
     "sonnet_cpp": {
      "status": "green",
-     "review": "In both light and dark themes the cpp port reproduces the checkbox column and correctly renders the three preselected items with red-filled checkmarks (photo.jpg/2, Fruits.jpg/4, FlowerBuds.jpg/5), matching MAUI's selection state; the selection highlight band is present though marginally fainter than MAUI's crisp red row outline (AA-level trivia)."
+     "review": "The 4-column grid, header text, item-then-checkbox layout, and the three preselected cells (photo.jpg 2, Fruits.jpg 4, FlowerBuds.jpg 5) with their gray rounded selection highlight and red checked checkboxes all match MAUI in both light and dark themes. Row pitch and grid density track MAUI's grid-mode spacing; the only nuance is the selection highlight reads as a slightly heavier gray fill vs MAUI's thin rounded card, which is trivial and appears in MAUI light too."
     },
     "sonnet_xaml": {
-     "status": "yellow",
-     "review": "Both themes: the same three seeded items (photo.jpg/2, Fruits.jpg/4, FlowerBuds.jpg/5) are correctly checked with red-filled checkmark boxes and a gray row highlight, others empty, matching MAUI's seeding. Same minor drift as cpp: MAUI's red per-cell selection outline is not reproduced and the rows are slightly denser than MAUI, but the selection state itself is accurate in light and dark."
+     "status": "green",
+     "review": "Content, 4-column grid, selection highlight on the same three preselected cells, red checkmarks, and header are faithful to MAUI in both themes, with row pitch consistent with MAUI's grid mode. Label-to-checkbox spacing is marginally tighter than cpp/MAUI in a few cells (e.g. some labels butt up against the checkbox), but it does not break layout or alignment and stays within minor drift."
     }
    }
   }
@@ -14753,11 +14753,11 @@
     },
     "sonnet_cpp": {
      "status": "green",
-     "review": "Match in both themes. The Picker/ComboBox correctly displays the selected value 'KeepItemsInView' inside the control, matching MAUI. All four buttons (Scroll To Middle, Add Item Above/Below/To End) render with identical chrome, text, and ordering. The 'Mode: KeepItemsInView · Items: 20' status line and the full 20-item list (cover1.jpg, 0 through FlowerBuds.jpg, 19) match MAUI's text and layout in both light and dark. Only differences are the outer page-inset magnitude / uniform global shift (ignored per harness-wrapper rule) and sub-pixel/anti-aliasing text rendering."
+     "review": "All content matches MAUI in both light and dark: the 'ItemsUpdatingScrollMode' label, the combobox correctly showing the selected 'KeepItemsInView' text, all four full-width buttons, the 'Mode: KeepItemsInView · Items: 20' status line, and all 20 tight single-line list rows with correct text and index numbers. Row pitch/spacing, colors, fonts, and alignment match the native default; only the excused outer-inset/global-shift differs."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Clear rendering bug in BOTH themes: the Picker/ComboBox is BLANK — the selected value 'KeepItemsInView' text is missing from inside the control (only the dropdown chevron is shown). In MAUI (ground truth) the ComboBox displays 'KeepItemsInView' as its selected text, and the cpp port does too; the xaml port fails to render the selected item's display text in the collapsed picker. Everything else — the four buttons, the 'Mode: KeepItemsInView · Items: 20' status line, and the 20-item list — matches MAUI in both light and dark. But the empty selection display is a concrete missing-content defect (the picker's SelectedItem/display binding is not rendering)."
+     "status": "yellow",
+     "review": "Buttons, status line, and all 20 list rows match MAUI with correct row pitch in both themes, but the picker/combobox at the top renders with an EMPTY selected value where MAUI (and cpp) display 'KeepItemsInView' inside it — the bound selection text is not populated in the control. This one-control defect appears in both light and dark themes; the underlying data is bound (the status line still reads 'Mode: KeepItemsInView')."
     }
    }
   }
@@ -14864,7 +14864,7 @@
     },
     "sonnet_cpp": {
      "status": "green",
-     "review": "Match in both themes. Top form (Group/Item entries with '0', both Go buttons, Group Name/Item Name entries, 'No scroll requested yet' label) matches MAUI. The grouped CollectionView renders correctly: green group headers (Avengers, Fantastic Four, Defenders), black/white item rows (Thor, Captain America, ...), and orange 'Total members: 12' / 'Total members: 4' footers — all present with correct colors and ordering in both light and dark. Only trivial AA-level differences in header green saturation; no content drift."
+     "review": "cpp renders the full page faithfully in both themes: the top form (Group/Item numeric entries, Go buttons, Group Name/Item Name entries, 'No scroll requested yet') plus the complete grouped CollectionView with green group headers ('Avengers', 'Fantastic Four', 'Defenders'), black item rows, and orange 'Total members:' footers. Row pitch, colors, alignment and content all match MAUI closely; the only nit is the green header being a hair brighter than MAUI, which is trivial."
     },
     "sonnet_xaml": {
      "status": "red",
@@ -15311,8 +15311,8 @@
      "review": "In both light and dark themes the cpp port faithfully reproduces MAUI: the checkbox column is present, and in the first two sections Item 2 and Item 3 show filled red-accent checkboxes with checkmarks plus the selected-row highlight band while Item 1/4 remain empty — matching MAUI's selection state exactly. The only nit is the checkbox glyph being slightly more rounded than MAUI's, which is AA trivia; selection sync, checked items, and highlight all correct in both themes."
     },
     "sonnet_xaml": {
-     "status": "green",
-     "review": "Both light and dark match MAUI's ground-truth selection exactly: filled red checkboxes with checkmarks on Item 2/3, subtle selected-row highlight, Items 1 and 4 empty, and Item 2 highlighted in the third CollectionView. Renders essentially pixel-identical to MAUI apart from the excused outer inset/crop and Mica wallpaper tint."
+     "status": "yellow",
+     "review": "Content, selection state, and colors match MAUI, but the CV1/CV2 grid-mode rows are compressed to ~19px pitch versus MAUI's ~25px, making the checkbox rows visibly denser and causing CV3 to reveal an extra list row at the bottom. This row-pitch shortfall is exactly the dimension this iteration targeted, so it is a real minor difference (a layout property that affects both themes)."
     }
    }
   }
@@ -15863,11 +15863,11 @@
     },
     "sonnet_cpp": {
      "status": "green",
-     "review": "Both themes match the MAUI ground truth (maui-compare SingleBoundSelectionPage.cs adds only instructions + readout + list; Reset/Clear exist as methods wired to NO buttons). The port renders instructions, \"Selected: (none)\", and the country list with matching text/colors/fonts and no buttons. Source-verified: the earlier \"missing buttons\" red was a judge hallucination anchored on the full upstream C# gallery, which maui-compare omits."
+     "review": "The cpp port is pixel-consistent with MAUI in both light and dark themes: identical two-line intro label, 'Selected: (none)' status label, and the five-country list (United States, Canada, Mexico, Brazil, Argentina). Row pitch (~19px single-line list height), font, text color, and left alignment all match; only the excused outer-inset/global-shift differs."
     },
     "sonnet_xaml": {
      "status": "green",
-     "review": "Both themes match the MAUI ground truth (maui-compare SingleBoundSelectionPage.cs adds only instructions + readout + list; Reset/Clear exist as methods wired to NO buttons). The port renders instructions, \"Selected: (none)\", and the country list with matching text/colors/fonts and no buttons. Source-verified: the earlier \"missing buttons\" red was a judge hallucination anchored on the full upstream C# gallery, which maui-compare omits."
+     "review": "The xaml port matches MAUI exactly in both themes, indistinguishable from the cpp capture: same header labels, same list content and order, same single-line list row height and spacing, same text color and alignment. No content, color, or row-pitch difference beyond the excused outer inset."
     }
    }
   }
@@ -16084,8 +16084,8 @@
      }
     },
     "sonnet_cpp": {
-     "status": "yellow",
-     "review": "Both themes: the grouped CollectionView renders fully and matches MAUI's content. All four group headers (Avengers, Thundercats, Bionic Six, Fantastic Four) appear in green, all members (Thor, Captain America, The Thing, The Human Torch, The Invisible Woman, Mr. Fantastic) in black/white, and all footers ('Total members: 2/0/0/4') in orange, including the empty groups that still show their header+footer. Colors, text, and ordering all match. Minor drift only: the cpp port packs the rows with tighter vertical rhythm — MAUI spaces group headers/members/footers with more inter-item gap (e.g. MAUI's first 'Avengers' header sits lower with a blank band above 'Thor'), whereas cpp stacks them more compactly, so the whole list is a bit shorter. Same content and intent, a few px of spacing difference. Not a bug."
+     "status": "green",
+     "review": "The cpp port faithfully renders the full grouped CollectionView: all group headers (green 'Avengers', 'Thundercats', 'Bionic Six', 'Fantastic Four'), member items (black), and 'Total members: N' footers (orange) with correct text, ordering, and colors in both light and dark themes. Row pitch is tight single-line, matching MAUI's list-mode density; only the excused outer-inset/global-shift differs."
     },
     "sonnet_xaml": {
      "status": "red",
@@ -17528,7 +17528,7 @@
     },
     "sonnet_cpp": {
      "status": "green",
-     "review": "Both themes match MAUI. The 'Is Grouped' toggle (red in light, salmon/coral in dark, thumb slid right = on) renders identically. The full grouped CollectionView below renders correctly: green group headers (Avengers, Fantastic Four, Defenders, Heroes for Hire), member names in black (light) / white (dark), and orange 'Total members: 12/4/7' footers, all matching MAUI's content, colors, ordering and spacing. The only trivial difference is the known outer page-inset/whole-page vertical shift (list starts a few px higher so slightly more rows are visible), which is excluded by the harness-wrapper rule. Content parity is exact."
+     "review": "The 'Is Grouped:' switch matches MAUI (red toggle in light, coral toggle in dark, ON state) and the grouped CollectionView renders faithfully in both themes: green group headers (Avengers, Fantastic Four, Defenders, Heroes for Hire, West Coast Avengers), black/white member names, and orange 'Total members:' lines, with matching row pitch and alignment. Only trivial differences (a slightly tighter gap between the switch and the first header, plus the excused top/bottom crop showing one extra group), none of which are content defects."
     },
     "sonnet_xaml": {
      "status": "red",
@@ -18642,7 +18642,7 @@
     },
     "sonnet_xaml": {
      "status": "red",
-     "review": "The XAML variant fails to render the DataTemplateSelector entirely in both light and dark themes: instead of MAUI's colored, varied-height Coffee/Milk template cards it shows a flat plain-text list (Coffee0, Milk1, Coffee2...) with no background colors, no varied row heights, and no template styling. The Picker also renders empty (no 'Latte' selection shown) versus MAUI's populated 'Latte' picker, making this a clear content/layout bug."
+     "review": "In both themes the data-template selector is not applied at all: the CollectionView renders all six items as plain uniform text labels stacked tightly at the top with no colored backgrounds and no varied row heights, completely losing the page's core varied-size template behavior that MAUI shows. Additionally the bottom 'Latte' combobox renders empty (no selected text) in both light and dark."
     }
    }
   }

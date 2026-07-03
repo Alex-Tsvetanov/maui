@@ -207,6 +207,9 @@ namespace maui::controls
         // ---- mirrors of the mapped surface ----
         items_layout_orientation orientation = items_layout_orientation::vertical;
         int span = 1;
+        bool is_grid = false;    // true for a GridItemsLayout (WinUI GridView/GridViewItem), false for a
+                                 // LinearItemsLayout (ListView/ListViewItem). Distinct from span: a
+                                 // GridItemsLayout(1) is still a grid. Drives the per-mode row-height floor.
         double item_spacing = 0; // main-axis row spacing (linear ItemSpacing / grid main-axis spacing)
         controls::snap_points_type snap_points_type = controls::snap_points_type::none;
         controls::snap_points_alignment snap_points_alignment = controls::snap_points_alignment::start;
