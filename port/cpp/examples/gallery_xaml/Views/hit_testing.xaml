@@ -11,15 +11,15 @@
         <VerticalStackLayout Spacing="25" Padding="30">
             <Label Text="Selected: -" HorizontalOptions="Center" />
             <HorizontalStackLayout>
-                <Label Text="Rectangle Selection" VerticalOptions="Center" FontSize="8" />
+                <Label Text="Rectangle Selection" VerticalOptions="Center" />
                 <CheckBox />
             </HorizontalStackLayout>
 
-            <Label Text="Lorem ipsum dolor sit ame" FontSize="18" FontAttributes="Bold" HorizontalOptions="Start" />
-            <Label Text="Lorem ipsum dolor sit ame" FontSize="18" FontAttributes="Bold" HorizontalOptions="End" />
+            <Label Text="Lorem ipsum dolor sit ame" HorizontalOptions="Start" />
+            <Label Text="Lorem ipsum dolor sit ame" HorizontalOptions="End" />
 
-            <Button Text="Scale = 1" Scale="1" FontAttributes="Bold" HorizontalOptions="Center" />
-            <Button Text="Scale = 2" Scale="2" FontAttributes="Bold" HorizontalOptions="Center" />
+            <Button Text="Scale = 1" Scale="1" HorizontalOptions="Center" />
+            <Button Text="Scale = 2" Scale="2" HorizontalOptions="Center" />
             <Button Text="Rotation = 20" Rotation="20" HorizontalOptions="Center" />
 
             <Ellipse WidthRequest="150" HeightRequest="50" StrokeThickness="10" Stroke="Green" />

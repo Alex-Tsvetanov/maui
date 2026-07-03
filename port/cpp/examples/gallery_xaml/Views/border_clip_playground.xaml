@@ -23,8 +23,8 @@
         </Border>
 
         <ScrollView Grid.Row="1">
-            <StackLayout>
-                <Label Text="Border Shape" FontSize="24" FontAttributes="Bold" />
+            <StackLayout Spacing="6">
+                <Label Text="Border Shape" />
                 <Picker SelectedIndex="1">
                     <Picker.Items>
                         <x:String>Rectangle</x:String>
@@ -32,11 +32,11 @@
                         <x:String>Ellipse</x:String>
                     </Picker.Items>
                 </Picker>
-                <Label Text="Border" FontSize="24" FontAttributes="Bold" />
+                <Label Text="Border" />
                 <Label Text="Border Width: 5" FontSize="8" />
                 <Slider Maximum="20" Minimum="0" Value="5" />
-                <StackLayout>
-                    <Label Text="Corner Radius" FontSize="24" FontAttributes="Bold" />
+                <StackLayout Spacing="6">
+                    <Label Text="Corner Radius" />
                     <Label Text="Top Left Corner Radius: 60" FontSize="8" />
                     <Slider Maximum="60" Minimum="0" Value="60" />
                     <Label Text="Top Right Corner Radius: 0" FontSize="8" />

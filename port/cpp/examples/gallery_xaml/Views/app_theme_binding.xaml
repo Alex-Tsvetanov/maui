@@ -6,11 +6,11 @@
          note: the port has no <Color x:Key> resource-element hydration, so the resource indirection is
          degraded to the same resolved colors (Orange light / Teal dark). Headings inline-sized because
          {StaticResource Headline} is out of the twin scope. -->
-    <StackLayout Margin="12">
-        <Label Text="AppThemeBinding" FontSize="24" FontAttributes="Bold" />
+    <StackLayout Margin="12" Spacing="8">
+        <Label Text="AppThemeBinding" />
         <Label Text="This text is green in light mode, and red in dark mode."
                TextColor="{AppThemeBinding Light=Green, Dark=Red}" />
-        <Label Text="Using AppThemeBinding in a ResourceDictionary" FontSize="24" FontAttributes="Bold" />
+        <Label Text="Using AppThemeBinding in a ResourceDictionary" />
         <Label Text="This text uses LightPrimaryColor (Orange) in light mode, and DarkPrimaryColor (Teal) in dark mode."
                TextColor="{AppThemeBinding Light=Orange, Dark=Teal}" />
     </StackLayout>
