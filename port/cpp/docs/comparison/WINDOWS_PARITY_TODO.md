@@ -33,6 +33,28 @@ Update as items land. `pixel_score.py` re-scores; `capture_windows.py --mode bot
   in-box PlaceholderText, matching MAUI. picker 63%→98%, pickers →99-100% (both columns+themes).
   date_picker/time_picker (88-90%) use different WinUI controls — separate minor-styling items.
 
+## Sonnet round-2 findings (2026-07-03, 16 mid-range pages judged — windows_sonnet_review2.json)
+- **REFERENCE FIX (done)**: maui-compare bundled only dotnet_bot.png but pages reference oasis.jpg /
+  cover1.jpg / coffee.png / settings.png — so MAUI showed PLAIN where those load, while the port
+  (image fix) loads them → the port scored WORSE against a broken reference on ~35 image pages
+  (header_footer_*, clip_gallery, nested_collection, image, empty_view_*, swipe_*, …). Copied the
+  images into maui-compare/Resources/Images + rebuilt (maui-compare commit `0ba0678`); MAUI now loads
+  them. A maui-column recapture of the 35 image pages is running to refresh their scores.
+- **AA-only (NOT bugs — confirmed match/near-match by Sonnet)**: relative_layout (MATCH), layout_is_enabled,
+  basic_swipe(cpp), button (only the CharacterSpacing row). Stop chasing these by pixel score.
+- **Real port bugs surfaced (fix queue)**:
+  - **header_footer_* empty CollectionView collapses** — with images now loading, the real bug shows:
+    the empty list area collapses to 0 so the footer sits under the header; MAUI stretches the empty
+    list so the footer is at the BOTTOM. + footer label should carry the page's rotation transform.
+    root: collection_view (empty-area fill height) + label transform.
+  - **border_stroke slider default** — the Content-Height Slider initializes to its min (40) instead
+    of the page's Value=60; check the slider initial-value push order (min/max before value clamps it).
+  - **border_playground** — Border BACKGROUND gradient (LinearGradientBrush) not applied (flat), and
+    the yellow stroke's StrokeDashArray "1,1" dash pattern not applied (solid line). root: border_handler.
+  - **hit_testing (xaml only)** — Scale/Rotation transforms not applied in the xaml gallery; cpp is
+    MATCH. + IsClippedToBounds rectangle renders as outline not filled (xaml). xaml-gallery markup.
+  - **image_button** — the animated-GIF ImageButton renders a solid black box (gif not decoded/played).
+
 ## High value (both cpp+xaml, confirmed real)
 2. **[DONE — see above] flex_layout footer off-screen** — was: after the label fix the page
    is minor for light, but the pink FOOTER band is pushed below the 800px viewport. Root cause: the
