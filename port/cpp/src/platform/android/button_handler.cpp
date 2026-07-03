@@ -1227,4 +1227,11 @@ namespace maui::core
         platform.source_file.clear();
         platform.source_loaded = false;
     }
+
+    // The android MaterialButton positions its icon via iconGravity (ContentLayout maps there in the icon
+    // fan-out); the standalone ContentLayout push has no separate native apply here. No-op mirror.
+    void button_handler::apply_content_layout_native(button_platform& /*platform*/,
+                                                     maui::core::button_content_spec /*spec*/)
+    {
+    }
 } // namespace maui::core
