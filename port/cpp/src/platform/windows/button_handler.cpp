@@ -185,6 +185,11 @@ namespace maui::core
     {
         wnative::release(pointer_pressed_handler);
         wnative::release(pointer_released_handler);
+        // Revoke the icon's ImageOpened before dropping the image (the token is on the image_element).
+        if (image_opened_token != 0 && image_element != nullptr)
+        {
+            wnative::borrow<muxc::Image>(image_element).ImageOpened(winrt::event_token{image_opened_token});
+        }
         // The MauiButton content parts each hold their own strong ref (the Button also keeps them alive
         // via Content → the panel's Children; releasing here mirrors the label partial's Border+TextBlock).
         wnative::release(image_element);
@@ -275,6 +280,26 @@ namespace maui::core
             image.HorizontalAlignment(mux::HorizontalAlignment::Center);
             image.VerticalAlignment(mux::VerticalAlignment::Center);
             image.Visibility(mux::Visibility::Collapsed);
+            // Cap the icon to its natural pixel size once the BitmapImage decodes: Uniform then scales
+            // DOWN only, never UP, so a small 128px icon does not stretch to the button width (MauiButton
+            // shows the image at natural size). Captures nothing (reads the sender) — no Image↔handler
+            // ref cycle; the bounded post-Loaded settle re-layout re-measures once MaxWidth/Height apply.
+            const winrt::event_token opened = image.ImageOpened(
+                [](const winrt::Windows::Foundation::IInspectable& sender, const mux::RoutedEventArgs&) {
+                    const auto img = sender.try_as<muxc::Image>();
+                    if (img == nullptr)
+                    {
+                        return;
+                    }
+                    if (const auto bmp = img.Source().try_as<muxmi::BitmapImage>())
+                    {
+                        if (bmp.PixelWidth() > 0 && bmp.PixelHeight() > 0)
+                        {
+                            img.MaxWidth(static_cast<double>(bmp.PixelWidth()));
+                            img.MaxHeight(static_cast<double>(bmp.PixelHeight()));
+                        }
+                    }
+                });
 
             const muxc::TextBlock block;
             block.HorizontalAlignment(mux::HorizontalAlignment::Center);
@@ -294,6 +319,7 @@ namespace maui::core
             platform->content_panel = wnative::store(panel); // the three parts each keep their own ref
             platform->text_block = wnative::store(block);
             platform->image_element = wnative::store(image);
+            platform->image_opened_token = opened.value; // revoked in ~button_platform
         }
         catch (const winrt::hresult_error&)
         {

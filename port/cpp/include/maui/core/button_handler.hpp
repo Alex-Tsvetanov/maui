@@ -202,6 +202,10 @@ namespace maui::core
         void* image_element = nullptr;
         int content_layout_position = 0;   // left(0)/top(1)/right(2)/bottom(3)
         double content_layout_spacing = 10.0;
+        // ImageOpened token: on decode the icon is capped to its natural pixel size (Uniform then scales
+        // DOWN only, never UP — MauiButton shows the icon at natural size, not stretched to the button
+        // width). Revoked in the dtor. Held as the raw token value (no winrt types in shared headers).
+        std::int64_t image_opened_token = 0;
 #endif
     };
 
