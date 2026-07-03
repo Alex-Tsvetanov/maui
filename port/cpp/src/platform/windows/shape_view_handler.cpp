@@ -525,11 +525,9 @@ namespace maui::core
             host.ClearValue(muxc::Panel::BackgroundProperty());
             return;
         }
-        if (const auto* solid = dynamic_cast<const maui::graphics::solid_paint*>(value))
-        {
-            host.Background(wnative::to_brush(solid->color()));
-            return;
-        }
+        // Paint.ToPlatform: solid + linear/radial gradient (to_paint_brush); image/pattern still fall back to solid.
+        host.Background(wnative::to_paint_brush(value));
+        return;
         // Paint.ToPlatform: gradient container backgrounds map to the real XAML gradient brushes;
         // image-source paints keep the resolved-color fallback inside to_paint_brush.
         host.Background(wnative::to_paint_brush(value));

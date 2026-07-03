@@ -115,11 +115,9 @@ namespace maui::core
             panel.ClearValue(muxc::Panel::BackgroundProperty());
             return;
         }
-        if (const auto* solid = dynamic_cast<const maui::graphics::solid_paint*>(value))
-        {
-            panel.Background(wnative::to_brush(solid->color()));
-            return;
-        }
+        // Paint.ToPlatform: solid + linear/radial gradient (to_paint_brush); image/pattern still fall back to solid.
+        panel.Background(wnative::to_paint_brush(value));
+        return;
         // deferred: gradient / image-source paints (Paint.ToPlatform) — the base mirror above keeps the
         // borrow observable.
     }
