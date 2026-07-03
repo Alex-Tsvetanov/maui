@@ -2102,8 +2102,8 @@
      "review": "Pixel-identical to MAUI in both themes: full yellow page (255,255,0), the 'Style: borderless (StrokeThickness 0)' title (dark on light, white on dark), and the borderless Switch top-left all match, with non-yellow content-pixel counts in the title/switch region matching MAUI exactly (1122 light / 1151 dark). The corrected dark page background renders yellow just like MAUI, so there is no background drift."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "The xaml port renders a completely different page in both light and dark themes: a pink-over-red split (top half 255,192,203, bottom half 255,0,0) with no yellow page background, no title label, and no Switch control anywhere. This is a wrong-content/wrong-layout bug (not an outer-inset shift or crop), identical failure in both themes."
+     "status": "green",
+     "review": "Rewritten to mirror maui-compare BorderlessPage (the ground truth, matched by the green cpp twin): a VerticalStackLayout of the readout Label + Switch + the pink/red Grid on a yellow page; the empty Star-row Grid collapses at rest, so both themes render the yellow page + \"Style: borderless (StrokeThickness 0)\" readout + off Switch top-left, matching MAUI. Source- and pixel-verified (prior red was the upstream-Grid-fills-page twin bug)."
     }
    }
   }
