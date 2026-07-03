@@ -35,9 +35,15 @@
 #include <string_view>
 
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
+#include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Microsoft.UI.Xaml.h>
+#include <winrt/Windows.Foundation.Collections.h> // ResourceDictionary IMap Insert
 #include <winrt/Windows.Foundation.h>
 #include <winrt/base.h>
+
+#include <initializer_list>
+
+#include "maui/core/bindable_object.hpp"
 
 #include "maui/core/dimension.hpp"
 #include "maui/core/i_switch.hpp"
@@ -56,6 +62,35 @@ namespace
     [[nodiscard]] muxc::ToggleSwitch switch_of(const maui::core::switch_platform& platform)
     {
         return wnative::borrow<muxc::ToggleSwitch>(platform.native);
+    }
+
+    // Override a control's per-state theme-resource brushes on its OWN ResourceDictionary — the
+    // {ThemeResource} the ToggleSwitch template binds resolves the control's local entry before the
+    // framework default, so this tints the fill/knob template parts without the global resource seam or a
+    // re-template (C#'s SwitchExtensions SetValueForAllKey on these exact keys). is_set false → remove.
+    void put_state_brushes(const muxc::Control& control, std::initializer_list<std::wstring_view> keys,
+                           bool is_set, maui::graphics::color color)
+    {
+        auto res = control.Resources();
+        const auto brush = is_set ? wnative::to_brush(color) : nullptr;
+        for (const auto key : keys)
+        {
+            const auto boxed = winrt::box_value(winrt::hstring{key});
+            if (res.HasKey(boxed))
+            {
+                res.Remove(boxed);
+            }
+            if (is_set)
+            {
+                res.Insert(boxed, brush);
+            }
+        }
+    }
+
+    [[nodiscard]] bool is_set(const maui::core::i_switch& view, std::string_view name)
+    {
+        const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+        return bindable != nullptr && bindable->is_property_set(name);
     }
 } // namespace
 
@@ -210,24 +245,44 @@ namespace maui::core
 
     void switch_handler::map_track_color(switch_handler& handler, i_switch& view)
     {
-        if (auto* platform = handler.typed_platform_view())
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
         {
-            platform->track_color = view.track_color(); // headless mirror (XAML-less suite)
+            return;
         }
-        // deferred: SwitchExtensions.UpdateTrackColor — SetValueForAllKey/RemoveKeys on the
-        // ToggleSwitchFillOn*/ToggleSwitchFillOff* resource keys (chosen by view.IsOn) +
-        // RefreshThemeResources; the per-state resource-dictionary theming needs the port's
-        // resource-dictionary seam (header deviations).
+        platform->track_color = view.track_color(); // headless mirror (XAML-less suite)
+        // SwitchExtensions.UpdateTrackColor: the effective track color (OnColor when toggled on, else
+        // OffColor) tints the ToggleSwitchFillOn*/Off* keys. Override them on the switch's own resources
+        // (both On and Off so the visible state is right regardless of toggle). Set when on/off color is set.
+        if (auto toggle = switch_of(*platform))
+        {
+            put_state_brushes(toggle,
+                              {L"ToggleSwitchFillOn", L"ToggleSwitchFillOnPointerOver",
+                               L"ToggleSwitchFillOnPressed", L"ToggleSwitchFillOnDisabled", L"ToggleSwitchFillOff",
+                               L"ToggleSwitchFillOffPointerOver", L"ToggleSwitchFillOffPressed",
+                               L"ToggleSwitchFillOffDisabled"},
+                              is_set(view, "on_color") || is_set(view, "off_color"), view.track_color());
+        }
     }
 
     void switch_handler::map_thumb_color(switch_handler& handler, i_switch& view)
     {
-        if (auto* platform = handler.typed_platform_view())
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
         {
-            platform->thumb_color = view.thumb_color(); // headless mirror (XAML-less suite)
+            return;
         }
-        // deferred: SwitchExtensions.UpdateThumbColor — TryUpdateResource on the eight
-        // ToggleSwitchKnobFillOn*/Off* keys; same resource-dictionary seam deferral as the track color.
+        platform->thumb_color = view.thumb_color(); // headless mirror (XAML-less suite)
+        // SwitchExtensions.UpdateThumbColor: the ToggleSwitchKnobFillOn*/Off* keys (the knob).
+        if (auto toggle = switch_of(*platform))
+        {
+            put_state_brushes(toggle,
+                              {L"ToggleSwitchKnobFillOn", L"ToggleSwitchKnobFillOnPointerOver",
+                               L"ToggleSwitchKnobFillOnPressed", L"ToggleSwitchKnobFillOnDisabled",
+                               L"ToggleSwitchKnobFillOff", L"ToggleSwitchKnobFillOffPointerOver",
+                               L"ToggleSwitchKnobFillOffPressed", L"ToggleSwitchKnobFillOffDisabled"},
+                              is_set(view, "thumb_color"), view.thumb_color());
+        }
     }
 
     maui::graphics::size switch_handler::get_desired_size(double width_constraint, double height_constraint) const

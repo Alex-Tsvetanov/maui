@@ -38,10 +38,15 @@
 #include <winrt/Microsoft.UI.Xaml.Controls.Primitives.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
 #include <winrt/Microsoft.UI.Xaml.Input.h>
+#include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Microsoft.UI.Xaml.h>
+#include <winrt/Windows.Foundation.Collections.h> // ResourceDictionary IMap Insert
 #include <winrt/Windows.Foundation.h>
 #include <winrt/base.h>
 
+#include <initializer_list>
+
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/dimension.hpp"
 #include "maui/core/i_ios_slider_specifics.hpp"
 #include "maui/core/i_slider.hpp"
@@ -64,6 +69,37 @@ namespace
     [[nodiscard]] muxc::Slider slider_of(const maui::core::slider_platform& platform)
     {
         return wnative::borrow<muxc::Slider>(platform.native);
+    }
+
+    // Override a WinUI control's per-state theme-resource brushes on the control's OWN ResourceDictionary.
+    // A {ThemeResource} the template binds resolves by walking the control up first, so a local entry wins
+    // the framework default — this is how the port tints template parts (Slider track/thumb, ToggleSwitch
+    // fill/knob) WITHOUT the global resource-dictionary seam or a re-template. C#'s SliderExtensions/
+    // SwitchExtensions do the same via SetValueForAllKey on these exact keys. `is_set` false → remove the
+    // overrides (restore the framework default). Applied at map time so a later template-apply picks it up.
+    void put_state_brushes(const muxc::Control& control, std::initializer_list<std::wstring_view> keys,
+                           bool is_set, maui::graphics::color color)
+    {
+        auto res = control.Resources();
+        const auto brush = is_set ? wnative::to_brush(color) : nullptr;
+        for (const auto key : keys)
+        {
+            const auto boxed = winrt::box_value(winrt::hstring{key});
+            if (res.HasKey(boxed))
+            {
+                res.Remove(boxed);
+            }
+            if (is_set)
+            {
+                res.Insert(boxed, brush);
+            }
+        }
+    }
+
+    [[nodiscard]] bool color_is_set(const maui::core::i_slider& view, std::string_view name)
+    {
+        const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+        return bindable != nullptr && bindable->is_property_set(name);
     }
 
     // SliderExtensions.UpdateIncrement (private — called by BOTH UpdateMinimum and UpdateMaximum):
@@ -318,33 +354,57 @@ namespace maui::core
 
     void slider_handler::map_minimum_track_color(slider_handler& handler, i_slider& view)
     {
-        if (auto* platform = handler.typed_platform_view())
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
         {
-            platform->minimum_track_color = view.minimum_track_color(); // headless mirror (XAML-less suite)
+            return;
         }
-        // deferred: SliderExtensions.UpdateMinimumTrackColor — SetValueForAllKey/RemoveKeys on the
-        // SliderTrackValueFill* per-state resource keys + RefreshThemeResources; needs the port's
-        // resource-dictionary seam (header deviations).
+        platform->minimum_track_color = view.minimum_track_color(); // headless mirror (XAML-less suite)
+        // SliderExtensions.UpdateMinimumTrackColor: the FILLED (value) track — the SliderTrackValueFill*
+        // per-state keys, overridden on the slider's own resources (no global resource-dictionary seam).
+        if (auto slider = slider_of(*platform))
+        {
+            put_state_brushes(slider,
+                              {L"SliderTrackValueFill", L"SliderTrackValueFillPointerOver",
+                               L"SliderTrackValueFillPressed", L"SliderTrackValueFillDisabled"},
+                              color_is_set(view, "minimum_track_color"), view.minimum_track_color());
+        }
     }
 
     void slider_handler::map_maximum_track_color(slider_handler& handler, i_slider& view)
     {
-        if (auto* platform = handler.typed_platform_view())
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
         {
-            platform->maximum_track_color = view.maximum_track_color(); // headless mirror (XAML-less suite)
+            return;
         }
-        // deferred: SliderExtensions.UpdateMaximumTrackColor — the SliderTrackFill* per-state resource
-        // keys; same resource-dictionary seam deferral.
+        platform->maximum_track_color = view.maximum_track_color(); // headless mirror (XAML-less suite)
+        // SliderExtensions.UpdateMaximumTrackColor: the UNFILLED track — the SliderTrackFill* per-state keys.
+        if (auto slider = slider_of(*platform))
+        {
+            put_state_brushes(slider,
+                              {L"SliderTrackFill", L"SliderTrackFillPointerOver", L"SliderTrackFillPressed",
+                               L"SliderTrackFillDisabled"},
+                              color_is_set(view, "maximum_track_color"), view.maximum_track_color());
+        }
     }
 
     void slider_handler::map_thumb_color(slider_handler& handler, i_slider& view)
     {
-        if (auto* platform = handler.typed_platform_view())
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
         {
-            platform->thumb_color = view.thumb_color(); // headless mirror (XAML-less suite)
+            return;
         }
-        // deferred: SliderExtensions.UpdateThumbColor — the SliderThumbBackground* per-state resource
-        // keys; same resource-dictionary seam deferral.
+        platform->thumb_color = view.thumb_color(); // headless mirror (XAML-less suite)
+        // SliderExtensions.UpdateThumbColor: the SliderThumbBackground* per-state keys.
+        if (auto slider = slider_of(*platform))
+        {
+            put_state_brushes(slider,
+                              {L"SliderThumbBackground", L"SliderThumbBackgroundPointerOver",
+                               L"SliderThumbBackgroundPressed", L"SliderThumbBackgroundDisabled"},
+                              color_is_set(view, "thumb_color"), view.thumb_color());
+        }
     }
 
     // ---- per-backend thumb-image primitives (the cross-platform map_thumb_image_source routes here) --
