@@ -2,19 +2,21 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Alerts">
     <!-- Twin of AlertsPage.xaml: three Page-dialog sections (Alert / ActionSheet / Prompt), each a
          headline label + buttons, plus the two prompt result labels. The Page dialog services and the
-         Clicked handlers are omitted (structural twin — no view-model / code-behind). The section
-         headings use FontSize/Bold inline because the {StaticResource Headline} style is not in the
-         twin scope. -->
-    <StackLayout Margin="12">
-        <Label Text="Display Alert" FontSize="24" FontAttributes="Bold" />
+         Clicked handlers are omitted (structural twin — no view-model / code-behind). Section headings
+         are PLAIN default Labels to match the cpp twin + maui-compare: maui-compare's {StaticResource
+         Headline} does not resolve (Styles.xaml is intentionally unmerged), so MAUI renders the native
+         default weight/size — the earlier inline FontSize=24/Bold over-styled them. StackLayout carries
+         Spacing="8" to match the cpp twin's inter-control gaps. -->
+    <StackLayout Margin="12" Spacing="8">
+        <Label Text="Display Alert" />
         <Button Text="Alert Simple" />
         <Button Text="Alert Yes/No" />
 
-        <Label Text="Display ActionSheet" FontSize="24" FontAttributes="Bold" />
+        <Label Text="Display ActionSheet" />
         <Button Text="ActionSheet Simple" />
         <Button Text="ActionSheet Cancel/Delete" />
 
-        <Label Text="Display Prompt" FontSize="24" FontAttributes="Bold" />
+        <Label Text="Display Prompt" />
         <Button Text="Question 1" />
         <Label />
         <Button Text="Question 2" />
