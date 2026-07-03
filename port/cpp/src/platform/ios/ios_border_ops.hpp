@@ -26,9 +26,12 @@
 #include <vector>
 
 #include "maui/core/border_handler.hpp"
+#include "maui/core/i_shadow.hpp"
 #include "maui/graphics/line_cap.hpp"
 #include "maui/graphics/line_join.hpp"
+#include "maui/graphics/paint.hpp"
 #include "maui/graphics/path_f.hpp"
+#include "maui/graphics/point.hpp"
 #include "maui/graphics/rect.hpp"
 
 #include "ios_conversions.hpp"
@@ -52,6 +55,120 @@ namespace maui::platform::ios
             }
         }
         return nil;
+    }
+
+    // The name tagging the border's shadow layer — a SIBLING of the host in the host's superlayer (see
+    // apply_border_shadow for why the shadow can't live on the masked host layer).
+    inline NSString* const k_border_shadow_layer_name = @"maui.border.shadow";
+
+    // The border's shadow sibling, searched among the host's siblings (the host's superlayer's sublayers).
+    inline CALayer* find_border_shadow_layer(CALayer* host_layer)
+    {
+        CALayer* const super_layer = host_layer.superlayer;
+        if (super_layer == nil)
+        {
+            return nil;
+        }
+        for (CALayer* const sub in super_layer.sublayers)
+        {
+            if ([sub.name isEqualToString:k_border_shadow_layer_name])
+            {
+                return sub;
+            }
+        }
+        return nil;
+    }
+
+    // The alpha SILHOUETTE CoreAnimation casts the border shadow from — the +1-owned CGPath the caller must
+    // release. MAUI casts the shadow off the border layer's RENDERED CONTENT (ShadowExtensions.SetShadow sets
+    // NO ShadowPath, so the silhouette is whatever the MauiCALayer drew): an opaque Background fills the whole
+    // shape (a solid drop shadow), a stroke-only Border (transparent fill) casts only its stroke RING. The
+    // sibling layer has no drawn content, so reproduce that silhouette as an explicit shadowPath: the filled
+    // shape when `has_fill`, else the shape stroked to a thin ring (the exact ring width is imperceptible
+    // under the blur, so the visible `thickness` band is close enough).
+    inline CGPathRef border_shadow_silhouette_path(const maui::core::border_stroke_spec& spec, bool has_fill,
+                                                   maui::graphics::rect bounds)
+    {
+        const maui::graphics::path_f path =
+            spec.shape->path_for_bounds(maui::graphics::rect{0.0, 0.0, bounds.width, bounds.height});
+        CGPathRef filled = path_to_cg_path(path); // +1 owned
+        if (has_fill)
+        {
+            return filled; // caller releases
+        }
+        const CGFloat w = static_cast<CGFloat>(spec.thickness > 0 ? spec.thickness : 1.0);
+        const CGFloat miter = static_cast<CGFloat>(spec.miter_limit > 0 ? spec.miter_limit : 10.0);
+        CGPathRef ring = CGPathCreateCopyByStrokingPath(filled, nullptr, w, kCGLineCapButt, kCGLineJoinMiter, miter);
+        CGPathRelease(filled);
+        return ring != nullptr ? ring : path_to_cg_path(path); // stroking can fail on a degenerate path
+    }
+
+    // Position the shadow sibling over the host and set its shadowPath to the border silhouette (fill vs stroke
+    // ring). Called on every arrange / layout so the shadow tracks the host's bounds. No-op when there is no
+    // shadow sibling.
+    inline void reframe_border_shadow(void* native, const maui::core::border_stroke_spec& spec, bool has_fill,
+                                      maui::graphics::rect bounds)
+    {
+        if (native == nullptr)
+        {
+            return;
+        }
+        UIView* const host = (__bridge UIView*)native;
+        CALayer* const shadow_layer = find_border_shadow_layer(host.layer);
+        if (shadow_layer == nil)
+        {
+            return;
+        }
+        shadow_layer.frame = host.layer.frame; // track the host's position within the shared superlayer
+        if (spec.shape != nullptr && bounds.width > 0 && bounds.height > 0)
+        {
+            CGPathRef cg = border_shadow_silhouette_path(spec, has_fill, bounds); // +1 owned; layer copies
+            shadow_layer.shadowPath = cg;
+            CGPathRelease(cg);
+        }
+    }
+
+    // Install / update / remove the border's Shadow. The host's OWN layer is masked to the shape by
+    // apply_clip, and a CALayer WITH a mask cannot cast a shadow (the iOS limitation MAUI works around by
+    // hanging the shadow on a WrapperView above the clipped content). Mirror that: draw the shadow on an
+    // UNMASKED sibling layer inserted behind the host in the host's superlayer, its shadowPath set to the
+    // border SILHOUETTE (filled shape when `has_fill`, else the stroke ring — see border_shadow_silhouette_path,
+    // which mirrors MAUI casting off the layer's rendered content). A null shadow (or one with no paint) removes
+    // the sibling. The sibling can only be created once the host has a superlayer (i.e. after mount) — arrange
+    // re-invokes this so the deferred create lands.
+    inline void apply_border_shadow(void* native, const maui::core::i_shadow* shadow,
+                                    const maui::core::border_stroke_spec& spec, bool has_fill,
+                                    maui::graphics::rect bounds)
+    {
+        if (native == nullptr)
+        {
+            return;
+        }
+        UIView* const host = (__bridge UIView*)native;
+        CALayer* const host_layer = host.layer;
+        CALayer* const super_layer = host_layer.superlayer;
+        CALayer* shadow_layer = find_border_shadow_layer(host_layer);
+
+        const maui::graphics::paint* const paint = (shadow != nullptr) ? shadow->paint() : nullptr;
+        if (paint == nullptr || super_layer == nil)
+        {
+            [shadow_layer removeFromSuperlayer]; // nil-safe; also the no-superlayer (pre-mount) case
+            return;
+        }
+        if (shadow_layer == nil)
+        {
+            shadow_layer = [CALayer layer];
+            shadow_layer.name = k_border_shadow_layer_name;
+            shadow_layer.backgroundColor = UIColor.clearColor.CGColor; // shadowPath casts the shadow, not content
+            [super_layer insertSublayer:shadow_layer below:host_layer];
+        }
+        // ShadowExtensions scalar push (C# sets ShadowRadius = Radius / 2, like apply_shadow).
+        shadow_layer.shadowColor = to_ui_color(paint->background_color()).CGColor;
+        shadow_layer.shadowOpacity = static_cast<float>(shadow->opacity());
+        shadow_layer.shadowRadius = static_cast<CGFloat>(shadow->radius() / 2.0);
+        const maui::graphics::point offset = shadow->offset();
+        shadow_layer.shadowOffset = CGSizeMake(static_cast<CGFloat>(offset.x), static_cast<CGFloat>(offset.y));
+        reframe_border_shadow(native, spec, has_fill, bounds);
     }
 
     // MauiCALayer.SetBorderLineCap / SetBorderLineJoin: the CG enum mapping, as CAShapeLayer constants.

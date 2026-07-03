@@ -79,6 +79,15 @@ namespace maui::core
         // The last border push — every backend keeps the mirror current (the headless tests assert on
         // it; the native partials read it as the just-applied snapshot).
         border_stroke_spec border;
+        // The border's Shadow borrow (owned by the control). Apple/iOS use it: the host layer is masked to
+        // the shape and a masked CALayer cannot cast a shadow, so the shadow is drawn on an unmasked sibling
+        // layer that arrange/layout re-apply from this stored borrow.
+        const maui::core::i_shadow* shadow = nullptr;
+        // The border's Background paint borrow (owned by the control). iOS uses it to pick the shadow
+        // SILHOUETTE: MAUI casts the border shadow off the layer's rendered content (no ShadowPath), so an
+        // opaque Background fills the whole shape (solid shadow) while a stroke-only Border casts only the
+        // stroke ring. A non-null fill → filled silhouette; null → stroke-ring silhouette (ios_border_ops).
+        const maui::graphics::paint* background = nullptr;
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend (src/platform/apple/border_handler.mm): the generic IView pushes onto the

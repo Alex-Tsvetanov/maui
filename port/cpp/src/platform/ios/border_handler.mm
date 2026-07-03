@@ -81,6 +81,9 @@ namespace maui::core
     {
         if (native != nullptr)
         {
+            // Remove the unmasked shadow sibling from the host's superlayer (it outlives the host otherwise).
+            // The null shadow removes it regardless of the spec/fill args.
+            maui::platform::ios::apply_border_shadow(native, nullptr, border, false, maui::graphics::rect{});
             CFRelease(native); // balances the __bridge_retained in create_platform_view
             native = nullptr;
         }
@@ -110,12 +113,29 @@ namespace maui::core
     {
         // The container layer's fill; the border shape mask bounds it to the shape (the C# MauiCALayer
         // draws the background into the same clipped layer).
+        background = value;
         maui::platform::ios::apply_background(native, value);
+        // The fill-vs-stroke-only state picks the shadow SILHOUETTE (border_shadow_silhouette_path), so a
+        // Background change must re-cast the shadow. shadow may still be null here (property-push order) —
+        // then this is a no-op and update_shadow casts it later with the now-stored background.
+        const CGRect b = as_host(native).bounds;
+        maui::platform::ios::apply_border_shadow(
+            native, shadow, border, value != nullptr,
+            maui::graphics::rect{b.origin.x, b.origin.y, b.size.width, b.size.height});
     }
 
     void border_platform::update_shadow(const maui::core::i_shadow* value)
     {
-        maui::platform::ios::apply_shadow(native, value);
+        // The host layer is masked to the shape (apply_clip), and a masked CALayer can't cast a shadow, so
+        // apply_shadow on it is dead. Drive an unmasked sibling shadow layer instead (created once the host
+        // has a superlayer — arrange_native re-applies from the stored borrow so the deferred create lands).
+        // The silhouette follows the Background: an opaque fill casts the whole shape, a stroke-only Border
+        // only its ring (border_shadow_silhouette_path).
+        shadow = value;
+        const CGRect b = as_host(native).bounds;
+        maui::platform::ios::apply_border_shadow(
+            native, value, border, background != nullptr,
+            maui::graphics::rect{b.origin.x, b.origin.y, b.size.width, b.size.height});
     }
 
     void border_platform::update_semantics(const maui::core::semantics* value)
@@ -187,10 +207,13 @@ namespace maui::core
         if ([as_host(native) isKindOfClass:[MauiIosBorder class]])
         {
             const maui::core::border_stroke_spec spec = platform->border;
+            const bool has_fill = platform->background != nullptr;
             ((MauiIosBorder*)as_host(native)).borderRefresh = ^{
               const CGRect b = as_host(native).bounds;
-              maui::platform::ios::apply_border_stroke(
-                  native, spec, maui::graphics::rect{b.origin.x, b.origin.y, b.size.width, b.size.height});
+              const maui::graphics::rect r{b.origin.x, b.origin.y, b.size.width, b.size.height};
+              maui::platform::ios::apply_border_stroke(native, spec, r);
+              // Track the shadow sibling to the new bounds too (a UIKit-driven resize that bypasses arrange).
+              maui::platform::ios::reframe_border_shadow(native, spec, has_fill, r);
             };
         }
     }
@@ -203,6 +226,12 @@ namespace maui::core
             return;
         }
         [as_host(platform->native) setFrame:CGRectMake(frame.x, frame.y, frame.width, frame.height)];
+        // Re-apply the shadow sibling now the host has a frame AND a superlayer (the deferred create from
+        // update_shadow lands here on the first arrange, and it re-frames on every subsequent arrange).
+        const CGRect b = as_host(platform->native).bounds;
+        maui::platform::ios::apply_border_shadow(
+            platform->native, platform->shadow, platform->border, platform->background != nullptr,
+            maui::graphics::rect{b.origin.x, b.origin.y, b.size.width, b.size.height});
     }
 
     // Render transform pushed to the native UIView via the shared ios apply_transform helper

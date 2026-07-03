@@ -184,6 +184,11 @@ namespace maui::core
     {
         auto platform = std::make_unique<swipe_view_platform>();
         UIView* const host = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
+        // MauiSwipeView.UpdateContent sets ClipsToBounds=true (MauiSwipeView.cs:160): the content fills the
+        // host bounds and the swipe reveal slides it under the clipped edge. This also bounds a shadowed
+        // Border's drop shadow to the swipe frame (the shadow escapes its own masked layer onto a sibling —
+        // ios_border_ops.apply_border_shadow — so without the host clip it would spill past the row).
+        host.clipsToBounds = YES;
         platform->native = (__bridge_retained void*)host; // the void* slot owns one reference
 
         // Wire the interactive drag-to-reveal pan (MauiSwipeView's _panGestureRecognizer + HandlePan). The
