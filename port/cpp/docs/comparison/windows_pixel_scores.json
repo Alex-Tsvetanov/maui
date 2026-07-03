@@ -1,0 +1,12958 @@
+{
+ "controls_stack": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.42,
+   "near_pct": 97.0,
+   "mae": 5.67,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.4,
+   "near_pct": 97.49,
+   "mae": 8.25,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.42,
+   "near_pct": 97.0,
+   "mae": 5.67,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.4,
+   "near_pct": 97.49,
+   "mae": 8.25,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "activity_indicator": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    288,
+    480
+   ],
+   "port_size": [
+    288,
+    480
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 90.61,
+   "mae": 10.74,
+   "animated": true,
+   "frames": [
+    36,
+    36
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.07,
+   "near_pct": 91.19,
+   "mae": 29.53,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    288,
+    480
+   ],
+   "port_size": [
+    288,
+    480
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 91.53,
+   "mae": 9.63,
+   "animated": true,
+   "frames": [
+    36,
+    35
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.07,
+   "near_pct": 92.13,
+   "mae": 28.15,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "absolute_layout": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 2.85,
+   "near_pct": 99.89,
+   "mae": 2.11,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 2.84,
+   "near_pct": 99.91,
+   "mae": 14.6,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 2.82,
+   "near_pct": 99.45,
+   "mae": 3.05,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 2.82,
+   "near_pct": 99.45,
+   "mae": 14.92,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "adaptive_collection": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.1,
+   "near_pct": 99.33,
+   "mae": 3.48,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 99.33,
+   "mae": 15.97,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.19,
+   "mae": 3.68,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.17,
+   "mae": 16.23,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "alerts": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.25,
+   "near_pct": 97.04,
+   "mae": 5.61,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.11,
+   "near_pct": 92.8,
+   "mae": 16.94,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 95.71,
+   "mae": 9.63,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 86.27,
+   "mae": 19.79,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "alignment": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 5.8,
+   "near_pct": 99.19,
+   "mae": 7.33,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 6.0,
+   "near_pct": 99.21,
+   "mae": 14.38,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 5.8,
+   "near_pct": 99.15,
+   "mae": 7.42,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 6.0,
+   "near_pct": 99.17,
+   "mae": 14.43,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "animation": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    288,
+    480
+   ],
+   "port_size": [
+    288,
+    480
+   ],
+   "exact_pct": 0.07,
+   "near_pct": 98.61,
+   "mae": 4.25,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.27,
+   "near_pct": 97.53,
+   "mae": 15.34,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    288,
+    480
+   ],
+   "port_size": [
+    288,
+    480
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 97.51,
+   "mae": 6.28,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 93.74,
+   "mae": 16.16,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "app_theme_binding": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.23,
+   "near_pct": 99.22,
+   "mae": 7.45,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.33,
+   "near_pct": 99.1,
+   "mae": 15.52,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 95.66,
+   "mae": 12.1,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 92.61,
+   "mae": 20.52,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "application_control": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 98.04,
+   "mae": 8.12,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.19,
+   "near_pct": 96.91,
+   "mae": 16.54,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 97.63,
+   "mae": 8.96,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 94.61,
+   "mae": 17.33,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "auto_size_shapes": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 99.06,
+   "near_pct": 99.47,
+   "mae": 0.26,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "match"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 99.06,
+   "near_pct": 99.47,
+   "mae": 0.26,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "match"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 99.06,
+   "near_pct": 99.47,
+   "mae": 0.26,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "match"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 99.06,
+   "near_pct": 99.47,
+   "mae": 0.26,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "match"
+  }
+ },
+ "basic_grouping": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 95.11,
+   "mae": 11.67,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.05,
+   "near_pct": 94.99,
+   "mae": 21.4,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 97.14,
+   "mae": 9.79,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 96.94,
+   "mae": 19.28,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "basic_swipe": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 14.1,
+   "near_pct": 81.86,
+   "mae": 11.81,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 14.1,
+   "near_pct": 81.96,
+   "mae": 41.56,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 13.22,
+   "near_pct": 69.0,
+   "mae": 14.94,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 13.22,
+   "near_pct": 69.09,
+   "mae": 62.16,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "behaviors": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.75,
+   "mae": 7.19,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.45,
+   "near_pct": 99.75,
+   "mae": 14.7,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 97.76,
+   "mae": 9.83,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 97.91,
+   "mae": 17.67,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "border": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 11.06,
+   "near_pct": 99.52,
+   "mae": 6.58,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 11.06,
+   "near_pct": 99.53,
+   "mae": 13.56,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 11.06,
+   "near_pct": 99.52,
+   "mae": 6.58,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 11.06,
+   "near_pct": 99.53,
+   "mae": 13.56,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "border_clip_playground": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.37,
+   "near_pct": 97.78,
+   "mae": 9.3,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.59,
+   "near_pct": 97.89,
+   "mae": 15.86,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 89.79,
+   "mae": 19.11,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 87.96,
+   "mae": 25.32,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "border_layout": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 4.24,
+   "near_pct": 99.23,
+   "mae": 7.41,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 4.27,
+   "near_pct": 99.19,
+   "mae": 15.1,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.35,
+   "near_pct": 93.33,
+   "mae": 14.85,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.35,
+   "near_pct": 93.22,
+   "mae": 20.99,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "border_playground": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.07,
+   "near_pct": 70.88,
+   "mae": 38.49,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.7,
+   "near_pct": 67.03,
+   "mae": 40.78,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 66.97,
+   "mae": 43.95,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.06,
+   "near_pct": 57.72,
+   "mae": 46.91,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "border_resize_content": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 5.73,
+   "near_pct": 89.7,
+   "mae": 14.26,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 5.8,
+   "near_pct": 89.59,
+   "mae": 23.55,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 3.42,
+   "near_pct": 81.2,
+   "mae": 20.16,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 3.42,
+   "near_pct": 82.95,
+   "mae": 31.19,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "border_stroke": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 21.4,
+   "near_pct": 83.51,
+   "mae": 18.74,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 21.51,
+   "near_pct": 83.45,
+   "mae": 27.69,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 18.91,
+   "near_pct": 75.61,
+   "mae": 28.25,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 18.91,
+   "near_pct": 75.53,
+   "mae": 35.09,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "borderless": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 100.0,
+   "near_pct": 100.0,
+   "mae": 0.0,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "match"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 100.0,
+   "near_pct": 100.0,
+   "mae": 0.0,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "match"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 0.0,
+   "mae": 105.14,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 0.0,
+   "mae": 104.94,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "box_view": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 25.72,
+   "near_pct": 100.0,
+   "mae": 5.12,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 25.8,
+   "near_pct": 99.99,
+   "mae": 10.96,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 25.72,
+   "near_pct": 100.0,
+   "mae": 5.12,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 25.8,
+   "near_pct": 99.99,
+   "mae": 10.96,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "button": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 19.92,
+   "near_pct": 64.6,
+   "mae": 60.65,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 19.93,
+   "near_pct": 61.37,
+   "mae": 42.05,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 19.92,
+   "near_pct": 64.6,
+   "mae": 60.65,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 19.93,
+   "near_pct": 61.37,
+   "mae": 42.05,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "carousel_page": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.65,
+   "mae": 7.31,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.1,
+   "near_pct": 99.58,
+   "mae": 15.34,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.47,
+   "mae": 7.7,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 98.68,
+   "mae": 15.95,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "chat_example": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.4,
+   "near_pct": 93.16,
+   "mae": 8.43,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.4,
+   "near_pct": 93.13,
+   "mae": 26.58,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 92.35,
+   "mae": 8.97,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 92.34,
+   "mae": 27.51,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "check_box": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 97.64,
+   "mae": 10.44,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.07,
+   "near_pct": 96.71,
+   "mae": 18.22,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 97.56,
+   "mae": 10.49,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 96.65,
+   "mae": 18.36,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "chrome": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.54,
+   "mae": 7.11,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 99.41,
+   "mae": 15.23,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.54,
+   "mae": 7.11,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 99.41,
+   "mae": 15.23,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "clip": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 6.27,
+   "near_pct": 79.96,
+   "mae": 13.26,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 6.43,
+   "near_pct": 79.57,
+   "mae": 45.25,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 6.27,
+   "near_pct": 79.96,
+   "mae": 13.26,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 6.43,
+   "near_pct": 79.57,
+   "mae": 45.25,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "clip_corner_radius": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.31,
+   "near_pct": 89.65,
+   "mae": 16.64,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.46,
+   "near_pct": 87.84,
+   "mae": 23.92,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.31,
+   "near_pct": 89.65,
+   "mae": 16.64,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.46,
+   "near_pct": 87.84,
+   "mae": 23.92,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "clip_gallery": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 65.39,
+   "mae": 39.27,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.18,
+   "near_pct": 65.39,
+   "mae": 44.41,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 65.39,
+   "mae": 39.27,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.18,
+   "near_pct": 65.39,
+   "mae": 44.41,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "clip_views": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 13.18,
+   "near_pct": 84.42,
+   "mae": 29.87,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 13.18,
+   "near_pct": 85.1,
+   "mae": 24.5,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 13.18,
+   "near_pct": 84.42,
+   "mae": 29.87,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 13.18,
+   "near_pct": 85.1,
+   "mae": 24.5,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "clipping": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 96.3,
+   "near_pct": 96.56,
+   "mae": 3.13,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 96.35,
+   "near_pct": 97.81,
+   "mae": 2.48,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 96.3,
+   "near_pct": 96.56,
+   "mae": 3.13,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 96.35,
+   "near_pct": 97.81,
+   "mae": 2.48,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "collectionview": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 95.47,
+   "mae": 12.4,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 95.48,
+   "mae": 21.44,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 95.47,
+   "mae": 12.39,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 95.47,
+   "mae": 21.44,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "composition_gallery": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 32.38,
+   "near_pct": 99.94,
+   "mae": 4.77,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 32.38,
+   "near_pct": 99.94,
+   "mae": 10.17,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 23.88,
+   "near_pct": 97.35,
+   "mae": 6.49,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 23.88,
+   "near_pct": 91.41,
+   "mae": 24.29,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "containers": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.27,
+   "near_pct": 92.1,
+   "mae": 24.14,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.35,
+   "near_pct": 92.2,
+   "mae": 15.74,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.27,
+   "near_pct": 92.1,
+   "mae": 24.14,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.35,
+   "near_pct": 92.2,
+   "mae": 15.73,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "content_view": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.64,
+   "mae": 6.98,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.04,
+   "near_pct": 99.52,
+   "mae": 15.08,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.64,
+   "mae": 6.98,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.04,
+   "near_pct": 99.52,
+   "mae": 15.08,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "context_flyout": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 3.41,
+   "near_pct": 67.88,
+   "mae": 39.26,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 3.43,
+   "near_pct": 49.65,
+   "mae": 83.6,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 3.41,
+   "near_pct": 67.88,
+   "mae": 39.26,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 3.43,
+   "near_pct": 49.65,
+   "mae": 83.6,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "custom_layout": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 96.4,
+   "mae": 11.52,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.05,
+   "near_pct": 85.23,
+   "mae": 19.61,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 95.72,
+   "mae": 10.09,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 94.43,
+   "mae": 12.71,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "custom_size_swipe": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 5.83,
+   "near_pct": 99.25,
+   "mae": 7.29,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 5.86,
+   "near_pct": 99.31,
+   "mae": 14.97,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 5.83,
+   "near_pct": 99.08,
+   "mae": 7.48,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 5.85,
+   "near_pct": 99.13,
+   "mae": 15.21,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "custom_swipe_item_view": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 9.49,
+   "near_pct": 99.61,
+   "mae": 6.75,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 9.49,
+   "near_pct": 99.63,
+   "mae": 14.05,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 9.49,
+   "near_pct": 99.99,
+   "mae": 6.33,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 9.54,
+   "near_pct": 100.0,
+   "mae": 13.55,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "cv_visual_states": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.1,
+   "mae": 8.09,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.1,
+   "near_pct": 99.09,
+   "mae": 16.28,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 98.91,
+   "mae": 8.31,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 98.9,
+   "mae": 16.6,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "data_template_selector": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 94.16,
+   "mae": 13.78,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.06,
+   "near_pct": 94.13,
+   "mae": 22.72,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 93.63,
+   "mae": 12.79,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 94.92,
+   "mae": 21.55,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "date_picker": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.81,
+   "near_pct": 89.84,
+   "mae": 16.78,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.93,
+   "near_pct": 90.39,
+   "mae": 16.71,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.81,
+   "near_pct": 89.84,
+   "mae": 16.8,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.92,
+   "near_pct": 90.37,
+   "mae": 16.74,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "device": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 100.0,
+   "mae": 6.98,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.07,
+   "near_pct": 100.0,
+   "mae": 14.96,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.48,
+   "mae": 7.6,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.46,
+   "mae": 15.71,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "dispatcher": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 94.95,
+   "mae": 11.33,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.14,
+   "near_pct": 92.12,
+   "mae": 20.14,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 94.95,
+   "mae": 11.33,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.14,
+   "near_pct": 92.12,
+   "mae": 20.14,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "drag_drop": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 58.38,
+   "mae": 46.87,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.06,
+   "near_pct": 58.43,
+   "mae": 52.23,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 35.0,
+   "near_pct": 100.0,
+   "mae": 4.51,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 35.16,
+   "near_pct": 100.0,
+   "mae": 9.65,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "editor": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.17,
+   "near_pct": 99.75,
+   "mae": 5.79,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.28,
+   "near_pct": 99.75,
+   "mae": 14.35,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.17,
+   "near_pct": 99.75,
+   "mae": 5.79,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.28,
+   "near_pct": 99.75,
+   "mae": 14.35,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "ellipse_gallery": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 4.81,
+   "near_pct": 99.68,
+   "mae": 6.84,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 4.89,
+   "near_pct": 99.71,
+   "mae": 14.28,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 88.82,
+   "mae": 27.11,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.09,
+   "near_pct": 88.8,
+   "mae": 20.26,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "empty_view": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 93.54,
+   "mae": 14.51,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.05,
+   "near_pct": 93.52,
+   "mae": 23.49,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 94.4,
+   "mae": 13.56,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 94.27,
+   "mae": 22.68,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "empty_view_load_simulate": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.66,
+   "mae": 7.4,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.66,
+   "mae": 15.49,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.66,
+   "mae": 7.4,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.66,
+   "mae": 15.49,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "empty_view_null": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.73,
+   "mae": 7.31,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.73,
+   "mae": 15.39,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.73,
+   "mae": 7.31,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.73,
+   "mae": 15.39,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "empty_view_rtl": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 89.4,
+   "mae": 19.03,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.05,
+   "near_pct": 85.76,
+   "mae": 28.84,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 92.21,
+   "mae": 15.88,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 88.68,
+   "mae": 25.52,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "empty_view_selector": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.74,
+   "mae": 7.18,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.26,
+   "near_pct": 99.74,
+   "mae": 14.65,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 93.53,
+   "mae": 11.3,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 96.56,
+   "mae": 18.9,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "empty_view_swap": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 90.23,
+   "mae": 18.5,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.08,
+   "near_pct": 90.18,
+   "mae": 28.2,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 91.43,
+   "mae": 15.58,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 91.96,
+   "mae": 25.01,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "empty_view_template": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 90.34,
+   "mae": 18.49,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.05,
+   "near_pct": 90.35,
+   "mae": 28.26,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 92.11,
+   "mae": 14.71,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 93.29,
+   "mae": 24.0,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "empty_view_view": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 90.34,
+   "mae": 18.49,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.05,
+   "near_pct": 90.35,
+   "mae": 28.26,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 91.6,
+   "mae": 15.45,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 92.81,
+   "mae": 24.73,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "entry": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.12,
+   "near_pct": 95.13,
+   "mae": 11.02,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.11,
+   "near_pct": 88.91,
+   "mae": 18.24,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.12,
+   "near_pct": 95.13,
+   "mae": 11.02,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.11,
+   "near_pct": 88.91,
+   "mae": 18.24,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "filter_collection": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.18,
+   "near_pct": 92.1,
+   "mae": 16.23,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.22,
+   "near_pct": 92.23,
+   "mae": 25.87,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 94.53,
+   "mae": 13.4,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.04,
+   "near_pct": 92.22,
+   "mae": 22.72,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "filter_selection": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 93.94,
+   "mae": 13.58,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.29,
+   "near_pct": 93.78,
+   "mae": 22.43,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 90.46,
+   "mae": 15.97,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 91.28,
+   "mae": 25.13,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "flex_layout": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 100.0,
+   "near_pct": 100.0,
+   "mae": 0.0,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "match"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 100.0,
+   "near_pct": 100.0,
+   "mae": 0.0,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "match"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 99.67,
+   "near_pct": 99.83,
+   "mae": 0.08,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "match"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 99.67,
+   "near_pct": 99.67,
+   "mae": 0.45,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "match"
+  }
+ },
+ "focus": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.19,
+   "mae": 7.74,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 99.08,
+   "mae": 15.4,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 97.23,
+   "mae": 8.54,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 98.04,
+   "mae": 15.91,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "fonts": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 100.0,
+   "mae": 6.96,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.36,
+   "near_pct": 100.0,
+   "mae": 14.88,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 100.0,
+   "mae": 6.96,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.36,
+   "near_pct": 100.0,
+   "mae": 14.88,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "footer_only_string": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 96.4,
+   "mae": 11.25,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 96.41,
+   "mae": 20.04,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 96.4,
+   "mae": 11.25,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 96.41,
+   "mae": 20.04,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "formatted_text": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 99.41,
+   "mae": 7.72,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.04,
+   "near_pct": 99.42,
+   "mae": 15.71,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 99.41,
+   "mae": 7.72,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.04,
+   "near_pct": 99.42,
+   "mae": 15.71,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "gestures": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 19.98,
+   "near_pct": 99.88,
+   "mae": 5.72,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 20.04,
+   "near_pct": 99.88,
+   "mae": 12.1,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 17.56,
+   "near_pct": 95.26,
+   "mae": 10.22,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 17.56,
+   "near_pct": 95.25,
+   "mae": 17.47,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "gradient": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 7.23,
+   "near_pct": 96.85,
+   "mae": 7.16,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 7.5,
+   "near_pct": 96.85,
+   "mae": 13.99,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 7.23,
+   "near_pct": 96.85,
+   "mae": 7.16,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 7.5,
+   "near_pct": 96.85,
+   "mae": 13.99,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "grid": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 18.42,
+   "near_pct": 100.0,
+   "mae": 5.7,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 18.48,
+   "near_pct": 100.0,
+   "mae": 12.22,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 18.42,
+   "near_pct": 100.0,
+   "mae": 5.7,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 18.48,
+   "near_pct": 100.0,
+   "mae": 12.22,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "grid_grouping": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 93.54,
+   "mae": 13.1,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 93.47,
+   "mae": 23.36,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 97.54,
+   "mae": 9.36,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 97.36,
+   "mae": 18.65,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "grouping_no_templates": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 87.07,
+   "mae": 22.28,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 86.73,
+   "mae": 34.78,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 89.12,
+   "mae": 19.9,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 88.63,
+   "mae": 32.46,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "grouping_plus_selection": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 94.88,
+   "mae": 11.75,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 94.76,
+   "mae": 21.63,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 97.1,
+   "mae": 9.75,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 96.88,
+   "mae": 19.34,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "header_footer": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.22,
+   "mae": 7.89,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 99.23,
+   "mae": 16.08,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.22,
+   "mae": 7.89,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 99.23,
+   "mae": 16.08,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "header_footer_grid": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.47,
+   "near_pct": 80.11,
+   "mae": 32.14,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.46,
+   "near_pct": 76.34,
+   "mae": 30.09,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.47,
+   "near_pct": 79.74,
+   "mae": 32.76,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.46,
+   "near_pct": 75.98,
+   "mae": 30.59,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "header_footer_grid_horizontal": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.12,
+   "near_pct": 80.83,
+   "mae": 24.71,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.12,
+   "near_pct": 79.93,
+   "mae": 36.41,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.12,
+   "near_pct": 80.53,
+   "mae": 25.07,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.12,
+   "near_pct": 79.65,
+   "mae": 36.8,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "header_footer_template": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 7.75,
+   "near_pct": 86.62,
+   "mae": 19.45,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 7.78,
+   "near_pct": 86.15,
+   "mae": 27.9,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 92.24,
+   "mae": 22.58,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 90.87,
+   "mae": 20.59,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "header_footer_view": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.68,
+   "near_pct": 80.73,
+   "mae": 25.71,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.61,
+   "near_pct": 76.08,
+   "mae": 34.7,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.61,
+   "near_pct": 77.87,
+   "mae": 28.63,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.61,
+   "near_pct": 74.64,
+   "mae": 36.2,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "hit_testing": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 13.88,
+   "near_pct": 92.02,
+   "mae": 12.89,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 13.91,
+   "near_pct": 85.05,
+   "mae": 20.61,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.17,
+   "near_pct": 78.88,
+   "mae": 20.26,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.16,
+   "near_pct": 68.15,
+   "mae": 43.9,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "horizontal_stack": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.67,
+   "near_pct": 100.0,
+   "mae": 6.83,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.69,
+   "near_pct": 100.0,
+   "mae": 14.62,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 96.1,
+   "mae": 11.68,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 96.09,
+   "mae": 18.63,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "hybrid_web_view": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 95.7,
+   "mae": 11.8,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 85.02,
+   "mae": 19.17,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 94.77,
+   "mae": 9.0,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 30.47,
+   "mae": 139.19,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "image": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 26.0,
+   "mae": 116.69,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 31.14,
+   "mae": 53.62,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 26.0,
+   "mae": 116.69,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 31.14,
+   "mae": 53.62,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "image_button": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 13.61,
+   "near_pct": 79.72,
+   "mae": 41.03,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 13.68,
+   "near_pct": 79.58,
+   "mae": 26.0,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 11.88,
+   "near_pct": 76.17,
+   "mae": 48.46,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 11.94,
+   "near_pct": 76.03,
+   "mae": 26.87,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "indicator": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 96.11,
+   "mae": 8.56,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.19,
+   "near_pct": 96.04,
+   "mae": 21.51,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 94.51,
+   "mae": 11.18,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 94.43,
+   "mae": 24.25,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "input_controls": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.08,
+   "near_pct": 99.5,
+   "mae": 7.09,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.11,
+   "near_pct": 99.5,
+   "mae": 14.77,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 96.01,
+   "mae": 8.97,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 96.35,
+   "mae": 16.15,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "input_transparent": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 4.19,
+   "near_pct": 90.36,
+   "mae": 13.05,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.11,
+   "near_pct": 84.92,
+   "mae": 22.73,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 4.19,
+   "near_pct": 90.36,
+   "mae": 13.05,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.11,
+   "near_pct": 84.92,
+   "mae": 22.73,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "invalidate_brush": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.65,
+   "near_pct": 99.43,
+   "mae": 7.64,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.65,
+   "near_pct": 99.39,
+   "mae": 15.38,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.41,
+   "near_pct": 98.93,
+   "mae": 8.44,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.41,
+   "near_pct": 98.85,
+   "mae": 15.87,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "invalidate_shadow_host": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 37.06,
+   "near_pct": 93.3,
+   "mae": 11.42,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 37.09,
+   "near_pct": 92.42,
+   "mae": 14.21,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 37.06,
+   "near_pct": 93.3,
+   "mae": 11.42,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 37.09,
+   "near_pct": 92.42,
+   "mae": 14.21,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "items": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.32,
+   "mae": 7.82,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 99.31,
+   "mae": 15.98,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.32,
+   "mae": 7.82,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 99.31,
+   "mae": 15.98,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "items_updating_scroll_mode": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 92.47,
+   "mae": 15.36,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.16,
+   "near_pct": 91.93,
+   "mae": 24.94,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 92.47,
+   "mae": 15.36,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.16,
+   "near_pct": 91.93,
+   "mae": 24.94,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "label": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 53.61,
+   "near_pct": 95.38,
+   "mae": 7.97,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 53.9,
+   "near_pct": 95.31,
+   "mae": 12.49,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 53.6,
+   "near_pct": 93.04,
+   "mae": 11.24,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 53.65,
+   "near_pct": 92.43,
+   "mae": 16.53,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "layout_is_enabled": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 29.86,
+   "near_pct": 68.77,
+   "mae": 22.85,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 30.05,
+   "near_pct": 73.78,
+   "mae": 37.65,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 29.86,
+   "near_pct": 68.68,
+   "mae": 22.98,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 30.04,
+   "near_pct": 73.66,
+   "mae": 37.85,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "line_gallery": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.05,
+   "near_pct": 99.89,
+   "mae": 7.05,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.12,
+   "near_pct": 99.87,
+   "mae": 14.98,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.05,
+   "near_pct": 99.89,
+   "mae": 7.05,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.12,
+   "near_pct": 99.87,
+   "mae": 14.98,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "line_join_gallery": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 6.88,
+   "near_pct": 100.0,
+   "mae": 6.49,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 6.89,
+   "near_pct": 100.0,
+   "mae": 13.9,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 6.88,
+   "near_pct": 100.0,
+   "mae": 6.49,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 6.89,
+   "near_pct": 100.0,
+   "mae": 13.9,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "measure_first_strategy": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 94.88,
+   "mae": 11.47,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.16,
+   "near_pct": 94.67,
+   "mae": 21.21,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 96.71,
+   "mae": 9.72,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.14,
+   "near_pct": 96.39,
+   "mae": 19.33,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "menu_bar": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.11,
+   "mae": 7.86,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 97.64,
+   "mae": 15.9,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.61,
+   "mae": 7.05,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.04,
+   "near_pct": 99.49,
+   "mae": 15.13,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "modal": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 97.44,
+   "mae": 8.39,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.04,
+   "near_pct": 94.02,
+   "mae": 16.92,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 97.44,
+   "mae": 8.39,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.04,
+   "near_pct": 94.02,
+   "mae": 16.92,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "multiple_bound_selection": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 98.68,
+   "mae": 8.81,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.19,
+   "near_pct": 83.62,
+   "mae": 16.74,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 98.68,
+   "mae": 8.81,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.19,
+   "near_pct": 83.62,
+   "mae": 16.74,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "navigation_gallery": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 97.11,
+   "mae": 8.52,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.11,
+   "near_pct": 92.75,
+   "mae": 16.84,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 97.11,
+   "mae": 8.52,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.11,
+   "near_pct": 92.75,
+   "mae": 16.84,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "nested_collection": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 91.8,
+   "mae": 17.47,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.04,
+   "near_pct": 92.91,
+   "mae": 17.25,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 96.01,
+   "mae": 11.98,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.04,
+   "near_pct": 97.09,
+   "mae": 16.15,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "pan_gesture_events": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 99.71,
+   "near_pct": 99.71,
+   "mae": 0.37,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "match"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 99.71,
+   "near_pct": 99.71,
+   "mae": 0.37,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "match"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 99.7,
+   "near_pct": 99.7,
+   "mae": 0.38,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "match"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 99.7,
+   "near_pct": 99.7,
+   "mae": 0.38,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "match"
+  }
+ },
+ "path_aspect_gallery": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 9.53,
+   "near_pct": 99.84,
+   "mae": 6.36,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 9.56,
+   "near_pct": 99.84,
+   "mae": 13.51,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 6.12,
+   "near_pct": 95.83,
+   "mae": 12.14,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 6.15,
+   "near_pct": 95.83,
+   "mae": 19.29,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "path_gallery": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 4.75,
+   "near_pct": 99.99,
+   "mae": 6.59,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 4.93,
+   "near_pct": 99.99,
+   "mae": 14.09,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 84.24,
+   "mae": 22.93,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 84.62,
+   "mae": 32.58,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "path_transform_string": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.66,
+   "near_pct": 100.0,
+   "mae": 6.93,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.7,
+   "near_pct": 100.0,
+   "mae": 14.85,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.41,
+   "near_pct": 99.35,
+   "mae": 8.24,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.45,
+   "near_pct": 99.44,
+   "mae": 14.98,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "picker": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 82.13,
+   "mae": 21.56,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.04,
+   "near_pct": 63.4,
+   "mae": 35.24,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 82.03,
+   "mae": 21.66,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.04,
+   "near_pct": 63.31,
+   "mae": 35.26,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "pickers": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 98.14,
+   "mae": 8.19,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 95.55,
+   "mae": 15.35,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 98.14,
+   "mae": 8.19,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 95.54,
+   "mae": 15.36,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "pointer_gesture": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 89.01,
+   "mae": 14.52,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.05,
+   "near_pct": 89.14,
+   "mae": 32.53,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 97.23,
+   "mae": 10.5,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 97.22,
+   "mae": 19.21,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "polygon_gallery": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 2.11,
+   "near_pct": 99.05,
+   "mae": 7.7,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 2.18,
+   "near_pct": 98.97,
+   "mae": 15.48,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.83,
+   "near_pct": 95.98,
+   "mae": 12.43,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.83,
+   "near_pct": 95.68,
+   "mae": 19.52,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "polyline_gallery": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.64,
+   "mae": 7.26,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 99.65,
+   "mae": 15.08,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.13,
+   "mae": 7.93,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.13,
+   "mae": 15.78,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "preselected_item": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 94.02,
+   "mae": 13.9,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.1,
+   "near_pct": 92.27,
+   "mae": 23.56,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 94.02,
+   "mae": 13.9,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.1,
+   "near_pct": 92.27,
+   "mae": 23.56,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "preselected_items": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 88.83,
+   "mae": 20.06,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.19,
+   "near_pct": 86.04,
+   "mae": 29.97,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 86.73,
+   "mae": 22.62,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 84.07,
+   "mae": 33.13,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "progress_bar": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.71,
+   "near_pct": 99.67,
+   "mae": 6.89,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.08,
+   "near_pct": 99.55,
+   "mae": 14.87,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.71,
+   "near_pct": 99.67,
+   "mae": 6.89,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.08,
+   "near_pct": 99.55,
+   "mae": 14.87,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "radio_button_border": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 2.47,
+   "near_pct": 92.36,
+   "mae": 11.36,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 2.55,
+   "near_pct": 92.37,
+   "mae": 26.46,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.6,
+   "near_pct": 88.93,
+   "mae": 14.93,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.61,
+   "near_pct": 88.87,
+   "mae": 31.41,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "radio_button_content": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.1,
+   "near_pct": 91.0,
+   "mae": 27.03,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.71,
+   "near_pct": 91.4,
+   "mae": 15.38,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 84.03,
+   "mae": 36.04,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 83.89,
+   "mae": 26.21,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "radio_button_group": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 100.0,
+   "mae": 6.95,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.22,
+   "near_pct": 100.0,
+   "mae": 14.86,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 97.58,
+   "mae": 9.72,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 97.38,
+   "mae": 18.24,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "radio_button_group_binding": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 98.97,
+   "mae": 7.35,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.22,
+   "near_pct": 98.6,
+   "mae": 15.45,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 98.97,
+   "mae": 7.35,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.22,
+   "near_pct": 98.6,
+   "mae": 15.45,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "radio_button_group_gallery": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 100.0,
+   "mae": 6.85,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.69,
+   "near_pct": 100.0,
+   "mae": 14.58,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 92.15,
+   "mae": 16.12,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 91.54,
+   "mae": 26.0,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "radio_content_properties": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.5,
+   "near_pct": 100.0,
+   "mae": 6.73,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.52,
+   "near_pct": 100.0,
+   "mae": 14.31,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.5,
+   "near_pct": 100.0,
+   "mae": 6.73,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.52,
+   "near_pct": 100.0,
+   "mae": 14.31,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "radio_template_from_style": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 7.22,
+   "near_pct": 99.89,
+   "mae": 6.54,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 7.22,
+   "near_pct": 99.47,
+   "mae": 14.11,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.59,
+   "mae": 6.99,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 84.38,
+   "mae": 45.03,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "rectangle_gallery": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 8.38,
+   "near_pct": 99.78,
+   "mae": 6.67,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 8.52,
+   "near_pct": 99.79,
+   "mae": 13.74,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 82.83,
+   "mae": 40.35,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.14,
+   "near_pct": 82.9,
+   "mae": 22.62,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "relative_layout": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 84.58,
+   "mae": 19.91,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 72.08,
+   "mae": 35.01,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 84.58,
+   "mae": 19.91,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 72.08,
+   "mae": 35.01,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "scattered_radio_button": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 4.0,
+   "near_pct": 100.0,
+   "mae": 6.66,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 4.26,
+   "near_pct": 100.0,
+   "mae": 14.25,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 97.04,
+   "mae": 10.47,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 90.41,
+   "mae": 32.1,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "scroll_mode_test": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 94.4,
+   "mae": 12.05,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.09,
+   "near_pct": 92.39,
+   "mae": 21.29,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 94.27,
+   "mae": 12.22,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.07,
+   "near_pct": 92.26,
+   "mae": 21.48,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "scroll_to_group": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 94.99,
+   "mae": 10.76,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.05,
+   "near_pct": 94.53,
+   "mae": 20.11,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 96.08,
+   "mae": 10.42,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 91.83,
+   "mae": 19.35,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "scroll_view": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.95,
+   "mae": 7.0,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.22,
+   "near_pct": 99.96,
+   "mae": 14.91,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.95,
+   "mae": 7.0,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.22,
+   "near_pct": 99.96,
+   "mae": 14.91,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "search_bar": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.06,
+   "near_pct": 99.27,
+   "mae": 6.61,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.16,
+   "near_pct": 99.68,
+   "mae": 14.43,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 93.22,
+   "mae": 11.11,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 85.72,
+   "mae": 18.54,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "selection_command_param": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 98.13,
+   "mae": 9.19,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.06,
+   "near_pct": 98.13,
+   "mae": 17.55,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 97.32,
+   "mae": 10.23,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 97.32,
+   "mae": 18.91,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "selection_synchronization": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 98.91,
+   "mae": 7.62,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.63,
+   "near_pct": 86.95,
+   "mae": 17.6,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 98.85,
+   "mae": 7.71,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.63,
+   "near_pct": 86.91,
+   "mae": 17.72,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "semantics": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 93.78,
+   "mae": 11.9,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.27,
+   "near_pct": 91.88,
+   "mae": 20.85,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 93.78,
+   "mae": 11.9,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.27,
+   "near_pct": 91.88,
+   "mae": 20.85,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "shadow_playground": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 2.73,
+   "near_pct": 98.67,
+   "mae": 7.24,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 2.87,
+   "near_pct": 97.5,
+   "mae": 14.55,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 2.73,
+   "near_pct": 98.67,
+   "mae": 7.24,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 2.87,
+   "near_pct": 97.5,
+   "mae": 14.55,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "shape_app_theme": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 100.0,
+   "near_pct": 100.0,
+   "mae": 0.0,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "match"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 100.0,
+   "near_pct": 100.0,
+   "mae": 0.0,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "match"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 94.67,
+   "near_pct": 94.67,
+   "mae": 9.6,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 0.0,
+   "mae": 246.44,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "shapes": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 4.35,
+   "near_pct": 99.42,
+   "mae": 7.23,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 4.59,
+   "near_pct": 99.44,
+   "mae": 14.46,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 90.04,
+   "mae": 26.06,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.25,
+   "near_pct": 90.17,
+   "mae": 19.17,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "single_bound_selection": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.6,
+   "mae": 7.44,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.18,
+   "near_pct": 99.6,
+   "mae": 15.47,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.31,
+   "mae": 7.75,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.17,
+   "near_pct": 99.31,
+   "mae": 14.87,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "slider": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.59,
+   "near_pct": 95.84,
+   "mae": 10.84,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 2.7,
+   "near_pct": 95.69,
+   "mae": 18.06,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.59,
+   "near_pct": 95.82,
+   "mae": 10.86,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 2.7,
+   "near_pct": 95.67,
+   "mae": 18.09,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "some_empty_groups": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 97.18,
+   "mae": 9.12,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.14,
+   "near_pct": 97.01,
+   "mae": 18.24,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 98.55,
+   "mae": 8.05,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.13,
+   "near_pct": 98.36,
+   "mae": 16.87,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "stack_layout": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 3.33,
+   "near_pct": 100.0,
+   "mae": 6.65,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 3.53,
+   "near_pct": 100.0,
+   "mae": 14.22,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 4.17,
+   "near_pct": 100.0,
+   "mae": 6.64,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 4.36,
+   "near_pct": 100.0,
+   "mae": 14.21,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "staggered_layout": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 96.06,
+   "mae": 12.26,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 82.47,
+   "mae": 22.33,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 95.75,
+   "mae": 12.65,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 82.19,
+   "mae": 22.75,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "stepper": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 97.44,
+   "mae": 9.63,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.55,
+   "near_pct": 97.05,
+   "mae": 17.06,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 97.44,
+   "mae": 9.63,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.55,
+   "near_pct": 97.05,
+   "mae": 17.06,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "styles": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 4.4,
+   "near_pct": 100.0,
+   "mae": 6.66,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 4.42,
+   "near_pct": 100.0,
+   "mae": 14.27,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 4.4,
+   "near_pct": 100.0,
+   "mae": 6.66,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 4.42,
+   "near_pct": 100.0,
+   "mae": 14.27,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "swipe_gesture": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 11.88,
+   "near_pct": 100.0,
+   "mae": 6.16,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 11.91,
+   "near_pct": 100.0,
+   "mae": 13.2,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 11.88,
+   "near_pct": 99.57,
+   "mae": 6.65,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 11.88,
+   "near_pct": 99.58,
+   "mae": 13.75,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "swipe_item_position": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.11,
+   "mae": 2.67,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 96.23,
+   "mae": 8.98,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.07,
+   "mae": 2.69,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 96.19,
+   "mae": 9.0,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "swipe_item_size": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 73.27,
+   "near_pct": 100.0,
+   "mae": 1.81,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "match"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 73.59,
+   "near_pct": 100.0,
+   "mae": 3.86,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 73.27,
+   "near_pct": 100.0,
+   "mae": 1.81,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "match"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 73.59,
+   "near_pct": 100.0,
+   "mae": 3.86,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "swipe_refresh": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.8,
+   "mae": 7.14,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.04,
+   "near_pct": 99.87,
+   "mae": 15.14,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.8,
+   "mae": 7.14,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.04,
+   "near_pct": 99.87,
+   "mae": 15.14,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "swipe_threshold": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 42.38,
+   "near_pct": 99.64,
+   "mae": 4.21,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 42.67,
+   "near_pct": 98.7,
+   "mae": 8.77,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 42.38,
+   "near_pct": 99.66,
+   "mae": 4.19,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 42.67,
+   "near_pct": 98.72,
+   "mae": 8.76,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "swipe_view_margin": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 24.55,
+   "near_pct": 93.07,
+   "mae": 10.61,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 24.64,
+   "near_pct": 92.4,
+   "mae": 15.96,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 24.55,
+   "near_pct": 92.61,
+   "mae": 11.15,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 24.62,
+   "near_pct": 91.95,
+   "mae": 16.57,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "swipe_view_shadow": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.27,
+   "near_pct": 98.91,
+   "mae": 7.68,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.09,
+   "near_pct": 99.46,
+   "mae": 14.59,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.27,
+   "near_pct": 98.91,
+   "mae": 7.68,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.09,
+   "near_pct": 99.46,
+   "mae": 14.59,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "switch": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 96.79,
+   "mae": 11.39,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.59,
+   "near_pct": 96.79,
+   "mae": 17.24,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 96.79,
+   "mae": 11.39,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.59,
+   "near_pct": 96.79,
+   "mae": 17.24,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "switch_grouping": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.18,
+   "near_pct": 95.46,
+   "mae": 11.38,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.2,
+   "near_pct": 95.34,
+   "mae": 20.83,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.18,
+   "near_pct": 97.45,
+   "mae": 9.53,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.19,
+   "near_pct": 97.23,
+   "mae": 18.83,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "tabbed_flyout": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 96.7,
+   "mae": 11.22,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 78.03,
+   "mae": 31.4,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 96.23,
+   "mae": 11.74,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 83.91,
+   "mae": 20.42,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "templated_view": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 7.96,
+   "near_pct": 99.98,
+   "mae": 6.32,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 8.53,
+   "near_pct": 99.99,
+   "mae": 13.47,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 7.96,
+   "near_pct": 99.98,
+   "mae": 6.32,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 8.53,
+   "near_pct": 99.99,
+   "mae": 13.47,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "time_picker": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.66,
+   "near_pct": 89.42,
+   "mae": 15.95,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.75,
+   "near_pct": 88.08,
+   "mae": 18.86,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.66,
+   "near_pct": 89.46,
+   "mae": 15.93,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.75,
+   "near_pct": 88.14,
+   "mae": 18.81,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "title_bar": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 94.58,
+   "mae": 13.59,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.04,
+   "near_pct": 81.85,
+   "mae": 22.64,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 94.58,
+   "mae": 13.59,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.04,
+   "near_pct": 81.85,
+   "mae": 22.64,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "toolbar": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 96.28,
+   "mae": 9.51,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.06,
+   "near_pct": 91.93,
+   "mae": 17.88,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 96.28,
+   "mae": 9.51,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.06,
+   "near_pct": 91.93,
+   "mae": 17.88,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "transform_playground": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 10.33,
+   "near_pct": 98.79,
+   "mae": 7.65,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 10.49,
+   "near_pct": 98.66,
+   "mae": 14.37,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 3.15,
+   "near_pct": 87.52,
+   "mae": 21.28,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 3.15,
+   "near_pct": 73.74,
+   "mae": 51.72,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "transformations": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.58,
+   "near_pct": 94.25,
+   "mae": 12.59,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.64,
+   "near_pct": 94.15,
+   "mae": 20.39,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.58,
+   "near_pct": 94.25,
+   "mae": 12.59,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.64,
+   "near_pct": 94.15,
+   "mae": 20.39,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "triggers": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.39,
+   "mae": 7.21,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.35,
+   "near_pct": 99.26,
+   "mae": 14.83,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 99.39,
+   "mae": 7.21,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.35,
+   "near_pct": 99.26,
+   "mae": 14.83,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "update_path_data": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 99.28,
+   "mae": 7.51,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.03,
+   "near_pct": 99.04,
+   "mae": 15.66,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 98.85,
+   "mae": 8.04,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 98.78,
+   "mae": 15.7,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "varied_size_selector": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 49.96,
+   "near_pct": 99.12,
+   "mae": 4.52,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 49.96,
+   "near_pct": 92.3,
+   "mae": 8.41,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 49.09,
+   "mae": 47.63,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 42.26,
+   "mae": 73.75,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "vertical_stack": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.67,
+   "near_pct": 100.0,
+   "mae": 6.83,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.69,
+   "near_pct": 100.0,
+   "mae": 14.62,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.02,
+   "near_pct": 98.31,
+   "mae": 9.36,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 1.05,
+   "near_pct": 98.31,
+   "mae": 16.49,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ },
+ "visual_states": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 86.94,
+   "mae": 18.35,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.08,
+   "near_pct": 80.4,
+   "mae": 27.02,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 86.94,
+   "mae": 18.35,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.08,
+   "near_pct": 80.4,
+   "mae": 27.02,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "web_view": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 97.78,
+   "mae": 7.57,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.02,
+   "near_pct": 93.38,
+   "mae": 15.93,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.0,
+   "near_pct": 98.04,
+   "mae": 10.2,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 0.01,
+   "near_pct": 75.24,
+   "mae": 16.83,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "diff"
+  }
+ },
+ "z_index": {
+  "cpp_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 15.23,
+   "near_pct": 99.98,
+   "mae": 5.93,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "cpp_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 15.26,
+   "near_pct": 99.98,
+   "mae": 12.65,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_light": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 15.23,
+   "near_pct": 99.98,
+   "mae": 5.93,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  },
+  "xaml_dark": {
+   "dims_match": true,
+   "maui_size": [
+    480,
+    800
+   ],
+   "port_size": [
+    480,
+    800
+   ],
+   "exact_pct": 15.26,
+   "near_pct": 99.98,
+   "mae": 12.65,
+   "animated": false,
+   "frames": [
+    1,
+    1
+   ],
+   "verdict": "minor"
+  }
+ }
+}
