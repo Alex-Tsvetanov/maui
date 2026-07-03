@@ -177,4 +177,11 @@ namespace maui::core
         platform.source_file.clear();
         platform.source_loaded = false;
     }
+
+    // Headless has no native content to compose; the cross-platform map_content_layout already recorded the
+    // push (content_layout_push_count) which is what the size-request suite observes. No-op mirror.
+    void button_handler::apply_content_layout_native(button_platform& /*platform*/,
+                                                     maui::core::button_content_spec /*spec*/)
+    {
+    }
 } // namespace maui::core

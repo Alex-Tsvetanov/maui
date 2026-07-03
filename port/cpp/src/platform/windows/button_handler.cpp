@@ -43,11 +43,14 @@
 #include <winrt/Microsoft.UI.Xaml.Controls.Primitives.h> // ButtonBase.Click consume methods
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
 #include <winrt/Microsoft.UI.Xaml.Input.h>
+#include <winrt/Microsoft.UI.Xaml.Media.Imaging.h> // BitmapImage (the icon decode)
 #include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Microsoft.UI.Xaml.h>
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.UI.Text.h>
 #include <winrt/base.h>
+
+#include <filesystem>
 
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/dimension.hpp"
@@ -72,6 +75,7 @@ namespace
     namespace muxc = winrt::Microsoft::UI::Xaml::Controls;
     namespace muxi = winrt::Microsoft::UI::Xaml::Input;
     namespace muxm = winrt::Microsoft::UI::Xaml::Media;
+    namespace muxmi = winrt::Microsoft::UI::Xaml::Media::Imaging;
     namespace wut = winrt::Windows::UI::Text;
     namespace wnative = maui::platform::win;
 
@@ -83,6 +87,69 @@ namespace
     [[nodiscard]] muxc::Button button_of(const maui::core::button_platform& platform)
     {
         return wnative::borrow<muxc::Button>(platform.native);
+    }
+
+    // The MauiButton content parts (Content = StackPanel { Image, TextBlock }). Null when the button ran
+    // XAML-less (native == nullptr) — every caller guards on the returned control being non-null.
+    [[nodiscard]] muxc::StackPanel panel_of(const maui::core::button_platform& platform)
+    {
+        return wnative::borrow<muxc::StackPanel>(platform.content_panel);
+    }
+
+    [[nodiscard]] muxc::TextBlock text_block_of(const maui::core::button_platform& platform)
+    {
+        return wnative::borrow<muxc::TextBlock>(platform.text_block);
+    }
+
+    [[nodiscard]] muxc::Image image_of(const maui::core::button_platform& platform)
+    {
+        return wnative::borrow<muxc::Image>(platform.image_element);
+    }
+
+    // A BitmapImage over a file:/// URI for a local path (the FileImageSourceService recipe; the same
+    // decode the image_handler partial uses for the button's icon). std::filesystem::absolute resolves a
+    // relative path against the process cwd (where the gallery exe's assets sit). Null on any failure.
+    [[nodiscard]] muxmi::BitmapImage bitmap_from_file(std::string_view file)
+    {
+        try
+        {
+            const winrt::hstring wide = wnative::to_hstring_utf8(file);
+            std::error_code ec;
+            std::filesystem::path absolute =
+                std::filesystem::absolute(std::filesystem::path{std::wstring_view{wide}}, ec);
+            if (ec)
+            {
+                absolute = std::filesystem::path{std::wstring_view{wide}};
+            }
+            const std::wstring uri = L"file:///" + absolute.generic_wstring();
+            return muxmi::BitmapImage{winrt::Windows::Foundation::Uri{winrt::hstring{uri}}};
+        }
+        catch (const winrt::hresult_error&)
+        {
+            return muxmi::BitmapImage{nullptr};
+        }
+        catch (const std::exception&)
+        {
+            return muxmi::BitmapImage{nullptr};
+        }
+    }
+
+    // A BitmapImage over an already-resolved uri string (the loader's uri lane); a scheme-less detail
+    // reuses the file lane (the image_handler convention).
+    [[nodiscard]] muxmi::BitmapImage bitmap_from_uri(std::string_view uri)
+    {
+        if (!uri.contains("://"))
+        {
+            return bitmap_from_file(uri);
+        }
+        try
+        {
+            return muxmi::BitmapImage{winrt::Windows::Foundation::Uri{wnative::to_hstring_utf8(uri)}};
+        }
+        catch (const winrt::hresult_error&)
+        {
+            return muxmi::BitmapImage{nullptr};
+        }
     }
 
     // FontExtensions.ToFontStyle: Slant → FontStyle (Italic / Oblique / Normal).
@@ -118,6 +185,11 @@ namespace maui::core
     {
         wnative::release(pointer_pressed_handler);
         wnative::release(pointer_released_handler);
+        // The MauiButton content parts each hold their own strong ref (the Button also keeps them alive
+        // via Content → the panel's Children; releasing here mirrors the label partial's Border+TextBlock).
+        wnative::release(image_element);
+        wnative::release(text_block);
+        wnative::release(content_panel);
         wnative::release(native);
     }
 
@@ -191,14 +263,44 @@ namespace maui::core
         auto platform = std::make_unique<button_platform>();
         try
         {
-            // ButtonHandler.CreatePlatformView: new MauiButton() — a stock Button here (the MauiButton
-            // Image+TextBlock content composition is deferred with the image fan-out; header).
+            // ButtonHandler.CreatePlatformView: new MauiButton(), whose Content is a DefaultMauiButtonContent
+            // (a MauiPanel composing an Image + TextBlock). The WinUI-native twin: a centered StackPanel
+            // holding a Uniform-stretch Image (icon) and a centered TextBlock (title), both collapsed until
+            // their mapper supplies a value — so a text-only button shows just the text and an icon+text
+            // button lays them out per ContentLayout (map_content_layout drives orientation/order/spacing).
             const muxc::Button button;
-            platform->native = wnative::store(button); // released in ~button_platform
+
+            const muxc::Image image;
+            image.Stretch(muxm::Stretch::Uniform);
+            image.HorizontalAlignment(mux::HorizontalAlignment::Center);
+            image.VerticalAlignment(mux::VerticalAlignment::Center);
+            image.Visibility(mux::Visibility::Collapsed);
+
+            const muxc::TextBlock block;
+            block.HorizontalAlignment(mux::HorizontalAlignment::Center);
+            block.VerticalAlignment(mux::VerticalAlignment::Center);
+            block.TextAlignment(mux::TextAlignment::Center);
+            block.Visibility(mux::Visibility::Collapsed);
+
+            const muxc::StackPanel panel;
+            panel.HorizontalAlignment(mux::HorizontalAlignment::Center);
+            panel.VerticalAlignment(mux::VerticalAlignment::Center);
+            panel.Orientation(muxc::Orientation::Horizontal); // ContentLayout default is Left
+            panel.Children().Append(image);                   // image-first (Left/Top); reordered by ContentLayout
+            panel.Children().Append(block);
+            button.Content(panel);
+
+            platform->native = wnative::store(button);       // released in ~button_platform
+            platform->content_panel = wnative::store(panel); // the three parts each keep their own ref
+            platform->text_block = wnative::store(block);
+            platform->image_element = wnative::store(image);
         }
         catch (const winrt::hresult_error&)
         {
             platform->native = nullptr; // XAML-less degradation (header note)
+            platform->content_panel = nullptr;
+            platform->text_block = nullptr;
+            platform->image_element = nullptr;
         }
         return platform;
     }
@@ -310,11 +412,17 @@ namespace maui::core
             return;
         }
         platform->title = std::string(view.text());
-        // ButtonExtensions.UpdateText writes the MauiButton's inner TextBlock (and collapses it when
-        // the text is empty); the stock-Button cut sets Content = the boxed string (header deviation).
-        if (auto button = button_of(*platform))
+        // ButtonExtensions.UpdateText writes the MauiButton's inner TextBlock and collapses it when the
+        // text is empty (so a naked-icon button reclaims the text's space + spacing — MauiButton's
+        // AdjustSpacing). The re-apply keeps the StackPanel's spacing in sync with that visibility flip.
+        if (auto block = text_block_of(*platform))
         {
-            button.Content(winrt::box_value(wnative::to_hstring_utf8(view.text())));
+            const bool has_text = !view.text().empty();
+            block.Text(wnative::to_hstring_utf8(view.text()));
+            block.Visibility(has_text ? mux::Visibility::Visible : mux::Visibility::Collapsed);
+            apply_content_layout_native(*platform, {static_cast<button_content_spec::image_position>(
+                                                        platform->content_layout_position),
+                                                    platform->content_layout_spacing});
         }
     }
 
@@ -337,13 +445,22 @@ namespace maui::core
         // branch discriminated through BindableObject.IsSet (the port's color has no null).
         const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
         const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
+        auto block = text_block_of(*platform);
         if (color_is_set)
         {
             button.Foreground(wnative::to_brush(view.text_color()));
+            if (block)
+            {
+                block.Foreground(wnative::to_brush(view.text_color()));
+            }
         }
         else
         {
             button.ClearValue(muxc::Control::ForegroundProperty());
+            if (block)
+            {
+                block.ClearValue(muxc::TextBlock::ForegroundProperty());
+            }
         }
     }
 
@@ -364,7 +481,8 @@ namespace maui::core
         // IsTextScaleFactorEnabled (FontManager.GetFontSize/GetFontFamily — registrar skipped, header).
         const font value = view.font();
         const double size = value.size();
-        button.FontSize((size > 0 && !std::isnan(size)) ? size : k_default_font_size);
+        const double resolved_size = (size > 0 && !std::isnan(size)) ? size : k_default_font_size;
+        button.FontSize(resolved_size);
         if (!value.family().empty())
         {
             button.FontFamily(muxm::FontFamily{wnative::to_hstring_utf8(value.family())});
@@ -376,6 +494,23 @@ namespace maui::core
         button.FontStyle(to_font_style(value.slant()));
         button.FontWeight(to_font_weight(value.weight()));
         button.IsTextScaleFactorEnabled(value.auto_scaling_enabled());
+        // Mirror onto the composed TextBlock — ControlExtensions.UpdateFont writes the MauiButton content's
+        // text part so the glyphs render at the mapped size/family/style/weight.
+        if (auto block = text_block_of(*platform))
+        {
+            block.FontSize(resolved_size);
+            if (!value.family().empty())
+            {
+                block.FontFamily(muxm::FontFamily{wnative::to_hstring_utf8(value.family())});
+            }
+            else
+            {
+                block.ClearValue(muxc::TextBlock::FontFamilyProperty());
+            }
+            block.FontStyle(to_font_style(value.slant()));
+            block.FontWeight(to_font_weight(value.weight()));
+            block.IsTextScaleFactorEnabled(value.auto_scaling_enabled());
+        }
     }
 
     void button_handler::map_character_spacing(button_handler& handler, i_text_button& view)
@@ -386,11 +521,17 @@ namespace maui::core
             return;
         }
         platform->character_spacing = view.character_spacing();
-        // ButtonExtensions.UpdateCharacterSpacing: CharacterSpacing = value.ToEm() (the inner-TextBlock
-        // second push is MauiButton-only — header deviation).
+        // ButtonExtensions.UpdateCharacterSpacing: CharacterSpacing = value.ToEm(), pushed to BOTH the
+        // Button and its inner TextBlock — the TextBlock is where the visible glyph spacing lands (the
+        // Control-level value alone does not reach the composed content).
+        const auto em = wnative::to_em(view.character_spacing());
         if (auto button = button_of(*platform))
         {
-            button.CharacterSpacing(wnative::to_em(view.character_spacing()));
+            button.CharacterSpacing(em);
+        }
+        if (auto block = text_block_of(*platform))
+        {
+            block.CharacterSpacing(em);
         }
     }
 
@@ -549,12 +690,13 @@ namespace maui::core
     }
 
     // ---- per-backend image-source primitives (the cross-platform map_image_source routes here) ----
-    // deferred: the windows Button's icon rides MauiButton's Image content part
-    // (ButtonExtensions.UpdateImageSource) — the stock-Button cut has no image part and no decode
-    // pipeline on this backend yet (header deviations). The primitives update the shared
-    // headless-style mirrors (kind/file/loaded) so the cross-platform suite still observes the load.
+    // The windows Button's icon rides the MauiButton content's Image part (ButtonExtensions.UpdateImageSource):
+    // a decoded BitmapImage lands on the StackPanel's Image and makes it Visible; a cleared source collapses
+    // it. After each visibility flip the ContentLayout is re-applied so AdjustSpacing tracks the change. The
+    // shared mirrors (kind/file/loaded) are still maintained for the XAML-less cross-platform suite.
 
-    // deferred: leave the loader on its defaults (no BitmapImage/CanvasImageSource seam yet).
+    // The loader keeps its defaults: the file fast-path decodes synchronously below, and uri results arrive
+    // through apply_loaded_result — both over the BitmapImage-over-Uri lane (no CanvasImageSource needed).
     void button_handler::configure_loader(maui::core::image_source_loader& /*loader*/)
     {
     }
@@ -564,6 +706,22 @@ namespace maui::core
         platform.source_kind = "file";
         platform.source_file = std::string(file_src.file());
         platform.source_loaded = true;
+        if (auto image = image_of(platform))
+        {
+            if (const auto bitmap = bitmap_from_file(file_src.file()))
+            {
+                image.Source(bitmap);
+                image.Visibility(mux::Visibility::Visible);
+            }
+            else
+            {
+                image.ClearValue(muxc::Image::SourceProperty());
+                image.Visibility(mux::Visibility::Collapsed);
+            }
+            apply_content_layout_native(
+                platform, {static_cast<button_content_spec::image_position>(platform.content_layout_position),
+                           platform.content_layout_spacing});
+        }
     }
 
     void button_handler::apply_loaded_result(button_platform& platform, const image_source_result& result)
@@ -576,6 +734,23 @@ namespace maui::core
         platform.source_kind = result.kind();
         platform.source_file = result.detail();
         platform.source_loaded = true;
+        if (auto image = image_of(platform))
+        {
+            // uri/file loader results decode over the same BitmapImage-over-Uri lane (detail = path/uri).
+            if (const auto bitmap = bitmap_from_uri(result.detail()))
+            {
+                image.Source(bitmap);
+                image.Visibility(mux::Visibility::Visible);
+            }
+            else
+            {
+                image.ClearValue(muxc::Image::SourceProperty());
+                image.Visibility(mux::Visibility::Collapsed);
+            }
+            apply_content_layout_native(
+                platform, {static_cast<button_content_spec::image_position>(platform.content_layout_position),
+                           platform.content_layout_spacing});
+        }
     }
 
     void button_handler::clear_source_native(button_platform& platform)
@@ -583,5 +758,49 @@ namespace maui::core
         platform.source_kind.clear();
         platform.source_file.clear();
         platform.source_loaded = false;
+        if (auto image = image_of(platform))
+        {
+            image.ClearValue(muxc::Image::SourceProperty());
+            image.Visibility(mux::Visibility::Collapsed);
+            apply_content_layout_native(
+                platform, {static_cast<button_content_spec::image_position>(platform.content_layout_position),
+                           platform.content_layout_spacing});
+        }
+    }
+
+    // ButtonExtensions.UpdateContentLayout: orient the StackPanel along the image axis (Left/Right →
+    // Horizontal; Top/Bottom → Vertical), order the parts (image-first for Left/Top, text-first for
+    // Right/Bottom), and set the inter-part spacing — collapsed to 0 when either part is hidden (MauiButton's
+    // AdjustSpacing). A no-op when the button ran XAML-less (parts null).
+    void button_handler::apply_content_layout_native(button_platform& platform, maui::core::button_content_spec spec)
+    {
+        platform.content_layout_position = static_cast<int>(spec.position);
+        platform.content_layout_spacing = spec.spacing;
+        auto panel = panel_of(platform);
+        auto image = image_of(platform);
+        auto block = text_block_of(platform);
+        if (!panel || !image || !block)
+        {
+            return;
+        }
+        using pos = button_content_spec::image_position;
+        const bool horizontal = spec.position == pos::left || spec.position == pos::right;
+        const bool image_first = spec.position == pos::left || spec.position == pos::top;
+        panel.Orientation(horizontal ? muxc::Orientation::Horizontal : muxc::Orientation::Vertical);
+        // Reorder the two children in place (they stay pinned by the platform's own strong refs).
+        panel.Children().Clear();
+        if (image_first)
+        {
+            panel.Children().Append(image);
+            panel.Children().Append(block);
+        }
+        else
+        {
+            panel.Children().Append(block);
+            panel.Children().Append(image);
+        }
+        const bool both_visible = image.Visibility() == mux::Visibility::Visible &&
+                                  block.Visibility() == mux::Visibility::Visible;
+        panel.Spacing(both_visible ? spec.spacing : 0.0);
     }
 } // namespace maui::core

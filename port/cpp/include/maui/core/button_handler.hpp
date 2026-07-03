@@ -190,6 +190,18 @@ namespace maui::core
         std::int64_t click_token = 0;
         void* pointer_pressed_handler = nullptr;
         void* pointer_released_handler = nullptr;
+        // MauiButton content composition (the DefaultMauiButtonContent port): the Button.Content is a
+        // StackPanel holding an Image (icon) + a TextBlock (title), so a button can show an icon and text
+        // laid out per ContentLayout — the WinUI-native twin of MauiButton's MauiPanel (Image+TextBlock).
+        // Each is pinned by its own strong ref (the label partial's Border+inner-TextBlock shape) and freed
+        // in the dtor. content_layout_* cache the last-applied ContentLayout so map_text / the image
+        // primitives can re-run AdjustSpacing when a child's visibility flips (C# re-runs UpdateContentLayout
+        // on UpdateIsLoading). content_layout_position mirrors button_content_spec::image_position by ordinal.
+        void* content_panel = nullptr;
+        void* text_block = nullptr;
+        void* image_element = nullptr;
+        int content_layout_position = 0;   // left(0)/top(1)/right(2)/bottom(3)
+        double content_layout_spacing = 10.0;
 #endif
     };
 
@@ -263,6 +275,10 @@ namespace maui::core
         static void apply_loaded_result(button_platform& platform, const image_source_result& result);
         static void clear_source_native(button_platform& platform);
         static void configure_loader(maui::core::image_source_loader& loader);
+        // Per-backend ContentLayout composition (image position + spacing). Windows arranges the
+        // Image+TextBlock StackPanel; headless/apple/android keep the mirror (no-op) — the count in the
+        // cross-platform map_content_layout is what those backends' tests observe.
+        static void apply_content_layout_native(button_platform& platform, maui::core::button_content_spec spec);
 
         maui::core::image_source_loader image_source_loader_;
     };
