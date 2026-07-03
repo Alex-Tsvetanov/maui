@@ -19,8 +19,13 @@
         <!-- CollectionView.Header / .Footer (view form) are unsupported, so the header/footer StackLayouts
              are moved to plain siblings ABOVE / BELOW the CollectionView (wrapped together with it in a
              VerticalStackLayout) — preserving the resting top-to-bottom order. -->
-        <VerticalStackLayout Grid.Row="1">
-        <StackLayout>
+        <Grid Grid.Row="1">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackLayout Grid.Row="0">
             <Image Source="oasis.jpg" Aspect="AspectFill" HeightRequest="60" />
             <Label Text="This Is A Header" TextColor="AntiqueWhite" HorizontalTextAlignment="Center"
                    FontAttributes="Bold" FontSize="36" />
@@ -28,7 +33,7 @@
                 <Button Text="Add Content" />
             </StackLayout>
         </StackLayout>
-        <CollectionView ItemsLayout="HorizontalGrid, 3">
+        <CollectionView Grid.Row="1" ItemsLayout="HorizontalGrid, 3">
             <CollectionView.ItemsSource>
                 <x:Array Type="{x:Type x:String}">
                     <x:String>cover1.jpg, 0</x:String>
@@ -49,7 +54,7 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-        <StackLayout>
+        <StackLayout Grid.Row="2">
             <Image Source="cover1.jpg" Aspect="AspectFill" HeightRequest="80" />
             <Label Text="This Is A Footer" TextColor="AntiqueWhite" HorizontalTextAlignment="Center" Rotation="10"
                    FontAttributes="Bold" FontSize="20" />
@@ -57,6 +62,6 @@
                 <Button Text="Add Content" />
             </StackLayout>
         </StackLayout>
-        </VerticalStackLayout>
+        </Grid>
     </Grid>
 </ContentPage>

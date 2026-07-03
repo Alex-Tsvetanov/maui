@@ -12,7 +12,7 @@
         <!-- Row 1: the CollectionView (GridItemsLayout Span=3, Vertical). CollectionView.EmptyView (view
              form) is unsupported, so its two-label StackLayout is moved to a plain sibling in the same cell;
              at rest the source is full so the item cells show over it. -->
-        <StackLayout Grid.Row="1">
+        <StackLayout Grid.Row="1" HorizontalOptions="Center" VerticalOptions="Center">
             <Label Text="No results matched your filter."
                    FontAttributes="Bold" FontSize="18" Margin="10,25,10,10"
                    HorizontalTextAlignment="Center" />

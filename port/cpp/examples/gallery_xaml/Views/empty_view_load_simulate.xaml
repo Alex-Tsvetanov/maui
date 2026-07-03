@@ -10,7 +10,7 @@
              string nor element form), so the empty-state message is rendered as a plain sibling Label in
              the same cell — which is what shows at rest, since the source is empty. GridItemsLayout Span="3"
              Vertical (LinearItemsLayout element form unsupported -> string attribute form). -->
-        <Label Grid.Row="1" Text="Items loading simulation..." />
+        <Label Grid.Row="1" Text="Items loading simulation..." HorizontalOptions="Center" VerticalOptions="Center" />
         <CollectionView Grid.Row="1" ItemsLayout="VerticalGrid, 3">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
