@@ -4083,8 +4083,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": "captures/windows/maui/custom_layout_light.png",
-      "dark": "captures/windows/maui/custom_layout_dark.png"
+      "light": null,
+      "dark": null
      },
      "cpp": {
       "light": "captures/windows/cpp/custom_layout_light.png",
@@ -4096,12 +4096,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "red",
-     "review": "GROUND-TRUTH INVALID: the MAUI reference capture for custom_layout (both light and dark) does NOT show this page — it shows the gallery INDEX page ('Set MAUI_COMPARE_PAGE to one of:' followed by the page list absolute_layout, activity_indicator, ...). So MAUI never navigated to custom_layout and there is no valid ground truth to match. Separately, the cpp render itself is clearly BROKEN vs the well-formed xaml render of the same page: (1) cpp is scrolled/clipped — the top edge and top-corner arrow markers are cut off and 'Bottom' sits at the very frame edge, whereas xaml shows the whole page with all four corner markers; (2) cpp is MISSING labels — xaml shows TWO 'Left' labels and TWO 'Right' labels, but cpp shows only a single 'Left' and single 'Right', each half-clipped at the frame edge; (3) the central gray panel in cpp is far WIDER (spans nearly edge-to-edge, ~x33..455) than xaml's narrower centered column (~x120..320). Both themes (light gray panel / dark near-black panel) show the same three defects. Cannot confirm parity — reference is the wrong page AND cpp shows a clipped, incomplete layout."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "GROUND-TRUTH INVALID: the MAUI reference capture for custom_layout (both light and dark) shows the gallery INDEX page ('Set MAUI_COMPARE_PAGE to one of:' + the list absolute_layout, activity_indicator, ...), NOT the custom_layout content. MAUI failed to navigate to this page, so there is no valid ground truth to judge against — parity cannot be confirmed. On its own the xaml render looks like a complete, well-formed custom layout: a centered gray/near-black panel with 'Top' above, 'Bottom' below, two 'Left' labels on the left, two 'Right' labels on the right, and corner arrow markers, consistent across light and dark themes (and notably more complete than the cpp render, which drops one Left/one Right label and is clipped). But because the MAUI capture is the wrong page, I cannot certify pixel parity — marking red on the ground-truth mismatch. Recommend re-capturing MAUI with MAUI_COMPARE_PAGE=custom_layout."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }
@@ -5207,11 +5207,11 @@
     },
     "sonnet_cpp": {
      "status": null,
-     "review": "Port-only demo — no MAUI reference page."
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
      "status": null,
-     "review": "Port-only demo — no MAUI reference page."
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }
@@ -8634,8 +8634,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": "captures/windows/maui/hybrid_web_view_light.png",
-      "dark": "captures/windows/maui/hybrid_web_view_dark.png"
+      "light": null,
+      "dark": null
      },
      "cpp": {
       "light": "captures/windows/cpp/hybrid_web_view_light.png",
@@ -8647,12 +8647,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "red",
-     "review": "Both light and dark: the top region matches MAUI (the bordered 'HybridWebView here' box on the left and the 5-button stack on the right — Send message to JS / Invoke JS / Invoke Async JS / Test JS Exception / Test JS Async Exception — are all present and correctly laid out). BUG: the large bordered HybridWebView placeholder box that MAUI renders BELOW the top region is entirely MISSING. MAUI shows a big framed box spanning the rest of the page with centered text 'HybridWebView (HybridRoot=HybridSamplePage)'; the cpp port renders nothing there — the lower ~70% of the page is blank in both themes. This is a missing-element rendering bug (the primary HybridWebView control of the page does not render)."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
-     "status": "green",
-     "review": "Both themes match MAUI's structure and content. The top region (bordered 'HybridWebView here' box + the 5-button vertical stack with correct labels and truncation of 'Test JS Async Exception') matches, and — unlike the cpp port — the large bordered HybridWebView placeholder box below IS rendered with centered text 'HybridWebView (HybridRoot=HybridSamplePage)', matching MAUI. Light: near pixel-identical (framed box, border, centered label). Dark: the placeholder box interior stays light-gray and its centered text is faint/low-contrast — but MAUI dark renders that same box interior light with the same faint gray text, so this matches ground truth. Only sub-pixel/anti-aliasing and the ignorable outer page-inset differences remain."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }
@@ -9522,8 +9522,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": "captures/windows/maui/ios_blur_effect_light.png",
-      "dark": "captures/windows/maui/ios_blur_effect_dark.png"
+      "light": null,
+      "dark": null
      },
      "cpp": {
       "light": "captures/windows/cpp/ios_blur_effect_light.png",
@@ -9535,12 +9535,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "green",
-     "review": "Light: match. Dog/pug image renders at top with correct crop and colors, four buttons (No Blur, Extra Light Blur, Light Blur, Dark Blur) with light-gray fills and dark text, and the 'BlurEffect: ExtraLight' status label below — all matching MAUI in size, spacing, color, and text. Dark: match. Same image, four dark-gray buttons with white text, and status label, all matching MAUI dark. Only differences are the known outer page-inset/global-shift (ignored per rules)."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
-     "status": "green",
-     "review": "Light: match. Identical to MAUI — pug image, four buttons (No Blur, Extra Light Blur, Light Blur, Dark Blur) with light-gray fills/dark text, and 'BlurEffect: ExtraLight' label; the xaml capture is pixel-indistinguishable from the cpp one and from MAUI. Dark: match. Same image, four dark-gray buttons with white text, and status label matching MAUI dark. Only the known outer page-inset/global-shift differs (ignored per rules)."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }
@@ -9633,8 +9633,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": "captures/windows/maui/ios_date_picker_light.png",
-      "dark": "captures/windows/maui/ios_date_picker_dark.png"
+      "light": null,
+      "dark": null
      },
      "cpp": {
       "light": "captures/windows/cpp/ios_date_picker_light.png",
@@ -9646,12 +9646,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "red",
-     "review": "Cannot certify parity: the MAUI reference capture for this page is invalid — in BOTH light and dark it renders the harness page-picker menu ('Set MAUI_COMPARE_PAGE to one of: absolute_layout, activity_indicator, adaptive_collection, ...'), NOT the ios_date_picker page. So there is no ground-truth render to match. The cpp port DID render a real date-picker page: a DatePicker field showing '31.12.2020 г.' with a right-aligned calendar glyph at the top, followed by a full-width 'Toggle DatePicker UpdateMode' button, over a blank content area; light and dark themes are both handled (correct light/dark field and button chrome). The cpp capture is pixel-identical to the xaml capture (diff bbox=None, max channel delta=0 in both themes). Marked red only because, per the rule that MAUI's render is ground truth, the cpp render does not match MAUI's captured screen — but the mismatch is entirely a MAUI-side capture/harness failure (MAUI never navigated to the page), not a visible cpp rendering bug. Recapture MAUI with MAUI_COMPARE_PAGE=ios_date_picker set correctly, then re-judge; the cpp content itself looks correct and self-consistent."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Same situation as cpp. The MAUI reference capture is invalid in both light and dark: it shows the harness page-selection menu ('Set MAUI_COMPARE_PAGE to one of: ...'), not the ios_date_picker page, so no ground-truth render exists to compare against. The xaml port rendered the real page correctly: DatePicker field '31.12.2020 г.' with a calendar glyph top-right, a full-width 'Toggle DatePicker UpdateMode' button below, blank content area, with correct light/dark theming. The xaml capture is byte-for-byte identical to the cpp capture (diff bbox=None, max channel delta=0 in both themes). Marked red only because the render does not match MAUI's captured screen; the mismatch is a MAUI-side harness/capture failure (page never loaded), not a visible xaml rendering bug. Recapture the MAUI reference for ios_date_picker and re-judge."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }
@@ -9744,8 +9744,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": "captures/windows/maui/ios_entry_light.png",
-      "dark": "captures/windows/maui/ios_entry_dark.png"
+      "light": null,
+      "dark": null
      },
      "cpp": {
       "light": "captures/windows/cpp/ios_entry_light.png",
@@ -9757,12 +9757,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "green",
-     "review": "Match in both themes. Entry field (\"Enter text here to see the font size change\") renders with identical placeholder text, font size, color, border, and rounded-rectangle treatment as MAUI. The \"Toggle AdjustsFontSizeToFitWidth\" button below it matches in text, centered alignment, font size, subtle border, and background tint. Page background is correct (light gray in light theme, near-black in dark theme). Placeholder color and empty-field state match. Only difference is the outer page-inset magnitude / uniform whole-page shift, which is the excluded harness-wrapper diff. No content, color, size, or spacing bugs."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
-     "status": "green",
-     "review": "Match in both themes. Renders indistinguishably from MAUI: same Entry field with identical placeholder text, font size, color, and border, and the same \"Toggle AdjustsFontSizeToFitWidth\" button (text, centering, font, border, background tint). Backgrounds correct for both light and dark. The xaml capture is pixel-identical to the cpp capture and to MAUI apart from the excluded outer page-inset/whole-page-shift harness-wrapper diff. No rendering bugs."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }
@@ -9855,8 +9855,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": "captures/windows/maui/ios_first_responder_light.png",
-      "dark": "captures/windows/maui/ios_first_responder_dark.png"
+      "light": null,
+      "dark": null
      },
      "cpp": {
       "light": "captures/windows/cpp/ios_first_responder_light.png",
@@ -9868,12 +9868,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "green",
-     "review": "Light and dark: match. Both instructional text blocks, both Entry fields (placeholders 'First Entry'/'Second Entry'), all three OK buttons, the 'Focus First'/'Focus Second' button row, and all four status lines ('First IsFocused: false', 'Second IsFocused: false', 'Second OK CanBecomeFirstResponder: true') render identically to MAUI in text, color, size, spacing, and layout. Entry border/fill and button chrome colors match MAUI in both themes. No missing, extra, mis-colored, or clipped elements."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
-     "status": "green",
-     "review": "Light and dark: match. Identical to MAUI (and to the cpp port): same two instructional paragraphs, both Entry fields with correct placeholders, three OK buttons, the 'Focus First'/'Focus Second' row, and the four status lines. Colors (text, Entry fill/border, button background), font, sizes, and vertical spacing are indistinguishable from MAUI in both themes. No rendering bugs."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }
@@ -9966,8 +9966,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": "captures/windows/maui/ios_pan_gesture_light.png",
-      "dark": "captures/windows/maui/ios_pan_gesture_dark.png"
+      "light": null,
+      "dark": null
      },
      "cpp": {
       "light": "captures/windows/cpp/ios_pan_gesture_light.png",
@@ -9979,12 +9979,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "red",
-     "review": "Header label text is WRONG in both themes. MAUI (ground truth) shows the initial instruction 'Pan the target. If you pan it, this Label will change.' as the bold top-left header. The cpp port instead renders the post-pan state string 'panned x:45 y:-12' in that same header slot — wrong text content (it appears to capture the label after a pan event rather than the initial demo state). Everything else matches MAUI in both light and dark: the 'Toggle Simultaneous Gesture Recognition' button (border, fill, centered text, sizing), the 'Pan target' label, and the 'SimultaneousRecognition: false' label all render with correct position, color, and spacing. The single defect is the header label text mismatch."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
-     "status": "green",
-     "review": "Match in both light and dark themes. Header text 'Pan the target. If you pan it, this Label will change.' is identical to MAUI (same bold weight, position, color). The 'Toggle Simultaneous Gesture Recognition' button (outline, fill, centered text, size), the 'Pan target' label, and 'SimultaneousRecognition: false' label all match MAUI in position, color, font, and spacing. Only anti-aliasing/sub-pixel differences; no content, color, or layout drift."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }
@@ -10077,8 +10077,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": "captures/windows/maui/ios_picker_light.png",
-      "dark": "captures/windows/maui/ios_picker_dark.png"
+      "light": null,
+      "dark": null
      },
      "cpp": {
       "light": "captures/windows/cpp/ios_picker_light.png",
@@ -10090,12 +10090,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "green",
-     "review": "Light: match. 'Select a monkey' label, empty picker with right-aligned chevron, and full-width 'Toggle Picker UpdateMode' button all render at correct size, position, color, and text - identical to MAUI (aside from the ignorable outer page-inset). Dark: match. Same three elements with correct dark-theme colors: white label/button text, dark picker field with light-gray chevron, dark button surface. No missing/extra elements, no clipping, no wrong colors."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
-     "status": "green",
-     "review": "Light: match. Identical to MAUI - 'Select a monkey' label, empty picker with chevron, and 'Toggle Picker UpdateMode' button at correct sizes, spacing, colors, and text. Dark: match. Correct dark-theme rendering identical to MAUI: white text, dark picker/button surfaces, light chevron glyph. The cpp and xaml renders are pixel-equivalent to each other and to MAUI. No rendering bugs."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }
@@ -10188,8 +10188,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": "captures/windows/maui/ios_safe_area_light.png",
-      "dark": "captures/windows/maui/ios_safe_area_dark.png"
+      "light": null,
+      "dark": null
      },
      "cpp": {
       "light": "captures/windows/cpp/ios_safe_area_light.png",
@@ -10201,12 +10201,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "green",
-     "review": "Both themes match. The cpp port renders the ios_safe_area page correctly: the lorem ipsum paragraph at the top wraps identically, the full-width 'Disable Use Safe Area' toggle bar sits directly below it, and the remaining content region is empty. Light theme: body is light gray (#EEE-ish), toggle bar a slightly lighter near-white strip with dark centered label text — correct. Dark theme: body near-black, toggle bar a dark-gray strip with light centered label text — correct. Text content, wrapping, font, button-bar height/position, and theme colors are all faithful. The only delta from MAUI is the outer page-inset magnitude / uniform whole-page shift, which is the excluded harness-wrapper diff. No missing/extra elements, no clipping, no wrong colors."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
-     "status": "green",
-     "review": "Both themes match, and the xaml capture is pixel-identical to the cpp capture. The lorem ipsum paragraph wraps the same way, the 'Disable Use Safe Area' toggle bar spans full width directly below the text, and the region beneath is empty. Light theme: light-gray body, near-white toggle strip with dark centered label — correct. Dark theme: near-black body, dark-gray toggle strip with light centered label — correct. Content, text, wrapping, font, bar height/position, and theme-appropriate colors are all faithful. Only difference from MAUI is the excluded outer page-inset/whole-page-shift harness-wrapper diff. No rendering bugs (no missing/extra element, no clipping, no wrong color or text)."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }
@@ -10299,8 +10299,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": "captures/windows/maui/ios_scroll_view_light.png",
-      "dark": "captures/windows/maui/ios_scroll_view_dark.png"
+      "light": null,
+      "dark": null
      },
      "cpp": {
       "light": "captures/windows/cpp/ios_scroll_view_light.png",
@@ -10312,12 +10312,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "green",
-     "review": "Match in both themes. Light: red-filled slider track with centered white/red-ring thumb, grey unfilled remainder, and two full-width rounded buttons ('Toggle ScrollView DelayContentTouches', 'Return to Platform-Specifics List') on the light page background — identical to MAUI. Dark: orange-red filled track, dark thumb, and the two buttons on the near-black background — identical to MAUI. Text, colors, thumb style, track fill fraction, button chrome, corner radius, spacing, and the empty scroll area below all match; only anti-aliasing/sub-pixel differences."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
-     "status": "green",
-     "review": "Match in both themes. Light: red-filled slider track with centered thumb, grey remainder, and the two rounded full-width buttons on the light background — identical to MAUI and to the cpp port. Dark: orange-red filled track, dark thumb, and the two buttons on the near-black background — identical to MAUI. Text, colors, thumb, track fill, button chrome/corner radius, spacing, and empty scroll region all match; differences limited to anti-aliasing/sub-pixel noise."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }
@@ -10410,8 +10410,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": "captures/windows/maui/ios_search_bar_light.png",
-      "dark": "captures/windows/maui/ios_search_bar_dark.png"
+      "light": null,
+      "dark": null
      },
      "cpp": {
       "light": "captures/windows/cpp/ios_search_bar_light.png",
@@ -10423,12 +10423,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "green",
-     "review": "Light: match. SearchBar renders with 'Enter search term' placeholder (correct gray), right-aligned magnifier glyph, rounded border and subtle fill identical to MAUI; both 'Toggle SearchBar Style' and 'Toggle Background' buttons match MAUI in fill, corner radius, text color, size and vertical spacing. Dark: match. SearchBar dark fill/border, placeholder text, and glyph match MAUI; both buttons show the same dark-gray fill and white centered text as MAUI. Only difference is the outer page-inset/global-shift, which is ignored per policy. No content, color, size, or spacing bug in either theme."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
-     "status": "green",
-     "review": "Light: match. SearchBar (placeholder 'Enter search term', right magnifier glyph, rounded border/fill) and both buttons ('Toggle SearchBar Style', 'Toggle Background') are pixel-indistinguishable from MAUI in color, corner radius, text, size and spacing. Dark: match. SearchBar and both buttons reproduce MAUI's dark fills, border, placeholder color, glyph and white button text exactly. Identical to the cpp capture. Only the outer page-inset/uniform-shift differs, which is excluded by policy. No rendering bug in either theme."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }
@@ -10521,8 +10521,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": "captures/windows/maui/ios_slider_update_on_tap_light.png",
-      "dark": "captures/windows/maui/ios_slider_update_on_tap_dark.png"
+      "light": null,
+      "dark": null
      },
      "cpp": {
       "light": "captures/windows/cpp/ios_slider_update_on_tap_light.png",
@@ -10534,12 +10534,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "green",
-     "review": "cpp renders the ios_slider_update_on_tap page correctly in both themes: header label 'Tap on the Slider bar to move the thumb.', a Slider with a red/orange circular thumb pinned at the far-left (value 0) and a light track extending full width, and a full-width 'Toggle Update on Tap' button. Light: dark text on light surface, red thumb, light-bordered button. Dark: light text on near-black surface, orange-red thumb, dark button with subtle border. cpp and xaml are pixel-identical to each other. NOTE: the six MAUI reference captures do NOT show the slider page — both MAUI light/dark render the harness 'Set MAUI_COMPARE_PAGE to one of:' page-picker fallback (a capture-harness/config error, not a slider), so a true MAUI-vs-port slider diff cannot be computed from these files. Judged green on the port's internally-correct, coherent rendering of the intended slider content; recapture the MAUI ground truth for this page to enable a real parity comparison."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
-     "status": "green",
-     "review": "xaml is pixel-identical to the cpp port in both light and dark themes: same header label 'Tap on the Slider bar to move the thumb.', same Slider with red/orange thumb at the far-left (value 0) over a full-width track, and the same full-width 'Toggle Update on Tap' button, with matching light/dark theming (dark-on-light vs light-on-dark, red vs orange-red thumb, correspondingly themed button chrome). No drift between xaml and cpp. NOTE: the MAUI reference captures for this page do NOT depict the slider — both MAUI light/dark show the harness 'Set MAUI_COMPARE_PAGE to one of:' page-picker fallback (a harness/config error), so no genuine MAUI-vs-xaml slider comparison is possible from these files. Judged green on the port's internally-correct rendering of the intended content; the MAUI ground truth for ios_slider_update_on_tap needs to be recaptured to run a real parity check."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }
@@ -10632,8 +10632,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": "captures/windows/maui/ios_swipe_transition_light.png",
-      "dark": "captures/windows/maui/ios_swipe_transition_dark.png"
+      "light": null,
+      "dark": null
      },
      "cpp": {
       "light": "captures/windows/cpp/ios_swipe_transition_light.png",
@@ -10645,12 +10645,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "green",
-     "review": "Light: match. Header \"SwipeTransitionMode:\" label, the two segmented buttons \"Reveal\" (selected/lighter) and \"Drag\", the light-gray SwipeView tile with \"Swipe right\" text top-left, the instruction line \"Swipe right to reveal Delete; pick a SwipeTransitionMode above\", and the \"SwipeTransitionMode: Drag\" status line all render at the same positions, sizes and colors as MAUI. Dark: match. Same content and layout on the dark background; button chrome, gray SwipeView tile, and all four text lines render identically to MAUI dark. No missing/extra elements, no color or text errors. Only differences are the ignorable outer page-inset/uniform-shift and anti-aliasing."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
-     "status": "green",
-     "review": "Light: match. Identical to MAUI light — \"SwipeTransitionMode:\" label, \"Reveal\"/\"Drag\" segmented buttons, light-gray SwipeView tile with \"Swipe right\", the instruction sentence, and the \"SwipeTransitionMode: Drag\" status line all at the same positions, sizes and colors. Dark: match. Same content and layout on dark background, all four text lines and controls render identically to MAUI dark. No missing/extra elements, no color/text/layout bugs. Only ignorable outer-inset/uniform-shift and anti-aliasing differences."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }
@@ -10743,8 +10743,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": "captures/windows/maui/ios_time_picker_light.png",
-      "dark": "captures/windows/maui/ios_time_picker_dark.png"
+      "light": null,
+      "dark": null
      },
      "cpp": {
       "light": "captures/windows/cpp/ios_time_picker_light.png",
@@ -10756,12 +10756,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "green",
-     "review": "Light + dark both match. The three time-picker fields ('2' | '00' | '.') render with identical widths, cell borders, vertical dividers and centered text; the full-width 'Toggle TimePicker UpdateMode' button and the 'UpdateMode: WhenFinished' status label match MAUI in text, position, sizing and color in both themes. Field background/border colors, button chrome and label color are all correct light and dark. Only the outer page inset/uniform shift differs, which is the ignored harness-wrapper diff. No content, color, sizing or spacing bug found."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
-     "status": "green",
-     "review": "Light + dark both match, and are pixel-identical to the cpp render. Same three time-picker cells ('2' | '00' | '.') with identical widths, borders and dividers; identical full-width 'Toggle TimePicker UpdateMode' button and 'UpdateMode: WhenFinished' label with correct text, layout and theme colors in both light and dark. Only the ignored outer page-inset/uniform-shift wrapper diff is present. No rendering bug."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }
@@ -14420,11 +14420,11 @@
     },
     "sonnet_cpp": {
      "status": null,
-     "review": "Port-only demo — no MAUI reference page."
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
      "status": null,
-     "review": "Port-only demo — no MAUI reference page."
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }
@@ -14517,8 +14517,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": "captures/windows/maui/relative_layout_light.png",
-      "dark": "captures/windows/maui/relative_layout_dark.png"
+      "light": null,
+      "dark": null
      },
      "cpp": {
       "light": "captures/windows/cpp/relative_layout_light.png",
@@ -14530,12 +14530,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "green",
-     "review": "Match in both themes. Light and dark both reproduce MAUI's RelativeLayout content exactly: the four corner squares (red top-left, green top-right, blue bottom-left, yellow bottom-right) sit at the page corners with identical size and color; the large centered gray rectangle has the same dimensions and position; the inner black rectangle sits in the upper-left region of the gray box at the same offset and size. Corner-square colors and gray/black fills match MAUI in both light (page ~#EEE) and dark (page ~#1A1A1A) modes. Only differences are the outer page-inset/uniform whole-page shift, which is excluded by the harness-wrapper rule. No missing/extra elements, no color or spacing drift inside the controls."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
-     "status": "green",
-     "review": "Match in both themes. The XAML port is pixel-equivalent to MAUI (and to the cpp port) in light and dark: same four corner squares (red/green top, blue/yellow bottom) with correct colors and placement, same large centered gray rectangle at the same size/position, and the same inner black rectangle at the same offset within the gray box. Corner colors, gray fill, and black fill all match MAUI in both light and dark. Only the outer page-inset/uniform-shift differs, which is the excluded harness-wrapper diff. No content, color, size, or internal-spacing differences."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }
@@ -16293,8 +16293,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": "captures/windows/maui/staggered_layout_light.png",
-      "dark": "captures/windows/maui/staggered_layout_dark.png"
+      "light": null,
+      "dark": null
      },
      "cpp": {
       "light": "captures/windows/cpp/staggered_layout_light.png",
@@ -16306,12 +16306,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "yellow",
-     "review": "CANNOT do a true pixel comparison: the MAUI ground-truth captures (both light and dark) did NOT render the staggered_layout page at all — they show the harness fallback index screen ('Set MAUI_COMPARE_PAGE to one of:' followed by a text list of page names: absolute_layout, activity_indicator, ...). So MAUI produced no staggered content to compare against. Judged on intent instead: the cpp port DOES render a genuine staggered/waterfall layout in both themes — 'Item 0'..'Item 17' distributed across 3 columns with each column vertically offset from its neighbors and large uneven inter-row gaps (e.g. Item 0/1/2 sit at different heights, Item 3 low-left, Item 4 mid-center, Item 5 high-right, etc.). This is the correct StaggeredLayout behavior. Dark theme mirrors light with correct light-on-dark text. Marked yellow ONLY because the MAUI reference is a non-rendering harness failure (page-picker fallback), so exact spacing/color parity is unverifiable; the port's own rendering looks correct and is clearly the intended staggered content. NOTE: cpp and xaml disagree strongly with each other — cpp staggers, xaml does not (xaml shows a plain uniform grid)."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "CANNOT do a true pixel comparison: the MAUI ground-truth captures (both light and dark) did NOT render the staggered_layout page — they show the harness fallback index ('Set MAUI_COMPARE_PAGE to one of:' + a text list of page names), so there is no MAUI staggered content to match. Judged on intent and cross-port disagreement: the xaml port renders a PLAIN UNIFORM GRID, not a staggered layout. Items 0-23 are laid out in perfectly regular, evenly-spaced rows across 3 columns (row 1: Item 0/1/2, row 2: Item 3/4/5, ... row 8: Item 21/22/23) with identical row height and no per-column vertical offset. A staggered/waterfall layout must offset columns and vary item positions — which the cpp port DOES do but xaml does NOT. This is a clear layout rendering bug: the stagger is entirely absent, so it is the wrong layout for this page. Both light and dark themes show the same non-staggered grid (dark has correct light-on-dark text). Marked red for the missing/incorrect staggered layout behavior."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }
@@ -17625,8 +17625,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": "captures/windows/maui/tabbed_flyout_light.png",
-      "dark": "captures/windows/maui/tabbed_flyout_dark.png"
+      "light": null,
+      "dark": null
      },
      "cpp": {
       "light": "captures/windows/cpp/tabbed_flyout_light.png",
@@ -17638,12 +17638,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "red",
-     "review": "Cannot establish parity: the MAUI ground-truth capture is BROKEN for this page. Both maui/tabbed_flyout_light.png and _dark.png show the harness page-selection fallback screen (header 'Set MAUI_COMPARE_PAGE to one of:' followed by the list absolute_layout, activity_indicator, adaptive_collection, alerts... light and dark variants), NOT the tabbed_flyout demo. So there is no valid MAUI reference to compare against.\n\nThe cpp capture, by contrast, DID render a tabbed_flyout page: a native-style tab strip at top-left with two tabs -- 'Home' (blue/accent text, selected, with a white tab card) and 'Settings' (unselected, black/gray text) -- over an otherwise empty content area (light gray #ECECEC in light theme; near-black #1A1A1A in dark theme; tab bar background a lighter panel color in both). This looks like plausible tabbed-page content, but it CANNOT be confirmed correct because the MAUI reference never rendered the page.\n\nAlso notable: cpp's tab-strip layout is completely different from the xaml port's stacked-button layout for the same page, so at most one of them matches the intended MAUI rendering -- and neither can be verified. Verdict red: no match to the MAUI capture (root cause is the broken MAUI reference; a valid MAUI recapture of tabbed_flyout is required before parity can be judged)."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Cannot establish parity: the MAUI ground-truth capture is BROKEN for this page. Both maui/tabbed_flyout_light.png and _dark.png show the harness page-selection fallback ('Set MAUI_COMPARE_PAGE to one of:' + the page list), NOT the tabbed_flyout demo, so there is no valid MAUI reference.\n\nThe xaml capture DID render a page, but a very different one from cpp: three full-width, stacked buttons ('Home tab', 'Settings tab', 'Toggle flyout') at the top, followed by two text lines 'Flyout dismissed' and 'This is the Home tab.' on the content area (light gray in light theme, near-black in dark theme; buttons are light panel cards with centered dark text in light, dark cards with light text in dark). This is a custom flyout/toggle layout, not the compact native tab strip that the cpp port shows.\n\nSince the MAUI reference is the wrong screen, this layout cannot be validated. Moreover xaml's stacked-button layout and cpp's tab-strip layout disagree with each other, so at most one is right and neither is verifiable. Verdict red: no match to the MAUI capture. A valid MAUI recapture of tabbed_flyout is required before parity can be judged (and the two ports should then be reconciled to whichever layout MAUI actually renders)."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }
@@ -17958,8 +17958,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": "captures/windows/maui/title_bar_light.png",
-      "dark": "captures/windows/maui/title_bar_dark.png"
+      "light": null,
+      "dark": null
      },
      "cpp": {
       "light": "captures/windows/cpp/title_bar_light.png",
@@ -17971,12 +17971,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "green",
-     "review": "Pixel-parity match vs MAUI in both light and dark themes. All content matches: 'Content Options'/'Color Options' headings, the Title/Subtitle Entry fields (empty with placeholders 'Title'/'Subtitle'), the six checkboxes (Set Icon, Leading Content, Content, Trailing Content, Tall TitleBar, unchecked; Show TitleBar checked), the checked 'Show TitleBar' checkbox uses the same red/crimson accent fill as MAUI in both themes, the two 'Green' color-input fields with 'Set Color'/'Set Foreground' buttons, the 'Toggle Title Bar On Window' button, and the 'TitleBar: Title / Subtitle / Content are live' status text. Layout, spacing, font weights, and background tones all match per theme. Only differences are anti-aliasing/sub-pixel."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     },
     "sonnet_xaml": {
-     "status": "yellow",
-     "review": "Content and layout match MAUI in both light and dark themes (same headings, Title/Subtitle Entry fields, checkbox set, color fields, buttons, and status text). One color drift: the checked 'Show TitleBar' checkbox fill renders orange/salmon in the xaml port (both light and dark) instead of MAUI's red/crimson accent. Same control and intent, but the accent color is off in both themes. Everything else is pixel-identical."
+     "status": null,
+     "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."
     }
    }
   }

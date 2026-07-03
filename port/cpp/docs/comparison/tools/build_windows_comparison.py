@@ -29,6 +29,21 @@ def shot(col: str, name: str, theme: str, ext: str):
     return rel if os.path.exists(os.path.join(COMP, rel)) else None
 
 
+# Pages the Windows MAUI reference (maui-compare, 154 page keys) does NOT implement: capturing them
+# yields maui-compare's INDEX page, not a real render, so there is no valid MAUI reference and any
+# port-vs-"maui" verdict is meaningless. They are marked port-only (null MAUI shots, no verdict) so the
+# parity counts stay honest. The 12 ios_* are iOS-specific demos; the rest are port demos absent from
+# maui-compare. (Detected by pixel-matching each maui capture against the known index page.)
+PORT_ONLY = {
+    "effects", "refresh_view",
+    "custom_layout", "hybrid_web_view", "relative_layout", "selection_mode", "staggered_layout",
+    "tabbed_flyout", "title_bar",
+    "ios_blur_effect", "ios_date_picker", "ios_entry", "ios_first_responder", "ios_pan_gesture",
+    "ios_picker", "ios_safe_area", "ios_scroll_view", "ios_search_bar", "ios_slider_update_on_tap",
+    "ios_swipe_transition", "ios_time_picker",
+}
+
+
 def main() -> int:
     judge = {d["name"]: d for d in json.load(open(sys.argv[1], encoding="utf-8"))}
     pages = json.load(open(JSON, encoding="utf-8"))
@@ -44,8 +59,9 @@ def main() -> int:
         if not (screenshots["cpp"]["light"] or screenshots["cpp"]["dark"]):
             continue
         v = judge.get(name)
-        if v is None:  # port-only demo (no MAUI page) — captured but not comparable
-            sc = {"status": None, "review": "Port-only demo — no MAUI reference page."}
+        if name in PORT_ONLY or v is None:  # no valid MAUI reference — not comparable
+            screenshots["maui"] = {"light": None, "dark": None}  # drop the bogus index-page ref
+            sc = {"status": None, "review": "Port-only demo — maui-compare has no such page (no MAUI reference)."}
             sx = dict(sc)
         else:
             sc = v["cpp"]
