@@ -912,9 +912,9 @@
     480,
     800
    ],
-   "exact_pct": 14.1,
-   "near_pct": 81.86,
-   "mae": 11.81,
+   "exact_pct": 14.7,
+   "near_pct": 81.87,
+   "mae": 8.41,
    "animated": false,
    "frames": [
     1,
@@ -952,9 +952,9 @@
     480,
     800
    ],
-   "exact_pct": 13.22,
+   "exact_pct": 13.79,
    "near_pct": 69.0,
-   "mae": 14.94,
+   "mae": 11.12,
    "animated": false,
    "frames": [
     1,
@@ -1158,9 +1158,9 @@
     480,
     800
    ],
-   "exact_pct": 1.37,
-   "near_pct": 97.78,
-   "mae": 9.3,
+   "exact_pct": 3.78,
+   "near_pct": 99.69,
+   "mae": 3.14,
    "animated": false,
    "frames": [
     1,
@@ -1178,9 +1178,9 @@
     480,
     800
    ],
-   "exact_pct": 1.59,
-   "near_pct": 97.89,
-   "mae": 15.86,
+   "exact_pct": 3.49,
+   "near_pct": 99.69,
+   "mae": 14.36,
    "animated": false,
    "frames": [
     1,
@@ -1198,9 +1198,9 @@
     480,
     800
    ],
-   "exact_pct": 0.02,
-   "near_pct": 89.79,
-   "mae": 19.11,
+   "exact_pct": 0.13,
+   "near_pct": 90.13,
+   "mae": 14.58,
    "animated": false,
    "frames": [
     1,
@@ -1218,9 +1218,9 @@
     480,
     800
    ],
-   "exact_pct": 0.03,
-   "near_pct": 87.96,
-   "mae": 25.32,
+   "exact_pct": 0.04,
+   "near_pct": 88.33,
+   "mae": 24.91,
    "animated": false,
    "frames": [
     1,
@@ -1322,9 +1322,9 @@
     480,
     800
    ],
-   "exact_pct": 0.07,
-   "near_pct": 70.88,
-   "mae": 38.49,
+   "exact_pct": 0.88,
+   "near_pct": 71.27,
+   "mae": 36.9,
    "animated": false,
    "frames": [
     1,
@@ -1362,9 +1362,9 @@
     480,
     800
    ],
-   "exact_pct": 0.03,
-   "near_pct": 66.97,
-   "mae": 43.95,
+   "exact_pct": 0.08,
+   "near_pct": 66.98,
+   "mae": 42.85,
    "animated": false,
    "frames": [
     1,
@@ -1404,9 +1404,9 @@
     480,
     800
    ],
-   "exact_pct": 5.73,
-   "near_pct": 89.7,
-   "mae": 14.26,
+   "exact_pct": 6.11,
+   "near_pct": 92.48,
+   "mae": 8.41,
    "animated": false,
    "frames": [
     1,
@@ -1424,9 +1424,9 @@
     480,
     800
    ],
-   "exact_pct": 5.8,
-   "near_pct": 89.59,
-   "mae": 23.55,
+   "exact_pct": 6.09,
+   "near_pct": 92.41,
+   "mae": 20.77,
    "animated": false,
    "frames": [
     1,
@@ -1444,9 +1444,9 @@
     480,
     800
    ],
-   "exact_pct": 3.42,
-   "near_pct": 81.2,
-   "mae": 20.16,
+   "exact_pct": 3.02,
+   "near_pct": 81.59,
+   "mae": 16.74,
    "animated": false,
    "frames": [
     1,
@@ -1464,9 +1464,9 @@
     480,
     800
    ],
-   "exact_pct": 3.42,
-   "near_pct": 82.95,
-   "mae": 31.19,
+   "exact_pct": 3.02,
+   "near_pct": 83.39,
+   "mae": 30.65,
    "animated": false,
    "frames": [
     1,
@@ -1732,9 +1732,9 @@
     480,
     800
    ],
-   "exact_pct": 19.92,
-   "near_pct": 64.6,
-   "mae": 60.65,
+   "exact_pct": 21.36,
+   "near_pct": 50.9,
+   "mae": 95.67,
    "animated": false,
    "frames": [
     1,
@@ -1752,9 +1752,9 @@
     480,
     800
    ],
-   "exact_pct": 19.93,
-   "near_pct": 61.37,
-   "mae": 42.05,
+   "exact_pct": 21.35,
+   "near_pct": 47.93,
+   "mae": 40.09,
    "animated": false,
    "frames": [
     1,
@@ -1772,9 +1772,9 @@
     480,
     800
    ],
-   "exact_pct": 19.92,
-   "near_pct": 64.6,
-   "mae": 60.65,
+   "exact_pct": 21.36,
+   "near_pct": 50.9,
+   "mae": 95.67,
    "animated": false,
    "frames": [
     1,
@@ -1792,9 +1792,9 @@
     480,
     800
    ],
-   "exact_pct": 19.93,
-   "near_pct": 61.37,
-   "mae": 42.05,
+   "exact_pct": 21.35,
+   "near_pct": 47.93,
+   "mae": 40.09,
    "animated": false,
    "frames": [
     1,
@@ -2224,15 +2224,15 @@
     480,
     800
    ],
-   "exact_pct": 0.31,
-   "near_pct": 89.65,
-   "mae": 16.64,
+   "exact_pct": 1.51,
+   "near_pct": 95.33,
+   "mae": 7.36,
    "animated": false,
    "frames": [
     1,
     1
    ],
-   "verdict": "diff"
+   "verdict": "minor"
   },
   "cpp_dark": {
    "dims_match": true,
@@ -2244,9 +2244,9 @@
     480,
     800
    ],
-   "exact_pct": 0.46,
-   "near_pct": 87.84,
-   "mae": 23.92,
+   "exact_pct": 1.46,
+   "near_pct": 93.52,
+   "mae": 17.34,
    "animated": false,
    "frames": [
     1,
@@ -2264,15 +2264,15 @@
     480,
     800
    ],
-   "exact_pct": 0.31,
-   "near_pct": 89.65,
-   "mae": 16.64,
+   "exact_pct": 1.51,
+   "near_pct": 95.33,
+   "mae": 7.36,
    "animated": false,
    "frames": [
     1,
     1
    ],
-   "verdict": "diff"
+   "verdict": "minor"
   },
   "xaml_dark": {
    "dims_match": true,
@@ -2284,9 +2284,9 @@
     480,
     800
    ],
-   "exact_pct": 0.46,
-   "near_pct": 87.84,
-   "mae": 23.92,
+   "exact_pct": 1.46,
+   "near_pct": 93.52,
+   "mae": 17.34,
    "animated": false,
    "frames": [
     1,
@@ -2306,9 +2306,9 @@
     480,
     800
    ],
-   "exact_pct": 0.0,
-   "near_pct": 65.39,
-   "mae": 39.27,
+   "exact_pct": 4.07,
+   "near_pct": 89.3,
+   "mae": 12.0,
    "animated": false,
    "frames": [
     1,
@@ -2326,9 +2326,9 @@
     480,
     800
    ],
-   "exact_pct": 0.18,
-   "near_pct": 65.39,
-   "mae": 44.41,
+   "exact_pct": 4.01,
+   "near_pct": 89.3,
+   "mae": 18.74,
    "animated": false,
    "frames": [
     1,
@@ -2346,9 +2346,9 @@
     480,
     800
    ],
-   "exact_pct": 0.0,
-   "near_pct": 65.39,
-   "mae": 39.27,
+   "exact_pct": 4.07,
+   "near_pct": 89.3,
+   "mae": 12.0,
    "animated": false,
    "frames": [
     1,
@@ -2366,9 +2366,9 @@
     480,
     800
    ],
-   "exact_pct": 0.18,
-   "near_pct": 65.39,
-   "mae": 44.41,
+   "exact_pct": 4.01,
+   "near_pct": 89.3,
+   "mae": 18.74,
    "animated": false,
    "frames": [
     1,
@@ -2470,9 +2470,9 @@
     480,
     800
    ],
-   "exact_pct": 96.3,
-   "near_pct": 96.56,
-   "mae": 3.13,
+   "exact_pct": 96.62,
+   "near_pct": 96.92,
+   "mae": 2.36,
    "animated": false,
    "frames": [
     1,
@@ -2490,9 +2490,9 @@
     480,
     800
    ],
-   "exact_pct": 96.35,
-   "near_pct": 97.81,
-   "mae": 2.48,
+   "exact_pct": 96.66,
+   "near_pct": 98.16,
+   "mae": 1.71,
    "animated": false,
    "frames": [
     1,
@@ -2510,9 +2510,9 @@
     480,
     800
    ],
-   "exact_pct": 96.3,
-   "near_pct": 96.56,
-   "mae": 3.13,
+   "exact_pct": 96.62,
+   "near_pct": 96.92,
+   "mae": 2.36,
    "animated": false,
    "frames": [
     1,
@@ -2530,9 +2530,9 @@
     480,
     800
    ],
-   "exact_pct": 96.35,
-   "near_pct": 97.81,
-   "mae": 2.48,
+   "exact_pct": 96.66,
+   "near_pct": 98.16,
+   "mae": 1.71,
    "animated": false,
    "frames": [
     1,
@@ -2552,9 +2552,9 @@
     480,
     800
    ],
-   "exact_pct": 0.0,
-   "near_pct": 95.47,
-   "mae": 12.4,
+   "exact_pct": 0.03,
+   "near_pct": 95.56,
+   "mae": 9.75,
    "animated": false,
    "frames": [
     1,
@@ -2592,9 +2592,9 @@
     480,
     800
    ],
-   "exact_pct": 0.0,
-   "near_pct": 95.47,
-   "mae": 12.39,
+   "exact_pct": 0.03,
+   "near_pct": 95.56,
+   "mae": 9.74,
    "animated": false,
    "frames": [
     1,
@@ -4276,7 +4276,7 @@
    ],
    "exact_pct": 0.0,
    "near_pct": 90.23,
-   "mae": 18.5,
+   "mae": 18.49,
    "animated": false,
    "frames": [
     1,
@@ -4316,7 +4316,7 @@
    ],
    "exact_pct": 0.0,
    "near_pct": 91.43,
-   "mae": 15.58,
+   "mae": 15.57,
    "animated": false,
    "frames": [
     1,
@@ -5750,9 +5750,9 @@
     480,
     800
    ],
-   "exact_pct": 0.47,
-   "near_pct": 80.11,
-   "mae": 32.14,
+   "exact_pct": 0.9,
+   "near_pct": 75.48,
+   "mae": 35.8,
    "animated": false,
    "frames": [
     1,
@@ -5770,9 +5770,9 @@
     480,
     800
    ],
-   "exact_pct": 0.46,
-   "near_pct": 76.34,
-   "mae": 30.09,
+   "exact_pct": 0.89,
+   "near_pct": 72.46,
+   "mae": 32.89,
    "animated": false,
    "frames": [
     1,
@@ -5790,9 +5790,9 @@
     480,
     800
    ],
-   "exact_pct": 0.47,
-   "near_pct": 79.74,
-   "mae": 32.76,
+   "exact_pct": 0.9,
+   "near_pct": 75.02,
+   "mae": 36.11,
    "animated": false,
    "frames": [
     1,
@@ -5810,9 +5810,9 @@
     480,
     800
    ],
-   "exact_pct": 0.46,
-   "near_pct": 75.98,
-   "mae": 30.59,
+   "exact_pct": 0.89,
+   "near_pct": 72.22,
+   "mae": 33.24,
    "animated": false,
    "frames": [
     1,
@@ -5833,8 +5833,8 @@
     800
    ],
    "exact_pct": 0.12,
-   "near_pct": 80.83,
-   "mae": 24.71,
+   "near_pct": 81.13,
+   "mae": 23.68,
    "animated": false,
    "frames": [
     1,
@@ -5853,8 +5853,8 @@
     800
    ],
    "exact_pct": 0.12,
-   "near_pct": 79.93,
-   "mae": 36.41,
+   "near_pct": 80.16,
+   "mae": 36.18,
    "animated": false,
    "frames": [
     1,
@@ -5873,8 +5873,8 @@
     800
    ],
    "exact_pct": 0.12,
-   "near_pct": 80.53,
-   "mae": 25.07,
+   "near_pct": 80.84,
+   "mae": 24.04,
    "animated": false,
    "frames": [
     1,
@@ -5893,8 +5893,8 @@
     800
    ],
    "exact_pct": 0.12,
-   "near_pct": 79.65,
-   "mae": 36.8,
+   "near_pct": 79.88,
+   "mae": 36.57,
    "animated": false,
    "frames": [
     1,
@@ -5914,9 +5914,9 @@
     480,
     800
    ],
-   "exact_pct": 7.75,
-   "near_pct": 86.62,
-   "mae": 19.45,
+   "exact_pct": 14.05,
+   "near_pct": 85.31,
+   "mae": 16.12,
    "animated": false,
    "frames": [
     1,
@@ -5934,9 +5934,9 @@
     480,
     800
    ],
-   "exact_pct": 7.78,
-   "near_pct": 86.15,
-   "mae": 27.9,
+   "exact_pct": 14.02,
+   "near_pct": 85.02,
+   "mae": 31.95,
    "animated": false,
    "frames": [
     1,
@@ -5955,8 +5955,8 @@
     800
    ],
    "exact_pct": 0.0,
-   "near_pct": 92.24,
-   "mae": 22.58,
+   "near_pct": 77.99,
+   "mae": 35.55,
    "animated": false,
    "frames": [
     1,
@@ -5975,8 +5975,8 @@
     800
    ],
    "exact_pct": 0.0,
-   "near_pct": 90.87,
-   "mae": 20.59,
+   "near_pct": 78.27,
+   "mae": 34.46,
    "animated": false,
    "frames": [
     1,
@@ -5996,9 +5996,9 @@
     480,
     800
    ],
-   "exact_pct": 0.68,
-   "near_pct": 80.73,
-   "mae": 25.71,
+   "exact_pct": 10.95,
+   "near_pct": 81.23,
+   "mae": 17.68,
    "animated": false,
    "frames": [
     1,
@@ -6016,9 +6016,9 @@
     480,
     800
    ],
-   "exact_pct": 0.61,
-   "near_pct": 76.08,
-   "mae": 34.7,
+   "exact_pct": 10.88,
+   "near_pct": 75.93,
+   "mae": 38.95,
    "animated": false,
    "frames": [
     1,
@@ -6036,9 +6036,9 @@
     480,
     800
    ],
-   "exact_pct": 0.61,
-   "near_pct": 77.87,
-   "mae": 28.63,
+   "exact_pct": 12.5,
+   "near_pct": 79.92,
+   "mae": 18.0,
    "animated": false,
    "frames": [
     1,
@@ -6056,9 +6056,9 @@
     480,
     800
    ],
-   "exact_pct": 0.61,
-   "near_pct": 74.64,
-   "mae": 36.2,
+   "exact_pct": 12.5,
+   "near_pct": 75.98,
+   "mae": 40.22,
    "animated": false,
    "frames": [
     1,
