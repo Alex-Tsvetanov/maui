@@ -172,10 +172,12 @@ namespace
         // A ThemeDictionaries walk is unreliable here (the dictionaries hand back brush instances
         // already evaluated under the OS theme, not the root's forced RequestedTheme), so the two
         // values are pinned from the REFERENCE APP's rendered pixels (~/maui-compare captures:
-        // light #EDEDED, dark #272727 — the Mica-modulated base of ApplicationPageBackgroundThemeBrush;
-        // the parity policy makes MAUI's render ground truth). NOTE: dark corrected #181818 -> #272727
-        // (2026-07-03) after pixel-sampling the maui dark captures: 141/152 dark pages render #272727,
-        // none #181818 — the earlier pin was stale/mismeasured.
+        // light #F4F4F4, dark #272727 — the Mica-modulated base of ApplicationPageBackgroundThemeBrush;
+        // the parity policy makes MAUI's render ground truth). NOTE: both corrected 2026-07-03 after
+        // pixel-sampling the maui captures — dark #181818 -> #272727 (141/152 dark pages render #272727),
+        // light #EDEDED -> #F4F4F4 (128/152 light pages render #F4F4F4); the earlier pins were stale.
+        // (A handful of pages tint rose/other via Mica sampling the wallpaper — not replicable by a flat
+        // brush and left as the documented Mica approximation.)
         // Only when the page left the panel background unset; `unspecified` follows the OS theme.
         if (auto root_panel = native_window.Content().try_as<muxc::Panel>())
         {
@@ -189,7 +191,7 @@ namespace
                     case maui::core::app_theme::unspecified: break;
                 }
                 const auto base = dark ? winrt::Windows::UI::Color{0xFF, 0x27, 0x27, 0x27}
-                                       : winrt::Windows::UI::Color{0xFF, 0xED, 0xED, 0xED};
+                                       : winrt::Windows::UI::Color{0xFF, 0xF4, 0xF4, 0xF4};
                 root_panel.Background(winrt::Microsoft::UI::Xaml::Media::SolidColorBrush{base});
             }
         }
