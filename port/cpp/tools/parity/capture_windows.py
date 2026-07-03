@@ -40,6 +40,16 @@ PLATFORM = "windows"
 NON_BUILDER = {"carousel_view", "frame", "grid_definitions", "grid_layout",
                "horizontal_stack_layout", "vertical_stack_layout"}
 
+# Pages whose content MOVES — captured as a short .gif screen recording (a paletted animation), not a
+# single still, so a motion diff against MAUI's own recording is possible. Mirrors capture_all.py's
+# ANIMATED set, filtered to the pages the Windows apps actually render (the ios_* animated pages have
+# no Windows reference). Self-animating pages (spinner / running animation / simulated load) show real
+# motion; the gesture pages capture their resting state as a short clip (no synthetic input on Windows).
+ANIMATED = {
+    "activity_indicator", "animation", "swipe_refresh", "empty_view_load_simulate",
+    "swipe_gesture", "swipe_item_position", "gestures", "pan_gesture_events", "pointer_gesture", "chrome",
+}
+
 APPS = {
     "maui": {
         "bin": os.path.join(HOME, "maui-compare", "bin", "Debug",
@@ -131,14 +141,36 @@ def capture_client(hwnd: int) -> "object | None":
         user32.ReleaseDC(hwnd, hdc_window)
 
 
+def encode_gif(frames: list, out_gif: str, fps: int, scale: float) -> bool:
+    """Save a list of RGB PIL frames as a looping paletted GIF (downscaled for the README grid)."""
+    if not frames:
+        return False
+    dur_ms = max(20, round(1000 / max(1, fps)))
+    if scale != 1.0:
+        w, h = frames[0].size
+        size = (max(1, round(w * scale)), max(1, round(h * scale)))
+        frames = [f.resize(size) for f in frames]
+    # Adaptive palette per clip; the first frame carries it, the rest append.
+    paletted = [f.convert("P", palette=1, colors=256) for f in frames]  # 1 = ADAPTIVE
+    os.makedirs(os.path.dirname(out_gif), exist_ok=True)
+    paletted[0].save(out_gif, save_all=True, append_images=paletted[1:], duration=dur_ms,
+                     loop=0, optimize=True, disposal=2)
+    return os.path.exists(out_gif)
+
+
+def _launch(app_key: str, key: str, theme: str):
+    a = APPS[app_key]
+    env = dict(os.environ, **a["env"](key, theme))
+    return subprocess.Popen([a["bin"]], env=env, cwd=os.path.dirname(a["bin"]),
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
 def shot(app_key: str, key: str, theme: str, out_png: str) -> bool:
     a = APPS[app_key]
     if not os.path.exists(a["bin"]):
         print(f"  ! missing binary for {app_key}: {a['bin']}")
         return False
-    env = dict(os.environ, **a["env"](key, theme))
-    proc = subprocess.Popen([a["bin"]], env=env, cwd=os.path.dirname(a["bin"]),
-                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    proc = _launch(app_key, key, theme)
     try:
         hwnd = find_main_window(proc.pid)
         if not hwnd:
@@ -162,11 +194,56 @@ def shot(app_key: str, key: str, theme: str, out_png: str) -> bool:
         time.sleep(0.3)
 
 
+def shoot_animated(app_key: str, key: str, theme: str, out_gif: str, secs: float, fps: int) -> bool:
+    """Launch, settle, then grab `secs`*`fps` frames off the window's composition surface and encode
+    a looping GIF — the Windows twin of capture_all.py's simctl recordVideo→gif (PrintWindow instead
+    of a device recorder; PIL instead of ffmpeg)."""
+    a = APPS[app_key]
+    if not os.path.exists(a["bin"]):
+        print(f"  ! missing binary for {app_key}: {a['bin']}")
+        return False
+    proc = _launch(app_key, key, theme)
+    try:
+        hwnd = find_main_window(proc.pid)
+        if not hwnd:
+            print(f"  {app_key:5} {key:28} FAIL (no window, gif)")
+            return False
+        time.sleep(2.0)  # first layout + composition settle before recording
+        frames = []
+        interval = 1.0 / max(1, fps)
+        n = max(2, round(secs * fps))
+        for _ in range(n):
+            t0 = time.time()
+            frame = capture_client(hwnd)
+            if frame is not None:
+                frames.append(frame)
+            dt = interval - (time.time() - t0)
+            if dt > 0:
+                time.sleep(dt)
+        # Downscale to 60% so the animated grid stays light; keeps 480x800 -> 288x480.
+        if not encode_gif(frames, out_gif, fps, scale=0.6):
+            print(f"  {app_key:5} {key:28} FAIL (gif encode)")
+            return False
+        size = os.path.getsize(out_gif) // 1024
+        print(f"  {app_key:5} {key:28} ok ({len(frames)}f gif, {size}KB)")
+        return True
+    finally:
+        proc.kill()
+        try:
+            proc.wait(timeout=3)
+        except Exception:
+            pass
+        time.sleep(0.3)
+
+
 def main() -> int:
     args = sys.argv[1:]
     theme = "light"
     dry_run = False
     only_fw = None
+    mode = "both"          # static = png only · animated = gif only (animated keys) · both = png all + gif animated
+    record_secs = 3.0
+    fps = 12
     keys: list[str] = []
     i = 0
     while i < len(args):
@@ -176,6 +253,12 @@ def main() -> int:
             dry_run = True; i += 1
         elif args[i] == "--framework":
             only_fw = set(f.strip() for f in args[i + 1].split(",") if f.strip()); i += 2
+        elif args[i] == "--mode":
+            mode = args[i + 1]; i += 2
+        elif args[i] == "--record-secs":
+            record_secs = float(args[i + 1]); i += 2
+        elif args[i] == "--fps":
+            fps = int(args[i + 1]); i += 2
         else:
             keys.append(args[i]); i += 1
 
@@ -188,12 +271,20 @@ def main() -> int:
         for fw in frameworks:
             if fw == "cpp" and key in NON_BUILDER:
                 continue
-            out = cp.capture_path(PLATFORM, fw, key, theme)
+            want_gif = key in ANIMATED and mode in ("animated", "both")
+            want_png = mode != "animated"  # animated pages ALSO get a still in "both" (the grid fallback)
             if dry_run:
-                print(f"  would capture {fw}/{key}_{theme} -> {out}")
+                if want_png:
+                    print(f"  would capture {fw}/{key}_{theme}.png")
+                if want_gif:
+                    print(f"  would record  {fw}/{key}_{theme}.gif")
                 continue
-            if not shot(fw, key, theme, out):
-                failed.append(f"{fw}/{key}")
+            if want_png and not shot(fw, key, theme, cp.capture_path(PLATFORM, fw, key, theme, "png")):
+                failed.append(f"{fw}/{key}.png")
+            if want_gif and not shoot_animated(fw, key, theme,
+                                               cp.capture_path(PLATFORM, fw, key, theme, "gif"),
+                                               record_secs, fps):
+                failed.append(f"{fw}/{key}.gif")
     if failed:
         print(f"\n{len(failed)} captures FAILED: {', '.join(failed[:20])}")
         return 1
