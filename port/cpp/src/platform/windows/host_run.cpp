@@ -171,9 +171,11 @@ namespace
         // Default page background — what a .NET MAUI WinUI window shows behind an unstyled page.
         // A ThemeDictionaries walk is unreliable here (the dictionaries hand back brush instances
         // already evaluated under the OS theme, not the root's forced RequestedTheme), so the two
-        // values are pinned from the REFERENCE APP's rendered pixels (~/maui-compare captures,
-        // 2026-07-02: light #EDEDED, dark #181818 — the Mica-modulated base of
-        // ApplicationPageBackgroundThemeBrush; the parity policy makes MAUI's render ground truth).
+        // values are pinned from the REFERENCE APP's rendered pixels (~/maui-compare captures:
+        // light #EDEDED, dark #272727 — the Mica-modulated base of ApplicationPageBackgroundThemeBrush;
+        // the parity policy makes MAUI's render ground truth). NOTE: dark corrected #181818 -> #272727
+        // (2026-07-03) after pixel-sampling the maui dark captures: 141/152 dark pages render #272727,
+        // none #181818 — the earlier pin was stale/mismeasured.
         // Only when the page left the panel background unset; `unspecified` follows the OS theme.
         if (auto root_panel = native_window.Content().try_as<muxc::Panel>())
         {
@@ -186,7 +188,7 @@ namespace
                     case maui::core::app_theme::light: dark = false; break;
                     case maui::core::app_theme::unspecified: break;
                 }
-                const auto base = dark ? winrt::Windows::UI::Color{0xFF, 0x18, 0x18, 0x18}
+                const auto base = dark ? winrt::Windows::UI::Color{0xFF, 0x27, 0x27, 0x27}
                                        : winrt::Windows::UI::Color{0xFF, 0xED, 0xED, 0xED};
                 root_panel.Background(winrt::Microsoft::UI::Xaml::Media::SolidColorBrush{base});
             }

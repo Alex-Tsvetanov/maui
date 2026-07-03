@@ -24,6 +24,7 @@
 // page().
 
 #include <cstdio>
+#include <locale>
 
 #include "maui/controls/button.hpp"
 #include "maui/controls/content_page.hpp"
@@ -192,15 +193,38 @@ namespace maui::samples
         }
 
     private:
-        // Set `label` to "<name> = <value with `decimals` digits>" (the XAML StringFormat rows).
+        // Set `label` to "<name> = <value>" — mirroring C#'s CULTURE-SENSITIVE value.ToString("F"+decimals)
+        // followed by TransformationsPage.UpdateReadout's separator-guarded trim:
+        //     var s = value.ToString("F" + decimals);            // fixed digits, current-culture separator
+        //     if (s.Contains('.')) s = s.TrimEnd('0').TrimEnd('.');
+        // maui-compare forces no culture, so the separator is the machine's (a comma on a European locale →
+        // "1,0"/"0,5"); the trim tests for a LITERAL '.', so under a comma locale it never fires and the
+        // fixed-decimal output is preserved. We reproduce that exactly: format F<decimals> (C-locale dot),
+        // swap the dot for the OS locale's decimal separator, then trim ONLY when that separator is '.'.
         static void update_readout(maui::controls::label& label, const char* name, double value, int decimals)
         {
-            // Match C#'s double.ToString() (the XAML StringFormat default): minimal representation — a whole
-            // value prints WITHOUT a decimal point ('1', not '1.0'). Format with `decimals`, then strip
-            // trailing zeros and any dangling '.'.
             char num[32];
             (void)std::snprintf(num, sizeof(num), "%.*f", decimals, value);
             std::string s{num};
+
+            char sep = '.';
+            try
+            {
+                sep = std::use_facet<std::numpunct<char>>(std::locale("")).decimal_point();
+            }
+            catch (...)
+            {
+                sep = '.'; // no environment locale available — keep the invariant dot
+            }
+            if (sep != '.')
+            {
+                if (const auto dot = s.find('.'); dot != std::string::npos)
+                {
+                    s[dot] = sep;
+                }
+            }
+            // MAUI's TrimEnd guard is a literal '.' test: under a non-dot separator the string has no '.',
+            // so the trailing-zero trim is skipped and "1,0"/"0,5" survive (matching the ground-truth render).
             if (s.find('.') != std::string::npos)
             {
                 s.erase(s.find_last_not_of('0') + 1);
