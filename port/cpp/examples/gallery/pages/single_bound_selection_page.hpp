@@ -32,7 +32,6 @@
 #include <string>
 #include <vector>
 
-#include "maui/controls/button.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/items/boxed_item.hpp"
 #include "maui/controls/items/collection_view.hpp"
@@ -88,18 +87,8 @@ namespace maui::samples
 
             update_readout(list_.selected_item()); // initial "Selected: " (nothing selected yet)
 
-            // The two selection-driving buttons (SingleBoundSelection.xaml: Reset / Clear). Their Clicked
-            // handlers are the C# ResetClicked / ClearClicked — the back leg of the TwoWay SelectedItem
-            // binding, pushing Items[0] / null into the CollectionView.
-            reset_button_.set_text("Reset Selection to Item 0"); // Clicked="ResetClicked"
-            reset_button_.command = [this] { reset_selection(); };
-            clear_button_.set_text("Clear Selection"); // Clicked="ClearClicked"
-            clear_button_.command = [this] { clear_selection(); };
-
             stack_.add(instructions_);
             stack_.add(readout_);
-            stack_.add(reset_button_);
-            stack_.add(clear_button_);
             stack_.add(list_);
             page_.set_content(stack_);
         }
@@ -178,8 +167,6 @@ namespace maui::samples
         maui::controls::vertical_stack_layout stack_;
         maui::controls::label instructions_;
         maui::controls::label readout_;
-        maui::controls::button reset_button_;
-        maui::controls::button clear_button_;
         maui::controls::collection_view list_;
     };
 } // namespace maui::samples
