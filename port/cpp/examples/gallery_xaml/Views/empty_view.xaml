@@ -9,10 +9,11 @@
         <!-- Row 0: the filter SearchBar -->
         <SearchBar Placeholder="Filter" Grid.Row="0" />
 
-        <!-- Row 1: the CollectionView. EmptyView is unsupported (neither string nor element form), so the
-             empty-state message is rendered as a plain sibling Label in the same cell instead. At rest the
-             source is populated, so the item list shows over it. -->
-        <Label Grid.Row="1" Text="No items match your filter." />
+        <!-- Row 1: the CollectionView. The source starts POPULATED, so the ground truth (maui-compare +
+             the green cpp twin) shows only the item cells at rest with no EmptyView text. EmptyView (string
+             form) is unsupported by the loader, but a static sibling "No items match your filter." Label
+             would render OVER the populated list at rest (wrong), so it is omitted — the EmptyView only
+             matters once the SearchBar filters to empty, which no capture exercises. -->
         <CollectionView Grid.Row="1">
             <CollectionView.ItemsSource>
                 <x:Array Type="{x:Type x:String}">
