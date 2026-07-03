@@ -106,14 +106,17 @@ namespace maui::core
     // but defers the text+image composition (no container infra), so the cross-platform mapper just records
     // a push for tests to observe. A real UpdateContentLayout (image positioning + spacing) lands when the
     // container subsystem does (see button_handler.hpp / the iOS partial header).
-    void button_handler::map_content_layout(button_handler& handler, i_text_button& view)
+    void button_handler::map_content_layout(button_handler& handler, [[maybe_unused]] i_text_button& view)
     {
         if (auto* platform = handler.typed_platform_view())
         {
             ++platform->content_layout_push_count;
-            // Real UpdateContentLayout on backends that compose an image+text content (Windows); a no-op
-            // mirror on the others. The spec is Button.ContentLayout projected to (position, spacing).
+#ifdef MAUI_PLATFORM_WINDOWS
+            // Real UpdateContentLayout on the ONE backend that composes an image+text content (Windows).
+            // Other backends record only the push count (the icon fan-out has not reached them) — so this
+            // stays Windows-guarded and no apple/android/ios/headless code changes.
             apply_content_layout_native(*platform, view.content_layout_spec());
+#endif
         }
     }
 

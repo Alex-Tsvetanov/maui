@@ -279,10 +279,14 @@ namespace maui::core
         static void apply_loaded_result(button_platform& platform, const image_source_result& result);
         static void clear_source_native(button_platform& platform);
         static void configure_loader(maui::core::image_source_loader& loader);
-        // Per-backend ContentLayout composition (image position + spacing). Windows arranges the
-        // Image+TextBlock StackPanel; headless/apple/android keep the mirror (no-op) — the count in the
-        // cross-platform map_content_layout is what those backends' tests observe.
+#ifdef MAUI_PLATFORM_WINDOWS
+        // ContentLayout composition (image position + spacing) — WINDOWS ONLY: it arranges the
+        // Image+TextBlock StackPanel that composes the MauiButton content. Declared + called only under
+        // the Windows build (the cross-platform map_content_layout guards the call the same way), so NO
+        // other backend defines it — the icon fan-out has not reached apple/android/ios yet, and those
+        // partials must stay untouched. Other backends' map_content_layout just records the push count.
         static void apply_content_layout_native(button_platform& platform, maui::core::button_content_spec spec);
+#endif
 
         maui::core::image_source_loader image_source_loader_;
     };

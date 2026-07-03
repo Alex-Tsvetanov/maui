@@ -441,11 +441,4 @@ namespace maui::core
         }
         as_button(platform.native).image = nil;
     }
-
-    // Apple composes image+title via NSButton's own imagePosition (the apple get_desired_size ports the
-    // ContentLayout measure); the ContentLayout push does not need a separate native apply here. No-op.
-    void button_handler::apply_content_layout_native(button_platform& /*platform*/,
-                                                     maui::core::button_content_spec /*spec*/)
-    {
-    }
 } // namespace maui::core
