@@ -42,7 +42,9 @@
 
 #include "maui/core/image_handler.hpp"
 
+#include <cmath>
 #include <filesystem>
+#include <limits>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -376,8 +378,56 @@ namespace maui::core
         // explicit width/height feed the AdjustForExplicitSize clamp like every windows partial.
         const double explicit_width = virtual_view() != nullptr ? virtual_view()->width() : dimension::unset;
         const double explicit_height = virtual_view() != nullptr ? virtual_view()->height() : dimension::unset;
-        return wnative::measure_native(platform->native, width_constraint, height_constraint, explicit_width,
-                                       explicit_height);
+        const auto measured = wnative::measure_native(platform->native, width_constraint, height_constraint,
+                                                      explicit_width, explicit_height);
+        if (measured.width > 0 && measured.height > 0)
+        {
+            return measured;
+        }
+        // WinUI defers a BitmapImage's decode (and its natural PixelWidth/PixelHeight) until the Image
+        // gets a real layout slot — but the port drives a MANUAL Canvas layout, so the Image measures
+        // 0x0 (no slot) and therefore never decodes: a chicken-and-egg WinUI's own reactive layout
+        // avoids but the port cannot. Break it by reading the decoded source's natural size directly
+        // and fitting it to the constraint per Stretch (C#'s base.GetDesiredSize over the intrinsic
+        // size). Only the AspectFit/AspectFill/Fill/None cases the gallery exercises.
+        auto image = image_of(*platform);
+        if (image == nullptr)
+        {
+            return measured;
+        }
+        const auto bitmap = image.Source().try_as<muxmi::BitmapImage>();
+        if (bitmap == nullptr || bitmap.PixelWidth() <= 0 || bitmap.PixelHeight() <= 0)
+        {
+            return measured; // not a raster source (font/stream) or not decoded yet — keep the mirror
+        }
+        const double nat_w = static_cast<double>(bitmap.PixelWidth());
+        const double nat_h = static_cast<double>(bitmap.PixelHeight());
+        const bool has_w = std::isfinite(width_constraint);
+        const bool has_h = std::isfinite(height_constraint);
+        const maui::core::aspect aspect = virtual_view() != nullptr ? virtual_view()->aspect()
+                                                                     : maui::core::aspect::aspect_fit;
+        // Scale factor per axis (only the finite axes constrain); an unconstrained axis ~ no limit.
+        const double sx = has_w ? width_constraint / nat_w : std::numeric_limits<double>::infinity();
+        const double sy = has_h ? height_constraint / nat_h : std::numeric_limits<double>::infinity();
+        double scale = 1.0;
+        switch (aspect)
+        {
+            case maui::core::aspect::aspect_fill: // UniformToFill: cover — the larger scale
+                scale = (std::max)(std::isfinite(sx) ? sx : 0.0, std::isfinite(sy) ? sy : 0.0);
+                if (scale <= 0.0) { scale = std::isfinite(sx) ? sx : (std::isfinite(sy) ? sy : 1.0); }
+                break;
+            case maui::core::aspect::fill: // Fill: stretch to the constrained box (per-axis)
+                return {has_w ? width_constraint : nat_w, has_h ? height_constraint : nat_h};
+            case maui::core::aspect::center: // None: natural size, unscaled
+                scale = 1.0;
+                break;
+            case maui::core::aspect::aspect_fit: // Uniform: contain — the smaller scale
+            default:
+                scale = (std::min)(sx, sy);
+                if (!std::isfinite(scale)) { scale = 1.0; } // both axes unbounded → natural
+                break;
+        }
+        return {nat_w * scale, nat_h * scale};
     }
 
     void image_handler::platform_arrange(const maui::graphics::rect& frame)

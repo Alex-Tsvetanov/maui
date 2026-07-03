@@ -27,10 +27,12 @@
 #include <MddBootstrap.h>
 #include <WindowsAppSDK-VersionInfo.h>
 
+#include <chrono>
 #include <cstdio>
 #include <exception>
 #include <memory>
 
+#include <winrt/Microsoft.UI.Dispatching.h>
 #include <winrt/Microsoft.UI.Windowing.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
 #include <winrt/Microsoft.UI.Xaml.Markup.h>
@@ -206,12 +208,36 @@ namespace
         // The pre-activation drive_layout above measured TEMPLATE-LESS controls (XAML applies control
         // templates on load), so its desired sizes under-report (text-only button heights — the
         // clipped-title first render). Re-drive once the root has LOADED, when every control measures
-        // through its real template — the windows analog of the first native layout pass.
+        // through its real template — the windows analog of the first native layout pass. THEN a
+        // bounded settle timer re-drives a handful of times over ~1.5s: a WinUI BitmapImage decodes
+        // ASYNCHRONOUSLY, so an Image measures 0x0 at Loaded and only reports its real size once
+        // ImageOpened fires — but the port drives its Canvas layout MANUALLY (unlike WinUI's own
+        // reactive layout), so a late invalidate_measure has nothing to re-run. Re-driving over the
+        // first ~1.5s (well inside the 2s capture settle) catches local image/gif decodes so image
+        // rows no longer collapse to zero height. (A fully reactive layout — re-drive on any child
+        // invalidate — is the future improvement; this bounded pass fixes the parity captures.)
         if (auto root = native_window.Content().try_as<mux::FrameworkElement>())
         {
-            root.Loaded([window](winrt::Windows::Foundation::IInspectable const&,
-                                 mux::RoutedEventArgs const&) {
+            const auto dispatcher = native_window.DispatcherQueue();
+            root.Loaded([window, dispatcher](winrt::Windows::Foundation::IInspectable const&,
+                                             mux::RoutedEventArgs const&) {
                 drive_layout_attributed("Loaded", *window, k_window_width, k_window_height);
+                if (dispatcher == nullptr)
+                {
+                    return;
+                }
+                auto timer = dispatcher.CreateTimer();
+                timer.Interval(std::chrono::milliseconds(250));
+                auto ticks = std::make_shared<int>(0);
+                timer.Tick([window, timer, ticks](winrt::Microsoft::UI::Dispatching::DispatcherQueueTimer const&,
+                                                  winrt::Windows::Foundation::IInspectable const&) {
+                    drive_layout_attributed("settle", *window, k_window_width, k_window_height);
+                    if (++*ticks >= 6)
+                    {
+                        timer.Stop();
+                    }
+                });
+                timer.Start();
             });
         }
 
