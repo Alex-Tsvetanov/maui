@@ -5432,8 +5432,8 @@
      "review": "In both light and dark, the cpp port matches MAUI's ground truth: the 'Filter' SearchBar renders identically and the CollectionView lists all items ('cover1.jpg, 0', 'oasis.jpg, 1', ...) in the same order, spacing, and typography, with no spurious empty-view text. The corrected dark page background (#272727) now matches MAUI; only the excused top-crop/global-shift differs."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "In both light and dark, the xaml port incorrectly renders the 'No items match your filter.' EmptyView overlaid on top of the populated list — the empty-view label collides with the first row ('cover1.jpg, 0') at the same y-position, whereas MAUI (and cpp) show no empty-view because the filter is empty and items exist. This is an empty-view visibility bug, not an excusable inset/crop difference; the rest of the list matches."
+     "status": "green",
+     "review": "Light and dark both match MAUI: same populated item-cell list, Filter box, left alignment, index numbering, font, and spacing, with no EmptyView placeholder. The xaml viewport shows fewer visible rows (ends at index 17 with empty space below) versus MAUI's longer list, but that is an excused viewport/crop/global-shift framing difference, not a per-cell content, layout, or color bug."
     }
    }
   }
@@ -6209,8 +6209,8 @@
      "review": "Both themes match MAUI. The 3-column grid renders all 50 items 'cover1.jpg,0'...'cover1.jpg,49' in the exact same order and content as MAUI, with correct per-theme text/background colors (dark grey-on-near-black in dark, black-on-white in light). SearchBar 'Filter' present at top and the EmptyView is correctly hidden while items exist. Only trivial drift: MAUI's SearchBar shows a red focus border (focused state) while cpp's is a neutral unfocused border, and cpp row spacing is a hair tighter — neither is a content bug. Aside from the ignorable page-inset/global-shift, this is a faithful match in both light and dark."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Clear bug in BOTH themes: wrong render state. MAUI shows the full 50-item collection (0-49) with the EmptyView hidden. xaml instead renders only ~12 items (0-11) AND simultaneously displays the EmptyView 'No results matched your filter. / Maybe try a broader filter?' centered below the grid. The EmptyView must not appear when items are present, and the item count is wrong (12 vs 50). SearchBar 'Filter' and text colors per theme are otherwise fine, but the missing 38 items plus the incorrectly-shown EmptyView are a substantive layout/content defect in both light and dark."
+     "status": "yellow",
+     "review": "Both themes correctly render the fully-populated 3-column grid with all 50 items and NO EmptyView placeholder, and the Filter SearchBar is fully visible. However, the SearchBar lacks MAUI's distinct red/orange border (xaml shows a plain neutral border in both themes), and item row spacing is slightly looser than MAUI's tighter rhythm — minor chrome/spacing drift, not a content or structural bug."
     }
    }
   }
