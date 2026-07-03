@@ -9,30 +9,30 @@
              surface). Each of the four identical bird-silhouette Paths — which in the original differ only by
              Aspect (None/Fill/Uniform/UniformToFill) — degrades to a Polygon approximating the silhouette,
              wrapped in a LightGray 100x100 Grid that preserves the panel background and Start alignment. The
-             Aspect distinction has no visible effect once the geometry is a plain fixed-size Polygon, so all
-             four render the same resting shape. -->
+             Aspect attribute IS supported on Polygon (it maps to the native Stretch), so it is carried on each
+             shape to reproduce the four distinct aspect fittings, matching the cpp twin. -->
         <Label Text="None" />
         <Grid BackgroundColor="LightGray" WidthRequest="100" HeightRequest="100" HorizontalOptions="Start">
             <Polygon Points="4,50 26,12 50,4 74,12 96,50 74,88 50,96 26,88"
-                     Stroke="Yellow" Fill="Red" StrokeThickness="1" />
+                     Stroke="Yellow" Fill="Red" StrokeThickness="1" Aspect="None" />
         </Grid>
 
         <Label Text="Fill" />
         <Grid BackgroundColor="LightGray" WidthRequest="100" HeightRequest="100" HorizontalOptions="Start">
             <Polygon Points="4,50 26,12 50,4 74,12 96,50 74,88 50,96 26,88"
-                     Stroke="Yellow" Fill="Red" StrokeThickness="1" />
+                     Stroke="Yellow" Fill="Red" StrokeThickness="1" Aspect="Fill" />
         </Grid>
 
         <Label Text="Uniform" />
         <Grid BackgroundColor="LightGray" WidthRequest="100" HeightRequest="100" HorizontalOptions="Start">
             <Polygon Points="4,50 26,12 50,4 74,12 96,50 74,88 50,96 26,88"
-                     Stroke="Yellow" Fill="Red" StrokeThickness="1" />
+                     Stroke="Yellow" Fill="Red" StrokeThickness="1" Aspect="Uniform" />
         </Grid>
 
         <Label Text="UniformToFill" />
         <Grid BackgroundColor="LightGray" WidthRequest="100" HeightRequest="100" HorizontalOptions="Start">
             <Polygon Points="4,50 26,12 50,4 74,12 96,50 74,88 50,96 26,88"
-                     Stroke="Yellow" Fill="Red" StrokeThickness="1" />
+                     Stroke="Yellow" Fill="Red" StrokeThickness="1" Aspect="UniformToFill" />
         </Grid>
     </VerticalStackLayout>
 </ContentPage>

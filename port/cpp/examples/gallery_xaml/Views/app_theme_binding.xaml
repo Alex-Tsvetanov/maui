@@ -13,5 +13,7 @@
         <Label Text="Using AppThemeBinding in a ResourceDictionary" />
         <Label Text="This text uses LightPrimaryColor (Orange) in light mode, and DarkPrimaryColor (Teal) in dark mode."
                TextColor="{AppThemeBinding Light=Orange, Dark=Teal}" />
+        <Button Text="Toggle theme (Light/Dark)" />
+        <Label Text="Theme: Light — inline=Green, resource=Orange" />
     </StackLayout>
 </ContentPage>

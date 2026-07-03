@@ -5,13 +5,13 @@
             <Label Text="Using different StrokeThickness" />
             <Grid RowDefinitions="*,*,*">
                 <Border Grid.Row="0" Stroke="Red" StrokeThickness="1">
-                    <Label Text="1" BackgroundColor="Orange" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" MinimumHeightRequest="20" />
+                    <Label Text="1" BackgroundColor="Orange" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
                 </Border>
                 <Border Grid.Row="1" Stroke="Red" StrokeThickness="5">
-                    <Label Text="5" BackgroundColor="Orange" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" MinimumHeightRequest="20" />
+                    <Label Text="5" BackgroundColor="Orange" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
                 </Border>
                 <Border Grid.Row="2" Stroke="Red" StrokeThickness="10">
-                    <Label Text="10" BackgroundColor="Orange" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" MinimumHeightRequest="20" />
+                    <Label Text="10" BackgroundColor="Orange" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
                 </Border>
             </Grid>
 

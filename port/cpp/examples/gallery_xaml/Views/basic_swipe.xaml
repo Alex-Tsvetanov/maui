@@ -6,7 +6,7 @@
          DEGRADED to just its content Grid. This actually matches the RESTING appearance: swipe items are
          hidden until a swipe gesture, so at rest each row shows only its gray "Swipe …" Grid, exactly as
          a captured screenshot would. The SwipeItems (Delete/View/Test…) are the swipe-revealed layer. -->
-    <StackLayout>
+    <StackLayout Spacing="12">
         <SwipeView HorizontalOptions="Center" VerticalOptions="Center" Margin="12">
             <SwipeView.Content>
                 <Grid HeightRequest="60" WidthRequest="300" BackgroundColor="LightGray">

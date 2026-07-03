@@ -25,7 +25,7 @@
         <ScrollView Grid.Row="1">
             <VerticalStackLayout Spacing="2">
                 <Label Text="Border Content" FontSize="18" FontAttributes="Bold" />
-                <Picker Title="Border Content">
+                <Picker Title="Border Content" SelectedIndex="0">
                     <Picker.Items>
                         <x:String>Label</x:String>
                         <x:String>Image</x:String>
@@ -33,7 +33,7 @@
                 </Picker>
 
                 <Label Text="Border Shape" FontSize="18" FontAttributes="Bold" />
-                <Picker Title="Border Shape">
+                <Picker Title="Border Shape" SelectedIndex="1">
                     <Picker.Items>
                         <x:String>Rectangle</x:String>
                         <x:String>RoundRectangle</x:String>

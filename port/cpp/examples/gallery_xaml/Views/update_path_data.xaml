@@ -12,9 +12,9 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <!-- Path.Data geometry is unsupported; the cubic Bézier "M 10,100 C 10,300 300,-200 300,100" is
-             approximated by a Polyline sampling its S-curve (a downward then upward swing between the two
-             endpoints) — the same resting silhouette. -->
-        <Polyline Grid.Row="0" Stroke="Black" Points="10,100 80,180 150,100 220,20 300,100" />
+             approximated by a Polyline that densely samples the actual curve (25 points along the cubic)
+             so the S-curve reads smooth — the same resting silhouette MAUI/the cpp twin render. -->
+        <Polyline Grid.Row="0" Stroke="Black" Points="10,100 11,121 16,136 22,145 31,149 43,147 55,142 70,134 85,122 102,109 119,94 137,78 155,62 173,47 191,33 208,21 225,11 240,4 255,2 267,3 279,10 288,22 294,41 299,67 300,100" />
         <Label Grid.Row="1" Text="counter = 0 | Data: M 10,100 C 10,300 300,-200 300,100" />
         <Button Grid.Row="2" Text="Update Path Data" />
     </Grid>

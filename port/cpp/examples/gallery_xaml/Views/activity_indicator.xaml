@@ -3,13 +3,13 @@
     <VerticalStackLayout Spacing="6" Padding="12">
         <Label Text="Default" FontSize="18" FontAttributes="Bold" />
         <ActivityIndicator IsRunning="True" />
-        <Label Text="Color" FontSize="18" FontAttributes="Bold" />
+        <Label Text="Styled - Color from theme" FontSize="18" FontAttributes="Bold" />
         <ActivityIndicator IsRunning="True" Color="CornflowerBlue" />
-        <Label Text="BackgroundColor=Yellow" FontSize="18" FontAttributes="Bold" />
+        <Label Text="Styled - BackgroundColor=Yellow" FontSize="18" FontAttributes="Bold" />
         <ActivityIndicator IsRunning="True" BackgroundColor="Yellow" />
         <Label Text="Larger" FontSize="18" FontAttributes="Bold" />
         <ActivityIndicator IsRunning="True" WidthRequest="150" HeightRequest="150" />
-        <Label Text="Smaller" FontSize="18" FontAttributes="Bold" />
+        <Label Text="Smaller - HorizontalOptions=Center" FontSize="18" FontAttributes="Bold" />
         <ActivityIndicator IsRunning="True" WidthRequest="10" HeightRequest="10" />
         <Label Text="Not Running" FontSize="18" FontAttributes="Bold" />
         <ActivityIndicator IsRunning="False" />

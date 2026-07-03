@@ -5,7 +5,7 @@
          RenderTransform (rotate/scale/skew/translate). Static resting layout only — the value_changed
          wiring is interactive and omitted. Readout labels carry the at-rest slider values. -->
     <VerticalStackLayout Spacing="0">
-        <VerticalStackLayout BackgroundColor="#e5e5e5" WidthRequest="200" HeightRequest="200">
+        <VerticalStackLayout BackgroundColor="#e5e5e5" WidthRequest="200" HeightRequest="200" HorizontalOptions="Start">
             <!-- Path.Data geometry is unsupported; the closed 50x50 square "M 0,0 L 50,0 50,50 0,50 Z" is
                  exactly a Rectangle, so the Path degrades to a 50x50 Rectangle with the same fill/stroke. -->
             <Rectangle Fill="Red" Stroke="Blue" StrokeThickness="4" WidthRequest="50" HeightRequest="50" />

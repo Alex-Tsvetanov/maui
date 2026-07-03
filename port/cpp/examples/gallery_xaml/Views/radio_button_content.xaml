@@ -18,14 +18,12 @@
                 <HorizontalStackLayout Spacing="4">
                     <BoxView Color="Black" WidthRequest="50" HeightRequest="2" />
                     <BoxView Color="Red" WidthRequest="50" HeightRequest="2" />
-                    <Image Source="coffee.png" />
                 </HorizontalStackLayout>
             </ContentView>
             <ContentView>
                 <HorizontalStackLayout Spacing="4">
                     <BoxView Color="Black" WidthRequest="50" HeightRequest="2" />
                     <BoxView Color="Red" WidthRequest="50" HeightRequest="2" />
-                    <Image Source="coffee.png" />
                 </HorizontalStackLayout>
             </ContentView>
         </StackLayout>

@@ -11,13 +11,13 @@
            - the yellow EllipseGeometry (center 150,150, r 50) fill  -> an Ellipse (100x100, centered).
          (The Grids' Margin=12 is kept; HorizontalOptions=Start is kept.) -->
     <StackLayout>
-        <Grid HorizontalOptions="Start" BackgroundColor="Beige" WidthRequest="250" HeightRequest="250" Margin="12">
+        <Grid HorizontalOptions="Start" BackgroundColor="Beige" WidthRequest="250" HeightRequest="250">
             <Line X1="100" Y1="100" X2="200" Y2="200" Stroke="Blue" StrokeThickness="5" Opacity="0.5" />
             <Line X1="100" Y1="100" X2="200" Y2="200" Stroke="Red" StrokeThickness="20" Opacity="0.5" />
             <Polygon Points="100,100 200,100 100,200" Fill="Green" Opacity="0.5" />
             <Ellipse Fill="Yellow" Opacity="0.5" WidthRequest="100" HeightRequest="100" />
         </Grid>
-        <Grid HorizontalOptions="Start" BackgroundColor="Beige" WidthRequest="250" HeightRequest="250" Margin="12">
+        <Grid HorizontalOptions="Start" BackgroundColor="Beige" WidthRequest="250" HeightRequest="250">
             <Line X1="100" Y1="100" X2="200" Y2="200" Stroke="Red" />
             <Line X1="0" Y1="0" X2="100" Y2="100" Stroke="Blue" />
             <Line X1="100" Y1="0" X2="100" Y2="100" Stroke="Green" />

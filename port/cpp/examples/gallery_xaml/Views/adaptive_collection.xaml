@@ -22,7 +22,7 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Grid HeightRequest="60" Padding="12">
-                        <Label HorizontalOptions="Center" VerticalOptions="Center" Text="{Binding .}" />
+                        <Label VerticalOptions="Center" Text="{Binding .}" />
                     </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>

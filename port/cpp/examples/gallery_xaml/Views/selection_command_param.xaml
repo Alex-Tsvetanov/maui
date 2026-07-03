@@ -11,16 +11,16 @@
         <CollectionView Header="This is the header" SelectionMode="Single">
             <CollectionView.ItemsSource>
                 <x:Array Type="{x:Type x:String}">
-                    <x:String>Item 0 — This is item 0</x:String>
-                    <x:String>Item 1 — This is item 1</x:String>
-                    <x:String>Item 2 — This is item 2</x:String>
-                    <x:String>Item 3 — This is item 3</x:String>
-                    <x:String>Item 4 — This is item 4</x:String>
-                    <x:String>Item 5 — This is item 5</x:String>
-                    <x:String>Item 6 — This is item 6</x:String>
-                    <x:String>Item 7 — This is item 7</x:String>
-                    <x:String>Item 8 — This is item 8</x:String>
-                    <x:String>Item 9 — This is item 9</x:String>
+                    <x:String>Item 0&#x0a;This is item 0</x:String>
+                    <x:String>Item 1&#x0a;This is item 1</x:String>
+                    <x:String>Item 2&#x0a;This is item 2</x:String>
+                    <x:String>Item 3&#x0a;This is item 3</x:String>
+                    <x:String>Item 4&#x0a;This is item 4</x:String>
+                    <x:String>Item 5&#x0a;This is item 5</x:String>
+                    <x:String>Item 6&#x0a;This is item 6</x:String>
+                    <x:String>Item 7&#x0a;This is item 7</x:String>
+                    <x:String>Item 8&#x0a;This is item 8</x:String>
+                    <x:String>Item 9&#x0a;This is item 9</x:String>
                 </x:Array>
             </CollectionView.ItemsSource>
             <CollectionView.ItemTemplate>

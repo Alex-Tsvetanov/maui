@@ -5,11 +5,13 @@
     <FlexLayout Direction="Column">
         <Label Text="HEADER"
                FontSize="18"
+               TextColor="#3B3B3B"
                BackgroundColor="Aqua"
                HorizontalTextAlignment="Center" />
         <FlexLayout FlexLayout.Grow="1">
             <Label Text="CONTENT"
                    FontSize="18"
+                   TextColor="#3B3B3B"
                    BackgroundColor="Gray"
                    HorizontalTextAlignment="Center"
                    VerticalTextAlignment="Center"
@@ -19,6 +21,7 @@
         </FlexLayout>
         <Label Text="FOOTER"
                FontSize="18"
+               TextColor="#3B3B3B"
                BackgroundColor="Pink"
                HorizontalTextAlignment="Center" />
     </FlexLayout>

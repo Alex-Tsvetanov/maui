@@ -22,10 +22,10 @@
             <Label.FormattedText>
                 <FormattedString>
                     <Span Text="Plain old Text " />
-                    <Span Text="Colors" BackgroundColor="Cyan" />
-                    <Span Text=" Strikethrough" TextDecorations="Strikethrough" />
-                    <Span Text=" Big Font" FontSize="24" />
-                    <Span Text=" Plain old Text" TextColor="Navy" />
+                    <Span Text="Colors " BackgroundColor="Cyan" TextColor="Navy" />
+                    <Span Text="Strikethrough " TextDecorations="Strikethrough" />
+                    <Span Text="Big Font " FontSize="20" />
+                    <Span Text="Plain old Text" />
                 </FormattedString>
             </Label.FormattedText>
         </Label>

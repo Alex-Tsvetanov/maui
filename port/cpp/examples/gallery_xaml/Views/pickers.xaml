@@ -12,6 +12,6 @@
         </Picker>
         <DatePicker />
         <TimePicker Format="HH:mm" Time="9:0:0" />
-        <Label Text="No room on (no date) at (no time)" />
+        <Label Text="No room on (no date) at 09:00" />
     </VerticalStackLayout>
 </ContentPage>

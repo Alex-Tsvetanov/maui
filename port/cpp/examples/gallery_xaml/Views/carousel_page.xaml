@@ -1,12 +1,26 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="CarouselView">
-    <CarouselView>
-        <CarouselView.ItemTemplate>
-            <DataTemplate>
-                <Border Stroke="Purple" StrokeThickness="2" Padding="16">
-                    <Label Text="Card" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
-                </Border>
-            </DataTemplate>
-        </CarouselView.ItemTemplate>
-    </CarouselView>
+    <VerticalStackLayout Spacing="12">
+        <Label Text="Basic Horizontal Carousel" />
+        <CarouselView HeightRequest="400">
+            <CarouselView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>Item 1</x:String>
+                    <x:String>Item 2</x:String>
+                    <x:String>Item 3</x:String>
+                </x:Array>
+            </CarouselView.ItemsSource>
+            <CarouselView.ItemTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding .}" FontSize="28"
+                           HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                </DataTemplate>
+            </CarouselView.ItemTemplate>
+        </CarouselView>
+        <HorizontalStackLayout Spacing="12">
+            <Button Text="Prev" />
+            <Button Text="Next" />
+        </HorizontalStackLayout>
+        <Label Text="Position 0 — current: Item 1" />
+    </VerticalStackLayout>
 </ContentPage>

@@ -23,7 +23,7 @@
             <Button Text="Rotation = 20" Rotation="20" HorizontalOptions="Center" />
 
             <Ellipse WidthRequest="150" HeightRequest="50" StrokeThickness="10" Stroke="Green" />
-            <Rectangle WidthRequest="300" HeightRequest="200" RadiusX="40" RadiusY="40" StrokeThickness="10" Stroke="Green" />
+            <Rectangle WidthRequest="300" HeightRequest="200" RadiusX="40" RadiusY="40" Fill="LightGreen" />
 
             <Image Source="dotnet_bot.png" WidthRequest="125" HeightRequest="155" HorizontalOptions="Center" />
         </VerticalStackLayout>
