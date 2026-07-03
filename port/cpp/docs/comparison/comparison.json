@@ -104,8 +104,8 @@
      "review": "Match in both themes. Blue rect (top-center, top-clipped), green rect (left edge, vertically centered), red rect (right edge, vertically centered), and black rect (bottom-center, bottom-clipped) all match MAUI in position, size, and color. 'Centered text' label matches. The 'AutoSized' blue-highlighted label is a tight box hugging the text at the same lower-left position and same width as MAUI in both light and dark. Differences are only anti-aliasing/sub-pixel."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "The four colored rects (blue top, green left, red right, black bottom) and the 'Centered text' label all match MAUI in both themes. BUG: the 'AutoSized' label does not auto-size to its content. In MAUI the blue highlight box is tight to the text (~65px wide, ending just after the word), but xaml renders it noticeably wider (~115px) with a large block of trailing empty blue space extending well past the text. This wrong width appears in BOTH light and dark themes."
+     "status": "green",
+     "review": "The xaml build is likewise an exact match to MAUI in both themes: all six elements (blue/green/red bars, centered text, AutoSized blue-highlight label, bottom black rect) share identical positions, sizes, colors, and text. Only the excused Mica background tint differs from MAUI's ground truth."
     }
    }
   }
@@ -1214,8 +1214,8 @@
      "review": "Both themes match MAUI. All 5 SwipeView rows render as gray boxes with correctly left-aligned, top-positioned labels ('Swipe Up (Execute)', 'Swipe Down (Reveal)', 'Swipe Right (Reveal)', 'Swipe Left (Execute)', 'Swipe in any direction') and the trailing 'Swipe a row, then invoke Delete' label is present and left-aligned below the list. Box sizing, inter-row gap, label position, text weight, and dark-theme box/text colors all match. Only deltas are the ignorable page-inset/global-shift and MAUI light theme's faint pink gradient background vs the port's plain light background (background tint, AA-level)."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Wrong layout plus a missing element, in both themes. (1) Labels are horizontally AND vertically centered inside each box instead of MAUI's left-aligned / top-positioned text. (2) The gray row boxes span full width edge-to-edge with no left/right inset and have essentially no gap between rows, so they read as continuous stacked bands rather than MAUI's separated inset cards. (3) The 'Swipe a row, then invoke Delete' instruction label that MAUI shows below the last row is missing entirely. Text content and dark-theme box color are otherwise correct, but the alignment, row spacing, and missing label are clear bugs."
+     "status": "green",
+     "review": "The xaml render is pixel-identical to the cpp render and matches MAUI in both themes: same five gray rows, same fill and label rendering, same bottom label, with only the excused outer inset/global shift and Mica tint differing. No content or layout drift."
     }
    }
   }
@@ -5987,8 +5987,8 @@
      "review": "Both themes match MAUI. Filter search box, 'Toggle Between EmptyViews' label with off toggle, and Clear/Fill buttons all render identically in position, weight, and color. The 3-column CollectionView is fully populated in the Fill state exactly like MAUI (cover1.jpg,0 ... running down the full page). Row height, column gutters, item text, and font weight match in both light and dark. Only difference is the data extent runs to item 49 vs MAUI's 47 (a couple extra rows), which is harmless list length, not a rendering defect. Toggle track/thumb colors and button chrome correct per theme."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Clear content bug in BOTH themes: the CollectionView is only partially populated. MAUI renders a dense 3-column grid filling the entire page (~48 items, cover1.jpg,0 through FlowerBuds.jpg,47), but xaml renders only 12 items (0 through 11, 4 rows) and leaves the entire lower two-thirds of the page blank. This is a wrong/blank-layout defect (missing items / incorrect Fill state). Light theme additionally shows a lighter/greyer Filter box border and slightly different label baseline, but the dominant failure is the missing collection content. Chrome (Filter box, toggle, Clear/Fill buttons) otherwise renders correctly."
+     "status": "yellow",
+     "review": "Content, 3-column layout, item data, buttons, toggle, and colors match MAUI in both light and dark, but like the cpp build the CollectionView row pitch is compressed to ~24px versus MAUI's ~44px, so the list is about twice as dense as ground truth — an internal spacing drift beyond the excusable page inset. Additional minor drift: the whole top block sits lower (larger inset, itself excusable) and the Filter box uses a slightly larger corner radius than MAUI in both themes."
     }
    }
   }
@@ -6431,8 +6431,8 @@
      "review": "Both themes match MAUI. Header 'Use EmptyView' + red/orange toggle (ON), 'Filter' search box, and the two-column CollectionView all render identically to MAUI: same item text (cover1.jpg,0 ... cover1.jpg,49 cycling through the filename set), same two-column alignment, row spacing, font weight, and theme colors (black-on-white light, white-on-dark dark). cpp shows more rows (down through item 49) because it does not replicate MAUI's top/bottom crop — that is the ignorable framing/crop difference, not a content diff. No stray EmptyView placeholder. Clean match in light and dark."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "The populated list itself matches MAUI (same header, toggle ON, Filter box, two-column items cover1.jpg,0 ... cover1.jpg,49, correct theme colors in both light and dark). BUG: in BOTH themes a faint orange 'Nothing to see here' EmptyView placeholder is rendered ON TOP of the fully populated CollectionView (overlapping items ~28-29 mid-list). The EmptyView should only appear when the collection is empty; here it bleeds through over live content — an extra element / z-order-visibility defect that MAUI does not show. Present in light and dark alike."
+     "status": "green",
+     "review": "The xaml render is an equally faithful match in both themes: same red toggle, same dark/light Filter box and magnifier, and the identical two-column item list (0-49) with matching typography, spacing, and theme colors. Differences from MAUI are limited to the excused top-crop/scroll position and Mica background tint."
     }
    }
   }
@@ -6542,8 +6542,8 @@
      "review": "Both themes match MAUI. Instruction text (3 lines), Filter SearchBar with right-aligned magnifier icon, Reset button, 'Selected: (none)' label, and the full scrolling item list (cover1.jpg,0 ... 30+) all render at correct sizes, fonts, weights, spacing, and colors in light and dark. Row text/indices align with MAUI. Only nit: MAUI light shows a purple SearchBar focus underline while cpp shows the unfocused border — a focus-state artifact, not a port defect. Colors and layout otherwise identical."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "CollectionView list is truncated/height-collapsed in BOTH themes. MAUI (and cpp) fill the viewport with the full scrolling list (cover1.jpg,0 through 30+ items). xaml renders only ~12 items (stops at 'Fruits.jpg, 11') followed by a large blank area, so the list is not expanding to fill available vertical space. Header region (instruction text, Filter SearchBar with magnifier, Reset button, 'Selected: (none)') matches MAUI, but the collapsed/short list is a clear layout bug (wrong list height / list not filling), affecting both light and dark."
+     "status": "yellow",
+     "review": "Header controls, colors, and text content match MAUI in both light and dark. It shows the same taller-row drift as cpp — list item pitch ~24px vs MAUI's ~19px (~26% taller, fitting only ~26-27 items vs MAUI's ~35), consistent across both themes — plus slightly looser instruction-text line spacing that pushes the header/list down a touch more. Same underlying row-height divergence, non-fatal but clearly visible."
     }
    }
   }
