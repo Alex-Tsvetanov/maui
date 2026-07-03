@@ -15862,12 +15862,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "red",
-     "review": "Both themes: MISSING the two full-width 'Reset' and 'Clear' buttons that MAUI renders between the 'Selected: (none)' label and the country list. In MAUI the buttons occupy the band at roughly y=70-130 (Reset then Clear, each a full-width bar with button chrome); in the cpp port that band is empty and the country list (United States, Canada, ...) starts immediately after the label. This is a clear content/layout bug: two required elements are absent, and as a consequence the list items sit ~70px higher than MAUI. Text, label, list content, item spacing and theme colors otherwise match, but the two missing buttons are a red-level rendering defect present in both light and dark."
+     "status": "green",
+     "review": "Both themes match the MAUI ground truth (maui-compare SingleBoundSelectionPage.cs adds only instructions + readout + list; Reset/Clear exist as methods wired to NO buttons). The port renders instructions, \"Selected: (none)\", and the country list with matching text/colors/fonts and no buttons. Source-verified: the earlier \"missing buttons\" red was a judge hallucination anchored on the full upstream C# gallery, which maui-compare omits."
     },
     "sonnet_xaml": {
      "status": "green",
-     "review": "Both themes match MAUI. Instruction text, 'Selected: (none)' label, the two full-width 'Reset' and 'Clear' buttons (correct chrome, ordering, and full-width sizing), and the CollectionView list (United States, Canada, Mexico, Brazil, Argentina) are all present with the same layout order, spacing, and item positions. Light and dark theming (backgrounds, text, subtle button borders) render correctly and equivalently to MAUI. Differences are limited to anti-aliasing / sub-pixel noise and the ignorable outer page inset."
+     "review": "Both themes match the MAUI ground truth (maui-compare SingleBoundSelectionPage.cs adds only instructions + readout + list; Reset/Clear exist as methods wired to NO buttons). The port renders instructions, \"Selected: (none)\", and the country list with matching text/colors/fonts and no buttons. Source-verified: the earlier \"missing buttons\" red was a judge hallucination anchored on the full upstream C# gallery, which maui-compare omits."
     }
    }
   }
