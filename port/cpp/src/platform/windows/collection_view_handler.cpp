@@ -454,7 +454,12 @@ namespace maui::controls
             double top = 0.0;
             if (vertical)
             {
-                top = cursor; // inline along the main-axis flow
+                // A vertical footer over an EMPTY source pins to the viewport BOTTOM: MAUI's CollectionView
+                // fills its container, so an empty item region expands and the footer + its band land at the
+                // bottom with the empty region filling between it and the header (header_footer_view). max()
+                // keeps it inline once real content grows past the viewport; non-empty lists keep the footer
+                // flowing right after the items (unchanged).
+                top = (is_footer && empty) ? (std::max)(cursor, main_viewport - height) : cursor;
             }
             else if (is_footer)
             {
@@ -474,7 +479,7 @@ namespace maui::controls
             arrange_realized_view(realized, band);
             if (vertical)
             {
-                cursor += height;
+                cursor = top + height; // advance to the band bottom (== cursor+height inline, or the pinned bottom)
             }
             else if (is_footer)
             {
