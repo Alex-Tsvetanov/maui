@@ -4429,12 +4429,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "red",
-     "review": "Both themes: The 'Single Selection' block (Item 1/2/3, large font) matches MAUI. But the 'Multi Selection' section is broken in two ways. (1) MISSING CHECKBOXES: MAUI renders each multi-selection item (Item 1-4) with a small square checkbox glyph to the left of the label; the cpp port renders them as plain large text labels with no checkbox at all. (2) WRONG LAYOUT/SPACING: in MAUI the 'Multi Selection' header sits immediately below the single-selection group (~y=118), but in cpp it is pushed far down the page (~y=337), leaving a large empty vertical gap between the two sections. Font size of the labels themselves matches MAUI (large). The missing checkboxes plus the wrong section placement are clear rendering bugs, not sub-pixel drift."
+     "status": "yellow",
+     "review": "Selection state matches MAUI in both themes: the Multi Selection checkbox column is present with all four boxes empty (no items checked) and no selection-highlight band, exactly as MAUI renders. The Single Selection items are rendered in the correct large font matching MAUI in light and dark. The one drift is layout: cpp pushes the Multi Selection section far down the page with a large vertical gap between the two CollectionViews, whereas MAUI stacks them tightly at the top — a spacing/measure difference beyond the excused inset, hence yellow."
     },
     "sonnet_xaml": {
      "status": "red",
-     "review": "Both themes: Two clear bugs. (1) WRONG FONT SIZE: every label ('Single Selection'/'Multi Selection' headers aside, and all Item rows) is rendered in a noticeably SMALLER font than MAUI. MAUI shows Item 1/2/3 and Item 1-4 in a large font; the xaml port shows them small, so text size does not match the ground truth. (2) MISSING CHECKBOXES: MAUI renders each 'Multi Selection' item with a square checkbox glyph to its left; the xaml port renders them as plain small text with no checkbox. Additionally the 'Multi Selection' section is pushed far down the page (~y=337) versus MAUI's tight placement (~y=118), leaving a large empty gap. Same content and item text, but wrong sizing + missing checkbox controls make this a rendering bug."
+     "review": "The Multi Selection checkbox column and selection state match MAUI (all four boxes empty, no items checked, no highlight band) in both light and dark. However the Single Selection items (Item 1/2/3) are rendered in a small/normal font, whereas MAUI renders them in a distinctly larger font — a clear content/typography bug visible in both themes. The same large inter-section vertical gap layout drift is also present, but the font-size mismatch alone is a red-level content difference."
     }
    }
   }
@@ -11866,12 +11866,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "red",
-     "review": "LIGHT + DARK (same bug both themes): The CollectionView item template is not rendered. MAUI shows each row (Item 0-3) with a leading CheckBox, with Item 1 and Item 2 checked (red checkmarks) and their rows given a light selection-highlight background; a 'This is the header' header sits above the list. The cpp port renders the items as plain text-only labels: NO checkboxes at all, NO checked state on Item 1/Item 2, and NO selection highlight on the selected rows. This drops the entire point of the multiple-bound-selection test. Secondary drift: the item rows are taller/more spaced, so the three buttons (Clear and Add / Reset / Direct Update) are pushed to roughly mid-page instead of sitting directly under the CollectionView near the top as in MAUI. Button chrome/colors otherwise match MAUI per theme. Missing template elements + wrong layout position = clear rendering bug."
+     "status": "green",
+     "review": "In both light and dark themes the cpp port reproduces the per-row checkbox column, correctly renders Item 1 and Item 2 as red filled checkboxes with checkmarks (matching MAUI's selected rows) while Item 0 and Item 3 stay empty outlines, and draws the selected-row highlight band behind Item 1/Item 2. Selection state exactly matches MAUI's 'Selected: Item 1, Item 2'; only trivial checkbox-outline weight and button vertical-gap differences remain within crop/global-shift tolerance."
     },
     "sonnet_xaml": {
      "status": "red",
-     "review": "LIGHT + DARK (same bug both themes, identical to the cpp port): The CollectionView item template is not rendered. MAUI shows Item 0-3 each with a leading CheckBox, Item 1 and Item 2 checked (red checkmarks) with a light selection-highlight background, under a 'This is the header' header. The xaml port renders items as plain text-only labels: NO checkboxes, NO checked/selected visual on Item 1/Item 2, and NO selection highlight. The core selection state the test verifies is entirely absent. Secondary drift: taller item spacing pushes the three buttons (Clear and Add / Reset / Direct Update) down to about mid-page rather than directly beneath the list near the top as in MAUI. Button styling matches MAUI per theme. Missing template + selection visuals + displaced buttons = clear rendering bug."
+     "review": "In both light and dark themes the xaml render is a clear selection bug: all four checkboxes are empty outlines with NO red fill or checkmark on Item 1 or Item 2, and there is NO selected-row highlight band, despite the 'Selected: Item 1, Item 2' label. The bound multi-selection state and highlight that MAUI shows are entirely missing, so the wrong (no) items appear checked."
     }
    }
   }
@@ -13309,12 +13309,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "red",
-     "review": "Both themes: MAUI renders each item as a text label PLUS a CheckBox to its right (4-column grid), with the three preselected items (photo.jpg 2, Fruits.jpg 4, FlowerBuds.jpg 5) drawn with a red selection border around the cell and a red-filled checked checkbox. The cpp port is MISSING all checkboxes entirely -- only the text labels render -- and shows NO selection visual: the preselected items 2/4/5 have no red outline and no checked box. The entire CheckBox portion of the DataTemplate and the CollectionView preselection/selection highlight are absent. Layout also collapses to text-only columns with no room reserved for the checkbox glyphs. Identical failure in light and dark. Clear rendering bug (missing element + missing selection state)."
+     "status": "green",
+     "review": "In both light and dark themes the cpp port reproduces the checkbox column and correctly renders the three preselected items with red-filled checkmarks (photo.jpg/2, Fruits.jpg/4, FlowerBuds.jpg/5), matching MAUI's selection state; the selection highlight band is present though marginally fainter than MAUI's crisp red row outline (AA-level trivia)."
     },
     "sonnet_xaml": {
      "status": "red",
-     "review": "Both themes: same failure as the cpp port. MAUI shows a text label + CheckBox per item and a red selection border + checked red checkbox on the three preselected items (indices 2, 4, 5). The xaml port renders ONLY the text labels in a 4-column grid -- every CheckBox is missing and there is NO selection highlighting (no red cell border, no checked state) on the preselected items. The DataTemplate's checkbox and the CollectionView selection visual are both absent in light and dark. Clear rendering bug (missing element + missing selection state)."
+     "review": "The xaml port renders the checkbox column but ALL checkboxes are empty in both light and dark themes — the three preselected items (photo.jpg/2, Fruits.jpg/4, FlowerBuds.jpg/5) show no red-filled checkmarks and there is no selection highlight band anywhere, so the entire preselection state is missing versus MAUI. This is a clear selection bug."
     }
    }
   }
@@ -15307,12 +15307,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "red",
-     "review": "Both themes: RED. MAUI renders each CollectionView row with a left-hand CheckBox, and the selected items (Items 2+3 in the first two sections, Item 2 in the third) show a RED checkmark AND a full-width selection-highlight band (light gray in light theme, dark gray in dark theme). The cpp port renders NONE of this: rows are plain text only — no checkboxes at all, no red checkmarks, and no selection background band. So the entire selection-synchronization feature this page exists to demonstrate is visually absent. This is a missing-element rendering bug, identical in light and dark themes. Text content, item labels, section headers and layout spacing otherwise match MAUI, but the core selected-state visuals (checkbox glyph + highlight) are completely missing."
+     "status": "green",
+     "review": "In both light and dark themes the cpp port faithfully reproduces MAUI: the checkbox column is present, and in the first two sections Item 2 and Item 3 show filled red-accent checkboxes with checkmarks plus the selected-row highlight band while Item 1/4 remain empty — matching MAUI's selection state exactly. The only nit is the checkbox glyph being slightly more rounded than MAUI's, which is AA trivia; selection sync, checked items, and highlight all correct in both themes."
     },
     "sonnet_xaml": {
      "status": "red",
-     "review": "Both themes: RED. Same defect as the cpp port. MAUI shows a CheckBox per row plus red checkmarks and a selection-highlight band on the pre-selected items (2+3, and 2 in the third section); the xaml port renders only plain text rows with no checkboxes, no checkmarks, and no selection highlight. The selected-state rendering — the entire point of this page — is missing in both light and dark. Headers, labels and general layout match MAUI, but the load-bearing selection visuals are absent."
+     "review": "Clear selection bug in both light and dark themes: MAUI has Item 2 and Item 3 checked (filled accent checkbox + checkmark) with a highlight band in the first two sections, but the xaml port renders ALL checkboxes empty and shows NO highlight on any row — no items are selected anywhere. The checkbox column exists, but the multi-select SelectedItems synchronization is entirely unreflected, so the correct-items-checked and highlight requirements both fail."
     }
    }
   }
