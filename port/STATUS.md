@@ -4,6 +4,34 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## Windows (WinUI 3) backend — PIXEL-PARITY LOOP (2026-07-03, in progress)
+
+An autonomous per-minute loop drives the port toward pixel-perfect parity with the Windows .NET MAUI
+reference. Tooling added: **`tools/parity/capture_windows.py --mode animated/both`** records the 10
+animated pages as looping GIFs (PrintWindow + PIL, no ffmpeg) beside the PNG stills, all three
+columns; **`tools/parity/pixel_score.py`** scores near-match%/exact%/MAE + dimension per page/theme
+(→ `docs/comparison/windows_pixel_scores.json` + a worst-first queue); a **Sonnet vision workflow**
+(one agent per diff page) categorizes port-bug vs AA/animation (→ `windows_sonnet_review.json`,
+`WINDOWS_PARITY_TODO.md`). Baseline: 632 pairs, 8 match / 341 minor / 283 diff; 92 pages < 95% near.
+
+Port bugs fixed by the loop so far (each committed with a before/after near-score):
+- **controls_stack crash** — a WinUI ProgressRing faults its Measure under an infinite constraint (a
+  horizontal stack's main axis); default ring box + a measure_native catch-and-degrade. 0% → 97%.
+- **images render** — WinUI defers a BitmapImage's decode/natural-size until the Image gets a layout
+  slot, which the port's MANUAL Canvas layout never gives (0×0 measure). Fix: read the decoded
+  natural size off the BitmapImage and fit per Stretch + a bounded post-Loaded settle re-layout.
+- **Label BackgroundColor + VerticalTextAlignment** — a TextBlock has no Background, so the port wraps
+  it in a Border container (the WrapperView stand-in) that paints the brush and gives the text a
+  fixed-height slot to align in. label 42%→95% (cpp), 39%→92% (xaml); also recovered flex_layout
+  (19%→minor — its HEADER/CONTENT/FOOTER bands are labels).
+
+Open (in `WINDOWS_PARITY_TODO.md`): flex_layout footer pushed off-screen (column free-space calc);
+button CharacterSpacing not propagated by a stock Button (needs the MauiButton inner-TextBlock);
+collection_view DataTemplateSelector item backgrounds; picker Title-as-caption; the FormattedString
+per-run highlight (TextHighlighter); and the xaml-gallery per-page markup tail (borderless,
+shape_app_theme, search_bar, rectangle_gallery…). Un-judged ~43 pages need a lower-concurrency
+re-run of the Sonnet pass (the first hit server-side rate limits).
+
 ## Windows (WinUI 3) backend — FULL HANDLER SURFACE + FULL 3-WAY SWEEP (2026-07-02, second pass)
 
 Continuation of the bring-up below, same day: **all 33 windows handler partials integrated and
@@ -19,8 +47,48 @@ capture so an occluded/busy desktop cannot pollute frames). Reproducible boot fa
 4 cpp pages crash on mount — `device` + the 3 `header_footer_*` collection_view header/footer
 variants (follow-up task filed); 2 maui-side reference-app crashes (`effects`, `refresh_view`).
 Spot-judged at parity: button (light+dark), input_controls, box_view (incl. gradient), label.
+
+**Crash-page fixes (2026-07-03): all 4 cpp boot crashes fixed + captured.** Both were silent
+0xC000027B stowed-exception fail-fasts (no stderr) — `host_run.cpp` now hooks
+`Application::UnhandledException` (log-then-fail, MAUI's OnApplicationUnhandledException analog),
+attributes exceptions escaping the SizeChanged/Loaded drive_layout delegates, and unbuffers stderr
+(a redirected MSVC-CRT stderr is fully buffered and a fail-fast skips the flush). Root causes:
+(1) `header_footer_*` — the boxed-View chrome mount replay (ensure_mounted → layout "add" per pass)
+re-InsertAt'ed already-hosted natives into their Canvas: WinUI throws E_CHILD_ALREADY_EXISTS
+(0x800F1000) where android addView/AppKit addSubview re-parent, AND `FrameworkElement.Parent` is
+NULL for a never-loaded subtree so a logical-parent detach can't see it. Fix: shared
+`wnative::detach_from_parent` (logical parent, VisualTreeHelper visual-parent fallback) + an
+IndexOf-on-target move guard in the layout_handler's native insert — add/insert/update now
+re-parent like the android twin's add_view_at. (2) `device` — windows fell to the unconfigured
+headless device_info fake, whose model()/version_string() THROW feature_not_supported (the android
+lane's identical lesson). Fix: real `src/platform/windows/essentials_device_info.cpp` ported from
+DeviceInfo.windows.cs (EasClientDeviceInformation model/manufacturer/name, AnalyticsInfo
+DeviceFamilyVersion 16-bit unpack + DeviceFamily idiom switch with the Chromium tablet-mode probe
+via GetSystemMetrics/GetAutoRotationState/PowerDeterminePlatformRoleEx, "Virtual"/"HMV domU"
+device-type heuristic), every read degrading to a default; device_info_tests grow a
+windows-lazy-default arm (`MAUI_PLATFORM_WINDOWS`). All 4 pages boot + capture ok (light; the
+device page shows Platform: WinUI / Idiom: Desktop / real OS version). Suite: same 3489 tests,
+only the 3 pre-existing box-local failures (label_seam ×2 + gallery_twin stepper — present on the
+unmodified base commit, unrelated).
+
+**Pre-existing 3 failures diagnosed + fixed (2026-07-03): both were genuine windows-partial bugs
+in the XAML-less degradation lane, NOT box quirks.** (1) label_seam ×2 — the windows
+label_handler's null-native fallback kept the OLD one-line placeholder (`chars*7 × 16`), but the
+headless oracle metric it is documented to replicate grew padding-inflation (MauiLabel.SizeThatFits)
+and explicit-Width wrap (PreferredMaxLayoutWidth) branches back on 2026-06-15 (`16014728b3`) —
+the fallback now carries the full headless body (keep-in-sync note added). The android VM-less
+fallback had the SAME stale metric — fixed the same way (full headless body replicated into the
+null-native branch of `platform/android/label_handler.cpp` get_desired_size, keep-in-sync note
+added); ⚠ NOT yet verified — needs the JNI lane (`ctest --preset android`), which this Windows
+box cannot build. Run the android suite on the Mac box before considering it closed.
+(2) gallery_twin stepper — `stepper_platform::update_background` constructed the SolidColorBrush
+BEFORE borrowing the buttons, so XAML-less the WinRT activation threw out of the mapper (gtest
+"Unknown C++ exception"; the twin's `<Stepper BackgroundColor="Red"/>` is the trigger). Every
+other windows partial null-checks the borrowed native first — the stepper now does too. Windows
+suite fully green after both fixes.
+
 **Next:** run the review-only judge sweep (gemini/claude verdicts per page over
-captures/windows) → PARITY_REVIEW.md → fix port_diffs; fix the 4 crash pages; then the deferral
+captures/windows) → PARITY_REVIEW.md → fix port_diffs; then the deferral
 tails (per-state resource-key theming, MauiPasswordTextBox, DWrite font manager, D2D graphics_view).
 
 ## Windows (WinUI 3) backend — 🚧 BRING-UP (2026-07-02, `2a65c88f0c`)
