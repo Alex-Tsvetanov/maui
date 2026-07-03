@@ -36,6 +36,7 @@
 
 #include "maui/core/activity_indicator_handler.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <memory>
 #include <string_view>
@@ -235,9 +236,9 @@ namespace maui::core
         // A WinUI ProgressRing "fills all the space you give it" (ActivityIndicatorExtensions.UpdateWidth
         // comment) and FAULTS its Measure under an INFINITE constraint — WinUI cannot fill infinity. A
         // horizontal stack offers its children an unbounded main axis, which is exactly how the
-        // controls_stack row reaches here (the standalone page's vertical stack offers a finite width, so
-        // it never tripped). Substitute the default ring box for a non-finite constraint so it measures
-        // to a modest square instead of throwing — matching MAUI's small centered ring in a bounded row.
+        // controls_stack row reaches here. Substitute the default ring box for a non-finite constraint so
+        // it measures to a modest square instead of throwing. (The wide-ellipse fix lives in
+        // platform_arrange, which pins a CENTERED SQUARE rather than the fill-inviting frame.)
         constexpr double k_default_ring_box = 20.0;
         const double wc = std::isfinite(width_constraint) ? width_constraint : k_default_ring_box;
         const double hc = std::isfinite(height_constraint) ? height_constraint : k_default_ring_box;
@@ -251,9 +252,15 @@ namespace maui::core
         {
             return; // XAML-less: no native layout to apply
         }
-        // The shared Canvas recipe: Canvas.SetLeft/SetTop + explicit Width/Height pin the ProgressRing
-        // to the frame (ViewHandlerExtensions.Windows.cs PlatformArrangeHandler on the Canvas model —
-        // the explicit size also stands in for UpdateWidth/UpdateHeight's fill-avoidance).
-        wnative::arrange_native(platform->native, frame);
+        // A ProgressRing STRETCHES to whatever explicit Width/Height it is pinned to, so pinning the full
+        // arranged frame (which the layout inflates to the row's full width for a Fill-aligned indicator)
+        // produced a wide horizontal ellipse. MAUI keeps the spinner circular by never setting
+        // Width/Height and letting the ring self-centre. On the port's Canvas model we replicate that:
+        // pin a SQUARE the size of the frame's shorter side, CENTERED within the frame — a circular ring
+        // matching MAUI's small centered spinner (and the explicit Larger/Smaller squares stay square).
+        const double box = std::min(frame.width, frame.height);
+        const double x = frame.x + (frame.width - box) / 2.0;
+        const double y = frame.y + (frame.height - box) / 2.0;
+        wnative::arrange_native(platform->native, maui::graphics::rect{x, y, box, box});
     }
 } // namespace maui::core
