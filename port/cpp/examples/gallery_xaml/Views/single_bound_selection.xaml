@@ -9,8 +9,8 @@
     <VerticalStackLayout Spacing="5">
         <Label Text="The selected item in the CollectionView should match the 'Selected' Label below. If it does not, this test has failed." />
         <Label Text="Selected: (none)" />
-        <Button Text="Reset" />
-        <Button Text="Clear" />
+        <Button Text="Reset Selection to Item 0" />
+        <Button Text="Clear Selection" />
         <CollectionView SelectionMode="Single">
             <CollectionView.ItemsSource>
                 <x:Array Type="{x:Type x:String}">
