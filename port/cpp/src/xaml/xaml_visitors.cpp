@@ -2459,6 +2459,22 @@ namespace maui::xaml
             if (const auto* data_tmpl = std::any_cast<std::shared_ptr<maui::controls::data_template>>(template_value);
                 data_tmpl != nullptr && *data_tmpl != nullptr)
             {
+                // Record the template body ROOT's type_tag as the data_template's content_type: the code-
+                // first data_template::of<TControl>() sets it so the native cell realizes the actual
+                // inflated content (with its styled attributes) via create_handler(content_type); the XAML
+                // path minted an empty template, so without this every xaml CV cell fell back to the plain
+                // item-text mirror, silently dropping FontSize/alignment/etc. Resolve the body root element
+                // name in the type registry (the same GetElementType path the create pass uses). Unresolved
+                // (loader-only) roots leave content_type unset → the text-mirror fallback, as before.
+                const std::string& root_name = body_node.type().name();
+                const std::string& root_ns = body_node.type().namespace_uri();
+                if (root_ns == maui_uri || root_ns == maui_global_uri)
+                {
+                    if (const auto* reg = context_->type_registry().find(root_name, xaml_namespace::maui))
+                    {
+                        (*data_tmpl)->set_content_type(reg->type);
+                    }
+                }
                 (*data_tmpl)->set_load_template(make_loader());
                 return;
             }
