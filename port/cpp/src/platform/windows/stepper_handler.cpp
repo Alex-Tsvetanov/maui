@@ -205,11 +205,16 @@ namespace maui::core
             // (Content "+") in column 1.
             const muxc::Grid panel;
             panel.HorizontalAlignment(mux::HorizontalAlignment::Left);
+            // AUTO columns (not the template's Star): the port's Canvas model pins the Grid to the full
+            // arranged frame Width, and Star columns would then split that whole width and spread the
+            // - / + buttons to opposite ends. Auto columns keep each column at its button's natural width,
+            // left-packed and adjacent, so the pair stays grouped on the left exactly as MAUI renders it
+            // (MAUI keeps the MauiStepper Grid at its Left-aligned desired width instead — same visual).
             const muxc::ColumnDefinition minus_column;
-            minus_column.Width(mux::GridLength{1.0, mux::GridUnitType::Star});
+            minus_column.Width(mux::GridLength{0.0, mux::GridUnitType::Auto});
             panel.ColumnDefinitions().Append(minus_column);
             const muxc::ColumnDefinition plus_column;
-            plus_column.Width(mux::GridLength{1.0, mux::GridUnitType::Star});
+            plus_column.Width(mux::GridLength{0.0, mux::GridUnitType::Auto});
             panel.ColumnDefinitions().Append(plus_column);
             const muxc::Button minus = create_stepper_button("-", 0);
             const muxc::Button plus = create_stepper_button("+", 1);
