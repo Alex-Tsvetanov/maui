@@ -3,9 +3,10 @@
     <!-- The CollectionView starts EMPTY (no ItemsSource). EmptyView is unsupported (neither string nor
          element form), so the empty-state message is rendered as a plain sibling Label in the same cell
          (wrapped with the CollectionView in a Grid) — which is what shows at rest, since the source is
-         empty. GridItemsLayout Span="3" Vertical (element form unsupported -> string attribute form). -->
+         empty. It is centered in the Grid so it matches MAUI's centered EmptyView (the real EmptyView the
+         cpp twin uses centers both axes). GridItemsLayout Span="3" Vertical (element -> string attr form). -->
     <Grid>
-        <Label Text="Nothing to display." />
+        <Label Text="Nothing to display." HorizontalOptions="Center" VerticalOptions="Center" />
         <CollectionView ItemsLayout="VerticalGrid, 3">
             <CollectionView.ItemTemplate>
                 <DataTemplate>

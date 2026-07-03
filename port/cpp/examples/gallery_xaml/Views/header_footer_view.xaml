@@ -8,17 +8,23 @@
          UI). The source starts empty (HeaderFooterViewModel(0)), so no rows are inlined — matching the
          initial state the buttons fill on demand. -->
     <!-- CollectionView.Header / .Footer (view form) are unsupported, so the header Grid and footer Grid are
-         moved to plain siblings ABOVE / BELOW the CollectionView (wrapped together with it in a
-         VerticalStackLayout) — preserving the resting top-to-bottom order. The source starts empty, so no
-         item rows appear between them. -->
-    <VerticalStackLayout>
-        <Grid>
+         moved to plain siblings ABOVE / BELOW the CollectionView. They are hosted in a 3-ROW Grid
+         (header Auto / CollectionView "*" / footer Auto) rather than a VerticalStackLayout, so the empty
+         middle CollectionView EXPANDS to fill and the footer pins to the BOTTOM — matching MAUI's real CV
+         (which fills its container and bottom-anchors the footer over an empty source) and the cpp twin. -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
             <Image Source="oasis.jpg" Aspect="AspectFill" HeightRequest="100" />
             <Label Text="This Is A Header" TextColor="AntiqueWhite" HorizontalTextAlignment="Center"
                    FontAttributes="Bold" FontSize="36" />
         </Grid>
-        <CollectionView />
-        <Grid>
+        <CollectionView Grid.Row="1" />
+        <Grid Grid.Row="2">
             <Grid.RowDefinitions>
                 <RowDefinition />
                 <RowDefinition />
@@ -33,5 +39,5 @@
             <Button Text="Add 2 Items" Grid.Row="1" Grid.Column="0" HorizontalOptions="Center" />
             <Button Text="Clear All Items" Grid.Row="1" Grid.Column="1" HorizontalOptions="Center" />
         </Grid>
-    </VerticalStackLayout>
+    </Grid>
 </ContentPage>
