@@ -29,6 +29,10 @@ Update as items land. `pixel_score.py` re-scores; `capture_windows.py --mode bot
 - Expect the same cascade on other pages whose cells/regions are Labels with BackgroundColor — a full
   recapture + re-score is running to quantify.
 
+- **Picker Title as Header** — mapped Title to ComboBox.Header (caption above the box) instead of
+  in-box PlaceholderText, matching MAUI. picker 63%→98%, pickers →99-100% (both columns+themes).
+  date_picker/time_picker (88-90%) use different WinUI controls — separate minor-styling items.
+
 ## High value (both cpp+xaml, confirmed real)
 2. **[DONE — see above] flex_layout footer off-screen** — was: after the label fix the page
    is minor for light, but the pink FOOTER band is pushed below the 800px viewport. Root cause: the

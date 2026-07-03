@@ -92,6 +92,31 @@ namespace
         return wnative::borrow<muxc::ComboBox>(platform.native);
     }
 
+    // PickerExtensions.UpdateTitle: MAUI renders the Picker Title as the ComboBox HEADER (a caption
+    // ABOVE the box), NOT as in-box placeholder text — the box itself shows the selected item or is
+    // empty. C# binds Header + a "ComboBoxHeader" DataTemplate that carries Title + TitleColor; with no
+    // Application resources on this backend the port builds the equivalent header directly as a
+    // TextBlock (so the title color applies), and clears PlaceholderText so the empty box matches MAUI.
+    // Both MapTitle and MapTitleColor route here (C#'s MapTitleColor re-runs UpdateTitle).
+    void apply_title(const muxc::ComboBox& combo, maui::core::i_picker& view)
+    {
+        combo.PlaceholderText(winrt::hstring{}); // MAUI shows no in-box placeholder; the title is the header
+        const std::string title = std::string(view.title());
+        if (title.empty())
+        {
+            combo.Header(nullptr);
+            return;
+        }
+        muxc::TextBlock header;
+        header.Text(wnative::to_hstring_utf8(title));
+        const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+        if (bindable != nullptr && bindable->is_property_set("title_color"))
+        {
+            header.Foreground(wnative::to_brush(view.title_color()));
+        }
+        combo.Header(header);
+    }
+
     // FontExtensions.ToFontStyle: Slant â†’ FontStyle (Italic / Oblique / Normal).
     [[nodiscard]] wut::FontStyle to_font_style(maui::core::font_slant slant)
     {
@@ -471,11 +496,9 @@ namespace maui::core
         platform->title = std::string(view.title()); // headless mirror (UpdatePickerTitle)
         if (auto combo = combo_of(*platform))
         {
-            // PickerExtensions.UpdateTitle binds Header/HeaderTemplate to the app-resource
-            // "ComboBoxHeader" DataTemplate; the port lands the title on PlaceholderText (header
-            // deviations). deferred: the Header/HeaderTemplate composition + MapTitle's Semantics
-            // re-map (handler.UpdateValue(nameof(IView.Semantics))).
-            combo.PlaceholderText(wnative::to_hstring_utf8(view.title()));
+            // Title → the ComboBox Header (caption above the box), matching MAUI. deferred: MapTitle's
+            // Semantics re-map (handler.UpdateValue(nameof(IView.Semantics))).
+            apply_title(combo, view);
         }
     }
 
@@ -487,24 +510,11 @@ namespace maui::core
             return;
         }
         platform->title_color = view.title_color(); // headless mirror
-        auto combo = combo_of(*platform);
-        if (combo == nullptr)
+        if (auto combo = combo_of(*platform))
         {
-            return;
-        }
-        // C#'s MapTitleColor re-runs UpdateTitle (the title color rides the ComboBoxHeader template's
-        // TitleColor binding). With the title on PlaceholderText (header deviations), the color lands
-        // on PlaceholderForeground â€” the same visible slot. The unset case restores the theme default
-        // via ClearValue, discriminated through BindableObject.IsSet (the port's color has no null).
-        const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
-        const bool color_is_set = bindable != nullptr && bindable->is_property_set("title_color");
-        if (color_is_set)
-        {
-            combo.PlaceholderForeground(wnative::to_brush(view.title_color()));
-        }
-        else
-        {
-            combo.ClearValue(muxc::ComboBox::PlaceholderForegroundProperty());
+            // C#'s MapTitleColor re-runs UpdateTitle — the title color rides the header (apply_title
+            // paints the header TextBlock's Foreground when title_color is set).
+            apply_title(combo, view);
         }
     }
 

@@ -8210,15 +8210,15 @@
     480,
     800
    ],
-   "exact_pct": 0.02,
-   "near_pct": 82.13,
-   "mae": 21.56,
+   "exact_pct": 3.59,
+   "near_pct": 97.81,
+   "mae": 7.18,
    "animated": false,
    "frames": [
     1,
     1
    ],
-   "verdict": "diff"
+   "verdict": "minor"
   },
   "cpp_dark": {
    "dims_match": true,
@@ -8230,15 +8230,15 @@
     480,
     800
    ],
-   "exact_pct": 0.04,
-   "near_pct": 63.4,
-   "mae": 35.24,
+   "exact_pct": 3.95,
+   "near_pct": 97.4,
+   "mae": 15.1,
    "animated": false,
    "frames": [
     1,
     1
    ],
-   "verdict": "diff"
+   "verdict": "minor"
   },
   "xaml_light": {
    "dims_match": true,
@@ -8250,15 +8250,15 @@
     480,
     800
    ],
-   "exact_pct": 0.02,
-   "near_pct": 82.03,
-   "mae": 21.66,
+   "exact_pct": 3.58,
+   "near_pct": 97.73,
+   "mae": 7.29,
    "animated": false,
    "frames": [
     1,
     1
    ],
-   "verdict": "diff"
+   "verdict": "minor"
   },
   "xaml_dark": {
    "dims_match": true,
@@ -8270,15 +8270,15 @@
     480,
     800
    ],
-   "exact_pct": 0.04,
-   "near_pct": 63.31,
-   "mae": 35.26,
+   "exact_pct": 3.93,
+   "near_pct": 97.32,
+   "mae": 15.23,
    "animated": false,
    "frames": [
     1,
     1
    ],
-   "verdict": "diff"
+   "verdict": "minor"
   }
  },
  "pickers": {
@@ -8293,8 +8293,8 @@
     800
    ],
    "exact_pct": 0.01,
-   "near_pct": 98.14,
-   "mae": 8.19,
+   "near_pct": 99.28,
+   "mae": 7.13,
    "animated": false,
    "frames": [
     1,
@@ -8312,9 +8312,9 @@
     480,
     800
    ],
-   "exact_pct": 0.02,
-   "near_pct": 95.55,
-   "mae": 15.35,
+   "exact_pct": 0.04,
+   "near_pct": 99.59,
+   "mae": 14.62,
    "animated": false,
    "frames": [
     1,
@@ -8333,8 +8333,8 @@
     800
    ],
    "exact_pct": 0.01,
-   "near_pct": 98.14,
-   "mae": 8.19,
+   "near_pct": 99.25,
+   "mae": 7.18,
    "animated": false,
    "frames": [
     1,
@@ -8352,9 +8352,9 @@
     480,
     800
    ],
-   "exact_pct": 0.01,
-   "near_pct": 95.54,
-   "mae": 15.36,
+   "exact_pct": 0.04,
+   "near_pct": 99.55,
+   "mae": 14.67,
    "animated": false,
    "frames": [
     1,
