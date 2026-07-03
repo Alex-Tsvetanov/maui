@@ -1,5 +1,34 @@
 # Windows parity fix queue (Sonnet-reviewed)
 
+## ⛔ BLOCKER (2026-07-03) — gallery renders EVERY page blank after a maui_core rebuild+install+relink
+The cpp/xaml gallery now renders **all pages blank/white** (window mounts, measure+arrange run with
+correct numbers, but NO control paints — confirmed on a real desktop screenshot, not a capture
+artifact). Signature = **templateless controls**: a Button measures 19px (content only, no chrome).
+- **NOT the button icon+text change** — reverted it (commit `9a5ebe77bf` reverts `46030899bc`) and the
+  blank PERSISTS, and even a forced red Button.Background does not paint. Label/entry/activity_indicator
+  are all blank too → global, not button-specific.
+- **NOT resources.pri** — it + Bootstrap.dll next to gallery.exe are UNCHANGED (Nov mtimes); only
+  gallery.exe/maui_core.lib changed. No resource/theme/exception logged at startup.
+- **Root cause (traced):** the prior *working* gallery (which produced the committed captures) linked an
+  OLDER installed `windows-prefix/lib/maui_core.lib`. This session's `cmake --install ... --prefix
+  build/windows-prefix` refreshed that lib to the current build/windows one, which now includes the
+  **uncommitted WIP Windows-handler expansion** (untracked: border/collection_view/flyout_page/image/
+  indicator_view/navigation_page/refresh_view/scroll_view/swipe_item_menu_item/swipe_view/tabbed_page
+  `_handler.cpp` + their modified `.hpp`). Relinking activated that code → global templateless render.
+  Most likely a resource-dictionary corruption (the class of bug fixed earlier — resource_dictionary
+  iterator-invalidation UB / XAML GradientStops-Spans UAF — possibly reintroduced by one WIP handler).
+- **State is safe:** all working captures + `windows_pixel_scores.json` were RESTORED from git (the
+  committed versions render correctly). Only the local gallery.exe binary is bad; committed source +
+  captures are intact.
+- **NEXT FIRE — restore a working gallery FIRST (prerequisite to all parity work):** bisect the WIP
+  handlers — temporarily exclude them from the maui_core windows sources (or stash the untracked .cpp +
+  checkout the .hpp), rebuild+install+relink, capture `label`; add them back one at a time until `label`
+  goes blank. Prime suspects: any handler that touches the app ResourceDictionary or a XAML brush/shape
+  resource (border/shape/swipe). Then fix that handler, THEN resume the button icon+text fix (its code is
+  in the reverted commit `46030899bc` — cleanly reappliable once the gallery renders again).
+
+
+
 Driven by `windows_pixel_scores.json` (objective near-match%) + `windows_sonnet_review.json`
 (Sonnet vision verdicts). Reference render (`~/maui-compare` on Windows) is ground truth.
 Update as items land. `pixel_score.py` re-scores; `capture_windows.py --mode both` re-captures
