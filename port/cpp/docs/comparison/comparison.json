@@ -2653,12 +2653,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "red",
-     "review": "Two clear color bugs in BOTH themes. (1) 'Colored' checkbox: MAUI shows a distinct purple/magenta border; cpp renders it as a plain gray box identical to 'Default' — the named border color is not applied. (2) 'Disabled Colored' checkbox: MAUI shows it CHECKED with a purple/magenta fill and white checkmark; cpp renders it checked but with a GRAY fill instead of purple/magenta. The 'Change IsChecked' row (red-bordered 'Is green? False' pill + red-filled checked box with white checkmark) matches MAUI. Section labels, box sizes, and layout/spacing otherwise match. The two missing/incorrect colors on the Colored and Disabled-Colored checkboxes are rendering bugs."
+     "status": "green",
+     "review": "Both themes match MAUI. All six sections present with correct labels and states: Default (empty box), Colored (purple outline), Disabled (empty, dimmed), Disabled Colored (purple-filled box with white check), Change IsChecked (red checkbox with white check + 'Is green? False' entry with red border/red text). Light: entry has red border + red text, checkbox red-filled — matches. Dark: dark bg, white section labels, purple colored outline, purple disabled-colored fill, red change-checkbox and red entry text — matches. Only minor difference is checkbox glyphs render marginally smaller/tighter and the outer page inset is smaller, both ignorable per policy. No missing/extra elements, no wrong colors or states."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Same two color bugs as cpp in BOTH themes. (1) 'Colored' checkbox is missing its purple/magenta border and renders as a plain gray box like 'Default'. (2) 'Disabled Colored' checkbox is checked but fills GRAY instead of MAUI's purple/magenta. The 'Change IsChecked' red pill + red-filled checked box matches MAUI. Labels, box sizing, and layout otherwise match MAUI; the color color is off on the two 'Colored' checkboxes."
+     "status": "green",
+     "review": "Both themes match MAUI. All six sections present and correct: Default (empty box), Colored (purple outline), Disabled (dimmed empty box), Disabled Colored (purple-filled with white check), Change IsChecked (red checkbox with white check + 'Is green? False' entry with red border/text). Light: entry red border + red text, red checkbox — matches. Dark: dark bg, white labels, purple colored outline, purple disabled-colored fill, red change-checkbox, red entry text — matches. Checkboxes render very slightly larger than MAUI and the page inset differs, both ignorable per policy. No missing/extra elements, no wrong colors, no layout bugs."
     }
    }
   }
@@ -3985,12 +3985,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "yellow",
-     "review": "Both themes: header, A Button, An Entry, An Editor, A SearchBar, checkbox, switch, activity-indicator arc, slider (thumb at same position, red/orange fill), and progress bar all match MAUI in both light and dark. One real drift: the Stepper is rendered wrong. In MAUI the '-' and '+' buttons are compact and adjacent on the LEFT (x~30-80). In the cpp port the '-' stays at the left (x~30) but the '+' is pushed to the far RIGHT edge (x~257), so the two stepper buttons are spread across the full row width instead of grouped. This is consistent in both light and dark. Not a missing/blank/wrong-color bug, so yellow rather than red, but it is a clear layout drift from MAUI's grouped stepper. Everything else is pixel-faithful/AA-only."
+     "status": "green",
+     "review": "Both themes match MAUI. Light: Controls title, A Button, An Entry, An Editor, SearchBar (with magnifier), red Checkbox (checked), red Switch (on), Slider (red fill + thumb at same position), Stepper (- / +), red ProgressBar (~60%) all present with matching colors, sizes, corner radii, and layout. Dark: same set with MAUI's coral/orange-red accent on Checkbox/Switch/Slider/ProgressBar reproduced faithfully. Only trivial sub-pixel differences: the checkbox/switch row sits ~2px higher and the stray RadioButton tick (rendered as a tiny mark in all three, MAUI included) is marginally repositioned — AA-level, not a bug. No missing/extra elements, no wrong colors, no stretched controls."
     },
     "sonnet_xaml": {
-     "status": "yellow",
-     "review": "Both themes match MAUI on header, A Button, An Entry, An Editor, A SearchBar, checkbox, switch, activity-indicator arc, slider, and progress bar (colors and positions identical, light and dark). Same single drift as the cpp port: the Stepper '-' and '+' buttons are spread apart — '-' at the far left (x~30) and '+' at the far right edge (x~257) — whereas MAUI renders them compact and adjacent on the left. Identical behavior in light and dark. All other controls are pixel-faithful/AA-only; yellow only for the stepper layout drift."
+     "status": "green",
+     "review": "Both themes match MAUI. Light: identical control stack (title, Button, Entry, Editor, SearchBar+magnifier, red checked Checkbox, red on-Switch, Slider with red fill/thumb, Stepper - / +, red ~60% ProgressBar) with matching colors, corner radii, spacing, and text. Dark: MAUI's coral accent color on Checkbox/Switch/Slider/ProgressBar reproduced correctly against the dark background. The row of checkbox/switch and the tiny RadioButton tick align essentially the same as MAUI (the RadioButton renders as a small mark in MAUI too). Differences are sub-pixel AA only — no missing/extra elements, no color drift, no stretched or blank layout."
     }
    }
   }
@@ -15973,12 +15973,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "red",
-     "review": "Both themes: the port ignores essentially every per-slider color/appearance property and renders every slider as a plain gray track with a red circular thumb. Concrete missing rendering vs MAUI: (1) BackgroundColor row — MAUI track is solid BLUE, cpp is plain gray; (2) Background row — MAUI track is a yellow→green gradient, cpp is plain gray; (3) MinimumTrackColor=LightBlue — MAUI's left/filled segment is light-blue, cpp is gray; (4) MaximumTrackColor=Pink — MAUI's right segment is pink, cpp is gray; (5) ThumbColor=Orange — MAUI thumb is ORANGE, cpp thumb is RED; (6) ThumbImageSource row — MAUI shows the same slider (image applied on toggle), cpp shows plain gray/red; (7) Custom Slider (red min / green max / blue thumb) — MAUI shows a green track with a BLUE thumb, cpp shows plain gray track with red thumb. The Disabled row thumb is also wrong: MAUI/xaml show a gray disabled thumb, cpp keeps a red thumb. Layout, section order, labels and the Toggle Image button all match, but the slider control's color pipeline (min/max track colors, thumb color, background, thumb image) is not applied — a clear rendering bug in both light and dark."
+     "status": "green",
+     "review": "Both themes match MAUI. All 13 slider rows render identically: red default thumb, blue BackgroundColor track, yellow-to-green Background gradient, LightBlue/Pink min/max track colors, orange ThumbColor, gray disabled thumb, custom slider (blue thumb + green track), and the Toggle Image button. Value label reads '5' matching MAUI in both light and dark. Track colors, thumb sizes, row spacing, and label typography are pixel-consistent. Only trivial difference: the ThumbImageSource row shows a small red thumb where MAUI renders an imageless/empty track — negligible and shared with the xaml gallery. Page-background tint differs only in the expected theme-neutral way (ignored per policy)."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Both themes: same core defect as the cpp port — per-slider color properties are not reproduced; every slider is a plain gray track with a red thumb. Concrete misses vs MAUI: BackgroundColor track should be BLUE (renders gray); Background track should be a yellow→green gradient (renders gray); MinimumTrackColor=LightBlue left segment missing; MaximumTrackColor=Pink right segment missing; ThumbColor=Orange thumb renders RED not orange; Custom Slider should have a green track + BLUE thumb but renders gray track + red thumb. Additionally, in light theme the Minimum(5)/Maximum(15) value label reads '10' whereas MAUI reads '5' (a minor dynamic-value drift). Section order, labels, disabled thumb (correctly gray) and the Toggle Image button match, but the missing track/thumb coloring is a clear rendering bug in both light and dark."
+     "status": "yellow",
+     "review": "Layout, colors, and all controls match MAUI in both light and dark: red thumbs, blue/yellow-green/LightBlue/Pink tracks, orange thumb, gray disabled thumb, custom blue-thumb+green-track slider, Toggle Image button — all correct. One content drift: the 'Minimum (5) and Maximum (15)' value label reads '10' whereas MAUI (ground truth) reads '5', and the corresponding thumb sits mid-track instead of at the left. This is a wrong displayed value vs MAUI, hence yellow rather than green. The ThumbImageSource row shows a red thumb where MAUI shows an imageless track (same minor drift as cpp). Otherwise the rendering is faithful in both themes."
     }
    }
   }
@@ -16417,12 +16417,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "red",
-     "review": "Both themes: the Stepper's two buttons are wrongly distributed. In MAUI the '-' and '+' form a tight adjacent pair (~35px buttons with a small ~4px gap) left-aligned under each heading. In the cpp port the '-' stays at far left but the '+' is displaced roughly to the horizontal center of the row, leaving a large empty gap between them. This holds for every stepper row, including the red BackgroundColor '+'. Everything else matches MAUI: all headings ('Default', 'Disabled', 'BackgroundColor', 'Background', 'Minimum (5) and Maximum (25)', 'Increment (2)', 'ValueChanged'), the full-width 'Enable Stepper' button, the red '+' swatch color, disabled-button greying, and 'Value: 0'. The defect is purely the internal button spacing/layout of the stepper control (the two buttons are not kept as an adjacent pair), which is a clear layout bug — not the outer page inset."
+     "status": "yellow",
+     "review": "Both themes: layout, all section headers, stepper -/+ pairs, disabled greying, 'Enable Stepper' button, and 'Value: 0' all match MAUI. One drift: in the BackgroundColor row, MAUI paints the RIGHT ('+') button red, but the cpp port paints the LEFT ('-') button red instead (the red BackgroundColor is applied to the wrong half of the stepper). Everything else is identical in both light and dark. Not a hard bug (color present, correct hue/size), but the wrong sub-button is highlighted."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Both themes show the same Stepper layout bug as the cpp port, pixel-for-pixel: the '-' button sits at far left while the '+' button is pushed to about the horizontal center of the row, producing a wide gap instead of MAUI's tight adjacent '-'/'+' pair. Applies to every stepper row including the red BackgroundColor '+'. All other content matches MAUI exactly: headings, the full-width 'Enable Stepper' button, the red swatch color, disabled greying, and 'Value: 0'. Red because the stepper's internal button spacing is clearly wrong (buttons not kept adjacent), which is a layout rendering bug rather than a mere page-inset/margin difference."
+     "status": "green",
+     "review": "Match in both themes. All sections, stepper -/+ pairs, disabled states, 'Enable Stepper' button, BackgroundColor red applied to the correct RIGHT ('+') button matching MAUI, and 'Value: 0' render identically. Only AA-level rendering differences; no drift."
     }
    }
   }
@@ -17417,11 +17417,11 @@
     },
     "sonnet_cpp": {
      "status": "red",
-     "review": "Both themes: three switches are missing their applied styling and render as plain default off-switches identical to Default. (1) BackgroundColor row — MAUI shows a solid BLUE track filling the row; cpp shows a plain gray/default track (blue missing). (2) Background row — MAUI shows a yellow-to-green horizontal GRADIENT track filling the row; cpp shows a plain default track (gradient entirely missing). (3) ThumbColor row — MAUI's thumb is ORANGE/amber; cpp's thumb is the default white/gray (orange missing). OnColor and Disabled read acceptably (off state), though Disabled's faded look is not clearly distinct. Label text and layout otherwise match. This is a clear bug: SwitchBackgroundColor/Background brush fill and ThumbColor are not being applied to the platform control."
+     "review": "Same defects in both light and dark themes. THREE switches render wrong vs MAUI ground truth: (1) BackgroundColor switch should be a wide fully-filled BLUE rounded track (as in MAUI) but renders as a plain default gray off-switch — blue fill missing. (2) Background switch should be a wide yellow-to-green GRADIENT-filled track (MAUI) but renders as a plain default gray off-switch — gradient missing. (3) OnColor switch renders as a solid BLACK filled pill with no visible thumb, whereas MAUI shows a normal gray off-switch. Layout, section order/labels, 'Default switch is Off' caption, Default/Disabled switches, and the orange ThumbColor thumb all match MAUI. The three background/oncolor rendering bugs are clear (wrong color / missing fill), identical across both themes."
     },
     "sonnet_xaml": {
      "status": "red",
-     "review": "Same defects as cpp, in both themes. (1) BackgroundColor row — MAUI's solid BLUE track is missing; renders as a plain default track. (2) Background row — MAUI's yellow-to-green GRADIENT track is missing; renders as a plain default track. (3) ThumbColor row — MAUI's ORANGE thumb is missing; renders with the default thumb color. OnColor and Disabled (both off) look acceptable. Labels and layout match MAUI. Clear rendering bug: Switch BackgroundColor, Background gradient brush, and ThumbColor are not applied to the platform control."
+     "review": "Identical defects to the cpp port, in both light and dark themes. THREE switches render wrong vs MAUI ground truth: (1) BackgroundColor switch should be a wide fully-filled BLUE rounded track (MAUI) but renders as a plain default gray off-switch — blue fill missing. (2) Background switch should be a yellow-to-green GRADIENT-filled track (MAUI) but renders as a plain default gray off-switch — gradient missing. (3) OnColor switch renders as a solid BLACK filled pill with no visible thumb, whereas MAUI shows a normal gray off-switch. Layout, labels, section order, caption, Default/Disabled switches, and the orange ThumbColor thumb all match MAUI. The three rendering bugs are clear and consistent across both themes."
     }
    }
   }

@@ -251,17 +251,21 @@ namespace maui::core
             return;
         }
         platform->track_color = view.track_color(); // headless mirror (XAML-less suite)
-        // SwitchExtensions.UpdateTrackColor: the effective track color (OnColor when toggled on, else
-        // OffColor) tints the ToggleSwitchFillOn*/Off* keys. Override them on the switch's own resources
-        // (both On and Off so the visible state is right regardless of toggle). Set when on/off color is set.
+        // SwitchExtensions.UpdateTrackColor: the effective track color tints the fill keys for the CURRENT
+        // toggle state ONLY (C# picks the On or Off keys by IsOn) — NOT both, or an OFF switch whose OnColor
+        // is set would wrongly paint its off-track. Override the current-state keys when THAT state's color
+        // is set; always clear the other state's keys so a prior override does not linger after a toggle.
         if (auto toggle = switch_of(*platform))
         {
-            put_state_brushes(toggle,
-                              {L"ToggleSwitchFillOn", L"ToggleSwitchFillOnPointerOver",
-                               L"ToggleSwitchFillOnPressed", L"ToggleSwitchFillOnDisabled", L"ToggleSwitchFillOff",
-                               L"ToggleSwitchFillOffPointerOver", L"ToggleSwitchFillOffPressed",
-                               L"ToggleSwitchFillOffDisabled"},
-                              is_set(view, "on_color") || is_set(view, "off_color"), view.track_color());
+            const bool on = view.is_on();
+            const std::initializer_list<std::wstring_view> on_keys{
+                L"ToggleSwitchFillOn", L"ToggleSwitchFillOnPointerOver", L"ToggleSwitchFillOnPressed",
+                L"ToggleSwitchFillOnDisabled"};
+            const std::initializer_list<std::wstring_view> off_keys{
+                L"ToggleSwitchFillOff", L"ToggleSwitchFillOffPointerOver", L"ToggleSwitchFillOffPressed",
+                L"ToggleSwitchFillOffDisabled"};
+            put_state_brushes(toggle, on_keys, on && is_set(view, "on_color"), view.track_color());
+            put_state_brushes(toggle, off_keys, !on && is_set(view, "off_color"), view.track_color());
         }
     }
 
