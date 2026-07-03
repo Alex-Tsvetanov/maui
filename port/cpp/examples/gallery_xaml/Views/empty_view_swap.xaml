@@ -41,6 +41,44 @@
                     <x:String>photo.jpg, 9</x:String>
                     <x:String>Vegetables.jpg, 10</x:String>
                     <x:String>Fruits.jpg, 11</x:String>
+                    <x:String>FlowerBuds.jpg, 12</x:String>
+                    <x:String>Legumes.jpg, 13</x:String>
+                    <x:String>cover1.jpg, 14</x:String>
+                    <x:String>oasis.jpg, 15</x:String>
+                    <x:String>photo.jpg, 16</x:String>
+                    <x:String>Vegetables.jpg, 17</x:String>
+                    <x:String>Fruits.jpg, 18</x:String>
+                    <x:String>FlowerBuds.jpg, 19</x:String>
+                    <x:String>Legumes.jpg, 20</x:String>
+                    <x:String>cover1.jpg, 21</x:String>
+                    <x:String>oasis.jpg, 22</x:String>
+                    <x:String>photo.jpg, 23</x:String>
+                    <x:String>Vegetables.jpg, 24</x:String>
+                    <x:String>Fruits.jpg, 25</x:String>
+                    <x:String>FlowerBuds.jpg, 26</x:String>
+                    <x:String>Legumes.jpg, 27</x:String>
+                    <x:String>cover1.jpg, 28</x:String>
+                    <x:String>oasis.jpg, 29</x:String>
+                    <x:String>photo.jpg, 30</x:String>
+                    <x:String>Vegetables.jpg, 31</x:String>
+                    <x:String>Fruits.jpg, 32</x:String>
+                    <x:String>FlowerBuds.jpg, 33</x:String>
+                    <x:String>Legumes.jpg, 34</x:String>
+                    <x:String>cover1.jpg, 35</x:String>
+                    <x:String>oasis.jpg, 36</x:String>
+                    <x:String>photo.jpg, 37</x:String>
+                    <x:String>Vegetables.jpg, 38</x:String>
+                    <x:String>Fruits.jpg, 39</x:String>
+                    <x:String>FlowerBuds.jpg, 40</x:String>
+                    <x:String>Legumes.jpg, 41</x:String>
+                    <x:String>cover1.jpg, 42</x:String>
+                    <x:String>oasis.jpg, 43</x:String>
+                    <x:String>photo.jpg, 44</x:String>
+                    <x:String>Vegetables.jpg, 45</x:String>
+                    <x:String>Fruits.jpg, 46</x:String>
+                    <x:String>FlowerBuds.jpg, 47</x:String>
+                    <x:String>Legumes.jpg, 48</x:String>
+                    <x:String>cover1.jpg, 49</x:String>
                 </x:Array>
             </CollectionView.ItemsSource>
             <CollectionView.ItemTemplate>

@@ -16,11 +16,12 @@
         <!-- Row 1: the "Filter" SearchBar -->
         <SearchBar Grid.Row="1" Placeholder="Filter" />
 
-        <!-- Row 2: the CollectionView (2-span vertical grid of caption labels). CollectionView.EmptyView
-             (view form) is unsupported, so the coral "Nothing to see here" Label is moved to a plain sibling
-             in the same cell; at rest the source is full so the item cells show over it. -->
-        <Label Grid.Row="2" Text="Nothing to see here" TextColor="Coral"
-               HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+        <!-- Row 2: the CollectionView (2-span vertical grid of caption labels). The source starts FULL, so
+             the ground truth (maui-compare + the green cpp twin) shows only the item cells at rest with no
+             EmptyView text. CollectionView.EmptyView (view form) is unsupported by the loader, but a static
+             sibling "Nothing to see here" Label would render OVER the populated list at rest (wrong), so it
+             is omitted — the EmptyView only matters once the SearchBar filters to empty, which no capture
+             exercises. -->
         <CollectionView Grid.Row="2" ItemsLayout="VerticalGrid, 2">
             <CollectionView.ItemsSource>
                 <x:Array Type="{x:Type x:String}">
