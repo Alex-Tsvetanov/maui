@@ -164,14 +164,19 @@ namespace maui::core
         // when one exists (the android partial's dual-drive pattern). is_enabled is intentionally NOT
         // overridden: a TextBlock is not a Control, and C#'s ViewExtensions.UpdateIsEnabled
         // (`platformView as Control`) no-ops on it, so the base mirror is the faithful behavior.
-        // background keeps the base mirror too: a TextBlock has no Background property — C# paints a
-        // label background through the WrapperView container (LabelHandler.Windows.MapBackground →
-        // ContainerView), which this first cut defers alongside the container infra. transform /
-        // flow_direction / semantics / shadow / clip / input_transparent also keep the base mirrors
-        // (deferred — see the partial's header).
+        // transform / flow_direction / semantics / shadow / clip / input_transparent keep the base
+        // mirrors (deferred — see the partial's header).
+        //
+        // BACKGROUND is now painted: a TextBlock has no Background, so the port wraps it in a Border
+        // CONTAINER — the local stand-in for C#'s WrapperView (LabelHandler.Windows.MapBackground →
+        // ContainerView). `native` is the Border; `text_block` is the inner TextBlock every text map
+        // targets. The container carrying a fixed-height slot also lets VerticalTextAlignment finally
+        // take visual effect (the child aligns within the Border height).
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+        void* text_block = nullptr; // the inner Microsoft.UI.Xaml.Controls.TextBlock (owned; freed in the dtor)
 #endif
     };
 

@@ -71,9 +71,16 @@ namespace
     // XAML-less test host does not have (header deviation).
     constexpr double k_default_font_size = 14.0;
 
+    // The inner TextBlock every text map targets — `native` is the Border CONTAINER (WrapperView
+    // stand-in) that carries the view background, so the text lives in `text_block`.
     [[nodiscard]] muxc::TextBlock text_block_of(const maui::core::label_platform& platform)
     {
-        return wnative::borrow<muxc::TextBlock>(platform.native);
+        return wnative::borrow<muxc::TextBlock>(platform.text_block);
+    }
+
+    [[nodiscard]] muxc::Border border_of(const maui::core::label_platform& platform)
+    {
+        return wnative::borrow<muxc::Border>(platform.native);
     }
 
     // FontExtensions.ToFontStyle: Slant → FontStyle (Italic / Oblique / Normal).
@@ -201,7 +208,8 @@ namespace maui::core
     // doctrine; the apple twin CFReleases its NSTextField here).
     label_platform::~label_platform()
     {
-        wnative::release(native);
+        wnative::release(text_block); // the inner TextBlock's own ref (the Border also holds one via Child)
+        wnative::release(native);     // the Border container
     }
 
     // The generic-IView pushes (the shared view_mapper calls these through view_platform_base). Each
@@ -228,8 +236,27 @@ namespace maui::core
     void label_platform::update_automation_id(std::string_view value)
     {
         view_platform_base::update_automation_id(value);
-        // ViewExtensions.UpdateAutomationId: AutomationProperties.SetAutomationId.
+        // ViewExtensions.UpdateAutomationId: AutomationProperties.SetAutomationId (on the Border host).
         wnative::apply_automation_id(native, value);
+    }
+
+    void label_platform::update_background(const maui::graphics::paint* value)
+    {
+        view_platform_base::update_background(value); // keep the mirror live for the XAML-less suite
+        auto border = wnative::borrow<winrt::Microsoft::UI::Xaml::Controls::Border>(native);
+        if (border == nullptr)
+        {
+            return;
+        }
+        // LabelHandler.Windows.MapBackground → the WrapperView/ContainerView carries the brush; the
+        // port's Border container is that stand-in. A null paint clears back to transparent; solid and
+        // gradient paints ride the shared Paint.ToPlatform bridge.
+        if (value == nullptr)
+        {
+            border.ClearValue(winrt::Microsoft::UI::Xaml::Controls::Border::BackgroundProperty());
+            return;
+        }
+        border.Background(wnative::to_paint_brush(value));
     }
 
     std::unique_ptr<label_platform> label_handler::create_platform_view()
@@ -237,13 +264,23 @@ namespace maui::core
         auto platform = std::make_unique<label_platform>();
         try
         {
-            // LabelHandler.CreatePlatformView: new TextBlock().
+            // LabelHandler.CreatePlatformView: new TextBlock() — WRAPPED in a Border container (the port's
+            // WrapperView stand-in) so a Label BackgroundColor has a surface to paint on (a TextBlock has
+            // no Background) and VerticalTextAlignment has a fixed-height slot to align within. The child
+            // stretches to fill the Border, so horizontal/vertical text alignment position the text
+            // inside the arranged frame; the Border is transparent until update_background paints it.
             const muxc::TextBlock block;
-            platform->native = wnative::store(block); // released in ~label_platform
+            const muxc::Border border;
+            border.Child(block);
+            block.HorizontalAlignment(mux::HorizontalAlignment::Stretch);
+            block.VerticalAlignment(mux::VerticalAlignment::Top);
+            platform->text_block = wnative::store(block); // the inner TextBlock (freed in the dtor)
+            platform->native = wnative::store(border);    // the Border container (freed in the dtor)
         }
         catch (const winrt::hresult_error&)
         {
             platform->native = nullptr; // XAML-less degradation (header note)
+            platform->text_block = nullptr;
         }
         return platform;
     }
