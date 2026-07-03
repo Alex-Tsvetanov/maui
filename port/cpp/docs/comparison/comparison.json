@@ -2324,8 +2324,8 @@
      "review": "Both themes match MAUI. Standard buttons (Button/disabled/Clicked/Command), the blue/red colored buttons, green BorderColor and green BorderWidth-with-red-border, purple CornerRadius, and the spaced 'B u t t o n' all match MAUI in fill color, border, corner radius, text and sizing. Critically, the two large black icon+text buttons render with MAUI's composition: gear icon horizontally centered with 'settings' text stacked BELOW it. Light and dark surface/chrome colors match. Only the outer page-inset/global-shift differs (ignored)."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Wrong content layout on the icon+text buttons in BOTH themes. MAUI renders the two large black buttons with the gear icon horizontally CENTERED and 'settings' stacked directly BELOW it (icon-on-top vertical composition). The xaml port instead lays them out HORIZONTALLY: the gear icon is left-aligned with 'settings' text placed to its RIGHT (side-by-side), diverging from MAUI's vertical stacked composition. All other buttons (standard, blue/red, green BorderColor/BorderWidth, purple CornerRadius, spaced 'B u t t o n') and both light/dark chrome match MAUI; the defect is isolated to the icon+text button ContentLayout, but it is a clear rendering bug present in light and dark."
+     "status": "green",
+     "review": "The xaml render is indistinguishable from MAUI's content in both light and dark: identical button colors, text colors, disabled graying, border color/width, corner radius, character spacing, and the gear-icon-above-'settings' composition (ContentLayout=Top) matching ground truth. Only the excused inset/global-shift and non-replicable Mica tint differ; no port bug present."
     }
    }
   }
