@@ -5539,12 +5539,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "yellow",
-     "review": "Both themes: the 'Items loading simulation...' EmptyView text renders with correct content, correct color, and correct horizontal centering against the correct light/dark background. Drift: in MAUI the label is vertically centered in the CollectionView area, but the cpp port pins it to the top edge of the content region. This is more than the ignorable outer page-inset (it changes the label's vertical anchoring within the list area, not a uniform whole-page shift), but text/color/horizontal-centering all match, so minor drift rather than a bug. Same behavior in light and dark."
+     "status": "red",
+     "review": "Both themes: the 'Items loading simulation...' EmptyView text is horizontally centered but pinned to the very TOP of the viewport instead of being vertically centered as in MAUI. MAUI centers the placeholder text in the middle of the page (both axes); cpp renders it flush against the top edge. This is a genuine layout/positioning bug (missing vertical centering of the EmptyView), not the excludable outer page-inset — a control is clearly mis-positioned. Text content, color (gray), font, and background all otherwise match in both light and dark. Fix: vertically center the empty/placeholder view within the CollectionView bounds."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Both themes: text content ('Items loading simulation...'), color, and light/dark background all match MAUI. Two positioning defects: (1) the EmptyView label is top-aligned instead of vertically centered like MAUI (shared with cpp), and (2) more seriously, the text is hard left-aligned against the left edge in xaml, whereas MAUI (and cpp) center it horizontally. The wrong horizontal alignment is a clear positioning bug, not an ignorable page-inset/uniform shift. Identical defect in light and dark."
+     "status": "green",
+     "review": "Both themes match MAUI: 'Items loading simulation...' text is centered both horizontally and vertically in the viewport, same gray color, same font, same background (light off-white / dark near-black). No drift."
     }
    }
   }
@@ -5651,11 +5651,11 @@
     },
     "sonnet_cpp": {
      "status": "green",
-     "review": "Match in both themes. \"Nothing to display.\" is centered horizontally and vertically, matching MAUI's placement exactly. Light: near-identical light-gray background, correct dark text. Dark: matching charcoal background, correct light text. Text size/weight/color all match. Only the ignorable outer page-inset/global-shift differs."
+     "review": "Both themes match. Light: identical centered 'Nothing to display.' text (same font, size, weight, dark-gray glyph color) on a solid light background; only a negligible page-background tint difference (MAUI slightly warmer/lighter vs cpp's flat neutral gray) at AA level. Dark: text and background are effectively identical to MAUI (cpp background is a hair deeper black but within AA). Text content, position (dead-center), and rendering all match."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Layout bug in BOTH themes: the empty-view text \"Nothing to display.\" is pinned to the top-left corner of the page instead of centered horizontally and vertically as in MAUI. Colors and text content are correct (light gray bg / dark text in light; charcoal bg / light text in dark), but the mis-positioning is a clear content-layout defect, not the ignorable outer inset — the text should be centered in the viewport and is not."
+     "status": "green",
+     "review": "Both themes match. Light: identical centered 'Nothing to display.' text on a solid light-gray background, matching MAUI's font/size/weight and glyph color; only a trivial whole-page background-tint difference at AA level. Dark: centered white text on near-black background, identical to MAUI. Text content, centering, and rendering all match in both themes."
     }
    }
   }
@@ -6205,12 +6205,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "yellow",
-     "review": "Content matches MAUI in both themes: the Filter/SearchBar sits at top and the full 3-column list of 50 items (cover1.jpg,0 ... cover1.jpg,49) renders correctly, with correct light/dark theming (light = dark text on white; dark = light text on near-black). Two minor drifts: (1) MAUI's Filter box shows a red/orange focused accent border (top edge in light, thin orange underline in dark) that cpp does not reproduce — cpp draws a plain neutral border. (2) Row vertical rhythm is slightly tighter in cpp (rows a few px more compact, so the list ends a bit higher). Same content and intent, so not a bug, but the missing search-box accent color and the spacing delta keep it from green."
+     "status": "green",
+     "review": "Both themes match MAUI. The 3-column grid renders all 50 items 'cover1.jpg,0'...'cover1.jpg,49' in the exact same order and content as MAUI, with correct per-theme text/background colors (dark grey-on-near-black in dark, black-on-white in light). SearchBar 'Filter' present at top and the EmptyView is correctly hidden while items exist. Only trivial drift: MAUI's SearchBar shows a red focus border (focused state) while cpp's is a neutral unfocused border, and cpp row spacing is a hair tighter — neither is a content bug. Aside from the ignorable page-inset/global-shift, this is a faithful match in both light and dark."
     },
     "sonnet_xaml": {
      "status": "red",
-     "review": "Clear rendering bug in BOTH themes. Instead of matching MAUI's fully-populated 50-item list, the xaml port renders only a TRUNCATED 12-item list (indices 0-11) AND simultaneously overlays the EmptyView content on top of it: the centered text 'No results matched your filter.' and italic subtitle 'Maybe try a broader filter?' are drawn directly over the populated rows (visibly colliding with 'Vegetables.jpg,3', 'FlowerBuds.jpg,5', 'Fruits.jpg,4', etc.). MAUI shows the list populated with NO empty view and NO truncation. So xaml has three defects: (a) the CollectionView shows only 12 of 50 items, (b) the EmptyView is visible when the collection is non-empty (empty-view visibility logic wrong), and (c) the two are composited on top of each other producing overlapping/garbled text. Light and dark both exhibit this."
+     "review": "Clear bug in BOTH themes: wrong render state. MAUI shows the full 50-item collection (0-49) with the EmptyView hidden. xaml instead renders only ~12 items (0-11) AND simultaneously displays the EmptyView 'No results matched your filter. / Maybe try a broader filter?' centered below the grid. The EmptyView must not appear when items are present, and the item count is wrong (12 vs 50). SearchBar 'Filter' and text colors per theme are otherwise fine, but the missing 38 items plus the incorrectly-shown EmptyView are a substantive layout/content defect in both light and dark."
     }
    }
   }
@@ -8092,12 +8092,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "red",
-     "review": "Both themes: clear layout bug vs MAUI. (1) Header image: MAUI shows a small ~135px pug thumbnail anchored top-left; cpp renders it as a full-width, full-bleed upscaled banner spanning the entire viewport. (2) CollectionView grid direction/spacing: MAUI lays items in a compact horizontal multi-row grid read column-by-column (cover1.jpg,0 / oasis.jpg,1 / photo.jpg,2 in col 1, etc.) with tight row spacing; cpp renders items as wide horizontal rows with grossly inflated gaps and run-together labels ('cover1.jpg, 0Vegetables.jpg, 3 Legumes.jpg, 6photo.jpg, 9'), so item order/wrapping is wrong. (3) Extra elements: cpp shows a full-width footer image plus 'This Is A Footer' title and a second 'Add Content' button that MAUI does not render in this crop. Header title color/text ('This Is A Header', gold) matches. Same divergence in both light and dark. This is a structural rendering bug, not spacing drift."
+     "status": "yellow",
+     "review": "Both themes: cpp renders all correct content — top header image (pug), amber \"This Is A Header\" title, \"Add Content\" button, a horizontal CollectionView of filename/index items (cover1.jpg 0, Vegetables.jpg 3, Legumes.jpg 6, photo.jpg 9 / oasis.jpg 1, Fruits.jpg 4, cover1.jpg 7), then a footer image (goat) with \"This Is A Footer\" title and Add Content. Text, colors, button chrome, and dark/light theming all match MAUI. The drift is layout ARRANGEMENT: MAUI composes the header block (image + title + Add Content) on the LEFT with the item grid to its right and no visible footer, whereas cpp uses a full-width top header image with items flowing horizontally below it and a full-width footer. This differs from MAUI's ground-truth composition beyond the allowed page-inset exclusion, but no missing/wrong content or wrong color — minor-to-moderate structural drift. Note: cpp shows fewer visible item rows than xaml (the photo.jpg 2 / FlowerBuds.jpg 5 / oasis.jpg 8 row is not clearly rendered in the light capture region before the footer)."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Both themes: same clear layout bug as the cpp port vs MAUI. (1) Header image rendered full-width/full-bleed and upscaled instead of MAUI's small ~135px top-left thumbnail. (2) CollectionView item grid is wrong: MAUI packs items into a compact horizontal multi-row grid read column-by-column with tight spacing; xaml lays them as wide horizontal rows with huge gaps and merged labels ('cover1.jpg, 0Vegetables.jpg, 3 Legumes.jpg, 6photo.jpg, 9'), so wrapping/order diverges. (3) Extra footer: xaml renders a full-width footer banner image, a 'This Is A Footer' title, and a second 'Add Content' button absent from MAUI's crop. Header title text/color matches. Identical divergence in light and dark, and essentially identical to the cpp port. Structural rendering bug."
+     "status": "yellow",
+     "review": "Both themes: xaml renders the same correct content as cpp — top header image, amber \"This Is A Header\", Add Content button, horizontal CollectionView items (cover1.jpg 0, Vegetables.jpg 3, Legumes.jpg 6, photo.jpg 9 / oasis.jpg 1, Fruits.jpg 4, cover1.jpg 7 / photo.jpg 2, FlowerBuds.jpg 5, oasis.jpg 8), footer image (goat) with \"This Is A Footer\" and Add Content. Text, colors, chrome, and theming match MAUI. Same layout-arrangement drift as cpp: MAUI places the header block on the left with an adjacent item grid and shows no footer, while xaml uses a full-width top header with horizontally-flowing items and a full-width footer — a consistent structural composition difference vs MAUI's ground truth (beyond the excused page inset). xaml is slightly more complete than cpp (clearly renders the third item row). No missing content, wrong text, or wrong color."
     }
    }
   }
@@ -8314,12 +8314,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "green",
-     "review": "Both themes match MAUI. Header band with 'This Is A Header' at top, large empty content region in the middle, footer band with 'This Is A Footer' near the bottom, and the 'Add 2 Items' / 'Clear All Items' toolbar row anchored at the very bottom — same vertical distribution as MAUI in both light and dark. Header/footer image bands, title colors, and button labels all correspond. Only the ignorable outer page-inset differs slightly."
+     "status": "yellow",
+     "review": "Both themes: header band with 'This Is A Header', empty list body, footer band with 'This Is A Footer', and the bottom 'Add 2 Items' / 'Clear All Items' flat borderless buttons all match MAUI in structure, text, colors, and the header/footer background images. Only drift: the footer label 'This Is A Footer' sits slightly lower (centered on the footer image band) vs MAUI where it rides just above/at the top edge of the footer band. Small vertical positioning drift of one label; everything else matches in both light and dark."
     },
     "sonnet_xaml": {
      "status": "red",
-     "review": "Wrong layout in BOTH themes. MAUI (and cpp) spread the page vertically: footer band + toolbar anchored at the BOTTOM with a large empty content area between header and footer. In xaml the footer band and the button row have collapsed to the TOP — header, 'This Is A Footer' band, and the two buttons are all stacked in the top third, leaving the entire lower two-thirds blank. The footer is not bottom-anchored and the content region is gone/mispositioned. Additionally the action buttons render as small inset bordered buttons ('Add 2 Items' / 'Clear All Items') rather than MAUI's full-width bottom toolbar bar. Clear structural/positioning bug."
+     "review": "Header, list body, footer image, footer label position, and both text overlays match MAUI in both themes. BUG: the bottom two controls 'Add 2 Items' and 'Clear All Items' render as boxed buttons with visible rounded chrome/borders around the text, in BOTH light and dark. MAUI renders them as flat borderless text buttons (no box outline). This is an extra-chrome control-rendering difference present in both themes. Otherwise colors/text/layout match."
     }
    }
   }
