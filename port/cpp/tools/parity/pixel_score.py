@@ -120,9 +120,19 @@ def main() -> int:
         if entry:
             results[key] = entry
 
+    # Merge into the existing scoreboard so a partial run (specific keys) refreshes only those pages
+    # instead of clobbering the full sweep.
     os.makedirs(CMP, exist_ok=True)
+    merged: dict[str, dict] = {}
+    if os.path.exists(OUT_JSON):
+        try:
+            with open(OUT_JSON, "r", encoding="utf-8") as fh:
+                merged = json.load(fh)
+        except Exception:
+            merged = {}
+    merged.update(results)
     with open(OUT_JSON, "w", encoding="utf-8") as fh:
-        json.dump(results, fh, indent=1, ensure_ascii=False)
+        json.dump(merged, fh, indent=1, ensure_ascii=False)
         fh.write("\n")
 
     # Summary: counts + the worst 40 pairs (the fix queue).

@@ -36,6 +36,7 @@
 
 #include "maui/core/activity_indicator_handler.hpp"
 
+#include <cmath>
 #include <memory>
 #include <string_view>
 
@@ -231,8 +232,16 @@ namespace maui::core
         // explicit-only concern, header deviations).
         const double explicit_width = virtual_view() != nullptr ? virtual_view()->width() : dimension::unset;
         const double explicit_height = virtual_view() != nullptr ? virtual_view()->height() : dimension::unset;
-        return wnative::measure_native(platform->native, width_constraint, height_constraint, explicit_width,
-                                       explicit_height);
+        // A WinUI ProgressRing "fills all the space you give it" (ActivityIndicatorExtensions.UpdateWidth
+        // comment) and FAULTS its Measure under an INFINITE constraint — WinUI cannot fill infinity. A
+        // horizontal stack offers its children an unbounded main axis, which is exactly how the
+        // controls_stack row reaches here (the standalone page's vertical stack offers a finite width, so
+        // it never tripped). Substitute the default ring box for a non-finite constraint so it measures
+        // to a modest square instead of throwing — matching MAUI's small centered ring in a bounded row.
+        constexpr double k_default_ring_box = 20.0;
+        const double wc = std::isfinite(width_constraint) ? width_constraint : k_default_ring_box;
+        const double hc = std::isfinite(height_constraint) ? height_constraint : k_default_ring_box;
+        return wnative::measure_native(platform->native, wc, hc, explicit_width, explicit_height);
     }
 
     void activity_indicator_handler::platform_arrange(const maui::graphics::rect& frame)

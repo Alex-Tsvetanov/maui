@@ -242,10 +242,24 @@ namespace maui::platform::win
             return std::isfinite(constraint) ? static_cast<float>(constraint)
                                              : std::numeric_limits<float>::infinity();
         };
-        element.Measure(
-            winrt::Windows::Foundation::Size{to_measure(width_constraint), to_measure(height_constraint)});
-        const winrt::Windows::Foundation::Size desired = element.DesiredSize();
-        return {static_cast<double>(desired.Width), static_cast<double>(desired.Height)};
+        try
+        {
+            element.Measure(
+                winrt::Windows::Foundation::Size{to_measure(width_constraint), to_measure(height_constraint)});
+            const winrt::Windows::Foundation::Size desired = element.DesiredSize();
+            return {static_cast<double>(desired.Width), static_cast<double>(desired.Height)};
+        }
+        catch (winrt::hresult_error const& error)
+        {
+            // A single control that faults its own Measure (e.g. a ProgressRing measured with an
+            // infinite constraint on some WinUI builds) must not fail-fast the whole layout pass —
+            // log which control type raised it and degrade that node to zero-size. Robustness first;
+            // the root cause is then fixed in the offending handler.
+            std::fprintf(stderr, "[measure_native] %ls Measure threw (0x%08X): %s\n",
+                         winrt::get_class_name(element).c_str(), static_cast<unsigned>(error.code().value),
+                         winrt::to_string(error.message()).c_str());
+            return {0, 0};
+        }
     }
 
     // ViewHandler.PlatformArrange on the Canvas layout model (the apple flipped_container twin): the
