@@ -1,5 +1,21 @@
 # Windows parity fix queue (Sonnet-reviewed)
 
+## ⏸ LOOP PAUSED (2026-07-03) — user is fixing the runtime; auto-resume when the gallery renders
+User ruling: **"You fix the runtime, I resume."** The user will repair/complete the pending Windows/Store
+updates + reboot (or repair the WinAppSDK 1.8 runtime) so the gallery paints again. Do NOT make invasive
+machine changes (no AppX removal, no forced runtime pin).
+
+**Every fire until then — cheap gate (do this FIRST, ~5s, then exit if still blank):**
+1. `python tools/parity/capture_windows.py label --framework cpp --theme light --mode static`
+2. Read `captures/windows/cpp/label_light.png`. If BLANK → runtime still broken, report "still paused,
+   awaiting your runtime fix" and exit (do NOT re-investigate; do NOT restore the blank capture is fine —
+   but prefer `git checkout -- <that file>` to keep the committed working capture pristine).
+3. If it RENDERS (label text visible) → the environment is fixed. RESUME:
+   a. Reapply the button icon+text fix: `git revert --no-edit 9a5ebe77bf` (un-reverts `46030899bc`), rebuild
+      maui_core + install + relink gallery, recapture `button`/`image_button`, rescore, verify it renders +
+      the gear/CharacterSpacing land (see below).
+   b. Continue the real-bug queue: border_playground gradient/dash, header_footer empty-collapse, etc.
+
 ## ⛔ BLOCKER (2026-07-03, REFINED) — environment/runtime regression: gallery paints NOTHING
 **Confirmed it is an ENVIRONMENT change, not port code.** Evidence chain:
 - Port CODE at HEAD == the last-known-good `2a65c88f0c`/`aec4afe43c` (only docs + a reverted button
