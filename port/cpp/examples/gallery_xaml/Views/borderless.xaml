@@ -2,10 +2,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              BackgroundColor="Yellow"
              Title="Border without Stroke">
-    <!-- Twin of Borderless.xaml: a yellow page with a two-row Grid (*,* / RowSpacing 0) where each cell
-         is a filled Border (Pink top / Red bottom) carrying the keyed BorderlessStyle (StrokeThickness
-         0). With no stroke the two color fields butt seamlessly. Fully faithful — Style / Setter /
-         {StaticResource} are all supported by the loader. -->
+    <!-- Twin of the maui-compare BorderlessPage (the Windows ground truth): a yellow page whose Content is
+         a VerticalStackLayout (Spacing 8) of a "Style: borderless (StrokeThickness 0)" readout Label, a
+         Switch (starts OFF = borderless), then a two-row Grid (*,* / RowSpacing 0) of a Pink Border over a
+         Red Border, each carrying the keyed BorderlessStyle (StrokeThickness 0). The Grid holds empty
+         Star-row Borders, so inside the stack it collapses to no height at rest — the resting render is the
+         yellow page + readout + switch (matching the cpp twin), NOT a pink/red split. (The prior twin
+         mirrored the UPSTREAM Borderless.xaml — Grid as the direct page content — which fills the page
+         pink-over-red and drops the switch/readout; maui-compare is the ground truth, not upstream.)
+         Style / Setter / {StaticResource} are all supported by the loader. -->
     <ContentPage.Resources>
         <ResourceDictionary>
             <Style x:Key="BorderlessStyle" TargetType="Border">
@@ -13,8 +18,12 @@
             </Style>
         </ResourceDictionary>
     </ContentPage.Resources>
-    <Grid RowDefinitions="*,*" RowSpacing="0">
-        <Border Background="Pink" Style="{StaticResource BorderlessStyle}" />
-        <Border Grid.Row="1" Background="Red" Style="{StaticResource BorderlessStyle}" />
-    </Grid>
+    <VerticalStackLayout Spacing="8">
+        <Label Text="Style: borderless (StrokeThickness 0)" />
+        <Switch />
+        <Grid RowDefinitions="*,*" RowSpacing="0">
+            <Border Background="Pink" Style="{StaticResource BorderlessStyle}" />
+            <Border Grid.Row="1" Background="Red" Style="{StaticResource BorderlessStyle}" />
+        </Grid>
+    </VerticalStackLayout>
 </ContentPage>
