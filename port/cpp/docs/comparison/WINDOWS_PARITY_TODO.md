@@ -21,6 +21,14 @@ Update as items land. `pixel_score.py` re-scores; `capture_windows.py --mode bot
   all columns+themes); headless 3490/3490 green. Cross-platform correctness — likely helps other
   nested-flex pages (staggered_layout, custom_layout, chat_example…).
 
+## Label-fix cascade (the Border-background fix reached these — cpp side largely resolved)
+- **varied_size_selector** — cpp_light 42%→**99.1%** (the Coffee/Milk cell backgrounds are Label
+  BackgroundColors); cpp_dark 92% (residual = the page's single-Label reduction lacks the MAUI
+  template's rounded corners + inter-item gaps — a page-authoring choice, not a handler bug). xaml
+  49%/42% is an xaml-gallery-page issue (the Picker shows placeholder not the bound "Latte").
+- Expect the same cascade on other pages whose cells/regions are Labels with BackgroundColor — a full
+  recapture + re-score is running to quantify.
+
 ## High value (both cpp+xaml, confirmed real)
 2. **[DONE — see above] flex_layout footer off-screen** — was: after the label fix the page
    is minor for light, but the pink FOOTER band is pushed below the 800px viewport. Root cause: the
