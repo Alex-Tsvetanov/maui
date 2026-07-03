@@ -18308,8 +18308,8 @@
      "review": "The C++ port matches MAUI in both themes: title bar, all sliders with identical thumb positions and track colors, the AnchorX/AnchorY stepper buttons, and the value labels formatted exactly as MAUI (Scale = 1,0 / AnchorX = 0,5 with comma decimals). The dark page background now reads as the corrected #272727 and matches MAUI dark; only the expected outer page-inset/global-shift differs, which is excused by policy."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Layout, sliders, steppers, and the dark #272727 background all match MAUI in both themes, but the value labels are mis-formatted: MAUI (and cpp) show Scale = 1,0 / ScaleX = 1,0 / AnchorX = 0,5 whereas xaml shows Scale = 1 / ScaleX = 1 (fractional digit dropped) and AnchorX = 0.5 / AnchorY = 0.5 (period instead of MAUI's comma decimal separator). This wrong number formatting/culture is a content bug present identically in light and dark."
+     "status": "green",
+     "review": "Matches MAUI + the green cpp twin in both themes: the readout labels now show the culture-sensitive F1 values (Scale = 1,0 / ScaleX = 1,0 / ScaleY = 1,0 / AnchorX = 0,5 / AnchorY = 0,5 with comma decimals; Rotation/Translation whole), the SCALE AND ROTATE button, sliders, and steppers all align, and the dark #272727 background matches. Source- and pixel-verified against the green cpp render (prior red was the hardcoded dot/minimal readout text)."
     }
    }
   }
