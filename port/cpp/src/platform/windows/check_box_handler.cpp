@@ -33,9 +33,13 @@
 
 #include <winrt/Microsoft.UI.Xaml.Controls.Primitives.h> // ToggleButton/RangeBase: the projected base carries IsChecked/Minimum/Maximum/Value
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
+#include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Microsoft.UI.Xaml.h>
+#include <winrt/Windows.Foundation.Collections.h> // ResourceDictionary IMap Insert
 #include <winrt/Windows.Foundation.h>
 #include <winrt/base.h>
+
+#include <initializer_list>
 
 #include "maui/core/dimension.hpp"
 #include "maui/core/i_check_box.hpp"
@@ -52,6 +56,38 @@ namespace
     namespace mux = winrt::Microsoft::UI::Xaml;
     namespace muxc = winrt::Microsoft::UI::Xaml::Controls;
     namespace wnative = maui::platform::win;
+
+    // CheckBoxExtensions._tintColorResourceKeys: the sixteen per-state fill/stroke brushes the CheckBox
+    // template binds via {ThemeResource}. Overriding them on the control's OWN resources tints the box
+    // (checked fill + unchecked/checked/indeterminate stroke) without the global resource seam — C#'s
+    // SetValueForAllKey / RemoveKeys, minus RefreshThemeResources (a local entry resolves at template apply).
+    constexpr std::wstring_view k_tint_keys[] = {
+        L"CheckBoxCheckBackgroundFillChecked", L"CheckBoxCheckBackgroundFillCheckedPointerOver",
+        L"CheckBoxCheckBackgroundFillCheckedPressed", L"CheckBoxCheckBackgroundFillCheckedDisabled",
+        L"CheckBoxCheckBackgroundStrokeUnchecked", L"CheckBoxCheckBackgroundStrokeUncheckedPointerOver",
+        L"CheckBoxCheckBackgroundStrokeUncheckedPressed", L"CheckBoxCheckBackgroundStrokeUncheckedDisabled",
+        L"CheckBoxCheckBackgroundStrokeChecked", L"CheckBoxCheckBackgroundStrokeCheckedPointerOver",
+        L"CheckBoxCheckBackgroundStrokeCheckedPressed", L"CheckBoxCheckBackgroundStrokeCheckedDisabled",
+        L"CheckBoxCheckBackgroundStrokeIndeterminate", L"CheckBoxCheckBackgroundStrokeIndeterminatePointerOver",
+        L"CheckBoxCheckBackgroundStrokeIndeterminatePressed", L"CheckBoxCheckBackgroundStrokeIndeterminateDisabled"};
+
+    // Set (or, when brush is null, remove) the tint keys on the control's own ResourceDictionary.
+    void put_tint_brushes(const muxc::Control& control, const winrt::Microsoft::UI::Xaml::Media::Brush& brush)
+    {
+        auto res = control.Resources();
+        for (const auto key : k_tint_keys)
+        {
+            const auto boxed = winrt::box_value(winrt::hstring{key});
+            if (res.HasKey(boxed))
+            {
+                res.Remove(boxed);
+            }
+            if (brush != nullptr)
+            {
+                res.Insert(boxed, brush);
+            }
+        }
+    }
 
     [[nodiscard]] muxc::CheckBox check_box_of(const maui::core::check_box_platform& platform)
     {
@@ -227,12 +263,15 @@ namespace maui::core
         const auto* foreground = view.foreground();
         if (foreground == nullptr)
         {
+            put_tint_brushes(check_box, nullptr); // RemoveKeys(_tintColorResourceKeys)
             check_box.ClearValue(muxc::Control::ForegroundProperty());
             return;
         }
         if (const auto* solid = dynamic_cast<const maui::graphics::solid_paint*>(foreground))
         {
-            check_box.Foreground(wnative::to_brush(solid->color()));
+            const auto brush = wnative::to_brush(solid->color());
+            put_tint_brushes(check_box, brush); // SetValueForAllKey → the box's checked fill + strokes tint
+            check_box.Foreground(brush);         // C#'s direct Foreground = tintBrush (the glyph/text half)
             return;
         }
         // deferred: gradient foreground paints (Paint.ToPlatform) â€” the mirror above keeps the borrow
