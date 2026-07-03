@@ -10,12 +10,12 @@ Update as items land. `pixel_score.py` re-scores; `capture_windows.py --mode bot
   catch. 0% → 97%. (`bab819f1cb`)
 - **image zero-height** — WinUI deferred-decode chicken-and-egg → natural-size measure off the
   BitmapImage + bounded post-Loaded settle re-layout. FileSource + gif render. (`4091676d8d`)
+- **label BackgroundColor + VerticalTextAlignment** — wrap the TextBlock in a Border container (the
+  WrapperView stand-in); update_background paints it, and the fixed-height slot makes vertical
+  alignment work. cpp 42%→95%, xaml 39%→92%. (`8b63845b4e`) — REMAINING: FormattedString per-run
+  background highlight (the "Colors" cyan box) needs a TextHighlighter; xaml renders spans blue.
 
 ## High value (both cpp+xaml, confirmed real)
-1. **label** (42%) — `BackgroundColor` not painted behind text (TextBlock has no Background; MAUI wraps
-   or paints a panel); `FormattedString` span backgrounds missing (the "Colors" cyan highlight);
-   VerticalTextAlignment fixed-height gray boxes collapse to one text line. Root: label handler +
-   view-background seam.
 2. **flex_layout** (19%) — FlexLayout bands don't fill/position: HEADER/CONTENT labels overlap top-left,
    the left/right colored side strips and the FOOTER band are missing, CONTENT gray fill missing. Root:
    flex layout arrange on the windows Canvas (nested-layout measure/arrange).
