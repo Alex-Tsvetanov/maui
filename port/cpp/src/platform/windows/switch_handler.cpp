@@ -143,6 +143,27 @@ namespace maui::core
         wnative::apply_automation_id(native, value);
     }
 
+    void switch_platform::update_background(const maui::graphics::paint* value)
+    {
+        view_platform_base::update_background(value); // headless mirror first (the XAML-less suite)
+        // ViewExtensions.UpdatePlatformViewBackground: a ToggleSwitch IS a Control, so the View-level
+        // Background/BackgroundColor lands on Control.BackgroundProperty (ControlExtensions.UpdateBackground)
+        // — the same path the iOS/Android switch twins take. null → ClearValue (theme default).
+        auto toggle = switch_of(*this);
+        if (toggle == nullptr)
+        {
+            return;
+        }
+        if (value == nullptr)
+        {
+            toggle.ClearValue(muxc::Control::BackgroundProperty());
+            return;
+        }
+        // Paint.ToPlatform: solid + linear/radial gradient (to_paint_brush) — the switch page's blue
+        // BackgroundColor and yellow→green Background gradient are exactly these two cases.
+        toggle.Background(wnative::to_paint_brush(value));
+    }
+
     std::unique_ptr<switch_platform> switch_handler::create_platform_view()
     {
         auto platform = std::make_unique<switch_platform>();

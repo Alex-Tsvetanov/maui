@@ -17416,12 +17416,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "red",
-     "review": "In both light and dark themes the BackgroundColor row is missing MAUI's blue rounded-rect fill and the Background row is missing MAUI's yellow-to-green gradient fill — the port renders plain default switches there instead of the colored container backgrounds MAUI shows, a clear color/content bug on 2 of 7 rows. Default, Disabled, OnColor, and the orange ThumbColor rows match, and the corrected dark page background (#272727) now matches MAUI."
+     "status": "yellow",
+     "review": "Both BackgroundColor (blue) and Background (yellow->green gradient) fills now render in both light and dark (previously missing). Remaining difference: each fill spans the full row width (~470px) instead of MAUI's ~150px natural switch width — a separate switch-stretch layout issue (the port stretches the ToggleSwitch to full-width bounds). The other 5 rows match MAUI."
     },
     "sonnet_xaml": {
      "status": "red",
-     "review": "Same shared defect as cpp in both themes: the BackgroundColor blue rounded-rect and the Background yellow-to-green gradient container fills are absent, rendered as plain default switches. Additionally, in light theme only, the OnColor row renders as a solid black filled pill with no visible thumb instead of MAUI's normal gray off-switch — a distinct extra rendering bug (dark-theme OnColor and the #272727 dark background are correct)."
+     "review": "The BackgroundColor blue fill now renders (was missing) but at full row width vs MAUI's ~150px, AND the Background gradient (yellow->green) fill is absent — the xaml loader does not parse the gradient Background for the switch. Two remaining defects (width + missing gradient); the other 5 rows match."
     }
    }
   }

@@ -147,13 +147,14 @@ namespace maui::core
         // cross-platform suite on the host WITHOUT a XAML runtime (create_platform_view degrades to a
         // null native there) and that suite observes the headless mirrors — then pushes to the control
         // when one exists (the android partial's dual-drive pattern). IsEnabled IS pushed (a
-        // ToggleSwitch is a Control). transform / flow_direction / background / shadow / clip /
-        // semantics / input_transparent keep the base mirrors in this first cut (see the partial's
-        // header for the deferrals).
+        // ToggleSwitch is a Control). Background IS pushed (Control.Background, like the iOS/Android
+        // twins). transform / flow_direction / shadow / clip / semantics / input_transparent keep the
+        // base mirrors in this first cut (see the partial's header for the deferrals).
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
         // Native event wiring state (NO winrt types in shared headers — opaque ints only): the
         // ToggleSwitch.Toggled winrt::event_token's value (SwitchHandler.Windows.cs ConnectHandler
         // `platformView.Toggled += OnToggled`). Revoked in on_disconnect_handler.
