@@ -6316,12 +6316,12 @@
      }
     },
     "sonnet_cpp": {
-     "status": "red",
-     "review": "Both themes: one clear rendering bug. Row 5 (IsPassword entry) renders the value as plaintext 'secret' instead of MAUI's masked dots ('••••••'). Password masking is not applied. All other rows match MAUI in both light and dark: red-underline 'Type here' entry, purple 'Text', purple 'Placeholder', red checkbox, 'I am read only', 'Text', right-aligned 'This should be on the end', 'CursorPosition = 4' label, red/grey slider with thumb, and 'Cursor' entry. Colors, layout, alignment, row heights, and light/dark theming are all correct. The only defect is the missing password mask."
+     "status": "green",
+     "review": "All ~9 rows match MAUI in both light and dark themes: masked-dot IsPassword field (prior plaintext defect resolved), correct purple Text/Placeholder text, red checkbox, right-aligned end text, CursorPosition=4 label, and red slider at the same position. Only the outer-inset/crop differs, which is excluded."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Identical to the cpp port. Both themes: Row 5 (IsPassword entry) shows plaintext 'secret' instead of MAUI's masked dots ('••••••'); password masking is not applied. Every other row matches MAUI in both light and dark themes (red-underline entry, purple 'Text'/'Placeholder', red checkbox, read-only entry, right-aligned 'This should be on the end', CursorPosition label, slider, 'Cursor' entry). Colors, alignment, spacing, and theming are correct. The missing password mask is the sole rendering bug."
+     "status": "green",
+     "review": "Identical to cpp and MAUI in both themes: IsPassword renders masked dots, all text/colors/alignment/slider match ground truth. No content differences beyond the ignored global inset."
     }
    }
   }

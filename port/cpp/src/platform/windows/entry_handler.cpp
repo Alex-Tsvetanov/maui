@@ -11,8 +11,10 @@
 // DOCUMENTED DEVIATIONS (each an infrastructure gap of this first cut, not a behavior guess):
 //   - The control is a stock TextBox, not MauiPasswordTextBox (EntryHandler.Windows.CreatePlatformView's
 //     obfuscating subclass with IsObfuscationDelayed): the password composition is a template-level
-//     custom control the port has not brought up. map_is_password keeps the headless mirror only
-//     (// deferred below), so a password entry renders its text in the clear on this backend for now.
+//     custom control the port has not brought up. map_is_password/map_text reproduce the ESSENCE of
+//     MauiPasswordTextBox.Obfuscate — the visible Text is a run of U+25CF ('●') while the real value
+//     stays in the virtual view / mirror (Password). The live delayed-obfuscation timer + key-
+//     interception machinery (IsObfuscationDelayed, obfuscate-on-type) stay deferred.
 //   - Text/placeholder colors + Background land on the DIRECT dependency properties (Foreground /
 //     PlaceholderForeground / Background). C# writes the themed resource keys (TextControlForeground* /
 //     TextControlPlaceholderForeground* / TextControlBackground* + RefreshThemeResources) so the
@@ -95,6 +97,17 @@ namespace
     [[nodiscard]] muxc::TextBox text_box_of(const maui::core::entry_platform& platform)
     {
         return wnative::borrow<muxc::TextBox>(platform.native);
+    }
+
+    // MauiPasswordTextBox.Obfuscate: the visible Text becomes `new string('●', Password.Length)` — a run
+    // of U+25CF BLACK CIRCLE, one glyph per UTF-16 code unit of the real value (C# string.Length). The
+    // real value never lives in the TextBox while masked; it stays in the virtual view / mirror. Using the
+    // projected hstring's length reproduces C#'s UTF-16 Length exactly (incl. the astral-pair 2-dots quirk).
+    [[nodiscard]] winrt::hstring obfuscate(std::string_view real)
+    {
+        const std::size_t units = wnative::to_hstring_utf8(real).size(); // UTF-16 code units == C# Length
+        constexpr wchar_t k_mask_glyph = static_cast<wchar_t>(0x25CF);   // U+25CF BLACK CIRCLE '●'
+        return winrt::hstring{std::wstring(units, k_mask_glyph)};
     }
 
     // FontExtensions.ToFontStyle: Slant → FontStyle (Italic / Oblique / Normal).
@@ -343,7 +356,7 @@ namespace maui::core
         {
             return;
         }
-        platform->text = std::string(view.text());
+        platform->text = std::string(view.text()); // mirror keeps the REAL value (== MauiPasswordTextBox.Password)
         platform->last_known_text = platform->text;
         auto box = text_box_of(*platform);
         if (box == nullptr)
@@ -351,8 +364,9 @@ namespace maui::core
             return;
         }
         // TextBoxExtensions.UpdateText: skip when equal; set Text; a non-empty programmatic set parks
-        // the cursor at the end with no selection (Select(Text.Length, 0)).
-        const auto new_text = wnative::to_hstring_utf8(view.text());
+        // the cursor at the end with no selection (Select(Text.Length, 0)). When IsPassword, the VISIBLE
+        // Text is the obfuscated run (MauiPasswordTextBox.Obfuscate) — the mirror above keeps the real value.
+        const auto new_text = view.is_password() ? obfuscate(view.text()) : wnative::to_hstring_utf8(view.text());
         if (box.Text() == new_text)
         {
             return;
@@ -411,12 +425,32 @@ namespace maui::core
 
     void entry_handler::map_is_password(entry_handler& handler, i_entry& view)
     {
-        // deferred: TextBoxExtensions.UpdateIsPassword sets MauiPasswordTextBox.IsPassword — the
-        // obfuscating MauiPasswordTextBox subclass is not ported (the control is a stock TextBox; header
-        // deviations), so only the headless mirror records the flag.
-        if (auto* platform = handler.typed_platform_view())
+        // TextBoxExtensions.UpdateIsPassword → MauiPasswordTextBox.IsPassword: the real value stays in the
+        // mirror / virtual view (Password); the visible Text is masked with U+25CF when true and shown clear
+        // when false (Obfuscate / UpdateVisibleText). map_text runs BEFORE this in the mapper table, and the
+        // page toggle re-invokes ONLY this mapper, so it re-renders the visible text self-sufficiently. The
+        // live delayed-obfuscation / key-interception machinery of MauiPasswordTextBox remains deferred.
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
         {
-            platform->is_password = view.is_password();
+            return;
+        }
+        platform->is_password = view.is_password();
+        auto box = text_box_of(*platform);
+        if (box == nullptr)
+        {
+            return;
+        }
+        const auto visible =
+            view.is_password() ? obfuscate(view.text()) : wnative::to_hstring_utf8(view.text());
+        if (box.Text() == visible)
+        {
+            return;
+        }
+        box.Text(visible);
+        if (!box.Text().empty())
+        {
+            box.Select(static_cast<std::int32_t>(box.Text().size()), 0);
         }
     }
 
