@@ -3,23 +3,24 @@
     <!-- Twin of RectangleGallery.xaml: a ScrollView over a StackLayout (Padding 12) walking a catalogue of
          rectangles under caption Labels — a basic red-fill 150x50; a red-stroke 150x150 square; a
          red-stroke 150x50; the same plus a dark-blue fill; a dashed dark-blue rectangle; and a rounded
-         (RadiusX 12 / RadiusY 24) dark-blue rectangle. The <Style TargetType="Rectangle"> only set
-         HorizontalOptions="Start" (dropped per the dialect — resource styles not hydrated). -->
+         (RadiusX 12 / RadiusY 24) dark-blue rectangle. The C# <Style TargetType="Rectangle"> set
+         HorizontalOptions="Start"; resource styles are not hydrated in this dialect, so that alignment is
+         applied directly per-Rectangle instead (matching the code-first twin's set_horizontal_layout_alignment). -->
     <ScrollView>
         <StackLayout Padding="12">
             <Label Text="A basic Rectangle" />
-            <Rectangle Fill="Red" WidthRequest="150" HeightRequest="50" />
+            <Rectangle Fill="Red" WidthRequest="150" HeightRequest="50" HorizontalOptions="Start" />
             <Label Text="A Square" />
-            <Rectangle Stroke="Red" StrokeThickness="4" WidthRequest="150" HeightRequest="150" />
+            <Rectangle Stroke="Red" StrokeThickness="4" WidthRequest="150" HeightRequest="150" HorizontalOptions="Start" />
             <Label Text="A Rectangle with stroke" />
-            <Rectangle Stroke="Red" StrokeThickness="4" WidthRequest="150" HeightRequest="50" />
-            <Rectangle Fill="DarkBlue" Stroke="Red" StrokeThickness="4" WidthRequest="150" HeightRequest="50" />
+            <Rectangle Stroke="Red" StrokeThickness="4" WidthRequest="150" HeightRequest="50" HorizontalOptions="Start" />
+            <Rectangle Fill="DarkBlue" Stroke="Red" StrokeThickness="4" WidthRequest="150" HeightRequest="50" HorizontalOptions="Start" />
             <Label Text="A Rectangle with stroke dash" />
             <Rectangle Fill="DarkBlue" Stroke="Red" StrokeThickness="4"
                        StrokeDashArray="1, 1" StrokeDashOffset="6"
-                       WidthRequest="150" HeightRequest="50" />
+                       WidthRequest="150" HeightRequest="50" HorizontalOptions="Start" />
             <Label Text="A Rectangle with curved corners" />
-            <Rectangle RadiusX="12" RadiusY="24" Fill="DarkBlue" WidthRequest="150" HeightRequest="50" />
+            <Rectangle RadiusX="12" RadiusY="24" Fill="DarkBlue" WidthRequest="150" HeightRequest="50" HorizontalOptions="Start" />
         </StackLayout>
     </ScrollView>
 </ContentPage>

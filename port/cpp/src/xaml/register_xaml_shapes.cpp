@@ -233,6 +233,16 @@ namespace maui::xaml
                                                             controls::maximum_width_request_property());
             properties.register_bindable_property<TControl>("MaximumHeightRequest",
                                                             controls::maximum_height_request_property());
+            // Layout-alignment + margin (previously omitted from this private copy vs the shared
+            // register_view_properties). A shape with a Fill and an explicit width defaults to CENTER
+            // alignment, so without HorizontalOptions the XAML shapes drift center-right while MAUI (and
+            // the code-first twin, which sets set_horizontal_layout_alignment(start)) render them left.
+            // The string→layout_alignment converter is already registered by the standard-types pass.
+            properties.register_bindable_property<TControl>("HorizontalOptions",
+                                                            controls::horizontal_layout_alignment_property());
+            properties.register_bindable_property<TControl>("VerticalOptions",
+                                                            controls::vertical_layout_alignment_property());
+            properties.register_bindable_property<TControl>("Margin", controls::margin_property());
             properties.register_property<TControl, bool>("IsVisible", [](TControl& control, const bool& value) {
                 control.set_visibility(value ? maui::core::visibility::visible : maui::core::visibility::collapsed);
             });

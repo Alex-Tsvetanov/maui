@@ -12,6 +12,7 @@
                TextColor="{AppThemeBinding Light=Green, Dark=Red}" />
         <Rectangle WidthRequest="200"
                    HeightRequest="80"
+                   HorizontalOptions="Start"
                    Fill="{AppThemeBinding Light=Green, Dark=Red}"
                    Stroke="{AppThemeBinding Light=Green, Dark=Red}" />
     </StackLayout>

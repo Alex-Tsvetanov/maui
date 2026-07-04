@@ -5321,8 +5321,8 @@
      "review": "Match in both light and dark. All four demos render identically to MAUI: red filled ellipse ('A basic Rectangle'), red-stroked open circle ('A Circle'), red-stroked hollow ellipse plus navy-fill/red-stroke ellipse ('An Ellipse with stroke'), and navy-fill red-dashed ellipse ('An Ellipse with stroke dash'). Shapes are left-aligned against the labels exactly as in MAUI, with matching sizes, positions, vertical spacing, stroke widths, dash pattern, and colors (#FF0000 red, navy blue). Backgrounds match per theme (light gray / near-black). Only sub-pixel/AA-level differences."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Clear layout bug in both light and dark. In MAUI the shapes are left-aligned directly under/next to the labels; in the xaml port every ellipse/circle is horizontally shifted to the page center-right while the labels stay left-aligned, breaking the label-to-shape internal relationship (this is NOT the ignorable uniform page shift — labels do not move, only the shapes do). The shapes are also rendered noticeably LARGER than MAUI's (the circle and all ellipses are bigger/wider), and the vertical spacing between demos is stretched compared to MAUI. Colors, dash pattern, stroke, and text content are otherwise correct, but the horizontal displacement plus oversized shapes are a genuine rendering/layout defect."
+     "status": "green",
+     "review": "Both light and dark themes match MAUI: all shapes (red-fill ellipse, red-stroke circle, red-stroke thin ellipse, blue-fill/red-stroke ellipse, blue-fill red-dashed ellipse) are left-aligned with matching positions, sizes, colors, strokes, and dash pattern. Only trivial AA differences."
     }
    }
   }
@@ -14312,8 +14312,8 @@
      "review": "Both themes match MAUI. Light and dark: all five items render correctly and left-aligned exactly as MAUI does — basic red rectangle, red-stroked square (transparent/theme-colored fill), the stroke rectangle split white-top/navy-bottom with red border, red dashed-stroke rectangle over navy fill, and the rounded-corner navy rectangle. Shape sizes, stroke widths, corner radii, dash pattern, colors, and vertical spacing all agree with MAUI. Dark theme correctly shows the square/stroke-rect fills adopting the dark page color while keeping red strokes. Only the outer page-inset/background differs, which is the ignored harness-wrapper diff. No content bug."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "Layout bug in BOTH themes: the rectangles are horizontally centered/shifted far to the right instead of left-aligned under their labels the way MAUI renders them. MAUI stacks each label directly above its left-aligned shape with tight spacing; the xaml port instead pins labels to the far left column and pushes every shape into the center-right, with much larger vertical gaps, so the label-to-shape association and the whole column alignment are wrong. The individual shapes themselves (red basic rect, red-stroked square, split white/navy stroke rect, red dashed rect on navy, rounded navy rect) render with correct colors, strokes, dashes, and corner radius — but the overall layout (alignment + vertical rhythm) clearly diverges from MAUI. This is not the ignorable page-inset shift; it is an internal layout/alignment defect."
+     "status": "green",
+     "review": "Both themes match MAUI: red rectangle, red-stroke square, red-stroke/blue-fill rectangles, blue red-dashed rectangle, and blue rounded-corner rectangle are all left-aligned with matching sizes, colors, strokes, dashes, and corner radii."
     }
    }
   }
@@ -15644,8 +15644,8 @@
      "review": "In light, the cpp AppTheme rectangle is pixel-identical to MAUI: green (0,128,0), bbox (12,31,211,110), top-left aligned. In dark, it matches exactly too: red (255,0,0) on a pure-black background (MAUI's own dark bg is 0,0,0 here, not #272727, and cpp matches it). Both themes are a clean match."
     },
     "sonnet_xaml": {
-     "status": "red",
-     "review": "In light, the xaml rectangle is the right green and size but horizontally centered (bbox x 140-339 vs MAUI's 12-211) instead of left-aligned - a ~128px horizontal content misplacement, not the excused outer inset (vertical position matches). In dark, xaml is doubly wrong: it renders the light theme (green 0,128,0 on a white 255,255,255 background) instead of MAUI's red-on-black, plus the same horizontal shift - a clear AppTheme/background color bug."
+     "status": "yellow",
+     "review": "Light theme is a pixel-faithful match (green rectangle, left-aligned, correct size — centering fixed). Dark theme renders the rectangle GREEN instead of MAUI's RED: the AppThemeBinding does not resolve to the Dark branch in the dark capture — a real port defect (separate from the fixed centering), tracked separately."
     }
    }
   }
