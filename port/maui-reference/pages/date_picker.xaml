@@ -28,7 +28,7 @@
             <Button Text="Update Background" />
             <Button Text="Clear Background" />
             <Label Text="Default with date" />
-            <DatePicker />
+            <DatePicker Date="06/21/2018" />
             <Label Text="Disabled" />
             <DatePicker IsEnabled="False" />
             <Label Text="TextColor" />

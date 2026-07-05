@@ -28,7 +28,7 @@
             <Button Text="Update Background" />
             <Button Text="Clear Background" />
             <Label Text="Default with time" />
-            <TimePicker />
+            <TimePicker Time="4:15:26" />
             <Label Text="Disabled" />
             <TimePicker IsEnabled="False" />
             <Label Text="TextColor" />

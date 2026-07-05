@@ -17,12 +17,14 @@
 //
 // This code-first port reproduces all three sections. Each recognizer is a real
 // maui::controls::pointer_gesture_recognizer added to its label's GestureRecognizers collection (the
-// View seam). On a device the platform pointer manager drives them; the headless backend has no native
-// input, so the page's mount hook finishes with one deterministic synthetic drive per section through each
-// recognizer's send_pointer_* seam (exactly how the gesture unit tests exercise them), leaving every
-// readout reacting in a static capture.
+// View seam). On a device the platform pointer manager drives them; the page renders the CLEAN
+// pre-interaction state at rest (matching the canonical shared pointer_gesture.xaml and real MAUI's
+// untouched launch) — `drive_synthetic_pointer()` below stays available as a manually-invokable test
+// helper (exactly how the gesture unit tests exercise the recognizers' send_pointer_* seam) but is no
+// longer auto-run on mount; it previously left the gallery's static capture showing a POST-interaction
+// state the shared XAML twin never declares.
 //
-// Demonstrated (the recognizers exist; the synthetic drive updates the readouts):
+// Demonstrated (the recognizers exist; drive_synthetic_pointer() updates the readouts):
 //   - pgr section: entered -> "hovering", moved -> three position readouts, pressed -> "pressing",
 //     released -> "releasing", exited -> "hover again" (+ the pgrLabel background recolor sequence).
 //   - hover section: entered/moved/exited drive hoverLabel + its position readouts.
@@ -55,7 +57,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
 
 namespace maui::samples
 {
@@ -157,15 +158,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
-        // handler + builds the native tree. Headless has no native input, so drive one deterministic synthetic
-        // pointer sequence per section so every readout reflects the wiring in a static capture. All per-control
-        // attach + re-host plumbing is now the generic mount's job.
-        void on_mounted(maui::hosting::maui_app& /*app*/)
-        {
-            drive_synthetic_pointer();
         }
 
         // The owned views + recognizers, exposed for the hosting main / headless tests.

@@ -16,13 +16,14 @@
 //     its current list to the receiving list (AllColors <-> RainbowColors) and resets both backgrounds.
 //
 // This code-first port builds both lists as real StackLayouts of box_views, wires real
-// drag_/drop_gesture_recognizers, and reproduces the move/readout/tint logic. The headless backend has
-// no native drag session, so the page's mount hook finishes with one deterministic synthetic drive of a
-// full drag -> over -> drop sequence (the same send_drag_starting / send_drag_over / send_drop seams the
-// drag/drop unit tests use), moving the first AllColors swatch into the Rainbow list and leaving every
-// readout reacting in a static capture.
+// drag_/drop_gesture_recognizers, and reproduces the move/readout/tint logic. The page renders the
+// CLEAN pre-interaction state at rest (matching the canonical shared drag_drop.xaml and real MAUI's
+// untouched launch) — `drive_synthetic_drag_drop()` below stays available as a manually-invokable test
+// helper (the same send_drag_starting / send_drag_over / send_drop seams the drag/drop unit tests use)
+// but is no longer auto-run on mount; it previously left the gallery's static capture showing a
+// POST-drop state the shared XAML twin never declares.
 //
-// Demonstrated (the recognizers exist; the synthetic drive moves an item + updates readouts):
+// Demonstrated (the recognizers exist; drive_synthetic_drag_drop() moves an item + updates readouts):
 //   - DragStarting stamps DataPackage.Properties["Color"]/["Source"] and shows the start-position labels,
 //   - DragOver/DragLeave update the drag-position labels and tint the receiving layout,
 //   - Drop reads the package, moves the swatch box_view from the source layout into the receiving layout,
@@ -56,7 +57,6 @@
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
 
 namespace maui::samples
 {
@@ -116,15 +116,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
-        }
-
-        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
-        // handler + builds the native tree. Headless has no native drag session, so drive one deterministic
-        // synthetic drag->drop so the move + readouts reflect the wiring in a static capture. All per-control
-        // attach + re-host plumbing is now the generic mount's job.
-        void on_mounted(maui::hosting::maui_app& /*app*/)
-        {
-            drive_synthetic_drag_drop();
         }
 
         // The owned lists + readout, exposed for the hosting main / headless tests.
