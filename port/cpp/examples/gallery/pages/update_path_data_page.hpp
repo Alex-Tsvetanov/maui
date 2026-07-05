@@ -134,8 +134,7 @@ namespace maui::samples
         // recipe). A NEW shared_ptr fires the "data" mapper so the Path repaints (header note).
         [[nodiscard]] std::shared_ptr<maui::controls::shapes::path_geometry> make_geometry() const
         {
-            return std::make_shared<maui::controls::shapes::path_geometry>(
-                maui::controls::shapes::parse_path_geometry(data_markup()));
+            return maui::controls::shapes::parse_path_geometry(data_markup());
         }
 
         void update_readout()

@@ -301,8 +301,7 @@ namespace maui::samples
         // Parse a Data markup string into an owned geometry for Path.set_data (the shapes_demo_page recipe).
         static std::shared_ptr<maui::controls::shapes::geometry> parse(std::string_view markup)
         {
-            return std::make_shared<maui::controls::shapes::path_geometry>(
-                maui::controls::shapes::parse_path_geometry(markup));
+            return maui::controls::shapes::parse_path_geometry(markup);
         }
         // One solid_paint over a color (the C# Brush→Paint bridge for a named/literal fill or stroke).
         static std::shared_ptr<maui::graphics::solid_paint> solid(maui::graphics::color value)

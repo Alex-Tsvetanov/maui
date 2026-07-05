@@ -502,12 +502,13 @@ namespace maui::controls::shapes
         parser.run();
     }
 
-    path_geometry parse_path_geometry(std::string_view path_string)
+    std::shared_ptr<path_geometry> parse_path_geometry(std::string_view path_string)
     {
         // C# PathGeometryConverter.ConvertFrom: a fresh PathGeometry whose Figures are parsed from
-        // the string (a null/empty input leaves the figures empty).
-        path_geometry geometry;
-        parse_path_figure_collection(geometry.figures(), path_string);
+        // the string (a null/empty input leaves the figures empty). path_geometry is a bindable_object
+        // (geometry.hpp) — non-copyable/non-movable — so this returns the owning shared_ptr directly.
+        auto geometry = std::make_shared<path_geometry>();
+        parse_path_figure_collection(geometry->figures(), path_string);
         return geometry;
     }
 

@@ -401,8 +401,8 @@ namespace
 
     TEST(path_markup_parser, empty_input_yields_empty_figures) // C# PathGeometryConverterTests.ConvertNullTest
     {
-        const shapes::path_geometry geometry = shapes::parse_path_geometry("");
-        EXPECT_TRUE(geometry.figures().empty());
+        const std::shared_ptr<shapes::path_geometry> geometry = shapes::parse_path_geometry("");
+        EXPECT_TRUE(geometry->figures().empty());
     }
 
     TEST(path_markup_parser, parses_move_and_lines)
