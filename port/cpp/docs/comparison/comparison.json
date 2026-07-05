@@ -52,8 +52,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Pixel-identical layout, colors, and text in both light and dark themes."
     },
     "gemini": {
      "status": null,
@@ -139,8 +139,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All indicator variants, colors, and text match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -226,8 +226,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Identical list layout and item text in both themes."
     },
     "gemini": {
      "status": null,
@@ -313,8 +313,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All alert/action-sheet/prompt links and status text match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -400,8 +400,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All four alignment buttons match in position, color, and border in both themes."
     },
     "gemini": {
      "status": null,
@@ -487,8 +487,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "cpp renders the animated bot correctly and consistently across themes; the MAUI reference is missing the bot image, a known capture-timing gap rather than a port defect."
     },
     "gemini": {
      "status": null,
@@ -574,8 +574,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Text content and colors match exactly, including the shared quirk where the 'dark' capture still shows light-theme values on both sides."
     },
     "gemini": {
      "status": null,
@@ -661,8 +661,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Layout, links, and status text match; only the window-title label differs (harness naming), not a content difference."
     },
     "gemini": {
      "status": null,
@@ -748,8 +748,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Ellipse and gradient background render identically to MAUI in both themes."
     },
     "gemini": {
      "status": null,
@@ -835,8 +835,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Grouped list content, colors, and text match MAUI exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -922,8 +922,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Swipe row layout and labels match MAUI pixel-for-pixel in both themes."
     },
     "gemini": {
      "status": null,
@@ -1009,8 +1009,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Header text and entry field match MAUI in both themes."
     },
     "gemini": {
      "status": null,
@@ -1096,8 +1096,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Bordered content box matches MAUI in both themes; the low-contrast dark-mode text is identical in both MAUI and the port, not a port bug."
     },
     "gemini": {
      "status": null,
@@ -1183,8 +1183,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Shape preview, sliders, and picker match MAUI in both themes."
     },
     "gemini": {
      "status": null,
@@ -1270,8 +1270,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Colored row layout and slider match MAUI in both themes."
     },
     "gemini": {
      "status": null,
@@ -1357,8 +1357,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Gradient border/background box and all control rows match MAUI in both themes."
     },
     "gemini": {
      "status": null,
@@ -1444,8 +1444,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Shapes, gradients, and border styling match MAUI in both light and dark themes."
     },
     "gemini": {
      "status": null,
@@ -1531,8 +1531,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Stroke thickness variants and content-height slider match MAUI pixel-for-pixel in both themes."
     },
     "gemini": {
      "status": null,
@@ -1618,8 +1618,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Borderless yellow card and switch render identically to MAUI in both themes."
     },
     "gemini": {
      "status": null,
@@ -1705,8 +1705,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All five BoxView variants (color, gradient, corner radius) match MAUI exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -1792,8 +1792,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "red",
+     "review": "The two 'settings' buttons render as tall image+text buttons with a gear icon in the C++ port, while MAUI shows them as plain compact text-only bars; content and layout differ significantly."
     },
     "gemini": {
      "status": null,
@@ -1879,8 +1879,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "yellow",
+     "review": "The C++ port shows Prev/Next buttons and a 'Position 0' status label that are absent from the MAUI capture; otherwise the carousel item content matches."
     },
     "gemini": {
      "status": null,
@@ -1966,8 +1966,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Chat bubbles match MAUI exactly in position, color, and text in both themes."
     },
     "gemini": {
      "status": null,
@@ -2053,8 +2053,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All checkbox states match MAUI in both themes."
     },
     "gemini": {
      "status": null,
@@ -2140,8 +2140,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Identical minimal page with the same link and Ready label in both themes; only difference is window title text (harness artifact, not scored)."
     },
     "gemini": {
      "status": null,
@@ -2227,8 +2227,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "yellow",
+     "review": "MAUI reference shows blank gray image placeholders (image failed to load in this capture) while the cpp port correctly loaded and clipped the actual image; clip shapes/layout match, but content differs due to MAUI-side load failure."
     },
     "gemini": {
      "status": null,
@@ -2314,8 +2314,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Pixel-perfect match of the rounded-rectangle clip and all four corner sliders in both light and dark themes."
     },
     "gemini": {
      "status": null,
@@ -2401,8 +2401,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Both MAUI and cpp show identical blank gray placeholders with matching clip shapes and layout in both themes."
     },
     "gemini": {
      "status": null,
@@ -2488,8 +2488,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "yellow",
+     "review": "Layout, wave-clip effects, and text rows match closely; only the SearchBar row's background tint differs slightly (lighter pink in MAUI light vs near-white in cpp; darker red-brown in MAUI dark vs near-black in cpp)."
     },
     "gemini": {
      "status": null,
@@ -2575,8 +2575,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "yellow",
+     "review": "Layout, colors, and shapes for the clipping demo match exactly; MAUI's bottom coffee-cup images failed to load (blank) while cpp's loaded successfully, creating a visible content difference."
     },
     "gemini": {
      "status": null,
@@ -2662,8 +2662,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Pixel-perfect match of the three-column CollectionView grid text content and layout in both themes."
     },
     "gemini": {
      "status": null,
@@ -2749,8 +2749,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Identical composited shapes and line diagram, matching colors and positions in both light and dark themes."
     },
     "gemini": {
      "status": null,
@@ -2836,8 +2836,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Border dashed style, frame red border, and content_view text all match in both light and dark themes."
     },
     "gemini": {
      "status": null,
@@ -2923,8 +2923,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "ContentView layout, text, and Swap content link match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -3010,8 +3010,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Layout, controls, and embedded Bing webview content match closely in both themes; minor live-content differences are dynamic web content, not port issues."
     },
     "gemini": {
      "status": null,
@@ -3097,8 +3097,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All controls render identically in both themes."
     },
     "gemini": {
      "status": null,
@@ -3184,8 +3184,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Custom layout positions of Top/Left/Right/Bottom labels match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -3271,8 +3271,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "SwipeView content and revealed state text match in both themes."
     },
     "gemini": {
      "status": null,
@@ -3358,8 +3358,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Custom swipe item view with date card renders identically in both themes."
     },
     "gemini": {
      "status": null,
@@ -3445,8 +3445,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "red",
+     "review": "MAUI dark-theme reference shows broken white/light background bands with invisible (white-on-white) item text for both Single and Multi Selection sections, while the C++ port correctly shows dark-themed rows with readable text. Light theme matches, but the dark-theme divergence is a significant content difference per policy."
     },
     "gemini": {
      "status": null,
@@ -3532,8 +3532,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Text list content and layout match exactly in both light and dark themes."
     },
     "gemini": {
      "status": null,
@@ -3619,8 +3619,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "yellow",
+     "review": "Everything matches except the third 'Background' gradient bar in light theme: MAUI shows blue-to-teal, cpp shows pink/magenta-toned gradient; dark theme matches fine."
     },
     "gemini": {
      "status": null,
@@ -3706,8 +3706,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Platform/Idiom/Version text matches exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -3793,8 +3793,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All text and button layout match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -3880,8 +3880,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Color swatches, rainbow list, and status text all match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -3967,8 +3967,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All editor fields, labels, and text content match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -4054,8 +4054,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "blank",
+     "review": "Both MAUI screenshots (light and dark) are corrupted captures showing an unrelated agent/chat UI instead of the actual gallery page; cannot compare against the correctly-rendered cpp screenshots."
     },
     "gemini": {
      "status": null,
@@ -4141,8 +4141,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All shapes match exactly in position, color, and style in both themes."
     },
     "gemini": {
      "status": null,
@@ -4228,8 +4228,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "List content and layout match exactly between MAUI and C++ port in both light and dark themes."
     },
     "gemini": {
      "status": null,
@@ -4315,8 +4315,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Loading simulation text centered identically in both themes; matches MAUI."
     },
     "gemini": {
      "status": null,
@@ -4402,8 +4402,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Nothing to display empty-state text matches MAUI in both themes."
     },
     "gemini": {
      "status": null,
@@ -4489,8 +4489,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "RTL/LTR toggle label and 3-column item list match MAUI exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -4576,8 +4576,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Instructional header text and filtered single-item result match MAUI in both themes."
     },
     "gemini": {
      "status": null,
@@ -4663,8 +4663,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Toggle switch, Clear/Fill links, and 3-column list match MAUI in both themes."
     },
     "gemini": {
      "status": null,
@@ -4750,8 +4750,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "3-column templated list content and layout match MAUI in both themes."
     },
     "gemini": {
      "status": null,
@@ -4837,8 +4837,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "3-column list content and layout match MAUI in both themes."
     },
     "gemini": {
      "status": null,
@@ -4924,8 +4924,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Entry fields, checkbox, slider, and cursor position all render identically to MAUI in both themes."
     },
     "gemini": {
      "status": null,
@@ -5011,8 +5011,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "CollectionView filter list layout, toggle, and search bar match MAUI exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -5098,8 +5098,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Selection reset test page matches MAUI pixel-for-pixel in both themes."
     },
     "gemini": {
      "status": null,
@@ -5185,8 +5185,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "FlexLayout header/content/footer colored regions match MAUI exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -5272,8 +5272,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Focus entry test page matches MAUI in both themes; light/dark chrome renders correctly."
     },
     "gemini": {
      "status": null,
@@ -5359,8 +5359,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All font style samples match MAUI in both themes."
     },
     "gemini": {
      "status": null,
@@ -5446,8 +5446,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "CollectionView with string footer matches MAUI layout and text rendering in both themes."
     },
     "gemini": {
      "status": null,
@@ -5533,8 +5533,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "FormattedString spans render identically to MAUI in both themes."
     },
     "gemini": {
      "status": null,
@@ -5620,8 +5620,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Blue gesture target box and 'Last gesture' text render identically in both themes."
     },
     "gemini": {
      "status": null,
@@ -5707,8 +5707,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Linear and radial gradient bars match MAUI exactly in both light and dark themes."
     },
     "gemini": {
      "status": null,
@@ -5794,8 +5794,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "2x2 colored grid cells match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -5881,8 +5881,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "yellow",
+     "review": "Grouped list content and colors match exactly, but the cpp version renders extra 'This is a header'/'This is a footer' text not present in the MAUI reference."
     },
     "gemini": {
      "status": null,
@@ -5968,8 +5968,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Plain ungrouped list matches exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -6055,8 +6055,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Grouped list with selection support matches exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -6142,8 +6142,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Header string, list items, and footer string match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -6229,8 +6229,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "yellow",
+     "review": "Grid content and header/toggle links match, but the footer text's rotation/skew and vertical position differ noticeably from the MAUI reference, causing it to overlap the 'Add Content' link and list content."
     },
     "gemini": {
      "status": null,
@@ -6316,8 +6316,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Header/footer text and grid image-name cells match MAUI in both themes; only trivial timestamp/positioning noise."
     },
     "gemini": {
      "status": null,
@@ -6403,8 +6403,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Header/footer labels, timestamps, and templated blue image rows match MAUI closely in both light and dark themes."
     },
     "gemini": {
      "status": null,
@@ -6490,8 +6490,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "yellow",
+     "review": "Content matches, but vertical spacing between header/footer/links is slightly tighter in the cpp port than in MAUI."
     },
     "gemini": {
      "status": null,
@@ -6577,8 +6577,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "yellow",
+     "review": "Layout, text, shapes, and rotation/scale demo match well, but the cpp port renders an extra 3D submarine image below the rectangle that is absent from the MAUI capture."
     },
     "gemini": {
      "status": null,
@@ -6664,8 +6664,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Six colored squares in a HorizontalStackLayout match pixel-for-pixel in both light and dark themes."
     },
     "gemini": {
      "status": null,
@@ -6751,8 +6751,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Header text, JS action links, and layout match in both themes; MAUI light capture shows a transient system notification overlay which is not a port issue."
     },
     "gemini": {
      "status": null,
@@ -6838,8 +6838,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "red",
+     "review": "The MAUI reference capture is cut off after the first UriSource image, while the cpp port additionally renders the full FileSource image below it, producing a substantially different visible page in both themes."
     },
     "gemini": {
      "status": null,
@@ -6925,8 +6925,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "yellow",
+     "review": "All image-button variants match closely; cpp additionally shows a click counter line and renders images that are cut off in the MAUI capture."
     },
     "gemini": {
      "status": null,
@@ -7012,8 +7012,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Indicator dots, colors, sizes, and MaximumVisible all match exactly in both light and dark themes."
     },
     "gemini": {
      "status": null,
@@ -7099,8 +7099,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Entry, search bar, and radio buttons match exactly; a faint cursor blink artifact in MAUI dark mode is trivial and not scored."
     },
     "gemini": {
      "status": null,
@@ -7186,8 +7186,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All button layers, overlapping text, and the toggle switch state match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -7273,8 +7273,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Button color, underline, and label text match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -7360,8 +7360,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All four sliders, values, and the shadowed host rectangle match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -7447,8 +7447,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Menu links and status label match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -7534,8 +7534,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Date label and toggle link match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -7621,8 +7621,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Entry placeholder text and toggle link match exactly, including identical dark-mode entry field styling."
     },
     "gemini": {
      "status": null,
@@ -7708,8 +7708,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Layout, text, and state values match exactly in both light and dark themes."
     },
     "gemini": {
      "status": null,
@@ -7795,8 +7795,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Identical text, layout, and link styling in both themes."
     },
     "gemini": {
      "status": null,
@@ -7882,8 +7882,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Search field and toggle link render identically in both themes."
     },
     "gemini": {
      "status": null,
@@ -7969,8 +7969,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Lorem ipsum text and link match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -8056,8 +8056,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "yellow",
+     "review": "Content and slider match, but the C++ port shows an extra sidebar-toggle icon in the top-left corner not present in the MAUI reference (both themes)."
     },
     "gemini": {
      "status": null,
@@ -8143,8 +8143,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Search bar, toggle links, and background match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -8230,8 +8230,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "blank",
+     "review": "The MAUI light-theme reference screenshot is corrupted/unreadable; dark theme matches well between cpp and MAUI."
     },
     "gemini": {
      "status": null,
@@ -8317,8 +8317,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "SwipeView content, labels, and mode indicator match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -8404,8 +8404,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Identical layout, text, and toggle state in both themes."
     },
     "gemini": {
      "status": null,
@@ -8491,8 +8491,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Identical to-do list rendering, no differences in either theme."
     },
     "gemini": {
      "status": null,
@@ -8578,8 +8578,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Identical scroll-mode UI and item list in both themes."
     },
     "gemini": {
      "status": null,
@@ -8665,8 +8665,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All label formatting variants match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -8752,8 +8752,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All enabled/disabled layout states and colors match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -8839,8 +8839,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Basic, dashed, and thick lines render identically in both themes."
     },
     "gemini": {
      "status": null,
@@ -8926,8 +8926,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Miter, bevel, and round joins render identically in both themes."
     },
     "gemini": {
      "status": null,
@@ -9013,8 +9013,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "CollectionView grouped list content and styling match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -9100,8 +9100,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Identical layout, text, and colors in both light and dark themes."
     },
     "gemini": {
      "status": null,
@@ -9187,8 +9187,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Menu list and depth counters match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -9274,8 +9274,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "CollectionView selection highlighting and text match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -9361,8 +9361,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Menu list and stack-depth status text match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -9448,8 +9448,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "yellow",
+     "review": "Shapes/content and nested horizontal CollectionViews render correctly, but the C++ port's 'Source N' row labels wrap onto two lines (narrower label column) whereas MAUI keeps them on one line."
     },
     "gemini": {
      "status": null,
@@ -9535,8 +9535,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Green/red split panels and status text match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -9622,8 +9622,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All four heart-icon aspect examples render identically."
     },
     "gemini": {
      "status": null,
@@ -9709,8 +9709,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All path/shape examples render identically; MAUI light shot is merely scrolled differently."
     },
     "gemini": {
      "status": null,
@@ -9796,8 +9796,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Triangle shapes with and without RenderTransform render identically in both themes."
     },
     "gemini": {
      "status": null,
@@ -9883,8 +9883,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All picker variants match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -9970,8 +9970,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Date/time pickers and room lookup text match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -10057,8 +10057,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Pointer position labels and hover-highlight colors match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -10144,8 +10144,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Triangle and star polygons match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -10231,8 +10231,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Basic and dashed polyline heartbeat shapes match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -10318,8 +10318,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "CollectionView with preselected single item renders identically in both themes."
     },
     "gemini": {
      "status": null,
@@ -10405,8 +10405,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "CollectionView with multiple preselected items renders identically in both themes."
     },
     "gemini": {
      "status": null,
@@ -10492,8 +10492,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Progress bars, colors, and labels match closely in both light and dark themes."
     },
     "gemini": {
      "status": null,
@@ -10579,8 +10579,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Selected/unselected states, colored borders, and highlight rows match in both themes."
     },
     "gemini": {
      "status": null,
@@ -10666,8 +10666,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Text styling, image fallback text, and layout all match in both themes."
     },
     "gemini": {
      "status": null,
@@ -10753,8 +10753,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Grouped radio buttons and grid-embedded radio match layout and spacing in both themes."
     },
     "gemini": {
      "status": null,
@@ -10840,8 +10840,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "ViewModel-bound radio group with selection text and links match in both themes."
     },
     "gemini": {
      "status": null,
@@ -10927,8 +10927,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All three group-name test sections render identically in both themes."
     },
     "gemini": {
      "status": null,
@@ -11014,8 +11014,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Custom text styling and semantic examples match in both themes."
     },
     "gemini": {
      "status": null,
@@ -11101,8 +11101,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "blank",
+     "review": "The MAUI reference screenshots (light and dark) are not captures of the app under test — they show an unrelated coding-session UI, so no valid comparison can be made."
     },
     "gemini": {
      "status": null,
@@ -11188,8 +11188,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Rectangle shapes, strokes, dashes, and rounded corners all render identically to MAUI in both themes."
     },
     "gemini": {
      "status": null,
@@ -11275,8 +11275,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Layout, text, and links match exactly in both themes; the transient system notification banner in the light MAUI shot is unrelated OS chrome."
     },
     "gemini": {
      "status": null,
@@ -11362,8 +11362,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Corner squares and centered black/gray rectangles match precisely in both themes."
     },
     "gemini": {
      "status": null,
@@ -11449,8 +11449,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Radio buttons and grouping render identically across both themes; no detach/misalignment issue visible."
     },
     "gemini": {
      "status": null,
@@ -11536,8 +11536,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "red",
+     "review": "The ItemsUpdatingScrollMode selector is a picker/text-entry box in the C++ port instead of MAUI's three inline link-style buttons — wrong control type."
     },
     "gemini": {
      "status": null,
@@ -11623,8 +11623,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Grouped list content, colors, and layout match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -11710,8 +11710,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Row content and styling match; only difference is scroll position at capture time, which is not a rendering bug."
     },
     "gemini": {
      "status": null,
@@ -11797,8 +11797,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All search bar variants match MAUI pixel-for-pixel in both themes."
     },
     "gemini": {
      "status": null,
@@ -11884,8 +11884,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Text list output matches exactly in both light and dark themes."
     },
     "gemini": {
      "status": null,
@@ -11971,8 +11971,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Selection highlighting and item text match precisely across all four test scenarios and both themes."
     },
     "gemini": {
      "status": null,
@@ -12058,8 +12058,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All semantic labels, buttons, entry/editor/search bar rendering match, including dark-mode entry field coloring."
     },
     "gemini": {
      "status": null,
@@ -12145,8 +12145,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Shadowed rectangle, slider positions, and text field values match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -12232,8 +12232,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Shape color correctly switches from green (light) to red (dark) identically in both apps."
     },
     "gemini": {
      "status": null,
@@ -12319,8 +12319,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Ellipse, RoundRectangle, EvenOdd polygon star, and Line all render identically in both themes."
     },
     "gemini": {
      "status": null,
@@ -12406,8 +12406,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "List content and unselected state match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -12493,8 +12493,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All slider variants match closely in both light and dark themes."
     },
     "gemini": {
      "status": null,
@@ -12580,8 +12580,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "CollectionView grouping with empty groups renders identically in both themes."
     },
     "gemini": {
      "status": null,
@@ -12667,8 +12667,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Vertical and horizontal colored-box stacks match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -12754,8 +12754,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Uniform item grid with numbered labels matches exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -12841,8 +12841,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All stepper variants match in both themes."
     },
     "gemini": {
      "status": null,
@@ -12928,8 +12928,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Base/derived/default label styles and bordered button match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -13015,8 +13015,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "C++ renders the SwipeView card cleanly matching content/layout in both themes; the MAUI light-mode screenshot itself shows garbled overlapping text, a stale/broken capture artifact rather than a real content difference."
     },
     "gemini": {
      "status": null,
@@ -13102,8 +13102,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Reveal SwipeView row matches exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -13189,8 +13189,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All icon-size and SwipeView-height variants match exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -13276,8 +13276,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Header text and content area match identically between MAUI and the C++ port in both themes."
     },
     "gemini": {
      "status": null,
@@ -13363,8 +13363,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All threshold sliders, colored swipe rows, and labels match MAUI pixel-for-pixel in both light and dark themes."
     },
     "gemini": {
      "status": null,
@@ -13450,8 +13450,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Sliders and horizontal/vertical SwipeItems boxes match MAUI exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -13537,8 +13537,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Shadow-in-content boxes render identically to MAUI in both light and dark themes."
     },
     "gemini": {
      "status": null,
@@ -13624,8 +13624,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All switch rows match MAUI's colors and layout in both themes."
     },
     "gemini": {
      "status": null,
@@ -13711,8 +13711,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Grouped list with headers, member counts, and colors matches MAUI exactly in both themes."
     },
     "gemini": {
      "status": null,
@@ -13798,8 +13798,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "red",
+     "review": "MAUI renders a plain vertical link/text page with no tab-bar chrome, while the C++ port instead renders a native segmented-control tab bar and a completely different page layout/content — a structural mismatch, not just cropping."
     },
     "gemini": {
      "status": null,
@@ -13885,8 +13885,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "CardView and compact ControlTemplate cards with names/descriptions match MAUI in both light and dark themes (fixed capture glitch on re-shoot)."
     },
     "gemini": {
      "status": null,
@@ -13972,8 +13972,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "All rows, colors, gradients, and text match closely in both light and dark themes."
     },
     "gemini": {
      "status": null,
@@ -14059,8 +14059,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Content Options, Color Options, checkboxes, and text fields render identically in both themes."
     },
     "gemini": {
      "status": null,
@@ -14146,8 +14146,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Toolbar item links match in text, layout, and color in both themes."
     },
     "gemini": {
      "status": null,
@@ -14233,8 +14233,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Red/blue square, gray canvas, and all sliders match in position and value in both themes."
     },
     "gemini": {
      "status": null,
@@ -14320,8 +14320,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Sliders and labels match; MAUI dark screenshot has an unrelated system notification overlay that is not part of app content."
     },
     "gemini": {
      "status": null,
@@ -14407,8 +14407,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Title, entry field, and toggle link match closely in both themes."
     },
     "gemini": {
      "status": null,
@@ -14494,8 +14494,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Path curve rendering and data label are identical to MAUI in both themes (fixed capture glitch on re-shoot)."
     },
     "gemini": {
      "status": null,
@@ -14581,8 +14581,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Coffee/Milk striped rows with varied heights and the Insert/Add/Remove controls match closely in both themes."
     },
     "gemini": {
      "status": null,
@@ -14668,8 +14668,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Rainbow stack of six colored boxes matches MAUI exactly in both light and dark themes; only trivial window-chrome text differs."
     },
     "gemini": {
      "status": null,
@@ -14755,8 +14755,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "Entry with green VSM background, second entry placeholder, and both buttons match MAUI pixel-for-pixel in both themes."
     },
     "gemini": {
      "status": null,
@@ -14842,8 +14842,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "green",
+     "review": "WebView content renders identically in both themes; the differing debug URL text is a harness path artifact, not a bug."
     },
     "gemini": {
      "status": null,
@@ -14929,8 +14929,8 @@
      }
     },
     "sonnet": {
-     "status": null,
-     "review": ""
+     "status": "blank",
+     "review": "No MAUI reference screenshots exist for z_index in either light or dark theme, so no comparison could be made; the C++ port's own screenshots look correct but cannot be judged against ground truth."
     },
     "gemini": {
      "status": null,
