@@ -1,6 +1,6 @@
 #pragma once
-// maui::samples::header_footer_view_page — ports HeaderFooterView.xaml (+ .xaml.cs) of the C#
-// CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries).
+// maui::samples::header_footer_view_page — ports the shared twin header_footer_view.xaml
+// (port/maui-reference/pages/header_footer_view.xaml — the HeaderFooterView.xaml oracle).
 //
 // The original page (HeaderFooterView): a CollectionView whose Header and Footer are each a VIEW
 // (a Grid, NOT a string and NOT a DataTemplate):
@@ -15,15 +15,16 @@
 // The viewmodel's AddCommand awaits ~1s then AddItems(Items, 2); ClearCommand clears Items; HeaderText /
 // FooterText are the two static caption strings.
 //
-// This is the VIEW arm of the Header/Footer trio (HeaderFooterString boxes strings, HeaderFooterTemplate
-// boxes DataTemplates, this boxes live Views): the headless collection_view handler's
-// realize_supplemental takes the `value.as_bindable()` branch (reuse_id "view") and hosts each Grid
-// directly outside the scroll extent — the C# `Header is View` / `Footer is View` path.
+// CollectionView.Header / .Footer (the VIEW form) are UNSUPPORTED by the port (see the shared XAML's
+// own comment), so — exactly like the twin — the header Grid and footer Grid are plain SIBLINGS of the
+// CollectionView inside a VerticalStackLayout, in top-to-bottom resting order: header Grid, (empty)
+// CollectionView, footer Grid. They are NOT boxed onto CollectionView.Header/Footer (that was this
+// page's prior, now-corrected, structure — it made both chrome grids overlap at the top of the page).
 //
 // The port mirrors the shape code-first:
-//   - the Header is a grid (Image + bound-text Label) boxed as the Header VALUE;
+//   - the Header is a grid (Image + bound-text Label), a sibling ABOVE the CollectionView;
 //   - the Footer is a grid (Image + rotated bound-text Label spanning the top + two command Buttons on
-//     the bottom) boxed as the Footer VALUE;
+//     the bottom), a sibling BELOW the CollectionView;
 //   - the AddCommand / ClearCommand are wired to each button's command — add_items() appends 2 rows,
 //     clear_items() empties the live source (so the source starts empty and the footer buttons drive it);
 //   - the item template is the PhotoTemplate caption Label (Text bound to each row's caption).
@@ -50,10 +51,10 @@
 #include "maui/controls/file_image_source.hpp"
 #include "maui/controls/grid.hpp"
 #include "maui/controls/image.hpp"
-#include "maui/controls/items/boxed_item.hpp"
 #include "maui/controls/items/collection_view.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
+#include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/aspect.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/grid_length.hpp"
@@ -85,13 +86,16 @@ namespace maui::samples
             list_.set_item_template(cell);
             list_.set_items_source(items_);
 
-            // ---- the VIEW Header + VIEW Footer (the whole point of this oracle page) ----
+            // ---- the header Grid + footer Grid (plain siblings — CollectionView.Header/Footer view
+            // form is unsupported, per the shared XAML's own comment) ----
             build_header_chrome();
             build_footer_chrome();
-            list_.set_header(maui::controls::boxed_item::of(header_chrome_));
-            list_.set_footer(maui::controls::boxed_item::of(footer_chrome_));
 
-            page_.set_content(list_);
+            // Twin structure: VerticalStackLayout > [header Grid, (empty) CollectionView, footer Grid].
+            root_.add(header_chrome_);
+            root_.add(list_);
+            root_.add(footer_chrome_);
+            page_.set_content(root_);
         }
 
         [[nodiscard]] maui::controls::content_page& page()
@@ -136,8 +140,6 @@ namespace maui::samples
         // bound to {Binding HeaderText} ("This Is A Header" — the constant the viewmodel returns).
         void build_header_chrome()
         {
-            header_chrome_ = std::make_shared<maui::controls::grid>();
-
             header_image_.set_source(maui::controls::image_source::from_file("oasis.jpg"));
             header_image_.set_aspect(maui::core::aspect::aspect_fill);
             header_image_.set_height_request(100);
@@ -147,8 +149,8 @@ namespace maui::samples
             header_label_.set_horizontal_text_alignment(maui::core::text_alignment::center);
             header_label_.set_font(maui::core::font::system_font_of_size(36, maui::core::font_weight::bold));
 
-            header_chrome_->add(header_image_); // both occupy the single implicit cell (overlaid, like XAML)
-            header_chrome_->add(header_label_);
+            header_chrome_.add(header_image_); // both occupy the single implicit cell (overlaid, like XAML)
+            header_chrome_.add(header_label_);
         }
 
         // The Footer 2x2 Grid: row 0 (spanning both columns) a cover1.jpg Image (80 high) overlaid by a
@@ -156,11 +158,10 @@ namespace maui::samples
         // "Add 2 Items" (AddCommand) and "Clear All Items" (ClearCommand).
         void build_footer_chrome()
         {
-            footer_chrome_ = std::make_shared<maui::controls::grid>();
-            footer_chrome_->add_row_definition(maui::core::grid_length::star());
-            footer_chrome_->add_row_definition(maui::core::grid_length::star());
-            footer_chrome_->add_column_definition(maui::core::grid_length::star());
-            footer_chrome_->add_column_definition(maui::core::grid_length::star());
+            footer_chrome_.add_row_definition(maui::core::grid_length::star());
+            footer_chrome_.add_row_definition(maui::core::grid_length::star());
+            footer_chrome_.add_column_definition(maui::core::grid_length::star());
+            footer_chrome_.add_column_definition(maui::core::grid_length::star());
 
             footer_image_.set_source(maui::controls::image_source::from_file("cover1.jpg"));
             footer_image_.set_aspect(maui::core::aspect::aspect_fill);
@@ -178,32 +179,33 @@ namespace maui::samples
             clear_button_.command = [this] { clear_items(); }; // Command="{Binding ClearCommand}"
 
             // Grid.Row="0" Grid.ColumnSpan="2" for the image + label; the buttons on Row 1, Cols 0/1.
-            footer_chrome_->add(footer_image_);
-            footer_chrome_->set_row(footer_image_, 0);
-            footer_chrome_->set_column_span(footer_image_, 2);
-            footer_chrome_->add(footer_label_);
-            footer_chrome_->set_row(footer_label_, 0);
-            footer_chrome_->set_column_span(footer_label_, 2);
-            footer_chrome_->add(add_button_);
-            footer_chrome_->set_row(add_button_, 1);
-            footer_chrome_->set_column(add_button_, 0);
-            footer_chrome_->add(clear_button_);
-            footer_chrome_->set_row(clear_button_, 1);
-            footer_chrome_->set_column(clear_button_, 1);
+            footer_chrome_.add(footer_image_);
+            footer_chrome_.set_row(footer_image_, 0);
+            footer_chrome_.set_column_span(footer_image_, 2);
+            footer_chrome_.add(footer_label_);
+            footer_chrome_.set_row(footer_label_, 0);
+            footer_chrome_.set_column_span(footer_label_, 2);
+            footer_chrome_.add(add_button_);
+            footer_chrome_.set_row(add_button_, 1);
+            footer_chrome_.set_column(add_button_, 0);
+            footer_chrome_.add(clear_button_);
+            footer_chrome_.set_row(clear_button_, 1);
+            footer_chrome_.set_column(clear_button_, 1);
         }
 
         std::shared_ptr<maui::core::observable_collection<demo_item>> items_; // publisher before the list (§8)
         int next_index_ = 0;                                                  // continues the AddItems index sequence
         maui::controls::content_page page_;
-        maui::controls::collection_view list_;
+        maui::controls::vertical_stack_layout root_; // the twin's outer VerticalStackLayout
+        maui::controls::collection_view list_;       // empty — no Header/Footer set (unsupported view form)
 
-        // the VIEW header chrome (owned via shared_ptr so a boxed_item keeps it alive)
-        std::shared_ptr<maui::controls::grid> header_chrome_;
+        // the header Grid (a plain sibling ABOVE the CollectionView)
+        maui::controls::grid header_chrome_;
         maui::controls::image header_image_;
         maui::controls::label header_label_;
 
-        // the VIEW footer chrome
-        std::shared_ptr<maui::controls::grid> footer_chrome_;
+        // the footer Grid (a plain sibling BELOW the CollectionView)
+        maui::controls::grid footer_chrome_;
         maui::controls::image footer_image_;
         maui::controls::label footer_label_;
         maui::controls::button add_button_;

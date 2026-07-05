@@ -296,7 +296,6 @@ namespace
             "adaptive_collection",
             "custom_layout",
             "chat_example",
-            "header_footer_view",
             "hybrid_web_view",
             "ios_scroll_view",
             "layout_is_enabled",

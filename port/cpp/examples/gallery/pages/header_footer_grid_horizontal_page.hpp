@@ -1,39 +1,32 @@
 #pragma once
-// maui::samples::header_footer_grid_horizontal_page — ports HeaderFooterGridHorizontal.xaml
-// (+ HeaderFooterGridHorizontal.xaml.cs) of the C# CollectionView gallery
-// (CollectionViewGalleries/HeaderFooterGalleries).
+// maui::samples::header_footer_grid_horizontal_page — ports the shared twin
+// header_footer_grid_horizontal.xaml (port/maui-reference/pages/header_footer_grid_horizontal.xaml —
+// the HeaderFooterGridHorizontal.xaml oracle).
 //
 // The original page is the HORIZONTAL twin of HeaderFooterGrid: a two-row Grid — a horizontal
-// StackLayout of two buttons ("Toggle Header" / "Toggle Footer") on top, and below it a CollectionView
-// whose ItemsLayout is a GridItemsLayout (Span=3, **Orientation=Horizontal**, HorizontalItemSpacing=4,
-// VerticalItemSpacing=2). The only structural difference from the vertical sibling is that
-// GridItemsLayout Orientation, which makes the grid scroll/flow horizontally (a 3-row band of cells
-// that pages sideways) rather than vertically. CollectionView.Header and CollectionView.Footer are each
-// a VIEW (a StackLayout carrying an Image, a bold AntiqueWhite Label — "This Is A Header" / "This Is A
-// Footer" — and a nested horizontal StackLayout with an "Add Content" Button). The xaml.cs seeds the
-// source with DemoFilteredItemSource(10), sets ItemTemplate = ExampleTemplates.PhotoTemplate(), and
-// wires three handlers:
-//   - ToggleHeader / ToggleFooter stash the current Header/Footer and flip it to null and back
-//     (`header = CollectionView.Header ?? header; CollectionView.Header = Header==null ? header : null`);
-//   - AddContentClicked appends a `Label { Text = "Grow" }` to the StackLayout that owns the tapped
-//     button (the header or footer chrome grows in place).
+// StackLayout of two buttons ("Toggle Header" / "Toggle Footer") on top, and below it (Grid row 1) a
+// VerticalStackLayout wrapping, top to bottom: the header StackLayout, a CollectionView (ItemsLayout a
+// GridItemsLayout Span=3 **Orientation=Horizontal**), and the footer StackLayout. The header/footer
+// StackLayouts each carry an Image, a bold AntiqueWhite caption Label ("This Is A Header" / "This Is A
+// Footer"), and a nested horizontal StackLayout with an "Add Content" Button.
 //
-// This is the VIEW-as-chrome arm over a HORIZONTAL grid: the headless collection_view handler's
-// realize_supplemental takes the `value.as_bindable()` branch (reuse_id "view") and hosts the
-// StackLayout directly outside the scroll extent — exactly the C# `Header is View` path — while the
-// item area flows the cells horizontally per the GridItemsLayout orientation.
+// CollectionView.Header / .Footer (the VIEW form) are UNSUPPORTED by the port (see the shared XAML's own
+// comment), so — exactly like the twin — the header/footer StackLayouts are moved to plain SIBLINGS
+// ABOVE/BELOW the CollectionView inside a VerticalStackLayout, in top-to-bottom resting order, rather
+// than boxed onto CollectionView.Header/Footer (that was this page's prior, now-corrected, structure —
+// it squeezed both chrome stacks into item-cell-sized space and stacked them behind the header image).
+// The toggle buttons therefore no longer toggle a CollectionView.Header/Footer value; they are kept as
+// inert resting UI (Clicked handlers omitted, matching the shared XAML's own "Clicked handlers omitted"
+// note) — there is nothing left for them to toggle now that the chrome is plain siblings, matching the
+// oracle's resting (never-toggled) capture.
 //
 // The port mirrors the shape code-first:
 //   - the two header/footer chrome StackLayouts are built as vertical_stack_layout members (C#'s
 //     default StackLayout orientation is vertical) carrying an image, the bold AntiqueWhite caption
-//     label, and a nested horizontal_stack_layout holding the "Add Content" button (the C# nests the
-//     button in its own horizontal StackLayout — reproduced so AddContentClicked's `ve.Parent is
-//     StackLayout` walk lands on that inner stack);
+//     label, and a nested horizontal_stack_layout holding the "Add Content" button;
 //   - the GridItemsLayout(Span=3, **Horizontal**, …) is set as the collection_view's ItemsLayout;
 //   - the item template is the PhotoTemplate caption Label (Text bound to each row's caption — the
-//     image half has no headless-safe analog without an asset pipeline, see note);
-//   - toggle_header()/toggle_footer() reproduce the stash-and-flip logic; add_content() appends a
-//     "Grow" label to the inner horizontal stack the tapped button sits in (the C# parent walk).
+//     image half has no headless-safe analog without an asset pipeline, see note).
 //
 // The page OWNS its whole element tree (the items_page pattern); the generic mount (app_host.hpp) attaches
 // every owned view's handler and hosts the tree.
@@ -56,7 +49,6 @@
 #include "maui/controls/grid.hpp"
 #include "maui/controls/horizontal_stack_layout.hpp"
 #include "maui/controls/image.hpp"
-#include "maui/controls/items/boxed_item.hpp"
 #include "maui/controls/items/collection_view.hpp"
 #include "maui/controls/items/grid_items_layout.hpp"
 #include "maui/controls/items/items_layout_orientation.hpp"
@@ -91,15 +83,14 @@ namespace maui::samples
             grid_.add_row_definition(maui::core::grid_length::automatic());
             grid_.add_row_definition(maui::core::grid_length::automatic());
 
-            // ---- the horizontal StackLayout of toggle buttons (Grid row 0) ----
+            // ---- the horizontal StackLayout of toggle buttons (Grid row 0; resting UI — Clicked
+            // handlers omitted, matching the shared XAML's own note) ----
             toggle_header_button_.set_text("Toggle Header");
-            toggle_header_button_.clicked.connect([this] { toggle_header(); });
             toggle_footer_button_.set_text("Toggle Footer");
-            toggle_footer_button_.clicked.connect([this] { toggle_footer(); });
             toggles_.add(toggle_header_button_);
             toggles_.add(toggle_footer_button_);
 
-            // ---- the CollectionView (Grid row 1) with a HORIZONTAL GridItemsLayout(Span=3) ----
+            // ---- the CollectionView with a HORIZONTAL GridItemsLayout(Span=3) ----
             // GridItemsLayout Span="3" Orientation="Horizontal" HorizontalItemSpacing="4"
             // VerticalItemSpacing="2" — the one thing distinguishing this page from HeaderFooterGrid.
             auto grid_layout = std::make_shared<maui::controls::grid_items_layout>(
@@ -115,16 +106,21 @@ namespace maui::samples
             list_.set_item_template(cell);
             list_.set_items_source(items_);
 
-            // ---- the VIEW Header + VIEW Footer (the chrome arm of the oracle page) ----
+            // ---- the header/footer chrome StackLayouts (plain siblings — CollectionView.Header/Footer
+            // view form is unsupported, per the shared XAML's own comment) ----
             build_header_chrome();
             build_footer_chrome();
-            list_.set_header(maui::controls::boxed_item::of(header_chrome_));
-            list_.set_footer(maui::controls::boxed_item::of(footer_chrome_));
+
+            // Twin structure: Grid row 1 = VerticalStackLayout > [header stack, CollectionView, footer
+            // stack].
+            content_.add(header_chrome_);
+            content_.add(list_);
+            content_.add(footer_chrome_);
 
             grid_.set_row(toggles_, 0);
             grid_.add(toggles_);
-            grid_.set_row(list_, 1);
-            grid_.add(list_);
+            grid_.set_row(content_, 1);
+            grid_.add(content_);
             page_.set_content(grid_);
         }
 
@@ -145,35 +141,6 @@ namespace maui::samples
         [[nodiscard]] const std::shared_ptr<maui::core::observable_collection<demo_item>>& items() const
         {
             return items_;
-        }
-
-        // ToggleHeader: stash the current header, then flip it to null / back
-        // (`header = CollectionView.Header ?? header; Header = Header==null ? header : null`).
-        void toggle_header()
-        {
-            if (list_.header().has_value())
-            {
-                stashed_header_ = list_.header();
-                list_.set_header(maui::controls::boxed_item{}); // null
-            }
-            else
-            {
-                list_.set_header(stashed_header_);
-            }
-        }
-
-        // ToggleFooter: the footer twin of toggle_header.
-        void toggle_footer()
-        {
-            if (list_.footer().has_value())
-            {
-                stashed_footer_ = list_.footer();
-                list_.set_footer(maui::controls::boxed_item{}); // null
-            }
-            else
-            {
-                list_.set_footer(stashed_footer_);
-            }
         }
 
         // AddContentClicked: append a `Label { Text = "Grow" }` to the inner horizontal StackLayout the
@@ -208,8 +175,6 @@ namespace maui::samples
         // stack in place).
         void build_header_chrome()
         {
-            header_chrome_ = std::make_shared<maui::controls::vertical_stack_layout>();
-
             header_image_.set_source(maui::controls::image_source::from_file("oasis.jpg"));
             header_image_.set_aspect(maui::core::aspect::aspect_fill);
             header_image_.set_height_request(60);
@@ -223,17 +188,15 @@ namespace maui::samples
             header_add_button_.clicked.connect([this] { add_content(header_button_row_); });
             header_button_row_.add(header_add_button_);
 
-            header_chrome_->add(header_image_);
-            header_chrome_->add(header_label_);
-            header_chrome_->add(header_button_row_);
+            header_chrome_.add(header_image_);
+            header_chrome_.add(header_label_);
+            header_chrome_.add(header_button_row_);
         }
 
         // The footer StackLayout: an 80-high cover1.jpg Image, a bold 20-pt AntiqueWhite caption rotated
         // 10 degrees, and a nested horizontal StackLayout holding the "Add Content" button.
         void build_footer_chrome()
         {
-            footer_chrome_ = std::make_shared<maui::controls::vertical_stack_layout>();
-
             footer_image_.set_source(maui::controls::image_source::from_file("cover1.jpg"));
             footer_image_.set_aspect(maui::core::aspect::aspect_fill);
             footer_image_.set_height_request(80);
@@ -248,9 +211,9 @@ namespace maui::samples
             footer_add_button_.clicked.connect([this] { add_content(footer_button_row_); });
             footer_button_row_.add(footer_add_button_);
 
-            footer_chrome_->add(footer_image_);
-            footer_chrome_->add(footer_label_);
-            footer_chrome_->add(footer_button_row_);
+            footer_chrome_.add(footer_image_);
+            footer_chrome_.add(footer_label_);
+            footer_chrome_.add(footer_button_row_);
         }
 
         std::shared_ptr<maui::core::observable_collection<demo_item>> items_; // publisher before the list (§8)
@@ -262,26 +225,23 @@ namespace maui::samples
         maui::controls::button toggle_header_button_;
         maui::controls::button toggle_footer_button_;
 
-        // row 1: the collection_view
+        // row 1: VerticalStackLayout > [header stack, CollectionView, footer stack]
+        maui::controls::vertical_stack_layout content_;
         maui::controls::collection_view list_;
 
-        // the VIEW header chrome (owned via shared_ptr so a boxed_item can keep it alive across toggles)
-        std::shared_ptr<maui::controls::vertical_stack_layout> header_chrome_;
+        // the header chrome (a plain sibling ABOVE the CollectionView)
+        maui::controls::vertical_stack_layout header_chrome_;
         maui::controls::image header_image_;
         maui::controls::label header_label_;
         maui::controls::horizontal_stack_layout header_button_row_; // the C# inner button StackLayout
         maui::controls::button header_add_button_;
 
-        // the VIEW footer chrome
-        std::shared_ptr<maui::controls::vertical_stack_layout> footer_chrome_;
+        // the footer chrome (a plain sibling BELOW the CollectionView)
+        maui::controls::vertical_stack_layout footer_chrome_;
         maui::controls::image footer_image_;
         maui::controls::label footer_label_;
         maui::controls::horizontal_stack_layout footer_button_row_;
         maui::controls::button footer_add_button_;
-
-        // the stashed chrome a toggle flips back to (the C# `header`/`footer` fields)
-        maui::controls::boxed_item stashed_header_;
-        maui::controls::boxed_item stashed_footer_;
 
         // the "Grow" labels add_content mints (kept alive — the stack borrows i_view&)
         std::vector<std::shared_ptr<maui::controls::label>> grown_labels_;
