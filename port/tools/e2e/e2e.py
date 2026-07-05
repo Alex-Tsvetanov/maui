@@ -21,8 +21,15 @@ Subcommands implemented so far:
             same-named local twin (migration = add pages/<k>.xaml, delete Views/<k>.xaml, re-run gen).
     lint    authoring-rule checks over pages/*.xaml + manifest.json (see AUTHORING.md).
     keys    print the canonical page-key set (from pages/*.xaml [+ legacy Views twins during migration]).
+    capture screenshot capture (maccatalyst implemented; ios/android/appkit still on the legacy scripts).
+            maui -> port/maui-reference/captures/<platform>/<key>_<theme>.png; cpp/xaml -> the existing
+            docs/comparison/captures layout. The frozen captures/*/maui tree is never written.
+    board   rescan captures -> refresh comparison.json screenshot paths (maui resolves dual-root: the new
+            maui-reference tree first, the frozen historical tree as fallback) -> regenerate README.md.
+    pixel   SSIM + diff%% scorer for parity ruling 5's four comparisons (MAUI vs cpp -> "pixel", MAUI vs
+            xaml -> "pixel_xaml", light+dark) into comparison.json. Needs Pillow + numpy.
 
-Planned (see README): capture, record, pixel, vision, board, catalog, judge.
+Planned (see README): record, vision, catalog, judge; ios/android/appkit capture.
 """
 from __future__ import annotations
 
@@ -33,6 +40,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 
 # ---------------------------------------------------------------- paths -----------------------------
 HERE = os.path.dirname(os.path.abspath(__file__))           # port/tools/e2e
@@ -41,9 +49,12 @@ REF = os.path.join(PORT, "maui-reference")
 PAGES = os.path.join(REF, "pages")                          # canonical shared XAML
 MANIFEST = os.path.join(PAGES, "manifest.json")
 APP_PAGES = os.path.join(REF, "app", "Pages")               # MAUI code-behind partials
+REF_CAPTURES = os.path.join(REF, "captures")                # MAUI ground-truth screenshots (mutable)
 CPP = os.path.join(PORT, "cpp")
 GALLERY_XAML = os.path.join(CPP, "examples", "gallery_xaml")
 VIEWS = os.path.join(GALLERY_XAML, "Views")                 # C++ TU wrappers (+ legacy local twins)
+COMP = os.path.join(CPP, "docs", "comparison")              # the board (comparison.json + README)
+COMP_JSON = os.path.join(COMP, "comparison.json")
 
 # #embed path from a TU in Views/ to the shared pages dir (resolved relative to the including file,
 # like a quoted #include): Views -> gallery_xaml -> examples -> cpp -> port -> maui-reference/pages.
@@ -422,6 +433,213 @@ def cmd_keys(args: argparse.Namespace) -> int:
     return 0
 
 
+# ---------------------------------------------------------------- capture ---------------------------
+# macCatalyst capture (ported from the legacy capture_maccatalyst.py): launch the app binary directly
+# with the page/theme env, bring it frontmost (window capture via `screencapture -l` is broken on this
+# macOS — ScreenCaptureKit restriction — so we region-capture the frontmost window's rect), screenshot,
+# SIGKILL (SIGTERM makes .NET apps crash-report a lingering dialog). HAZARD (learned 2026-07-05): the
+# fixed-rect grab captures whatever is COMPOSITED there — if another window (e.g. the operator's own
+# IDE) overlaps the rect and wins, the PNG silently shows the wrong window. Always eyeball a sample.
+MACCAT_APPS = {
+    "maui": {
+        "bin": os.path.join(REF, "app", "bin", "Debug", "net10.0-maccatalyst", "maccatalyst-arm64",
+                            "MauiReference.app", "Contents", "MacOS", "MauiReference"),
+        "proc": "MauiReference",
+        "rect": "221,33,1024,768",
+        "env": lambda key, theme: {"MAUI_COMPARE_PAGE": key,
+                                   "MAUI_THEME": "Light" if theme == "light" else "Dark"},
+    },
+    "cpp": {
+        "bin": os.path.join(CPP, "examples", "build-maccatalyst", "gallery", "gallery.app",
+                            "Contents", "MacOS", "gallery"),
+        "proc": "gallery",
+        "rect": "244,59,1024,768",
+        "env": lambda key, theme: {"MAUI_SAMPLE_PAGE": key, "MAUI_APPEARANCE": theme},
+    },
+    "xaml": {
+        "bin": os.path.join(CPP, "examples", "build-maccatalyst", "gallery_xaml", "gallery_xaml.app",
+                            "Contents", "MacOS", "gallery_xaml"),
+        "proc": "gallery_xaml",
+        "rect": "244,59,1024,768",
+        "env": lambda key, theme: {"MAUI_SAMPLE_PAGE": key, "MAUI_APPEARANCE": theme},
+    },
+}
+
+
+def capture_out_path(platform: str, framework: str, key: str, theme: str) -> str:
+    """maui -> the maui-reference tree (no framework level); cpp/xaml -> the docs/comparison layout.
+    The frozen docs/comparison/captures/<platform>/maui tree is NEVER a destination."""
+    if framework == "maui":
+        return os.path.join(REF_CAPTURES, platform, f"{key}_{theme}.png")
+    return os.path.join(COMP, "captures", platform, framework, f"{key}_{theme}.png")
+
+
+def _osa(script: str) -> str:
+    return subprocess.run(["osascript", "-e", script], capture_output=True, text=True).stdout.strip()
+
+
+def _maccat_shot(framework: str, key: str, theme: str, settle: float) -> bool:
+    app = MACCAT_APPS[framework]
+    if not os.path.isfile(app["bin"]):
+        print(f"  ! missing binary for {framework}: {app['bin']}")
+        return False
+    env = dict(os.environ, **app["env"](key, theme))
+    proc = subprocess.Popen([app["bin"]], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        time.sleep(settle)
+        _osa(f'tell application "System Events" to set frontmost of '
+             f'(first process whose unix id is {proc.pid}) to true')
+        time.sleep(1.2)
+        rect = app["rect"]
+        got = _osa(f'tell application "System Events" to tell process "{app["proc"]}"\n'
+                   "set p to position of window 1\nset s to size of window 1\n"
+                   'return ((item 1 of p) as string) & "," & ((item 2 of p) as string) & "," & '
+                   '((item 1 of s) as string) & "," & ((item 2 of s) as string)\nend tell')
+        if got.count(",") == 3:
+            rect = got
+        subprocess.run(["killall", "-9", "ReportCrash"], stderr=subprocess.DEVNULL)
+        subprocess.run(["killall", "UserNotificationCenter"], stderr=subprocess.DEVNULL)
+        out = capture_out_path("maccatalyst", framework, key, theme)
+        os.makedirs(os.path.dirname(out), exist_ok=True)
+        rc = subprocess.run(["screencapture", "-x", f"-R{rect}", out]).returncode
+        ok = rc == 0 and os.path.isfile(out)
+        print(f"  {framework:5} {key:28} {'ok' if ok else 'FAIL'} ({rect})")
+        return ok
+    finally:
+        proc.kill()
+        try:
+            proc.wait(timeout=3)
+        except Exception:
+            pass
+        time.sleep(0.4)
+
+
+def cmd_capture(args: argparse.Namespace) -> int:
+    if args.platform != "maccatalyst":
+        print(f"error: platform {args.platform!r} not absorbed yet — use the legacy scripts under "
+              "port/cpp/tools/parity/ (capture_all.py for ios, build_android_apphost*.sh + "
+              "capture_all_csharp_android.sh for android, capture_appkit.py for appkit)")
+        return 2
+    frameworks = [f for f in args.framework.split(",") if f in MACCAT_APPS]
+    themes = [t for t in args.theme.split(",") if t in ("light", "dark")]
+    keys = args.keys or shared_keys()
+    if not keys:
+        print("no keys to capture (no shared pages yet and none given)")
+        return 2
+    print(f"capture maccatalyst: {len(keys)} key(s) x {frameworks} x {themes}")
+    failures = 0
+    for theme in themes:
+        for key in keys:
+            for fw in frameworks:
+                if not _maccat_shot(fw, key, theme, args.settle):
+                    failures += 1
+    print(f"done ({failures} failure(s))")
+    return 1 if failures else 0
+
+
+# ---------------------------------------------------------------- board -----------------------------
+THEMES = ("light", "dark")
+PLATFORM_FW = {
+    "ios": ("maui", "cpp", "xaml"),
+    "maccatalyst": ("maui", "cpp", "xaml", "appkit_cpp", "appkit_xaml"),
+    "android": ("maui", "cpp", "xaml"),
+}
+EMPTY_REVIEW = {"status": None, "review": ""}
+
+
+def _board_shot_path(platform: str, fw: str, key: str, theme: str) -> str | None:
+    """comparison.json-relative screenshot path, or None. maui is DUAL-ROOT: the mutable
+    maui-reference tree first, then the frozen historical docs/comparison tree."""
+    if fw == "maui":
+        for ext in ("gif", "png"):
+            if os.path.isfile(os.path.join(REF_CAPTURES, platform, f"{key}_{theme}.{ext}")):
+                return f"../../../maui-reference/captures/{platform}/{key}_{theme}.{ext}"
+    for ext in ("gif", "png"):
+        rel = f"captures/{platform}/{fw}/{key}_{theme}.{ext}"
+        if os.path.isfile(os.path.join(COMP, rel)):
+            return rel
+    return None
+
+
+def cmd_board(_args: argparse.Namespace) -> int:
+    prev = {}
+    if os.path.isfile(COMP_JSON):
+        prev = {r["name"]: r for r in json.load(open(COMP_JSON, encoding="utf-8"))}
+
+    review_slots = ("sonnet", "gemini", "sonnet_xaml", "gemini_xaml", "pixel", "pixel_xaml")
+    data, real = [], 0
+    for key in all_keys():
+        old = prev.get(key, {})
+        old_plats = old.get("platforms", {})
+        page = {
+            "name": key,
+            "title": old.get("title") or " ".join(w.capitalize() for w in key.split("_")),
+            "description": old.get("description", ""),
+            "platforms": {},
+        }
+        for plat, fws in PLATFORM_FW.items():
+            shots = {}
+            for fw in fws:
+                shots[fw] = {}
+                for theme in THEMES:
+                    p = _board_shot_path(plat, fw, key, theme)
+                    shots[fw][theme] = p
+                    real += p is not None
+            entry = {"screenshots": shots}
+            old_plat = old_plats.get(plat, {})
+            for slot in review_slots:
+                if slot in old_plat:
+                    entry[slot] = old_plat[slot]
+                elif slot in ("sonnet", "gemini"):
+                    entry[slot] = dict(EMPTY_REVIEW)
+            page["platforms"][plat] = entry
+        data.append(page)
+
+    json.dump(data, open(COMP_JSON, "w", encoding="utf-8"), indent=2)
+    print(f"wrote comparison.json: {len(data)} pages, {real} real screenshot cells")
+    gen_readme = os.path.join(COMP, "tools", "gen_readme.py")
+    if os.path.isfile(gen_readme):
+        return subprocess.run([sys.executable, gen_readme]).returncode
+    return 0
+
+
+# ---------------------------------------------------------------- pixel -----------------------------
+def cmd_pixel(args: argparse.Namespace) -> int:
+    # Absorbed from port/cpp/tools/parity/pixel_score.py (parity ruling 5's four comparisons). The
+    # legacy script resolves the maui column only against docs/comparison; this version follows the
+    # comparison.json relative paths (which cmd_board writes dual-root), so it works for both trees.
+    try:
+        import numpy as np  # noqa: F401
+        from PIL import Image  # noqa: F401
+    except ImportError as exc:
+        print(f"error: `pixel` needs Pillow + numpy ({exc})")
+        return 2
+
+    sys.path.insert(0, os.path.join(CPP, "tools", "parity"))
+    import pixel_score  # the shared implementation (deleted in P4 once fully absorbed)
+
+    pages = json.load(open(COMP_JSON, encoding="utf-8"))
+    want = set(k.strip() for k in args.only.split(",") if k.strip()) if args.only else None
+    slots = [("cpp", "pixel"), ("xaml", "pixel_xaml")]
+    scored = 0
+    for page in pages:
+        if want is not None and page["name"] not in want:
+            continue
+        for plat, platform in page["platforms"].items():
+            sc = platform["screenshots"]
+            maui = sc.get("maui", {})
+            themes = THEMES if plat != "android" else ("light",)
+            for fw, slot in slots:
+                other = sc.get(fw, {})
+                theme_scores = {t: pixel_score.score_theme(maui.get(t), other.get(t)) for t in themes}
+                status, review = pixel_score.classify(theme_scores)
+                platform[slot] = {"status": status, "review": review}
+                scored += 1
+    json.dump(pages, open(COMP_JSON, "w", encoding="utf-8"), indent=2)
+    print(f"scored {scored} page x platform x framework comparisons")
+    return 0
+
+
 # ---------------------------------------------------------------- main ------------------------------
 def main() -> int:
     parser = argparse.ArgumentParser(prog="e2e.py", description=__doc__,
@@ -442,6 +660,24 @@ def main() -> int:
     p_keys.add_argument("--shared-only", action="store_true",
                         help="only keys migrated to pages/ (exclude legacy Views twins)")
     p_keys.set_defaults(fn=cmd_keys)
+
+    p_cap = sub.add_parser("capture", help="screenshot capture (maccatalyst absorbed; others legacy)")
+    p_cap.add_argument("--platform", default="maccatalyst",
+                       choices=("ios", "maccatalyst", "android", "appkit"))
+    p_cap.add_argument("--framework", default="maui,cpp,xaml",
+                       help="comma list of maui,cpp,xaml (default all three)")
+    p_cap.add_argument("--theme", default="light,dark", help="comma list of light,dark")
+    p_cap.add_argument("--settle", type=float, default=float(os.environ.get("MAUI_SETTLE", "4.0")),
+                       help="seconds to wait after launch before the shot")
+    p_cap.add_argument("keys", nargs="*", help="page keys (default: all shared pages)")
+    p_cap.set_defaults(fn=cmd_capture)
+
+    p_board = sub.add_parser("board", help="rescan captures -> comparison.json -> README.md")
+    p_board.set_defaults(fn=cmd_board)
+
+    p_pixel = sub.add_parser("pixel", help="SSIM/diff%% scorer (ruling-5 four comparisons)")
+    p_pixel.add_argument("--only", default="", help="comma-separated page keys (default: all)")
+    p_pixel.set_defaults(fn=cmd_pixel)
 
     args = parser.parse_args()
     return args.fn(args)

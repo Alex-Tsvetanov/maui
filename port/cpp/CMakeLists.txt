@@ -1992,10 +1992,19 @@ if(NOT MAUI_BACKEND STREQUAL "ios")
     tests/ui/bind_tests.cpp
     tests/ui/xaml_parity_tests.cpp
     tests/ui/compile_time_xaml_tests.cpp
+    tests/ui/gallery_structure_equivalence_tests.cpp # builder page == shared-XAML twin (pilot corpus)
     ${MAUI_UI_COUNTER_GEN}
     ${MAUI_UI_GRID_GEN}
   )
   target_include_directories(maui_ui_tests PRIVATE ${MAUI_UI_GEN_DIR})
+  # gallery_structure_equivalence_tests: the builder twins are the gallery page headers
+  # ("pages/<key>_page.hpp"), the normalizer is "tests/support/view_tree_describe.hpp" (repo-root
+  # relative), and the XAML side hydrates the canonical shared pages at runtime.
+  target_include_directories(maui_ui_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/examples/gallery)
+  target_compile_definitions(maui_ui_tests
+    PRIVATE SHARED_PAGES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../maui-reference/pages")
   # compile_time_xaml_tests.cpp uses #embed (the compiler-managed XAML path); it is a C23/C++26 feature
   # clang accepts under -std=c++23 but warns about as an extension. Silence just that diagnostic.
   target_compile_options(maui_ui_tests PRIVATE -Wno-c23-extensions)

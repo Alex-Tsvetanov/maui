@@ -66,6 +66,7 @@ namespace maui::samples
             min_max_headline_.set_text("Minimum (5) and Maximum (15)");
             min_max_slider_.set_maximum(15);
             min_max_slider_.set_minimum(5);
+            min_max_slider_.set_value(10); // the canonical shared slider.xaml shows Value="10" (mid-range)
             min_max_slider_.value_changed.connect(
                 [this](double /*old_value*/, double new_value) { update_min_max_readout(new_value); });
             update_min_max_readout(min_max_slider_.value());
