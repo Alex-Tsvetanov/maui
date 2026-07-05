@@ -142,15 +142,20 @@ namespace
 
     // Resolve a file image's name to a full path inside the app package, porting
     // FileSystemUtils.PlatformGetFullAppPackageFilePath (FileSystem.ios.tvos.watchos.macos.cs):
-    // Path.Combine(NSBundle.MainBundle.BundlePath, filename), no "Contents/Resources" on iOS (flat bundle).
-    // std::filesystem's `/` mirrors Path.Combine's absolute-right-hand rule, so an already-absolute path is
-    // returned unchanged; a bare bundled name ("oasis.jpg") becomes "<MainBundle>/oasis.jpg". Without this
-    // step a bundled non-PNG file (e.g. .jpg) never resolved on disk and only the extension-less FromBundle
-    // fallback fired — which resolves .png assets but not .jpg, leaving the image blank.
+    // Path.Combine(NSBundle.MainBundle.BundlePath, filename) — flat on iOS, but under the
+    // "Contents/Resources" tail on Mac Catalyst (C#'s MACCATALYST || MACOS branch; the Catalyst backend
+    // compiles this same TU, keyed by TARGET_OS_MACCATALYST). std::filesystem's `/` mirrors Path.Combine's
+    // absolute-right-hand rule, so an already-absolute path is returned unchanged; a bare bundled name
+    // ("oasis.jpg") becomes "<MainBundle>[/Contents/Resources]/oasis.jpg". Without this step a bundled
+    // non-PNG file (e.g. .jpg) never resolved on disk and only the extension-less FromBundle fallback
+    // fired — which resolves .png assets but not .jpg, leaving the image blank.
     std::string resolve_app_package_path(std::string_view path)
     {
         const char* const bundle_path = [[[NSBundle mainBundle] bundlePath] UTF8String];
-        const std::filesystem::path root(bundle_path != nullptr ? bundle_path : "");
+        std::filesystem::path root(bundle_path != nullptr ? bundle_path : "");
+#if TARGET_OS_MACCATALYST
+        root = root / "Contents" / "Resources"; // the Catalyst (macOS-style) package layout
+#endif
         return (root / std::filesystem::path(std::string(path))).string();
     }
 

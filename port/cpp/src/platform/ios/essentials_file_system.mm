@@ -1,8 +1,9 @@
 // file_system - iOS (UIKit) platform partial. Ported 1:1 from
 // FileSystem.ios.tvos.watchos.macos.cs: cache/app-data resolve through NSSearchPath (the user
 // domain's Caches / Library directories), and app-package files resolve DIRECTLY under
-// NSBundle.mainBundle.bundlePath (no "Contents/Resources" - that segment is the
-// MACCATALYST || MACOS branch), with '\' separators normalized. A missing package file throws
+// NSBundle.mainBundle.bundlePath on iOS — with the "Contents/Resources" segment appended on
+// Mac Catalyst (C#'s MACCATALYST || MACOS branch; the Catalyst backend compiles this same TU,
+// keyed by TARGET_OS_MACCATALYST) — with '\' separators normalized. A missing package file throws
 // std::runtime_error (the C# FileNotFoundException). Compiled as Objective-C++ with ARC for the
 // ios backend.
 
@@ -35,7 +36,10 @@ namespace maui::storage
         std::filesystem::path app_package_file_path(std::string_view filename)
         {
             const char* const bundle_path = [[[NSBundle mainBundle] bundlePath] UTF8String];
-            const std::filesystem::path root(bundle_path != nullptr ? bundle_path : "");
+            std::filesystem::path root(bundle_path != nullptr ? bundle_path : "");
+#if TARGET_OS_MACCATALYST
+            root = root / "Contents" / "Resources"; // the Catalyst (macOS-style) package layout
+#endif
             return root / detail::normalize_app_package_path(filename);
         }
 
