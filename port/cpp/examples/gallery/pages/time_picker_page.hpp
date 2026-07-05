@@ -82,8 +82,18 @@ namespace maui::samples
                 maui::graphics::point(0, 0), maui::graphics::point(1, 0)));
 
             // ---- Background (randomizable): Update / Clear buttons (the code-behind) ----
+            // The C# ctor seeds this row via UpdateTimePickerBackground() (a fresh `new Random()` roll
+            // each real launch — inherently non-deterministic). The canonical shared time_picker.xaml
+            // instead declares this row's AT-REST state as a fixed Purple->Fuchsia gradient (our
+            // MauiReference twin's code-behind is a trivial InitializeComponent-only stub, so it never
+            // randomizes) — seed the SAME fixed stops here so the static capture matches; the Update
+            // button still rolls a fresh random gradient on click for live interactivity.
             random_background_label_.set_text("Background");
-            update_background_time_background(); // the ctor calls UpdateTimePickerBackground() in C#
+            background_time_.set_background(std::make_shared<maui::graphics::linear_gradient_paint>(
+                std::vector<maui::graphics::gradient_stop>{
+                    maui::graphics::gradient_stop(0.1F, maui::graphics::colors::purple),
+                    maui::graphics::gradient_stop(1.0F, maui::graphics::colors::fuchsia)},
+                maui::graphics::point(0, 0), maui::graphics::point(1, 0)));
             update_background_button_.set_text("Update Background");
             update_background_button_.clicked.connect([this] { update_background_time_background(); });
             clear_background_button_.set_text("Clear Background");

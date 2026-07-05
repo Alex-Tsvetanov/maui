@@ -2,7 +2,7 @@
 // maui::samples::switch_page — ports SwitchPage.xaml (+ .xaml.cs)
 //
 // Mirrors the MAUI gallery page: a vertical stack of headlined Switch states — Default, BackgroundColor
-// (Blue), Background (a yellow→green LinearGradientBrush), Disabled, OnColor (Red), ThumbColor (Orange).
+// (Blue), Background (plain — see the note at the section), Disabled, OnColor (Red), ThumbColor (Orange).
 // The port's control is maui::controls::toggle_switch (`switch` is a C++ keyword). The original .xaml.cs
 // has no behavior beyond InitializeComponent, so this page adds a small live readout: toggling the first
 // switch updates a label, exercising the IsToggled property + Toggled event end-to-end.
@@ -10,14 +10,11 @@
 // Self-contained (the value_controls_page pattern): the page OWNS its whole element tree, exposes page().
 // Headless-safe — only cross-platform maui:: API here.
 
-#include "maui/controls/brushes/gradient_stop.hpp"
-#include "maui/controls/brushes/linear_gradient_brush.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/toggle_switch.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/graphics/point.hpp"
 #include "maui/graphics/solid_paint.hpp"
 
 #include <memory>
@@ -44,16 +41,9 @@ namespace maui::samples
             bg_color_switch_.set_background(
                 std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::blue));
 
-            // --- Background (LinearGradientBrush yellow@0.1 → green@1.0, EndPoint 1,0) ---
+            // --- Background — a plain switch, matching the canonical shared switch.xaml (and MAUI's
+            // actual Catalyst render, which paints no gradient for a Switch Background) ---
             background_headline_.set_text("Background");
-            {
-                std::vector<std::shared_ptr<maui::controls::gradient_stop>> stops;
-                stops.push_back(std::make_shared<maui::controls::gradient_stop>(maui::graphics::colors::yellow, 0.1F));
-                stops.push_back(std::make_shared<maui::controls::gradient_stop>(maui::graphics::colors::green, 1.0F));
-                auto brush = std::make_shared<maui::controls::linear_gradient_brush>(
-                    std::move(stops), maui::graphics::point{0, 0}, maui::graphics::point{1, 0});
-                background_switch_.set_background_brush(std::move(brush));
-            }
 
             // --- Disabled ---
             disabled_headline_.set_text("Disabled");
