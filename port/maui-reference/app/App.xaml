@@ -1,0 +1,17 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:MauiReference"
+             x:Class="MauiReference.App">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Styles.xaml (the dotnet-new-maui default implicit Button/Label/Entry styles + OpenSans
+                     font) is intentionally NOT merged: the parity comparison renders native-default controls
+                     + the system font, matching the C++ galleries (port/CLAUDE.md parity ruling 4).
+                     Colors.xaml stays (inert StaticResources). -->
+                <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

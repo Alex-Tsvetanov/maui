@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- PARITY: native-default (non-branded) Android chrome, matching the iOS native-default reference and
+     the C++ gallery.
+
+     The dotnet-new-maui template ships colorPrimary/Dark/Accent = #512BD4 (MAUI brand purple). MAUI's
+     Maui.MainTheme wires colorPrimary into: the MauiMaterialButton (UnelevatedButton) background tint,
+     the default CheckBox/RadioButton/Slider/ActivityIndicator tint, and the status/action bar. That made
+     the Android MAUI reference render brand-PURPLE default buttons + purple chrome, inconsistent with the
+     iOS native-default reference (borderless/neutral defaults) and the C++ gallery (plain
+     Theme.DeviceDefault neutral). Per port/CLAUDE.md "Parity comparison policy" item 4, the reference
+     must render NATIVE-DEFAULT controls, not the brand style.
+
+     The theme references @color/colorPrimary/Dark/Accent by name, so they cannot be deleted — they are
+     neutralized to the platform surface gray so accent-tinted defaults fall back to the neutral platform
+     look. Explicitly-colored demo controls (Button BackgroundColor=Blue, CheckBox Color=Purple, slider
+     track colors, etc.) are unaffected — only the *unset/default* tint changes. -->
+<resources>
+    <color name="colorPrimary">#E0E0E0</color>
+    <color name="colorPrimaryDark">#BDBDBD</color>
+    <color name="colorAccent">#E0E0E0</color>
+</resources>

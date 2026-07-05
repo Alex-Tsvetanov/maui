@@ -132,6 +132,31 @@ differences are split into **port_diffs** (fix) vs **maui_quirks** (MAUI-side, d
 Workflow: run the sweep **review-only** (writes `PARITY_REVIEW.md`, board untouched) → user verifies and
 rules on quirks → only then `--commit-board` adopts verdicts and the port_diffs become fix candidates.
 
+5. **The four required comparisons (2026-07-05 ruling)** — every review model (Sonnet, Gemini, and the
+   pixel-perfect/SSIM score) must judge FOUR image pairs per page per theme, not just one:
+   - Comparison 1: MAUI light vs C++ light
+   - Comparison 2: MAUI light vs C++ & XAML light
+   - Comparison 3: MAUI dark vs C++ dark
+   - Comparison 4: MAUI dark vs C++ & XAML dark
+
+   i.e. MAUI is the ground truth compared against **both** the `cpp` (code-first builder) and `xaml`
+   (compile-time-XAML) framework columns, independently, in both themes — not just `cpp` vs `maui`. 
+   This supersedes any earlier review pass that only scored `cpp` vs `maui` (e.g. the 2026-07-05 full-board
+   Sonnet review predates this ruling and only covers comparisons 1/3 — it needs a follow-up pass to add 2/4).
+   Record each comparison's own verdict; do not average/collapse them into a single cpp-only score.
+
+6. **The MAUI ground truth is `port/maui-reference/` (2026-07-05 restructure, XAML-first).** The old
+   out-of-repo C#-only `~/maui-compare` app is superseded by the in-repo `port/maui-reference/app`
+   (MauiReference), whose pages are the CANONICAL SHARED XAML files in `port/maui-reference/pages/` —
+   the exact same `.xaml` bytes the port's `gallery_xaml` app `#embed`s (one file, two frameworks).
+   Fresh MAUI captures land ONLY in `port/maui-reference/captures/<platform>/<key>_<theme>.png`; the
+   old `port/cpp/docs/comparison/captures/*/maui/` tree is a frozen historical record — never write
+   there. The deterministic 10-step verification loop any agent can resume is codified in
+   **`port/maui-reference/docs/VERIFICATION_LOOP.md`** (authoring rules: `docs/AUTHORING.md`); the
+   single tool driving it is **`port/tools/e2e/e2e.py`** (see its README). Ruling 4's
+   `~/maui-compare/App.xaml` citation maps to `port/maui-reference/app/App.xaml`, which preserves the
+   same no-Styles.xaml native-default rendering.
+
 ## Progress tracking
 
 Maintain a `port/STATUS.md` (create it on first run) with one row per component:

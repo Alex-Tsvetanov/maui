@@ -11,9 +11,9 @@
 #   3. package id / activity  : dev.mauicpp.apphost.xaml/.MauiHostActivity (coexists with the C++ host)
 #   4. out dir                : docs/comparison/captures/android/xaml/<key>_<theme>.png (the C++&XAML column)
 #
-# The bytes-mode .xaml.cpp TUs the .so compiles are generated at CMake CONFIGURE time (gen_pages.py
-# --embed-mode=bytes) — see the maui_android_apphost_xaml target in CMakeLists.txt. The NDK's Clang 18 has
-# no #embed, so the committed #embed TUs can't build there; the byte-literal form can.
+# The bytes-mode .xaml.cpp TUs the .so compiles are generated at CMake CONFIGURE time (port/tools/e2e/
+# e2e.py gen --embed-mode=bytes) — see the maui_android_apphost_xaml target in CMakeLists.txt. The NDK's
+# Clang 18 has no #embed, so the committed #embed TUs can't build there; the byte-literal form can.
 #
 # Usage:
 #   build_android_apphost_xaml.sh                       # build+install, then capture EVERY page in page_keys.txt
@@ -304,14 +304,14 @@ declare -a keys=()
 if [[ "${#requested_keys[@]}" -gt 0 ]]; then
   keys=("${requested_keys[@]}")
 else
-  # The gallery_xaml column mirrors the twin's OWN page set (Views/<name>.xaml), not the full 172 C++ keys
-  # (the XAML gallery is a 59-page curated subset). Derive the key list from the checked-in twins so it
-  # stays in lock-step with gen_pages.py.
-  views_dir="${cpp_root}/examples/gallery_xaml/Views"
-  [[ -d "${views_dir}" ]] || maui_die "missing ${views_dir}"
-  while IFS= read -r f; do
-    keys+=("$(basename "${f}" .xaml)")
-  done < <(find "${views_dir}" -maxdepth 1 -name '*.xaml' ! -name '*.xaml.*' | sort)
+  # The gallery_xaml column mirrors the XAML page set: the canonical shared pages
+  # (port/maui-reference/pages/*.xaml) plus any not-yet-migrated legacy Views twins. The unified E2E
+  # tool owns that union (the same source its bytes-mode codegen reads), so ask it instead of globbing.
+  e2e_tool="${cpp_root}/../tools/e2e/e2e.py"
+  [[ -f "${e2e_tool}" ]] || maui_die "missing ${e2e_tool}"
+  while IFS= read -r k; do
+    [[ -n "${k}" ]] && keys+=("${k}")
+  done < <(python3 "${e2e_tool}" keys)
 fi
 
 echo "[apphost-xaml] capturing ${#keys[@]} page(s) -> ${out_dir}" >&2

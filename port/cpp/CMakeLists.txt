@@ -1877,30 +1877,33 @@ endif()
 #
 # WHY BYTES-MODE (not the committed #embed TUs): examples/gallery_xaml/Views/<name>.xaml.cpp use #embed,
 # which the NDK's bundled Clang (18 as of NDK 27) does NOT implement — those TUs fail to preprocess on
-# android. So we generate a bytes-mode twin of each TU (gen_pages.py --embed-mode=bytes) that inlines the
+# android. So we generate a bytes-mode twin of each TU (e2e.py gen --embed-mode=bytes) that inlines the
 # .xaml as an `unsigned char[]` byte-array literal fed into the SAME fixed_string/build_page path (plain
 # C++23, Clang-18 clean). The generation runs at CONFIGURE time into the build tree (android-only, NEVER
 # into Views/, so the committed #embed TUs the iOS/macOS lanes need are untouched). The bytes-mode TUs
 # reuse the committed Views/<name>.xaml.hpp declarations + Views/gallery_pages.hpp X-macro verbatim.
+# The generator is the unified E2E tool (port/tools/e2e/e2e.py, superseding the retired gen_pages.py);
+# it reads the canonical shared pages (port/maui-reference/pages) + any not-yet-migrated Views twins.
 if(MAUI_BACKEND STREQUAL "android")
   set(GALLERY_XAML_DIR ${CMAKE_CURRENT_SOURCE_DIR}/examples/gallery_xaml)
   set(GALLERY_XAML_BYTES_DIR ${CMAKE_BINARY_DIR}/generated/gallery_xaml_bytes/Views)
+  set(MAUI_E2E_TOOL ${CMAKE_CURRENT_SOURCE_DIR}/../tools/e2e/e2e.py)
 
   # The generator is a plain stdlib python3 script (argparse only). Locate an interpreter (no numpy/etc,
   # so no find_package(Python3) machinery needed — just the executable).
   find_program(MAUI_PYTHON3 NAMES python3 python REQUIRED)
 
   # Generate the bytes-mode .xaml.cpp TUs at CONFIGURE time (so file(GLOB) below sees them). A new/removed
-  # twin needs a re-configure to be picked up — the same convention gallery_xaml/CMakeLists.txt uses for
-  # its #embed GLOB. The generator reads every Views/*.xaml and emits one .xaml.cpp per twin here.
+  # page needs a re-configure to be picked up — the same convention gallery_xaml/CMakeLists.txt uses for
+  # its #embed GLOB. The generator reads every page and emits one .xaml.cpp per page here.
   execute_process(
-    COMMAND ${MAUI_PYTHON3} ${GALLERY_XAML_DIR}/tools/gen_pages.py
-            --embed-mode=bytes --out-dir ${GALLERY_XAML_BYTES_DIR}
+    COMMAND ${MAUI_PYTHON3} ${MAUI_E2E_TOOL}
+            gen --embed-mode=bytes --out-dir ${GALLERY_XAML_BYTES_DIR}
     RESULT_VARIABLE gen_xaml_bytes_rc
     OUTPUT_VARIABLE gen_xaml_bytes_out
     ERROR_VARIABLE gen_xaml_bytes_err)
   if(NOT gen_xaml_bytes_rc EQUAL 0)
-    message(FATAL_ERROR "gen_pages.py --embed-mode=bytes failed (rc=${gen_xaml_bytes_rc}):\n${gen_xaml_bytes_err}")
+    message(FATAL_ERROR "e2e.py gen --embed-mode=bytes failed (rc=${gen_xaml_bytes_rc}):\n${gen_xaml_bytes_err}")
   endif()
   message(STATUS "gallery_xaml bytes-mode codegen: ${gen_xaml_bytes_out}")
 

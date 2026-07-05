@@ -1,0 +1,7 @@
+<!-- Isolation stub: stops MSBuild's upward Directory.Build.props traversal so the MauiReference app
+     does NOT inherit the dotnet/maui repo's arcade build infrastructure (artifacts/ output redirection,
+     repo-local package/version pins). The app must build exactly like a standalone `dotnet new maui`
+     project against the pinned public MauiVersion — the same hermeticity ~/maui-compare had by living
+     outside the repo. Deliberately empty. -->
+<Project>
+</Project>

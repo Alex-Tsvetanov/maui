@@ -1,0 +1,4 @@
+# .NET build outputs of the reference app (bin/obj live in-tree thanks to the Directory.Build.props
+# isolation stub — the repo's arcade artifacts/ redirection is deliberately not inherited).
+app/bin/
+app/obj/
