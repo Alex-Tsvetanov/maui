@@ -76,6 +76,15 @@ APPS = {
         "theme_val": {"light": "Light", "dark": "Dark"},
         "settle": float(os.environ.get("MAUI_SETTLE_MAUI", "4.5")),
     },
+    # The compile-time-XAML twin gallery (examples/gallery_xaml) — same MAUI_SAMPLE_PAGE/MAUI_APPEARANCE
+    # env contract as the builder gallery (see main.cpp), different bundle id.
+    "xaml": {
+        "bundle": "dev.maui-cpp.ios-gallery-xaml",
+        "page_env": "SIMCTL_CHILD_MAUI_SAMPLE_PAGE",
+        "theme_env": "SIMCTL_CHILD_MAUI_APPEARANCE",
+        "theme_val": {"light": "light", "dark": "dark"},
+        "settle": float(os.environ.get("MAUI_SETTLE_CPP", "3.0")),
+    },
 }
 
 # Animated pages (🎬) — a single still can't represent them. Auto-animating ones record meaningfully;

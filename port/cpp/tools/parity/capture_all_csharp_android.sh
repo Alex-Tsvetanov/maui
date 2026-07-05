@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Capture every maui-compare (REAL .NET MAUI) gallery page on the `maui-test` Android emulator into
-# docs/comparison/android/maui/<key>.png — the ground-truth MAUI reference column (twin of the iOS
-# capture_all_csharp.py and the C++ column's build_android_apphost.sh).
+# docs/comparison/captures/android/maui/<key>_light.png — the ground-truth MAUI reference column (twin
+# of the iOS capture_all_csharp.py and the C++ column's build_android_apphost.sh; the canonical layout
+# build_comparison_json.py + gen_readme.py read). Android has no dark capture, hence the fixed _light suffix.
 #
 # The maui-compare app (~/maui-compare, MauiCompare.csproj) already renders all 172 canonical pages
 # (8 built-in switch keys in ComparePages.cs + 168 Pages/<Pascal>Page.cs resolved by reflection). On
@@ -45,7 +46,7 @@ activity="$("${maui_adb}" -s "${maui_serial}" shell cmd package resolve-activity
 component="${pkg}/${activity}"
 echo "[csharp-android] component: ${component}" >&2
 
-out_dir="${cpp_root}/docs/comparison/android/maui"
+out_dir="${cpp_root}/docs/comparison/captures/android/maui"
 mkdir -p "${out_dir}"
 
 wait_process_gone() {
@@ -88,8 +89,8 @@ capture_one() {
   "${maui_adb}" -s "${maui_serial}" shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
   # Settle: the window's first frame can precede the maui tree's content draw by a frame or two.
   sleep 1.5
-  "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out_dir}/${key}.png"
-  echo "[csharp-android] wrote ${out_dir}/${key}.png ($(stat -f%z "${out_dir}/${key}.png" 2>/dev/null || echo 0)B)" >&2
+  "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out_dir}/${key}_light.png"
+  echo "[csharp-android] wrote ${out_dir}/${key}_light.png ($(stat -f%z "${out_dir}/${key}_light.png" 2>/dev/null || echo 0)B)" >&2
 }
 
 # Post-install / first-run warm-up: absorb the cold-start + JIT churn on a throwaway launch.
