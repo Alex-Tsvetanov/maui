@@ -514,6 +514,18 @@ def _maccat_shot(framework: str, key: str, theme: str, settle: float) -> bool:
         time.sleep(0.4)
 
 
+def _builder_twin_keys() -> set[str] | None:
+    """Keys manifest.json marks builder_twin:false have NO code-first page in the `gallery` app — its
+    MAUI_SAMPLE_PAGE dispatch (main.cpp make_selected_page) silently falls back to value_controls for an
+    unrecognized name, so capturing "cpp" for one of these keys previously produced a MISLEADING
+    wrong-page screenshot instead of skipping. Returns None (no filtering) if the manifest is empty/absent
+    — all keys are treated as having a cpp twin, matching the old behavior for legacy/pre-manifest setups."""
+    manifest = load_manifest()
+    if not manifest:
+        return None
+    return {row["key"] for row in manifest if row.get("builder_twin", True)}
+
+
 def cmd_capture(args: argparse.Namespace) -> int:
     if args.platform != "maccatalyst":
         print(f"error: platform {args.platform!r} not absorbed yet — use the legacy scripts under "
@@ -526,14 +538,19 @@ def cmd_capture(args: argparse.Namespace) -> int:
     if not keys:
         print("no keys to capture (no shared pages yet and none given)")
         return 2
+    twin_keys = _builder_twin_keys()
     print(f"capture maccatalyst: {len(keys)} key(s) x {frameworks} x {themes}")
-    failures = 0
+    failures, skipped = 0, 0
     for theme in themes:
         for key in keys:
             for fw in frameworks:
+                if fw == "cpp" and twin_keys is not None and key not in twin_keys:
+                    print(f"  cpp   {key:28} skip (builder_twin:false — no code-first page)")
+                    skipped += 1
+                    continue
                 if not _maccat_shot(fw, key, theme, args.settle):
                     failures += 1
-    print(f"done ({failures} failure(s))")
+    print(f"done ({failures} failure(s), {skipped} skipped)")
     return 1 if failures else 0
 
 
