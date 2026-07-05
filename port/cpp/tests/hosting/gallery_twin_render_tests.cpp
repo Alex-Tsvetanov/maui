@@ -69,18 +69,32 @@ namespace
         maui::controls::content_page page_;
     };
 
+    // The page files: the shared-pages dir (port/maui-reference/pages, SHARED_PAGES_DIR) UNION the
+    // legacy twins dir, a shared page superseding a same-stem legacy twin (e2e.py gen's precedence).
     [[nodiscard]] std::vector<std::filesystem::path> twin_files()
     {
         std::vector<std::filesystem::path> files;
-        const std::filesystem::path dir{GALLERY_TWINS_DIR};
-        if (std::filesystem::is_directory(dir))
+        std::vector<std::string> seen;
+        for (const char* dir_name : {SHARED_PAGES_DIR, GALLERY_TWINS_DIR})
         {
+            const std::filesystem::path dir{dir_name};
+            if (!std::filesystem::is_directory(dir))
+            {
+                continue;
+            }
             for (const auto& entry : std::filesystem::directory_iterator(dir))
             {
-                if (entry.is_regular_file() && entry.path().extension() == ".xaml")
+                if (!entry.is_regular_file() || entry.path().extension() != ".xaml")
                 {
-                    files.push_back(entry.path());
+                    continue;
                 }
+                const std::string stem = entry.path().stem().string();
+                if (std::find(seen.begin(), seen.end(), stem) != seen.end())
+                {
+                    continue; // shared page already claimed this key
+                }
+                seen.push_back(stem);
+                files.push_back(entry.path());
             }
         }
         std::sort(files.begin(), files.end());

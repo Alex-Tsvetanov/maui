@@ -1,12 +1,12 @@
-// Phase-4 corpus gate: every gallery-page XAML twin under examples/gallery_xaml/Views/ must hydrate
-// through the runtime loader as a PLAIN ContentPage on the supported surface. This is the achievable
-// path to gallery parity — the raw src/Controls/samples pages are views:BasePage-rooted and cannot load
-// as-is, so the parity twins re-author each page body under a <ContentPage> root using only registered
-// markup. Each .xaml file becomes one parametrized case: it must load with no thrown
-// xaml_parse_exception and produce a non-null content tree. Dropping a new twin into the directory adds
-// a case automatically (the corpus that the gallery_xaml example #embeds and the iOS comparison shoots).
+// Phase-4 corpus gate: every gallery-page XAML file must hydrate through the runtime loader as a PLAIN
+// ContentPage on the supported surface. The corpus is the union of the CANONICAL SHARED pages
+// (port/maui-reference/pages/*.xaml — the same bytes real .NET MAUI compiles; SHARED_PAGES_DIR) and the
+// not-yet-migrated legacy twins (examples/gallery_xaml/Views/*.xaml; GALLERY_TWINS_DIR), matching what
+// port/tools/e2e/e2e.py gen embeds into the gallery_xaml app. Each .xaml file becomes one parametrized
+// case: it must load with no thrown xaml_parse_exception and produce a non-null content tree. Dropping a
+// new page into either directory adds a case automatically (a shared page supersedes a same-key twin).
 //
-// GALLERY_TWINS_DIR is the absolute source-tree path, injected by CMake (target_compile_definitions).
+// Both dirs are absolute source-tree paths, injected by CMake (target_compile_definitions).
 
 #include "maui/xaml/xaml_loader.hpp"
 #include "maui/xaml/xaml_runtime_bindings.hpp" // register_runtime_bindings (twins with {Binding})
@@ -28,19 +28,32 @@ namespace
     using maui::xaml::xaml_load_result;
     using maui::xaml::xaml_loader;
 
-    // The twin files, discovered once at suite-instantiation time (std::filesystem glob of the corpus dir).
+    // The page files, discovered once at suite-instantiation time: the shared-pages dir UNION the legacy
+    // twins dir, a shared page superseding a same-stem legacy twin (mirrors e2e.py gen's precedence).
     [[nodiscard]] std::vector<std::filesystem::path> twin_files()
     {
         std::vector<std::filesystem::path> files;
-        const std::filesystem::path dir{GALLERY_TWINS_DIR};
-        if (std::filesystem::is_directory(dir))
+        std::vector<std::string> seen;
+        for (const char* dir_name : {SHARED_PAGES_DIR, GALLERY_TWINS_DIR})
         {
+            const std::filesystem::path dir{dir_name};
+            if (!std::filesystem::is_directory(dir))
+            {
+                continue;
+            }
             for (const auto& entry : std::filesystem::directory_iterator(dir))
             {
-                if (entry.is_regular_file() && entry.path().extension() == ".xaml")
+                if (!entry.is_regular_file() || entry.path().extension() != ".xaml")
                 {
-                    files.push_back(entry.path());
+                    continue;
                 }
+                const std::string stem = entry.path().stem().string();
+                if (std::find(seen.begin(), seen.end(), stem) != seen.end())
+                {
+                    continue; // shared page already claimed this key
+                }
+                seen.push_back(stem);
+                files.push_back(entry.path());
             }
         }
         std::sort(files.begin(), files.end());

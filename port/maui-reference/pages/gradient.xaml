@@ -1,5 +1,6 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Gradient">
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.GradientPage" Title="Gradient">
     <!-- Twin of the maui-compare "gradient" demo: two captioned 60px BoxViews — a horizontal
          LinearGradientBrush (Yellow->Green, (0,0)->(1,0)) and a RadialGradientBrush (Red->DarkBlue,
          center (0.5,0.5), radius 0.7) — each under a bold caption. -->

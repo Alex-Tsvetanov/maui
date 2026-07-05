@@ -1766,9 +1766,11 @@ if(NOT MAUI_BACKEND STREQUAL "ios")
     maui_sanitizers
     GTest::gmock_main
   )
-  # Phase-4 twin corpus dir (absolute source path) for the parametrized gallery_twin loader gate.
+  # Corpus dirs (absolute source paths) for the parametrized gallery_twin loader gate: the canonical
+  # shared pages (the same .xaml real MAUI compiles) + the not-yet-migrated legacy twins.
   target_compile_definitions(maui_xaml_tests
-    PRIVATE GALLERY_TWINS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/examples/gallery_xaml/Views")
+    PRIVATE GALLERY_TWINS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/examples/gallery_xaml/Views"
+    PRIVATE SHARED_PAGES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../maui-reference/pages")
   maui_discover_tests(maui_xaml_tests)
   if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     set_target_properties(maui_xaml_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
@@ -1943,9 +1945,11 @@ if(NOT MAUI_BACKEND STREQUAL "ios")
     maui_sanitizers
     GTest::gmock_main
   )
-  # Phase-4 twin corpus dir (absolute source path) for the parametrized render gate.
+  # Corpus dirs (absolute source paths) for the parametrized render gate: the canonical shared pages
+  # (the same .xaml real MAUI compiles) + the not-yet-migrated legacy twins.
   target_compile_definitions(maui_hosting_tests
-    PRIVATE GALLERY_TWINS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/examples/gallery_xaml/Views")
+    PRIVATE GALLERY_TWINS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/examples/gallery_xaml/Views"
+    PRIVATE SHARED_PAGES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../maui-reference/pages")
   maui_discover_tests(maui_hosting_tests)
   if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     set_target_properties(maui_hosting_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")

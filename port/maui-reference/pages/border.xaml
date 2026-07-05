@@ -1,5 +1,6 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Border">
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.BorderPage" Title="Border">
     <Border Stroke="Red"
             StrokeThickness="5"
             BackgroundColor="LightYellow"

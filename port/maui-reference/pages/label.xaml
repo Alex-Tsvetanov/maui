@@ -1,5 +1,6 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Label">
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.LabelPage" Title="Label">
     <VerticalStackLayout Spacing="6" Padding="12">
         <!-- Basic properties -->
         <Label Text="Defaults" />

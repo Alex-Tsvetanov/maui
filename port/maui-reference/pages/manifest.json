@@ -1,1 +1,92 @@
-[]
+[
+  {
+    "key": "border",
+    "expected_port_status": "renders",
+    "builder_twin": true,
+    "tags": [
+      "border"
+    ],
+    "notes": ""
+  },
+  {
+    "key": "button",
+    "expected_port_status": "renders",
+    "builder_twin": true,
+    "tags": [
+      "button"
+    ],
+    "notes": ""
+  },
+  {
+    "key": "collectionview",
+    "expected_port_status": "renders",
+    "builder_twin": true,
+    "tags": [
+      "collectionview"
+    ],
+    "notes": ""
+  },
+  {
+    "key": "entry",
+    "expected_port_status": "renders",
+    "builder_twin": true,
+    "tags": [
+      "entry"
+    ],
+    "notes": ""
+  },
+  {
+    "key": "gradient",
+    "expected_port_status": "renders",
+    "builder_twin": true,
+    "tags": [
+      "gradient"
+    ],
+    "notes": ""
+  },
+  {
+    "key": "grid",
+    "expected_port_status": "renders",
+    "builder_twin": true,
+    "tags": [
+      "grid"
+    ],
+    "notes": ""
+  },
+  {
+    "key": "image",
+    "expected_port_status": "renders",
+    "builder_twin": true,
+    "tags": [
+      "image"
+    ],
+    "notes": ""
+  },
+  {
+    "key": "label",
+    "expected_port_status": "renders",
+    "builder_twin": true,
+    "tags": [
+      "label"
+    ],
+    "notes": ""
+  },
+  {
+    "key": "scroll_view",
+    "expected_port_status": "renders",
+    "builder_twin": true,
+    "tags": [
+      "scroll_view"
+    ],
+    "notes": ""
+  },
+  {
+    "key": "slider",
+    "expected_port_status": "renders",
+    "builder_twin": true,
+    "tags": [
+      "slider"
+    ],
+    "notes": ""
+  }
+]
