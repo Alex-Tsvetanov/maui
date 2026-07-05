@@ -241,8 +241,12 @@ namespace maui::samples
 
         header_footer_template_page()
             : items_(std::make_shared<maui::core::observable_collection<demo_item>>(seed_items())),
-              // HeaderFooterDemoModel(): CurrentTime = DateTime.Now.
-              model_{now_string()},
+              // HeaderFooterDemoModel(): CurrentTime = DateTime.Now in the original C#, but the shared
+              // twin XAML pins this to a fixed reference value ("12:00:00 PM") for deterministic pixel
+              // comparison (port/maui-reference/docs/AUTHORING.md rule 8: no wall-clock dates/times).
+              // The port's initial stamp matches that fixed value; only an explicit tap_header()/
+              // tap_footer() re-stamp (below) advances it to the live wall-clock time.
+              model_{fixed_reference_time_string()},
               // TapCommand => CurrentTime = DateTime.Now (re-stamp + re-realize the chrome).
               tap_command_(std::make_shared<maui::controls::command>([this] { restamp_time(); }))
         {
@@ -326,6 +330,14 @@ namespace maui::samples
                 rows.push_back(demo_item{.caption = image + ", " + std::to_string(n), .image_name = image});
             }
             return rows;
+        }
+
+        // The shared twin XAML's fixed reference stamp (both HeaderTemplate and FooterTemplate hard-code
+        // Text="12:00:00 PM" — see port/maui-reference/pages/header_footer_template.xaml) — the resting
+        // capture must show this, not the capture-time wall clock.
+        [[nodiscard]] static std::string fixed_reference_time_string()
+        {
+            return "12:00:00 PM";
         }
 
         // DateTime.Now, formatted as C#'s DateTime.ToString() does for en-US: "M/d/yyyy h:mm:ss tt"
