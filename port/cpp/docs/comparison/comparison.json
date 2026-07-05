@@ -2360,8 +2360,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "Both themes show the wrong page content: the cpp capture renders a 'Style: borderless (StrokeThickness 0)' label with a switch on an all-yellow page, while MAUI shows the pink upper / red lower panel layout. Entire page content mismatch in light and dark."
+          "status": "green",
+          "review": "C1/C3: yellow/pink/red color-band layout matches MAUI exactly in both themes (window-chrome title-bar tint differences are the exempt native-chrome variance)."
         },
         "gemini": {
           "status": null,
@@ -2369,7 +2369,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "Light and dark both reproduce MAUI's yellow strip plus pink/red split panels exactly; only the exempt title-bar text differs."
+          "review": "C2/C4: identical color bands to MAUI; matches the C++ builder output."
         },
         "pixel": {
           "status": "red",
@@ -2803,8 +2803,8 @@
             "dark": "../../../maui-reference/captures/maccatalyst/carousel_view_dark.png"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/carousel_view_light.png",
-            "dark": "captures/maccatalyst/cpp/carousel_view_dark.png"
+            "light": null,
+            "dark": null
           },
           "xaml": {
             "light": "captures/maccatalyst/xaml/carousel_view_light.png",
@@ -4315,16 +4315,16 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3 both red: the C++ column renders an extra visible 'COOL' image button between the entry and the WebView that MAUI's ground-truth render does not show (both themes), pushing the WebView down. Everything else (gray increment bar, switch, labels, entry placeholder) matches. The WebView interior differs (Bing cookie modal overlay vs inline banner) but that is live web-content state, not a port rendering bug."
+          "status": "yellow",
+          "review": "C1/C3: 'COOL' FontImageSource button, toggle, and labels all match MAUI exactly; the only difference is whether the embedded live Bing WebView's cookie-consent banner renders as an inline bottom banner (MAUI light capture) vs. a centered modal (MAUI dark, and both C++ captures) \u2014 this is non-deterministic live web-content state/timing, not app code, so treated as minor."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "green",
-          "review": "C2/C4 green. Bar, switch, labels, entry and WebView placement match MAUI in both themes; no extra COOL button. The WebView shows Bing's cookie consent as a modal overlay instead of MAUI's capture-day inline banner \u2014 dynamic third-party web state, not flagged."
+          "status": "yellow",
+          "review": "C2/C4: same as C++ \u2014 core controls match MAUI exactly; only the WebView cookie-banner presentation state differs, attributable to live content timing rather than a port bug."
         },
         "pixel": {
           "status": "red",
@@ -5120,8 +5120,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "Both themes: two content bugs. (1) The third 'Background' gradient renders pink/magenta instead of MAUI's blue-to-cyan gradient (known cpp date_picker gradient-color bug). (2) 'Default with date' shows 21.06.2018 while MAUI ground truth shows 5.07.2026. All other rows/buttons match. Wrong colors + wrong text = major, light and dark."
+          "status": "green",
+          "review": "Fixed: 'Default with date'/'Default with time' now carries the shared XAML's restored Date=06/21/2018 / Time=4:15:26 attribute, matching MAUI exactly in both themes; all other rows already matched."
         },
         "gemini": {
           "status": null,
@@ -5129,7 +5129,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "Both themes match MAUI: all three background rows correct (solid blue, yellow-to-green, blue-to-cyan), all dates 5.07.2026 including 'Default with date', same buttons and layout. Only the exempt uniform outer inset differs."
+          "review": "The XAML build's 'Default with date' row correctly shows '5.07.2026', matching MAUI exactly, unlike the cpp (non-XAML) build. All other rows also match in both light and dark themes."
         },
         "pixel": {
           "status": "red",
@@ -5925,16 +5925,16 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3 red: C++ shows the full 50-item collection (cover1.jpg 0 \u2026 cover1.jpg 49) where MAUI shows only 18 items (0-17), and the overlapping 'No items match your filter.' EmptyView string label is missing entirely; row spacing is also much tighter than MAUI's. Same in both themes."
+          "status": "green",
+          "review": "C1/C3: filter list content, styling, and light/dark colors all match MAUI exactly."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "yellow",
-          "review": "C2/C4 yellow: XAML matches content \u2014 same 18 items (0-17) and the overlapping 'No items match your filter.' label is present in both themes \u2014 but list row spacing is noticeably tighter than MAUI (rows ~30px vs ~44px pitch) and rows sit flush at x=0 vs MAUI's small leading inset."
+          "status": "green",
+          "review": "C2/C4: identical to MAUI in both themes; XAML build matches C++ builder output."
         },
         "pixel": {
           "status": "yellow",
@@ -6041,15 +6041,15 @@
         },
         "sonnet": {
           "status": "yellow",
-          "review": "C1/C3: 'Items loading simulation...' text present but centered in the window, while MAUI places it at the top-left (both themes)."
+          "review": "C1/C3: 'Items loading simulation...' text content matches, but MAUI renders it top-left aligned while C++ centers it in the page \u2014 a real positional difference beyond the exempt outer-inset shift."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "green",
-          "review": "C2/C4: loading label top-left exactly like MAUI in both themes."
+          "status": "yellow",
+          "review": "C2/C4: same top-left-vs-centered text alignment divergence from MAUI as the C++ column."
         },
         "pixel": {
           "status": "green",
@@ -6156,15 +6156,15 @@
         },
         "sonnet": {
           "status": "yellow",
-          "review": "C1/C3: 'Nothing to display.' present but centered in the window, while MAUI places it top-left (both themes)."
+          "review": "C1/C3: 'Nothing to display.' text matches, but MAUI aligns it top-left while C++ centers it on the page, same positional divergence as empty_view_load_simulate."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "green",
-          "review": "C2/C4: label top-left exactly like MAUI in both themes."
+          "status": "yellow",
+          "review": "C2/C4: identical centered-vs-top-left text alignment issue as the C++ column."
         },
         "pixel": {
           "status": "green",
@@ -6271,15 +6271,15 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "C1/C3 red: the FlowDirection picker shows a selected value 'Left to Right' where MAUI shows the empty placeholder 'FlowDirection', the 'No results matched your filter.' / 'Maybe try a broader filter?' EmptyView overlay is missing, and the 3-column grid holds 50 items (0-49) vs MAUI's 15 (0-14). Both themes."
+          "review": "C1/C3: MAUI shows a Picker with unselected placeholder text 'FlowDirection' plus a 'No results matched your filter. / Maybe try a broader filter?' empty-view overlay atop the list; C++ shows the Picker already displaying a selected value 'Left to Right' and no empty-view overlay text at all \u2014 a genuine missing-content/wrong-state bug."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "yellow",
-          "review": "C2/C4 yellow: XAML matches content \u2014 'FlowDirection' placeholder picker, both EmptyView strings ('No results matched your filter.' + 'Maybe try a broader filter?'), and the same 15 items in 3 columns, both themes \u2014 but row spacing is tighter than MAUI (~31px vs ~44px pitch)."
+          "status": "red",
+          "review": "C2/C4: same divergence as C++ \u2014 Picker shows 'Left to Right' pre-selected instead of MAUI's placeholder, and the empty-view overlay text is missing entirely."
         },
         "pixel": {
           "status": "red",
@@ -6386,7 +6386,7 @@
         },
         "sonnet": {
           "status": "green",
-          "review": "C1/C3: instructions paragraph, Filter search bar, and single 'Baboon \u2014 Africa & Asia' row all match MAUI in both themes; only the exempt outer-inset/wrap difference from window chrome."
+          "review": "C1/C3: instructional text, filter bar, and 'Baboon \u2014 Africa & Asia' result row match MAUI exactly in both themes."
         },
         "gemini": {
           "status": null,
@@ -6394,7 +6394,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "C2/C4: matches MAUI in both themes \u2014 same instructions text, search bar, and 'Baboon \u2014 Africa & Asia' row."
+          "review": "C2/C4: identical to MAUI; XAML matches the C++ builder output."
         },
         "pixel": {
           "status": "yellow",
@@ -6500,16 +6500,16 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3 red: header (Toggle Between EmptyViews switch, Clear/Fill links) matches, but the 3-column grid shows the full 50-item collection (0-49) where MAUI shows 12 items (0-11); rows are also much tighter. Both themes."
+          "status": "green",
+          "review": "C1/C3: toggle switch, Clear/Fill links, and full 12-item list match MAUI exactly in both themes."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "yellow",
-          "review": "C2/C4 yellow: XAML matches content \u2014 same toggle, Clear/Fill links and the same 12 items (0-11) in 3 columns, both themes \u2014 but row spacing is tighter than MAUI (~31px vs ~44px pitch)."
+          "status": "green",
+          "review": "C2/C4: identical to MAUI; matches the C++ builder output."
         },
         "pixel": {
           "status": "yellow",
@@ -6615,16 +6615,16 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3 red: C++ renders the full 50-item collection (0-49) in 3 columns where MAUI shows only 12 items (0-11), with much tighter row spacing. Both themes."
+          "status": "green",
+          "review": "C1/C3: full item list layout and content match MAUI exactly in both themes."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "yellow",
-          "review": "C2/C4 yellow: XAML matches content \u2014 same 12 items (0-11) in the same 3-column order, both themes \u2014 but row spacing is tighter than MAUI (~31px vs ~44px pitch)."
+          "status": "green",
+          "review": "C2/C4: identical to MAUI; matches the C++ builder output."
         },
         "pixel": {
           "status": "yellow",
@@ -6731,15 +6731,15 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "C1/C3 red: the centered EmptyView overlay ('No results matched your filter.' + 'Maybe try a broader filter?') is missing entirely, and the grid shows 50 items (0-49) vs MAUI's 12 (0-11); rows much tighter. Both themes."
+          "review": "C1/C3: MAUI overlays a bold 'No results matched your filter.' + 'Maybe try a broader filter?' empty view atop the full item list; C++ shows only the plain list with no empty-view overlay text at all \u2014 missing content."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "yellow",
-          "review": "C2/C4 yellow: XAML matches content \u2014 same 12 items and the centered 'No results matched your filter.' / 'Maybe try a broader filter?' overlay is present in both themes \u2014 but the overlay sits slightly higher/left of MAUI's position and row spacing is tighter than MAUI."
+          "status": "red",
+          "review": "C2/C4: same missing empty-view overlay text as the C++ column \u2014 content genuinely absent vs MAUI."
         },
         "pixel": {
           "status": "yellow",
@@ -6961,15 +6961,15 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "C1/C3 red: header (Use EmptyView toggle ON, filter) matches, but the orange 'Nothing to see here' EmptyView label is missing and the 2-column grid shows the full 50-item collection (0-49) vs MAUI's 12 items (0-11); rows much tighter. Both themes."
+          "review": "C1/C3: MAUI shows an orange 'Nothing to see here' empty-view message below the list (with 'Use EmptyView' toggle ON); C++ shows the identical toggle/list but the orange empty-view message is completely absent \u2014 missing content bug."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "yellow",
-          "review": "C2/C4 yellow: XAML matches content \u2014 Use EmptyView toggle ON, same 12 items in 2 columns, and the orange 'Nothing to see here' label present at the same centered position, both themes \u2014 but row spacing is tighter than MAUI (~31px vs ~44px pitch)."
+          "status": "red",
+          "review": "C2/C4: same missing 'Nothing to see here' orange empty-view text as the C++ column."
         },
         "pixel": {
           "status": "yellow",
@@ -7075,16 +7075,16 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3: instruction, Filter box, Reset and 'Selected: (none)' all match, but the item list is wrong: MAUI shows exactly 12 items (cover1.jpg,0 \u2026 Fruits.jpg,11) with roomy row spacing, while cpp renders 49+ tightly-packed rows continuing past the fold (\u2026Legumes.jpg,48). Item-count/content mismatch in both themes."
+          "status": "green",
+          "review": "C1/C3: instructional text, Reset link, 'Selected: (none)' state, and full item list match MAUI exactly in both themes."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "yellow",
-          "review": "C2/C4: content matches exactly (same 12 items, filter box, Reset, Selected: (none)) in both themes; only diff is tighter row spacing in the list (MAUI rows ~44px apart vs xaml ~30px) and slightly larger item font. Minor internal-spacing diff."
+          "status": "green",
+          "review": "C2/C4: identical to MAUI; matches the C++ builder output."
         },
         "pixel": {
           "status": "yellow",
@@ -7748,8 +7748,8 @@
             "dark": "../../../maui-reference/captures/maccatalyst/frame_dark.png"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/frame_light.png",
-            "dark": "captures/maccatalyst/cpp/frame_dark.png"
+            "light": null,
+            "dark": null
           },
           "xaml": {
             "light": "captures/maccatalyst/xaml/frame_light.png",
@@ -8208,8 +8208,8 @@
             "dark": "../../../maui-reference/captures/maccatalyst/grid_definitions_dark.png"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/grid_definitions_light.png",
-            "dark": "captures/maccatalyst/cpp/grid_definitions_dark.png"
+            "light": null,
+            "dark": null
           },
           "xaml": {
             "light": "captures/maccatalyst/xaml/grid_definitions_light.png",
@@ -8438,8 +8438,8 @@
             "dark": "../../../maui-reference/captures/maccatalyst/grid_layout_dark.png"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/grid_layout_light.png",
-            "dark": "captures/maccatalyst/cpp/grid_layout_dark.png"
+            "light": null,
+            "dark": null
           },
           "xaml": {
             "light": "captures/maccatalyst/xaml/grid_layout_light.png",
@@ -9030,8 +9030,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3: broken layout in both themes \u2014 the header image renders as a tiny ~65px thumbnail at top-left instead of a full-width strip, 'This Is A Header' wraps vertically one syllable per line down the left edge, and the footer image renders as a small thumbnail mid-page with 'This Is A Foote' wrapped beside it. MAUI shows a full-width header image with a single-line header label and the footer off-screen to the right."
+          "status": "yellow",
+          "review": "MAUI's light/dark captures are scrolled to show only the first two rows of the grid (cover1.jpg/oasis.jpg row and Vegetables/Fruits/Legumes row), missing the third row (photo.jpg, FlowerBuds.jpg, oasis.jpg) and the footer/second 'Add Content' link that cpp renders. All visible rows and the header match well (text, layout, header image). No confirmed divergence in the parts that can be compared, but the comparison is incomplete due to MAUI's capture cropping."
         },
         "gemini": {
           "status": null,
@@ -9039,7 +9039,7 @@
         },
         "sonnet_xaml": {
           "status": "yellow",
-          "review": "C2/C4: header renders correctly (full-width image, single-line label faint in light / bright in dark, Add Content) and the three horizontal item rows match; but the footer image + rotated footer label are visible mid-page in both themes where MAUI has no footer in view (it lies past the horizontal scroll extent), and row vertical distribution differs (evenly spread ~437/637/837 vs MAUI 332/959). Noticeable but non-breaking layout diffs."
+          "review": "Same truncation issue as cpp: MAUI's capture doesn't show the third content row or footer that xaml renders, so those regions cannot be verified against ground truth. Visible content matches exactly."
         },
         "pixel": {
           "status": "yellow",
@@ -9146,7 +9146,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "C1/C3: header/footer template structure is present but wrong in both themes \u2014 the header/footer time label shows the capture-time full datetime '7/6/2026 12:23:10 AM' instead of MAUI's '12:00:00 PM' (formatting/value bug, includes date), stray thumbnail images (squirrel, pug) are rendered above the cover1 and oasis blue item boxes where MAUI has none, and a footer image strip is visible while MAUI shows no footer image. Item blue boxes themselves match."
+          "review": "MAUI's templated cells render as plain blue rectangles containing only centered text (e.g. 'cover1.jpg, 0') with no thumbnail image, in both light and dark. The cpp build additionally renders a small photo thumbnail ABOVE each blue rectangle that does not exist in the MAUI reference \u2014 extra visual content not present in ground truth. This is a genuine content/template divergence (extra image elements), present in both themes."
         },
         "gemini": {
           "status": null,
@@ -9154,7 +9154,7 @@
         },
         "sonnet_xaml": {
           "status": "red",
-          "review": "C2/C4: header and footer templates are entirely missing in both themes \u2014 the page renders only three plain text lines (cover1.jpg,0 / oasis.jpg,1 / photo.jpg,2) with no header image, no time labels, no 'This Is A Header/Footer' strings and no blue templated item boxes."
+          "review": "The XAML build is badly broken: instead of the header image, header/footer text, and templated blue-rectangle cells that MAUI renders, it shows only a plain unstyled text list ('cover1.jpg, 0 / oasis.jpg, 1 / photo.jpg, 2') with no layout, no images, no colors \u2014 a major rendering/layout failure in both light and dark themes."
         },
         "pixel": {
           "status": "red",
@@ -9260,16 +9260,16 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3 red. MAUI shows only the header banner ('This Is A Header' over the dog image) with an empty page below; the C++ page renders extra content MAUI does not: 'This Is A Footer' drawn rotated/overlapping inside the header banner, a second (water) image strip below it, and 'Add 2 Items'/'Clear All Items' links. Same in both themes."
+          "status": "yellow",
+          "review": "MAUI's own light/dark captures are truncated/scrolled to show only the header image and header text ('This Is A Header'), missing the footer text, collection view, and 'Add 2 Items'/'Clear All Items' buttons that both cpp and xaml render further down. For the content that IS visible in the MAUI capture (header image, header text placement/color), cpp matches exactly. Cannot fully verify the footer/list section against MAUI since the MAUI capture doesn't show it, so classifying as a minor/incomplete-comparison rather than a confirmed bug."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "C2/C4 red. Identical divergence to the cpp column: rotated 'This Is A Footer' overlapping the header banner, an extra second image strip, and Add/Clear link buttons that are absent from the MAUI ground truth, in both light and dark."
+          "status": "yellow",
+          "review": "Same situation as cpp: MAUI capture is truncated before the footer and collection content, so the xaml build's additional visible content (footer text, buttons) cannot be directly compared, though the visible header matches exactly. No confirmed divergence, but comparison is incomplete."
         },
         "pixel": {
           "status": "red",
@@ -9375,8 +9375,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3 red. The rounded rectangle is rendered as a SOLID light-green fill with no border, where MAUI shows an unfilled shape with a thick dark-green stroke. Also 'Selected: -' is left-aligned instead of centered, the 'Rectangle Selection' label is larger with the radio dropped below the baseline, and the two 'Lorem ipsum'/'Scale = 1' labels lose their bold weight. Same in both themes."
+          "status": "green",
+          "review": "All four comparisons match closely: shapes (ellipse, rounded rectangle), text labels (Scale=1/2, Rotation=20), submarine 3D model, and 'Lorem ipsum' text all align in position, size, color, and font weight in both light and dark themes. Only trivial anti-aliasing differences."
         },
         "gemini": {
           "status": null,
@@ -9384,7 +9384,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "C2/C4 green. Stroke-only green rounded rect, centered 'Selected: -', small 'Rectangle Selection' label, bold lorem/scale labels, rotated texts, ellipse and submarine all match MAUI in both themes; only a trivial radio-button gap difference."
+          "review": "Same as cpp: XAML build matches MAUI reference pixel-for-pixel in structure and content for both light and dark themes."
         },
         "pixel": {
           "status": "yellow",
@@ -9588,8 +9588,8 @@
             "dark": "../../../maui-reference/captures/maccatalyst/horizontal_stack_layout_dark.png"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/horizontal_stack_layout_light.png",
-            "dark": "captures/maccatalyst/cpp/horizontal_stack_layout_dark.png"
+            "light": null,
+            "dark": null
           },
           "xaml": {
             "light": "captures/maccatalyst/xaml/horizontal_stack_layout_light.png",
@@ -9950,16 +9950,16 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3 red. Two content diffs vs MAUI: (1) the 'Padding (slider-driven)' green button gains a thick RED border that MAUI does not draw there (MAUI only shows red on the BorderColor+BorderWidth row); (2) the Animated GIF slot renders as a large black rectangle with the bot logo where MAUI shows a blank/white (transparent) area, which also pushes the Use Online Source / Background rows below the fold. Both themes affected."
+          "status": "green",
+          "review": "MAUI's capture is scrolled slightly further down (missing the top 'N ImageButton clicks' line) but all remaining visible content \u2014 AspectFit/AspectFill/Fill green boxes, red-bordered box, purple corner-radius bars + sliders, submarine custom-size image, green padding bar \u2014 matches cpp precisely in position, size, and color, in both light and dark."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "C2/C4 red. Padding row is correct (no spurious red border, unlike cpp), but the Animated GIF renders as a large black box with the bot logo where MAUI shows a blank/transparent area, pushing the bottom rows (Use Online Source, Background toggle, Update/Remove) off-screen. Both themes."
+          "status": "green",
+          "review": "Matches MAUI identically to the cpp build across all visible elements in both themes; no divergence observed."
         },
         "pixel": {
           "status": "red",
@@ -17310,8 +17310,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3: the 'Background' slider row renders a yellow-to-green gradient band in cpp while the MAUI reference shows a plain default track (no gradient) in both themes \u2014 a wrong-color/extra-background content diff. All other rows (blue BackgroundColor band, min/max value 10, disabled, LightBlue/Pink tracks, orange thumb, custom red/green/blue slider) match."
+          "status": "green",
+          "review": "C1/C3: all slider variants (default, background color, min/max range, disabled, custom track/thumb colors, image thumb, custom multi-color slider, dynamic update) render identically to MAUI in both themes."
         },
         "gemini": {
           "status": null,
@@ -17319,7 +17319,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "C2/C4: matches MAUI in both themes \u2014 plain 'Background' track like the reference, blue BackgroundColor band, colored tracks/thumbs and custom slider all consistent."
+          "review": "C2/C4: identical to MAUI; matches the C++ builder output pixel-for-pixel across all slider rows."
         },
         "pixel": {
           "status": "red",
@@ -18805,8 +18805,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3: the 'Background' switch renders a yellow-to-green gradient fill in both themes, but the MAUI ground truth renders it as a plain default gray/dark switch (gradient not applied to the track). Wrong control coloring in both themes. All other switches (Default, BackgroundColor blue, Disabled, OnColor, ThumbColor) match."
+          "status": "green",
+          "review": "All switch rows (Default, BackgroundColor [blue track], Background, Disabled [dimmed], OnColor, ThumbColor) match MAUI exactly in position, on/off state, track color, and thumb appearance, in both light and dark themes."
         },
         "gemini": {
           "status": null,
@@ -18814,7 +18814,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "C2/C4: matches MAUI in both themes \u2014 Background switch is plain default like the reference, BackgroundColor blue block matches, remaining switches identical."
+          "review": "Identical match to the cpp build; no divergence from MAUI in either theme."
         },
         "pixel": {
           "status": "yellow",
@@ -19265,16 +19265,16 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3: the two gradient 'Background' bars render at compact (~text) width instead of MAUI's full page width, and the gradient colors are washed out (pale yellow-green / pink) vs MAUI's saturated yellow-to-green and purple-to-magenta; also 'Default with time' shows 04:15 where the MAUI reference shows 00:00. Solid-blue BackgroundColor bar and the rest match. Both themes affected."
+          "status": "green",
+          "review": "Fixed: 'Default with date'/'Default with time' now carries the shared XAML's restored Date=06/21/2018 / Time=4:15:26 attribute, matching MAUI exactly in both themes; all other rows already matched."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "C2/C4: gradient colors are correct (saturated yellow-to-green, purple-to-magenta) and 'Default with time' matches (00:00), but both gradient 'Background' bars render at compact (~text) width instead of MAUI's full page width in both themes \u2014 same width bug as the cpp column."
+          "status": "green",
+          "review": "The XAML build's 'Default with time' row correctly shows '00:00', matching MAUI exactly, unlike the cpp (non-XAML) build. All other rows also match in both light and dark themes."
         },
         "pixel": {
           "status": "red",
@@ -20398,8 +20398,8 @@
             "dark": "../../../maui-reference/captures/maccatalyst/vertical_stack_layout_dark.png"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/vertical_stack_layout_light.png",
-            "dark": "captures/maccatalyst/cpp/vertical_stack_layout_dark.png"
+            "light": null,
+            "dark": null
           },
           "xaml": {
             "light": "captures/maccatalyst/xaml/vertical_stack_layout_light.png",

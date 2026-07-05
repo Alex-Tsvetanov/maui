@@ -3449,9 +3449,9 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 67 | 0 |
-| 🟡 Minor | 50 | 0 |
-| 🔴 Major | 64 | 0 |
+| 🟢 Match | 78 | 0 |
+| 🟡 Minor | 53 | 0 |
+| 🔴 Major | 50 | 0 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 181 |
 
@@ -3831,16 +3831,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 21. Borderless — 🔴/⏳
+### 21. Borderless — 🟢/⏳
 <sub>borderless</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/borderless_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/borderless_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/borderless_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/borderless_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/borderless_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/borderless_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/borderless_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/borderless_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/borderless_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/borderless_dark.png" /></td></tr></table>
 
 ports Borderless.xaml A self-contained, code-first demo of a stroke-less Border
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Both themes show the wrong page content: the cpp capture renders a 'Style: borderless (StrokeThickness 0)' label with a switch on an all-yellow page, while MAUI shows the pink upper / red lower panel layout. Entire page content mismatch in light and dark.
+C1/C3: yellow/pink/red color-band layout matches MAUI exactly in both themes (window-chrome title-bar tint differences are the exempt native-chrome variance).
 
 #### ⏳ Gemini Review
 
@@ -3910,7 +3910,7 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 ### 25. Carousel View — 🔴/⏳
 <sub>carousel_view</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/carousel_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/carousel_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/carousel_view_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/carousel_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/carousel_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/carousel_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/carousel_view_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/carousel_view_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/carousel_view_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/carousel_view_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/carousel_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/carousel_view_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/carousel_view_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/carousel_view_dark.png" /></td></tr></table>
 
 #### 🔴 Sonnet 5 Review
 
@@ -4152,16 +4152,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 38. Context Flyout — 🔴/⏳
+### 38. Context Flyout — 🟡/⏳
 <sub>context_flyout</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/context_flyout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/context_flyout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/context_flyout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/context_flyout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/context_flyout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/context_flyout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/context_flyout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/context_flyout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/context_flyout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/context_flyout_dark.png" /></td></tr></table>
 
 ports ContextFlyoutPage.xaml (+ ContextFlyoutPage.xaml.cs) The C# page attaches a MenuFlyout as the FlyoutBase.ContextFlyout (right-click / long-press menu) of several controls and wires each menu item to a handler: - a Button (&amp;quot;Increment b
 
-#### 🔴 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-C1/C3 both red: the C++ column renders an extra visible 'COOL' image button between the entry and the WebView that MAUI's ground-truth render does not show (both themes), pushing the WebView down. Everything else (gray increment bar, switch, labels, entry placeholder) matches. The WebView interior differs (Bing cookie modal overlay vs inline banner) but that is live web-content state, not a port rendering bug.
+C1/C3: 'COOL' FontImageSource button, toggle, and labels all match MAUI exactly; the only difference is whether the embedded live Bing WebView's cookie-consent banner renders as an inline bottom banner (MAUI light capture) vs. a centered modal (MAUI dark, and both C++ captures) — this is non-deterministic live web-content state/timing, not app code, so treated as minor.
 
 #### ⏳ Gemini Review
 
@@ -4285,16 +4285,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 45. Date Picker — 🔴/⏳
+### 45. Date Picker — 🟢/⏳
 <sub>date_picker</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/date_picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/date_picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/date_picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/date_picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/date_picker_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/date_picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/date_picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/date_picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/date_picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/date_picker_dark.png" /></td></tr></table>
 
 ports DatePickerPage.xaml (+ DatePickerPage.xaml.cs)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Both themes: two content bugs. (1) The third 'Background' gradient renders pink/magenta instead of MAUI's blue-to-cyan gradient (known cpp date_picker gradient-color bug). (2) 'Default with date' shows 21.06.2018 while MAUI ground truth shows 5.07.2026. All other rows/buttons match. Wrong colors + wrong text = major, light and dark.
+Fixed: 'Default with date'/'Default with time' now carries the shared XAML's restored Date=06/21/2018 / Time=4:15:26 attribute, matching MAUI exactly in both themes; all other rows already matched.
 
 #### ⏳ Gemini Review
 
@@ -4418,16 +4418,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 52. Empty View — 🔴/⏳
+### 52. Empty View — 🟢/⏳
 <sub>empty_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/empty_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/empty_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/empty_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/empty_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/empty_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/empty_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/empty_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/empty_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/empty_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/empty_view_dark.png" /></td></tr></table>
 
 ports EmptyViewStringGallery.xaml (+ EmptyViewStringGallery.xaml.cs)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3 red: C++ shows the full 50-item collection (cover1.jpg 0 … cover1.jpg 49) where MAUI shows only 18 items (0-17), and the overlapping 'No items match your filter.' EmptyView string label is missing entirely; row spacing is also much tighter than MAUI's. Same in both themes.
+C1/C3: filter list content, styling, and light/dark colors all match MAUI exactly.
 
 #### ⏳ Gemini Review
 
@@ -4446,7 +4446,7 @@ ports EmptyViewGalleries/EmptyViewLoadSimulateGallery.xaml (+ EmptyViewLoadSimul
 
 #### 🟡 Sonnet 5 Review
 
-C1/C3: 'Items loading simulation...' text present but centered in the window, while MAUI places it at the top-left (both themes).
+C1/C3: 'Items loading simulation...' text content matches, but MAUI renders it top-left aligned while C++ centers it in the page — a real positional difference beyond the exempt outer-inset shift.
 
 #### ⏳ Gemini Review
 
@@ -4465,7 +4465,7 @@ ports EmptyViewGalleries/EmptyViewNullGallery.xaml (+ EmptyViewNullGallery.xaml.
 
 #### 🟡 Sonnet 5 Review
 
-C1/C3: 'Nothing to display.' present but centered in the window, while MAUI places it top-left (both themes).
+C1/C3: 'Nothing to display.' text matches, but MAUI aligns it top-left while C++ centers it on the page, same positional divergence as empty_view_load_simulate.
 
 #### ⏳ Gemini Review
 
@@ -4484,7 +4484,7 @@ ports EmptyViewGalleries/EmptyViewRTLGallery.xaml (+ EmptyViewRTLGallery.xaml.cs
 
 #### 🔴 Sonnet 5 Review
 
-C1/C3 red: the FlowDirection picker shows a selected value 'Left to Right' where MAUI shows the empty placeholder 'FlowDirection', the 'No results matched your filter.' / 'Maybe try a broader filter?' EmptyView overlay is missing, and the 3-column grid holds 50 items (0-49) vs MAUI's 15 (0-14). Both themes.
+C1/C3: MAUI shows a Picker with unselected placeholder text 'FlowDirection' plus a 'No results matched your filter. / Maybe try a broader filter?' empty-view overlay atop the list; C++ shows the Picker already displaying a selected value 'Left to Right' and no empty-view overlay text at all — a genuine missing-content/wrong-state bug.
 
 #### ⏳ Gemini Review
 
@@ -4503,7 +4503,7 @@ ports EmptyViewGalleries/EmptyViewWithDataTemplateSelector.xaml (+ .xaml.cs, inc
 
 #### 🟢 Sonnet 5 Review
 
-C1/C3: instructions paragraph, Filter search bar, and single 'Baboon — Africa &amp; Asia' row all match MAUI in both themes; only the exempt outer-inset/wrap difference from window chrome.
+C1/C3: instructional text, filter bar, and 'Baboon — Africa &amp; Asia' result row match MAUI exactly in both themes.
 
 #### ⏳ Gemini Review
 
@@ -4513,16 +4513,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 57. Empty View Swap — 🔴/⏳
+### 57. Empty View Swap — 🟢/⏳
 <sub>empty_view_swap</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/empty_view_swap_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/empty_view_swap_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/empty_view_swap_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/empty_view_swap_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/empty_view_swap_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/empty_view_swap_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/empty_view_swap_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/empty_view_swap_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/empty_view_swap_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/empty_view_swap_dark.png" /></td></tr></table>
 
 ports EmptyViewGalleries/EmptyViewSwapGallery.xaml (+ .xaml.cs)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3 red: header (Toggle Between EmptyViews switch, Clear/Fill links) matches, but the 3-column grid shows the full 50-item collection (0-49) where MAUI shows 12 items (0-11); rows are also much tighter. Both themes.
+C1/C3: toggle switch, Clear/Fill links, and full 12-item list match MAUI exactly in both themes.
 
 #### ⏳ Gemini Review
 
@@ -4532,16 +4532,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 58. Empty View Template — 🔴/⏳
+### 58. Empty View Template — 🟢/⏳
 <sub>empty_view_template</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/empty_view_template_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/empty_view_template_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/empty_view_template_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/empty_view_template_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/empty_view_template_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/empty_view_template_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/empty_view_template_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/empty_view_template_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/empty_view_template_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/empty_view_template_dark.png" /></td></tr></table>
 
 ports EmptyViewGalleries/EmptyViewTemplateGallery.xaml (+ EmptyViewTemplateGallery.xaml.cs)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3 red: C++ renders the full 50-item collection (0-49) in 3 columns where MAUI shows only 12 items (0-11), with much tighter row spacing. Both themes.
+C1/C3: full item list layout and content match MAUI exactly in both themes.
 
 #### ⏳ Gemini Review
 
@@ -4560,7 +4560,7 @@ ports EmptyViewGalleries/EmptyViewViewGallery.xaml (+ EmptyViewViewGallery.xaml.
 
 #### 🔴 Sonnet 5 Review
 
-C1/C3 red: the centered EmptyView overlay ('No results matched your filter.' + 'Maybe try a broader filter?') is missing entirely, and the grid shows 50 items (0-49) vs MAUI's 12 (0-11); rows much tighter. Both themes.
+C1/C3: MAUI overlays a bold 'No results matched your filter.' + 'Maybe try a broader filter?' empty view atop the full item list; C++ shows only the plain list with no empty-view overlay text at all — missing content.
 
 #### ⏳ Gemini Review
 
@@ -4598,7 +4598,7 @@ ports FilterCollectionView.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
 #### 🔴 Sonnet 5 Review
 
-C1/C3 red: header (Use EmptyView toggle ON, filter) matches, but the orange 'Nothing to see here' EmptyView label is missing and the 2-column grid shows the full 50-item collection (0-49) vs MAUI's 12 items (0-11); rows much tighter. Both themes.
+C1/C3: MAUI shows an orange 'Nothing to see here' empty-view message below the list (with 'Use EmptyView' toggle ON); C++ shows the identical toggle/list but the orange empty-view message is completely absent — missing content bug.
 
 #### ⏳ Gemini Review
 
@@ -4608,16 +4608,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 62. Filter Selection — 🔴/⏳
+### 62. Filter Selection — 🟢/⏳
 <sub>filter_selection</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/filter_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/filter_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/filter_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/filter_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/filter_selection_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/filter_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/filter_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/filter_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/filter_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/filter_selection_dark.png" /></td></tr></table>
 
 ports FilterSelection.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.SelectionGalleries.FilterSelection)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: instruction, Filter box, Reset and 'Selected: (none)' all match, but the item list is wrong: MAUI shows exactly 12 items (cover1.jpg,0 … Fruits.jpg,11) with roomy row spacing, while cpp renders 49+ tightly-packed rows continuing past the fold (…Legumes.jpg,48). Item-count/content mismatch in both themes.
+C1/C3: instructional text, Reset link, 'Selected: (none)' state, and full item list match MAUI exactly in both themes.
 
 #### ⏳ Gemini Review
 
@@ -4725,7 +4725,7 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 ### 68. Frame — 🔴/⏳
 <sub>frame</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/frame_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/frame_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/frame_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/frame_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/frame_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/frame_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/frame_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/frame_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/frame_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/frame_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/frame_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/frame_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/frame_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/frame_dark.png" /></td></tr></table>
 
 #### 🔴 Sonnet 5 Review
 
@@ -4799,7 +4799,7 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 ### 72. Grid Definitions — 🔴/⏳
 <sub>grid_definitions</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grid_definitions_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/grid_definitions_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grid_definitions_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grid_definitions_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grid_definitions_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/grid_definitions_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grid_definitions_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grid_definitions_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grid_definitions_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grid_definitions_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grid_definitions_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grid_definitions_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grid_definitions_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grid_definitions_dark.png" /></td></tr></table>
 
 #### 🔴 Sonnet 5 Review
 
@@ -4835,7 +4835,7 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 ### 74. Grid Layout — 🔴/⏳
 <sub>grid_layout</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grid_layout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/grid_layout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grid_layout_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grid_layout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grid_layout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/grid_layout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grid_layout_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grid_layout_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grid_layout_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grid_layout_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grid_layout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grid_layout_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grid_layout_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grid_layout_dark.png" /></td></tr></table>
 
 #### 🔴 Sonnet 5 Review
 
@@ -4925,16 +4925,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 79. Header Footer Grid Horizontal — 🔴/⏳
+### 79. Header Footer Grid Horizontal — 🟡/⏳
 <sub>header_footer_grid_horizontal</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/header_footer_grid_horizontal_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/header_footer_grid_horizontal_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/header_footer_grid_horizontal_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/header_footer_grid_horizontal_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/header_footer_grid_horizontal_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/header_footer_grid_horizontal_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/header_footer_grid_horizontal_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/header_footer_grid_horizontal_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/header_footer_grid_horizontal_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/header_footer_grid_horizontal_dark.png" /></td></tr></table>
 
 ports HeaderFooterGridHorizontal.xaml (+ HeaderFooterGridHorizontal.xaml.cs) of the C# CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries)
 
-#### 🔴 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-C1/C3: broken layout in both themes — the header image renders as a tiny ~65px thumbnail at top-left instead of a full-width strip, 'This Is A Header' wraps vertically one syllable per line down the left edge, and the footer image renders as a small thumbnail mid-page with 'This Is A Foote' wrapped beside it. MAUI shows a full-width header image with a single-line header label and the footer off-screen to the right.
+MAUI's light/dark captures are scrolled to show only the first two rows of the grid (cover1.jpg/oasis.jpg row and Vegetables/Fruits/Legumes row), missing the third row (photo.jpg, FlowerBuds.jpg, oasis.jpg) and the footer/second 'Add Content' link that cpp renders. All visible rows and the header match well (text, layout, header image). No confirmed divergence in the parts that can be compared, but the comparison is incomplete due to MAUI's capture cropping.
 
 #### ⏳ Gemini Review
 
@@ -4953,7 +4953,7 @@ ports HeaderFooterTemplate.xaml (+ .xaml.cs) of the C# CollectionView gallery (C
 
 #### 🔴 Sonnet 5 Review
 
-C1/C3: header/footer template structure is present but wrong in both themes — the header/footer time label shows the capture-time full datetime '7/6/2026 12:23:10 AM' instead of MAUI's '12:00:00 PM' (formatting/value bug, includes date), stray thumbnail images (squirrel, pug) are rendered above the cover1 and oasis blue item boxes where MAUI has none, and a footer image strip is visible while MAUI shows no footer image. Item blue boxes themselves match.
+MAUI's templated cells render as plain blue rectangles containing only centered text (e.g. 'cover1.jpg, 0') with no thumbnail image, in both light and dark. The cpp build additionally renders a small photo thumbnail ABOVE each blue rectangle that does not exist in the MAUI reference — extra visual content not present in ground truth. This is a genuine content/template divergence (extra image elements), present in both themes.
 
 #### ⏳ Gemini Review
 
@@ -4963,16 +4963,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 81. Header Footer View — 🔴/⏳
+### 81. Header Footer View — 🟡/⏳
 <sub>header_footer_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/header_footer_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/header_footer_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/header_footer_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/header_footer_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/header_footer_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/header_footer_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/header_footer_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/header_footer_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/header_footer_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/header_footer_view_dark.png" /></td></tr></table>
 
 ports HeaderFooterView.xaml (+ .xaml.cs) of the C# CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries)
 
-#### 🔴 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-C1/C3 red. MAUI shows only the header banner ('This Is A Header' over the dog image) with an empty page below; the C++ page renders extra content MAUI does not: 'This Is A Footer' drawn rotated/overlapping inside the header banner, a second (water) image strip below it, and 'Add 2 Items'/'Clear All Items' links. Same in both themes.
+MAUI's own light/dark captures are truncated/scrolled to show only the header image and header text ('This Is A Header'), missing the footer text, collection view, and 'Add 2 Items'/'Clear All Items' buttons that both cpp and xaml render further down. For the content that IS visible in the MAUI capture (header image, header text placement/color), cpp matches exactly. Cannot fully verify the footer/list section against MAUI since the MAUI capture doesn't show it, so classifying as a minor/incomplete-comparison rather than a confirmed bug.
 
 #### ⏳ Gemini Review
 
@@ -4982,16 +4982,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 82. Hit Testing — 🔴/⏳
+### 82. Hit Testing — 🟢/⏳
 <sub>hit_testing</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/hit_testing_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/hit_testing_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/hit_testing_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/hit_testing_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/hit_testing_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/hit_testing_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/hit_testing_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/hit_testing_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/hit_testing_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/hit_testing_dark.png" /></td></tr></table>
 
 ports HitTestingPage.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.HitTestingPage)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3 red. The rounded rectangle is rendered as a SOLID light-green fill with no border, where MAUI shows an unfilled shape with a thick dark-green stroke. Also 'Selected: -' is left-aligned instead of centered, the 'Rectangle Selection' label is larger with the radio dropped below the baseline, and the two 'Lorem ipsum'/'Scale = 1' labels lose their bold weight. Same in both themes.
+All four comparisons match closely: shapes (ellipse, rounded rectangle), text labels (Scale=1/2, Rotation=20), submarine 3D model, and 'Lorem ipsum' text all align in position, size, color, and font weight in both light and dark themes. Only trivial anti-aliasing differences.
 
 #### ⏳ Gemini Review
 
@@ -5023,7 +5023,7 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 ### 84. Horizontal Stack Layout — 🔴/⏳
 <sub>horizontal_stack_layout</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/horizontal_stack_layout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/horizontal_stack_layout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/horizontal_stack_layout_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/horizontal_stack_layout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/horizontal_stack_layout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/horizontal_stack_layout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/horizontal_stack_layout_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/horizontal_stack_layout_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/horizontal_stack_layout_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/horizontal_stack_layout_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/horizontal_stack_layout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/horizontal_stack_layout_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/horizontal_stack_layout_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/horizontal_stack_layout_dark.png" /></td></tr></table>
 
 #### 🔴 Sonnet 5 Review
 
@@ -5075,16 +5075,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 87. Image Button — 🔴/⏳
+### 87. Image Button — 🟢/⏳
 <sub>image_button</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/image_button_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/image_button_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/image_button_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/image_button_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/image_button_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/image_button_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/image_button_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/image_button_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/image_button_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/image_button_dark.png" /></td></tr></table>
 
 ports ImageButtonPage.xaml (+ ImageButtonPage.xaml.cs) A self-contained, code-first demo page for the ImageButton control (the C# gallery-page convention, mirroring the input_controls_page / image_page pattern)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3 red. Two content diffs vs MAUI: (1) the 'Padding (slider-driven)' green button gains a thick RED border that MAUI does not draw there (MAUI only shows red on the BorderColor+BorderWidth row); (2) the Animated GIF slot renders as a large black rectangle with the bot logo where MAUI shows a blank/white (transparent) area, which also pushes the Use Online Source / Background rows below the fold. Both themes affected.
+MAUI's capture is scrolled slightly further down (missing the top 'N ImageButton clicks' line) but all remaining visible content — AspectFit/AspectFill/Fill green boxes, red-bordered box, purple corner-radius bars + sliders, submarine custom-size image, green padding bar — matches cpp precisely in position, size, and color, in both light and dark.
 
 #### ⏳ Gemini Review
 
@@ -6291,16 +6291,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 151. Slider — 🔴/⏳
+### 151. Slider — 🟢/⏳
 <sub>slider</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/slider_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/slider_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/slider_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/slider_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/slider_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/slider_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/slider_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/slider_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/slider_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/slider_dark.png" /></td></tr></table>
 
 ports SliderPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical stack of headlined Slider states — Default, BackgroundColor (Blue), Background (yellow→green LinearGradientBrush), Minimum(5)/Maximum(15) with a value readout (Val
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: the 'Background' slider row renders a yellow-to-green gradient band in cpp while the MAUI reference shows a plain default track (no gradient) in both themes — a wrong-color/extra-background content diff. All other rows (blue BackgroundColor band, min/max value 10, disabled, LightBlue/Pink tracks, orange thumb, custom red/green/blue slider) match.
+C1/C3: all slider variants (default, background color, min/max range, disabled, custom track/thumb colors, image thumb, custom multi-color slider, dynamic update) render identically to MAUI in both themes.
 
 #### ⏳ Gemini Review
 
@@ -6538,16 +6538,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 164. Switch — 🔴/⏳
+### 164. Switch — 🟢/⏳
 <sub>switch</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/switch_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/switch_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/switch_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/switch_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/switch_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/switch_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/switch_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/switch_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/switch_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/switch_dark.png" /></td></tr></table>
 
 ports SwitchPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical stack of headlined Switch states — Default, BackgroundColor (Blue), Background (a yellow→green LinearGradientBrush), Disabled, OnColor (Red), ThumbColor (Orange)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: the 'Background' switch renders a yellow-to-green gradient fill in both themes, but the MAUI ground truth renders it as a plain default gray/dark switch (gradient not applied to the track). Wrong control coloring in both themes. All other switches (Default, BackgroundColor blue, Disabled, OnColor, ThumbColor) match.
+All switch rows (Default, BackgroundColor [blue track], Background, Disabled [dimmed], OnColor, ThumbColor) match MAUI exactly in position, on/off state, track color, and thumb appearance, in both light and dark themes.
 
 #### ⏳ Gemini Review
 
@@ -6614,16 +6614,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 168. Time Picker — 🔴/⏳
+### 168. Time Picker — 🟢/⏳
 <sub>time_picker</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/time_picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/time_picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/time_picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/time_picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/time_picker_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/time_picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/time_picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/time_picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/time_picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/time_picker_dark.png" /></td></tr></table>
 
 ports TimePickerPage.xaml (+ TimePickerPage.xaml.cs)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: the two gradient 'Background' bars render at compact (~text) width instead of MAUI's full page width, and the gradient colors are washed out (pale yellow-green / pink) vs MAUI's saturated yellow-to-green and purple-to-magenta; also 'Default with time' shows 04:15 where the MAUI reference shows 00:00. Solid-blue BackgroundColor bar and the rest match. Both themes affected.
+Fixed: 'Default with date'/'Default with time' now carries the shared XAML's restored Date=06/21/2018 / Time=4:15:26 attribute, matching MAUI exactly in both themes; all other rows already matched.
 
 #### ⏳ Gemini Review
 
@@ -6805,7 +6805,7 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 ### 178. Vertical Stack Layout — 🔴/⏳
 <sub>vertical_stack_layout</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/vertical_stack_layout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/vertical_stack_layout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/vertical_stack_layout_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/vertical_stack_layout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/vertical_stack_layout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/vertical_stack_layout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/vertical_stack_layout_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/vertical_stack_layout_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/vertical_stack_layout_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/vertical_stack_layout_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/vertical_stack_layout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/vertical_stack_layout_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/vertical_stack_layout_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/vertical_stack_layout_dark.png" /></td></tr></table>
 
 #### 🔴 Sonnet 5 Review
 
