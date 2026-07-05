@@ -297,7 +297,6 @@ namespace
             "adaptive_collection",
             "custom_layout",
             "chat_example",
-            "borderless",
             "header_footer_view",
             "hybrid_web_view",
             "ios_scroll_view",

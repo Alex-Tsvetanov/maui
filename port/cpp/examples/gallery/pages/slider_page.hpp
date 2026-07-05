@@ -2,7 +2,7 @@
 // maui::samples::slider_page — ports SliderPage.xaml (+ .xaml.cs)
 //
 // Mirrors the MAUI gallery page: a vertical stack of headlined Slider states — Default, BackgroundColor
-// (Blue), Background (yellow→green LinearGradientBrush), Minimum(5)/Maximum(15) with a value readout
+// (Blue), Background (plain — see the note at the section), Minimum(5)/Maximum(15) with a value readout
 // (ValueChanged → Label, the x:Reference binding), Disabled, MinimumTrackColor (LightBlue),
 // MaximumTrackColor (Pink), ThumbColor (Orange), ThumbImageSource (toggled by a button), a custom
 // tri-color slider, a Dynamic slider whose Min/Max are mutated by two buttons (UpdateInfo readout), and a
@@ -20,8 +20,6 @@
 #include <utility>
 #include <vector>
 
-#include "maui/controls/brushes/gradient_stop.hpp"
-#include "maui/controls/brushes/linear_gradient_brush.hpp"
 #include "maui/controls/button.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/file_image_source.hpp"
@@ -52,15 +50,10 @@ namespace maui::samples
             bg_color_slider_.set_background(
                 std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::blue));
 
-            // --- Background (LinearGradientBrush yellow@0.1 → green@1.0, EndPoint 1,0) ---
+            // --- Background — a plain slider, matching the canonical shared slider.xaml (and MAUI's
+            // actual Catalyst render, which paints no gradient for a Slider Background; the original C#
+            // sample's LinearGradientBrush scenario moves to the P3 gap corpus as a probe page) ---
             background_headline_.set_text("Background");
-            {
-                std::vector<std::shared_ptr<maui::controls::gradient_stop>> stops;
-                stops.push_back(std::make_shared<maui::controls::gradient_stop>(maui::graphics::colors::yellow, 0.1F));
-                stops.push_back(std::make_shared<maui::controls::gradient_stop>(maui::graphics::colors::green, 1.0F));
-                background_slider_.set_background_brush(std::make_shared<maui::controls::linear_gradient_brush>(
-                    std::move(stops), maui::graphics::point{0, 0}, maui::graphics::point{1, 0}));
-            }
 
             // --- Minimum (5) and Maximum (15) — ValueChanged drives the readout (the x:Reference label) ---
             min_max_headline_.set_text("Minimum (5) and Maximum (15)");
