@@ -3449,9 +3449,9 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 66 | 0 |
-| 🟡 Minor | 49 | 0 |
-| 🔴 Major | 66 | 0 |
+| 🟢 Match | 67 | 0 |
+| 🟡 Minor | 50 | 0 |
+| 🔴 Major | 64 | 0 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 181 |
 
@@ -3559,7 +3559,7 @@ ports AnimationPage.xaml (+ AnimationPage.xaml.cs)
 
 #### 🟡 Sonnet 5 Review
 
-Same boat image and three buttons with correct enabled/disabled states in both themes, but content is packed near the top (buttons right under the image) instead of MAUI's vertically centered image with buttons pinned at the page bottom.
+C1/C3: all content present and matching (purple sub image, Start/Start Custom/Cancel Animation buttons, correct colors both themes), but vertical layout differs: MAUI shows the sub mid-page with the buttons pinned near the bottom, while C++ shows the sub at the top with the buttons directly beneath it. Consistent with the known animation-state capture gap (MAUI captured after autoplay repositioning) rather than missing content.
 
 #### ⏳ Gemini Review
 
@@ -3654,7 +3654,7 @@ ports BasicSwipeGallery.xaml A code-first port of the MAUI SwipeView sub-gallery
 
 #### 🟡 Sonnet 5 Review
 
-Both themes: the five gray swipe rows keep MAUI's width but the labels are top-left aligned instead of centered, rows are taller with almost no gaps, and an extra 'Swipe a row, then invoke Delete' caption appears that MAUI doesn't show.
+C1/C3: five swipe boxes have correct size, width, spacing and gray fill in both themes, but the box labels are anchored top-left instead of MAUI's centered text, and a stray 'Swipe a row, then invoke Delete' helper label is rendered at the far window-left below the stack (absent in the MAUI capture). Dark theme additionally renders the box text white vs MAUI's dark-on-gray... (MAUI dark uses light text too, matches). Alignment + stray label = content diffs.
 
 #### ⏳ Gemini Review
 
@@ -3719,16 +3719,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 15. Border Clip Playground — 🔴/⏳
+### 15. Border Clip Playground — 🟡/⏳
 <sub>border_clip_playground</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/border_clip_playground_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/border_clip_playground_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/border_clip_playground_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/border_clip_playground_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/border_clip_playground_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/border_clip_playground_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/border_clip_playground_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/border_clip_playground_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/border_clip_playground_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/border_clip_playground_dark.png" /></td></tr></table>
 
 ports BorderClipPlayground.xaml (+ .xaml.cs) The C# page is an interactive Border-shape playground: a 100x100 Border (red stroke) clips an AspectFill Image (oasis.jpg) into the currently selected StrokeShape, while controls below mutate the
 
-#### 🔴 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-Both themes are missing the dog image inside the clipped border (only the red outline renders empty), the Border Shape entry shows 'RoundRectangle' where MAUI's is an empty placeholder, and the section headings render small/plain instead of MAUI's large bold headers.
+C1/C3: clipped dog image and controls all present with correct slider values, but the red border ring renders much thicker than MAUI's thin stroke, the 'Border Shape'/'Border'/'Corner Radius' headers lose MAUI's bold large styling (all text renders in one plain size/weight), and the shape entry shows 'RoundRectangle' where MAUI's entry is empty. Same diffs in dark; dark thumbs also render slightly larger.
 
 #### ⏳ Gemini Review
 
@@ -3766,7 +3766,7 @@ ports BorderPlayground.xaml (+ BorderPlayground.xaml.cs) A self-contained, code-
 
 #### 🔴 Sonnet 5 Review
 
-In both themes the entries are pre-filled ('Label', 'RoundRectangle', 'Miter', 'Butt') where MAUI shows empty placeholders, the color entries are tinted with their hex color instead of MAUI's plain fields, the radio renders label-beside-circle instead of MAUI's detached centered circle, and tighter spacing exposes an extra Corner Radius section.
+C1/C3: gradient banner + dashed yellow border match, but the control panel diverges heavily: entries are populated ('Label', 'RoundRectangle', 'Miter', 'Butt') where MAUI shows empty placeholder entries; the four color entries render with full-width colored backgrounds (blue/yellow swatch bars) vs MAUI's plain white/black entries; the radio label sits inline next to the circle at left vs MAUI's centered circle with label below; label typography is smaller; an extra Corner Radius section is already visible. Same in dark. Multiple color/content mismatches.
 
 #### ⏳ Gemini Review
 
@@ -3776,16 +3776,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 18. Border Resize Content — 🔴/⏳
+### 18. Border Resize Content — 🟡/⏳
 <sub>border_resize_content</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/border_resize_content_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/border_resize_content_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/border_resize_content_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/border_resize_content_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/border_resize_content_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/border_resize_content_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/border_resize_content_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/border_resize_content_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/border_resize_content_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/border_resize_content_dark.png" /></td></tr></table>
 
 ports BorderResizeContent.xaml A self-contained, code-first demo that resizes a Border&amp;#x27;s CONTENT and watches the Border track it
 
-#### 🔴 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-In both themes the right-hand circle/square/triangle render as plain light-blue shapes — the dog image content MAUI shows inside them is missing; the left red-shape column and sliders otherwise match.
+C1/C3: circle and square cells match in both columns and themes (colors, green borders, blue plus, dog-image fills with light-blue letterboxing). The triangle row differs: MAUI's left triangle shows a large salmon fill with the blue plus overflowing the green outline, and its right triangle is filled by the clipped dog photo; C++ renders both triangles mostly hollow with only a small clipped fill inside the outline. Content clipped/undersized in 2 of 6 cells.
 
 #### ⏳ Gemini Review
 
@@ -3878,7 +3878,7 @@ ports ButtonPage.xaml (+ ButtonPage.xaml.cs)
 
 #### 🔴 Sonnet 5 Review
 
-In both themes the two image-buttons render as huge black blocks (~250pt tall) with a large gear icon left of 'settings', whereas MAUI renders them as thin text-only rows without a visible icon — a major size/content mismatch. All other buttons (colored backgrounds, red BorderWidth outline, CornerRadius pill, disabled/gray states) match.
+C1/C3: text buttons, colored bars, BorderWidth red outline, CornerRadius purple pill, gray Button and green BorderWidth Changing rows all match in both themes, but the two ImageButton 'settings' rows render as huge (~5-6x taller) black blocks containing a large gear glyph next to the text, whereas MAUI shows thin single-line black bars with just centered 'settings' text. Major size/content divergence on those two rows in both themes.
 
 #### ⏳ Gemini Review
 
@@ -3990,7 +3990,7 @@ ports ClipPage.xaml The C# page (Pages/Core/ClipPage.xaml; its .xaml.cs is an em
 
 #### 🔴 Sonnet 5 Review
 
-MAUI renders all four sections as identical unclipped rectangles in both themes, but C++ applies visibly different clips — a smaller crop for RectangleGeometry/EllipseGeometry, an actual circular clip for GeometryGroup and a rounded-path clip for PathGeometry — so section contents diverge from the ground truth.
+C1/C3 red: MAUI renders all four 'Clipped Image' rows as full 300px gray rectangles (no visible clip applied), but the C++ builder column actually clips — RectangleGeometry shows a ~225px cropped image inside the gray box, EllipseGeometry shows a circular cutout on white, GeometryGroup/PathGeometry show shaped cutouts. Content (clip rendering + effective image sizes) diverges from the MAUI ground truth in both themes.
 
 #### ⏳ Gemini Review
 
@@ -4009,7 +4009,7 @@ ports ClipCornerRadiusGallery.xaml (+ .xaml.cs) The C# page (Pages/Controls/Shap
 
 #### 🔴 Sonnet 5 Review
 
-The dog photo MAUI displays under 'Clipped Image using RoundRectangleGeometry' is an empty gray placeholder in C++ in both light and dark — the image fails to load; the four corner sliders themselves match.
+C1/C3 red: the dog image renders at ~225x220 in the top-left of the 300x300 gray box instead of filling it as in MAUI (both themes). Additionally in light mode the slider tracks are a noticeably darker gray than MAUI's light track.
 
 #### ⏳ Gemini Review
 
@@ -4028,7 +4028,7 @@ ports ClipGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipGallery.x
 
 #### 🔴 Sonnet 5 Review
 
-In both themes every dog photo renders as a gray placeholder — the image content never loads — and the clipped variants shrink to the clip-rect size instead of MAUI's full image bounds. The clip geometries themselves (rect/roundrect/ellipse) are applied, but with no image the page is majorly off.
+C1/C3 red: MAUI shows all clipped-image rows as full rectangles, but the C++ builder applies visible clips — RectangleGeometry is a smaller cropped image, RoundRectangleGeometry has rounded corners and reduced size, EllipseGeometry is a circle. Same divergence in both themes; row spacing also stretched vs MAUI.
 
 #### ⏳ Gemini Review
 
@@ -4066,7 +4066,7 @@ compare oracle ~/maui-compare/Pages/ClippingPage.cs (itself written to mirror th
 
 #### 🟡 Sonnet 5 Review
 
-Both themes replicate MAUI's toggle link, 1-8 digit row, orange square, Hey buttons, and blue bar precisely, but the port draws two coffee-cup glyphs on the left of the blue bar that are absent from the MAUI reference.
+C1/C3 yellow: layout, colors, digit row, orange square, purple 'Hey' bar and blue stripe all match MAUI, but the port shows two coffee-cup images at the left end of the blue stripe in both themes that are absent from the MAUI reference (likely a MAUI-side image-load quirk, but per ruling MAUI is ground truth — extra content).
 
 #### ⏳ Gemini Review
 
@@ -4085,7 +4085,7 @@ a faithful reproduction of the maui-compare &amp;quot;collectionview&amp;quot; d
 
 #### 🟢 Sonnet 5 Review
 
-Header and the full 24-item three-column list match MAUI's text, layout, column positions, and row spacing in both light and dark themes.
+C1/C3 both green. Header, 3-column grid of 24 'name.jpg, N' items, row pitch, fonts and light/dark colors all match MAUI. Only the exempt window-chrome offset differs.
 
 #### ⏳ Gemini Review
 
@@ -4152,16 +4152,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 38. Context Flyout — 🟡/⏳
+### 38. Context Flyout — 🔴/⏳
 <sub>context_flyout</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/context_flyout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/context_flyout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/context_flyout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/context_flyout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/context_flyout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/context_flyout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/context_flyout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/context_flyout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/context_flyout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/context_flyout_dark.png" /></td></tr></table>
 
 ports ContextFlyoutPage.xaml (+ ContextFlyoutPage.xaml.cs) The C# page attaches a MenuFlyout as the FlyoutBase.ContextFlyout (right-click / long-press menu) of several controls and wires each menu item to a handler: - a Button (&amp;quot;Increment b
 
-#### 🟡 Sonnet 5 Review
+#### 🔴 Sonnet 5 Review
 
-C1/C3: gray increment bar, toggle, entry and status labels match, but the port renders an extra 'COOL' placeholder image-button between the entry and the WebView that MAUI does not show, and the WebView is in a different runtime state (centered cookie dialog + dark page vs MAUI's inline bottom cookie banner). WebView state is capture noise; the extra COOL element is a real minor content diff.
+C1/C3 both red: the C++ column renders an extra visible 'COOL' image button between the entry and the WebView that MAUI's ground-truth render does not show (both themes), pushing the WebView down. Everything else (gray increment bar, switch, labels, entry placeholder) matches. The WebView interior differs (Bing cookie modal overlay vs inline banner) but that is live web-content state, not a port rendering bug.
 
 #### ⏳ Gemini Review
 
@@ -4427,7 +4427,7 @@ ports EmptyViewStringGallery.xaml (+ EmptyViewStringGallery.xaml.cs)
 
 #### 🔴 Sonnet 5 Review
 
-C1/C3: missing the 'No items match your filter.' EmptyView overlay label, and row spacing is far tighter than MAUI (50 dense rows fill the window vs MAUI's 18 taller rows with blank space below), both themes.
+C1/C3 red: C++ shows the full 50-item collection (cover1.jpg 0 … cover1.jpg 49) where MAUI shows only 18 items (0-17), and the overlapping 'No items match your filter.' EmptyView string label is missing entirely; row spacing is also much tighter than MAUI's. Same in both themes.
 
 #### ⏳ Gemini Review
 
@@ -4484,7 +4484,7 @@ ports EmptyViewGalleries/EmptyViewRTLGallery.xaml (+ EmptyViewRTLGallery.xaml.cs
 
 #### 🔴 Sonnet 5 Review
 
-C1/C3: C++ shows 50 items (0-49) vs MAUI's filtered 15 (0-14), the CollectionView EmptyView overlay ('No results matched your filter.' / 'Maybe try a broader filter?') is missing entirely, and the FlowDirection picker shows a selected value 'Left to Right' where MAUI shows the empty 'FlowDirection' placeholder. Same in both themes.
+C1/C3 red: the FlowDirection picker shows a selected value 'Left to Right' where MAUI shows the empty placeholder 'FlowDirection', the 'No results matched your filter.' / 'Maybe try a broader filter?' EmptyView overlay is missing, and the 3-column grid holds 50 items (0-49) vs MAUI's 15 (0-14). Both themes.
 
 #### ⏳ Gemini Review
 
@@ -4522,7 +4522,7 @@ ports EmptyViewGalleries/EmptyViewSwapGallery.xaml (+ .xaml.cs)
 
 #### 🔴 Sonnet 5 Review
 
-C1/C3: C++ renders 50 items (0-49) where MAUI shows the filtered 12 (0-11). Toggle, Clear/Fill links, and search bar match, but the item-count content difference is major. Same in both themes.
+C1/C3 red: header (Toggle Between EmptyViews switch, Clear/Fill links) matches, but the 3-column grid shows the full 50-item collection (0-49) where MAUI shows 12 items (0-11); rows are also much tighter. Both themes.
 
 #### ⏳ Gemini Review
 
@@ -4541,7 +4541,7 @@ ports EmptyViewGalleries/EmptyViewTemplateGallery.xaml (+ EmptyViewTemplateGalle
 
 #### 🔴 Sonnet 5 Review
 
-C1/C3: C++ shows 50 items (0-49) vs MAUI's filtered 12 (0-11) — the filtered/empty-view state is not applied. Search bar matches. Same in both themes.
+C1/C3 red: C++ renders the full 50-item collection (0-49) in 3 columns where MAUI shows only 12 items (0-11), with much tighter row spacing. Both themes.
 
 #### ⏳ Gemini Review
 
@@ -4560,7 +4560,7 @@ ports EmptyViewGalleries/EmptyViewViewGallery.xaml (+ EmptyViewViewGallery.xaml.
 
 #### 🔴 Sonnet 5 Review
 
-C1/C3: C++ shows 50 items (0-49) vs MAUI's 12, and the centered EmptyView overlay ('No results matched your filter.' / 'Maybe try a broader filter?') is missing entirely. Same in both themes.
+C1/C3 red: the centered EmptyView overlay ('No results matched your filter.' + 'Maybe try a broader filter?') is missing entirely, and the grid shows 50 items (0-49) vs MAUI's 12 (0-11); rows much tighter. Both themes.
 
 #### ⏳ Gemini Review
 
@@ -4598,7 +4598,7 @@ ports FilterCollectionView.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
 #### 🔴 Sonnet 5 Review
 
-C1/C3 red: C++ renders the UNFILTERED source (items 0-49) in the filtered CollectionView instead of MAUI's 12 filtered items, and the second CollectionView's EmptyView ('Nothing to see here') is missing entirely. Both themes affected.
+C1/C3 red: header (Use EmptyView toggle ON, filter) matches, but the orange 'Nothing to see here' EmptyView label is missing and the 2-column grid shows the full 50-item collection (0-49) vs MAUI's 12 items (0-11); rows much tighter. Both themes.
 
 #### ⏳ Gemini Review
 
@@ -4617,7 +4617,7 @@ ports FilterSelection.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionVi
 
 #### 🔴 Sonnet 5 Review
 
-C1/C3 red: C++ shows the full unfiltered 50-item list (0-49, overflowing the window) where MAUI shows only 12 items; row spacing also compressed. Instruction text, Filter box, Reset and 'Selected: (none)' all match. Both themes affected.
+C1/C3: instruction, Filter box, Reset and 'Selected: (none)' all match, but the item list is wrong: MAUI shows exactly 12 items (cover1.jpg,0 … Fruits.jpg,11) with roomy row spacing, while cpp renders 49+ tightly-packed rows continuing past the fold (…Legumes.jpg,48). Item-count/content mismatch in both themes.
 
 #### ⏳ Gemini Review
 
@@ -4693,7 +4693,7 @@ ports FooterOnlyString.xaml (+ FooterOnlyString.xaml.cs) of the C# CollectionVie
 
 #### 🟡 Sonnet 5 Review
 
-C1/C3 yellow: all 20 items plus the bold 'This is a footer' string present in correct order in both themes, but CollectionView row spacing is noticeably tighter than MAUI (~25px vs ~43px per row).
+C1/C3: all 20 items (cover1.jpg,0 … FlowerBuds.jpg,19) and the bold 'This is a footer' string present in both themes; only diff is row spacing — MAUI rows ~44px apart, cpp ~26px, so the list ends at y~615 vs MAUI y~950. Minor internal-spacing diff.
 
 #### ⏳ Gemini Review
 
@@ -4896,7 +4896,7 @@ ports HeaderFooterString.xaml (+ HeaderFooterString.xaml.cs)
 
 #### 🟡 Sonnet 5 Review
 
-C1/C3: All content present and correct in both themes — bold 'Just a string as a header', items cover1.jpg 0 / oasis.jpg 1 / photo.jpg 2, bold 'This footer is also a string'; colors and fonts match. Minor: MAUI gives each item row extra vertical spacing (~44pt rows) and a small left inset; C++ renders the three item rows tightly stacked flush-left like plain labels.
+C1/C3: bold string header 'Just a string as a header', 3 items and bold footer 'This footer is also a string' all present in both themes; rows are tighter than MAUI (items span ~90px vs MAUI ~130px). Minor internal-spacing diff only.
 
 #### ⏳ Gemini Review
 
@@ -4906,16 +4906,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 78. Header Footer Grid — 🔴/⏳
+### 78. Header Footer Grid — 🟡/⏳
 <sub>header_footer_grid</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/header_footer_grid_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/header_footer_grid_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/header_footer_grid_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/header_footer_grid_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/header_footer_grid_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/header_footer_grid_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/header_footer_grid_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/header_footer_grid_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/header_footer_grid_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/header_footer_grid_dark.png" /></td></tr></table>
 
 ports HeaderFooterGrid.xaml (+ HeaderFooterGrid.xaml.cs) of the C# CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries)
 
-#### 🔴 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-C1/C3: C++ is MISSING the dog-photo image bands that MAUI draws behind/above the header and footer (MAUI: image strip + cream 'This Is A Header' over it, item grid, second image strip + skewed 'This Is A Footer'). C++ shows only the text header/footer with no images, and the skewed footer text floats mid-page overlapping the item-grid region instead of sitting below it in its image band. Toggle Header/Toggle Footer links, 3-column item grid and Add Content links do match. Missing images + broken footer placement = major, both themes.
+C1/C3: Toggle Header/Footer links, header image with 'This Is A Header' + Add Content, 3-column grid (10 items) and footer image + Add Content all present with correct theming (header/footer label faint in light, bright in dark). Diffs: the rotated 'This Is A Footer' label sits ABOVE the footer image (colliding with the last grid row) instead of below it as in MAUI, and grid row spacing is tighter (grid ends ~y435 vs MAUI ~y465). Minor layout offsets.
 
 #### ⏳ Gemini Review
 
@@ -4934,7 +4934,7 @@ ports HeaderFooterGridHorizontal.xaml (+ HeaderFooterGridHorizontal.xaml.cs) of 
 
 #### 🔴 Sonnet 5 Review
 
-C1/C3 red: header label 'This Is A Header' renders rotated/wrapped VERTICALLY down the left edge (one syllable per line) instead of horizontally centered; footer 'This Is A Foote' rendered rotated mid-page; the dog-photo header image is entirely missing; an extra third item row (photo.jpg 2 / FlowerBuds.jpg 5 / oasis.jpg 8) and mispositioned 'Add Content' appear. Broken header/footer template layout in both themes.
+C1/C3: broken layout in both themes — the header image renders as a tiny ~65px thumbnail at top-left instead of a full-width strip, 'This Is A Header' wraps vertically one syllable per line down the left edge, and the footer image renders as a small thumbnail mid-page with 'This Is A Foote' wrapped beside it. MAUI shows a full-width header image with a single-line header label and the footer off-screen to the right.
 
 #### ⏳ Gemini Review
 
@@ -4953,7 +4953,7 @@ ports HeaderFooterTemplate.xaml (+ .xaml.cs) of the C# CollectionView gallery (C
 
 #### 🔴 Sonnet 5 Review
 
-C1/C3 red: the dog-photo header image behind the header time label is missing entirely, and the header/footer time labels show a full datetime ('7/5/2026 8:31:48 PM') instead of MAUI's '12:00:00 PM' (TimeSpan/format binding diff). The three blue item cells themselves match well. Same failures in dark; MAUI dark footer time is bright while cpp keeps the faint cream (light also faint in MAUI, so main diffs are the image + datetime).
+C1/C3: header/footer template structure is present but wrong in both themes — the header/footer time label shows the capture-time full datetime '7/6/2026 12:23:10 AM' instead of MAUI's '12:00:00 PM' (formatting/value bug, includes date), stray thumbnail images (squirrel, pug) are rendered above the cover1 and oasis blue item boxes where MAUI has none, and a footer image strip is visible while MAUI shows no footer image. Item blue boxes themselves match.
 
 #### ⏳ Gemini Review
 
@@ -4972,7 +4972,7 @@ ports HeaderFooterView.xaml (+ .xaml.cs) of the C# CollectionView gallery (Colle
 
 #### 🔴 Sonnet 5 Review
 
-C1/C3 red: MAUI shows the dog-photo header strip with 'This Is A Header' overlaid at top; cpp has no image at all — instead it shows faint cream header + rotated footer text stacked at top plus 'Add 2 Items'/'Clear All Items' links that MAUI does not render at this state. Missing header image = major missing content, both themes.
+C1/C3 red. MAUI shows only the header banner ('This Is A Header' over the dog image) with an empty page below; the C++ page renders extra content MAUI does not: 'This Is A Footer' drawn rotated/overlapping inside the header banner, a second (water) image strip below it, and 'Add 2 Items'/'Clear All Items' links. Same in both themes.
 
 #### ⏳ Gemini Review
 
@@ -4991,7 +4991,7 @@ ports HitTestingPage.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.HitTestingPag
 
 #### 🔴 Sonnet 5 Review
 
-C1/C3 red: the green rounded rectangle renders as a SOLID light-green FILL with no dark-green stroke, while MAUI shows a thick dark-green OUTLINE with transparent fill (wrong fill/stroke). Also 'Selected: -' is left-aligned instead of centered and the 'Rectangle Selection' label renders much larger than MAUI's small font. Ellipse, blue scale/rotation labels and submarine match. Same in dark.
+C1/C3 red. The rounded rectangle is rendered as a SOLID light-green fill with no border, where MAUI shows an unfilled shape with a thick dark-green stroke. Also 'Selected: -' is left-aligned instead of centered, the 'Rectangle Selection' label is larger with the radio dropped below the baseline, and the two 'Lorem ipsum'/'Scale = 1' labels lose their bold weight. Same in both themes.
 
 #### ⏳ Gemini Review
 
@@ -5065,7 +5065,7 @@ ports ImagePage.xaml (+ ImagePage.xaml.cs)
 
 #### 🟢 Sonnet 5 Review
 
-C1/C3 green: UriSource Microsoft-building photo and FileSource dotnet-bot submarine render at matching size, position and colors in both themes; labels match. Only the exempt uniform chrome offset differs.
+C1/C3 green. UriSource (Microsoft building) and FileSource (dotnet-bot submarine on purple) both load with matching sizes, placement and colors in both themes; only the exempt uniform chrome-height shift.
 
 #### ⏳ Gemini Review
 
@@ -5075,16 +5075,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 87. Image Button — 🟡/⏳
+### 87. Image Button — 🔴/⏳
 <sub>image_button</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/image_button_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/image_button_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/image_button_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/image_button_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/image_button_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/image_button_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/image_button_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/image_button_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/image_button_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/image_button_dark.png" /></td></tr></table>
 
 ports ImageButtonPage.xaml (+ ImageButtonPage.xaml.cs) A self-contained, code-first demo page for the ImageButton control (the C# gallery-page convention, mirroring the input_controls_page / image_page pattern)
 
-#### 🟡 Sonnet 5 Review
+#### 🔴 Sonnet 5 Review
 
-C1/C3 yellow: the 'Padding (slider-driven)' ImageButton shows an extra thick red border/background frame around the green image in BOTH themes that MAUI does not render (MAUI shows a plain green bar). Also the Animated GIF area renders as a large black box (MAUI's gif region is compact/blank at the same scroll offset). Scroll-position/crop differences are exempt; the rest of the sections (AspectFit/Fill, BorderColor+BorderWidth, CornerRadius trio, Custom Size) match.
+C1/C3 red. Two content diffs vs MAUI: (1) the 'Padding (slider-driven)' green button gains a thick RED border that MAUI does not draw there (MAUI only shows red on the BorderColor+BorderWidth row); (2) the Animated GIF slot renders as a large black rectangle with the bot logo where MAUI shows a blank/white (transparent) area, which also pushes the Use Online Source / Background rows below the fold. Both themes affected.
 
 #### ⏳ Gemini Review
 
@@ -5189,16 +5189,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 93. Ios Blur Effect — 🔴/⏳
+### 93. Ios Blur Effect — 🟢/⏳
 <sub>ios_blur_effect</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/ios_blur_effect_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ios_blur_effect_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ios_blur_effect_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ios_blur_effect_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ios_blur_effect_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/ios_blur_effect_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ios_blur_effect_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ios_blur_effect_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ios_blur_effect_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ios_blur_effect_dark.png" /></td></tr></table>
 
 ports iOSBlurEffectPage.xaml The .NET MAUI PlatformSpecifics sample (Pages/PlatformSpecifics/iOS/iOSBlurEffectPage.xaml + .xaml.cs): an Image (Source=&amp;quot;oasis.jpg&amp;quot;) carrying the iOSSpecific VisualElement.BlurEffect knob (XAML seeds it to Extr
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: the dog photo (the blur target) is missing entirely in both themes; only the four blur links and the 'BlurEffect: ExtraLight' label render, shifted to the top.
+C1/C3 green. Pug photo (no blur applied, ExtraLight state), the four blue blur links and the 'BlurEffect: ExtraLight' label all match MAUI in both themes; only the exempt uniform chrome shift.
 
 #### ⏳ Gemini Review
 
@@ -5388,7 +5388,7 @@ ports iOSSwipeViewTransitionModePage.xaml (+ .xaml.cs) The C# iOSSwipeViewTransi
 
 #### 🟢 Sonnet 5 Review
 
-C1/C3: matches MAUI in both themes — Reveal/Drag links, gray 'Swipe right' item, caption and mode labels all identical in size, color, and placement.
+C1/C3 green. Reveal/Drag links, the gray 'Swipe right' swipe cell (white text on gray in dark, matching MAUI), and both caption lines ('Swipe right to reveal Delete...', 'SwipeTransitionMode: Drag') match in both themes; only the exempt chrome shift.
 
 #### ⏳ Gemini Review
 
@@ -5559,7 +5559,7 @@ ports MenuBarPage.xaml (+ MenuBarPage.cs) The C# page declares three page-level 
 
 #### 🟢 Sonnet 5 Review
 
-C1/C3: 'You clicked on Menu Item:' label and blue 'Toggle Menu Bar Item' link match MAUI in both themes.
+C1/C3: label 'You clicked on Menu Item:' and blue 'Toggle Menu Bar Item' link match MAUI in both themes; only the exempt outer inset differs (cpp label sits at the window edge).
 
 #### ⏳ Gemini Review
 
@@ -5825,7 +5825,7 @@ ports PreselectedItemGallery.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.Colle
 
 #### 🟡 Sonnet 5 Review
 
-C1/C3: cpp rows are noticeably tighter (~50 rows fit vs ~32 in MAUI — smaller CollectionView cell height/padding) and cpp paints a full-width gray selection highlight on 'photo.jpg, 2' that MAUI does not render. Header, preselected label and item texts all match.
+C1/C3: all 50 rows + header + preselected label present, but cpp draws a gray full-width selection band on 'photo.jpg, 2' that the MAUI capture does not show, and row spacing is much tighter (~26px vs MAUI's ~44px row pitch). Same in both themes.
 
 #### ⏳ Gemini Review
 
@@ -5844,7 +5844,7 @@ ports PreselectedItemsGallery.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.Coll
 
 #### 🟡 Sonnet 5 Review
 
-C1/C3: cpp renders the three preselected rows (photo.jpg 2, Fruits.jpg 4, FlowerBuds.jpg 5) with gray selection highlight bars while the MAUI reference shows no visible selection highlight in either theme; cpp also uses noticeably tighter row spacing than MAUI. Item text/order otherwise identical.
+C1/C3: 4-column grid content matches, but cpp shows gray selection bands on the three preselected items (photo.jpg 2, Fruits.jpg 4, FlowerBuds.jpg 5) that the MAUI capture does not render, and row pitch is tighter (~26px vs ~44px). Both themes.
 
 #### ⏳ Gemini Review
 
@@ -5901,7 +5901,7 @@ ports RadioButtonContentGallery.xaml A self-contained, code-first demo of the Ra
 
 #### 🟢 Sonnet 5 Review
 
-C1/C3: matches MAUI in both themes — all explanatory text, radio circles, the rounded 'Can't use View' box, coffee.png row, and the custom template rendered as small black/red line strokes with no coffee-cup images, same as the reference.
+C1/C3: all radio rows, bordered ControlTemplate box and the custom-template black/red underline group match MAUI in both themes; only trivial spacing/AA differences.
 
 #### ⏳ Gemini Review
 
@@ -6091,7 +6091,7 @@ ports ScrollModeTestGallery.xaml (+ .xaml.cs) of the C# CollectionView gallery (
 
 #### 🟡 Sonnet 5 Review
 
-C1/C3: the ItemsUpdatingScrollMode entry shows 'KeepItemsInView' text where MAUI's entry is empty, and the 20-row list is rendered with much tighter row spacing than MAUI (~25px vs ~44px per row). Buttons/labels otherwise match in both themes.
+C1/C3: layout, links and 20-item list match, but the cpp Entry displays 'KeepItemsInView' where MAUI's entry is empty, and list row pitch is tighter (~26px vs ~44px). Both themes.
 
 #### ⏳ Gemini Review
 
@@ -6300,7 +6300,7 @@ ports SliderPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical sta
 
 #### 🔴 Sonnet 5 Review
 
-C1/C3: the 'Background' (Brush) slider renders a yellow-to-green gradient track fill in the C++ build (both themes) whereas MAUI shows a plain default track — extra/wrong background content. Also the light-theme Disabled thumb stays white in C++ while MAUI dark shows the dimmed-gray disabled thumb only in dark (light matches). Everything else (BackgroundColor blue band, LightBlue/Pink tracks, orange thumb, custom red/green/blue slider, dynamic slider, edge case) matches.
+C1/C3: the 'Background' slider row renders a yellow-to-green gradient band in cpp while the MAUI reference shows a plain default track (no gradient) in both themes — a wrong-color/extra-background content diff. All other rows (blue BackgroundColor band, min/max value 10, disabled, LightBlue/Pink tracks, orange thumb, custom red/green/blue slider) match.
 
 #### ⏳ Gemini Review
 
@@ -6452,7 +6452,7 @@ ports SwipeItemSizeGallery.xaml A self-contained, code-first port of the .NET MA
 
 #### 🟢 Sonnet 5 Review
 
-C1/C3: matches MAUI in both themes — same section headers, three icon-size rows and three SwipeView-height rows with identical gray fills, proportions, and 'Swipe to Left' labels.
+C1/C3 match: all six SwipeView rows (3 icon-size rows, 3 height rows 128/256/512) present with identical gray fills, centered 'Swipe to Left' labels, row heights and label text in both light and dark; dark theme correctly keeps light-gray row fills with light label text like MAUI. Only the exempt window-chrome inset differs.
 
 #### ⏳ Gemini Review
 
@@ -6661,7 +6661,7 @@ ports ToolbarPage.xaml (Maui.Controls.Sample.Pages.ToolbarPage)
 
 #### 🟢 Sonnet 5 Review
 
-C1/C3: 'You clicked on ToolbarItem: {none}' label and all six blue toolbar action links match MAUI in text, color, spacing and position in both light and dark themes. Only the exempt window-chrome shift differs.
+C1/C3 match: 'You clicked on ToolbarItem: {none}' status line plus all six centered blue link-buttons (Enable/Disable Test (1), two Enable/Disable Secondary, Change text on Test Secondary (1), Remove/Add Secondary (3), Change Command Property on Secondary (3)) with identical text, color, spacing and centering in light and dark. Only the exempt chrome inset differs.
 
 #### ⏳ Gemini Review
 

@@ -636,7 +636,7 @@
         },
         "sonnet": {
           "status": "yellow",
-          "review": "Same boat image and three buttons with correct enabled/disabled states in both themes, but content is packed near the top (buttons right under the image) instead of MAUI's vertically centered image with buttons pinned at the page bottom."
+          "review": "C1/C3: all content present and matching (purple sub image, Start/Start Custom/Cancel Animation buttons, correct colors both themes), but vertical layout differs: MAUI shows the sub mid-page with the buttons pinned near the bottom, while C++ shows the sub at the top with the buttons directly beneath it. Consistent with the known animation-state capture gap (MAUI captured after autoplay repositioning) rather than missing content."
         },
         "gemini": {
           "status": null,
@@ -644,7 +644,7 @@
         },
         "sonnet_xaml": {
           "status": "yellow",
-          "review": "Content matches (boat, Start/Start Custom/Cancel states) in both themes, but the vertical distribution differs from MAUI \u2014 image and buttons grouped at the top rather than image centered and buttons at the bottom."
+          "review": "C2/C4: identical situation to the cpp column \u2014 same sub, same three buttons, same colors in light and dark, but the whole group sits at the top instead of MAUI's sub-centered/buttons-bottom arrangement. Positional/animation-state gap only."
         },
         "pixel": {
           "status": "green",
@@ -652,7 +652,7 @@
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9827, 0.88% pixels differ \u00b7 Dark: SSIM 0.9845, 0.97% pixels differ"
+          "review": "Light: SSIM 0.9826, 0.88% pixels differ \u00b7 Dark: SSIM 0.9845, 0.97% pixels differ"
         }
       },
       "android": {
@@ -762,8 +762,8 @@
           "review": "C2: light matches MAUI exactly (bold headers, green + orange text). C4: dark theme bindings not applied \u2014 the first line stays green instead of red and the resource line stays orange instead of teal (page background and header colors do go dark). Worst = red."
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.9594, 1.61% pixels differ \u00b7 Dark: SSIM 0.7093, 8.74% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9594, 1.61% pixels differ \u00b7 Dark: SSIM 0.9586, 1.83% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
@@ -877,8 +877,8 @@
           "review": "Both themes match MAUI: plain header, three centered blue link buttons, and the same 'Application: not yet hosted' status line."
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.9787, 0.68% pixels differ \u00b7 Dark: SSIM 0.7478, 7.32% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9787, 0.68% pixels differ \u00b7 Dark: SSIM 0.9785, 0.85% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -1211,7 +1211,7 @@
         },
         "sonnet": {
           "status": "yellow",
-          "review": "Both themes: the five gray swipe rows keep MAUI's width but the labels are top-left aligned instead of centered, rows are taller with almost no gaps, and an extra 'Swipe a row, then invoke Delete' caption appears that MAUI doesn't show."
+          "review": "C1/C3: five swipe boxes have correct size, width, spacing and gray fill in both themes, but the box labels are anchored top-left instead of MAUI's centered text, and a stray 'Swipe a row, then invoke Delete' helper label is rendered at the far window-left below the stack (absent in the MAUI capture). Dark theme additionally renders the box text white vs MAUI's dark-on-gray... (MAUI dark uses light text too, matches). Alignment + stray label = content diffs."
         },
         "gemini": {
           "status": null,
@@ -1219,7 +1219,7 @@
         },
         "sonnet_xaml": {
           "status": "red",
-          "review": "Both themes: layout is broken \u2014 rows 2-5 lose their fixed 300pt width and the gray background stretches edge-to-edge across the whole window, merging into one full-width band unlike MAUI's centered fixed-width stack."
+          "review": "C2/C4: layout broken in both themes \u2014 only the first box ('Swipe Up (Execute)') renders as a discrete box; the remaining four labels sit inside one full-window-width gray band stretching edge to edge, with no separate boxes or gaps. Major structural divergence from MAUI's five separate centered boxes."
         },
         "pixel": {
           "status": "yellow",
@@ -1670,24 +1670,24 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "Both themes are missing the dog image inside the clipped border (only the red outline renders empty), the Border Shape entry shows 'RoundRectangle' where MAUI's is an empty placeholder, and the section headings render small/plain instead of MAUI's large bold headers."
+          "status": "yellow",
+          "review": "C1/C3: clipped dog image and controls all present with correct slider values, but the red border ring renders much thicker than MAUI's thin stroke, the 'Border Shape'/'Border'/'Corner Radius' headers lose MAUI's bold large styling (all text renders in one plain size/weight), and the shape entry shows 'RoundRectangle' where MAUI's entry is empty. Same diffs in dark; dark thumbs also render slightly larger."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "Headings and empty entries match MAUI, but in both themes the dog image is missing from the clipped shape and the red border renders hairline-thin instead of the 5pt stroke MAUI shows."
+          "status": "green",
+          "review": "C2/C4: matches MAUI closely in both themes \u2014 thin red border on the clipped image, bold section headers with small sub-labels, empty Border Shape entry, identical slider positions/values. Only a tiny uniform vertical shift of the image (window-chrome class), no content differences."
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8647, 7.15% pixels differ \u00b7 Dark: SSIM 0.8583, 4.99% pixels differ"
+          "review": "Light: SSIM 0.8659, 6.72% pixels differ \u00b7 Dark: SSIM 0.8597, 4.63% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8643, 7.16% pixels differ \u00b7 Dark: SSIM 0.8350, 7.66% pixels differ"
+          "review": "Light: SSIM 0.8639, 7.02% pixels differ \u00b7 Dark: SSIM 0.8347, 7.56% pixels differ"
         }
       },
       "android": {
@@ -1901,7 +1901,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "In both themes the entries are pre-filled ('Label', 'RoundRectangle', 'Miter', 'Butt') where MAUI shows empty placeholders, the color entries are tinted with their hex color instead of MAUI's plain fields, the radio renders label-beside-circle instead of MAUI's detached centered circle, and tighter spacing exposes an extra Corner Radius section."
+          "review": "C1/C3: gradient banner + dashed yellow border match, but the control panel diverges heavily: entries are populated ('Label', 'RoundRectangle', 'Miter', 'Butt') where MAUI shows empty placeholder entries; the four color entries render with full-width colored backgrounds (blue/yellow swatch bars) vs MAUI's plain white/black entries; the radio label sits inline next to the circle at left vs MAUI's centered circle with label below; label typography is smaller; an extra Corner Radius section is already visible. Same in dark. Multiple color/content mismatches."
         },
         "gemini": {
           "status": null,
@@ -1909,7 +1909,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "Both themes match MAUI's layout faithfully \u2014 gradient preview with dashed yellow border, empty placeholder entries, plain color fields, and the same detached centered radio circle."
+          "review": "C2/C4: reproduces MAUI faithfully in both themes \u2014 placeholder (empty) entries, plain entry backgrounds, bold headers, centered detached radio with label below-left, matching slider positions and dashed gradient banner. Only trivial vertical offset."
         },
         "pixel": {
           "status": "red",
@@ -2015,24 +2015,24 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "In both themes the right-hand circle/square/triangle render as plain light-blue shapes \u2014 the dog image content MAUI shows inside them is missing; the left red-shape column and sliders otherwise match."
+          "status": "yellow",
+          "review": "C1/C3: circle and square cells match in both columns and themes (colors, green borders, blue plus, dog-image fills with light-blue letterboxing). The triangle row differs: MAUI's left triangle shows a large salmon fill with the blue plus overflowing the green outline, and its right triangle is filled by the clipped dog photo; C++ renders both triangles mostly hollow with only a small clipped fill inside the outline. Content clipped/undersized in 2 of 6 cells."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "Same failure as cpp in both themes: the right column's image-filled shapes are empty light-blue placeholders with no dog photo, while the left shapes and controls match MAUI."
+          "status": "yellow",
+          "review": "C2/C4: same triangle defect as the cpp column \u2014 hollow green triangle with tiny interior fill instead of MAUI's overflowing salmon/plus (left) and dog-filled triangle (right); circle and square cells match in both themes. Also the same slight uniform downward shift."
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9404, 3.21% pixels differ \u00b7 Dark: SSIM 0.9340, 3.07% pixels differ"
+          "review": "Light: SSIM 0.9401, 2.83% pixels differ \u00b7 Dark: SSIM 0.9332, 2.69% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.9142, 5.29% pixels differ \u00b7 Dark: SSIM 0.8799, 6.92% pixels differ"
+          "review": "Light: SSIM 0.9131, 5.10% pixels differ \u00b7 Dark: SSIM 0.8784, 6.72% pixels differ"
         }
       },
       "android": {
@@ -2591,7 +2591,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "In both themes the two image-buttons render as huge black blocks (~250pt tall) with a large gear icon left of 'settings', whereas MAUI renders them as thin text-only rows without a visible icon \u2014 a major size/content mismatch. All other buttons (colored backgrounds, red BorderWidth outline, CornerRadius pill, disabled/gray states) match."
+          "review": "C1/C3: text buttons, colored bars, BorderWidth red outline, CornerRadius purple pill, gray Button and green BorderWidth Changing rows all match in both themes, but the two ImageButton 'settings' rows render as huge (~5-6x taller) black blocks containing a large gear glyph next to the text, whereas MAUI shows thin single-line black bars with just centered 'settings' text. Major size/content divergence on those two rows in both themes."
         },
         "gemini": {
           "status": null,
@@ -2599,7 +2599,7 @@
         },
         "sonnet_xaml": {
           "status": "red",
-          "review": "Same defect as the cpp column in both themes: the 'settings' image-buttons balloon into giant icon+text blocks instead of MAUI's compact text rows, pushing the slider far down; the rest of the button matrix matches MAUI."
+          "review": "C2/C4: identical to the cpp column \u2014 everything matches except the two 'settings' ImageButton rows, which balloon into tall black blocks with a large gear icon vs MAUI's thin text-only bars, pushing the rest of the page down. Same in dark."
         },
         "pixel": {
           "status": "red",
@@ -2607,7 +2607,7 @@
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.5011, 44.79% pixels differ \u00b7 Dark: SSIM 0.5365, 43.68% pixels differ"
+          "review": "Light: SSIM 0.5012, 44.79% pixels differ \u00b7 Dark: SSIM 0.5365, 43.68% pixels differ"
         }
       },
       "android": {
@@ -3281,7 +3281,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "MAUI renders all four sections as identical unclipped rectangles in both themes, but C++ applies visibly different clips \u2014 a smaller crop for RectangleGeometry/EllipseGeometry, an actual circular clip for GeometryGroup and a rounded-path clip for PathGeometry \u2014 so section contents diverge from the ground truth."
+          "review": "C1/C3 red: MAUI renders all four 'Clipped Image' rows as full 300px gray rectangles (no visible clip applied), but the C++ builder column actually clips \u2014 RectangleGeometry shows a ~225px cropped image inside the gray box, EllipseGeometry shows a circular cutout on white, GeometryGroup/PathGeometry show shaped cutouts. Content (clip rendering + effective image sizes) diverges from the MAUI ground truth in both themes."
         },
         "gemini": {
           "status": null,
@@ -3289,11 +3289,11 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "XAML matches MAUI's rendering in both themes: same full-size rectangular images under each geometry label (MAUI's missing top 'Image' heading is its top-crop, which is exempt)."
+          "review": "C2/C4 green: XAML column matches MAUI \u2014 same five full-rectangle image blocks, same labels, sizes and order in light and dark (MAUI's missing top 'Image' label is its known top-crop wrapper, exempt)."
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8980, 12.43% pixels differ \u00b7 Dark: SSIM 0.8886, 12.45% pixels differ"
+          "review": "Light: SSIM 0.8979, 12.43% pixels differ \u00b7 Dark: SSIM 0.8886, 12.45% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -3396,23 +3396,23 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "The dog photo MAUI displays under 'Clipped Image using RoundRectangleGeometry' is an empty gray placeholder in C++ in both light and dark \u2014 the image fails to load; the four corner sliders themselves match."
+          "review": "C1/C3 red: the dog image renders at ~225x220 in the top-left of the 300x300 gray box instead of filling it as in MAUI (both themes). Additionally in light mode the slider tracks are a noticeably darker gray than MAUI's light track."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "Same failure as the C++ column: XAML shows a blank gray box instead of MAUI's dog photo in both themes, while the slider labels and tracks match."
+          "status": "green",
+          "review": "C2/C4 green: image fills the 300x300 box exactly as MAUI, labels and four corner sliders match in both themes."
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8768, 8.02% pixels differ \u00b7 Dark: SSIM 0.8732, 6.81% pixels differ"
+          "review": "Light: SSIM 0.8768, 7.05% pixels differ \u00b7 Dark: SSIM 0.8732, 5.83% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8915, 7.88% pixels differ \u00b7 Dark: SSIM 0.8900, 4.36% pixels differ"
+          "review": "Light: SSIM 0.8901, 6.18% pixels differ \u00b7 Dark: SSIM 0.8894, 2.65% pixels differ"
         }
       },
       "android": {
@@ -3511,23 +3511,23 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "In both themes every dog photo renders as a gray placeholder \u2014 the image content never loads \u2014 and the clipped variants shrink to the clip-rect size instead of MAUI's full image bounds. The clip geometries themselves (rect/roundrect/ellipse) are applied, but with no image the page is majorly off."
+          "review": "C1/C3 red: MAUI shows all clipped-image rows as full rectangles, but the C++ builder applies visible clips \u2014 RectangleGeometry is a smaller cropped image, RoundRectangleGeometry has rounded corners and reduced size, EllipseGeometry is a circle. Same divergence in both themes; row spacing also stretched vs MAUI."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "Both themes show gray placeholders instead of the dog photo, and unlike the cpp column the clip geometries are not even applied \u2014 RoundRectangle and Ellipse rows render as plain full-size rectangles."
+          "status": "green",
+          "review": "C2/C4 green: XAML column matches MAUI \u2014 Image / Rectangle / RoundRectangle / Ellipse / GeometryGroup rows all render as full rectangles with identical sizes and labels in both themes."
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8766, 13.03% pixels differ \u00b7 Dark: SSIM 0.8717, 13.17% pixels differ"
+          "review": "Light: SSIM 0.8748, 8.19% pixels differ \u00b7 Dark: SSIM 0.8710, 8.30% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8789, 13.56% pixels differ \u00b7 Dark: SSIM 0.8766, 13.67% pixels differ"
+          "review": "Light: SSIM 0.8751, 6.81% pixels differ \u00b7 Dark: SSIM 0.8741, 6.87% pixels differ"
         }
       },
       "android": {
@@ -3741,7 +3741,7 @@
         },
         "sonnet": {
           "status": "yellow",
-          "review": "Both themes replicate MAUI's toggle link, 1-8 digit row, orange square, Hey buttons, and blue bar precisely, but the port draws two coffee-cup glyphs on the left of the blue bar that are absent from the MAUI reference."
+          "review": "C1/C3 yellow: layout, colors, digit row, orange square, purple 'Hey' bar and blue stripe all match MAUI, but the port shows two coffee-cup images at the left end of the blue stripe in both themes that are absent from the MAUI reference (likely a MAUI-side image-load quirk, but per ruling MAUI is ground truth \u2014 extra content)."
         },
         "gemini": {
           "status": null,
@@ -3749,7 +3749,7 @@
         },
         "sonnet_xaml": {
           "status": "yellow",
-          "review": "Identical to the cpp column: pixel-close to MAUI in both themes except for two extra coffee-cup glyphs rendered on the blue bar that MAUI does not show."
+          "review": "C2/C4 yellow: identical to the cpp column \u2014 pixel-level match with MAUI except the two extra coffee-cup images on the blue stripe in both themes."
         },
         "pixel": {
           "status": "yellow",
@@ -3856,7 +3856,7 @@
         },
         "sonnet": {
           "status": "green",
-          "review": "Header and the full 24-item three-column list match MAUI's text, layout, column positions, and row spacing in both light and dark themes."
+          "review": "C1/C3 both green. Header, 3-column grid of 24 'name.jpg, N' items, row pitch, fonts and light/dark colors all match MAUI. Only the exempt window-chrome offset differs."
         },
         "gemini": {
           "status": null,
@@ -3864,7 +3864,7 @@
         },
         "sonnet_xaml": {
           "status": "yellow",
-          "review": "All 24 items and the header are present in both themes, but rows are vertically tighter (~31px vs MAUI's ~43px line spacing) and the header sits closer to the first row."
+          "review": "C2/C4 both yellow. Content and columns match, but row spacing is visibly tighter than MAUI (compressed item pitch, ~31px vs ~44px) and the gap between the header and the first row is missing in both themes. Colors/fonts otherwise match."
         },
         "pixel": {
           "status": "yellow",
@@ -4315,16 +4315,16 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: gray increment bar, toggle, entry and status labels match, but the port renders an extra 'COOL' placeholder image-button between the entry and the WebView that MAUI does not show, and the WebView is in a different runtime state (centered cookie dialog + dark page vs MAUI's inline bottom cookie banner). WebView state is capture noise; the extra COOL element is a real minor content diff."
+          "status": "red",
+          "review": "C1/C3 both red: the C++ column renders an extra visible 'COOL' image button between the entry and the WebView that MAUI's ground-truth render does not show (both themes), pushing the WebView down. Everything else (gray increment bar, switch, labels, entry placeholder) matches. The WebView interior differs (Bing cookie modal overlay vs inline banner) but that is live web-content state, not a port rendering bug."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "yellow",
-          "review": "C2/C4: same as cpp minus the COOL button in light (present in neither xaml shot? it is absent in xaml light, matching MAUI) \u2014 main residual diff is the WebView runtime state (centered cookie dialog, dark page) vs MAUI's rendered Bing page; native controls above match in both themes."
+          "status": "green",
+          "review": "C2/C4 green. Bar, switch, labels, entry and WebView placement match MAUI in both themes; no extra COOL button. The WebView shows Bing's cookie consent as a modal overlay instead of MAUI's capture-day inline banner \u2014 dynamic third-party web state, not flagged."
         },
         "pixel": {
           "status": "red",
@@ -5926,7 +5926,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "C1/C3: missing the 'No items match your filter.' EmptyView overlay label, and row spacing is far tighter than MAUI (50 dense rows fill the window vs MAUI's 18 taller rows with blank space below), both themes."
+          "review": "C1/C3 red: C++ shows the full 50-item collection (cover1.jpg 0 \u2026 cover1.jpg 49) where MAUI shows only 18 items (0-17), and the overlapping 'No items match your filter.' EmptyView string label is missing entirely; row spacing is also much tighter than MAUI's. Same in both themes."
         },
         "gemini": {
           "status": null,
@@ -5934,7 +5934,7 @@
         },
         "sonnet_xaml": {
           "status": "yellow",
-          "review": "C2/C4: EmptyView overlay text and 18 items present like MAUI, but list row spacing is noticeably tighter than MAUI's taller rows (both themes)."
+          "review": "C2/C4 yellow: XAML matches content \u2014 same 18 items (0-17) and the overlapping 'No items match your filter.' label is present in both themes \u2014 but list row spacing is noticeably tighter than MAUI (rows ~30px vs ~44px pitch) and rows sit flush at x=0 vs MAUI's small leading inset."
         },
         "pixel": {
           "status": "yellow",
@@ -6271,7 +6271,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "C1/C3: C++ shows 50 items (0-49) vs MAUI's filtered 15 (0-14), the CollectionView EmptyView overlay ('No results matched your filter.' / 'Maybe try a broader filter?') is missing entirely, and the FlowDirection picker shows a selected value 'Left to Right' where MAUI shows the empty 'FlowDirection' placeholder. Same in both themes."
+          "review": "C1/C3 red: the FlowDirection picker shows a selected value 'Left to Right' where MAUI shows the empty placeholder 'FlowDirection', the 'No results matched your filter.' / 'Maybe try a broader filter?' EmptyView overlay is missing, and the 3-column grid holds 50 items (0-49) vs MAUI's 15 (0-14). Both themes."
         },
         "gemini": {
           "status": null,
@@ -6279,7 +6279,7 @@
         },
         "sonnet_xaml": {
           "status": "yellow",
-          "review": "C2/C4: content matches MAUI \u2014 15 filtered items, EmptyView overlay text present, picker placeholder 'FlowDirection'. Only diff is tighter list row spacing (~31px vs MAUI's ~44px), so items pack closer. Both themes consistent."
+          "review": "C2/C4 yellow: XAML matches content \u2014 'FlowDirection' placeholder picker, both EmptyView strings ('No results matched your filter.' + 'Maybe try a broader filter?'), and the same 15 items in 3 columns, both themes \u2014 but row spacing is tighter than MAUI (~31px vs ~44px pitch)."
         },
         "pixel": {
           "status": "red",
@@ -6501,7 +6501,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "C1/C3: C++ renders 50 items (0-49) where MAUI shows the filtered 12 (0-11). Toggle, Clear/Fill links, and search bar match, but the item-count content difference is major. Same in both themes."
+          "review": "C1/C3 red: header (Toggle Between EmptyViews switch, Clear/Fill links) matches, but the 3-column grid shows the full 50-item collection (0-49) where MAUI shows 12 items (0-11); rows are also much tighter. Both themes."
         },
         "gemini": {
           "status": null,
@@ -6509,7 +6509,7 @@
         },
         "sonnet_xaml": {
           "status": "yellow",
-          "review": "C2/C4: content matches MAUI \u2014 12 items (0-11), 'Toggle Between EmptyViews' switch, Clear/Fill links. Only diff is tighter row spacing (~31px vs ~44px). Both themes consistent."
+          "review": "C2/C4 yellow: XAML matches content \u2014 same toggle, Clear/Fill links and the same 12 items (0-11) in 3 columns, both themes \u2014 but row spacing is tighter than MAUI (~31px vs ~44px pitch)."
         },
         "pixel": {
           "status": "yellow",
@@ -6616,7 +6616,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "C1/C3: C++ shows 50 items (0-49) vs MAUI's filtered 12 (0-11) \u2014 the filtered/empty-view state is not applied. Search bar matches. Same in both themes."
+          "review": "C1/C3 red: C++ renders the full 50-item collection (0-49) in 3 columns where MAUI shows only 12 items (0-11), with much tighter row spacing. Both themes."
         },
         "gemini": {
           "status": null,
@@ -6624,7 +6624,7 @@
         },
         "sonnet_xaml": {
           "status": "yellow",
-          "review": "C2/C4: matches MAUI's 12 filtered items and search bar; only diff is tighter list row spacing (~31px vs ~44px). Both themes consistent."
+          "review": "C2/C4 yellow: XAML matches content \u2014 same 12 items (0-11) in the same 3-column order, both themes \u2014 but row spacing is tighter than MAUI (~31px vs ~44px pitch)."
         },
         "pixel": {
           "status": "yellow",
@@ -6731,7 +6731,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "C1/C3: C++ shows 50 items (0-49) vs MAUI's 12, and the centered EmptyView overlay ('No results matched your filter.' / 'Maybe try a broader filter?') is missing entirely. Same in both themes."
+          "review": "C1/C3 red: the centered EmptyView overlay ('No results matched your filter.' + 'Maybe try a broader filter?') is missing entirely, and the grid shows 50 items (0-49) vs MAUI's 12 (0-11); rows much tighter. Both themes."
         },
         "gemini": {
           "status": null,
@@ -6739,7 +6739,7 @@
         },
         "sonnet_xaml": {
           "status": "yellow",
-          "review": "C2/C4: matches MAUI \u2014 12 items plus the centered 'No results matched your filter.' overlay with subtitle. Overlay sits slightly higher/tighter and row spacing is tighter (~31px vs ~44px). Both themes consistent."
+          "review": "C2/C4 yellow: XAML matches content \u2014 same 12 items and the centered 'No results matched your filter.' / 'Maybe try a broader filter?' overlay is present in both themes \u2014 but the overlay sits slightly higher/left of MAUI's position and row spacing is tighter than MAUI."
         },
         "pixel": {
           "status": "yellow",
@@ -6961,7 +6961,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "C1/C3 red: C++ renders the UNFILTERED source (items 0-49) in the filtered CollectionView instead of MAUI's 12 filtered items, and the second CollectionView's EmptyView ('Nothing to see here') is missing entirely. Both themes affected."
+          "review": "C1/C3 red: header (Use EmptyView toggle ON, filter) matches, but the orange 'Nothing to see here' EmptyView label is missing and the 2-column grid shows the full 50-item collection (0-49) vs MAUI's 12 items (0-11); rows much tighter. Both themes."
         },
         "gemini": {
           "status": null,
@@ -6969,7 +6969,7 @@
         },
         "sonnet_xaml": {
           "status": "yellow",
-          "review": "C2/C4 yellow: content matches (12 filtered items + 'Nothing to see here' EmptyView, both themes), but list row spacing is tighter than MAUI (~31px vs ~44px per row)."
+          "review": "C2/C4 yellow: XAML matches content \u2014 Use EmptyView toggle ON, same 12 items in 2 columns, and the orange 'Nothing to see here' label present at the same centered position, both themes \u2014 but row spacing is tighter than MAUI (~31px vs ~44px pitch)."
         },
         "pixel": {
           "status": "yellow",
@@ -7076,7 +7076,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "C1/C3 red: C++ shows the full unfiltered 50-item list (0-49, overflowing the window) where MAUI shows only 12 items; row spacing also compressed. Instruction text, Filter box, Reset and 'Selected: (none)' all match. Both themes affected."
+          "review": "C1/C3: instruction, Filter box, Reset and 'Selected: (none)' all match, but the item list is wrong: MAUI shows exactly 12 items (cover1.jpg,0 \u2026 Fruits.jpg,11) with roomy row spacing, while cpp renders 49+ tightly-packed rows continuing past the fold (\u2026Legumes.jpg,48). Item-count/content mismatch in both themes."
         },
         "gemini": {
           "status": null,
@@ -7084,7 +7084,7 @@
         },
         "sonnet_xaml": {
           "status": "yellow",
-          "review": "C2/C4 yellow: correct 12-item list, Reset and Selected label in both themes; only diff is tighter row spacing than MAUI (~31px vs ~43px)."
+          "review": "C2/C4: content matches exactly (same 12 items, filter box, Reset, Selected: (none)) in both themes; only diff is tighter row spacing in the list (MAUI rows ~44px apart vs xaml ~30px) and slightly larger item font. Minor internal-spacing diff."
         },
         "pixel": {
           "status": "yellow",
@@ -7536,7 +7536,7 @@
         },
         "sonnet": {
           "status": "yellow",
-          "review": "C1/C3 yellow: all 20 items plus the bold 'This is a footer' string present in correct order in both themes, but CollectionView row spacing is noticeably tighter than MAUI (~25px vs ~43px per row)."
+          "review": "C1/C3: all 20 items (cover1.jpg,0 \u2026 FlowerBuds.jpg,19) and the bold 'This is a footer' string present in both themes; only diff is row spacing \u2014 MAUI rows ~44px apart, cpp ~26px, so the list ends at y~615 vs MAUI y~950. Minor internal-spacing diff."
         },
         "gemini": {
           "status": null,
@@ -7544,7 +7544,7 @@
         },
         "sonnet_xaml": {
           "status": "yellow",
-          "review": "C2/C4 yellow: content and bold footer string match in both themes; row spacing tighter than MAUI (~31px vs ~43px)."
+          "review": "C2/C4: identical content and footer string in both themes; same tighter row spacing as cpp (list compressed vertically vs MAUI's roomier rows). Minor internal-spacing diff."
         },
         "pixel": {
           "status": "yellow",
@@ -8801,7 +8801,7 @@
         },
         "sonnet": {
           "status": "yellow",
-          "review": "C1/C3: All content present and correct in both themes \u2014 bold 'Just a string as a header', items cover1.jpg 0 / oasis.jpg 1 / photo.jpg 2, bold 'This footer is also a string'; colors and fonts match. Minor: MAUI gives each item row extra vertical spacing (~44pt rows) and a small left inset; C++ renders the three item rows tightly stacked flush-left like plain labels."
+          "review": "C1/C3: bold string header 'Just a string as a header', 3 items and bold footer 'This footer is also a string' all present in both themes; rows are tighter than MAUI (items span ~90px vs MAUI ~130px). Minor internal-spacing diff only."
         },
         "gemini": {
           "status": null,
@@ -8809,7 +8809,7 @@
         },
         "sonnet_xaml": {
           "status": "yellow",
-          "review": "C2/C4: Same as cpp \u2014 identical text content, weights and colors in both themes, but item rows are tightly stacked without MAUI's per-row height/leading inset. Minor internal-spacing diff only."
+          "review": "C2/C4: same content as MAUI in both themes (header string, 3 items, footer string); slightly tighter item row spacing than MAUI. Minor."
         },
         "pixel": {
           "status": "green",
@@ -8915,24 +8915,24 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3: C++ is MISSING the dog-photo image bands that MAUI draws behind/above the header and footer (MAUI: image strip + cream 'This Is A Header' over it, item grid, second image strip + skewed 'This Is A Footer'). C++ shows only the text header/footer with no images, and the skewed footer text floats mid-page overlapping the item-grid region instead of sitting below it in its image band. Toggle Header/Toggle Footer links, 3-column item grid and Add Content links do match. Missing images + broken footer placement = major, both themes."
+          "status": "yellow",
+          "review": "C1/C3: Toggle Header/Footer links, header image with 'This Is A Header' + Add Content, 3-column grid (10 items) and footer image + Add Content all present with correct theming (header/footer label faint in light, bright in dark). Diffs: the rotated 'This Is A Footer' label sits ABOVE the footer image (colliding with the last grid row) instead of below it as in MAUI, and grid row spacing is tighter (grid ends ~y435 vs MAUI ~y465). Minor layout offsets."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "C2/C4: Same major gaps as cpp in both themes \u2014 no dog-photo header/footer image bands and the skewed 'This Is A Footer' rendered mid-page over the grid area rather than in a footer band below the items. Text content, 3-column item layout, and Add Content links otherwise match MAUI."
+          "status": "yellow",
+          "review": "C2/C4: same as cpp \u2014 all content present and themed correctly, but the rotated footer label is placed above the footer image instead of below it, and grid rows are slightly tighter than MAUI. Minor."
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8608, 15.38% pixels differ \u00b7 Dark: SSIM 0.8517, 13.93% pixels differ"
+          "review": "Light: SSIM 0.8324, 11.85% pixels differ \u00b7 Dark: SSIM 0.8285, 11.08% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8580, 15.51% pixels differ \u00b7 Dark: SSIM 0.8488, 14.06% pixels differ"
+          "review": "Light: SSIM 0.8355, 10.38% pixels differ \u00b7 Dark: SSIM 0.8331, 9.83% pixels differ"
         }
       },
       "android": {
@@ -9031,23 +9031,23 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "C1/C3 red: header label 'This Is A Header' renders rotated/wrapped VERTICALLY down the left edge (one syllable per line) instead of horizontally centered; footer 'This Is A Foote' rendered rotated mid-page; the dog-photo header image is entirely missing; an extra third item row (photo.jpg 2 / FlowerBuds.jpg 5 / oasis.jpg 8) and mispositioned 'Add Content' appear. Broken header/footer template layout in both themes."
+          "review": "C1/C3: broken layout in both themes \u2014 the header image renders as a tiny ~65px thumbnail at top-left instead of a full-width strip, 'This Is A Header' wraps vertically one syllable per line down the left edge, and the footer image renders as a small thumbnail mid-page with 'This Is A Foote' wrapped beside it. MAUI shows a full-width header image with a single-line header label and the footer off-screen to the right."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "C2/C4 red: header text and item rows render horizontally and roughly match, but the dog-photo header image is completely missing (major missing content), the rotated footer label sits mid-page and a duplicate 'Add Content' appears; item rows also start at the window edge and show an extra third row vs MAUI. Same in dark."
+          "status": "yellow",
+          "review": "C2/C4: header renders correctly (full-width image, single-line label faint in light / bright in dark, Add Content) and the three horizontal item rows match; but the footer image + rotated footer label are visible mid-page in both themes where MAUI has no footer in view (it lies past the horizontal scroll extent), and row vertical distribution differs (evenly spread ~437/637/837 vs MAUI 332/959). Noticeable but non-breaking layout diffs."
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9252, 7.12% pixels differ \u00b7 Dark: SSIM 0.9174, 6.67% pixels differ"
+          "review": "Light: SSIM 0.9229, 7.27% pixels differ \u00b7 Dark: SSIM 0.9153, 6.76% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9169, 7.40% pixels differ \u00b7 Dark: SSIM 0.9099, 6.99% pixels differ"
+          "status": "red",
+          "review": "Light: SSIM 0.8800, 13.71% pixels differ \u00b7 Dark: SSIM 0.8416, 13.57% pixels differ"
         }
       },
       "android": {
@@ -9146,7 +9146,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "C1/C3 red: the dog-photo header image behind the header time label is missing entirely, and the header/footer time labels show a full datetime ('7/5/2026 8:31:48 PM') instead of MAUI's '12:00:00 PM' (TimeSpan/format binding diff). The three blue item cells themselves match well. Same failures in dark; MAUI dark footer time is bright while cpp keeps the faint cream (light also faint in MAUI, so main diffs are the image + datetime)."
+          "review": "C1/C3: header/footer template structure is present but wrong in both themes \u2014 the header/footer time label shows the capture-time full datetime '7/6/2026 12:23:10 AM' instead of MAUI's '12:00:00 PM' (formatting/value bug, includes date), stray thumbnail images (squirrel, pug) are rendered above the cover1 and oasis blue item boxes where MAUI has none, and a footer image strip is visible while MAUI shows no footer image. Item blue boxes themselves match."
         },
         "gemini": {
           "status": null,
@@ -9154,11 +9154,11 @@
         },
         "sonnet_xaml": {
           "status": "red",
-          "review": "C2/C4 red: page is essentially empty \u2014 only three plain text lines (cover1.jpg 0 / oasis.jpg 1 / photo.jpg 2) top-left; no header image, no header/footer time labels, no 'This Is A Header/Footer' labels, no blue DataTemplate cells. Broken in both themes."
+          "review": "C2/C4: header and footer templates are entirely missing in both themes \u2014 the page renders only three plain text lines (cover1.jpg,0 / oasis.jpg,1 / photo.jpg,2) with no header image, no time labels, no 'This Is A Header/Footer' strings and no blue templated item boxes."
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9188, 8.49% pixels differ \u00b7 Dark: SSIM 0.9260, 7.99% pixels differ"
+          "review": "Light: SSIM 0.8810, 12.15% pixels differ \u00b7 Dark: SSIM 0.8743, 11.82% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -9261,7 +9261,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "C1/C3 red: MAUI shows the dog-photo header strip with 'This Is A Header' overlaid at top; cpp has no image at all \u2014 instead it shows faint cream header + rotated footer text stacked at top plus 'Add 2 Items'/'Clear All Items' links that MAUI does not render at this state. Missing header image = major missing content, both themes."
+          "review": "C1/C3 red. MAUI shows only the header banner ('This Is A Header' over the dog image) with an empty page below; the C++ page renders extra content MAUI does not: 'This Is A Footer' drawn rotated/overlapping inside the header banner, a second (water) image strip below it, and 'Add 2 Items'/'Clear All Items' links. Same in both themes."
         },
         "gemini": {
           "status": null,
@@ -9269,15 +9269,15 @@
         },
         "sonnet_xaml": {
           "status": "red",
-          "review": "C2/C4 red: identical failure to cpp \u2014 dog-photo header image missing, header/footer labels rendered as plain overlapping text near the top, and extra 'Add 2 Items'/'Clear All Items' links visible. Both themes affected."
+          "review": "C2/C4 red. Identical divergence to the cpp column: rotated 'This Is A Footer' overlapping the header banner, an extra second image strip, and Add/Clear link buttons that are absent from the MAUI ground truth, in both light and dark."
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9219, 10.16% pixels differ \u00b7 Dark: SSIM 0.9141, 9.10% pixels differ"
+          "review": "Light: SSIM 0.8958, 12.67% pixels differ \u00b7 Dark: SSIM 0.8588, 12.42% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.9207, 10.21% pixels differ \u00b7 Dark: SSIM 0.9126, 9.18% pixels differ"
+          "review": "Light: SSIM 0.8876, 13.84% pixels differ \u00b7 Dark: SSIM 0.8502, 13.37% pixels differ"
         }
       },
       "android": {
@@ -9376,7 +9376,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "C1/C3 red: the green rounded rectangle renders as a SOLID light-green FILL with no dark-green stroke, while MAUI shows a thick dark-green OUTLINE with transparent fill (wrong fill/stroke). Also 'Selected: -' is left-aligned instead of centered and the 'Rectangle Selection' label renders much larger than MAUI's small font. Ellipse, blue scale/rotation labels and submarine match. Same in dark."
+          "review": "C1/C3 red. The rounded rectangle is rendered as a SOLID light-green fill with no border, where MAUI shows an unfilled shape with a thick dark-green stroke. Also 'Selected: -' is left-aligned instead of centered, the 'Rectangle Selection' label is larger with the radio dropped below the baseline, and the two 'Lorem ipsum'/'Scale = 1' labels lose their bold weight. Same in both themes."
         },
         "gemini": {
           "status": null,
@@ -9384,7 +9384,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "C2/C4 green: outline-only rounded rect, green ellipse, Scale=1/Scale=2/Rotation=20 labels, both Lorem labels, radio + small 'Rectangle Selection' text, centered 'Selected: -' and submarine image all match MAUI in both themes; only trivial sub-pixel offsets."
+          "review": "C2/C4 green. Stroke-only green rounded rect, centered 'Selected: -', small 'Rectangle Selection' label, bold lorem/scale labels, rotated texts, ellipse and submarine all match MAUI in both themes; only a trivial radio-button gap difference."
         },
         "pixel": {
           "status": "yellow",
@@ -9836,7 +9836,7 @@
         },
         "sonnet": {
           "status": "green",
-          "review": "C1/C3 green: UriSource Microsoft-building photo and FileSource dotnet-bot submarine render at matching size, position and colors in both themes; labels match. Only the exempt uniform chrome offset differs."
+          "review": "C1/C3 green. UriSource (Microsoft building) and FileSource (dotnet-bot submarine on purple) both load with matching sizes, placement and colors in both themes; only the exempt uniform chrome-height shift."
         },
         "gemini": {
           "status": null,
@@ -9844,7 +9844,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "C2/C4 green: identical to the cpp column \u2014 both images load and match MAUI's placement and aspect in light and dark."
+          "review": "C2/C4 green. Both images load and match MAUI's layout and colors in light and dark; differences limited to the exempt window-chrome offset."
         },
         "pixel": {
           "status": "red",
@@ -9950,16 +9950,16 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3 yellow: the 'Padding (slider-driven)' ImageButton shows an extra thick red border/background frame around the green image in BOTH themes that MAUI does not render (MAUI shows a plain green bar). Also the Animated GIF area renders as a large black box (MAUI's gif region is compact/blank at the same scroll offset). Scroll-position/crop differences are exempt; the rest of the sections (AspectFit/Fill, BorderColor+BorderWidth, CornerRadius trio, Custom Size) match."
+          "status": "red",
+          "review": "C1/C3 red. Two content diffs vs MAUI: (1) the 'Padding (slider-driven)' green button gains a thick RED border that MAUI does not draw there (MAUI only shows red on the BorderColor+BorderWidth row); (2) the Animated GIF slot renders as a large black rectangle with the bot logo where MAUI shows a blank/white (transparent) area, which also pushes the Use Online Source / Background rows below the fold. Both themes affected."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "yellow",
-          "review": "C2/C4 yellow: the Padding section correctly shows a plain green bar like MAUI (no spurious red frame \u2014 better than cpp), but the Animated GIF renders as a large black letterboxed box vs MAUI's compact gif area. Everything else matches in both themes."
+          "status": "red",
+          "review": "C2/C4 red. Padding row is correct (no spurious red border, unlike cpp), but the Animated GIF renders as a large black box with the bot logo where MAUI shows a blank/transparent area, pushing the bottom rows (Use Online Source, Background toggle, Update/Remove) off-screen. Both themes."
         },
         "pixel": {
           "status": "red",
@@ -10640,24 +10640,24 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3: the dog photo (the blur target) is missing entirely in both themes; only the four blur links and the 'BlurEffect: ExtraLight' label render, shifted to the top."
+          "status": "green",
+          "review": "C1/C3 green. Pug photo (no blur applied, ExtraLight state), the four blue blur links and the 'BlurEffect: ExtraLight' label all match MAUI in both themes; only the exempt uniform chrome shift."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "C2/C4: same failure as cpp \u2014 the dog photo is missing in both themes; only the links and status label render."
+          "status": "green",
+          "review": "C2/C4 green. Matches MAUI in both themes: same image, link stack and status label; no content differences beyond the exempt window-chrome offset."
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8177, 23.46% pixels differ \u00b7 Dark: SSIM 0.8028, 22.17% pixels differ"
+          "review": "Light: SSIM 0.8063, 8.10% pixels differ \u00b7 Dark: SSIM 0.8053, 8.19% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8167, 23.49% pixels differ \u00b7 Dark: SSIM 0.8018, 22.21% pixels differ"
+          "review": "Light: SSIM 0.8053, 8.14% pixels differ \u00b7 Dark: SSIM 0.8043, 8.22% pixels differ"
         }
       },
       "android": {
@@ -11791,7 +11791,7 @@
         },
         "sonnet": {
           "status": "green",
-          "review": "C1/C3: matches MAUI in both themes \u2014 Reveal/Drag links, gray 'Swipe right' item, caption and mode labels all identical in size, color, and placement."
+          "review": "C1/C3 green. Reveal/Drag links, the gray 'Swipe right' swipe cell (white text on gray in dark, matching MAUI), and both caption lines ('Swipe right to reveal Delete...', 'SwipeTransitionMode: Drag') match in both themes; only the exempt chrome shift."
         },
         "gemini": {
           "status": null,
@@ -11799,7 +11799,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "C2/C4: XAML column matches MAUI in both themes \u2014 identical links, swipe item, and labels."
+          "review": "C2/C4 green. Identical to MAUI in both themes: links, gray swipe cell and captions all present with matching colors and placement."
         },
         "pixel": {
           "status": "yellow",
@@ -12826,7 +12826,7 @@
         },
         "sonnet": {
           "status": "green",
-          "review": "C1/C3: 'You clicked on Menu Item:' label and blue 'Toggle Menu Bar Item' link match MAUI in both themes."
+          "review": "C1/C3: label 'You clicked on Menu Item:' and blue 'Toggle Menu Bar Item' link match MAUI in both themes; only the exempt outer inset differs (cpp label sits at the window edge)."
         },
         "gemini": {
           "status": null,
@@ -12834,7 +12834,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "C2/C4: XAML column identical to MAUI in both themes."
+          "review": "C2/C4: identical content to MAUI in both themes \u2014 label and blue link at matching positions, colors and fonts match."
         },
         "pixel": {
           "status": "green",
@@ -14436,15 +14436,15 @@
         },
         "sonnet": {
           "status": "yellow",
-          "review": "C1/C3: cpp rows are noticeably tighter (~50 rows fit vs ~32 in MAUI \u2014 smaller CollectionView cell height/padding) and cpp paints a full-width gray selection highlight on 'photo.jpg, 2' that MAUI does not render. Header, preselected label and item texts all match."
+          "review": "C1/C3: all 50 rows + header + preselected label present, but cpp draws a gray full-width selection band on 'photo.jpg, 2' that the MAUI capture does not show, and row spacing is much tighter (~26px vs MAUI's ~44px row pitch). Same in both themes."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "green",
-          "review": "C2/C4: xaml matches MAUI in both themes \u2014 same row spacing, same content, and like MAUI no visible selection highlight."
+          "status": "yellow",
+          "review": "C2/C4: content and (absent) selection state match MAUI, but list row spacing is tighter (~31px vs ~44px pitch), compressing the list vertically. Both themes."
         },
         "pixel": {
           "status": "yellow",
@@ -14551,7 +14551,7 @@
         },
         "sonnet": {
           "status": "yellow",
-          "review": "C1/C3: cpp renders the three preselected rows (photo.jpg 2, Fruits.jpg 4, FlowerBuds.jpg 5) with gray selection highlight bars while the MAUI reference shows no visible selection highlight in either theme; cpp also uses noticeably tighter row spacing than MAUI. Item text/order otherwise identical."
+          "review": "C1/C3: 4-column grid content matches, but cpp shows gray selection bands on the three preselected items (photo.jpg 2, Fruits.jpg 4, FlowerBuds.jpg 5) that the MAUI capture does not render, and row pitch is tighter (~26px vs ~44px). Both themes."
         },
         "gemini": {
           "status": null,
@@ -14559,7 +14559,7 @@
         },
         "sonnet_xaml": {
           "status": "yellow",
-          "review": "C2/C4: xaml matches MAUI's unhighlighted rendering (no selection bars, same as reference) and same item text/order, but row spacing is somewhat tighter than MAUI in both themes."
+          "review": "C2/C4: grid content and unhighlighted selection state match MAUI; row spacing tighter (~31px vs ~44px pitch). Both themes."
         },
         "pixel": {
           "status": "red",
@@ -14896,7 +14896,7 @@
         },
         "sonnet": {
           "status": "green",
-          "review": "C1/C3: matches MAUI in both themes \u2014 all explanatory text, radio circles, the rounded 'Can't use View' box, coffee.png row, and the custom template rendered as small black/red line strokes with no coffee-cup images, same as the reference."
+          "review": "C1/C3: all radio rows, bordered ControlTemplate box and the custom-template black/red underline group match MAUI in both themes; only trivial spacing/AA differences."
         },
         "gemini": {
           "status": null,
@@ -14904,7 +14904,7 @@
         },
         "sonnet_xaml": {
           "status": "red",
-          "review": "C2/C4: xaml renders two large coffee-cup icons in the custom-template group at the bottom in both themes, where MAUI (and cpp) show only the small black/red line strokes \u2014 extra content not present in the ground truth. Rest of the page matches."
+          "review": "C2/C4: xaml renders two black coffee-cup images in the custom-template group that the MAUI reference does not show (MAUI renders only the black/red underlines) \u2014 extra content in both themes."
         },
         "pixel": {
           "status": "yellow",
@@ -15482,8 +15482,8 @@
           "review": "C2/C4: card contents match MAUI (A/B/C labels, filled blue radios centered, same card size) in both themes, but the three-card column is horizontally CENTERED in the window whereas MAUI left-aligns it \u2014 a block-alignment diff, content itself correct. Worst = yellow."
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.1912, 99.97% pixels differ \u00b7 Dark: SSIM 0.9839, 1.02% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9921, 0.18% pixels differ \u00b7 Dark: SSIM 0.9839, 1.02% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
@@ -16046,7 +16046,7 @@
         },
         "sonnet": {
           "status": "yellow",
-          "review": "C1/C3: the ItemsUpdatingScrollMode entry shows 'KeepItemsInView' text where MAUI's entry is empty, and the 20-row list is rendered with much tighter row spacing than MAUI (~25px vs ~44px per row). Buttons/labels otherwise match in both themes."
+          "review": "C1/C3: layout, links and 20-item list match, but the cpp Entry displays 'KeepItemsInView' where MAUI's entry is empty, and list row pitch is tighter (~26px vs ~44px). Both themes."
         },
         "gemini": {
           "status": null,
@@ -16054,7 +16054,7 @@
         },
         "sonnet_xaml": {
           "status": "yellow",
-          "review": "C2/C4: entry state matches MAUI (empty), buttons and header match, but the list rows are noticeably tighter than MAUI (~31px vs ~44px per row) in both themes."
+          "review": "C2/C4: entry state matches MAUI (empty; solid black fill in dark), links and list content match, but list row spacing is tighter than MAUI (~31px vs ~44px pitch). Both themes."
         },
         "pixel": {
           "status": "yellow",
@@ -17311,7 +17311,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "C1/C3: the 'Background' (Brush) slider renders a yellow-to-green gradient track fill in the C++ build (both themes) whereas MAUI shows a plain default track \u2014 extra/wrong background content. Also the light-theme Disabled thumb stays white in C++ while MAUI dark shows the dimmed-gray disabled thumb only in dark (light matches). Everything else (BackgroundColor blue band, LightBlue/Pink tracks, orange thumb, custom red/green/blue slider, dynamic slider, edge case) matches."
+          "review": "C1/C3: the 'Background' slider row renders a yellow-to-green gradient band in cpp while the MAUI reference shows a plain default track (no gradient) in both themes \u2014 a wrong-color/extra-background content diff. All other rows (blue BackgroundColor band, min/max value 10, disabled, LightBlue/Pink tracks, orange thumb, custom red/green/blue slider) match."
         },
         "gemini": {
           "status": null,
@@ -17319,7 +17319,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "C2/C4: matches MAUI in both themes \u2014 plain Background row like MAUI, correct BackgroundColor band, track/thumb colors, disabled gray thumb in dark, custom slider and value labels all line up (only the exempt window-chrome offset differs)."
+          "review": "C2/C4: matches MAUI in both themes \u2014 plain 'Background' track like the reference, blue BackgroundColor band, colored tracks/thumbs and custom slider all consistent."
         },
         "pixel": {
           "status": "red",
@@ -17667,12 +17667,12 @@
           "review": "C2/C4: matches MAUI in both themes \u2014 compact 8-row 3-column grid, all Items 0-23 visible with correct spacing."
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.9748, 0.72% pixels differ \u00b7 Dark: SSIM 0.2821, 95.20% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9748, 0.72% pixels differ \u00b7 Dark: SSIM 0.9740, 0.88% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.9765, 0.88% pixels differ \u00b7 Dark: SSIM 0.2793, 95.16% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9765, 0.88% pixels differ \u00b7 Dark: SSIM 0.9760, 1.04% pixels differ"
         }
       },
       "android": {
@@ -17786,8 +17786,8 @@
           "review": "Light: SSIM 0.9307, 4.95% pixels differ \u00b7 Dark: SSIM 0.9285, 5.19% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.1894, 99.72% pixels differ \u00b7 Dark: SSIM 0.9275, 5.22% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9297, 4.98% pixels differ \u00b7 Dark: SSIM 0.9275, 5.22% pixels differ"
         }
       },
       "android": {
@@ -18131,8 +18131,8 @@
           "review": "Light: SSIM 0.9763, 0.48% pixels differ \u00b7 Dark: SSIM 0.9493, 3.73% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.9753, 0.52% pixels differ \u00b7 Dark: SSIM 0.6399, 95.82% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9753, 0.52% pixels differ \u00b7 Dark: SSIM 0.9483, 3.77% pixels differ"
         }
       },
       "android": {
@@ -18231,7 +18231,7 @@
         },
         "sonnet": {
           "status": "green",
-          "review": "C1/C3: matches MAUI in both themes \u2014 same section headers, three icon-size rows and three SwipeView-height rows with identical gray fills, proportions, and 'Swipe to Left' labels."
+          "review": "C1/C3 match: all six SwipeView rows (3 icon-size rows, 3 height rows 128/256/512) present with identical gray fills, centered 'Swipe to Left' labels, row heights and label text in both light and dark; dark theme correctly keeps light-gray row fills with light label text like MAUI. Only the exempt window-chrome inset differs."
         },
         "gemini": {
           "status": null,
@@ -18239,7 +18239,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "C2/C4: matches MAUI in both themes \u2014 identical row structure, sizes, and text; only the exempt chrome offset differs."
+          "review": "C2/C4 match: XAML column renders identically to MAUI in both themes \u2014 same six rows, same gray fills, same centered labels, same section headers and heights. No content differences beyond the exempt chrome inset."
         },
         "pixel": {
           "status": "red",
@@ -19496,7 +19496,7 @@
         },
         "sonnet": {
           "status": "green",
-          "review": "C1/C3: 'You clicked on ToolbarItem: {none}' label and all six blue toolbar action links match MAUI in text, color, spacing and position in both light and dark themes. Only the exempt window-chrome shift differs."
+          "review": "C1/C3 match: 'You clicked on ToolbarItem: {none}' status line plus all six centered blue link-buttons (Enable/Disable Test (1), two Enable/Disable Secondary, Change text on Test Secondary (1), Remove/Add Secondary (3), Change Command Property on Secondary (3)) with identical text, color, spacing and centering in light and dark. Only the exempt chrome inset differs."
         },
         "gemini": {
           "status": null,
@@ -19504,7 +19504,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "C2/C4: pixel-equivalent to MAUI in both themes \u2014 same label, same six blue links, same layout. No content differences."
+          "review": "C2/C4 match: XAML column identical to MAUI in both themes \u2014 same status line, same six blue buttons with matching text, order, spacing and colors. No content differences."
         },
         "pixel": {
           "status": "yellow",
@@ -19623,7 +19623,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8249, 10.73% pixels differ \u00b7 Dark: SSIM 0.3777, 65.27% pixels differ"
+          "review": "Light: SSIM 0.8250, 10.73% pixels differ \u00b7 Dark: SSIM 0.8220, 3.45% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
