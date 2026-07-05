@@ -1,0 +1,31 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.PolygonGalleryPage" Title="Polygon Gallery">
+    <!-- Twin of PolygonGallery.xaml: a ScrollView over a StackLayout (Padding 12) walking four Polygon
+         variants under caption Labels — a basic triangle (AliceBlue fill, green stroke 5), the same dashed,
+         and the EvenOdd vs Nonzero pentagram pair (identical self-intersecting point list under the two
+         winding rules). The EvenOddPolygon/NonzeroPolygon resource styles are inlined per the dialect. -->
+    <ScrollView>
+        <StackLayout Padding="12">
+            <Label Text="A basic Polygon" />
+            <Polygon HeightRequest="100" WidthRequest="200"
+                     Fill="AliceBlue" StrokeThickness="5" Stroke="Green"
+                     Points="40,10 70,80 10,50" />
+            <Label Text="A dash Polygon" />
+            <Polygon HeightRequest="100" WidthRequest="200"
+                     Fill="AliceBlue" StrokeThickness="5" Stroke="Green"
+                     StrokeDashArray="1 1" StrokeDashOffset="6"
+                     Points="40,10 70,80 10,50" />
+            <Label Text="EvenOdd Polygon" />
+            <Polygon HeightRequest="100" WidthRequest="100"
+                     Points="10,100 50,0 90,100 0,35 100,35"
+                     Fill="Blue" Stroke="Red" StrokeThickness="3"
+                     FillRule="EvenOdd" />
+            <Label Text="NonZero Polygon" />
+            <Polygon HeightRequest="100" WidthRequest="100"
+                     Points="10,100 50,0 90,100 0,35 100,35"
+                     Fill="Black" Stroke="Yellow" StrokeThickness="3"
+                     FillRule="Nonzero" />
+        </StackLayout>
+    </ScrollView>
+</ContentPage>

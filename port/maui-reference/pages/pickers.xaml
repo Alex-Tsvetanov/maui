@@ -1,0 +1,18 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.PickersPage" Title="Pickers">
+    <!-- Mirrors the builder pickers_page: a room Picker (Items list), a DatePicker, a TimePicker (24h),
+         and a readout — NO per-control section headers (the builder adds the controls directly). -->
+    <VerticalStackLayout Spacing="12">
+        <Picker Title="Pick a room">
+            <Picker.Items>
+                <x:String>Auditorium</x:String>
+                <x:String>Boardroom</x:String>
+                <x:String>Cafeteria</x:String>
+            </Picker.Items>
+        </Picker>
+        <DatePicker />
+        <TimePicker Format="HH:mm" Time="9:0:0" />
+        <Label Text="No room on (no date) at (no time)" />
+    </VerticalStackLayout>
+</ContentPage>

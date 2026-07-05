@@ -1,0 +1,29 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.ContextFlyoutPage" Title="Context Flyout">
+    <!-- Twin of ContextFlyoutPage.xaml: several controls each carrying a FlyoutBase.ContextFlyout
+         (right-click / long-press MenuFlyout). DEGRADES: ContextFlyout / MenuFlyout / MenuFlyoutItem /
+         MenuFlyoutSubItem are page-chrome with no markup sink in the loader, so the entire flyout layer is
+         omitted — only the in-page RESTING views are reproduced (the menus are hidden until a right-click
+         anyway). The counter Label + status Label + Switch capture the observable readout the page shows at
+         rest. The 🆒 FontImageSource image + the bing.com WebView are best-effort (source set; no pixels). -->
+    <ScrollView>
+        <VerticalStackLayout Spacing="10">
+            <Button Text="Increment by 1 (or right-click me)" BackgroundColor="DarkGray" />
+
+            <Label Text="Is dynamic menu enabled?" />
+            <Switch />
+
+            <Label Text="Right-click to see beautiful menus" />
+
+            <Entry Placeholder="Has a custom context menu" />
+
+            <Image Source="cool.png" MaximumHeightRequest="200" MaximumWidthRequest="200" />
+
+            <WebView Source="https://bing.com" MinimumHeightRequest="400" />
+
+            <Label Text="0" />
+            <Label Text="Right-click a control, or its menu items are exercised programmatically" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,34 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.RadioButtonContentPage" Title="RadioButton Content">
+    <ScrollView>
+        <StackLayout Spacing="8" Padding="16">
+            <Label Text="We can set 'Content' on a RadioButton to a string:" />
+            <RadioButton Content="Option A" />
+            <Label Text="If 'Content' is just a String, it will be translated to Text (always supported):" />
+            <RadioButton Content="Option C" />
+            <Label Text="If 'Content' is a View, it will be displayed where supported (e.g., when using ControlTemplates):" />
+            <Frame>
+                <RadioButton Content="Can't use View for Content on this platform, so just plain old text" />
+            </Frame>
+            <Label Text="This will display the Content (coffee cup) where it can, and fall back to the string representation where it cannot:" />
+            <RadioButton Content="coffee.png" />
+            <Label Text="If we select a ControlTemplate, we can use a View as Content on any platform:" />
+            <Label Text="Also, here's a group with a weird-looking custom template:" />
+            <ContentView>
+                <HorizontalStackLayout Spacing="4">
+                    <BoxView Color="Black" WidthRequest="50" HeightRequest="2" />
+                    <BoxView Color="Red" WidthRequest="50" HeightRequest="2" />
+                    <Image Source="coffee.png" />
+                </HorizontalStackLayout>
+            </ContentView>
+            <ContentView>
+                <HorizontalStackLayout Spacing="4">
+                    <BoxView Color="Black" WidthRequest="50" HeightRequest="2" />
+                    <BoxView Color="Red" WidthRequest="50" HeightRequest="2" />
+                    <Image Source="coffee.png" />
+                </HorizontalStackLayout>
+            </ContentView>
+        </StackLayout>
+    </ScrollView>
+</ContentPage>

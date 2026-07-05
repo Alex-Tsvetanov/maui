@@ -1,9 +1,0 @@
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="DatePicker UpdateMode">
-    <!-- The iOSSpecific DatePicker.UpdateMode attached property is a platform knob (no XAML dialect
-         analog); the resting DatePicker (clamped to 2020) + toggle button are reproduced. -->
-    <VerticalStackLayout Spacing="12">
-        <DatePicker MinimumDate="01/01/2020" MaximumDate="12/31/2020" />
-        <Button Text="Toggle DatePicker UpdateMode" />
-    </VerticalStackLayout>
-</ContentPage>

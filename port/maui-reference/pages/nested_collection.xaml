@@ -1,0 +1,36 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.NestedCollectionPage" Title="Nested CollectionView">
+    <!-- Twin of NestedCollectionViewGallery.xaml: a banner Label over an OUTER VerticalList CollectionView
+         whose ItemTemplate root is an INNER HorizontalList CollectionView (HeightRequest=100, scroll bars
+         Never), red-italic header bound to {Binding Title} and a blue caption cell bound to {Binding
+         Caption}. The outer source (20 NestedItemSource) is code-assigned, so — per the supported dialect
+         (no inlinable nested x:Array of complex objects) — the nested template structure is defined but no
+         outer rows render, as in basic_grouping. -->
+    <VerticalStackLayout Spacing="12">
+        <Label Text="It's CollectionViews all the way down." />
+        <CollectionView ItemsLayout="VerticalList">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <CollectionView ItemsLayout="HorizontalList"
+                                    HeightRequest="100"
+                                    ItemsSource="{Binding Items}"
+                                    HorizontalScrollBarVisibility="Never"
+                                    VerticalScrollBarVisibility="Never"
+                                    Header="{Binding Title}">
+                        <CollectionView.HeaderTemplate>
+                            <DataTemplate>
+                                <Label Text="{Binding .}" TextColor="Red" FontAttributes="Italic" />
+                            </DataTemplate>
+                        </CollectionView.HeaderTemplate>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Label Text="{Binding Caption}" TextColor="Blue" FontSize="10" />
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </VerticalStackLayout>
+</ContentPage>

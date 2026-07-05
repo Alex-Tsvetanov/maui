@@ -1,0 +1,39 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.SwipeViewMarginPage" Title="SwipeView Margin Gallery">
+    <!-- Twin of SwipeViewMarginGallery.xaml: two sliders drive the content grids' Margin + Padding, over
+         two LightGray SwipeViews (horizontal / vertical items) with gray 100-tall content grids. note:
+         the loader registers only SwipeView.Content — the Favourite/Delete SwipeItems have no markup sink
+         — so each SwipeView is DEGRADED to just its gray content Grid (the RESTING appearance, items hidden
+         until a swipe). The sliders start at their initial value 12 = the grids' initial Margin/Padding. -->
+    <VerticalStackLayout Padding="12" Spacing="6">
+        <Label Text="Adjust the sliders, then open a row to verify item positioning" />
+
+        <Label Text="Modify the SwipeView Margin and Padding values, and verify when opening that the positioning of the SwipeItems is correct."
+               Padding="12" BackgroundColor="Black" TextColor="White" />
+
+        <Label Text="SwipeView Content Margin" />
+        <Slider Minimum="0" Maximum="48" Value="12"
+                MinimumTrackColor="LightGray" MaximumTrackColor="Gray" ThumbColor="DarkGray" />
+
+        <Label Text="SwipeView Content Padding" />
+        <Slider Minimum="0" Maximum="48" Value="12"
+                MinimumTrackColor="LightGray" MaximumTrackColor="Gray" ThumbColor="DarkGray" />
+
+        <SwipeView BackgroundColor="LightGray">
+            <SwipeView.Content>
+                <Grid HeightRequest="100" Padding="12" Margin="12" BackgroundColor="Gray">
+                    <Label Text="Horizontal SwipeItems" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                </Grid>
+            </SwipeView.Content>
+        </SwipeView>
+
+        <SwipeView BackgroundColor="LightGray">
+            <SwipeView.Content>
+                <Grid HeightRequest="100" Padding="12" Margin="12" BackgroundColor="Gray">
+                    <Label Text="Vertical SwipeItems" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                </Grid>
+            </SwipeView.Content>
+        </SwipeView>
+    </VerticalStackLayout>
+</ContentPage>

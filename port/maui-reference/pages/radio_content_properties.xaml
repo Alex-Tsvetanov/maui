@@ -1,0 +1,27 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.RadioContentPropertiesPage" Title="RadioButton Content Properties">
+    <StackLayout Spacing="6">
+        <Label Text="Propagate standard Text properties to Content where applicable:" />
+        <Label Text="TextColor: Red, CharacterSpacing: 1.5, TextTransform: Lowercase, FontAttributes: Italic, FontSize: 14, FontFamily: BaskerVille" />
+        <RadioButton Content="Option A" GroupName="test" TextColor="Red" CharacterSpacing="1.5"
+                     FontAttributes="Italic" FontSize="14" FontFamily="Baskerville" />
+        <Label Text="TextColor: Blue, CharacterSpacing: 1, TextTransform: Uppercase, FontAttributes: Bold, FontSize: 18, FontFamily: Arial" />
+        <RadioButton Content="Option B" GroupName="test" TextColor="Blue"
+                     FontAttributes="Bold" FontSize="18" FontFamily="Arial" />
+        <Label Text="The RadioButton below has its content set to Button (which makes little sense, but this is just an example). The Text and Font properties are applied to it." />
+        <RadioButton Content="It's a button inside a button." GroupName="test" TextColor="Green"
+                     FontAttributes="Bold" FontSize="12" FontFamily="Arial" />
+        <Label Text="The RadioButton below is the same as above, but also has a Semantic Description set on it for better accessibility." />
+        <RadioButton Content="It's a button inside a button." GroupName="test" TextColor="Green"
+                     FontAttributes="Bold" FontSize="12" FontFamily="Arial" />
+        <Label Text="The RadioButton below is the same as above, but has a Semantic Description and Semantic Hint set on it for better accessibility." />
+        <RadioButton Content="It's a button inside a button." GroupName="test" TextColor="Green"
+                     FontAttributes="Bold" FontSize="12" FontFamily="Arial" />
+        <Label Text="A Content View which already has these properties set/bound should ignore the RadioButton properties." />
+        <RadioButton Content="It's a button inside a button." GroupName="test" TextColor="Green"
+                     FontAttributes="Bold" FontSize="12" FontFamily="Arial" />
+        <RadioButton Content="It's a button inside a button." GroupName="test" TextColor="Green"
+                     FontAttributes="Bold" FontSize="12" FontFamily="Arial" />
+    </StackLayout>
+</ContentPage>

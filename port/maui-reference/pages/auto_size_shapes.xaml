@@ -1,0 +1,22 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.AutoSizeShapesPage" Title="AutoSize Shapes Gallery">
+    <!-- Twin of AutoSizeShapesGallery.xaml: a 3-row Grid (Auto / * / *, RowSpacing 0) proving a stroked
+         Ellipse auto-sizes to fill exactly half the available height. Row 0 = white-on-black caption;
+         Row 1 = a yellow single-cell Grid hosting the un-sized Ellipse (green fill, blue stroke 4);
+         Row 2 = an empty orange Grid (the second equal star row). Fully faithful. -->
+    <Grid RowSpacing="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Label Text="The Ellipse below must occupy half of the available space."
+               TextColor="White"
+               BackgroundColor="Black" />
+        <Grid Grid.Row="1" BackgroundColor="Yellow">
+            <Ellipse StrokeThickness="4" Stroke="Blue" Fill="Green" />
+        </Grid>
+        <Grid Grid.Row="2" BackgroundColor="Orange" />
+    </Grid>
+</ContentPage>

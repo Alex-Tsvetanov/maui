@@ -1,0 +1,36 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.RadioButtonGroupGalleryPage" Title="RadioButton Group Gallery">
+    <ScrollView>
+        <VerticalStackLayout Spacing="10" Padding="16">
+            <!-- Section 1: Parent level (no group name — auto-group by container) -->
+            <Label Text="Parent level: radios with no group name are mutually exclusive in their container" />
+            <Label Text="Selected: (none)" />
+            <StackLayout>
+                <RadioButton Content="RadioButton, Group=null" />
+                <RadioButton Content="RadioButton, Group=null" />
+                <RadioButton Content="RadioButton, Group=null" />
+            </StackLayout>
+
+            <!-- Section 2: Page level (same group name "A") -->
+            <Label Text="Page level: radios with the same group name 'A' are mutually exclusive" />
+            <Label Text="Selected: (none)" />
+            <StackLayout>
+                <RadioButton Content="RadioButton, Group='A'" GroupName="A" />
+                <RadioButton Content="RadioButton, Group='A'" GroupName="A" />
+                <RadioButton Content="RadioButton, Group='A'" GroupName="A" />
+            </StackLayout>
+
+            <!-- Section 3: Test (mixed groups A / B / C / null) -->
+            <Label Text="Test: mixed group names — each named group is independent" />
+            <Label Text="Selected: (none)" />
+            <StackLayout>
+                <RadioButton Content="RadioButton, GroupName='A'" GroupName="A" />
+                <RadioButton Content="RadioButton, GroupName='B'" GroupName="B" />
+                <RadioButton Content="RadioButton, GroupName='B'" GroupName="B" />
+                <RadioButton Content="RadioButton, GroupName='C'" GroupName="C" />
+                <RadioButton Content="RadioButton, GroupName=null" />
+            </StackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,12 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.MenuBarPage" Title="Menu Bar">
+    <!-- Twin of MenuBarPage.xaml: the page declares three MenuBarItems (Before File / File / Custom Menu)
+         plus a small visible body. Page-level MenuBarItems are window chrome and are omitted per the
+         supported dialect; only the in-page body content is rendered — the menuLabel and the toggle
+         button. -->
+    <VerticalStackLayout Margin="12">
+        <Label Text="You clicked on Menu Item:" />
+        <Button Text="Toggle Menu Bar Item" />
+    </VerticalStackLayout>
+</ContentPage>

@@ -1,0 +1,29 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.DragDropPage" Title="Drag and drop">
+    <!-- DragGestureRecognizer / DropGestureRecognizer omitted (gesture layer). Resting UI only:
+         the two color lists + the position readouts. -->
+    <VerticalStackLayout Spacing="12">
+        <Label Text="All colors (drag a swatch to the rainbow list):" />
+        <VerticalStackLayout Spacing="4">
+            <BoxView Color="Red" HeightRequest="40" />
+            <BoxView Color="Orange" HeightRequest="40" />
+            <BoxView Color="Yellow" HeightRequest="40" />
+            <BoxView Color="Green" HeightRequest="40" />
+            <BoxView Color="Blue" HeightRequest="40" />
+            <BoxView Color="Indigo" HeightRequest="40" />
+            <BoxView Color="Violet" HeightRequest="40" />
+        </VerticalStackLayout>
+
+        <Label Text="Rainbow:" />
+        <VerticalStackLayout Spacing="4" />
+
+        <Label Text="Drag start position relative to..." />
+        <Label Text="" />
+        <Label Text="Drag position relative to..." />
+        <Label Text="" />
+        <Label Text="Drop position relative to..." />
+        <Label Text="" />
+        <Label Text="Move: (none yet)" />
+    </VerticalStackLayout>
+</ContentPage>

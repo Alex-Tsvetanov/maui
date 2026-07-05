@@ -1,0 +1,57 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.TimePickerPage" Title="TimePicker">
+    <ScrollView>
+        <VerticalStackLayout Spacing="6" Padding="12">
+            <Label Text="Default" />
+            <TimePicker />
+            <Label Text="BackgroundColor" />
+            <TimePicker BackgroundColor="Blue" />
+            <Label Text="Background" />
+            <TimePicker>
+                <TimePicker.Background>
+                    <LinearGradientBrush EndPoint="1,0">
+                        <GradientStop Color="Yellow" Offset="0.1" />
+                        <GradientStop Color="Green" Offset="1.0" />
+                    </LinearGradientBrush>
+                </TimePicker.Background>
+            </TimePicker>
+            <Label Text="Background" />
+            <TimePicker>
+                <TimePicker.Background>
+                    <LinearGradientBrush EndPoint="1,0">
+                        <GradientStop Color="Purple" Offset="0.1" />
+                        <GradientStop Color="Fuchsia" Offset="1.0" />
+                    </LinearGradientBrush>
+                </TimePicker.Background>
+            </TimePicker>
+            <Button Text="Update Background" />
+            <Button Text="Clear Background" />
+            <Label Text="Default with time" />
+            <TimePicker />
+            <Label Text="Disabled" />
+            <TimePicker IsEnabled="False" />
+            <Label Text="TextColor" />
+            <TimePicker TextColor="Green" />
+            <Label Text="Format" />
+            <TimePicker Format="hh:mm" />
+            <Label Text="IsFocused" />
+            <TimePicker />
+            <HorizontalStackLayout Spacing="6">
+                <Label Text="IsFocused" />
+                <Label Text="False" />
+            </HorizontalStackLayout>
+            <Label Text="Set to null" />
+            <TimePicker />
+            <Button Text="Set to null" />
+            <Button Text="Set to now" />
+            <Label Text="IsOpen" />
+            <TimePicker />
+            <Button Text="Open TimePicker" />
+            <Button Text="Close TimePicker" />
+            <Label Text="Select a time" />
+            <TimePicker Format="HH:mm" />
+            <Label Text="Pick a time above" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

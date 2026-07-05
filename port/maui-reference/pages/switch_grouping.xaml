@@ -1,0 +1,38 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.SwitchGroupingPage" Title="Switch Grouping">
+    <!-- Twin of SwitchGrouping.xaml: an "Is Grouped:" Label + Switch row (the switch two-way binds the
+         CollectionView's IsGrouped; it starts On, so the page opens grouped) over a grouped CollectionView
+         with three DataTemplates — ItemTemplate ({Binding Name}), GroupHeaderTemplate (LightGreen bold,
+         {Binding Name}) and GroupFooterTemplate (Orange, {Binding Count, StringFormat}). note: SuperTeams()
+         is assigned in code-behind, so — like BasicGrouping — the static markup sets NO ItemsSource; the
+         twin renders the template definitions with no grouped rows. The {Binding IsGrouped} two-way binding
+         is interactivity, omitted; IsGrouped is kept True to match the switch's On start state. -->
+    <StackLayout>
+        <StackLayout Orientation="Horizontal" Spacing="8">
+            <Label Text="Is Grouped:" />
+            <Switch IsToggled="True" />
+        </StackLayout>
+        <CollectionView IsGrouped="True">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <StackLayout>
+                        <Label Text="{Binding Name}" />
+                    </StackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+            <CollectionView.GroupHeaderTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding Name}" TextColor="LightGreen" FontAttributes="Bold" />
+                </DataTemplate>
+            </CollectionView.GroupHeaderTemplate>
+
+            <CollectionView.GroupFooterTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding Count, StringFormat='Total members: {0}'}" TextColor="Orange" />
+                </DataTemplate>
+            </CollectionView.GroupFooterTemplate>
+        </CollectionView>
+    </StackLayout>
+</ContentPage>

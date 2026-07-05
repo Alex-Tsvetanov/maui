@@ -1,0 +1,59 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.HeaderFooterGridPage" Title="Header/Footer (grid)">
+    <!-- Twin of HeaderFooterGrid.xaml: a two-row Grid — a horizontal StackLayout of two toggle buttons on
+         top, and below a CollectionView over a GridItemsLayout (Span=3, Vertical) whose Header + Footer
+         are each a VIEW (a StackLayout with an Image, a bold AntiqueWhite caption Label and an
+         "Add Content" Button). Clicked handlers are omitted (resting UI only); the GridItemsLayout element
+         degrades to the ItemsLayout string attribute (item spacing lost — acceptable); item rows inlined
+         via x:Array so the resting layout mirrors the reference (the item PhotoTemplate is the caption
+         Label only). -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackLayout Orientation="Horizontal">
+            <Button Text="Toggle Header" />
+            <Button Text="Toggle Footer" />
+        </StackLayout>
+        <!-- CollectionView.Header / .Footer (view form) are unsupported, so the header/footer StackLayouts
+             are moved to plain siblings ABOVE / BELOW the CollectionView (wrapped together with it in a
+             VerticalStackLayout) — preserving the resting top-to-bottom order. -->
+        <VerticalStackLayout Grid.Row="1">
+        <StackLayout BackgroundColor="Transparent">
+            <Image Source="oasis.jpg" Aspect="AspectFill" HeightRequest="60" />
+            <Label Text="This Is A Header" TextColor="AntiqueWhite" HorizontalTextAlignment="Center"
+                   FontAttributes="Bold" FontSize="36" />
+            <Button Text="Add Content" />
+        </StackLayout>
+        <CollectionView ItemsLayout="VerticalGrid, 3">
+            <CollectionView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>cover1.jpg, 0</x:String>
+                    <x:String>oasis.jpg, 1</x:String>
+                    <x:String>photo.jpg, 2</x:String>
+                    <x:String>Vegetables.jpg, 3</x:String>
+                    <x:String>Fruits.jpg, 4</x:String>
+                    <x:String>FlowerBuds.jpg, 5</x:String>
+                    <x:String>Legumes.jpg, 6</x:String>
+                    <x:String>cover1.jpg, 7</x:String>
+                    <x:String>oasis.jpg, 8</x:String>
+                    <x:String>photo.jpg, 9</x:String>
+                </x:Array>
+            </CollectionView.ItemsSource>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding .}" Margin="6" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <StackLayout BackgroundColor="Transparent">
+            <Image Source="oasis.jpg" Aspect="AspectFill" HeightRequest="80" />
+            <Label Text="This Is A Footer" TextColor="AntiqueWhite" HorizontalTextAlignment="Center" Rotation="10"
+                   FontAttributes="Bold" FontSize="20" />
+            <Button Text="Add Content" />
+        </StackLayout>
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,18 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.EmptyViewNullPage" Title="EmptyView (null in XAML)">
+    <!-- The CollectionView starts EMPTY (no ItemsSource). EmptyView is unsupported (neither string nor
+         element form), so the empty-state message is rendered as a plain sibling Label in the same cell
+         (wrapped with the CollectionView in a Grid) — which is what shows at rest, since the source is
+         empty. GridItemsLayout Span="3" Vertical (element form unsupported -> string attribute form). -->
+    <Grid>
+        <Label Text="Nothing to display." />
+        <CollectionView ItemsLayout="VerticalGrid, 3">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding .}" Margin="6" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

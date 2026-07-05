@@ -1,0 +1,60 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.TitleBarPage" Title="TitleBarPage">
+    <!-- Twin of TitleBarPage.xaml: a 2-column grid of option panels that mutate a custom TitleBar installed
+         on the window. note: the TitleBar itself is installed on the Window (not part of the page's content
+         tree, and Window.TitleBar chrome is outside the supported dialect), so the twin reproduces only the
+         in-page VISIBLE content — the two option panels. Entries/checkboxes/buttons are shown at rest; their
+         mutation wiring is interactivity, omitted. -->
+    <Grid RowDefinitions="Auto,*" ColumnDefinitions="*,*">
+        <!-- Left panel: content options -->
+        <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="16">
+            <Label Text="Content Options" FontSize="24" />
+            <HorizontalStackLayout>
+                <CheckBox />
+                <Label Text="Set Icon" />
+            </HorizontalStackLayout>
+            <Entry Placeholder="Title Text" Text="Title" WidthRequest="120" />
+            <Entry Placeholder="Subtitle Text" Text="Subtitle" WidthRequest="120" />
+            <HorizontalStackLayout>
+                <CheckBox />
+                <Label Text="Leading Content" />
+            </HorizontalStackLayout>
+            <HorizontalStackLayout>
+                <CheckBox />
+                <Label Text="Content" />
+            </HorizontalStackLayout>
+            <HorizontalStackLayout>
+                <CheckBox />
+                <Label Text="Trailing Content" />
+            </HorizontalStackLayout>
+            <HorizontalStackLayout>
+                <CheckBox />
+                <Label Text="Tall TitleBar" />
+            </HorizontalStackLayout>
+            <HorizontalStackLayout>
+                <CheckBox IsChecked="True" />
+                <Label Text="Show TitleBar" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+
+        <!-- Right panel: color options -->
+        <VerticalStackLayout Grid.Row="0" Grid.Column="1" Spacing="16">
+            <Label Text="Color Options" FontSize="24" />
+            <HorizontalStackLayout Spacing="8">
+                <Entry Placeholder="Green" WidthRequest="120" />
+                <Button Text="Set Color" />
+            </HorizontalStackLayout>
+            <HorizontalStackLayout Spacing="8">
+                <Entry Placeholder="Green" WidthRequest="120" />
+                <Button Text="Set Foreground Color" />
+            </HorizontalStackLayout>
+            <HorizontalStackLayout Spacing="8">
+                <Button Text="Toggle Title Bar On Window" />
+                <Button Text="Toggle Has Navigation Bar" />
+                <Button Text="Push New TitleBar Page" />
+            </HorizontalStackLayout>
+            <Label Text="TitleBar: Title / Subtitle / Content are live" />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

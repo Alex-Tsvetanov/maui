@@ -1,0 +1,29 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.CustomSwipeItemViewPage" Title="CustomSwipeItem">
+    <!-- Twin of CustomSwipeItemViewGallery: a message-list row whose right swipe reveals a custom-content
+         SwipeItemView ("Favourite"). The port materializes ONE representative row (the DataTemplate's tree).
+         DEGRADES: only <SwipeView.Content> loads — the RightItems SwipeItemView (the #FE744D "Favourite"
+         border) has no markup sink — so the twin keeps just the Content, exactly the resting appearance
+         (the Favourite item is hidden until a swipe). The Content is a #2E249E Frame (CornerRadius 6,
+         no shadow, Padding 12) over a 2-row Grid: a #55A1FA size-10 Title over a #FFFFFF size-18 Date. -->
+    <VerticalStackLayout Spacing="12" Padding="12,12,12,0">
+        <Label Text="Swipe a row left to reveal the Favourite item" />
+        <SwipeView HeightRequest="80">
+            <SwipeView.Content>
+                <Frame BackgroundColor="#2E249E" CornerRadius="6" HasShadow="False" Padding="12">
+                    <Grid RowSpacing="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Label Grid.Row="0" Text="Welcome to .NET MAUI" TextColor="#55A1FA" FontSize="10"
+                               Padding="6,0,6,6" />
+                        <Label Grid.Row="1" Text="June 19, 2026" TextColor="#FFFFFF" FontSize="18"
+                               Padding="6,0,6,6" />
+                    </Grid>
+                </Frame>
+            </SwipeView.Content>
+        </SwipeView>
+    </VerticalStackLayout>
+</ContentPage>

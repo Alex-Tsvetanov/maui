@@ -1,0 +1,42 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.SwipeGesturePage" Title="SwipeView GestureRecognizer Gallery">
+    <!-- Twin of SwipeViewGestureRecognizerGallery.xaml: a black banner, a readout Label, and a SwipeView whose
+         Content is a white "message" card — a Grid (cols [*, Auto], rows [Auto, Auto, *], RowSpacing 0) with a
+         Title / Date sharing row 0 and a SubTitle / Description spanning both columns below. note: the
+         SwipeView's TapGestureRecognizer + the LeftItems ("Favourite") / RightItems ("Delete") swipe-item
+         channels have no resting markup sink (only SwipeView.Content loads, and swipe items are hidden until a
+         gesture) — degraded; the twin reproduces the at-rest card exactly as a screenshot would show it. -->
+    <VerticalStackLayout Spacing="8">
+        <Label Text="The SwipeView has a TapGestureRecognizer. Tap two times the SwipeView to show a dialog."
+               BackgroundColor="Black" TextColor="White" />
+        <SwipeView>
+            <SwipeView.Content>
+                <Grid RowSpacing="0" BackgroundColor="White">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Label Text="Welcome to .NET MAUI!"
+                           FontSize="14" TextColor="Black" Margin="6,0,6,6"
+                           Grid.Row="0" Grid.Column="0" />
+                    <Label Text="June 2026"
+                           FontSize="10" TextColor="DarkGray" Margin="6,0,6,6"
+                           Grid.Row="0" Grid.Column="1" />
+                    <Label Text="A SwipeView with gesture recognizers"
+                           FontSize="12" TextColor="DarkGray" Margin="6,0"
+                           Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" />
+                    <Label Text="Double-tap the card, or swipe to Favourite / Delete."
+                           FontSize="12" TextColor="DarkGray" Margin="6,0"
+                           Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" />
+                </Grid>
+            </SwipeView.Content>
+        </SwipeView>
+        <Label Text="Ready (double-tap row / swipe to favourite or delete)" />
+    </VerticalStackLayout>
+</ContentPage>

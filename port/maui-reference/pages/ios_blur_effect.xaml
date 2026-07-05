@@ -1,0 +1,14 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.IosBlurEffectPage" Title="Blur Effect">
+    <!-- The iOSSpecific VisualElement.BlurEffect knob is a platform-specific effect (no XAML dialect
+         analog); the resting image + control column is reproduced. -->
+    <VerticalStackLayout Margin="20" Spacing="12">
+        <Image Source="oasis.jpg" />
+        <Button Text="No Blur" />
+        <Button Text="Extra Light Blur" />
+        <Button Text="Light Blur" />
+        <Button Text="Dark Blur" />
+        <Label Text="BlurEffect: ExtraLight" />
+    </VerticalStackLayout>
+</ContentPage>

@@ -1,0 +1,17 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.TabbedFlyoutPage" Title="Tabbed + flyout demo">
+    <!-- Twin of tabbed_flyout_page: a FlyoutPage whose flyout pane is a titled menu (Home tab / Settings
+         tab / Toggle flyout buttons + a status label) and whose detail pane is a TabbedPage with a Home
+         and a Settings tab. note: FlyoutPage / TabbedPage / multi-page hosts are page chrome outside the
+         supported dialect (the loader only hosts a ContentPage), so this twin is DEGRADED to the at-rest
+         VISIBLE content — the flyout menu's buttons + status, plus the detail's current (Home) tab label
+         — composed into one ContentPage, matching the chrome.xaml convention. -->
+    <VerticalStackLayout Spacing="8">
+        <Button Text="Home tab" />
+        <Button Text="Settings tab" />
+        <Button Text="Toggle flyout" />
+        <Label Text="Flyout dismissed" />
+        <Label Text="This is the Home tab." />
+    </VerticalStackLayout>
+</ContentPage>

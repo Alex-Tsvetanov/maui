@@ -1,0 +1,33 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.LineJoinGalleryPage" Title="LineJoin Gallery">
+    <!-- Twin of LineJoinGallery.xaml: three identical open Polylines (Points "20 20, 250 50, 20 120",
+         Aqua stroke, StrokeThickness 20), each wrapped in a single-cell Grid and captioned, differing
+         only by StrokeLineJoin (Miter / Bevel / Round). The shared C# PolylineStyle is inlined per the
+         supported dialect. Faithful. -->
+    <VerticalStackLayout>
+        <Label Text="Miter (default):" />
+        <Grid>
+            <Polyline Points="20 20, 250 50, 20 120"
+                      Stroke="Aqua"
+                      StrokeThickness="20"
+                      StrokeLineJoin="Miter" />
+        </Grid>
+
+        <Label Text="Bevel:" />
+        <Grid>
+            <Polyline Points="20 20, 250 50, 20 120"
+                      Stroke="Aqua"
+                      StrokeThickness="20"
+                      StrokeLineJoin="Bevel" />
+        </Grid>
+
+        <Label Text="Round:" />
+        <Grid>
+            <Polyline Points="20 20, 250 50, 20 120"
+                      Stroke="Aqua"
+                      StrokeThickness="20"
+                      StrokeLineJoin="Round" />
+        </Grid>
+    </VerticalStackLayout>
+</ContentPage>

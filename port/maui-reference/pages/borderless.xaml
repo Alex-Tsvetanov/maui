@@ -1,0 +1,21 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.BorderlessPage"
+             BackgroundColor="Yellow"
+             Title="Border without Stroke">
+    <!-- Twin of Borderless.xaml: a yellow page with a two-row Grid (*,* / RowSpacing 0) where each cell
+         is a filled Border (Pink top / Red bottom) carrying the keyed BorderlessStyle (StrokeThickness
+         0). With no stroke the two color fields butt seamlessly. Fully faithful — Style / Setter /
+         {StaticResource} are all supported by the loader. -->
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Style x:Key="BorderlessStyle" TargetType="Border">
+                <Setter Property="StrokeThickness" Value="0" />
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    <Grid RowDefinitions="*,*" RowSpacing="0">
+        <Border Background="Pink" Style="{StaticResource BorderlessStyle}" />
+        <Border Grid.Row="1" Background="Red" Style="{StaticResource BorderlessStyle}" />
+    </Grid>
+</ContentPage>

@@ -1,0 +1,14 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.SearchBarPage" Title="SearchBar">
+    <VerticalStackLayout Spacing="12" Padding="16">
+        <Label Text="LENGTH: 0  SEARCHES: 0" />
+        <SearchBar Placeholder="Search..." />
+        <SearchBar Text="Green text" TextColor="Green" />
+        <SearchBar Placeholder="Placeholder" PlaceholderColor="Pink" />
+        <SearchBar Text="Italic 24pt" FontSize="24" FontAttributes="Italic" />
+        <SearchBar Text="end of the line" HorizontalTextAlignment="End" />
+        <SearchBar Text="Cancel is red" CancelButtonColor="Red" />
+        <SearchBar Placeholder="Numeric keyboard" Keyboard="Numeric" />
+    </VerticalStackLayout>
+</ContentPage>

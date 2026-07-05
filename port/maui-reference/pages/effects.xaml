@@ -1,0 +1,18 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.EffectsPage" Title="Effects">
+    <!-- Entry.Effects (RoutingEffect / PlatformEffect) omitted — the effect-attach layer is not
+         part of the supported markup dialect. Resting UI only. -->
+    <VerticalStackLayout Spacing="8">
+        <Label Text="Entry With Focus Routing Effect" />
+        <Entry Text="Alert Simple" Placeholder="Routing effect entry" />
+
+        <Label Text="Entry With Focus Platform Effect" />
+        <Entry Text="Alert Simple" Placeholder="Platform effect entry" />
+
+        <Button Text="Detach routing effect" />
+        <Button Text="Re-attach routing effect" />
+
+        <Label Text="routing effect attached — routing attached: yes" />
+    </VerticalStackLayout>
+</ContentPage>

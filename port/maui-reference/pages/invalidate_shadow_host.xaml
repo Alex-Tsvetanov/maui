@@ -1,0 +1,27 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.InvalidateShadowHostPage" Title="Invalidate Shadow Host">
+    <VerticalStackLayout Spacing="8">
+        <Label Text="Host" />
+        <Button Text="Update Host Size" />
+
+        <Label Text="Shadow" />
+
+        <Label Text="Offset X: 10" />
+        <Slider Minimum="-20" Maximum="20" Value="10" />
+
+        <Label Text="Offset Y: 10" />
+        <Slider Minimum="-20" Maximum="20" Value="10" />
+
+        <Label Text="Radius: 10" />
+        <Slider Minimum="0" Maximum="20" Value="10" />
+
+        <Label Text="Opacity: 1.00" />
+        <Slider Minimum="0" Maximum="1" Value="1" />
+
+        <!-- The shadowed Border host. The <Shadow> element is not in the supported dialect, so only the
+             host's resting chrome (green stroke, white fill, 300x300 minimum) is reproduced. -->
+        <Border Stroke="Green" StrokeThickness="4" BackgroundColor="White"
+                MinimumHeightRequest="300" MinimumWidthRequest="300" />
+    </VerticalStackLayout>
+</ContentPage>

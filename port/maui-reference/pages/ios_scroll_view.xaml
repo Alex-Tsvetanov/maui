@@ -1,0 +1,15 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.IosScrollViewPage" Title="ScrollView DelayContentTouches">
+    <!-- Twin of iOSScrollViewPage.xaml. The C# page is a FlyoutPage; at rest the DETAIL pane shows —
+         a ScrollView (iOS ShouldDelayContentTouches knob, omitted: platform-config, no markup sink)
+         over a Slider and two buttons. The "Menu" flyout pane and Navigation.PopAsync return are page
+         chrome, omitted per the resting-appearance subset. -->
+    <ScrollView>
+        <VerticalStackLayout Spacing="20">
+            <Slider Minimum="0" Maximum="100" Value="50" />
+            <Button Text="Toggle ScrollView DelayContentTouches" />
+            <Button Text="Return to Platform-Specifics List" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

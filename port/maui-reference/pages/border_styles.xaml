@@ -1,0 +1,24 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.BorderStylesPage" Title="Border using Styles">
+    <StackLayout Spacing="12" Margin="12">
+        <Label Text="RoundRectangle 10,10,10,10" />
+        <Border Stroke="Red" StrokeThickness="1" HeightRequest="55" Padding="10" Background="Transparent">
+            <Border.StrokeShape><RoundRectangle CornerRadius="10" /></Border.StrokeShape>
+        </Border>
+
+        <Label Text="StrokeShape binded to Parent" />
+        <Border Stroke="Red" StrokeThickness="1" HeightRequest="55" Padding="10" Background="Transparent">
+            <Border.StrokeShape><RoundRectangle CornerRadius="10" /></Border.StrokeShape>
+        </Border>
+
+        <Label Text="Update StrokeShape" />
+        <Border Stroke="Red" StrokeThickness="2" WidthRequest="400" HeightRequest="200" Background="Yellow">
+            <Border.StrokeShape><RoundRectangle CornerRadius="10" /></Border.StrokeShape>
+            <Label Text="Border.StrokeShape is RoundRectangle with 10 radius" />
+        </Border>
+
+        <Button Text="Increase CornerRadius" />
+        <Button Text="Decrease CornerRadius" />
+    </StackLayout>
+</ContentPage>

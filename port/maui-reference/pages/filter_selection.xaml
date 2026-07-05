@@ -1,0 +1,51 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.FilterSelectionPage" Title="Filter + Selection">
+    <Grid Padding="12" RowSpacing="6">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Row 0: the instructions Label -->
+        <Label Grid.Row="0"
+               Text="Select an item in the CollectionView below. Tap the Reset button to change the ItemsSource. The item should no longer be selected. If an item is still selected, this test has failed." />
+
+        <!-- Row 1: the "Filter" SearchBar (SearchCommand omitted) -->
+        <SearchBar Grid.Row="1" Placeholder="Filter" />
+
+        <!-- Row 2: the Reset Button (Clicked handler omitted) -->
+        <Button Grid.Row="2" Text="Reset" AutomationId="Reset" />
+
+        <!-- Row 3: the selection readout Label (the port's diagnostic) -->
+        <Label Grid.Row="3" Text="Selected: (none)" />
+
+        <!-- Row 4: the CollectionView (SelectionMode Single, Caption-label cell) -->
+        <CollectionView Grid.Row="4" SelectionMode="Single">
+            <CollectionView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>cover1.jpg, 0</x:String>
+                    <x:String>oasis.jpg, 1</x:String>
+                    <x:String>photo.jpg, 2</x:String>
+                    <x:String>Vegetables.jpg, 3</x:String>
+                    <x:String>Fruits.jpg, 4</x:String>
+                    <x:String>FlowerBuds.jpg, 5</x:String>
+                    <x:String>Legumes.jpg, 6</x:String>
+                    <x:String>cover1.jpg, 7</x:String>
+                    <x:String>oasis.jpg, 8</x:String>
+                    <x:String>photo.jpg, 9</x:String>
+                    <x:String>Vegetables.jpg, 10</x:String>
+                    <x:String>Fruits.jpg, 11</x:String>
+                </x:Array>
+            </CollectionView.ItemsSource>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding .}" Margin="6" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

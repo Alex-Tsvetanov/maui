@@ -1,0 +1,9 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.GroupingNoTemplatesPage" Title="Grouping (no templates)">
+    <!-- Twin of GroupingNoTemplates.xaml: the minimal grouping case — a grouped CollectionView with NO
+         templates and NO header/footer (the framework's default rendering of grouped data). note: the C#
+         markup sets NO ItemsSource — SuperTeams() is assigned in code-behind — so this static twin is the
+         bare grouped CollectionView, exactly like the original markup. -->
+    <CollectionView IsGrouped="True" />
+</ContentPage>

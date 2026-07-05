@@ -1,0 +1,58 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.EmptyViewRtlPage" Title="EmptyView RTL Gallery">
+    <Grid RowSpacing="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Row 0: a Picker (FlowDirection) over a SearchBar (Filter). Picker.SelectedIndex=0 -> LTR. -->
+        <StackLayout Spacing="8" Grid.Row="0">
+            <Picker Title="FlowDirection" SelectedIndex="0">
+                <Picker.Items>
+                    <x:String>Left to Right</x:String>
+                    <x:String>Right to Left</x:String>
+                </Picker.Items>
+            </Picker>
+            <SearchBar Placeholder="Filter" />
+        </StackLayout>
+
+        <!-- Row 1: the CollectionView starts POPULATED, so the item list shows at rest. GridItemsLayout
+             Span="3" Vertical (element form unsupported -> string attribute form). CollectionView.EmptyView
+             (view form) is unsupported, so its two-label StackLayout is moved to a plain sibling in the same
+             cell (retained for when the source empties; at rest the populated list shows over it). -->
+        <StackLayout Grid.Row="1">
+            <Label Text="No results matched your filter."
+                   FontAttributes="Bold" FontSize="18" HorizontalTextAlignment="Start" />
+            <Label Text="Maybe try a broader filter?"
+                   FontAttributes="Italic" FontSize="12" HorizontalTextAlignment="End" />
+        </StackLayout>
+        <CollectionView Grid.Row="1" ItemsLayout="VerticalGrid, 3">
+            <CollectionView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>cover1.jpg, 0</x:String>
+                    <x:String>oasis.jpg, 1</x:String>
+                    <x:String>photo.jpg, 2</x:String>
+                    <x:String>Vegetables.jpg, 3</x:String>
+                    <x:String>Fruits.jpg, 4</x:String>
+                    <x:String>FlowerBuds.jpg, 5</x:String>
+                    <x:String>Legumes.jpg, 6</x:String>
+                    <x:String>cover1.jpg, 7</x:String>
+                    <x:String>oasis.jpg, 8</x:String>
+                    <x:String>photo.jpg, 9</x:String>
+                    <x:String>Vegetables.jpg, 10</x:String>
+                    <x:String>Fruits.jpg, 11</x:String>
+                    <x:String>FlowerBuds.jpg, 12</x:String>
+                    <x:String>Legumes.jpg, 13</x:String>
+                    <x:String>cover1.jpg, 14</x:String>
+                </x:Array>
+            </CollectionView.ItemsSource>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding .}" Margin="6" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

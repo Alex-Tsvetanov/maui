@@ -1,0 +1,23 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.HeaderFooterPage" Title="Header/Footer (string)">
+    <!-- Twin of HeaderFooterString.xaml: a CollectionView with plain STRING Header + Footer and the
+         PhotoTemplate caption Label as the item template. The C# markup leaves ItemsSource for
+         code-behind (DemoFilteredItemSource(3)); here the three caption rows are inlined via x:Array so
+         the resting layout mirrors the code-first reference (the image half of PhotoTemplate has no
+         static analog — the caption carries the image file name). -->
+    <CollectionView Header="Just a string as a header" Footer="This footer is also a string">
+        <CollectionView.ItemsSource>
+            <x:Array Type="{x:Type x:String}">
+                <x:String>cover1.jpg, 0</x:String>
+                <x:String>oasis.jpg, 1</x:String>
+                <x:String>photo.jpg, 2</x:String>
+            </x:Array>
+        </CollectionView.ItemsSource>
+        <CollectionView.ItemTemplate>
+            <DataTemplate>
+                <Label Text="{Binding .}" Margin="6" />
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+</ContentPage>

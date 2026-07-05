@@ -1,0 +1,102 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.BorderPlaygroundPage" Title="Borders">
+    <Grid Padding="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="200" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- The live border (BorderView): a gradient background, a gradient dashed stroke, a per-corner
+             RoundRectangle shape (TL=20, BR=12), and a top-left Label — the builder's initial state. -->
+        <Border Grid.Row="0" Stroke="#CAC531" StrokeThickness="5" StrokeDashArray="1, 1" StrokeDashOffset="1">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#00B4DB" Offset="0" />
+                    <GradientStop Color="#0083B0" Offset="1" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="20,0,0,12" />
+            </Border.StrokeShape>
+            <Label Text="Just a Label" FontSize="20" />
+        </Border>
+
+        <!-- The scrollable controls panel. -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="2">
+                <Label Text="Border Content" FontSize="18" FontAttributes="Bold" />
+                <Picker Title="Border Content">
+                    <Picker.Items>
+                        <x:String>Label</x:String>
+                        <x:String>Image</x:String>
+                    </Picker.Items>
+                </Picker>
+
+                <Label Text="Border Shape" FontSize="18" FontAttributes="Bold" />
+                <Picker Title="Border Shape">
+                    <Picker.Items>
+                        <x:String>Rectangle</x:String>
+                        <x:String>RoundRectangle</x:String>
+                        <x:String>Ellipse</x:String>
+                    </Picker.Items>
+                </Picker>
+
+                <Label Text="Background" FontSize="18" FontAttributes="Bold" />
+                <Label Text="Background Start Color" />
+                <Entry Text="#00B4DB" Placeholder="Background Start Color Hex" />
+                <Label Text="Background End Color" />
+                <Entry Text="#0083B0" Placeholder="Background End Color Hex" />
+
+                <Label Text="Content Background" FontSize="18" FontAttributes="Bold" />
+                <CheckBox IsChecked="False" />
+                <Label Text="Show Content Background" />
+
+                <Label Text="Border" FontSize="18" FontAttributes="Bold" />
+                <Label Text="Border Start Color" />
+                <Entry Text="#CAC531" Placeholder="Border Start Color Hex" />
+                <Label Text="Border End Color" />
+                <Entry Text="#F3F9A7" Placeholder="Border End Color Hex" />
+
+                <Label Text="Border Width: 5" />
+                <Slider Minimum="0" Maximum="20" Value="5" />
+
+                <Label Text="Border Dash Array:" />
+                <Entry Text="1, 1" />
+
+                <Label Text="Border Dash Offset: 1" />
+                <Slider Minimum="0" Maximum="2" Value="1" />
+
+                <Label Text="Border LineJoin" FontSize="18" FontAttributes="Bold" />
+                <Picker Title="Border LineJoin">
+                    <Picker.Items>
+                        <x:String>Miter</x:String>
+                        <x:String>Bevel</x:String>
+                        <x:String>Round</x:String>
+                    </Picker.Items>
+                </Picker>
+
+                <Label Text="Border LineCap" FontSize="18" FontAttributes="Bold" />
+                <Picker Title="Border LineCap">
+                    <Picker.Items>
+                        <x:String>Butt</x:String>
+                        <x:String>Round</x:String>
+                        <x:String>Square</x:String>
+                    </Picker.Items>
+                </Picker>
+
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="Corner Radius" FontSize="18" FontAttributes="Bold" />
+                    <Label Text="Top Left Corner Radius: 20" />
+                    <Slider Minimum="0" Maximum="60" Value="20" />
+                    <Label Text="Top Right Corner Radius: 0" />
+                    <Slider Minimum="0" Maximum="60" Value="0" />
+                    <Label Text="Bottom Left Corner Radius: 0" />
+                    <Slider Minimum="0" Maximum="60" Value="0" />
+                    <Label Text="Bottom Right Corner Radius: 12" />
+                    <Slider Minimum="0" Maximum="60" Value="12" />
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

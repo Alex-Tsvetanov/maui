@@ -1,0 +1,52 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.ZIndexPage"
+             Title="ZIndex">
+    <Grid RowDefinitions="Auto,*">
+        <HorizontalStackLayout Grid.Row="0">
+            <Label Text="Z-Index of Label 5: 5" />
+            <Stepper Minimum="0" Maximum="20" Increment="1" Value="5" />
+        </HorizontalStackLayout>
+
+        <Label Grid.Row="1" Text="This is Label 0, z-index 0" ZIndex="0"
+               WidthRequest="200" HeightRequest="100"
+               HorizontalOptions="Start" VerticalOptions="Start"
+               BackgroundColor="Aquamarine" Margin="0,0,0,0" />
+        <Label Grid.Row="1" Text="This is Label 1, z-index 1" ZIndex="1"
+               WidthRequest="200" HeightRequest="100"
+               HorizontalOptions="Start" VerticalOptions="Start"
+               BackgroundColor="Orange" Margin="15,15,0,0" />
+        <Label Grid.Row="1" Text="This is Label 2, z-index 2" ZIndex="2"
+               WidthRequest="200" HeightRequest="100"
+               HorizontalOptions="Start" VerticalOptions="Start"
+               BackgroundColor="MediumOrchid" Margin="30,30,0,0" />
+        <Label Grid.Row="1" Text="This is Label 3, z-index 3" ZIndex="3"
+               WidthRequest="200" HeightRequest="100"
+               HorizontalOptions="Start" VerticalOptions="Start"
+               BackgroundColor="Red" Margin="45,45,0,0" />
+        <Label Grid.Row="1" Text="This is Label 4, z-index 4" ZIndex="4"
+               WidthRequest="200" HeightRequest="100"
+               HorizontalOptions="Start" VerticalOptions="Start"
+               BackgroundColor="Green" Margin="60,60,0,0" />
+        <Label Grid.Row="1" Text="This is Label 5, z-index 5" ZIndex="5"
+               WidthRequest="200" HeightRequest="100"
+               HorizontalOptions="Start" VerticalOptions="Start"
+               BackgroundColor="Blue" Margin="75,75,0,0" />
+        <Label Grid.Row="1" Text="This is Label 6, z-index 6" ZIndex="6"
+               WidthRequest="200" HeightRequest="100"
+               HorizontalOptions="Start" VerticalOptions="Start"
+               BackgroundColor="Aquamarine" Margin="90,90,0,0" />
+        <Label Grid.Row="1" Text="This is Label 7, z-index 7" ZIndex="7"
+               WidthRequest="200" HeightRequest="100"
+               HorizontalOptions="Start" VerticalOptions="Start"
+               BackgroundColor="Orange" Margin="105,105,0,0" />
+        <Label Grid.Row="1" Text="This is Label 8, z-index 8" ZIndex="8"
+               WidthRequest="200" HeightRequest="100"
+               HorizontalOptions="Start" VerticalOptions="Start"
+               BackgroundColor="MediumOrchid" Margin="120,120,0,0" />
+        <Label Grid.Row="1" Text="This is Label 9, z-index 9" ZIndex="9"
+               WidthRequest="200" HeightRequest="100"
+               HorizontalOptions="Start" VerticalOptions="Start"
+               BackgroundColor="Red" Margin="135,135,0,0" />
+    </Grid>
+</ContentPage>

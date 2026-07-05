@@ -1,0 +1,11 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.IosSearchBarPage" Title="SearchBar style">
+    <!-- Twin of iOSSearchBarPage.xaml: a SearchBar (iOS SearchBarStyle knob, omitted: platform-config,
+         no markup sink) over two toggle buttons. -->
+    <VerticalStackLayout Spacing="12">
+        <SearchBar Placeholder="Enter search term" />
+        <Button Text="Toggle SearchBar Style" />
+        <Button Text="Toggle Background" />
+    </VerticalStackLayout>
+</ContentPage>
