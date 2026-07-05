@@ -46,7 +46,6 @@
 #include <string>
 #include <vector>
 
-#include "maui/controls/box_view.hpp"
 #include "maui/controls/button.hpp"
 #include "maui/controls/check_box.hpp"
 #include "maui/controls/content_page.hpp"
@@ -56,6 +55,7 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/scroll_view.hpp"
 #include "maui/controls/shapes/ellipse.hpp"
+#include "maui/controls/shapes/rectangle.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
@@ -77,6 +77,8 @@ namespace maui::samples
 
             // ---- the readout + the rectangle-selection toggle (the C# SelectionLabel + CheckBox) -------
             selection_label_.set_text("Selected: -");
+            selection_label_.set_horizontal_layout_alignment(
+                maui::core::layout_alignment::center); // XAML HorizontalOptions="Center"
             mode_label_.set_text("Rectangle Selection");
             mode_row_.add(mode_label_);
             mode_row_.add(rectangle_select_check_);
@@ -99,14 +101,19 @@ namespace maui::samples
             rotate_btn_.set_text("Rotation = 20");
             rotate_btn_.set_rotation(20);
 
-            // An ellipse + a rounded box_view (the RoundRectangle stand-in) + an image.
+            // An ellipse + a rounded (unfilled) Rectangle (the RoundRectangle stand-in) + an image.
             oval_.set_stroke(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::green));
             oval_.set_stroke_thickness(10);
             oval_.set_width_request(150);
             oval_.set_height_request(50);
 
-            rounded_.set_color(maui::graphics::colors::light_green);
-            rounded_.set_corner_radius(maui::graphics::corner_radius(40));
+            // XAML: <Rectangle WidthRequest="300" HeightRequest="200" RadiusX="40" RadiusY="40"
+            //        StrokeThickness="10" Stroke="Green" /> — no Fill, so it must stay unfilled
+            // (the port previously used a filled box_view stand-in here; that diverged from MAUI).
+            rounded_.set_stroke(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::green));
+            rounded_.set_stroke_thickness(10);
+            rounded_.set_radius_x(40);
+            rounded_.set_radius_y(40);
             rounded_.set_width_request(300);
             rounded_.set_height_request(200);
 
@@ -280,7 +287,7 @@ namespace maui::samples
         maui::controls::button scale2_btn_;
         maui::controls::button rotate_btn_;
         maui::controls::shapes::ellipse oval_;
-        maui::controls::box_view rounded_;
+        maui::controls::shapes::rectangle rounded_;
         maui::controls::image bot_image_;
 
         std::vector<target> targets_; // the hit-test candidates (the C# _allChildren)
