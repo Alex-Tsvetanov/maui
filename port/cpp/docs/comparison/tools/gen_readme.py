@@ -4,11 +4,15 @@
 README.md is the source of truth for the MAUI-vs-C++ visual parity comparison. It has three
 collapsible sections — **iOS**, **macOS**, **Android** — each containing:
   1. a summary table with the discrepancy counts (Sonnet 5 + Gemini), and
-  2. a per-page table with columns  № | Gallery Screen | App Preview  (one row per gallery page).
+  2. one `###` subheader per gallery page, titled with the page name and a "{sonnet}/{gemini}"
+     emoji combo (e.g. "🟢/⏳"), followed by:
+       - the nested screenshot <table> (the fixed MAUI/C++/C++&XAML[+AppKit] x Light/Dark template),
+       - a `####` subsubheader per review model (Sonnet, Gemini, Pixel-Perfect Score), each titled
+         with that model's own status emoji (🟢/🟡/🔴/⬛ <framework>/⏳) and containing the review
+         prose underneath.
 
-The **App Preview** cell holds an inner <table> of the screenshots, following the fixed template:
-non-macOS shows MAUI / C++ / C++&XAML; macOS additionally shows AppKit/C++ and AppKit/C++&XAML.
-Each inner table stacks a Light row over a Dark row; a missing shot uses `_placeholder.png`.
+The ⬛ (blank) emoji is followed by which capture is missing (MAUI / C++ / C++ & XAML), inferred by
+checking which framework has no `light` screenshot on that platform.
 
 Everything is driven by comparison.json (page name/title/description + per-platform screenshot
 paths and Sonnet/Gemini parity reviews). Missing screenshots are stored as null → placeholder.
@@ -36,6 +40,11 @@ FW_LABEL = {
     "maui": "MAUI", "cpp": "C++", "xaml": "C++ &amp; XAML",
     "appkit_cpp": "AppKit / C++", "appkit_xaml": "AppKit / C++ &amp; XAML",
 }
+# Plain-text (non-HTML-escaped) twin of FW_LABEL, for use in markdown headers rather than <table> cells.
+FW_LABEL_PLAIN = {
+    "maui": "MAUI", "cpp": "C++", "xaml": "C++ & XAML",
+    "appkit_cpp": "AppKit / C++", "appkit_xaml": "AppKit / C++ & XAML",
+}
 EMOJI = {"green": "🟢", "yellow": "🟡", "red": "🔴", "blank": "⬛"}
 CLASS_LABEL = {"green": "🟢 Match", "yellow": "🟡 Minor", "red": "🔴 Major", "blank": "⬛ Blank"}
 
@@ -60,20 +69,33 @@ def img_td(path):
     return f'<td><img width="{IMG_W}" src="{src}" /></td>'
 
 
-def review_text(rev):
+def blank_framework(sc, fws):
+    """Which framework column has no `light` screenshot on this platform (the ⬛ blank cause),
+    or None if every framework has at least a light shot (a 'blank' verdict from something the
+    schema can't see, e.g. a corrupted/wrong-window capture — the emoji then stands alone)."""
+    for fw in fws:
+        if not sc.get(fw, {}).get("light"):
+            return FW_LABEL_PLAIN.get(fw, fw)
+    return None
+
+
+def status_emoji(rev, sc, fws):
+    """The compact status glyph: 🟢/🟡/🔴, ⬛ (+ which capture is blank), or ⏳ unreviewed."""
     st = (rev or {}).get("status")
+    if st == "blank":
+        label = blank_framework(sc, fws)
+        return f"⬛ {label}" if label else "⬛"
+    return EMOJI.get(st, "⏳")
+
+
+def review_body(rev):
+    """The review prose under a subsubheader (no leading emoji — that's in the heading)."""
     txt = esc((rev or {}).get("review", ""))
-    emoji = EMOJI.get(st, "")
-    if emoji and txt:
-        return f"{emoji} {txt}"
-    if emoji:
-        return emoji
-    return txt or "—"
+    return txt if txt else "_Not yet reviewed._"
 
 
-def preview_table(page, fws):
-    """The inner screenshot <table> for one page, per the fixed template."""
-    sc = page["screenshots"]
+def preview_table(sc, fws):
+    """The screenshot <table> for one page, per the fixed template."""
     head = ["<th></th>"] + [f"<th>{FW_LABEL[fw]}</th>" for fw in fws]
     light = ["<th>Light</th>"] + [img_td(sc[fw]["light"]) for fw in fws]
     dark = ["<th>Dark</th>"] + [img_td(sc[fw]["dark"]) for fw in fws]
@@ -81,7 +103,7 @@ def preview_table(page, fws):
             f"<tr>{''.join(head)}</tr>"
             f"<tr>{''.join(light)}</tr>"
             f"<tr>{''.join(dark)}</tr>"
-            "</table>").replace("|", "\\|")
+            "</table>")
 
 
 def counts(pages, plat, model):
@@ -102,8 +124,39 @@ def summary_table(pages, plat, n):
     return "\n".join(out)
 
 
+def page_section(i, p, plat, fws):
+    """One gallery page: a `###` subheader (title + sonnet/gemini emoji combo), the screenshot
+    table, then a `####` subsubheader per review model (Sonnet, Gemini, Pixel-Perfect Score)."""
+    page = p["platforms"][plat]
+    sc = page["screenshots"]
+    sonnet, gemini = page["sonnet"], page["gemini"]
+    combo = f"{EMOJI.get((sonnet or {}).get('status'), '⏳')}/{EMOJI.get((gemini or {}).get('status'), '⏳')}"
+
+    out = [f"### {i}. {esc(p['title'])} — {combo}", f"<sub>{esc(p['name'])}</sub>", ""]
+    out.append(preview_table(sc, fws))
+    out.append("")
+    if p["description"]:
+        out.append(esc(p["description"]))
+        out.append("")
+
+    out.append(f"#### {status_emoji(sonnet, sc, fws)} Sonnet 5 Review")
+    out.append("")
+    out.append(review_body(sonnet))
+    out.append("")
+
+    out.append(f"#### {status_emoji(gemini, sc, fws)} Gemini Review")
+    out.append("")
+    out.append(review_body(gemini))
+    out.append("")
+
+    out.append("#### ⏳ Pixel-Perfect Score")
+    out.append("")
+    out.append("_Not yet computed — no automated pixel-diff score is recorded for this page yet._")
+    return "\n".join(out)
+
+
 def section(pages, plat, display, fws, n):
-    """One collapsible platform section: intro + summary counts + the per-page table."""
+    """One collapsible platform section: intro + summary counts + one subheader per page."""
     out = ["<details>", f"<summary><h2>{display} ({n} examples) — click to expand</h2></summary>", ""]
     out.append(NOTES[plat])
     out.append("")
@@ -112,12 +165,9 @@ def section(pages, plat, display, fws, n):
     out.append("")
     out.append(summary_table(pages, plat, n))
     out.append("")
-    out.append("| № | Gallery Screen | App Preview | Description | Sonnet 5 Review | Gemini Review |")
-    out.append("| --- | --- | --- | --- | --- | --- |")
     for i, p in enumerate(pages, 1):
-        page = {"description": p["description"], **p["platforms"][plat]}
-        out.append(f"| {i} | **{esc(p['title'])}**<br><sub>{esc(p['name'])}</sub> | {preview_table(page, fws)} | {esc(page["description"])} | {review_text(page["sonnet"])} | {review_text(page["gemini"])} | ")
-    out.append("")
+        out.append(page_section(i, p, plat, fws))
+        out.append("")
     out.append("</details>")
     return "\n".join(out)
 
@@ -130,9 +180,11 @@ def main():
         "",
         f"Per-page MAUI-vs-C++ visual parity for the **{n} gallery pages**, on **iOS**, **macOS** "
         "(Mac Catalyst + AppKit) and **Android**. Each section is collapsible and holds a discrepancy-"
-        "count summary plus one row per page; every row's **App Preview** cell shows the MAUI / C++ / "
-        "C++&amp;XAML renders (light over dark) with the per-page description and the Sonnet 5 + Gemini "
-        "parity reviews. Missing captures show a placeholder. Generated from `comparison.json` by "
+        "count summary, then one subheader per page titled with a `{Sonnet}/{Gemini}` status-emoji "
+        "combo (🟢 match / 🟡 minor / 🔴 major / ⬛ blank / ⏳ unreviewed). Under each page: the MAUI / "
+        "C++ / C++&amp;XAML renders (light over dark; missing captures show a placeholder), then a "
+        "subsubheader per review model (Sonnet, Gemini, Pixel-Perfect Score) titled with that model's "
+        "own status emoji and holding its review prose. Generated from `comparison.json` by "
         "`tools/gen_readme.py` — do not edit by hand.",
         "",
     ]
