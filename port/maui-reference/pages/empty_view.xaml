@@ -10,11 +10,9 @@
         <!-- Row 0: the filter SearchBar -->
         <SearchBar Placeholder="Filter" Grid.Row="0" />
 
-        <!-- Row 1: the CollectionView. EmptyView is unsupported (neither string nor element form), so the
-             empty-state message is rendered as a plain sibling Label in the same cell instead. At rest the
-             source is populated, so the item list shows over it. -->
-        <Label Grid.Row="1" Text="No items match your filter." />
-        <CollectionView Grid.Row="1">
+        <!-- Row 1: the CollectionView with the string-form EmptyView (the EmptyViewStringGallery oracle).
+             At rest the source is populated, so the EmptyView does not render — matching real MAUI. -->
+        <CollectionView Grid.Row="1" EmptyView="No items match your filter.">
             <CollectionView.ItemsSource>
                 <x:Array Type="{x:Type x:String}">
                     <x:String>cover1.jpg, 0</x:String>

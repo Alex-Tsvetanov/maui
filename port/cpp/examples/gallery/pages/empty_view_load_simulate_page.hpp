@@ -60,8 +60,10 @@
 #include "maui/controls/items/items_layout_orientation.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
+#include "maui/controls/view.hpp" // margin_property
 #include "maui/core/grid_length.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/thickness.hpp"
 
 namespace maui::samples
 {
@@ -87,10 +89,12 @@ namespace maui::samples
             list_.set_items_layout(std::make_shared<maui::controls::grid_items_layout>(
                 3, maui::controls::items_layout_orientation::vertical));
 
-            // ---- the item template: the PhotoTemplate caption Label (Text <- item caption; see note) ----
+            // ---- the item template: the PhotoTemplate caption Label (Text <- item caption; see note),
+            //      Margin 6 (the shared twin's cell shape) ----
             auto cell = maui::controls::data_template::of<maui::controls::label>();
             cell->set_binding<std::string, demo_item>(maui::controls::label::text_property(),
                                                       [](const demo_item& item) { return item.caption; });
+            cell->set_value(maui::controls::margin_property(), maui::core::thickness(6));
             list_.set_item_template(cell);
 
             // The CollectionView starts EMPTY (the oracle starts with no ItemsSource, then an empty

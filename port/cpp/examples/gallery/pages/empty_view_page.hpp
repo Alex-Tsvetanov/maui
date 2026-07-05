@@ -43,8 +43,10 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/search_bar.hpp"
 #include "maui/controls/templates/data_template.hpp"
+#include "maui/controls/view.hpp" // margin_property
 #include "maui/core/grid_length.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/thickness.hpp"
 
 namespace maui::samples
 {
@@ -78,10 +80,12 @@ namespace maui::samples
                 }
             });
 
-            // The PhotoTemplate caption Label: Text binds to the item's caption (C# Binding("Caption")).
+            // The PhotoTemplate caption Label: Text binds to the item's caption (C# Binding("Caption")),
+            // Margin 6 (the shared twin's cell shape).
             auto cell = maui::controls::data_template::of<maui::controls::label>();
             cell->set_binding<std::string, demo_item>(maui::controls::label::text_property(),
                                                       [](const demo_item& item) { return item.caption; });
+            cell->set_value(maui::controls::margin_property(), maui::core::thickness(6));
             list_.set_item_template(cell);
             list_.set_items_source(items_);
 
@@ -145,13 +149,15 @@ namespace maui::samples
         }
 
     private:
-        // DemoFilteredItemSource().AddItems(50): the default 50-row set, captioned "<image>, <n>".
+        // The 18-row demo set the shared twin's x:Array carries (DemoFilteredItemSource's caption
+        // pattern "<image>, <n>", truncated to the twin's static count so both frameworks render the
+        // same at-rest items).
         [[nodiscard]] static std::vector<demo_item> source_items()
         {
             static const std::vector<std::string> images{"cover1.jpg", "oasis.jpg",      "photo.jpg",  "Vegetables.jpg",
                                                          "Fruits.jpg", "FlowerBuds.jpg", "Legumes.jpg"};
             std::vector<demo_item> rows;
-            for (int n = 0; n < 50; ++n)
+            for (int n = 0; n < 18; ++n)
             {
                 rows.push_back(
                     demo_item{images[static_cast<std::size_t>(n) % images.size()] + ", " + std::to_string(n)});

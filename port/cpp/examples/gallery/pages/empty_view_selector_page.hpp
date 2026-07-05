@@ -63,8 +63,10 @@
 #include "maui/controls/search_bar.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/templates/data_template_selector.hpp"
+#include "maui/controls/view.hpp" // margin_property
 #include "maui/core/grid_length.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/core/type_tag.hpp"
 
 namespace maui::samples
@@ -130,6 +132,9 @@ namespace maui::samples
             page_.set_title("EmptyView (template selector)");
 
             // Grid: "Auto, Auto, *" — the instruction stack, the SearchBar, then the CollectionView.
+            // Padding 12 / RowSpacing 6: the shared twin's root-grid shape.
+            grid_.set_padding(maui::core::thickness(12));
+            grid_.set_row_spacing(6);
             grid_.add_row_definition(maui::core::grid_length::automatic());
             grid_.add_row_definition(maui::core::grid_length::automatic());
             grid_.add_row_definition(maui::core::grid_length::star());
@@ -150,11 +155,13 @@ namespace maui::samples
             };
 
             // ---- Row 2: the CollectionView ----
-            // ItemTemplate: a single Label "<Name> — <Location>" (see note).
+            // ItemTemplate: a single Label "<Name> — <Location>" (see note), Margin 6 (the shared
+            // twin's cell shape).
             auto cell = maui::controls::data_template::of<maui::controls::label>();
             cell->set_binding<std::string, monkey>(maui::controls::label::text_property(), [](const monkey& value) {
                 return value.name + " — " + value.location;
             });
+            cell->set_value(maui::controls::margin_property(), maui::core::thickness(6));
             list_.set_item_template(cell);
 
             build_empty_view_selector();

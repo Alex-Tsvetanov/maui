@@ -19,16 +19,20 @@
         </StackLayout>
 
         <!-- Row 1: the CollectionView starts POPULATED, so the item list shows at rest. GridItemsLayout
-             Span="3" Vertical (element form unsupported -> string attribute form). CollectionView.EmptyView
-             (view form) is unsupported, so its two-label StackLayout is moved to a plain sibling in the same
-             cell (retained for when the source empties; at rest the populated list shows over it). -->
-        <StackLayout Grid.Row="1">
-            <Label Text="No results matched your filter."
-                   FontAttributes="Bold" FontSize="18" HorizontalTextAlignment="Start" />
-            <Label Text="Maybe try a broader filter?"
-                   FontAttributes="Italic" FontSize="12" HorizontalTextAlignment="End" />
-        </StackLayout>
+             Span="3" Vertical (element form unsupported -> string attribute form). The element-form
+             EmptyView is the EmptyViewRTLGallery oracle's two-label StackLayout (Start/End alignment —
+             the RTL flip subject); it does not render at rest since the source is populated. -->
         <CollectionView Grid.Row="1" ItemsLayout="VerticalGrid, 3">
+            <CollectionView.EmptyView>
+                <StackLayout>
+                    <Label Text="No results matched your filter."
+                           FontAttributes="Bold" FontSize="18" Margin="10,25,10,10"
+                           HorizontalTextAlignment="Start" />
+                    <Label Text="Maybe try a broader filter?"
+                           FontAttributes="Italic" FontSize="12"
+                           HorizontalTextAlignment="End" />
+                </StackLayout>
+            </CollectionView.EmptyView>
             <CollectionView.ItemsSource>
                 <x:Array Type="{x:Type x:String}">
                     <x:String>cover1.jpg, 0</x:String>

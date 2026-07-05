@@ -17,12 +17,15 @@
         <!-- Row 1: the "Filter" SearchBar -->
         <SearchBar Grid.Row="1" Placeholder="Filter" />
 
-        <!-- Row 2: the CollectionView (2-span vertical grid of caption labels). CollectionView.EmptyView
-             (view form) is unsupported, so the coral "Nothing to see here" Label is moved to a plain sibling
-             in the same cell; at rest the source is full so the item cells show over it. -->
-        <Label Grid.Row="2" Text="Nothing to see here" TextColor="Coral"
-               HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+        <!-- Row 2: the CollectionView (2-span vertical grid of caption labels). The element-form
+             EmptyView is the coral "Nothing to see here" Label the FilterCollectionView oracle assigns
+             from code-behind (UseEmptyView starts toggled ON); at rest the source is full, so the
+             EmptyView does not render — matching real MAUI. -->
         <CollectionView Grid.Row="2" ItemsLayout="VerticalGrid, 2">
+            <CollectionView.EmptyView>
+                <Label Text="Nothing to see here" TextColor="Coral"
+                       HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+            </CollectionView.EmptyView>
             <CollectionView.ItemsSource>
                 <x:Array Type="{x:Type x:String}">
                     <x:String>cover1.jpg, 0</x:String>

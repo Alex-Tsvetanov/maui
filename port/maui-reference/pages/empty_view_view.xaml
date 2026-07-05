@@ -10,18 +10,20 @@
         <!-- Row 0: the "Filter" SearchBar (SearchCommand omitted) -->
         <SearchBar Grid.Row="0" Placeholder="Filter" />
 
-        <!-- Row 1: the CollectionView (GridItemsLayout Span=3, Vertical). CollectionView.EmptyView (view
-             form) is unsupported, so its two-label StackLayout is moved to a plain sibling in the same cell;
-             at rest the source is full so the item cells show over it. -->
-        <StackLayout Grid.Row="1">
-            <Label Text="No results matched your filter."
-                   FontAttributes="Bold" FontSize="18" Margin="10,25,10,10"
-                   HorizontalTextAlignment="Center" />
-            <Label Text="Maybe try a broader filter?"
-                   FontAttributes="Italic" FontSize="12"
-                   HorizontalTextAlignment="Center" />
-        </StackLayout>
+        <!-- Row 1: the CollectionView (GridItemsLayout Span=3, Vertical) with the element-form EmptyView
+             (the EmptyViewViewGallery oracle's two-label StackLayout). At rest the source is full, so
+             the EmptyView does not render — matching real MAUI. -->
         <CollectionView Grid.Row="1" ItemsLayout="VerticalGrid, 3">
+            <CollectionView.EmptyView>
+                <StackLayout>
+                    <Label Text="No results matched your filter."
+                           FontAttributes="Bold" FontSize="18" Margin="10,25,10,10"
+                           HorizontalTextAlignment="Center" />
+                    <Label Text="Maybe try a broader filter?"
+                           FontAttributes="Italic" FontSize="12"
+                           HorizontalTextAlignment="Center" />
+                </StackLayout>
+            </CollectionView.EmptyView>
             <CollectionView.ItemsSource>
                 <x:Array Type="{x:Type x:String}">
                     <x:String>cover1.jpg, 0</x:String>

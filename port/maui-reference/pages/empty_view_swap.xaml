@@ -24,10 +24,20 @@
             <Button Text="Fill" />
         </HorizontalStackLayout>
 
-        <!-- Row 3: the CollectionView (3-span vertical grid of caption labels). The
-             switch swaps EmptyView between EmptyView1 (No results / broader filter) and
-             EmptyView2 (Nothing to see here); at rest the source is full so items show. -->
+        <!-- Row 3: the CollectionView (3-span vertical grid of caption labels). The oracle's switch
+             swaps EmptyView between the EmptyView1/EmptyView2 ContentView resources from code-behind;
+             the switch starts OFF, so the AT-REST EmptyView is EmptyView2 ("Nothing to see here."),
+             authored here in the element form. (EmptyView2's coffee.png Image is omitted — no bundled
+             image assets in the static twin; the EmptyView does not render at rest anyway, since the
+             source is populated.) -->
         <CollectionView Grid.Row="3" ItemsLayout="VerticalGrid, 3">
+            <CollectionView.EmptyView>
+                <StackLayout>
+                    <Label Text="Nothing to see here."
+                           FontAttributes="Bold" FontSize="18" Margin="10,25,10,10"
+                           HorizontalTextAlignment="Center" />
+                </StackLayout>
+            </CollectionView.EmptyView>
             <CollectionView.ItemsSource>
                 <x:Array Type="{x:Type x:String}">
                     <x:String>cover1.jpg, 0</x:String>

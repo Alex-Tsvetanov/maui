@@ -55,8 +55,10 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/search_bar.hpp"
 #include "maui/controls/templates/data_template.hpp"
+#include "maui/controls/view.hpp" // margin_property
 #include "maui/core/grid_length.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/thickness.hpp"
 
 namespace maui::samples
 {
@@ -76,7 +78,7 @@ namespace maui::samples
         {
             page_.set_title("Filter + Selection");
 
-            build_master(50); // DemoFilteredItemSource ctor: AddItems(_source, 50)
+            build_master(12); // the shared twin's static x:Array count (DemoFilteredItemSource pattern)
             seed_live();      // Items = new ObservableCollection<...>(_source) — start showing all
 
             // ---- row 0: the instructions Label ----
@@ -97,10 +99,12 @@ namespace maui::samples
             reset_button_.set_automation_id("Reset");
             reset_button_.clicked.connect([this]() { reset(); });
 
-            // ---- row 3: the CollectionView (SelectionMode Single, Caption-label cell) ----
+            // ---- row 3: the CollectionView (SelectionMode Single, Caption-label cell, Margin 6 — the
+            //      shared twin's cell shape) ----
             auto cell = maui::controls::data_template::of<maui::controls::label>();
             cell->set_binding<std::string, photo_item>(maui::controls::label::text_property(),
                                                        [](const photo_item& item) { return item.caption; });
+            cell->set_value(maui::controls::margin_property(), maui::core::thickness(6));
             list_.set_item_template(cell);
             list_.set_selection_mode(maui::controls::selection_mode::single); // SelectionMode="Single"
             list_.set_items_source(items_);
@@ -117,6 +121,9 @@ namespace maui::samples
             // native android.widget.Button carries an OPAQUE Material background that paints over the whole
             // cell, hiding the overlapped label. Give the readout its own Auto row so the two never collide on
             // any backend — a strict improvement that matches the iOS reference's intent (both fully visible).
+            // Padding 12 / RowSpacing 6: the shared twin's root-grid shape.
+            grid_.set_padding(maui::core::thickness(12));
+            grid_.set_row_spacing(6);
             grid_.add_row_definition(maui::core::grid_length::automatic());
             grid_.add_row_definition(maui::core::grid_length::automatic());
             grid_.add_row_definition(maui::core::grid_length::automatic());

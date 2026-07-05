@@ -65,9 +65,11 @@
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/toggle_switch.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/controls/view.hpp" // margin_property
 #include "maui/core/grid_length.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/thickness.hpp"
 
 namespace maui::samples
 {
@@ -103,10 +105,12 @@ namespace maui::samples
             toggle_row_.add(empty_view_switch_);
             empty_view_switch_.toggled.connect([this](bool) { switch_empty_view(); });
 
-            // ---- row 2: the CollectionView (3-span vertical grid of caption labels) ----
+            // ---- row 2: the CollectionView (3-span vertical grid of caption labels, Margin 6 — the
+            //      shared twin's cell shape) ----
             auto cell = maui::controls::data_template::of<maui::controls::label>();
             cell->set_binding<std::string, photo_item>(maui::controls::label::text_property(),
                                                        [](const photo_item& item) { return item.caption; });
+            cell->set_value(maui::controls::margin_property(), maui::core::thickness(6));
             list_.set_item_template(cell);
             list_.set_items_layout(std::make_shared<maui::controls::grid_items_layout>(
                 3, maui::controls::items_layout_orientation::vertical)); // GridItemsLayout Span="3"
@@ -123,7 +127,10 @@ namespace maui::samples
             buttons_.add(clear_button_);
             buttons_.add(fill_button_);
 
-            // ---- assemble the Grid (Auto / Auto / Auto / *) — the oracle's three rows plus a button row ----
+            // ---- assemble the Grid (Auto / Auto / Auto / *) — the oracle's three rows plus a button row.
+            //      Padding 12 / RowSpacing 6: the shared twin's root-grid shape. ----
+            grid_.set_padding(maui::core::thickness(12));
+            grid_.set_row_spacing(6);
             grid_.add_row_definition(maui::core::grid_length::automatic());
             grid_.add_row_definition(maui::core::grid_length::automatic());
             grid_.add_row_definition(maui::core::grid_length::automatic());
@@ -235,12 +242,13 @@ namespace maui::samples
             empty_view2_->add(empty2_primary_); // (the coffee.png Image is omitted — see header note)
         }
 
-        // DemoFilteredItemSource.AddItems: 50 captioned items cycling the demo image names.
+        // The 12-row demo set the shared twin's x:Array carries (DemoFilteredItemSource's caption
+        // pattern, truncated to the twin's static count so both frameworks render the same items).
         void build_master()
         {
             static const char* const images[] = {"cover1.jpg", "oasis.jpg",      "photo.jpg",  "Vegetables.jpg",
                                                  "Fruits.jpg", "FlowerBuds.jpg", "Legumes.jpg"};
-            constexpr int count = 50;
+            constexpr int count = 12;
             constexpr int image_count = static_cast<int>(std::size(images));
             master_.reserve(count);
             for (int n = 0; n < count; ++n)

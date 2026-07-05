@@ -72,8 +72,10 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/search_bar.hpp"
 #include "maui/controls/templates/data_template.hpp"
+#include "maui/controls/view.hpp" // margin_property
 #include "maui/core/grid_length.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/thickness.hpp"
 
 namespace maui::samples
 {
@@ -102,6 +104,9 @@ namespace maui::samples
             page_.set_title("EmptyView (template)");
 
             // Grid: an Auto row (the SearchBar) over a Star row (the CollectionView) — the oracle layout.
+            // Padding 12 / RowSpacing 6: the shared twin's root-grid shape.
+            grid_.set_padding(maui::core::thickness(12));
+            grid_.set_row_spacing(6);
             grid_.add_row_definition(maui::core::grid_length::automatic());
             grid_.add_row_definition(maui::core::grid_length::star());
 
@@ -122,10 +127,12 @@ namespace maui::samples
                 3, maui::controls::items_layout_orientation::vertical);
             list_.set_items_layout(layout);
 
-            // ---- the item template: the PhotoTemplate caption Label (Text ← item caption; see note) ----
+            // ---- the item template: the PhotoTemplate caption Label (Text ← item caption; see note),
+            //      Margin 6 (the shared twin's cell shape) ----
             auto cell = maui::controls::data_template::of<maui::controls::label>();
             cell->set_binding<std::string, demo_item>(maui::controls::label::text_property(),
                                                       [](const demo_item& item) { return item.caption; });
+            cell->set_value(maui::controls::margin_property(), maui::core::thickness(6));
             list_.set_item_template(cell);
             list_.set_items_source(items_);
 
@@ -211,13 +218,14 @@ namespace maui::samples
         }
 
     private:
-        // DemoFilteredItemSource().AddItems(50): the default 50-row set, captioned "<image>, <n>".
+        // The 12-row demo set the shared twin's x:Array carries (DemoFilteredItemSource's caption
+        // pattern "<image>, <n>", truncated to the twin's static count).
         [[nodiscard]] static std::vector<demo_item> source_items()
         {
             static const std::vector<std::string> images{"cover1.jpg", "oasis.jpg",      "photo.jpg",  "Vegetables.jpg",
                                                          "Fruits.jpg", "FlowerBuds.jpg", "Legumes.jpg"};
             std::vector<demo_item> rows;
-            for (int n = 0; n < 50; ++n)
+            for (int n = 0; n < 12; ++n)
             {
                 rows.push_back(
                     demo_item{images[static_cast<std::size_t>(n) % images.size()] + ", " + std::to_string(n)});

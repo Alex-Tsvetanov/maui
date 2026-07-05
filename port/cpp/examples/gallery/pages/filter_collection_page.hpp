@@ -44,9 +44,11 @@
 #include "maui/controls/search_bar.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/toggle_switch.hpp"
+#include "maui/controls/view.hpp" // margin_property
 #include "maui/core/grid_length.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 
 namespace maui::samples
@@ -85,17 +87,22 @@ namespace maui::samples
             search_.text_changed.connect(
                 [this](const std::string&, const std::string& new_text) { filter_items(new_text); });
 
-            // ---- row 2: the CollectionView (2-span vertical grid of caption labels) ----
+            // ---- row 2: the CollectionView (2-span vertical grid of caption labels, Margin 6 — the
+            //      shared twin's cell shape) ----
             auto cell = maui::controls::data_template::of<maui::controls::label>();
             cell->set_binding<std::string, photo_item>(maui::controls::label::text_property(),
                                                        [](const photo_item& item) { return item.caption; });
+            cell->set_value(maui::controls::margin_property(), maui::core::thickness(6));
             list_.set_item_template(cell);
             list_.set_items_layout(std::make_shared<maui::controls::grid_items_layout>(
                 2, maui::controls::items_layout_orientation::vertical)); // GridItemsLayout Span="2"
             list_.set_items_source(items_);
             update_empty_view(); // UpdateEmptyView() with the switch on
 
-            // ---- assemble the Grid (Auto / Auto / *) ----
+            // ---- assemble the Grid (Auto / Auto / *) — Padding 12 / RowSpacing 6: the shared twin's
+            //      root-grid shape ----
+            grid_.set_padding(maui::core::thickness(12));
+            grid_.set_row_spacing(6);
             grid_.add_row_definition(maui::core::grid_length::automatic());
             grid_.add_row_definition(maui::core::grid_length::automatic());
             grid_.add_row_definition(maui::core::grid_length::star());
@@ -163,7 +170,7 @@ namespace maui::samples
         {
             static const char* const images[] = {"cover1.jpg", "oasis.jpg",      "photo.jpg",  "Vegetables.jpg",
                                                  "Fruits.jpg", "FlowerBuds.jpg", "Legumes.jpg"};
-            constexpr int count = 50;
+            constexpr int count = 12; // the shared twin's static x:Array count
             constexpr int image_count = static_cast<int>(std::size(images));
             master_.reserve(count);
             for (int n = 0; n < count; ++n)

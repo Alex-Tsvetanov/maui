@@ -11,27 +11,36 @@ cluster guidance below), delete the key's line from `known_diverging()`, and re-
 These are exactly the "unit tests catch what screenshots also show" first-line-defense findings: each
 cluster below is a class of visible render divergence between the C++-only and C++&XAML columns.
 
-## Cluster A — twin uses `StackLayout` where the builder uses `VerticalStackLayout`/`HorizontalStackLayout` (23 keys)
+> 2026-07-06 — the CollectionView **EmptyView family is CLOSED** (10 keys de-listed): the loader now
+> registers `EmptyView` (string attribute, property-element text, and element/view forms — see
+> `src/xaml/register_xaml_items.cpp`), the shared pages were re-authored to the real EmptyView the
+> original C# galleries use (no more always-visible sibling-label hacks), and the builder twins were
+> aligned (root Padding 12 / RowSpacing 6, Margin-6 cells, the twins' static item counts;
+> `empty_view_rtl`'s header row is now a plain `stack_layout`). De-listed: `empty_view`,
+> `empty_view_load_simulate`, `empty_view_null`, `empty_view_rtl`, `empty_view_selector`,
+> `empty_view_swap`, `empty_view_template`, `empty_view_view`, `filter_collection`,
+> `filter_selection`.
+
+## Cluster A — twin uses `StackLayout` where the builder uses `VerticalStackLayout`/`HorizontalStackLayout` (22 keys)
 
 Different control type (often plus spacing/padding deltas). Alignment direction: usually fix the
 SHARED XAML to the specific-orientation control the builder (and the original C# page) uses — plain
 `StackLayout` is the legacy control with different default behavior.
 
 `animation, alerts, app_theme_binding, basic_swipe, clip, clip_corner_radius, clip_gallery,
-clip_views, composition_gallery, ellipse_gallery, empty_view_rtl, header_footer_grid,
+clip_views, composition_gallery, ellipse_gallery, header_footer_grid,
 header_footer_grid_horizontal, line_gallery, path_transform_string, pointer_gesture, polygon_gallery,
 polyline_gallery, preselected_items, rectangle_gallery, selection_synchronization, shape_app_theme,
 some_empty_groups`
 
-## Cluster B — root-layout Padding/Spacing set on one side only (~25 keys)
+## Cluster B — root-layout Padding/Spacing set on one side only (~19 keys)
 
 E.g. `check_box.xaml` `Padding="16"` vs builder padding 0; `transform_playground` reversed (builder
 12, xaml 0); `vertical_stack`/`horizontal_stack` xaml `Spacing="6"` vs builder 0. Alignment
 direction: page-by-page — whichever side matches the MAUI reference capture wins.
 
 `behaviors, border_layout, border_playground, border_resize_content, border_stroke, check_box,
-data_template_selector, empty_view_selector, empty_view_swap, empty_view_template, empty_view_view,
-filter_collection, filter_selection, focus, gestures, horizontal_stack, input_controls,
+data_template_selector, focus, gestures, horizontal_stack, input_controls,
 invalidate_brush, radio_button_border, radio_button_group_gallery, radio_template_from_style,
 scattered_radio_button, search_bar, selection_command_param, switch_grouping, transform_playground,
 vertical_stack`
@@ -50,13 +59,12 @@ the builder's synthetic on-mount mutation where it exists purely for capture.
 - `swipe_threshold` — builder "Ready" vs xaml "Reveal threshold=80 / Execute threshold=80"
 - `radio_button_group` — page Title suffix "(Attached Property)" only in the builder
 
-## Cluster D — twin structurally rewritten around unsupported features / loader gaps (20 keys)
+## Cluster D — twin structurally rewritten around unsupported features / loader gaps (17 keys)
 
 Each is either a port XAML-feature gap (belongs in the P3 gap corpus with an
 `expected_port_status`) or a twin approximation that should be re-authored now that the shared page
 is canonical.
 
-- `empty_view, empty_view_load_simulate, empty_view_null` — CollectionView.EmptyView unsupported → inlined label
 - `carousel_page` — `<CarouselView>` hydrates as bare `view` (loader doesn't materialize it)
 - `tabbed_flyout` — builder root `flyout_page`, twin is a ContentPage stand-in
 - `hit_testing` — builder BoxView vs twin Rectangle stand-in
