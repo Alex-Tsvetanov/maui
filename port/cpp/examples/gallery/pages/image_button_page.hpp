@@ -120,8 +120,6 @@ namespace maui::samples
             padding_label_.set_text("Padding (slider-driven)");
             padding_button_.set_aspect(maui::core::aspect::aspect_fit);
             padding_button_.set_source(maui::controls::image_source::from_file("cog.png"));
-            padding_button_.set_stroke_color(maui::graphics::colors::red);
-            padding_button_.set_stroke_thickness(10);
             padding_button_.set_background_brush(
                 std::make_shared<maui::controls::solid_color_brush>(maui::graphics::colors::green));
             padding_button_.set_padding(maui::core::thickness(10));
@@ -146,8 +144,6 @@ namespace maui::samples
             background_label_.set_text("Background (toggle)");
             background_button_.set_aspect(maui::core::aspect::aspect_fit);
             background_button_.set_source(maui::controls::image_source::from_file("cog.png"));
-            background_button_.set_stroke_color(maui::graphics::colors::red);
-            background_button_.set_stroke_thickness(10);
             background_button_.set_padding(maui::core::thickness(0));
             apply_background();
             update_background_button_.set_text("Update Background");
