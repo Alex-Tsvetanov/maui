@@ -31,10 +31,23 @@
 // Span=…> needs the [Parameter("Orientation")] ctor-arg-from-attribute reflection the port lacks
 // (Orientation is get-only, ctor-injected), so it stays deferred — the string form is the gallery route.
 //
+// EmptyView (C# ItemsView.EmptyView, an `object` property): BOTH authored forms are supported through
+// ONE raw-setter registration (the registry keys one entry per name, so the setter itself splits on
+// the arriving std::any — the same string-vs-view split items_view::set_empty_view's boxed_item
+// payload models):
+//   - the STRING form (EmptyView="No items…" attribute, or property-element text) arrives as
+//     std::string and boxes by value — C# assigns the literal to the object property and the
+//     handler renders its ToString;
+//   - the ELEMENT form (<CollectionView.EmptyView><Label/></…>) arrives as the created element
+//     (boxed shared_ptr<bindable_object> by register_type), passes the type-erased i_view "is a
+//     View" check, and boxes with reference semantics — C#'s `EmptyView is View` direct-hosting path.
+// The entry's value_type is std::string so apply_value_core's late-text-conversion branch is skipped
+// (a literal reaches the setter unconverted; there is deliberately NO boxed_item text converter).
+//
 // Deferred (no text converter / binding-or-code only, mirroring register_xaml_scrolling_interactive's
-// IndicatorView notes): EmptyView (boxed_item), the <GridItemsLayout> element form (see above),
-// ItemsUpdatingScrollMode + RemainingItemsThreshold (set programmatically). CarouselView's
-// Position/CurrentItem (TwoWay, bound or code-driven) are likewise omitted.
+// IndicatorView notes): the <GridItemsLayout> element form (see above), ItemsUpdatingScrollMode +
+// RemainingItemsThreshold (set programmatically). CarouselView's Position/CurrentItem (TwoWay, bound
+// or code-driven) are likewise omitted.
 //
 // See register_xaml_groups.hpp for the function signature declaration; pattern mirrors
 // register_xaml_scrolling_interactive.cpp.
@@ -42,6 +55,7 @@
 #include "register_xaml_groups.hpp"
 #include "register_xaml_helpers.hpp"
 
+#include <any> // EmptyView: the raw-setter registration splits on the arriving std::any
 #include <array>
 #include <charconv> // W14: std::from_chars (ItemsLayout span parse)
 #include <memory>
@@ -49,7 +63,7 @@
 #include <string>
 #include <string_view>
 
-#include "maui/controls/items/boxed_item.hpp" // W6: Header/Footer object stand-in
+#include "maui/controls/items/boxed_item.hpp" // W6/EmptyView: the object stand-in both forms box into
 #include "maui/controls/items/carousel_view.hpp"
 #include "maui/controls/items/collection_view.hpp"
 #include "maui/controls/items/grid_items_layout.hpp"    // W14: ItemsLayout="VerticalGrid,N"
@@ -62,6 +76,9 @@
 #include "maui/controls/items/selection_mode.hpp"
 #include "maui/controls/items/structured_items_view.hpp" // W6: Header/Footer/ItemSizingStrategy
 #include "maui/controls/templates/data_template.hpp"
+#include "maui/core/bindable_object.hpp"
+#include "maui/core/i_view.hpp" // EmptyView: the element form's type-erased "is a View" check
+#include "maui/core/type_tag.hpp"
 #include "maui/xaml/xaml_converter_registry.hpp"
 #include "maui/xaml/xaml_converters.hpp" // enum_entry / parse_enum / xaml_convert_error
 #include "maui/xaml/xaml_parse_exception.hpp"
@@ -187,6 +204,37 @@ namespace maui::xaml
                 "EmptyViewTemplate", [](TControl& view, const std::shared_ptr<maui::controls::data_template>& tmpl) {
                     view.set_empty_view_template(tmpl);
                 });
+            // EmptyView — ONE raw registration covering both authored forms (see the header comment):
+            // a std::string literal boxes by value; a created element that IS a view (the i_view
+            // check — controls::view<> is the CRTP template, so the interface is the type-erased
+            // "is a View" test) boxes by reference so the handler hosts the instance directly
+            // (C#'s `EmptyView is View` path; boxed_item::as_bindable carries it). Any other payload
+            // reports false → the loader's "Cannot assign property" error, matching C# TrySetValue's
+            // pre-check.
+            properties.register_property<TControl>(
+                "EmptyView",
+                [](maui::core::bindable_object& target, const std::any& value) -> bool {
+                    auto* view = dynamic_cast<TControl*>(&target);
+                    if (view == nullptr)
+                    {
+                        return false;
+                    }
+                    if (const auto* text = std::any_cast<std::string>(&value))
+                    {
+                        view->set_empty_view(maui::controls::boxed_item::of(*text));
+                        return true;
+                    }
+                    if (const auto* object = std::any_cast<std::shared_ptr<maui::core::bindable_object>>(&value))
+                    {
+                        if (*object != nullptr && dynamic_cast<maui::core::i_view*>(object->get()) != nullptr)
+                        {
+                            view->set_empty_view(maui::controls::boxed_item::of(*object));
+                            return true;
+                        }
+                    }
+                    return false;
+                },
+                maui::core::type_tag::of<std::string>());
             properties.register_bindable_property<TControl>(
                 "HorizontalScrollBarVisibility",
                 maui::controls::items_view::horizontal_scroll_bar_visibility_property());

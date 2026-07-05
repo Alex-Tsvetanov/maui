@@ -809,6 +809,63 @@ namespace
         EXPECT_EQ(view.item_sizing_strategy(), controls::item_sizing_strategy::measure_first_item);
     }
 
+    TEST(xaml_loader, collection_view_empty_view_string_form)
+    {
+        // EmptyView string form: the attribute literal boxes into the items machinery's object
+        // stand-in (C# assigns the string to the object-typed ItemsView.EmptyView; the handler
+        // renders its ToString). Mirrors the Header/Footer boxed-string route above.
+        controls::collection_view view;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(view, R"xml(
+<CollectionView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                EmptyView="No items match your filter." />)xml");
+        });
+        EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
+        ASSERT_TRUE(view.empty_view().has_value());
+        EXPECT_EQ(view.empty_view().text(), "No items match your filter.");
+        EXPECT_EQ(view.empty_view().as_bindable(), nullptr); // a string, not a hosted view
+    }
+
+    TEST(xaml_loader, collection_view_empty_view_element_text_form)
+    {
+        // EmptyView property-element TEXT form — the spelling the original C# galleries use
+        // (<CollectionView.EmptyView>Items loading simulation...</CollectionView.EmptyView>): the
+        // element text reaches the same registration as the attribute literal.
+        controls::collection_view view;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(view, R"xml(
+<CollectionView xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+	<CollectionView.EmptyView>Items loading simulation...</CollectionView.EmptyView>
+</CollectionView>)xml");
+        });
+        EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
+        ASSERT_TRUE(view.empty_view().has_value());
+        EXPECT_EQ(view.empty_view().text(), "Items loading simulation...");
+        EXPECT_EQ(view.empty_view().as_bindable(), nullptr);
+    }
+
+    TEST(xaml_loader, collection_view_empty_view_element_form)
+    {
+        // EmptyView element form: the created element coerces to a view and boxes with reference
+        // semantics — C#'s `EmptyView is View` direct-hosting path (the handler hosts the instance).
+        controls::collection_view view;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(view, R"xml(
+<CollectionView xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+	<CollectionView.EmptyView>
+		<Label Text="No results matched your filter." />
+	</CollectionView.EmptyView>
+</CollectionView>)xml");
+        });
+        EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
+        ASSERT_TRUE(view.empty_view().has_value());
+        const std::shared_ptr<maui::core::bindable_object> hosted = view.empty_view().as_bindable();
+        ASSERT_NE(hosted, nullptr);
+        const auto label = std::dynamic_pointer_cast<controls::label>(hosted);
+        ASSERT_NE(label, nullptr);
+        EXPECT_EQ(label->text(), "No results matched your filter.");
+    }
+
     TEST(xaml_loader, data_template_create_content_yields_distinct_stamps)
     {
         // Per-stamp independence (W4 risk #1/#4): the loader re-clones + re-inflates per call, so two
