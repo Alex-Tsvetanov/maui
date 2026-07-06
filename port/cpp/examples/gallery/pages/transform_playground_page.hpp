@@ -159,7 +159,13 @@ namespace maui::samples
         }
 
         // Build the transform target: a 200x200 Path whose Data is RectangleGeometry(0,0,50,50), red
-        // fill, blue stroke 4, carrying the live TransformGroup as its RenderTransform.
+        // fill, blue stroke 4, carrying the live TransformGroup as its RenderTransform. The original C#
+        // TransformPlaygroundGallery.xaml places the 50x50 square at the LITERAL (0,0) origin of its
+        // 200x200 canvas (top-left) — matching this builder — with the panel's own PathContainerStyle
+        // set to HorizontalOptions="Start" VerticalOptions="Start" (see the panel_ setup above). The
+        // canonical shared transform_playground.xaml's degraded Rectangle-in-VerticalStackLayout twin
+        // was missing that Start/Start declaration (an authoring omission — fixed separately in the
+        // shared XAML, not here).
         void build_target()
         {
             path_.set_data(

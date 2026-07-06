@@ -11,6 +11,8 @@
 #include <limits>
 
 #include "maui/controls/grid.hpp"
+#include "maui/controls/shapes/rectangle.hpp"
+#include "maui/controls/stack_layout.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/grid_length.hpp"
 #include "maui/core/i_view.hpp"
@@ -360,5 +362,65 @@ namespace
         EXPECT_EQ(readout.frame().y, 204);                              // 192 + 12 — below g2
         EXPECT_GE(g2.frame().y, g1.frame().y + g1.frame().height);      // no overlap: g2 below g1
         EXPECT_GE(readout.frame().y, g2.frame().y + g2.frame().height); // no overlap: readout below g2
+    }
+
+    // ---- regression: an explicit-size sole child of a (Vertical)StackLayout must be CENTERED
+    // cross-axis, matching MAUI's LayoutOptions.Fill + explicit-size -> effectively-Center rule
+    // (src/Core/src/Layouts/LayoutExtensions.cs AlignHorizontal/AlignVertical). shape_app_theme and
+    // transform_playground both show a WidthRequest/HeightRequest shape rendering flush at the
+    // left/top edge of the stack instead of centered. ----
+
+    TEST(shape_stack_centering_repro, vertical_stack_layout_centers_explicit_size_generic_view)
+    {
+        // Baseline with the generic aligned_view test double (no shape involved) — isolates whether the
+        // bug is specific to shapes::shape/rectangle or a property of the stack-layout arrange path for
+        // ANY explicitly-sized view.
+        maui::controls::vertical_stack_layout root;
+        aligned_view child;
+        child.set_desired_size({200, 80});
+        child.set_width_request(200);
+        child.set_height_request(80);
+        root.add(child);
+
+        root.measure(400, inf);
+        root.arrange(rect(0, 0, 400, 200));
+
+        EXPECT_EQ(child.frame().x, 100); // (400 - 200) / 2
+        EXPECT_EQ(child.frame().width, 200);
+    }
+
+    TEST(shape_stack_centering_repro, vertical_stack_layout_centers_explicit_size_rectangle)
+    {
+        // The exact reproduction from the bug report: a real shapes::rectangle (transform_playground's
+        // Path-degrades-to-Rectangle stand-in) with WidthRequest=200/HeightRequest=80 as the sole child
+        // of a VerticalStackLayout, arranged within a wider 400-wide bound.
+        maui::controls::vertical_stack_layout root;
+        maui::controls::shapes::rectangle child;
+        child.set_width_request(200);
+        child.set_height_request(80);
+        root.add(child);
+
+        root.measure(400, inf);
+        root.arrange(rect(0, 0, 400, 200));
+
+        EXPECT_EQ(child.frame().x, 100); // (400 - 200) / 2 -- expected centered, like MAUI
+        EXPECT_EQ(child.frame().width, 200);
+    }
+
+    TEST(shape_stack_centering_repro, legacy_stack_layout_centers_explicit_size_rectangle)
+    {
+        // shape_app_theme uses the legacy (default-orientation-vertical) StackLayout, not
+        // VerticalStackLayout -- confirm the orientation-dispatching manager behaves the same.
+        maui::controls::stack_layout root;
+        maui::controls::shapes::rectangle child;
+        child.set_width_request(200);
+        child.set_height_request(80);
+        root.add(child);
+
+        root.measure(400, inf);
+        root.arrange(rect(0, 0, 400, 200));
+
+        EXPECT_EQ(child.frame().x, 100); // (400 - 200) / 2
+        EXPECT_EQ(child.frame().width, 200);
     }
 } // namespace

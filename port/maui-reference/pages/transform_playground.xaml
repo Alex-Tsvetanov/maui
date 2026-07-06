@@ -8,8 +8,13 @@
     <VerticalStackLayout Spacing="0">
         <VerticalStackLayout BackgroundColor="#e5e5e5" WidthRequest="200" HeightRequest="200">
             <!-- Path.Data geometry is unsupported; the closed 50x50 square "M 0,0 L 50,0 50,50 0,50 Z" is
-                 exactly a Rectangle, so the Path degrades to a 50x50 Rectangle with the same fill/stroke. -->
-            <Rectangle Fill="Red" Stroke="Blue" StrokeThickness="4" WidthRequest="50" HeightRequest="50" />
+                 exactly a Rectangle, so the Path degrades to a 50x50 Rectangle with the same fill/stroke.
+                 HorizontalOptions="Start" matches the original PathStyle's container
+                 (PathContainerStyle: HorizontalOptions="Start" VerticalOptions="Start") — without it the
+                 Rectangle centers cross-axis (Fill + explicit width), rendering top-CENTER instead of the
+                 original's literal top-LEFT (0,0) square placement. -->
+            <Rectangle Fill="Red" Stroke="Blue" StrokeThickness="4" WidthRequest="50" HeightRequest="50"
+                       HorizontalOptions="Start" />
         </VerticalStackLayout>
         <ScrollView Padding="12">
             <VerticalStackLayout Spacing="0">

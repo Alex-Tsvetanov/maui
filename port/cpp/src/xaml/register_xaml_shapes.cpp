@@ -62,6 +62,7 @@
 #include "maui/xaml/xaml_parse_exception.hpp"
 #include "maui/xaml/xaml_property_registry.hpp"
 #include "maui/xaml/xaml_type_registry.hpp"
+#include "register_xaml_helpers.hpp" // register_view_properties<T> (the shared IView/VisualElement surface)
 
 namespace maui::xaml
 {
@@ -204,39 +205,13 @@ namespace maui::xaml
             return parse_enum<fill_rule>(text, names, "maui::controls::shapes::fill_rule");
         }
 
-        // ---- shared view surface (mirrors xaml_standard_types.cpp's register_view_properties) -------
-        template <class TControl> void register_view_properties(xaml_property_registry& properties)
-        {
-            namespace controls = maui::controls;
-            properties.register_bindable_property<TControl>("IsEnabled", controls::is_enabled_property());
-            properties.register_bindable_property<TControl>("Opacity", controls::opacity_property());
-            properties.register_bindable_property<TControl>("InputTransparent", controls::input_transparent_property());
-            properties.register_bindable_property<TControl>("AutomationId", controls::automation_id_property());
-            properties.register_bindable_property<TControl>("TranslationX", controls::translation_x_property());
-            properties.register_bindable_property<TControl>("TranslationY", controls::translation_y_property());
-            properties.register_bindable_property<TControl>("Scale", controls::scale_property());
-            properties.register_bindable_property<TControl>("ScaleX", controls::scale_x_property());
-            properties.register_bindable_property<TControl>("ScaleY", controls::scale_y_property());
-            properties.register_bindable_property<TControl>("Rotation", controls::rotation_property());
-            properties.register_bindable_property<TControl>("RotationX", controls::rotation_x_property());
-            properties.register_bindable_property<TControl>("RotationY", controls::rotation_y_property());
-            properties.register_bindable_property<TControl>("AnchorX", controls::anchor_x_property());
-            properties.register_bindable_property<TControl>("AnchorY", controls::anchor_y_property());
-            properties.register_bindable_property<TControl>("ZIndex", controls::z_index_property());
-            properties.register_bindable_property<TControl>("WidthRequest", controls::width_request_property());
-            properties.register_bindable_property<TControl>("HeightRequest", controls::height_request_property());
-            properties.register_bindable_property<TControl>("MinimumWidthRequest",
-                                                            controls::minimum_width_request_property());
-            properties.register_bindable_property<TControl>("MinimumHeightRequest",
-                                                            controls::minimum_height_request_property());
-            properties.register_bindable_property<TControl>("MaximumWidthRequest",
-                                                            controls::maximum_width_request_property());
-            properties.register_bindable_property<TControl>("MaximumHeightRequest",
-                                                            controls::maximum_height_request_property());
-            properties.register_property<TControl, bool>("IsVisible", [](TControl& control, const bool& value) {
-                control.set_visibility(value ? maui::core::visibility::visible : maui::core::visibility::collapsed);
-            });
-        }
+        // NOTE: register_view_properties<T> (the shared IView/VisualElement attribute surface — Margin,
+        // HorizontalOptions/VerticalOptions/FlowDirection, IsEnabled, Opacity, the transform properties,
+        // WidthRequest/HeightRequest family, Clip, BackgroundColor/Background, Style, IsVisible) now comes
+        // from the shared register_xaml_helpers.hpp, exactly like every other register_xaml_<group>.cpp
+        // TU. This file previously carried its OWN local duplicate that had drifted out of sync (missing
+        // Margin/HorizontalOptions/VerticalOptions/FlowDirection/Clip/Background*/Style entirely, so no
+        // shape control's XAML surface could set any of them) — deleted in favor of the shared one.
 
         // Register the shape base-class bindable properties (Fill/Stroke via brush bridge, then
         // the shared shape descriptor slots). Called from each concrete shape block.

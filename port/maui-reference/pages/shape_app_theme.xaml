@@ -11,7 +11,8 @@
                  BackgroundColor="{AppThemeBinding Light=White, Dark=Black}">
         <Label Text="Shape using AppTheme"
                TextColor="{AppThemeBinding Light=Green, Dark=Red}" />
-        <Rectangle WidthRequest="200"
+        <Rectangle HorizontalOptions="Start"
+                   WidthRequest="200"
                    HeightRequest="80"
                    Fill="{AppThemeBinding Light=Green, Dark=Red}"
                    Stroke="{AppThemeBinding Light=Green, Dark=Red}" />

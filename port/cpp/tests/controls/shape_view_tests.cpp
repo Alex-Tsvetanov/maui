@@ -28,6 +28,7 @@
 #include "maui/controls/shapes/polygon.hpp"
 #include "maui/controls/shapes/polyline.hpp"
 #include "maui/controls/shapes/rectangle.hpp"
+#include "maui/controls/shapes/rectangle_geometry.hpp"
 #include "maui/controls/shapes/shape.hpp"
 #include "maui/controls/shapes/translate_transform.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
@@ -678,5 +679,47 @@ namespace
         const rect_f flat = rendered.get_bounds_by_flattening(1);
         EXPECT_NEAR(static_cast<double>(flat.width), 300.0, 0.5);
         EXPECT_NEAR(static_cast<double>(flat.height), 100.0, 0.5);
+    }
+
+    // ---- transform_playground_page.hpp regression: a 200x200 shapes::path whose Data is a 50x50
+    // RectangleGeometry at the origin, as the sole (Fill, no HorizontalOptions) child of a 200x200
+    // VerticalStackLayout panel — the exact structure transform_playground_page.hpp builds. The path
+    // itself is explicitly sized to the FULL 200x200 panel (matching the panel 1:1, so Fill+explicit-size
+    // centering is a no-op here — the panel and path frames coincide) and its Aspect defaults to `none`
+    // (Shape's ctor default), so the 50x50 geometry renders at its own literal (0,0)-anchored position —
+    // the top-left corner of the panel — matching MAUI's rendered transform_playground reference. ----
+    TEST(shape_alignment, path_geometry_renders_at_its_origin_within_a_matching_panel)
+    {
+        maui::controls::vertical_stack_layout panel;
+        panel.set_width_request(200);
+        panel.set_height_request(200);
+
+        shapes::path p;
+        p.set_data(std::make_shared<maui::controls::shapes::rectangle_geometry>(maui::graphics::rect{0, 0, 50, 50}));
+        p.set_stroke_thickness(4);
+        p.set_width_request(200);
+        p.set_height_request(200);
+        panel.add(p);
+
+        constexpr double inf = std::numeric_limits<double>::infinity();
+        panel.measure(400, inf);
+        panel.arrange(maui::graphics::rect(0, 0, 400, 200));
+
+        // The panel itself centers within the wider 400-wide band (Fill + explicit 200 width).
+        EXPECT_EQ(panel.frame().x, 100); // (400 - 200) / 2
+        EXPECT_EQ(panel.frame().width, 200);
+        // The path fills its identically-sized 200x200 panel exactly (no residual offset to speak of).
+        EXPECT_EQ(p.frame().width, 200);
+        EXPECT_EQ(p.frame().height, 200);
+
+        // The rendered 50x50 geometry sits at its own (0,0)-anchored top-left corner of that frame —
+        // NOT centered within it (Aspect defaults to `none`, so PathForBounds only translates the path
+        // if it would fall OUTSIDE the frame; a geometry already inside [0,0]-[50,50] is left alone).
+        const path_f rendered = p.path_for_bounds(p.frame());
+        const rect_f flat = rendered.get_bounds_by_flattening(1);
+        EXPECT_NEAR(static_cast<double>(flat.x), 2.0, 0.5); // stroke_thickness/2 inset, not centered
+        EXPECT_NEAR(static_cast<double>(flat.y), 2.0, 0.5);
+        EXPECT_NEAR(static_cast<double>(flat.width), 50.0, 0.5);
+        EXPECT_NEAR(static_cast<double>(flat.height), 50.0, 0.5);
     }
 } // namespace
