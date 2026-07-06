@@ -2401,6 +2401,22 @@ namespace maui::xaml
                 data_tmpl != nullptr && *data_tmpl != nullptr)
             {
                 (*data_tmpl)->set_load_template(make_loader());
+                // Record the body ROOT's registered control type so a native cell can realize this
+                // template's inflated content (create_handler + host the native view), exactly like a
+                // type-activated of<TControl>() template. Without this, a XAML-authored ItemTemplate
+                // rendered only the item-text fallback in native cells (data_template.hpp
+                // set_content_type). The registry miss (an unregistered root) keeps the old fallback.
+                const std::string& root_name = body_node.type().name();
+                const std::string& root_namespace = body_node.type().namespace_uri();
+                if (root_namespace == maui_uri || root_namespace == maui_global_uri)
+                {
+                    if (const xaml_type_registry::registration* registration =
+                            context_->type_registry().find(root_name, xaml_namespace::maui);
+                        registration != nullptr)
+                    {
+                        (*data_tmpl)->set_content_type(registration->type);
+                    }
+                }
                 return;
             }
             if (const auto* ctrl_tmpl =

@@ -86,6 +86,15 @@ namespace maui::controls
         {
             return content_type_;
         }
+        // The XAML loader's seam: when the apply pass installs a <DataTemplate> body loader
+        // (xaml_visitors::set_template), it also resolves the body ROOT element's registered control
+        // type and records it here — so a loader-minted template realizes natively in a cell exactly
+        // like a type-activated of<TControl>() one. Without this, native cells fell back to the
+        // item-text mirror for every XAML-authored template (the documented loader-only gap).
+        void set_content_type(maui::core::type_tag content_type)
+        {
+            content_type_ = content_type;
+        }
 
         // ---- Values (DataTemplate.SetValue / the Values dictionary) ----
         // SetValue: stage `descriptor` = `value` on every created content (manual specificity) and
