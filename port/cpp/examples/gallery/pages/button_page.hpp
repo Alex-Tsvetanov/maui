@@ -115,8 +115,9 @@ namespace maui::samples
             image_button_.set_text_color(maui::graphics::colors::white);
             image_button_.set_background_brush(
                 std::make_shared<maui::controls::solid_color_brush>(maui::graphics::colors::black));
-            image_button_.set_content_layout(
-                maui::controls::button_content_layout(maui::controls::button_content_layout::image_position::top, 10));
+            // ContentLayout omitted to match the shared button.xaml twin (default image-left layout): the
+            // XAML demo leaves ContentLayout unset, so MAUI measures the button at its default height. An
+            // explicit image_position::top stacks the icon above the text and over-tallens the row.
             // note: settings.png needs a bundled asset to display; the file source is set to a plausible
             // bundle-relative path (the port loads file sources synchronously when present).
             image_button_.set_image_source(maui::controls::image_source::from_file("settings.png"));
@@ -132,8 +133,8 @@ namespace maui::samples
             position_button_.set_background_brush(
                 std::make_shared<maui::controls::solid_color_brush>(maui::graphics::colors::black));
             position_button_.set_image_source(maui::controls::image_source::from_file("settings.png"));
-            position_button_.set_content_layout(
-                maui::controls::button_content_layout(maui::controls::button_content_layout::image_position::top, 10));
+            // Start at the default (image-left) content layout so the at-rest capture matches the shared
+            // button.xaml twin (which omits ContentLayout); clicks still cycle Left->Top->Right->Bottom.
             position_button_.clicked.connect([this] { cycle_position(); });
 
             // ---- Decrease / Increase spacing on the positioning button (OnDecreaseSpacing/OnIncreasingSpacing) ----

@@ -3687,9 +3687,9 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 104 | 0 |
+| 🟢 Match | 105 | 0 |
 | 🟡 Minor | 67 | 0 |
-| 🔴 Major | 5 | 0 |
+| 🔴 Major | 4 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
 
@@ -4107,16 +4107,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 23. Button — 🔴/⏳
+### 23. Button — 🟢/⏳
 <sub>button</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/button_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/button_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/button_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/button_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/button_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/button_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/button_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/button_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/button_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/button_dark.png" /></td></tr></table>
 
 ports ButtonPage.xaml (+ ButtonPage.xaml.cs)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: text buttons, colored bars, BorderWidth red outline, CornerRadius purple pill, gray Button and green BorderWidth Changing rows all match in both themes, but the two ImageButton 'settings' rows render as huge (~5-6x taller) black blocks containing a large gear glyph next to the text, whereas MAUI shows thin single-line black bars with just centered 'settings' text. Major size/content divergence on those two rows in both themes.
+All rows match MAUI now: text buttons, blue/red/BorderColor/BorderWidth(red outline)/CornerRadius/pink bars, gray Button, green BorderWidth-Changing, and the two 'settings' image buttons. Fixed the builder twin's over-tall ImageButton rows (removed the explicit ContentLayout image_position::top that the shared button.xaml omits) — measured heights now 217/217/46/46 px vs MAUI 216/216/46/46.
 
 #### ⏳ Gemini Review
 
