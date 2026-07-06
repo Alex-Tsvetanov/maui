@@ -18,19 +18,30 @@
 // Coverage note (documented): switch / entry / image cells + section group rows are rendered here; the
 // image view is populated with a placeholder when the cell has a resolved ImageSource (the full async
 // thumbnail decode rides the image-service seam, as in W3-31 — the row only proves the image view is
-// built + bound). view_cell hosts text only (its arbitrary content view is W3-31 follow-up work).
+// built + bound). view_cell hosts its arbitrary content View: the View's native subtree is mounted on
+// demand (mount_element_tree) into a MauiTableCellView that re-arranges it in -layout (frame-based, the
+// AppKit twin of the iOS MauiTableViewCell / MauiCollectionViewItemContainerView), and the row self-sizes
+// to the measured content via heightOfRow.
 
 #import <AppKit/AppKit.h>
 #import <objc/runtime.h>
 
+#include <cmath>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "maui/controls/cells/view_cell.hpp"
+#include "maui/controls/element.hpp"
 #include "maui/controls/i_table_view.hpp"
 #include "maui/controls/table_model.hpp"
 #include "maui/controls/table_view_handler.hpp"
+#include "maui/core/handler_registry.hpp"
+#include "maui/core/i_maui_context.hpp"
+#include "maui/core/i_view.hpp"
+#include "maui/core/i_view_handler.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
@@ -100,7 +111,97 @@ namespace
         return scroll != nil ? (NSTableView*)scroll.documentView : nil;
     }
     char g_source_key = 0;
+
+    // On-demand mount of an element's whole native subtree (the AppKit twin of the iOS handler's
+    // mount_element_tree / the collection_view handler's ensure_mounted). A ViewCell's content View is not a
+    // logical child of any page tree the generic mount walked, so it arrives here UNMOUNTED. Depth-first
+    // POST-ORDER: attach each element's registered handler by handler_type_tag (SetMauiContext before
+    // SetVirtualView, the C# order), then re-host via mount_into_handler. Idempotent (skips already-mounted).
+    void mount_element_tree(maui::core::i_maui_context* context, maui::controls::element& root)
+    {
+        if (context == nullptr)
+        {
+            return;
+        }
+        root.visit_logical_children([context](maui::controls::element& child) { mount_element_tree(context, child); });
+
+        auto* element_face = dynamic_cast<maui::core::i_element*>(&root);
+        if (element_face == nullptr)
+        {
+            return;
+        }
+        if (!element_face->handler())
+        {
+            if (const std::optional<maui::core::type_tag> tag = root.handler_type_tag(); tag.has_value())
+            {
+                if (std::shared_ptr<maui::core::i_element_handler> handler = context->handlers().create_handler(*tag))
+                {
+                    handler->set_maui_context(context);
+                    element_face->set_handler(std::move(handler));
+                }
+            }
+        }
+        root.mount_into_handler();
+    }
+
+    // The ViewCell's hosted content as an i_view (or null), its native subtree mounted on demand.
+    maui::core::i_view* view_cell_content(maui::core::i_maui_context* context, const cell& source)
+    {
+        const auto* vc = dynamic_cast<const maui::controls::view_cell*>(&source);
+        if (vc == nullptr || vc->view() == nullptr)
+        {
+            return nullptr;
+        }
+        if (auto* content_element = dynamic_cast<maui::controls::element*>(vc->view().get()))
+        {
+            mount_element_tree(context, *content_element);
+        }
+        return dynamic_cast<maui::core::i_view*>(vc->view().get());
+    }
 } // namespace
+
+// An NSTableCellView that hosts a ViewCell's arbitrary MAUI content View, re-arranging it against the cell
+// bounds on every layout pass (a plain NSView never wires -layout to anything). The AppKit twin of iOS's
+// MauiTableViewCell and the direct analog of MauiCollectionViewItemContainerView's -layout override:
+// frame-based measure+arrange (compute_frame), which autoresizing alone cannot express for a composite view.
+@interface MauiTableCellView : NSTableCellView
+- (void)hostContent:(NSView*)native forView:(maui::core::i_view*)view;
+@end
+
+@implementation MauiTableCellView
+{
+    NSView* _hosted;                 // the hosted content's native view (a subview of self)
+    maui::core::i_view* _hostedView; // NON-owning: the model's view_cell co-owns the content View
+}
+
+- (void)hostContent:(NSView*)native forView:(maui::core::i_view*)view
+{
+    if (_hosted != native)
+    {
+        [_hosted removeFromSuperview];
+        _hosted = native;
+        if (native != nil)
+        {
+            native.autoresizingMask = NSViewNotSizable; // measure/arrange owns the frame
+            [self addSubview:native];
+        }
+    }
+    _hostedView = view;
+    self.needsLayout = YES;
+}
+
+- (void)layout
+{
+    [super layout];
+    if (_hostedView == nullptr)
+    {
+        return;
+    }
+    const NSRect bounds = self.bounds;
+    _hostedView->measure(bounds.size.width, bounds.size.height);
+    _hostedView->arrange(maui::graphics::rect{0.0, 0.0, bounds.size.width, bounds.size.height});
+}
+@end
 
 // The datasource + delegate, holding a non-owning back-pointer to the C++ handler. It caches the
 // header-aware flat layout (rebuilt on each reload) so numberOfRows / viewForTableColumn / selection all
@@ -202,9 +303,15 @@ namespace
         table_view_handler::describe_cell(realized, *source); // the per-cell-type content fields
     }
 
+    const bool is_view_cell =
+        source != nullptr && table_view_handler::classify_cell(*source) == maui::controls::cell_content_kind::view;
     if (!reused)
     {
-        rowView = [[NSTableCellView alloc] initWithFrame:NSMakeRect(0, 0, 400, 24)];
+        // A view cell hosts an arbitrary content View → a MauiTableCellView that re-arranges the hosted
+        // native subtree in -layout. The reuse id is TYPE-keyed, so view cells get a dedicated bucket and
+        // never share a native row with the text/switch/entry cells (or vice-versa).
+        rowView = is_view_cell ? [[MauiTableCellView alloc] initWithFrame:NSMakeRect(0, 0, 400, 24)]
+                               : [[NSTableCellView alloc] initWithFrame:NSMakeRect(0, 0, 400, 24)];
         rowView.identifier = identifier;
         NSTextField* const label = [NSTextField labelWithString:@""];
         label.tag = 1001; // the primary text label (kept addressable across reuse)
@@ -268,6 +375,26 @@ namespace
             iv.image = realized.has_image ? [[NSImage alloc] initWithSize:NSMakeSize(24, 24)] : nil;
         }
     }
+    else if (is_view_cell)
+    {
+        // ViewCellRenderer: host the cell's content View. Mount its native subtree on demand (it is not a
+        // logical child of any page tree the generic mount walked) and hand the native NSView + its i_view to
+        // the MauiTableCellView, which arranges it against the cell bounds in -layout.
+        if (auto* view_shell = [rowView isKindOfClass:[MauiTableCellView class]] ? (MauiTableCellView*)rowView : nil)
+        {
+            NSView* native = nil;
+            maui::core::i_view* content =
+                source != nullptr ? view_cell_content(handler->maui_context(), *source) : nullptr;
+            if (content != nullptr)
+            {
+                if (auto* content_handler = dynamic_cast<maui::core::i_view_handler*>(content->handler().get()))
+                {
+                    native = (__bridge NSView*)content_handler->native_view();
+                }
+            }
+            [view_shell hostContent:native forView:native != nil ? content : nullptr];
+        }
+    }
 
     if (platform != nullptr)
     {
@@ -277,6 +404,36 @@ namespace
                                     .reuse_id = reuse_id});
     }
     return rowView;
+}
+
+- (CGFloat)tableView:(NSTableView*)tableView heightOfRow:(NSInteger)row
+{
+    // A view cell self-sizes to its MEASURED content (a frame-based hosted View has no Auto Layout
+    // constraints to size against); every other row (headers, text/switch/entry/image cells) keeps the
+    // table's fixed rowHeight, preserving the prior behavior exactly.
+    table_view_handler* const handler = self.handler;
+    const CGFloat fixed = tableView.rowHeight > 0 ? tableView.rowHeight : 24.0;
+    if (handler == nullptr || row < 0 || static_cast<std::size_t>(row) >= _layout.size())
+    {
+        return fixed;
+    }
+    const maui::controls::flat_entry entry = _layout[static_cast<std::size_t>(row)];
+    table_model* const model = maui::controls::table_view_source_bridge::model_for(*handler);
+    if (entry.is_header || model == nullptr)
+    {
+        return fixed;
+    }
+    std::shared_ptr<cell> source = model->get_cell(entry.section, entry.row);
+    if (source == nullptr || table_view_handler::classify_cell(*source) != maui::controls::cell_content_kind::view)
+    {
+        return fixed;
+    }
+    if (auto* content = view_cell_content(handler->maui_context(), *source))
+    {
+        const maui::graphics::size measured = content->measure(tableView.bounds.size.width, INFINITY);
+        return std::max(static_cast<CGFloat>(std::ceil(measured.height)), fixed);
+    }
+    return fixed;
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification*)notification
