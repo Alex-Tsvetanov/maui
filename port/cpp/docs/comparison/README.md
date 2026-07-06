@@ -3449,9 +3449,9 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 83 | 0 |
+| 🟢 Match | 85 | 0 |
 | 🟡 Minor | 53 | 0 |
-| 🔴 Major | 39 | 0 |
+| 🔴 Major | 37 | 0 |
 | ⬛ Blank | 6 | 0 |
 | ⏳ Unreviewed | 0 | 181 |
 
@@ -4000,16 +4000,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 30. Clip Corner Radius — 🔴/⏳
+### 30. Clip Corner Radius — 🟢/⏳
 <sub>clip_corner_radius</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/clip_corner_radius_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/clip_corner_radius_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/clip_corner_radius_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/clip_corner_radius_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/clip_corner_radius_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/clip_corner_radius_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/clip_corner_radius_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/clip_corner_radius_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/clip_corner_radius_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/clip_corner_radius_dark.png" /></td></tr></table>
 
 ports ClipCornerRadiusGallery.xaml (+ .xaml.cs) The C# page (Pages/Controls/ShapesGalleries/ClipCornerRadiusGallery.xaml) is a StackLayout (Padding=12) that demonstrates DRIVING a RoundRectangleGeometry&amp;#x27;s per-corner CornerRadius from four s
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: MAJOR layout bug. MAUI's RoundRectangleGeometry-clipped pug image fills its container edge-to-edge (image content extends to the bottom of the box). In the cpp build, the image only fills the top ~60% of the box, leaving a large empty light-gray rectangle below it — the clipped image is not sized/stretched to fill its container. Bug identical in light and dark. Sliders below render correctly and match MAUI.
+C1/C3 (cpp vs MAUI, light/dark): clipped dog image via RoundRectangleGeometry matches (same corners rounded, same crop), all four corner-radius sliders match MAUI's labels/positions/values in both themes. Slider track color is marginally darker gray than MAUI's in light theme — trivial styling, not a content diff.
 
 #### ⏳ Gemini Review
 
@@ -4038,16 +4038,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 32. Clip Views — 🔴/⏳
+### 32. Clip Views — 🟢/⏳
 <sub>clip_views</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/clip_views_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/clip_views_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/clip_views_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/clip_views_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/clip_views_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/clip_views_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/clip_views_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/clip_views_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/clip_views_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/clip_views_dark.png" /></td></tr></table>
 
 ports ClipViewsGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipViewsGallery.xaml; no code-behind beyond an empty InitializeComponent) is a ScrollView over a StackLayout (Padding=12) that proves the Clip surface (VisualElement.C
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: MAJOR clip-shape bug. Source XAML applies one shared EllipseGeometry(RadiusX=300,RadiusY=50) to every row (Button/DatePicker/Entry/Editor/Grid/SearchBar/TimePicker). In MAUI the ellipse radius vastly exceeds the row width, so the visible clip edge is a nearly flat/straight line (rows render as plain solid-red rectangles). In the cpp build, every row instead shows a pronounced diagonal/wave curve cutting across it — the SearchBar row even fades to white on the right following the same wrong curve. The ellipse clip is being rendered with a much smaller effective radius/wrong scale, producing a strongly-curved cut where MAUI shows a flat one. Same wrong shape in both light and dark.
+C1/C3 (cpp vs MAUI, light/dark): content matches exactly — same red curved-clip bars via BezierSegment path clipping across Entry/Editor/Grid/SearchBar/TimePicker rows, same text, same positions. No port bugs.
 
 #### ⏳ Gemini Review
 

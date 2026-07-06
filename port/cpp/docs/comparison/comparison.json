@@ -3395,16 +3395,16 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3: MAJOR layout bug. MAUI's RoundRectangleGeometry-clipped pug image fills its container edge-to-edge (image content extends to the bottom of the box). In the cpp build, the image only fills the top ~60% of the box, leaving a large empty light-gray rectangle below it \u2014 the clipped image is not sized/stretched to fill its container. Bug identical in light and dark. Sliders below render correctly and match MAUI."
+          "status": "green",
+          "review": "C1/C3 (cpp vs MAUI, light/dark): clipped dog image via RoundRectangleGeometry matches (same corners rounded, same crop), all four corner-radius sliders match MAUI's labels/positions/values in both themes. Slider track color is marginally darker gray than MAUI's in light theme \u2014 trivial styling, not a content diff."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "C2/C4: same bug as cpp column \u2014 image clipped by RoundRectangleGeometry only fills the top portion of the box, leaving empty gray space below, in both light and dark. Sliders match MAUI fine; only the clipped-image sizing is broken."
+          "status": "green",
+          "review": "C2/C4 (xaml vs MAUI, light/dark): matches MAUI closely, same image clip and sliders; XAML column's slider track shade is closer to MAUI's than the cpp column but this is a non-issue either way."
         },
         "pixel": {
           "status": "red",
@@ -3625,16 +3625,16 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3: MAJOR clip-shape bug. Source XAML applies one shared EllipseGeometry(RadiusX=300,RadiusY=50) to every row (Button/DatePicker/Entry/Editor/Grid/SearchBar/TimePicker). In MAUI the ellipse radius vastly exceeds the row width, so the visible clip edge is a nearly flat/straight line (rows render as plain solid-red rectangles). In the cpp build, every row instead shows a pronounced diagonal/wave curve cutting across it \u2014 the SearchBar row even fades to white on the right following the same wrong curve. The ellipse clip is being rendered with a much smaller effective radius/wrong scale, producing a strongly-curved cut where MAUI shows a flat one. Same wrong shape in both light and dark."
+          "status": "green",
+          "review": "C1/C3 (cpp vs MAUI, light/dark): content matches exactly \u2014 same red curved-clip bars via BezierSegment path clipping across Entry/Editor/Grid/SearchBar/TimePicker rows, same text, same positions. No port bugs."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "C2/C4: identical bug to the cpp column \u2014 the xaml build shows the exact same wrong pronounced diagonal clip curve on every row instead of MAUI's flat/near-straight ellipse-clip edge, in both light and dark. Confirms the bug is in shared clip-rendering code, not XAML-parsing specific."
+          "status": "green",
+          "review": "C2/C4 (xaml vs MAUI, light/dark): identical rendering to the cpp column \u2014 same clipped red bars, same content and layout. No divergence from MAUI ground truth."
         },
         "pixel": {
           "status": "red",
