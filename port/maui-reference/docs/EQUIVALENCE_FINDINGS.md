@@ -150,3 +150,33 @@ its twin — this is not a bug to fix, just a structural fact to keep tracking.
   (kills the test binary); excluded with a comment in the test file. Root-cause the teardown crash.
 - `device` — builder ctor throws headless (device-info fake unseeded); explicit GTEST_SKIP.
 - `brushes, selection_mode, shapes_demo` — builder-only keys with no shared page yet (P3 authoring).
+
+## Flagged MAUI-side quirks (2026-07-06) — user ruling needed, per port/CLAUDE.md ruling 3
+
+Real MAUI's Mac Catalyst render itself is the mismatch here, not the shared twin or the builder —
+verified by direct pixel inspection of the MAUI reference capture and, where noted, by reading the
+real C# source to confirm the port's behavior is byte-faithful.
+
+- **`button`** — the two `Button.ImageSource="settings.png"` rows: the port loads the image and
+  correctly grows the button to the image's full native size when given an unconstrained height
+  (`VerticalStackLayoutManager.Measure` passes `double.PositiveInfinity` for height to every stack
+  child in BOTH the real C# source and the port — verified line-for-line against
+  `src/Core/src/Layouts/VerticalStackLayoutManager.cs` and
+  `src/Controls/src/Core/Button/Button.iOS.cs`'s `ResizeImageIfNecessary`). Real MAUI's own capture
+  shows NO icon at all for these rows — a compact, normal-height, text-only bar — meaning the image
+  fails to load/apply on real MAUI's Mac Catalyst for this asset, so its `CrossPlatformMeasure` never
+  enters the image-sizing path at all. The port's image loading is arguably MORE correct (it succeeds),
+  not less; matching MAUI's failure would mean deliberately breaking working image loading.
+- **`empty_view_view` / `empty_view_rtl` / `filter_collection`** — MAUI's Catalyst `EmptyView` renders
+  as an always-visible overlay atop a *populated* `CollectionView`, contradicting the C# source
+  (`ItemsViewController2.cs` gates visibility on `ItemsSource.ItemCount == 0`).
+- **9-key grouped-`CollectionView` cluster** (`basic_grouping`, `grid_grouping`,
+  `grouping_no_templates`, `grouping_plus_selection`, `measure_first_strategy`, `nested_collection`,
+  `scroll_to_group`, `some_empty_groups`, `switch_grouping`) — MAUI's own render shows an empty or
+  near-empty grouped list while the C++ builder renders a full populated one. Likely because grouped
+  collections can't be expressed in the loader's static `x:Array` XAML (no `IsGrouped`/
+  `GroupDisplayBinding`-carrying source), so MAUI's blank render may be a twin-authoring ceiling rather
+  than a genuine MAUI bug — not yet distinguished.
+- **`carousel_page`** — MAUI's reference capture is genuinely blank (post the 2026-07-06 tint-fix
+  recapture, not a stale/inactive-window artifact) — a likely real `CarouselView`-hosting failure in
+  `MauiReference`/`PageDispatch`, not yet root-caused.
