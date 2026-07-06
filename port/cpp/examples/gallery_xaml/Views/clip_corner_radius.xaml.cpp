@@ -58,9 +58,9 @@ namespace
 
 namespace examples::Views
 {
-    std::unique_ptr<maui::controls::content_page> clip_corner_radius_page()
+    std::unique_ptr<maui::controls::content_page> clip_corner_radius_page(const maui::xaml::xaml_load_options& options)
     {
         // unique_ptr<page_impl<no_view_model>> upcasts to unique_ptr<content_page> on return.
-        return maui::build_page<maui::no_view_model, clip_corner_radius_xaml>();
+        return maui::build_page<maui::no_view_model, clip_corner_radius_xaml>(options);
     }
 } // namespace examples::Views

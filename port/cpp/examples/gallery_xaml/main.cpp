@@ -17,6 +17,7 @@
 
 #include "maui/controls/content_page.hpp"
 #include "maui/core/app_theme.hpp" // MAUI_APPEARANCE -> set_platform_app_theme (parity column consistency)
+#include "maui/xaml/xaml_loader.hpp" // xaml_load_options — thread the application into the page loads
 
 #include "Views/gallery_pages.hpp"
 
@@ -32,7 +33,8 @@ namespace
     // Runtime page string -> compile-time page factory. MAUI_SAMPLE_PAGE matches the parity tooling's
     // SIMCTL_CHILD_MAUI_SAMPLE_PAGE; MAUI_XAML_TWIN is accepted as an alias (the name the old gallery used for
     // its runtime-loaded twin column). An unknown name falls back to value_controls — the gallery default.
-    [[nodiscard]] std::unique_ptr<maui::controls::content_page> make_selected_page()
+    [[nodiscard]] std::unique_ptr<maui::controls::content_page>
+    make_selected_page(const maui::xaml::xaml_load_options& options)
     {
         const char* env = std::getenv("MAUI_SAMPLE_PAGE");
         if (env == nullptr || std::strlen(env) == 0)
@@ -44,12 +46,12 @@ namespace
 #define MAUI_XAML_PAGE(name)                                                                                           \
     if (selected == #name)                                                                                             \
     {                                                                                                                  \
-        return examples::Views::name##_page();                                                                         \
+        return examples::Views::name##_page(options);                                                                  \
     }
         MAUI_XAML_GALLERY_PAGES(MAUI_XAML_PAGE)
 #undef MAUI_XAML_PAGE
 
-        return examples::Views::value_controls_page();
+        return examples::Views::value_controls_page(options);
     }
 } // namespace
 
@@ -68,8 +70,12 @@ public:
         const bool dark = appearance != nullptr && std::strcmp(appearance, "dark") == 0;
         set_platform_app_theme(dark ? maui::core::app_theme::dark : maui::core::app_theme::light);
 
-        set_content(ui::view_ref<maui::controls::content_page>{
-            std::shared_ptr<maui::controls::content_page>{make_selected_page()}});
+        // Thread THIS application into the loader (the port's explicit Application.Current): with it,
+        // {AppThemeBinding} resolves against the requested theme seeded above AND re-applies on every
+        // RequestedThemeChanged — the C# AppThemeBinding contract. The app outlives the page it owns,
+        // so the load's theme subscriptions (owned by the page's load result) disconnect first.
+        set_content(ui::view_ref<maui::controls::content_page>{std::shared_ptr<maui::controls::content_page>{
+            make_selected_page(maui::xaml::xaml_load_options{.application = this})}});
         set_title("MAUI C++ — gallery (XAML)");
     }
 };

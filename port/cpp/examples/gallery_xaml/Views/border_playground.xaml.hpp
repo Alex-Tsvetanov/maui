@@ -8,8 +8,13 @@
 #include <memory>
 
 #include "maui/controls/content_page.hpp"
+#include "maui/xaml/xaml_loader.hpp" // xaml_load_options (the application/theme threading knob)
 
 namespace examples::Views
 {
-    [[nodiscard]] std::unique_ptr<maui::controls::content_page> border_playground_page();
+    // options threads the loader knobs — most importantly the application pointer, so
+    // {AppThemeBinding} resolves against the app's CURRENT requested theme and re-applies on
+    // RequestedThemeChanged (defaulted: theme-static hydration, the old behavior).
+    [[nodiscard]] std::unique_ptr<maui::controls::content_page> border_playground_page(
+        const maui::xaml::xaml_load_options& options = {});
 } // namespace examples::Views

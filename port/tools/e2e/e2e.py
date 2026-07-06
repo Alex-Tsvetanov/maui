@@ -106,10 +106,15 @@ HPP = '''#pragma once
 #include <memory>
 
 #include "maui/controls/content_page.hpp"
+#include "maui/xaml/xaml_loader.hpp" // xaml_load_options (the application/theme threading knob)
 
 namespace examples::Views
 {{
-    [[nodiscard]] std::unique_ptr<maui::controls::content_page> {name}_page();
+    // options threads the loader knobs — most importantly the application pointer, so
+    // {{AppThemeBinding}} resolves against the app's CURRENT requested theme and re-applies on
+    // RequestedThemeChanged (defaulted: theme-static hydration, the old behavior).
+    [[nodiscard]] std::unique_ptr<maui::controls::content_page> {name}_page(
+        const maui::xaml::xaml_load_options& options = {{}});
 }} // namespace examples::Views
 '''
 
@@ -175,10 +180,10 @@ namespace
 
 namespace examples::Views
 {{
-    std::unique_ptr<maui::controls::content_page> {name}_page()
+    std::unique_ptr<maui::controls::content_page> {name}_page(const maui::xaml::xaml_load_options& options)
     {{
         // unique_ptr<page_impl<no_view_model>> upcasts to unique_ptr<content_page> on return.
-        return maui::build_page<maui::no_view_model, {name}_xaml>();
+        return maui::build_page<maui::no_view_model, {name}_xaml>(options);
     }}
 }} // namespace examples::Views
 '''
@@ -210,10 +215,10 @@ namespace
 
 namespace examples::Views
 {{
-    std::unique_ptr<maui::controls::content_page> {name}_page()
+    std::unique_ptr<maui::controls::content_page> {name}_page(const maui::xaml::xaml_load_options& options)
     {{
         // unique_ptr<page_impl<no_view_model>> upcasts to unique_ptr<content_page> on return.
-        return maui::build_page<maui::no_view_model, {name}_xaml>();
+        return maui::build_page<maui::no_view_model, {name}_xaml>(options);
     }}
 }} // namespace examples::Views
 '''
@@ -245,10 +250,10 @@ namespace
 
 namespace examples::Views
 {{
-    std::unique_ptr<maui::controls::content_page> {name}_page()
+    std::unique_ptr<maui::controls::content_page> {name}_page(const maui::xaml::xaml_load_options& options)
     {{
         // unique_ptr<page_impl<no_view_model>> upcasts to unique_ptr<content_page> on return.
-        return maui::build_page<maui::no_view_model, {name}_xaml>();
+        return maui::build_page<maui::no_view_model, {name}_xaml>(options);
     }}
 }} // namespace examples::Views
 '''

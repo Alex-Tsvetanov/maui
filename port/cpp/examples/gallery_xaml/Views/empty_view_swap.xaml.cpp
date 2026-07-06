@@ -57,9 +57,9 @@ namespace
 
 namespace examples::Views
 {
-    std::unique_ptr<maui::controls::content_page> empty_view_swap_page()
+    std::unique_ptr<maui::controls::content_page> empty_view_swap_page(const maui::xaml::xaml_load_options& options)
     {
         // unique_ptr<page_impl<no_view_model>> upcasts to unique_ptr<content_page> on return.
-        return maui::build_page<maui::no_view_model, empty_view_swap_xaml>();
+        return maui::build_page<maui::no_view_model, empty_view_swap_xaml>(options);
     }
 } // namespace examples::Views
