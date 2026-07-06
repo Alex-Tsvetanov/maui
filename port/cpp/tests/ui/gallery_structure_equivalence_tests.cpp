@@ -295,7 +295,6 @@ namespace
             "hybrid_web_view",
             "ios_scroll_view",
             "layout_is_enabled",
-            "single_bound_selection",
             "indicator",
             "path_aspect_gallery",
             "path_gallery",

@@ -94,7 +94,6 @@ is canonical.
 - `hybrid_web_view` — builder HybridWebView vs twin border+label placeholder
 - `ios_scroll_view` — twin has an extra scroll_view+VSL wrapper
 - `layout_is_enabled` — twin has check_box rows the builder doesn't create
-- `single_bound_selection` — twin has Reset/Clear buttons missing from the builder
 - `indicator` — builder has an extra IndicatorView child the twin lacks
 - `path_aspect_gallery, path_gallery` — twin wraps each path in an extra Grid (+ raw path-data label)
 - `border_clip_playground` — builder VSL root vs twin Grid(2 rows)
