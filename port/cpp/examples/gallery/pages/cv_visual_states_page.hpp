@@ -17,11 +17,10 @@
 //
 // The port mirrors this with the selectable_items_view selection surface + the per-cell VSM:
 //   - line_item: the reflection-free LineItem — just the ItemName the cell label binds;
-//   - each CollectionView gets a data_template::of<label> cell bound to line_item.ItemName, NoWrap +
-//     a Large-ish font (FontSize="Large"), AND a CommonStates VSM group (Normal/Selected) staged onto
-//     the created cell content via add_cell_visual_states() so each realized cell carries the group —
-//     the closest faithful code-first analog of the XAML's VisualStateManager.VisualStateGroups on the
-//     cell's root view;
+//   - each CollectionView gets a data_template::of<line_item_cell> cell — line_item_cell is a Grid that
+//     OWNS a bound NoWrap Large-font (FontSize="Large") Label child, matching the twin's Grid-rooted
+//     cell structure (see line_item_cell's own doc comment for why the child must be owned, not just
+//     referenced);
 //   - selection_mode is Single / Multiple respectively; item_sizing_strategy is measure_first_item;
 //     empty_view is the boxed "No items defined" string.
 //
@@ -38,14 +37,18 @@
 //       through the selectable_items_view surface (selected_item() / selected_items()), exercised by the
 //       select_single / select_multiple drivers below.
 // note: the XAML nests the bound Label inside two Grids (a root Grid carrying the VSM + an inner Grid).
-//       The nesting has no headless-visible geometric effect, so — exactly like the grouping siblings —
-//       the cell is the bound Label directly, and the VSM group is staged on that Label (the cell root).
+//       The inner Grid has no headless- or native-visible geometric effect and is collapsed away, but the
+//       OUTER Grid does: MAUI/the xaml twin measure the MeasureFirstItem row height off the actual
+//       Grid-wrapped cell, which is measurably taller (natively) than a bare Label. PORT FIX (2026-07-06,
+//       the cpp<->xaml consistency check): the cell root is now line_item_cell (a Grid owning the bound
+//       Label), not the bound Label directly — see line_item_cell below.
 
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "maui/controls/content_page.hpp"
+#include "maui/controls/grid.hpp"
 #include "maui/controls/items/boxed_item.hpp"
 #include "maui/controls/items/collection_view.hpp"
 #include "maui/controls/items/item_sizing_strategy.hpp"
@@ -71,6 +74,55 @@ namespace maui::samples
         {
             std::string item_name;
             friend bool operator==(const line_item&, const line_item&) = default;
+        };
+
+        // The cell root: a Grid that OWNS its bound Label child (layout::add() only references children,
+        // it does not own them — PROFILE §8 — so a data_template::of<TControl>() cell that needs to add a
+        // freshly-created child must own that child as a member, exactly like this composite). Mirrors the
+        // twin's <Grid BackgroundColor="White"><Grid><Label .../></Grid></Grid> (the outer Grid only; the
+        // inner Grid has no headless- OR native-visible geometric effect and is collapsed away).
+        class line_item_cell final : public maui::controls::grid
+        {
+        public:
+            line_item_cell()
+            {
+                // A Grid with NO explicit RowDefinitions/ColumnDefinitions gets ONE implicit row/column —
+                // but the port's grid_layout_manager (see make_rows/make_columns in
+                // src/layouts/grid_layout_manager.cpp) treats that implicit cell as `*` (star), not
+                // `Auto`. A star row/column has no natural size of its own: under MeasureFirstItem's
+                // infinite/self-sizing measure pass it degenerates to a ZERO-height cell (a star needs a
+                // finite constraint to compute its proportional share), which measured this whole
+                // CollectionView to nothing. An explicit Auto row/column makes the Grid self-size to its
+                // (single) child's natural size instead, matching a plain MAUI `<Grid>` with no
+                // RowDefinitions (which defaults each axis to one Auto-equivalent star cell that DOES
+                // shrink-to-fit when there's exactly one child and no siblings competing for space —
+                // reproduced here explicitly since the port's implicit-star fallback does not shrink-to-fit
+                // under an infinite constraint).
+                add_row_definition(maui::core::grid_length::automatic());
+                add_column_definition(maui::core::grid_length::automatic());
+                // FontSize="Large" (the loader resolves the named size "Large" to 22.0pt, see
+                // xaml_converters.cpp's named_sizes table — matches MAUI's actual measured cell/row
+                // height) + LineBreakMode="NoWrap".
+                label_.set_font(maui::core::font::system_font_of_size(22.0));
+                label_.set_line_break_mode(maui::core::line_break_mode::no_wrap);
+                add(label_);
+            }
+
+        protected:
+            // Push {Binding .} (the context itself, mirroring the twin's inline x:Array of strings via
+            // ItemName) → Label.Text when the cell's BindingContext (the line_item) is set by the realize
+            // path — the same on_binding_context_changed hook as header_footer_template_page's photo_cell.
+            void on_binding_context_changed() override
+            {
+                maui::controls::grid::on_binding_context_changed(); // propagate to children first
+                if (const auto item = binding_context<line_item>())
+                {
+                    label_.set_text(item->item_name);
+                }
+            }
+
+        private:
+            maui::controls::label label_;
         };
 
         cv_visual_states_page()
@@ -110,6 +162,18 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
+        }
+
+        // PRE-MOUNT hook (gallery_host.hpp gallery_pre_mount): register line_item_cell's handler BEFORE
+        // mount_window / the collection_view realize walk. line_item_cell is a brand-new user type (like
+        // header_footer_template_page's photo_cell), so its handler isn't self-registered; the
+        // collection_view realize path resolves a template's handler via THIS app's per-app
+        // handler_registry (of<TCell>() → create_handler by the cell's type_tag) — without this the native
+        // cell realize silently no-ops (content_type() has no registered handler) and the lists render
+        // blank. line_item_cell is a grid subclass, so it shares grid's layout_handler.
+        void register_handlers(maui::hosting::maui_app& app)
+        {
+            maui::core::register_handler<line_item_cell, maui::core::layout_handler>(app.handlers());
         }
 
         // ---- headless selection drivers (selection is observable; the per-cell recolor is not — note:)
@@ -152,7 +216,7 @@ namespace maui::samples
         }
 
     private:
-        // Both lists share the same cell shape (a bound NoWrap Large label at the White base look), the
+        // Both lists share the same cell shape (a Grid-rooted line_item_cell at the White base look), the
         // same MeasureFirstItem sizing, and the same "No items defined" empty view — only the
         // selection_mode differs.
         //
@@ -172,14 +236,20 @@ namespace maui::samples
         //       swap.
         void configure_list(maui::controls::collection_view& list, maui::controls::selection_mode mode)
         {
-            auto cell = maui::controls::data_template::of<maui::controls::label>();
-            cell->set_binding<std::string, line_item>(maui::controls::label::text_property(),
-                                                      [](const line_item& item) { return item.item_name; });
-            // FontSize="Large" + LineBreakMode="NoWrap".
-            cell->set_value(maui::controls::label::font_property(), maui::core::font::system_font_of_size(20));
-            cell->set_value(maui::controls::label::line_break_mode_property(), maui::core::line_break_mode::no_wrap);
+            // The cell root is a Grid (line_item_cell, matching the twin's <Grid BackgroundColor="White">
+            // <Grid><Label/></Grid></Grid> — the outer Grid only; the inner Grid has no headless- OR
+            // native-visible geometric effect and is collapsed away). PORT FIX (2026-07-06): this used to
+            // be a bare Label root. That collapse IS geometrically invisible in the headless test harness,
+            // but NOT on a real native backend (Mac Catalyst) — a bare Label measures ~3pt shorter per row
+            // than MAUI's actual Grid-wrapped cell (measured natively: MAUI's own capture showed a
+            // 120px-tall 3-item Single Selection CollectionView; the bare-Label builder measured only
+            // 111px, a real 3pt/row native-Grid-vs-Label MeasureFirstItem delta), which is what the
+            // cpp<->xaml consistency check caught (xaml's real Grid-rooted hydration already measured
+            // 120px, matching MAUI). Wrapping the cell root in a Grid, with the bound Label as its owned
+            // child, reproduces MAUI's actual measured row height.
+            auto cell = maui::controls::data_template::of<line_item_cell>();
             // C# Normal state = the cell's Grid BackgroundColor=White (an EXPLICIT color the theme must
-            // never override): stage it on the single-root cell as a white background paint. The MAUI
+            // never override): stage it on the Grid root as a white background paint. The MAUI
             // reference retains the white bands in DARK mode too (the dark-theme adaptive label color
             // turns white, so the item text goes invisible on them — MAUI's own render, ground truth per
             // ruling 1); the port reproduces exactly that by leaving the text color at the system
@@ -187,8 +257,8 @@ namespace maui::samples
             // staging that group per cell is the documented struct-cell-template limit (see header note),
             // so only the Normal/base look is reproduced here.
             cell->set_value(maui::controls::background_property(),
-                            std::static_pointer_cast<maui::graphics::paint>(std::make_shared<maui::graphics::solid_paint>(
-                                maui::graphics::colors::white)));
+                            std::static_pointer_cast<maui::graphics::paint>(
+                                std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::white)));
             list.set_item_template(cell);
 
             list.set_selection_mode(mode);
