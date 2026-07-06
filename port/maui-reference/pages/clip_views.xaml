@@ -1,22 +1,28 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiReference.Pages.ClipViewsPage" Title="ClipViews Gallery">
-    <!-- Twin of ClipViewsGallery.xaml: a ScrollView over a StackLayout (Padding 12) proving the Clip surface
-         works on EVERY kind of view — seven Red-backgrounded controls each sharing ONE ellipse clip. DEGRADES:
-         the loader registers no Clip property and no EllipseGeometry element, so the shared clip is omitted —
-         each control renders as its plain Red-backgrounded resting form (still the full set of view types).
-         The single shared StaticResource ellipse collapses to nothing visible in markup at rest anyway. -->
+    <!-- Twin of ClipViewsGallery.xaml: a ScrollView over a VerticalStackLayout (Padding 12) proving the
+         Clip surface works on EVERY kind of view — seven Red-backgrounded controls each sharing ONE
+         ellipse clip, the real element-form markup now that the loader registers Clip + EllipseGeometry
+         (register_xaml_geometries.cpp, 2026-07). The single EllipseGeometry is a keyed ContentPage
+         resource, referenced by every control via {StaticResource EllipseClip} — one shared instance,
+         same as the original C# page. -->
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <EllipseGeometry x:Key="EllipseClip" RadiusX="300" RadiusY="50" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
     <ScrollView>
-        <StackLayout Spacing="6" Padding="12">
-            <Button Text="Button" BackgroundColor="Red" />
-            <DatePicker BackgroundColor="Red" />
-            <Entry Placeholder="Entry" BackgroundColor="Red" />
-            <Editor Placeholder="Editor" BackgroundColor="Red" />
-            <Grid HeightRequest="50" BackgroundColor="Red">
+        <VerticalStackLayout Spacing="6" Padding="12">
+            <Button Text="Button" BackgroundColor="Red" Clip="{StaticResource EllipseClip}" />
+            <DatePicker BackgroundColor="Red" Clip="{StaticResource EllipseClip}" />
+            <Entry Placeholder="Entry" BackgroundColor="Red" Clip="{StaticResource EllipseClip}" />
+            <Editor Placeholder="Editor" BackgroundColor="Red" Clip="{StaticResource EllipseClip}" />
+            <Grid HeightRequest="50" BackgroundColor="Red" Clip="{StaticResource EllipseClip}">
                 <Label Text="Grid" />
             </Grid>
-            <SearchBar BackgroundColor="Red" />
-            <TimePicker BackgroundColor="Red" />
-        </StackLayout>
+            <SearchBar BackgroundColor="Red" Clip="{StaticResource EllipseClip}" />
+            <TimePicker BackgroundColor="Red" Clip="{StaticResource EllipseClip}" />
+        </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

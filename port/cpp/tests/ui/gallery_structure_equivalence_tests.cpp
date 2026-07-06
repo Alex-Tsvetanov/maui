@@ -242,10 +242,6 @@ namespace
             "alerts",
             "app_theme_binding",
             "basic_swipe",
-            "clip",
-            "clip_corner_radius",
-            "clip_gallery",
-            "clip_views",
             "composition_gallery",
             "ellipse_gallery",
             "header_footer_grid",
@@ -304,6 +300,13 @@ namespace
             "path_aspect_gallery",
             "path_gallery",
             "border_clip_playground",
+            // cluster E — builder ADDS a gallery-convention interactivity widget the twin omits
+            // (AUTHORING.md rule 3: no event attributes in shared XAML). "clip"'s builder page appends a
+            // "Toggle clip on/off" Button + a status Label after the five images (clip_page.hpp header);
+            // NOTE this is UNRELATED to the Image.Clip XAML-registration gap, which is closed as of
+            // 2026-07 (register_xaml_geometries.cpp) — clip_corner_radius/clip_gallery/clip_views were
+            // de-listed for that fix; "clip" itself would still diverge even with a perfect Clip port.
+            "clip",
         };
         for (const std::string_view k : keys)
         {

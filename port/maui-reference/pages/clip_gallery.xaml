@@ -1,37 +1,61 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiReference.Pages.ClipGalleryPage" Title="Clip Gallery">
-    <!-- Twin of ClipGallery.xaml: a ScrollView over a StackLayout (Padding 12) showing oasis.jpg six times,
-         one bare copy then five captioned copies each carrying a different Image.Clip geometry
-         (Rectangle / RoundRectangle / Ellipse / GeometryGroup / Path). DEGRADES: the loader registers no
-         Clip property and no geometry element types, so the clip layer is omitted — every image renders as
-         the shared LightGray 200x200 AspectFill box (the Style's resting appearance). The Small-font caption
-         labels + gray boxes are the visible resting UI (FontSize="Small" is best-effort, left default). -->
+    <!-- Twin of ClipGallery.xaml: a ScrollView over a VerticalStackLayout (Padding 12) showing oasis.jpg
+         six times, one bare copy then five captioned copies each carrying a different Image.Clip geometry
+         (Rectangle / RoundRectangle / Ellipse / GeometryGroup / Path) — the real element-form markup, now
+         that the loader registers Clip + the five geometry element types (register_xaml_geometries.cpp,
+         2026-07). The Small-font caption labels are best-effort (FontSize="Small" left default). -->
     <ScrollView>
-        <StackLayout Spacing="6" Padding="12">
+        <VerticalStackLayout Spacing="6" Padding="12">
             <Label Text="Image" />
             <Image Source="oasis.jpg" Aspect="AspectFill" HorizontalOptions="Start"
                    WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray" />
 
             <Label Text="Clipped Image using RectangleGeometry" />
             <Image Source="oasis.jpg" Aspect="AspectFill" HorizontalOptions="Start"
-                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray" />
+                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray">
+                <Image.Clip>
+                    <RectangleGeometry Rect="0, 15, 150, 150" />
+                </Image.Clip>
+            </Image>
 
             <Label Text="Clipped Image using RoundRectangleGeometry" />
             <Image Source="oasis.jpg" Aspect="AspectFill" HorizontalOptions="Start"
-                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray" />
+                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray">
+                <Image.Clip>
+                    <RoundRectangleGeometry CornerRadius="6" Rect="0, 15, 150, 150" />
+                </Image.Clip>
+            </Image>
 
             <Label Text="Clipped Image using EllipseGeometry" />
             <Image Source="oasis.jpg" Aspect="AspectFill" HorizontalOptions="Start"
-                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray" />
+                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray">
+                <Image.Clip>
+                    <EllipseGeometry Center="100, 100" RadiusX="100" RadiusY="100" />
+                </Image.Clip>
+            </Image>
 
             <Label Text="Clipped Image using GeometryGroup" />
             <Image Source="oasis.jpg" Aspect="AspectFill" HorizontalOptions="Start"
-                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray" />
+                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray">
+                <Image.Clip>
+                    <GeometryGroup FillRule="EvenOdd">
+                        <EllipseGeometry Center="150, 150" RadiusX="100" RadiusY="100" />
+                        <EllipseGeometry Center="250, 150" RadiusX="100" RadiusY="100" />
+                        <EllipseGeometry Center="150, 250" RadiusX="100" RadiusY="100" />
+                        <EllipseGeometry Center="250, 250" RadiusX="100" RadiusY="100" />
+                    </GeometryGroup>
+                </Image.Clip>
+            </Image>
 
             <Label Text="Clipped Image using PathGeometry" />
             <Image Source="oasis.jpg" Aspect="AspectFill" HorizontalOptions="Start"
-                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray" />
-        </StackLayout>
+                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray">
+                <Image.Clip>
+                    <PathGeometry Figures="M8 148 L156 148 L132 12 Z" />
+                </Image.Clip>
+            </Image>
+        </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

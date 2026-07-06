@@ -1,35 +1,54 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiReference.Pages.ClipPage" Title="Clip">
-    <!-- Twin of ClipPage.xaml: a ScrollView over a StackLayout showing the same dotnet_bot.png image five
-         times, each captioned, each successive copy carrying a different Image.Clip geometry
-         (Rectangle / Ellipse / GeometryGroup / Path). DEGRADES: the loader registers no Clip property and
-         no geometry element types (EllipseGeometry / RectangleGeometry / PathGeometry / GeometryGroup), so
-         the clip layer is omitted — the images render un-clipped as the LightGray 200x200 AspectFill boxes
-         they share (the Style's resting appearance). The captions + gray boxes are the visible resting UI.
-         The .xaml.cs has no code-behind; the gallery's Toggle button + status readout are the code-first
+    <!-- Twin of ClipPage.xaml: a ScrollView over a VerticalStackLayout showing the same dotnet_bot.png
+         image five times, each captioned, each successive copy carrying a different Image.Clip geometry
+         (Rectangle / Ellipse / GeometryGroup / Path) — the real element-form markup, now that the loader
+         registers Clip + the four geometry element types (register_xaml_geometries.cpp, 2026-07). The
+         .xaml.cs has no code-behind; the gallery's Toggle button + status readout are the code-first
          extension (omitted here, structural resting twin). -->
     <ScrollView>
-        <StackLayout Spacing="6">
+        <VerticalStackLayout Spacing="6">
             <Label Text="Image" />
             <Image Source="dotnet_bot.png" Aspect="AspectFill" HorizontalOptions="Start"
                    WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray" />
 
             <Label Text="Clipped Image using RectangleGeometry" />
             <Image Source="dotnet_bot.png" Aspect="AspectFill" HorizontalOptions="Start"
-                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray" />
+                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray">
+                <Image.Clip>
+                    <RectangleGeometry Rect="0, 15, 150, 150" />
+                </Image.Clip>
+            </Image>
 
             <Label Text="Clipped Image using EllipseGeometry" />
             <Image Source="dotnet_bot.png" Aspect="AspectFill" HorizontalOptions="Start"
-                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray" />
+                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray">
+                <Image.Clip>
+                    <EllipseGeometry Center="100, 100" RadiusX="100" RadiusY="100" />
+                </Image.Clip>
+            </Image>
 
             <Label Text="Clipped Image using GeometryGroup" />
             <Image Source="dotnet_bot.png" Aspect="AspectFill" HorizontalOptions="Start"
-                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray" />
+                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray">
+                <Image.Clip>
+                    <GeometryGroup FillRule="EvenOdd">
+                        <EllipseGeometry Center="150, 150" RadiusX="100" RadiusY="100" />
+                        <EllipseGeometry Center="250, 150" RadiusX="100" RadiusY="100" />
+                        <EllipseGeometry Center="150, 250" RadiusX="100" RadiusY="100" />
+                        <EllipseGeometry Center="250, 250" RadiusX="100" RadiusY="100" />
+                    </GeometryGroup>
+                </Image.Clip>
+            </Image>
 
             <Label Text="Clipped Image using PathGeometry" />
             <Image Source="dotnet_bot.png" Aspect="AspectFill" HorizontalOptions="Start"
-                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray" />
-        </StackLayout>
+                   WidthRequest="200" HeightRequest="200" BackgroundColor="LightGray">
+                <Image.Clip>
+                    <PathGeometry Figures="M8 148 L156 148 L132 12 Z" />
+                </Image.Clip>
+            </Image>
+        </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

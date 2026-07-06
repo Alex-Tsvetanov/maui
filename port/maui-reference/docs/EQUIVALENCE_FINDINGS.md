@@ -21,17 +21,34 @@ cluster below is a class of visible render divergence between the C++-only and C
 > `empty_view_swap`, `empty_view_template`, `empty_view_view`, `filter_collection`,
 > `filter_selection`.
 
+> 2026-07-06 — the `Image.Clip` / `View.Clip` XAML gap is **CLOSED**: the loader now registers
+> `Clip` (every `view<>`-derived control, `register_xaml_helpers.hpp`) and the geometry element types
+> `RectangleGeometry` / `EllipseGeometry` / `GeometryGroup` / `RoundRectangleGeometry` / `PathGeometry`
+> (`src/xaml/register_xaml_geometries.cpp`) — this required giving the port's `geometry` base a
+> `bindable_object` base (matching C#'s `Geometry : BindableObject, IGeometry`; see `geometry.hpp`),
+> since `xaml_type_registry::register_type<T>` requires one. The four affected shared pages were
+> re-authored with the REAL `<Image.Clip>`/`Clip=` markup from the original C# sources (`clip.xaml`,
+> `clip_gallery.xaml`, `clip_views.xaml`, `clip_corner_radius.xaml`) and their root `StackLayout` was
+> aligned to `VerticalStackLayout` (cluster A) to match the builder pages in the same change. De-listed:
+> `clip_corner_radius`, `clip_gallery`, `clip_views`. **`clip` stays listed** — cluster A closed for it
+> too, but its builder page separately appends a gallery-convention "Toggle clip on/off" Button + status
+> Label the twin correctly omits (AUTHORING.md rule 3); see cluster E.
+
 ## Cluster A — twin uses `StackLayout` where the builder uses `VerticalStackLayout`/`HorizontalStackLayout` (22 keys)
 
 Different control type (often plus spacing/padding deltas). Alignment direction: usually fix the
 SHARED XAML to the specific-orientation control the builder (and the original C# page) uses — plain
 `StackLayout` is the legacy control with different default behavior.
 
-`animation, alerts, app_theme_binding, basic_swipe, clip, clip_corner_radius, clip_gallery,
-clip_views, composition_gallery, ellipse_gallery, header_footer_grid,
-header_footer_grid_horizontal, line_gallery, path_transform_string, pointer_gesture, polygon_gallery,
-polyline_gallery, preselected_items, rectangle_gallery, selection_synchronization, shape_app_theme,
-some_empty_groups`
+`animation, alerts, app_theme_binding, basic_swipe, composition_gallery, ellipse_gallery,
+header_footer_grid, header_footer_grid_horizontal, line_gallery, path_transform_string,
+pointer_gesture, polygon_gallery, polyline_gallery, preselected_items, rectangle_gallery,
+selection_synchronization, shape_app_theme, some_empty_groups`
+
+(`clip`, `clip_corner_radius`, `clip_gallery`, `clip_views` were also cluster-A members — twin
+`StackLayout` vs builder `VerticalStackLayout` — all four fixed to `VerticalStackLayout` alongside the
+2026-07-06 `Image.Clip` fix above; `clip_corner_radius`/`clip_gallery`/`clip_views` fully closed and
+de-listed, `clip` moved to cluster E for its remaining divergence.)
 
 ## Cluster B — root-layout Padding/Spacing set on one side only (~19 keys)
 
@@ -81,6 +98,16 @@ is canonical.
 - `indicator` — builder has an extra IndicatorView child the twin lacks
 - `path_aspect_gallery, path_gallery` — twin wraps each path in an extra Grid (+ raw path-data label)
 - `border_clip_playground` — builder VSL root vs twin Grid(2 rows)
+
+## Cluster E — builder ADDS a gallery-convention interactivity widget the twin correctly omits (1 key)
+
+AUTHORING.md rule 3 forbids event attributes in the shared XAML, so a builder page that adds its own
+observable interactivity (a button + readout label with no C# counterpart) permanently diverges from
+its twin — this is not a bug to fix, just a structural fact to keep tracking.
+
+- `clip` — builder appends a "Toggle clip on/off" Button + status Label after the five images
+  (`clip_page.hpp`); the twin's five images are otherwise structurally identical to the builder
+  (including the real `Image.Clip` markup, 2026-07-06).
 
 ## Skipped
 

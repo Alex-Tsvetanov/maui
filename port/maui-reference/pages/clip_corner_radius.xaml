@@ -1,17 +1,22 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiReference.Pages.ClipCornerRadiusPage" Title="Clip CornerRadius Gallery">
-    <!-- Twin of ClipCornerRadiusGallery.xaml: a StackLayout (Padding 12) that DRIVES a
-         RoundRectangleGeometry's per-corner CornerRadius from four sliders while it clips an oasis.jpg image.
-         DEGRADES: the loader registers no Clip property and no RoundRectangleGeometry element, so the
-         geometry-clip layer is omitted — the image renders as the LightGray 200x200 AspectFill box inside a
-         200x200 Grid container. The OnCornerChanged code-behind (rebuilding the clip's corner radius live)
-         is interactivity, omitted; each slider shows its resting Value=0 (square corners initially). The
-         Slider track colors (MinimumTrackColor / MaximumTrackColor) are best-effort, left default. -->
-    <StackLayout Spacing="6" Padding="12">
+    <!-- Twin of ClipCornerRadiusGallery.xaml: a VerticalStackLayout (Padding 12) that DRIVES a
+         RoundRectangleGeometry's per-corner CornerRadius from four sliders while it clips an oasis.jpg
+         image — the real element-form Image.Clip markup now that the loader registers Clip +
+         RoundRectangleGeometry (register_xaml_geometries.cpp, 2026-07). CornerRadius defaults to 0 (square
+         corners at rest — the same resting state the original C# page shows before a slider moves). The
+         OnCornerChanged code-behind (rebuilding the clip's corner radius live) is interactivity, omitted;
+         each slider shows its resting Value=0. The Slider track colors (MinimumTrackColor /
+         MaximumTrackColor) are best-effort, left default. -->
+    <VerticalStackLayout Spacing="6" Padding="12">
         <Label Text="Clipped Image using RoundRectangleGeometry" />
         <Grid WidthRequest="200" HeightRequest="200" HorizontalOptions="Start" BackgroundColor="LightGray">
-            <Image Source="oasis.jpg" Aspect="AspectFill" WidthRequest="200" HeightRequest="200" />
+            <Image Source="oasis.jpg" Aspect="AspectFill" WidthRequest="200" HeightRequest="200">
+                <Image.Clip>
+                    <RoundRectangleGeometry Rect="0, 0, 150, 150" />
+                </Image.Clip>
+            </Image>
         </Grid>
 
         <Label Text="Top Left Corner" />
@@ -25,5 +30,5 @@
 
         <Label Text="Bottom Right Corner" />
         <Slider Minimum="0" Maximum="60" Value="0" />
-    </StackLayout>
+    </VerticalStackLayout>
 </ContentPage>
