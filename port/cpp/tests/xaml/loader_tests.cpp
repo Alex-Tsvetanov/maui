@@ -27,6 +27,7 @@
 #include <fstream>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -69,6 +70,10 @@
 #include "maui/controls/shapes/rectangle_geometry.hpp"       // 2026-07
 #include "maui/controls/shapes/round_rectangle_geometry.hpp" // 2026-07
 #include "maui/controls/span.hpp"                            // W8
+#include "maui/controls/swipe_item.hpp"                      // Swipe: SwipeItem
+#include "maui/controls/swipe_item_view.hpp"                 // Swipe: SwipeItemView
+#include "maui/controls/swipe_items.hpp"                     // Swipe: SwipeItems
+#include "maui/controls/swipe_view.hpp"                      // Swipe: SwipeView.LeftItems/... routing
 #include "maui/controls/table_intent.hpp"                    // Tables: TableView.Intent enum
 #include "maui/controls/table_root.hpp"                      // Tables: TableRoot
 #include "maui/controls/table_section.hpp"                   // Tables: TableSection
@@ -1924,5 +1929,129 @@ namespace
         const auto& section = table.root()->at(0);
         EXPECT_EQ(section->title(), "Locations");
         EXPECT_EQ(section->text_color(), maui::graphics::colors::red);
+    }
+
+    // ---- SwipeView items (SwipeItem / SwipeItemView / SwipeItems) --------------------------------------
+
+    TEST(xaml_loader, swipe_view_directional_items_element_form)
+    {
+        // The gap page shape: <SwipeView.LeftItems><SwipeItems><SwipeItem/></SwipeItems></SwipeView.LeftItems>
+        // and the same for RightItems. The created <SwipeItems> is drained into swipe_view's OWNED default
+        // collection by try_add_swipe_view_items (NOT set_left_items — the populate-not-replace deviation).
+        // NOTE the graph OWNS the created <SwipeItem>s (the collection stores NON-owning i_swipe_item*), so
+        // the xaml_load_result must be kept alive while the item pointers are dereferenced.
+        controls::swipe_view swipe;
+        std::optional<xaml_load_result> result;
+        const std::string message = parse_error_message([&] {
+            result = xaml_loader::load_into(swipe, R"xml(
+<SwipeView xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+    <SwipeView.LeftItems>
+        <SwipeItems>
+            <SwipeItem Text="Delete" BackgroundColor="Red" />
+        </SwipeItems>
+    </SwipeView.LeftItems>
+    <SwipeView.RightItems>
+        <SwipeItems>
+            <SwipeItem Text="Info" />
+        </SwipeItems>
+    </SwipeView.RightItems>
+</SwipeView>)xml");
+        });
+        EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
+
+        ASSERT_NE(swipe.left_items(), nullptr);
+        ASSERT_EQ(swipe.left_items()->count(), 1U);
+        auto* left = dynamic_cast<controls::swipe_item*>(swipe.left_items()->at(0));
+        ASSERT_NE(left, nullptr);
+        EXPECT_EQ(left->text(), "Delete");
+        ASSERT_TRUE(left->background_color().has_value());
+        EXPECT_EQ(*left->background_color(), maui::graphics::colors::red);
+
+        ASSERT_NE(swipe.right_items(), nullptr);
+        ASSERT_EQ(swipe.right_items()->count(), 1U);
+        auto* right = dynamic_cast<controls::swipe_item*>(swipe.right_items()->at(0));
+        ASSERT_NE(right, nullptr);
+        EXPECT_EQ(right->text(), "Info");
+        EXPECT_FALSE(right->background_color().has_value()); // unset → nullopt
+    }
+
+    TEST(xaml_loader, swipe_items_mode_and_behavior_from_markup)
+    {
+        // The two new converters: SwipeItems.Mode (swipe_mode Reveal/Execute) and SwipeBehaviorOnInvoked
+        // (Auto/Close/RemainOpen). Both flow through the created <SwipeItems> into the owned collection.
+        controls::swipe_view swipe;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(swipe, R"xml(
+<SwipeView xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+    <SwipeView.LeftItems>
+        <SwipeItems Mode="Execute" SwipeBehaviorOnInvoked="Close">
+            <SwipeItem Text="Go" />
+        </SwipeItems>
+    </SwipeView.LeftItems>
+</SwipeView>)xml");
+        });
+        EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
+
+        ASSERT_NE(swipe.left_items(), nullptr);
+        EXPECT_EQ(swipe.left_items()->mode(), maui::core::swipe_mode::execute);
+        EXPECT_EQ(swipe.left_items()->behavior_on_invoked(), maui::core::swipe_behavior_on_invoked::close);
+        ASSERT_EQ(swipe.left_items()->count(), 1U);
+    }
+
+    TEST(xaml_loader, swipe_item_view_content_element_form)
+    {
+        // <SwipeItemView> (a view<> hosting one Content) is also an i_swipe_item; its <Label> Content is
+        // set via the SwipeItemView Content child sink and the whole item lands in RightItems.
+        controls::swipe_view swipe;
+        const xaml_load_result result = xaml_loader::load_into(swipe, R"xml(
+<SwipeView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SwipeView.RightItems>
+        <SwipeItems>
+            <SwipeItemView>
+                <Label x:Name="favLabel" Text="Fav" />
+            </SwipeItemView>
+        </SwipeItems>
+    </SwipeView.RightItems>
+</SwipeView>)xml");
+
+        ASSERT_NE(swipe.right_items(), nullptr);
+        ASSERT_EQ(swipe.right_items()->count(), 1U);
+        // The item is an i_swipe_item that cross-casts to swipe_item_view, whose Content is the Label.
+        auto* item_view = dynamic_cast<controls::swipe_item_view*>(swipe.right_items()->at(0));
+        ASSERT_NE(item_view, nullptr);
+        const std::shared_ptr<controls::label> label = result.find_by_name<controls::label>("favLabel");
+        ASSERT_NE(label, nullptr);
+        EXPECT_EQ(item_view->content(), label.get());
+        EXPECT_EQ(label->text(), "Fav");
+    }
+
+    TEST(xaml_loader, swipe_item_content_and_left_items_coexist)
+    {
+        // Regression guard for the single child-sink slot: SwipeView spends its ONE register_add_child
+        // slot on "Content". LeftItems must route through the try_add_swipe_view_items special-case, NOT
+        // that slot — so BOTH the swiped Content AND the LeftItems collection must populate on the same view.
+        controls::swipe_view swipe;
+        const xaml_load_result result = xaml_loader::load_into(swipe, R"xml(
+<SwipeView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SwipeView.LeftItems>
+        <SwipeItems>
+            <SwipeItem Text="Delete" />
+        </SwipeItems>
+    </SwipeView.LeftItems>
+    <Label x:Name="body" Text="Swipe me" />
+</SwipeView>)xml");
+
+        // Content (via the register_add_child "Content" slot) still works.
+        const std::shared_ptr<controls::label> body = result.find_by_name<controls::label>("body");
+        ASSERT_NE(body, nullptr);
+        EXPECT_EQ(swipe.content(), body.get());
+        // LeftItems (via the special-case) populated independently.
+        ASSERT_NE(swipe.left_items(), nullptr);
+        ASSERT_EQ(swipe.left_items()->count(), 1U);
+        auto* item = dynamic_cast<controls::swipe_item*>(swipe.left_items()->at(0));
+        ASSERT_NE(item, nullptr);
+        EXPECT_EQ(item->text(), "Delete");
     }
 } // namespace

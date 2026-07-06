@@ -34,6 +34,8 @@
 #include "maui/controls/resource_dictionary.hpp"
 #include "maui/controls/setter.hpp"
 #include "maui/controls/style.hpp"
+#include "maui/controls/swipe_items.hpp" // SwipeView.LeftItems/... created <SwipeItems> → owned collection
+#include "maui/controls/swipe_view.hpp"  // SwipeView.LeftItems/RightItems/TopItems/BottomItems routing
 #include "maui/controls/templates/control_template.hpp" // W16: <ControlTemplate> minting (DataTemplate sibling)
 #include "maui/controls/templates/data_template.hpp"    // W4: <DataTemplate> minting + the loader factory
 #include "maui/core/app_theme.hpp"
@@ -717,6 +719,69 @@ namespace maui::xaml
             return false;
         }
 
+        // element-form <SwipeView.LeftItems/RightItems/TopItems/BottomItems>. Unlike the Grid/Picker
+        // definitions above (which carry plain VALUE items), the property-element value here is a CREATED
+        // <SwipeItems> — a registered bindable_object boxed as shared_ptr<bindable_object>. SwipeView spends
+        // its single register_add_child slot on "Content", so the four directional collections can't be
+        // named child-sinks; this special-case bridges the OUTER level: the created <SwipeItems>' items
+        // (already added to IT during the bottom-up apply pass, via the SwipeItems child sink) are copied
+        // into swipe_view's pre-existing OWNED default collection.
+        //
+        // DEVIATION (documented): we populate the owned default collection via *_items_collection().add(...)
+        // rather than call swipe_view::set_left_items(unique_ptr<swipe_items>). The setter TRANSFERS
+        // OWNERSHIP of a unique_ptr, but the loader's object graph already owns the created <SwipeItems> as
+        // a shared_ptr — handing it to the setter would double-own/dangle it. Because the owned default
+        // collection starts empty, populate == replace in observable effect for a static XAML load, and it
+        // matches how swipe_items stores NON-owning i_swipe_item* (the items stay owned by the graph — the
+        // FormattedString.Spans aliasing pattern). Returns true when it consumed the value.
+        [[nodiscard]] bool try_add_swipe_view_items(maui::core::bindable_object& target,
+                                                    const std::string& property_name, const std::any& value)
+        {
+            auto* swipe = dynamic_cast<maui::controls::swipe_view*>(&target);
+            if (swipe == nullptr)
+            {
+                return false;
+            }
+            maui::controls::swipe_items* destination = nullptr;
+            if (property_name == "LeftItems")
+            {
+                destination = &swipe->left_items_collection();
+            }
+            else if (property_name == "RightItems")
+            {
+                destination = &swipe->right_items_collection();
+            }
+            else if (property_name == "TopItems")
+            {
+                destination = &swipe->top_items_collection();
+            }
+            else if (property_name == "BottomItems")
+            {
+                destination = &swipe->bottom_items_collection();
+            }
+            else
+            {
+                return false;
+            }
+            // The created <SwipeItems> is boxed as shared_ptr<bindable_object>; unbox + downcast it, then
+            // copy its (already-populated) items into the owned default collection.
+            auto* source = dynamic_cast<maui::controls::swipe_items*>(as_bindable(&value));
+            if (source == nullptr)
+            {
+                return false;
+            }
+            destination->set_mode(source->mode());
+            destination->set_behavior_on_invoked(source->behavior_on_invoked());
+            for (std::size_t index = 0; index < source->count(); ++index)
+            {
+                if (auto* item = source->at(index))
+                {
+                    destination->add(*item);
+                }
+            }
+            return true;
+        }
+
         // W13 — element-form <CollectionView.ItemsSource><x:Array Type="{x:Type x:String}"><x:String>…
         // The <x:Array> create-pass mints an xaml_array carrying its item children (here std::string from
         // the <x:String> primitives); the ItemsSource property is a shared_ptr<i_item_collection> set only
@@ -806,6 +871,14 @@ namespace maui::xaml
             // W12 — element-form <Picker.Items> string items (single-<x:String>-child path; the
             // multi-child list path is handled in visit_collection_item).
             if (try_add_picker_item(target, local_name, value))
+            {
+                return;
+            }
+
+            // element-form <SwipeView.LeftItems/RightItems/TopItems/BottomItems> with a single <SwipeItems>
+            // child (the multi-child list path is handled in visit_collection_item). Routes the created
+            // <SwipeItems> into swipe_view's owned default collection.
+            if (try_add_swipe_view_items(target, local_name, value))
             {
                 return;
             }
@@ -2296,6 +2369,14 @@ namespace maui::xaml
             // W12 — element-form <Picker.Items> with several <x:String> children: each string VALUE is
             // pushed onto the picker's Items face (the multi-child twin of the apply_value_core path).
             if (try_add_picker_item(*target, list_name, value))
+            {
+                return;
+            }
+
+            // element-form <SwipeView.LeftItems/...> with several <SwipeItems> children (rare): each
+            // created <SwipeItems> is drained into the owned default collection (the multi-child twin of
+            // the apply_value_core path).
+            if (try_add_swipe_view_items(*target, list_name, value))
             {
                 return;
             }

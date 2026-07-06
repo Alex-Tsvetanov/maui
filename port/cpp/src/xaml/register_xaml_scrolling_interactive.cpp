@@ -10,11 +10,18 @@
 //   - convert_scroll_orientation  (maui::core::scroll_orientation): Vertical/Horizontal/Both/Neither
 //   - convert_scroll_bar_visibility (maui::core::scroll_bar_visibility): Default/Always/Never
 //   - convert_swipe_transition_mode (maui::core::swipe_transition_mode): Reveal/Drag
+//   - convert_swipe_mode          (maui::core::swipe_mode): Reveal/Execute (SwipeItems.Mode)
+//   - convert_swipe_behavior_on_invoked (maui::core::swipe_behavior_on_invoked): Auto/Close/RemainOpen
 //   - convert_indicator_shape     (maui::controls::indicator_shape): Circle/Square
 //
+// SwipeView items surface (SwipeItem / SwipeItemView / SwipeItems) is registered here too. The four
+// directional collections (SwipeView.LeftItems/RightItems/TopItems/BottomItems) CANNOT use a named
+// register_add_child sink — SwipeView already spends its single child-sink slot on "Content", and the
+// per-type registry holds ONE add_child + ONE child_property (xaml_property_registry.hpp). So the four
+// property-elements are routed by a Grid/Picker-style special-case in xaml_visitors.cpp
+// (try_add_swipe_view_items) into the pre-existing OWNED default collections via *_items_collection().
+//
 // Deferred (no bindable_property accessor, or no text converter and binding-only):
-//   - SwipeView LeftItems/RightItems/TopItems/BottomItems: owned swipe_items collections with no
-//     text converter — deferred until property-element + typed child-sink support lands.
 //   - IndicatorView ItemsSource / Count: std::shared_ptr<i_item_collection> has no text converter;
 //     Count is driven programmatically from ItemsSource; both omitted here.
 //
@@ -31,13 +38,20 @@
 
 #include "maui/controls/indicator_shape.hpp"
 #include "maui/controls/indicator_view.hpp"
+#include "maui/controls/menu_item.hpp" // SwipeItem inherits Text/IsEnabled/IconImageSource from MenuItem
 #include "maui/controls/refresh_view.hpp"
 #include "maui/controls/scroll_view.hpp"
+#include "maui/controls/swipe_item.hpp"
+#include "maui/controls/swipe_item_view.hpp"
+#include "maui/controls/swipe_items.hpp"
 #include "maui/controls/swipe_view.hpp"
 #include "maui/core/bindable_object.hpp"
+#include "maui/core/i_swipe_item.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/scroll_bar_visibility.hpp"
 #include "maui/core/scroll_orientation.hpp"
+#include "maui/core/swipe_behavior_on_invoked.hpp"
+#include "maui/core/swipe_mode.hpp"
 #include "maui/core/swipe_transition_mode.hpp"
 #include "maui/xaml/xaml_converter_registry.hpp"
 #include "maui/xaml/xaml_converters.hpp" // also defines xaml_convert_error
@@ -104,6 +118,33 @@ namespace maui::xaml
                 {.name = "Drag", .value = swipe_transition_mode::drag},
             }};
             return parse_enum<swipe_transition_mode>(text, names, "maui::core::swipe_transition_mode");
+        }
+
+        // convert_swipe_mode  <=  Microsoft.Maui.SwipeMode (Enum.Parse, case-sensitive).
+        // C# members: Reveal / Execute (SwipeMode.cs). Backs SwipeItems.Mode.
+        [[nodiscard]] maui::core::swipe_mode convert_swipe_mode(std::string_view text)
+        {
+            using maui::core::swipe_mode;
+            static constexpr std::array<enum_entry<swipe_mode>, 2> names{{
+                {.name = "Reveal", .value = swipe_mode::reveal},
+                {.name = "Execute", .value = swipe_mode::execute},
+            }};
+            return parse_enum<swipe_mode>(text, names, "maui::core::swipe_mode");
+        }
+
+        // convert_swipe_behavior_on_invoked  <=  Microsoft.Maui.SwipeBehaviorOnInvoked (Enum.Parse,
+        // case-sensitive). C# members: Auto / Close / RemainOpen (SwipeBehaviorOnInvoked.cs). Note the
+        // port spells the first enumerator `automatic` (avoiding the C++ reserved-word feel of `auto`);
+        // the name table maps the C# "Auto" string to that enumerator. Backs SwipeItems.SwipeBehaviorOnInvoked.
+        [[nodiscard]] maui::core::swipe_behavior_on_invoked convert_swipe_behavior_on_invoked(std::string_view text)
+        {
+            using maui::core::swipe_behavior_on_invoked;
+            static constexpr std::array<enum_entry<swipe_behavior_on_invoked>, 3> names{{
+                {.name = "Auto", .value = swipe_behavior_on_invoked::automatic},
+                {.name = "Close", .value = swipe_behavior_on_invoked::close},
+                {.name = "RemainOpen", .value = swipe_behavior_on_invoked::remain_open},
+            }};
+            return parse_enum<swipe_behavior_on_invoked>(text, names, "maui::core::swipe_behavior_on_invoked");
         }
 
         // convert_indicator_shape  <=  Microsoft.Maui.Controls.IndicatorShape (Enum.Parse,
@@ -192,8 +233,10 @@ namespace maui::xaml
                 sv.set_transition_mode(value);
             });
         // C# SwipeView [ContentProperty("Content")] (inherited from ContentView): single-child.
-        // LeftItems/RightItems/TopItems/BottomItems are deferred (no text converter for the owned
-        // swipe_items collections — property-element support is a future loader extension).
+        // LeftItems/RightItems/TopItems/BottomItems are NOT registered as named child sinks (SwipeView's
+        // single child-sink slot is spent here on "Content"); the four directional property-elements are
+        // routed by try_add_swipe_view_items in xaml_visitors.cpp into swipe_view's OWNED default
+        // collections. See this file's header note.
         properties.register_add_child<controls::swipe_view>(
             "Content", [](controls::swipe_view& swipe, maui::core::bindable_object& child) {
                 auto* view = dynamic_cast<maui::core::i_view*>(&child);
@@ -202,6 +245,62 @@ namespace maui::xaml
                     return false;
                 }
                 swipe.set_content(*view);
+                return true;
+            });
+
+        // ---- SwipeItem (SwipeItem.cs: a MenuItem shown in a swipe. Text/IsEnabled/IconImageSource come
+        //      from the menu_item base; BackgroundColor + IsVisible are its own bindables. Not a view<>,
+        //      so NO register_view_properties.) ----
+        types.register_type<controls::swipe_item>("SwipeItem");
+        properties.register_bindable_property<controls::swipe_item>("Text", controls::menu_item::text_property());
+        properties.register_bindable_property<controls::swipe_item>("IsEnabled",
+                                                                    controls::menu_item::is_enabled_property());
+        properties.register_bindable_property<controls::swipe_item>("IconImageSource",
+                                                                    controls::menu_item::icon_image_source_property());
+        properties.register_bindable_property<controls::swipe_item>("BackgroundColor",
+                                                                    controls::swipe_item::background_color_property());
+        properties.register_bindable_property<controls::swipe_item>("IsVisible",
+                                                                    controls::swipe_item::is_visible_property());
+
+        // ---- SwipeItemView (SwipeItemView.cs: a ContentView-shaped swipe item hosting one Content.
+        //      IS a view<>, so it gets the shared IView/VisualElement surface + Padding + a Content sink,
+        //      exactly like content_page.) ----
+        types.register_type<controls::swipe_item_view>("SwipeItemView");
+        register_view_properties<controls::swipe_item_view>(properties);
+        properties.register_bindable_property<controls::swipe_item_view>("Padding",
+                                                                         controls::swipe_item_view::padding_property());
+        // C# SwipeItemView [ContentProperty("Content")] (inherited from ContentView): single-child.
+        properties.register_add_child<controls::swipe_item_view>(
+            "Content", [](controls::swipe_item_view& item, maui::core::bindable_object& child) {
+                auto* view = dynamic_cast<maui::core::i_view*>(&child);
+                if (view == nullptr)
+                {
+                    return false;
+                }
+                item.set_content(*view);
+                return true;
+            });
+
+        // ---- SwipeItems (SwipeItems.cs: the collection wrapping the items for one direction. Mode +
+        //      SwipeBehaviorOnInvoked bindables + an UNNAMED collection child sink so <SwipeItems>'
+        //      <SwipeItem>/<SwipeItemView> children add straight to it (the FormattedString.Spans shape).
+        //      Not a view<>, so NO register_view_properties.) ----
+        types.register_type<controls::swipe_items>("SwipeItems");
+        properties.register_bindable_property<controls::swipe_items>("Mode", controls::swipe_items::mode_property());
+        properties.register_bindable_property<controls::swipe_items>(
+            "SwipeBehaviorOnInvoked", controls::swipe_items::behavior_on_invoked_property());
+        // C# SwipeItems [ContentProperty(...)] over IList<ISwipeItem>: the bare-element list sink. Both
+        // swipe_item and swipe_item_view implement i_swipe_item; the collection stores the NON-owning
+        // i_swipe_item face (the graph owns each created item), mirroring how swipe_items itself keeps
+        // NON-owning i_swipe_item* pointers.
+        properties.register_add_child<controls::swipe_items>(
+            [](controls::swipe_items& items, maui::core::bindable_object& child) {
+                auto* item = dynamic_cast<maui::core::i_swipe_item*>(&child);
+                if (item == nullptr)
+                {
+                    return false;
+                }
+                items.add(*item);
                 return true;
             });
 
@@ -232,6 +331,9 @@ namespace maui::xaml
             registry_converter(&convert_scroll_bar_visibility));
         converters.register_converter<maui::core::swipe_transition_mode>(
             registry_converter(&convert_swipe_transition_mode));
+        converters.register_converter<maui::core::swipe_mode>(registry_converter(&convert_swipe_mode));
+        converters.register_converter<maui::core::swipe_behavior_on_invoked>(
+            registry_converter(&convert_swipe_behavior_on_invoked));
         converters.register_converter<maui::controls::indicator_shape>(registry_converter(&convert_indicator_shape));
     }
 } // namespace maui::xaml

@@ -717,13 +717,13 @@
   },
   {
     "key": "gap_swipe_view_items",
-    "expected_port_status": "parse_error",
+    "expected_port_status": "renders",
     "builder_twin": false,
     "tags": [
       "gap",
       "swipe_view"
     ],
-    "notes": "SwipeView.LeftItems/RightItems/TopItems/BottomItems' SwipeItem/SwipeItems are not registered XAML types (verified: \"Type SwipeItem not found\"). SwipeView itself IS registered and works today."
+    "notes": "GAP CLOSED: SwipeItem / SwipeItemView / SwipeItems are now registered XAML types (register_xaml_scrolling_interactive.cpp), with swipe_mode + swipe_behavior_on_invoked converters. The four directional property-elements (SwipeView.LeftItems/RightItems/TopItems/BottomItems) are routed by try_add_swipe_view_items in xaml_visitors.cpp into swipe_view's owned default collections (populate-not-replace, avoiding the unique_ptr/shared_ptr ownership collision of set_left_items). SwipeItems' <SwipeItem>/<SwipeItemView> children add via the collection's unnamed child sink."
   },
   {
     "key": "gap_title_bar",
