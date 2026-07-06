@@ -74,12 +74,14 @@ namespace maui::samples
 
             result_.set_text("Pending..."); // Label x:Name="Result" Text="Pending..."
 
-            // The cell: the C# DataTemplate has two labels (Text + Description). The single-root struct cell
-            // renders both on two lines in one label ("Item N\nThis is item N") so the cell visually matches
-            // MAUI's two-line cell (title + detail).
+            // The cell: the C# DataTemplate has two labels (Text + Description). The single-root struct
+            // cell folds both into one label joined by an em-dash ("Item N — This is item N") — the exact
+            // single-line format the canonical shared selection_command_param.xaml declares in its
+            // x:Array items (an earlier "\n" two-line join rendered stacked lines the MAUI reference
+            // never shows, a standing red).
             auto cell = maui::controls::data_template::of<maui::controls::label>();
             cell->set_binding<std::string, item>(maui::controls::label::text_property(), [](const item& value) {
-                return value.text + "\n" + value.description;
+                return value.text + " — " + value.description;
             });
             list_.set_item_template(cell);
             list_.set_header(maui::controls::boxed_item::of(std::string{"This is the header"})); // Header=…
