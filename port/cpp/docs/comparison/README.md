@@ -3449,9 +3449,9 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 78 | 0 |
+| 🟢 Match | 80 | 0 |
 | 🟡 Minor | 53 | 0 |
-| 🔴 Major | 44 | 0 |
+| 🔴 Major | 42 | 0 |
 | ⬛ Blank | 6 | 0 |
 | ⏳ Unreviewed | 0 | 181 |
 
@@ -3914,7 +3914,7 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 #### ⬛ C++ Sonnet 5 Review
 
-No code-first builder twin exists for this page (manifest.json builder_twin:false) — the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&amp;XAML column applies to this page.
+No code-first builder twin exists for this page (manifest.json builder_twin:false) — the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. e2e.py cmd_capture skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&amp;XAML column applies to this page.
 
 #### ⏳ Gemini Review
 
@@ -3981,16 +3981,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 29. Clip — 🔴/⏳
+### 29. Clip — 🟢/⏳
 <sub>clip</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/clip_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/clip_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/clip_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/clip_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/clip_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/clip_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/clip_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/clip_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/clip_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/clip_dark.png" /></td></tr></table>
 
 ports ClipPage.xaml The C# page (Pages/Core/ClipPage.xaml; its .xaml.cs is an empty InitializeComponent) is a ScrollView over a StackLayout that shows the SAME dotnet_bot.png image five times, each successive copy carrying a different geome
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3 red: MAUI renders all four 'Clipped Image' rows as full 300px gray rectangles (no visible clip applied), but the C++ builder column actually clips — RectangleGeometry shows a ~225px cropped image inside the gray box, EllipseGeometry shows a circular cutout on white, GeometryGroup/PathGeometry show shaped cutouts. Content (clip rendering + effective image sizes) diverges from the MAUI ground truth in both themes.
+C1/C3: cpp light+dark match MAUI exactly — same submarine image, same RectangleGeometry/EllipseGeometry/GeometryGroup/PathGeometry clip shapes and crop boundaries, identical layout and captions. No content differences.
 
 #### ⏳ Gemini Review
 
@@ -4009,7 +4009,7 @@ ports ClipCornerRadiusGallery.xaml (+ .xaml.cs) The C# page (Pages/Controls/Shap
 
 #### 🔴 Sonnet 5 Review
 
-C1/C3 red: the dog image renders at ~225x220 in the top-left of the 300x300 gray box instead of filling it as in MAUI (both themes). Additionally in light mode the slider tracks are a noticeably darker gray than MAUI's light track.
+C1/C3: MAJOR layout bug. MAUI's RoundRectangleGeometry-clipped pug image fills its container edge-to-edge (image content extends to the bottom of the box). In the cpp build, the image only fills the top ~60% of the box, leaving a large empty light-gray rectangle below it — the clipped image is not sized/stretched to fill its container. Bug identical in light and dark. Sliders below render correctly and match MAUI.
 
 #### ⏳ Gemini Review
 
@@ -4019,16 +4019,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 31. Clip Gallery — 🔴/⏳
+### 31. Clip Gallery — 🟢/⏳
 <sub>clip_gallery</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/clip_gallery_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/clip_gallery_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/clip_gallery_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/clip_gallery_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/clip_gallery_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/clip_gallery_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/clip_gallery_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/clip_gallery_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/clip_gallery_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/clip_gallery_dark.png" /></td></tr></table>
 
 ports ClipGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipGallery.xaml; its .xaml.cs is an empty InitializeComponent) is a ScrollView over a StackLayout (Padding=12) that shows the SAME &amp;quot;oasis.jpg&amp;quot; image SEVEN times — one bare
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3 red: MAUI shows all clipped-image rows as full rectangles, but the C++ builder applies visible clips — RectangleGeometry is a smaller cropped image, RoundRectangleGeometry has rounded corners and reduced size, EllipseGeometry is a circle. Same divergence in both themes; row spacing also stretched vs MAUI.
+C1/C3: cpp light+dark match MAUI — same pug photo, same Rectangle/RoundRectangle/Ellipse/GeometryGroup clip crops, identical sizes and positions visible in the captured viewport.
 
 #### ⏳ Gemini Review
 
@@ -4047,7 +4047,7 @@ ports ClipViewsGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipView
 
 #### 🔴 Sonnet 5 Review
 
-In both themes all clipped control bars collapse to roughly a quarter of the window width with a wrong swoosh/curve clip shape instead of MAUI's full-width rectangles, and the Button caption is missing; the SearchBar row loses its red fill entirely.
+C1/C3: MAJOR clip-shape bug. Source XAML applies one shared EllipseGeometry(RadiusX=300,RadiusY=50) to every row (Button/DatePicker/Entry/Editor/Grid/SearchBar/TimePicker). In MAUI the ellipse radius vastly exceeds the row width, so the visible clip edge is a nearly flat/straight line (rows render as plain solid-red rectangles). In the cpp build, every row instead shows a pronounced diagonal/wave curve cutting across it — the SearchBar row even fades to white on the right following the same wrong curve. The ellipse clip is being rendered with a much smaller effective radius/wrong scale, producing a strongly-curved cut where MAUI shows a flat one. Same wrong shape in both light and dark.
 
 #### ⏳ Gemini Review
 
@@ -4729,7 +4729,7 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 #### ⬛ C++ Sonnet 5 Review
 
-No code-first builder twin exists for this page (manifest.json builder_twin:false) — the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&amp;XAML column applies to this page.
+No code-first builder twin exists for this page (manifest.json builder_twin:false) — the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. e2e.py cmd_capture skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&amp;XAML column applies to this page.
 
 #### ⏳ Gemini Review
 
@@ -4803,7 +4803,7 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 #### ⬛ C++ Sonnet 5 Review
 
-No code-first builder twin exists for this page (manifest.json builder_twin:false) — the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&amp;XAML column applies to this page.
+No code-first builder twin exists for this page (manifest.json builder_twin:false) — the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. e2e.py cmd_capture skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&amp;XAML column applies to this page.
 
 #### ⏳ Gemini Review
 
@@ -4839,7 +4839,7 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 #### ⬛ C++ Sonnet 5 Review
 
-No code-first builder twin exists for this page (manifest.json builder_twin:false) — the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&amp;XAML column applies to this page.
+No code-first builder twin exists for this page (manifest.json builder_twin:false) — the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. e2e.py cmd_capture skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&amp;XAML column applies to this page.
 
 #### ⏳ Gemini Review
 
@@ -5027,7 +5027,7 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 #### ⬛ C++ Sonnet 5 Review
 
-No code-first builder twin exists for this page (manifest.json builder_twin:false) — the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&amp;XAML column applies to this page.
+No code-first builder twin exists for this page (manifest.json builder_twin:false) — the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. e2e.py cmd_capture skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&amp;XAML column applies to this page.
 
 #### ⏳ Gemini Review
 
@@ -6809,7 +6809,7 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 #### ⬛ C++ Sonnet 5 Review
 
-No code-first builder twin exists for this page (manifest.json builder_twin:false) — the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&amp;XAML column applies to this page.
+No code-first builder twin exists for this page (manifest.json builder_twin:false) — the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. e2e.py cmd_capture skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&amp;XAML column applies to this page.
 
 #### ⏳ Gemini Review
 

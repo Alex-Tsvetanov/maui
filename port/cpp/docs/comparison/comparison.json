@@ -2821,7 +2821,7 @@
         },
         "sonnet": {
           "status": "blank",
-          "review": "No code-first builder twin exists for this page (manifest.json builder_twin:false) \u2014 the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&XAML column applies to this page."
+          "review": "No code-first builder twin exists for this page (manifest.json builder_twin:false) \u2014 the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. e2e.py cmd_capture skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&XAML column applies to this page."
         },
         "gemini": {
           "status": null,
@@ -3280,8 +3280,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3 red: MAUI renders all four 'Clipped Image' rows as full 300px gray rectangles (no visible clip applied), but the C++ builder column actually clips \u2014 RectangleGeometry shows a ~225px cropped image inside the gray box, EllipseGeometry shows a circular cutout on white, GeometryGroup/PathGeometry show shaped cutouts. Content (clip rendering + effective image sizes) diverges from the MAUI ground truth in both themes."
+          "status": "green",
+          "review": "C1/C3: cpp light+dark match MAUI exactly \u2014 same submarine image, same RectangleGeometry/EllipseGeometry/GeometryGroup/PathGeometry clip shapes and crop boundaries, identical layout and captions. No content differences."
         },
         "gemini": {
           "status": null,
@@ -3289,7 +3289,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "C2/C4 green: XAML column matches MAUI \u2014 same five full-rectangle image blocks, same labels, sizes and order in light and dark (MAUI's missing top 'Image' label is its known top-crop wrapper, exempt)."
+          "review": "C2/C4: xaml light+dark match MAUI exactly, pixel-identical to the cpp column as well \u2014 clip geometries render correctly via the newly-registered XAML geometry support."
         },
         "pixel": {
           "status": "red",
@@ -3396,15 +3396,15 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "C1/C3 red: the dog image renders at ~225x220 in the top-left of the 300x300 gray box instead of filling it as in MAUI (both themes). Additionally in light mode the slider tracks are a noticeably darker gray than MAUI's light track."
+          "review": "C1/C3: MAJOR layout bug. MAUI's RoundRectangleGeometry-clipped pug image fills its container edge-to-edge (image content extends to the bottom of the box). In the cpp build, the image only fills the top ~60% of the box, leaving a large empty light-gray rectangle below it \u2014 the clipped image is not sized/stretched to fill its container. Bug identical in light and dark. Sliders below render correctly and match MAUI."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "green",
-          "review": "C2/C4 green: image fills the 300x300 box exactly as MAUI, labels and four corner sliders match in both themes."
+          "status": "red",
+          "review": "C2/C4: same bug as cpp column \u2014 image clipped by RoundRectangleGeometry only fills the top portion of the box, leaving empty gray space below, in both light and dark. Sliders match MAUI fine; only the clipped-image sizing is broken."
         },
         "pixel": {
           "status": "red",
@@ -3510,8 +3510,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3 red: MAUI shows all clipped-image rows as full rectangles, but the C++ builder applies visible clips \u2014 RectangleGeometry is a smaller cropped image, RoundRectangleGeometry has rounded corners and reduced size, EllipseGeometry is a circle. Same divergence in both themes; row spacing also stretched vs MAUI."
+          "status": "green",
+          "review": "C1/C3: cpp light+dark match MAUI \u2014 same pug photo, same Rectangle/RoundRectangle/Ellipse/GeometryGroup clip crops, identical sizes and positions visible in the captured viewport."
         },
         "gemini": {
           "status": null,
@@ -3519,7 +3519,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "C2/C4 green: XAML column matches MAUI \u2014 Image / Rectangle / RoundRectangle / Ellipse / GeometryGroup rows all render as full rectangles with identical sizes and labels in both themes."
+          "review": "C2/C4: xaml light+dark match MAUI, identical to cpp column \u2014 all geometry clip variants render correctly."
         },
         "pixel": {
           "status": "red",
@@ -3626,15 +3626,15 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "In both themes all clipped control bars collapse to roughly a quarter of the window width with a wrong swoosh/curve clip shape instead of MAUI's full-width rectangles, and the Button caption is missing; the SearchBar row loses its red fill entirely."
+          "review": "C1/C3: MAJOR clip-shape bug. Source XAML applies one shared EllipseGeometry(RadiusX=300,RadiusY=50) to every row (Button/DatePicker/Entry/Editor/Grid/SearchBar/TimePicker). In MAUI the ellipse radius vastly exceeds the row width, so the visible clip edge is a nearly flat/straight line (rows render as plain solid-red rectangles). In the cpp build, every row instead shows a pronounced diagonal/wave curve cutting across it \u2014 the SearchBar row even fades to white on the right following the same wrong curve. The ellipse clip is being rendered with a much smaller effective radius/wrong scale, producing a strongly-curved cut where MAUI shows a flat one. Same wrong shape in both light and dark."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "yellow",
-          "review": "Layout, widths, and all control content match MAUI in both themes; the only diff is the SearchBar field background \u2014 near-white in light and dark-gray in dark instead of MAUI's red-tinted field."
+          "status": "red",
+          "review": "C2/C4: identical bug to the cpp column \u2014 the xaml build shows the exact same wrong pronounced diagonal clip curve on every row instead of MAUI's flat/near-straight ellipse-clip edge, in both light and dark. Confirms the bug is in shared clip-rendering code, not XAML-parsing specific."
         },
         "pixel": {
           "status": "red",
@@ -7766,7 +7766,7 @@
         },
         "sonnet": {
           "status": "blank",
-          "review": "No code-first builder twin exists for this page (manifest.json builder_twin:false) \u2014 the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&XAML column applies to this page."
+          "review": "No code-first builder twin exists for this page (manifest.json builder_twin:false) \u2014 the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. e2e.py cmd_capture skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&XAML column applies to this page."
         },
         "gemini": {
           "status": null,
@@ -8226,7 +8226,7 @@
         },
         "sonnet": {
           "status": "blank",
-          "review": "No code-first builder twin exists for this page (manifest.json builder_twin:false) \u2014 the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&XAML column applies to this page."
+          "review": "No code-first builder twin exists for this page (manifest.json builder_twin:false) \u2014 the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. e2e.py cmd_capture skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&XAML column applies to this page."
         },
         "gemini": {
           "status": null,
@@ -8456,7 +8456,7 @@
         },
         "sonnet": {
           "status": "blank",
-          "review": "No code-first builder twin exists for this page (manifest.json builder_twin:false) \u2014 the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&XAML column applies to this page."
+          "review": "No code-first builder twin exists for this page (manifest.json builder_twin:false) \u2014 the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. e2e.py cmd_capture skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&XAML column applies to this page."
         },
         "gemini": {
           "status": null,
@@ -9606,7 +9606,7 @@
         },
         "sonnet": {
           "status": "blank",
-          "review": "No code-first builder twin exists for this page (manifest.json builder_twin:false) \u2014 the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&XAML column applies to this page."
+          "review": "No code-first builder twin exists for this page (manifest.json builder_twin:false) \u2014 the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. e2e.py cmd_capture skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&XAML column applies to this page."
         },
         "gemini": {
           "status": null,
@@ -20416,7 +20416,7 @@
         },
         "sonnet": {
           "status": "blank",
-          "review": "No code-first builder twin exists for this page (manifest.json builder_twin:false) \u2014 the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&XAML column applies to this page."
+          "review": "No code-first builder twin exists for this page (manifest.json builder_twin:false) \u2014 the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. e2e.py cmd_capture skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&XAML column applies to this page."
         },
         "gemini": {
           "status": null,
