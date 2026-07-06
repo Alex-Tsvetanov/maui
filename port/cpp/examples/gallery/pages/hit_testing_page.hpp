@@ -57,6 +57,8 @@
 #include "maui/controls/shapes/ellipse.hpp"
 #include "maui/controls/shapes/rectangle.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/font.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
@@ -79,7 +81,13 @@ namespace maui::samples
             selection_label_.set_text("Selected: -");
             selection_label_.set_horizontal_layout_alignment(
                 maui::core::layout_alignment::center); // XAML HorizontalOptions="Center"
+            // XAML: <Label Text="Rectangle Selection" VerticalOptions="Center" FontSize="8" /> — the
+            // builder previously left both unset (default font size ~17pt), so the row measured much
+            // taller than the twin's tiny 8pt label + centered CheckBox (confirmed against the MAUI
+            // reference capture, which matches the twin's compact row, not the builder's inflated one).
             mode_label_.set_text("Rectangle Selection");
+            mode_label_.set_font(maui::core::font::system_font_of_size(8.0));
+            mode_label_.set_vertical_layout_alignment(maui::core::layout_alignment::center);
             mode_row_.add(mode_label_);
             mode_row_.add(rectangle_select_check_);
             // CheckedChanged flips single <-> rectangle selection mode (the C# State machine).
@@ -88,16 +96,26 @@ namespace maui::samples
             // ---- the varied, overlapping view set (each given a representative frame for the hit walk) --
             // Two aligned labels (Start / End horizontal options in the C#): the first hugs the leading
             // edge, the second the trailing edge — matching MAUI's HorizontalOptions Start/End.
+            // XAML: <Label ... FontSize="18" FontAttributes="Bold" .../> — the builder previously left
+            // both labels at the default (regular) font, so they rendered thin instead of the twin's
+            // 18pt bold (confirmed against the MAUI reference capture, which is bold).
             left_label_.set_text("Lorem ipsum dolor sit ame");
             left_label_.set_horizontal_layout_alignment(maui::core::layout_alignment::start);
+            left_label_.set_font(maui::core::font::system_font_of_size(18.0, maui::core::font_weight::bold));
             right_label_.set_text("Lorem ipsum dolor sit ame");
             right_label_.set_horizontal_layout_alignment(maui::core::layout_alignment::end);
+            right_label_.set_font(maui::core::font::system_font_of_size(18.0, maui::core::font_weight::bold));
 
             // Three buttons: Scale=1, Scale=2 (overlaps its neighbors when scaled), Rotation=20.
+            // XAML: the Scale buttons carry FontAttributes="Bold" (Rotation=20 does not).
             scale1_btn_.set_text("Scale = 1");
             scale1_btn_.set_scale(1);
+            scale1_btn_.set_font(
+                maui::core::font::system_font_of_size(scale1_btn_.font().size(), maui::core::font_weight::bold));
             scale2_btn_.set_text("Scale = 2");
             scale2_btn_.set_scale(2); // doubled — its bounds overlap the rows above/below
+            scale2_btn_.set_font(
+                maui::core::font::system_font_of_size(scale2_btn_.font().size(), maui::core::font_weight::bold));
             rotate_btn_.set_text("Rotation = 20");
             rotate_btn_.set_rotation(20);
 

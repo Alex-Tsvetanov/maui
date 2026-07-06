@@ -27,6 +27,7 @@
 #include "apple_semantics_ops.hpp"
 #include "apple_view_ops.hpp"
 #include "apple_visual_ops.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/i_ios_slider_specifics.hpp"
 #include "maui/core/i_slider.hpp"
 #include "maui/core/image_source_loader.hpp"
@@ -253,10 +254,22 @@ namespace maui::core
     void slider_handler::map_minimum_track_color(slider_handler& handler, i_slider& view)
     {
         // The filled (minimum) side: NSSlider.trackFillColor (the MinimumTrackTintColor equivalent).
+        // MinimumTrackColor defaults to null in C# (SliderExtensions.UpdateMinimumTrackColor leaves the
+        // native tint alone when unset); the port's default-constructed color{} is opaque BLACK, not a
+        // "leave it alone" sentinel, so this mapper must discriminate on whether the property was
+        // explicitly SET (BindableObject.IsSet) rather than trust the getter — the same unset-color
+        // fix already applied to label/entry/editor/search_bar/radio_button (see
+        // "Unset-color sentinel collision" in the port's fix history). Unset: leave trackFillColor at
+        // its NSSlider system default (blue) instead of stomping it to black.
         if (auto* platform = handler.typed_platform_view())
         {
-            as_slider(platform->native).trackFillColor = to_ns_color(view.minimum_track_color());
-            platform->minimum_track_color = view.minimum_track_color();
+            const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+            const bool color_is_set = bindable != nullptr && bindable->is_property_set("minimum_track_color");
+            if (color_is_set)
+            {
+                as_slider(platform->native).trackFillColor = to_ns_color(view.minimum_track_color());
+                platform->minimum_track_color = view.minimum_track_color();
+            }
         }
     }
 

@@ -193,6 +193,7 @@ namespace maui::samples
             // Border Content picker (Label / Image).
             content_caption_.set_text("Border Content");
             controls_.add(content_caption_);
+            content_picker_.set_title("Border Content"); // twin: <Picker Title="Border Content">
             content_picker_.set_items_source(make_items({"Label", "Image"}));
             content_picker_.selected_index_changed.connect([this] {
                 update_border_content();
@@ -203,6 +204,7 @@ namespace maui::samples
             // Border Shape picker (Rectangle / RoundRectangle / Ellipse).
             shape_caption_.set_text("Border Shape");
             controls_.add(shape_caption_);
+            shape_picker_.set_title("Border Shape"); // twin: <Picker Title="Border Shape">
             shape_picker_.set_items_source(make_items({"Rectangle", "RoundRectangle", "Ellipse"}));
             shape_picker_.selected_index_changed.connect([this] { update_border_shape(); });
             controls_.add(shape_picker_);

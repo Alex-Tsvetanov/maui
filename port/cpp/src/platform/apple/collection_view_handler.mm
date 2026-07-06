@@ -57,7 +57,9 @@
 #include "maui/core/i_element.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_maui_context.hpp"
+#include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
+#include "maui/graphics/rect.hpp"
 
 namespace
 {
@@ -87,6 +89,24 @@ namespace
 // otherwise the default-cell label. The test seam (native_cell_text) reads this so a template-bound
 // label reports its bound value, not the cell's hidden default label.
 - (NSString*)displayedText;
+// Route the container view's -layout (the AppKit layoutSubviews analog) back to re-frame the templated
+// content on every bounds change (recycled item reused at a new size, split-view resize, etc).
+- (void)layoutTemplatedContent;
+@end
+
+// The item's container view. NSCollectionViewItem builds its own top-level view lazily via -loadView; a
+// plain NSView never gets a layout callback wired to anything, so a dedicated subclass overrides -layout
+// (the NSView equivalent of UIView's layoutSubviews) and forwards it to the owning item.
+@interface MauiCollectionViewItemContainerView : NSView
+@property(nonatomic, weak) MauiCollectionViewItem* owningItem;
+@end
+
+@implementation MauiCollectionViewItemContainerView
+- (void)layout
+{
+    [super layout];
+    [self.owningItem layoutTemplatedContent];
+}
 @end
 
 @implementation MauiCollectionViewItem
@@ -100,7 +120,9 @@ namespace
 // NSCollectionViewItem builds its view lazily; supply a flat container so we can host either surface.
 - (void)loadView
 {
-    NSView* const container = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 100, k_estimated_item_extent)];
+    MauiCollectionViewItemContainerView* const container =
+        [[MauiCollectionViewItemContainerView alloc] initWithFrame:NSMakeRect(0, 0, 100, k_estimated_item_extent)];
+    container.owningItem = self;
     container.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     _label = [NSTextField labelWithString:@""];
     _label.frame = container.bounds;
@@ -129,10 +151,36 @@ namespace
     _templatedContent = content;
     if (content != nil)
     {
-        content.frame = self.view.bounds;
-        content.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
         [self.view addSubview:content];
+        [self layoutTemplatedContent];
     }
+}
+
+// Frame the hosted template content within the item's view, honoring the realized root's Margin /
+// HorizontalLayoutAlignment via the cross-platform measure + arrange pipeline (compute_frame) — mirrors
+// the iOS MauiCollectionViewCell layoutTemplatedContent. A bare `content.frame = self.view.bounds` assignment
+// (the prior behavior) never runs the layout pipeline, so a templated view's Margin never gets translated
+// into an inset frame. Re-run from MauiCollectionViewItemContainerView's -layout so a recycled item reused
+// at a new size, or a bounds change, re-applies the frame — autoresizing alone cannot express Margin or a
+// non-Fill alignment, and clearing it below lets measure/arrange own the frame instead.
+- (void)layoutTemplatedContent
+{
+    if (_templatedContent == nil)
+    {
+        return;
+    }
+    const NSRect bounds = self.view.bounds;
+    auto* const view = dynamic_cast<maui::core::i_view*>(_realizedContent.get());
+    if (view == nullptr)
+    {
+        // A non-view root can't be arranged — stretch it across the whole item via flexible autoresizing.
+        _templatedContent.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+        _templatedContent.frame = bounds;
+        return;
+    }
+    _templatedContent.autoresizingMask = NSViewNotSizable;
+    view->measure(bounds.size.width, bounds.size.height);
+    view->arrange(maui::graphics::rect{0.0, 0.0, bounds.size.width, bounds.size.height});
 }
 
 - (void)showTemplatedContent:(NSView*)content retainingRealized:(std::shared_ptr<maui::core::bindable_object>)realized

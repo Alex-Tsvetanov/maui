@@ -28,8 +28,12 @@
 //   note: the C# fill/stroke colors are named brushes ("AliceBlue", "Green", "Blue", "Red", "Black",
 //         "Yellow"); the port wraps each named color in a solid_paint (the documented brush→paint bridge).
 //   note: the C# StackLayout (auto-vertical orientation) maps onto vertical_stack_layout; Padding="12"
-//         is not modeled on this layout in the port today, so it is omitted (best-effort; the children and
-//         their spacing are what the page demonstrates).
+//         IS reproduced: PORT FIX (2026-07-06, the cpp<->xaml consistency check) — the twin
+//         (pages/polygon_gallery.xaml) carries <StackLayout Padding="12">, but this builder previously set
+//         no padding at all, leaving every shape flush against the left edge while the xaml column's
+//         hydration correctly inset everything by 12pt — a uniform native horizontal offset between the
+//         two columns despite otherwise pixel-identical shape content. stack_.set_padding(12) below now
+//         matches (the same class of bug fixed for path_gallery in the same sweep).
 
 #include <memory>
 
@@ -39,6 +43,7 @@
 #include "maui/controls/shapes/fill_rule.hpp"
 #include "maui/controls/shapes/polygon.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
@@ -51,6 +56,7 @@ namespace maui::samples
         polygon_gallery_page()
         {
             page_.set_title("Polygon Gallery");
+            stack_.set_padding(maui::core::thickness{12}); // StackLayout Padding="12" (see header note)
 
             // --- "A basic Polygon": triangle, AliceBlue fill, green stroke 5, 200x100.
             caption(basic_label_, "A basic Polygon");
