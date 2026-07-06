@@ -1722,6 +1722,7 @@ add_library(maui_xaml STATIC
   src/xaml/register_xaml_brushes.cpp  # W7: gradient brushes (LinearGradientBrush/RadialGradientBrush/GradientStop)
   src/xaml/register_xaml_formatted_text.cpp  # W8: FormattedString / Span (Label.FormattedText)
   src/xaml/register_xaml_tables.cpp  # TableView content hierarchy (TableView/TableRoot/TableSection + cells)
+  src/xaml/register_xaml_shell.cpp  # Shell item tree (Shell/ShellItem/ShellSection/ShellContent) — Create-path only
   src/xaml/xaml_node.cpp
   src/xaml/xaml_parser.cpp
   src/xaml/i_markup_extension.cpp

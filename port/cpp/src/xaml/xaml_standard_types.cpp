@@ -461,5 +461,6 @@ namespace maui::xaml
         register_xaml_brushes(types, properties, converters);        // W7: gradient brushes (element form)
         register_xaml_formatted_text(types, properties, converters); // W8: FormattedString / Span
         register_xaml_tables(types, properties, converters);         // TableView content hierarchy + cells
+        register_xaml_shell(types, properties, converters);          // Shell item tree (Create-path only)
     }
 } // namespace maui::xaml

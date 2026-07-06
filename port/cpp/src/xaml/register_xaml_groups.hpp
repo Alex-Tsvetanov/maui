@@ -58,6 +58,11 @@ namespace maui::xaml
     // family: TextCell / EntryCell / SwitchCell / ImageCell / ViewCell) + the TableIntent converter.
     void register_xaml_tables(xaml_type_registry& types, xaml_property_registry& properties,
                               xaml_converter_registry& converters);
+    // Shell: the Shell item tree (Shell / ShellItem / FlyoutItem / TabBar / ShellSection / Tab /
+    // ShellContent) + the FlyoutBehavior converter. Create-path (xaml_loader::load) only — the
+    // load_into / build_page harness path cannot host a <Shell> root (shell is not a content_page).
+    void register_xaml_shell(xaml_type_registry& types, xaml_property_registry& properties,
+                             xaml_converter_registry& converters);
 
     // Shared converter sink: value converters that more than one group needs (registered once).
     void register_xaml_extra_converters(xaml_converter_registry& converters);

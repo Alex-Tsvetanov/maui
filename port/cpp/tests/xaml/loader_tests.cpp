@@ -69,6 +69,10 @@
 #include "maui/controls/shapes/path_geometry.hpp"            // 2026-07
 #include "maui/controls/shapes/rectangle_geometry.hpp"       // 2026-07
 #include "maui/controls/shapes/round_rectangle_geometry.hpp" // 2026-07
+#include "maui/controls/shell/shell.hpp"                     // Shell: Create-path root
+#include "maui/controls/shell/shell_content.hpp"             // Shell: ShellContent
+#include "maui/controls/shell/shell_item.hpp"                // Shell: ShellItem
+#include "maui/controls/shell/shell_section.hpp"             // Shell: ShellSection
 #include "maui/controls/span.hpp"                            // W8
 #include "maui/controls/swipe_item.hpp"                      // Swipe: SwipeItem
 #include "maui/controls/swipe_item_view.hpp"                 // Swipe: SwipeItemView
@@ -2053,5 +2057,118 @@ namespace
         auto* item = dynamic_cast<controls::swipe_item*>(swipe.left_items()->at(0));
         ASSERT_NE(item, nullptr);
         EXPECT_EQ(item->text(), "Delete");
+    }
+
+    // ---- Shell (register_xaml_shell) — Create-path hydration + the documented load_into gap --------
+    //
+    // Shell is registered so <Shell> PARSES and the runtime Create path mints a real
+    // shell(item(section(content))) tree. It is INTENTIONALLY NOT hostable by load_into / build_page:
+    // shell derives view<i_view> while content_page derives view<i_content_view> (unrelated sibling
+    // types), so the build_page harness (which hydrates INTO a pre-made content_page) cannot host a
+    // <Shell> root — the root child sink downcasts the content_page to shell* and drops every child.
+    // shell_root_into_content_page_stays_empty PINS that gap so a future silent "fix" forces a test
+    // update. See register_xaml_shell.cpp's header for the full incompatibility note.
+
+    TEST(xaml_loader, loads_shell_root_via_create)
+    {
+        // XamlLoader.Create mints the Shell itself; the implicit <ShellContent> wraps up into an
+        // IMPL_ shell_section + shell_item (C# implicit-conversion parity, shell.hpp:70-74). The
+        // result OWNS the whole tree; keep it alive while drilling the borrowed pointers below.
+        const xaml_load_result result = xaml_loader::load(R"xml(
+<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ShellContent Title="Home">
+        <ContentPage>
+            <Label x:Name="body" Text="Shell content" />
+        </ContentPage>
+    </ShellContent>
+</Shell>)xml");
+        const std::shared_ptr<controls::shell> shell = result.root_as<controls::shell>();
+        ASSERT_NE(shell, nullptr);
+        // One (wrapped) shell_item → its current section → its current content.
+        ASSERT_EQ(shell->items().size(), 1U);
+        ASSERT_NE(shell->current_section(), nullptr);
+        controls::shell_content* content = shell->current_content();
+        ASSERT_NE(content, nullptr);
+        EXPECT_EQ(content->title(), "Home");
+        // The ShellContent.Content page carries the Label (drilled through current_content()).
+        controls::content_page* page = content->content();
+        ASSERT_NE(page, nullptr);
+        const std::shared_ptr<controls::label> body = result.find_by_name<controls::label>("body");
+        ASSERT_NE(body, nullptr);
+        EXPECT_EQ(body->text(), "Shell content");
+    }
+
+    TEST(xaml_loader, shell_items_wrap_a_bare_shell_content)
+    {
+        // The full explicit spelling <Shell><ShellItem><ShellSection><ShellContent/> — the Items child
+        // sinks at each level (Shell.Items / ShellItem.Items / ShellSection.Items) recover each node's
+        // own shared_ptr (own_handle) and hand it to the owning add_item/add overload.
+        const xaml_load_result result = xaml_loader::load(R"xml(
+<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+    <ShellItem Title="Section root">
+        <ShellSection Title="Tabs">
+            <ShellContent Title="Tab one">
+                <ContentPage />
+            </ShellContent>
+        </ShellSection>
+    </ShellItem>
+</Shell>)xml");
+        const std::shared_ptr<controls::shell> shell = result.root_as<controls::shell>();
+        ASSERT_NE(shell, nullptr);
+        ASSERT_EQ(shell->items().size(), 1U);
+        controls::shell_item* item = shell->items().front().get();
+        ASSERT_NE(item, nullptr);
+        EXPECT_EQ(item->title(), "Section root");
+        ASSERT_EQ(item->items().size(), 1U);
+        controls::shell_section* section = item->items().front().get();
+        ASSERT_NE(section, nullptr);
+        EXPECT_EQ(section->title(), "Tabs");
+        ASSERT_EQ(section->items().size(), 1U);
+        EXPECT_EQ(section->items().front()->title(), "Tab one");
+    }
+
+    TEST(xaml_loader, shell_flyout_behavior_converter_from_markup)
+    {
+        // The shell-group FlyoutBehavior converter (Disabled/Flyout/Locked) applied on the Shell root.
+        const xaml_load_result result = xaml_loader::load(R"xml(
+<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui" FlyoutBehavior="Locked">
+    <ShellContent Title="Home"><ContentPage /></ShellContent>
+</Shell>)xml");
+        const std::shared_ptr<controls::shell> shell = result.root_as<controls::shell>();
+        ASSERT_NE(shell, nullptr);
+        EXPECT_EQ(shell->get_flyout_behavior(), controls::flyout_behavior::locked);
+    }
+
+    TEST(xaml_loader, shell_root_into_content_page_stays_empty)
+    {
+        // DOCUMENTED GAP (feasibility PARTIAL). load_into hydrates markup INTO a caller-owned
+        // content_page (the build_page harness path). <Shell> is now a registered, parseable root, so
+        // the parse itself succeeds — but the root's resolved type is Shell while the object is a
+        // content_page (unrelated sibling types). Applying the <ShellContent> child routes through the
+        // Shell.Items child sink, whose dynamic_cast<shell*>(content_page) returns null, so the sink
+        // rejects the child and the loader raises the loud "cannot set the content of Shell" error
+        // (xaml_visitors.cpp:2323). i.e. the build_page harness cannot host a <Shell> root — it fails
+        // loudly rather than silently mis-hosting. This is the incompatibility that keeps <Shell> out
+        // of the code-first harness path; closing it needs a shell-under-page subclass or the e2e.py
+        // root_type + CPP_SHELL factory infra (both OUT OF SCOPE). The content_page's own Content is
+        // never set. If a future change makes load_into host a Shell root, THIS assertion must be
+        // revisited (the pin's whole purpose).
+        controls::content_page page;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(page, R"xml(
+<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+    <ShellContent Title="Home">
+        <ContentPage>
+            <Label Text="dropped" />
+        </ContentPage>
+    </ShellContent>
+</Shell>)xml");
+        });
+        // The harness refuses a Shell root LOUDLY: the Shell.Items sink cannot accept the content_page
+        // as its parent, so the content cannot be set.
+        EXPECT_EQ(message, "Cannot set the content of Shell as it doesn't have a ContentPropertyAttribute") << message;
+        // Either way the <Shell> children never reach the caller's content_page: its Content stays unset.
+        EXPECT_EQ(page.content(), nullptr);
     }
 } // namespace
