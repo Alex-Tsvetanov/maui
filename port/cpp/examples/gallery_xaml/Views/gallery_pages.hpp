@@ -74,6 +74,19 @@
 #include "Views/footer_only_string.xaml.hpp"
 #include "Views/formatted_text.xaml.hpp"
 #include "Views/frame.xaml.hpp"
+#include "Views/gap_carousel_position_binding.xaml.hpp"
+#include "Views/gap_event_attribute.xaml.hpp"
+#include "Views/gap_grid_items_layout_element.xaml.hpp"
+#include "Views/gap_items_updating_scroll_mode.xaml.hpp"
+#include "Views/gap_menu_bar.xaml.hpp"
+#include "Views/gap_menu_flyout.xaml.hpp"
+#include "Views/gap_on_platform_converter.xaml.hpp"
+#include "Views/gap_path_data.xaml.hpp"
+#include "Views/gap_path_figure_element.xaml.hpp"
+#include "Views/gap_picker_items_source.xaml.hpp"
+#include "Views/gap_swipe_view_items.xaml.hpp"
+#include "Views/gap_title_bar.xaml.hpp"
+#include "Views/gap_toolbar.xaml.hpp"
 #include "Views/gestures.xaml.hpp"
 #include "Views/gradient.xaml.hpp"
 #include "Views/grid.xaml.hpp"
@@ -258,6 +271,19 @@
     X(footer_only_string)                                                                                              \
     X(formatted_text)                                                                                                  \
     X(frame)                                                                                                           \
+    X(gap_carousel_position_binding)                                                                                   \
+    X(gap_event_attribute)                                                                                             \
+    X(gap_grid_items_layout_element)                                                                                   \
+    X(gap_items_updating_scroll_mode)                                                                                  \
+    X(gap_menu_bar)                                                                                                    \
+    X(gap_menu_flyout)                                                                                                 \
+    X(gap_on_platform_converter)                                                                                       \
+    X(gap_path_data)                                                                                                   \
+    X(gap_path_figure_element)                                                                                         \
+    X(gap_picker_items_source)                                                                                         \
+    X(gap_swipe_view_items)                                                                                            \
+    X(gap_title_bar)                                                                                                   \
+    X(gap_toolbar)                                                                                                     \
     X(gestures)                                                                                                        \
     X(gradient)                                                                                                        \
     X(grid)                                                                                                            \
