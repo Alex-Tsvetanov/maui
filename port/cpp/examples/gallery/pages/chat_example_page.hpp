@@ -24,8 +24,20 @@
 //   - the cell label binds Text = message.text, so different-length messages realize different-size cells
 //     under the virtualization sim (the "variable item size" the page exists to exercise);
 //   - item_sizing_strategy::measure_all_items + a vertical linear_items_layout(item_spacing 5), verbatim;
-//   - append_random_message() / clear_messages() / add_lots(n) mirror the three C# buttons (the deterministic
-//     pseudo-random length generator stands in for the C# Random so the demo is reproducible headless).
+//   - append_random_message() / clear_messages() / add_lots(n) mirror the three C# buttons; the header row
+//     wires each button's clicked event straight to its method (the deterministic pseudo-random length
+//     generator stands in for the C# Random so the demo is reproducible headless).
+//
+// PORT NOTE (2026-07-06, matching the shared XAML twin / real MAUI at-rest render): the twin
+// (port/maui-reference/pages/chat_example.xaml) shows the header row of three action buttons
+// ("Append Random Message" / "Clear" / "Add 1000 Messages") over an EMPTY CollectionView at rest — no
+// ItemsSource is bound in the static markup (the C# page starts empty too; messages only appear after a
+// button tap). MAUI's actual captured render confirms this (port/maui-reference/captures/maccatalyst/
+// chat_example_*: sonnet_xaml green, matching MAUI's empty-list + button-row at rest). The builder
+// previously seeded two chat bubbles in its constructor and omitted the three buttons entirely — both
+// divergences are fixed here: the header row is added and wired to append_random_message()/
+// clear_messages()/add_lots(), and the constructor no longer seeds any messages (the source starts empty,
+// matching the twin/MAUI's genuine at-rest state).
 //
 // SINGLE-ROOT REDUCTION (documented, not stubbed) — same as the sibling CollectionView pages:
 //   The port's struct-cell template seam stages only bindable_property setters on ONE root view per cell
@@ -47,7 +59,10 @@
 #include <string>
 #include <vector>
 
+#include "maui/controls/button.hpp"
 #include "maui/controls/content_page.hpp"
+#include "maui/controls/grid.hpp"
+#include "maui/controls/horizontal_stack_layout.hpp"
 #include "maui/controls/items/collection_view.hpp"
 #include "maui/controls/items/item_sizing_strategy.hpp"
 #include "maui/controls/items/items_layout_orientation.hpp"
@@ -56,6 +71,7 @@
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/templates/data_template_selector.hpp"
 #include "maui/controls/view.hpp"
+#include "maui/core/grid_length.hpp"
 #include "maui/core/layout_alignment.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/thickness.hpp"
@@ -121,12 +137,36 @@ namespace maui::samples
             list_.set_item_sizing_strategy(maui::controls::item_sizing_strategy::measure_all_items);
             list_.set_items_layout(make_chat_layout());
 
-            // Seed a couple of messages so the page is not empty on first appear (the C# page starts empty
-            // and is filled via the buttons; one local + one remote shows both templates immediately).
-            messages_->add({.text = "Hi there!", .is_local = true});
-            messages_->add({.text = "Hello — how can I help you today?", .is_local = false});
+            // The twin's Grid (Auto row = the button header, Star row = the CollectionView). No messages
+            // are seeded — the C# page (and the twin's static markup) starts with an EMPTY list; messages
+            // only appear once a button is tapped (see header PORT NOTE).
+            outer_.add_row_definition(maui::core::grid_length::automatic());
+            outer_.add_row_definition(maui::core::grid_length::star());
 
-            page_.set_content(list_);
+            // The header row: "Append Random Message" / "Clear" / "Add 1000 Messages", each Margin 2,
+            // wired straight to the matching method (the C# code-behind's Clicked handlers).
+            append_button_.set_text("Append Random Message");
+            append_button_.set_margin(maui::core::thickness(2));
+            append_button_.clicked.connect([this] { append_random_message(); });
+            header_.add(append_button_);
+
+            clear_button_.set_text("Clear");
+            clear_button_.set_margin(maui::core::thickness(2));
+            clear_button_.clicked.connect([this] { clear_messages(); });
+            header_.add(clear_button_);
+
+            add_lots_button_.set_text("Add 1000 Messages");
+            add_lots_button_.set_margin(maui::core::thickness(2));
+            add_lots_button_.clicked.connect([this] { add_lots(); });
+            header_.add(add_lots_button_);
+
+            outer_.add(header_);
+            outer_.set_row(header_, 0);
+
+            outer_.add(list_);
+            outer_.set_row(list_, 1);
+
+            page_.set_content(outer_);
         }
 
         [[nodiscard]] maui::controls::content_page& page()
@@ -160,6 +200,14 @@ namespace maui::samples
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment.
+        [[nodiscard]] maui::controls::grid& outer()
+        {
+            return outer_;
+        }
+        [[nodiscard]] maui::controls::horizontal_stack_layout& header()
+        {
+            return header_;
+        }
         [[nodiscard]] maui::controls::collection_view& list()
         {
             return list_;
@@ -234,6 +282,11 @@ namespace maui::samples
         std::shared_ptr<maui::core::observable_collection<chat_message>> messages_; // publisher first (§8)
         chat_template_selector selector_;                                           // outlives the list (aliased in)
         maui::controls::content_page page_;
+        maui::controls::grid outer_;
+        maui::controls::horizontal_stack_layout header_;
+        maui::controls::button append_button_;
+        maui::controls::button clear_button_;
+        maui::controls::button add_lots_button_;
         maui::controls::collection_view list_;
         unsigned int rng_ = 2463534242U; // deterministic seed
     };
