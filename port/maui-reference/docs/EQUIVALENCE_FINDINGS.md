@@ -34,16 +34,39 @@ cluster below is a class of visible render divergence between the C++-only and C
 > too, but its builder page separately appends a gallery-convention "Toggle clip on/off" Button + status
 > Label the twin correctly omits (AUTHORING.md rule 3); see cluster E.
 
+> 2026-07-06 — **`app_theme_binding` CLOSED** (was cluster A): the twin's root `StackLayout` is now
+> `VerticalStackLayout`, and the builder page was re-aligned to the ORIGINAL AppThemeBindingPage.xaml —
+> its invented "Toggle theme" button + "Theme: …" readout were removed, the headlines carry the twin's
+> inline Headline stand-in (FontSize 24 Bold), and the page now binds the HOSTING app's theme via the
+> `on_mounted` hook (it had owned a PRIVATE application seeded Light, which is why the cpp column never
+> went dark). The xaml column's dark-theme fix is separate: the generated `Views/*.xaml` factories now
+> thread `xaml_load_options{.application = …}` so `{AppThemeBinding}` resolves against the app's
+> current theme and re-applies on RequestedThemeChanged (see `e2e.py` gen templates + gallery_xaml
+> main.cpp).
+>
+> 2026-07-06 — **`data_template_selector` CLOSED** (was cluster B): builder grid now carries the twin's
+> Padding 12 / RowSpacing 6, its source is the twin's 14 static rows (the C# 200-row
+> DemoFilteredItemSource is a scrolling near-duplicate list the static board can't compare), and its
+> AT-REST ItemTemplate is the twin's single plain Margin-6 bound label. **P3 gap-corpus item:** the
+> twin cannot express a `DataTemplateSelector` (no reflection to activate the C# selector classes) —
+> the builder keeps its `day_selector`/WeekendSelector machinery in code, deliberately UNWIRED at
+> rest; a future `gap_data_template_selector.xaml` should pin the loader gap. The SAME policy applies
+> to `varied_size_selector` (its 3-way `drink_selector` stays unwired at rest; the at-rest cell is the
+> twin's uniform Wheat/100pt/Padding-8 template and the picker preselect is dropped) — that key was
+> already structurally equivalent, so only its render changed.
+
 ## Cluster A — twin uses `StackLayout` where the builder uses `VerticalStackLayout`/`HorizontalStackLayout` (22 keys)
 
 Different control type (often plus spacing/padding deltas). Alignment direction: usually fix the
 SHARED XAML to the specific-orientation control the builder (and the original C# page) uses — plain
 `StackLayout` is the legacy control with different default behavior.
 
-`animation, alerts, app_theme_binding, basic_swipe, composition_gallery, ellipse_gallery,
+`animation, alerts, basic_swipe, composition_gallery, ellipse_gallery,
 header_footer_grid, header_footer_grid_horizontal, line_gallery, path_transform_string,
 pointer_gesture, polygon_gallery, polyline_gallery, preselected_items, rectangle_gallery,
 selection_synchronization, shape_app_theme, some_empty_groups`
+
+(`app_theme_binding` closed 2026-07-06 — see the note above.)
 
 (`clip`, `clip_corner_radius`, `clip_gallery`, `clip_views` were also cluster-A members — twin
 `StackLayout` vs builder `VerticalStackLayout` — all four fixed to `VerticalStackLayout` alongside the
@@ -57,10 +80,12 @@ E.g. `check_box.xaml` `Padding="16"` vs builder padding 0; `transform_playground
 direction: page-by-page — whichever side matches the MAUI reference capture wins.
 
 `behaviors, border_layout, border_playground, border_resize_content, border_stroke, check_box,
-data_template_selector, focus, gestures, horizontal_stack, input_controls,
+focus, gestures, horizontal_stack, input_controls,
 invalidate_brush, radio_button_border, radio_button_group_gallery, radio_template_from_style,
 scattered_radio_button, search_bar, selection_command_param, switch_grouping, transform_playground,
 vertical_stack`
+
+(`data_template_selector` closed 2026-07-06 — see the note above.)
 
 ## Cluster C — builder computes runtime state vs the twin's static snapshot (6 keys)
 

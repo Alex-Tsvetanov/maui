@@ -11,7 +11,9 @@
         <SearchBar Placeholder="Day of Week Filter" Grid.Row="0" />
 
         <!-- Row 1: the CollectionView. WeekendSelector (weekday name vs "It's the weekend!")
-             collapses to a single representative day-name DataTemplate. -->
+             collapses to a single representative day-name DataTemplate — the loader cannot activate
+             the C# selector classes (P3 gap-corpus item, docs/EQUIVALENCE_FINDINGS.md); the builder
+             page renders the SAME single-template cells at rest. -->
         <CollectionView Grid.Row="1">
             <CollectionView.ItemsSource>
                 <x:Array Type="{x:Type x:String}">

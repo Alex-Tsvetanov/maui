@@ -16,7 +16,9 @@
 //     off each item's day_of_week (the WeekendSelector logic);
 //   - term_selector is a data_template_selector subclass choosing symbols_template_ vs empty_template_
 //     off whether the current empty-view term has a non-letter (the SearchTermSelector logic);
-//   - set_item_template(day_selector) and set_empty_view_template(term_selector) wire them — the
+//   - set_empty_view_template(term_selector) wires the empty-view selector; day_selector is BUILT but
+//     deliberately NOT wired at rest (the shared twin cannot express a DataTemplateSelector, so the
+//     board's at-rest render is the twin's single plain template — see the ctor note) — the
 //     collection_view_handler's resolve_template calls select_template per realized cell / per empty-view
 //     realization (collection_view_handler.cpp), so the headless virtualization simulator exercises the
 //     item selection directly.
@@ -48,6 +50,7 @@
 #include "maui/controls/templates/data_template_selector.hpp"
 #include "maui/core/grid_length.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/core/type_tag.hpp"
 
 namespace maui::samples
@@ -118,6 +121,8 @@ namespace maui::samples
         {
             page_.set_title("DataTemplateSelector");
 
+            grid_.set_padding(maui::core::thickness(12)); // twin Grid Padding="12"
+            grid_.set_row_spacing(6);                     // twin Grid RowSpacing="6"
             grid_.add_row_definition(maui::core::grid_length::automatic());
             grid_.add_row_definition(maui::core::grid_length::star());
 
@@ -133,7 +138,13 @@ namespace maui::samples
             build_item_selector();
             build_empty_view_selector();
 
-            list_.set_item_template(item_selector_);
+            // AT-REST board policy (EQUIVALENCE_FINDINGS "gap corpus" note): the shared twin cannot
+            // express a DataTemplateSelector (the loader has no reflection to activate the C# selector
+            // classes), so its CollectionView renders every day with ONE plain Margin-6 bound label. The
+            // builder renders the SAME at-rest cells so all three board columns compare like-for-like;
+            // the real WeekendSelector machinery above (day_selector) stays in code as the future
+            // gap_<feature>.xaml scenario, deliberately UNWIRED at rest.
+            list_.set_item_template(build_plain_item_template());
             list_.set_empty_view_template(empty_view_selector_);
             list_.set_items_source(items_);
 
@@ -163,12 +174,12 @@ namespace maui::samples
             return items_;
         }
 
-        // The C# DemoFilteredItemSource(200, ItemMatches): keep rows whose day-of-week NAME contains the
-        // filter (case-insensitive); an empty filter keeps every row. The C# FilterItems reconciles the
-        // live source row-by-row against the backing list; here the rows REPEAT every 7 days (200 rows,
-        // seven distinct day pairs), so a per-row identity reconcile is ambiguous — the port rebuilds the
-        // live source from the backing list instead (same observable result: matching rows present,
-        // non-matching absent, so the EmptyView/selector path is reached when nothing matches).
+        // The C# DemoFilteredItemSource(count, ItemMatches): keep rows whose day-of-week NAME contains
+        // the filter (case-insensitive); an empty filter keeps every row. The C# FilterItems reconciles
+        // the live source row-by-row against the backing list; here the rows REPEAT every 7 days, so a
+        // per-row identity reconcile is ambiguous — the port rebuilds the live source from the backing
+        // list instead (same observable result: matching rows present, non-matching absent, so the
+        // EmptyView/selector path is reached when nothing matches).
         void filter_items(const std::string& filter)
         {
             items_->clear();
@@ -182,6 +193,17 @@ namespace maui::samples
         }
 
     private:
+        // The at-rest cell: the twin's single plain DataTemplate (a Margin-6 label bound to the day
+        // name), applied to EVERY row — see the ctor note for why the WeekendSelector stays unwired.
+        [[nodiscard]] static std::shared_ptr<maui::controls::data_template> build_plain_item_template()
+        {
+            auto cell = maui::controls::data_template::of<maui::controls::label>();
+            cell->set_binding<std::string, demo_item>(maui::controls::label::text_property(),
+                                                      [](const demo_item& item) { return item.day_name; });
+            cell->set_value(maui::controls::margin_property(), maui::core::thickness(6));
+            return cell;
+        }
+
         // WeekendSelector's two templates (DefaultTemplate day-name Label / WeekendTemplate fixed Label).
         void build_item_selector()
         {
@@ -219,14 +241,16 @@ namespace maui::samples
             empty_view_selector_ = std::move(selector);
         }
 
-        // DemoFilteredItemSource(200): 200 rows, day-of-week stepping one day per index (the C#
-        // DateTime.Now.AddDays(n) sequence, seeded deterministically here so cells are predictable).
+        // The demo source: 14 rows (Sunday..Saturday twice), day-of-week stepping one day per index —
+        // the shared twin's deterministic x:Array (the C# DemoFilteredItemSource seeds 200 rows off
+        // DateTime.Now; the board's MAUI reference is the twin's 14-row static snapshot, so the builder
+        // matches that at-rest count instead of scrolling 200 near-identical rows past the fold).
         [[nodiscard]] static std::vector<demo_item> source_items()
         {
             static const std::vector<std::string> day_names{"Sunday",   "Monday", "Tuesday", "Wednesday",
                                                             "Thursday", "Friday", "Saturday"};
             std::vector<demo_item> rows;
-            for (int n = 0; n < 200; ++n)
+            for (int n = 0; n < 14; ++n)
             {
                 const int dow = n % 7;
                 rows.push_back(demo_item{dow, day_names[static_cast<std::size_t>(dow)]});

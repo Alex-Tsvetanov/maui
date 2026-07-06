@@ -5,9 +5,10 @@
          drinks over a control panel (Insert/Add/Remove buttons, an Index Entry, a template Picker).
          DEGRADES: (1) the DrinkTemplateSelector (three varied-height Milk/Coffee/Latte templates) collapses
          to a single representative DataTemplate per the loader rules — a Wheat Border wrapping the bound
-         Name label; (2) items are the seeded drink Names inlined via x:Array; (3) the Picker uses
-         <Picker.Items> element strings. The resting seed (Coffee0/Milk1/Coffee2/Coffee3/Milk4/Coffee5) is
-         shown. -->
+         Name label (P3 gap-corpus item, docs/EQUIVALENCE_FINDINGS.md; the builder page renders the SAME
+         uniform cells at rest); (2) items are the seeded drink Names inlined via x:Array; (3) the Picker
+         uses <Picker.Items> element strings and drops {Binding SelectedTemplate} (empty at rest). The
+         resting seed (Coffee0/Milk1/Coffee2/Coffee3/Milk4/Coffee5) is shown. -->
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />

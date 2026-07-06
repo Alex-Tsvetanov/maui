@@ -1,38 +1,41 @@
 #pragma once
 // maui::samples::app_theme_binding_page — ports AppThemeBindingPage.xaml.
 //
-// The MAUI page is a StackLayout of labels whose TextColor is set via the {AppThemeBinding …} markup
-// extension, which picks a value by the app's RequestedTheme and RE-APPLIES on every theme change:
-//   - a headline, then a label "green in light mode, red in dark mode"
-//       TextColor="{AppThemeBinding Light=Green, Dark=Red}"
-//   - a second headline, then a label resolving a Light/Dark Color from the ResourceDictionary
-//       (LightPrimaryColor=Orange / DarkPrimaryColor=Teal) via
-//       TextColor="{AppThemeBinding Light={StaticResource LightPrimaryColor}, Dark={StaticResource DarkPrimaryColor}}"
+// The MAUI page is a StackLayout of four labels — a bold headline, a label whose TextColor is
+// {AppThemeBinding Light=Green, Dark=Red}, a second bold headline, and a label resolving a Light/Dark
+// Color from the page ResourceDictionary (LightPrimaryColor=Orange / DarkPrimaryColor=Teal) via
+// {AppThemeBinding Light={StaticResource LightPrimaryColor}, Dark={StaticResource DarkPrimaryColor}}.
+// Nothing else: the original has NO interactive widgets (theme changes come from the OS / the app).
 //
 // Port mapping (headless-safe, code-first): {AppThemeBinding} + {StaticResource} are layer-6 XAML; this
-// code-first port reproduces the SAME behavior directly. The page owns a maui::controls::application
-// (the theme source) and applies the light/dark choice itself off application::requested_theme()
-// (app_theme.hpp / application.hpp), re-applying on application::requested_theme_changed — exactly the
-// AppThemeBinding.Apply/ApplyCore contract (Dark → Dark branch; Light AND Unspecified → Light branch).
+// code-first port reproduces the SAME behavior directly against the HOSTING application (the page does
+// NOT own a private application — the real theme source is the app the gallery mounts the page into):
+//   - the ctor seeds the Light-branch colors (AppThemeBinding's Light-or-Unspecified rule), so the tree
+//     is deterministic before any host exists;
+//   - on_mounted (the gallery_host gallery_post_mount hook, same pattern as shape_app_theme_page)
+//     re-applies from the app's CURRENT requested_theme() and subscribes to requested_theme_changed —
+//     exactly the AppThemeBinding.Apply/ApplyCore re-application contract (Dark → Dark branch; Light
+//     AND Unspecified → Light branch).
 // The two resource colors are plain maui::graphics::colors constants here (the ResourceDictionary's
-// StaticResource targets), so no XAML resource machinery is needed. A toggle flips UserAppTheme between
-// Light and Dark and the bound labels recolor live; a readout echoes the active theme + resolved names.
+// StaticResource targets), so no XAML resource machinery is needed. The headlines carry the twin's
+// inline Headline stand-in (FontSize 24 + Bold).
 //
 // The page OWNS its whole element tree (the sample_app pattern). It is backend-agnostic — a sample main
 // attaches handlers bottom-up via the hosting layer and hosts page() in a window; the headless/apple/ios
 // test trees exercise the same controls directly.
 
-#include <string>
+#include <memory>
 
 #include "maui/controls/application.hpp"
-#include "maui/controls/button.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/app_theme.hpp"
+#include "maui/core/font.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
+#include "maui/hosting/maui_app.hpp"
 
 namespace maui::samples
 {
@@ -42,45 +45,50 @@ namespace maui::samples
         app_theme_binding_page()
         {
             page_.set_title("AppThemeBinding");
-            stack_.set_spacing(8);
             stack_.set_margin(maui::core::thickness(12)); // AppThemeBindingPage.xaml StackLayout Margin="12"
 
-            // Headline + the inline {AppThemeBinding Light=Green, Dark=Red} label.
+            // Headline + the inline {AppThemeBinding Light=Green, Dark=Red} label. The headlines carry
+            // the twin's inline Headline style stand-in: FontSize 24, Bold.
+            const maui::core::font headline_font =
+                maui::core::font::system_font_of_size(24, maui::core::font_weight::bold);
             headline_a_.set_text("AppThemeBinding");
+            headline_a_.set_font(headline_font);
             inline_label_.set_text("This text is green in light mode, and red in dark mode.");
 
             // Headline + the ResourceDictionary {StaticResource}-backed label
             // ({AppThemeBinding Light=LightPrimaryColor(Orange), Dark=DarkPrimaryColor(Teal)}).
             headline_b_.set_text("Using AppThemeBinding in a ResourceDictionary");
+            headline_b_.set_font(headline_font);
             resource_label_.set_text("This text uses LightPrimaryColor (Orange) in light mode, and "
                                      "DarkPrimaryColor (Teal) in dark mode.");
-
-            // The interactive toggle (not in the XAML, but the demonstrable bit headless): flip the app's
-            // UserAppTheme between Light and Dark; the bound labels recolor + the readout updates.
-            toggle_button_.set_text("Toggle theme (Light/Dark)");
-            toggle_button_.clicked.connect([this] { toggle_theme(); });
-            readout_.set_text("...");
-
-            // AppThemeBinding re-applies on RequestedThemeChanged — mirror that with a live subscription so
-            // any theme change (from the toggle or a platform push) recolors the bound labels.
-            app_.requested_theme_changed.connect([this](maui::core::app_theme /*theme*/) { apply_theme(); });
 
             stack_.add(headline_a_);
             stack_.add(inline_label_);
             stack_.add(headline_b_);
             stack_.add(resource_label_);
-            stack_.add(toggle_button_);
-            stack_.add(readout_);
             page_.set_content(stack_);
 
-            // Seed the start theme (Light) so the static capture shows resolved light-mode colors.
-            app_.set_user_app_theme(maui::core::app_theme::light);
-            apply_theme();
+            // Deterministic pre-mount state: AppThemeBinding's Light-or-Unspecified rule resolves the
+            // Light branch until a hosting application supplies the real theme (on_mounted below).
+            apply_theme(maui::core::app_theme::unspecified);
         }
 
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
+        }
+
+        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): bind the HOSTING app's live theme —
+        // seed from the current requested_theme() and re-apply on every requested_theme_changed (the
+        // AppThemeBinding.Apply/ApplyCore re-application; same pattern as shape_app_theme_page).
+        void on_mounted(maui::hosting::maui_app& app)
+        {
+            if (const std::shared_ptr<maui::controls::application>& application = app.application())
+            {
+                apply_theme(application->requested_theme());
+                application->requested_theme_changed.connect(
+                    [this](maui::core::app_theme theme) { apply_theme(theme); });
+            }
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / inspection.
@@ -96,57 +104,23 @@ namespace maui::samples
         {
             return resource_label_;
         }
-        [[nodiscard]] maui::controls::label& readout()
+
+        // AppThemeBinding.GetValue: pick the Light or Dark branch by the effective theme (Dark → Dark;
+        // Light AND Unspecified → Light) and push the chosen color into each bound label. Public so
+        // tests can drive the theme swap directly (the mounted path goes through on_mounted).
+        void apply_theme(maui::core::app_theme theme)
         {
-            return readout_;
-        }
-        [[nodiscard]] maui::controls::button& toggle_button()
-        {
-            return toggle_button_;
-        }
-        [[nodiscard]] maui::controls::application& app()
-        {
-            return app_;
+            const bool dark = theme == maui::core::app_theme::dark;
+            inline_label_.set_text_color(dark ? maui::graphics::colors::red : maui::graphics::colors::green);
+            resource_label_.set_text_color(dark ? maui::graphics::colors::teal : maui::graphics::colors::orange);
         }
 
     private:
-        // Flip UserAppTheme Light<->Dark — RequestedThemeChanged fires, re-running apply_theme() (the
-        // AppThemeBinding re-apply path). Falls back to Light from Unspecified on the first flip.
-        void toggle_theme()
-        {
-            app_.set_user_app_theme(app_.requested_theme() == maui::core::app_theme::dark
-                                        ? maui::core::app_theme::light
-                                        : maui::core::app_theme::dark);
-        }
-
-        // AppThemeBinding.GetValue: pick the Light or Dark branch by the effective theme (Dark → Dark;
-        // Light AND Unspecified → Light), push the chosen color into each bound label, and echo the result.
-        void apply_theme()
-        {
-            const bool dark = app_.requested_theme() == maui::core::app_theme::dark;
-
-            const maui::graphics::color inline_color =
-                dark ? maui::graphics::colors::red : maui::graphics::colors::green;
-            const maui::graphics::color resource_color =
-                dark ? maui::graphics::colors::teal : maui::graphics::colors::orange;
-
-            inline_label_.set_text_color(inline_color);
-            resource_label_.set_text_color(resource_color);
-
-            readout_.set_text(std::string("Theme: ") + (dark ? "Dark" : "Light") +
-                              " — inline=" + (dark ? "Red" : "Green") + ", resource=" + (dark ? "Teal" : "Orange"));
-        }
-
         maui::controls::content_page page_;
         maui::controls::vertical_stack_layout stack_;
         maui::controls::label headline_a_;
         maui::controls::label inline_label_; // {AppThemeBinding Light=Green, Dark=Red}
         maui::controls::label headline_b_;
         maui::controls::label resource_label_; // {AppThemeBinding Light=Orange(res), Dark=Teal(res)}
-        maui::controls::button toggle_button_;
-        maui::controls::label readout_;
-
-        // The theme source (a C# Application's UserAppTheme/RequestedTheme/RequestedThemeChanged).
-        maui::controls::application app_;
     };
 } // namespace maui::samples

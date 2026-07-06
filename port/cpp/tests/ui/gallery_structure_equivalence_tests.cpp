@@ -240,7 +240,6 @@ namespace
             // cluster A — twin uses StackLayout where the builder uses V/H StackLayout
             "animation",
             "alerts",
-            "app_theme_binding",
             "basic_swipe",
             "composition_gallery",
             "ellipse_gallery",
@@ -263,7 +262,6 @@ namespace
             "border_resize_content",
             "border_stroke",
             "check_box",
-            "data_template_selector",
             "focus",
             "gestures",
             "horizontal_stack",

@@ -42,6 +42,15 @@
 //       is preserved, just rendered as one label instead of a nested list). ItemSizingStrategy
 //       MeasureAllItems is set on the view (the headless sim stores it; with varied per-cell heights it
 //       is the meaningful strategy — every item measured individually).
+//
+// AT-REST board policy (EQUIVALENCE_FINDINGS "gap corpus" note): the shared twin cannot express the
+// DrinkTemplateSelector (the loader has no reflection to activate the C# selector classes), so it
+// degrades every cell to ONE uniform template — a Wheat, HeightRequest-100, Padding-8 cell with the
+// bound Name label — and drops the picker's {Binding SelectedTemplate} preselect. The MAUI reference
+// (the twin's render) is the board's ground truth, so the builder renders those SAME at-rest cells and
+// leaves the picker unselected; the real 3-way selector machinery below (drink_selector +
+// build_templates) stays in code as the future gap_<feature>.xaml scenario, deliberately UNWIRED at
+// rest. The Insert/Add/Remove/selection interactivity is untouched.
 
 #include <memory>
 #include <optional>
@@ -65,6 +74,7 @@
 #include "maui/core/grid_length.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/core/type_tag.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
@@ -132,9 +142,10 @@ namespace maui::samples
             grid_.add_row_definition(maui::core::grid_length::star());      // the collection view
             grid_.add_row_definition(maui::core::grid_length::automatic()); // the control panel
 
-            // ---- the three varied-height templates + the selector ----
+            // ---- the templates: the 3-way selector is BUILT (gap-corpus machinery, header note) but
+            // the AT-REST wiring is the twin's single uniform Wheat cell ----
             build_templates();
-            list_.set_item_template(selector_);
+            list_.set_item_template(build_uniform_twin_template());
             list_.set_item_sizing_strategy(maui::controls::item_sizing_strategy::measure_all_items);
             list_.set_items_source(items_);
 
@@ -156,7 +167,9 @@ namespace maui::samples
             template_picker_.set_title("Select a template");
             template_picker_.set_items_source(std::make_shared<maui::controls::picker::items_source_type>(
                 std::vector<std::string>{"Coffee", "Milk", "Latte"}));
-            template_picker_.set_selected_item(selected_template_); // {Binding SelectedTemplate} initial "Latte"
+            // NO at-rest preselect: the twin drops {Binding SelectedTemplate} (header note), so the MAUI
+            // reference shows the empty "Select a template" placeholder; selected_template_ still seeds
+            // "Latte" internally (the C# _selectedTemplate initial) for the Insert/Add drink factory.
             // {Binding SelectedTemplate}: track the picked template name.
             template_picker_.selected_index_changed.connect([this] {
                 if (const auto& picked = template_picker_.selected_item())
@@ -342,6 +355,20 @@ namespace maui::samples
 
         // The three varied-height templates + the selector (header note: the Border becomes the cell's
         // background color; the varied HeightRequest is the "varied size" the demo is about).
+        // The at-rest cell: the twin's single uniform DataTemplate — Wheat background, HeightRequest
+        // 100, Padding 8, the bound Name label vertically centered (the Border root's look folded onto
+        // the single-root label cell, the same reduction stage_background documents).
+        [[nodiscard]] static std::shared_ptr<maui::controls::data_template> build_uniform_twin_template()
+        {
+            auto cell = maui::controls::data_template::of<maui::controls::label>();
+            cell->set_binding<std::string, drink>(maui::controls::label::text_property(),
+                                                  [](const drink& d) { return d.name; });
+            cell->set_value(maui::controls::height_request_property(), 100.0);
+            cell->set_value(maui::controls::label::padding_property(), maui::core::thickness(8));
+            stage_background(cell, maui::graphics::colors::wheat);
+            return cell;
+        }
+
         void build_templates()
         {
             // MilkTemplate: Wheat background, HeightRequest 100, Name label.
