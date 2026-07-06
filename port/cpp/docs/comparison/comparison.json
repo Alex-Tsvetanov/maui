@@ -6533,8 +6533,8 @@
           "review": "Light: SSIM 0.9489, 1.60% pixels differ \u00b7 Dark: SSIM 0.9387, 1.95% pixels differ"
         },
         "consistency": {
-          "status": "flag",
-          "review": "cpp and xaml both marked green vs MAUI, but differ from EACH OTHER (Light: SSIM 0.9579, 1.31% pixels differ \u00b7 Dark: SSIM 0.9549, 1.61% pixels differ) \u2014 at least one verdict needs re-review."
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -7168,8 +7168,8 @@
           "review": "Light: SSIM 0.9572, 1.27% pixels differ \u00b7 Dark: SSIM 0.9464, 1.67% pixels differ"
         },
         "consistency": {
-          "status": "flag",
-          "review": "cpp and xaml both marked green vs MAUI, but differ from EACH OTHER (Light: SSIM 0.9680, 0.99% pixels differ \u00b7 Dark: SSIM 0.9648, 1.22% pixels differ) \u2014 at least one verdict needs re-review."
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -7295,8 +7295,8 @@
           "review": "Light: SSIM 0.9649, 0.99% pixels differ \u00b7 Dark: SSIM 0.9546, 1.27% pixels differ"
         },
         "consistency": {
-          "status": "flag",
-          "review": "cpp and xaml both marked green vs MAUI, but differ from EACH OTHER (Light: SSIM 0.9710, 0.85% pixels differ \u00b7 Dark: SSIM 0.9679, 1.04% pixels differ) \u2014 at least one verdict needs re-review."
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -7803,8 +7803,8 @@
           "review": "Light: SSIM 0.9338, 1.91% pixels differ \u00b7 Dark: SSIM 0.9255, 2.40% pixels differ"
         },
         "consistency": {
-          "status": "flag",
-          "review": "cpp and xaml both marked green vs MAUI, but differ from EACH OTHER (Light: SSIM 0.9704, 0.88% pixels differ \u00b7 Dark: SSIM 0.9677, 1.08% pixels differ) \u2014 at least one verdict needs re-review."
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -11565,8 +11565,8 @@
           "review": "Light: SSIM 0.8527, 7.03% pixels differ \u00b7 Dark: SSIM 0.8375, 9.88% pixels differ"
         },
         "consistency": {
-          "status": "flag",
-          "review": "cpp and xaml both marked green vs MAUI, but differ from EACH OTHER (Light: SSIM 0.9990, 1.92% pixels differ \u00b7 Dark: SSIM 0.9991, 0.03% pixels differ) \u2014 at least one verdict needs re-review."
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -18550,8 +18550,8 @@
           "review": "Light: SSIM 0.8490, 6.23% pixels differ \u00b7 Dark: SSIM 0.7891, 12.84% pixels differ"
         },
         "consistency": {
-          "status": "flag",
-          "review": "cpp and xaml both marked green vs MAUI, but differ from EACH OTHER (Light: SSIM 0.9990, 1.92% pixels differ \u00b7 Dark: SSIM 0.9991, 0.03% pixels differ) \u2014 at least one verdict needs re-review."
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
