@@ -23,8 +23,11 @@
 #include "maui/xaml/xaml_loader.hpp"
 
 #include <any>
+#include <filesystem>
+#include <fstream>
 #include <functional>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -1075,6 +1078,184 @@ namespace
         // still readable after the second stamp exists (no use-after-free / premature teardown).
         EXPECT_EQ(std::dynamic_pointer_cast<controls::label>(first)->text(), "cell");
         EXPECT_EQ(std::dynamic_pointer_cast<controls::label>(second)->text(), "cell");
+    }
+
+    TEST(xaml_loader, collection_view_header_footer_item_templates_all_set)
+    {
+        // Regression for the header_footer_template gallery page: a SINGLE CollectionView combining
+        // HeaderTemplate + FooterTemplate + ItemTemplate (three sibling <DataTemplate> bodies, each
+        // under its own property-element wrapper) must hydrate ALL THREE independently. Before the
+        // fix, only ItemTemplate rendered — Header/FooterTemplate silently failed to mint their
+        // DataTemplate bodies (or all three collapsed onto one template), producing the reported
+        // plain-unstyled-list symptom (no header image/text, no footer image/text).
+        controls::collection_view view;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(view, R"xml(
+<CollectionView xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+	<CollectionView.HeaderTemplate>
+		<DataTemplate>
+			<Label Text="header" />
+		</DataTemplate>
+	</CollectionView.HeaderTemplate>
+	<CollectionView.FooterTemplate>
+		<DataTemplate>
+			<Label Text="footer" />
+		</DataTemplate>
+	</CollectionView.FooterTemplate>
+	<CollectionView.ItemTemplate>
+		<DataTemplate>
+			<Label Text="cell" />
+		</DataTemplate>
+	</CollectionView.ItemTemplate>
+</CollectionView>)xml");
+        });
+        EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
+
+        const std::shared_ptr<controls::data_template> header_tmpl = view.header_template();
+        const std::shared_ptr<controls::data_template> footer_tmpl = view.footer_template();
+        const std::shared_ptr<controls::data_template> item_tmpl = view.item_template();
+        ASSERT_NE(header_tmpl, nullptr);
+        ASSERT_NE(footer_tmpl, nullptr);
+        ASSERT_NE(item_tmpl, nullptr);
+        // Distinct data_template instances — no aliasing/collapsing onto a single shared object.
+        EXPECT_NE(header_tmpl.get(), footer_tmpl.get());
+        EXPECT_NE(header_tmpl.get(), item_tmpl.get());
+        EXPECT_NE(footer_tmpl.get(), item_tmpl.get());
+
+        const std::shared_ptr<bindable_object> header_content = header_tmpl->create_content();
+        const std::shared_ptr<bindable_object> footer_content = footer_tmpl->create_content();
+        const std::shared_ptr<bindable_object> item_content = item_tmpl->create_content();
+        ASSERT_NE(header_content, nullptr);
+        ASSERT_NE(footer_content, nullptr);
+        ASSERT_NE(item_content, nullptr);
+        EXPECT_EQ(std::dynamic_pointer_cast<controls::label>(header_content)->text(), "header");
+        EXPECT_EQ(std::dynamic_pointer_cast<controls::label>(footer_content)->text(), "footer");
+        EXPECT_EQ(std::dynamic_pointer_cast<controls::label>(item_content)->text(), "cell");
+    }
+
+    TEST(xaml_loader, content_page_collection_view_header_footer_item_templates_all_set)
+    {
+        // Same combination as above, but wrapped in a ContentPage with the CollectionView as its
+        // content CHILD (the exact shape of the header_footer_template gallery/XAML page, loaded via
+        // build_page<VM, Xaml> -> xaml_loader::load_into(content_page, ...)) rather than loading
+        // straight into a root CollectionView. This is the actual reported-broken code path.
+        //
+        // NOTE: content_page::content() is a NON-OWNING raw i_view* (the caller/XAML graph owns the
+        // child's lifetime — see content_page.hpp). The xaml_load_result returned by load_into() owns
+        // that graph, so it MUST be kept alive for as long as page.content() is used — discarding it
+        // (as an earlier draft of this test did via `(void)load_into(...)`) frees the CollectionView
+        // immediately and leaves page.content() dangling (a use-after-free / crash on inspection, not
+        // a loader bug).
+        controls::content_page page;
+        xaml_load_result result;
+        const std::string message = parse_error_message([&] {
+            result = xaml_loader::load_into(page, R"xml(
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+	<CollectionView>
+		<CollectionView.HeaderTemplate>
+			<DataTemplate>
+				<Label Text="header" />
+			</DataTemplate>
+		</CollectionView.HeaderTemplate>
+		<CollectionView.FooterTemplate>
+			<DataTemplate>
+				<Label Text="footer" />
+			</DataTemplate>
+		</CollectionView.FooterTemplate>
+		<CollectionView.ItemsSource>
+			<x:Array Type="{x:Type x:String}">
+				<x:String>a</x:String>
+				<x:String>b</x:String>
+			</x:Array>
+		</CollectionView.ItemsSource>
+		<CollectionView.ItemTemplate>
+			<DataTemplate>
+				<Label Text="cell" />
+			</DataTemplate>
+		</CollectionView.ItemTemplate>
+	</CollectionView>
+</ContentPage>)xml");
+        });
+        EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
+
+        auto* view = dynamic_cast<controls::collection_view*>(page.content());
+        ASSERT_NE(view, nullptr);
+        const std::shared_ptr<controls::data_template> header_tmpl = view->header_template();
+        const std::shared_ptr<controls::data_template> footer_tmpl = view->footer_template();
+        const std::shared_ptr<controls::data_template> item_tmpl = view->item_template();
+        ASSERT_NE(header_tmpl, nullptr);
+        ASSERT_NE(footer_tmpl, nullptr);
+        ASSERT_NE(item_tmpl, nullptr);
+        EXPECT_NE(header_tmpl.get(), footer_tmpl.get());
+        EXPECT_NE(header_tmpl.get(), item_tmpl.get());
+        EXPECT_NE(footer_tmpl.get(), item_tmpl.get());
+
+        const std::shared_ptr<bindable_object> header_content = header_tmpl->create_content();
+        const std::shared_ptr<bindable_object> footer_content = footer_tmpl->create_content();
+        const std::shared_ptr<bindable_object> item_content = item_tmpl->create_content();
+        ASSERT_NE(header_content, nullptr);
+        ASSERT_NE(footer_content, nullptr);
+        ASSERT_NE(item_content, nullptr);
+        EXPECT_EQ(std::dynamic_pointer_cast<controls::label>(header_content)->text(), "header");
+        EXPECT_EQ(std::dynamic_pointer_cast<controls::label>(footer_content)->text(), "footer");
+        EXPECT_EQ(std::dynamic_pointer_cast<controls::label>(item_content)->text(), "cell");
+    }
+
+    TEST(xaml_loader, header_footer_template_shared_page_hydrates_all_three_templates)
+    {
+        // The EXACT reported regression: load the real shared-page bytes
+        // (port/maui-reference/pages/header_footer_template.xaml — the same markup gallery_xaml
+        // #embeds via build_page<VM, Xaml>) through the runtime loader and verify all three
+        // DataTemplates (Header/Footer/Item) actually mint distinct, correctly-shaped content — not
+        // just "loads without throwing" (gallery_twin_tests) and not just "structurally present"
+        // (gallery_structure_equivalence_tests treats CollectionView as an opaque leaf and never
+        // inspects its templates at all). ItemTemplate's cell uses {Binding .}, so the runtime
+        // binding applier must be installed first.
+        maui::xaml::register_runtime_bindings();
+
+        const std::filesystem::path page_path = std::filesystem::path(SHARED_PAGES_DIR) / "header_footer_template.xaml";
+        std::ifstream stream(page_path);
+        ASSERT_TRUE(stream.is_open()) << "missing shared page: " << page_path;
+        std::stringstream buffer;
+        buffer << stream.rdbuf();
+        const std::string xaml = buffer.str();
+        ASSERT_FALSE(xaml.empty());
+
+        controls::content_page page;
+        xaml_load_result result;
+        const std::string message = parse_error_message([&] { result = xaml_loader::load_into(page, xaml); });
+        EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
+
+        auto* view = dynamic_cast<controls::collection_view*>(page.content());
+        ASSERT_NE(view, nullptr);
+
+        const std::shared_ptr<controls::data_template> header_tmpl = view->header_template();
+        const std::shared_ptr<controls::data_template> footer_tmpl = view->footer_template();
+        const std::shared_ptr<controls::data_template> item_tmpl = view->item_template();
+        ASSERT_NE(header_tmpl, nullptr) << "CollectionView.HeaderTemplate failed to mint";
+        ASSERT_NE(footer_tmpl, nullptr) << "CollectionView.FooterTemplate failed to mint";
+        ASSERT_NE(item_tmpl, nullptr) << "CollectionView.ItemTemplate failed to mint";
+        EXPECT_NE(header_tmpl.get(), footer_tmpl.get());
+        EXPECT_NE(header_tmpl.get(), item_tmpl.get());
+        EXPECT_NE(footer_tmpl.get(), item_tmpl.get());
+
+        // Each template's body is a Grid with two rows (a cover Image + a bold time Label in row 0,
+        // and a static caption Label in row 1) — a composite root, so create_content() must yield a
+        // Grid, NOT a bare Label/text fallback (the reported symptom was a plain unstyled text list,
+        // i.e. every template silently failing and falling back to item-text mirroring).
+        const std::shared_ptr<bindable_object> header_content = header_tmpl->create_content();
+        const std::shared_ptr<bindable_object> footer_content = footer_tmpl->create_content();
+        const std::shared_ptr<bindable_object> item_content = item_tmpl->create_content();
+        ASSERT_NE(header_content, nullptr);
+        ASSERT_NE(footer_content, nullptr);
+        ASSERT_NE(item_content, nullptr);
+        EXPECT_NE(std::dynamic_pointer_cast<controls::grid>(header_content), nullptr)
+            << "HeaderTemplate body did not hydrate its Grid root";
+        EXPECT_NE(std::dynamic_pointer_cast<controls::grid>(footer_content), nullptr)
+            << "FooterTemplate body did not hydrate its Grid root";
+        EXPECT_NE(std::dynamic_pointer_cast<controls::grid>(item_content), nullptr)
+            << "ItemTemplate body did not hydrate its Grid root";
     }
 
     TEST(xaml_loader, empty_data_template_falls_back_to_label)
