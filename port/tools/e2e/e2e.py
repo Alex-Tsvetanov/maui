@@ -435,11 +435,15 @@ def cmd_keys(args: argparse.Namespace) -> int:
 
 # ---------------------------------------------------------------- capture ---------------------------
 # macCatalyst capture (ported from the legacy capture_maccatalyst.py): launch the app binary directly
-# with the page/theme env, bring it frontmost (window capture via `screencapture -l` is broken on this
-# macOS — ScreenCaptureKit restriction — so we region-capture the frontmost window's rect), screenshot,
-# SIGKILL (SIGTERM makes .NET apps crash-report a lingering dialog). HAZARD (learned 2026-07-05): the
-# fixed-rect grab captures whatever is COMPOSITED there — if another window (e.g. the operator's own
-# IDE) overlaps the rect and wins, the PNG silently shows the wrong window. Always eyeball a sample.
+# with the page/theme env, locate its window by CGWindowID (via pyobjc-framework-Quartz —
+# `pip3 install pyobjc-framework-Quartz`), then `screencapture -x -o -l <id>` that SPECIFIC window —
+# no `set frontmost`, no stealing the operator's screen/focus, and no risk of another window (a system
+# notification, another app, the operator's own IDE) compositing into the shot, since -l reads that
+# window's own backing store regardless of stacking order or occlusion. SIGKILL to end (SIGTERM makes
+# .NET apps crash-report a lingering dialog). Falls back to the OLD fixed-rect + frontmost + region-grab
+# path (2026-07-05 era) only if Quartz isn't installed or no window is found in time — that path DOES
+# have the "wrong window composited" hazard the window-ID path was built to close, so always eyeball a
+# sample if you ever see it engage (a "(fallback rect ...)" line in the capture log).
 MACCAT_APPS = {
     "maui": {
         "bin": os.path.join(REF, "app", "bin", "Debug", "net10.0-maccatalyst", "maccatalyst-arm64",
@@ -478,6 +482,28 @@ def _osa(script: str) -> str:
     return subprocess.run(["osascript", "-e", script], capture_output=True, text=True).stdout.strip()
 
 
+def _find_window_id(pid: int, retries: int = 15, delay: float = 0.3) -> int | None:
+    """The owning-PID's frontmost normal-layer on-screen window's CGWindowID, or None. Polls briefly
+    since window creation isn't instant after process launch. Requires pyobjc-framework-Quartz
+    (pip3 install pyobjc-framework-Quartz) — no extra macOS permission needed (unlike CGWindowListCreateImage,
+    plain CGWindowListCopyWindowInfo doesn't require Screen Recording access to see other apps' window
+    numbers/bounds/owner, only their *pixel content*, which screencapture -l reads via its own grant)."""
+    import Quartz  # local import: optional dependency, only needed for maccatalyst capture
+
+    for _ in range(retries):
+        info = Quartz.CGWindowListCopyWindowInfo(Quartz.kCGWindowListOptionOnScreenOnly, Quartz.kCGNullWindowID)
+        candidates = [w for w in (info or [])
+                     if w.get("kCGWindowOwnerPID") == pid and w.get("kCGWindowLayer") == 0]
+        if candidates:
+            # Prefer the largest normal-layer window (skips any stray small utility window).
+            def area(w):
+                b = w.get("kCGWindowBounds", {})
+                return b.get("Width", 0) * b.get("Height", 0)
+            return int(max(candidates, key=area)["kCGWindowNumber"])
+        time.sleep(delay)
+    return None
+
+
 def _maccat_shot(framework: str, key: str, theme: str, settle: float) -> bool:
     app = MACCAT_APPS[framework]
     if not os.path.isfile(app["bin"]):
@@ -487,23 +513,34 @@ def _maccat_shot(framework: str, key: str, theme: str, settle: float) -> bool:
     proc = subprocess.Popen([app["bin"]], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         time.sleep(settle)
-        _osa(f'tell application "System Events" to set frontmost of '
-             f'(first process whose unix id is {proc.pid}) to true')
-        time.sleep(1.2)
-        rect = app["rect"]
-        got = _osa(f'tell application "System Events" to tell process "{app["proc"]}"\n'
-                   "set p to position of window 1\nset s to size of window 1\n"
-                   'return ((item 1 of p) as string) & "," & ((item 2 of p) as string) & "," & '
-                   '((item 1 of s) as string) & "," & ((item 2 of s) as string)\nend tell')
-        if got.count(",") == 3:
-            rect = got
         subprocess.run(["killall", "-9", "ReportCrash"], stderr=subprocess.DEVNULL)
         subprocess.run(["killall", "UserNotificationCenter"], stderr=subprocess.DEVNULL)
+        win_id = _find_window_id(proc.pid)
         out = capture_out_path("maccatalyst", framework, key, theme)
         os.makedirs(os.path.dirname(out), exist_ok=True)
-        rc = subprocess.run(["screencapture", "-x", f"-R{rect}", out]).returncode
-        ok = rc == 0 and os.path.isfile(out)
-        print(f"  {framework:5} {key:28} {'ok' if ok else 'FAIL'} ({rect})")
+        if win_id is not None:
+            # -x: no capture-sound. -o: omit the drop-shadow padding (tight window-bounds crop).
+            # -l: this specific window, by CGWindowID — no frontmost/activate step, so the app never
+            # steals focus and no OTHER window (a system notification, another app, an IDE) can ever
+            # composite into the shot, closing the "wrong window captured" hazard class entirely.
+            rc = subprocess.run(["screencapture", "-x", "-o", "-l", str(win_id), out]).returncode
+            ok = rc == 0 and os.path.isfile(out)
+            print(f"  {framework:5} {key:28} {'ok' if ok else 'FAIL'} (window {win_id})")
+        else:
+            # Fallback: no Quartz / no window found — the old fixed-rect + frontmost path.
+            _osa(f'tell application "System Events" to set frontmost of '
+                 f'(first process whose unix id is {proc.pid}) to true')
+            time.sleep(1.2)
+            rect = app["rect"]
+            got = _osa(f'tell application "System Events" to tell process "{app["proc"]}"\n'
+                       "set p to position of window 1\nset s to size of window 1\n"
+                       'return ((item 1 of p) as string) & "," & ((item 2 of p) as string) & "," & '
+                       '((item 1 of s) as string) & "," & ((item 2 of s) as string)\nend tell')
+            if got.count(",") == 3:
+                rect = got
+            rc = subprocess.run(["screencapture", "-x", f"-R{rect}", out]).returncode
+            ok = rc == 0 and os.path.isfile(out)
+            print(f"  {framework:5} {key:28} {'ok' if ok else 'FAIL'} (fallback rect {rect})")
         return ok
     finally:
         proc.kill()
