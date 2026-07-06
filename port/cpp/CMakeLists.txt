@@ -1717,6 +1717,7 @@ add_library(maui_xaml STATIC
   src/xaml/register_xaml_layouts.cpp
   src/xaml/register_xaml_pages.cpp
   src/xaml/register_xaml_shapes.cpp
+  src/xaml/register_xaml_geometries.cpp  # 2026-07: View.Clip element-form geometries (Image.Clip gap)
   src/xaml/register_xaml_items.cpp  # W4: CollectionView / CarouselView loader registration
   src/xaml/register_xaml_brushes.cpp  # W7: gradient brushes (LinearGradientBrush/RadialGradientBrush/GradientStop)
   src/xaml/register_xaml_formatted_text.cpp  # W8: FormattedString / Span (Label.FormattedText)

@@ -77,6 +77,13 @@ namespace maui::xaml
                                                         controls::maximum_width_request_property());
         properties.register_bindable_property<TControl>("MaximumHeightRequest",
                                                         controls::maximum_height_request_property());
+        // VisualElement.Clip (2026-07): the shared clip_property() descriptor every view<>-derived
+        // control owns (view.hpp). Element form only (<Image.Clip><RectangleGeometry .../></Image.Clip>,
+        // register_xaml_geometries.cpp) — geometry is now a bindable_object (geometry.hpp), so a created
+        // <RectangleGeometry>/<EllipseGeometry>/<GeometryGroup>/<PathGeometry> reaches this
+        // shared_ptr<i_shape>-typed property through apply_properties_visitor's object-coercion
+        // (try_set_created_object<i_shape>), exactly like Border.StrokeShape.
+        properties.register_bindable_property<TControl>("Clip", controls::clip_property());
         // VisualElement.IsVisible (a bool bindable in C#) maps onto the port's visibility property
         // exactly the way VisualElement implements IView.Visibility: IsVisible.ToVisibility() —
         // true → Visible, false → Collapsed (VisibilityExtensions.cs).

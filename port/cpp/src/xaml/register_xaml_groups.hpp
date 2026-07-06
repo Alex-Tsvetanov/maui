@@ -41,6 +41,10 @@ namespace maui::xaml
                              xaml_converter_registry& converters);
     void register_xaml_shapes(xaml_type_registry& types, xaml_property_registry& properties,
                               xaml_converter_registry& converters);
+    // 2026-07: View.Clip's element-form geometry values (RectangleGeometry / EllipseGeometry /
+    // GeometryGroup / RoundRectangleGeometry / PathGeometry) — closes the Image.Clip XAML gap.
+    void register_xaml_geometries(xaml_type_registry& types, xaml_property_registry& properties,
+                                  xaml_converter_registry& converters);
     // W4: the templated-collection group (CollectionView / CarouselView) — ItemsSource + ItemTemplate.
     void register_xaml_items(xaml_type_registry& types, xaml_property_registry& properties,
                              xaml_converter_registry& converters);

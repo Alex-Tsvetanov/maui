@@ -452,6 +452,7 @@ namespace maui::xaml
         register_xaml_layouts(types, properties, converters);
         register_xaml_pages(types, properties, converters);
         register_xaml_shapes(types, properties, converters);
+        register_xaml_geometries(types, properties, converters);     // 2026-07: View.Clip element-form geometries
         register_xaml_items(types, properties, converters);          // W4: CollectionView / CarouselView
         register_xaml_brushes(types, properties, converters);        // W7: gradient brushes (element form)
         register_xaml_formatted_text(types, properties, converters); // W8: FormattedString / Span

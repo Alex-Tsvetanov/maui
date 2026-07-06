@@ -55,9 +55,14 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/picker.hpp" // W12: <Picker.Items> x:String child sink
 #include "maui/controls/resource_dictionary.hpp"
-#include "maui/controls/span.hpp"                       // W8
-#include "maui/controls/templates/control_template.hpp" // W16: <ControlTemplate> element form
-#include "maui/controls/templates/data_template.hpp"    // W4: data_template::create_content()
+#include "maui/controls/shapes/ellipse_geometry.hpp"         // 2026-07: Image.Clip / View.Clip element form
+#include "maui/controls/shapes/geometry_group.hpp"           // 2026-07
+#include "maui/controls/shapes/path_geometry.hpp"            // 2026-07
+#include "maui/controls/shapes/rectangle_geometry.hpp"       // 2026-07
+#include "maui/controls/shapes/round_rectangle_geometry.hpp" // 2026-07
+#include "maui/controls/span.hpp"                            // W8
+#include "maui/controls/templates/control_template.hpp"      // W16: <ControlTemplate> element form
+#include "maui/controls/templates/data_template.hpp"         // W4: data_template::create_content()
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/controls/window.hpp"
 #include "maui/core/bindable_object.hpp"
@@ -82,6 +87,7 @@
 namespace
 {
     namespace controls = maui::controls;
+    namespace shapes = maui::controls::shapes;
     using maui::core::bindable_object;
     using maui::core::type_tag;
     using maui::xaml::binding_request;
@@ -788,6 +794,100 @@ namespace
         });
         EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
         EXPECT_NE(circle.stroke_shape(), nullptr) << "Ellipse StrokeShape not coerced to i_shape";
+    }
+
+    TEST(xaml_loader, element_form_image_clip_rectangle_geometry)
+    {
+        // 2026-07: <Image.Clip><RectangleGeometry Rect="…"/></Image.Clip> — the closed Image.Clip gap
+        // (register_xaml_geometries.cpp). RectangleGeometry is register_type'd + reaches View.Clip
+        // (shared_ptr<i_shape>) through the same object-coercion Border.StrokeShape uses above.
+        controls::image picture;
+        (void)xaml_loader::load_into(picture, R"xml(
+<Image xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+    <Image.Clip><RectangleGeometry Rect="0, 15, 150, 150" /></Image.Clip>
+</Image>)xml");
+        auto* rect_clip = dynamic_cast<shapes::rectangle_geometry*>(picture.clip());
+        ASSERT_NE(rect_clip, nullptr) << "RectangleGeometry Clip not minted";
+        EXPECT_EQ(rect_clip->rect(), (maui::graphics::rect{0, 15, 150, 150}));
+    }
+
+    TEST(xaml_loader, element_form_image_clip_ellipse_geometry)
+    {
+        controls::image picture;
+        (void)xaml_loader::load_into(picture, R"xml(
+<Image xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+    <Image.Clip><EllipseGeometry Center="100, 100" RadiusX="100" RadiusY="100" /></Image.Clip>
+</Image>)xml");
+        auto* ellipse_clip = dynamic_cast<shapes::ellipse_geometry*>(picture.clip());
+        ASSERT_NE(ellipse_clip, nullptr) << "EllipseGeometry Clip not minted";
+        EXPECT_EQ(ellipse_clip->center(), (maui::graphics::point{100, 100}));
+        EXPECT_DOUBLE_EQ(ellipse_clip->radius_x(), 100.0);
+        EXPECT_DOUBLE_EQ(ellipse_clip->radius_y(), 100.0);
+    }
+
+    TEST(xaml_loader, element_form_image_clip_geometry_group_nested_children)
+    {
+        // GeometryGroup's [ContentProperty("Children")]: nested <EllipseGeometry> elements are plain
+        // (unnamed) children, routed through the group's child sink as non-owning aliasing shared_ptrs.
+        controls::image picture;
+        (void)xaml_loader::load_into(picture, R"xml(
+<Image xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+    <Image.Clip>
+        <GeometryGroup FillRule="EvenOdd">
+            <EllipseGeometry Center="150, 150" RadiusX="100" RadiusY="100" />
+            <EllipseGeometry Center="250, 150" RadiusX="100" RadiusY="100" />
+        </GeometryGroup>
+    </Image.Clip>
+</Image>)xml");
+        auto* group_clip = dynamic_cast<shapes::geometry_group*>(picture.clip());
+        ASSERT_NE(group_clip, nullptr) << "GeometryGroup Clip not minted";
+        EXPECT_EQ(group_clip->fill_rule(), shapes::fill_rule::even_odd);
+        ASSERT_EQ(group_clip->children().size(), 2U);
+        auto* first = dynamic_cast<shapes::ellipse_geometry*>(group_clip->children()[0].get());
+        ASSERT_NE(first, nullptr);
+        EXPECT_EQ(first->center(), (maui::graphics::point{150, 150}));
+    }
+
+    TEST(xaml_loader, element_form_image_clip_path_geometry_figures_text)
+    {
+        // PathGeometry.Figures: TEXT form only (the WPF abbreviated-geometry grammar), via the existing
+        // parse_path_figure_collection parser — the [ContentProperty("Figures")] element form is scoped
+        // out (register_xaml_geometries.cpp header note).
+        controls::image picture;
+        (void)xaml_loader::load_into(picture, R"xml(
+<Image xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+    <Image.Clip><PathGeometry Figures="M8 148 L156 148 L132 12 Z" /></Image.Clip>
+</Image>)xml");
+        auto* path_clip = dynamic_cast<shapes::path_geometry*>(picture.clip());
+        ASSERT_NE(path_clip, nullptr) << "PathGeometry Clip not minted";
+        ASSERT_EQ(path_clip->figures().size(), 1U);
+        EXPECT_EQ(path_clip->figures()[0]->start_point(), (maui::graphics::point{8, 148}));
+    }
+
+    TEST(xaml_loader, element_form_image_clip_round_rectangle_geometry)
+    {
+        controls::image picture;
+        (void)xaml_loader::load_into(picture, R"xml(
+<Image xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+    <Image.Clip><RoundRectangleGeometry CornerRadius="6" Rect="0, 15, 150, 150" /></Image.Clip>
+</Image>)xml");
+        auto* rrect_clip = dynamic_cast<shapes::round_rectangle_geometry*>(picture.clip());
+        ASSERT_NE(rrect_clip, nullptr) << "RoundRectangleGeometry Clip not minted";
+        EXPECT_EQ(rrect_clip->rect(), (maui::graphics::rect{0, 15, 150, 150}));
+        EXPECT_EQ(rrect_clip->corner_radius(), (maui::graphics::corner_radius{6}));
+    }
+
+    TEST(xaml_loader, view_clip_registered_on_non_image_controls)
+    {
+        // View.Clip is registered generically for every view<>-derived control (register_xaml_helpers.hpp),
+        // not just Image — matches the ClipViewsGallery twin (Button/DatePicker/Entry/Editor/Grid/
+        // SearchBar/TimePicker all share one EllipseGeometry via {StaticResource}).
+        controls::button btn;
+        (void)xaml_loader::load_into(btn, R"xml(
+<Button xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+    <Button.Clip><EllipseGeometry RadiusX="300" RadiusY="50" /></Button.Clip>
+</Button>)xml");
+        EXPECT_NE(btn.clip(), nullptr) << "Button.Clip not applied";
     }
 
     TEST(xaml_loader, collection_view_structured_and_grouping_properties)
