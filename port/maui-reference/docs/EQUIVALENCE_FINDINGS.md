@@ -101,11 +101,18 @@ the builder's synthetic on-mount mutation where it exists purely for capture.
 - `swipe_threshold` — builder "Ready" vs xaml "Reveal threshold=80 / Execute threshold=80"
 - `radio_button_group` — page Title suffix "(Attached Property)" only in the builder
 
-## Cluster D — twin structurally rewritten around unsupported features / loader gaps (17 keys)
+## Cluster D — twin structurally rewritten around unsupported features / loader gaps (16 keys)
 
 Each is either a port XAML-feature gap (belongs in the P3 gap corpus with an
 `expected_port_status`) or a twin approximation that should be re-authored now that the shared page
 is canonical.
+
+(`path_aspect_gallery` closed 2026-07-06 — the builder already wraps each cell's shape in a Grid
+matching the twin's structure; the divergence flagged by the visual parity sweep was in the shape
+*geometry content* (heart/ECG shapes vs. the octagon MAUI/twin actually declare per cell), which
+`gallery_structure_equivalence` cannot see — shapes are opaque `view` leaves by describe()'s
+conservative-props policy. Fixed by aligning the builder's per-cell Path.Data to the twin's declared
+geometry; see `port/cpp/examples/gallery/pages/path_aspect_gallery_page.hpp`.)
 
 - `carousel_page` — `<CarouselView>` hydrates as bare `view` (loader doesn't materialize it)
 - `tabbed_flyout` — builder root `flyout_page`, twin is a ContentPage stand-in
@@ -113,14 +120,18 @@ is canonical.
 - `radio_button_content` — builder `view` where twin has `image`
 - `adaptive_collection` — builder VSL vs twin Grid root
 - `custom_layout` — builder custom layout vs twin Grid(3×5) approximation
-- `chat_example` — builder bare collection_view vs twin grid+entry-bar composition
+- `chat_example` — 2026-07-06: builder now matches the twin's at-rest content (three header buttons,
+  empty message list — no more seeded bubbles), see `chat_example_page.hpp`'s header PORT NOTE; the
+  KEY still diverges structurally because `describe()` treats `collection_view` as an opaque leaf (its
+  ItemTemplate/selector content isn't structurally comparable) while other minor container-prop
+  differences remain — not a content bug, just outside describe()'s conservative-props policy
 - `borderless` — builder VSL vs twin grid+border composition
 - `header_footer_view` — collection_view header/footer not hydrated as children
 - `hybrid_web_view` — builder HybridWebView vs twin border+label placeholder
 - `ios_scroll_view` — twin has an extra scroll_view+VSL wrapper
 - `layout_is_enabled` — twin has check_box rows the builder doesn't create
 - `indicator` — builder has an extra IndicatorView child the twin lacks
-- `path_aspect_gallery, path_gallery` — twin wraps each path in an extra Grid (+ raw path-data label)
+- `path_gallery` — twin wraps each path in an extra Grid (+ raw path-data label)
 - `border_clip_playground` — builder VSL root vs twin Grid(2 rows)
 
 ## Cluster E — builder ADDS a gallery-convention interactivity widget the twin correctly omits (1 key)

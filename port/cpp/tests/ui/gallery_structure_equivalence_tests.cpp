@@ -294,7 +294,6 @@ namespace
             "ios_scroll_view",
             "layout_is_enabled",
             "indicator",
-            "path_aspect_gallery",
             "path_gallery",
             "border_clip_playground",
             // cluster E — builder ADDS a gallery-convention interactivity widget the twin omits
