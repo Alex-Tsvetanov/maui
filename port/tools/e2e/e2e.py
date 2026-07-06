@@ -400,8 +400,11 @@ def cmd_lint(_args: argparse.Namespace) -> int:
             text = fh.read()
         rel = os.path.relpath(path, PORT)
 
+        # gap_event_attribute.xaml is a deliberate P3 tier-2 gap page (AUTHORING.md rule 6): it exists
+        # SOLELY to pin the port's rejection of inline event attributes, so it is the one file that must
+        # contain one. Every other page keeps the tier-1 ban (rule 3) unconditionally.
         m = EVENT_RE.search(text)
-        if m:
+        if m and key != "gap_event_attribute":
             problems.append(f"{rel}: event attribute {m.group(0)!r} — banned; wire via x:Name + code-behind")
         m = XCLASS_RE.search(text)
         if not m:

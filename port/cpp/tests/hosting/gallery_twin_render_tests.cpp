@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -109,6 +110,53 @@ namespace
         return buffer.str();
     }
 
+    // Minimal scanner for pages/manifest.json's flat "key"/"expected_port_status" string pairs (see the
+    // identical helper + rationale in tests/xaml/gallery_twin_tests.cpp — kept in sync by hand, not
+    // shared, since the two TUs belong to different test binaries and this repo has no JSON dependency).
+    [[nodiscard]] std::map<std::string, std::string> load_expected_statuses()
+    {
+        std::map<std::string, std::string> statuses;
+        const std::filesystem::path manifest_path = std::filesystem::path(SHARED_PAGES_DIR) / "manifest.json";
+        const std::string text = read_file(manifest_path);
+
+        auto next_string_field = [&text](std::size_t& pos, std::string_view field_name) -> std::string {
+            const std::string needle = "\"" + std::string(field_name) + "\"";
+            const std::size_t field_pos = text.find(needle, pos);
+            if (field_pos == std::string::npos)
+            {
+                return {};
+            }
+            const std::size_t colon = text.find(':', field_pos);
+            const std::size_t value_start = text.find('"', colon + 1);
+            const std::size_t value_end = text.find('"', value_start + 1);
+            if (colon == std::string::npos || value_start == std::string::npos || value_end == std::string::npos)
+            {
+                return {};
+            }
+            pos = value_end + 1;
+            return text.substr(value_start + 1, value_end - value_start - 1);
+        };
+
+        std::size_t pos = 0;
+        while (true)
+        {
+            const std::size_t key_field = text.find("\"key\"", pos);
+            if (key_field == std::string::npos)
+            {
+                break;
+            }
+            std::size_t scan_pos = key_field;
+            const std::string key = next_string_field(scan_pos, "key");
+            const std::string status = next_string_field(scan_pos, "expected_port_status");
+            if (!key.empty() && !status.empty())
+            {
+                statuses[key] = status;
+            }
+            pos = scan_pos;
+        }
+        return statuses;
+    }
+
     class gallery_twin_render : public testing::TestWithParam<std::filesystem::path>
     {
     };
@@ -122,21 +170,51 @@ namespace
         g_twin_markup = read_file(GetParam());
         ASSERT_FALSE(g_twin_markup.empty()) << "empty twin file: " << GetParam();
 
-        auto app = maui::hosting::maui_app::create_builder().use_maui_app<render_probe_app>().build();
-        auto* probe = app->application_as<render_probe_app>().get();
-        ASSERT_NE(probe, nullptr);
-        ASSERT_NE(probe->page().content(), nullptr) << "twin produced no content tree";
+        // P3 gap corpus (maui-reference/docs/AUTHORING.md rule 6): gap_*.xaml pages are DELIBERATELY
+        // expected to fail to load/render — see the identical rationale in gallery_twin_tests.cpp. Their
+        // xaml_parse_exception surfaces from inside render_probe_app's constructor (the loader runs
+        // before mount), so this gate wraps the whole probe rather than isolating just the load step.
+        const std::string key = GetParam().stem().string();
+        static const std::map<std::string, std::string> expected_statuses = load_expected_statuses();
+        const auto it = expected_statuses.find(key);
+        const bool expected_to_fail =
+            it != expected_statuses.end() && (it->second == "parse_error" || it->second == "unregistered_type");
 
-        // Attach a handler to every element in the loaded tree, then measure + arrange at a phone size.
-        maui::hosting::mount_window(*app, probe->win());
-        const maui::graphics::size arranged = maui::hosting::drive_layout(probe->win(), 402.0, 874.0);
+        std::string error;
+        try
+        {
+            auto app = maui::hosting::maui_app::create_builder().use_maui_app<render_probe_app>().build();
+            auto* probe = app->application_as<render_probe_app>().get();
+            ASSERT_NE(probe, nullptr);
+            ASSERT_NE(probe->page().content(), nullptr) << "twin produced no content tree";
 
-        // Renderable = the mount + arrange produced a non-degenerate layout for the page.
-        EXPECT_GT(arranged.width, 0.0) << "twin " << GetParam().filename() << " arranged to zero width";
-        EXPECT_GT(arranged.height, 0.0) << "twin " << GetParam().filename() << " arranged to zero height";
-        EXPECT_NE(probe->page().handler(), nullptr) << "page handler did not attach";
-        EXPECT_GT(probe->page().frame().width, 0.0) << "page frame has zero width";
-        EXPECT_GT(probe->page().frame().height, 0.0) << "page frame has zero height";
+            // Attach a handler to every element in the loaded tree, then measure + arrange at a phone size.
+            maui::hosting::mount_window(*app, probe->win());
+            const maui::graphics::size arranged = maui::hosting::drive_layout(probe->win(), 402.0, 874.0);
+
+            // Renderable = the mount + arrange produced a non-degenerate layout for the page.
+            EXPECT_GT(arranged.width, 0.0) << "twin " << GetParam().filename() << " arranged to zero width";
+            EXPECT_GT(arranged.height, 0.0) << "twin " << GetParam().filename() << " arranged to zero height";
+            EXPECT_NE(probe->page().handler(), nullptr) << "page handler did not attach";
+            EXPECT_GT(probe->page().frame().width, 0.0) << "page frame has zero width";
+            EXPECT_GT(probe->page().frame().height, 0.0) << "page frame has zero height";
+        }
+        catch (const maui::xaml::xaml_parse_exception& exception)
+        {
+            error = exception.unformatted_message();
+        }
+
+        if (expected_to_fail)
+        {
+            EXPECT_FALSE(error.empty()) << "gap page " << GetParam().filename()
+                                        << " mounted+laid out cleanly — gap closed, update "
+                                           "pages/manifest.json's expected_port_status (currently "
+                                        << it->second << ")";
+        }
+        else
+        {
+            EXPECT_TRUE(error.empty()) << "twin " << GetParam().filename() << " failed to load: " << error;
+        }
     }
 
     INSTANTIATE_TEST_SUITE_P(gallery_twins, gallery_twin_render, testing::ValuesIn(twin_files()),
