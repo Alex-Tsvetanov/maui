@@ -27,7 +27,12 @@
 //     The (old, new) payload is ignored; the handler re-reads all four sliders' current ::value() and
 //     rebuilds set_corner_radius, exactly like the C# handler reads the four .Value properties.
 //   - CornerRadius(TL, TR, BL, BR)                 -> graphics::corner_radius{tl, tr, bl, br} (same 4-arg order).
-//   - MinimumTrackColor=LightGray, MaximumTrackColor=Gray (the Slider style) -> set_minimum/maximum_track_color.
+//   - MinimumTrackColor=LightGray, MaximumTrackColor=Gray (the Slider style) -> DELIBERATELY NOT applied (see
+//     add_corner_slider below): the page-local <Style TargetType="Slider"> resource that sets these on the
+//     original C# sample is never merged in the parity captures (MauiReference's App.xaml skips page/app
+//     styles by design, port/CLAUDE.md ruling 4), so MAUI's own ground-truth render shows the NATIVE-DEFAULT
+//     track, not LightGray/Gray. The shared twin (pages/clip_corner_radius.xaml) already leaves these
+//     default; this builder now matches.
 //
 // HEADLESS-SAFE maui:: API only; the page OWNS its whole element tree (the generic mount in app_host.hpp
 // attaches every owned view's handler and hosts the tree). This is a
@@ -96,8 +101,8 @@ namespace maui::samples
             stack_.add(container_);
 
             // The four labeled corner sliders, in the XAML order: TL, TR, BL, BR. Each Minimum=0
-            // Maximum=60, MinimumTrackColor=LightGray, MaximumTrackColor=Gray (the Slider style), every
-            // one wired to the shared OnCornerChanged.
+            // Maximum=60 (native-default track colors — see add_corner_slider's PORT NOTE), every one
+            // wired to the shared OnCornerChanged.
             add_corner_slider(top_left_label_, "Top Left Corner", top_left_corner_);
             add_corner_slider(top_right_label_, "Top Right Corner", top_right_corner_);
             add_corner_slider(bottom_left_label_, "Bottom Left Corner", bottom_left_corner_);
@@ -147,8 +152,8 @@ namespace maui::samples
         }
 
     private:
-        // Add one "<Label Text=…> over a corner Slider" pair: Minimum=0 Maximum=60, track colors per the
-        // Slider style, ValueChanged="OnCornerChanged".
+        // Add one "<Label Text=…> over a corner Slider" pair: Minimum=0 Maximum=60, ValueChanged=
+        // "OnCornerChanged". Track colors are left at native default (see PORT NOTE below).
         void add_corner_slider(maui::controls::label& text, const char* caption, maui::controls::slider& corner)
         {
             text.set_text(caption);
@@ -156,8 +161,15 @@ namespace maui::samples
 
             corner.set_minimum(0);
             corner.set_maximum(60);
-            corner.set_minimum_track_color(maui::graphics::color::from_rgb(211, 211, 211)); // LightGray
-            corner.set_maximum_track_color(maui::graphics::color::from_rgb(128, 128, 128)); // Gray
+            // NOTE: the original C# sample sets MinimumTrackColor=LightGray / MaximumTrackColor=Gray via a
+            // page-local <Style TargetType="Slider"> resource. The shared twin (pages/clip_corner_radius.xaml)
+            // deliberately omits these (its comment: "best-effort, left default") because MauiReference's
+            // App.xaml intentionally does NOT merge Styles.xaml/page-local styles for the parity captures
+            // (port/CLAUDE.md ruling 4) — so real MAUI's own capture renders the NATIVE-DEFAULT UISlider track
+            // (a light system gray), not LightGray/Gray. Setting explicit track colors here diverged visibly
+            // from both the twin and MAUI's actual render (Mac Catalyst AppKit's NSSlider.trackFillColor paints
+            // solid Gray even at Value=0, when nothing is "filled" yet) — so this builder now also leaves the
+            // track colors at their native default to match.
             // ValueChanged="OnCornerChanged": the (old, new) payload is unused; the handler re-reads all
             // four sliders and rebuilds the clip's CornerRadius, exactly like the C# handler.
             corner.value_changed.connect([this](double, double) { on_corner_changed(); });
