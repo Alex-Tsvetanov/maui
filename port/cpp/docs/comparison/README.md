@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 100 | 0 |
-| 🟡 Minor | 59 | 0 |
+| 🟢 Match | 101 | 0 |
+| 🟡 Minor | 58 | 0 |
 | 🔴 Major | 17 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -7054,14 +7054,14 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 180. Table View — 🟡/⏳
+### 180. Table View — 🟢/⏳
 <sub>table_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/table_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/table_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/table_view_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/table_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/table_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/table_view_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: TextCell (Account+detail), EntryCell (Name/Alex right-aligned), and both SwitchCell rows (Notifications ON blue, Dark mode OFF) render correctly and match MAUI in section grouping, header labels, row layout, dividers, and toggle state in both light and dark. Only gap: the 'Custom' section's ViewCell 'Status/Active' row renders in MAUI but is blank in cpp (known ViewCell backend gap, filed separately). One missing row on an otherwise faithful table -&gt; minor.
+C1 (MAUI light vs C++ light) and C3 (MAUI dark vs C++ dark) both match. All three sections render faithfully: Profile (Account TextCell with alex@example.com detail + Name/Alex EntryCell right-aligned), Preferences (Notifications ON blue + Dark mode OFF SwitchCells), and Custom (ViewCell showing 'Status' gray + 'Active' green). The previously-blank ViewCell now renders correctly in both themes. Section headers, grouped-table backgrounds, row separators, switch tints, and the green 'Active' accent all match MAUI. Only exempt deltas: window-title text ('MAUI C++ - gallery' vs 'MauiReference') and window chrome/traffic-light buttons.
 
 #### ⏳ Gemini Review
 
