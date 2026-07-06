@@ -3688,10 +3688,10 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
 | 🟢 Match | 100 | 0 |
-| 🟡 Minor | 58 | 0 |
+| 🟡 Minor | 59 | 0 |
 | 🔴 Major | 17 | 0 |
-| ⬛ Blank | 6 | 0 |
-| ⏳ Unreviewed | 14 | 195 |
+| ⬛ Blank | 7 | 0 |
+| ⏳ Unreviewed | 12 | 195 |
 
 ### 1. Absolute Layout — 🟡/⏳
 <sub>absolute_layout</sub>
@@ -5147,14 +5147,14 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 79. Gap Swipe View Items — ⏳/⏳
+### 79. Gap Swipe View Items — ⬛/⏳
 <sub>gap_swipe_view_items</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/gap_swipe_view_items_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/gap_swipe_view_items_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/gap_swipe_view_items_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/gap_swipe_view_items_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
-#### ⏳ Sonnet 5 Review
+#### ⬛ C++ Sonnet 5 Review
 
-_Not yet reviewed._
+builder_twin:false - no cpp column, gap page.
 
 #### ⏳ Gemini Review
 
@@ -7054,14 +7054,14 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 180. Table View — ⏳/⏳
+### 180. Table View — 🟡/⏳
 <sub>table_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/table_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/table_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/table_view_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/table_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/table_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/table_view_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
-#### ⏳ Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-_Not yet reviewed._
+C1/C3: TextCell (Account+detail), EntryCell (Name/Alex right-aligned), and both SwitchCell rows (Notifications ON blue, Dark mode OFF) render correctly and match MAUI in section grouping, header labels, row layout, dividers, and toggle state in both light and dark. Only gap: the 'Custom' section's ViewCell 'Status/Active' row renders in MAUI but is blank in cpp (known ViewCell backend gap, filed separately). One missing row on an otherwise faithful table -&gt; minor.
 
 #### ⏳ Gemini Review
 
