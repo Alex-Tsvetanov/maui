@@ -25,11 +25,11 @@
 //   - selection_mode is Single / Multiple respectively; item_sizing_strategy is measure_first_item;
 //     empty_view is the boxed "No items defined" string.
 //
-// note: the XAML's Selected setter recolors BackgroundColor=Yellow. In the port BackgroundColor is a
-//       PAINT (view::background), not a `bindable_property<color>`, so a Setter on a color property uses
-//       TextColor as the faithful color stand-in (the same convention the sibling visual_states_page.hpp
-//       documents): Selected => TextColor=Yellow, Normal => TextColor=White-base. The state-transition
-//       behavior (Normal<->Selected swap on selection) is identical.
+// note: the cell's base (Normal) look is the XAML Grid's EXPLICIT BackgroundColor=White — staged per
+//       cell via background_property (a bindable_property<shared_ptr<paint>>), so the white item bands
+//       survive the dark theme exactly like the MAUI reference (explicit colors are never
+//       theme-overridden). The Selected setter's BackgroundColor=Yellow recolor rides the same
+//       property when a backend drives the per-cell CommonStates VSM.
 // note: the per-cell CommonStates VSM is SYSTEM-DRIVEN (Selected is a system state the collection's
 //       selection drives). The headless backend's virtualization sim realizes cells but does not run a
 //       cell's change_visual_state on selection, so the per-cell recolor has no headless VISUAL — this
@@ -53,9 +53,13 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/controls/view.hpp" // background_property (the staged White cell background)
 #include "maui/core/font.hpp"
 #include "maui/core/line_break_mode.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/graphics/colors.hpp"
+#include "maui/graphics/paint.hpp"
+#include "maui/graphics/solid_paint.hpp"
 
 namespace maui::samples
 {
@@ -161,10 +165,11 @@ namespace maui::samples
         //       is the documented limit: the SELECTION the group reacts to is fully modeled + observable
         //       (selected_item / selected_items, driven by select_single / select_multiple), but the
         //       per-cell Selected=>Yellow recolor has no headless analog. The base White look (the cell's
-        //       Normal/default) IS staged as TextColor=White (BackgroundColor is a paint, not a
-        //       bindable_property<color>, so TextColor is the faithful color stand-in — header note); a
-        //       real backend that ran each cell's change_visual_state on selection (with the group staged)
-        //       would show the Normal<->Selected swap.
+        //       Normal/default Grid BackgroundColor=White) IS staged: background_property is a
+        //       bindable_property<shared_ptr<paint>>, so the template's value seam carries the explicit
+        //       white paint per cell (see configure_list); a real backend that ran each cell's
+        //       change_visual_state on selection (with the group staged) would show the Normal<->Selected
+        //       swap.
         void configure_list(maui::controls::collection_view& list, maui::controls::selection_mode mode)
         {
             auto cell = maui::controls::data_template::of<maui::controls::label>();
@@ -173,13 +178,17 @@ namespace maui::samples
             // FontSize="Large" + LineBreakMode="NoWrap".
             cell->set_value(maui::controls::label::font_property(), maui::core::font::system_font_of_size(20));
             cell->set_value(maui::controls::label::line_break_mode_property(), maui::core::line_break_mode::no_wrap);
-            // C# Normal state = the cell's Grid BackgroundColor=White with the Label's DEFAULT text color
-            // (black in light / white in dark), so the item text is VISIBLE on the white cell. The port
-            // leaves the cell label's text color at the system default (UILabel.labelColor — adaptive +
-            // visible) rather than staging an explicit white (which had rendered white-on-white = the items
-            // looked missing). The Selected=>Yellow recolor is the per-cell CommonStates VSM (system-driven);
-            // staging that group per cell is the documented struct-cell-template limit (see header note), so
-            // only the visible Normal/base look is reproduced here.
+            // C# Normal state = the cell's Grid BackgroundColor=White (an EXPLICIT color the theme must
+            // never override): stage it on the single-root cell as a white background paint. The MAUI
+            // reference retains the white bands in DARK mode too (the dark-theme adaptive label color
+            // turns white, so the item text goes invisible on them — MAUI's own render, ground truth per
+            // ruling 1); the port reproduces exactly that by leaving the text color at the system
+            // default. The Selected=>Yellow recolor is the per-cell CommonStates VSM (system-driven);
+            // staging that group per cell is the documented struct-cell-template limit (see header note),
+            // so only the Normal/base look is reproduced here.
+            cell->set_value(maui::controls::background_property(),
+                            std::static_pointer_cast<maui::graphics::paint>(std::make_shared<maui::graphics::solid_paint>(
+                                maui::graphics::colors::white)));
             list.set_item_template(cell);
 
             list.set_selection_mode(mode);
