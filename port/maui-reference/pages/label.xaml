@@ -18,30 +18,38 @@
         <Label Text="This should be at the center" VerticalTextAlignment="Center" HeightRequest="100" BackgroundColor="Silver" />
         <Label Text="This should be at the bottom" VerticalTextAlignment="End" HeightRequest="100" BackgroundColor="LightGray" />
 
-        <!-- Formatted text spans (W8 FormattedString element form) -->
+        <!-- Formatted text spans (W8 FormattedString element form). Span set + attribute placement
+             follow the ORIGINAL LabelPage.xaml: "Colors" carries Cyan background + Navy text, "Big
+             Font" is FontSize 20, the trailing "Plain old Text" is plain, and the separators are
+             standalone plain-space spans (the gesture/uppercase/custom-font spans stay out of the
+             reduced twin scope). -->
         <Label>
             <Label.FormattedText>
                 <FormattedString>
-                    <Span Text="Plain old Text " />
-                    <Span Text="Colors" BackgroundColor="Cyan" />
-                    <Span Text=" Strikethrough" TextDecorations="Strikethrough" />
-                    <Span Text=" Big Font" FontSize="24" />
-                    <Span Text=" Plain old Text" TextColor="Navy" />
+                    <Span Text="Plain old Text" />
+                    <Span Text=" " />
+                    <Span Text="Colors" BackgroundColor="Cyan" TextColor="Navy" />
+                    <Span Text=" " />
+                    <Span Text="Strikethrough" TextDecorations="Strikethrough" />
+                    <Span Text=" " />
+                    <Span Text="Big Font" FontSize="20" />
+                    <Span Text=" " />
+                    <Span Text="Plain old Text" />
                 </FormattedString>
             </Label.FormattedText>
         </Label>
         <Button Text="Change Formatted String" />
 
-        <!-- Maximum lines (MaxLines unsupported in twin surface; kept as plain lorem labels) -->
-        <Label Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
-        <Label Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
+        <!-- Maximum lines (the original's MaxLines=1 / MaxLines=2 lorem paragraphs) -->
+        <Label MaxLines="1" Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
+        <Label MaxLines="2" Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
 
-        <!-- Line break mode (LineBreakMode unsupported in twin surface; kept as plain lorem labels) -->
-        <Label Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
-        <Label Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
-        <Label Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
-        <Label Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
-        <Label Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
-        <Label Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
+        <!-- Line break mode (the original's six LineBreakMode lorem paragraphs) -->
+        <Label LineBreakMode="NoWrap" Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
+        <Label LineBreakMode="WordWrap" Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
+        <Label LineBreakMode="HeadTruncation" Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
+        <Label LineBreakMode="MiddleTruncation" Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
+        <Label LineBreakMode="TailTruncation" Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
+        <Label LineBreakMode="CharacterWrap" Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." />
     </VerticalStackLayout>
 </ContentPage>

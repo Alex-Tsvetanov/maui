@@ -182,35 +182,48 @@ namespace maui::samples
         }
 
     private:
-        // The initial multi-span FormattedText (plain / colored / strikethrough / big font), mirroring the
-        // XAML <FormattedString> on labelFormattedString.
+        // The initial multi-span FormattedText, mirroring the ORIGINAL LabelPage.xaml <FormattedString>
+        // segmentation (and the shared twin): styled spans separated by standalone PLAIN one-space spans,
+        // so the Cyan "Colors" background and the Strikethrough decoration never bleed into the
+        // separators. "Colors" carries Cyan background + Navy text; "Big Font" is FontSize 20; the
+        // trailing "Plain old Text" is plain (the original's tail span has no color).
         void build_initial_formatted_text()
         {
             auto formatted = std::make_shared<maui::controls::formatted_string>();
 
+            const auto space_span = [] {
+                auto separator = std::make_shared<maui::controls::span>();
+                separator->set_text(" ");
+                return separator;
+            };
+
             auto plain = std::make_shared<maui::controls::span>();
-            plain->set_text("Plain old Text ");
+            plain->set_text("Plain old Text");
 
             auto colored = std::make_shared<maui::controls::span>();
-            colored->set_text("Colors ");
+            colored->set_text("Colors");
             colored->set_background_color(maui::graphics::colors::cyan);
             colored->set_text_color(maui::graphics::colors::navy);
 
             auto strike = std::make_shared<maui::controls::span>();
-            strike->set_text("Strikethrough ");
+            strike->set_text("Strikethrough");
             strike->set_text_decorations(maui::core::text_decorations::strikethrough);
 
             auto big = std::make_shared<maui::controls::span>();
-            big->set_text("Big Font ");
+            big->set_text("Big Font");
             big->set_font_size(20);
 
             auto tail = std::make_shared<maui::controls::span>();
             tail->set_text("Plain old Text");
 
             formatted->add_span(plain);
+            formatted->add_span(space_span());
             formatted->add_span(colored);
+            formatted->add_span(space_span());
             formatted->add_span(strike);
+            formatted->add_span(space_span());
             formatted->add_span(big);
+            formatted->add_span(space_span());
             formatted->add_span(tail);
             formatted_label_.set_formatted_text(formatted);
         }
