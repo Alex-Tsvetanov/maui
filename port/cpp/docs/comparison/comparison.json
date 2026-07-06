@@ -2820,8 +2820,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "MAUI renders an empty page in both themes, but the C++ capture shows leftover slider/stepper/switch/activity-indicator content that MAUI does not display \u2014 wrong page content in light and dark."
+          "status": "blank",
+          "review": "No code-first builder twin exists for this page (manifest.json builder_twin:false) \u2014 the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&XAML column applies to this page."
         },
         "gemini": {
           "status": null,
@@ -7765,8 +7765,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3: WRONG PAGE captured \u2014 both cpp images show a slider/stepper/switch/radio page ('Value: 25 / 100'), not the frame demo (purple-bordered 'In a Frame' + teal 'Colored Frame'). Stale/mis-keyed cpp capture; nothing of the frame page is present. Both = red."
+          "status": "blank",
+          "review": "No code-first builder twin exists for this page (manifest.json builder_twin:false) \u2014 the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&XAML column applies to this page."
         },
         "gemini": {
           "status": null,
@@ -8225,8 +8225,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3: WRONG PAGE captured \u2014 cpp shows the same slider/stepper/switch page ('Value: 25 / 100') in both themes instead of the grid-definitions page (light-blue header row, 0,0/0,1/0,2 labels, purple spanning bar). Both = red."
+          "status": "blank",
+          "review": "No code-first builder twin exists for this page (manifest.json builder_twin:false) \u2014 the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&XAML column applies to this page."
         },
         "gemini": {
           "status": null,
@@ -8455,8 +8455,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3: WRONG PAGE captured \u2014 cpp shows the slider/stepper/switch page in both themes instead of the grid-layout page (0,0 / 0,1 labels + huge light-blue 'span' region). Both = red."
+          "status": "blank",
+          "review": "No code-first builder twin exists for this page (manifest.json builder_twin:false) \u2014 the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&XAML column applies to this page."
         },
         "gemini": {
           "status": null,
@@ -9605,8 +9605,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3 red: WRONG PAGE captured \u2014 the cpp shots show a slider/stepper/switch/radio page ('Value: 25 / 100') instead of the six colored squares MAUI renders. Capture/navigation bug; both themes affected."
+          "status": "blank",
+          "review": "No code-first builder twin exists for this page (manifest.json builder_twin:false) \u2014 the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&XAML column applies to this page."
         },
         "gemini": {
           "status": null,
@@ -20415,8 +20415,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3: WRONG PAGE captured \u2014 cpp shows the slider/stepper/switch page in both themes instead of the VerticalStackLayout page (title + centered column of red/yellow/blue/green/orange/purple squares). Both = red."
+          "status": "blank",
+          "review": "No code-first builder twin exists for this page (manifest.json builder_twin:false) \u2014 the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&XAML column applies to this page."
         },
         "gemini": {
           "status": null,

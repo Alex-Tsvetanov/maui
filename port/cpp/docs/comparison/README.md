@@ -3451,8 +3451,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 | --- | --- | --- |
 | 🟢 Match | 78 | 0 |
 | 🟡 Minor | 53 | 0 |
-| 🔴 Major | 50 | 0 |
-| ⬛ Blank | 0 | 0 |
+| 🔴 Major | 44 | 0 |
+| ⬛ Blank | 6 | 0 |
 | ⏳ Unreviewed | 0 | 181 |
 
 ### 1. Absolute Layout — 🟡/⏳
@@ -3907,14 +3907,14 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 25. Carousel View — 🔴/⏳
+### 25. Carousel View — ⬛/⏳
 <sub>carousel_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/carousel_view_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/carousel_view_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/carousel_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/carousel_view_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/carousel_view_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/carousel_view_dark.png" /></td></tr></table>
 
-#### 🔴 Sonnet 5 Review
+#### ⬛ C++ Sonnet 5 Review
 
-MAUI renders an empty page in both themes, but the C++ capture shows leftover slider/stepper/switch/activity-indicator content that MAUI does not display — wrong page content in light and dark.
+No code-first builder twin exists for this page (manifest.json builder_twin:false) — the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&amp;XAML column applies to this page.
 
 #### ⏳ Gemini Review
 
@@ -4722,14 +4722,14 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 68. Frame — 🔴/⏳
+### 68. Frame — ⬛/⏳
 <sub>frame</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/frame_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/frame_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/frame_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/frame_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/frame_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/frame_dark.png" /></td></tr></table>
 
-#### 🔴 Sonnet 5 Review
+#### ⬛ C++ Sonnet 5 Review
 
-C1/C3: WRONG PAGE captured — both cpp images show a slider/stepper/switch/radio page ('Value: 25 / 100'), not the frame demo (purple-bordered 'In a Frame' + teal 'Colored Frame'). Stale/mis-keyed cpp capture; nothing of the frame page is present. Both = red.
+No code-first builder twin exists for this page (manifest.json builder_twin:false) — the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&amp;XAML column applies to this page.
 
 #### ⏳ Gemini Review
 
@@ -4796,14 +4796,14 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 72. Grid Definitions — 🔴/⏳
+### 72. Grid Definitions — ⬛/⏳
 <sub>grid_definitions</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grid_definitions_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grid_definitions_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grid_definitions_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grid_definitions_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grid_definitions_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grid_definitions_dark.png" /></td></tr></table>
 
-#### 🔴 Sonnet 5 Review
+#### ⬛ C++ Sonnet 5 Review
 
-C1/C3: WRONG PAGE captured — cpp shows the same slider/stepper/switch page ('Value: 25 / 100') in both themes instead of the grid-definitions page (light-blue header row, 0,0/0,1/0,2 labels, purple spanning bar). Both = red.
+No code-first builder twin exists for this page (manifest.json builder_twin:false) — the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&amp;XAML column applies to this page.
 
 #### ⏳ Gemini Review
 
@@ -4832,14 +4832,14 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 74. Grid Layout — 🔴/⏳
+### 74. Grid Layout — ⬛/⏳
 <sub>grid_layout</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grid_layout_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grid_layout_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grid_layout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grid_layout_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grid_layout_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grid_layout_dark.png" /></td></tr></table>
 
-#### 🔴 Sonnet 5 Review
+#### ⬛ C++ Sonnet 5 Review
 
-C1/C3: WRONG PAGE captured — cpp shows the slider/stepper/switch page in both themes instead of the grid-layout page (0,0 / 0,1 labels + huge light-blue 'span' region). Both = red.
+No code-first builder twin exists for this page (manifest.json builder_twin:false) — the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&amp;XAML column applies to this page.
 
 #### ⏳ Gemini Review
 
@@ -5020,14 +5020,14 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 84. Horizontal Stack Layout — 🔴/⏳
+### 84. Horizontal Stack Layout — ⬛/⏳
 <sub>horizontal_stack_layout</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/horizontal_stack_layout_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/horizontal_stack_layout_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/horizontal_stack_layout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/horizontal_stack_layout_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/horizontal_stack_layout_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/horizontal_stack_layout_dark.png" /></td></tr></table>
 
-#### 🔴 Sonnet 5 Review
+#### ⬛ C++ Sonnet 5 Review
 
-C1/C3 red: WRONG PAGE captured — the cpp shots show a slider/stepper/switch/radio page ('Value: 25 / 100') instead of the six colored squares MAUI renders. Capture/navigation bug; both themes affected.
+No code-first builder twin exists for this page (manifest.json builder_twin:false) — the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&amp;XAML column applies to this page.
 
 #### ⏳ Gemini Review
 
@@ -6802,14 +6802,14 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 178. Vertical Stack Layout — 🔴/⏳
+### 178. Vertical Stack Layout — ⬛/⏳
 <sub>vertical_stack_layout</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/vertical_stack_layout_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/vertical_stack_layout_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/vertical_stack_layout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/vertical_stack_layout_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/vertical_stack_layout_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/vertical_stack_layout_dark.png" /></td></tr></table>
 
-#### 🔴 Sonnet 5 Review
+#### ⬛ C++ Sonnet 5 Review
 
-C1/C3: WRONG PAGE captured — cpp shows the slider/stepper/switch page in both themes instead of the VerticalStackLayout page (title + centered column of red/yellow/blue/green/orange/purple squares). Both = red.
+No code-first builder twin exists for this page (manifest.json builder_twin:false) — the gallery app's MAUI_SAMPLE_PAGE dispatch has no entry for this key. Fixed in e2e.py: cmd_capture now skips the cpp framework for builder_twin:false keys instead of capturing a misleading value_controls fallback-page screenshot. Only the C++&amp;XAML column applies to this page.
 
 #### ⏳ Gemini Review
 
