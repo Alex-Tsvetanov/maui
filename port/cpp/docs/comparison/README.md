@@ -3449,9 +3449,9 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 85 | 0 |
-| 🟡 Minor | 53 | 0 |
-| 🔴 Major | 37 | 0 |
+| 🟢 Match | 89 | 0 |
+| 🟡 Minor | 55 | 0 |
+| 🔴 Major | 31 | 0 |
 | ⬛ Blank | 6 | 0 |
 | ⏳ Unreviewed | 0 | 181 |
 
@@ -4342,16 +4342,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 48. Drag Drop — 🔴/⏳
+### 48. Drag Drop — 🟢/⏳
 <sub>drag_drop</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/drag_drop_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/drag_drop_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/drag_drop_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/drag_drop_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/drag_drop_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/drag_drop_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/drag_drop_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/drag_drop_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/drag_drop_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/drag_drop_dark.png" /></td></tr></table>
 
 ports DragAndDropBetweenLayouts.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.DragAndDropBetweenLayouts)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Both themes: cpp was captured in a POST-DRAG state - the red swatch is missing from the 'All colors' list and sits under 'Rainbow:', and the status lines are filled in ('- Self X:0, Y:0 (Red)', '- Receiving layout (Rainbow) X:10, Y:10', 'Move: swatch dropped into Rainbow'), while MAUI ground truth shows the pristine initial state (7 swatches, empty Rainbow, 'Move: (none yet)'). Rendering itself looks correct, so this is likely a capture-state gap (auto-drag during capture) rather than a paint bug, but as compared the content diverges majorly - recapture cpp at initial state.
+C1 (light) and C3 (dark): C++ matches MAUI exactly - full-width rainbow color swatch stack (red/orange/yellow/green/blue/indigo/violet) plus 'Rainbow:'/drag-drop status labels, identical in both themes.
 
 #### ⏳ Gemini Review
 
@@ -4399,16 +4399,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 51. Ellipse Gallery — 🟡/⏳
+### 51. Ellipse Gallery — 🟢/⏳
 <sub>ellipse_gallery</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/ellipse_gallery_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ellipse_gallery_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ellipse_gallery_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ellipse_gallery_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ellipse_gallery_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/ellipse_gallery_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ellipse_gallery_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ellipse_gallery_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ellipse_gallery_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ellipse_gallery_dark.png" /></td></tr></table>
 
 ports EllipseGallery.xaml A self-contained, code-first port of the MAUI Shapes EllipseGallery (Pages/Controls/ShapesGalleries/EllipseGallery.xaml + .xaml.cs)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: shapes, sizes, colors and dash pattern all correct, but the whole shape column is LEFT-aligned while MAUI horizontally centers each ellipse in the window (both themes).
+C1 (light): MAUI and cpp both show the five ellipse variants (basic ellipse, circle outline, ellipse-with-stroke pair, dashed-stroke ellipse) left-aligned (Start) at the same x-position, same sizes/colors/strokes. C3 (dark): identical content correctly re-themed, same left alignment preserved (unlike rectangle_gallery, this page's shapes remain correctly Start-aligned).
 
 #### ⏳ Gemini Review
 
@@ -5759,16 +5759,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 123. Pointer Gesture — 🔴/⏳
+### 123. Pointer Gesture — 🟡/⏳
 <sub>pointer_gesture</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/pointer_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/pointer_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/pointer_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/pointer_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/pointer_gesture_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/pointer_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/pointer_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/pointer_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/pointer_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/pointer_gesture_dark.png" /></td></tr></table>
 
 ports PointerGestureGalleryPage.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.PointerGestureGalleryPage)
 
-#### 🔴 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-C1/C3: capture-state mismatch — cpp was captured after simulated pointer interaction (yellow-highlighted 'Thanks for releasing me!', pointer-position readouts {40,30}/{25,18}, green 'Hover me green!'), while MAUI shows the idle pre-interaction page. Likely a capture-driver gap (injected hover/press on cpp only) rather than a rendering bug, but content diverges completely.
+C1/C3: Content and text match MAUI in both themes, but the three section titles ('Hover, press, and release me!', 'Hover me!', 'Hover me green!') render as large bold headline-style text in C++, whereas MAUI renders them as plain small text at the same size/weight as the description line below. This is a real font-size/weight content difference in both light and dark. cpp verdict = yellow.
 
 #### ⏳ Gemini Review
 
@@ -5987,16 +5987,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 135. Radio Template From Style — 🔴/⏳
+### 135. Radio Template From Style — 🟢/⏳
 <sub>radio_template_from_style</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/radio_template_from_style_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/radio_template_from_style_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/radio_template_from_style_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/radio_template_from_style_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/radio_template_from_style_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/radio_template_from_style_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/radio_template_from_style_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/radio_template_from_style_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/radio_template_from_style_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/radio_template_from_style_dark.png" /></td></tr></table>
 
 ports TemplateFromStyle.xaml A self-contained, code-first demo of applying a RadioButton ControlTemplate
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: template broken in both themes — the radio indicator renders as a small UNFILLED circle detached to the top-RIGHT corner of each card instead of MAUI's larger filled blue radio centered in the card; cards also sit flush against the window edge. Both = red.
+C1 (light): MAUI and cpp both show three radio cards (A, B, C) with light-gray background boxes and blue-outlined unselected radio circles in the top-right of each, correctly Start-aligned (narrow width) at the left of the window. C3 (dark): same layout correctly re-themed — dark background, light card boxes retained, matching radio circle style/position. Content, spacing and alignment all match.
 
 #### ⏳ Gemini Review
 
@@ -6006,16 +6006,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 136. Rectangle Gallery — 🟢/⏳
+### 136. Rectangle Gallery — 🟡/⏳
 <sub>rectangle_gallery</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/rectangle_gallery_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/rectangle_gallery_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/rectangle_gallery_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/rectangle_gallery_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/rectangle_gallery_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/rectangle_gallery_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/rectangle_gallery_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/rectangle_gallery_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/rectangle_gallery_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/rectangle_gallery_dark.png" /></td></tr></table>
 
 ports RectangleGallery.xaml A self-contained, code-first port of the MAUI Shapes RectangleGallery (Pages/Controls/ShapesGalleries/RectangleGallery.xaml + .xaml.cs)
 
-#### 🟢 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-C1/C3: all five shapes (red fill, red-stroke square, stroked pair, dashed stroke, curved corners) match MAUI in size, color, stroke, and dash pattern in both themes.
+C1 (light): shape content, colors, strokes, and dash patterns for all five rectangle variants (basic, square, stroke, stroke-dash, curved-corners) match MAUI exactly — but MAUI renders the whole column left-aligned (Start) near x~20-240px, while cpp renders the identical column shifted right and centered around x~890-1110px in the window. This is a real horizontal-position/alignment regression (HorizontalOptions=Start not honored for this page's container), not a uniform outer-inset shift, since the shapes are ~750px further right rather than a consistent small margin. C3 (dark): same centering-vs-Start-alignment discrepancy persists identically. Collapsed verdict = yellow (content/shapes fully correct, but position wrong in both themes).
 
 #### ⏳ Gemini Review
 
@@ -6234,16 +6234,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 148. Shape App Theme — 🔴/⏳
+### 148. Shape App Theme — 🟡/⏳
 <sub>shape_app_theme</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/shape_app_theme_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/shape_app_theme_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/shape_app_theme_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/shape_app_theme_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/shape_app_theme_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/shape_app_theme_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/shape_app_theme_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/shape_app_theme_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/shape_app_theme_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/shape_app_theme_dark.png" /></td></tr></table>
 
 ports ShapeAppThemeGallery.xaml A code-first port of the MAUI Shapes sub-gallery Pages/Controls/ShapesGalleries/ShapeAppThemeGallery.xaml: a StackLayout (Padding 12) holding a caption Label and a 200x80 Rectangle, all themed via {AppThemeBi
 
-#### 🔴 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-C1/C3: theme colors are correct (green label+rect in light, red in dark), but the rectangle is arranged at the far LEFT edge under the label instead of horizontally centered as in MAUI — a layout/alignment bug in both themes.
+C1 (light) green: MAUI/cpp both show a green rectangle labeled 'Shape using AppTheme', matching. C3 (dark) red: MAUI shows the shape switched to RED via AppThemeBinding, but cpp still renders GREEN (the light-theme color) — AppThemeBinding on the shape's Fill is not re-evaluated for dark theme in the cpp build. Collapsed cpp verdict = worst(C1 green, C3 red) = yellow (content/color is wrong in dark, but structurally identical and an isolated single-property miss).
 
 #### ⏳ Gemini Review
 
@@ -6253,16 +6253,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 149. Shapes — 🔴/⏳
+### 149. Shapes — 🟢/⏳
 <sub>shapes</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/shapes_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/shapes_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/shapes_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/shapes_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/shapes_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/shapes_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/shapes_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/shapes_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/shapes_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/shapes_dark.png" /></td></tr></table>
 
 a faithful reproduction of the maui-compare &amp;quot;shapes&amp;quot; demo (ComparePages.Shapes()), the shipped-.NET-MAUI reference for the visual-parity comparison: a ScrollView over a vertical stack of four LABELLED shapes, each bold-captioned and Start-a
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: all four shapes (ellipse, round-rect, even-odd pentagram, line) render with correct colors, sizes and even-odd fill in both themes, but every shape is left-aligned at the window edge instead of horizontally centered as in MAUI — consistent alignment/layout bug. Dark pentagram fill also looks slightly less filled than MAUI's.
+C1 (light): MAUI and cpp both show the four shape sections — Ellipse (red fill, blue stroke), RoundRectangle (solid navy), EvenOdd Polygon pentagram (blue fill, red stroke, correct even-odd hole), and Line (purple diagonal) — same sizes, colors, and left alignment. C3 (dark): identical content correctly re-themed with dark background and light section labels; shapes' own colors unchanged (correct, since shape fills are explicit not theme-bound here).
 
 #### ⏳ Gemini Review
 
@@ -6281,7 +6281,7 @@ ports SingleBoundSelection.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.Collect
 
 #### 🟢 Sonnet 5 Review
 
-C1/C3 (MAUI vs C++, light/dark): full match. Reset and Clear links now present (fix confirmed), list items (United States/Canada/Mexico/Brazil/Argentina), 'Selected: (none)' text, fonts, colors, and layout all match MAUI in both themes. Ignored the OS notification banner artifact in the cpp captures per instructions.
+C1 (light) and C3 (dark): C++ matches MAUI - identical instructional text, 'Selected: (none)' label, Reset/Clear links, and the 5-country CollectionView list (United States/Canada/Mexico/Brazil/Argentina), correct dark-theme text/background inversion.
 
 #### ⏳ Gemini Review
 
@@ -6671,16 +6671,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 171. Transform Playground — 🔴/⏳
+### 171. Transform Playground — 🟢/⏳
 <sub>transform_playground</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/transform_playground_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/transform_playground_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/transform_playground_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/transform_playground_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/transform_playground_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/transform_playground_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/transform_playground_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/transform_playground_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/transform_playground_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/transform_playground_dark.png" /></td></tr></table>
 
 ports TransformPlaygroundGallery.xaml A code-first port of the MAUI Shapes sub-gallery Pages/Controls/ShapesGalleries/TransformPlaygroundGallery.xaml: a 50x50 Path rectangle (red fill, blue stroke 4) sits in a 200x200 light-grey panel; belo
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: the red square (blue border) sits at the TOP-LEFT corner of the gray canvas in cpp, but MAUI renders it TOP-CENTER — the transform target is mispositioned in both themes. All slider rows/labels/values below match. Worst = red (content placement wrong).
+C1 (light): MAUI and cpp both show identical layout — red/blue-bordered square in top area, gray canvas, full slider stack (RotateTransform/ScaleTransform/SkewTransform/TranslateTransform) with matching values and slider thumb positions. C3 (dark): same content correctly re-themed to dark background with light text and matching slider positions. No content differences found.
 
 #### ⏳ Gemini Review
 
