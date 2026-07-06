@@ -8596,6 +8596,1137 @@
     }
   },
   {
+    "name": "gap_carousel_position_binding",
+    "title": "Gap Carousel Position Binding",
+    "description": "",
+    "platforms": {
+      "ios": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "maccatalyst": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_cpp": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "android": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "gap_event_attribute",
+    "title": "Gap Event Attribute",
+    "description": "",
+    "platforms": {
+      "ios": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "maccatalyst": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_cpp": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "android": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "gap_grid_items_layout_element",
+    "title": "Gap Grid Items Layout Element",
+    "description": "",
+    "platforms": {
+      "ios": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "maccatalyst": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_cpp": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "android": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "gap_items_updating_scroll_mode",
+    "title": "Gap Items Updating Scroll Mode",
+    "description": "",
+    "platforms": {
+      "ios": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "maccatalyst": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_cpp": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "android": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "gap_menu_bar",
+    "title": "Gap Menu Bar",
+    "description": "",
+    "platforms": {
+      "ios": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "maccatalyst": {
+        "screenshots": {
+          "maui": {
+            "light": "../../../maui-reference/captures/maccatalyst/gap_menu_bar_light.png",
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": "captures/maccatalyst/xaml/gap_menu_bar_light.png",
+            "dark": null
+          },
+          "appkit_cpp": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "android": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "gap_menu_flyout",
+    "title": "Gap Menu Flyout",
+    "description": "",
+    "platforms": {
+      "ios": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "maccatalyst": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_cpp": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "android": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "gap_on_platform_converter",
+    "title": "Gap On Platform Converter",
+    "description": "",
+    "platforms": {
+      "ios": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "maccatalyst": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_cpp": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "android": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "gap_path_data",
+    "title": "Gap Path Data",
+    "description": "",
+    "platforms": {
+      "ios": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "maccatalyst": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_cpp": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "android": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "gap_path_figure_element",
+    "title": "Gap Path Figure Element",
+    "description": "",
+    "platforms": {
+      "ios": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "maccatalyst": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_cpp": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "android": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "gap_picker_items_source",
+    "title": "Gap Picker Items Source",
+    "description": "",
+    "platforms": {
+      "ios": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "maccatalyst": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_cpp": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "android": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "gap_swipe_view_items",
+    "title": "Gap Swipe View Items",
+    "description": "",
+    "platforms": {
+      "ios": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "maccatalyst": {
+        "screenshots": {
+          "maui": {
+            "light": "../../../maui-reference/captures/maccatalyst/gap_swipe_view_items_light.png",
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": "captures/maccatalyst/xaml/gap_swipe_view_items_light.png",
+            "dark": null
+          },
+          "appkit_cpp": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "android": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "gap_title_bar",
+    "title": "Gap Title Bar",
+    "description": "",
+    "platforms": {
+      "ios": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "maccatalyst": {
+        "screenshots": {
+          "maui": {
+            "light": "../../../maui-reference/captures/maccatalyst/gap_title_bar_light.png",
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": "captures/maccatalyst/xaml/gap_title_bar_light.png",
+            "dark": null
+          },
+          "appkit_cpp": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "android": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "gap_toolbar",
+    "title": "Gap Toolbar",
+    "description": "",
+    "platforms": {
+      "ios": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "maccatalyst": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_cpp": {
+            "light": null,
+            "dark": null
+          },
+          "appkit_xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      },
+      "android": {
+        "screenshots": {
+          "maui": {
+            "light": null,
+            "dark": null
+          },
+          "cpp": {
+            "light": null,
+            "dark": null
+          },
+          "xaml": {
+            "light": null,
+            "dark": null
+          }
+        },
+        "sonnet": {
+          "status": null,
+          "review": ""
+        },
+        "gemini": {
+          "status": null,
+          "review": ""
+        }
+      }
+    }
+  },
+  {
     "name": "gestures",
     "title": "Gestures",
     "description": "ports GesturesPage.xaml (+ .xaml.cs) The MAUI GesturesPage.xaml is a *gallery navigation* page: a CollectionView listing gesture-demo sections that the shell navigates into",
@@ -15609,16 +16740,16 @@
           }
         },
         "sonnet": {
-          "status": "green",
-          "review": "C1/C3: all four shapes match in both themes \u2014 green triangle, dashed green triangle, EvenOdd red/blue star, NonZero yellow/black star; identical geometry, colors, dash pattern and positions."
+          "status": "yellow",
+          "review": "Consistency check: cpp and xaml were both marked green vs MAUI, but their captions/rows have a small (~1-2px) vertical spacing difference from each other (SSIM ~0.973, ~1.3% pixels differ) \u2014 shapes/colors are pixel-identical, only caption-row spacing differs slightly between the code-first StackLayout padding and the XAML-hydrated one. Downgraded from green to yellow since both cannot be a perfect match to the same MAUI ground truth if they visibly differ from each other."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "green",
-          "review": "C2/C4: xaml matches MAUI in both themes; same shapes, fills and stroke styles."
+          "status": "yellow",
+          "review": "Consistency check: cpp and xaml were both marked green vs MAUI, but their captions/rows have a small (~1-2px) vertical spacing difference from each other (SSIM ~0.973, ~1.3% pixels differ) \u2014 shapes/colors are pixel-identical, only caption-row spacing differs slightly between the code-first StackLayout padding and the XAML-hydrated one. Downgraded from green to yellow since both cannot be a perfect match to the same MAUI ground truth if they visibly differ from each other."
         },
         "pixel": {
           "status": "yellow",
@@ -15629,8 +16760,8 @@
           "review": "Light: SSIM 0.9688, 1.46% pixels differ \u00b7 Dark: SSIM 0.9683, 1.73% pixels differ"
         },
         "consistency": {
-          "status": "flag",
-          "review": "cpp and xaml both marked green vs MAUI, but differ from EACH OTHER (Light: SSIM 0.9734, 1.25% pixels differ \u00b7 Dark: SSIM 0.9731, 1.45% pixels differ) \u2014 at least one verdict needs re-review."
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -18149,16 +19280,16 @@
           }
         },
         "sonnet": {
-          "status": "green",
-          "review": "Light and dark: header text and all 10 list items match MAUI exactly."
+          "status": "yellow",
+          "review": "Consistency check: cpp and xaml were both marked green vs MAUI, but the xaml CollectionView item rows render with visibly more line spacing than cpp's tighter rows (SSIM ~0.968, ~1% pixels differ) \u2014 text content is identical, only row height/spacing differs between the two hydration paths. Downgraded from green to yellow since both cannot be a perfect match to the same MAUI ground truth if they visibly differ from each other."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "green",
-          "review": "Light and dark match MAUI exactly, identical to cpp column."
+          "status": "yellow",
+          "review": "Consistency check: cpp and xaml were both marked green vs MAUI, but the xaml CollectionView item rows render with visibly more line spacing than cpp's tighter rows (SSIM ~0.968, ~1% pixels differ) \u2014 text content is identical, only row height/spacing differs between the two hydration paths. Downgraded from green to yellow since both cannot be a perfect match to the same MAUI ground truth if they visibly differ from each other."
         },
         "pixel": {
           "status": "yellow",
@@ -18169,8 +19300,8 @@
           "review": "Light: SSIM 0.9640, 1.22% pixels differ \u00b7 Dark: SSIM 0.9632, 1.50% pixels differ"
         },
         "consistency": {
-          "status": "flag",
-          "review": "cpp and xaml both marked green vs MAUI, but differ from EACH OTHER (Light: SSIM 0.9684, 0.98% pixels differ \u00b7 Dark: SSIM 0.9677, 1.25% pixels differ) \u2014 at least one verdict needs re-review."
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
