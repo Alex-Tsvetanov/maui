@@ -198,6 +198,9 @@ namespace maui::xaml
         properties.register_bindable_property<controls::label>("TextDecorations",
                                                                controls::label::text_decorations_property());
         properties.register_bindable_property<controls::label>("LineHeight", controls::label::line_height_property());
+        properties.register_bindable_property<controls::label>("LineBreakMode",
+                                                               controls::label::line_break_mode_property());
+        properties.register_bindable_property<controls::label>("MaxLines", controls::label::max_lines_property());
         properties.register_content_property<controls::label>("Text");
 
         // ---- Entry (Entry.cs + InputView/TextElement members) ----
@@ -394,6 +397,7 @@ namespace maui::xaml
 
         // Enums (incl. the [Flags] TextDecorations and the aliased FlowDirection).
         converters.register_converter<maui::core::text_alignment>(registry_converter(&convert_text_alignment));
+        converters.register_converter<maui::core::line_break_mode>(registry_converter(&convert_line_break_mode));
         converters.register_converter<maui::core::aspect>(registry_converter(&convert_aspect));
         converters.register_converter<maui::controls::stack_orientation>(
             registry_converter(&convert_stack_orientation));

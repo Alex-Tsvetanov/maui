@@ -35,6 +35,7 @@
 #include "maui/core/grid_unit_type.hpp"
 #include "maui/core/keyboard.hpp"
 #include "maui/core/layout_alignment.hpp"
+#include "maui/core/line_break_mode.hpp"
 #include "maui/core/return_type.hpp"
 #include "maui/core/safe_area_edges.hpp"
 #include "maui/core/safe_area_regions.hpp"
@@ -632,6 +633,21 @@ namespace maui::xaml
             {.name = "Justify", .value = text_alignment::justify},
         }};
         return parse_enum<text_alignment>(text, names, "maui::core::text_alignment");
+    }
+
+    // Microsoft.Maui.LineBreakMode (LineBreakModePage/LabelPage markup: LineBreakMode="TailTruncation").
+    maui::core::line_break_mode convert_line_break_mode(std::string_view text)
+    {
+        using maui::core::line_break_mode;
+        static constexpr std::array<enum_entry<line_break_mode>, 6> names{{
+            {.name = "NoWrap", .value = line_break_mode::no_wrap},
+            {.name = "WordWrap", .value = line_break_mode::word_wrap},
+            {.name = "CharacterWrap", .value = line_break_mode::character_wrap},
+            {.name = "HeadTruncation", .value = line_break_mode::head_truncation},
+            {.name = "TailTruncation", .value = line_break_mode::tail_truncation},
+            {.name = "MiddleTruncation", .value = line_break_mode::middle_truncation},
+        }};
+        return parse_enum<line_break_mode>(text, names, "maui::core::line_break_mode");
     }
 
     // Microsoft.Maui.Aspect.

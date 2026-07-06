@@ -84,6 +84,7 @@
 #include "maui/core/grid_length.hpp"
 #include "maui/core/keyboard.hpp"
 #include "maui/core/layout_alignment.hpp"
+#include "maui/core/line_break_mode.hpp"
 #include "maui/core/return_type.hpp"
 #include "maui/core/safe_area_edges.hpp"
 #include "maui/core/text_alignment.hpp"
@@ -258,6 +259,7 @@ namespace maui::xaml
 
     // Name tables for the enums the v1 control set exposes (C# member spellings).
     [[nodiscard]] maui::core::text_alignment convert_text_alignment(std::string_view text);
+    [[nodiscard]] maui::core::line_break_mode convert_line_break_mode(std::string_view text);
     [[nodiscard]] maui::core::aspect convert_aspect(std::string_view text);
     [[nodiscard]] maui::controls::stack_orientation convert_stack_orientation(std::string_view text);
     [[nodiscard]] maui::core::visibility convert_visibility(std::string_view text);
