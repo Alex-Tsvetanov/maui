@@ -6,12 +6,13 @@
          ({Binding Name}), GroupHeaderTemplate (LightGreen bold 16, {Binding Name}) and GroupFooterTemplate
          (Orange, {Binding Count, StringFormat}). The code-first port adds an observable Toggle button +
          strategy readout; those are reproduced as resting UI. Grouped SuperTeams() source is assigned in
-         code (like basic_grouping), so, per the supported dialect, no grouped rows are inlined. -->
+         code-behind (MeasureFirstStrategyPage.xaml.cs), matching the original C# sample, so the grouped
+         rows actually render. -->
     <VerticalStackLayout Spacing="12">
         <Label Text="Using ItemSizingStrategy.MeasureFirstItem. On scrolling, some items may disappear; this is a current known issue." />
         <Button Text="Toggle Sizing Strategy" />
         <Label Text="ItemSizingStrategy: MeasureFirstItem" />
-        <CollectionView ItemSizingStrategy="MeasureFirstItem" IsGrouped="True">
+        <CollectionView x:Name="CollectionView" ItemSizingStrategy="MeasureFirstItem" IsGrouped="True">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <StackLayout>

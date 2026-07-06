@@ -5,9 +5,10 @@
          "Go"; Group Name/Item Name entries + "Go"), a readout, and a grouped CollectionView (IsGrouped)
          with an ItemTemplate ({Binding Name}), GroupHeaderTemplate (LightGreen bold {Binding Name}) and
          GroupFooterTemplate (Orange {Binding Count} "Total members: N"). note: like BasicGrouping, the
-         grouped SuperTeams() source is assigned in code-behind — there is no supported inline x:Array
-         form for a grouped source — so this static twin renders the entries, buttons, readout and the
-         (source-less) template definitions. Button Clicked handlers are omitted per the dialect. -->
+         grouped SuperTeams() source is assigned in code-behind (ScrollToGroupPage.xaml.cs) — there is no
+         supported inline x:Array form for a grouped source — so the grouped rows now actually render.
+         Button Clicked handlers (ScrollTo navigation) are omitted per the dialect; only the ItemsSource
+         wiring is added. -->
     <VerticalStackLayout Spacing="12">
         <Grid RowSpacing="6" ColumnSpacing="6">
             <Grid.RowDefinitions>
@@ -45,7 +46,7 @@
 
         <Label Text="No scroll requested yet" />
 
-        <CollectionView IsGrouped="True">
+        <CollectionView x:Name="CollectionView" IsGrouped="True">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Label Text="{Binding Name}" />

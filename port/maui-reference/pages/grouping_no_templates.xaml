@@ -3,7 +3,8 @@
              x:Class="MauiReference.Pages.GroupingNoTemplatesPage" Title="Grouping (no templates)">
     <!-- Twin of GroupingNoTemplates.xaml: the minimal grouping case — a grouped CollectionView with NO
          templates and NO header/footer (the framework's default rendering of grouped data). note: the C#
-         markup sets NO ItemsSource — SuperTeams() is assigned in code-behind — so this static twin is the
-         bare grouped CollectionView, exactly like the original markup. -->
-    <CollectionView IsGrouped="True" />
+         markup sets NO ItemsSource in XAML either — SuperTeams() is assigned in code-behind — so this
+         twin's code-behind (GroupingNoTemplatesPage.xaml.cs) does the same, giving CollectionView.ItemsSource
+         a SuperTeams() instance so MAUI's default grouped rendering actually shows rows. -->
+    <CollectionView x:Name="CollectionView" IsGrouped="True" />
 </ContentPage>

@@ -5,9 +5,10 @@
          SelectionMode=Single and the three DataTemplates — ItemTemplate ({Binding Name}),
          GroupHeaderTemplate (LightGreen bold {Binding Name}) and GroupFooterTemplate (Orange
          {Binding Count, StringFormat}). Unlike BasicGrouping/GridGrouping this page sets NO view-level
-         Header/Footer. note: the C# markup sets NO ItemsSource — SuperTeams() is assigned in code-behind —
-         so this static twin renders the template definitions with no grouped rows. -->
-    <CollectionView IsGrouped="True" SelectionMode="Single">
+         Header/Footer. note: the C# markup sets NO ItemsSource in XAML either — SuperTeams() is assigned
+         in code-behind — so this twin's code-behind (GroupingPlusSelectionPage.xaml.cs) does the same,
+         giving CollectionView.ItemsSource a SuperTeams() instance so the grouped rows actually render. -->
+    <CollectionView x:Name="CollectionView" IsGrouped="True" SelectionMode="Single">
         <CollectionView.ItemTemplate>
             <DataTemplate>
                 <StackLayout>

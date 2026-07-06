@@ -4,10 +4,10 @@
     <!-- Twin of BasicGrouping.xaml: a grouped CollectionView (IsGrouped=True) with a view-level Header +
          Footer and three DataTemplates — ItemTemplate ({Binding Name}), GroupHeaderTemplate (LightGreen
          bold, {Binding Name}) and GroupFooterTemplate (Orange, {Binding Count, StringFormat}). note: the
-         C# markup itself sets NO ItemsSource — SuperTeams() is assigned in code-behind — so, like the
-         original, this static twin renders the header/footer strings + the (unused) template definitions
-         with no grouped rows. Faithful to the markup. -->
-    <CollectionView IsGrouped="True" Header="This is a header" Footer="Hey, a footer.">
+         C# markup itself sets NO ItemsSource in XAML — SuperTeams() is assigned in code-behind — so this
+         twin's code-behind (BasicGroupingPage.xaml.cs) does the same, giving CollectionView.ItemsSource a
+         SuperTeams() instance (the same six Marvel rosters) so the grouped rows actually render. -->
+    <CollectionView x:Name="CollectionView" IsGrouped="True" Header="This is a header" Footer="Hey, a footer.">
         <CollectionView.ItemTemplate>
             <DataTemplate>
                 <StackLayout>
