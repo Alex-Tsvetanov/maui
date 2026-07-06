@@ -57,11 +57,44 @@ subcommand is not implemented yet, the loop lists the legacy fallback.
 6. **Open-source vision judge**: `e2e.py vision --backend mlx|ollama|vllm` — Qwen2.5-VL judges the same
    four comparisons → its own review slots. Local + free: run it exhaustively before spending API quota.
 7. **Sonnet agents**: dispatch Claude (Sonnet 5) agents over the same four comparisons per page
-   (batched, vision-capable) → `sonnet`/`sonnet_xaml` slots. (Gemini sweeps remain available as an
-   additional independent judge → `gemini`/`gemini_xaml`.)
+   (batched, vision-capable) → `sonnet`/`sonnet_xaml` slots — see "Review methodology" below for the
+   required prompt contract. (Gemini sweeps remain available as an additional independent judge →
+   `gemini`/`gemini_xaml`.)
+7b. **Consistency cross-check** (mechanical, run right after every Sonnet/Gemini batch, before trusting
+   its verdicts): `e2e.py consistency [--only key1,key2] [--strict]`. Comparisons 1-4 (ruling 5) are
+   judged independently per column, which lets a reviewer mark `sonnet` AND `sonnet_xaml` both "green"
+   even when the cpp and xaml screenshots plainly differ from each other — impossible if both genuinely
+   match the *same* MAUI ground truth. This subcommand computes a direct cpp-vs-xaml SSIM/diff%% (no
+   MAUI involved) and flags every green/green page whose two columns diverge anyway, writing a
+   `consistency` slot. A flagged page means: re-open that page's review — at least one of `sonnet` /
+   `sonnet_xaml` is wrong (or the captures are stale/non-deterministic — recapture and recheck first).
 8. **Review**: regenerate the board (`e2e.py board`; fallback `build_comparison_json.py` +
-   `gen_readme.py`) and triage every non-green verdict into: port bug | MAUI quirk (needs a user
-   ruling, per CLAUDE.md ruling 3) | capture artifact (recapture) | expected gap (manifest).
+   `gen_readme.py`) and triage every non-green verdict — including every `consistency: flag` from step
+   7b — into: port bug | MAUI quirk (needs a user ruling, per CLAUDE.md ruling 3) | capture artifact
+   (recapture) | expected gap (manifest).
+
+## Review methodology (Sonnet/Gemini dispatch prompt contract)
+
+Any agent dispatching a Sonnet/Gemini review batch (step 7) MUST follow this contract — it is what
+step 7b's mechanical check enforces after the fact, but the prompt should get it right the first time:
+
+- **Show all three images together** (MAUI, C++, C++&XAML) for a page/theme, never cpp/xaml in
+  isolation from each other. A reviewer that only ever sees "MAUI + one column" per call cannot notice
+  the two columns disagree.
+- **Judge comparisons 1-4 independently** (ruling 5: MAUI-light-vs-cpp, MAUI-light-vs-xaml,
+  MAUI-dark-vs-cpp, MAUI-dark-vs-xaml) — do not average or collapse them.
+- **But also explicitly ask, per page/theme: "do the cpp and xaml screenshots visually match each
+  other?"** If the answer is no, at least one of the two independent verdicts must NOT be "green" —
+  a "both match MAUI perfectly" verdict is self-contradictory when the two columns you just judged
+  against the same ground truth don't match each other. Two genuinely-independent-but-both-correct
+  renders of the same shared XAML should be near-pixel-identical (same layout engine inputs); real
+  divergence between them is itself evidence at least one has a bug.
+- The one legitimate exception: **non-deterministic runtime state** (a picker showing "now", an
+  animation frame, scroll position) can make cpp and xaml legitimately differ while both still "match"
+  MAUI's own equally-nondeterministic capture. Call this out explicitly in the review text rather than
+  silently marking both green — don't use it as a blanket excuse.
+- After any batch, run `e2e.py consistency` — treat every `flag` as a required re-review before the
+  page is considered settled, not just a nice-to-have.
 9. **Fix**: code fixes in the port (or page/manifest corrections), each verified by re-running step 1
    and re-capturing only the affected keys.
 10. **Repeat** from step 1 until the board is green (or every residual is a ruled MAUI quirk /

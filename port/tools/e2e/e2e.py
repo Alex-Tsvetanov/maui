@@ -28,6 +28,11 @@ Subcommands implemented so far:
             maui-reference tree first, the frozen historical tree as fallback) -> regenerate README.md.
     pixel   SSIM + diff%% scorer for parity ruling 5's four comparisons (MAUI vs cpp -> "pixel", MAUI vs
             xaml -> "pixel_xaml", light+dark) into comparison.json. Needs Pillow + numpy.
+    consistency   mechanical cpp<->xaml cross-check: flags any page marked green vs MAUI on BOTH
+            columns (sonnet + sonnet_xaml) whose cpp and xaml screenshots nonetheless differ from each
+            other by SSIM/diff%% — the self-contradiction ruling 5 review batches must not produce.
+            Writes a "consistency" slot; see docs/VERIFICATION_LOOP.md "Review methodology" for the
+            prompt rule this backs up.
 
 Planned (see README): record, vision, catalog, judge; ios/android/appkit capture.
 """
@@ -742,6 +747,70 @@ def cmd_pixel(args: argparse.Namespace) -> int:
     return 0
 
 
+# ------------------------------------------------------------ consistency ---------------------------
+def cmd_consistency(args: argparse.Namespace) -> int:
+    """Mechanical cross-check for the "both green but visually different" contradiction: a page whose
+    cpp and xaml columns are BOTH judged to match the same MAUI ground truth (sonnet/sonnet_xaml both
+    "green") cannot simultaneously look substantially different from EACH OTHER — if they do, at least
+    one of those two verdicts must be wrong (or the two captures are non-deterministic/stale). This
+    reuses pixel_score's SSIM/diff%% machinery directly on the cpp<->xaml pair (no MAUI involved), and
+    writes a "consistency" slot alongside sonnet/gemini/pixel so gen_readme.py can surface it.
+
+    This does not replace human/vision judgment of comparisons 1-4 (ruling 5) — it is a cheap, always-on
+    guardrail that catches the specific self-contradiction a reviewer (human, Sonnet, or Gemini) can
+    slip into when comparisons 1-4 are judged independently per column instead of against each other.
+    """
+    try:
+        import numpy as np  # noqa: F401
+        from PIL import Image  # noqa: F401
+    except ImportError as exc:
+        print(f"error: `consistency` needs Pillow + numpy ({exc})")
+        return 2
+
+    sys.path.insert(0, os.path.join(CPP, "tools", "parity"))
+    import pixel_score
+
+    pages = json.load(open(COMP_JSON, encoding="utf-8"))
+    want = set(k.strip() for k in args.only.split(",") if k.strip()) if args.only else None
+    flagged = []
+    checked = 0
+    for page in pages:
+        if want is not None and page["name"] not in want:
+            continue
+        for plat, platform in page["platforms"].items():
+            sc = platform["screenshots"]
+            cpp, xaml = sc.get("cpp", {}), sc.get("xaml", {})
+            themes = THEMES if plat != "android" else ("light",)
+            theme_scores = {t: pixel_score.score_theme(cpp.get(t), xaml.get(t)) for t in themes}
+            have = {t: v for t, v in theme_scores.items() if v is not None}
+            if not have:
+                continue  # no comparable cpp/xaml pair on this platform — nothing to cross-check
+            checked += 1
+            worst_ssim = min(v["ssim"] for v in have.values())
+            worst_diff = max(v["diff_pct"] for v in have.values())
+            cpp_xaml_differ = not (worst_ssim >= 0.98 and worst_diff <= 1.0)
+
+            both_green = (
+                platform.get("sonnet", {}).get("status") == "green"
+                and platform.get("sonnet_xaml", {}).get("status") == "green"
+            )
+            if both_green and cpp_xaml_differ:
+                parts = [f"{t.capitalize()}: SSIM {v['ssim']:.4f}, {v['diff_pct']:.2f}% pixels differ"
+                         for t, v in have.items()]
+                review = ("cpp and xaml both marked green vs MAUI, but differ from EACH OTHER ("
+                           + " · ".join(parts) + ") — at least one verdict needs re-review.")
+                platform["consistency"] = {"status": "flag", "review": review}
+                flagged.append((page["name"], plat, review))
+            else:
+                platform["consistency"] = {"status": "ok", "review": ""}
+
+    json.dump(pages, open(COMP_JSON, "w", encoding="utf-8"), indent=2)
+    print(f"checked {checked} page x platform cpp/xaml pairs; {len(flagged)} contradiction(s) flagged")
+    for name, plat, review in flagged:
+        print(f"  FLAG {name} [{plat}]: {review}")
+    return 1 if flagged and args.strict else 0
+
+
 # ---------------------------------------------------------------- main ------------------------------
 def main() -> int:
     parser = argparse.ArgumentParser(prog="e2e.py", description=__doc__,
@@ -780,6 +849,11 @@ def main() -> int:
     p_pixel = sub.add_parser("pixel", help="SSIM/diff%% scorer (ruling-5 four comparisons)")
     p_pixel.add_argument("--only", default="", help="comma-separated page keys (default: all)")
     p_pixel.set_defaults(fn=cmd_pixel)
+
+    p_cons = sub.add_parser("consistency", help="flag green/green pages whose cpp and xaml differ")
+    p_cons.add_argument("--only", default="", help="comma-separated page keys (default: all)")
+    p_cons.add_argument("--strict", action="store_true", help="exit 1 if any contradiction is flagged")
+    p_cons.set_defaults(fn=cmd_consistency)
 
     args = parser.parse_args()
     return args.fn(args)
