@@ -185,6 +185,7 @@
 #include "Views/switch.xaml.hpp"
 #include "Views/switch_grouping.xaml.hpp"
 #include "Views/tabbed_flyout.xaml.hpp"
+#include "Views/table_view.xaml.hpp"
 #include "Views/templated_view.xaml.hpp"
 #include "Views/time_picker.xaml.hpp"
 #include "Views/title_bar.xaml.hpp"
@@ -382,6 +383,7 @@
     X(switch)                                                                                                          \
     X(switch_grouping)                                                                                                 \
     X(tabbed_flyout)                                                                                                   \
+    X(table_view)                                                                                                      \
     X(templated_view)                                                                                                  \
     X(time_picker)                                                                                                     \
     X(title_bar)                                                                                                       \

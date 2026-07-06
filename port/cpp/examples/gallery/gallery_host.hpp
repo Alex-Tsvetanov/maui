@@ -232,6 +232,7 @@
 #include "pages/progress_bar_page.hpp"
 #include "pages/refresh_view_page.hpp"
 #include "pages/stepper_page.hpp"
+#include "pages/table_view_page.hpp"
 #include "pages/time_picker_page.hpp"
 
 // The curated demo set, single-sourced. X(name_literal, page_type). The mains map the MAUI_SAMPLE_PAGE
@@ -414,7 +415,8 @@
     X("empty_view_rtl", empty_view_rtl_page)                                                                           \
     X("ios_first_responder", ios_first_responder_page)                                                                 \
     X("ios_pan_gesture", ios_pan_gesture_page)                                                                         \
-    X("ios_swipe_transition", ios_swipe_transition_page)
+    X("ios_swipe_transition", ios_swipe_transition_page)                                                               \
+    X("table_view", table_view_page)
 
 namespace maui::samples
 {

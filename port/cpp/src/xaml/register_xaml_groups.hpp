@@ -54,6 +54,10 @@ namespace maui::xaml
     // W8: FormattedString / Span element form (Label.FormattedText) + the font_attributes converter.
     void register_xaml_formatted_text(xaml_type_registry& types, xaml_property_registry& properties,
                                       xaml_converter_registry& converters);
+    // Tables: TableView content hierarchy (TableView / TableRoot / TableSection + the renderable cell
+    // family: TextCell / EntryCell / SwitchCell / ImageCell / ViewCell) + the TableIntent converter.
+    void register_xaml_tables(xaml_type_registry& types, xaml_property_registry& properties,
+                              xaml_converter_registry& converters);
 
     // Shared converter sink: value converters that more than one group needs (registered once).
     void register_xaml_extra_converters(xaml_converter_registry& converters);

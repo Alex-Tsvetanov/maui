@@ -46,6 +46,11 @@
 #include "maui/controls/brushes/gradient_stop.hpp"         // W7
 #include "maui/controls/brushes/linear_gradient_brush.hpp" // W7
 #include "maui/controls/button.hpp"                        // W15: Button.ImageSource
+#include "maui/controls/cells/entry_cell.hpp"              // Tables: EntryCell
+#include "maui/controls/cells/image_cell.hpp"              // Tables: ImageCell
+#include "maui/controls/cells/switch_cell.hpp"             // Tables: SwitchCell
+#include "maui/controls/cells/text_cell.hpp"               // Tables: TextCell
+#include "maui/controls/cells/view_cell.hpp"               // Tables: ViewCell
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/content_view.hpp"      // W16: ContentView.ControlTemplate
 #include "maui/controls/flex_layout.hpp"       // W11: FlexLayout attached props
@@ -64,6 +69,10 @@
 #include "maui/controls/shapes/rectangle_geometry.hpp"       // 2026-07
 #include "maui/controls/shapes/round_rectangle_geometry.hpp" // 2026-07
 #include "maui/controls/span.hpp"                            // W8
+#include "maui/controls/table_intent.hpp"                    // Tables: TableView.Intent enum
+#include "maui/controls/table_root.hpp"                      // Tables: TableRoot
+#include "maui/controls/table_section.hpp"                   // Tables: TableSection
+#include "maui/controls/table_view.hpp"                      // Tables: TableView
 #include "maui/controls/templates/control_template.hpp"      // W16: <ControlTemplate> element form
 #include "maui/controls/templates/data_template.hpp"         // W4: data_template::create_content()
 #include "maui/controls/vertical_stack_layout.hpp"
@@ -1768,5 +1777,152 @@ namespace
 <Label xmlns="http://schemas.microsoft.com/dotnet/2021/maui" Text="{local:Missing}"/>)xml");
                   }),
                   "MarkupExtension not found for local:Missing");
+    }
+
+    // ---- Tables: TableView content hierarchy (register_xaml_tables.cpp) -----------------------------
+
+    TEST(xaml_loader, table_view_root_implicit_content)
+    {
+        // <TableView><TableRoot>… implicit content (TableView [ContentProperty(nameof(Root))]).
+        // Keep the load result alive: it OWNS the created cell/section/root graph, and the table holds
+        // non-owning aliasing handles into it (xaml_loader.hpp: "destroy the result, destroy the tree").
+        controls::table_view table;
+        const xaml_load_result result = xaml_loader::load_into(table, R"xml(
+<TableView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <TableRoot>
+        <TableSection Title="A">
+            <TextCell Text="Hi" Detail="D"/>
+        </TableSection>
+    </TableRoot>
+</TableView>)xml");
+        ASSERT_NE(table.root(), nullptr);
+        ASSERT_EQ(table.root()->count(), 1U);
+        const auto& section = table.root()->at(0);
+        EXPECT_EQ(section->title(), "A");
+        ASSERT_EQ(section->count(), 1U);
+        auto* text = dynamic_cast<controls::text_cell*>(section->at(0).get());
+        ASSERT_NE(text, nullptr);
+        EXPECT_EQ(text->text(), "Hi");
+        EXPECT_EQ(text->detail(), "D");
+    }
+
+    TEST(xaml_loader, table_view_root_property_element)
+    {
+        // The explicit <TableView.Root> property-element spelling routes through the same "Root" sink.
+        controls::table_view table;
+        const xaml_load_result result = xaml_loader::load_into(table, R"xml(
+<TableView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <TableView.Root>
+        <TableRoot>
+            <TableSection Title="B">
+                <TextCell Text="Yo"/>
+            </TableSection>
+        </TableRoot>
+    </TableView.Root>
+</TableView>)xml");
+        ASSERT_NE(table.root(), nullptr);
+        ASSERT_EQ(table.root()->count(), 1U);
+        EXPECT_EQ(table.root()->at(0)->title(), "B");
+        ASSERT_EQ(table.root()->at(0)->count(), 1U);
+    }
+
+    TEST(xaml_loader, table_view_scalar_properties)
+    {
+        // Intent (converter), HasUnevenRows, RowHeight scalar attributes.
+        controls::table_view table;
+        (void)xaml_loader::load_into(table, R"xml(
+<TableView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+           Intent="Settings" HasUnevenRows="true" RowHeight="44"/>)xml");
+        EXPECT_EQ(table.intent(), controls::table_intent::settings);
+        EXPECT_TRUE(table.has_uneven_rows());
+        EXPECT_EQ(table.row_height(), 44);
+    }
+
+    TEST(xaml_loader, table_view_all_cell_types)
+    {
+        // One section with a TextCell, EntryCell, SwitchCell, and a ViewCell wrapping a Label.
+        controls::table_view table;
+        const xaml_load_result result = xaml_loader::load_into(table, R"xml(
+<TableView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <TableRoot>
+        <TableSection Title="Cells">
+            <TextCell Text="T" Detail="TD"/>
+            <EntryCell Label="Name" Placeholder="Enter" Text="Alex"/>
+            <SwitchCell On="true" Text="Toggle" OnColor="Green"/>
+            <ViewCell>
+                <Label x:Name="vclabel" Text="Inside"/>
+            </ViewCell>
+        </TableSection>
+    </TableRoot>
+</TableView>)xml");
+        ASSERT_NE(table.root(), nullptr);
+        ASSERT_EQ(table.root()->count(), 1U);
+        const auto& section = table.root()->at(0);
+        ASSERT_EQ(section->count(), 4U);
+
+        auto* text = dynamic_cast<controls::text_cell*>(section->at(0).get());
+        ASSERT_NE(text, nullptr);
+        EXPECT_EQ(text->text(), "T");
+        EXPECT_EQ(text->detail(), "TD");
+
+        auto* entry = dynamic_cast<controls::entry_cell*>(section->at(1).get());
+        ASSERT_NE(entry, nullptr);
+        EXPECT_EQ(entry->label(), "Name");
+        EXPECT_EQ(entry->placeholder(), "Enter");
+        EXPECT_EQ(entry->text(), "Alex");
+
+        auto* toggle = dynamic_cast<controls::switch_cell*>(section->at(2).get());
+        ASSERT_NE(toggle, nullptr);
+        EXPECT_TRUE(toggle->on());
+        EXPECT_EQ(toggle->text(), "Toggle");
+
+        auto* view_cell = dynamic_cast<controls::view_cell*>(section->at(3).get());
+        ASSERT_NE(view_cell, nullptr);
+        ASSERT_NE(view_cell->view(), nullptr);
+        auto* inner_label = dynamic_cast<controls::label*>(view_cell->view().get());
+        ASSERT_NE(inner_label, nullptr);
+        EXPECT_EQ(inner_label, result.find_by_name<controls::label>("vclabel").get());
+    }
+
+    TEST(xaml_loader, table_cell_height_and_isenabled)
+    {
+        // Cell.Height (plain-field, non-bindable route) + Cell.IsEnabled (bindable).
+        controls::table_view table;
+        const xaml_load_result result = xaml_loader::load_into(table, R"xml(
+<TableView xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+    <TableRoot>
+        <TableSection>
+            <TextCell Height="25" IsEnabled="false"/>
+        </TableSection>
+    </TableRoot>
+</TableView>)xml");
+        ASSERT_NE(table.root(), nullptr);
+        ASSERT_EQ(table.root()->count(), 1U);
+        const auto& section = table.root()->at(0);
+        ASSERT_EQ(section->count(), 1U);
+        auto* text = dynamic_cast<controls::text_cell*>(section->at(0).get());
+        ASSERT_NE(text, nullptr);
+        EXPECT_EQ(text->height(), 25.0);
+        EXPECT_FALSE(text->is_enabled());
+    }
+
+    TEST(xaml_loader, table_section_title_and_textcolor)
+    {
+        // TableSection inherited Title/TextColor (re-registered per concrete type; find() has no base walk).
+        controls::table_view table;
+        const xaml_load_result result = xaml_loader::load_into(table, R"xml(
+<TableView xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+    <TableRoot>
+        <TableSection Title="Locations" TextColor="Red"/>
+    </TableRoot>
+</TableView>)xml");
+        ASSERT_NE(table.root(), nullptr);
+        ASSERT_EQ(table.root()->count(), 1U);
+        const auto& section = table.root()->at(0);
+        EXPECT_EQ(section->title(), "Locations");
+        EXPECT_EQ(section->text_color(), maui::graphics::colors::red);
     }
 } // namespace

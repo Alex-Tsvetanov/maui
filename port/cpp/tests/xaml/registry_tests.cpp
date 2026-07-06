@@ -99,6 +99,18 @@ namespace
         }
     }
 
+    // Tables: the TableView content hierarchy + renderable cell family all register.
+    TEST(xaml_type_registry, the_table_view_hierarchy_is_registered)
+    {
+        const registries reg;
+        for (const auto* name :
+             {"TableView", "TableRoot", "TableSection", "TextCell", "EntryCell", "SwitchCell", "ImageCell", "ViewCell"})
+        {
+            EXPECT_TRUE(reg.types.is_registered(name)) << name;
+            EXPECT_NE(reg.types.create(name), nullptr) << name;
+        }
+    }
+
     // XamlParser.GetElementType convention: a miss is null + an out exception, never a throw — the
     // LOADER throws. The registry is the throw-free half.
     TEST(xaml_type_registry, unknown_type_returns_null_without_throwing)

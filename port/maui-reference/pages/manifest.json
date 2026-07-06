@@ -1761,5 +1761,20 @@
       "z_index"
     ],
     "notes": ""
+  },
+  {
+    "key": "table_view",
+    "expected_port_status": "renders",
+    "builder_twin": true,
+    "tags": [
+      "table_view",
+      "table_root",
+      "table_section",
+      "text_cell",
+      "entry_cell",
+      "switch_cell",
+      "view_cell"
+    ],
+    "notes": ""
   }
 ]

@@ -181,6 +181,7 @@
 #include "pages/switch_grouping_page.hpp"
 #include "pages/switch_page.hpp"
 #include "pages/tabbed_flyout_page.hpp"
+#include "pages/table_view_page.hpp"
 #include "pages/templated_view_page.hpp"
 #include "pages/time_picker_page.hpp"
 #include "pages/title_bar_page.hpp"
@@ -490,6 +491,7 @@ namespace
     STRUCTURE_EQUIVALENCE_TEST(swipe_view_shadow, swipe_view_shadow_page)
     STRUCTURE_EQUIVALENCE_TEST(switch, switch_page)
     STRUCTURE_EQUIVALENCE_TEST(switch_grouping, switch_grouping_page)
+    STRUCTURE_EQUIVALENCE_TEST(table_view, table_view_page)
     STRUCTURE_EQUIVALENCE_TEST(tabbed_flyout, tabbed_flyout_page)
     STRUCTURE_EQUIVALENCE_TEST(time_picker, time_picker_page)
     STRUCTURE_EQUIVALENCE_TEST(title_bar, title_bar_page)
