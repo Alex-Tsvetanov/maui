@@ -3449,9 +3449,9 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 80 | 0 |
+| 🟢 Match | 81 | 0 |
 | 🟡 Minor | 53 | 0 |
-| 🔴 Major | 42 | 0 |
+| 🔴 Major | 41 | 0 |
 | ⬛ Blank | 6 | 0 |
 | ⏳ Unreviewed | 0 | 181 |
 
@@ -6272,16 +6272,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 150. Single Bound Selection — 🔴/⏳
+### 150. Single Bound Selection — 🟢/⏳
 <sub>single_bound_selection</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/single_bound_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/single_bound_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/single_bound_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/single_bound_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/single_bound_selection_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/single_bound_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/single_bound_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/single_bound_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/single_bound_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/single_bound_selection_dark.png" /></td></tr></table>
 
 ports SingleBoundSelection.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.SelectionGalleries.SingleBoundSelection)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: the Reset and Clear buttons are entirely MISSING in the C++ port in both themes — MAUI shows both centered blue text buttons between the 'Selected: (none)' label and the country list. Instruction text, selected label and the five-country list otherwise match.
+C1/C3 (MAUI vs C++, light/dark): full match. Reset and Clear links now present (fix confirmed), list items (United States/Canada/Mexico/Brazil/Argentina), 'Selected: (none)' text, fonts, colors, and layout all match MAUI in both themes. Ignored the OS notification banner artifact in the cpp captures per instructions.
 
 #### ⏳ Gemini Review
 

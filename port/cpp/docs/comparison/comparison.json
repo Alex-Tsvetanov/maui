@@ -17195,8 +17195,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3: the Reset and Clear buttons are entirely MISSING in the C++ port in both themes \u2014 MAUI shows both centered blue text buttons between the 'Selected: (none)' label and the country list. Instruction text, selected label and the five-country list otherwise match."
+          "status": "green",
+          "review": "C1/C3 (MAUI vs C++, light/dark): full match. Reset and Clear links now present (fix confirmed), list items (United States/Canada/Mexico/Brazil/Argentina), 'Selected: (none)' text, fonts, colors, and layout all match MAUI in both themes. Ignored the OS notification banner artifact in the cpp captures per instructions."
         },
         "gemini": {
           "status": null,
@@ -17204,7 +17204,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "C2/C4: Reset and Clear buttons present and centered, country list and labels match MAUI in both themes; only minor country-label font-size difference (slightly larger), within cosmetic tolerance."
+          "review": "C2/C4 (MAUI vs C++&XAML, light/dark): full match. Reset and Clear links present, list content, colors, and layout identical to MAUI in both light and dark themes."
         },
         "pixel": {
           "status": "yellow",
