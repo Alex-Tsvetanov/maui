@@ -5,11 +5,13 @@
          view-level Header/Footer) with three DataTemplates — ItemTemplate ({Binding Name}), GroupHeaderTemplate
          (LightGreen bold, {Binding Name}) and GroupFooterTemplate (Orange, {Binding Count, StringFormat}). The
          page's point is that empty groups still show their header/footer. note: like the C# markup, no
-         ItemsSource is set here — the List<Team> (some empty) is assigned in code-behind — so this static twin
-         renders the description + the template definitions with no grouped rows. Faithful to the markup. -->
+         ItemsSource is set here in XAML — the List<Team> (some empty) is assigned in code-behind
+         (SomeEmptyGroupsPage.xaml.cs), faithfully reproducing the five teams (two empty: "Thundercats",
+         "Bionic Six") from the original sample — so the grouped rows AND the empty-group headers/footers
+         actually render. -->
     <StackLayout Spacing="8">
         <Label Text="The CollectionView below should be grouped and some of the groups should be empty, but still display headers/footers." />
-        <CollectionView IsGrouped="True">
+        <CollectionView x:Name="CollectionView" IsGrouped="True">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <StackLayout>
