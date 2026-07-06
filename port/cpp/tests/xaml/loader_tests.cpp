@@ -409,6 +409,90 @@ namespace
         EXPECT_EQ(cell->text(), "cell");
     }
 
+    TEST(xaml_loader, loader_minted_data_template_records_its_body_root_content_type)
+    {
+        // 2026-07: a XAML-authored <DataTemplate> must carry the body ROOT's registered control type
+        // (data_template::set_content_type, wired by xaml_visitors::set_template) so a native cell can
+        // realize the inflated content exactly like a type-activated of<TControl>() template — without
+        // it, every XAML ItemTemplate rendered only the item-text fallback in native cells
+        // (varied_size_selector's Border-wrapped template showed a plain text list). The composite
+        // Border-wrapping-a-Label body also inflates as the full subtree.
+        controls::collection_view view;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(view, R"xml(
+<CollectionView xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+	<CollectionView.ItemTemplate>
+		<DataTemplate>
+			<Border BackgroundColor="Wheat" HeightRequest="100" Padding="8">
+				<Label Text="cell" VerticalTextAlignment="Center" />
+			</Border>
+		</DataTemplate>
+	</CollectionView.ItemTemplate>
+</CollectionView>)xml");
+        });
+        EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
+
+        const std::shared_ptr<controls::data_template> tmpl = view.item_template();
+        ASSERT_NE(tmpl, nullptr);
+        ASSERT_TRUE(tmpl->content_type().has_value()) << "loader-minted template lost its body root type";
+        EXPECT_EQ(*tmpl->content_type(), type_tag::of<controls::border>());
+
+        const std::shared_ptr<bindable_object> content = tmpl->create_content();
+        ASSERT_NE(content, nullptr);
+        const auto border = std::dynamic_pointer_cast<controls::border>(content);
+        ASSERT_NE(border, nullptr);
+        EXPECT_EQ(border->height_request(), 100.0);
+        const auto* cell = dynamic_cast<const controls::label*>(border->content());
+        ASSERT_NE(cell, nullptr);
+        EXPECT_EQ(cell->text(), "cell");
+    }
+
+    TEST(xaml_loader, label_line_break_mode_and_max_lines_from_markup)
+    {
+        // LabelPage.xaml's LineBreakMode= / MaxLines= attributes (restored to the shared label twin) —
+        // the enum converter (convert_line_break_mode) + the two Label property registrations.
+        controls::content_page page;
+        // The result OWNS the created tree (load_into's root is caller-owned, its children are not).
+        const xaml_load_result result = xaml_loader::load_into(page, R"xml(
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+	<VerticalStackLayout>
+		<Label LineBreakMode="HeadTruncation" Text="one" />
+		<Label MaxLines="2" LineBreakMode="TailTruncation" Text="two" />
+	</VerticalStackLayout>
+</ContentPage>)xml");
+        const auto* stack = dynamic_cast<const controls::vertical_stack_layout*>(page.content());
+        ASSERT_NE(stack, nullptr);
+        ASSERT_EQ(stack->count(), 2);
+        const auto* head = dynamic_cast<const controls::label*>(&stack->at(0));
+        const auto* wrap = dynamic_cast<const controls::label*>(&stack->at(1));
+        ASSERT_NE(head, nullptr);
+        ASSERT_NE(wrap, nullptr);
+        EXPECT_EQ(head->line_break_mode(), maui::core::line_break_mode::head_truncation);
+        EXPECT_EQ(wrap->line_break_mode(), maui::core::line_break_mode::tail_truncation);
+        EXPECT_EQ(wrap->max_lines(), 2);
+    }
+
+    TEST(xaml_loader, app_theme_binding_resolves_the_dark_branch_when_the_app_is_already_dark)
+    {
+        // The gallery_xaml capture path: the application seeds Dark BEFORE the page loads
+        // (set_platform_app_theme in main), and the generated factories thread the application into
+        // build_page — so {AppThemeBinding} must resolve the Dark branch AT LOAD (not just re-apply on
+        // a later change; the reactive path is covered by
+        // apply_properties_visitor.app_theme_binding_applies_and_reapplies_on_theme_change).
+        controls::application app;
+        app.set_user_app_theme(maui::core::app_theme::dark);
+        controls::label label;
+        // Keep the load result alive: it OWNS the RequestedThemeChanged re-apply subscriptions.
+        const xaml_load_result result = xaml_loader::load_into(label, R"xml(
+<Label xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       Text="{AppThemeBinding Light=day, Dark=night}"/>)xml",
+                                                               {.application = &app});
+        EXPECT_EQ(label.text(), "night");
+        // And the load stays reactive: flipping back to Light re-applies the Light branch.
+        app.set_user_app_theme(maui::core::app_theme::light);
+        EXPECT_EQ(label.text(), "day");
+    }
+
     TEST(xaml_loader, grid_element_form_row_and_column_definitions)
     {
         // W2 positive case: the ELEMENT form <Grid.RowDefinitions><RowDefinition Height="Auto"/>…
