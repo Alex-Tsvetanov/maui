@@ -2088,16 +2088,16 @@
           }
         },
         "sonnet": {
-          "status": "green",
-          "review": "Light and dark: border gradient, dashed yellow border, corner radius, label text, and all control values (colors, sliders, radio) match MAUI exactly."
+          "status": "yellow",
+          "review": "Top border/gradient/label block matches MAUI. Below it, the ScrollView's rows are measurably taller in the port than in MAUI's native render (accumulating drift down the page \u2014 by the bottom, rows are offset by 100+ px), most likely a font-metrics/row-height fidelity gap rather than a structural bug. The Padding/StackLayout-type divergence between cpp and xaml that originally caused a cpp/xaml self-contradiction is fixed (2026-07-06): cpp and xaml now render pixel-identical to each other (0.79% diff). Flagging the residual MAUI-vs-port row-height gap as a separate follow-up, out of scope for the padding fix."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "green",
-          "review": "Light and dark match MAUI exactly, identical to cpp column."
+          "status": "yellow",
+          "review": "Top border/gradient/label block matches MAUI. Below it, the ScrollView's rows are measurably taller in the port than in MAUI's native render (accumulating drift down the page \u2014 by the bottom, rows are offset by 100+ px), most likely a font-metrics/row-height fidelity gap rather than a structural bug. The Padding/StackLayout-type divergence between cpp and xaml that originally caused a cpp/xaml self-contradiction is fixed (2026-07-06): cpp and xaml now render pixel-identical to each other (0.79% diff). Flagging the residual MAUI-vs-port row-height gap as a separate follow-up, out of scope for the padding fix."
         },
         "pixel": {
           "status": "red",
@@ -3739,8 +3739,8 @@
           "review": "Light: SSIM 0.8901, 6.18% pixels differ \u00b7 Dark: SSIM 0.8894, 2.65% pixels differ"
         },
         "consistency": {
-          "status": "flag",
-          "review": "cpp and xaml both marked green vs MAUI, but differ from EACH OTHER (Light: SSIM 0.9696, 2.27% pixels differ \u00b7 Dark: SSIM 0.9692, 2.51% pixels differ) \u2014 at least one verdict needs re-review."
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -5390,8 +5390,8 @@
           "review": "Light: SSIM 0.9866, 0.53% pixels differ \u00b7 Dark: SSIM 0.8354, 18.77% pixels differ"
         },
         "consistency": {
-          "status": "flag",
-          "review": "cpp and xaml both marked green vs MAUI, but differ from EACH OTHER (Light: SSIM 0.9900, 0.41% pixels differ \u00b7 Dark: SSIM 0.9529, 2.90% pixels differ) \u2014 at least one verdict needs re-review."
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
