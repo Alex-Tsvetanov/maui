@@ -122,8 +122,10 @@ namespace maui::samples
 
             page_.set_content(stack_);
 
-            // Apply the initial red shadow from the default slider values (the C# ctor's UpdateShadowOffset).
-            apply_shadow();
+            // The canonical shared invalidate_shadow_host.xaml declares only the resting Border chrome —
+            // the <Shadow> element itself is outside the supported dialect (loader gap), so the twin (and
+            // MAUI's actual render) shows NO shadow at rest despite the sliders' non-zero default values.
+            // apply_shadow() now runs only from the interactive handlers, matching that at-rest state.
         }
 
         [[nodiscard]] maui::controls::content_page& page()

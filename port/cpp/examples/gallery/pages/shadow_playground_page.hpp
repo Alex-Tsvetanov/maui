@@ -147,9 +147,10 @@ namespace maui::samples
             root_.add(scroller_);
             page_.set_content(root_);
 
-            // Apply the initial shadow from the default slider/entry values (the C# ctor's UpdateShadowOffset
-            // plus the bound defaults).
-            apply_shadow();
+            // The canonical shared shadow_playground.xaml has no resting Shadow markup sink (the twin's
+            // own note: Shadow is applied only through the slider/entry change handlers), so both targets
+            // stay shadowless at rest, matching MAUI's actual render — only apply_fill() re-establishes
+            // the BoxView's declared #00B4DB default; apply_shadow() runs on the first real input change.
             apply_fill();
         }
 
