@@ -208,3 +208,25 @@ real C# source to confirm the port's behavior is byte-faithful.
   dark) now show the centered purple-bordered "Card" cell instead of a blank window. No port/loader
   change needed — `CarouselView.ItemsSource` via `x:Array` already worked; `gallery_xaml` just needed a
   rebuild to pick up the corrected shared markup.
+- **`path_gallery`'s first Label ("Create a LineSegment in a PathGeometry") does not render in MAUI's
+  own Mac Catalyst capture.** Verified 2026-07-06 via a mechanical cpp<->xaml consistency flag: both the
+  `cpp` and `xaml` columns were reviewed "green" against MAUI yet the two frameworks visually agreed with
+  each other (cpp-vs-xaml SSIM 0.9991 once a separately-fixed root Padding bug was corrected) — so the
+  ~3.6% residual pixel delta both columns still show against MAUI is NOT a cpp/xaml disagreement, it's a
+  genuine small MAUI-vs-port(+twin) content mismatch that a prior review pass misdiagnosed as a "capture
+  scroll/crop artifact" (ruling 2 exemption), which does not hold up: both captures are the identical
+  2048x1536 viewport with no crop difference. Direct pixel inspection shows MAUI's real render places the
+  first Line shape (`Line X1="10" Y1="50" X2="200" Y2="70"`, no `WidthRequest`/`HeightRequest`) directly
+  at the very top of the page, with NO preceding label row at all — even though the real C#
+  `PathGallery.xaml` source (and the shared twin, and the builder) all declare that Label immediately
+  before the Line. Comparing against sibling galleries: `line_gallery`'s three `<Line>` elements DO set
+  `WidthRequest`/`HeightRequest` and their preceding Labels render normally in MAUI's capture — so this
+  looks like a narrow MAUI-side measurement/rendering interaction specific to an UNCONSTRAINED-size Line
+  shape (no explicit width/height) swallowing its preceding sibling's row, not a general "first label in
+  a StackLayout" issue (confirmed: rectangle_gallery/ellipse_gallery/polygon_gallery all render their
+  first label fine). Both the port's builder and the shared twin already match the real C# source's
+  declared markup faithfully here — reproducing MAUI's exact quirk would mean deliberately hiding a Label
+  that genuinely exists in the source, which needs a user ruling (per CLAUDE.md ruling 3) before either
+  the builder or the twin invents an `IsVisible=false`-style workaround. Left unfixed pending that ruling;
+  the `sonnet`/`sonnet_xaml` review text in `comparison.json` now documents this explicitly instead of the
+  retracted crop-artifact explanation.

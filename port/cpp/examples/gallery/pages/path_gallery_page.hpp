@@ -42,8 +42,14 @@
 //         #CCCCFF (the Composite shape fill), reconstructed via color::from_argb — the cross-platform
 //         equivalent of the named/literal brush. Each is wrapped in a solid_paint (the documented
 //         brush→paint bridge).
-//   note: the C# StackLayout Padding="12" is not modeled on this layout in the port today (matching the
-//         twin, which also omits it), so it is omitted here too.
+//   note: the C# StackLayout Padding="12" IS reproduced: PORT FIX (2026-07-06, the cpp<->xaml consistency
+//         check) — the twin (pages/path_gallery.xaml) DOES carry <VerticalStackLayout Padding="12">; a
+//         stale comment here previously claimed the twin also omitted it, which was simply wrong (verified
+//         by reading the twin XAML directly). Without the matching padding, every shape sat flush against
+//         the left edge (padding 0) while the twin's hydration correctly inset everything by 12pt,
+//         producing a uniform ~18px native horizontal offset between the cpp and xaml captures despite
+//         otherwise-identical content — exactly the kind of divergence the consistency check exists to
+//         catch. stack_.set_padding(12) below now matches.
 
 #include <memory>
 #include <string>
@@ -58,6 +64,7 @@
 #include "maui/controls/shapes/polyline.hpp"
 #include "maui/controls/shapes/rectangle.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
@@ -107,6 +114,7 @@ namespace maui::samples
         path_gallery_page()
         {
             page_.set_title("Path Gallery");
+            stack_.set_padding(maui::core::thickness{12}); // StackLayout Padding="12" (see header note)
 
             // --- #1 "Create a LineSegment in a PathGeometry": a Line, black stroke 1 — matches MAUI.
             caption(line_seg_label_, "Create a LineSegment in a PathGeometry");

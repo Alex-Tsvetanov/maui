@@ -1974,15 +1974,15 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9685, 1.58% pixels differ \u00b7 Dark: SSIM 0.9632, 1.50% pixels differ"
+          "review": "Light: SSIM 0.9283, 5.91% pixels differ \u00b7 Dark: SSIM 0.9211, 5.31% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9271, 5.96% pixels differ \u00b7 Dark: SSIM 0.9240, 5.30% pixels differ"
+          "review": "Light: SSIM 0.9274, 5.94% pixels differ \u00b7 Dark: SSIM 0.9202, 5.34% pixels differ"
         },
         "consistency": {
-          "status": "flag",
-          "review": "cpp and xaml both marked green vs MAUI, but differ from EACH OTHER (Light: SSIM 0.9299, 5.59% pixels differ \u00b7 Dark: SSIM 0.9265, 5.01% pixels differ) \u2014 at least one verdict needs re-review."
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -2101,15 +2101,15 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7364, 20.52% pixels differ \u00b7 Dark: SSIM 0.5083, 39.68% pixels differ"
+          "review": "Light: SSIM 0.7179, 10.47% pixels differ \u00b7 Dark: SSIM 0.4564, 41.98% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.7324, 10.28% pixels differ \u00b7 Dark: SSIM 0.4788, 40.44% pixels differ"
+          "review": "Light: SSIM 0.7168, 10.56% pixels differ \u00b7 Dark: SSIM 0.4559, 41.97% pixels differ"
         },
         "consistency": {
-          "status": "flag",
-          "review": "cpp and xaml both marked green vs MAUI, but differ from EACH OTHER (Light: SSIM 0.7085, 10.46% pixels differ \u00b7 Dark: SSIM 0.4956, 35.23% pixels differ) \u2014 at least one verdict needs re-review."
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -14975,7 +14975,7 @@
         },
         "sonnet": {
           "status": "green",
-          "review": "Light and dark: all path/geometry shapes (bezier triangle, composite zigzag, overlapping rect/ellipse/circle, multi-segment star) match MAUI in shape and color. MAUI capture is scrolled slightly differently (missing top header row visible) \u2014 a capture-crop artifact, exempt per ruling 2, not a content difference."
+          "review": "Light and dark: all path/geometry shapes (bezier zig-zag, composite circle, overlapping rect, EllipseGeometry circle, unfilled star outline, complex-path placeholders) match MAUI in shape and color. CORRECTION (2026-07): the previously-recorded \"capture-crop artifact\" explanation for the missing top label was wrong \u2014 both captures are the same viewport size with no crop difference. This is a genuine, narrow MAUI Mac Catalyst rendering quirk: the first Label (\"Create a LineSegment in a PathGeometry\"), whose next sibling is a Line shape with no explicit WidthRequest/HeightRequest, does not render at all in MAUI's real capture \u2014 the Line renders directly at the top of the page instead. Other galleries whose Line shapes DO set WidthRequest/HeightRequest (e.g. line_gallery) render their preceding label normally, so this appears specific to an unconstrained-size Line measurement interaction in MAUI itself, not a port/twin bug (the port's Line here has no size request either, exactly matching the real C# PathGallery.xaml source). Flagged as a new MAUI-side quirk per port/CLAUDE.md ruling 3 (needs a user ruling) rather than silently fixed \u2014 see port/maui-reference/docs/EQUIVALENCE_FINDINGS.md."
         },
         "gemini": {
           "status": null,
@@ -14983,19 +14983,19 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "Light and dark match MAUI exactly, identical to cpp column."
+          "review": "Light and dark match MAUI exactly except for the same first-label MAUI quirk described in the cpp column's review (both cpp and xaml currently show the label; MAUI's own render omits it) \u2014 identical to the cpp column, so cpp and xaml agree with EACH OTHER (verified: cpp-vs-xaml SSIM 0.9991, 0.03% pixels differ, i.e. only window-title-bar text and normal antialiasing noise). Not a cpp<->xaml divergence."
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9320, 5.47% pixels differ \u00b7 Dark: SSIM 0.9272, 5.53% pixels differ"
+          "review": "Light: SSIM 0.9427, 3.56% pixels differ \u00b7 Dark: SSIM 0.9446, 3.64% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9415, 3.62% pixels differ \u00b7 Dark: SSIM 0.9436, 3.70% pixels differ"
+          "review": "Light: SSIM 0.9418, 3.59% pixels differ \u00b7 Dark: SSIM 0.9438, 3.67% pixels differ"
         },
         "consistency": {
-          "status": "flag",
-          "review": "cpp and xaml both marked green vs MAUI, but differ from EACH OTHER (Light: SSIM 0.9489, 1.91% pixels differ \u00b7 Dark: SSIM 0.9559, 2.02% pixels differ) \u2014 at least one verdict needs re-review."
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -16765,15 +16765,15 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9396, 2.27% pixels differ \u00b7 Dark: SSIM 0.9378, 2.74% pixels differ"
+          "review": "Light: SSIM 0.9084, 2.69% pixels differ \u00b7 Dark: SSIM 0.9056, 3.49% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9072, 2.75% pixels differ \u00b7 Dark: SSIM 0.9044, 3.55% pixels differ"
+          "review": "Light: SSIM 0.9075, 2.72% pixels differ \u00b7 Dark: SSIM 0.9047, 3.52% pixels differ"
         },
         "consistency": {
-          "status": "flag",
-          "review": "cpp and xaml both marked green vs MAUI, but differ from EACH OTHER (Light: SSIM 0.9082, 2.62% pixels differ \u00b7 Dark: SSIM 0.9056, 3.44% pixels differ) \u2014 at least one verdict needs re-review."
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -17018,16 +17018,16 @@
           "review": "C2 (light) and C4 (dark): xaml build matches MAUI in both themes just as well as cpp. Dark-theme xaml screenshot has a faint diagonal hairline artifact across card C's box (compression/anti-aliasing), which is a trivial rendering artifact, not a content difference \u2014 exempt per ruling."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9921, 0.18% pixels differ \u00b7 Dark: SSIM 0.9839, 1.02% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9940, 0.12% pixels differ \u00b7 Dark: SSIM 0.9840, 0.77% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9890, 0.27% pixels differ \u00b7 Dark: SSIM 0.9541, 4.73% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9929, 0.15% pixels differ \u00b7 Dark: SSIM 0.9828, 0.80% pixels differ"
         },
         "consistency": {
-          "status": "flag",
-          "review": "cpp and xaml both marked green vs MAUI, but differ from EACH OTHER (Light: SSIM 0.9935, 0.08% pixels differ \u00b7 Dark: SSIM 0.9833, 1.22% pixels differ) \u2014 at least one verdict needs re-review."
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
