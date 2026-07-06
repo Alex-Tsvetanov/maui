@@ -61,19 +61,23 @@ namespace maui::samples
                 basic_picker_.items().add("Item " + std::to_string(i));
             }
 
-            // "SelectedIndex=1" — a 3-item picker pre-selected to index 1.
+            // "SelectedIndex=1" — mirror the XAML DOCUMENT ORDER: the SelectedIndex attribute is applied
+            // BEFORE the <Picker.Items> element children, so Picker.CoerceSelectedIndex clamps it to -1
+            // against the still-empty Items (and the later item adds re-clamp -1 to -1). The at-rest
+            // render is therefore the "Select an item" placeholder, exactly like the MAUI reference —
+            // setting the index AFTER the items had it stick at 1 ("Item 2"), a genuine order divergence.
             preselect_label_.set_text("SelectedIndex=1");
             preselect_picker_.set_title("Select an item");
+            preselect_picker_.set_selected_index(1); // coerced to -1 (Items still empty), like the XAML
             add_three_items(preselect_picker_);
-            preselect_picker_.set_selected_index(1);
 
             // "SelectedIndexChanged" — the selection drives the readout (the C# DisplayAlert collapses
             // to a visible label here, headless-safe).
             changed_label_.set_text("SelectedIndexChanged");
             readout_.set_text("Selected: (none)");
             changed_picker_.set_title("Select an item");
+            changed_picker_.set_selected_index(1); // XAML attribute order: coerced to -1 (see above)
             add_three_items(changed_picker_);
-            changed_picker_.set_selected_index(1);
             changed_picker_.selected_index_changed.connect([this] { update_readout(); });
 
             // "TextColor=Blue".
@@ -119,10 +123,10 @@ namespace maui::samples
 
             // "Items markup" — the C# <Picker.Items> x:String children, recolored green/white.
             markup_label_.set_text("Items (markup) + BackgroundColor=Green");
+            markup_picker_.set_selected_index(0); // XAML attribute order: coerced to -1 (see above)
             markup_picker_.items().add("Item 1");
             markup_picker_.items().add("Item 2");
             markup_picker_.items().add("Item 3");
-            markup_picker_.set_selected_index(0);
             markup_picker_.set_text_color(maui::graphics::colors::white);
             markup_picker_.set_background_brush(
                 std::make_shared<maui::controls::solid_color_brush>(maui::graphics::colors::green));
