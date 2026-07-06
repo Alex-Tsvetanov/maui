@@ -157,16 +157,13 @@ Real MAUI's Mac Catalyst render itself is the mismatch here, not the shared twin
 verified by direct pixel inspection of the MAUI reference capture and, where noted, by reading the
 real C# source to confirm the port's behavior is byte-faithful.
 
-- **`button`** — the two `Button.ImageSource="settings.png"` rows: the port loads the image and
-  correctly grows the button to the image's full native size when given an unconstrained height
-  (`VerticalStackLayoutManager.Measure` passes `double.PositiveInfinity` for height to every stack
-  child in BOTH the real C# source and the port — verified line-for-line against
-  `src/Core/src/Layouts/VerticalStackLayoutManager.cs` and
-  `src/Controls/src/Core/Button/Button.iOS.cs`'s `ResizeImageIfNecessary`). Real MAUI's own capture
-  shows NO icon at all for these rows — a compact, normal-height, text-only bar — meaning the image
-  fails to load/apply on real MAUI's Mac Catalyst for this asset, so its `CrossPlatformMeasure` never
-  enters the image-sizing path at all. The port's image loading is arguably MORE correct (it succeeds),
-  not less; matching MAUI's failure would mean deliberately breaking working image loading.
+- ~~`button`~~ — **RETRACTED.** Originally logged here as a MAUI-side quirk (the `Button.ImageSource=
+  "settings.png"` rows appearing icon-less in a single MAUI capture). Re-investigated per the user's
+  "fix the sample instead of treating as a quirk" directive: 13 fresh background-launch captures all
+  show the icon rendering correctly. The original capture predates the CGWindowID/background-launch
+  pipeline rewrite and raced `Button.iOS.cs`'s async `SetImage` load (its own doc comment: "does not
+  immediately assign... until the button is rendered") — a one-off capture-pipeline timing artifact,
+  not a genuine MAUI rendering bug. No sample/source change needed; resolved in commit `ee01e7ab04`.
 - **`empty_view_view` / `empty_view_rtl` / `filter_collection`** — MAUI's Catalyst `EmptyView` renders
   as an always-visible overlay atop a *populated* `CollectionView`, contradicting the C# source
   (`ItemsViewController2.cs` gates visibility on `ItemsSource.ItemCount == 0`).
