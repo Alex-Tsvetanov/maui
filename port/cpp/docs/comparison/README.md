@@ -1,9 +1,9 @@
 # .NET MAUI C++ port — visual parity comparison
 
-Per-page MAUI-vs-C++ visual parity for the **194 gallery pages**, on **iOS**, **macOS** (Mac Catalyst + AppKit) and **Android**. Each section is collapsible and holds a discrepancy-count summary, then one subheader per page titled with a `{Sonnet}/{Gemini}` status-emoji combo (🟢 match / 🟡 minor / 🔴 major / ⬛ blank / ⏳ unreviewed). Under each page: the MAUI / C++ / C++&amp;XAML renders (light over dark; missing captures show a placeholder), then a subsubheader per review model (Sonnet, Gemini, Pixel-Perfect Score) titled with that model's own status emoji and holding its review prose. Generated from `comparison.json` by `tools/gen_readme.py` — do not edit by hand.
+Per-page MAUI-vs-C++ visual parity for the **195 gallery pages**, on **iOS**, **macOS** (Mac Catalyst + AppKit) and **Android**. Each section is collapsible and holds a discrepancy-count summary, then one subheader per page titled with a `{Sonnet}/{Gemini}` status-emoji combo (🟢 match / 🟡 minor / 🔴 major / ⬛ blank / ⏳ unreviewed). Under each page: the MAUI / C++ / C++&amp;XAML renders (light over dark; missing captures show a placeholder), then a subsubheader per review model (Sonnet, Gemini, Pixel-Perfect Score) titled with that model's own status emoji and holding its review prose. Generated from `comparison.json` by `tools/gen_readme.py` — do not edit by hand.
 
 <details>
-<summary><h2>iOS (194 examples) — click to expand</h2></summary>
+<summary><h2>iOS (195 examples) — click to expand</h2></summary>
 
 Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery, captured on the same iOS simulator in light and dark. MAUI is the content ground truth.
 
@@ -15,7 +15,7 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 | 🟡 Minor | 13 | 0 |
 | 🔴 Major | 16 | 0 |
 | ⬛ Blank | 1 | 0 |
-| ⏳ Unreviewed | 22 | 194 |
+| ⏳ Unreviewed | 23 | 195 |
 
 ### 1. Absolute Layout — 🟢/⏳
 <sub>absolute_layout</sub>
@@ -3378,7 +3378,24 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 180. Templated View — 🟢/⏳
+### 180. Table View — ⏳/⏳
+<sub>table_view</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+#### ⏳ Sonnet 5 Review
+
+_Not yet reviewed._
+
+#### ⏳ Gemini Review
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score
+
+_Not yet computed — no automated pixel-diff score is recorded for this page yet._
+
+### 181. Templated View — 🟢/⏳
 <sub>templated_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/templated_view_light.png" /></td><td><img width="300px" src="captures/ios/cpp/templated_view_light.png" /></td><td><img width="300px" src="captures/ios/xaml/templated_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/templated_view_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/templated_view_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/templated_view_dark.png" /></td></tr></table>
@@ -3397,7 +3414,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 181. Time Picker — 🟡/⏳
+### 182. Time Picker — 🟡/⏳
 <sub>time_picker</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/time_picker_light.png" /></td><td><img width="300px" src="captures/ios/cpp/time_picker_light.png" /></td><td><img width="300px" src="captures/ios/xaml/time_picker_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/time_picker_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/time_picker_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/time_picker_dark.png" /></td></tr></table>
@@ -3416,7 +3433,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 182. Title Bar — 🟢/⏳
+### 183. Title Bar — 🟢/⏳
 <sub>title_bar</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/title_bar_light.png" /></td><td><img width="300px" src="captures/ios/cpp/title_bar_light.png" /></td><td><img width="300px" src="captures/ios/xaml/title_bar_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/title_bar_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/title_bar_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/title_bar_dark.png" /></td></tr></table>
@@ -3435,7 +3452,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 183. Toolbar — 🟢/⏳
+### 184. Toolbar — 🟢/⏳
 <sub>toolbar</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/toolbar_light.png" /></td><td><img width="300px" src="captures/ios/cpp/toolbar_light.png" /></td><td><img width="300px" src="captures/ios/xaml/toolbar_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/toolbar_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/toolbar_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/toolbar_dark.png" /></td></tr></table>
@@ -3454,7 +3471,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 184. Transform Playground — 🟢/⏳
+### 185. Transform Playground — 🟢/⏳
 <sub>transform_playground</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/transform_playground_light.png" /></td><td><img width="300px" src="captures/ios/cpp/transform_playground_light.png" /></td><td><img width="300px" src="captures/ios/xaml/transform_playground_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/transform_playground_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/transform_playground_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/transform_playground_dark.png" /></td></tr></table>
@@ -3473,7 +3490,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 185. Transformations — 🟢/⏳
+### 186. Transformations — 🟢/⏳
 <sub>transformations</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/transformations_light.png" /></td><td><img width="300px" src="captures/ios/cpp/transformations_light.png" /></td><td><img width="300px" src="captures/ios/xaml/transformations_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/transformations_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/transformations_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/transformations_dark.png" /></td></tr></table>
@@ -3492,7 +3509,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 186. Triggers — 🟢/⏳
+### 187. Triggers — 🟢/⏳
 <sub>triggers</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/triggers_light.png" /></td><td><img width="300px" src="captures/ios/cpp/triggers_light.png" /></td><td><img width="300px" src="captures/ios/xaml/triggers_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/triggers_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/triggers_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/triggers_dark.png" /></td></tr></table>
@@ -3511,7 +3528,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 187. Update Path Data — 🟢/⏳
+### 188. Update Path Data — 🟢/⏳
 <sub>update_path_data</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/update_path_data_light.png" /></td><td><img width="300px" src="captures/ios/cpp/update_path_data_light.png" /></td><td><img width="300px" src="captures/ios/xaml/update_path_data_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/update_path_data_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/update_path_data_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/update_path_data_dark.png" /></td></tr></table>
@@ -3530,7 +3547,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 188. Value Controls — ⏳/⏳
+### 189. Value Controls — ⏳/⏳
 <sub>value_controls</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
@@ -3547,7 +3564,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 189. Varied Size Selector — 🟢/⏳
+### 190. Varied Size Selector — 🟢/⏳
 <sub>varied_size_selector</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/varied_size_selector_light.png" /></td><td><img width="300px" src="captures/ios/cpp/varied_size_selector_light.png" /></td><td><img width="300px" src="captures/ios/xaml/varied_size_selector_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/varied_size_selector_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/varied_size_selector_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/varied_size_selector_dark.png" /></td></tr></table>
@@ -3566,7 +3583,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 190. Vertical Stack — 🟢/⏳
+### 191. Vertical Stack — 🟢/⏳
 <sub>vertical_stack</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/vertical_stack_light.png" /></td><td><img width="300px" src="captures/ios/cpp/vertical_stack_light.png" /></td><td><img width="300px" src="captures/ios/xaml/vertical_stack_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/vertical_stack_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/vertical_stack_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/vertical_stack_dark.png" /></td></tr></table>
@@ -3585,7 +3602,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 191. Vertical Stack Layout — ⏳/⏳
+### 192. Vertical Stack Layout — ⏳/⏳
 <sub>vertical_stack_layout</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
@@ -3602,7 +3619,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 192. Visual States — 🟢/⏳
+### 193. Visual States — 🟢/⏳
 <sub>visual_states</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/visual_states_light.png" /></td><td><img width="300px" src="captures/ios/cpp/visual_states_light.png" /></td><td><img width="300px" src="captures/ios/xaml/visual_states_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/visual_states_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/visual_states_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/visual_states_dark.png" /></td></tr></table>
@@ -3621,7 +3638,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 193. Web View — 🟢/⏳
+### 194. Web View — 🟢/⏳
 <sub>web_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/web_view_light.png" /></td><td><img width="300px" src="captures/ios/cpp/web_view_light.png" /></td><td><img width="300px" src="captures/ios/xaml/web_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/web_view_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/web_view_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/web_view_dark.png" /></td></tr></table>
@@ -3640,7 +3657,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 194. Z Index — 🟢/⏳
+### 195. Z Index — 🟢/⏳
 <sub>z_index</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/z_index_light.png" /></td><td><img width="300px" src="captures/ios/cpp/z_index_light.png" /></td><td><img width="300px" src="captures/ios/xaml/z_index_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/z_index_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/z_index_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/z_index_dark.png" /></td></tr></table>
@@ -3662,7 +3679,7 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 </details>
 
 <details>
-<summary><h2>macOS (194 examples) — click to expand</h2></summary>
+<summary><h2>macOS (195 examples) — click to expand</h2></summary>
 
 .NET MAUI on macOS **is** Mac Catalyst (UIKit) — the MAUI / C++ / C++&amp;XAML columns are the strict parity board. The **AppKit** columns are the native-NSView backend (no MAUI reference; they track completeness, C++ == C++&amp;XAML).
 
@@ -3674,7 +3691,7 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 | 🟡 Minor | 58 | 0 |
 | 🔴 Major | 17 | 0 |
 | ⬛ Blank | 6 | 0 |
-| ⏳ Unreviewed | 13 | 194 |
+| ⏳ Unreviewed | 14 | 195 |
 
 ### 1. Absolute Layout — 🟡/⏳
 <sub>absolute_layout</sub>
@@ -5133,7 +5150,7 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 ### 79. Gap Swipe View Items — ⏳/⏳
 <sub>gap_swipe_view_items</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/gap_swipe_view_items_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/gap_swipe_view_items_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/gap_swipe_view_items_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/gap_swipe_view_items_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/gap_swipe_view_items_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/gap_swipe_view_items_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
 #### ⏳ Sonnet 5 Review
 
@@ -7037,7 +7054,24 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 180. Templated View — 🟢/⏳
+### 180. Table View — ⏳/⏳
+<sub>table_view</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/table_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/table_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/table_view_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/table_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/table_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/table_view_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+#### ⏳ Sonnet 5 Review
+
+_Not yet reviewed._
+
+#### ⏳ Gemini Review
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score
+
+_Not yet computed — no automated pixel-diff score is recorded for this page yet._
+
+### 181. Templated View — 🟢/⏳
 <sub>templated_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/templated_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/templated_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/templated_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/templated_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/templated_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/templated_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/templated_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/templated_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/templated_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/templated_view_dark.png" /></td></tr></table>
@@ -7056,7 +7090,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 181. Time Picker — 🟢/⏳
+### 182. Time Picker — 🟢/⏳
 <sub>time_picker</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/time_picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/time_picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/time_picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/time_picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/time_picker_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/time_picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/time_picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/time_picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/time_picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/time_picker_dark.png" /></td></tr></table>
@@ -7075,7 +7109,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 182. Title Bar — 🟡/⏳
+### 183. Title Bar — 🟡/⏳
 <sub>title_bar</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/title_bar_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/title_bar_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/title_bar_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/title_bar_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/title_bar_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/title_bar_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/title_bar_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/title_bar_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/title_bar_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/title_bar_dark.png" /></td></tr></table>
@@ -7094,7 +7128,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 183. Toolbar — 🟢/⏳
+### 184. Toolbar — 🟢/⏳
 <sub>toolbar</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/toolbar_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/toolbar_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/toolbar_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/toolbar_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/toolbar_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/toolbar_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/toolbar_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/toolbar_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/toolbar_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/toolbar_dark.png" /></td></tr></table>
@@ -7113,7 +7147,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 184. Transform Playground — 🟢/⏳
+### 185. Transform Playground — 🟢/⏳
 <sub>transform_playground</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/transform_playground_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/transform_playground_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/transform_playground_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/transform_playground_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/transform_playground_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/transform_playground_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/transform_playground_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/transform_playground_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/transform_playground_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/transform_playground_dark.png" /></td></tr></table>
@@ -7132,7 +7166,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 185. Transformations — 🟢/⏳
+### 186. Transformations — 🟢/⏳
 <sub>transformations</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/transformations_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/transformations_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/transformations_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/transformations_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/transformations_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/transformations_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/transformations_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/transformations_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/transformations_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/transformations_dark.png" /></td></tr></table>
@@ -7151,7 +7185,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 186. Triggers — 🟢/⏳
+### 187. Triggers — 🟢/⏳
 <sub>triggers</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/triggers_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/triggers_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/triggers_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/triggers_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/triggers_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/triggers_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/triggers_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/triggers_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/triggers_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/triggers_dark.png" /></td></tr></table>
@@ -7170,7 +7204,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 187. Update Path Data — 🟢/⏳
+### 188. Update Path Data — 🟢/⏳
 <sub>update_path_data</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/update_path_data_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/update_path_data_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/update_path_data_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/update_path_data_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/update_path_data_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/update_path_data_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/update_path_data_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/update_path_data_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/update_path_data_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/update_path_data_dark.png" /></td></tr></table>
@@ -7189,7 +7223,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 188. Value Controls — 🟢/⏳
+### 189. Value Controls — 🟢/⏳
 <sub>value_controls</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/value_controls_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/value_controls_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/value_controls_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/value_controls_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/value_controls_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/value_controls_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/value_controls_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/value_controls_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/value_controls_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/value_controls_dark.png" /></td></tr></table>
@@ -7206,7 +7240,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 189. Varied Size Selector — 🟢/⏳
+### 190. Varied Size Selector — 🟢/⏳
 <sub>varied_size_selector</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/varied_size_selector_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/varied_size_selector_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/varied_size_selector_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/varied_size_selector_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/varied_size_selector_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/varied_size_selector_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/varied_size_selector_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/varied_size_selector_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/varied_size_selector_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/varied_size_selector_dark.png" /></td></tr></table>
@@ -7225,7 +7259,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 190. Vertical Stack — 🟡/⏳
+### 191. Vertical Stack — 🟡/⏳
 <sub>vertical_stack</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/vertical_stack_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/vertical_stack_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/vertical_stack_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/vertical_stack_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/vertical_stack_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/vertical_stack_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/vertical_stack_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/vertical_stack_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/vertical_stack_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/vertical_stack_dark.png" /></td></tr></table>
@@ -7244,7 +7278,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 191. Vertical Stack Layout — ⬛/⏳
+### 192. Vertical Stack Layout — ⬛/⏳
 <sub>vertical_stack_layout</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/vertical_stack_layout_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/vertical_stack_layout_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/vertical_stack_layout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/vertical_stack_layout_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/vertical_stack_layout_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/vertical_stack_layout_dark.png" /></td></tr></table>
@@ -7261,7 +7295,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 192. Visual States — 🟢/⏳
+### 193. Visual States — 🟢/⏳
 <sub>visual_states</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/visual_states_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/visual_states_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/visual_states_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/visual_states_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/visual_states_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/visual_states_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/visual_states_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/visual_states_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/visual_states_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/visual_states_dark.png" /></td></tr></table>
@@ -7280,7 +7314,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 193. Web View — 🟡/⏳
+### 194. Web View — 🟡/⏳
 <sub>web_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/web_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/web_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/web_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/web_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/web_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/web_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/web_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/web_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/web_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/web_view_dark.png" /></td></tr></table>
@@ -7299,7 +7333,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 194. Z Index — 🟢/⏳
+### 195. Z Index — 🟢/⏳
 <sub>z_index</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/z_index_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/z_index_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/z_index_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/z_index_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/z_index_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/z_index_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/z_index_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/z_index_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/z_index_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/z_index_dark.png" /></td></tr></table>
@@ -7321,7 +7355,7 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 </details>
 
 <details>
-<summary><h2>Android (194 examples) — click to expand</h2></summary>
+<summary><h2>Android (195 examples) — click to expand</h2></summary>
 
 Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the same Android emulator. Android is captured single-theme, so the Dark row is a placeholder.
 
@@ -7333,7 +7367,7 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 | 🟡 Minor | 15 | 0 |
 | 🔴 Major | 12 | 0 |
 | ⬛ Blank | 0 | 0 |
-| ⏳ Unreviewed | 22 | 194 |
+| ⏳ Unreviewed | 23 | 195 |
 
 ### 1. Absolute Layout — 🟢/⏳
 <sub>absolute_layout</sub>
@@ -10696,7 +10730,24 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 180. Templated View — 🟢/⏳
+### 180. Table View — ⏳/⏳
+<sub>table_view</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+#### ⏳ Sonnet 5 Review
+
+_Not yet reviewed._
+
+#### ⏳ Gemini Review
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score
+
+_Not yet computed — no automated pixel-diff score is recorded for this page yet._
+
+### 181. Templated View — 🟢/⏳
 <sub>templated_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/templated_view_light.png" /></td><td><img width="300px" src="captures/android/cpp/templated_view_light.png" /></td><td><img width="300px" src="captures/android/xaml/templated_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
@@ -10715,7 +10766,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 181. Time Picker — 🔴/⏳
+### 182. Time Picker — 🔴/⏳
 <sub>time_picker</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/time_picker_light.png" /></td><td><img width="300px" src="captures/android/cpp/time_picker_light.png" /></td><td><img width="300px" src="captures/android/xaml/time_picker_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
@@ -10734,7 +10785,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 182. Title Bar — 🟢/⏳
+### 183. Title Bar — 🟢/⏳
 <sub>title_bar</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/title_bar_light.png" /></td><td><img width="300px" src="captures/android/cpp/title_bar_light.png" /></td><td><img width="300px" src="captures/android/xaml/title_bar_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
@@ -10753,7 +10804,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 183. Toolbar — 🟢/⏳
+### 184. Toolbar — 🟢/⏳
 <sub>toolbar</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/toolbar_light.png" /></td><td><img width="300px" src="captures/android/cpp/toolbar_light.png" /></td><td><img width="300px" src="captures/android/xaml/toolbar_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
@@ -10772,7 +10823,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 184. Transform Playground — 🟢/⏳
+### 185. Transform Playground — 🟢/⏳
 <sub>transform_playground</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/transform_playground_light.png" /></td><td><img width="300px" src="captures/android/cpp/transform_playground_light.png" /></td><td><img width="300px" src="captures/android/xaml/transform_playground_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
@@ -10791,7 +10842,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 185. Transformations — 🟢/⏳
+### 186. Transformations — 🟢/⏳
 <sub>transformations</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/transformations_light.png" /></td><td><img width="300px" src="captures/android/cpp/transformations_light.png" /></td><td><img width="300px" src="captures/android/xaml/transformations_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
@@ -10810,7 +10861,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 186. Triggers — 🟢/⏳
+### 187. Triggers — 🟢/⏳
 <sub>triggers</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/triggers_light.png" /></td><td><img width="300px" src="captures/android/cpp/triggers_light.png" /></td><td><img width="300px" src="captures/android/xaml/triggers_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
@@ -10829,7 +10880,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 187. Update Path Data — 🟢/⏳
+### 188. Update Path Data — 🟢/⏳
 <sub>update_path_data</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/update_path_data_light.png" /></td><td><img width="300px" src="captures/android/cpp/update_path_data_light.png" /></td><td><img width="300px" src="captures/android/xaml/update_path_data_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
@@ -10848,7 +10899,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 188. Value Controls — ⏳/⏳
+### 189. Value Controls — ⏳/⏳
 <sub>value_controls</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/android/xaml/value_controls_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
@@ -10865,7 +10916,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 189. Varied Size Selector — 🟢/⏳
+### 190. Varied Size Selector — 🟢/⏳
 <sub>varied_size_selector</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/varied_size_selector_light.png" /></td><td><img width="300px" src="captures/android/cpp/varied_size_selector_light.png" /></td><td><img width="300px" src="captures/android/xaml/varied_size_selector_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
@@ -10884,7 +10935,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 190. Vertical Stack — 🟢/⏳
+### 191. Vertical Stack — 🟢/⏳
 <sub>vertical_stack</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/vertical_stack_light.png" /></td><td><img width="300px" src="captures/android/cpp/vertical_stack_light.png" /></td><td><img width="300px" src="captures/android/xaml/vertical_stack_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
@@ -10903,7 +10954,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 191. Vertical Stack Layout — ⏳/⏳
+### 192. Vertical Stack Layout — ⏳/⏳
 <sub>vertical_stack_layout</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/android/xaml/vertical_stack_layout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
@@ -10920,7 +10971,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 192. Visual States — 🟢/⏳
+### 193. Visual States — 🟢/⏳
 <sub>visual_states</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/visual_states_light.png" /></td><td><img width="300px" src="captures/android/cpp/visual_states_light.png" /></td><td><img width="300px" src="captures/android/xaml/visual_states_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
@@ -10939,7 +10990,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 193. Web View — 🟡/⏳
+### 194. Web View — 🟡/⏳
 <sub>web_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/web_view_light.png" /></td><td><img width="300px" src="captures/android/cpp/web_view_light.png" /></td><td><img width="300px" src="captures/android/xaml/web_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
@@ -10958,7 +11009,7 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 194. Z Index — 🟢/⏳
+### 195. Z Index — 🟢/⏳
 <sub>z_index</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/z_index_light.png" /></td><td><img width="300px" src="captures/android/cpp/z_index_light.png" /></td><td><img width="300px" src="captures/android/xaml/z_index_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
