@@ -79,13 +79,35 @@ E.g. `check_box.xaml` `Padding="16"` vs builder padding 0; `transform_playground
 12, xaml 0); `vertical_stack`/`horizontal_stack` xaml `Spacing="6"` vs builder 0. Alignment
 direction: page-by-page — whichever side matches the MAUI reference capture wins.
 
-`behaviors, border_layout, border_playground, border_resize_content, border_stroke, check_box,
-focus, gestures, horizontal_stack, input_controls,
-invalidate_brush, radio_button_border, radio_button_group_gallery, radio_template_from_style,
-scattered_radio_button, search_bar, selection_command_param, switch_grouping, transform_playground,
+`behaviors, border_resize_content, border_stroke, check_box,
+gestures, horizontal_stack, input_controls,
+invalidate_brush, radio_button_border,
+scattered_radio_button, selection_command_param, switch_grouping, transform_playground,
 vertical_stack`
 
-(`data_template_selector` closed 2026-07-06 — see the note above.)
+(`data_template_selector` closed 2026-07-06 — see the note above. `focus`/`search_bar` closed
+2026-07-06 — the consistency cross-check flagged both as cpp/xaml green/green contradictions; the
+builders were missing `set_padding` on the root `vertical_stack_layout` entirely (12pt/16pt in the
+shared XAML vs 0 in the builder), not just a differing value. Fixed in `focus_page.hpp` /
+`search_bar_page.hpp`.)
+
+> 2026-07-06 — **`border_layout`, `border_playground`, `radio_button_group_gallery`,
+> `radio_template_from_style` CLOSED** (the `e2e.py consistency` cpp/xaml-both-green contradiction
+> sweep, maccatalyst): all four were the same root-padding-missing-on-the-builder shape as
+> `focus`/`search_bar` above — the shared XAML's root layout carries an explicit `Padding`
+> (`border_layout` VerticalStackLayout `Padding="16"`, `radio_button_group_gallery`
+> VerticalStackLayout `Padding="16"`, `radio_template_from_style` StackLayout `Padding="16"`) that the
+> builder page never set (`padding="0,0,0,0"`), which the MAUI reference capture confirms as the
+> correct (16pt-inset) rendering — fixed by adding the matching `set_padding` call to each builder
+> (`border_layout_page.hpp`, `radio_button_group_gallery_page.hpp`,
+> `radio_template_from_style_page.hpp`). `border_playground` additionally had TWO divergences: (1)
+> the root `Grid` twin declares `Padding="16"` the builder never set (`border_playground_page.hpp`'s
+> `grid_`), and (2) the "Show Content Background" row was built as a `horizontal_stack_layout`
+> where the twin (matching the original C# `BorderPlayground.xaml`) uses a generic
+> `StackLayout Orientation="Horizontal"` — changed the builder's `content_bg_row_` member from
+> `horizontal_stack_layout` to `stack_layout` with `set_orientation(stack_orientation::horizontal)`.
+> All four verified via `gallery_structure_equivalence_tests.cpp` (now equal, de-listed here) and
+> fresh maccatalyst MAUI/cpp/xaml captures.
 
 ## Cluster C — builder computes runtime state vs the twin's static snapshot (6 keys)
 

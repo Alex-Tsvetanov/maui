@@ -41,6 +41,7 @@
 #include "maui/controls/scroll_view.hpp"
 #include "maui/controls/stack_layout.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/thickness.hpp"
 
 namespace maui::samples
 {
@@ -51,6 +52,7 @@ namespace maui::samples
         {
             page_.set_title("RadioButton Group Gallery");
             root_.set_spacing(10);
+            root_.set_padding(maui::core::thickness(16)); // twin: <VerticalStackLayout Spacing="10" Padding="16">
 
             // ---- Section 1: Parent level (no group name — auto-group by container) ----
             parent_header_.set_text(

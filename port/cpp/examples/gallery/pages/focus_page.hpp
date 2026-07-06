@@ -28,6 +28,7 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/scroll_view.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/thickness.hpp"
 
 namespace maui::samples
 {
@@ -38,6 +39,10 @@ namespace maui::samples
         {
             page_.set_title("Focus");
             stack_.set_spacing(10);
+            // XAML: <VerticalStackLayout Spacing="10" Padding="12"> — the builder previously left the
+            // root Padding unset (default 0), so the whole page rendered flush against the top-left
+            // edge, offset ~12pt/18px from the XAML twin (a Cluster-B-style root-layout divergence).
+            stack_.set_padding(maui::core::thickness(12));
 
             // ---- the focus target: an entry whose focus events append to the info log ----
             focus_entry_.set_placeholder("Focus target");

@@ -148,6 +148,7 @@ namespace maui::samples
         {
             page_.set_title("RadioButton Template from Style");
             stack_.set_spacing(8);
+            stack_.set_padding(maui::core::thickness(16)); // twin: <StackLayout Padding="16" Spacing="8">
 
             // The three calendar tiles (the XAML's three GroupName="A" RadioButtons, Content A/B/C). Each
             // shares the CalendarRadioTemplate via the implicit Style — reproduced by minting one

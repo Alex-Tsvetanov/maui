@@ -30,6 +30,7 @@
 #include "maui/core/font.hpp"
 #include "maui/core/keyboard.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 
 namespace maui::samples
@@ -41,6 +42,11 @@ namespace maui::samples
         {
             page_.set_title("SearchBar");
             stack_.set_spacing(12);
+            // XAML: <VerticalStackLayout Spacing="12" Padding="16"> — the builder previously left the
+            // root Padding unset (default 0), so every row rendered flush against the edges, offset from
+            // the XAML twin by the padding amount (a Cluster-B-style root-layout divergence, same class
+            // as the already-documented search_bar finding in EQUIVALENCE_FINDINGS.md).
+            stack_.set_padding(maui::core::thickness(16));
 
             readout_.set_text("LENGTH: 0  SEARCHES: 0");
 

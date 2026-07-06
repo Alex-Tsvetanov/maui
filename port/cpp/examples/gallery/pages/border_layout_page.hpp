@@ -58,6 +58,7 @@ namespace maui::samples
         {
             page_.set_title("Border using Layouts");
             stack_.set_spacing(12);
+            stack_.set_padding(maui::core::thickness(16)); // twin: <VerticalStackLayout Spacing="12" Padding="16">
 
             // Slider (Minimum=0, Maximum=40) — the StrokeThickness driver. OnAppearing seeds Value=5.
             slider_.set_minimum(0);
