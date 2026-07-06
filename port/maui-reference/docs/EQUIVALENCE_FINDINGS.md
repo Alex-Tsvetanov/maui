@@ -174,6 +174,15 @@ real C# source to confirm the port's behavior is byte-faithful.
   collections can't be expressed in the loader's static `x:Array` XAML (no `IsGrouped`/
   `GroupDisplayBinding`-carrying source), so MAUI's blank render may be a twin-authoring ceiling rather
   than a genuine MAUI bug — not yet distinguished.
-- **`carousel_page`** — MAUI's reference capture is genuinely blank (post the 2026-07-06 tint-fix
-  recapture, not a stale/inactive-window artifact) — a likely real `CarouselView`-hosting failure in
-  `MauiReference`/`PageDispatch`, not yet root-caused.
+- ~~`carousel_page`~~ — **RETRACTED.** Not a `MauiReference`/`PageDispatch` hosting failure — the shared
+  twin (`pages/carousel_page.xaml`, authored as a copy of `carousel_view.xaml`, see `git log --follow`)
+  simply never set a `CarouselView.ItemsSource`. A templated items view with a cell template but zero
+  items has nothing to realize, so real MAUI correctly renders it as an empty page; the "blank render"
+  was a genuine sample-authoring bug, not a MAUI defect. Fixed per the user's "fix the sample instead of
+  treating as a quirk" directive: added an inline `x:Array` of three strings as `ItemsSource` (the
+  established twin convention already used by `collectionview.xaml` et al.), giving the purple-bordered
+  "Card" `ItemTemplate` something to lay out and paint. Re-verified: `gallery_structure_equivalence` /
+  `gallery_twin` / `gallery_twin_render` all green; fresh maccatalyst MAUI + C++&XAML captures (light and
+  dark) now show the centered purple-bordered "Card" cell instead of a blank window. No port/loader
+  change needed — `CarouselView.ItemsSource` via `x:Array` already worked; `gallery_xaml` just needed a
+  rebuild to pick up the corrected shared markup.
