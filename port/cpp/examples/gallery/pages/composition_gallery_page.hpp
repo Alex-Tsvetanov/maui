@@ -5,11 +5,12 @@
 // Pages/Controls/ShapesGalleries/CompositionGallery.xaml: a StackLayout holding two Beige 250x250 Grids
 // (Margin 12) that compose multiple overlapping shapes in the same cell to show layering / blending.
 //
-//   Grid 1 — four half-transparent (Opacity 0.5) shapes stacked in one cell:
+//   Grid 1 — four half-transparent (Opacity 0.5) shapes stacked in one cell (MAUI's actual paint
+//   order, see PORT NOTES for why this differs from the naive C#-declaration order):
 //     - Path "M100 100 200 200": a blue diagonal stroke (thickness 5);
 //     - Line (100,100)->(200,200): a thick red diagonal (thickness 20) over the same diagonal;
-//     - Polygon (100,100 200,100 100,200): a green filled right-triangle;
-//     - Path with an EllipseGeometry (center 150,150, r 50): a yellow filled circle on top.
+//     - a plain 100x100 yellow filled circle, Grid-centered (125,125, r 50);
+//     - Polygon (100,100 200,100 100,200): a green filled right-triangle, painted OVER the circle.
 //     With 0.5 opacity each, the overlaps blend (the composition demo's point).
 //
 //   Grid 2 — three default-stroked Lines meeting at (100,100):
@@ -31,8 +32,18 @@
 //         the two beige cards (and their inset from the left). BackgroundColor="Beige" → set_background.
 //   note: the first Path's Data "M100 100 200 200" is a move-to (100,100) + implicit line-to (200,200)
 //         per the WPF abbreviated-geometry grammar — parsed via parse_path_figure_collection.
-//   note: the ellipse Path uses an EllipseGeometry (center 150,150, radii 50) directly as the Path.Data
-//         — the C# <Path.Data><EllipseGeometry/></Path.Data> composition, no markup parsing needed.
+//   note: the C# yellow Path uses an EllipseGeometry (center 150,150, radii 50) directly as Path.Data.
+//         BUT the actual .NET MAUI Mac Catalyst render of this page (verified against
+//         port/maui-reference/captures/maccatalyst/composition_gallery_*) does NOT position the circle
+//         at (150,150) painted on top — it shows the circle CENTERED in the 250x250 cell (125,125,
+//         radius 50 — i.e. Grid's default Center alignment for an unpositioned 100x100 view, matching
+//         the shared XAML twin's plain `<Ellipse WidthRequest="100" HeightRequest="100"/>` with no
+//         explicit Center), and painted UNDERNEATH (before) the green triangle in z-order — a MAUI-side
+//         rendering-order quirk for this Path/Grid composition (the same class of quirk as
+//         update_path_data / path_aspect_gallery / path_gallery). Per port/CLAUDE.md parity ruling 1,
+//         MAUI's actual render is ground truth, so the port uses a plain 100x100 controls::shapes::ellipse
+//         with NO explicit center offset (Grid-centers itself, matching the twin) and adds it to the
+//         Grid BEFORE the triangle (so the triangle paints on top, matching the observed z-order).
 //   note: named brushes Blue/Red/Green/Yellow → solid_paint over colors:: (the brush → paint bridge);
 //         C# "green" (lower-case, Grid 2) resolves to the same Green named color.
 //   note: Grid 2's three Lines keep the base Aspect/StrokeThickness defaults (the C# elements set only
@@ -43,7 +54,7 @@
 
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/grid.hpp"
-#include "maui/controls/shapes/ellipse_geometry.hpp"
+#include "maui/controls/shapes/ellipse.hpp"
 #include "maui/controls/shapes/line.hpp"
 #include "maui/controls/shapes/path.hpp"
 #include "maui/controls/shapes/path_geometry.hpp"
@@ -92,18 +103,20 @@ namespace maui::samples
             thick_line_.set_opacity(0.5);
             grid_one_.add(thick_line_);
 
-            // Polygon (100,100 200,100 100,200) — green fill, opacity .5.
+            // The yellow circle: a plain 100x100 ellipse, no explicit position (Grid-centers itself,
+            // landing at 125,125 radius 50 — see header note on MAUI's actual render), yellow fill,
+            // opacity .5. Added BEFORE the triangle so the triangle paints on top, matching MAUI.
+            circle_.set_width_request(100);
+            circle_.set_height_request(100);
+            circle_.set_fill(solid(maui::graphics::colors::yellow));
+            circle_.set_opacity(0.5);
+            grid_one_.add(circle_);
+
+            // Polygon (100,100 200,100 100,200) — green fill, opacity .5, painted OVER the circle.
             triangle_.set_points({{100, 100}, {200, 100}, {100, 200}});
             triangle_.set_fill(solid(maui::graphics::colors::green));
             triangle_.set_opacity(0.5);
             grid_one_.add(triangle_);
-
-            // Path with EllipseGeometry (center 150,150, r 50) — yellow fill, opacity .5.
-            circle_.set_data(std::make_shared<maui::controls::shapes::ellipse_geometry>(maui::graphics::point{150, 150},
-                                                                                        50.0, 50.0));
-            circle_.set_fill(solid(maui::graphics::colors::yellow));
-            circle_.set_opacity(0.5);
-            grid_one_.add(circle_);
 
             stack_.add(grid_one_);
 
@@ -159,7 +172,7 @@ namespace maui::samples
         {
             return grid_two_;
         }
-        [[nodiscard]] maui::controls::shapes::path& circle()
+        [[nodiscard]] maui::controls::shapes::ellipse& circle()
         {
             return circle_;
         }
@@ -181,8 +194,8 @@ namespace maui::samples
         maui::controls::grid grid_one_;
         maui::controls::shapes::path diagonal_path_;
         maui::controls::shapes::line thick_line_;
+        maui::controls::shapes::ellipse circle_;
         maui::controls::shapes::polygon triangle_;
-        maui::controls::shapes::path circle_;
         // Grid 2 — three default lines.
         maui::controls::grid grid_two_;
         maui::controls::shapes::line red_line_;
