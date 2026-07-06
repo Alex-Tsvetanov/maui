@@ -3449,8 +3449,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 103 | 0 |
-| 🟡 Minor | 55 | 0 |
+| 🟢 Match | 102 | 0 |
+| 🟡 Minor | 56 | 0 |
 | 🔴 Major | 17 | 0 |
 | ⬛ Blank | 6 | 0 |
 | ⏳ Unreviewed | 0 | 181 |
@@ -3757,16 +3757,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 17. Border Playground — 🟢/⏳
+### 17. Border Playground — 🟡/⏳
 <sub>border_playground</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/border_playground_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/border_playground_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/border_playground_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/border_playground_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/border_playground_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/border_playground_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/border_playground_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/border_playground_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/border_playground_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/border_playground_dark.png" /></td></tr></table>
 
 ports BorderPlayground.xaml (+ BorderPlayground.xaml.cs) A self-contained, code-first interactive Border playground
 
-#### 🟢 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-Light and dark: border gradient, dashed yellow border, corner radius, label text, and all control values (colors, sliders, radio) match MAUI exactly.
+Top border/gradient/label block matches MAUI. Below it, the ScrollView's rows are measurably taller in the port than in MAUI's native render (accumulating drift down the page — by the bottom, rows are offset by 100+ px), most likely a font-metrics/row-height fidelity gap rather than a structural bug. The Padding/StackLayout-type divergence between cpp and xaml that originally caused a cpp/xaml self-contradiction is fixed (2026-07-06): cpp and xaml now render pixel-identical to each other (0.79% diff). Flagging the residual MAUI-vs-port row-height gap as a separate follow-up, out of scope for the padding fix.
 
 #### ⏳ Gemini Review
 
@@ -5692,7 +5692,7 @@ ports PathGallery.xaml A code-first port of the MAUI Shapes sub-gallery Pages/Co
 
 #### 🟢 Sonnet 5 Review
 
-Light and dark: all path/geometry shapes (bezier triangle, composite zigzag, overlapping rect/ellipse/circle, multi-segment star) match MAUI in shape and color. MAUI capture is scrolled slightly differently (missing top header row visible) — a capture-crop artifact, exempt per ruling 2, not a content difference.
+Light and dark: all path/geometry shapes (bezier zig-zag, composite circle, overlapping rect, EllipseGeometry circle, unfilled star outline, complex-path placeholders) match MAUI in shape and color. CORRECTION (2026-07): the previously-recorded "capture-crop artifact" explanation for the missing top label was wrong — both captures are the same viewport size with no crop difference. This is a genuine, narrow MAUI Mac Catalyst rendering quirk: the first Label ("Create a LineSegment in a PathGeometry"), whose next sibling is a Line shape with no explicit WidthRequest/HeightRequest, does not render at all in MAUI's real capture — the Line renders directly at the top of the page instead. Other galleries whose Line shapes DO set WidthRequest/HeightRequest (e.g. line_gallery) render their preceding label normally, so this appears specific to an unconstrained-size Line measurement interaction in MAUI itself, not a port/twin bug (the port's Line here has no size request either, exactly matching the real C# PathGallery.xaml source). Flagged as a new MAUI-side quirk per port/CLAUDE.md ruling 3 (needs a user ruling) rather than silently fixed — see port/maui-reference/docs/EQUIVALENCE_FINDINGS.md.
 
 #### ⏳ Gemini Review
 
