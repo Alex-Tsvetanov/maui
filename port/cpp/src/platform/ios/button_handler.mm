@@ -28,6 +28,7 @@
 #include "ios_conversions.hpp"
 #include "ios_text_ops.hpp"
 #include "ios_visual_ops.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/button_handler.hpp"
 #include "maui/core/i_button.hpp"
 #include "maui/core/i_image_source.hpp"
@@ -399,12 +400,14 @@ namespace maui::core
         UIButton* const button = as_button(platform->native);
         // ButtonExtensions.UpdateTextColor. Non-null branch: seed the three states + TintColor with the
         // explicit color. Null branch (MAUI default): clear the per-state overrides and adopt the window's
-        // tint (the system accent, which adapts to light/dark) — the port treats the default-constructed
-        // (unset) color as that null, so an unstyled button shows the iOS tint, not black-on-black in dark.
-        const maui::graphics::color text_color = view.text_color();
-        if (text_color != maui::graphics::color{})
+        // tint (the system accent, which adapts to light/dark). A value compare against the
+        // default-constructed color can't tell an explicit TextColor=Black from "never set" (see
+        // label_handler.mm map_text_color), so key off BindableObject.IsSet instead.
+        const auto* const bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+        const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
+        if (color_is_set)
         {
-            UIColor* const color = to_ui_color(text_color);
+            UIColor* const color = to_ui_color(view.text_color());
             [button setTitleColor:color forState:UIControlStateNormal];
             [button setTitleColor:color forState:UIControlStateHighlighted];
             [button setTitleColor:color forState:UIControlStateDisabled];

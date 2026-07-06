@@ -21,6 +21,7 @@
 #include "apple_text_ops.hpp"
 #include "apple_view_ops.hpp"
 #include "apple_visual_ops.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/button_handler.hpp"
 #include "maui/core/i_button.hpp"
 #include "maui/core/i_image_source.hpp"
@@ -212,7 +213,11 @@ namespace maui::core
                 [button setAttributedTitle:[[NSAttributedString alloc] initWithString:button.title]];
                 return;
             }
-            NSColor* const foreground = to_ns_color(view.text_color());
+            // Same unset-color discrimination as map_text_color: an explicit TextColor wins, otherwise
+            // fall back to the system default title color instead of the black default-constructed sentinel.
+            const auto* const bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+            const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
+            NSColor* const foreground = color_is_set ? to_ns_color(view.text_color()) : NSColor.controlTextColor;
             NSAttributedString* const attributed =
                 maui::platform::apple::kern_attributed(button.title, spacing, foreground);
             [button setAttributedTitle:attributed != nil ? attributed
@@ -242,7 +247,15 @@ namespace maui::core
         if (platform != nullptr)
         {
             NSButton* const button = as_button(platform->native);
-            button.contentTintColor = to_ns_color(view.text_color());
+            // TextColor defaults to null in C# (left at the native control tint); the port's
+            // default-constructed color{} is opaque BLACK, not a "leave it alone" sentinel, so this must
+            // discriminate on whether the property was explicitly SET (BindableObject.IsSet) rather than
+            // trust the getter — the same unset-color fix already applied elsewhere (see "Unset-color
+            // sentinel collision" in the port's fix history). Unset: leave contentTintColor at its NSButton
+            // system default instead of stomping it to black.
+            const auto* const bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+            const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
+            button.contentTintColor = color_is_set ? to_ns_color(view.text_color()) : nil;
             // A kerned (attributed) title carries its own color, so re-apply it (C# MapTextColor's
             // UpdateTextColor sets the plain title color; the attributed title is rebuilt to match).
             refresh_button_title_formatting(button, view);
