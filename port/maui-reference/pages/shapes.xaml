@@ -10,20 +10,20 @@
         <VerticalStackLayout Spacing="16" Padding="16">
             <Label Text="Ellipse" FontAttributes="Bold" />
             <Ellipse Fill="Red" Stroke="DarkBlue" StrokeThickness="4"
-                     WidthRequest="150" HeightRequest="60" />
+                     WidthRequest="150" HeightRequest="60" HorizontalOptions="Start" />
 
             <Label Text="RoundRectangle" FontAttributes="Bold" />
             <Rectangle Fill="DarkBlue" RadiusX="12" RadiusY="24"
-                       WidthRequest="150" HeightRequest="60" />
+                       WidthRequest="150" HeightRequest="60" HorizontalOptions="Start" />
 
             <Label Text="EvenOdd Polygon (pentagram)" FontAttributes="Bold" />
             <Polygon Points="10,100 50,0 90,100 0,35 100,35"
                      Fill="Blue" Stroke="Red" StrokeThickness="2" FillRule="EvenOdd"
-                     WidthRequest="100" HeightRequest="100" />
+                     WidthRequest="100" HeightRequest="100" HorizontalOptions="Start" />
 
             <Label Text="Line" FontAttributes="Bold" />
             <Line X1="40" Y1="0" X2="0" Y2="80" Stroke="Purple" StrokeThickness="2"
-                  WidthRequest="120" HeightRequest="80" />
+                  WidthRequest="120" HeightRequest="80" HorizontalOptions="Start" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

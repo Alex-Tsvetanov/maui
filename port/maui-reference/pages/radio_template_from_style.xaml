@@ -4,25 +4,27 @@
     <!-- W16: the page's subject is a ControlTemplate applied to a templated control. The port's
          RadioButton.ControlTemplate is deferred at the control level, so — as the builder does — the
          template is hosted on a ContentView (the templated_view sibling). Each tile is a ContentView whose
-         <ControlTemplate> draws the calendar tile (#F3F2F1 100x100 Border → Grid → a ContentPresenter that
-         packs the developer Content letter top-left + a centered blue radio ring+dot). The checked-state
-         VSM is deferred (builder too), so all three show the same static indicator. -->
+         <ControlTemplate> draws the calendar tile, faithfully matching the original
+         RadioButtonGalleries/TemplateFromStyle.xaml's CalendarRadioTemplate: a #F3F2F1 100x100 Border
+         (Start/Start) around a Grid whose 18x18 indicator sub-grid (End/Start — TOP-RIGHT corner) holds a
+         16x16 blue-stroke/white-fill ring Ellipse plus an 8x8 blue-fill "Check" Ellipse, and a bare
+         ContentPresenter for the developer content. The checked-state VSM is deferred (builder too), so
+         every tile shows the static UNCHECKED indicator: Check Opacity="0" (hidden), matching the
+         original's `<VisualState x:Name="Unchecked">` setter — the ring renders, the dot does not. -->
     <StackLayout Padding="16" Spacing="8">
         <ContentView HorizontalOptions="Start" WidthRequest="100" HeightRequest="100">
             <ContentView.ControlTemplate>
                 <ControlTemplate>
                     <Border Stroke="#F3F2F1" BackgroundColor="#F3F2F1" WidthRequest="100" HeightRequest="100"
-                            Padding="0">
-                        <Grid>
-                            <ContentPresenter HorizontalOptions="Start" VerticalOptions="Start" Margin="8,4" />
-                            <Border Stroke="Blue" StrokeThickness="2" WidthRequest="24" HeightRequest="24"
-                                    Padding="0" HorizontalOptions="Center" VerticalOptions="Center">
-                                <Border.StrokeShape><Ellipse /></Border.StrokeShape>
-                            </Border>
-                            <Border BackgroundColor="Blue" WidthRequest="10" HeightRequest="10" Padding="0"
-                                    HorizontalOptions="Center" VerticalOptions="Center">
-                                <Border.StrokeShape><Ellipse /></Border.StrokeShape>
-                            </Border>
+                            HorizontalOptions="Start" VerticalOptions="Start" Padding="0">
+                        <Grid Margin="4" WidthRequest="100" Padding="2">
+                            <Grid WidthRequest="18" HeightRequest="18" HorizontalOptions="End" VerticalOptions="Start">
+                                <Ellipse Stroke="Blue" WidthRequest="16" HeightRequest="16" StrokeThickness="0.5"
+                                         VerticalOptions="Center" HorizontalOptions="Center" Fill="White" />
+                                <Ellipse WidthRequest="8" HeightRequest="8" Fill="Blue" Opacity="0"
+                                         VerticalOptions="Center" HorizontalOptions="Center" />
+                            </Grid>
+                            <ContentPresenter />
                         </Grid>
                     </Border>
                 </ControlTemplate>
@@ -33,17 +35,15 @@
             <ContentView.ControlTemplate>
                 <ControlTemplate>
                     <Border Stroke="#F3F2F1" BackgroundColor="#F3F2F1" WidthRequest="100" HeightRequest="100"
-                            Padding="0">
-                        <Grid>
-                            <ContentPresenter HorizontalOptions="Start" VerticalOptions="Start" Margin="8,4" />
-                            <Border Stroke="Blue" StrokeThickness="2" WidthRequest="24" HeightRequest="24"
-                                    Padding="0" HorizontalOptions="Center" VerticalOptions="Center">
-                                <Border.StrokeShape><Ellipse /></Border.StrokeShape>
-                            </Border>
-                            <Border BackgroundColor="Blue" WidthRequest="10" HeightRequest="10" Padding="0"
-                                    HorizontalOptions="Center" VerticalOptions="Center">
-                                <Border.StrokeShape><Ellipse /></Border.StrokeShape>
-                            </Border>
+                            HorizontalOptions="Start" VerticalOptions="Start" Padding="0">
+                        <Grid Margin="4" WidthRequest="100" Padding="2">
+                            <Grid WidthRequest="18" HeightRequest="18" HorizontalOptions="End" VerticalOptions="Start">
+                                <Ellipse Stroke="Blue" WidthRequest="16" HeightRequest="16" StrokeThickness="0.5"
+                                         VerticalOptions="Center" HorizontalOptions="Center" Fill="White" />
+                                <Ellipse WidthRequest="8" HeightRequest="8" Fill="Blue" Opacity="0"
+                                         VerticalOptions="Center" HorizontalOptions="Center" />
+                            </Grid>
+                            <ContentPresenter />
                         </Grid>
                     </Border>
                 </ControlTemplate>
@@ -54,17 +54,15 @@
             <ContentView.ControlTemplate>
                 <ControlTemplate>
                     <Border Stroke="#F3F2F1" BackgroundColor="#F3F2F1" WidthRequest="100" HeightRequest="100"
-                            Padding="0">
-                        <Grid>
-                            <ContentPresenter HorizontalOptions="Start" VerticalOptions="Start" Margin="8,4" />
-                            <Border Stroke="Blue" StrokeThickness="2" WidthRequest="24" HeightRequest="24"
-                                    Padding="0" HorizontalOptions="Center" VerticalOptions="Center">
-                                <Border.StrokeShape><Ellipse /></Border.StrokeShape>
-                            </Border>
-                            <Border BackgroundColor="Blue" WidthRequest="10" HeightRequest="10" Padding="0"
-                                    HorizontalOptions="Center" VerticalOptions="Center">
-                                <Border.StrokeShape><Ellipse /></Border.StrokeShape>
-                            </Border>
+                            HorizontalOptions="Start" VerticalOptions="Start" Padding="0">
+                        <Grid Margin="4" WidthRequest="100" Padding="2">
+                            <Grid WidthRequest="18" HeightRequest="18" HorizontalOptions="End" VerticalOptions="Start">
+                                <Ellipse Stroke="Blue" WidthRequest="16" HeightRequest="16" StrokeThickness="0.5"
+                                         VerticalOptions="Center" HorizontalOptions="Center" Fill="White" />
+                                <Ellipse WidthRequest="8" HeightRequest="8" Fill="Blue" Opacity="0"
+                                         VerticalOptions="Center" HorizontalOptions="Center" />
+                            </Grid>
+                            <ContentPresenter />
                         </Grid>
                     </Border>
                 </ControlTemplate>
