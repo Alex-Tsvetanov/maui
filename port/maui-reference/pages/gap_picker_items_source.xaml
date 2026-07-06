@@ -1,0 +1,18 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.GapPickerItemsSourcePage" Title="Gap: Picker.ItemsSource">
+    <!-- P3 gap probe: Picker.ItemsSource bound via {Binding} (Microsoft.Maui.Controls.Picker.
+         ItemsSource, an IEnumerable). register_xaml_pickers.cpp documents this as deferred ("no text
+         converter makes sense; deferred (needs a binding/static-collection seam)") — Picker.Items
+         (the <Picker.Items><x:String>...</x:String></Picker.Items> element form) DOES work, so this page
+         uses ItemsSource specifically to isolate the gap. Verified: even WITH register_runtime_bindings()
+         installed, xaml_loader::load_into throws "Cannot assign property 'ItemsSource': Property does
+         not exist" — ItemsSource was never given a property-registry entry at all (this is a registry
+         gap, not merely a missing binding applier). BindingContext supplies a plain string list via the
+         hand-written code-behind (GapPickerItemsSourcePage.xaml.cs) so real MAUI renders a populated,
+         meaningful Picker. -->
+    <VerticalStackLayout Margin="12" Spacing="8">
+        <Label Text="Gap probe: Picker.ItemsSource={Binding Fruits} (Picker.Items element form works today)" />
+        <Picker Title="Pick a fruit" ItemsSource="{Binding Fruits}" />
+    </VerticalStackLayout>
+</ContentPage>

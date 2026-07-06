@@ -1,0 +1,16 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.GapToolbarPage" Title="Gap: Toolbar">
+    <!-- P3 gap probe: Page.ToolbarItems (Microsoft.Maui.Controls.ToolbarItem). The port has a toolbar /
+         toolbar_item C++ header but never registers "ToolbarItem" (or ContentPage.ToolbarItems) as an
+         XAML type/property, so this block fails to parse (verified: xaml_loader::load_into throws
+         "Type ToolbarItem not found"). Real MAUI renders these as the navigation bar's action items. -->
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Primary" Order="Primary" />
+        <ToolbarItem Text="Secondary" Order="Secondary" Priority="1" />
+        <ToolbarItem Text="Disabled" Order="Secondary" Priority="2" IsEnabled="False" />
+    </ContentPage.ToolbarItems>
+    <VerticalStackLayout Margin="12">
+        <Label Text="Gap probe: Page.ToolbarItems / ToolbarItem" />
+    </VerticalStackLayout>
+</ContentPage>

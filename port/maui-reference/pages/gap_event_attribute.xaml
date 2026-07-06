@@ -1,0 +1,18 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.GapEventAttributePage" Title="Gap: Event Attribute">
+    <!-- P3 gap probe: an inline event attribute (Clicked="..."). AUTHORING.md rule 3 bans these in
+         shared/tier-1 pages because the port hydrates a static tree with no event-attribute support; this
+         tier-2 gap page pins that exact limitation deliberately, per rule 6. Verified: xaml_loader::
+         load_into throws "Cannot assign property 'Clicked': Property does not exist" — Clicked is
+         rejected as an unrecognized property, not silently ignored. NOTE: e2e.py lint's EVENT_RE
+         regex-rejects this attribute name UNCONDITIONALLY for every page under pages/ (it has no tier-2
+         carve-out), so this file intentionally is NOT run through `e2e.py gen`/`lint` — see this gap's
+         manifest.json row (notes) for how it's verified instead. GapEventAttributePage.xaml.cs is
+         hand-written (has OnClicked) so real MAUI still renders + behaves correctly (the acceptance
+         gate). -->
+    <VerticalStackLayout Margin="12" Spacing="8">
+        <Label Text="Gap probe: Clicked=&quot;OnClicked&quot; event attribute" />
+        <Button Text="Click me" Clicked="OnClicked" />
+    </VerticalStackLayout>
+</ContentPage>

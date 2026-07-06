@@ -1,0 +1,30 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.GapCarouselPositionBindingPage" Title="Gap: CarouselView.Position">
+    <!-- P3 gap probe: CarouselView.Position (Microsoft.Maui.Controls.CarouselView.Position, TwoWay
+         bindable). register_xaml_items.cpp documents this as an intentional omission alongside
+         CurrentItem ("CarouselView's Position/CurrentItem (TwoWay, bound or code-driven) are likewise
+         omitted"). Verified: Position has NO xaml property-registry entry at all — even a plain literal
+         Position="1" (no {Binding} involved) throws "Cannot assign property 'Position': Property does
+         not exist", so this is a registry gap, not a binding-applier gap. CarouselView itself (and its
+         ItemsSource/ItemTemplate) work today; only Position/CurrentItem are excluded. -->
+    <VerticalStackLayout Margin="12" Spacing="8">
+        <Label Text="Gap probe: CarouselView.Position={Binding CurrentPosition} (CarouselView itself renders)" />
+        <CarouselView HeightRequest="150" Position="{Binding CurrentPosition}">
+            <CarouselView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>Slide 1</x:String>
+                    <x:String>Slide 2</x:String>
+                    <x:String>Slide 3</x:String>
+                </x:Array>
+            </CarouselView.ItemsSource>
+            <CarouselView.ItemTemplate>
+                <DataTemplate>
+                    <Grid BackgroundColor="LightGray">
+                        <Label Text="{Binding}" HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Grid>
+                </DataTemplate>
+            </CarouselView.ItemTemplate>
+        </CarouselView>
+    </VerticalStackLayout>
+</ContentPage>

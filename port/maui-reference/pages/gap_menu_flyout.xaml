@@ -1,0 +1,24 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.GapMenuFlyoutPage" Title="Gap: MenuFlyout (ContextFlyout)">
+    <!-- P3 gap probe: FlyoutBase.ContextFlyout (Microsoft.Maui.Controls.MenuFlyout / MenuFlyoutItem /
+         MenuFlyoutSeparator / MenuFlyoutSubItem) attached to a View — the right-click / long-press
+         context menu, distinct from gap_menu_bar's window-chrome MenuBarItems. None of MenuFlyout,
+         MenuFlyoutItem, MenuFlyoutSeparator, or MenuFlyoutSubItem are registered as XAML types on the
+         port (verified: xaml_loader::load_into throws "Type MenuFlyoutItem not found" — the nested
+         MenuFlyoutSubItem/Separator never get evaluated since the outer type lookup fails first). -->
+    <VerticalStackLayout Margin="12" Spacing="8">
+        <Label Text="Right-click / long-press this label for a context menu">
+            <FlyoutBase.ContextFlyout>
+                <MenuFlyout>
+                    <MenuFlyoutItem Text="Item 1" />
+                    <MenuFlyoutItem Text="Item 2 (disabled)" IsEnabled="False" />
+                    <MenuFlyoutSeparator />
+                    <MenuFlyoutSubItem Text="More">
+                        <MenuFlyoutItem Text="Nested Item" />
+                    </MenuFlyoutSubItem>
+                </MenuFlyout>
+            </FlyoutBase.ContextFlyout>
+        </Label>
+    </VerticalStackLayout>
+</ContentPage>

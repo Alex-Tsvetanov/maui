@@ -1,0 +1,21 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.GapItemsUpdatingScrollModePage" Title="Gap: ItemsUpdatingScrollMode">
+    <!-- P3 gap probe: CollectionView.ItemsUpdatingScrollMode (Microsoft.Maui.Controls.ItemsView.
+         ItemsUpdatingScrollMode, an enum: KeepItemsInView/KeepScrollOffset/KeepLastItemInView).
+         register_xaml_items.cpp's deferred list documents this as "set programmatically" only.
+         Verified: xaml_loader::load_into throws "Cannot assign property 'ItemsUpdatingScrollMode':
+         Property does not exist" — no property-registry entry (and no enum converter) exists for it. -->
+    <VerticalStackLayout Margin="12" Spacing="8">
+        <Label Text="Gap probe: CollectionView.ItemsUpdatingScrollMode=&quot;KeepLastItemInView&quot;" />
+        <CollectionView HeightRequest="150" ItemsUpdatingScrollMode="KeepLastItemInView">
+            <CollectionView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>Row 1</x:String>
+                    <x:String>Row 2</x:String>
+                    <x:String>Row 3</x:String>
+                </x:Array>
+            </CollectionView.ItemsSource>
+        </CollectionView>
+    </VerticalStackLayout>
+</ContentPage>

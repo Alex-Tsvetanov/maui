@@ -612,6 +612,140 @@
     "notes": ""
   },
   {
+    "key": "gap_carousel_position_binding",
+    "expected_port_status": "unregistered_type",
+    "builder_twin": false,
+    "tags": [
+      "gap",
+      "carousel_view"
+    ],
+    "notes": "CarouselView.Position/CurrentItem have no XAML property-registry entry at all (verified: even a plain literal Position=\"1\" throws \"Cannot assign property 'Position': Property does not exist\" -- not merely a missing binding applier). register_xaml_items.cpp documents this as an intentional omission. CarouselView itself (ItemsSource/ItemTemplate) works today."
+  },
+  {
+    "key": "gap_event_attribute",
+    "expected_port_status": "parse_error",
+    "builder_twin": false,
+    "tags": [
+      "gap",
+      "event_attribute"
+    ],
+    "notes": "Inline event attributes (Clicked=, and the whole EVENT_ATTRS family) are rejected at parse time: xaml_loader::load_into throws \"Cannot assign property 'Clicked': Property does not exist\" -- not silently ignored. This page is the ONE deliberate exception to e2e.py lint's universal event-attribute ban (AUTHORING.md rule 6); the lint carve-out is keyed to this exact page key."
+  },
+  {
+    "key": "gap_grid_items_layout_element",
+    "expected_port_status": "unregistered_type",
+    "builder_twin": false,
+    "tags": [
+      "gap",
+      "collection_view",
+      "grid_items_layout"
+    ],
+    "notes": "<GridItemsLayout Orientation=... Span=.../> element form is not a registered XAML type (verified: \"Type GridItemsLayout not found\"); needs [Parameter(\"Orientation\")] ctor-arg-from-attribute reflection the port lacks. The STRING form (ItemsLayout=\"VerticalGrid,2\") works today via convert_items_layout."
+  },
+  {
+    "key": "gap_items_updating_scroll_mode",
+    "expected_port_status": "unregistered_type",
+    "builder_twin": false,
+    "tags": [
+      "gap",
+      "collection_view"
+    ],
+    "notes": "CollectionView.ItemsUpdatingScrollMode has no property-registry entry or enum converter (verified: \"Cannot assign property 'ItemsUpdatingScrollMode': Property does not exist\"); register_xaml_items.cpp documents it as settable only programmatically."
+  },
+  {
+    "key": "gap_menu_bar",
+    "expected_port_status": "parse_error",
+    "builder_twin": false,
+    "tags": [
+      "gap",
+      "menu_bar"
+    ],
+    "notes": "ContentPage.MenuBarItems / MenuBarItem / MenuFlyoutItem / MenuFlyoutSeparator are not registered XAML types (verified: \"Type MenuFlyoutItem not found\"). The port has a menu_bar/menu_bar_item C++ header with no add_handler<> registration and no XAML type registration at all."
+  },
+  {
+    "key": "gap_menu_flyout",
+    "expected_port_status": "parse_error",
+    "builder_twin": false,
+    "tags": [
+      "gap",
+      "menu_flyout"
+    ],
+    "notes": "FlyoutBase.ContextFlyout / MenuFlyout / MenuFlyoutItem / MenuFlyoutSeparator / MenuFlyoutSubItem are not registered XAML types (verified: \"Type MenuFlyoutItem not found\"), distinct from gap_menu_bar's window-chrome MenuBarItems (same underlying unregistered types, different attach point)."
+  },
+  {
+    "key": "gap_on_platform_converter",
+    "expected_port_status": "parse_error",
+    "builder_twin": false,
+    "tags": [
+      "gap",
+      "on_platform",
+      "markup_extension"
+    ],
+    "notes": "{OnPlatform ..., Converter=..., ConverterParameter=...} is explicitly rejected by markup_extensions.cpp's reject_unsupported_attributes (verified: \"Property 'Converter' of OnPlatform is not supported by the port yet (STATUS.md M7 deferrals)\"). OnIdiom has the identical deferral. Plain OnPlatform (no Converter=) works today."
+  },
+  {
+    "key": "gap_path_data",
+    "expected_port_status": "parse_error",
+    "builder_twin": false,
+    "tags": [
+      "gap",
+      "shapes",
+      "path"
+    ],
+    "notes": "Shapes.Path.Data (both the abbreviated-string form and the object-element form) and Path.RenderTransform have no XAML property route at all (verified: \"Cannot assign property 'Data': Property does not exist\"). register_xaml_shapes.cpp documents both as deferred pending property-element child registration."
+  },
+  {
+    "key": "gap_path_figure_element",
+    "expected_port_status": "unregistered_type",
+    "builder_twin": false,
+    "tags": [
+      "gap",
+      "shapes",
+      "path_geometry"
+    ],
+    "notes": "PathGeometry's [ContentProperty(Figures)] nested-element form (<PathFigure>/<LineSegment>) is not registered (verified: \"Type LineSegment not found\"), narrower than gap_path_data. PathGeometry.Figures TEXT form (\"M8 148 L156 148 L132 12 Z\") works today via View.Clip / Border.StrokeShape (see pages/clip.xaml)."
+  },
+  {
+    "key": "gap_picker_items_source",
+    "expected_port_status": "unregistered_type",
+    "builder_twin": false,
+    "tags": [
+      "gap",
+      "picker"
+    ],
+    "notes": "Picker.ItemsSource has no XAML property-registry entry at all (verified even WITH register_runtime_bindings() installed: \"Cannot assign property 'ItemsSource': Property does not exist\" -- a registry gap, not merely a missing binding applier). Picker.Items (the <Picker.Items><x:String>...</x:String></Picker.Items> element form) works today."
+  },
+  {
+    "key": "gap_swipe_view_items",
+    "expected_port_status": "parse_error",
+    "builder_twin": false,
+    "tags": [
+      "gap",
+      "swipe_view"
+    ],
+    "notes": "SwipeView.LeftItems/RightItems/TopItems/BottomItems' SwipeItem/SwipeItems are not registered XAML types (verified: \"Type SwipeItem not found\"). SwipeView itself IS registered and works today."
+  },
+  {
+    "key": "gap_title_bar",
+    "expected_port_status": "parse_error",
+    "builder_twin": false,
+    "tags": [
+      "gap",
+      "title_bar"
+    ],
+    "notes": "TitleBar is not a registered XAML type (verified: \"Type TitleBar not found\"). The port's title_bar.hpp has no add_handler<> registration and no XAML type registration."
+  },
+  {
+    "key": "gap_toolbar",
+    "expected_port_status": "parse_error",
+    "builder_twin": false,
+    "tags": [
+      "gap",
+      "toolbar"
+    ],
+    "notes": "Page.ToolbarItems / ToolbarItem are not registered XAML types (verified: \"Type ToolbarItem not found\"). The port's toolbar.hpp/toolbar_item.hpp have no add_handler<> registration and no XAML type registration at all."
+  },
+  {
     "key": "gestures",
     "expected_port_status": "renders",
     "builder_twin": true,

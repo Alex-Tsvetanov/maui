@@ -1,0 +1,28 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.GapSwipeViewItemsPage" Title="Gap: SwipeView Items">
+    <!-- P3 gap probe: SwipeView.LeftItems/RightItems/TopItems/BottomItems (Microsoft.Maui.Controls.
+         SwipeItems / SwipeItem). SwipeView itself IS a registered XAML type (register_xaml_scrolling_
+         interactive.cpp), but SwipeItem/SwipeItems are NOT — the port's register_xaml_scrolling_
+         interactive.cpp header note says these "owned swipe_items collections" have "no [property-
+         element support]" (verified: xaml_loader::load_into throws "Type SwipeItem not found", failing
+         before even reaching the SwipeItems wrapper). -->
+    <VerticalStackLayout Margin="12" Spacing="8">
+        <Label Text="Swipe the gray box to reveal Delete/Info actions" />
+        <SwipeView>
+            <SwipeView.LeftItems>
+                <SwipeItems>
+                    <SwipeItem Text="Delete" BackgroundColor="Red" />
+                </SwipeItems>
+            </SwipeView.LeftItems>
+            <SwipeView.RightItems>
+                <SwipeItems>
+                    <SwipeItem Text="Info" BackgroundColor="CornflowerBlue" />
+                </SwipeItems>
+            </SwipeView.RightItems>
+            <Grid HeightRequest="60" BackgroundColor="LightGray">
+                <Label Text="Swipe me" HorizontalOptions="Center" VerticalOptions="Center" />
+            </Grid>
+        </SwipeView>
+    </VerticalStackLayout>
+</ContentPage>

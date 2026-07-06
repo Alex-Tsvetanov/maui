@@ -1,0 +1,21 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:MauiReference"
+             x:Class="MauiReference.Pages.GapOnPlatformConverterPage" Title="Gap: OnPlatform Converter">
+    <!-- P3 gap probe: {OnPlatform ..., Converter=..., ConverterParameter=...} (Microsoft.Maui.Controls.
+         Xaml.OnPlatformExtension.Converter / ConverterParameter). The port's markup_extensions.cpp
+         explicitly rejects both attribute names on OnPlatform/OnIdiom via reject_unsupported_attributes
+         ("Property 'Converter' of OnPlatform is not supported by the port yet (STATUS.md M7
+         deferrals)") — verified directly. PassthroughDoubleConverter (app/PassthroughDoubleConverter.cs)
+         is a trivial real IValueConverter added so this page is genuine, working, resolvable XAML for
+         real MAUI (the acceptance gate), not a converter that fails to resolve for an unrelated reason. -->
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <local:PassthroughDoubleConverter x:Key="PassthroughDoubleConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    <VerticalStackLayout Margin="12" Spacing="8">
+        <Label Text="Gap probe: OnPlatform Converter=/ConverterParameter="
+               FontSize="{OnPlatform Default=14, iOS=18, MacCatalyst=18, Converter={StaticResource PassthroughDoubleConverter}}" />
+    </VerticalStackLayout>
+</ContentPage>

@@ -1,0 +1,27 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.GapMenuBarPage" Title="Gap: MenuBar">
+    <!-- P3 gap probe: Window/Page.MenuBarItems (Microsoft.Maui.Controls.MenuBarItem / MenuFlyoutItem /
+         MenuFlyoutSeparator). The port registers a menu_bar/menu_bar_item C++ type but NEVER wires
+         MenuBarItem/MenuFlyoutItem/MenuFlyoutSeparator into the XAML type registry, so this page's
+         ContentPage.MenuBarItems block fails to parse on the port (verified: xaml_loader::load_into
+         throws "Type MenuFlyoutItem not found"). Real MAUI renders the menu bar as native window chrome
+         (macCatalyst/Windows) — the visible body below is just a marker so the page is non-empty even
+         where menu bars aren't chrome-visible (e.g. a captured screenshot on a platform that hides the
+         native menu). No event attributes (rule 3); no Clicked handlers needed to prove the parse gap. -->
+    <ContentPage.MenuBarItems>
+        <MenuBarItem Text="File">
+            <MenuFlyoutItem Text="Open" />
+            <MenuFlyoutItem Text="Save" IsEnabled="False" />
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="Exit" />
+        </MenuBarItem>
+        <MenuBarItem Text="Edit">
+            <MenuFlyoutItem Text="Copy" />
+            <MenuFlyoutItem Text="Paste" />
+        </MenuBarItem>
+    </ContentPage.MenuBarItems>
+    <VerticalStackLayout Margin="12">
+        <Label Text="Gap probe: MenuBar / MenuBarItem / MenuFlyoutItem / MenuFlyoutSeparator" />
+    </VerticalStackLayout>
+</ContentPage>

@@ -1,0 +1,26 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.GapGridItemsLayoutElementPage" Title="Gap: GridItemsLayout element">
+    <!-- P3 gap probe: CollectionView.ItemsLayout ELEMENT form (<GridItemsLayout Orientation=... Span=.../>).
+         The port supports the STRING form (ItemsLayout="VerticalGrid,2") via convert_items_layout, but
+         the element form needs [Parameter("Orientation")] ctor-arg-from-attribute reflection the port
+         lacks (Orientation is get-only, ctor-injected) — register_xaml_items.cpp documents this as
+         deferred (verified: xaml_loader::load_into throws "Type GridItemsLayout not found" — the type
+         itself was never registered, only the string converter route exists). -->
+    <VerticalStackLayout Margin="12" Spacing="8">
+        <Label Text="Gap probe: &lt;GridItemsLayout&gt; element form (string form 'VerticalGrid,2' works)" />
+        <CollectionView HeightRequest="200">
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Vertical" Span="2" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>One</x:String>
+                    <x:String>Two</x:String>
+                    <x:String>Three</x:String>
+                    <x:String>Four</x:String>
+                </x:Array>
+            </CollectionView.ItemsSource>
+        </CollectionView>
+    </VerticalStackLayout>
+</ContentPage>

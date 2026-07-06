@@ -1,0 +1,14 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.GapTitleBarPage" Title="Gap: TitleBar">
+    <!-- P3 gap probe: Microsoft.Maui.Controls.TitleBar — a View, most commonly set as Window.TitleBar but
+         also embeddable inline (see src/Controls/tests/TestCases.HostApp/FeatureMatrix/AppTheme/
+         AppThemePage.xaml, which places one inline in a HorizontalStackLayout). The port never registers
+         "TitleBar" as an XAML type (title_bar.hpp has no add_handler<> and no XAML type registration),
+         so this element fails to parse (verified: xaml_loader::load_into throws "Type TitleBar not
+         found"). -->
+    <VerticalStackLayout Margin="12" Spacing="8">
+        <Label Text="Gap probe: TitleBar (inline View usage)" />
+        <TitleBar Title="My App" BackgroundColor="CornflowerBlue" ForegroundColor="White" WidthRequest="200" />
+    </VerticalStackLayout>
+</ContentPage>

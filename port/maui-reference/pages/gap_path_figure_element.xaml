@@ -1,0 +1,28 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.GapPathFigureElementPage" Title="Gap: PathGeometry.Figures element">
+    <!-- P3 gap probe: PathGeometry's [ContentProperty("Figures")] ELEMENT form (nested <PathFigure>/
+         <LineSegment> markup), narrower than gap_path_data.xaml's Path.Data gap. PathGeometry itself IS
+         a registered XAML type reachable via View.Clip / Border.StrokeShape, and its Figures TEXT form
+         works today ("M8 148 L156 148 L132 12 Z" — see pages/clip.xaml's "Clipped Image using
+         PathGeometry"). register_xaml_geometries.cpp explicitly documents the element form as scoped
+         out: "[ContentProperty(Figures)] element form (nested PathFigure markup) is NOT registered".
+         Verified: xaml_loader::load_into throws "Type LineSegment not found" (PathFigure/LineSegment are
+         never registered XAML types at all). -->
+    <VerticalStackLayout Margin="12" Spacing="8">
+        <Label Text="Gap probe: nested &lt;PathFigure&gt;/&lt;LineSegment&gt; (text Figures= works today)" />
+        <Image Source="dotnet_bot.png" Aspect="AspectFill" HorizontalOptions="Start"
+               WidthRequest="150" HeightRequest="150" BackgroundColor="LightGray">
+            <Image.Clip>
+                <PathGeometry>
+                    <PathGeometry.Figures>
+                        <PathFigure StartPoint="8,148">
+                            <LineSegment Point="156,148" />
+                            <LineSegment Point="132,12" />
+                        </PathFigure>
+                    </PathGeometry.Figures>
+                </PathGeometry>
+            </Image.Clip>
+        </Image>
+    </VerticalStackLayout>
+</ContentPage>

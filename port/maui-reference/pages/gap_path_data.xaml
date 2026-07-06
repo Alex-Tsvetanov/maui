@@ -1,0 +1,21 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MauiReference.Pages.GapPathDataPage" Title="Gap: Path.Data">
+    <!-- P3 gap probe: Shapes.Path.Data (Microsoft.Maui.Controls.Shapes.Path.Data, a Geometry) — BOTH the
+         abbreviated-string form ("M8 148 L156 148 L132 12 Z") and the object-element form are
+         unsupported: register_xaml_shapes.cpp registers Path's shared shape/view surface but explicitly
+         does NOT register a "Data" property route for shapes::path (only PathGeometry's OWN Figures
+         property, used via View.Clip / Border.StrokeShape, has a working converter — see
+         gap_path_figure_element.xaml for that narrower, separate gap). Verified: xaml_loader::load_into
+         throws "Cannot assign property 'Data': Property does not exist" for the plain string-attribute
+         form alone. Path.RenderTransform is deferred for the same reason (no property route at all). -->
+    <VerticalStackLayout Margin="12" Spacing="8">
+        <Label Text="Gap probe: Path.Data (string form) + Path.RenderTransform" />
+        <Path Data="M8 148 L156 148 L132 12 Z" Fill="Red" Aspect="Uniform" HorizontalOptions="Start"
+              WidthRequest="150" HeightRequest="150">
+            <Path.RenderTransform>
+                <RotateTransform Angle="15" />
+            </Path.RenderTransform>
+        </Path>
+    </VerticalStackLayout>
+</ContentPage>
