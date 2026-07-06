@@ -41,6 +41,7 @@
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/graphics/colors.hpp"
+#include "maui/graphics/solid_paint.hpp"
 
 namespace maui::samples
 {
@@ -78,7 +79,10 @@ namespace maui::samples
             auto group_header = maui::controls::data_template::of<maui::controls::label>();
             group_header->set_binding<std::string, team_key>(maui::controls::label::text_property(),
                                                              [](const team_key& key) { return key.name; });
-            group_header->set_value(maui::controls::label::text_color_property(), maui::graphics::colors::light_green);
+            group_header->set_value(
+                maui::controls::background_property(),
+                std::static_pointer_cast<maui::graphics::paint>(
+                    std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::light_green)));
             // FontAttributes.Bold (default size) — maui-compare BasicGroupingPage's GroupHeaderTemplate sets
             // it; the port had only the color, so the green group headers rendered regular weight.
             group_header->set_value(maui::controls::label::font_property(),
@@ -91,7 +95,9 @@ namespace maui::samples
             group_footer->set_binding<std::string, team_key>(
                 maui::controls::label::text_property(),
                 [](const team_key& key) { return "Total members: " + std::to_string(key.count); });
-            group_footer->set_value(maui::controls::label::text_color_property(), maui::graphics::colors::orange);
+            group_footer->set_value(maui::controls::background_property(),
+                                    std::static_pointer_cast<maui::graphics::paint>(
+                                        std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::orange)));
             list_.set_group_footer_template(group_footer);
 
             // ---- IsGrouped + the view-level header/footer strings ----

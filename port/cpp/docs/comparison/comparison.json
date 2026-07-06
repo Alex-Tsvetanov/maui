@@ -1207,24 +1207,24 @@
           }
         },
         "sonnet": {
-          "status": "green",
-          "review": "Full grouped roster matches MAUI: green group-header bars (Avengers/Fantastic Four/Defenders/Heroes for Hire/West Coast Avengers/Great Lakes Avengers), orange 'Total members: N' footers, 'This is a header'. Prior red was STALE \u2014 the MAUI reference was blank when originally judged (code-behind SuperTeams() had not been captured); the current MAUI render shows the full list and cpp matches it."
+          "status": "yellow",
+          "review": "Renders the full grouped roster with the correct green group-header bars and orange 'Total members' footers (the BackgroundColor fix), but the code-first builder twin's item rows are compressed vs MAUI \u2014 verified: header-bar Y-gaps 157/236/183/183 vs MAUI's 183/262/209/210, so the list runs ~15% shorter. A builder row-height authoring difference (the framework/xaml path matches MAUI exactly), not a content defect."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "Renders empty (only 'This is a header' / 'Hey, a footer.'): the grouped ItemsSource is assigned in code-behind (SuperTeams()), which the code-behind-less gallery_xaml path does not execute. Port-side code-behind data wiring pending."
+          "status": "green",
+          "review": "Matches MAUI: identical group-header/footer bars, member rows, and \u2014 verified \u2014 identical row spacing (bar Y-gaps 392/261/210/209 vs MAUI 393/262/209/210). The only delta is a uniform +28px top offset (harness inset, ruling 2 exempt), which is why the raw whole-frame SSIM looks low on this tall list."
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8009, 23.72% pixels differ \u00b7 Dark: SSIM 0.6948, 25.51% pixels differ"
+          "review": "Light: SSIM 0.7366, 34.92% pixels differ \u00b7 Dark: SSIM 0.5977, 36.63% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8067, 23.01% pixels differ \u00b7 Dark: SSIM 0.7010, 24.72% pixels differ"
+          "review": "Light: SSIM 0.6918, 40.66% pixels differ \u00b7 Dark: SSIM 0.5405, 41.95% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -10291,24 +10291,24 @@
           }
         },
         "sonnet": {
-          "status": "green",
-          "review": "2-column grouped GridItemsLayout matches MAUI (green headers, orange footers, 'This is a header'/'This is a footer'). Prior red was stale (MAUI ref blank at review time)."
+          "status": "yellow",
+          "review": "Correct 2-column grouped grid with green/orange bars, but builder-twin rows compressed ~15% vs MAUI (same row-height authoring difference as basic_grouping). xaml path matches MAUI exactly."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "Empty grouped list \u2014 code-behind SuperTeams() data not supplied by gallery_xaml. Port-side data wiring pending."
+          "status": "green",
+          "review": "Matches MAUI's 2-column grouped GridItemsLayout (bars, members, footers, spacing); raw SSIM depressed only by the uniform top-offset on this tall list (ruling 2)."
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7930, 23.59% pixels differ \u00b7 Dark: SSIM 0.6924, 25.19% pixels differ"
+          "review": "Light: SSIM 0.7286, 33.27% pixels differ \u00b7 Dark: SSIM 0.6127, 34.74% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8027, 22.96% pixels differ \u00b7 Dark: SSIM 0.6996, 24.50% pixels differ"
+          "review": "Light: SSIM 0.6662, 38.32% pixels differ \u00b7 Dark: SSIM 0.5445, 40.48% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -10534,15 +10534,15 @@
         },
         "sonnet": {
           "status": "green",
-          "review": "Flat ToString roster (Thor...Doorman) matches MAUI. Prior red was stale (MAUI ref blank at review time)."
+          "review": "Template-less grouped flat list matches MAUI (SSIM 0.945); no colored bars/templates to drift, so row heights align."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "Empty \u2014 code-behind data gap (no ItemsSource supplied to the gallery_xaml path)."
+          "status": "green",
+          "review": "Template-less grouped flat list (member ToStrings) matches MAUI (SSIM 0.944) via the string-convertible super_teams_text() code-behind."
         },
         "pixel": {
           "status": "yellow",
@@ -10550,7 +10550,7 @@
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9542, 1.43% pixels differ \u00b7 Dark: SSIM 0.9529, 1.77% pixels differ"
+          "review": "Light: SSIM 0.9444, 2.21% pixels differ \u00b7 Dark: SSIM 0.9435, 2.57% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -10660,24 +10660,24 @@
           }
         },
         "sonnet": {
-          "status": "green",
-          "review": "Full grouped roster (green headers, orange footers) matches MAUI. Prior red was stale (MAUI ref blank at review time)."
+          "status": "yellow",
+          "review": "Correct grouped roster with green/orange bars, but builder-twin rows compressed vs MAUI. xaml path matches."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "Fully blank \u2014 code-behind SuperTeams() data not supplied by gallery_xaml."
+          "status": "green",
+          "review": "Matches MAUI's grouped roster; raw SSIM depressed only by the uniform top-offset (ruling 2)."
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7975, 23.64% pixels differ \u00b7 Dark: SSIM 0.6930, 25.32% pixels differ"
+          "review": "Light: SSIM 0.7321, 35.11% pixels differ \u00b7 Dark: SSIM 0.5971, 36.52% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8038, 22.93% pixels differ \u00b7 Dark: SSIM 0.6997, 24.53% pixels differ"
+          "review": "Light: SSIM 0.6780, 42.37% pixels differ \u00b7 Dark: SSIM 0.5226, 43.69% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -15093,24 +15093,24 @@
           }
         },
         "sonnet": {
-          "status": "green",
-          "review": "'Toggle Sizing Strategy' link + MeasureFirstItem note + grouped roster match MAUI. Prior red was stale (MAUI ref blank at review time)."
+          "status": "yellow",
+          "review": "Correct link + note + grouped roster with bars, but builder-twin rows compressed vs MAUI (maui-vs-cpp SSIM 0.83 vs maui-vs-xaml 0.92)."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "Header/link render but the grouped list is empty \u2014 code-behind data gap."
+          "status": "green",
+          "review": "Toggle Sizing Strategy + note + grouped roster match MAUI (SSIM 0.92)."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9182, 3.19% pixels differ \u00b7 Dark: SSIM 0.9148, 3.92% pixels differ"
+          "status": "red",
+          "review": "Light: SSIM 0.8255, 22.51% pixels differ \u00b7 Dark: SSIM 0.7297, 23.65% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9233, 2.42% pixels differ \u00b7 Dark: SSIM 0.9157, 3.20% pixels differ"
+          "review": "Light: SSIM 0.9174, 3.23% pixels differ \u00b7 Dark: SSIM 0.9140, 3.94% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -18903,24 +18903,24 @@
           }
         },
         "sonnet": {
-          "status": "green",
-          "review": "Group/Item steppers + Go + 'No scroll requested yet' + grouped roster all match MAUI. Prior red was stale (MAUI ref blank at review time)."
+          "status": "yellow",
+          "review": "Correct steppers + grouped roster with bars, but builder-twin rows compressed vs MAUI (maui-vs-cpp SSIM 0.85 vs maui-vs-xaml 0.91)."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "Controls render but the grouped list below is empty \u2014 code-behind data gap."
+          "status": "green",
+          "review": "Steppers + Go + grouped roster match MAUI (SSIM 0.91)."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9259, 2.57% pixels differ \u00b7 Dark: SSIM 0.9057, 5.29% pixels differ"
+          "status": "red",
+          "review": "Light: SSIM 0.8501, 17.42% pixels differ \u00b7 Dark: SSIM 0.7593, 20.43% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.9143, 2.06% pixels differ \u00b7 Dark: SSIM 0.8717, 6.99% pixels differ"
+          "review": "Light: SSIM 0.9098, 2.67% pixels differ \u00b7 Dark: SSIM 0.8695, 7.62% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -20300,24 +20300,24 @@
           }
         },
         "sonnet": {
-          "status": "green",
-          "review": "Grouped list with empty groups still showing their headers/footers (Avengers:2, Thundercats:0, Avengers:0, Bionic Six:0, Fantastic Four:4) matches MAUI. Prior red was stale (MAUI ref blank at review time)."
+          "status": "yellow",
+          "review": "Correct grouped list with empty-group headers/footers and bars, but builder-twin rows compressed vs MAUI (maui-vs-cpp SSIM 0.88 vs maui-vs-xaml 0.96)."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "Intro label renders but the grouped list is empty \u2014 code-behind data gap."
+          "status": "green",
+          "review": "Intro + grouped list with the two empty groups showing headers/footers, matching MAUI (SSIM 0.96)."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9584, 1.51% pixels differ \u00b7 Dark: SSIM 0.9531, 1.97% pixels differ"
+          "status": "red",
+          "review": "Light: SSIM 0.8832, 18.23% pixels differ \u00b7 Dark: SSIM 0.8002, 19.03% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9612, 1.22% pixels differ \u00b7 Dark: SSIM 0.9556, 1.64% pixels differ"
+          "review": "Light: SSIM 0.9575, 1.57% pixels differ \u00b7 Dark: SSIM 0.9523, 2.02% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -21951,24 +21951,24 @@
           }
         },
         "sonnet": {
-          "status": "green",
-          "review": "'Is Grouped' switch (on) + grouped roster match MAUI. Prior red was stale (MAUI ref blank at review time)."
+          "status": "yellow",
+          "review": "Correct switch + grouped roster with bars, but builder-twin rows compressed vs MAUI (maui-vs-cpp SSIM 0.83 vs maui-vs-xaml 0.94)."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "Only the switch renders; the grouped list is empty \u2014 code-behind data gap."
+          "status": "green",
+          "review": "Is-Grouped switch + grouped roster match MAUI (SSIM 0.94)."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9344, 2.76% pixels differ \u00b7 Dark: SSIM 0.9311, 3.51% pixels differ"
+          "status": "red",
+          "review": "Light: SSIM 0.8307, 22.66% pixels differ \u00b7 Dark: SSIM 0.7359, 23.91% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9472, 1.73% pixels differ \u00b7 Dark: SSIM 0.9396, 2.34% pixels differ"
+          "review": "Light: SSIM 0.9403, 2.54% pixels differ \u00b7 Dark: SSIM 0.9376, 3.09% pixels differ"
         },
         "consistency": {
           "status": "ok",

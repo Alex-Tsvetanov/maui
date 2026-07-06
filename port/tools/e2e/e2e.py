@@ -337,14 +337,27 @@ def cmd_gen(args: argparse.Namespace) -> int:
         return 0
 
     written = []
+    kept_cpp = 0
     # C++ TU wrappers (shared pages get the x:Class-locked shared template; legacy twins the old one).
     for name in names:
         with open(os.path.join(VIEWS, name + ".xaml.hpp"), "w") as fh:
             fh.write(HPP.format(name=name, mark=GENERATED_MARK))
+        written.append(os.path.join(VIEWS, name + ".xaml.hpp"))
+        cpp_path = os.path.join(VIEWS, name + ".xaml.cpp")
+        # Preserve a hand-written port-side code-behind (no GENERATED marker) — the .xaml.cpp analog of
+        # the MAUI .xaml.cs skip below. Pages needing data/interactivity wiring (e.g. the grouping pages
+        # whose grouped ItemsSource comes from SuperTeams() in code-behind) replace this TU by hand,
+        # dropping the GENERATED marker so the generator leaves it alone. The .xaml.hpp declaration is
+        # always regenerated (the signature never changes).
+        if os.path.isfile(cpp_path):
+            with open(cpp_path, encoding="utf-8") as fh:
+                if GENERATED_MARK not in fh.read():
+                    kept_cpp += 1
+                    continue
         template = CPP_SHARED if name in shared else CPP_LEGACY
-        with open(os.path.join(VIEWS, name + ".xaml.cpp"), "w") as fh:
+        with open(cpp_path, "w") as fh:
             fh.write(template.format(name=name, pascal=pascal(name), embed_rel=EMBED_REL, mark=GENERATED_MARK))
-        written += [os.path.join(VIEWS, name + ".xaml.hpp"), os.path.join(VIEWS, name + ".xaml.cpp")]
+        written.append(cpp_path)
 
     includes = "\n".join(f'#include "Views/{n}.xaml.hpp"' for n in names)
     xmacro = " \\\n".join(f"    X({n})" for n in names)
@@ -369,7 +382,7 @@ def cmd_gen(args: argparse.Namespace) -> int:
         cb_new += 1
 
     print(f"generated {len(names)} C++ TU pairs + gallery_pages.hpp "
-          f"({len(shared)} shared, {len(legacy)} legacy) ; "
+          f"({len(shared)} shared, {len(legacy)} legacy; {kept_cpp} hand-written .xaml.cpp kept) ; "
           f"MAUI code-behinds: {cb_new} generated, {cb_kept} hand-written kept")
     return 0
 

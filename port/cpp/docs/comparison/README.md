@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 111 | 0 |
-| 🟡 Minor | 60 | 0 |
+| 🟢 Match | 104 | 0 |
+| 🟡 Minor | 67 | 0 |
 | 🔴 Major | 5 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -3864,16 +3864,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 10. Basic Grouping — 🟢/⏳
+### 10. Basic Grouping — 🟡/⏳
 <sub>basic_grouping</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/basic_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/basic_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/basic_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/basic_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/basic_grouping_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/basic_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/basic_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/basic_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/basic_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/basic_grouping_dark.png" /></td></tr></table>
 
 ports GroupingGalleries/BasicGrouping.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🟢 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-Full grouped roster matches MAUI: green group-header bars (Avengers/Fantastic Four/Defenders/Heroes for Hire/West Coast Avengers/Great Lakes Avengers), orange 'Total members: N' footers, 'This is a header'. Prior red was STALE — the MAUI reference was blank when originally judged (code-behind SuperTeams() had not been captured); the current MAUI render shows the full list and cpp matches it.
+Renders the full grouped roster with the correct green group-header bars and orange 'Total members' footers (the BackgroundColor fix), but the code-first builder twin's item rows are compressed vs MAUI — verified: header-bar Y-gaps 157/236/183/183 vs MAUI's 183/262/209/210, so the list runs ~15% shorter. A builder row-height authoring difference (the framework/xaml path matches MAUI exactly), not a content defect.
 
 #### ⏳ Gemini Review
 
@@ -5272,16 +5272,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 86. Grid Grouping — 🟢/⏳
+### 86. Grid Grouping — 🟡/⏳
 <sub>grid_grouping</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grid_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/grid_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grid_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/grid_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grid_grouping_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grid_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/grid_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grid_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/grid_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grid_grouping_dark.png" /></td></tr></table>
 
 ports GroupingGalleries/GridGrouping.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🟢 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-2-column grouped GridItemsLayout matches MAUI (green headers, orange footers, 'This is a header'/'This is a footer'). Prior red was stale (MAUI ref blank at review time).
+Correct 2-column grouped grid with green/orange bars, but builder-twin rows compressed ~15% vs MAUI (same row-height authoring difference as basic_grouping). xaml path matches MAUI exactly.
 
 #### ⏳ Gemini Review
 
@@ -5317,7 +5317,7 @@ ports GroupingGalleries/GroupingNoTemplates.xaml (+ .xaml.cs) of the C# Collecti
 
 #### 🟢 Sonnet 5 Review
 
-Flat ToString roster (Thor...Doorman) matches MAUI. Prior red was stale (MAUI ref blank at review time).
+Template-less grouped flat list matches MAUI (SSIM 0.945); no colored bars/templates to drift, so row heights align.
 
 #### ⏳ Gemini Review
 
@@ -5327,16 +5327,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 89. Grouping Plus Selection — 🟢/⏳
+### 89. Grouping Plus Selection — 🟡/⏳
 <sub>grouping_plus_selection</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grouping_plus_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/grouping_plus_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grouping_plus_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/grouping_plus_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grouping_plus_selection_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grouping_plus_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/grouping_plus_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grouping_plus_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/grouping_plus_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grouping_plus_selection_dark.png" /></td></tr></table>
 
 ports CollectionViewGalleries/GroupingGalleries/ GroupingPlusSelection.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🟢 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-Full grouped roster (green headers, orange footers) matches MAUI. Prior red was stale (MAUI ref blank at review time).
+Correct grouped roster with green/orange bars, but builder-twin rows compressed vs MAUI. xaml path matches.
 
 #### ⏳ Gemini Review
 
@@ -5990,16 +5990,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 124. Measure First Strategy — 🟢/⏳
+### 124. Measure First Strategy — 🟡/⏳
 <sub>measure_first_strategy</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/measure_first_strategy_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/measure_first_strategy_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/measure_first_strategy_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/measure_first_strategy_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/measure_first_strategy_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/measure_first_strategy_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/measure_first_strategy_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/measure_first_strategy_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/measure_first_strategy_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/measure_first_strategy_dark.png" /></td></tr></table>
 
 ports MeasureFirstStrategy.xaml (+ .xaml.cs) of the C# CollectionView gallery (Maui.Controls.Sample.Pages.CollectionViewGalleries.GroupingGalleries.MeasureFirstStrategy)
 
-#### 🟢 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-'Toggle Sizing Strategy' link + MeasureFirstItem note + grouped roster match MAUI. Prior red was stale (MAUI ref blank at review time).
+Correct link + note + grouped roster with bars, but builder-twin rows compressed vs MAUI (maui-vs-cpp SSIM 0.83 vs maui-vs-xaml 0.92).
 
 #### ⏳ Gemini Review
 
@@ -6560,16 +6560,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 154. Scroll To Group — 🟢/⏳
+### 154. Scroll To Group — 🟡/⏳
 <sub>scroll_to_group</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/scroll_to_group_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/scroll_to_group_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/scroll_to_group_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/scroll_to_group_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/scroll_to_group_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/scroll_to_group_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/scroll_to_group_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/scroll_to_group_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/scroll_to_group_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/scroll_to_group_dark.png" /></td></tr></table>
 
 ports ScrollToGalleries/ScrollToGroup.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🟢 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-Group/Item steppers + Go + 'No scroll requested yet' + grouped roster all match MAUI. Prior red was stale (MAUI ref blank at review time).
+Correct steppers + grouped roster with bars, but builder-twin rows compressed vs MAUI (maui-vs-cpp SSIM 0.85 vs maui-vs-xaml 0.91).
 
 #### ⏳ Gemini Review
 
@@ -6769,16 +6769,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 165. Some Empty Groups — 🟢/⏳
+### 165. Some Empty Groups — 🟡/⏳
 <sub>some_empty_groups</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/some_empty_groups_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/some_empty_groups_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/some_empty_groups_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/some_empty_groups_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/some_empty_groups_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/some_empty_groups_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/some_empty_groups_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/some_empty_groups_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/some_empty_groups_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/some_empty_groups_dark.png" /></td></tr></table>
 
 ports GroupingGalleries/SomeEmptyGroups.xaml (+ .xaml.cs)
 
-#### 🟢 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-Grouped list with empty groups still showing their headers/footers (Avengers:2, Thundercats:0, Avengers:0, Bionic Six:0, Fantastic Four:4) matches MAUI. Prior red was stale (MAUI ref blank at review time).
+Correct grouped list with empty-group headers/footers and bars, but builder-twin rows compressed vs MAUI (maui-vs-cpp SSIM 0.88 vs maui-vs-xaml 0.96).
 
 #### ⏳ Gemini Review
 
@@ -7016,16 +7016,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 178. Switch Grouping — 🟢/⏳
+### 178. Switch Grouping — 🟡/⏳
 <sub>switch_grouping</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/switch_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/switch_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/switch_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/switch_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/switch_grouping_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/switch_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/switch_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/switch_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/switch_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/switch_grouping_dark.png" /></td></tr></table>
 
 ports CollectionViewGalleries/GroupingGalleries/ SwitchGrouping.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🟢 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-'Is Grouped' switch (on) + grouped roster match MAUI. Prior red was stale (MAUI ref blank at review time).
+Correct switch + grouped roster with bars, but builder-twin rows compressed vs MAUI (maui-vs-cpp SSIM 0.83 vs maui-vs-xaml 0.94).
 
 #### ⏳ Gemini Review
 
