@@ -43,36 +43,38 @@
                 </Picker>
 
                 <Label Text="Background" FontSize="18" FontAttributes="Bold" />
-                <Label Text="Background Start Color" />
+                <Label Text="Background Start Color" FontSize="8" />
                 <Entry Text="#00B4DB" Placeholder="Background Start Color Hex" />
-                <Label Text="Background End Color" />
+                <Label Text="Background End Color" FontSize="8" />
                 <Entry Text="#0083B0" Placeholder="Background End Color Hex" />
 
                 <Label Text="Content Background" FontSize="18" FontAttributes="Bold" />
-                <CheckBox IsChecked="False" />
-                <Label Text="Show Content Background" />
+                <StackLayout Orientation="Horizontal">
+                    <CheckBox IsChecked="False" WidthRequest="48" VerticalOptions="Center" />
+                    <Label Text="Show Content Background" VerticalOptions="Center" />
+                </StackLayout>
 
                 <Label Text="Border" FontSize="18" FontAttributes="Bold" />
-                <Label Text="Border Start Color" />
+                <Label Text="Border Start Color" FontSize="8" />
                 <Entry Text="#CAC531" Placeholder="Border Start Color Hex" />
-                <Label Text="Border End Color" />
+                <Label Text="Border End Color" FontSize="8" />
                 <Entry Text="#F3F9A7" Placeholder="Border End Color Hex" />
 
-                <Label Text="Border Width: 5" />
+                <Label Text="Border Width: 5" FontSize="8" />
                 <Slider Minimum="0" Maximum="20" Value="5" />
 
-                <Label Text="Border Dash Array:" />
+                <Label Text="Border Dash Array:" FontSize="8" />
                 <Entry Text="1, 1" />
 
-                <Label Text="Border Dash Offset: 1" />
+                <Label Text="Border Dash Offset: 1" FontSize="8" />
                 <Slider Minimum="0" Maximum="2" Value="1" />
 
                 <Label Text="Border LineJoin" FontSize="18" FontAttributes="Bold" />
                 <Picker Title="Border LineJoin">
                     <Picker.Items>
                         <x:String>Miter</x:String>
-                        <x:String>Bevel</x:String>
                         <x:String>Round</x:String>
+                        <x:String>Bevel</x:String>
                     </Picker.Items>
                 </Picker>
 
@@ -87,13 +89,13 @@
 
                 <VerticalStackLayout Spacing="2">
                     <Label Text="Corner Radius" FontSize="18" FontAttributes="Bold" />
-                    <Label Text="Top Left Corner Radius: 20" />
+                    <Label Text="Top Left Corner Radius: 20" FontSize="8" />
                     <Slider Minimum="0" Maximum="60" Value="20" />
-                    <Label Text="Top Right Corner Radius: 0" />
+                    <Label Text="Top Right Corner Radius: 0" FontSize="8" />
                     <Slider Minimum="0" Maximum="60" Value="0" />
-                    <Label Text="Bottom Left Corner Radius: 0" />
+                    <Label Text="Bottom Left Corner Radius: 0" FontSize="8" />
                     <Slider Minimum="0" Maximum="60" Value="0" />
-                    <Label Text="Bottom Right Corner Radius: 12" />
+                    <Label Text="Bottom Right Corner Radius: 12" FontSize="8" />
                     <Slider Minimum="0" Maximum="60" Value="12" />
                 </VerticalStackLayout>
             </VerticalStackLayout>
