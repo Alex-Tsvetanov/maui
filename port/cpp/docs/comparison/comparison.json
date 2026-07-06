@@ -10525,8 +10525,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3: an extra red blurred shadow is rendered along the bottom edge of the green-bordered host box in both themes; MAUI shows no shadow. Sliders, labels, and host box otherwise match."
+          "status": "green",
+          "review": "C1/C3: MAUI vs C++ (light+dark) match \u2014 'Update Host Size' link, shadow sliders (offset X/Y=10, radius=10, opacity=1.00), and the green-bordered host box (white fill) all identical in both themes. Notification banner artifact in corner exempt."
         },
         "gemini": {
           "status": null,
@@ -10534,7 +10534,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "C2/C4: matches MAUI in both themes \u2014 four sliders at identical positions and the green-bordered host box (white interior in dark mode) with no shadow, same as the reference."
+          "review": "C2/C4: MAUI vs C++&XAML (light+dark) match \u2014 identical layout, slider positions, and green-bordered white host box in both themes."
         },
         "pixel": {
           "status": "red",
@@ -16850,8 +16850,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3: the C++ port renders a strong red shadow under the cyan box plus a red shadow ghost of the 'Label with a Shadow' text in both themes, while the MAUI reference shows no visible shadow at all on either element. Sliders/entries/button otherwise match. Likely a MAUI-Catalyst-side missing-shadow quirk, but per ruling MAUI is ground truth, so the extra prominent red shadows are a major content diff."
+          "status": "green",
+          "review": "C1/C3: MAUI vs C++ (light+dark) pixel-identical \u2014 label, blue rect with red shadow, background/shadow-color fields, all four sliders (offset X/Y, radius, opacity) at matching positions, 'Remove Shadow' link. Notification banner in C++ dark/light corner is an OS artifact, exempt."
         },
         "gemini": {
           "status": null,
@@ -16859,7 +16859,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "C2/C4: no shadow rendered on the label or box, matching the MAUI reference exactly in both themes; all controls (color entries, four sliders, Remove Shadow button) match."
+          "review": "C2/C4: MAUI vs C++&XAML (light+dark) pixel-identical to MAUI, same as cpp column \u2014 all controls, slider positions, and colors match exactly."
         },
         "pixel": {
           "status": "red",
