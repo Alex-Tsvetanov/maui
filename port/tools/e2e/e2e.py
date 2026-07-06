@@ -434,16 +434,25 @@ def cmd_keys(args: argparse.Namespace) -> int:
 
 
 # ---------------------------------------------------------------- capture ---------------------------
-# macCatalyst capture (ported from the legacy capture_maccatalyst.py): launch the app binary directly
-# with the page/theme env, locate its window by CGWindowID (via pyobjc-framework-Quartz —
-# `pip3 install pyobjc-framework-Quartz`), then `screencapture -x -o -l <id>` that SPECIFIC window —
-# no `set frontmost`, no stealing the operator's screen/focus, and no risk of another window (a system
-# notification, another app, the operator's own IDE) compositing into the shot, since -l reads that
-# window's own backing store regardless of stacking order or occlusion. SIGKILL to end (SIGTERM makes
-# .NET apps crash-report a lingering dialog). Falls back to the OLD fixed-rect + frontmost + region-grab
-# path (2026-07-05 era) only if Quartz isn't installed or no window is found in time — that path DOES
-# have the "wrong window composited" hazard the window-ID path was built to close, so always eyeball a
-# sample if you ever see it engage (a "(fallback rect ...)" line in the capture log).
+# macCatalyst capture: launch the app bundle in the BACKGROUND (`open -g -n --env ...` — LaunchServices
+# launches it WITHOUT activation, so the operator's keyboard/mouse focus is NEVER touched, unlike a
+# direct binary exec which self-activates on launch), locate its window by CGWindowID (via
+# pyobjc-framework-Quartz — `pip3 install pyobjc-framework-Quartz`), then `screencapture -x -o -l <id>`
+# that SPECIFIC window — no `set frontmost`, and no risk of another window (a system notification,
+# another app, the operator's own IDE) compositing into the shot, since -l reads that window's own
+# backing store regardless of stacking order or occlusion.
+#
+# FOCUS-STATE RENDERING: a never-activated window renders its CHROME inactive (gray traffic lights /
+# title text — already review-exempt) and would ALSO dim default-tinted CONTENT (UIButton's system-blue
+# text renders gray, UIKit tintAdjustmentMode Dimmed) — which WOULD corrupt content comparisons. All
+# three apps therefore honor MAUI_CAPTURE_TINT_NORMAL=1 (set below): they force
+# tintAdjustmentMode=Normal on their window, keeping content pixels identical to the active render
+# (see ios/host_run.mm + MauiReference/MauiProgram.cs).
+#
+# SIGKILL to end (SIGTERM makes .NET apps crash-report a lingering dialog). Falls back to the OLD
+# fixed-rect + frontmost + region-grab path (2026-07-05 era) only if Quartz is unavailable or no window
+# is found in time — that path steals focus AND has the "wrong window composited" hazard, so always
+# eyeball a sample if you ever see it engage (a "(fallback rect ...)" line in the capture log).
 MACCAT_APPS = {
     "maui": {
         "bin": os.path.join(REF, "app", "bin", "Debug", "net10.0-maccatalyst", "maccatalyst-arm64",
@@ -504,32 +513,65 @@ def _find_window_id(pid: int, retries: int = 15, delay: float = 0.3) -> int | No
     return None
 
 
+def _launch_background(app: dict, env_pairs: dict[str, str]) -> int | None:
+    """Launch the app BUNDLE via `open -g -n --env ...` (LaunchServices background launch — the app is
+    never activated, so the operator's keyboard/mouse focus is untouched) and return the NEW process's
+    pid, or None. `open` detaches, so the pid is found by diffing `pgrep -x <proc>` before/after."""
+    bundle = os.path.abspath(os.path.join(os.path.dirname(app["bin"]), "..", ".."))
+    before = set(subprocess.run(["pgrep", "-x", app["proc"]], capture_output=True,
+                                text=True).stdout.split())
+    cmd = ["open", "-g", "-n"]
+    for k, v in env_pairs.items():
+        cmd += ["--env", f"{k}={v}"]
+    cmd.append(bundle)
+    if subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
+        return None
+    for _ in range(40):  # `open` returns before the process registers; poll for the new pid
+        now = set(subprocess.run(["pgrep", "-x", app["proc"]], capture_output=True,
+                                 text=True).stdout.split())
+        fresh = now - before
+        if fresh:
+            return int(next(iter(fresh)))
+        time.sleep(0.25)
+    return None
+
+
 def _maccat_shot(framework: str, key: str, theme: str, settle: float) -> bool:
     app = MACCAT_APPS[framework]
     if not os.path.isfile(app["bin"]):
         print(f"  ! missing binary for {framework}: {app['bin']}")
         return False
-    env = dict(os.environ, **app["env"](key, theme))
-    proc = subprocess.Popen([app["bin"]], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # MAUI_CAPTURE_TINT_NORMAL: all three apps force tintAdjustmentMode=Normal so the never-activated
+    # window's CONTENT renders exactly like the active state (see the header comment above).
+    env_pairs = dict(app["env"](key, theme), MAUI_CAPTURE_TINT_NORMAL="1")
+    pid = _launch_background(app, env_pairs)
+    proc = None
+    if pid is None:
+        # LaunchServices launch failed (sandbox/quarantine/...) — direct binary exec. This DOES
+        # self-activate (steals focus for the app's lifetime); loud in the log via the fallback line.
+        env = dict(os.environ, **env_pairs)
+        proc = subprocess.Popen([app["bin"]], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        pid = proc.pid
     try:
         time.sleep(settle)
         subprocess.run(["killall", "-9", "ReportCrash"], stderr=subprocess.DEVNULL)
         subprocess.run(["killall", "UserNotificationCenter"], stderr=subprocess.DEVNULL)
-        win_id = _find_window_id(proc.pid)
+        win_id = _find_window_id(pid)
         out = capture_out_path("maccatalyst", framework, key, theme)
         os.makedirs(os.path.dirname(out), exist_ok=True)
         if win_id is not None:
             # -x: no capture-sound. -o: omit the drop-shadow padding (tight window-bounds crop).
-            # -l: this specific window, by CGWindowID — no frontmost/activate step, so the app never
-            # steals focus and no OTHER window (a system notification, another app, an IDE) can ever
-            # composite into the shot, closing the "wrong window captured" hazard class entirely.
+            # -l: this specific window, by CGWindowID — reads that window's own backing store, so no
+            # OTHER window (a system notification, another app, an IDE) can ever composite into the
+            # shot, and the window needs neither focus nor front-of-stack placement.
             rc = subprocess.run(["screencapture", "-x", "-o", "-l", str(win_id), out]).returncode
             ok = rc == 0 and os.path.isfile(out)
             print(f"  {framework:5} {key:28} {'ok' if ok else 'FAIL'} (window {win_id})")
         else:
-            # Fallback: no Quartz / no window found — the old fixed-rect + frontmost path.
+            # Fallback: no Quartz / no window found — the old fixed-rect + frontmost path (focus steal
+            # + wrong-window-composite hazard; eyeball the resulting PNG).
             _osa(f'tell application "System Events" to set frontmost of '
-                 f'(first process whose unix id is {proc.pid}) to true')
+                 f'(first process whose unix id is {pid}) to true')
             time.sleep(1.2)
             rect = app["rect"]
             got = _osa(f'tell application "System Events" to tell process "{app["proc"]}"\n'
@@ -543,11 +585,12 @@ def _maccat_shot(framework: str, key: str, theme: str, settle: float) -> bool:
             print(f"  {framework:5} {key:28} {'ok' if ok else 'FAIL'} (fallback rect {rect})")
         return ok
     finally:
-        proc.kill()
-        try:
-            proc.wait(timeout=3)
-        except Exception:
-            pass
+        subprocess.run(["kill", "-9", str(pid)], stderr=subprocess.DEVNULL)
+        if proc is not None:
+            try:
+                proc.wait(timeout=3)
+            except Exception:
+                pass
         time.sleep(0.4)
 
 

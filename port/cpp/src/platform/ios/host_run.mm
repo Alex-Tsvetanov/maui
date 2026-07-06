@@ -26,6 +26,7 @@
 #import <UIKit/UIKit.h>
 #import <os/log.h>
 
+#include <cstdlib>
 #include <exception>
 #include <memory>
 
@@ -201,6 +202,22 @@ namespace
     if (self.window == nil)
     {
         return NO;
+    }
+    // Capture-determinism opt-in (MAUI_CAPTURE_TINT_NORMAL=1, set by port/tools/e2e/e2e.py): when the
+    // parity tool launches this app in the BACKGROUND (`open -g`, so the operator's focus is never
+    // stolen), the window is never key/active, and Catalyst then renders every default-tinted control
+    // dimmed (UIButton's system-blue text renders gray) via the UITraitActiveAppearance trait (plus
+    // the legacy tintAdjustmentMode path). Forcing BOTH to their active values keeps the CONTENT
+    // pixels identical to the active-window render; the window CHROME (title text, traffic lights)
+    // still draws inactive, which the parity review already exempts. Default (no env) keeps faithful
+    // UIKit behavior.
+    if (std::getenv("MAUI_CAPTURE_TINT_NORMAL") != nullptr)
+    {
+        self.window.tintAdjustmentMode = UIViewTintAdjustmentModeNormal;
+        if (@available(macCatalyst 17.0, *))
+        {
+            self.window.traitOverrides.activeAppearance = UIUserInterfaceActiveAppearanceActive;
+        }
     }
     [self.window makeKeyAndVisible];
     return YES;

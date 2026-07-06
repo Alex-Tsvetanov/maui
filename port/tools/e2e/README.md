@@ -69,14 +69,24 @@ python3 port/tools/e2e/e2e.py capture --platform maccatalyst --framework maui,cp
 python3 port/tools/e2e/e2e.py capture --platform maccatalyst --framework cpp --theme light transform_playground
 ```
 
-Launches each framework's app binary directly with the page/theme env
-(`MAUI_COMPARE_PAGE`/`MAUI_THEME` for `maui`, `MAUI_SAMPLE_PAGE`/`MAUI_APPEARANCE` for `cpp`/`xaml`),
-locates its window by **CGWindowID**, and captures that SPECIFIC window with
-`screencapture -x -o -l <id>` — no `set frontmost`, so it never steals your screen/mouse focus, and
-no OTHER window (a system notification, another app, your own editor) can ever composite into the
-shot, since `-l` reads that window's own backing store regardless of what's on top or occluding it on
-screen. This closes the "wrong window captured" hazard class that fixed-rect region capture is
-inherently exposed to.
+Launches each framework's app bundle **in the background** (`open -g -n --env …` — LaunchServices
+never activates it, so your keyboard/mouse focus is NEVER touched, unlike a direct binary exec which
+self-activates at launch) with the page/theme env (`MAUI_COMPARE_PAGE`/`MAUI_THEME` for `maui`,
+`MAUI_SAMPLE_PAGE`/`MAUI_APPEARANCE` for `cpp`/`xaml`), locates its window by **CGWindowID**, and
+captures that SPECIFIC window with `screencapture -x -o -l <id>` — no `set frontmost`, and no OTHER
+window (a system notification, another app, your own editor) can ever composite into the shot, since
+`-l` reads that window's own backing store regardless of what's on top or occluding it on screen.
+This closes the "wrong window captured" hazard class that fixed-rect region capture is inherently
+exposed to, AND the focus-theft the old always-frontmost flow imposed on the operator.
+
+**Focus-state rendering**: a never-activated Catalyst window would normally render default-tinted
+CONTENT dimmed (system-blue button text turns gray — the `UITraitActiveAppearance` trait). The capture
+tool therefore always passes `MAUI_CAPTURE_TINT_NORMAL=1`, which all three apps honor by forcing
+`traitOverrides.activeAppearance = .active` (+ `tintAdjustmentMode = .normal`) on their window — see
+`port/cpp/src/platform/ios/host_run.mm` and `port/maui-reference/app/MauiProgram.cs`. Content pixels
+are then IDENTICAL to the active-window render (verified: UIButton text samples #0076F6 system blue in
+a background capture); only the window CHROME (title text, traffic lights) draws inactive, which the
+parity review already exempts as window chrome.
 
 **Requires `pyobjc-framework-Quartz`** (`pip3 install --user --break-system-packages
 pyobjc-framework-Quartz` on a Homebrew Python — the two flags are needed together on an
