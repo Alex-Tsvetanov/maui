@@ -75,15 +75,18 @@ namespace maui::samples
             layout->set_vertical_item_spacing(staggered_item_spacing);
             list_.set_items_layout(layout);
 
-            // ---- the item template: a RandomSizeTemplate-like cell. The C# RandomSizeTemplate is an
-            // Image+Label whose HeightRequest is randomized per item; the port keeps the bound caption
-            // Label (the CollectionView-page label-cell reduction) and STAGES each cell's varied height
-            // off the item via the bound HeightRequest (the staggered signal) ----
+            // ---- the item template: a plain caption Label, exactly what the canonical shared
+            // staggered_layout.xaml declares (`<Label Text="{Binding .}"/>`). The C# RandomSizeTemplate's
+            // per-item randomized HeightRequest is the page's real subject, but the shared twin CANNOT
+            // express a per-item bound height statically (its x:Array-of-string source carries no height
+            // field), so the MAUI ground-truth capture shows compact uniform label rows — and an earlier
+            // builder cut that staged varied heights via a bound HeightRequest rendered ~4-6x taller rows
+            // than MAUI, a standing red. The varied-height scenario belongs in the P3 gap corpus
+            // (a gap_*.xaml probing bound HeightRequest in a DataTemplate); at rest both frameworks now
+            // match the twin. The items_ source keeps its height field for that future scenario. ----
             auto cell = maui::controls::data_template::of<maui::controls::label>();
             cell->set_binding<std::string, random_size_item>(maui::controls::label::text_property(),
                                                              [](const random_size_item& item) { return item.caption; });
-            cell->set_binding<double, random_size_item>(maui::controls::height_request_property(),
-                                                        [](const random_size_item& item) { return item.height; });
             list_.set_item_template(cell);
 
             // ---- CV.ItemsSource = _demoFilteredItemSource.Items (the commented ctor line) ----
