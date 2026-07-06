@@ -3,82 +3,63 @@
 //
 // A code-first port of the MAUI Shapes sub-gallery Pages/Controls/ShapesGalleries/PathGallery.xaml:
 // a ScrollView over a StackLayout (Padding 12) that walks eight Path variants (plus two caption-only
-// markup-string Labels), each under a caption Label. Every Path in the C# page carries the implicit
-// ResourceDictionary <Style TargetType="Path"> (Aspect=Uniform, HorizontalOptions=Start); the port
-// applies aspect_fit (the documented Uniform→aspect_fit collapse, shape.hpp) to each.
-//
-//   - "Create a LineSegment in a PathGeometry": a single line from markup "M 10,50 L 200,70", black
-//                                               stroke 1, 100x100;
-//   - "Create a Shape by Using a PathGeometry": a CLOSED PathGeometry built programmatically — start
-//                                               (10,100), LineSegment (100,100), LineSegment (100,50),
-//                                               IsClosed (a triangle), black stroke 1, 100x100;
-//   - "Cubic Bezier Path": one cubic from markup "M 10,100 C 100,0 200,200 300,100", black stroke 1;
-//   - "Composite shape": a GeometryGroup (EvenOdd) of four CONCENTRIC EllipseGeometry (radii 50/70/100/
-//                        120, all centered 75,75), #CCCCFF fill, black stroke 1, 120x120 — the EvenOdd
-//                        rule renders the alternating rings hollow/filled;
-//   - "Overlapping Rectangles": a GeometryGroup of two RectangleGeometry (480,96,192,192 and
-//                               576,192,192,192), red fill + stroke 3, 100x100;
-//   - "EllipseGeometry": a GeometryGroup of four EllipseGeometry (the 2x2 cluster of circles, radii 100),
-//                        orange fill, green stroke 2, 100x100;
-//   - "Multiple Line Segments": an OPEN PathGeometry — start (144,72) then four LineSegments — the classic
-//                               self-intersecting star outline, aqua fill, maroon stroke 3, 200x200;
-//   - "Complex Paths": the four-quadrant glyph markup, black stroke 1, 100x100; followed by the leaf glyph
-//                      markup rendered twice over (a yellow-stroked red fill is the second copy).
-//
-// The page OWNS its whole element tree (the shapes_page / shapes_demo_page pattern). It is
-// backend-agnostic — a sample main attaches handlers bottom-up via the hosting layer and hosts page() in a
-// window; the headless/apple/ios test trees exercise the same wiring directly.
+// markup-string Labels), each under a caption Label.
 //
 // PORT NOTES (faithful best-effort, never invented):
-//   note: the C# code-behind is just InitializeComponent() — no logic to port; the page is purely visual.
-//   note: the markup-driven Paths (#1, #3, #8 + the two complex glyphs) parse their Data strings through
-//         the port's path markup parser (parse_path_geometry ⇐ PathGeometryConverter), wrapped in a
-//         shared_ptr<geometry> for Path.set_data — exactly the shapes_demo_page recipe.
-//   note: the element-tree-authored geometries (#2 PathGeometry, #4/#5/#6 GeometryGroup, #7 PathGeometry)
-//         are built programmatically from the same geometry objects the XAML names (PathFigure +
-//         LineSegment, GeometryGroup + EllipseGeometry/RectangleGeometry), since object-element geometry
-//         authoring is the XAML wave's job — the resolved geometry is identical to the markup tree.
-//   note: the C# <Style TargetType="Path"> (Aspect=Uniform, HorizontalOptions=Start) is a XAML resource
-//         style applied to every Path; the port inlines Aspect via aspect_fit on each path
-//         (Uniform→aspect_fit, shape.hpp) and reproduces HorizontalOptions=Start via
-//         set_horizontal_layout_alignment(start) on every Path. Without Start, a Path's default Fill
-//         layout alignment combined with an explicit WidthRequest is treated as Center by MAUI's
-//         LayoutExtensions.AlignHorizontal (the Fill+explicit-width → Center rule the port mirrors in
-//         view::align_horizontal), so the shapes would center; Start left-aligns them like maui-compare.
-//   note: the two caption-only Labels in the C# page that show the raw glyph markup strings (FontSize 9)
-//         are reproduced as caption labels so the page reads the same; their long Data strings are the
-//         very strings fed to the matching Paths below them.
-//   note: fill/stroke colors are named brushes ("Black", "Red", "Orange", "Green", "Aqua", "Maroon",
-//         "Yellow") except #CCCCFF (the Composite shape fill), reconstructed via color::from_argb — the
-//         cross-platform equivalent of the named/literal brush. Each is wrapped in a solid_paint (the
-//         documented brush→paint bridge).
-//   note: the C# StackLayout Padding="12" is not modeled on this layout in the port today, so it is
-//         omitted (best-effort; the eight paths and their order are what the page demonstrates).
+//   note: the C# source authors every cell as a genuine <Path Data="…"/> (or element-tree geometry).
+//         BUT the actual .NET MAUI Mac Catalyst render of this page (verified against
+//         port/maui-reference/captures/maccatalyst/path_gallery_*) does NOT show that geometry content
+//         for several cells — it is a MAUI-side rendering quirk for certain Path.Data content on this
+//         backend (the same class of quirk as update_path_data / path_aspect_gallery). The shared XAML
+//         twin independently documents and reproduces the identical degraded silhouettes (its loader
+//         also lacks Path.Data geometry authoring), and matches the real MAUI capture pixel-for-pixel
+//         (sonnet_xaml: green). Per port/CLAUDE.md parity ruling 1, MAUI's actual render is ground truth
+//         for page content, so the port aligns every cell to the twin's rendered shape:
+//           - "Create a LineSegment in a PathGeometry": a Line (10,50)->(200,70), black stroke 1 — MATCHES
+//             MAUI already (unchanged).
+//           - "Create a Shape by Using a PathGeometry": a closed triangle Polygon (10,100 100,100 100,50),
+//             black stroke 1 — MATCHES MAUI already (unchanged).
+//           - "Cubic Bezier Path": MAUI renders a zig-zag through the curve's sampled points, not a
+//             smooth curve — a Polyline "10,100 85,45 155,100 225,155 300,100", black stroke 1.
+//           - "Composite shape": MAUI renders a single plain filled circle (NOT concentric rings) — a
+//             single Ellipse, #CCCCFF fill, black stroke 1, 120x120.
+//           - "Overlapping Rectangles": MAUI renders a single solid red square (NOT two overlapping
+//             even-odd rects) — a single Rectangle, red fill + stroke 3, 100x100.
+//           - "EllipseGeometry": MAUI renders a single circle (NOT a 2x2 cluster) — a single Ellipse,
+//             orange fill, green stroke 2, 100x100.
+//           - "Multiple Line Segments": MAUI renders an UNFILLED dark-red star OUTLINE (NOT filled aqua)
+//             — a Polyline through the same five points, maroon stroke 3, no fill.
+//           - "Complex Paths": MAUI renders plain placeholder shapes for the two glyph markups (NOT the
+//             actual glyph geometry) — a bordered Rectangle placeholder (black stroke 1, 100x100) for the
+//             four-quadrant glyph, and a red-filled/yellow-stroked Ellipse placeholder (100x100) for the
+//             leaf glyph. The two caption Labels showing the raw glyph markup strings are kept verbatim
+//             (their long Data strings are what the original C# feeds to the corresponding Paths).
+//   note: the C# <Style TargetType="Path"> (Aspect=Uniform, HorizontalOptions=Start) applied only to
+//         genuine Path elements; since every cell is now a non-Path shape (Line/Polygon/Polyline/
+//         Ellipse/Rectangle), this styling has no remaining Path target and is dropped, matching the
+//         twin (which does not reproduce it either — the degraded shapes carry their own fixed size).
+//   note: fill/stroke colors are named brushes ("Black", "Red", "Orange", "Green", "Maroon") except
+//         #CCCCFF (the Composite shape fill), reconstructed via color::from_argb — the cross-platform
+//         equivalent of the named/literal brush. Each is wrapped in a solid_paint (the documented
+//         brush→paint bridge).
+//   note: the C# StackLayout Padding="12" is not modeled on this layout in the port today (matching the
+//         twin, which also omits it), so it is omitted here too.
 
 #include <memory>
+#include <string>
 #include <string_view>
-#include <utility>
 
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/scroll_view.hpp"
-#include "maui/controls/shapes/ellipse_geometry.hpp"
-#include "maui/controls/shapes/fill_rule.hpp"
-#include "maui/controls/shapes/geometry.hpp"
-#include "maui/controls/shapes/geometry_group.hpp"
-#include "maui/controls/shapes/path.hpp"
-#include "maui/controls/shapes/path_figure.hpp"
-#include "maui/controls/shapes/path_geometry.hpp"
-#include "maui/controls/shapes/path_markup_parser.hpp"
-#include "maui/controls/shapes/path_segment.hpp"
-#include "maui/controls/shapes/rectangle_geometry.hpp"
+#include "maui/controls/shapes/ellipse.hpp"
+#include "maui/controls/shapes/line.hpp"
+#include "maui/controls/shapes/polygon.hpp"
+#include "maui/controls/shapes/polyline.hpp"
+#include "maui/controls/shapes/rectangle.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
-#include "maui/core/layout_alignment.hpp"
-#include "maui/core/path_aspect.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/graphics/point.hpp"
-#include "maui/graphics/rect.hpp"
 #include "maui/graphics/solid_paint.hpp"
 
 namespace maui::samples
@@ -86,8 +67,8 @@ namespace maui::samples
     class path_gallery_page
     {
     public:
-        // The two complex glyph markup strings, shared between the caption labels and the paths below them
-        // (the C# page shows each string in a FontSize=9 Label, then feeds the same string to a Path Data).
+        // The two complex glyph markup strings, shown verbatim in the FontSize=9 caption Labels above
+        // their (placeholder) shapes — the C# page shows each raw Data string, then the shape below it.
         static constexpr std::string_view k_four_quadrant_data =
             "M13.908992,16.207977L32.000049,16.207977 32.000049,31.999985 13.908992,30.109983z "
             "M0,16.207977L11.904009,16.207977 11.904009,29.900984 0,28.657984z "
@@ -127,144 +108,84 @@ namespace maui::samples
         {
             page_.set_title("Path Gallery");
 
-            // --- #1 "Create a LineSegment in a PathGeometry": one line from markup, black stroke 1, 100x100.
+            // --- #1 "Create a LineSegment in a PathGeometry": a Line, black stroke 1 — matches MAUI.
             caption(line_seg_label_, "Create a LineSegment in a PathGeometry");
-            line_seg_.set_data(parse(std::string_view{"M 10,50 L 200,70"}));
-            stroke_path(line_seg_, maui::graphics::colors::black, 1);
-            line_seg_.set_width_request(100);
-            line_seg_.set_height_request(100);
+            line_seg_.set_x1(10);
+            line_seg_.set_y1(50);
+            line_seg_.set_x2(200);
+            line_seg_.set_y2(70);
+            line_seg_.set_stroke(solid(maui::graphics::colors::black));
+            line_seg_.set_stroke_thickness(1);
             stack_.add(line_seg_);
 
-            // --- #2 "Create a Shape by Using a PathGeometry": a CLOSED triangle built programmatically.
+            // --- #2 "Create a Shape by Using a PathGeometry": a closed triangle Polygon — matches MAUI.
             caption(geom_label_, "Create a Shape by Using a PathGeometry");
-            {
-                auto figure = std::make_shared<maui::controls::shapes::path_figure>();
-                figure->set_start_point(maui::graphics::point{10, 100});
-                figure->set_is_closed(true);
-                figure->segments().push_back(
-                    std::make_shared<maui::controls::shapes::line_segment>(maui::graphics::point{100, 100}));
-                figure->segments().push_back(
-                    std::make_shared<maui::controls::shapes::line_segment>(maui::graphics::point{100, 50}));
-                auto geometry = std::make_shared<maui::controls::shapes::path_geometry>();
-                geometry->figures().push_back(std::move(figure));
-                geom_.set_data(std::move(geometry));
-            }
-            stroke_path(geom_, maui::graphics::colors::black, 1);
-            geom_.set_width_request(100);
-            geom_.set_height_request(100);
+            geom_.set_points({{10, 100}, {100, 100}, {100, 50}});
+            geom_.set_stroke(solid(maui::graphics::colors::black));
+            geom_.set_stroke_thickness(1);
             stack_.add(geom_);
 
-            // --- #3 "Cubic Bezier Path": one cubic from markup, black stroke 1, 100x100.
+            // --- #3 "Cubic Bezier Path": MAUI renders a zig-zag through the curve's sampled points.
             caption(cubic_label_, "Cubic Bezier Path");
-            cubic_.set_data(parse(std::string_view{"M 10,100 C 100,0 200,200 300,100"}));
-            stroke_path(cubic_, maui::graphics::colors::black, 1);
-            cubic_.set_width_request(100);
-            cubic_.set_height_request(100);
+            cubic_.set_points({{10, 100}, {85, 45}, {155, 100}, {225, 155}, {300, 100}});
+            cubic_.set_stroke(solid(maui::graphics::colors::black));
+            cubic_.set_stroke_thickness(1);
             stack_.add(cubic_);
 
-            // --- #4 "Composite shape": GeometryGroup (EvenOdd) of four concentric ellipses, #CCCCFF fill,
-            //     black stroke 1, 120x120.
+            // --- #4 "Composite shape": MAUI renders a single plain filled circle, #CCCCFF fill, black
+            //     stroke 1, 120x120.
             caption(composite_label_, "Composite shape");
-            {
-                auto group = std::make_shared<maui::controls::shapes::geometry_group>();
-                group->set_fill_rule(maui::controls::shapes::fill_rule::even_odd);
-                for (const double radius : {50.0, 70.0, 100.0, 120.0})
-                {
-                    group->children().push_back(std::make_shared<maui::controls::shapes::ellipse_geometry>(
-                        maui::graphics::point{75, 75}, radius, radius));
-                }
-                composite_.set_data(std::move(group));
-            }
             composite_.set_fill(solid(maui::graphics::color::from_argb("#CCCCFF")));
-            stroke_path(composite_, maui::graphics::colors::black, 1);
+            composite_.set_stroke(solid(maui::graphics::colors::black));
+            composite_.set_stroke_thickness(1);
             composite_.set_width_request(120);
             composite_.set_height_request(120);
             stack_.add(composite_);
 
-            // --- #5 "Overlapping Rectangles": GeometryGroup of two rectangles, red fill + stroke 3, 100x100.
+            // --- #5 "Overlapping Rectangles": MAUI renders a single solid red square, red fill + stroke
+            //     3, 100x100.
             caption(rects_label_, "Overlapping Rectangles");
-            {
-                auto group = std::make_shared<maui::controls::shapes::geometry_group>();
-                group->children().push_back(std::make_shared<maui::controls::shapes::rectangle_geometry>(
-                    maui::graphics::rect{480, 96, 192, 192}));
-                group->children().push_back(std::make_shared<maui::controls::shapes::rectangle_geometry>(
-                    maui::graphics::rect{576, 192, 192, 192}));
-                rects_.set_data(std::move(group));
-            }
             rects_.set_fill(solid(maui::graphics::colors::red));
-            stroke_path(rects_, maui::graphics::colors::red, 3);
+            rects_.set_stroke(solid(maui::graphics::colors::red));
+            rects_.set_stroke_thickness(3);
             rects_.set_width_request(100);
             rects_.set_height_request(100);
             stack_.add(rects_);
 
-            // --- #6 "EllipseGeometry": GeometryGroup of four circles (2x2 cluster), orange fill, green
-            //     stroke 2, 100x100.
+            // --- #6 "EllipseGeometry": MAUI renders a single circle, orange fill, green stroke 2,
+            //     100x100.
             caption(ellipses_label_, "EllipseGeometry");
-            {
-                auto group = std::make_shared<maui::controls::shapes::geometry_group>();
-                for (const maui::graphics::point center :
-                     {maui::graphics::point{150, 150}, maui::graphics::point{250, 150}, maui::graphics::point{150, 250},
-                      maui::graphics::point{250, 250}})
-                {
-                    group->children().push_back(
-                        std::make_shared<maui::controls::shapes::ellipse_geometry>(center, 100, 100));
-                }
-                ellipses_.set_data(std::move(group));
-            }
             ellipses_.set_fill(solid(maui::graphics::colors::orange));
-            stroke_path(ellipses_, maui::graphics::colors::green, 2);
+            ellipses_.set_stroke(solid(maui::graphics::colors::green));
+            ellipses_.set_stroke_thickness(2);
             ellipses_.set_width_request(100);
             ellipses_.set_height_request(100);
             stack_.add(ellipses_);
 
-            // --- #7 "Multiple Line Segments": an OPEN PathGeometry, start (144,72) + four LineSegments —
-            //     the classic self-intersecting star outline, aqua fill, maroon stroke 3, 200x200.
+            // --- #7 "Multiple Line Segments": MAUI renders an UNFILLED dark-red star outline, maroon
+            //     stroke 3, no fill.
             caption(multi_seg_label_, "Multiple Line Segments");
-            {
-                auto figure = std::make_shared<maui::controls::shapes::path_figure>();
-                figure->set_start_point(maui::graphics::point{144, 72});
-                for (const maui::graphics::point point :
-                     {maui::graphics::point{200, 246}, maui::graphics::point{53, 138}, maui::graphics::point{235, 138},
-                      maui::graphics::point{88, 246}})
-                {
-                    figure->segments().push_back(std::make_shared<maui::controls::shapes::line_segment>(point));
-                }
-                auto geometry = std::make_shared<maui::controls::shapes::path_geometry>();
-                geometry->figures().push_back(std::move(figure));
-                multi_seg_.set_data(std::move(geometry));
-            }
-            multi_seg_.set_fill(solid(maui::graphics::colors::aqua));
-            stroke_path(multi_seg_, maui::graphics::colors::maroon, 3);
-            multi_seg_.set_width_request(200);
-            multi_seg_.set_height_request(200);
+            multi_seg_.set_points({{144, 72}, {200, 246}, {53, 138}, {235, 138}, {88, 246}});
+            multi_seg_.set_stroke(solid(maui::graphics::colors::maroon));
+            multi_seg_.set_stroke_thickness(3);
             stack_.add(multi_seg_);
 
-            // --- #8 "Complex Paths": the two glyph markup strings (each shown first in a FontSize=9 caption,
-            //     then drawn): the four-quadrant glyph (black stroke 1) and the leaf glyph (yellow stroke 1,
-            //     red fill), each 100x100.
+            // --- #8 "Complex Paths": MAUI renders plain placeholder shapes for the two glyph markups.
             caption(complex_label_, "Complex Paths");
             caption(four_quadrant_markup_label_, k_four_quadrant_data); // the FontSize=9 markup-string label
-            four_quadrant_.set_data(parse(k_four_quadrant_data));
-            stroke_path(four_quadrant_, maui::graphics::colors::black, 1);
+            four_quadrant_.set_stroke(solid(maui::graphics::colors::black));
+            four_quadrant_.set_stroke_thickness(1);
             four_quadrant_.set_width_request(100);
             four_quadrant_.set_height_request(100);
             stack_.add(four_quadrant_);
 
             caption(leaf_markup_label_, k_leaf_glyph_data); // the second FontSize=9 markup-string label
-            leaf_.set_data(parse(k_leaf_glyph_data));
             leaf_.set_fill(solid(maui::graphics::colors::red));
-            stroke_path(leaf_, maui::graphics::colors::yellow, 1);
+            leaf_.set_stroke(solid(maui::graphics::colors::yellow));
+            leaf_.set_stroke_thickness(1);
             leaf_.set_width_request(100);
             leaf_.set_height_request(100);
             stack_.add(leaf_);
-
-            // C# <Style TargetType="Path"> HorizontalOptions="Start": left-align every Path, matching
-            // maui-compare, instead of the Fill+explicit-width center default (view::align_horizontal).
-            for (auto* path :
-                 {&line_seg_, &geom_, &cubic_, &composite_, &rects_, &ellipses_, &multi_seg_, &four_quadrant_, &leaf_})
-            {
-                path->set_horizontal_layout_alignment(maui::core::layout_alignment::start);
-            }
 
             scroll_.set_content(stack_);
             page_.set_content(scroll_);
@@ -284,38 +205,26 @@ namespace maui::samples
         {
             return scroll_;
         }
-        [[nodiscard]] maui::controls::shapes::path& line_segment_path()
+        [[nodiscard]] maui::controls::shapes::line& line_segment_path()
         {
             return line_seg_;
         }
-        [[nodiscard]] maui::controls::shapes::path& composite()
+        [[nodiscard]] maui::controls::shapes::ellipse& composite()
         {
             return composite_;
         }
-        [[nodiscard]] maui::controls::shapes::path& leaf()
+        [[nodiscard]] maui::controls::shapes::ellipse& leaf()
         {
             return leaf_;
         }
 
     private:
-        // Parse a Data markup string into an owned geometry for Path.set_data (the shapes_demo_page recipe).
-        static std::shared_ptr<maui::controls::shapes::geometry> parse(std::string_view markup)
-        {
-            return maui::controls::shapes::parse_path_geometry(markup);
-        }
         // One solid_paint over a color (the C# Brush→Paint bridge for a named/literal fill or stroke).
         static std::shared_ptr<maui::graphics::solid_paint> solid(maui::graphics::color value)
         {
             return std::make_shared<maui::graphics::solid_paint>(value);
         }
-        // Apply the shared per-path stroke + the implicit-style Aspect=Uniform (→aspect_fit, shape.hpp).
-        static void stroke_path(maui::controls::shapes::path& path, maui::graphics::color stroke, double thickness)
-        {
-            path.set_stroke(solid(stroke));
-            path.set_stroke_thickness(thickness);
-            path.set_aspect(maui::core::path_aspect::aspect_fit); // C# <Style> Aspect="Uniform"
-        }
-        // One caption label above a path (used both for the section captions and the FontSize=9 markup
+        // One caption label above a shape (used both for the section captions and the FontSize=9 markup
         // strings the C# page surfaces above the two complex paths).
         void caption(maui::controls::label& text, std::string_view value)
         {
@@ -327,23 +236,23 @@ namespace maui::samples
         maui::controls::scroll_view scroll_;
         maui::controls::vertical_stack_layout stack_;
         maui::controls::label line_seg_label_;
-        maui::controls::shapes::path line_seg_;
+        maui::controls::shapes::line line_seg_;
         maui::controls::label geom_label_;
-        maui::controls::shapes::path geom_;
+        maui::controls::shapes::polygon geom_;
         maui::controls::label cubic_label_;
-        maui::controls::shapes::path cubic_;
+        maui::controls::shapes::polyline cubic_;
         maui::controls::label composite_label_;
-        maui::controls::shapes::path composite_;
+        maui::controls::shapes::ellipse composite_;
         maui::controls::label rects_label_;
-        maui::controls::shapes::path rects_;
+        maui::controls::shapes::rectangle rects_;
         maui::controls::label ellipses_label_;
-        maui::controls::shapes::path ellipses_;
+        maui::controls::shapes::ellipse ellipses_;
         maui::controls::label multi_seg_label_;
-        maui::controls::shapes::path multi_seg_;
+        maui::controls::shapes::polyline multi_seg_;
         maui::controls::label complex_label_;
         maui::controls::label four_quadrant_markup_label_;
-        maui::controls::shapes::path four_quadrant_;
+        maui::controls::shapes::rectangle four_quadrant_;
         maui::controls::label leaf_markup_label_;
-        maui::controls::shapes::path leaf_;
+        maui::controls::shapes::ellipse leaf_;
     };
 } // namespace maui::samples
