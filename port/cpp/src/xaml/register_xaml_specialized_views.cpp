@@ -1,5 +1,5 @@
 // maui::xaml — XAML registration for the "specialized_views" control group:
-//   ImageButton, GraphicsView, WebView.
+//   ImageButton, GraphicsView, WebView, HybridWebView.
 //
 // Source of truth: xaml_specs.json group "specialized_views" + the control headers below.
 // Pattern: mirrors register_xaml_text_input.cpp — register_view_properties<T> first, then one
@@ -9,14 +9,20 @@
 //   ImageButton XAML attrs BorderColor / BorderWidth map to the port's IButtonStroke descriptors
 //   stroke_color_property() / stroke_thickness_property() — same naming as controls::button.
 //
-// Converters: No new converters are needed.  All value types for these three controls either already
+// Converters: No new converters are needed.  All value types for these four controls either already
 // have converters registered in register_standard_xaml_converters (maui::core::aspect,
 // maui::core::thickness, maui::graphics::color, double, int, bool, std::string) or are
 // shared_ptr object types that have no text converter by design and are binding-only
 // (shared_ptr<i_image_source>, shared_ptr<i_drawable>, shared_ptr<web_view_source>).
 //
-// Content model: all three controls are leaf controls with no [ContentProperty] — no
+// Content model: all four controls are leaf controls with no [ContentProperty] — no
 // register_add_child or register_content_property call is needed for any of them.
+//
+// HybridWebView (HybridWebView.cs): only the two bindable string properties (DefaultFile/HybridRoot)
+// have a markup surface — SendRawMessage/InvokeJavaScriptAsync/EvaluateJavaScriptAsync are imperative
+// handler-command methods (no bindable_property backing) and RawMessageReceived/WebViewInitializing/
+// WebViewInitialized/WebResourceRequested are C# events, which AUTHORING.md rule 3 forbids wiring via
+// markup attributes (`RawMessageReceived="..."`) on shared tier-1 pages anyway.
 
 #include "register_xaml_helpers.hpp"
 
@@ -24,6 +30,7 @@
 #include <string>
 
 #include "maui/controls/graphics_view.hpp"
+#include "maui/controls/hybrid_web_view.hpp"
 #include "maui/controls/image_button.hpp"
 #include "maui/controls/web_view.hpp"
 #include "maui/controls/web_view_source.hpp"
@@ -83,5 +90,18 @@ namespace maui::xaml
         properties.register_bindable_property<controls::web_view>("Source", controls::web_view::source_property());
         properties.register_bindable_property<controls::web_view>("UserAgent",
                                                                   controls::web_view::user_agent_property());
+
+        // ---- HybridWebView (HybridWebView.cs; [ContentProperty] absent — leaf control) ----
+        // DefaultFile ("index.html") / HybridRoot ("wwwroot") are the only bindable markup surface;
+        // both are plain std::string (already converter-registered). SendRawMessage/InvokeJavaScriptAsync/
+        // EvaluateJavaScriptAsync are handler-command methods, not bindable properties — no markup
+        // surface. RawMessageReceived/WebViewInitializing/WebViewInitialized/WebResourceRequested are
+        // events — omitted (AUTHORING.md rule 3 forbids event attributes in shared tier-1 pages).
+        types.register_type<controls::hybrid_web_view>("HybridWebView");
+        register_view_properties<controls::hybrid_web_view>(properties);
+        properties.register_bindable_property<controls::hybrid_web_view>(
+            "DefaultFile", controls::hybrid_web_view::default_file_property());
+        properties.register_bindable_property<controls::hybrid_web_view>(
+            "HybridRoot", controls::hybrid_web_view::hybrid_root_property());
     }
 } // namespace maui::xaml

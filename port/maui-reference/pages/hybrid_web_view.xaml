@@ -1,7 +1,10 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiReference.Pages.HybridWebViewPage" Title="HybridWebView">
-    <!-- HybridWebView has no supported leaf; the row-1 web view is degraded to a Border placeholder. -->
+    <!-- The builder twin (hybrid_web_view_page.hpp) additionally wires the button column's Clicked
+         handlers and HybridWebView.RawMessageReceived to exercise the JS bridge; AUTHORING.md rule 3
+         forbids event attributes here, so this page is static markup only (structural, not behavioral,
+         parity — tracked in known_diverging()/EQUIVALENCE_FINDINGS.md cluster E). -->
     <Grid Padding="12" RowSpacing="8" ColumnSpacing="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -22,10 +25,6 @@
             <Button Text="Test JS Async Exception" />
         </VerticalStackLayout>
 
-        <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Stroke="Gray" StrokeThickness="1"
-                BackgroundColor="WhiteSmoke">
-            <Label Text="HybridWebView (HybridRoot=HybridSamplePage)" HorizontalTextAlignment="Center"
-                   VerticalTextAlignment="Center" />
-        </Border>
+        <HybridWebView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" HybridRoot="HybridSamplePage" />
     </Grid>
 </ContentPage>
