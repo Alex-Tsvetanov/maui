@@ -3687,9 +3687,9 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 101 | 0 |
-| 🟡 Minor | 58 | 0 |
-| 🔴 Major | 17 | 0 |
+| 🟢 Match | 111 | 0 |
+| 🟡 Minor | 60 | 0 |
+| 🔴 Major | 5 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
 
@@ -3864,16 +3864,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 10. Basic Grouping — 🔴/⏳
+### 10. Basic Grouping — 🟢/⏳
 <sub>basic_grouping</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/basic_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/basic_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/basic_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/basic_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/basic_grouping_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/basic_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/basic_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/basic_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/basic_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/basic_grouping_dark.png" /></td></tr></table>
 
 ports GroupingGalleries/BasicGrouping.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Both themes: cpp renders the full grouped roster (Avengers/Fantastic Four/... with green group headers and orange totals) while the MAUI reference shows only the header and footer with an empty list — a major content mismatch vs the ground truth (likely a MAUI-side empty grouped-CollectionView quirk worth flagging).
+Full grouped roster matches MAUI: green group-header bars (Avengers/Fantastic Four/Defenders/Heroes for Hire/West Coast Avengers/Great Lakes Avengers), orange 'Total members: N' footers, 'This is a header'. Prior red was STALE — the MAUI reference was blank when originally judged (code-behind SuperTeams() had not been captured); the current MAUI render shows the full list and cpp matches it.
 
 #### ⏳ Gemini Review
 
@@ -4713,16 +4713,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 55. Empty View Rtl — 🔴/⏳
+### 55. Empty View Rtl — 🟡/⏳
 <sub>empty_view_rtl</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/empty_view_rtl_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/empty_view_rtl_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/empty_view_rtl_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/empty_view_rtl_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/empty_view_rtl_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/empty_view_rtl_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/empty_view_rtl_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/empty_view_rtl_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/empty_view_rtl_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/empty_view_rtl_dark.png" /></td></tr></table>
 
 ports EmptyViewGalleries/EmptyViewRTLGallery.xaml (+ EmptyViewRTLGallery.xaml.cs)
 
-#### 🔴 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-C1/C3: MAUI shows a Picker with unselected placeholder text 'FlowDirection' plus a 'No results matched your filter. / Maybe try a broader filter?' empty-view overlay atop the list; C++ shows the Picker already displaying a selected value 'Left to Right' and no empty-view overlay text at all — a genuine missing-content/wrong-state bug.
+List + no-overlay-at-rest match MAUI; the only delta is the FlowDirection Picker — the cpp builder shows the selected item 'Left to Right' (SelectedIndex=0) while MAUI shows the 'FlowDirection' Title. Minor display-text difference on an otherwise-correct page (prior 'missing content' verdict was stale).
 
 #### ⏳ Gemini Review
 
@@ -4789,16 +4789,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 59. Empty View View — 🔴/⏳
+### 59. Empty View View — 🟢/⏳
 <sub>empty_view_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/empty_view_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/empty_view_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/empty_view_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/empty_view_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/empty_view_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/empty_view_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/empty_view_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/empty_view_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/empty_view_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/empty_view_view_dark.png" /></td></tr></table>
 
 ports EmptyViewGalleries/EmptyViewViewGallery.xaml (+ EmptyViewViewGallery.xaml.cs)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: MAUI overlays a bold 'No results matched your filter.' + 'Maybe try a broader filter?' empty view atop the full item list; C++ shows only the plain list with no empty-view overlay text at all — missing content.
+At rest the source is full so the EmptyView does not render (matching real MAUI): both show the Filter SearchBar over the full 3-column GridItemsLayout (cover1.jpg 0 ... Fruits.jpg 11). The prior 'missing empty-view overlay' verdict was stale — the current MAUI reference shows no overlay either. Pixel-identical apart from window chrome.
 
 #### ⏳ Gemini Review
 
@@ -4827,16 +4827,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 61. Filter Collection — 🔴/⏳
+### 61. Filter Collection — 🟢/⏳
 <sub>filter_collection</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/filter_collection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/filter_collection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/filter_collection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/filter_collection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/filter_collection_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/filter_collection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/filter_collection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/filter_collection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/filter_collection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/filter_collection_dark.png" /></td></tr></table>
 
 ports FilterCollectionView.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: MAUI shows an orange 'Nothing to see here' empty-view message below the list (with 'Use EmptyView' toggle ON); C++ shows the identical toggle/list but the orange empty-view message is completely absent — missing content bug.
+Use EmptyView switch (on) + Filter SearchBar + full 2-column caption list, no coral overlay — matches MAUI exactly (EmptyView is latent while the source is full). Prior 'missing overlay' verdict was stale.
 
 #### ⏳ Gemini Review
 
@@ -5272,16 +5272,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 86. Grid Grouping — 🔴/⏳
+### 86. Grid Grouping — 🟢/⏳
 <sub>grid_grouping</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grid_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/grid_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grid_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/grid_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grid_grouping_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grid_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/grid_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grid_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/grid_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grid_grouping_dark.png" /></td></tr></table>
 
 ports GroupingGalleries/GridGrouping.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: MAUI reference renders a completely BLANK page in both themes (suspected broken MAUI ref capture — flag per ruling 3), while C++ renders a full grouped CollectionView (header 'This is a header', 2-column group sections Avengers/Fantastic Four/Defenders/Heroes for Hire/West Coast Avengers/Great Lakes Avengers with green group headers and orange 'Total members' footers, page footer). Content cannot match a blank ground truth; needs MAUI recapture/ruling before the C++ render can be scored properly.
+2-column grouped GridItemsLayout matches MAUI (green headers, orange footers, 'This is a header'/'This is a footer'). Prior red was stale (MAUI ref blank at review time).
 
 #### ⏳ Gemini Review
 
@@ -5308,16 +5308,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 88. Grouping No Templates — 🔴/⏳
+### 88. Grouping No Templates — 🟢/⏳
 <sub>grouping_no_templates</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grouping_no_templates_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/grouping_no_templates_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grouping_no_templates_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/grouping_no_templates_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grouping_no_templates_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grouping_no_templates_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/grouping_no_templates_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grouping_no_templates_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/grouping_no_templates_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grouping_no_templates_dark.png" /></td></tr></table>
 
 ports GroupingGalleries/GroupingNoTemplates.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: MAUI reference renders BLANK in both themes (suspected broken MAUI ref — real MAUI without templates should show item ToString; flag per ruling 3), while C++ renders a flat ungrouped list of all hero names (Thor…Doorman). Cannot be reconciled against a blank ground truth; needs MAUI recapture/ruling.
+Flat ToString roster (Thor...Doorman) matches MAUI. Prior red was stale (MAUI ref blank at review time).
 
 #### ⏳ Gemini Review
 
@@ -5327,16 +5327,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 89. Grouping Plus Selection — 🔴/⏳
+### 89. Grouping Plus Selection — 🟢/⏳
 <sub>grouping_plus_selection</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grouping_plus_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/grouping_plus_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grouping_plus_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/grouping_plus_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grouping_plus_selection_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/grouping_plus_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/grouping_plus_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/grouping_plus_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/grouping_plus_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/grouping_plus_selection_dark.png" /></td></tr></table>
 
 ports CollectionViewGalleries/GroupingGalleries/ GroupingPlusSelection.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: MAUI reference is BLANK in both themes (suspected broken MAUI ref capture — flag per ruling 3), while C++ shows the full grouped list (green group headers Avengers/Fantastic Four/Defenders/Heroes for Hire/West Coast Avengers/Great Lakes Avengers, member rows, orange 'Total members: N' footers). Blank ground truth cannot validate the render; needs MAUI recapture/ruling.
+Full grouped roster (green headers, orange footers) matches MAUI. Prior red was stale (MAUI ref blank at review time).
 
 #### ⏳ Gemini Review
 
@@ -5990,16 +5990,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 124. Measure First Strategy — 🔴/⏳
+### 124. Measure First Strategy — 🟢/⏳
 <sub>measure_first_strategy</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/measure_first_strategy_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/measure_first_strategy_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/measure_first_strategy_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/measure_first_strategy_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/measure_first_strategy_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/measure_first_strategy_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/measure_first_strategy_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/measure_first_strategy_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/measure_first_strategy_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/measure_first_strategy_dark.png" /></td></tr></table>
 
 ports MeasureFirstStrategy.xaml (+ .xaml.cs) of the C# CollectionView gallery (Maui.Controls.Sample.Pages.CollectionViewGalleries.GroupingGalleries.MeasureFirstStrategy)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: header/link/strategy label match, but the C++ render shows the full CollectionView content (Avengers/Fantastic Four/... groups with colored headers and totals) while the MAUI reference renders an empty list below the labels in both themes. Content presence differs vs the MAUI ground truth (likely a MAUI-side MeasureFirstItem known-issue blanking the list — flag for ruling; the port arguably renders the intended content).
+'Toggle Sizing Strategy' link + MeasureFirstItem note + grouped roster match MAUI. Prior red was stale (MAUI ref blank at review time).
 
 #### ⏳ Gemini Review
 
@@ -6085,16 +6085,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 129. Nested Collection — 🔴/⏳
+### 129. Nested Collection — 🟡/⏳
 <sub>nested_collection</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/nested_collection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/nested_collection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/nested_collection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/nested_collection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/nested_collection_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/nested_collection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/nested_collection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/nested_collection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/nested_collection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/nested_collection_dark.png" /></td></tr></table>
 
 ports NestedGalleries/NestedCollectionViewGallery.xaml (+ NestedCollectionViewGallery.xaml.cs) of the C# CollectionView gallery
 
-#### 🔴 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-C1/C3: MAUI reference renders only the header label ('It's CollectionViews all the way down.') with an EMPTY body in both themes, while cpp renders full nested content (red 'Source N' rotated labels + rows of blue 'Caption N-M' links). Content diverges from the MAUI ground truth in both themes. NOTE: the MAUI ref itself looks like a broken/blank CollectionView-in-CollectionView render — likely a MAUI-side quirk needing a user ruling (parity policy rule 3); cpp's output is plausibly the intended content.
+Nested CollectionView structure matches MAUI (outer source rows each hosting an inner horizontal list), but the cpp builder twin's inner item labels read 'Caption N-M' whereas MAUI's read image filenames ('cover1.jpg, 0' ...) — a builder-twin sample-data mismatch, not a layout defect. Prior red was stale (MAUI ref showed only the header at review time).
 
 #### ⏳ Gemini Review
 
@@ -6560,16 +6560,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 154. Scroll To Group — 🔴/⏳
+### 154. Scroll To Group — 🟢/⏳
 <sub>scroll_to_group</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/scroll_to_group_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/scroll_to_group_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/scroll_to_group_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/scroll_to_group_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/scroll_to_group_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/scroll_to_group_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/scroll_to_group_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/scroll_to_group_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/scroll_to_group_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/scroll_to_group_dark.png" /></td></tr></table>
 
 ports ScrollToGalleries/ScrollToGroup.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: cpp renders the full grouped CollectionView (Avengers/Fantastic Four/Defenders... with green headers and orange footers) while the MAUI reference shows NO list at all below 'No scroll requested yet' in both themes — major content mismatch vs the ground truth. Likely a MAUI-side empty-grouped-list capture quirk (needs a ruling), but per the binding rules this diverges from the reference.
+Group/Item steppers + Go + 'No scroll requested yet' + grouped roster all match MAUI. Prior red was stale (MAUI ref blank at review time).
 
 #### ⏳ Gemini Review
 
@@ -6769,16 +6769,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 165. Some Empty Groups — 🔴/⏳
+### 165. Some Empty Groups — 🟢/⏳
 <sub>some_empty_groups</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/some_empty_groups_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/some_empty_groups_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/some_empty_groups_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/some_empty_groups_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/some_empty_groups_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/some_empty_groups_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/some_empty_groups_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/some_empty_groups_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/some_empty_groups_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/some_empty_groups_dark.png" /></td></tr></table>
 
 ports GroupingGalleries/SomeEmptyGroups.xaml (+ .xaml.cs)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: MAUI ground truth shows ONLY the intro label with an empty CollectionView area (both themes), while the C++ build renders a full grouped list (Avengers/Thundercats/Bionic Six/Fantastic Four with green headers and orange footers). Content present in C++ that MAUI does not render = divergence per ruling 1. NOTE: the MAUI reference itself looks like a broken/empty CollectionView render (ruling-3 maui_quirk candidate — the page description says groups SHOULD display headers/footers); recommend a user ruling before treating the C++ render as the bug.
+Grouped list with empty groups still showing their headers/footers (Avengers:2, Thundercats:0, Avengers:0, Bionic Six:0, Fantastic Four:4) matches MAUI. Prior red was stale (MAUI ref blank at review time).
 
 #### ⏳ Gemini Review
 
@@ -7016,16 +7016,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 178. Switch Grouping — 🔴/⏳
+### 178. Switch Grouping — 🟢/⏳
 <sub>switch_grouping</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/switch_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/switch_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/switch_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/switch_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/switch_grouping_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/switch_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/switch_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/switch_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/switch_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/switch_grouping_dark.png" /></td></tr></table>
 
 ports CollectionViewGalleries/GroupingGalleries/ SwitchGrouping.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: C++ renders the full grouped hero list (Avengers/Fantastic Four/... with green headers and orange footers) below the 'Is Grouped' switch, but the MAUI reference capture shows only the switch with an empty page in both themes. Content structurally differs from ground truth (likely a MAUI-side blank-CollectionView capture quirk worth a user ruling, but per policy MAUI is ground truth).
+'Is Grouped' switch (on) + grouped roster match MAUI. Prior red was stale (MAUI ref blank at review time).
 
 #### ⏳ Gemini Review
 
