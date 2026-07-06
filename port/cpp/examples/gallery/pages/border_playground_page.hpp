@@ -8,12 +8,24 @@
 // dash array, dash offset, line join, line cap, and per-corner radii. Dragging/typing any control re-runs
 // the corresponding C# Update* method and the border re-renders.
 //
-// The C# code-behind seeds the controls (content=Label, shape=RoundRectangle, join=Miter, cap=Butt) and
-// calls UpdateBackground/UpdateContentBackground/UpdateBorder/UpdateCornerRadius. This port reproduces that
-// pipeline 1:1: each control's change event invokes the same update_* method, which rebuilds the border's
-// background linear-gradient, stroke linear-gradient, stroke shape (rectangle / round_rectangle(per-corner
-// radii) / ellipse), thickness, dash array (parsed from the entry), dash offset, line join and line cap —
-// exactly the C# UpdateBorder body.
+// The C# code-behind seeds the four pickers' SelectedIndex (content=Label, shape=RoundRectangle,
+// join=Miter, cap=Butt) and calls UpdateBackground/UpdateContentBackground/UpdateBorder/
+// UpdateCornerRadius in its constructor. The shared XAML twin (port/maui-reference/pages/
+// border_playground.xaml) is a STATIC markup snapshot with no code-behind, so it cannot express that
+// imperative seeding — its Pickers carry only a Title (no selection) and its Entries carry only Text/
+// Placeholder (no BackgroundColor tint), and MAUI's actual captured render of the twin shows that
+// unseeded resting state. This port matches the TWIN's resting state (not the fully-interactive C# ctor):
+// it paints the live Border once via paint_border_only() (gradient/shape/dash — the part already verified
+// to match MAUI) WITHOUT seeding any picker's selection or tinting any Entry's background. Every picker's
+// Update* switch already falls through its `default:` case to the same value the C# seed would have
+// picked (shape default -> round_rectangle, line join default -> miter, line cap default -> butt), so the
+// Border's rendered gradient/shape/dash stays identical either way — only the pickers' own displayed
+// (non-)selection and the entries' (un-tinted) backgrounds differ, matching the twin. Once wired to real
+// handlers, each control's change event invokes the corresponding C# update_* method (now WITH Entry
+// tinting, since that is genuine user-triggered state), which rebuilds the border's background linear-
+// gradient, stroke linear-gradient, stroke shape (rectangle / round_rectangle(per-corner radii) /
+// ellipse), thickness, dash array (parsed from the entry), dash offset, line join and line cap — exactly
+// the C# UpdateBorder body.
 //
 // The page OWNS its whole element tree (the gallery_page pattern). It is backend-agnostic — a sample main
 // attaches handlers bottom-up via the hosting layer and hosts page() in a window; the headless/apple/ios
@@ -122,15 +134,29 @@ namespace maui::samples
             grid_.set_row(scroller_, 1);
             page_.set_content(grid_);
 
-            // C# ctor: seed the pickers + run the four initial Update* passes.
-            content_picker_.set_selected_index(0);   // Label
-            shape_picker_.set_selected_index(1);     // RoundRectangle
-            line_join_picker_.set_selected_index(0); // Miter
-            line_cap_picker_.set_selected_index(0);  // Butt
-            update_background();
+            // C# ctor: seeds the four pickers' SelectedIndex, then runs the Update* pipeline once so the
+            // live Border reflects the gradient/shape/dash-array/corner-radius state up front. BUT the
+            // shared XAML twin (port/maui-reference/pages/border_playground.xaml) is a STATIC markup
+            // snapshot with no code-behind — it authors each Picker with only a Title (no SelectedItem/
+            // SelectedIndex) and each color Entry with only Text/Placeholder (no BackgroundColor), so
+            // MAUI's actual captured render of the twin shows unselected pickers and plain-background
+            // entries, not the C# ctor's imperative seeding. Per the drag_drop/pointer_gesture/
+            // shadow_playground precedent this session, the builder's RESTING state must match the twin's
+            // static rendering, not the fully-interactive C# ctor's synthetic seed:
+            //   - do NOT call set_selected_index on any picker (stays at the picker default -1/unselected,
+            //     matching the twin) — every Update* switch on a picker's selected_index() already falls
+            //     through its `default:` case to the SAME value the C# seed would have chosen (shape
+            //     default -> round_rectangle, line join default -> miter, line cap default -> butt), so
+            //     the BORDER's rendered gradient/shape/dash stays byte-identical; only the pickers' own
+            //     displayed (non-)selection changes.
+            //   - run update_border()/update_background() for their BORDER-repaint side effects (needed
+            //     so the live gradient banner + dashed stroke shape render at all — the part of this page
+            //     already verified to match MAUI) but suppress their ENTRY-background-tinting side effect
+            //     (BackgroundStartColor/EndColor/BorderStartColor/EndColor.BackgroundColor = color) during
+            //     this initial pass — the twin's Entries never carry that tint at rest. Later, genuine
+            //     user edits to an Entry's text still run the full update (tint included), matching C#.
+            paint_border_only();
             update_content_background();
-            update_border();
-            update_corner_radius();
         }
 
         [[nodiscard]] maui::controls::content_page& page()
@@ -195,7 +221,8 @@ namespace maui::samples
             bg_end_entry_.text_changed.connect([this](std::string, std::string) { update_background(); });
             controls_.add(bg_end_entry_);
 
-            // Content background toggle. maui-compare BorderPlaygroundPage.cs lays the checkbox
+            // Content background toggle. Both the true C# source (BorderPlayground.xaml's horizontal
+            // StackLayout) and the canonical shared twin (border_playground.xaml) lay the checkbox
             // (WidthRequest=48, VerticalOptions=Center) and its "Show Content Background" label in a
             // HORIZONTAL StackLayout row UNDER the caption — not stacked. Mirror that so the checkbox and
             // its label stay on one compact line (a bare vertical stack detaches them onto two rows).
@@ -307,16 +334,29 @@ namespace maui::samples
 
         // ---- the C# Update* pipeline -----------------------------------------------------------------
 
+        // Paint the Border's own visuals ONCE at construction — the twin's static resting state (header
+        // note): the gradient background, the stroke gradient/shape/thickness/dash, all WITHOUT the
+        // Update*'s Entry-background-tinting side effect (the twin's Entries never carry that tint at
+        // rest; later genuine Entry edits still tint via the normal update_background()/update_border()).
+        void paint_border_only()
+        {
+            update_background(/*tint_entries=*/false);
+            update_border(/*tint_entries=*/false);
+        }
+
         // C# UpdateBackground: a left-to-right linear gradient from the two background-color entries.
-        void update_background()
+        void update_background(bool tint_entries = true)
         {
             const auto start = color_from_string(bg_start_entry_.text());
             const auto end = color_from_string(bg_end_entry_.text());
             border_view_.set_background(make_gradient(start, end));
-            // C# UpdateBackground also tints each color-value Entry's background with its own value
-            // (_backgroundStartColor/_backgroundEndColor.BackgroundColor = color) — mirror that.
-            bg_start_entry_.set_background(std::make_shared<maui::graphics::solid_paint>(start));
-            bg_end_entry_.set_background(std::make_shared<maui::graphics::solid_paint>(end));
+            if (tint_entries)
+            {
+                // C# UpdateBackground also tints each color-value Entry's background with its own value
+                // (_backgroundStartColor/_backgroundEndColor.BackgroundColor = color) — mirror that.
+                bg_start_entry_.set_background(std::make_shared<maui::graphics::solid_paint>(start));
+                bg_end_entry_.set_background(std::make_shared<maui::graphics::solid_paint>(end));
+            }
         }
 
         // C# UpdateContentBackground: tint the content view #99FF0000 while checked, else transparent.
@@ -371,7 +411,7 @@ namespace maui::samples
         }
 
         // C# UpdateBorder: rebuild the stroke shape, stroke gradient, thickness, dash array/offset, join, cap.
-        void update_border()
+        void update_border(bool tint_entries = true)
         {
             // Stroke shape from the shape picker.
             switch (shape_picker_.selected_index())
@@ -394,10 +434,13 @@ namespace maui::samples
             const auto start = color_from_string(border_start_entry_.text());
             const auto end = color_from_string(border_end_entry_.text());
             border_view_.set_stroke(make_gradient(start, end));
-            // C# UpdateBorder also tints each border-color Entry's background with its own value
-            // (_borderStartColor/_borderEndColor.BackgroundColor = color) — mirror that.
-            border_start_entry_.set_background(std::make_shared<maui::graphics::solid_paint>(start));
-            border_end_entry_.set_background(std::make_shared<maui::graphics::solid_paint>(end));
+            if (tint_entries)
+            {
+                // C# UpdateBorder also tints each border-color Entry's background with its own value
+                // (_borderStartColor/_borderEndColor.BackgroundColor = color) — mirror that.
+                border_start_entry_.set_background(std::make_shared<maui::graphics::solid_paint>(start));
+                border_end_entry_.set_background(std::make_shared<maui::graphics::solid_paint>(end));
+            }
 
             // Thickness, dash array (parsed from the entry), dash offset.
             border_view_.set_stroke_thickness(width_slider_.value());
