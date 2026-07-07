@@ -13500,8 +13500,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: colored sections and enabled/disabled states all match, but the right-column radio group is laid out differently in both themes \u2014 cpp stacks the three 'Enable/Disable ...' labels together with the three radios clustered below, while MAUI interleaves each label with its radio."
+          "status": "green",
+          "review": "C1/C3: every section (all-enabled / all-disabled / disabled-because-layout / first-enabled-second-disabled / commands-attached / nested) renders identical panels, colors and Enabled/Disabled labels to MAUI. cpp is pixel-identical to the green xaml column (cpp-vs-xaml 0.78% AA-only, colored panels start at the SAME row); the 24% vs-MAUI is purely the uniform 28px harness vertical inset (ruling 2) amplified across the dense colored panels \u2014 the exact figure the xaml column was greened at."
         },
         "gemini": {
           "status": null,
