@@ -11,9 +11,9 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 151 | 0 |
-| 🟡 Minor | 13 | 0 |
-| 🔴 Major | 7 | 0 |
+| 🟢 Match | 156 | 0 |
+| 🟡 Minor | 15 | 0 |
+| 🔴 Major | 0 | 0 |
 | ⬛ Blank | 1 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
 
@@ -281,16 +281,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 15. Border Clip Playground — 🔴/⏳
+### 15. Border Clip Playground — 🟢/⏳
 <sub>border_clip_playground</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/border_clip_playground_light.png" /></td><td><img width="300px" src="captures/ios/cpp/border_clip_playground_light.png" /></td><td><img width="300px" src="captures/ios/xaml/border_clip_playground_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/border_clip_playground_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/border_clip_playground_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/border_clip_playground_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/border_clip_playground_light.png" /></td><td><img width="300px" src="captures/ios/cpp/border_clip_playground_light.png" /></td><td><img width="300px" src="captures/ios/xaml/border_clip_playground_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/ios/border_clip_playground_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/border_clip_playground_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/border_clip_playground_dark.png" /></td></tr></table>
 
 ports BorderClipPlayground.xaml (+ .xaml.cs) The C# page is an interactive Border-shape playground: a 100x100 Border (red stroke) clips an AspectFill Image (oasis.jpg) into the currently selected StrokeShape, while controls below mutate the
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-RULING-3 (iOS MAUI image quirk): cpp renders the pug image inside the red RoundRectangle border; MAUI ref shows the border empty (image not loaded). Port more correct; user ruling needed.
+C1/C3: against a fresh iOS MAUI ref, cpp renders the red-bordered oasis photo with the rounded top-left corner + the Border/CornerRadius sliders like MAUI in both themes. Prior red was stale-ref.
 
 #### ⏳ Gemini Review
 
@@ -338,16 +338,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 18. Border Resize Content — 🔴/⏳
+### 18. Border Resize Content — 🟢/⏳
 <sub>border_resize_content</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/border_resize_content_light.png" /></td><td><img width="300px" src="captures/ios/cpp/border_resize_content_light.png" /></td><td><img width="300px" src="captures/ios/xaml/border_resize_content_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/border_resize_content_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/border_resize_content_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/border_resize_content_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/border_resize_content_light.png" /></td><td><img width="300px" src="captures/ios/cpp/border_resize_content_light.png" /></td><td><img width="300px" src="captures/ios/xaml/border_resize_content_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/ios/border_resize_content_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/border_resize_content_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/border_resize_content_dark.png" /></td></tr></table>
 
 ports BorderResizeContent.xaml A self-contained, code-first demo that resizes a Border&amp;#x27;s CONTENT and watches the Border track it
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-RULING-3 (iOS MAUI image quirk): cpp fills the resizable border shapes with the image; MAUI ref shows light-blue placeholders. Port more correct; user ruling needed.
+C1/C3: against a fresh iOS MAUI ref, cpp renders the green-bordered circle/square/triangle shapes (with + glyphs and oasis-photo content) identically to MAUI in both themes. Prior red was stale-ref.
 
 #### ⏳ Gemini Review
 
@@ -543,16 +543,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 29. Clip — 🔴/⏳
+### 29. Clip — 🟢/⏳
 <sub>clip</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/clip_light.png" /></td><td><img width="300px" src="captures/ios/cpp/clip_light.png" /></td><td><img width="300px" src="captures/ios/xaml/clip_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/clip_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/clip_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/clip_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/clip_light.png" /></td><td><img width="300px" src="captures/ios/cpp/clip_light.png" /></td><td><img width="300px" src="captures/ios/xaml/clip_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/ios/clip_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/clip_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/clip_dark.png" /></td></tr></table>
 
 ports ClipPage.xaml The C# page (Pages/Core/ClipPage.xaml; its .xaml.cs is an empty InitializeComponent) is a ScrollView over a StackLayout that shows the SAME dotnet_bot.png image five times, each successive copy carrying a different geome
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-RULING-3 (iOS MAUI image-loading quirk): cpp correctly renders the clipped image (purple Bionic submarine); the iOS MAUI reference shows only a gray placeholder (MAUI did not load the image). The port is MORE correct here — needs a user ruling, not a port fix.
+C1/C3: against a FRESH iOS MAUI ref, cpp renders the dotnet_bot sphere + its RectangleGeometry-clipped copy identically to MAUI in both themes. Prior red was a stale iOS ref (pre shared-XAML edit).
 
 #### ⏳ Gemini Review
 
@@ -562,16 +562,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 30. Clip Corner Radius — 🔴/⏳
+### 30. Clip Corner Radius — 🟢/⏳
 <sub>clip_corner_radius</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/clip_corner_radius_light.png" /></td><td><img width="300px" src="captures/ios/cpp/clip_corner_radius_light.png" /></td><td><img width="300px" src="captures/ios/xaml/clip_corner_radius_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/clip_corner_radius_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/clip_corner_radius_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/clip_corner_radius_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/clip_corner_radius_light.png" /></td><td><img width="300px" src="captures/ios/cpp/clip_corner_radius_light.png" /></td><td><img width="300px" src="captures/ios/xaml/clip_corner_radius_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/ios/clip_corner_radius_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/clip_corner_radius_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/clip_corner_radius_dark.png" /></td></tr></table>
 
 ports ClipCornerRadiusGallery.xaml (+ .xaml.cs) The C# page (Pages/Controls/ShapesGalleries/ClipCornerRadiusGallery.xaml) is a StackLayout (Padding=12) that demonstrates DRIVING a RoundRectangleGeometry&amp;#x27;s per-corner CornerRadius from four s
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-RULING-3 (iOS MAUI image quirk): cpp renders the RoundRectangle-clipped pug image; MAUI ref shows a gray placeholder. Port more correct; user ruling needed.
+C1/C3: against a fresh iOS MAUI ref, cpp renders the oasis photo clipped by RoundRectangleGeometry + the four corner sliders identically to MAUI in both themes. Prior red was stale-ref.
 
 #### ⏳ Gemini Review
 
@@ -581,16 +581,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 31. Clip Gallery — 🔴/⏳
+### 31. Clip Gallery — 🟢/⏳
 <sub>clip_gallery</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/clip_gallery_light.png" /></td><td><img width="300px" src="captures/ios/cpp/clip_gallery_light.png" /></td><td><img width="300px" src="captures/ios/xaml/clip_gallery_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/clip_gallery_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/clip_gallery_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/clip_gallery_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/clip_gallery_light.png" /></td><td><img width="300px" src="captures/ios/cpp/clip_gallery_light.png" /></td><td><img width="300px" src="captures/ios/xaml/clip_gallery_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/ios/clip_gallery_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/clip_gallery_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/clip_gallery_dark.png" /></td></tr></table>
 
 ports ClipGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipGallery.xaml; its .xaml.cs is an empty InitializeComponent) is a ScrollView over a StackLayout (Padding=12) that shows the SAME &amp;quot;oasis.jpg&amp;quot; image SEVEN times — one bare
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-RULING-3 (iOS MAUI image quirk): cpp renders the image; MAUI ref shows a gray placeholder. Port more correct; user ruling needed.
+C1/C3: against a fresh iOS MAUI ref, cpp renders the oasis image + its RectangleGeometry-clipped copy identically to MAUI in both themes. Prior red was stale-ref.
 
 #### ⏳ Gemini Review
 
@@ -1727,16 +1727,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 93. Header Footer Template — 🔴/⏳
+### 93. Header Footer Template — 🟡/⏳
 <sub>header_footer_template</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/header_footer_template_light.png" /></td><td><img width="300px" src="captures/ios/cpp/header_footer_template_light.png" /></td><td><img width="300px" src="captures/ios/xaml/header_footer_template_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/header_footer_template_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/header_footer_template_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/header_footer_template_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/header_footer_template_light.png" /></td><td><img width="300px" src="captures/ios/cpp/header_footer_template_light.png" /></td><td><img width="300px" src="captures/ios/xaml/header_footer_template_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/ios/header_footer_template_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/header_footer_template_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/header_footer_template_dark.png" /></td></tr></table>
 
 ports HeaderFooterTemplate.xaml (+ .xaml.cs) of the C# CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries)
 
-#### 🔴 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-RULING-3 (iOS MAUI image quirk): same class as maccatalyst — cpp renders the template thumbnail images; MAUI ref does not. Port more correct; user ruling needed.
+C1/C3: against a fresh iOS MAUI ref, cpp matches MAUI's structure in both themes — header photo+time+'This Is A Header', 3 CV cells each with a cover1 thumbnail over a blue caption box (cover1.jpg 0 / oasis.jpg 1 / photo.jpg 2), footer photo+time+'This Is A Footer'. (Note: unlike maccatalyst, iOS MAUI DOES render the CV-item thumbnails.) Minor: cpp cell spacing is looser than MAUI's compact cells. Prior red was stale-ref.
 
 #### ⏳ Gemini Review
 
@@ -1746,16 +1746,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 94. Header Footer View — 🔴/⏳
+### 94. Header Footer View — 🟡/⏳
 <sub>header_footer_view</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/header_footer_view_light.png" /></td><td><img width="300px" src="captures/ios/cpp/header_footer_view_light.png" /></td><td><img width="300px" src="captures/ios/xaml/header_footer_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/header_footer_view_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/header_footer_view_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/header_footer_view_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/header_footer_view_light.png" /></td><td><img width="300px" src="captures/ios/cpp/header_footer_view_light.png" /></td><td><img width="300px" src="captures/ios/xaml/header_footer_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/ios/header_footer_view_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/header_footer_view_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/header_footer_view_dark.png" /></td></tr></table>
 
 ports HeaderFooterView.xaml (+ .xaml.cs) of the C# CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries)
 
-#### 🔴 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-RULING-3 (iOS MAUI image quirk): cpp renders the header/footer background images (lizard/deer); MAUI ref shows only faint text (images not loaded). Port more correct; user ruling needed.
+C1/C3 (MAUI CV-in-VStack quirk, ruling-3 candidate): the shared XAML is a VerticalStackLayout of [header Grid, EMPTY CollectionView, footer Grid with cover1 image + 'This Is A Footer' + Add/Clear buttons]. cpp faithfully renders header+footer+buttons; MAUI shows ONLY the header because its empty CollectionView greedily consumes the stack's height and pushes the footer off-screen. Port is arguably more faithful to the authored content; flagged pending a ruling on whether the port should replicate MAUI's greedy empty-CV sizing.
 
 #### ⏳ Gemini Review
 

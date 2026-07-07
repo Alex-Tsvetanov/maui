@@ -1617,8 +1617,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/border_clip_playground_light.png",
-            "dark": "captures/ios/maui/border_clip_playground_dark.png"
+            "light": "../../../maui-reference/captures/ios/border_clip_playground_light.png",
+            "dark": "../../../maui-reference/captures/ios/border_clip_playground_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/border_clip_playground_light.png",
@@ -1630,8 +1630,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "RULING-3 (iOS MAUI image quirk): cpp renders the pug image inside the red RoundRectangle border; MAUI ref shows the border empty (image not loaded). Port more correct; user ruling needed."
+          "status": "green",
+          "review": "C1/C3: against a fresh iOS MAUI ref, cpp renders the red-bordered oasis photo with the rounded top-left corner + the Border/CornerRadius sliders like MAUI in both themes. Prior red was stale-ref."
         },
         "gemini": {
           "status": null,
@@ -1962,8 +1962,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/border_resize_content_light.png",
-            "dark": "captures/ios/maui/border_resize_content_dark.png"
+            "light": "../../../maui-reference/captures/ios/border_resize_content_light.png",
+            "dark": "../../../maui-reference/captures/ios/border_resize_content_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/border_resize_content_light.png",
@@ -1975,8 +1975,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "RULING-3 (iOS MAUI image quirk): cpp fills the resizable border shapes with the image; MAUI ref shows light-blue placeholders. Port more correct; user ruling needed."
+          "status": "green",
+          "review": "C1/C3: against a fresh iOS MAUI ref, cpp renders the green-bordered circle/square/triangle shapes (with + glyphs and oasis-photo content) identically to MAUI in both themes. Prior red was stale-ref."
         },
         "gemini": {
           "status": null,
@@ -3227,8 +3227,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/clip_light.png",
-            "dark": "captures/ios/maui/clip_dark.png"
+            "light": "../../../maui-reference/captures/ios/clip_light.png",
+            "dark": "../../../maui-reference/captures/ios/clip_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/clip_light.png",
@@ -3240,8 +3240,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "RULING-3 (iOS MAUI image-loading quirk): cpp correctly renders the clipped image (purple Bionic submarine); the iOS MAUI reference shows only a gray placeholder (MAUI did not load the image). The port is MORE correct here \u2014 needs a user ruling, not a port fix."
+          "status": "green",
+          "review": "C1/C3: against a FRESH iOS MAUI ref, cpp renders the dotnet_bot sphere + its RectangleGeometry-clipped copy identically to MAUI in both themes. Prior red was a stale iOS ref (pre shared-XAML edit)."
         },
         "gemini": {
           "status": null,
@@ -3342,8 +3342,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/clip_corner_radius_light.png",
-            "dark": "captures/ios/maui/clip_corner_radius_dark.png"
+            "light": "../../../maui-reference/captures/ios/clip_corner_radius_light.png",
+            "dark": "../../../maui-reference/captures/ios/clip_corner_radius_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/clip_corner_radius_light.png",
@@ -3355,8 +3355,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "RULING-3 (iOS MAUI image quirk): cpp renders the RoundRectangle-clipped pug image; MAUI ref shows a gray placeholder. Port more correct; user ruling needed."
+          "status": "green",
+          "review": "C1/C3: against a fresh iOS MAUI ref, cpp renders the oasis photo clipped by RoundRectangleGeometry + the four corner sliders identically to MAUI in both themes. Prior red was stale-ref."
         },
         "gemini": {
           "status": null,
@@ -3457,8 +3457,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/clip_gallery_light.png",
-            "dark": "captures/ios/maui/clip_gallery_dark.png"
+            "light": "../../../maui-reference/captures/ios/clip_gallery_light.png",
+            "dark": "../../../maui-reference/captures/ios/clip_gallery_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/clip_gallery_light.png",
@@ -3470,8 +3470,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "RULING-3 (iOS MAUI image quirk): cpp renders the image; MAUI ref shows a gray placeholder. Port more correct; user ruling needed."
+          "status": "green",
+          "review": "C1/C3: against a fresh iOS MAUI ref, cpp renders the oasis image + its RectangleGeometry-clipped copy identically to MAUI in both themes. Prior red was stale-ref."
         },
         "gemini": {
           "status": null,
@@ -10227,8 +10227,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/header_footer_template_light.png",
-            "dark": "captures/ios/maui/header_footer_template_dark.png"
+            "light": "../../../maui-reference/captures/ios/header_footer_template_light.png",
+            "dark": "../../../maui-reference/captures/ios/header_footer_template_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/header_footer_template_light.png",
@@ -10240,8 +10240,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "RULING-3 (iOS MAUI image quirk): same class as maccatalyst \u2014 cpp renders the template thumbnail images; MAUI ref does not. Port more correct; user ruling needed."
+          "status": "yellow",
+          "review": "C1/C3: against a fresh iOS MAUI ref, cpp matches MAUI's structure in both themes \u2014 header photo+time+'This Is A Header', 3 CV cells each with a cover1 thumbnail over a blue caption box (cover1.jpg 0 / oasis.jpg 1 / photo.jpg 2), footer photo+time+'This Is A Footer'. (Note: unlike maccatalyst, iOS MAUI DOES render the CV-item thumbnails.) Minor: cpp cell spacing is looser than MAUI's compact cells. Prior red was stale-ref."
         },
         "gemini": {
           "status": null,
@@ -10342,8 +10342,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/header_footer_view_light.png",
-            "dark": "captures/ios/maui/header_footer_view_dark.png"
+            "light": "../../../maui-reference/captures/ios/header_footer_view_light.png",
+            "dark": "../../../maui-reference/captures/ios/header_footer_view_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/header_footer_view_light.png",
@@ -10355,8 +10355,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "RULING-3 (iOS MAUI image quirk): cpp renders the header/footer background images (lizard/deer); MAUI ref shows only faint text (images not loaded). Port more correct; user ruling needed."
+          "status": "yellow",
+          "review": "C1/C3 (MAUI CV-in-VStack quirk, ruling-3 candidate): the shared XAML is a VerticalStackLayout of [header Grid, EMPTY CollectionView, footer Grid with cover1 image + 'This Is A Footer' + Add/Clear buttons]. cpp faithfully renders header+footer+buttons; MAUI shows ONLY the header because its empty CollectionView greedily consumes the stack's height and pushes the footer off-screen. Port is arguably more faithful to the authored content; flagged pending a ruling on whether the port should replicate MAUI's greedy empty-CV sizing."
         },
         "gemini": {
           "status": null,
