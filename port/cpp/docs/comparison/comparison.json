@@ -7190,8 +7190,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1 green: header/footer bars, blue/green columns and gray content all match. C3 yellow: in dark theme the HEADER and CONTENT label text renders dark gray where MAUI renders it white/light (label default text color not theme-adaptive in dark)."
+          "status": "green",
+          "review": "C1/C3: header(aqua)/content(gray)/footer(pink) flex columns with blue nav + green aside bars match MAUI in both themes. Dark HEADER/CONTENT/FOOTER labels now render WHITE via the dynamic system label color (unset TextColor -> UIColor.labelColor), matching MAUI (the fixed #3B3B3B pin that stayed dark in dark mode was removed). Residual ~3.9% is the uniform harness inset (ruling 2, exempt)."
         },
         "gemini": {
           "status": null,

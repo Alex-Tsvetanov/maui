@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 136 | 0 |
-| 🟡 Minor | 38 | 0 |
+| 🟢 Match | 137 | 0 |
+| 🟡 Minor | 37 | 0 |
 | 🔴 Major | 2 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -4865,16 +4865,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 63. Flex Layout — 🟡/⏳
+### 63. Flex Layout — 🟢/⏳
 <sub>flex_layout</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/flex_layout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/flex_layout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/flex_layout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/flex_layout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/flex_layout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/flex_layout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/flex_layout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/flex_layout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/flex_layout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/flex_layout_dark.png" /></td></tr></table>
 
 ports FlexLayoutPage.xaml A self-contained, code-first demo of the FlexLayout control: the classic &amp;quot;holy grail&amp;quot; page layout built from nested flexboxes
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1 green: header/footer bars, blue/green columns and gray content all match. C3 yellow: in dark theme the HEADER and CONTENT label text renders dark gray where MAUI renders it white/light (label default text color not theme-adaptive in dark).
+C1/C3: header(aqua)/content(gray)/footer(pink) flex columns with blue nav + green aside bars match MAUI in both themes. Dark HEADER/CONTENT/FOOTER labels now render WHITE via the dynamic system label color (unset TextColor -&gt; UIColor.labelColor), matching MAUI (the fixed #3B3B3B pin that stayed dark in dark mode was removed). Residual ~3.9% is the uniform harness inset (ruling 2, exempt).
 
 #### ⏳ Gemini Review
 
