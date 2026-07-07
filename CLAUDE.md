@@ -10,9 +10,10 @@ For any work on the port, always follow these (in order):
 
 **To resume work:** read [port/STATUS.md](port/STATUS.md) and continue to the next unfinished milestone.
 
-The original C# `src/`, the `vault/` (API contract + conceptual docs), and `graphify-out/`
-(dependency graph) are **read-only reference** — never modify them. Behavior is derived from the
-C# source and its tests, never invented.
+The original C# `src/` is **read-only reference** — never modify it. Behavior is derived from the
+C# source and its tests, never invented. (The former `vault/` API/conceptual docs and `graphify-out/`
+dependency graph have been removed; `src/` + its `PublicAPI/*.Shipped.txt` surface files are now the
+sole contract + behavior oracle. Restore either from git history if ever needed.)
 
 The port lives in `port/cpp/`. **Inner loop (fast — seconds):** `port/cpp/tools/dev.sh [regex]`
 incrementally rebuilds the headless backend and runs the matching tests (`ctest -R`). **Full gate

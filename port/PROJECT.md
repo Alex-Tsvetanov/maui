@@ -9,8 +9,8 @@
 ## 1. Mission
 
 Reimplement the .NET MAUI UI framework in a target language **T**, preserving its public API
-shape and runtime behavior, by deriving the design from the original C# source, its tests, and
-the knowledge vault in this repository — **not** by guessing.
+shape and runtime behavior, by deriving the design from the original C# source and its tests
+in this repository — **not** by guessing.
 
 The deliverable is a framework in language T that lets a developer write **one** UI definition and
 run it natively on multiple platforms, mirroring MAUI's architecture and behavior.
@@ -67,16 +67,15 @@ The four layers below are the complete spec. Each answers a different question:
 
 | You need… | Source | Where |
 |-----------|--------|-------|
-| **API contract** (exact public surface, names, signatures, platforms) | the vault's API Reference + the Roslyn surface files | `vault/API Reference/<Namespace>/`, and the ground truth `src/**/PublicAPI/<tfm>/PublicAPI.Shipped.txt` |
-| **Architecture & intent** (how a feature works, why) | the vault's conceptual docs (mirror of learn.microsoft.com) | `vault/Conceptual/` (esp. `fundamentals/`, `user-interface/`, `xaml/`) + `vault/Home.md` |
+| **API contract** (exact public surface, names, signatures, platforms) | the Roslyn surface files | the ground truth `src/**/PublicAPI/<tfm>/PublicAPI.Shipped.txt` |
+| **Architecture & intent** (how a feature works, why) | the C# source (+ learn.microsoft.com for background) | `src/<area>/src/...`, read for structure/intent |
 | **Behavioral spec** (the real contract: defaults, edge cases, events, ordering) | the **test suite** — treat as the oracle | `src/Controls/tests/Core.UnitTests`, `src/Controls/tests/Xaml.UnitTests`, `src/Core/tests/**`, `src/Graphics/tests/**`, and device tests |
 | **Implementation reference** (algorithms, platform wiring) | the original C# source | `src/<area>/src/...` (cross-platform `.cs` + `.{Android,iOS,Windows,...}.cs` partials) |
-| **Dependency map** (what connects to what, the god nodes) | the graphify knowledge graph | `graphify-out/graph.json`, `graphify-out/GRAPH_REPORT.md` |
 
-> **Why the vault isn't enough alone:** the vault has the API *shape* and *purpose* but no method
-> bodies. Behavior comes from the **tests**; algorithms and native wiring come from the **source**.
-> The vault tells you *what exists and what it's for*; the tests tell you *how it must behave*; the
-> source tells you *how it's done*. A faithful port needs all three.
+> **The three layers of truth (all in `src/`):** `PublicAPI.Shipped.txt` gives the API *shape*; the
+> **tests** tell you *how it must behave*; the **source** tells you *how it's done*. A faithful port
+> needs all three. (The former `vault/` docs + `graphify-out/` graph were removed — restore from git
+> history if a slice ever needs the conceptual/dependency views.)
 
 ## 5. Milestones (definition of progress)
 

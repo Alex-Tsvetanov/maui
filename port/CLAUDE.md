@@ -17,8 +17,8 @@ For any type or member you port, you will need three things. Get each from its a
 do not substitute one for another:
 
 1. **What is the contract?** (names, signatures, properties, platforms)
-   → `vault/API Reference/<Namespace>/<Type>.md` (and its member notes), cross-checked against the
-   ground truth `src/**/PublicAPI/<tfm>/PublicAPI.Shipped.txt`.
+   → the ground truth `src/**/PublicAPI/<tfm>/PublicAPI.Shipped.txt` (the exact shipped public surface),
+   read alongside the type's C# source for member semantics.
 2. **How must it behave?** (defaults, edge cases, events, ordering, errors)
    → the **tests** in `src/**/tests/**` are the oracle. Find the test(s) covering the type and treat
    them as the executable spec. If behavior is untested, fall to the source.
@@ -26,8 +26,9 @@ do not substitute one for another:
    → the original C# under `src/<area>/src/...` — the cross-platform `Foo.cs` plus the per-platform
    partials `Foo.{Android,iOS,Windows,Tizen,Standard}.cs`.
 
-Supporting maps: `vault/Conceptual/` for architecture/intent; `vault/Home.md` and
-`graphify-out/GRAPH_REPORT.md` for the big picture and dependency hot-spots.
+(Architecture/intent formerly in `vault/Conceptual/` and the `graphify-out/` dependency graph: those
+trees were removed — read the C# source directly, or learn.microsoft.com for conceptual background;
+restore from git history if you truly need them.)
 
 ## Workflow: bottom-up, one layer at a time
 
@@ -38,8 +39,8 @@ tests.** Within a layer, port in small, verifiable slices (one control / one pri
 
 For each component (e.g. `Button`, `Color`, `Grid`):
 
-1. **Contract** — open the vault API note(s) for the type; list its public members and platform
-   availability. Confirm against the `PublicAPI.Shipped.txt` entry (authoritative).
+1. **Contract** — read the type's `PublicAPI.Shipped.txt` entry (authoritative) + its C# source; list
+   its public members and platform availability.
 2. **Behavior** — locate the C# tests for it (`grep -ril <TypeName> src/**/tests`). Read them. These
    define the required behavior.
 3. **Reference** — read the C# source: the cross-platform file and the platform partial for your
@@ -73,8 +74,8 @@ Every subsequent control repeats steps 1, 3–6 (the mapper infra from step 2 is
 
 - **Fidelity over creativity.** Match MAUI's public surface and behavior. Idiomatic adaptation to T is
   expected *in form* (naming, language features) but **not in coverage or semantics**.
-- **No invented behavior.** If a member's behavior isn't in the vault summary, the tests, or the source,
-  go read the source. Don't ship a guess. If genuinely unspecified, leave a `// TODO: verify against
+- **No invented behavior.** If a member's behavior isn't in the tests, go read the source.
+  Don't ship a guess. If genuinely unspecified, leave a `// TODO: verify against
   src/<path>` marker rather than fabricating.
 - **Preserve the architecture.** Keep virtual-view ⇄ handler ⇄ native separated. Do not collapse the
   handler seam into a direct renderer — that seam is the entire point of MAUI.
@@ -174,8 +175,8 @@ Use a question (don't guess) when:
 
 ## Conventions for working in this repo
 
-- The original source is **read-only reference** — do not modify `src/`, `vault/`, or `graphify-out/`.
-  Write the port into its own tree (decided with the language profile; e.g. `port/<lang>/`).
+- The original C# `src/` is **read-only reference** — do not modify it. Write the port into its own
+  tree (decided with the language profile; e.g. `port/<lang>/`).
 - Prefer `grep`/Glob to locate tests and source by type name over guessing paths.
 - Keep commits/changes scoped to one component slice; verify before moving on.
 
@@ -187,7 +188,7 @@ The language is **C++23**; the full profile is [`cpp/PROFILE.md`](cpp/PROFILE.md
 emitting any code.** Operating rules that override/extend the generic workflow above:
 
 - **API style is `snake_case`** (`maui::controls::button`, `view.text.set(...)`, `btn.clicked.connect(...)`).
-  In every public header, comment the originating C# FQN so the vault/tests stay cross-referenceable
+  In every public header, comment the originating C# FQN so the source/tests stay cross-referenceable
   (`// maui::controls::button  <=  Microsoft.Maui.Controls.Button`).
 - **Backend order:** build the **headless** backend first (M0–M5, fully unit-testable, no device), then
   the **macOS** Obj-C++ backend (M2 proves the seam), then iOS. Mirror MAUI's partial-class split as a
@@ -214,8 +215,8 @@ modules vs headers. Also confirm the **dev machine / first real platform** if it
 
 Begin at **M0 (Graphics)** per `PROJECT.md §5`, on the headless backend.
 
-### Note for the macOS session
-This kit (and the `vault/` it references) is committed so it can be pulled on the dev machine.
-`graphify-out/graph.json` (the full node-level graph, >100 MB) is **not** pushed — use the committed
-`graphify-out/GRAPH_REPORT.md` for the dependency overview, or regenerate the graph locally if needed.
-The original C# `src/` and its `tests/` are in the repo and are the implementation + behavioral sources.
+### Note for the dev machine
+The original C# `src/` and its `tests/` are in the repo and are the implementation + behavioral sources
+(plus `src/**/PublicAPI/*.Shipped.txt` for the exact public surface). The former `vault/` API/conceptual
+docs and `graphify-out/` dependency graph were removed to keep the tree port-scoped — restore either from
+git history if a future porting slice needs them.
