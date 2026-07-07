@@ -40,6 +40,7 @@
 #include "maui/controls/hybrid_web_view_raw_message_received_event_args.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/grid_length.hpp"
+#include "maui/core/thickness.hpp"
 
 namespace maui::samples
 {
@@ -50,11 +51,19 @@ namespace maui::samples
         {
             page_.set_title("HybridWebView");
 
-            // <Grid ColumnDefinitions="2*,1*" RowDefinitions="Auto,1*">
+            // <Grid Padding="12" RowSpacing="8" ColumnSpacing="8" ColumnDefinitions="2*,1*"
+            //       RowDefinitions="Auto,1*">
             root_.add_column_definition(maui::core::grid_length(2.0, maui::core::grid_unit_type::star));
             root_.add_column_definition(maui::core::grid_length(1.0, maui::core::grid_unit_type::star));
             root_.add_row_definition(maui::core::grid_length::automatic());
             root_.add_row_definition(maui::core::grid_length(1.0, maui::core::grid_unit_type::star));
+            // The shared hybrid_web_view.xaml grid carries Padding="12" RowSpacing="8" ColumnSpacing="8";
+            // the builder omitted them, so the empty web area (row 1) sat at a slightly different
+            // origin/size than the xaml column — invisible in light but a large delta against the dark page
+            // (the consistency guardrail caught cpp!=xaml in dark). Match the XAML so all three agree.
+            root_.set_padding(maui::core::thickness{12});
+            root_.set_row_spacing(8);
+            root_.set_column_spacing(8);
 
             // <Editor x:Name="statusText" Grid.Row="0" Grid.Column="0" Text="HybridWebView here"
             //         IsReadOnly="True" MinimumHeightRequest="200"/>

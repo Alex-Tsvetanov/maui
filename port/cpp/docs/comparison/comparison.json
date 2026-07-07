@@ -34,6 +34,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9891, 0.68% pixels differ \u00b7 Dark: SSIM 0.9902, 0.63% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -78,6 +82,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9878, 0.68% pixels differ \u00b7 Dark: SSIM 0.9927, 0.71% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -110,6 +118,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9496, 9.35% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -149,6 +161,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9575, 1.57% pixels differ \u00b7 Dark: SSIM 0.9566, 1.57% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -193,6 +209,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9641, 4.47% pixels differ \u00b7 Dark: SSIM 0.9379, 4.60% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -225,6 +245,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9559, 8.31% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -264,6 +288,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9710, 0.95% pixels differ \u00b7 Dark: SSIM 0.9699, 0.97% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -308,6 +336,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9890, 0.34% pixels differ \u00b7 Dark: SSIM 0.9886, 0.38% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -340,6 +372,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9649, 6.59% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -379,6 +415,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9240, 2.86% pixels differ \u00b7 Dark: SSIM 0.9224, 2.88% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -423,6 +463,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9662, 1.37% pixels differ \u00b7 Dark: SSIM 0.9661, 1.59% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -455,6 +499,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8668, 17.32% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -494,6 +542,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9798, 0.62% pixels differ \u00b7 Dark: SSIM 0.9847, 0.64% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -538,6 +590,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9639, 2.63% pixels differ \u00b7 Dark: SSIM 0.9682, 2.73% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -570,6 +626,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9716, 6.52% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -609,6 +669,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9486, 2.13% pixels differ \u00b7 Dark: SSIM 0.9450, 2.16% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -653,6 +717,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9826, 0.88% pixels differ \u00b7 Dark: SSIM 0.9845, 0.97% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -685,6 +753,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9425, 13.19% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -724,6 +796,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8983, 4.08% pixels differ \u00b7 Dark: SSIM 0.0100, 97.21% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -768,6 +844,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9635, 1.73% pixels differ \u00b7 Dark: SSIM 0.9627, 1.91% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -800,6 +880,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8882, 13.31% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -839,6 +923,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9640, 1.36% pixels differ \u00b7 Dark: SSIM 0.9627, 1.38% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -883,6 +971,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9818, 0.58% pixels differ \u00b7 Dark: SSIM 0.9816, 0.72% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -915,6 +1007,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9283, 14.96% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -954,6 +1050,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9995, 0.03% pixels differ \u00b7 Dark: SSIM 0.9987, 0.05% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -998,6 +1098,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9023, 7.60% pixels differ \u00b7 Dark: SSIM 0.9060, 7.57% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -1030,6 +1134,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9346, 18.16% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -1069,6 +1177,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8674, 4.47% pixels differ \u00b7 Dark: SSIM 0.8605, 4.53% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -1113,6 +1225,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.6918, 40.66% pixels differ \u00b7 Dark: SSIM 0.5405, 41.95% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -1145,6 +1261,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8821, 9.48% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -1184,6 +1304,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9232, 16.58% pixels differ \u00b7 Dark: SSIM 0.7970, 16.28% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -1228,6 +1352,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9550, 4.63% pixels differ \u00b7 Dark: SSIM 0.9322, 4.74% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -1260,6 +1388,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9074, 22.42% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -1299,6 +1431,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9807, 0.41% pixels differ \u00b7 Dark: SSIM 0.9766, 0.44% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -1343,6 +1479,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9659, 0.98% pixels differ \u00b7 Dark: SSIM 0.9419, 4.07% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -1375,6 +1515,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9735, 6.40% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -1414,6 +1558,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9642, 3.39% pixels differ \u00b7 Dark: SSIM 0.9615, 3.34% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -1458,6 +1606,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9851, 0.84% pixels differ \u00b7 Dark: SSIM 0.9879, 0.81% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -1490,6 +1642,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9543, 9.16% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -1573,6 +1729,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9312, 5.42% pixels differ \u00b7 Dark: SSIM 0.9423, 5.53% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -1644,6 +1804,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8531, 6.49% pixels differ \u00b7 Dark: SSIM 0.8031, 7.68% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -1688,6 +1852,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8639, 7.02% pixels differ \u00b7 Dark: SSIM 0.8347, 7.56% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -1720,6 +1888,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8522, 12.17% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -1759,6 +1931,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9376, 5.44% pixels differ \u00b7 Dark: SSIM 0.9127, 5.76% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -1803,6 +1979,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9274, 5.94% pixels differ \u00b7 Dark: SSIM 0.9202, 5.34% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -1835,6 +2015,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9533, 8.28% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -1874,6 +2058,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7475, 21.61% pixels differ \u00b7 Dark: SSIM 0.6308, 22.10% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -1918,6 +2106,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7168, 10.56% pixels differ \u00b7 Dark: SSIM 0.4559, 41.97% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -1950,6 +2142,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7397, 30.68% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -1989,6 +2185,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8757, 11.80% pixels differ \u00b7 Dark: SSIM 0.8121, 12.46% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -2033,6 +2233,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9131, 5.10% pixels differ \u00b7 Dark: SSIM 0.8784, 6.72% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -2065,6 +2269,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8528, 19.19% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -2104,6 +2312,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9524, 1.95% pixels differ \u00b7 Dark: SSIM 0.9530, 1.93% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -2148,6 +2360,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7796, 19.75% pixels differ \u00b7 Dark: SSIM 0.7643, 19.62% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -2180,6 +2396,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8512, 18.63% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -2263,6 +2483,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9034, 3.15% pixels differ \u00b7 Dark: SSIM 0.9064, 4.03% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -2334,6 +2558,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8053, 89.07% pixels differ \u00b7 Dark: SSIM 0.8100, 89.05% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -2378,6 +2606,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9753, 2.93% pixels differ \u00b7 Dark: SSIM 0.9771, 2.92% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -2410,6 +2642,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8024, 91.03% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -2449,6 +2685,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9938, 1.09% pixels differ \u00b7 Dark: SSIM 0.9860, 1.07% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -2493,6 +2733,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9660, 2.57% pixels differ \u00b7 Dark: SSIM 0.9608, 2.73% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -2525,6 +2769,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9838, 8.45% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -2564,6 +2812,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.6611, 32.85% pixels differ \u00b7 Dark: SSIM 0.7942, 16.38% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -2608,6 +2860,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.6670, 23.59% pixels differ \u00b7 Dark: SSIM 0.7148, 21.81% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -2640,6 +2896,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.4716, 68.99% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -2679,6 +2939,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9853, 0.40% pixels differ \u00b7 Dark: SSIM 0.9845, 0.41% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -2723,6 +2987,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9757, 0.81% pixels differ \u00b7 Dark: SSIM 0.9809, 0.79% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -2755,6 +3023,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9702, 6.86% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -2909,6 +3181,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9764, 2.60% pixels differ \u00b7 Dark: SSIM 0.9633, 2.44% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -2953,6 +3229,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9890, 0.38% pixels differ \u00b7 Dark: SSIM 0.9891, 0.45% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -2985,6 +3265,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9712, 10.05% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -3024,6 +3308,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9513, 2.18% pixels differ \u00b7 Dark: SSIM 0.9513, 2.15% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -3068,6 +3356,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9772, 0.92% pixels differ \u00b7 Dark: SSIM 0.9775, 1.05% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -3100,6 +3392,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9483, 8.40% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -3139,6 +3435,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9992, 0.06% pixels differ \u00b7 Dark: SSIM 0.9987, 0.07% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -3183,6 +3483,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9926, 0.26% pixels differ \u00b7 Dark: SSIM 0.9926, 0.29% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -3215,6 +3519,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9746, 7.50% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -3254,6 +3562,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7800, 32.32% pixels differ \u00b7 Dark: SSIM 0.6853, 32.36% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -3298,6 +3610,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8943, 11.56% pixels differ \u00b7 Dark: SSIM 0.8885, 11.54% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -3330,6 +3646,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8069, 25.18% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -3369,6 +3689,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8982, 13.69% pixels differ \u00b7 Dark: SSIM 0.8883, 13.69% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -3413,6 +3737,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8901, 6.18% pixels differ \u00b7 Dark: SSIM 0.8894, 2.65% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -3445,6 +3773,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9036, 12.88% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -3484,6 +3816,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.6703, 40.82% pixels differ \u00b7 Dark: SSIM 0.6237, 40.61% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -3528,6 +3864,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8751, 6.81% pixels differ \u00b7 Dark: SSIM 0.8741, 6.87% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -3560,6 +3900,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.6470, 30.09% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -3599,6 +3943,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9290, 10.45% pixels differ \u00b7 Dark: SSIM 0.8564, 10.59% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -3643,6 +3991,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8079, 16.50% pixels differ \u00b7 Dark: SSIM 0.8105, 15.77% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -3675,6 +4027,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8099, 24.82% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -3714,6 +4070,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9902, 0.69% pixels differ \u00b7 Dark: SSIM 0.9901, 0.70% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -3758,6 +4118,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9565, 5.31% pixels differ \u00b7 Dark: SSIM 0.9498, 5.48% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -3790,6 +4154,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8996, 16.69% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -3829,6 +4197,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8535, 5.26% pixels differ \u00b7 Dark: SSIM 0.8525, 5.23% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -3873,6 +4245,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9425, 1.82% pixels differ \u00b7 Dark: SSIM 0.9422, 2.49% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -3905,6 +4281,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8708, 9.92% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -3944,6 +4324,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9772, 12.67% pixels differ \u00b7 Dark: SSIM 0.8806, 12.64% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -3988,6 +4372,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9834, 2.63% pixels differ \u00b7 Dark: SSIM 0.9633, 2.84% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -4020,6 +4408,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9674, 19.07% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -4059,6 +4451,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9727, 2.38% pixels differ \u00b7 Dark: SSIM 0.9897, 0.55% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -4103,6 +4499,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9145, 3.19% pixels differ \u00b7 Dark: SSIM 0.9295, 2.36% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -4135,6 +4535,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9769, 6.39% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -4174,6 +4578,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9810, 0.61% pixels differ \u00b7 Dark: SSIM 0.9815, 0.58% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -4218,6 +4626,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9903, 0.32% pixels differ \u00b7 Dark: SSIM 0.9902, 0.38% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -4250,6 +4662,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9620, 7.84% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -4289,6 +4705,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7256, 24.27% pixels differ \u00b7 Dark: SSIM 0.6713, 25.38% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -4333,6 +4753,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7284, 15.13% pixels differ \u00b7 Dark: SSIM 0.6530, 40.09% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -4365,6 +4789,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8802, 13.89% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -4404,6 +4832,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9609, 2.24% pixels differ \u00b7 Dark: SSIM 0.9402, 2.66% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -4448,6 +4880,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9205, 2.75% pixels differ \u00b7 Dark: SSIM 0.8825, 5.76% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -4480,6 +4916,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9071, 9.89% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -4519,6 +4959,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9985, 0.07% pixels differ \u00b7 Dark: SSIM 0.9994, 0.04% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -4563,6 +5007,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9938, 0.24% pixels differ \u00b7 Dark: SSIM 0.9938, 0.26% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -4595,6 +5043,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9063, 22.66% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -4634,6 +5086,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9885, 0.47% pixels differ \u00b7 Dark: SSIM 0.9891, 0.44% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -4678,6 +5134,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9601, 4.07% pixels differ \u00b7 Dark: SSIM 0.9438, 4.23% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -4710,6 +5170,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9501, 8.90% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -4749,6 +5213,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9895, 0.43% pixels differ \u00b7 Dark: SSIM 0.9901, 0.39% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -4793,6 +5261,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9474, 4.08% pixels differ \u00b7 Dark: SSIM 0.9689, 4.18% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -4825,6 +5297,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9824, 6.18% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -4864,6 +5340,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9732, 1.01% pixels differ \u00b7 Dark: SSIM 0.7944, 19.20% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -4908,6 +5388,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9866, 0.53% pixels differ \u00b7 Dark: SSIM 0.8354, 18.77% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -4940,6 +5424,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9648, 6.74% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -4979,6 +5467,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8549, 4.64% pixels differ \u00b7 Dark: SSIM 0.8225, 4.95% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -5023,6 +5515,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9691, 0.83% pixels differ \u00b7 Dark: SSIM 0.9593, 1.05% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -5055,6 +5551,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8556, 10.23% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -5094,6 +5594,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8183, 10.47% pixels differ \u00b7 Dark: SSIM 0.7367, 10.43% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -5138,6 +5642,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8482, 12.69% pixels differ \u00b7 Dark: SSIM 0.8717, 13.10% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -5170,6 +5678,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8502, 14.62% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -5209,6 +5721,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9903, 0.41% pixels differ \u00b7 Dark: SSIM 0.9910, 0.37% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -5253,6 +5769,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9919, 0.29% pixels differ \u00b7 Dark: SSIM 0.9917, 0.33% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -5285,6 +5805,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9807, 6.22% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -5324,6 +5848,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9985, 0.07% pixels differ \u00b7 Dark: SSIM 0.9995, 0.03% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -5368,6 +5896,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9253, 2.22% pixels differ \u00b7 Dark: SSIM 0.9235, 2.88% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -5400,6 +5932,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7894, 33.28% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -5439,6 +5975,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8242, 38.05% pixels differ \u00b7 Dark: SSIM 0.7645, 38.01% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -5483,6 +6023,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8109, 18.19% pixels differ \u00b7 Dark: SSIM 0.8251, 18.05% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -5515,6 +6059,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8166, 44.90% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -5554,6 +6102,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9352, 2.10% pixels differ \u00b7 Dark: SSIM 0.9346, 2.07% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -5598,6 +6150,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9710, 0.84% pixels differ \u00b7 Dark: SSIM 0.9716, 0.99% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -5630,6 +6186,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8442, 10.53% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -5669,6 +6229,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.6815, 92.42% pixels differ \u00b7 Dark: SSIM 0.0143, 98.22% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -5713,6 +6277,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9364, 1.37% pixels differ \u00b7 Dark: SSIM 0.8838, 8.00% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -5745,6 +6313,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9374, 12.27% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -5784,6 +6356,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8865, 10.62% pixels differ \u00b7 Dark: SSIM 0.8689, 10.62% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -5828,6 +6404,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9573, 2.29% pixels differ \u00b7 Dark: SSIM 0.9595, 2.45% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -5860,6 +6440,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8676, 16.92% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -5899,6 +6483,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8335, 5.95% pixels differ \u00b7 Dark: SSIM 0.8323, 5.94% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -5943,6 +6531,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9489, 1.60% pixels differ \u00b7 Dark: SSIM 0.9387, 1.95% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -5975,6 +6567,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8287, 11.25% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -6014,6 +6610,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9769, 0.62% pixels differ \u00b7 Dark: SSIM 0.9771, 0.60% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -6058,6 +6658,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9931, 0.24% pixels differ \u00b7 Dark: SSIM 0.9930, 0.28% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -6090,6 +6694,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9808, 6.14% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -6129,6 +6737,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9896, 0.35% pixels differ \u00b7 Dark: SSIM 0.9899, 0.34% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -6173,6 +6785,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9940, 0.22% pixels differ \u00b7 Dark: SSIM 0.9940, 0.24% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -6205,6 +6821,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9834, 6.07% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -6244,6 +6864,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8074, 6.77% pixels differ \u00b7 Dark: SSIM 0.8057, 6.76% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -6288,6 +6912,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9386, 1.40% pixels differ \u00b7 Dark: SSIM 0.9032, 5.09% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -6320,6 +6948,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7883, 12.72% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -6359,6 +6991,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9101, 2.84% pixels differ \u00b7 Dark: SSIM 0.8705, 3.12% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -6403,6 +7039,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9530, 1.20% pixels differ \u00b7 Dark: SSIM 0.9429, 1.50% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -6435,6 +7075,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9045, 8.78% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -6474,6 +7118,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7934, 6.93% pixels differ \u00b7 Dark: SSIM 0.7563, 7.57% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -6518,6 +7166,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9572, 1.27% pixels differ \u00b7 Dark: SSIM 0.9464, 1.67% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -6550,6 +7202,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7804, 14.06% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -6589,6 +7245,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8113, 6.07% pixels differ \u00b7 Dark: SSIM 0.7781, 6.40% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -6633,6 +7293,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9649, 0.99% pixels differ \u00b7 Dark: SSIM 0.9546, 1.27% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -6665,6 +7329,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8041, 11.76% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -6704,6 +7372,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8079, 6.42% pixels differ \u00b7 Dark: SSIM 0.7748, 6.75% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -6748,6 +7420,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9643, 0.88% pixels differ \u00b7 Dark: SSIM 0.9496, 1.26% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -6780,6 +7456,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7995, 12.14% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -6819,6 +7499,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8410, 3.77% pixels differ \u00b7 Dark: SSIM 0.8150, 4.03% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -6863,6 +7547,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8249, 3.72% pixels differ \u00b7 Dark: SSIM 0.6662, 23.79% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -6895,6 +7583,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8462, 10.53% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -6934,6 +7626,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7939, 6.88% pixels differ \u00b7 Dark: SSIM 0.7492, 7.37% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -6978,6 +7674,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9597, 1.06% pixels differ \u00b7 Dark: SSIM 0.9452, 1.48% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -7010,6 +7710,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7912, 12.16% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -7049,6 +7753,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7880, 7.07% pixels differ \u00b7 Dark: SSIM 0.7193, 7.39% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -7093,6 +7801,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9338, 1.91% pixels differ \u00b7 Dark: SSIM 0.9255, 2.40% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -7125,6 +7837,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7804, 19.98% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -7164,6 +7880,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9715, 1.69% pixels differ \u00b7 Dark: SSIM 0.9730, 1.66% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -7208,6 +7928,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9725, 3.83% pixels differ \u00b7 Dark: SSIM 0.9609, 3.90% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -7240,6 +7964,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9419, 15.85% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -7279,6 +8007,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9650, 0.86% pixels differ \u00b7 Dark: SSIM 0.9616, 0.87% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -7323,6 +8055,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9714, 0.55% pixels differ \u00b7 Dark: SSIM 0.9446, 3.81% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -7355,6 +8091,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9547, 9.02% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -7394,6 +8134,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9987, 0.05% pixels differ \u00b7 Dark: SSIM 0.9988, 0.05% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -7438,6 +8182,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9796, 0.75% pixels differ \u00b7 Dark: SSIM 0.9792, 0.86% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -7470,6 +8218,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9915, 5.81% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -7509,6 +8261,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8830, 4.35% pixels differ \u00b7 Dark: SSIM 0.8821, 4.35% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -7553,6 +8309,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9534, 1.67% pixels differ \u00b7 Dark: SSIM 0.9525, 2.04% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -7585,6 +8345,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8921, 9.25% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -7624,6 +8388,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9757, 0.90% pixels differ \u00b7 Dark: SSIM 0.9756, 0.90% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -7668,6 +8436,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9883, 0.43% pixels differ \u00b7 Dark: SSIM 0.9882, 0.50% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -7700,6 +8472,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9677, 6.67% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -8989,6 +9765,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9058, 5.09% pixels differ \u00b7 Dark: SSIM 0.8990, 5.05% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -9033,6 +9813,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9589, 4.03% pixels differ \u00b7 Dark: SSIM 0.9481, 4.22% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -9065,6 +9849,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9399, 10.46% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -9104,6 +9892,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9987, 0.06% pixels differ \u00b7 Dark: SSIM 0.9995, 0.03% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -9148,6 +9940,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9226, 7.83% pixels differ \u00b7 Dark: SSIM 0.9240, 7.77% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -9180,6 +9976,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9916, 5.81% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -9219,6 +10019,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9987, 0.06% pixels differ \u00b7 Dark: SSIM 0.9995, 0.03% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -9263,6 +10067,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9332, 6.33% pixels differ \u00b7 Dark: SSIM 0.9444, 6.27% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -9295,6 +10103,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9909, 5.83% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -9449,6 +10261,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8745, 4.20% pixels differ \u00b7 Dark: SSIM 0.8692, 4.21% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -9493,6 +10309,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.6662, 38.32% pixels differ \u00b7 Dark: SSIM 0.5445, 40.48% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -9525,6 +10345,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8587, 10.20% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -9679,6 +10503,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8856, 3.81% pixels differ \u00b7 Dark: SSIM 0.8848, 3.79% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -9723,6 +10551,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9444, 2.21% pixels differ \u00b7 Dark: SSIM 0.9435, 2.57% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -9755,6 +10587,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9057, 8.39% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -9794,6 +10630,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8762, 4.06% pixels differ \u00b7 Dark: SSIM 0.8709, 4.07% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -9838,6 +10678,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.6780, 42.37% pixels differ \u00b7 Dark: SSIM 0.5226, 43.69% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -9870,6 +10714,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8842, 9.44% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -9909,6 +10757,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9581, 1.62% pixels differ \u00b7 Dark: SSIM 0.9581, 1.60% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -9953,6 +10805,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9840, 0.62% pixels differ \u00b7 Dark: SSIM 0.9837, 0.73% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -9985,6 +10841,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9676, 6.60% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -10024,6 +10884,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8226, 18.11% pixels differ \u00b7 Dark: SSIM 0.7800, 16.08% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -10068,6 +10932,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8355, 10.38% pixels differ \u00b7 Dark: SSIM 0.8331, 9.83% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -10100,6 +10968,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7276, 34.04% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -10139,6 +11011,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8592, 18.78% pixels differ \u00b7 Dark: SSIM 0.7629, 17.99% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -10183,6 +11059,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8800, 13.71% pixels differ \u00b7 Dark: SSIM 0.8416, 13.57% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -10215,6 +11095,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8278, 26.97% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -10254,6 +11138,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9028, 9.54% pixels differ \u00b7 Dark: SSIM 0.8743, 9.61% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -10298,6 +11186,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8831, 12.08% pixels differ \u00b7 Dark: SSIM 0.8748, 11.76% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -10330,6 +11222,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8787, 17.43% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -10369,6 +11265,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8746, 21.23% pixels differ \u00b7 Dark: SSIM 0.7770, 19.93% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -10413,6 +11313,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8876, 13.84% pixels differ \u00b7 Dark: SSIM 0.8502, 13.37% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -10445,6 +11349,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8576, 25.73% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -10484,6 +11392,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8899, 21.18% pixels differ \u00b7 Dark: SSIM 0.7460, 21.21% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -10528,6 +11440,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9464, 2.96% pixels differ \u00b7 Dark: SSIM 0.9494, 3.10% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -10560,6 +11476,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9049, 16.46% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -10599,6 +11519,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9729, 4.39% pixels differ \u00b7 Dark: SSIM 0.9591, 4.37% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -10643,6 +11567,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9918, 0.48% pixels differ \u00b7 Dark: SSIM 0.9924, 0.49% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -10675,6 +11603,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9555, 11.09% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -10829,6 +11761,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9284, 2.07% pixels differ \u00b7 Dark: SSIM 0.8680, 9.09% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -10855,8 +11791,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3 red: the HybridWebView surface is missing entirely in the C++ build \u2014 MAUI renders a large light-gray webview area with the 'HybridWebView (HybridRoot=HybridSamplePage)' placeholder text in both themes, but the C++ capture shows only the header row (label + 5 link buttons) over an empty white region (light) / a white void below the dark header (dark). Major missing content."
+          "status": "green",
+          "review": "C1/C3: after recapturing the STALE MAUI reference (was Jul-6, app rebuilt Jul-7), MAUI now renders the SAME empty WKWebView surface as the port \u2014 the 'HybridWebView here' status Editor, the 5-button JS-bridge column, and an empty (unloaded) web area. The port's apple handler injects the bridge JS but hosts no app:// asset tree (documented DEVIATION), and MAUI has no HybridSamplePage content bundled either, so all three render the empty webview identically. Residual ~0.6% light / 3.5% dark is the uniform harness inset (ruling 2)."
         },
         "gemini": {
           "status": null,
@@ -10864,7 +11800,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "C2/C4 green: XAML column renders the full webview area with the same gray surface and 'HybridWebView (HybridRoot=HybridSamplePage)' text as MAUI in both themes; layout, link buttons and proportions match. Only the exempt window-chrome inset differs."
+          "review": "C2/C4: identical to MAUI (and the cpp column) after the fresh recapture \u2014 same Editor + button column + empty web area. The prior green was based on a STALE Jul-6 capture showing an old gray placeholder surface; the fresh build matches MAUI's empty WKWebView."
         },
         "pixel": {
           "status": "yellow",
@@ -10873,6 +11809,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9509, 1.44% pixels differ \u00b7 Dark: SSIM 0.9513, 2.92% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -10905,6 +11845,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8625, 15.37% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -10944,6 +11888,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.6122, 47.19% pixels differ \u00b7 Dark: SSIM 0.6113, 36.40% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -10988,6 +11936,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7704, 21.02% pixels differ \u00b7 Dark: SSIM 0.7707, 21.12% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -11020,6 +11972,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7496, 32.59% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -11059,6 +12015,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8462, 12.51% pixels differ \u00b7 Dark: SSIM 0.8011, 13.00% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -11103,6 +12063,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.6798, 30.25% pixels differ \u00b7 Dark: SSIM 0.7058, 29.34% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -11135,6 +12099,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.6584, 43.01% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -11174,6 +12142,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9263, 4.92% pixels differ \u00b7 Dark: SSIM 0.9045, 4.83% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -11218,6 +12190,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9695, 3.44% pixels differ \u00b7 Dark: SSIM 0.9446, 3.77% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -11250,6 +12226,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9911, 5.82% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -11289,6 +12269,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9717, 0.75% pixels differ \u00b7 Dark: SSIM 0.9509, 1.14% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -11333,6 +12317,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9802, 0.38% pixels differ \u00b7 Dark: SSIM 0.9706, 0.49% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -11365,6 +12353,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9539, 7.12% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -11404,6 +12396,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9986, 0.06% pixels differ \u00b7 Dark: SSIM 0.9993, 0.04% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -11448,6 +12444,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9228, 2.38% pixels differ \u00b7 Dark: SSIM 0.9208, 3.10% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -11480,6 +12480,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7430, 44.51% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -11519,6 +12523,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9941, 0.32% pixels differ \u00b7 Dark: SSIM 0.9945, 0.30% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -11563,6 +12571,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9884, 0.65% pixels differ \u00b7 Dark: SSIM 0.9883, 0.67% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -11595,6 +12607,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9706, 6.70% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -11634,6 +12650,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9697, 2.38% pixels differ \u00b7 Dark: SSIM 0.9651, 2.36% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -11678,6 +12698,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8529, 7.01% pixels differ \u00b7 Dark: SSIM 0.8334, 9.92% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -11710,6 +12734,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8723, 12.18% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -11749,6 +12777,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7304, 28.83% pixels differ \u00b7 Dark: SSIM 0.6755, 27.04% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -11793,6 +12825,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8053, 8.14% pixels differ \u00b7 Dark: SSIM 0.8043, 8.22% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -11825,6 +12861,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.6983, 30.14% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -11864,6 +12904,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9986, 0.06% pixels differ \u00b7 Dark: SSIM 0.9993, 0.04% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -11908,6 +12952,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9895, 0.36% pixels differ \u00b7 Dark: SSIM 0.9894, 0.42% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -11940,6 +12988,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9703, 7.64% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -11979,6 +13031,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9844, 0.67% pixels differ \u00b7 Dark: SSIM 0.9840, 0.68% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -12023,6 +13079,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9665, 0.86% pixels differ \u00b7 Dark: SSIM 0.9431, 3.97% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -12055,6 +13115,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9694, 7.66% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -12094,6 +13158,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8497, 4.55% pixels differ \u00b7 Dark: SSIM 0.8433, 4.53% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -12138,6 +13206,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9161, 2.02% pixels differ \u00b7 Dark: SSIM 0.8663, 8.56% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -12170,6 +13242,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8080, 22.37% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -12209,6 +13285,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9169, 2.44% pixels differ \u00b7 Dark: SSIM 0.9161, 2.43% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -12253,6 +13333,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9758, 0.80% pixels differ \u00b7 Dark: SSIM 0.9753, 0.99% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -12285,6 +13369,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9377, 11.92% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -12324,6 +13412,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9986, 0.06% pixels differ \u00b7 Dark: SSIM 0.9995, 0.03% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -12368,6 +13460,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9736, 0.56% pixels differ \u00b7 Dark: SSIM 0.9459, 3.91% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -12400,6 +13496,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9711, 7.65% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -12439,6 +13539,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9986, 0.06% pixels differ \u00b7 Dark: SSIM 0.9995, 0.03% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -12483,6 +13587,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9545, 1.52% pixels differ \u00b7 Dark: SSIM 0.9531, 1.91% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -12515,6 +13623,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9726, 7.42% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -12554,6 +13666,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9986, 0.06% pixels differ \u00b7 Dark: SSIM 0.9995, 0.03% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -12598,6 +13714,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9653, 1.60% pixels differ \u00b7 Dark: SSIM 0.9646, 1.40% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -12630,6 +13750,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9382, 9.65% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -12669,6 +13793,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9943, 0.16% pixels differ \u00b7 Dark: SSIM 0.9909, 0.20% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -12713,6 +13841,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9793, 0.47% pixels differ \u00b7 Dark: SSIM 0.9702, 0.54% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -12745,6 +13877,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9382, 14.01% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -12784,6 +13920,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9654, 0.85% pixels differ \u00b7 Dark: SSIM 0.9533, 1.18% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -12828,6 +13968,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9715, 1.43% pixels differ \u00b7 Dark: SSIM 0.9712, 0.58% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -12860,6 +14004,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9662, 8.01% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -12899,6 +14047,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8918, 5.68% pixels differ \u00b7 Dark: SSIM 0.8753, 5.86% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -12943,6 +14095,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9710, 1.55% pixels differ \u00b7 Dark: SSIM 0.9664, 1.76% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -12975,6 +14131,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9235, 13.68% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -13014,6 +14174,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9968, 0.13% pixels differ \u00b7 Dark: SSIM 0.9975, 0.11% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -13058,6 +14222,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9862, 0.45% pixels differ \u00b7 Dark: SSIM 0.9860, 0.55% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -13090,6 +14258,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9585, 7.95% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -13129,6 +14301,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9793, 0.77% pixels differ \u00b7 Dark: SSIM 0.9800, 0.74% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -13173,6 +14349,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9894, 0.41% pixels differ \u00b7 Dark: SSIM 0.9893, 0.47% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -13205,6 +14385,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9707, 6.53% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -13244,6 +14428,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7491, 9.41% pixels differ \u00b7 Dark: SSIM 0.7482, 9.40% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -13288,6 +14476,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8788, 4.57% pixels differ \u00b7 Dark: SSIM 0.8779, 5.62% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -13320,6 +14512,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7750, 17.52% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -13359,6 +14555,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8415, 6.00% pixels differ \u00b7 Dark: SSIM 0.8405, 5.99% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -13403,6 +14603,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.5449, 21.97% pixels differ \u00b7 Dark: SSIM 0.5139, 24.43% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -13435,6 +14639,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8707, 14.35% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -13474,6 +14682,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9844, 0.51% pixels differ \u00b7 Dark: SSIM 0.9843, 0.50% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -13518,6 +14730,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7689, 24.13% pixels differ \u00b7 Dark: SSIM 0.6959, 24.65% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -13550,6 +14766,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.6451, 73.82% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -13589,6 +14809,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9988, 0.06% pixels differ \u00b7 Dark: SSIM 0.9990, 0.04% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -13633,6 +14857,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9848, 0.44% pixels differ \u00b7 Dark: SSIM 0.9853, 0.50% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -13665,6 +14893,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9912, 5.83% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -13704,6 +14936,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9988, 0.06% pixels differ \u00b7 Dark: SSIM 0.9990, 0.04% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -13748,6 +14984,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9707, 3.65% pixels differ \u00b7 Dark: SSIM 0.9521, 3.76% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -13780,6 +15020,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9916, 5.81% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -13819,6 +15063,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8980, 3.39% pixels differ \u00b7 Dark: SSIM 0.8932, 3.41% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -13863,6 +15111,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9174, 3.23% pixels differ \u00b7 Dark: SSIM 0.9140, 3.94% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -13895,6 +15147,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8696, 10.86% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -13934,6 +15190,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9801, 0.65% pixels differ \u00b7 Dark: SSIM 0.9800, 0.64% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -13978,6 +15238,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9897, 0.34% pixels differ \u00b7 Dark: SSIM 0.9896, 0.40% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -14010,6 +15274,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9730, 7.34% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -14049,6 +15317,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9988, 0.06% pixels differ \u00b7 Dark: SSIM 0.9990, 0.04% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -14093,6 +15365,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9743, 0.80% pixels differ \u00b7 Dark: SSIM 0.9744, 0.97% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -14125,6 +15401,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8897, 17.00% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -14164,6 +15444,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9646, 4.57% pixels differ \u00b7 Dark: SSIM 0.9373, 4.57% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -14208,6 +15492,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9667, 1.09% pixels differ \u00b7 Dark: SSIM 0.9659, 1.35% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -14240,6 +15528,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9207, 20.33% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -14279,6 +15571,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9988, 0.06% pixels differ \u00b7 Dark: SSIM 0.9990, 0.04% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -14323,6 +15619,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9684, 0.96% pixels differ \u00b7 Dark: SSIM 0.9682, 1.21% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -14355,6 +15655,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8768, 22.66% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -14394,6 +15698,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9151, 2.30% pixels differ \u00b7 Dark: SSIM 0.9268, 2.29% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -14438,6 +15746,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9179, 2.20% pixels differ \u00b7 Dark: SSIM 0.9776, 2.87% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -14470,6 +15782,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9010, 8.38% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -14509,6 +15825,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9945, 0.25% pixels differ \u00b7 Dark: SSIM 0.9950, 0.24% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -14553,6 +15873,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9719, 3.01% pixels differ \u00b7 Dark: SSIM 0.9721, 2.99% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -14585,6 +15909,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9575, 15.16% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -14624,6 +15952,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9337, 8.30% pixels differ \u00b7 Dark: SSIM 0.9229, 8.28% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -14668,6 +16000,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9760, 1.88% pixels differ \u00b7 Dark: SSIM 0.9736, 1.90% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -14700,6 +16036,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9193, 14.81% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -14739,6 +16079,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8568, 16.18% pixels differ \u00b7 Dark: SSIM 0.7912, 15.35% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -14783,6 +16127,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9418, 3.59% pixels differ \u00b7 Dark: SSIM 0.9438, 3.67% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -14815,6 +16163,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8456, 21.17% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -14854,6 +16206,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9785, 1.12% pixels differ \u00b7 Dark: SSIM 0.9995, 0.02% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -14898,6 +16254,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9777, 0.84% pixels differ \u00b7 Dark: SSIM 0.9809, 0.77% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -14930,6 +16290,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9693, 6.94% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -14969,6 +16333,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9927, 0.27% pixels differ \u00b7 Dark: SSIM 0.9929, 0.25% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -15013,6 +16381,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7966, 10.02% pixels differ \u00b7 Dark: SSIM 0.6230, 29.24% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -15045,6 +16417,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8843, 20.15% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -15084,6 +16460,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9933, 0.29% pixels differ \u00b7 Dark: SSIM 0.9937, 0.28% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -15128,6 +16508,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9697, 0.66% pixels differ \u00b7 Dark: SSIM 0.9415, 4.06% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -15160,6 +16544,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9853, 6.41% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -15199,6 +16587,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8045, 10.55% pixels differ \u00b7 Dark: SSIM 0.7837, 10.47% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -15243,6 +16635,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9716, 0.89% pixels differ \u00b7 Dark: SSIM 0.9708, 1.14% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -15275,6 +16671,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8721, 15.67% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -15314,6 +16714,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9987, 0.06% pixels differ \u00b7 Dark: SSIM 0.9992, 0.04% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -15358,6 +16762,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9688, 1.46% pixels differ \u00b7 Dark: SSIM 0.9683, 1.73% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -15390,6 +16798,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9906, 5.85% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -15429,6 +16841,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9987, 0.06% pixels differ \u00b7 Dark: SSIM 0.9992, 0.04% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -15473,6 +16889,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9865, 0.41% pixels differ \u00b7 Dark: SSIM 0.9867, 0.49% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -15505,6 +16925,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9916, 5.81% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -15544,6 +16968,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7881, 9.67% pixels differ \u00b7 Dark: SSIM 0.7763, 9.66% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -15588,6 +17016,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9153, 3.19% pixels differ \u00b7 Dark: SSIM 0.9140, 3.88% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -15620,6 +17052,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8202, 13.98% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -15659,6 +17095,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.6886, 12.14% pixels differ \u00b7 Dark: SSIM 0.6824, 12.12% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -15703,6 +17143,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8731, 4.50% pixels differ \u00b7 Dark: SSIM 0.8703, 5.53% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -15735,6 +17179,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.6777, 19.19% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -15774,6 +17222,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9655, 2.31% pixels differ \u00b7 Dark: SSIM 0.9587, 2.30% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -15818,6 +17270,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9068, 4.27% pixels differ \u00b7 Dark: SSIM 0.8997, 4.82% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -15850,6 +17306,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9503, 8.23% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -15889,6 +17349,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8993, 11.59% pixels differ \u00b7 Dark: SSIM 0.8449, 11.57% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -15933,6 +17397,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9080, 6.78% pixels differ \u00b7 Dark: SSIM 0.8921, 6.80% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -15965,6 +17433,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8840, 16.84% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -16004,6 +17476,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7527, 8.92% pixels differ \u00b7 Dark: SSIM 0.7858, 6.71% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -16048,6 +17524,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8790, 3.81% pixels differ \u00b7 Dark: SSIM 0.8992, 3.55% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -16080,6 +17560,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7524, 13.92% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -16119,6 +17603,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9311, 2.30% pixels differ \u00b7 Dark: SSIM 0.9307, 2.29% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -16163,6 +17651,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9672, 0.98% pixels differ \u00b7 Dark: SSIM 0.9663, 1.23% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -16195,6 +17687,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9199, 8.22% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -16234,6 +17730,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9766, 0.98% pixels differ \u00b7 Dark: SSIM 0.9770, 0.95% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -16278,6 +17778,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9597, 1.21% pixels differ \u00b7 Dark: SSIM 0.9589, 1.54% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -16310,6 +17814,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9549, 10.28% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -16349,6 +17857,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7843, 7.13% pixels differ \u00b7 Dark: SSIM 0.7825, 7.10% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -16393,6 +17905,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9075, 2.72% pixels differ \u00b7 Dark: SSIM 0.9047, 3.52% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -16425,6 +17941,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7708, 13.29% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -16464,6 +17984,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8489, 5.95% pixels differ \u00b7 Dark: SSIM 0.8485, 5.86% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -16508,6 +18032,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8584, 4.33% pixels differ \u00b7 Dark: SSIM 0.8578, 5.39% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -16540,6 +18068,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9911, 5.81% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -16579,6 +18111,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7060, 92.34% pixels differ \u00b7 Dark: SSIM 0.0527, 96.99% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -16623,6 +18159,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9929, 0.15% pixels differ \u00b7 Dark: SSIM 0.9828, 0.80% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -16655,6 +18195,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9764, 6.05% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -16694,6 +18238,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9987, 0.06% pixels differ \u00b7 Dark: SSIM 0.9996, 0.03% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -16738,6 +18286,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9510, 2.76% pixels differ \u00b7 Dark: SSIM 0.9565, 2.94% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -16770,6 +18322,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9738, 6.54% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -16809,6 +18365,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9987, 0.06% pixels differ \u00b7 Dark: SSIM 0.9996, 0.03% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -16853,6 +18413,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9663, 1.08% pixels differ \u00b7 Dark: SSIM 0.9659, 1.35% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -16885,6 +18449,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9240, 11.03% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -16924,6 +18492,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9987, 0.06% pixels differ \u00b7 Dark: SSIM 0.9996, 0.03% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -16968,6 +18540,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9824, 1.37% pixels differ \u00b7 Dark: SSIM 0.9793, 1.42% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -17000,6 +18576,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9724, 9.78% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -17039,6 +18619,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9145, 2.76% pixels differ \u00b7 Dark: SSIM 0.8626, 8.99% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -17083,6 +18667,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9593, 1.14% pixels differ \u00b7 Dark: SSIM 0.9275, 4.74% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -17115,6 +18703,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9032, 8.71% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -17154,6 +18746,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8622, 5.08% pixels differ \u00b7 Dark: SSIM 0.8605, 5.06% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -17198,6 +18794,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9338, 2.19% pixels differ \u00b7 Dark: SSIM 0.9285, 3.21% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -17230,6 +18830,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7942, 23.69% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -17269,6 +18873,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8778, 3.59% pixels differ \u00b7 Dark: SSIM 0.8708, 3.59% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -17313,6 +18921,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9098, 2.67% pixels differ \u00b7 Dark: SSIM 0.8695, 7.62% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -17345,6 +18957,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8609, 21.38% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -17384,6 +19000,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9115, 2.88% pixels differ \u00b7 Dark: SSIM 0.9115, 2.86% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -17428,6 +19048,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9565, 1.22% pixels differ \u00b7 Dark: SSIM 0.9552, 1.52% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -17460,6 +19084,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9064, 8.33% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -17499,6 +19127,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8866, 1.99% pixels differ \u00b7 Dark: SSIM 0.7392, 5.57% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -17543,6 +19175,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9127, 1.15% pixels differ \u00b7 Dark: SSIM 0.8607, 1.45% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -17575,6 +19211,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8675, 9.56% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -17614,6 +19254,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9045, 3.21% pixels differ \u00b7 Dark: SSIM 0.9039, 3.19% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -17658,6 +19302,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9640, 1.22% pixels differ \u00b7 Dark: SSIM 0.9632, 1.50% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -17690,6 +19338,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9067, 8.43% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -17729,6 +19381,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8675, 12.86% pixels differ \u00b7 Dark: SSIM 0.8011, 12.84% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -17773,6 +19429,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9073, 2.92% pixels differ \u00b7 Dark: SSIM 0.9047, 3.72% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -17805,6 +19465,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8613, 19.83% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -17844,6 +19508,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7579, 7.20% pixels differ \u00b7 Dark: SSIM 0.7199, 7.53% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -17888,6 +19556,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8953, 2.76% pixels differ \u00b7 Dark: SSIM 0.8569, 6.79% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -17920,6 +19592,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7099, 20.43% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -17959,6 +19635,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9923, 1.09% pixels differ \u00b7 Dark: SSIM 0.9862, 1.07% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -18003,6 +19683,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8490, 6.23% pixels differ \u00b7 Dark: SSIM 0.7891, 12.84% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -18035,6 +19719,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9139, 16.77% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -18074,6 +19762,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9755, 4.10% pixels differ \u00b7 Dark: SSIM 0.1379, 89.05% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -18118,6 +19810,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9878, 0.80% pixels differ \u00b7 Dark: SSIM 0.0457, 95.94% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -18150,6 +19846,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9677, 9.85% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -18189,6 +19889,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9120, 9.17% pixels differ \u00b7 Dark: SSIM 0.8978, 9.13% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -18233,6 +19937,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9680, 1.83% pixels differ \u00b7 Dark: SSIM 0.9737, 1.93% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -18265,6 +19973,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9000, 15.15% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -18304,6 +20016,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9762, 0.81% pixels differ \u00b7 Dark: SSIM 0.9764, 0.79% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -18348,6 +20064,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9696, 0.97% pixels differ \u00b7 Dark: SSIM 0.9688, 1.21% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -18380,6 +20100,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9554, 14.43% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -18419,6 +20143,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.6886, 17.52% pixels differ \u00b7 Dark: SSIM 0.5710, 19.54% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -18463,6 +20191,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.6675, 18.59% pixels differ \u00b7 Dark: SSIM 0.6890, 13.52% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -18495,6 +20227,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.6652, 32.66% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -18534,6 +20270,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9518, 1.64% pixels differ \u00b7 Dark: SSIM 0.9485, 1.64% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -18578,6 +20318,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9575, 1.57% pixels differ \u00b7 Dark: SSIM 0.9523, 2.02% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -18610,6 +20354,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9413, 7.57% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -18649,6 +20397,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9654, 3.11% pixels differ \u00b7 Dark: SSIM 0.9591, 3.09% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -18693,6 +20445,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9825, 1.35% pixels differ \u00b7 Dark: SSIM 0.9829, 1.40% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -18725,6 +20481,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9915, 5.81% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -18764,6 +20524,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9288, 2.31% pixels differ \u00b7 Dark: SSIM 0.9282, 2.29% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -18808,6 +20572,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9765, 0.88% pixels differ \u00b7 Dark: SSIM 0.9760, 1.04% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -18840,6 +20608,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9308, 7.45% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -18879,6 +20651,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9989, 0.05% pixels differ \u00b7 Dark: SSIM 0.9994, 0.03% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -18923,6 +20699,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9300, 4.95% pixels differ \u00b7 Dark: SSIM 0.9237, 5.26% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -18955,6 +20735,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8559, 21.98% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -18994,6 +20778,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9229, 6.18% pixels differ \u00b7 Dark: SSIM 0.8901, 6.20% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -19038,6 +20826,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9479, 4.32% pixels differ \u00b7 Dark: SSIM 0.9328, 4.60% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -19070,6 +20862,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9083, 10.92% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -19109,6 +20905,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9392, 1.91% pixels differ \u00b7 Dark: SSIM 0.9225, 4.77% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -19153,6 +20953,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9361, 3.91% pixels differ \u00b7 Dark: SSIM 0.9155, 6.38% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -19185,6 +20989,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9543, 7.30% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -19224,6 +21032,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9947, 0.19% pixels differ \u00b7 Dark: SSIM 0.9939, 0.20% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -19268,6 +21080,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9753, 0.52% pixels differ \u00b7 Dark: SSIM 0.9483, 3.77% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -19300,6 +21116,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9887, 6.01% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -19339,6 +21159,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9946, 3.72% pixels differ \u00b7 Dark: SSIM 0.9607, 3.70% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -19383,6 +21207,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8495, 19.22% pixels differ \u00b7 Dark: SSIM 0.7581, 19.70% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -19415,6 +21243,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9760, 9.94% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -19454,6 +21286,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9953, 0.19% pixels differ \u00b7 Dark: SSIM 0.9958, 0.17% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -19498,6 +21334,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9909, 0.31% pixels differ \u00b7 Dark: SSIM 0.9907, 0.37% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -19530,6 +21370,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9892, 5.90% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -19569,6 +21413,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9987, 0.06% pixels differ \u00b7 Dark: SSIM 0.9993, 0.04% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -19613,6 +21461,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7195, 21.80% pixels differ \u00b7 Dark: SSIM 0.8098, 21.80% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -19645,6 +21497,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8157, 20.98% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -19684,6 +21540,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7930, 19.50% pixels differ \u00b7 Dark: SSIM 0.7690, 16.26% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -19728,6 +21588,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.7829, 16.55% pixels differ \u00b7 Dark: SSIM 0.7598, 17.05% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -19760,6 +21624,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8570, 27.35% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -19799,6 +21667,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9830, 0.71% pixels differ \u00b7 Dark: SSIM 0.9993, 0.04% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -19843,6 +21715,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9163, 3.06% pixels differ \u00b7 Dark: SSIM 0.9365, 2.35% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -19875,6 +21751,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9727, 6.70% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -19914,6 +21794,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9280, 4.53% pixels differ \u00b7 Dark: SSIM 0.9113, 5.67% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -19958,6 +21842,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9737, 1.31% pixels differ \u00b7 Dark: SSIM 0.9718, 1.81% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -19990,6 +21878,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8509, 21.63% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -20029,6 +21921,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8852, 3.77% pixels differ \u00b7 Dark: SSIM 0.8801, 3.78% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -20073,6 +21969,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9403, 2.54% pixels differ \u00b7 Dark: SSIM 0.9376, 3.09% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -20105,6 +22005,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8931, 9.12% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -20144,6 +22048,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9611, 1.28% pixels differ \u00b7 Dark: SSIM 0.9611, 1.26% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -20188,6 +22096,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9866, 0.42% pixels differ \u00b7 Dark: SSIM 0.9823, 0.59% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -20220,6 +22132,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9304, 16.18% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -20287,6 +22203,10 @@
         "sonnet_xaml": {
           "status": "green",
           "review": "C2 (MAUI light vs C++&XAML light) and C4 (MAUI dark vs C++&XAML dark) both match. The XAML column is pixel-equivalent to the C++ column and to MAUI: all three sections present (Profile TextCell/EntryCell, Preferences SwitchCells, Custom ViewCell with 'Status' gray + 'Active' green). ViewCell renders in both themes. Only exempt deltas: window-title text ('MAUI C++ - gallery (XAML)') and window chrome."
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -20350,6 +22270,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9987, 0.06% pixels differ \u00b7 Dark: SSIM 0.9994, 0.04% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -20394,6 +22318,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9211, 2.98% pixels differ \u00b7 Dark: SSIM 0.9201, 3.54% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -20426,6 +22354,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9834, 6.30% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -20465,6 +22397,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8222, 10.23% pixels differ \u00b7 Dark: SSIM 0.7402, 10.20% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -20509,6 +22445,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8772, 9.46% pixels differ \u00b7 Dark: SSIM 0.9060, 10.00% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -20541,6 +22481,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8560, 14.42% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -20580,6 +22524,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9464, 1.73% pixels differ \u00b7 Dark: SSIM 0.9443, 1.71% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -20624,6 +22572,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9396, 1.80% pixels differ \u00b7 Dark: SSIM 0.9309, 3.29% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -20656,6 +22608,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9420, 9.93% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -20695,6 +22651,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9987, 0.06% pixels differ \u00b7 Dark: SSIM 0.9994, 0.04% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -20739,6 +22699,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9608, 1.20% pixels differ \u00b7 Dark: SSIM 0.9610, 1.51% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -20771,6 +22735,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8564, 22.86% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -20810,6 +22778,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9876, 1.60% pixels differ \u00b7 Dark: SSIM 0.9882, 1.58% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -20854,6 +22826,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8254, 10.51% pixels differ \u00b7 Dark: SSIM 0.8225, 3.24% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -20886,6 +22862,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8717, 11.43% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -20925,6 +22905,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8503, 3.71% pixels differ \u00b7 Dark: SSIM 0.7491, 5.76% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -20969,6 +22953,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8308, 9.43% pixels differ \u00b7 Dark: SSIM 0.8292, 3.57% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -21001,6 +22989,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8537, 15.47% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -21040,6 +23032,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9515, 1.56% pixels differ \u00b7 Dark: SSIM 0.9475, 1.58% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -21084,6 +23080,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9629, 0.98% pixels differ \u00b7 Dark: SSIM 0.9363, 4.35% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -21116,6 +23116,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9366, 8.38% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -21155,6 +23159,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9624, 1.04% pixels differ \u00b7 Dark: SSIM 0.9754, 0.74% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -21199,6 +23207,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9905, 0.23% pixels differ \u00b7 Dark: SSIM 0.9943, 0.15% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -21231,6 +23243,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9365, 14.69% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -21314,6 +23330,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9569, 2.09% pixels differ \u00b7 Dark: SSIM 0.9544, 1.68% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -21385,6 +23405,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8603, 45.19% pixels differ \u00b7 Dark: SSIM 0.5351, 45.41% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -21429,6 +23453,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9498, 59.45% pixels differ \u00b7 Dark: SSIM 0.5326, 60.31% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -21461,6 +23489,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8025, 61.18% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -21500,6 +23532,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9731, 2.92% pixels differ \u00b7 Dark: SSIM 0.9686, 2.94% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -21544,6 +23580,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9884, 0.71% pixels differ \u00b7 Dark: SSIM 0.9887, 0.74% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -21576,6 +23616,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9762, 7.76% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -21730,6 +23774,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8158, 8.17% pixels differ \u00b7 Dark: SSIM 0.7930, 8.22% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -21774,6 +23822,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8945, 5.89% pixels differ \u00b7 Dark: SSIM 0.8530, 9.64% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -21806,6 +23858,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8105, 16.39% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -21845,6 +23901,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.9078, 2.87% pixels differ \u00b7 Dark: SSIM 0.7410, 22.29% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -21889,6 +23949,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9819, 0.58% pixels differ \u00b7 Dark: SSIM 0.9386, 4.48% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -21921,6 +23985,10 @@
         "pixel_xaml": {
           "status": "red",
           "review": "Light: SSIM 0.8158, 45.37% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }
@@ -21960,6 +24028,10 @@
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 0.9993, 0.04% pixels differ \u00b7 Dark: SSIM 0.9989, 0.05% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "maccatalyst": {
@@ -22004,6 +24076,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9636, 3.14% pixels differ \u00b7 Dark: SSIM 0.9616, 3.19% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       },
       "android": {
@@ -22036,6 +24112,10 @@
         "pixel_xaml": {
           "status": "yellow",
           "review": "Light: SSIM 0.9561, 7.15% pixels differ"
+        },
+        "consistency": {
+          "status": "ok",
+          "review": ""
         }
       }
     }

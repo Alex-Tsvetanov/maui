@@ -3687,9 +3687,9 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 145 | 0 |
+| 🟢 Match | 146 | 0 |
 | 🟡 Minor | 29 | 0 |
-| 🔴 Major | 2 | 0 |
+| 🔴 Major | 1 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
 
@@ -5496,16 +5496,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 98. Hybrid Web View — 🔴/⏳
+### 98. Hybrid Web View — 🟢/⏳
 <sub>hybrid_web_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/hybrid_web_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/hybrid_web_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/hybrid_web_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/hybrid_web_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/hybrid_web_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/hybrid_web_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/hybrid_web_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/hybrid_web_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/hybrid_web_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/hybrid_web_view_dark.png" /></td></tr></table>
 
 ports HybridWebViewPage.xaml (+ HybridWebViewPage.xaml.cs)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3 red: the HybridWebView surface is missing entirely in the C++ build — MAUI renders a large light-gray webview area with the 'HybridWebView (HybridRoot=HybridSamplePage)' placeholder text in both themes, but the C++ capture shows only the header row (label + 5 link buttons) over an empty white region (light) / a white void below the dark header (dark). Major missing content.
+C1/C3: after recapturing the STALE MAUI reference (was Jul-6, app rebuilt Jul-7), MAUI now renders the SAME empty WKWebView surface as the port — the 'HybridWebView here' status Editor, the 5-button JS-bridge column, and an empty (unloaded) web area. The port's apple handler injects the bridge JS but hosts no app:// asset tree (documented DEVIATION), and MAUI has no HybridSamplePage content bundled either, so all three render the empty webview identically. Residual ~0.6% light / 3.5% dark is the uniform harness inset (ruling 2).
 
 #### ⏳ Gemini Review
 
