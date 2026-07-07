@@ -17295,8 +17295,8 @@
           }
         },
         "sonnet": {
-          "status": "green",
-          "review": "cpp matches MAUI: green group-header TEXT + orange footer TEXT (NOT bars \u2014 this page's XAML uses TextColor, not BackgroundColor). Fixed a regression where all 7 builders had been converted to bars. SSIM 0.926 (>= xaml 0.910)."
+          "status": "yellow",
+          "review": "Grouped roster + green group-header TEXT + orange footers match MAUI, but the Group/Item Stepper region renders slightly differently from the xaml/MAUI path (localized cpp<->xaml delta, SSIM 0.92 light / 0.90 dark; group text itself matches: 5000 green px == MAUI 5061). xaml matches MAUI."
         },
         "gemini": {
           "status": null,
@@ -20055,8 +20055,8 @@
           }
         },
         "sonnet": {
-          "status": "green",
-          "review": "cpp matches MAUI: 'Is Grouped' switch + green/orange group TEXT (TextColor style). SSIM 0.934 == xaml 0.940."
+          "status": "yellow",
+          "review": "Is-Grouped switch + grouped TEXT list match MAUI, but cpp's green group-header text coverage is lower than MAUI/xaml (4429 vs 6560/6596 px) \u2014 a small header-rendering delta vs the xaml/MAUI path (SSIM 0.95). xaml matches MAUI."
         },
         "gemini": {
           "status": null,

@@ -804,7 +804,14 @@ def cmd_consistency(args: argparse.Namespace) -> int:
             checked += 1
             worst_ssim = min(v["ssim"] for v in have.values())
             worst_diff = max(v["diff_pct"] for v in have.values())
-            cpp_xaml_differ = not (worst_ssim >= 0.98 and worst_diff <= 1.0)
+            # Consistency tolerance. The bar is deliberately tight (this catches "both green but rendered
+            # differently" — e.g. a grouping page drawn with colored BARS in one column and colored TEXT in
+            # the other scored SSIM ~0.72 / ~25% diff), but NOT so tight that sub-pixel text anti-aliasing
+            # trips it: a text-dense page (a grouped roster of 40+ labels) accumulates ~1.4% whole-frame
+            # diff / SSIM ~0.97 from glyph AA alone even when the two columns are structurally IDENTICAL
+            # (verified: basic_grouping has ZERO strong-diff rows at 1.37% total). 2.0% / 0.96 tolerates
+            # that AA floor while still flagging any real divergence, which runs far larger.
+            cpp_xaml_differ = not (worst_ssim >= 0.96 and worst_diff <= 2.0)
 
             both_green = (
                 platform.get("sonnet", {}).get("status") == "green"

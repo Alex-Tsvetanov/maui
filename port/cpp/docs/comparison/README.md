@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 112 | 0 |
-| 🟡 Minor | 60 | 0 |
+| 🟢 Match | 110 | 0 |
+| 🟡 Minor | 62 | 0 |
 | 🔴 Major | 4 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -6560,16 +6560,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 154. Scroll To Group — 🟢/⏳
+### 154. Scroll To Group — 🟡/⏳
 <sub>scroll_to_group</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/scroll_to_group_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/scroll_to_group_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/scroll_to_group_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/scroll_to_group_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/scroll_to_group_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/scroll_to_group_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/scroll_to_group_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/scroll_to_group_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/scroll_to_group_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/scroll_to_group_dark.png" /></td></tr></table>
 
 ports ScrollToGalleries/ScrollToGroup.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🟢 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-cpp matches MAUI: green group-header TEXT + orange footer TEXT (NOT bars — this page's XAML uses TextColor, not BackgroundColor). Fixed a regression where all 7 builders had been converted to bars. SSIM 0.926 (&gt;= xaml 0.910).
+Grouped roster + green group-header TEXT + orange footers match MAUI, but the Group/Item Stepper region renders slightly differently from the xaml/MAUI path (localized cpp&lt;-&gt;xaml delta, SSIM 0.92 light / 0.90 dark; group text itself matches: 5000 green px == MAUI 5061). xaml matches MAUI.
 
 #### ⏳ Gemini Review
 
@@ -7016,16 +7016,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 178. Switch Grouping — 🟢/⏳
+### 178. Switch Grouping — 🟡/⏳
 <sub>switch_grouping</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/switch_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/switch_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/switch_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/switch_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/switch_grouping_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/switch_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/switch_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/switch_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/switch_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/switch_grouping_dark.png" /></td></tr></table>
 
 ports CollectionViewGalleries/GroupingGalleries/ SwitchGrouping.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🟢 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-cpp matches MAUI: 'Is Grouped' switch + green/orange group TEXT (TextColor style). SSIM 0.934 == xaml 0.940.
+Is-Grouped switch + grouped TEXT list match MAUI, but cpp's green group-header text coverage is lower than MAUI/xaml (4429 vs 6560/6596 px) — a small header-rendering delta vs the xaml/MAUI path (SSIM 0.95). xaml matches MAUI.
 
 #### ⏳ Gemini Review
 
