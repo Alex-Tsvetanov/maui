@@ -23,6 +23,8 @@
 #include "maui/controls/content_page.hpp"
 #include "maui/core/i_view.hpp"
 
+#include "../support/gallery_twin_corpus.hpp" // twin_files / read_file / load_expected_statuses
+
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -38,92 +40,10 @@ namespace
     using maui::xaml::xaml_load_result;
     using maui::xaml::xaml_loader;
 
-    // The page files, discovered once at suite-instantiation time: the shared-pages dir UNION the legacy
-    // twins dir, a shared page superseding a same-stem legacy twin (mirrors e2e.py gen's precedence).
-    [[nodiscard]] std::vector<std::filesystem::path> twin_files()
-    {
-        std::vector<std::filesystem::path> files;
-        std::vector<std::string> seen;
-        for (const char* dir_name : {SHARED_PAGES_DIR, GALLERY_TWINS_DIR})
-        {
-            const std::filesystem::path dir{dir_name};
-            if (!std::filesystem::is_directory(dir))
-            {
-                continue;
-            }
-            for (const auto& entry : std::filesystem::directory_iterator(dir))
-            {
-                if (!entry.is_regular_file() || entry.path().extension() != ".xaml")
-                {
-                    continue;
-                }
-                const std::string stem = entry.path().stem().string();
-                if (std::find(seen.begin(), seen.end(), stem) != seen.end())
-                {
-                    continue; // shared page already claimed this key
-                }
-                seen.push_back(stem);
-                files.push_back(entry.path());
-            }
-        }
-        std::sort(files.begin(), files.end());
-        return files;
-    }
-
-    [[nodiscard]] std::string read_file(const std::filesystem::path& path)
-    {
-        std::ifstream stream(path);
-        std::stringstream buffer;
-        buffer << stream.rdbuf();
-        return buffer.str();
-    }
-
-    // Minimal scanner for pages/manifest.json's flat "key": "...", "expected_port_status": "..." string
-    // pairs (NOT a general JSON parser — the manifest is a simple array of flat objects with no nesting
-    // in the two fields this gate needs). Returns key -> expected_port_status.
-    [[nodiscard]] std::map<std::string, std::string> load_expected_statuses()
-    {
-        std::map<std::string, std::string> statuses;
-        const std::filesystem::path manifest_path = std::filesystem::path(SHARED_PAGES_DIR) / "manifest.json";
-        const std::string text = read_file(manifest_path);
-
-        auto next_string_field = [&text](std::size_t& pos, std::string_view field_name) -> std::string {
-            const std::string needle = "\"" + std::string(field_name) + "\"";
-            const std::size_t field_pos = text.find(needle, pos);
-            if (field_pos == std::string::npos)
-            {
-                return {};
-            }
-            const std::size_t colon = text.find(':', field_pos);
-            const std::size_t value_start = text.find('"', colon + 1);
-            const std::size_t value_end = text.find('"', value_start + 1);
-            if (colon == std::string::npos || value_start == std::string::npos || value_end == std::string::npos)
-            {
-                return {};
-            }
-            pos = value_end + 1;
-            return text.substr(value_start + 1, value_end - value_start - 1);
-        };
-
-        std::size_t pos = 0;
-        while (true)
-        {
-            const std::size_t key_field = text.find("\"key\"", pos);
-            if (key_field == std::string::npos)
-            {
-                break;
-            }
-            std::size_t scan_pos = key_field;
-            const std::string key = next_string_field(scan_pos, "key");
-            const std::string status = next_string_field(scan_pos, "expected_port_status");
-            if (!key.empty() && !status.empty())
-            {
-                statuses[key] = status;
-            }
-            pos = scan_pos;
-        }
-        return statuses;
-    }
+    // twin_files / read_file / load_expected_statuses: shared with the render-gate TU (was hand-synced).
+    using maui::test::load_expected_statuses;
+    using maui::test::read_file;
+    using maui::test::twin_files;
 
     class gallery_twin : public testing::TestWithParam<std::filesystem::path>
     {
