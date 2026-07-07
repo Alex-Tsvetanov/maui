@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 140 | 0 |
-| 🟡 Minor | 34 | 0 |
+| 🟢 Match | 141 | 0 |
+| 🟡 Minor | 33 | 0 |
 | 🔴 Major | 2 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -6465,16 +6465,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 149. Rectangle Gallery — 🟡/⏳
+### 149. Rectangle Gallery — 🟢/⏳
 <sub>rectangle_gallery</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/rectangle_gallery_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/rectangle_gallery_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/rectangle_gallery_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/rectangle_gallery_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/rectangle_gallery_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/rectangle_gallery_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/rectangle_gallery_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/rectangle_gallery_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/rectangle_gallery_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/rectangle_gallery_dark.png" /></td></tr></table>
 
 ports RectangleGallery.xaml A self-contained, code-first port of the MAUI Shapes RectangleGallery (Pages/Controls/ShapesGalleries/RectangleGallery.xaml + .xaml.cs)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1 (light): shape content, colors, strokes, and dash patterns for all five rectangle variants (basic, square, stroke, stroke-dash, curved-corners) match MAUI exactly — but MAUI renders the whole column left-aligned (Start) near x~20-240px, while cpp renders the identical column shifted right and centered around x~890-1110px in the window. This is a real horizontal-position/alignment regression (HorizontalOptions=Start not honored for this page's container), not a uniform outer-inset shift, since the shapes are ~750px further right rather than a consistent small margin. C3 (dark): same centering-vs-Start-alignment discrepancy persists identically. Collapsed verdict = yellow (content/shapes fully correct, but position wrong in both themes).
+C1/C3: all six rectangles (basic red-fill, red-stroke square, red-stroke bar, blue-fill+red-stroke, dashed, rounded) now hug the container LEFT edge under their captions — matching MAUI + the xaml column — after pinning HorizontalOptions=Start per the shared XAML (an earlier twin centered them via the old maui-compare ref). Residual ~2.5% is the harness inset + stroke anti-aliasing.
 
 #### ⏳ Gemini Review
 

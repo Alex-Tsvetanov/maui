@@ -16720,16 +16720,16 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1 (light): shape content, colors, strokes, and dash patterns for all five rectangle variants (basic, square, stroke, stroke-dash, curved-corners) match MAUI exactly \u2014 but MAUI renders the whole column left-aligned (Start) near x~20-240px, while cpp renders the identical column shifted right and centered around x~890-1110px in the window. This is a real horizontal-position/alignment regression (HorizontalOptions=Start not honored for this page's container), not a uniform outer-inset shift, since the shapes are ~750px further right rather than a consistent small margin. C3 (dark): same centering-vs-Start-alignment discrepancy persists identically. Collapsed verdict = yellow (content/shapes fully correct, but position wrong in both themes)."
+          "status": "green",
+          "review": "C1/C3: all six rectangles (basic red-fill, red-stroke square, red-stroke bar, blue-fill+red-stroke, dashed, rounded) now hug the container LEFT edge under their captions \u2014 matching MAUI + the xaml column \u2014 after pinning HorizontalOptions=Start per the shared XAML (an earlier twin centered them via the old maui-compare ref). Residual ~2.5% is the harness inset + stroke anti-aliasing."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "yellow",
-          "review": "C2 (light) and C4 (dark): xaml build has the exact same horizontal mis-centering as cpp \u2014 shape column rendered centered around x~890-1110 instead of MAUI's left-aligned x~20-240 \u2014 while shape content/colors/strokes match perfectly. Same underlying HorizontalOptions=Start-not-applied bug affects both frameworks equally on this page."
+          "status": "green",
+          "review": "C2/C4: the xaml loader honors the inlined HorizontalOptions=Start on every rectangle, so all six shapes hug the LEFT edge under their captions matching MAUI (and the cpp column) in both themes; residual ~2.8% is harness inset + stroke anti-aliasing. (Supersedes a stale review from before shape HorizontalOptions was loader-registered.)"
         },
         "pixel": {
           "status": "yellow",

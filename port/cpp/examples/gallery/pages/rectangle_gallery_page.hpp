@@ -40,6 +40,7 @@
 #include "maui/controls/scroll_view.hpp"
 #include "maui/controls/shapes/rectangle.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
@@ -59,6 +60,7 @@ namespace maui::samples
             basic_.set_fill(solid(maui::graphics::colors::red));
             basic_.set_width_request(150);
             basic_.set_height_request(50);
+            basic_.set_horizontal_layout_alignment(maui::core::layout_alignment::start); // HorizontalOptions="Start"
             stack_.add(basic_);
 
             // --- "A Square": red stroke 4, no fill, 150x150.
@@ -67,6 +69,7 @@ namespace maui::samples
             square_.set_stroke_thickness(4);
             square_.set_width_request(150);
             square_.set_height_request(150);
+            square_.set_horizontal_layout_alignment(maui::core::layout_alignment::start); // HorizontalOptions="Start"
             stack_.add(square_);
 
             // --- "A Rectangle with stroke": red stroke 4, no fill, 150x50.
@@ -75,6 +78,8 @@ namespace maui::samples
             stroke_rect_.set_stroke_thickness(4);
             stroke_rect_.set_width_request(150);
             stroke_rect_.set_height_request(50);
+            stroke_rect_.set_horizontal_layout_alignment(
+                maui::core::layout_alignment::start); // HorizontalOptions="Start"
             stack_.add(stroke_rect_);
 
             // --- the same with a dark-blue fill (shares the caption above), 150x50.
@@ -83,6 +88,8 @@ namespace maui::samples
             filled_stroke_rect_.set_stroke_thickness(4);
             filled_stroke_rect_.set_width_request(150);
             filled_stroke_rect_.set_height_request(50);
+            filled_stroke_rect_.set_horizontal_layout_alignment(
+                maui::core::layout_alignment::start); // HorizontalOptions="Start"
             stack_.add(filled_stroke_rect_);
 
             // --- "A Rectangle with stroke dash": dark-blue fill, red dashed stroke (1,1 / offset 6), 150x50.
@@ -94,6 +101,8 @@ namespace maui::samples
             dash_rect_.set_stroke_dash_offset(6);
             dash_rect_.set_width_request(150);
             dash_rect_.set_height_request(50);
+            dash_rect_.set_horizontal_layout_alignment(
+                maui::core::layout_alignment::start); // HorizontalOptions="Start"
             stack_.add(dash_rect_);
 
             // --- "A Rectangle with curved corners": RadiusX 12 / RadiusY 24 (port rounds with max — note),
@@ -104,11 +113,15 @@ namespace maui::samples
             curved_rect_.set_fill(solid(maui::graphics::colors::dark_blue));
             curved_rect_.set_width_request(150);
             curved_rect_.set_height_request(50);
+            curved_rect_.set_horizontal_layout_alignment(
+                maui::core::layout_alignment::start); // HorizontalOptions="Start"
             stack_.add(curved_rect_);
 
-            // C# RectangleGalleryPage (maui-compare, the rendered ground truth) does NOT set
-            // HorizontalOptions on the rectangles, so they keep the default Fill+explicit-width behaviour
-            // which view::align_horizontal centers — matching the MAUI capture. (No Start override here.)
+            // The shared rectangle_gallery.xaml <Style TargetType="Rectangle"> sets HorizontalOptions="Start"
+            // on every rectangle (inlined per-element), so each 150-wide shape hugs the container's LEFT edge
+            // under its caption — matching MAUI + the xaml loader column. (An earlier twin, tracking the old
+            // maui-compare page that omitted HorizontalOptions, centered them via the Fill+explicit-width
+            // rule; the ground truth now pins Start, so this sets it explicitly.)
 
             scroll_.set_content(stack_);
             page_.set_content(scroll_);
