@@ -279,7 +279,6 @@ namespace
             "swipe_threshold",
             "radio_button_group",
             // cluster D — twin structurally rewritten around unsupported features / loader gaps
-            "carousel_page",
             "tabbed_flyout",
             "radio_button_content",
             "adaptive_collection",

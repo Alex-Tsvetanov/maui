@@ -3687,9 +3687,9 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 110 | 0 |
+| 🟢 Match | 111 | 0 |
 | 🟡 Minor | 62 | 0 |
-| 🔴 Major | 4 | 0 |
+| 🔴 Major | 3 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
 
@@ -4126,16 +4126,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 24. Carousel Page — 🔴/⏳
+### 24. Carousel Page — 🟢/⏳
 <sub>carousel_page</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/carousel_page_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/carousel_page_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/carousel_page_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/carousel_page_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/carousel_page_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/carousel_page_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/carousel_page_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/carousel_page_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/carousel_page_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/carousel_page_dark.png" /></td></tr></table>
 
 Carousel Page
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-The MAUI reference capture is completely blank in both themes while cpp renders a 'Basic Horizontal Carousel' with Item 1, Prev/Next and position text — no usable ground truth to confirm parity, so both comparisons mismatch as captured; the MAUI ref likely needs recapture.
+C1/C3: builder rewritten to mirror the shared XAML (page root = CarouselView; ItemTemplate = purple Border/StrokeThickness2/Padding16 + centered 'Card' label via a carousel_card border-subclass cell). Renders the single purple-bordered 'Card' card identically to MAUI in both themes (SSIM ~0.977, 0.78% diff). Prior red was the old richer 'Basic Horizontal Carousel' demo divergence (+ a stale 'blank MAUI ref' note). Now matches the green xaml column.
 
 #### ⏳ Gemini Review
 

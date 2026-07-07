@@ -2705,8 +2705,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "The MAUI reference capture is completely blank in both themes while cpp renders a 'Basic Horizontal Carousel' with Item 1, Prev/Next and position text \u2014 no usable ground truth to confirm parity, so both comparisons mismatch as captured; the MAUI ref likely needs recapture."
+          "status": "green",
+          "review": "C1/C3: builder rewritten to mirror the shared XAML (page root = CarouselView; ItemTemplate = purple Border/StrokeThickness2/Padding16 + centered 'Card' label via a carousel_card border-subclass cell). Renders the single purple-bordered 'Card' card identically to MAUI in both themes (SSIM ~0.977, 0.78% diff). Prior red was the old richer 'Basic Horizontal Carousel' demo divergence (+ a stale 'blank MAUI ref' note). Now matches the green xaml column."
         },
         "gemini": {
           "status": null,
@@ -2718,7 +2718,7 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9706, 0.95% pixels differ \u00b7 Dark: SSIM 0.9714, 1.07% pixels differ"
+          "review": "Light: SSIM 0.9766, 0.78% pixels differ \u00b7 Dark: SSIM 0.9818, 0.76% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",

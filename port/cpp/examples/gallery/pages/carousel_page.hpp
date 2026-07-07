@@ -1,106 +1,88 @@
 #pragma once
-// maui::samples::carousel_page — ports CarouselViewGalleries/CarouselViewPage.xaml (+ .xaml.cs).
+// maui::samples::carousel_page — the code-first twin of the shared port/maui-reference/pages/carousel_page.xaml.
 //
-// The original page (CarouselViewPage): a BasePage titled "CarouselView" with a StackLayout (Margin 12)
-// holding a Headline Label "Basic Horizontal Carousel" over a CarouselView whose ItemsSource is the
-// string array {"Item 1","Item 2","Item 3"} and whose ItemTemplate is a Grid with a centered Large Label
-// bound to {Binding} (the item string), plus a TapGestureRecognizer that, on tap, shows a DisplayAlert
-// ("Item", "Tapped", "Successfully").
+// The shared XAML is a bare CarouselView (the ContentPage's only content) whose ItemsSource is an inline
+// x:Array of three strings and whose ItemTemplate is a purple-stroked Border (StrokeThickness 2, Padding 16)
+// wrapping a centered Label with the LITERAL text "Card":
 //
-// This port mirrors that shape code-first:
-//   - the carousel_view is fed the three string items via set_items_source(observable_collection<string>)
-//     (items_view::set_items_source — the typed live source over the erased seam);
-//   - the ItemTemplate is a centered Label bound to the item string itself ({Binding} → identity), the
-//     items_page identity-binding precedent (set_binding<std::string,std::string> returning the value);
-//   - Next / Prev buttons mutate carousel.Position (carousel_view::set_position) — the demo affordance the
-//     task calls for (the oracle has no buttons; on a device the user swipes). Next/Prev clamp to the item
-//     range; a Position change drives the carousel's command → event → hook choreography;
-//   - a CurrentItem readout label reports the settled item: subscribe to `current_item_changed` and render
-//     the new boxed item's text. set_position writes Position; the headless carousel keeps CurrentItem in
-//     step with Position through the same items virtualization the collection_view uses, so the readout
-//     tracks the visible item. The readout also seeds from position 0 at build time.
+//   <CarouselView>
+//     <CarouselView.ItemsSource><x:Array Type="{x:Type x:String}">Card 1/2/3</x:Array></CarouselView.ItemsSource>
+//     <CarouselView.ItemTemplate><DataTemplate>
+//       <Border Stroke="Purple" StrokeThickness="2" Padding="16">
+//         <Label Text="Card" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+//       </Border>
+//     </DataTemplate></CarouselView.ItemTemplate>
+//   </CarouselView>
 //
-// The page OWNS its whole element tree (the items_page pattern). It is backend-agnostic — a sample main
-// attaches handlers bottom-up via the hosting layer and hosts page() in a window; the headless
-// carousel reuses the collection_view virtualization simulator, so a static capture realizes the item
-// cells and the position/current-item state the readout reflects.
+// A CarouselView shows ONE item at a time, so the resting page is a single full-viewport purple-bordered card
+// reading "Card". This twin mirrors that EXACTLY (page root = the CarouselView; no headline / Prev-Next /
+// readout chrome — those were an earlier richer-demo divergence that made the builder column diverge from
+// MAUI on the board; carousel_page is now structurally strict, removed from the equivalence gate's
+// known_diverging list).
 //
-// note: the C# cell's TapGestureRecognizer → DisplayAlert("Item","Tapped","Successfully") is a per-cell
-//       gesture firing a modal alert. A templated cell's gesture has no headless realization (the
-//       simulator does not synthesize taps on virtualized cells) and DisplayAlert is a page-modal service;
-//       both are OMITTED here (best-effort: the Next/Prev + readout demonstrate the carousel's core
-//       Position/CurrentItem behavior the page is built around). Not invented — left as a documented gap.
-// note: the C# Headline style + Margin="12" are cosmetic; the headline text is preserved as a plain Label,
-//       the margin left default (no headless effect).
+// The item cell is a data_template::of<carousel_card>() — carousel_card is a border subclass that OWNS its
+// Label child as a member (layout/border content is a NON-OWNING reference — PROFILE §8 — so a template cell
+// that adds a freshly-created child must own it), the same composite-cell pattern as cv_visual_states_page's
+// line_item_cell and header_footer_template_page's photo_cell. The Label text is the literal "Card" (the XAML
+// binds no item value into it), so the cell needs no binding. carousel_card is a brand-new user type whose
+// handler isn't self-registered; register_handlers() maps it to border_handler in the app's per-app registry
+// BEFORE the collection_view realize walk (gallery_pre_mount), exactly like line_item_cell -> layout_handler.
 
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "maui/controls/button.hpp"
+#include "maui/controls/border.hpp"
 #include "maui/controls/content_page.hpp"
-#include "maui/controls/horizontal_stack_layout.hpp"
-#include "maui/controls/items/boxed_item.hpp"
 #include "maui/controls/items/carousel_view.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
-#include "maui/controls/vertical_stack_layout.hpp"
-#include "maui/core/font.hpp"
+#include "maui/core/border_handler.hpp"
+#include "maui/core/handler_registry.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/thickness.hpp"
+#include "maui/graphics/colors.hpp"
+#include "maui/graphics/solid_paint.hpp"
+#include "maui/hosting/maui_app.hpp"
 
 namespace maui::samples
 {
     class carousel_page
     {
     public:
+        // The ItemTemplate cell root: a Border (Stroke=Purple, StrokeThickness=2, Padding=16) owning a
+        // centered "Card" Label. Default-constructible so data_template::of<carousel_card>() activates it.
+        // The Label fills the Border's content rect, so its H/V text alignment centers "Card" in the card.
+        class carousel_card final : public maui::controls::border
+        {
+        public:
+            carousel_card()
+            {
+                set_stroke(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::purple));
+                set_stroke_thickness(2);
+                set_padding(maui::core::thickness(16));
+                label_.set_text("Card");
+                label_.set_horizontal_text_alignment(maui::core::text_alignment::center);
+                label_.set_vertical_text_alignment(maui::core::text_alignment::center);
+                set_content(label_);
+            }
+
+        private:
+            maui::controls::label label_;
+        };
+
         carousel_page()
             : items_(std::make_shared<maui::core::observable_collection<std::string>>(
-                  std::vector<std::string>{"Item 1", "Item 2", "Item 3"})) // C# x:Array of x:String
+                  std::vector<std::string>{"Card 1", "Card 2", "Card 3"})) // the x:Array of x:String
         {
             page_.set_title("CarouselView");
-            root_.set_spacing(12); // stands in for the StackLayout Margin="12" gutter
 
-            headline_.set_text("Basic Horizontal Carousel"); // the Headline Label
-
-            // ItemTemplate: a centered Label bound to {Binding} — the item string itself (identity bind).
-            // maui-compare centers the Label in its cell via HorizontalOptions/VerticalOptions=Center +
-            // FontSize=24. Use LAYOUT alignment (not text alignment): the label sits at its natural height,
-            // so text-alignment can only center within that small frame (leaving it at the cell top) —
-            // layout-alignment centers the whole label frame in the cell's full height, matching MAUI.
-            auto cell = maui::controls::data_template::of<maui::controls::label>();
-            cell->set_binding<std::string, std::string>(maui::controls::label::text_property(),
-                                                        [](const std::string& value) { return value; });
-            cell->set_value(maui::controls::horizontal_layout_alignment_property(),
-                            maui::core::layout_alignment::center);
-            cell->set_value(maui::controls::vertical_layout_alignment_property(), maui::core::layout_alignment::center);
-            cell->set_value(maui::controls::label::font_property(), maui::core::font::system_font_of_size(24));
-            carousel_.set_item_template(cell);
+            carousel_.set_item_template(maui::controls::data_template::of<carousel_card>());
             carousel_.set_items_source(items_);
-            // Give the carousel a finite, tall viewport so it fills the stack's remaining height instead of
-            // collapsing to its content's minimum size.
-            carousel_.set_height_request(400);
 
-            // CurrentItem readout: track the settled item as Position changes.
-            carousel_.current_item_changed.connect(
-                [this](const maui::controls::current_item_changed_event_args& args) { update_readout(args); });
-            seed_readout(); // position 0 at build time
-
-            // Next / Prev buttons mutate Position (the demo affordance — see header note).
-            prev_button_.set_text("Prev");
-            prev_button_.command = [this] { go_prev(); };
-            next_button_.set_text("Next");
-            next_button_.command = [this] { go_next(); };
-
-            buttons_.set_spacing(12);
-            buttons_.add(prev_button_);
-            buttons_.add(next_button_);
-
-            root_.add(headline_);
-            root_.add(carousel_);
-            root_.add(buttons_);
-            root_.add(readout_);
-            page_.set_content(root_);
+            // The ContentPage's only content IS the CarouselView (the shared XAML root).
+            page_.set_content(carousel_);
         }
 
         [[nodiscard]] maui::controls::content_page& page()
@@ -108,74 +90,28 @@ namespace maui::samples
             return page_;
         }
 
-        // ---- owned controls exposed for the hosting main / tests ----
         [[nodiscard]] maui::controls::carousel_view& carousel()
         {
             return carousel_;
         }
-        [[nodiscard]] maui::controls::button& prev_button()
-        {
-            return prev_button_;
-        }
-        [[nodiscard]] maui::controls::button& next_button()
-        {
-            return next_button_;
-        }
-        [[nodiscard]] maui::controls::label& readout()
-        {
-            return readout_;
-        }
+
         [[nodiscard]] const std::shared_ptr<maui::core::observable_collection<std::string>>& items() const
         {
             return items_;
         }
 
-        // Advance one item, clamped to the last index (the carousel snaps to a valid position).
-        void go_next()
+        // PRE-MOUNT hook (gallery_host.hpp gallery_pre_mount): register carousel_card's handler BEFORE the
+        // collection_view realize walk. carousel_card is a border subclass, so it shares border's handler;
+        // without this the native cell realize silently no-ops (no registered handler for its type_tag) and
+        // the carousel renders blank. Mirrors cv_visual_states_page::register_handlers.
+        void register_handlers(maui::hosting::maui_app& app)
         {
-            const int last = item_count() - 1;
-            if (last < 0)
-            {
-                return;
-            }
-            const int target = carousel_.position() + 1;
-            carousel_.set_position(target > last ? last : target);
-        }
-
-        // Step back one item, clamped to the first index.
-        void go_prev()
-        {
-            const int target = carousel_.position() - 1;
-            carousel_.set_position(target < 0 ? 0 : target);
+            maui::core::register_handler<carousel_card, maui::core::border_handler>(app.handlers());
         }
 
     private:
-        [[nodiscard]] int item_count() const
-        {
-            return static_cast<int>(items_->items().size());
-        }
-
-        void update_readout(const maui::controls::current_item_changed_event_args& args)
-        {
-            const std::string item = args.current_item.has_value() ? args.current_item.text() : std::string{"(none)"};
-            readout_.set_text("Position " + std::to_string(carousel_.position()) + " — current: " + item);
-        }
-
-        // Seed the readout from position 0 (the carousel's initial item) at build time.
-        void seed_readout()
-        {
-            const std::string first = item_count() > 0 ? items_->items().front() : std::string{"(none)"};
-            readout_.set_text("Position 0 — current: " + first);
-        }
-
         std::shared_ptr<maui::core::observable_collection<std::string>> items_; // publisher before the view (§8)
         maui::controls::content_page page_;
-        maui::controls::vertical_stack_layout root_;
-        maui::controls::label headline_;
         maui::controls::carousel_view carousel_;
-        maui::controls::horizontal_stack_layout buttons_; // a simple Prev/Next row
-        maui::controls::button prev_button_;
-        maui::controls::button next_button_;
-        maui::controls::label readout_;
     };
 } // namespace maui::samples
