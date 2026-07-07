@@ -1631,7 +1631,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "The cpp render is missing the dog photo clipped inside the round-rect border shape (shown only as an empty outline in both light and dark), while MAUI shows the actual image content inside the shape."
+          "review": "RULING-3 (iOS MAUI image quirk): cpp renders the pug image inside the red RoundRectangle border; MAUI ref shows the border empty (image not loaded). Port more correct; user ruling needed."
         },
         "gemini": {
           "status": null,
@@ -1976,7 +1976,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "MAUI's ground-truth render shows the image slots (circle/square/triangle) as flat red/light-blue placeholder fills, while the C++ port renders an actual dog photo in those slots in both themes \u2014 a real content mismatch, not a padding artifact."
+          "review": "RULING-3 (iOS MAUI image quirk): cpp fills the resizable border shapes with the image; MAUI ref shows light-blue placeholders. Port more correct; user ruling needed."
         },
         "gemini": {
           "status": null,
@@ -2666,7 +2666,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "MAUI's reference render is missing the Prev/Next links and the 'Position 0 \u2014 current: Item 1' label entirely (blank below Item 1), while the C++ port shows them in both themes \u2014 a major content divergence from the ground-truth capture."
+          "review": "iOS: builder twin renders a richer carousel than the shared XAML's simple 'Card' CarouselView (same builder divergence as maccatalyst)."
         },
         "gemini": {
           "status": null,
@@ -3241,7 +3241,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "MAUI's reference renders blank gray placeholders for all three clipped-image demos in both themes (image failed to load), while the C++ port correctly loads and renders the source robot image clipped to rectangle/ellipse/geometry-group shapes."
+          "review": "RULING-3 (iOS MAUI image-loading quirk): cpp correctly renders the clipped image (purple Bionic submarine); the iOS MAUI reference shows only a gray placeholder (MAUI did not load the image). The port is MORE correct here \u2014 needs a user ruling, not a port fix."
         },
         "gemini": {
           "status": null,
@@ -3356,7 +3356,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "MAUI shows an empty gray box for the RoundRectangleGeometry-clipped image in both themes, while cpp shows the actual loaded dog photo correctly rounded; sliders/labels otherwise match."
+          "review": "RULING-3 (iOS MAUI image quirk): cpp renders the RoundRectangle-clipped pug image; MAUI ref shows a gray placeholder. Port more correct; user ruling needed."
         },
         "gemini": {
           "status": null,
@@ -3471,7 +3471,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "MAUI reference shows blank gray placeholders for all clipped-image variants in both themes, while cpp renders the actual dog photo correctly clipped in each case; layout and labels otherwise match."
+          "review": "RULING-3 (iOS MAUI image quirk): cpp renders the image; MAUI ref shows a gray placeholder. Port more correct; user ruling needed."
         },
         "gemini": {
           "status": null,
@@ -4850,8 +4850,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "Light theme matches (Item 1-4 lists render correctly), but in dark theme the C++ port's CollectionView items render as blank/invisible rows (missing item text) under both 'Single Selection' and 'Multi Selection' sections, while MAUI's dark reference correctly shows all item labels in white text."
+          "status": "green",
+          "review": "iOS: Single/Multi Selection item lists match MAUI. Prior red was stale (recaptured against the fixed build)."
         },
         "gemini": {
           "status": null,
@@ -5080,8 +5080,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "The third 'Background' row (gradient) is wrong color in the port: MAUI shows a pink-to-purple gradient in both themes, while the C++ port shows a blue-to-teal gradient. All other rows match correctly."
+          "status": "green",
+          "review": "iOS: Default/BackgroundColor(blue)/Background(gradient) date rows match MAUI; the only delta is the displayed date value (MAUI captured 5.07.2026, cpp 7.07.2026 == capture day) \u2014 a capture-date artifact, not a port bug."
         },
         "gemini": {
           "status": null,
@@ -7151,7 +7151,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "Header/content/footer color bands and layout match, but in dark mode MAUI renders the HEADER/CONTENT/FOOTER labels in white text while the C++ port renders them in dark/gray text, making them nearly illegible against the colored backgrounds."
+          "review": "iOS REAL delta: cpp is missing the blue LEFT flex panel that MAUI renders (MAUI: blue|gray|green; cpp: gray|green). Header + right green panel match. Port bug to fix."
         },
         "gemini": {
           "status": null,
@@ -10241,7 +10241,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "MAUI's header/footer template rows render as blank/transparent bands (only timestamp text visible), while the cpp port fills the header and footer template with an actual photo image in both themes."
+          "review": "RULING-3 (iOS MAUI image quirk): same class as maccatalyst \u2014 cpp renders the template thumbnail images; MAUI ref does not. Port more correct; user ruling needed."
         },
         "gemini": {
           "status": null,
@@ -10356,7 +10356,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "MAUI shows the header/footer as plain text bands with no background image, but cpp renders full-bleed photo backgrounds behind the header/footer text in both light and dark themes."
+          "review": "RULING-3 (iOS MAUI image quirk): cpp renders the header/footer background images (lizard/deer); MAUI ref shows only faint text (images not loaded). Port more correct; user ruling needed."
         },
         "gemini": {
           "status": null,
@@ -15300,8 +15300,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "The 'NonZero Polygon' star is filled solid black in the MAUI reference but renders as an unfilled outline-only shape in the cpp port, in both light and dark themes; all other polygons (basic, dash, EvenOdd) match correctly."
+          "status": "green",
+          "review": "iOS: 'A basic Polygon' green triangle + 'A dash Polygon' dashed triangle match MAUI. Stale red cleared on recapture."
         },
         "gemini": {
           "status": null,
@@ -19095,8 +19095,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "In dark mode the cpp port's swipe card is missing all its content (title, subtitle, description text) leaving a blank white bar, while MAUI dark shows the full card text; light mode matches."
+          "status": "green",
+          "review": "iOS: cpp renders the gesture card cleanly ('Welcome to .NET MAUI!' / June 2026 / 'A SwipeView with gesture recognizers' / 'Double-tap the card...') + TapCommand label. The MAUI reference capture is garbled (overlapping text \u2014 a broken/transition-state ref); cpp is the correct render. Ruling-3 broken-ref -> cpp verdict green."
         },
         "gemini": {
           "status": null,
@@ -19785,8 +19785,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "Light theme matches (bordered gray boxes with 'Content' text), but in dark theme the C++ port's bordered content boxes lose their light-gray background/border and become invisible against the black background, while MAUI keeps them visible with the same light-gray fill/border regardless of theme."
+          "status": "green",
+          "review": "iOS: 'Shadow in SwipeView Content' \u2014 SwipeItems + SwipeItemViews Content buttons with shadows match MAUI. Stale red cleared."
         },
         "gemini": {
           "status": null,

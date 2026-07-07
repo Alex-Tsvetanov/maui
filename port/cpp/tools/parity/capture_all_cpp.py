@@ -11,7 +11,9 @@ Usage:  python3 capture_all_cpp.py [--only k1,k2] [--dry-run]
 """
 import argparse
 import os
+import shutil
 import subprocess
+import tempfile
 import time
 
 import comparison_paths as cp
@@ -55,7 +57,15 @@ def main():
             time.sleep(SETTLE)
             out = cp.capture_path(PLATFORM, FRAMEWORK, key, theme, "png")
             os.makedirs(os.path.dirname(out), exist_ok=True)
-            run("xcrun", "simctl", "io", UDID, "screenshot", "--type=png", out)
+            # `simctl io screenshot` runs as a CoreSimulator process that lacks macOS TCC permission to
+            # write under ~/Documents (NSCocoaErrorDomain 513 "Operation not permitted"), so shoot into a
+            # temp dir it CAN write and move the file into the repo from THIS process (which has access).
+            tmp = os.path.join(tempfile.gettempdir(), f"maui_{PLATFORM}_{FRAMEWORK}_{key}_{theme}.png")
+            r = run("xcrun", "simctl", "io", UDID, "screenshot", "--type=png", tmp)
+            if os.path.exists(tmp):
+                shutil.move(tmp, out)
+            else:
+                print(f"  ! screenshot failed for {key} {theme}: {r.stderr.strip()[:120]}", flush=True)
             done += 1
             print(f"[{done}/{total}] {key} {theme}", flush=True)
     print("CAPTURE_ALL_DONE", flush=True)

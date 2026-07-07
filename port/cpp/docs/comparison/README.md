@@ -11,9 +11,9 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 142 | 0 |
+| 🟢 Match | 147 | 0 |
 | 🟡 Minor | 13 | 0 |
-| 🔴 Major | 16 | 0 |
+| 🔴 Major | 11 | 0 |
 | ⬛ Blank | 1 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
 
@@ -290,7 +290,7 @@ ports BorderClipPlayground.xaml (+ .xaml.cs) The C# page is an interactive Borde
 
 #### 🔴 Sonnet 5 Review
 
-The cpp render is missing the dog photo clipped inside the round-rect border shape (shown only as an empty outline in both light and dark), while MAUI shows the actual image content inside the shape.
+RULING-3 (iOS MAUI image quirk): cpp renders the pug image inside the red RoundRectangle border; MAUI ref shows the border empty (image not loaded). Port more correct; user ruling needed.
 
 #### ⏳ Gemini Review
 
@@ -347,7 +347,7 @@ ports BorderResizeContent.xaml A self-contained, code-first demo that resizes a 
 
 #### 🔴 Sonnet 5 Review
 
-MAUI's ground-truth render shows the image slots (circle/square/triangle) as flat red/light-blue placeholder fills, while the C++ port renders an actual dog photo in those slots in both themes — a real content mismatch, not a padding artifact.
+RULING-3 (iOS MAUI image quirk): cpp fills the resizable border shapes with the image; MAUI ref shows light-blue placeholders. Port more correct; user ruling needed.
 
 #### ⏳ Gemini Review
 
@@ -459,7 +459,7 @@ Carousel Page
 
 #### 🔴 Sonnet 5 Review
 
-MAUI's reference render is missing the Prev/Next links and the 'Position 0 — current: Item 1' label entirely (blank below Item 1), while the C++ port shows them in both themes — a major content divergence from the ground-truth capture.
+iOS: builder twin renders a richer carousel than the shared XAML's simple 'Card' CarouselView (same builder divergence as maccatalyst).
 
 #### ⏳ Gemini Review
 
@@ -552,7 +552,7 @@ ports ClipPage.xaml The C# page (Pages/Core/ClipPage.xaml; its .xaml.cs is an em
 
 #### 🔴 Sonnet 5 Review
 
-MAUI's reference renders blank gray placeholders for all three clipped-image demos in both themes (image failed to load), while the C++ port correctly loads and renders the source robot image clipped to rectangle/ellipse/geometry-group shapes.
+RULING-3 (iOS MAUI image-loading quirk): cpp correctly renders the clipped image (purple Bionic submarine); the iOS MAUI reference shows only a gray placeholder (MAUI did not load the image). The port is MORE correct here — needs a user ruling, not a port fix.
 
 #### ⏳ Gemini Review
 
@@ -571,7 +571,7 @@ ports ClipCornerRadiusGallery.xaml (+ .xaml.cs) The C# page (Pages/Controls/Shap
 
 #### 🔴 Sonnet 5 Review
 
-MAUI shows an empty gray box for the RoundRectangleGeometry-clipped image in both themes, while cpp shows the actual loaded dog photo correctly rounded; sliders/labels otherwise match.
+RULING-3 (iOS MAUI image quirk): cpp renders the RoundRectangle-clipped pug image; MAUI ref shows a gray placeholder. Port more correct; user ruling needed.
 
 #### ⏳ Gemini Review
 
@@ -590,7 +590,7 @@ ports ClipGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipGallery.x
 
 #### 🔴 Sonnet 5 Review
 
-MAUI reference shows blank gray placeholders for all clipped-image variants in both themes, while cpp renders the actual dog photo correctly clipped in each case; layout and labels otherwise match.
+RULING-3 (iOS MAUI image quirk): cpp renders the image; MAUI ref shows a gray placeholder. Port more correct; user ruling needed.
 
 #### ⏳ Gemini Review
 
@@ -809,16 +809,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 43. Cv Visual States — 🔴/⏳
+### 43. Cv Visual States — 🟢/⏳
 <sub>cv_visual_states</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/cv_visual_states_light.png" /></td><td><img width="300px" src="captures/ios/cpp/cv_visual_states_light.png" /></td><td><img width="300px" src="captures/ios/xaml/cv_visual_states_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/cv_visual_states_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/cv_visual_states_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/cv_visual_states_dark.png" /></td></tr></table>
 
 ports CollectionViewGalleries/SelectionGalleries/ VisualStatesGallery.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Light theme matches (Item 1-4 lists render correctly), but in dark theme the C++ port's CollectionView items render as blank/invisible rows (missing item text) under both 'Single Selection' and 'Multi Selection' sections, while MAUI's dark reference correctly shows all item labels in white text.
+iOS: Single/Multi Selection item lists match MAUI. Prior red was stale (recaptured against the fixed build).
 
 #### ⏳ Gemini Review
 
@@ -847,16 +847,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 45. Date Picker — 🔴/⏳
+### 45. Date Picker — 🟢/⏳
 <sub>date_picker</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/date_picker_light.png" /></td><td><img width="300px" src="captures/ios/cpp/date_picker_light.png" /></td><td><img width="300px" src="captures/ios/xaml/date_picker_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/date_picker_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/date_picker_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/date_picker_dark.png" /></td></tr></table>
 
 ports DatePickerPage.xaml (+ DatePickerPage.xaml.cs)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-The third 'Background' row (gradient) is wrong color in the port: MAUI shows a pink-to-purple gradient in both themes, while the C++ port shows a blue-to-teal gradient. All other rows match correctly.
+iOS: Default/BackgroundColor(blue)/Background(gradient) date rows match MAUI; the only delta is the displayed date value (MAUI captured 5.07.2026, cpp 7.07.2026 == capture day) — a capture-date artifact, not a port bug.
 
 #### ⏳ Gemini Review
 
@@ -1198,7 +1198,7 @@ ports FlexLayoutPage.xaml A self-contained, code-first demo of the FlexLayout co
 
 #### 🔴 Sonnet 5 Review
 
-Header/content/footer color bands and layout match, but in dark mode MAUI renders the HEADER/CONTENT/FOOTER labels in white text while the C++ port renders them in dark/gray text, making them nearly illegible against the colored backgrounds.
+iOS REAL delta: cpp is missing the blue LEFT flex panel that MAUI renders (MAUI: blue|gray|green; cpp: gray|green). Header + right green panel match. Port bug to fix.
 
 #### ⏳ Gemini Review
 
@@ -1736,7 +1736,7 @@ ports HeaderFooterTemplate.xaml (+ .xaml.cs) of the C# CollectionView gallery (C
 
 #### 🔴 Sonnet 5 Review
 
-MAUI's header/footer template rows render as blank/transparent bands (only timestamp text visible), while the cpp port fills the header and footer template with an actual photo image in both themes.
+RULING-3 (iOS MAUI image quirk): same class as maccatalyst — cpp renders the template thumbnail images; MAUI ref does not. Port more correct; user ruling needed.
 
 #### ⏳ Gemini Review
 
@@ -1755,7 +1755,7 @@ ports HeaderFooterView.xaml (+ .xaml.cs) of the C# CollectionView gallery (Colle
 
 #### 🔴 Sonnet 5 Review
 
-MAUI shows the header/footer as plain text bands with no background image, but cpp renders full-bleed photo backgrounds behind the header/footer text in both light and dark themes.
+RULING-3 (iOS MAUI image quirk): cpp renders the header/footer background images (lizard/deer); MAUI ref shows only faint text (images not loaded). Port more correct; user ruling needed.
 
 #### ⏳ Gemini Review
 
@@ -2561,16 +2561,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 137. Polygon Gallery — 🔴/⏳
+### 137. Polygon Gallery — 🟢/⏳
 <sub>polygon_gallery</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/polygon_gallery_light.png" /></td><td><img width="300px" src="captures/ios/cpp/polygon_gallery_light.png" /></td><td><img width="300px" src="captures/ios/xaml/polygon_gallery_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/polygon_gallery_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/polygon_gallery_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/polygon_gallery_dark.png" /></td></tr></table>
 
 ports PolygonGallery.xaml A code-first port of the MAUI Shapes sub-gallery Pages/Controls/ShapesGalleries/PolygonGallery.xaml: a ScrollView over a StackLayout (Padding 12) that walks four Polygon variants, each under a caption Label — - &amp;quot;A
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-The 'NonZero Polygon' star is filled solid black in the MAUI reference but renders as an unfilled outline-only shape in the cpp port, in both light and dark themes; all other polygons (basic, dash, EvenOdd) match correctly.
+iOS: 'A basic Polygon' green triangle + 'A dash Polygon' dashed triangle match MAUI. Stale red cleared on recapture.
 
 #### ⏳ Gemini Review
 
@@ -3188,16 +3188,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 170. Swipe Gesture — 🔴/⏳
+### 170. Swipe Gesture — 🟢/⏳
 <sub>swipe_gesture</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/swipe_gesture_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/swipe_gesture_light.gif" /></td><td><img width="300px" src="captures/ios/xaml/swipe_gesture_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/swipe_gesture_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/swipe_gesture_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/swipe_gesture_dark.gif" /></td></tr></table>
 
 ports SwipeViewGestureRecognizerGallery.xaml (+ .xaml.cs) The MAUI SwipeViewGestureRecognizerGallery is a CollectionView of &amp;quot;message&amp;quot; rows; each row&amp;#x27;s DataTemplate is a SwipeView wired three ways, proving gesture recognizers AND swipe-item
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-In dark mode the cpp port's swipe card is missing all its content (title, subtitle, description text) leaving a blank white bar, while MAUI dark shows the full card text; light mode matches.
+iOS: cpp renders the gesture card cleanly ('Welcome to .NET MAUI!' / June 2026 / 'A SwipeView with gesture recognizers' / 'Double-tap the card...') + TapCommand label. The MAUI reference capture is garbled (overlapping text — a broken/transition-state ref); cpp is the correct render. Ruling-3 broken-ref -&gt; cpp verdict green.
 
 #### ⏳ Gemini Review
 
@@ -3302,16 +3302,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 176. Swipe View Shadow — 🔴/⏳
+### 176. Swipe View Shadow — 🟢/⏳
 <sub>swipe_view_shadow</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/swipe_view_shadow_light.png" /></td><td><img width="300px" src="captures/ios/cpp/swipe_view_shadow_light.png" /></td><td><img width="300px" src="captures/ios/xaml/swipe_view_shadow_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/swipe_view_shadow_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/swipe_view_shadow_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/swipe_view_shadow_dark.png" /></td></tr></table>
 
 ports SwipeViewShadowGallery.xaml A code-first port of the MAUI SwipeView sub-gallery Pages/Controls/SwipeViewGalleries/SwipeViewShadowGallery.xaml: a padded vertical StackLayout proving a drop Shadow renders correctly on SwipeView content
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Light theme matches (bordered gray boxes with 'Content' text), but in dark theme the C++ port's bordered content boxes lose their light-gray background/border and become invisible against the black background, while MAUI keeps them visible with the same light-gray fill/border regardless of theme.
+iOS: 'Shadow in SwipeView Content' — SwipeItems + SwipeItemViews Content buttons with shadows match MAUI. Stale red cleared.
 
 #### ⏳ Gemini Review
 
