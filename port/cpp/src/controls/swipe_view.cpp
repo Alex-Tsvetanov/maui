@@ -223,16 +223,28 @@ namespace maui::controls
     maui::graphics::size swipe_view::measure(double width_constraint, double height_constraint)
     {
         const maui::core::thickness inset = padding();
+        const maui::core::thickness view_margin = margin();
         maui::graphics::size content_size{0, 0};
         if (content_ != nullptr)
         {
-            content_size = content_->measure(width_constraint - inset.horizontal_thickness(),
-                                             height_constraint - inset.vertical_thickness());
+            // Margin is EXCLUDED from the content's available space (the constraints shrink by it), like the
+            // leaf view<>::measure (view.hpp ComputeDesiredSize) and border::measure's inset handling.
+            content_size =
+                content_->measure(width_constraint - inset.horizontal_thickness() - view_margin.horizontal_thickness(),
+                                  height_constraint - inset.vertical_thickness() - view_margin.vertical_thickness());
         }
         const maui::graphics::size measured{content_size.width + inset.horizontal_thickness(),
                                             content_size.height + inset.vertical_thickness()};
-        desired_size_ = {resolve_size_request(measured.width, width(), minimum_width(), maximum_width()),
-                         resolve_size_request(measured.height, height(), minimum_height(), maximum_height())};
+        // Resolve against this view's own size requests, then ADD the Margin back into the reported desired
+        // size (C# LayoutExtensions.ComputeDesiredSize) so the parent layout RESERVES it; arrange's
+        // compute_frame subtracts it back out (measure adds, arrange subtracts — balanced at zero margin, so
+        // the swipe-in-a-CollectionView common case is unchanged). Without this, N SwipeViews each with a
+        // Margin (basic_swipe: 5 × Margin=12) render as one gapless block because the stack never reserved
+        // the gaps.
+        desired_size_ = {resolve_size_request(measured.width, width(), minimum_width(), maximum_width()) +
+                             view_margin.horizontal_thickness(),
+                         resolve_size_request(measured.height, height(), minimum_height(), maximum_height()) +
+                             view_margin.vertical_thickness()};
         return desired_size_;
     }
 
@@ -252,18 +264,24 @@ namespace maui::controls
     // single-content hosts. The host is framed FIRST so its bounds are set before the content lands.
     maui::graphics::size swipe_view::arrange(const maui::graphics::rect& bounds)
     {
-        frame_ = bounds;
+        // View : resolve the aligned, size-requested, margin-inset FRAME within the allotted `bounds`, the
+        // same LayoutExtensions.ComputeFrame the leaf view<>::arrange + border::arrange run. With Margin=0 and
+        // a Fill alignment this returns `bounds` (the swipe-in-a-CollectionView common case is unchanged);
+        // with an explicit Width/Height or a Margin (basic_swipe: 5 rows each Margin=12, WidthRequest=300) it
+        // subtracts the margin measure reserved and positions the host inside its slot, producing the gaps.
+        const maui::graphics::rect frame = compute_frame(bounds);
+        frame_ = frame;
         if (auto* view_handler = dynamic_cast<maui::core::i_view_handler*>(handler().get()))
         {
-            view_handler->platform_arrange(bounds);
+            view_handler->platform_arrange(frame);
         }
         if (content_ != nullptr)
         {
             const maui::core::thickness inset = padding();
-            content_->arrange({inset.left, inset.top, std::max(0.0, bounds.width - inset.horizontal_thickness()),
-                               std::max(0.0, bounds.height - inset.vertical_thickness())});
+            content_->arrange({inset.left, inset.top, std::max(0.0, frame.width - inset.horizontal_thickness()),
+                               std::max(0.0, frame.height - inset.vertical_thickness())});
         }
-        return {bounds.width, bounds.height};
+        return {frame.width, frame.height};
     }
 } // namespace maui::controls
 

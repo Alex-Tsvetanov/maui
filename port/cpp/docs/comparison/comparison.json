@@ -1218,16 +1218,16 @@
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "C2/C4: layout broken in both themes \u2014 only the first box ('Swipe Up (Execute)') renders as a discrete box; the remaining four labels sit inside one full-window-width gray band stretching edge to edge, with no separate boxes or gaps. Major structural divergence from MAUI's five separate centered boxes."
+          "status": "green",
+          "review": "C2/C4: FIXED (swipe_view margin now reserved+inset via measure+compute_frame) \u2014 the five SwipeView rows render as discrete gray boxes, centered, with correct gaps and centered labels, matching MAUI in both themes (SSIM ~0.955). Prior red was one full-window gray band."
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9565, 3.94% pixels differ \u00b7 Dark: SSIM 0.9429, 4.03% pixels differ"
+          "review": "Light: SSIM 0.9553, 7.14% pixels differ \u00b7 Dark: SSIM 0.9162, 7.32% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.9537, 22.37% pixels differ \u00b7 Dark: SSIM 0.8098, 22.45% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9550, 4.63% pixels differ \u00b7 Dark: SSIM 0.9322, 4.74% pixels differ"
         }
       },
       "android": {
@@ -19723,11 +19723,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7835, 16.55% pixels differ \u00b7 Dark: SSIM 0.7649, 17.00% pixels differ"
+          "review": "Light: SSIM 0.7837, 16.52% pixels differ \u00b7 Dark: SSIM 0.7610, 17.05% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.7826, 16.57% pixels differ \u00b7 Dark: SSIM 0.7636, 17.01% pixels differ"
+          "review": "Light: SSIM 0.7829, 16.55% pixels differ \u00b7 Dark: SSIM 0.7598, 17.05% pixels differ"
         }
       },
       "android": {
