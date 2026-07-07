@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 119 | 0 |
-| 🟡 Minor | 54 | 0 |
+| 🟢 Match | 121 | 0 |
+| 🟡 Minor | 52 | 0 |
 | 🔴 Major | 3 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -4447,16 +4447,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 41. Custom Size Swipe — 🟡/⏳
+### 41. Custom Size Swipe — 🟢/⏳
 <sub>custom_size_swipe</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/custom_size_swipe_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/custom_size_swipe_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/custom_size_swipe_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/custom_size_swipe_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/custom_size_swipe_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/custom_size_swipe_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/custom_size_swipe_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/custom_size_swipe_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/custom_size_swipe_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/custom_size_swipe_dark.png" /></td></tr></table>
 
 ports CustomSizeSwipeViewGallery.xaml (+ .xaml.cs) The MAUI CustomSizeSwipeViewGallery is a single SwipeView whose Left / Right / Top item collections each reveal CUSTOM-SIZED content: a SwipeItemView wrapping a Grid/StackLayout with an exp
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: green SwipeView content band and 'Test Click from Content' link match, but the status label reads 'RightItems revealed (open=1, threshold=0)' instead of MAUI's 'Ready (swipe a side to reveal its custom-sized content)' — the capture was taken with the swipe programmatically opened (runtime state diff, no visual defect in the control itself).
+C1/C3: removed the on_mounted synthetic swipe-open + button-fire that overwrote the readout with 'RightItems revealed (open=1, threshold=0)'. Now captured at rest — green SwipeView content band + 'Test Click from Content' + static 'Ready (swipe a side to reveal its custom-sized content)' — matching MAUI in both themes. Buttons' Clicked still drive the readout interactively.
 
 #### ⏳ Gemini Review
 
@@ -5198,16 +5198,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 82. Gestures — 🟡/⏳
+### 82. Gestures — 🟢/⏳
 <sub>gestures</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/gestures_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/gestures_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/gestures_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/gestures_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/gestures_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/gestures_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/gestures_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/gestures_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/gestures_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/gestures_dark.png" /></td></tr></table>
 
 ports GesturesPage.xaml (+ .xaml.cs) The MAUI GesturesPage.xaml is a *gallery navigation* page: a CollectionView listing gesture-demo sections that the shell navigates into
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: layout and blue gesture target match, but status label reads 'Last gesture: Pointer exited' vs MAUI's '(none)' — capture-time pointer state, minor runtime-state diff in both themes.
+C1/C3: removed the on_mounted drive_synthetic_gestures() that fired one gesture per recognizer (leaving the readout on 'Pointer exited'). Now captured at rest — 'Gesture target (tap/pan/pinch/swipe/pointer)' + blue target box + static 'Last gesture: (none)' — matching MAUI in both themes. Gesture wiring stays covered by the gesture unit tests; drive_synthetic_gestures() remains callable.
 
 #### ⏳ Gemini Review
 

@@ -4660,8 +4660,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: green SwipeView content band and 'Test Click from Content' link match, but the status label reads 'RightItems revealed (open=1, threshold=0)' instead of MAUI's 'Ready (swipe a side to reveal its custom-sized content)' \u2014 the capture was taken with the swipe programmatically opened (runtime state diff, no visual defect in the control itself)."
+          "status": "green",
+          "review": "C1/C3: removed the on_mounted synthetic swipe-open + button-fire that overwrote the readout with 'RightItems revealed (open=1, threshold=0)'. Now captured at rest \u2014 green SwipeView content band + 'Test Click from Content' + static 'Ready (swipe a side to reveal its custom-sized content)' \u2014 matching MAUI in both themes. Buttons' Clicked still drive the readout interactively."
         },
         "gemini": {
           "status": null,
@@ -9015,16 +9015,16 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: layout and blue gesture target match, but status label reads 'Last gesture: Pointer exited' vs MAUI's '(none)' \u2014 capture-time pointer state, minor runtime-state diff in both themes."
+          "status": "green",
+          "review": "C1/C3: removed the on_mounted drive_synthetic_gestures() that fired one gesture per recognizer (leaving the readout on 'Pointer exited'). Now captured at rest \u2014 'Gesture target (tap/pan/pinch/swipe/pointer)' + blue target box + static 'Last gesture: (none)' \u2014 matching MAUI in both themes. Gesture wiring stays covered by the gesture unit tests; drive_synthetic_gestures() remains callable."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "green",
-          "review": "C2/C4: gesture target box and 'Last gesture: (none)' label match MAUI exactly in both themes."
+          "status": "yellow",
+          "review": "C2/C4: content matches (instructions + blue gesture-target box + 'Last gesture: (none)'), but the xaml/loader path lays the box + readout ~8px LOWER than MAUI (SSIM 0.959 / ~4% vs MAUI, vs cpp's ~2%). A small vertical-spacing delta in the loader layout \u2014 flagged so the consistency guardrail (cpp green / xaml yellow) holds; cpp is the closer match."
         },
         "pixel": {
           "status": "yellow",

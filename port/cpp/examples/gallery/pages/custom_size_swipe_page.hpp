@@ -20,13 +20,10 @@
 //   - TopItems:   one SwipeItemView -> a light-sky-blue StackLayout (HeightRequest 100) with a label +
 //                 "Click me!" button.
 //   - Content:    a light-green Grid with a label + "Test Click from Content" button.
-// Each of the three buttons' Clicked drives the readout (the C# DisplayAlert, collapsed).
-//
-// The page's mount hook finishes by synthetically OPENING the RightItems side (open(right_items)) so the
-// static capture shows a revealed panel + reports the Threshold, then fires each button's Clicked so the
-// readout reflects the wiring.
+// Each of the three buttons' Clicked drives the readout (the C# DisplayAlert, collapsed). At rest (the board
+// capture) the SwipeView shows its content with all swipe sides closed and the readout at its static "Ready
+// (...)" text — matching the shared XAML's resting appearance.
 
-#include <cstdio>
 #include <memory>
 
 #include "maui/controls/button.hpp"
@@ -37,7 +34,6 @@
 #include "maui/controls/swipe_item_view.hpp"
 #include "maui/controls/swipe_view.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
-#include "maui/core/open_swipe_item.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
 #include "maui/hosting/maui_app.hpp"
@@ -110,28 +106,11 @@ namespace maui::samples
             return page_;
         }
 
-        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
-        // handler + builds the native tree. Synthetically reveal the RightItems side so a static capture
-        // shows the revealed panel, fire each wired button's Clicked, then report the open state + Threshold.
-        // All per-control attach + re-host plumbing is now the generic mount's job.
-        void on_mounted(maui::hosting::maui_app& /*app*/)
-        {
-            // Synthetically reveal one side (RightItems) so the capture shows the revealed SwipeItems, and
-            // report the Threshold. SwipeView is interactive — open() is the developer-API seam the platform
-            // would otherwise drive on a real swipe.
-            swipe_.open(maui::core::open_swipe_item::right_items, /*animated=*/false);
-
-            // Fire each button's Clicked so the readout reflects the three wired channels (send_clicked is
-            // the handler-facing seam a native tap would invoke; the last call wins the readout).
-            content_button_.send_clicked();
-            top_button_.send_clicked();
-            right_button_.send_clicked();
-
-            char text[96];
-            (void)std::snprintf(text, sizeof(text), "RightItems revealed (open=%d, threshold=%.0f)",
-                                static_cast<int>(swipe_.is_open()), swipe_.threshold());
-            readout_.set_text(text);
-        }
+        // No post-mount synthetic drive: the shared custom_size_swipe.xaml is captured at REST — the SwipeView
+        // shows its content ("This is the SwipeView Content") with the swipe CLOSED and the readout at its
+        // static "Ready (swipe a side to reveal its custom-sized content)". Earlier this hook synthetically
+        // open()ed the RightItems side + fired the buttons, which diverged from that resting appearance. The
+        // buttons' Clicked handlers (ctor) still drive the readout interactively.
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment + the tests.
         [[nodiscard]] maui::controls::swipe_view& swipe()

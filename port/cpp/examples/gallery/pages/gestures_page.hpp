@@ -138,14 +138,10 @@ namespace maui::samples
             return page_;
         }
 
-        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
-        // handler + builds the native tree. Headless has no native input, so drive one deterministic synthetic
-        // gesture per recognizer so the readout reflects the wiring in a static capture. All per-control attach
-        // + re-host plumbing is now the generic mount's job.
-        void on_mounted(maui::hosting::maui_app& /*app*/)
-        {
-            drive_synthetic_gestures();
-        }
+        // No post-mount synthetic drive: the shared gestures.xaml is captured at REST, with the readout at its
+        // static "Last gesture: (none)" text (the gesture recognizers' wiring is exercised by the gesture unit
+        // tests, and drive_synthetic_gestures() below remains callable for interactive/manual use). Driving a
+        // gesture at mount overwrote that resting readout (e.g. "Pointer exited"), diverging from MAUI.
 
         // The owned controls + recognizers, exposed for the hosting main / tests.
         [[nodiscard]] maui::controls::box_view& target()
