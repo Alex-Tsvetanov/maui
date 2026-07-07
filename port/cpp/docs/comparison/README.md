@@ -10720,7 +10720,7 @@ a self-contained demo page for the W1-10 tabbed + flyout vertical: a flyout_page
 
 #### 🔴 Sonnet 5 Review
 
-Android: cpp NOW renders the degraded shared-XAML content (3 gray buttons 'Home tab'/'Settings tab'/'Toggle flyout' + 'Flyout dismissed' + 'This is the Home tab.') — MATCHING maccatalyst (green) and the shared tabbed_flyout.xaml. BUT the android MAUI ref anomalously shows a FlyoutPage FLYOUT PANE ('Menu' title + full-width buttons + status), NOT the degraded ContentPage. Rebuilding + clean-reinstalling the MauiReference-android app did NOT change the ref (still 'Menu'), so the android MauiReference either hosts pages in a FlyoutPage/Shell (adding 'Menu' chrome android-only) or has a build-cache issue. Left RED pending investigation of the android MauiReference page-hosting; the cpp render is correct vs the shared XAML.
+Android: cpp renders the degraded shared-XAML content (3 buttons + 2 labels) — MATCHING the shared tabbed_flyout.xaml (a ContentPage since the P2 commit) and maccatalyst (green). The android MAUI ref anomalously shows a FlyoutPage FLYOUT PANE ('Menu' + full-width buttons + 'Flyout dismissed', NO detail label). RESISTS FIXING: rebuilt MauiReference-android, wiped obj/Debug for a full XamlC regen, and uninstalled+reinstalled — the ref STILL shows 'Menu'. The code-behind (TabbedFlyoutPage) is a trivial ContentPage, App.xaml.cs adds no FlyoutPage wrapping, and maccatalyst (same App/PageDispatch) renders the degraded content — so this is an unresolved android-only anomaly (suspected Android emulator/package state caching surviving uninstall, or an android MauiReference rendering quirk). cpp is CORRECT vs the shared XAML; left RED pending a deeper android-MauiReference debug (or a fresh emulator/wipe).
 
 #### ⏳ Gemini Review
 
