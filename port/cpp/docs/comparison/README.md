@@ -7363,9 +7363,9 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 152 | 0 |
-| 🟡 Minor | 15 | 0 |
-| 🔴 Major | 5 | 0 |
+| 🟢 Match | 154 | 0 |
+| 🟡 Minor | 16 | 0 |
+| 🔴 Major | 2 | 0 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
 
@@ -7802,16 +7802,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 24. Carousel Page — 🔴/⏳
+### 24. Carousel Page — 🟢/⏳
 <sub>carousel_page</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/android/carousel_page_light.png" /></td><td><img width="300px" src="captures/android/cpp/carousel_page_light.png" /></td><td><img width="300px" src="captures/android/xaml/carousel_page_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
 Carousel Page
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Android: the CarouselView renders EMPTY (only the 'Basic Horizontal Carousel' headline; no Item 1 / Prev-Next / position) — a real Android CarouselView virtualization gap. (cluster-D builder; also diverges from the shared XAML.)
+Android: against the fresh MAUI ref, the rebuilt app-host (this session's builder rewrite) renders the single purple-bordered 'Card' card identically to MAUI. Prior red was the old richer-demo builder.
 
 #### ⏳ Gemini Review
 
@@ -8075,7 +8075,7 @@ ports ContextFlyoutPage.xaml (+ ContextFlyoutPage.xaml.cs) The C# page attaches 
 
 #### 🔴 Sonnet 5 Review
 
-Android: page renders BLANK — the context-menu/flyout content ('Increment by 1', dynamic-menu switch, custom context menu) does not render. Menu/flyout feature gap on Android.
+Android: HARD-to-capture page. The shared XAML ends with &lt;WebView Source=https://bing.com MinimumHeightRequest=400&gt;; on the network-less emulator it renders an 'ERR_CACHE_MISS' error. MAUI's capture shows the control demo (COOL button/toggles) with the webview below the fold, while cpp's capture is dominated by the WebView error page (layout-order/scroll + the failed load). Also the page's whole point is CONTEXT MENUS (right-click/long-press) which don't render in a static shot. Needs either a builder layout-order fix (controls above the webview) or an environment with network; deferred.
 
 #### ⏳ Gemini Review
 
@@ -9117,16 +9117,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 95. Hit Testing — 🔴/⏳
+### 95. Hit Testing — 🟡/⏳
 <sub>hit_testing</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/android/hit_testing_light.png" /></td><td><img width="300px" src="captures/android/cpp/hit_testing_light.png" /></td><td><img width="300px" src="captures/android/xaml/hit_testing_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
 ports HitTestingPage.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.HitTestingPage)
 
-#### 🔴 Sonnet 5 Review
+#### 🟡 Sonnet 5 Review
 
-Android: content matches MAUI but the text is mis-aligned/weighted — cpp centers + bolds 'Rectangle Selection' and 'Lorem ipsum...' where MAUI left-aligns regular-weight. A real Android text-alignment delta.
+Android: structure + text + shapes + transforms match the fresh MAUI ref (Selected/Rectangle checkbox, Start/End Lorem labels, Scale/Rotation buttons, green Ellipse + rounded Rectangle). REAL Android delta: the three buttons have HorizontalOptions=Center but cpp renders them FULL-WIDTH instead of content-width-centered (MAUI content-sizes them), so the Scale=2 (2x transform) button overflows the right edge. Android StackLayout/button cross-axis alignment doesn't content-size a Center button. Isolated Android layout bug for a targeted fix (not iOS/maccatalyst).
 
 #### ⏳ Gemini Review
 
@@ -9210,16 +9210,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 100. Image Button — 🔴/⏳
+### 100. Image Button — 🟢/⏳
 <sub>image_button</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/android/image_button_light.png" /></td><td><img width="300px" src="captures/android/cpp/image_button_light.png" /></td><td><img width="300px" src="captures/android/xaml/image_button_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
 ports ImageButtonPage.xaml (+ ImageButtonPage.xaml.cs) A self-contained, code-first demo page for the ImageButton control (the C# gallery-page convention, mirroring the input_controls_page / image_page pattern)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Android RULING-3 (MAUI image quirk): cpp renders the settings gear icon inside the AspectFit/AspectFill ImageButtons; the MAUI reference shows empty green boxes (image not loaded). Port more correct; user ruling needed. (Same class as the iOS/maccatalyst image quirks.)
+Android: against the fresh MAUI ref, the rebuilt app-host renders the white cog inside every green ImageButton (AspectFit/AspectFill/Fill/BorderColor) identically to MAUI. cog.png is auto-globbed into assets/ from gallery/resources/; prior red was a stale cpp capture (pre this session's cog fix + rebuild).
 
 #### ⏳ Gemini Review
 
@@ -10720,7 +10720,7 @@ a self-contained demo page for the W1-10 tabbed + flyout vertical: a flyout_page
 
 #### 🔴 Sonnet 5 Review
 
-Android: shows only 'This is the Home tab.' vs MAUI's Menu / Home tab / Settings tab / Toggle flyout — Shell flyout/tab navigation not implemented (feature, tracked separately).
+Android: Shell/tabbed page — cpp renders 'This is the Home tab.' text only while MAUI shows the Home/Settings/Toggle-flyout tab chrome. This is the Shell capability gap (degraded to a ContentPage) tracked SEPARATELY from the board — see plan W4 Shell. Not a quick fix.
 
 #### ⏳ Gemini Review
 

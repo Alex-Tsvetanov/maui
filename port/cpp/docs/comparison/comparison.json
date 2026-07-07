@@ -2741,8 +2741,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "Android: the CarouselView renders EMPTY (only the 'Basic Horizontal Carousel' headline; no Item 1 / Prev-Next / position) \u2014 a real Android CarouselView virtualization gap. (cluster-D builder; also diverges from the shared XAML.)"
+          "status": "green",
+          "review": "Android: against the fresh MAUI ref, the rebuilt app-host (this session's builder rewrite) renders the single purple-bordered 'Card' card identically to MAUI. Prior red was the old richer-demo builder."
         },
         "gemini": {
           "status": null,
@@ -4352,7 +4352,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "Android: page renders BLANK \u2014 the context-menu/flyout content ('Increment by 1', dynamic-menu switch, custom context menu) does not render. Menu/flyout feature gap on Android."
+          "review": "Android: HARD-to-capture page. The shared XAML ends with <WebView Source=https://bing.com MinimumHeightRequest=400>; on the network-less emulator it renders an 'ERR_CACHE_MISS' error. MAUI's capture shows the control demo (COOL button/toggles) with the webview below the fold, while cpp's capture is dominated by the WebView error page (layout-order/scroll + the failed load). Also the page's whole point is CONTEXT MENUS (right-click/long-press) which don't render in a static shot. Needs either a builder layout-order fix (controls above the webview) or an environment with network; deferred."
         },
         "gemini": {
           "status": null,
@@ -10546,8 +10546,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "Android: content matches MAUI but the text is mis-aligned/weighted \u2014 cpp centers + bolds 'Rectangle Selection' and 'Lorem ipsum...' where MAUI left-aligns regular-weight. A real Android text-alignment delta."
+          "status": "yellow",
+          "review": "Android: structure + text + shapes + transforms match the fresh MAUI ref (Selected/Rectangle checkbox, Start/End Lorem labels, Scale/Rotation buttons, green Ellipse + rounded Rectangle). REAL Android delta: the three buttons have HorizontalOptions=Center but cpp renders them FULL-WIDTH instead of content-width-centered (MAUI content-sizes them), so the Scale=2 (2x transform) button overflows the right edge. Android StackLayout/button cross-axis alignment doesn't content-size a Center button. Isolated Android layout bug for a targeted fix (not iOS/maccatalyst)."
         },
         "gemini": {
           "status": null,
@@ -11121,8 +11121,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "Android RULING-3 (MAUI image quirk): cpp renders the settings gear icon inside the AspectFit/AspectFill ImageButtons; the MAUI reference shows empty green boxes (image not loaded). Port more correct; user ruling needed. (Same class as the iOS/maccatalyst image quirks.)"
+          "status": "green",
+          "review": "Android: against the fresh MAUI ref, the rebuilt app-host renders the white cog inside every green ImageButton (AspectFit/AspectFill/Fill/BorderColor) identically to MAUI. cog.png is auto-globbed into assets/ from gallery/resources/; prior red was a stale cpp capture (pre this session's cog fix + rebuild)."
         },
         "gemini": {
           "status": null,
@@ -20207,7 +20207,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "Android: shows only 'This is the Home tab.' vs MAUI's Menu / Home tab / Settings tab / Toggle flyout \u2014 Shell flyout/tab navigation not implemented (feature, tracked separately)."
+          "review": "Android: Shell/tabbed page \u2014 cpp renders 'This is the Home tab.' text only while MAUI shows the Home/Settings/Toggle-flyout tab chrome. This is the Shell capability gap (degraded to a ContentPage) tracked SEPARATELY from the board \u2014 see plan W4 Shell. Not a quick fix."
         },
         "gemini": {
           "status": null,
