@@ -248,13 +248,31 @@ namespace
     const double width_constraint = vertical ? frame.size.width : std::numeric_limits<double>::infinity();
     const double height_constraint = vertical ? std::numeric_limits<double>::infinity() : frame.size.height;
     const maui::graphics::size measured = view->measure(width_constraint, height_constraint);
+    // Honor an explicit HeightRequest/WidthRequest on the cell ROOT. MAUI's TemplatedCell measures the
+    // outer content view, whose DesiredSize already folds in Height/WidthRequest; a LEAF cell root
+    // (view::measure) does the same in the port. But a LAYOUT-rooted cell (e.g. an item template whose
+    // root is a `<Grid HeightRequest="60">`) reports only its children's content extent from the
+    // cross-platform layout::measure — the native layout host would apply the request on the normal path,
+    // but this CV self-size path bypasses it. Clamp so the cell never sizes below its requested extent
+    // (e.g. adaptive_collection's 60pt rows instead of collapsing to the ~20pt label height). Unset
+    // requests return negative from width()/height(), so the clamp is a no-op there.
     if (vertical)
     {
-        frame.size.height = static_cast<CGFloat>(std::ceil(measured.height));
+        double h = std::ceil(measured.height);
+        if (view->height() >= 0.0)
+        {
+            h = std::max(h, std::ceil(view->height()));
+        }
+        frame.size.height = static_cast<CGFloat>(h);
     }
     else
     {
-        frame.size.width = static_cast<CGFloat>(std::ceil(measured.width));
+        double w = std::ceil(measured.width);
+        if (view->width() >= 0.0)
+        {
+            w = std::max(w, std::ceil(view->width()));
+        }
+        frame.size.width = static_cast<CGFloat>(w);
     }
     layoutAttributes.frame = frame;
     return layoutAttributes;

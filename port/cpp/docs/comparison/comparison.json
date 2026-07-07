@@ -298,16 +298,16 @@
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "Broken layout in both themes: items are packed tightly at the top-left edge with no centering and no inter-item spacing, versus MAUI's horizontally centered, generously spaced list."
+          "status": "green",
+          "review": "Now matches MAUI: the 8 single-column items render in 60pt-tall centered cells (row centers spaced 92px == MAUI's 92px) instead of collapsing to the ~31px label height. Fixed by honoring the item template root's HeightRequest in the CollectionView cell self-size path (a layout-rooted cell reported only its content extent from the cross-platform measure). Linear single-column layout matches the resting narrow-width appearance."
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9877, 0.39% pixels differ \u00b7 Dark: SSIM 0.9874, 0.46% pixels differ"
+          "review": "Light: SSIM 0.9880, 0.37% pixels differ \u00b7 Dark: SSIM 0.9835, 0.50% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9877, 0.40% pixels differ \u00b7 Dark: SSIM 0.9874, 0.46% pixels differ"
+          "review": "Light: SSIM 0.9890, 0.34% pixels differ \u00b7 Dark: SSIM 0.9886, 0.38% pixels differ"
         }
       },
       "android": {
@@ -3868,11 +3868,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9431, 1.82% pixels differ \u00b7 Dark: SSIM 0.9417, 2.36% pixels differ"
+          "review": "Light: SSIM 0.9434, 1.79% pixels differ \u00b7 Dark: SSIM 0.9418, 2.33% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9429, 2.04% pixels differ \u00b7 Dark: SSIM 0.9419, 2.51% pixels differ"
+          "review": "Light: SSIM 0.9425, 1.82% pixels differ \u00b7 Dark: SSIM 0.9422, 2.49% pixels differ"
         }
       },
       "android": {
@@ -10293,11 +10293,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8810, 12.15% pixels differ \u00b7 Dark: SSIM 0.8743, 11.82% pixels differ"
+          "review": "Light: SSIM 0.8838, 11.99% pixels differ \u00b7 Dark: SSIM 0.8764, 11.66% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.9201, 8.90% pixels differ \u00b7 Dark: SSIM 0.9348, 8.28% pixels differ"
+          "review": "Light: SSIM 0.8831, 12.08% pixels differ \u00b7 Dark: SSIM 0.8748, 11.76% pixels differ"
         }
       },
       "android": {
