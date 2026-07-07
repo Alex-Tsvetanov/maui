@@ -117,9 +117,12 @@ namespace maui::samples
 
             page_.set_content(outer_);
 
-            // C# code-behind: ModePicker.SelectedIndex = 0 (Reveal). Setting the index raises
-            // SelectedIndexChanged, which runs apply_mode() — so the four collections start in Reveal.
-            mode_picker_.set_selected_index(0);
+            // The shared swipe_item_position.xaml authors the Picker with a Title="Select a Mode" and NO
+            // SelectedIndex / mode-setting code-behind, so at rest it shows its unselected TITLE — exactly
+            // what MAUI + the xaml column render. (The original C# code-behind preset SelectedIndex=0, but
+            // the reference ground truth here does not, and the SwipeItems keep their default Reveal mode
+            // either way, so the visible resting state is the Title.) Selecting a mode still fans out via
+            // selected_index_changed -> apply_mode().
         }
 
         [[nodiscard]] maui::controls::content_page& page()

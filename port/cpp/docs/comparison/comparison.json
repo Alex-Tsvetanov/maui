@@ -19250,8 +19250,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: picker shows a selected value 'Reveal' where MAUI shows the empty 'Select a Mode' placeholder in both themes (capture-time selection state); rest of the page (label, gray swipe area in dark) matches."
+          "status": "green",
+          "review": "C1/C3: the Mode picker now shows its unselected Title 'Select a Mode' at rest (the builder no longer presets SelectedIndex=0), matching MAUI + the xaml column exactly (cpp-vs-xaml 0.03%). The SwipeView content (white 0.75-opacity grid) renders identically; residual ~3.8% dark is the uniform harness inset (ruling 2)."
         },
         "gemini": {
           "status": null,
