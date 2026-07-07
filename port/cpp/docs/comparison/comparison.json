@@ -14880,8 +14880,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: both flag paths render with correct shape and the skew transform is applied, but the 'Without RenderTransform' flag is noticeably smaller in cpp (~25% narrower/shorter) than MAUI's in both themes; the transformed flag matches. Scale/measure diff on the untransformed path."
+          "status": "green",
+          "review": "C1-C4: the 'Without RenderTransform' + 'With RenderTransform' Z-path shapes render identically to MAUI in both themes; residual ~0.8% is thin-stroke anti-aliasing on the paths."
         },
         "gemini": {
           "status": null,
@@ -15340,16 +15340,16 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "Consistency check: cpp and xaml were both marked green vs MAUI, but their captions/rows have a small (~1-2px) vertical spacing difference from each other (SSIM ~0.973, ~1.3% pixels differ) \u2014 shapes/colors are pixel-identical, only caption-row spacing differs slightly between the code-first StackLayout padding and the XAML-hydrated one. Downgraded from green to yellow since both cannot be a perfect match to the same MAUI ground truth if they visibly differ from each other."
+          "status": "green",
+          "review": "C1-C4: basic/dash/EvenOdd/NonZero polygons (green outline triangle, dotted triangle, red-blue star, yellow-black star) render identically to MAUI in both themes; residual ~1.1% is polygon-edge anti-aliasing."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "yellow",
-          "review": "Consistency check: cpp and xaml were both marked green vs MAUI, but their captions/rows have a small (~1-2px) vertical spacing difference from each other (SSIM ~0.973, ~1.3% pixels differ) \u2014 shapes/colors are pixel-identical, only caption-row spacing differs slightly between the code-first StackLayout padding and the XAML-hydrated one. Downgraded from green to yellow since both cannot be a perfect match to the same MAUI ground truth if they visibly differ from each other."
+          "status": "green",
+          "review": "C2/C4: xaml renders the basic/dash/EvenOdd/NonZero polygons and their captions identically to MAUI (and to the cpp column) in both themes; residual ~1.5% is polygon-edge anti-aliasing. (Supersedes a stale consistency-flag verdict.)"
         },
         "pixel": {
           "status": "yellow",
@@ -16145,8 +16145,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: content matches in both themes (Options A-C, grid row with Option D, all text), but cpp's vertical spacing between option rows is slightly tighter than MAUI."
+          "status": "green",
+          "review": "C1-C4: 'Selected: (none)' + Option A/B/C radios and the 'inside a Grid' Option D (right-aligned) match MAUI in both themes; residual ~1% is radio-circle anti-aliasing."
         },
         "gemini": {
           "status": null,
