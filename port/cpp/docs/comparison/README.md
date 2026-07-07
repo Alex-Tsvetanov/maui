@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 130 | 0 |
-| 🟡 Minor | 44 | 0 |
+| 🟢 Match | 131 | 0 |
+| 🟡 Minor | 43 | 0 |
 | 🔴 Major | 2 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -4181,16 +4181,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 27. Check Box — 🟡/⏳
+### 27. Check Box — 🟢/⏳
 <sub>check_box</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/check_box_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/check_box_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/check_box_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/check_box_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/check_box_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/check_box_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/check_box_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/check_box_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/check_box_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/check_box_dark.png" /></td></tr></table>
 
 ports CheckBoxPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical stack of headlined CheckBox states — Default, Colored (Color=Purple), Disabled, Disabled+Colored+Checked — followed by a &amp;quot;Change IsChecked&amp;quot; row pairing a Button
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-All five sections, checkbox states, purple/red tints and the red 'Is green? False' row match in both themes, but the vertical pitch between each label and its checkbox is noticeably larger in C++ (~77px row spacing in MAUI vs ~115px), stretching the page.
+C1/C3: cpp matches MAUI at 0.87% (light) / 1.04% (dark) pixel diff, SSIM 0.98 — all five CheckBox states (Default, Colored=Purple, Disabled, Disabled Colored checked, Change IsChecked red check + 'Is green? False') align in size, tint and vertical pitch (stack Spacing=6 matches the XAML). The prior yellow's 'vertical pitch differs' claim is stale.
 
 #### ⏳ Gemini Review
 

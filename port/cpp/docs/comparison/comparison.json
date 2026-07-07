@@ -3050,16 +3050,16 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "All five sections, checkbox states, purple/red tints and the red 'Is green? False' row match in both themes, but the vertical pitch between each label and its checkbox is noticeably larger in C++ (~77px row spacing in MAUI vs ~115px), stretching the page."
+          "status": "green",
+          "review": "C1/C3: cpp matches MAUI at 0.87% (light) / 1.04% (dark) pixel diff, SSIM 0.98 \u2014 all five CheckBox states (Default, Colored=Purple, Disabled, Disabled Colored checked, Change IsChecked red check + 'Is green? False') align in size, tint and vertical pitch (stack Spacing=6 matches the XAML). The prior yellow's 'vertical pitch differs' claim is stale."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "yellow",
-          "review": "Content and colors match MAUI in both themes, but XAML has the same enlarged label-to-checkbox vertical spacing as the C++ column, making the section list taller than MAUI's."
+          "status": "green",
+          "review": "C2/C4: xaml matches MAUI at the same ~0.8% (same shared XAML via the loader)."
         },
         "pixel": {
           "status": "green",
