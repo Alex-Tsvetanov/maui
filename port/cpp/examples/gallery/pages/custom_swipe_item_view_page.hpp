@@ -43,7 +43,6 @@
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/grid_length.hpp"
-#include "maui/core/open_swipe_item.hpp"
 #include "maui/core/swipe_mode.hpp"
 #include "maui/core/swipe_view_requests.hpp"
 #include "maui/core/thickness.hpp"
@@ -51,7 +50,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
 
 namespace maui::samples
 {
@@ -132,14 +130,10 @@ namespace maui::samples
             return page_;
         }
 
-        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
-        // handler + builds the native tree. Synthetically open the right items so a static capture shows the
-        // revealed custom swipe item content. All per-control attach + re-host plumbing is now the generic
-        // mount's job.
-        void on_mounted(maui::hosting::maui_app& /*app*/)
-        {
-            swipe_.open(maui::core::open_swipe_item::right_items);
-        }
+        // No post-mount synthetic drive: the shared custom_swipe_item_view.xaml is captured at REST — the
+        // SwipeView shows its content row with the swipe CLOSED and the readout at its static "Swipe a row
+        // left to reveal the Favourite item" text. Synthetically open()ing the right items overwrote that
+        // readout ("Right items revealed (Favourite ...)"), diverging from MAUI.
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment + the tests.
         [[nodiscard]] maui::controls::swipe_view& swipe()

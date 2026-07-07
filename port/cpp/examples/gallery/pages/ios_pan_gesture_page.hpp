@@ -42,7 +42,6 @@
 #include "maui/core/font.hpp"
 #include "maui/core/gesture_status.hpp"
 #include "maui/core/thickness.hpp"
-#include "maui/hosting/maui_app.hpp"
 
 #include "maui/controls/application.hpp"
 #include "maui/controls/platform_configuration/configuration.hpp"
@@ -117,14 +116,10 @@ namespace maui::samples
             return page_;
         }
 
-        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
-        // handler + builds the native tree. Headless has no native input, so issue one deterministic synthetic
-        // pan drive so the readout reflects the wiring on a static capture. All per-control attach + re-host
-        // plumbing is now the generic mount's job.
-        void on_mounted(maui::hosting::maui_app& /*app*/)
-        {
-            drive_synthetic_pan();
-        }
+        // No post-mount synthetic drive: the shared ios_pan_gesture.xaml is captured at REST, with the header
+        // label at its static "Pan the target. If you pan it, this Label will change." text. Driving a
+        // synthetic pan at mount overwrote it ("panned x:45 y:-12"), diverging from MAUI. drive_synthetic_pan()
+        // below stays public/callable and the pan wiring is covered by the pan unit tests.
 
         // One deterministic pan through the i_pan_gesture_controller seam: started -> running(45,-12) ->
         // completed, all under one minted gesture id (the path the platform bridges + the pan unit tests

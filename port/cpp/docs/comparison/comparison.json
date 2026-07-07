@@ -4775,8 +4775,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: indigo 'Welcome to .NET MAUI / June 19, 2026' card matches in size, color and text, but the status label reads 'Right items revealed (Favourite)' instead of MAUI's 'Swipe a row left to reveal the Favourite item' \u2014 swipe state exercised in the capture (runtime state diff only)."
+          "status": "green",
+          "review": "C1/C3: removed the on_mounted synthetic swipe-open that wrote 'Right items revealed (Favourite...)'. Now at rest \u2014 'Swipe a row left to reveal the Favourite item' + the indigo 'Welcome to .NET MAUI / June 19, 2026' card \u2014 matching MAUI in both themes."
         },
         "gemini": {
           "status": null,
@@ -12235,8 +12235,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: layout, link and status labels match, but the header label reads 'panned x:45 y:-12' instead of MAUI's 'Pan the target. If you pan it, this Label will change.' \u2014 the capture ran after a pan interaction (runtime-state divergence, not a rendering bug). Both themes otherwise identical."
+          "status": "green",
+          "review": "C1/C3: removed the on_mounted synthetic pan (drive_synthetic_pan) that wrote 'panned x:45 y:-12'. Now at rest \u2014 static 'Pan the target. If you pan it, this Label will change.' header + 'Toggle Simultaneous Gesture Recognition' link + 'Pan target' + 'SimultaneousRecognition: false' \u2014 matching MAUI in both themes."
         },
         "gemini": {
           "status": null,
@@ -19135,8 +19135,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: status label reads 'TapCommand (double-tap)' instead of MAUI's 'Ready (double-tap row / swipe to favourite or delete)' in both themes \u2014 a tap fired during capture, so the dynamic status text diverges; all other content (banner, card header, sub-labels, dark-mode colors) matches."
+          "status": "green",
+          "review": "C1/C3: removed the on_mounted drive_synthetic_gestures (opened the SwipeView + fired channels -> 'TapCommand (double-tap)'). Now at rest \u2014 the instruction + 'Welcome to .NET MAUI!' card (closed swipe) + static 'Ready (double-tap row / swipe to favourite or delete)' \u2014 matching MAUI in both themes."
         },
         "gemini": {
           "status": null,

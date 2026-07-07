@@ -47,7 +47,6 @@
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
 
 namespace maui::samples
 {
@@ -154,14 +153,10 @@ namespace maui::samples
             return page_;
         }
 
-        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
-        // handler + builds the native tree. Headless has no native input, so open the SwipeView and drive each
-        // of the three channels synthetically so the readout reflects the full wiring in a static capture. All
-        // per-control attach + re-host plumbing is now the generic mount's job.
-        void on_mounted(maui::hosting::maui_app& /*app*/)
-        {
-            drive_synthetic_gestures();
-        }
+        // No post-mount synthetic drive: the shared swipe_gesture.xaml is captured at REST — the SwipeView is
+        // CLOSED and the readout is at its static "Ready (double-tap row / swipe to favourite or delete)"
+        // text. Opening the SwipeView + firing the channels at mount overwrote it ("TapCommand (double-tap)"),
+        // diverging from MAUI. drive_synthetic_gestures() stays public/callable; the wiring is unit-tested.
 
         // One deterministic drive per channel (the same path the platform bridges + the gesture/swipe unit
         // tests use), leaving the readout on the last channel. Order: open the SwipeView (reveal the items),
