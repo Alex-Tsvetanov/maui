@@ -5,6 +5,8 @@
 #include "maui/graphics/colors.hpp"        // MAUI_GRAPHICS_NAMED_COLORS (the parse table)
 #include "maui/graphics/vector4.hpp"
 
+#include "detail/parse_util.hpp" // shared ps_trim / ps_parse_num (also used by point/size/rect)
+
 #include <algorithm>
 #include <array>
 #include <cctype>
@@ -29,21 +31,6 @@ namespace maui::graphics
         float clamp01(float v)
         {
             return std::clamp(v, 0.0F, 1.0F);
-        }
-
-        std::string_view trim(std::string_view s)
-        {
-            std::size_t b = 0;
-            std::size_t e = s.size();
-            while (b < e && std::isspace(static_cast<unsigned char>(s[b])) != 0)
-            {
-                ++b;
-            }
-            while (e > b && std::isspace(static_cast<unsigned char>(s[e - 1])) != 0)
-            {
-                --e;
-            }
-            return s.substr(b, e - b);
         }
 
         bool starts_with_ci(std::string_view s, std::string_view prefix)
@@ -221,31 +208,17 @@ namespace maui::graphics
                                         static_cast<float>(b) / 255.0F, static_cast<float>(a) / 255.0F};
         }
 
-        bool try_parse_double(std::string_view s, double& out)
-        {
-            s = trim(s);
-            if (s.empty())
-            {
-                return false;
-            }
-            const char* begin = s.data();
-            // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic) -- std::from_chars takes a pointer range
-            const char* end = begin + s.size();
-            auto [ptr, ec] = maui::detail::from_chars_general(begin, end, out);
-            return ec == std::errc{} && ptr == end; // entire token must be consumed
-        }
-
         // ColorUtils.TryParseColorValue: optional trailing '%', clamp to [0,maxValue], normalize to 0-1.
         bool try_parse_color_value(std::string_view elem, int max_value, bool accept_percent, double& out)
         {
-            elem = trim(elem);
+            elem = detail::ps_trim(elem);
             if (!elem.empty() && elem.back() == '%' && accept_percent)
             {
                 max_value = 100;
                 elem = elem.substr(0, elem.size() - 1);
             }
             double v = 0;
-            if (try_parse_double(elem, v))
+            if (detail::ps_parse_num(elem, v))
             {
                 out = std::clamp(v, 0.0, static_cast<double>(max_value)) / max_value;
                 return true;
@@ -256,7 +229,7 @@ namespace maui::graphics
         bool try_parse_opacity(std::string_view elem, double& out)
         {
             double v = 0;
-            if (try_parse_double(elem, v))
+            if (detail::ps_parse_num(elem, v))
             {
                 out = std::clamp(v, 0.0, 1.0);
                 return true;
@@ -434,7 +407,7 @@ namespace maui::graphics
         bool color_utils_try_parse(std::string_view value, float& red, float& green, float& blue, float& alpha)
         {
             red = green = blue = alpha = 0.0F;
-            value = trim(value);
+            value = detail::ps_trim(value);
             if (value.empty())
             {
                 return false;

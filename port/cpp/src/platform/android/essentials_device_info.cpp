@@ -134,17 +134,6 @@ namespace maui::devices
             return static_cast<int>(width);
         }
 
-        // C#'s emulator heuristic: any of the Build.* prefix/substring checks below marks a virtual
-        // device. Substring vs prefix matches the oracle field-by-field.
-        bool starts_with(std::string_view text, std::string_view prefix)
-        {
-            return text.size() >= prefix.size() && text.compare(0, prefix.size(), prefix) == 0;
-        }
-        bool contains(std::string_view text, std::string_view needle)
-        {
-            return text.find(needle) != std::string_view::npos;
-        }
-
         class android_device_info final : public i_device_info
         {
         public:
@@ -223,15 +212,16 @@ namespace maui::devices
                 const std::string manufacturer_id = build_field(raw, "MANUFACTURER");
                 const std::string product = build_field(raw, "PRODUCT");
 
+                // C#'s emulator heuristic: any Build.* prefix/substring below marks a virtual device.
                 const bool is_emulator =
-                    (starts_with(brand, "generic") && starts_with(device, "generic")) ||
-                    starts_with(fingerprint, "generic") || starts_with(fingerprint, "unknown") ||
-                    contains(hardware, "goldfish") || contains(hardware, "ranchu") ||
-                    contains(model_id, "google_sdk") || contains(model_id, "Emulator") ||
-                    contains(model_id, "Android SDK built for x86") || contains(manufacturer_id, "Genymotion") ||
-                    contains(manufacturer_id, "VS Emulator") || contains(product, "emulator") ||
-                    contains(product, "google_sdk") || contains(product, "sdk") || contains(product, "sdk_google") ||
-                    contains(product, "sdk_x86") || contains(product, "simulator") || contains(product, "vbox86p");
+                    (brand.starts_with("generic") && device.starts_with("generic")) ||
+                    fingerprint.starts_with("generic") || fingerprint.starts_with("unknown") ||
+                    hardware.contains("goldfish") || hardware.contains("ranchu") || model_id.contains("google_sdk") ||
+                    model_id.contains("Emulator") || model_id.contains("Android SDK built for x86") ||
+                    manufacturer_id.contains("Genymotion") || manufacturer_id.contains("VS Emulator") ||
+                    product.contains("emulator") || product.contains("google_sdk") || product.contains("sdk") ||
+                    product.contains("sdk_google") || product.contains("sdk_x86") || product.contains("simulator") ||
+                    product.contains("vbox86p");
 
                 return is_emulator ? device_type::virtual_ : device_type::physical;
             }

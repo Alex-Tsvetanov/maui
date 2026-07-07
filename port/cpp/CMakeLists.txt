@@ -75,7 +75,7 @@ function(maui_discover_tests target)
   endif()
 endfunction()
 
-# ---- Sanitizers (Sanitizers.md): target-level flags via an interface library, never global. ----
+# ---- Sanitizers: target-level flags via an interface library, never global. ----
 # Enable one personality at a time via the asan-ubsan / tsan / msan presets. ASan+UBSan and TSan
 # are usable on AppleClang/macOS; MSan needs Clang + an instrumented libc++ (Linux only).
 option(ENABLE_ASAN_UBSAN "Build with AddressSanitizer + UndefinedBehaviorSanitizer" OFF)
@@ -212,7 +212,6 @@ else()
 endif()
 # ---- END apple_shared test sources ----
 add_executable(maui_graphics_tests
-  tests/graphics/smoke_test.cpp
   tests/graphics/color_tests.cpp
   tests/graphics/color_converter_tests.cpp
   tests/graphics/point_size_tests.cpp

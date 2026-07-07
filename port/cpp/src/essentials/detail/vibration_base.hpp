@@ -4,6 +4,7 @@
 // is_supported() (throwing feature_not_supported - the C# FeatureNotSupportedException), and the
 // duration overload clamps to [0 ms, 5 s] before reaching the platform hook.
 
+#include <algorithm>
 #include <chrono>
 
 #include "maui/essentials/feature_not_supported.hpp"
@@ -29,14 +30,7 @@ namespace maui::devices::detail
             {
                 throw maui::application_model::feature_not_supported();
             }
-            if (duration.count() < 0)
-            {
-                duration = std::chrono::milliseconds::zero();
-            }
-            else if (duration > std::chrono::seconds{5})
-            {
-                duration = std::chrono::seconds{5};
-            }
+            duration = std::clamp(duration, std::chrono::milliseconds::zero(), std::chrono::milliseconds{5000});
             platform_vibrate(duration);
         }
 
