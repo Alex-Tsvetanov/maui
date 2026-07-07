@@ -44,6 +44,7 @@
 #include "maui/controls/radio_button_group.hpp"
 #include "maui/controls/stack_layout.hpp"
 #include "maui/controls/stack_orientation.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
 
@@ -55,6 +56,13 @@ namespace maui::samples
         scattered_radio_button_page()
         {
             page_.set_title("RadioButton Group (Across Multiple Containers)");
+
+            // The shared scattered_radio_button.xaml root StackLayout carries Padding="16" Spacing="6";
+            // the 16pt padding insets every child (crucially the nested AliceBlue horizontal stack, whose
+            // light background otherwise bleeds edge-to-edge and stands out in dark mode) so the bar hugs
+            // the padded content box exactly as MAUI + the xaml loader render it.
+            root_stack_.set_padding(maui::core::thickness{16});
+            root_stack_.set_spacing(6);
 
             intro_.set_text("RadioButtons don't have to be in the same container to be grouped.");
             nested_caption_.set_text("Here, we have a few in a nested StackLayout:");

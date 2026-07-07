@@ -17065,8 +17065,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: all content present (labels, A/B/C strip, D radio) and the dark-theme faint white-on-light strip artifact is reproduced identically; but the label block is vertically tighter than MAUI (line spacing between the three intro labels and around the strip is compressed) \u2014 minor spacing diff."
+          "status": "green",
+          "review": "C1/C3: adding the shared XAML's root StackLayout Padding=16 + Spacing=6 insets the nested AliceBlue horizontal radio strip so it hugs the padded content box (x matches MAUI+xaml exactly) instead of bleeding edge-to-edge in dark mode. cpp now renders identically to the xaml column (0.03% cpp-vs-xaml); residual ~4.7% dark is the uniform harness vertical inset (ruling 2, exempt) \u2014 the same the green xaml column carries."
         },
         "gemini": {
           "status": null,

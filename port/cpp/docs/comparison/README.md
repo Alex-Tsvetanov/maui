@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 141 | 0 |
-| 🟡 Minor | 33 | 0 |
+| 🟢 Match | 142 | 0 |
+| 🟡 Minor | 32 | 0 |
 | 🔴 Major | 2 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -6522,16 +6522,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 152. Scattered Radio Button — 🟡/⏳
+### 152. Scattered Radio Button — 🟢/⏳
 <sub>scattered_radio_button</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/scattered_radio_button_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/scattered_radio_button_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/scattered_radio_button_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/scattered_radio_button_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/scattered_radio_button_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/scattered_radio_button_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/scattered_radio_button_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/scattered_radio_button_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/scattered_radio_button_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/scattered_radio_button_dark.png" /></td></tr></table>
 
 ports ScatteredRadioButtonGallery.xaml A code-first demo that radio buttons DON&amp;#x27;T have to share a container to be grouped: grouping is by GroupName, so buttons scattered across separate containers (and one bare button outside any grouped co
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: all content present (labels, A/B/C strip, D radio) and the dark-theme faint white-on-light strip artifact is reproduced identically; but the label block is vertically tighter than MAUI (line spacing between the three intro labels and around the strip is compressed) — minor spacing diff.
+C1/C3: adding the shared XAML's root StackLayout Padding=16 + Spacing=6 insets the nested AliceBlue horizontal radio strip so it hugs the padded content box (x matches MAUI+xaml exactly) instead of bleeding edge-to-edge in dark mode. cpp now renders identically to the xaml column (0.03% cpp-vs-xaml); residual ~4.7% dark is the uniform harness vertical inset (ruling 2, exempt) — the same the green xaml column carries.
 
 #### ⏳ Gemini Review
 
