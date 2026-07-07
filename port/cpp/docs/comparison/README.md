@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 118 | 0 |
-| 🟡 Minor | 55 | 0 |
+| 🟢 Match | 119 | 0 |
+| 🟡 Minor | 54 | 0 |
 | 🔴 Major | 3 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -3826,16 +3826,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 8. Application Control — 🟡/⏳
+### 8. Application Control — 🟢/⏳
 <sub>application_control</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/application_control_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/application_control_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/application_control_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/application_control_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/application_control_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/application_control_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/application_control_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/application_control_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/application_control_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/application_control_dark.png" /></td></tr></table>
 
 ports ApplicationControlPage.xaml (+ .xaml.cs)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Both themes: 'Quits the application' renders bold vs MAUI's plain text, and the status label reads 'Windows open: 1 | main window: ...' instead of MAUI's 'Application: not yet hosted'. Buttons and layout otherwise match.
+C1/C3: fixed two builder drifts vs the shared XAML — removed the bold/size-18 font on the 'Quits the application' headline (XAML label is plain) and stopped on_mounted from overwriting the second label with a live 'Windows open: N | main window: ...' status (the shared XAML's second label is the STATIC 'Application: not yet hosted' text). Now plain headline + 3 blue buttons + static status label match MAUI in both themes. (The buttons still refresh() the readout on click for interactive use.)
 
 #### ⏳ Gemini Review
 

@@ -32,7 +32,6 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/controls/window.hpp"
-#include "maui/core/font.hpp"
 #include "maui/hosting/maui_app.hpp"
 
 namespace maui::samples
@@ -45,11 +44,7 @@ namespace maui::samples
             page_.set_title("App Control"); // C# Title="App Control"
             stack_.set_spacing(12);
 
-            headline_.set_text("Quits the application"); // C# headline label (Style=Headline)
-            // The maui-compare reference renders the headline as FontSize=18, FontAttributes=Bold set
-            // directly in code (the "Headline" style resolves to bold/larger). Without this the port
-            // rendered the headline in regular weight/smaller size vs MAUI's bold (an Android parity diff).
-            headline_.set_font(maui::core::font::system_font_of_size(18, maui::core::font_weight::bold));
+            headline_.set_text("Quits the application"); // shared XAML: plain <Label Text="Quits the application" />
 
             terminate_button_.set_text("Terminate Application"); // C# "Terminate Application"
             terminate_button_.clicked.connect([this] { terminate(); });
@@ -89,13 +84,9 @@ namespace maui::samples
         {
             app_ = &app; // the hosting maui_app (its open_window/close_window route the lifecycle)
             application_ = app.application().get(); // the minted controls::application (may be null if unconfigured)
-            // The generic mount opens the window BEFORE on_mounted runs, so refresh() already reads the real
-            // window count; also re-run on `started` so a later open/close keeps the readout live.
-            if (application_ != nullptr)
-            {
-                application_->started.connect([this] { refresh(); });
-            }
-            refresh();
+            // Do NOT auto-refresh the readout at mount: the shared application_control.xaml's second label is
+            // the STATIC "Application: not yet hosted" text (the resting appearance the board captures). The
+            // Terminate/Open/Close buttons still call refresh() on click to show the live window state.
         }
 
         // ---- owned controls, exposed for the hosting main's bottom-up attachment + tests ----
