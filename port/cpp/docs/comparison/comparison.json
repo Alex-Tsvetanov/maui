@@ -2728,7 +2728,7 @@
       "android": {
         "screenshots": {
           "maui": {
-            "light": "captures/android/maui/carousel_page_light.png",
+            "light": "../../../maui-reference/captures/android/carousel_page_light.png",
             "dark": null
           },
           "cpp": {
@@ -2750,11 +2750,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9658, 9.21% pixels differ"
+          "review": "Light: SSIM 0.9516, 8.95% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9741, 7.45% pixels differ"
+          "review": "Light: SSIM 0.9702, 6.86% pixels differ"
         }
       }
     }
@@ -3753,17 +3753,17 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9572, 5.34% pixels differ \u00b7 Dark: SSIM 0.9579, 5.35% pixels differ"
+          "review": "Light: SSIM 0.9575, 5.32% pixels differ \u00b7 Dark: SSIM 0.9506, 5.46% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9563, 5.38% pixels differ \u00b7 Dark: SSIM 0.9570, 5.38% pixels differ"
+          "review": "Light: SSIM 0.9565, 5.31% pixels differ \u00b7 Dark: SSIM 0.9498, 5.48% pixels differ"
         }
       },
       "android": {
         "screenshots": {
           "maui": {
-            "light": "captures/android/maui/clipping_light.png",
+            "light": "../../../maui-reference/captures/android/clipping_light.png",
             "dark": null
           },
           "cpp": {
@@ -3785,11 +3785,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9001, 16.81% pixels differ"
+          "review": "Light: SSIM 0.8996, 16.69% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.9001, 16.81% pixels differ"
+          "review": "Light: SSIM 0.8996, 16.69% pixels differ"
         }
       }
     }
@@ -4328,17 +4328,17 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.5710, 40.26% pixels differ \u00b7 Dark: SSIM 0.5512, 39.59% pixels differ"
+          "review": "Light: SSIM 0.7291, 15.10% pixels differ \u00b7 Dark: SSIM 0.6537, 40.06% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.6002, 36.08% pixels differ \u00b7 Dark: SSIM 0.5744, 37.29% pixels differ"
+          "review": "Light: SSIM 0.7284, 15.13% pixels differ \u00b7 Dark: SSIM 0.6530, 40.09% pixels differ"
         }
       },
       "android": {
         "screenshots": {
           "maui": {
-            "light": "captures/android/maui/context_flyout_light.png",
+            "light": "../../../maui-reference/captures/android/context_flyout_light.png",
             "dark": null
           },
           "cpp": {
@@ -4360,11 +4360,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8804, 13.89% pixels differ"
+          "review": "Light: SSIM 0.8801, 13.89% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8804, 13.89% pixels differ"
+          "review": "Light: SSIM 0.8802, 13.89% pixels differ"
         }
       }
     }
@@ -5089,7 +5089,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8208, 10.42% pixels differ \u00b7 Dark: SSIM 0.7366, 10.41% pixels differ"
+          "review": "Light: SSIM 0.8163, 10.50% pixels differ \u00b7 Dark: SSIM 0.7335, 10.50% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -5133,17 +5133,17 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8507, 12.80% pixels differ \u00b7 Dark: SSIM 0.8686, 13.27% pixels differ"
+          "review": "Light: SSIM 0.8490, 12.68% pixels differ \u00b7 Dark: SSIM 0.8725, 13.07% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8480, 12.73% pixels differ \u00b7 Dark: SSIM 0.8714, 13.12% pixels differ"
+          "review": "Light: SSIM 0.8482, 12.69% pixels differ \u00b7 Dark: SSIM 0.8717, 13.10% pixels differ"
         }
       },
       "android": {
         "screenshots": {
           "maui": {
-            "light": "captures/android/maui/date_picker_light.png",
+            "light": "../../../maui-reference/captures/android/date_picker_light.png",
             "dark": null
           },
           "cpp": {
@@ -5165,11 +5165,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8417, 19.43% pixels differ"
+          "review": "Light: SSIM 0.8517, 14.57% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8464, 19.41% pixels differ"
+          "review": "Light: SSIM 0.8502, 14.62% pixels differ"
         }
       }
     }
@@ -10523,17 +10523,17 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9525, 6.34% pixels differ \u00b7 Dark: SSIM 0.9288, 6.52% pixels differ"
+          "review": "Light: SSIM 0.9473, 2.93% pixels differ \u00b7 Dark: SSIM 0.9503, 3.07% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9461, 2.99% pixels differ \u00b7 Dark: SSIM 0.9491, 3.12% pixels differ"
+          "review": "Light: SSIM 0.9464, 2.96% pixels differ \u00b7 Dark: SSIM 0.9494, 3.10% pixels differ"
         }
       },
       "android": {
         "screenshots": {
           "maui": {
-            "light": "captures/android/maui/hit_testing_light.png",
+            "light": "../../../maui-reference/captures/android/hit_testing_light.png",
             "dark": null
           },
           "cpp": {
@@ -10555,11 +10555,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9112, 25.47% pixels differ"
+          "review": "Light: SSIM 0.9041, 22.65% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8618, 41.12% pixels differ"
+          "review": "Light: SSIM 0.9049, 16.46% pixels differ"
         }
       }
     }
@@ -10983,17 +10983,17 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7712, 21.01% pixels differ \u00b7 Dark: SSIM 0.7717, 21.10% pixels differ"
+          "review": "Light: SSIM 0.7713, 20.99% pixels differ \u00b7 Dark: SSIM 0.7715, 21.09% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.7702, 21.04% pixels differ \u00b7 Dark: SSIM 0.7707, 21.14% pixels differ"
+          "review": "Light: SSIM 0.7704, 21.02% pixels differ \u00b7 Dark: SSIM 0.7707, 21.12% pixels differ"
         }
       },
       "android": {
         "screenshots": {
           "maui": {
-            "light": "captures/android/maui/image_light.png",
+            "light": "../../../maui-reference/captures/android/image_light.png",
             "dark": null
           },
           "cpp": {
@@ -11015,11 +11015,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8030, 36.53% pixels differ"
+          "review": "Light: SSIM 0.7541, 32.51% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.7996, 36.59% pixels differ"
+          "review": "Light: SSIM 0.7496, 32.59% pixels differ"
         }
       }
     }
@@ -11054,7 +11054,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8464, 13.15% pixels differ \u00b7 Dark: SSIM 0.8005, 13.67% pixels differ"
+          "review": "Light: SSIM 0.8464, 12.51% pixels differ \u00b7 Dark: SSIM 0.8004, 13.03% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -11098,17 +11098,17 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.6808, 30.39% pixels differ \u00b7 Dark: SSIM 0.7026, 29.62% pixels differ"
+          "review": "Light: SSIM 0.6807, 30.23% pixels differ \u00b7 Dark: SSIM 0.7067, 29.31% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.6795, 30.29% pixels differ \u00b7 Dark: SSIM 0.7062, 29.33% pixels differ"
+          "review": "Light: SSIM 0.6798, 30.25% pixels differ \u00b7 Dark: SSIM 0.7058, 29.34% pixels differ"
         }
       },
       "android": {
         "screenshots": {
           "maui": {
-            "light": "captures/android/maui/image_button_light.png",
+            "light": "../../../maui-reference/captures/android/image_button_light.png",
             "dark": null
           },
           "cpp": {
@@ -11130,11 +11130,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8193, 22.33% pixels differ"
+          "review": "Light: SSIM 0.7426, 36.56% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.7757, 26.09% pixels differ"
+          "review": "Light: SSIM 0.6584, 43.01% pixels differ"
         }
       }
     }
@@ -11213,17 +11213,17 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9687, 3.46% pixels differ \u00b7 Dark: SSIM 0.9476, 3.74% pixels differ"
+          "review": "Light: SSIM 0.9689, 3.44% pixels differ \u00b7 Dark: SSIM 0.9437, 3.78% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9692, 3.46% pixels differ \u00b7 Dark: SSIM 0.9484, 3.73% pixels differ"
+          "review": "Light: SSIM 0.9695, 3.44% pixels differ \u00b7 Dark: SSIM 0.9446, 3.77% pixels differ"
         }
       },
       "android": {
         "screenshots": {
           "maui": {
-            "light": "captures/android/maui/indicator_light.png",
+            "light": "../../../maui-reference/captures/android/indicator_light.png",
             "dark": null
           },
           "cpp": {
@@ -11244,12 +11244,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9743, 6.65% pixels differ"
+          "status": "red",
+          "review": "Light: SSIM 0.9197, 10.54% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.9173, 10.60% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9911, 5.82% pixels differ"
         }
       }
     }
@@ -11673,17 +11673,17 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8414, 8.55% pixels differ \u00b7 Dark: SSIM 0.8303, 11.36% pixels differ"
+          "review": "Light: SSIM 0.8538, 6.98% pixels differ \u00b7 Dark: SSIM 0.8342, 9.89% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8527, 7.03% pixels differ \u00b7 Dark: SSIM 0.8375, 9.88% pixels differ"
+          "review": "Light: SSIM 0.8529, 7.01% pixels differ \u00b7 Dark: SSIM 0.8334, 9.92% pixels differ"
         }
       },
       "android": {
         "screenshots": {
           "maui": {
-            "light": "captures/android/maui/invalidate_shadow_host_light.png",
+            "light": "../../../maui-reference/captures/android/invalidate_shadow_host_light.png",
             "dark": null
           },
           "cpp": {
@@ -11705,11 +11705,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8620, 14.24% pixels differ"
+          "review": "Light: SSIM 0.8725, 12.18% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8620, 14.24% pixels differ"
+          "review": "Light: SSIM 0.8723, 12.18% pixels differ"
         }
       }
     }
@@ -18918,17 +18918,17 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9307, 4.95% pixels differ \u00b7 Dark: SSIM 0.9285, 5.19% pixels differ"
+          "review": "Light: SSIM 0.9309, 4.92% pixels differ \u00b7 Dark: SSIM 0.9246, 5.23% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9297, 4.98% pixels differ \u00b7 Dark: SSIM 0.9275, 5.22% pixels differ"
+          "review": "Light: SSIM 0.9300, 4.95% pixels differ \u00b7 Dark: SSIM 0.9237, 5.26% pixels differ"
         }
       },
       "android": {
         "screenshots": {
           "maui": {
-            "light": "captures/android/maui/stepper_light.png",
+            "light": "../../../maui-reference/captures/android/stepper_light.png",
             "dark": null
           },
           "cpp": {
@@ -18950,11 +18950,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8561, 21.98% pixels differ"
+          "review": "Light: SSIM 0.8560, 21.98% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8561, 21.98% pixels differ"
+          "review": "Light: SSIM 0.8559, 21.98% pixels differ"
         }
       }
     }
@@ -20183,17 +20183,17 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9835, 0.80% pixels differ \u00b7 Dark: SSIM 0.9825, 0.89% pixels differ"
+          "review": "Light: SSIM 0.9848, 0.76% pixels differ \u00b7 Dark: SSIM 0.9846, 0.82% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9862, 0.45% pixels differ \u00b7 Dark: SSIM 0.9861, 0.55% pixels differ"
+          "review": "Light: SSIM 0.9866, 0.42% pixels differ \u00b7 Dark: SSIM 0.9823, 0.59% pixels differ"
         }
       },
       "android": {
         "screenshots": {
           "maui": {
-            "light": "captures/android/maui/tabbed_flyout_light.png",
+            "light": "../../../maui-reference/captures/android/tabbed_flyout_light.png",
             "dark": null
           },
           "cpp": {
@@ -20215,11 +20215,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9395, 19.16% pixels differ"
+          "review": "Light: SSIM 0.9541, 18.67% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.9203, 14.16% pixels differ"
+          "review": "Light: SSIM 0.9304, 16.18% pixels differ"
         }
       }
     }
@@ -20504,17 +20504,17 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8779, 9.48% pixels differ \u00b7 Dark: SSIM 0.9064, 10.00% pixels differ"
+          "review": "Light: SSIM 0.8780, 9.45% pixels differ \u00b7 Dark: SSIM 0.9069, 9.97% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8768, 9.51% pixels differ \u00b7 Dark: SSIM 0.9056, 10.03% pixels differ"
+          "review": "Light: SSIM 0.8772, 9.46% pixels differ \u00b7 Dark: SSIM 0.9060, 10.00% pixels differ"
         }
       },
       "android": {
         "screenshots": {
           "maui": {
-            "light": "captures/android/maui/time_picker_light.png",
+            "light": "../../../maui-reference/captures/android/time_picker_light.png",
             "dark": null
           },
           "cpp": {
@@ -20536,11 +20536,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8515, 18.62% pixels differ"
+          "review": "Light: SSIM 0.8571, 14.41% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8534, 18.64% pixels differ"
+          "review": "Light: SSIM 0.8560, 14.42% pixels differ"
         }
       }
     }
