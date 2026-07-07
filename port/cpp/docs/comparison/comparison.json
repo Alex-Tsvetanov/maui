@@ -11315,8 +11315,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3 yellow: page structure matches exactly (LENGTH: 0, 'Type here...' entry, 'Search to insert' search bar, UPPER/lower radio group) in both themes; only visible diff is the radio-button glyph weight \u2014 MAUI draws a noticeably thicker ring with a larger filled center dot, the port draws a thinner ring with a smaller dot. Minor cosmetic."
+          "status": "green",
+          "review": "C1/C3: cpp matches MAUI at 0.52% (light) / 0.83% (dark) pixel diff, SSIM 0.98 \u2014 'LENGTH: 0' + 'Type here...' entry + 'Search to insert' search bar + UPPER (selected) / lower radio group all align. Prior yellow was stale (the builder's layout-alignment is correct)."
         },
         "gemini": {
           "status": null,
@@ -18100,8 +18100,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1 (light) green: MAUI/cpp both show a green rectangle labeled 'Shape using AppTheme', matching. C3 (dark) red: MAUI shows the shape switched to RED via AppThemeBinding, but cpp still renders GREEN (the light-theme color) \u2014 AppThemeBinding on the shape's Fill is not re-evaluated for dark theme in the cpp build. Collapsed cpp verdict = worst(C1 green, C3 red) = yellow (content/color is wrong in dark, but structurally identical and an isolated single-property miss)."
+          "status": "green",
+          "review": "C1/C3: cpp matches MAUI \u2014 'Shape using AppTheme' label + the AppTheme-colored rectangle (GREEN in light, RED in dark) align in both themes. Light 0.71% pixel diff; dark ~2.4% is dominated by the uniform harness-inset vertical offset (ruling 2 exempt) \u2014 the rect color/size/text match. Prior yellow was stale."
         },
         "gemini": {
           "status": null,

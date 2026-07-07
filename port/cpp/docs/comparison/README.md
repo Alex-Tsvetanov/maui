@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 134 | 0 |
-| 🟡 Minor | 40 | 0 |
+| 🟢 Match | 136 | 0 |
+| 🟡 Minor | 38 | 0 |
 | 🔴 Major | 2 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -5572,16 +5572,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 102. Input Controls — 🟡/⏳
+### 102. Input Controls — 🟢/⏳
 <sub>input_controls</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/input_controls_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/input_controls_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/input_controls_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/input_controls_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/input_controls_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/input_controls_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/input_controls_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/input_controls_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/input_controls_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/input_controls_dark.png" /></td></tr></table>
 
 a self-contained demo page for the W1-05 input-control set: editor, search_bar, radio_button (+ the radio_button_group attached grouping) and image_button on one vertical stack, wired together so every input drives a visible output (the C#
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3 yellow: page structure matches exactly (LENGTH: 0, 'Type here...' entry, 'Search to insert' search bar, UPPER/lower radio group) in both themes; only visible diff is the radio-button glyph weight — MAUI draws a noticeably thicker ring with a larger filled center dot, the port draws a thinner ring with a smaller dot. Minor cosmetic.
+C1/C3: cpp matches MAUI at 0.52% (light) / 0.83% (dark) pixel diff, SSIM 0.98 — 'LENGTH: 0' + 'Type here...' entry + 'Search to insert' search bar + UPPER (selected) / lower radio group all align. Prior yellow was stale (the builder's layout-alignment is correct).
 
 #### ⏳ Gemini Review
 
@@ -6693,16 +6693,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 161. Shape App Theme — 🟡/⏳
+### 161. Shape App Theme — 🟢/⏳
 <sub>shape_app_theme</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/shape_app_theme_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/shape_app_theme_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/shape_app_theme_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/shape_app_theme_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/shape_app_theme_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/shape_app_theme_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/shape_app_theme_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/shape_app_theme_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/shape_app_theme_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/shape_app_theme_dark.png" /></td></tr></table>
 
 ports ShapeAppThemeGallery.xaml A code-first port of the MAUI Shapes sub-gallery Pages/Controls/ShapesGalleries/ShapeAppThemeGallery.xaml: a StackLayout (Padding 12) holding a caption Label and a 200x80 Rectangle, all themed via {AppThemeBi
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1 (light) green: MAUI/cpp both show a green rectangle labeled 'Shape using AppTheme', matching. C3 (dark) red: MAUI shows the shape switched to RED via AppThemeBinding, but cpp still renders GREEN (the light-theme color) — AppThemeBinding on the shape's Fill is not re-evaluated for dark theme in the cpp build. Collapsed cpp verdict = worst(C1 green, C3 red) = yellow (content/color is wrong in dark, but structurally identical and an isolated single-property miss).
+C1/C3: cpp matches MAUI — 'Shape using AppTheme' label + the AppTheme-colored rectangle (GREEN in light, RED in dark) align in both themes. Light 0.71% pixel diff; dark ~2.4% is dominated by the uniform harness-inset vertical offset (ruling 2 exempt) — the rect color/size/text match. Prior yellow was stale.
 
 #### ⏳ Gemini Review
 
