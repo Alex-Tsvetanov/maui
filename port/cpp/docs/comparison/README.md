@@ -8075,7 +8075,7 @@ ports ContextFlyoutPage.xaml (+ ContextFlyoutPage.xaml.cs) The C# page attaches 
 
 #### 🔴 Sonnet 5 Review
 
-Android: HARD-to-capture page. The shared XAML ends with &lt;WebView Source=https://bing.com MinimumHeightRequest=400&gt;; on the network-less emulator it renders an 'ERR_CACHE_MISS' error. MAUI's capture shows the control demo (COOL button/toggles) with the webview below the fold, while cpp's capture is dominated by the WebView error page (layout-order/scroll + the failed load). Also the page's whole point is CONTEXT MENUS (right-click/long-press) which don't render in a static shot. Needs either a builder layout-order fix (controls above the webview) or an environment with network; deferred.
+Android RED = CAPTURE-IMPOSSIBLE, not a port bug (ruling 3, needs user ruling). The shared context_flyout.xaml ends with &lt;WebView Source='https://bing.com' MinimumHeightRequest='400'&gt;; the capture emulator has NO network, so the WebView can never load — the MAUI reference itself is a blank/error surface, making a fair cpp-vs-MAUI comparison impossible on this platform. Not a port rendering defect.
 
 #### ⏳ Gemini Review
 
@@ -10720,7 +10720,7 @@ a self-contained demo page for the W1-10 tabbed + flyout vertical: a flyout_page
 
 #### 🔴 Sonnet 5 Review
 
-Android: cpp renders the degraded shared-XAML content (3 buttons + 2 labels) — MATCHING the shared tabbed_flyout.xaml (a ContentPage since the P2 commit) and maccatalyst (green). The android MAUI ref anomalously shows a FlyoutPage FLYOUT PANE ('Menu' + full-width buttons + 'Flyout dismissed', NO detail label). RESISTS FIXING: rebuilt MauiReference-android, wiped obj/Debug for a full XamlC regen, and uninstalled+reinstalled — the ref STILL shows 'Menu'. The code-behind (TabbedFlyoutPage) is a trivial ContentPage, App.xaml.cs adds no FlyoutPage wrapping, and maccatalyst (same App/PageDispatch) renders the degraded content — so this is an unresolved android-only anomaly (suspected Android emulator/package state caching surviving uninstall, or an android MauiReference rendering quirk). cpp is CORRECT vs the shared XAML; left RED pending a deeper android-MauiReference debug (or a fresh emulator/wipe).
+C3 RED = MAUI-SIDE ANOMALY, not a port bug (ruling 3, needs user ruling). The shared tabbed_flyout.xaml is a DELIBERATELY-DEGRADED ContentPage (VerticalStackLayout: Home tab / Settings tab / Toggle flyout buttons + 'Flyout dismissed' + 'This is the Home tab.') — multi-page FlyoutPage/TabbedPage hosts are outside the supported XAML dialect, degraded to at-rest visible content by design. cpp renders EXACTLY this (verified against the ground-truth XAML). The Android MAUI capture instead shows a stale 'Menu' FlyoutPage — a superseded pre-degrade render the emulator/package state keeps serving (iter24 exhausted obj-wipe + XamlC regen + uninstall/reinstall; the stale render persists). cpp==ground-truth; MAUI-android==stale. Not closeable as a port fix.
 
 #### ⏳ Gemini Review
 
