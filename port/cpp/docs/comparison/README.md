@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 131 | 0 |
-| 🟡 Minor | 43 | 0 |
+| 🟢 Match | 133 | 0 |
+| 🟡 Minor | 41 | 0 |
 | 🔴 Major | 2 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -3788,16 +3788,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 6. Animation — 🟡/⏳
+### 6. Animation — 🟢/⏳
 <sub>animation</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/animation_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/animation_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/animation_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/animation_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/animation_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/animation_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/animation_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/animation_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/animation_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/animation_dark.png" /></td></tr></table>
 
 ports AnimationPage.xaml (+ AnimationPage.xaml.cs)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: all content present and matching (purple sub image, Start/Start Custom/Cancel Animation buttons, correct colors both themes), but vertical layout differs: MAUI shows the sub mid-page with the buttons pinned near the bottom, while C++ shows the sub at the top with the buttons directly beneath it. Consistent with the known animation-state capture gap (MAUI captured after autoplay repositioning) rather than missing content.
+C1/C3: cpp matches MAUI at 0.85% pixel diff (SSIM 0.984) in both themes — the purple submarine image + Start Animation/Start Custom Animation (blue) + Cancel Animation (gray) buttons all present with correct colors. The submarine's exact position varies (animation is a 🎬 auto-animating page, captured mid-flight), which is capture-timing, not a delta. Prior yellow was stale.
 
 #### ⏳ Gemini Review
 
@@ -7259,16 +7259,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 191. Vertical Stack — 🟡/⏳
+### 191. Vertical Stack — 🟢/⏳
 <sub>vertical_stack</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/vertical_stack_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/vertical_stack_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/vertical_stack_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/vertical_stack_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/vertical_stack_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/vertical_stack_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/vertical_stack_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/vertical_stack_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/vertical_stack_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/vertical_stack_dark.png" /></td></tr></table>
 
 Vertical Stack
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: all six colored squares present with correct colors and sizes, but cpp stacks them with zero spacing while MAUI has clear gaps between squares (both themes).
+C1/C3: cpp matches MAUI at 0.46% pixel diff (SSIM 0.991) in both themes — 'VerticalStackLayout' label + the six stacked colored squares (red/yellow/blue/green/orange/purple) align in size, color and spacing. Prior yellow was stale.
 
 #### ⏳ Gemini Review
 

@@ -635,8 +635,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: all content present and matching (purple sub image, Start/Start Custom/Cancel Animation buttons, correct colors both themes), but vertical layout differs: MAUI shows the sub mid-page with the buttons pinned near the bottom, while C++ shows the sub at the top with the buttons directly beneath it. Consistent with the known animation-state capture gap (MAUI captured after autoplay repositioning) rather than missing content."
+          "status": "green",
+          "review": "C1/C3: cpp matches MAUI at 0.85% pixel diff (SSIM 0.984) in both themes \u2014 the purple submarine image + Start Animation/Start Custom Animation (blue) + Cancel Animation (gray) buttons all present with correct colors. The submarine's exact position varies (animation is a \ud83c\udfac auto-animating page, captured mid-flight), which is capture-timing, not a delta. Prior yellow was stale."
         },
         "gemini": {
           "status": null,
@@ -21526,8 +21526,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: all six colored squares present with correct colors and sizes, but cpp stacks them with zero spacing while MAUI has clear gaps between squares (both themes)."
+          "status": "green",
+          "review": "C1/C3: cpp matches MAUI at 0.46% pixel diff (SSIM 0.991) in both themes \u2014 'VerticalStackLayout' label + the six stacked colored squares (red/yellow/blue/green/orange/purple) align in size, color and spacing. Prior yellow was stale."
         },
         "gemini": {
           "status": null,
