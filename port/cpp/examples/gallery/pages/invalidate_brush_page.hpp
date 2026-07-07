@@ -5,7 +5,7 @@
 // Pages/Controls/ShapesGalleries/InvalidateBrushGallery.xaml ("Invalidate Brushes Playground"): a
 // VerticalStackLayout (Padding 12) with —
 //   - a "Change color" Button (HorizontalOptions=Start), and
-//   - a horizontal Line (X1=0, X2=150, StrokeThickness=4, HorizontalOptions=Start)
+//   - a horizontal Line (X1=0, X2=150, StrokeThickness=4; no HorizontalOptions — centers by default)
 // — both painted from ONE shared solid brush. Tapping the button advances the brush color through the
 // cycle Green → Red → Blue (and wraps), and BOTH the line's stroke and the button's background repaint to
 // the new color. This is the brush-invalidation demo: one brush, two consumers, repaint on mutation.
@@ -28,12 +28,12 @@
 //   note: the button's Background is a paint (VisualElement.Background); set_background over a solid_paint
 //         is the documented Brush→Paint bridge (there is no set_background_color on a view). The line's
 //         Stroke takes the same paint via set_stroke.
-//   note: HorizontalOptions=Start is applied to BOTH the button and the line (set_horizontal_layout_alignment
-//         (start)) — matching the C# XAML — so the line renders as a short left-aligned bar directly under the
-//         button rather than a centered/floating one (an explicit-width view left at the default Fill coerces
-//         to Center in view.hpp align_horizontal). The layout Padding=12 is not modeled on the stack today, so
-//         it is omitted (best-effort). A status readout label is added (not in the C# XAML) to surface the
-//         current color name for the headless tests and the static capture — it never changes the demonstrated
+//   note: only the Button carries HorizontalOptions=Start; the shared XAML Line has NO HorizontalOptions, so
+//         the explicit-width (150) Line coerces to Center at the default Fill alignment (view.hpp
+//         align_horizontal) — it renders as a short centered/floating bar, exactly as MAUI + the loader do.
+//         (An earlier twin wrongly set Start on the line too.) The layout Padding=12 is not modeled on the stack today,
+//         so it is omitted (best-effort). A status readout label is added (not in the C# XAML) to surface the current
+//         color name for the headless tests and the static capture — it never changes the demonstrated
 //         brush-invalidation behavior.
 
 #include <array>
@@ -77,11 +77,9 @@ namespace maui::samples
             line_.set_stroke_thickness(4);
             line_.set_width_request(150);
             line_.set_height_request(4);
-            line_.set_horizontal_layout_alignment(
-                maui::core::layout_alignment::start); // C# HorizontalOptions=Start — left-align the bar under
-                                                      // the button. Without this, an explicit-width view under
-                                                      // the default Fill alignment coerces to Center (view.hpp
-                                                      // align_horizontal), floating the bar in mid-container.
+            // The shared invalidate_brush.xaml Line has NO HorizontalOptions (only the Button is Start), so the
+            // explicit-width Line coerces to Center under the default Fill alignment — floating the bar in
+            // mid-container, exactly as MAUI + the loader render it. (An earlier twin wrongly set Start here.)
             stack_.add(line_);
 
             // A status readout (port addition — surfaces the current color name; see header note).

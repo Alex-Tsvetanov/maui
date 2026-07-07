@@ -11545,8 +11545,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: green GraphicsView line renders flush-left directly under the Change color button instead of horizontally centered near the top as in MAUI (both themes). Line color/size and button/label content match."
+          "status": "green",
+          "review": "C1/C3: removed the builder's stray line_.set_horizontal_layout_alignment(start) \u2014 the shared XAML Line has NO HorizontalOptions (only the Button is Start), so the explicit-width(150) Line coerces to Center at the default Fill alignment, rendering as a centered/floating green bar exactly like MAUI + the loader (xaml column). Now the 'Change color' green button + centered green line + 'Brush color: Green' match MAUI in both themes."
         },
         "gemini": {
           "status": null,
