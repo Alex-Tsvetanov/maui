@@ -1,11 +1,10 @@
 #pragma once
 // maui::samples::horizontal_stack_layout_page — ports HorizontalStackLayoutPage.xaml
 //
-// Demonstrates maui::controls::horizontal_stack_layout (the fixed left-to-right stack) by holding a
-// label followed by the same six colored box_views (Red/Yellow/Blue/Green/Orange/Purple), stacked
-// left-to-right, with a 12px margin. Mirrors the XAML: a HorizontalStackLayout (Margin=12) with a
-// "HorizontalStackLayout" label and the six boxes. (XAML Margin maps to the stack's padding here — the
-// closest headless-safe analogue.)
+// Demonstrates maui::controls::horizontal_stack_layout (the fixed left-to-right stack): the six colored
+// box_views (Red/Yellow/Blue/Green/Orange/Purple), stacked left-to-right, in a HorizontalStackLayout with
+// Padding=12 and Spacing=6 — an EXACT mirror of the shared horizontal_stack.xaml (no heading label; an
+// earlier twin added one, which pushed the boxes right and drew extra title text vs MAUI).
 //
 // The page OWNS its whole element tree (the sample_app pattern). The generic mount (app_host.hpp)
 // attaches a handler to every owned VIEW bottom-up, preserving each member's concrete static type,
@@ -15,7 +14,6 @@
 #include "maui/controls/box_view.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/horizontal_stack_layout.hpp"
-#include "maui/controls/label.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 
@@ -28,10 +26,9 @@ namespace maui::samples
         {
             page_.set_title("HorizontalStackLayout");
 
-            // HorizontalStackLayout (Margin=12 → padding here, the headless-safe analogue).
+            // HorizontalStackLayout Padding="12" Spacing="6" (the shared XAML exactly).
             stack_.set_padding(maui::core::thickness(12));
-
-            heading_.set_text("HorizontalStackLayout");
+            stack_.set_spacing(6);
 
             red_.set_color(maui::graphics::color(1.0F, 0.0F, 0.0F));      // Red
             yellow_.set_color(maui::graphics::color(1.0F, 1.0F, 0.0F));   // Yellow
@@ -49,7 +46,6 @@ namespace maui::samples
                 box->set_height_request(40);
             }
 
-            stack_.add(heading_);
             stack_.add(red_);
             stack_.add(yellow_);
             stack_.add(blue_);
@@ -69,15 +65,10 @@ namespace maui::samples
         {
             return stack_;
         }
-        [[nodiscard]] maui::controls::label& heading()
-        {
-            return heading_;
-        }
 
     private:
         maui::controls::content_page page_;
         maui::controls::horizontal_stack_layout stack_;
-        maui::controls::label heading_;
         maui::controls::box_view red_;
         maui::controls::box_view yellow_;
         maui::controls::box_view blue_;

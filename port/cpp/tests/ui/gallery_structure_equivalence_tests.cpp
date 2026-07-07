@@ -262,7 +262,6 @@ namespace
             "border_stroke",
             "check_box",
             "gestures",
-            "horizontal_stack",
             "input_controls",
             "invalidate_brush",
             "radio_button_border",

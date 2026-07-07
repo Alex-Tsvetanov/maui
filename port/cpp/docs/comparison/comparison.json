@@ -6040,16 +6040,16 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: 'Items loading simulation...' text content matches, but MAUI renders it top-left aligned while C++ centers it in the page \u2014 a real positional difference beyond the exempt outer-inset shift."
+          "status": "green",
+          "review": "C1/C3: 'Items loading simulation...' renders centered in both cpp and MAUI. Prior yellow's 'MAUI top-left' claim was stale."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "yellow",
-          "review": "C2/C4: same top-left-vs-centered text alignment divergence from MAUI as the C++ column."
+          "status": "green",
+          "review": "C2/C4: 'Items loading simulation...' centered, matches MAUI in both themes."
         },
         "pixel": {
           "status": "green",
@@ -6155,16 +6155,16 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: 'Nothing to display.' text matches, but MAUI aligns it top-left while C++ centers it on the page, same positional divergence as empty_view_load_simulate."
+          "status": "green",
+          "review": "C1/C3: 'Nothing to display.' renders centered in both cpp and MAUI (full-res verified). Prior yellow's 'MAUI top-left' claim was stale (2026-07-05 review)."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "yellow",
-          "review": "C2/C4: identical centered-vs-top-left text alignment issue as the C++ column."
+          "status": "green",
+          "review": "C2/C4: 'Nothing to display.' centered, matches MAUI in both themes (same shared XAML via the loader)."
         },
         "pixel": {
           "status": "green",
@@ -9935,16 +9935,16 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: bold string header 'Just a string as a header', 3 items and bold footer 'This footer is also a string' all present in both themes; rows are tighter than MAUI (items span ~90px vs MAUI ~130px). Minor internal-spacing diff only."
+          "status": "green",
+          "review": "C1/C3: bold string header 'Just a string as a header', 3 items (cover1/oasis/photo), and bold footer 'This footer is also a string' all present, left-aligned and compact, matching MAUI in both themes."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "yellow",
-          "review": "C2/C4: same content as MAUI in both themes (header string, 3 items, footer string); slightly tighter item row spacing than MAUI. Minor."
+          "status": "green",
+          "review": "C2/C4: string header/3 items/bold string footer match MAUI in both themes."
         },
         "pixel": {
           "status": "green",
@@ -10625,8 +10625,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3 yellow: the six colored squares match MAUI in size, colors, spacing and vertical position, but the whole row is indented ~230px from the left edge whereas MAUI (and the xaml column) place it flush left; cpp also shows a 'HorizontalStackLayout' title label MAUI's crop hides (exempt). Same in dark."
+          "status": "green",
+          "review": "C1/C3: builder fixed to mirror the shared XAML exactly (HorizontalStackLayout Padding=12 Spacing=6 of six 40x40 boxes; removed the drifted 'HorizontalStackLayout' heading label that pushed the boxes right + drew extra title text). Six boxes now left-aligned with correct spacing, matching MAUI in both themes. Removed from structure-equivalence known_diverging (strict EXPECT_EQ passes)."
         },
         "gemini": {
           "status": null,
@@ -10634,7 +10634,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "C2/C4 green: six squares (red/yellow/blue/green/orange/purple) match MAUI exactly in colors, size, spacing and left-edge position in both light and dark."
+          "review": "C2/C4: six left-aligned boxes with Padding=12/Spacing=6 match MAUI in both themes."
         },
         "pixel": {
           "status": "yellow",
