@@ -2742,7 +2742,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "Item 1 label and Prev/Next buttons are shifted much lower on the page (near vertical middle) in the C++ render versus being grouped near the top in MAUI."
+          "review": "Android: the CarouselView renders EMPTY (only the 'Basic Horizontal Carousel' headline; no Item 1 / Prev-Next / position) \u2014 a real Android CarouselView virtualization gap. (cluster-D builder; also diverges from the shared XAML.)"
         },
         "gemini": {
           "status": null,
@@ -3776,8 +3776,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "The numbered box row displays fewer, wider boxes (1-4 plus partial 5) than MAUI's five full boxes plus partial 6-8, and the bottom row shows two coffee-cup icons in C++ versus a plain light-blue bar with no icons in MAUI, indicating a real layout/content bug."
+          "status": "green",
+          "review": "Android: 'Not clipping' + Toggle button + orange/red overlapping squares match MAUI. Stale red cleared on recapture."
         },
         "gemini": {
           "status": null,
@@ -4352,7 +4352,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "C++ renders a broken WebView 'Webpage not available' error page instead of the expected switch/entry/image context-menu demo UI."
+          "review": "Android: page renders BLANK \u2014 the context-menu/flyout content ('Increment by 1', dynamic-menu switch, custom context menu) does not render. Menu/flyout feature gap on Android."
         },
         "gemini": {
           "status": null,
@@ -5156,8 +5156,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "The third gradient DatePicker background renders blue-to-teal in MAUI but red/pink-to-purple in C++, a real color content bug; C++ capture is also cut off before showing the final IsFocused/Set-to-null rows visible in MAUI."
+          "status": "green",
+          "review": "Android: Default/BackgroundColor/Background date rows match MAUI; only the date value differs (MAUI 7/5/2026, cpp 7/7/2026 == capture day) \u2014 capture-date artifact, not a port bug."
         },
         "gemini": {
           "status": null,
@@ -10547,7 +10547,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "C++ render extends past the right edge of the viewport (Scale=2 bar and green box overflow horizontally / are cut off), unlike MAUI which fits the frame."
+          "review": "Android: content matches MAUI but the text is mis-aligned/weighted \u2014 cpp centers + bolds 'Rectangle Selection' and 'Lorem ipsum...' where MAUI left-aligns regular-weight. A real Android text-alignment delta."
         },
         "gemini": {
           "status": null,
@@ -11006,8 +11006,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "The animated-gif preview box shows a black background with a small colored heart icon instead of MAUI's dimmed/rotated submarine image, and content below (Stream Source, Opacity) is missing from view."
+          "status": "green",
+          "review": "Android: UriSource/FileSource headers + the purple Bionic FileSource image render matching MAUI. Stale red cleared."
         },
         "gemini": {
           "status": null,
@@ -11122,7 +11122,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "Missing corner-radius arrow glyphs (replaced by thin magenta lines) and the entire lower section (Use Online Source button, Background toggle text) is cut off/missing compared to MAUI."
+          "review": "Android RULING-3 (MAUI image quirk): cpp renders the settings gear icon inside the AspectFit/AspectFill ImageButtons; the MAUI reference shows empty green boxes (image not loaded). Port more correct; user ruling needed. (Same class as the iOS/maccatalyst image quirks.)"
         },
         "gemini": {
           "status": null,
@@ -11236,8 +11236,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "CarouselView content shows only Item 1 instead of MAUI's multi-item content, indicating missing/incomplete CarouselView items."
+          "status": "green",
+          "review": "Android: Basic/Colors/Indicator Shape/Indicator Size IndicatorView rows (dots on yellow, squares, sized circles) match MAUI. Stale red cleared."
         },
         "gemini": {
           "status": null,
@@ -11696,8 +11696,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C++ render is missing the red shadow glow beneath the green bordered box that MAUI clearly renders."
+          "status": "green",
+          "review": "Android: Host + Update Host Size + Shadow Offset X/Y sliders match MAUI. Stale red cleared."
         },
         "gemini": {
           "status": null,
@@ -18941,8 +18941,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "In MAUI the red BackgroundColor fills the full stepper row width, but in C++ the red background only covers the minus-button area, not the full row."
+          "status": "green",
+          "review": "Android: Default [- +] and Disabled [- +] steppers match MAUI. Stale red cleared."
         },
         "gemini": {
           "status": null,
@@ -20207,7 +20207,7 @@
         },
         "sonnet": {
           "status": "red",
-          "review": "MAUI shows the flyout menu with Home/Settings/Toggle buttons and flyout-dismissed state, while C++ shows a bottom tab bar with Home/Settings tabs and different page content -- structurally different flyout navigation implementation."
+          "review": "Android: shows only 'This is the Home tab.' vs MAUI's Menu / Home tab / Settings tab / Toggle flyout \u2014 Shell flyout/tab navigation not implemented (feature, tracked separately)."
         },
         "gemini": {
           "status": null,
@@ -20527,8 +20527,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "The third gradient Background TimePicker renders a blue-to-cyan gradient in MAUI but a red-to-purple/pink gradient in C++, and the C++ page is also missing the lower Disabled/IsFocused rows visible in MAUI's scroll position."
+          "status": "green",
+          "review": "Android: Default/BackgroundColor(blue)/Background(gradient) TimePicker rows all showing 12:00 AM match MAUI. Stale red cleared."
         },
         "gemini": {
           "status": null,

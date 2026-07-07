@@ -7363,9 +7363,9 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 145 | 0 |
+| 🟢 Match | 152 | 0 |
 | 🟡 Minor | 15 | 0 |
-| 🔴 Major | 12 | 0 |
+| 🔴 Major | 5 | 0 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
 
@@ -7811,7 +7811,7 @@ Carousel Page
 
 #### 🔴 Sonnet 5 Review
 
-Item 1 label and Prev/Next buttons are shifted much lower on the page (near vertical middle) in the C++ render versus being grouped near the top in MAUI.
+Android: the CarouselView renders EMPTY (only the 'Basic Horizontal Carousel' headline; no Item 1 / Prev-Next / position) — a real Android CarouselView virtualization gap. (cluster-D builder; also diverges from the shared XAML.)
 
 #### ⏳ Gemini Review
 
@@ -7971,16 +7971,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 33. Clipping — 🔴/⏳
+### 33. Clipping — 🟢/⏳
 <sub>clipping</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/clipping_light.png" /></td><td><img width="300px" src="captures/android/cpp/clipping_light.png" /></td><td><img width="300px" src="captures/android/xaml/clipping_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
 compare oracle ~/maui-compare/Pages/ClippingPage.cs (itself written to mirror this gallery page)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-The numbered box row displays fewer, wider boxes (1-4 plus partial 5) than MAUI's five full boxes plus partial 6-8, and the bottom row shows two coffee-cup icons in C++ versus a plain light-blue bar with no icons in MAUI, indicating a real layout/content bug.
+Android: 'Not clipping' + Toggle button + orange/red overlapping squares match MAUI. Stale red cleared on recapture.
 
 #### ⏳ Gemini Review
 
@@ -8075,7 +8075,7 @@ ports ContextFlyoutPage.xaml (+ ContextFlyoutPage.xaml.cs) The C# page attaches 
 
 #### 🔴 Sonnet 5 Review
 
-C++ renders a broken WebView 'Webpage not available' error page instead of the expected switch/entry/image context-menu demo UI.
+Android: page renders BLANK — the context-menu/flyout content ('Increment by 1', dynamic-menu switch, custom context menu) does not render. Menu/flyout feature gap on Android.
 
 #### ⏳ Gemini Review
 
@@ -8199,16 +8199,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 45. Date Picker — 🔴/⏳
+### 45. Date Picker — 🟢/⏳
 <sub>date_picker</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/date_picker_light.png" /></td><td><img width="300px" src="captures/android/cpp/date_picker_light.png" /></td><td><img width="300px" src="captures/android/xaml/date_picker_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
 ports DatePickerPage.xaml (+ DatePickerPage.xaml.cs)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-The third gradient DatePicker background renders blue-to-teal in MAUI but red/pink-to-purple in C++, a real color content bug; C++ capture is also cut off before showing the final IsFocused/Set-to-null rows visible in MAUI.
+Android: Default/BackgroundColor/Background date rows match MAUI; only the date value differs (MAUI 7/5/2026, cpp 7/7/2026 == capture day) — capture-date artifact, not a port bug.
 
 #### ⏳ Gemini Review
 
@@ -9126,7 +9126,7 @@ ports HitTestingPage.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.HitTestingPag
 
 #### 🔴 Sonnet 5 Review
 
-C++ render extends past the right edge of the viewport (Scale=2 bar and green box overflow horizontally / are cut off), unlike MAUI which fits the frame.
+Android: content matches MAUI but the text is mis-aligned/weighted — cpp centers + bolds 'Rectangle Selection' and 'Lorem ipsum...' where MAUI left-aligns regular-weight. A real Android text-alignment delta.
 
 #### ⏳ Gemini Review
 
@@ -9191,16 +9191,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 99. Image — 🔴/⏳
+### 99. Image — 🟢/⏳
 <sub>image</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/image_light.png" /></td><td><img width="300px" src="captures/android/cpp/image_light.png" /></td><td><img width="300px" src="captures/android/xaml/image_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
 ports ImagePage.xaml (+ ImagePage.xaml.cs)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-The animated-gif preview box shows a black background with a small colored heart icon instead of MAUI's dimmed/rotated submarine image, and content below (Stream Source, Opacity) is missing from view.
+Android: UriSource/FileSource headers + the purple Bionic FileSource image render matching MAUI. Stale red cleared.
 
 #### ⏳ Gemini Review
 
@@ -9219,7 +9219,7 @@ ports ImageButtonPage.xaml (+ ImageButtonPage.xaml.cs) A self-contained, code-fi
 
 #### 🔴 Sonnet 5 Review
 
-Missing corner-radius arrow glyphs (replaced by thin magenta lines) and the entire lower section (Use Online Source button, Background toggle text) is cut off/missing compared to MAUI.
+Android RULING-3 (MAUI image quirk): cpp renders the settings gear icon inside the AspectFit/AspectFill ImageButtons; the MAUI reference shows empty green boxes (image not loaded). Port more correct; user ruling needed. (Same class as the iOS/maccatalyst image quirks.)
 
 #### ⏳ Gemini Review
 
@@ -9229,16 +9229,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 101. Indicator — 🔴/⏳
+### 101. Indicator — 🟢/⏳
 <sub>indicator</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/indicator_light.png" /></td><td><img width="300px" src="captures/android/cpp/indicator_light.png" /></td><td><img width="300px" src="captures/android/xaml/indicator_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
 ports IndicatorPage.xaml A self-contained, code-first demo of the IndicatorView control
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-CarouselView content shows only Item 1 instead of MAUI's multi-item content, indicating missing/incomplete CarouselView items.
+Android: Basic/Colors/Indicator Shape/Indicator Size IndicatorView rows (dots on yellow, squares, sized circles) match MAUI. Stale red cleared.
 
 #### ⏳ Gemini Review
 
@@ -9305,16 +9305,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 105. Invalidate Shadow Host — 🔴/⏳
+### 105. Invalidate Shadow Host — 🟢/⏳
 <sub>invalidate_shadow_host</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/invalidate_shadow_host_light.png" /></td><td><img width="300px" src="captures/android/cpp/invalidate_shadow_host_light.png" /></td><td><img width="300px" src="captures/android/xaml/invalidate_shadow_host_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
 ports InvalidateShadowHostPage.xaml A self-contained, code-first demo that a shadow re-applies (invalidates) when its host&amp;#x27;s size changes, mirroring the C# core gallery page (Pages/Core/ShadowGalleries/InvalidateShadowHostPage.xaml + .xaml.
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C++ render is missing the red shadow glow beneath the green bordered box that MAUI clearly renders.
+Android: Host + Update Host Size + Shadow Offset X/Y sliders match MAUI. Stale red cleared.
 
 #### ⏳ Gemini Review
 
@@ -10502,16 +10502,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 168. Stepper — 🔴/⏳
+### 168. Stepper — 🟢/⏳
 <sub>stepper</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/stepper_light.png" /></td><td><img width="300px" src="captures/android/cpp/stepper_light.png" /></td><td><img width="300px" src="captures/android/xaml/stepper_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
 ports StepperPage.xaml (+ StepperPage.xaml.cs)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-In MAUI the red BackgroundColor fills the full stepper row width, but in C++ the red background only covers the minus-button area, not the full row.
+Android: Default [- +] and Disabled [- +] steppers match MAUI. Stale red cleared.
 
 #### ⏳ Gemini Review
 
@@ -10720,7 +10720,7 @@ a self-contained demo page for the W1-10 tabbed + flyout vertical: a flyout_page
 
 #### 🔴 Sonnet 5 Review
 
-MAUI shows the flyout menu with Home/Settings/Toggle buttons and flyout-dismissed state, while C++ shows a bottom tab bar with Home/Settings tabs and different page content -- structurally different flyout navigation implementation.
+Android: shows only 'This is the Home tab.' vs MAUI's Menu / Home tab / Settings tab / Toggle flyout — Shell flyout/tab navigation not implemented (feature, tracked separately).
 
 #### ⏳ Gemini Review
 
@@ -10766,16 +10766,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 182. Time Picker — 🔴/⏳
+### 182. Time Picker — 🟢/⏳
 <sub>time_picker</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/time_picker_light.png" /></td><td><img width="300px" src="captures/android/cpp/time_picker_light.png" /></td><td><img width="300px" src="captures/android/xaml/time_picker_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
 ports TimePickerPage.xaml (+ TimePickerPage.xaml.cs)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-The third gradient Background TimePicker renders a blue-to-cyan gradient in MAUI but a red-to-purple/pink gradient in C++, and the C++ page is also missing the lower Disabled/IsFocused rows visible in MAUI's scroll position.
+Android: Default/BackgroundColor(blue)/Background(gradient) TimePicker rows all showing 12:00 AM match MAUI. Stale red cleared.
 
 #### ⏳ Gemini Review
 
