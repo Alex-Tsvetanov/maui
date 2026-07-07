@@ -10720,7 +10720,7 @@ a self-contained demo page for the W1-10 tabbed + flyout vertical: a flyout_page
 
 #### 🔴 Sonnet 5 Review
 
-Android: Shell/tabbed page — cpp renders 'This is the Home tab.' text only while MAUI shows the Home/Settings/Toggle-flyout tab chrome. This is the Shell capability gap (degraded to a ContentPage) tracked SEPARATELY from the board — see plan W4 Shell. Not a quick fix.
+Android: cpp NOW renders the degraded shared-XAML content (3 gray buttons 'Home tab'/'Settings tab'/'Toggle flyout' + 'Flyout dismissed' + 'This is the Home tab.') — MATCHING maccatalyst (green) and the shared tabbed_flyout.xaml. BUT the android MAUI ref anomalously shows a FlyoutPage FLYOUT PANE ('Menu' title + full-width buttons + status), NOT the degraded ContentPage. Rebuilding + clean-reinstalling the MauiReference-android app did NOT change the ref (still 'Menu'), so the android MauiReference either hosts pages in a FlyoutPage/Shell (adding 'Menu' chrome android-only) or has a build-cache issue. Left RED pending investigation of the android MauiReference page-hosting; the cpp render is correct vs the shared XAML.
 
 #### ⏳ Gemini Review
 
