@@ -11,9 +11,9 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 147 | 0 |
+| 🟢 Match | 151 | 0 |
 | 🟡 Minor | 13 | 0 |
-| 🔴 Major | 11 | 0 |
+| 🔴 Major | 7 | 0 |
 | ⬛ Blank | 1 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
 
@@ -431,16 +431,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 23. Button — 🔴/⏳
+### 23. Button — 🟢/⏳
 <sub>button</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/button_light.png" /></td><td><img width="300px" src="captures/ios/cpp/button_light.png" /></td><td><img width="300px" src="captures/ios/xaml/button_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/button_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/button_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/button_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/button_light.png" /></td><td><img width="300px" src="captures/ios/cpp/button_light.png" /></td><td><img width="300px" src="captures/ios/xaml/button_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/ios/button_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/button_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/button_dark.png" /></td></tr></table>
 
 ports ButtonPage.xaml (+ ButtonPage.xaml.cs)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-The 'settings' ImageButton rows render huge/oversized in cpp with a gear icon plus text pushing other controls out of view, while MAUI shows compact text-only rows — a major layout/sizing bug present in both themes.
+C1/C3: against a fresh iOS MAUI ref, cpp matches MAUI in both themes across all button variants (colored/border/corner/pink) AND the two 'settings' ImageButton rows (white gear + text) + Decrease/Increase Spacing. Prior red was the oversized-icon layout on a stale ref (ContentLayout builder fix propagated by the iOS rebuild).
 
 #### ⏳ Gemini Review
 
@@ -450,16 +450,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 24. Carousel Page — 🔴/⏳
+### 24. Carousel Page — 🟢/⏳
 <sub>carousel_page</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/carousel_page_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/carousel_page_light.gif" /></td><td><img width="300px" src="captures/ios/xaml/carousel_page_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/carousel_page_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/carousel_page_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/carousel_page_dark.gif" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/carousel_page_light.png" /></td><td><img width="300px" src="captures/ios/cpp/carousel_page_light.gif" /></td><td><img width="300px" src="captures/ios/xaml/carousel_page_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/ios/carousel_page_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/carousel_page_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/carousel_page_dark.gif" /></td></tr></table>
 
 Carousel Page
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-iOS: builder twin renders a richer carousel than the shared XAML's simple 'Card' CarouselView (same builder divergence as maccatalyst).
+C1/C3: against a FRESH iOS MAUI ref (rebuilt MauiReference net10.0-ios; the old ref predated the XAML simplification), cpp renders the single purple-bordered 'Card' card identically to MAUI in both themes. Prior red was the old richer-demo builder + a stale ref showing 'Basic Horizontal Carousel'.
 
 #### ⏳ Gemini Review
 
@@ -1189,16 +1189,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 63. Flex Layout — 🔴/⏳
+### 63. Flex Layout — 🟢/⏳
 <sub>flex_layout</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/flex_layout_light.png" /></td><td><img width="300px" src="captures/ios/cpp/flex_layout_light.png" /></td><td><img width="300px" src="captures/ios/xaml/flex_layout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/flex_layout_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/flex_layout_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/flex_layout_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/flex_layout_light.png" /></td><td><img width="300px" src="captures/ios/cpp/flex_layout_light.png" /></td><td><img width="300px" src="captures/ios/xaml/flex_layout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/ios/flex_layout_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/flex_layout_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/flex_layout_dark.png" /></td></tr></table>
 
 ports FlexLayoutPage.xaml A self-contained, code-first demo of the FlexLayout control: the classic &amp;quot;holy grail&amp;quot; page layout built from nested flexboxes
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-iOS REAL delta: cpp is missing the blue LEFT flex panel that MAUI renders (MAUI: blue|gray|green; cpp: gray|green). Header + right green panel match. Port bug to fix.
+C1/C3: against a fresh iOS MAUI ref, cpp renders HEADER + blue LEFT | gray CONTENT | green RIGHT flex panels identically to MAUI in both themes. Prior 'missing blue LEFT panel' red was stale (fixed + fresh ref confirms).
 
 #### ⏳ Gemini Review
 
@@ -1858,16 +1858,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 100. Image Button — 🔴/⏳
+### 100. Image Button — 🟢/⏳
 <sub>image_button</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/image_button_light.png" /></td><td><img width="300px" src="captures/ios/cpp/image_button_light.png" /></td><td><img width="300px" src="captures/ios/xaml/image_button_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/image_button_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/image_button_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/image_button_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/image_button_light.png" /></td><td><img width="300px" src="captures/ios/cpp/image_button_light.png" /></td><td><img width="300px" src="captures/ios/xaml/image_button_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/ios/image_button_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/image_button_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/image_button_dark.png" /></td></tr></table>
 
 ports ImageButtonPage.xaml (+ ImageButtonPage.xaml.cs) A self-contained, code-first demo page for the ImageButton control (the C# gallery-page convention, mirroring the input_controls_page / image_page pattern)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Under Custom Size, cpp renders a small purple submarine thumbnail image in both themes that is completely absent (blank) in the MAUI reference; all other rows match.
+C1/C3: against a fresh iOS MAUI ref, cpp now renders the white cog inside every green ImageButton (AspectFit/AspectFill/Fill/BorderColor) identically to MAUI in both themes. Prior red: the gallery bundled NO cog.png (missing from CMakeLists resource list) so the cog ImageButtons were empty; added cog.png/@2x to the gallery + gallery_xaml resource lists.
 
 #### ⏳ Gemini Review
 

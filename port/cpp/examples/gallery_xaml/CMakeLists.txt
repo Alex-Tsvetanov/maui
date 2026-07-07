@@ -17,6 +17,8 @@ set(GALLERY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../gallery)
 set(GALLERY_XAML_RESOURCES
     ${GALLERY_DIR}/resources/animated_heart.gif
     ${GALLERY_DIR}/resources/coffee.png
+    ${GALLERY_DIR}/resources/cog.png
+    ${GALLERY_DIR}/resources/cog@2x.png
     ${GALLERY_DIR}/resources/cover1.jpg
     ${GALLERY_DIR}/resources/dotnet_bot.png
     ${GALLERY_DIR}/resources/ionicons.ttf

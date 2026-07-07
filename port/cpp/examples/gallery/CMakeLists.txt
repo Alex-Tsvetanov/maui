@@ -16,6 +16,8 @@
 set(GALLERY_RESOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/animated_heart.gif
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/coffee.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/resources/cog.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/resources/cog@2x.png
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/cover1.jpg
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/dotnet_bot.png
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/ionicons.ttf

@@ -2537,8 +2537,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/button_light.png",
-            "dark": "captures/ios/maui/button_dark.png"
+            "light": "../../../maui-reference/captures/ios/button_light.png",
+            "dark": "../../../maui-reference/captures/ios/button_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/button_light.png",
@@ -2550,8 +2550,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "The 'settings' ImageButton rows render huge/oversized in cpp with a gear icon plus text pushing other controls out of view, while MAUI shows compact text-only rows \u2014 a major layout/sizing bug present in both themes."
+          "status": "green",
+          "review": "C1/C3: against a fresh iOS MAUI ref, cpp matches MAUI in both themes across all button variants (colored/border/corner/pink) AND the two 'settings' ImageButton rows (white gear + text) + Decrease/Increase Spacing. Prior red was the oversized-icon layout on a stale ref (ContentLayout builder fix propagated by the iOS rebuild)."
         },
         "gemini": {
           "status": null,
@@ -2652,8 +2652,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/carousel_page_light.gif",
-            "dark": "captures/ios/maui/carousel_page_dark.gif"
+            "light": "../../../maui-reference/captures/ios/carousel_page_light.png",
+            "dark": "../../../maui-reference/captures/ios/carousel_page_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/carousel_page_light.gif",
@@ -2665,8 +2665,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "iOS: builder twin renders a richer carousel than the shared XAML's simple 'Card' CarouselView (same builder divergence as maccatalyst)."
+          "status": "green",
+          "review": "C1/C3: against a FRESH iOS MAUI ref (rebuilt MauiReference net10.0-ios; the old ref predated the XAML simplification), cpp renders the single purple-bordered 'Card' card identically to MAUI in both themes. Prior red was the old richer-demo builder + a stale ref showing 'Basic Horizontal Carousel'."
         },
         "gemini": {
           "status": null,
@@ -7137,8 +7137,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/flex_layout_light.png",
-            "dark": "captures/ios/maui/flex_layout_dark.png"
+            "light": "../../../maui-reference/captures/ios/flex_layout_light.png",
+            "dark": "../../../maui-reference/captures/ios/flex_layout_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/flex_layout_light.png",
@@ -7150,8 +7150,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "iOS REAL delta: cpp is missing the blue LEFT flex panel that MAUI renders (MAUI: blue|gray|green; cpp: gray|green). Header + right green panel match. Port bug to fix."
+          "status": "green",
+          "review": "C1/C3: against a fresh iOS MAUI ref, cpp renders HEADER + blue LEFT | gray CONTENT | green RIGHT flex panels identically to MAUI in both themes. Prior 'missing blue LEFT panel' red was stale (fixed + fresh ref confirms)."
         },
         "gemini": {
           "status": null,
@@ -11032,8 +11032,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/image_button_light.png",
-            "dark": "captures/ios/maui/image_button_dark.png"
+            "light": "../../../maui-reference/captures/ios/image_button_light.png",
+            "dark": "../../../maui-reference/captures/ios/image_button_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/image_button_light.png",
@@ -11045,8 +11045,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "Under Custom Size, cpp renders a small purple submarine thumbnail image in both themes that is completely absent (blank) in the MAUI reference; all other rows match."
+          "status": "green",
+          "review": "C1/C3: against a fresh iOS MAUI ref, cpp now renders the white cog inside every green ImageButton (AspectFit/AspectFill/Fill/BorderColor) identically to MAUI in both themes. Prior red: the gallery bundled NO cog.png (missing from CMakeLists resource list) so the cog ImageButtons were empty; added cog.png/@2x to the gallery + gallery_xaml resource lists."
         },
         "gemini": {
           "status": null,
