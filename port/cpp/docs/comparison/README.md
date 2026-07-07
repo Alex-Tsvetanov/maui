@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 142 | 0 |
-| 🟡 Minor | 32 | 0 |
+| 🟢 Match | 143 | 0 |
+| 🟡 Minor | 31 | 0 |
 | 🔴 Major | 2 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -6313,16 +6313,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 141. Progress Bar — 🟡/⏳
+### 141. Progress Bar — 🟢/⏳
 <sub>progress_bar</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/progress_bar_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/progress_bar_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/progress_bar_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/progress_bar_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/progress_bar_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/progress_bar_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/progress_bar_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/progress_bar_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/progress_bar_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/progress_bar_dark.png" /></td></tr></table>
 
 ports ProgressBarPage.xaml (+ ProgressBarPage.xaml.cs)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: bars, colors (blue/orange), 50% fill, disabled row, and ProgressTo link all match in both themes, but the 4th label 'ProgressColor' is rendered bold/large in cpp where MAUI shows it small/regular weight.
+C1/C3: the second 'ProgressColor' section label is now the DEFAULT (small, non-bold) font per the shared XAML's bare &lt;Label&gt; (the builder previously bolded it @18pt like the other headers). cpp now renders identically to the green xaml column (cpp-vs-xaml 0.06%); the ~5% vs-MAUI is the uniform harness vertical inset (ruling 2) that the xaml column carries too. Bars: Default/ProgressColor(orange)/Disabled/ProgressColor(orange)/ProgressTo all match.
 
 #### ⏳ Gemini Review
 

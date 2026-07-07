@@ -15800,8 +15800,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: bars, colors (blue/orange), 50% fill, disabled row, and ProgressTo link all match in both themes, but the 4th label 'ProgressColor' is rendered bold/large in cpp where MAUI shows it small/regular weight."
+          "status": "green",
+          "review": "C1/C3: the second 'ProgressColor' section label is now the DEFAULT (small, non-bold) font per the shared XAML's bare <Label> (the builder previously bolded it @18pt like the other headers). cpp now renders identically to the green xaml column (cpp-vs-xaml 0.06%); the ~5% vs-MAUI is the uniform harness vertical inset (ruling 2) that the xaml column carries too. Bars: Default/ProgressColor(orange)/Disabled/ProgressColor(orange)/ProgressTo all match."
         },
         "gemini": {
           "status": null,
