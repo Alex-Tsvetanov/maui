@@ -72,10 +72,11 @@ namespace maui::samples
             scroller_.set_content(stack_);
             page_.set_content(scroller_);
 
-            // ScrollToFromConstructorPage: a scroll issued from the ctor. No handler is attached yet, so the
-            // request PENDS (ScrollView._pendingScrollToRequested) and flushes on attach. Returns true since
-            // Orientation is not `neither`.
-            scroller_.scroll_to_async(0, 600, /*animated=*/true);
+            // No constructor scroll: the shared scroll_view.xaml is captured at REST — the content sits at the
+            // top and the readout stays at its static "Scrolled to: 0 / 0" text. An earlier ctor
+            // scroll_to_async(0,600) flushed on attach and its scroll_to_completed appended a "(done)" marker,
+            // diverging from MAUI's resting readout. (scroll_to_async + the scrolled/scroll_to_completed wiring
+            // stay available; the scroll unit tests cover the pend-until-attached request pipeline.)
         }
 
         [[nodiscard]] maui::controls::content_page& page()

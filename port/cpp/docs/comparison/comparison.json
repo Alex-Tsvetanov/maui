@@ -17410,8 +17410,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: rows, spacing and colors match MAUI in both themes; only diff is the status label reads 'Scrolled to: 0 / 0 (done)' vs MAUI's 'Scrolled to: 0 / 0' \u2014 extra '(done)' suffix text."
+          "status": "green",
+          "review": "C1/C3: removed the constructor scroll_to_async(0,600) whose scroll_to_completed appended a '(done)' marker. Now at rest \u2014 content at top (Row 0..) with the static 'Scrolled to: 0 / 0' readout \u2014 matching MAUI in both themes. The scroll wiring stays covered by scroll_view_seam unit tests."
         },
         "gemini": {
           "status": null,
@@ -19710,8 +19710,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: status label reads 'Horizontal items revealed' instead of MAUI's 'Adjust the sliders, then open a row to verify item positioning' in both themes (a swipe fired during capture); banner, sliders, and both SwipeItems panels otherwise match."
+          "status": "green",
+          "review": "C1/C3: removed the on_mounted synthetic open(left_items) that wrote 'Horizontal items revealed'. Now at rest \u2014 static 'Adjust the sliders, then open a row to verify item positioning' + black instructions bar + both sliders at Value=12 (thumb ~25%, set in configure_slider before the value_changed handlers connect) + the two gray Horizontal/Vertical SwipeItems panels \u2014 matching MAUI in both themes."
         },
         "gemini": {
           "status": null,

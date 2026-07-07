@@ -37,13 +37,11 @@
 #include "maui/controls/swipe_item.hpp"
 #include "maui/controls/swipe_view.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
-#include "maui/core/open_swipe_item.hpp"
 #include "maui/core/swipe_view_requests.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
 
 namespace maui::samples
 {
@@ -146,16 +144,12 @@ namespace maui::samples
             return page_;
         }
 
-        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): run AFTER the generic mount attaches every
-        // handler + builds the native tree. Push the initial padding through (the slider's default 12) so the
-        // readout and the content insets agree, then synthetically open the horizontal swipe's left items so a
-        // static capture shows a revealed Favourite. All per-control attach + re-host plumbing is now the
-        // generic mount's job.
-        void on_mounted(maui::hosting::maui_app& /*app*/)
-        {
-            padding_slider_.set_value(12);
-            horizontal_swipe_.open(maui::core::open_swipe_item::left_items);
-        }
+        // No post-mount synthetic drive: the shared swipe_view_margin.xaml is captured at REST — both sliders
+        // sit at their Value="12" (set in configure_slider BEFORE the value_changed handlers connect, so no
+        // readout fire), the content grids are inset by 12, both SwipeViews are CLOSED, and the readout stays
+        // at its static "Adjust the sliders, then open a row to verify item positioning" text. Synthetically
+        // open()ing the horizontal swipe overwrote that readout ("Horizontal items revealed"), diverging from
+        // MAUI. The slider value_changed handlers still drive the insets + readout interactively.
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment + the tests.
         [[nodiscard]] maui::controls::swipe_view& horizontal_swipe()
