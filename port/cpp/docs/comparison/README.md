@@ -3687,22 +3687,22 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 127 | 0 |
-| 🟡 Minor | 46 | 0 |
+| 🟢 Match | 129 | 0 |
+| 🟡 Minor | 44 | 0 |
 | 🔴 Major | 3 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
 
-### 1. Absolute Layout — 🟡/⏳
+### 1. Absolute Layout — 🟢/⏳
 <sub>absolute_layout</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/absolute_layout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/absolute_layout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/absolute_layout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/absolute_layout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/absolute_layout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/absolute_layout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/absolute_layout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/absolute_layout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/absolute_layout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/absolute_layout_dark.png" /></td></tr></table>
 
 ports AbsoluteLayoutPage.xaml A self-contained, code-first demo of the AbsoluteLayout control
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Layout and colors match in both themes, but the AutoSized blue box is shrunk tight to its text instead of MAUI's wider proportionally-sized box (light and dark).
+C1/C3: cpp matches MAUI at 0.69% pixel diff (SSIM 0.989) in both themes — blue top box, green-left/red-right edge bars, centered text, and the AutoSized blue box all align. The prior yellow's 'AutoSized shrunk tight' claim is stale (cpp-vs-xaml is only 0.20%).
 
 #### ⏳ Gemini Review
 
@@ -5781,16 +5781,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 113. Ios Scroll View — 🟡/⏳
+### 113. Ios Scroll View — 🟢/⏳
 <sub>ios_scroll_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/ios_scroll_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ios_scroll_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ios_scroll_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ios_scroll_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ios_scroll_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/ios_scroll_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ios_scroll_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ios_scroll_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ios_scroll_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ios_scroll_view_dark.png" /></td></tr></table>
 
 ports iOSScrollViewPage.xaml (+ iOSScrollViewPage.xaml.cs)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: slider position/colors and both blue links match, but the cpp gallery shows a stray floating sidebar-toggle button in the top-left corner (both themes) that MAUI does not render — extra harness chrome overlapping the page area.
+C1/C3: rewrote the builder to mirror the shared XAML's degraded resting shape — the C# FlyoutPage's Menu flyout is omitted, so page() is now a plain ContentPage over a ScrollView &gt; VerticalStackLayout(Spacing=20) [Slider(0-100, Value=50), 'Toggle ScrollView DelayContentTouches' Button, 'Return to Platform-Specifics List' Button]. Removed the flyout_page/menu_page that rendered a stray Mac Catalyst sidebar-toggle button + narrowed the slider. Now full-width slider at 50% + blue links match MAUI in both themes. Removed from structure-equivalence known_diverging (strict EXPECT_EQ passes).
 
 #### ⏳ Gemini Review
 

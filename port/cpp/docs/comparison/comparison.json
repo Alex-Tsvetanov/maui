@@ -60,8 +60,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "Layout and colors match in both themes, but the AutoSized blue box is shrunk tight to its text instead of MAUI's wider proportionally-sized box (light and dark)."
+          "status": "green",
+          "review": "C1/C3: cpp matches MAUI at 0.69% pixel diff (SSIM 0.989) in both themes \u2014 blue top box, green-left/red-right edge bars, centered text, and the AutoSized blue box all align. The prior yellow's 'AutoSized shrunk tight' claim is stale (cpp-vs-xaml is only 0.20%)."
         },
         "gemini": {
           "status": null,
@@ -69,7 +69,7 @@
         },
         "sonnet_xaml": {
           "status": "green",
-          "review": "All positioned elements (blue bars, green/red edge bars, centered text, AutoSized box, black bottom bar) match MAUI's sizes and placement in both themes."
+          "review": "C2/C4: xaml matches MAUI at 0.68% in both themes (same layout as cpp)."
         },
         "pixel": {
           "status": "green",
@@ -12580,8 +12580,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: slider position/colors and both blue links match, but the cpp gallery shows a stray floating sidebar-toggle button in the top-left corner (both themes) that MAUI does not render \u2014 extra harness chrome overlapping the page area."
+          "status": "green",
+          "review": "C1/C3: rewrote the builder to mirror the shared XAML's degraded resting shape \u2014 the C# FlyoutPage's Menu flyout is omitted, so page() is now a plain ContentPage over a ScrollView > VerticalStackLayout(Spacing=20) [Slider(0-100, Value=50), 'Toggle ScrollView DelayContentTouches' Button, 'Return to Platform-Specifics List' Button]. Removed the flyout_page/menu_page that rendered a stray Mac Catalyst sidebar-toggle button + narrowed the slider. Now full-width slider at 50% + blue links match MAUI in both themes. Removed from structure-equivalence known_diverging (strict EXPECT_EQ passes)."
         },
         "gemini": {
           "status": null,
