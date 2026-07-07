@@ -277,7 +277,6 @@ namespace
             "swipe_threshold",
             "radio_button_group",
             // cluster D — twin structurally rewritten around unsupported features / loader gaps
-            "tabbed_flyout",
             "radio_button_content",
             "custom_layout",
             "chat_example",

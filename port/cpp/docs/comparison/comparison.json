@@ -20170,8 +20170,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C1/C3: completely different page structure. MAUI shows 'Home tab'/'Settings tab'/'Toggle flyout' link buttons plus 'Flyout dismissed' and 'This is the Home tab.' labels; C++ instead renders a native segmented Home/Settings tab bar at the window top, the 'This is the Home tab.' label is clipped off the top edge, and the three action links and 'Flyout dismissed' text are missing. Both themes affected."
+          "status": "green",
+          "review": "C1/C3: rewrote the builder to mirror the shared XAML's degraded resting shape \u2014 the C# FlyoutPage/TabbedPage chrome is omitted (loader hosts only a ContentPage), so page() is now a plain ContentPage > VerticalStackLayout(Spacing=8) [Button 'Home tab', Button 'Settings tab', Button 'Toggle flyout', Label 'Flyout dismissed', Label 'This is the Home tab.']. Removed the flyout_page/tabbed_page that rendered a Mac Catalyst split view + tab bar. The three blue link-buttons + two labels now match MAUI in both themes. Removed from structure-equivalence known_diverging (strict EXPECT_EQ). FlyoutPage/TabbedPage controls remain covered by their own unit tests."
         },
         "gemini": {
           "status": null,

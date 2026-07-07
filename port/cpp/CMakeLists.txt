@@ -1249,7 +1249,6 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/pickers_page_tests.cpp # the W1-06 demo page wiring (backend-agnostic)
     tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
     tests/controls/input_controls_page_tests.cpp # the W1-05 demo page wiring (backend-agnostic)
-    tests/controls/tabbed_flyout_page_tests.cpp # the W1-10 demo page wiring (backend-agnostic)
     tests/controls/shapes_tests.cpp # (W2-23 shapes) geometry/transform model + path markup parser
     tests/controls/graphics_view_tests.cpp # (W2-23) graphics_view + box_view + the golden-op seat
     tests/controls/shape_view_tests.cpp # (W2-23) the shape control family + shape_view_handler
@@ -1434,7 +1433,6 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/formatted_text_page_tests.cpp # the G1 formatted-text demo page wiring (backend-agnostic)
     tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
     tests/controls/input_controls_page_tests.cpp # the W1-05 demo page wiring (backend-agnostic)
-    tests/controls/tabbed_flyout_page_tests.cpp # the W1-10 demo page wiring (backend-agnostic)
     tests/controls/containers_page_tests.cpp # the W1-07 demo page wiring (backend-agnostic)
     tests/controls/content_view_tests.cpp # (W1-07) backend-agnostic: the templated content host over mocks
     tests/controls/command_tests.cpp # (U-CMD) the i_command / command primitive
@@ -1534,7 +1532,6 @@ else()
     tests/controls/web_view_tests.cpp
     tests/controls/web_view_page_tests.cpp # the W1-08 demo page wiring (backend-agnostic)
     tests/controls/hybrid_web_view_tests.cpp # (G5) the hybrid web view control + the message-bridge mirror
-    tests/controls/tabbed_flyout_page_tests.cpp # the W1-10 demo page wiring (backend-agnostic)
     # (W1-11 chrome/menus) menu items + containers + trackers + window/view chrome + the demo page.
     tests/controls/menu_item_tests.cpp
     tests/controls/menu_bar_tests.cpp

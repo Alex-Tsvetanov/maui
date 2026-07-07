@@ -3687,9 +3687,9 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 129 | 0 |
+| 🟢 Match | 130 | 0 |
 | 🟡 Minor | 44 | 0 |
-| 🔴 Major | 3 | 0 |
+| 🔴 Major | 2 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
 
@@ -7035,16 +7035,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 179. Tabbed Flyout — 🔴/⏳
+### 179. Tabbed Flyout — 🟢/⏳
 <sub>tabbed_flyout</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/tabbed_flyout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/tabbed_flyout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/tabbed_flyout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/tabbed_flyout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/tabbed_flyout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/tabbed_flyout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/tabbed_flyout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/tabbed_flyout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/tabbed_flyout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/tabbed_flyout_dark.png" /></td></tr></table>
 
 a self-contained demo page for the W1-10 tabbed + flyout vertical: a flyout_page whose FLYOUT pane is a titled menu (two buttons selecting the detail&amp;#x27;s tabs + a &amp;quot;Toggle flyout&amp;quot; presenting/dismissing itself) and whose DETAIL pane is a tabbed
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: completely different page structure. MAUI shows 'Home tab'/'Settings tab'/'Toggle flyout' link buttons plus 'Flyout dismissed' and 'This is the Home tab.' labels; C++ instead renders a native segmented Home/Settings tab bar at the window top, the 'This is the Home tab.' label is clipped off the top edge, and the three action links and 'Flyout dismissed' text are missing. Both themes affected.
+C1/C3: rewrote the builder to mirror the shared XAML's degraded resting shape — the C# FlyoutPage/TabbedPage chrome is omitted (loader hosts only a ContentPage), so page() is now a plain ContentPage &gt; VerticalStackLayout(Spacing=8) [Button 'Home tab', Button 'Settings tab', Button 'Toggle flyout', Label 'Flyout dismissed', Label 'This is the Home tab.']. Removed the flyout_page/tabbed_page that rendered a Mac Catalyst split view + tab bar. The three blue link-buttons + two labels now match MAUI in both themes. Removed from structure-equivalence known_diverging (strict EXPECT_EQ). FlyoutPage/TabbedPage controls remain covered by their own unit tests.
 
 #### ⏳ Gemini Review
 
