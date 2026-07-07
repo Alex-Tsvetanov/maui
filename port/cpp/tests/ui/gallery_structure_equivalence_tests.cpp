@@ -279,7 +279,6 @@ namespace
             // cluster D — twin structurally rewritten around unsupported features / loader gaps
             "tabbed_flyout",
             "radio_button_content",
-            "adaptive_collection",
             "custom_layout",
             "chat_example",
             "hybrid_web_view",

@@ -290,8 +290,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "Item list matches MAUI's centered, spaced column in both themes, but an extra 'Layout: Linear (single column)' header is rendered that MAUI does not show."
+          "status": "green",
+          "review": "C1/C3: removed the port-only 'Layout: Linear (single column)' readout label + its stack wrapper; page content is now Grid > CollectionView, matching the shared XAML exactly (ContentPage > Grid > CollectionView). The eight centered items render identically to MAUI in both themes. Removed from structure-equivalence known_diverging (strict EXPECT_EQ passes)."
         },
         "gemini": {
           "status": null,
