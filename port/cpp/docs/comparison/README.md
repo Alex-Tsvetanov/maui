@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 126 | 0 |
-| 🟡 Minor | 47 | 0 |
+| 🟢 Match | 127 | 0 |
+| 🟡 Minor | 46 | 0 |
 | 🔴 Major | 3 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -3883,16 +3883,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 11. Basic Swipe — 🟡/⏳
+### 11. Basic Swipe — 🟢/⏳
 <sub>basic_swipe</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/basic_swipe_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/basic_swipe_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/basic_swipe_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/basic_swipe_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/basic_swipe_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/basic_swipe_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/basic_swipe_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/basic_swipe_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/basic_swipe_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/basic_swipe_dark.png" /></td></tr></table>
 
 ports BasicSwipeGallery.xaml A code-first port of the MAUI SwipeView sub-gallery Pages/Controls/SwipeViewGalleries/BasicSwipeGallery.xaml: a vertical StackLayout of five SwipeViews, each demonstrating a different revealed-side / SwipeMode c
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: five swipe boxes have correct size, width, spacing and gray fill in both themes, but the box labels are anchored top-left instead of MAUI's centered text, and a stray 'Swipe a row, then invoke Delete' helper label is rendered at the far window-left below the stack (absent in the MAUI capture). Dark theme additionally renders the box text white vs MAUI's dark-on-gray... (MAUI dark uses light text too, matches). Alignment + stray label = content diffs.
+C1/C3: fixed three builder drifts vs the shared XAML — (1) the five gray content-Grid Labels now HorizontalOptions/VerticalOptions=Center (were top-left), (2) removed the port-only 'Swipe a row, then invoke Delete' readout from the tree (shared XAML has none), (3) removed set_spacing(12) on the StackLayout (shared &lt;StackLayout&gt; has no Spacing=default 0; the SwipeView Margin=12 supplies the gaps) — row gaps now 39px == MAUI (were 57px). Also dropped the on_mounted synthetic open. Five centered gray boxes with centered labels now match MAUI in both themes (4.77% vs MAUI == the xaml column, all harness-inset).
 
 #### ⏳ Gemini Review
 

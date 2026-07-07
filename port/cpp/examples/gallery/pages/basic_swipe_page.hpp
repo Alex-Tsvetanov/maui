@@ -44,12 +44,11 @@
 #include "maui/controls/swipe_item.hpp"
 #include "maui/controls/swipe_view.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
-#include "maui/core/open_swipe_item.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/core/swipe_mode.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
-#include "maui/hosting/maui_app.hpp"
 
 namespace maui::samples
 {
@@ -59,15 +58,19 @@ namespace maui::samples
         basic_swipe_page()
         {
             page_.set_title("SwipeView");
-            stack_.set_spacing(12);
+            // The shared basic_swipe.xaml's <StackLayout> has NO Spacing (default 0); each SwipeView's
+            // Margin="12" provides the row gaps. An earlier set_spacing(12) here over-spaced the rows vs MAUI.
 
-            readout_.set_text("Swipe a row, then invoke Delete");
+            // The shared basic_swipe.xaml has NO readout label — the five SwipeViews are the only content.
+            // readout_ is a port-only interactive stand-in (a Delete SwipeItem's Invoked writes to it), kept
+            // OFF the visual tree so the resting capture matches MAUI.
 
             // ---- 1. BottomItems, Execute: one red Delete (coffee.png), Invoked → readout ----
             bottom_content_.set_height_request(60);
             bottom_content_.set_width_request(300);
             bottom_content_.set_background(gray());
             bottom_label_.set_text("Swipe Up (Execute)");
+            center(bottom_label_);
             bottom_content_.add(bottom_label_);
 
             bottom_delete_.set_text("Delete");
@@ -85,6 +88,7 @@ namespace maui::samples
             top_content_.set_width_request(300);
             top_content_.set_background(gray());
             top_label_.set_text("Swipe Down (Reveal)");
+            center(top_label_);
             top_content_.add(top_label_);
 
             top_view_.set_text("View");
@@ -111,6 +115,7 @@ namespace maui::samples
             left_content_.set_width_request(300);
             left_content_.set_background(gray());
             left_label_.set_text("Swipe Right (Reveal)");
+            center(left_label_);
             left_content_.add(left_label_);
 
             left_view_.set_text("Test (Ajg)");
@@ -137,6 +142,7 @@ namespace maui::samples
             right_content_.set_width_request(300);
             right_content_.set_background(gray());
             right_label_.set_text("Swipe Left (Execute)");
+            center(right_label_);
             right_content_.add(right_label_);
 
             right_delete_.set_text("Delete");
@@ -156,6 +162,7 @@ namespace maui::samples
             any_content_.set_width_request(300);
             any_content_.set_background(gray());
             any_label_.set_text("Swipe in any direction");
+            center(any_label_);
             any_content_.add(any_label_);
 
             any_left_.set_text("LeftItem");
@@ -188,8 +195,6 @@ namespace maui::samples
             any_swipe_.set_content(any_content_);
             any_swipe_.set_margin(maui::core::thickness(12)); // XAML SwipeView Margin="12"
             stack_.add(any_swipe_);
-
-            stack_.add(readout_);
             page_.set_content(stack_);
         }
 
@@ -198,15 +203,10 @@ namespace maui::samples
             return page_;
         }
 
-        // POST-MOUNT hook (gallery_host.hpp gallery_post_mount): after the generic mount has attached every
-        // handler + built the native tree, synthetically open the first swipe_view toward its populated
-        // BottomItems side so a static capture shows the revealed item (the swipe-to-reveal gesture has no
-        // headless analogue). open() routes through the now-attached handler (swipe_view_seam tests). All the
-        // per-control attach + re-host plumbing is now the generic mount's job.
-        void on_mounted(maui::hosting::maui_app& /*app*/)
-        {
-            bottom_swipe_.open(maui::core::open_swipe_item::bottom_items);
-        }
+        // No post-mount synthetic drive: the shared basic_swipe.xaml is captured at REST — all five SwipeViews
+        // are CLOSED, showing only their gray content Grids (the swipe items are the swipe-revealed layer,
+        // hidden at rest). Synthetically open()ing the first swipe diverged from that resting appearance.
+        // (The Delete SwipeItems' Invoked handlers still update the off-tree readout interactively.)
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment + the tests.
         [[nodiscard]] maui::controls::vertical_stack_layout& stack()
@@ -258,6 +258,13 @@ namespace maui::samples
         static std::shared_ptr<maui::graphics::solid_paint> gray()
         {
             return std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::light_gray);
+        }
+        // The XAML content Labels are HorizontalOptions="Center" VerticalOptions="Center" — centered in the
+        // gray Grid. Mirror that (the builder previously left them at the default top-left).
+        static void center(maui::controls::label& label)
+        {
+            label.set_horizontal_layout_alignment(maui::core::layout_alignment::center);
+            label.set_vertical_layout_alignment(maui::core::layout_alignment::center);
         }
         static std::shared_ptr<maui::controls::file_image_source> icon(const char* file)
         {
