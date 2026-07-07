@@ -50,12 +50,12 @@ namespace maui::samples
             // ---- Styled - Color from theme ----
             // note: the XAML uses AppThemeBinding Light/Dark accent; the port has no app-theme surface, so
             // a single fixed accent color stands in for the themed accent.
-            color_header_.set_text("Styled - Color from theme");
+            color_header_.set_text("Color"); // the shared XAML's label text (was verbose "Styled - ...")
             color_indicator_.set_is_running(true);
             color_indicator_.set_color(maui::graphics::color(0.26F, 0.52F, 0.96F)); // a plausible accent
 
             // ---- Styled - BackgroundColor=Yellow ----
-            background_header_.set_text("Styled - BackgroundColor=Yellow");
+            background_header_.set_text("BackgroundColor=Yellow"); // shared XAML label text
             background_indicator_.set_is_running(true);
             background_indicator_.set_background_brush(
                 std::make_shared<maui::controls::solid_color_brush>(maui::graphics::colors::yellow));
@@ -68,7 +68,7 @@ namespace maui::samples
 
             // ---- Smaller (Width/HeightRequest=10; XAML HorizontalOptions=Center) ----
             // note: HorizontalOptions has no surface on the port's view; the indicator keeps its default.
-            smaller_header_.set_text("Smaller - HorizontalOptions=Center");
+            smaller_header_.set_text("Smaller"); // shared XAML label text
             smaller_indicator_.set_is_running(true);
             smaller_indicator_.set_width_request(10);
             smaller_indicator_.set_height_request(10);

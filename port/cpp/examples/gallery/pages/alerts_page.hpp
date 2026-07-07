@@ -35,7 +35,9 @@ namespace maui::samples
             stack_.set_spacing(8);
             stack_.set_margin(maui::core::thickness(12)); // the XAML Margin="12" (uniform) on the content stack
 
-            readout_.set_text("OnAppearing: Alert — Welcome to the Alerts Page [Hello!]");
+            // The shared alerts.xaml has NO general readout label (results surface as native DisplayAlert
+            // dialogs); the readout_ is a port-only interactive stand-in, kept off the visual tree so the
+            // resting capture matches MAUI. Its set_readout() updates (below) remain for interactive testing.
 
             // ---- Display Alert section ----
             alert_header_.set_text("Display Alert");
@@ -71,7 +73,6 @@ namespace maui::samples
                 set_readout("Prompt Question 2: \"What's 5 + 5?\" -> " + result);
             });
 
-            stack_.add(readout_);
             stack_.add(alert_header_);
             stack_.add(alert_simple_);
             stack_.add(alert_yes_no_);

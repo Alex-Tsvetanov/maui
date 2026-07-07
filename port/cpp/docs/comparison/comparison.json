@@ -175,8 +175,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "Spinners, yellow background bar and layout match in both themes, but three section labels have wrong text ('Styled - Color from theme', 'Styled - BackgroundColor=Yellow', 'Smaller - HorizontalOptions=Center' vs MAUI's 'Color', 'BackgroundColor=Yellow', 'Smaller')."
+          "status": "green",
+          "review": "C1/C3: builder section labels fixed to the shared XAML's short text (Color / BackgroundColor=Yellow / Smaller \u2014 were verbose 'Styled - ...' / '- HorizontalOptions=Center'). All 7 bold labels, the yellow BackgroundColor bar, spinners and 'Not Running'/'- End of page -' now match MAUI in both themes. Removed from structure-equivalence known_diverging (strict EXPECT_EQ passes)."
         },
         "gemini": {
           "status": null,
@@ -405,8 +405,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "Buttons/links match, but an extra 'OnAppearing: Alert \u2014 Welcome to the Alerts Page [Hello!]' line is shown and the three section headers render in small regular type instead of MAUI's large bold headers (both themes)."
+          "status": "green",
+          "review": "C1/C3: removed the port-only 'OnAppearing: Alert \u2014 Welcome...' readout line from the visual tree (the shared alerts.xaml has no general readout \u2014 results surface as native DisplayAlert dialogs). Bold 'Display Alert/ActionSheet/Prompt' headers + the six blue action buttons now match MAUI in both themes at rest."
         },
         "gemini": {
           "status": null,

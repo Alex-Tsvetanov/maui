@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 115 | 0 |
-| 🟡 Minor | 58 | 0 |
+| 🟢 Match | 117 | 0 |
+| 🟡 Minor | 56 | 0 |
 | 🔴 Major | 3 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -3712,16 +3712,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 2. Activity Indicator — 🟡/⏳
+### 2. Activity Indicator — 🟢/⏳
 <sub>activity_indicator</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/activity_indicator_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/activity_indicator_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/activity_indicator_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/activity_indicator_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/activity_indicator_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/activity_indicator_dark.png" /></td></tr></table>
 
 ports ActivityIndicatorPage.xaml (+ ActivityIndicatorPage.xaml.cs)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Spinners, yellow background bar and layout match in both themes, but three section labels have wrong text ('Styled - Color from theme', 'Styled - BackgroundColor=Yellow', 'Smaller - HorizontalOptions=Center' vs MAUI's 'Color', 'BackgroundColor=Yellow', 'Smaller').
+C1/C3: builder section labels fixed to the shared XAML's short text (Color / BackgroundColor=Yellow / Smaller — were verbose 'Styled - ...' / '- HorizontalOptions=Center'). All 7 bold labels, the yellow BackgroundColor bar, spinners and 'Not Running'/'- End of page -' now match MAUI in both themes. Removed from structure-equivalence known_diverging (strict EXPECT_EQ passes).
 
 #### ⏳ Gemini Review
 
@@ -3750,16 +3750,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 4. Alerts — 🟡/⏳
+### 4. Alerts — 🟢/⏳
 <sub>alerts</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/alerts_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/alerts_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/alerts_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/alerts_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/alerts_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/alerts_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/alerts_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/alerts_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/alerts_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/alerts_dark.png" /></td></tr></table>
 
 ports AlertsPage.xaml (+ AlertsPage.xaml.cs) The C# AlertsPage drives the three Page dialog services — DisplayAlertAsync (simple OK + Yes/No), DisplayActionSheetAsync (simple + Cancel/Delete), and DisplayPromptAsync (two questions) — from a
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Buttons/links match, but an extra 'OnAppearing: Alert — Welcome to the Alerts Page [Hello!]' line is shown and the three section headers render in small regular type instead of MAUI's large bold headers (both themes).
+C1/C3: removed the port-only 'OnAppearing: Alert — Welcome...' readout line from the visual tree (the shared alerts.xaml has no general readout — results surface as native DisplayAlert dialogs). Bold 'Display Alert/ActionSheet/Prompt' headers + the six blue action buttons now match MAUI in both themes at rest.
 
 #### ⏳ Gemini Review
 

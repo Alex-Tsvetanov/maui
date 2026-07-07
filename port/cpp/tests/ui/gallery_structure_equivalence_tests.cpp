@@ -271,7 +271,6 @@ namespace
             "transform_playground",
             "vertical_stack",
             // cluster C — builder computes runtime state vs the twin's static snapshot
-            "activity_indicator",
             "pickers",
             "web_view",
             "pan_gesture_events",
