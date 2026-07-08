@@ -6284,7 +6284,7 @@ ports PreselectedItemGallery.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.Colle
 
 #### 🟡 Sonnet 5 Review
 
-C1/C3: all 50 rows + header + preselected label present, but cpp draws a gray full-width selection band on 'photo.jpg, 2' that the MAUI capture does not show, and row spacing is much tighter (~26px vs MAUI's ~44px row pitch). Same in both themes.
+All 50 rows + header + preselected readout present and correctly laid out (row pitch matches MAUI). The ONLY diff: cpp draws a gray full-width selection band on the preselected row "photo.jpg, 2" that the MAUI Mac Catalyst capture does not render. This is a MAUI Mac Catalyst platform quirk — MAUI iOS and android BOTH render the persistent selection band (cpp matches them green), but Mac Catalyst's UICollectionView omits the persistent selection background at rest. cpp (reusing iOS rendering) faithfully reflects the selection state. Both themes.
 
 #### ⏳ Gemini Review
 
@@ -6303,7 +6303,7 @@ ports PreselectedItemsGallery.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.Coll
 
 #### 🟡 Sonnet 5 Review
 
-C1/C3: 4-column grid content matches, but cpp shows gray selection bands on the three preselected items (photo.jpg 2, Fruits.jpg 4, FlowerBuds.jpg 5) that the MAUI capture does not render, and row pitch is tighter (~26px vs ~44px). Both themes.
+4-column grid content + order + row pitch match MAUI. The ONLY diff: cpp draws gray selection bands on the three preselected items (photo.jpg 2, Fruits.jpg 4, FlowerBuds.jpg 5) that the MAUI Mac Catalyst capture does not render. MAUI Mac Catalyst platform quirk — MAUI iOS+android render the same bands (cpp matches them green); Mac Catalyst's UICollectionView omits the persistent selection background at rest. cpp faithfully reflects the selection state. Both themes.
 
 #### ⏳ Gemini Review
 
