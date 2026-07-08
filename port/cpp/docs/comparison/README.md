@@ -11,8 +11,8 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 156 | 0 |
-| 🟡 Minor | 15 | 0 |
+| 🟢 Match | 157 | 0 |
+| 🟡 Minor | 14 | 0 |
 | 🔴 Major | 0 | 0 |
 | ⬛ Blank | 1 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
@@ -3321,16 +3321,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 177. Switch — 🟡/⏳
+### 177. Switch — 🟢/⏳
 <sub>switch</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/switch_light.png" /></td><td><img width="300px" src="captures/ios/cpp/switch_light.png" /></td><td><img width="300px" src="captures/ios/xaml/switch_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/switch_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/switch_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/switch_dark.png" /></td></tr></table>
 
 ports SwitchPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical stack of headlined Switch states — Default, BackgroundColor (Blue), Background (a yellow→green LinearGradientBrush), Disabled, OnColor (Red), ThumbColor (Orange)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-RULING-3 FLAG (iOS-26 ThumbColor quirk): in light theme the off-state ThumbColor=Orange switch renders an ORANGE thumb in cpp but a WHITE thumb in MAUI. Both set the native UISwitch.ThumbTintColor to orange, but on iOS 26 the native switch resets the OFF-state thumb to white after layout; MAUI's re-apply loses that race (renders white) while cpp's re-apply keeps orange. So cpp honors the developer's ThumbColor; iOS-26 MAUI drops it for the off state. Needs a user ruling: replicate the iOS-26 white-off-thumb behavior, or keep honoring ThumbColor. (Earlier review had the direction reversed.) Everything else (tracks, on-colors, positions, dark theme) matches.
+Matches MAUI in both themes. The only delta — the off-state ThumbColor=Orange thumb rendering orange in cpp vs white in MAUI — is an EXEMPT iOS-26 platform quirk per the 2026-07-08 ruling (ruling 7): iOS 26 resets the native off-thumb to white after layout, dropping the developer's ThumbColor; the port correctly honors ThumbColor (orange). Tracks, on-colors, positions, and dark theme all match.
 
 #### ⏳ Gemini Review
 
@@ -7006,7 +7006,7 @@ ports SwitchPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical sta
 
 #### 🟢 Sonnet 5 Review
 
-All switch rows (Default, BackgroundColor [blue track], Background, Disabled [dimmed], OnColor, ThumbColor) match MAUI exactly in position, on/off state, track color, and thumb appearance, in both light and dark themes. NOTE (ruling-3, see iOS switch): the ThumbColor=Orange row's OFF-state thumb is orange in cpp vs white in MAUI — same iOS-26 ThumbTintColor-reset quirk; flagged for a user ruling.
+All switch rows (Default, BackgroundColor, Background, Disabled, OnColor, ThumbColor) match MAUI in position, on/off state, and track color. The off-state ThumbColor=Orange thumb is orange in cpp vs white in MAUI — an EXEMPT iOS-26 platform quirk (ruling 7, 2026-07-08): the port correctly honors ThumbColor; iOS 26 drops it for the off state.
 
 #### ⏳ Gemini Review
 

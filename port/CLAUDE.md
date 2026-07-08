@@ -158,6 +158,14 @@ rules on quirks → only then `--commit-board` adopts verdicts and the port_diff
    `~/maui-compare/App.xaml` citation maps to `port/maui-reference/app/App.xaml`, which preserves the
    same no-Styles.xaml native-default rendering.
 
+7. **Switch ThumbColor on iOS 26 is a MAUI-side quirk the port need not copy (2026-07-08 ruling).** With
+   `ThumbColor` set (e.g. Orange) and the switch OFF, iOS 26's native `UISwitch` resets the off-state thumb
+   to WHITE after layout — MAUI's re-apply loses that race and renders a white off-thumb, dropping the
+   developer's ThumbColor. The port honors `ThumbColor` (orange off-thumb), which is the developer intent.
+   Per this ruling the port's orange is CORRECT; the iOS-26 white off-thumb is an exempt platform quirk
+   (like ruling 2's harness inset) — do NOT force the port to replicate it. Applies to any off-state
+   ThumbColor switch on the iOS backend (iOS + maccatalyst).
+
 ## Progress tracking
 
 Maintain a `port/STATUS.md` (create it on first run) with one row per component:

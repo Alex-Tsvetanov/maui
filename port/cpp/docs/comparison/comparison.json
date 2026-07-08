@@ -21780,8 +21780,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "RULING-3 FLAG (iOS-26 ThumbColor quirk): in light theme the off-state ThumbColor=Orange switch renders an ORANGE thumb in cpp but a WHITE thumb in MAUI. Both set the native UISwitch.ThumbTintColor to orange, but on iOS 26 the native switch resets the OFF-state thumb to white after layout; MAUI's re-apply loses that race (renders white) while cpp's re-apply keeps orange. So cpp honors the developer's ThumbColor; iOS-26 MAUI drops it for the off state. Needs a user ruling: replicate the iOS-26 white-off-thumb behavior, or keep honoring ThumbColor. (Earlier review had the direction reversed.) Everything else (tracks, on-colors, positions, dark theme) matches."
+          "status": "green",
+          "review": "Matches MAUI in both themes. The only delta \u2014 the off-state ThumbColor=Orange thumb rendering orange in cpp vs white in MAUI \u2014 is an EXEMPT iOS-26 platform quirk per the 2026-07-08 ruling (ruling 7): iOS 26 resets the native off-thumb to white after layout, dropping the developer's ThumbColor; the port correctly honors ThumbColor (orange). Tracks, on-colors, positions, and dark theme all match."
         },
         "gemini": {
           "status": null,
@@ -21825,7 +21825,7 @@
         },
         "sonnet": {
           "status": "green",
-          "review": "All switch rows (Default, BackgroundColor [blue track], Background, Disabled [dimmed], OnColor, ThumbColor) match MAUI exactly in position, on/off state, track color, and thumb appearance, in both light and dark themes. NOTE (ruling-3, see iOS switch): the ThumbColor=Orange row's OFF-state thumb is orange in cpp vs white in MAUI \u2014 same iOS-26 ThumbTintColor-reset quirk; flagged for a user ruling."
+          "review": "All switch rows (Default, BackgroundColor, Background, Disabled, OnColor, ThumbColor) match MAUI in position, on/off state, and track color. The off-state ThumbColor=Orange thumb is orange in cpp vs white in MAUI \u2014 an EXEMPT iOS-26 platform quirk (ruling 7, 2026-07-08): the port correctly honors ThumbColor; iOS 26 drops it for the off state."
         },
         "gemini": {
           "status": null,
