@@ -50,6 +50,7 @@
 #include "maui/controls/shapes/polygon.hpp"
 #include "maui/controls/shapes/polyline.hpp"
 #include "maui/controls/shapes/rectangle.hpp"
+#include "maui/controls/shapes/round_rectangle.hpp"
 #include "maui/controls/shapes/shape.hpp"
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/i_view.hpp"
@@ -256,6 +257,7 @@ namespace maui::xaml
         types.register_type<shapes::line>("Line");
         types.register_type<shapes::ellipse>("Ellipse");
         types.register_type<shapes::rectangle>("Rectangle");
+        types.register_type<shapes::round_rectangle>("RoundRectangle");
         types.register_type<shapes::polygon>("Polygon");
         types.register_type<shapes::polyline>("Polyline");
 
@@ -287,6 +289,15 @@ namespace maui::xaml
         register_shape_properties<shapes::rectangle>(properties);
         properties.register_bindable_property<shapes::rectangle>("RadiusX", shapes::rectangle::radius_x_property());
         properties.register_bindable_property<shapes::rectangle>("RadiusY", shapes::rectangle::radius_y_property());
+
+        // ---- RoundRectangle (RoundRectangle.cs) -----------------------------------------------------
+        // NOTE: standalone <RoundRectangle> XAML is currently name-intercepted by the xaml_visitors W9
+        // clip special-case (Border.StrokeShape), so this registration is presently reached only by
+        // code-first construction; it becomes live for standalone shape-views if/when W9 is retired.
+        register_view_properties<shapes::round_rectangle>(properties);
+        register_shape_properties<shapes::round_rectangle>(properties);
+        properties.register_bindable_property<shapes::round_rectangle>(
+            "CornerRadius", shapes::round_rectangle::corner_radius_property());
 
         // ---- Polygon (Polygon.cs) -------------------------------------------------------------------
         register_view_properties<shapes::polygon>(properties);

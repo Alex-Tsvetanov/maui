@@ -47,6 +47,7 @@
 #include "maui/controls/shapes/polygon.hpp"
 #include "maui/controls/shapes/polyline.hpp"
 #include "maui/controls/shapes/rectangle.hpp"
+#include "maui/controls/shapes/round_rectangle.hpp"
 #include "maui/controls/shell/shell.hpp"
 #include "maui/controls/shell_handler.hpp"
 #include "maui/controls/slider.hpp"
@@ -163,6 +164,7 @@ namespace maui::hosting
         handlers.add_handler<maui::controls::graphics_view, maui::core::graphics_view_handler>();
         handlers.add_handler<maui::controls::box_view, maui::core::shape_view_handler>();
         handlers.add_handler<maui::controls::shapes::rectangle, maui::core::shape_view_handler>();
+        handlers.add_handler<maui::controls::shapes::round_rectangle, maui::core::shape_view_handler>();
         handlers.add_handler<maui::controls::shapes::ellipse, maui::core::shape_view_handler>();
         handlers.add_handler<maui::controls::shapes::line, maui::core::shape_view_handler>();
         handlers.add_handler<maui::controls::shapes::polyline, maui::core::shape_view_handler>();

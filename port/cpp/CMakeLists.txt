@@ -1116,6 +1116,7 @@ add_library(maui_controls STATIC
   src/controls/box_view.cpp
   src/controls/shapes/shape.cpp
   src/controls/shapes/rectangle.cpp
+  src/controls/shapes/round_rectangle.cpp
   src/controls/shapes/ellipse.cpp
   src/controls/shapes/line.cpp
   src/controls/shapes/polyline.cpp

@@ -29,6 +29,7 @@
 #include "maui/controls/shapes/polyline.hpp"
 #include "maui/controls/shapes/rectangle.hpp"
 #include "maui/controls/shapes/rectangle_geometry.hpp"
+#include "maui/controls/shapes/round_rectangle.hpp"
 #include "maui/controls/shapes/shape.hpp"
 #include "maui/controls/shapes/translate_transform.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
@@ -119,6 +120,22 @@ namespace
 
         path_f expected;
         expected.append_rounded_rectangle(0, 0, 100, 50, 6); // max(RadiusX, RadiusY)
+        EXPECT_TRUE(path == expected);
+    }
+
+    TEST(shape_controls, round_rectangle_path_rounds_each_corner) // RoundRectangle.GetPath (per-corner)
+    {
+        shapes::round_rectangle view;
+        view.set_corner_radius(maui::graphics::corner_radius(8, 4, 2, 6)); // TL, TR, BL, BR
+        view.set_stroke_thickness(0);
+        view.set_frame(maui::graphics::rect(0, 0, 100, 50)); // arranged → WidthForPathComputation
+
+        // C# RoundRectangle.GetPath: AppendRoundedRectangle(0, 0, w, h, TL, TR, BL, BR) — NO stroke inset
+        // (unlike Rectangle). Compare get_path directly; path_for_bounds' aspect-fit over the flattened
+        // per-corner curve bounds is not an exact identity (as for the ellipse case).
+        const path_f path = view.get_path();
+        path_f expected;
+        expected.append_rounded_rectangle(0.0F, 0.0F, 100.0F, 50.0F, 8.0F, 4.0F, 2.0F, 6.0F);
         EXPECT_TRUE(path == expected);
     }
 
