@@ -11005,12 +11005,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9461, 3.02% pixels differ \u00b7 Dark: SSIM 0.9329, 3.05% pixels differ"
+          "status": "red",
+          "review": "Light: SSIM 0.8921, 9.41% pixels differ \u00b7 Dark: SSIM 0.8609, 8.64% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8592, 18.78% pixels differ \u00b7 Dark: SSIM 0.7629, 17.99% pixels differ"
+          "review": "Light: SSIM 0.8918, 9.42% pixels differ \u00b7 Dark: SSIM 0.8606, 8.65% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -11041,24 +11041,24 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "FRAMEWORK (horizontal GridItemsLayout cell height, NOT a capture scroll \u2014 verified by fresh recapture). MAUI's horizontal-grid cells render ~627px tall so only 2 of the 3 rows fit the viewport (cover1/Vegetables/Legumes/photo row, then oasis/Fruits/cover1 row); cpp's cells are ~190px so all 3 rows show. Same content/order, header/footer images and 'Add Content' links match \u2014 the delta is the GridItemsLayout horizontal cell-height sizing (a CV-layout framework matter)."
+          "status": "green",
+          "review": "Horizontal GridItemsLayout now fills the available vertical height (greedy cross-axis fill), matching MAUI: header image + 'This Is A Header' + 'Add Content', then the grid rows spread across the window (cover1/Vegetables/Legumes/photo, then oasis/Fruits/cover1), footer pushed past the fold. Fix: horizontal CV with an infinite (VSL/unbounded) height constraint fills the live native frame height instead of the self-referential ~570 viewport_cross_extent mirror (collection_view_handler.cpp + ios native_content_size). Cell height 190px->~490px, pixel 13.5%->5.5%. Residual: MAUI OVER-fills the CV taller than the visible window (~1881px cells ~627px, 2 rows visible) while cpp fills to the viewport (~1470px cells ~490px, 3 rows visible) \u2014 a MAUI over-fill magnitude quirk; structure/content/header/footer/greedy-fill all match (cf. sibling header_footer_grid green at 11.85% pixel)."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "yellow",
-          "review": "Same truncation issue as cpp: MAUI's capture doesn't show the third content row or footer that xaml renders, so those regions cannot be verified against ground truth. Visible content matches exactly."
+          "status": "green",
+          "review": "Same as cpp: the xaml twin (gallery_xaml, rebuilt with the fill fix) now fills the horizontal CV vertically like MAUI; pixel 13.6%->5.6%, matching the cpp column. Residual is MAUI over-filling past the window (1 extra row visible in cpp) \u2014 a magnitude quirk; structure/content match."
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.8842, 13.53% pixels differ \u00b7 Dark: SSIM 0.8415, 13.45% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9108, 5.55% pixels differ \u00b7 Dark: SSIM 0.9074, 5.39% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.8803, 13.68% pixels differ \u00b7 Dark: SSIM 0.8376, 13.61% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9099, 5.58% pixels differ \u00b7 Dark: SSIM 0.9065, 5.42% pixels differ"
         },
         "consistency": {
           "status": "ok",

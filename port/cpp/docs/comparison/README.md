@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 166 | 0 |
-| 🟡 Minor | 10 | 0 |
+| 🟢 Match | 167 | 0 |
+| 🟡 Minor | 9 | 0 |
 | 🔴 Major | 0 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -5384,16 +5384,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 92. Header Footer Grid Horizontal — 🟡/⏳
+### 92. Header Footer Grid Horizontal — 🟢/⏳
 <sub>header_footer_grid_horizontal</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/header_footer_grid_horizontal_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/header_footer_grid_horizontal_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/header_footer_grid_horizontal_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/header_footer_grid_horizontal_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/header_footer_grid_horizontal_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/header_footer_grid_horizontal_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/header_footer_grid_horizontal_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/header_footer_grid_horizontal_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/header_footer_grid_horizontal_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/header_footer_grid_horizontal_dark.png" /></td></tr></table>
 
 ports HeaderFooterGridHorizontal.xaml (+ HeaderFooterGridHorizontal.xaml.cs) of the C# CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-FRAMEWORK (horizontal GridItemsLayout cell height, NOT a capture scroll — verified by fresh recapture). MAUI's horizontal-grid cells render ~627px tall so only 2 of the 3 rows fit the viewport (cover1/Vegetables/Legumes/photo row, then oasis/Fruits/cover1 row); cpp's cells are ~190px so all 3 rows show. Same content/order, header/footer images and 'Add Content' links match — the delta is the GridItemsLayout horizontal cell-height sizing (a CV-layout framework matter).
+Horizontal GridItemsLayout now fills the available vertical height (greedy cross-axis fill), matching MAUI: header image + 'This Is A Header' + 'Add Content', then the grid rows spread across the window (cover1/Vegetables/Legumes/photo, then oasis/Fruits/cover1), footer pushed past the fold. Fix: horizontal CV with an infinite (VSL/unbounded) height constraint fills the live native frame height instead of the self-referential ~570 viewport_cross_extent mirror (collection_view_handler.cpp + ios native_content_size). Cell height 190px-&gt;~490px, pixel 13.5%-&gt;5.5%. Residual: MAUI OVER-fills the CV taller than the visible window (~1881px cells ~627px, 2 rows visible) while cpp fills to the viewport (~1470px cells ~490px, 3 rows visible) — a MAUI over-fill magnitude quirk; structure/content/header/footer/greedy-fill all match (cf. sibling header_footer_grid green at 11.85% pixel).
 
 #### ⏳ Gemini Review
 

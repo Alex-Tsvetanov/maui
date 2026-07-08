@@ -203,8 +203,9 @@ namespace maui::controls
         // per-dimension clamp below are untouched, so explicit-size / horizontal / infinite-constraint
         // semantics are identical. (const_cast: forcing the native layout mutates the native view, exactly
         // as the mutating C# GetDesiredSize does; the measure seam itself stays logically const.)
-        if (const std::optional<maui::graphics::size> native =
-                const_cast<collection_view_handler*>(this)->native_content_size(width_constraint, height_constraint))
+        const std::optional<maui::graphics::size> native =
+            const_cast<collection_view_handler*>(this)->native_content_size(width_constraint, height_constraint);
+        if (native)
         {
             main_content = platform->orientation == items_layout_orientation::vertical ? native->height : native->width;
         }
@@ -223,8 +224,14 @@ namespace maui::controls
             return {clamp_to_constraint(cross_content, width_constraint),
                     clamp_to_constraint(main_content, height_constraint)};
         }
-        const double cross_content =
-            std::isfinite(height_constraint) ? height_constraint : platform->viewport_cross_extent;
+        // Horizontal + INFINITE (VSL/unbounded) cross constraint: fill the available viewport height, like
+        // MAUI (Controller.GetSize().Height = the live autoresized full-parent frame height, via the group's
+        // FractionalHeight(1)). native->height is that live cross extent on iOS/Catalyst; nullopt on
+        // headless/apple/android keeps the self-referential viewport_cross_extent mirror unchanged. A FINITE
+        // (explicit-height / bounded-parent) constraint is untouched — it still returns height_constraint.
+        const double cross_content = std::isfinite(height_constraint)
+                                         ? height_constraint
+                                         : (native ? native->height : platform->viewport_cross_extent);
         return {clamp_to_constraint(main_content, width_constraint),
                 clamp_to_constraint(cross_content, height_constraint)};
     }

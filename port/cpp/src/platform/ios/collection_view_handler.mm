@@ -1242,6 +1242,17 @@ namespace maui::controls
             }
             return std::nullopt;
         }
+        // Horizontal: the group is FractionalHeight(1), so collectionViewContentSize.Height merely echoes the
+        // (Expanded) frame we laid out with above — useless as a cross extent. MAUI instead reads GetSize() at
+        // the LIVE frame, whose height IS the available viewport (the controller vends the CV autoresized to
+        // fill its parent). previous_frame (captured above) is that live frame, so report its height as the
+        // cross → a VSL-hosted horizontal CV fills vertically (footer pushed past the fold), matching MAUI.
+        // Guard a degenerate 0 frame (pre-mount) by keeping content.height. Vertical is unchanged.
+        if (horizontal && previous_frame.size.height > 0)
+        {
+            return maui::graphics::size{static_cast<double>(content.width),
+                                        static_cast<double>(previous_frame.size.height)};
+        }
         return maui::graphics::size{static_cast<double>(content.width), static_cast<double>(content.height)};
     }
 
