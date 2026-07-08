@@ -15474,16 +15474,16 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "RULING-3 FLAG (twin-degradation, cpp is faithful): cpp draws a gray selection highlight over the seeded Item 1/Item 2 while MAUI shows none. This is NOT a cpp bug \u2014 MAUI's iOS CollectionView sets a default gray SelectedBackgroundView (ItemsViewCell.cs), so an APPLIED selection DOES highlight gray. cpp applies the seeded selection natively (-> gray highlight, the correct MAUI default); the shared XAML twin defers the SelectedItems binding, so MAUI's captured twin has no native selection (-> no highlight) even though its readout statically says 'Selected: Item 1, Item 2'. cpp is more faithful to real MAUI; the divergence is a twin/loader limitation. Text, header, items, buttons all match."
+          "status": "green",
+          "review": "Match (ruling 9). The sole maccatalyst diff is the persistent CollectionView selection band cpp draws on the applied selection, which MAUI Mac Catalyst omits \u2014 an EXEMPT platform quirk per ruling 9 (MAUI iOS+android render the same band; cpp matches them green and faithfully reflects the selection state; Mac Catalyst's UICollectionView just does not paint the persistent selection background at rest). Content, layout, row pitch and order all match. Both themes."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "green",
-          "review": "C2/C4: XAML column matches MAUI (no selection highlight, same text/buttons) in both themes."
+          "status": "yellow",
+          "review": "C2/C4: text/buttons match, but the compile-time-XAML column does NOT apply the VM-bound CollectionView selection \u2014 it renders NO selection band, whereas the cpp column (and MAUI on iOS+android) applies and renders the seeded selection. This is a functional gap in the XAML selection-binding path: the no-band result only coincidentally matches MAUI Mac Catalyst (which also paints no persistent band, per ruling 9) but would be wrong on iOS/android. Diverges from the faithful cpp column (~3.7% pixels, the band). Both themes."
         },
         "pixel": {
           "status": "yellow",
@@ -16998,8 +16998,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "All 50 rows + header + preselected readout present and correctly laid out (row pitch matches MAUI). The ONLY diff: cpp draws a gray full-width selection band on the preselected row \"photo.jpg, 2\" that the MAUI Mac Catalyst capture does not render. This is a MAUI Mac Catalyst platform quirk \u2014 MAUI iOS and android BOTH render the persistent selection band (cpp matches them green), but Mac Catalyst's UICollectionView omits the persistent selection background at rest. cpp (reusing iOS rendering) faithfully reflects the selection state. Both themes."
+          "status": "green",
+          "review": "Match (ruling 9). The sole maccatalyst diff is the persistent CollectionView selection band cpp draws on the applied selection, which MAUI Mac Catalyst omits \u2014 an EXEMPT platform quirk per ruling 9 (MAUI iOS+android render the same band; cpp matches them green and faithfully reflects the selection state; Mac Catalyst's UICollectionView just does not paint the persistent selection background at rest). Content, layout, row pitch and order all match. Both themes."
         },
         "gemini": {
           "status": null,
@@ -17125,8 +17125,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "4-column grid content + order + row pitch match MAUI. The ONLY diff: cpp draws gray selection bands on the three preselected items (photo.jpg 2, Fruits.jpg 4, FlowerBuds.jpg 5) that the MAUI Mac Catalyst capture does not render. MAUI Mac Catalyst platform quirk \u2014 MAUI iOS+android render the same bands (cpp matches them green); Mac Catalyst's UICollectionView omits the persistent selection background at rest. cpp faithfully reflects the selection state. Both themes."
+          "status": "green",
+          "review": "Match (ruling 9). The sole maccatalyst diff is the persistent CollectionView selection band cpp draws on the applied selection, which MAUI Mac Catalyst omits \u2014 an EXEMPT platform quirk per ruling 9 (MAUI iOS+android render the same band; cpp matches them green and faithfully reflects the selection state; Mac Catalyst's UICollectionView just does not paint the persistent selection background at rest). Content, layout, row pitch and order all match. Both themes."
         },
         "gemini": {
           "status": null,
@@ -19411,8 +19411,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: text, list layout and structure match, but the C++ port renders gray selection-highlight bars on the selected rows (Item 2/3 in the first two CollectionViews, Item 2 in the third) in both themes, while the MAUI reference shows no visible selection highlight at all. Extra selection chrome vs ground truth (arguably a MAUI Catalyst render quirk, but MAUI is binding)."
+          "status": "green",
+          "review": "Match (ruling 9). The sole maccatalyst diff is the persistent CollectionView selection band cpp draws on the applied selection, which MAUI Mac Catalyst omits \u2014 an EXEMPT platform quirk per ruling 9 (MAUI iOS+android render the same band; cpp matches them green and faithfully reflects the selection state; Mac Catalyst's UICollectionView just does not paint the persistent selection background at rest). Content, layout, row pitch and order all match. Both themes."
         },
         "gemini": {
           "status": null,

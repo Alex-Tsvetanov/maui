@@ -177,6 +177,19 @@ rules on quirks → only then `--commit-board` adopts verdicts and the port_diff
    count the Picker text as a diff when judging these pages. Applies to element-items-form Pickers with a
    preset SelectedIndex on the iOS backend (iOS + maccatalyst).
 
+9. **Mac Catalyst CollectionView persistent-selection-band absence is an exempt MAUI-side quirk (2026-07-08
+   ruling).** For a `CollectionView` with programmatically-applied selection (preselected `SelectedItem` /
+   `SelectedItems`), MAUI iOS and Android render a persistent gray selection background on the selected cells
+   (the default `ItemsViewCell` `SelectedBackgroundView`), but MAUI **Mac Catalyst**'s `UICollectionView` does
+   NOT paint that persistent background at rest — the applied selection is logically present (readouts reflect
+   it) but visually unhighlighted. The port's maccatalyst backend reuses the iOS handlers by design (strict
+   iOS-parity architecture), so it faithfully draws the selection band — matching MAUI on iOS + Android
+   (green), and correctly reflecting the applied selection state. Per this ruling the port's selection band is
+   CORRECT and the Mac Catalyst absence is an exempt platform quirk (like rulings 2/7/8) — do NOT force a
+   maccatalyst-specific branch to suppress it, and do NOT count the selection band as a diff when judging these
+   pages on maccatalyst. Applies to CollectionView pages with applied selection on the maccatalyst backend
+   (preselected_item, preselected_items, multiple_bound_selection, selection_synchronization, and any similar).
+
 ## Progress tracking
 
 Maintain a `port/STATUS.md` (create it on first run) with one row per component:

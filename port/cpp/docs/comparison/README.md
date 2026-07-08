@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 156 | 0 |
-| 🟡 Minor | 19 | 0 |
+| 🟢 Match | 160 | 0 |
+| 🟡 Minor | 15 | 0 |
 | 🔴 Major | 1 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -6047,16 +6047,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 127. Multiple Bound Selection — 🟡/⏳
+### 127. Multiple Bound Selection — 🟢/⏳
 <sub>multiple_bound_selection</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/multiple_bound_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/multiple_bound_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/multiple_bound_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/multiple_bound_selection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/multiple_bound_selection_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/multiple_bound_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/multiple_bound_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/multiple_bound_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/multiple_bound_selection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/multiple_bound_selection_dark.png" /></td></tr></table>
 
 ports MultipleBoundSelection.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.SelectionGalleries.MultipleBoundSelection)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-RULING-3 FLAG (twin-degradation, cpp is faithful): cpp draws a gray selection highlight over the seeded Item 1/Item 2 while MAUI shows none. This is NOT a cpp bug — MAUI's iOS CollectionView sets a default gray SelectedBackgroundView (ItemsViewCell.cs), so an APPLIED selection DOES highlight gray. cpp applies the seeded selection natively (-&gt; gray highlight, the correct MAUI default); the shared XAML twin defers the SelectedItems binding, so MAUI's captured twin has no native selection (-&gt; no highlight) even though its readout statically says 'Selected: Item 1, Item 2'. cpp is more faithful to real MAUI; the divergence is a twin/loader limitation. Text, header, items, buttons all match.
+Match (ruling 9). The sole maccatalyst diff is the persistent CollectionView selection band cpp draws on the applied selection, which MAUI Mac Catalyst omits — an EXEMPT platform quirk per ruling 9 (MAUI iOS+android render the same band; cpp matches them green and faithfully reflects the selection state; Mac Catalyst's UICollectionView just does not paint the persistent selection background at rest). Content, layout, row pitch and order all match. Both themes.
 
 #### ⏳ Gemini Review
 
@@ -6275,16 +6275,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 139. Preselected Item — 🟡/⏳
+### 139. Preselected Item — 🟢/⏳
 <sub>preselected_item</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/preselected_item_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/preselected_item_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/preselected_item_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/preselected_item_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/preselected_item_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/preselected_item_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/preselected_item_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/preselected_item_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/preselected_item_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/preselected_item_dark.png" /></td></tr></table>
 
 ports PreselectedItemGallery.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.SelectionGalleries.PreselectedItemGallery)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-All 50 rows + header + preselected readout present and correctly laid out (row pitch matches MAUI). The ONLY diff: cpp draws a gray full-width selection band on the preselected row "photo.jpg, 2" that the MAUI Mac Catalyst capture does not render. This is a MAUI Mac Catalyst platform quirk — MAUI iOS and android BOTH render the persistent selection band (cpp matches them green), but Mac Catalyst's UICollectionView omits the persistent selection background at rest. cpp (reusing iOS rendering) faithfully reflects the selection state. Both themes.
+Match (ruling 9). The sole maccatalyst diff is the persistent CollectionView selection band cpp draws on the applied selection, which MAUI Mac Catalyst omits — an EXEMPT platform quirk per ruling 9 (MAUI iOS+android render the same band; cpp matches them green and faithfully reflects the selection state; Mac Catalyst's UICollectionView just does not paint the persistent selection background at rest). Content, layout, row pitch and order all match. Both themes.
 
 #### ⏳ Gemini Review
 
@@ -6294,16 +6294,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 140. Preselected Items — 🟡/⏳
+### 140. Preselected Items — 🟢/⏳
 <sub>preselected_items</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/preselected_items_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/preselected_items_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/preselected_items_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/preselected_items_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/preselected_items_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/preselected_items_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/preselected_items_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/preselected_items_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/preselected_items_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/preselected_items_dark.png" /></td></tr></table>
 
 ports PreselectedItemsGallery.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.SelectionGalleries.PreselectedItemsGallery)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-4-column grid content + order + row pitch match MAUI. The ONLY diff: cpp draws gray selection bands on the three preselected items (photo.jpg 2, Fruits.jpg 4, FlowerBuds.jpg 5) that the MAUI Mac Catalyst capture does not render. MAUI Mac Catalyst platform quirk — MAUI iOS+android render the same bands (cpp matches them green); Mac Catalyst's UICollectionView omits the persistent selection background at rest. cpp faithfully reflects the selection state. Both themes.
+Match (ruling 9). The sole maccatalyst diff is the persistent CollectionView selection band cpp draws on the applied selection, which MAUI Mac Catalyst omits — an EXEMPT platform quirk per ruling 9 (MAUI iOS+android render the same band; cpp matches them green and faithfully reflects the selection state; Mac Catalyst's UICollectionView just does not paint the persistent selection background at rest). Content, layout, row pitch and order all match. Both themes.
 
 #### ⏳ Gemini Review
 
@@ -6636,16 +6636,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 158. Selection Synchronization — 🟡/⏳
+### 158. Selection Synchronization — 🟢/⏳
 <sub>selection_synchronization</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/selection_synchronization_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/selection_synchronization_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/selection_synchronization_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/selection_synchronization_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/selection_synchronization_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/selection_synchronization_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/selection_synchronization_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/selection_synchronization_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/selection_synchronization_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/selection_synchronization_dark.png" /></td></tr></table>
 
 ports SelectionSynchronization.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.SelectionGalleries.SelectionSynchronization)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: text, list layout and structure match, but the C++ port renders gray selection-highlight bars on the selected rows (Item 2/3 in the first two CollectionViews, Item 2 in the third) in both themes, while the MAUI reference shows no visible selection highlight at all. Extra selection chrome vs ground truth (arguably a MAUI Catalyst render quirk, but MAUI is binding).
+Match (ruling 9). The sole maccatalyst diff is the persistent CollectionView selection band cpp draws on the applied selection, which MAUI Mac Catalyst omits — an EXEMPT platform quirk per ruling 9 (MAUI iOS+android render the same band; cpp matches them green and faithfully reflects the selection state; Mac Catalyst's UICollectionView just does not paint the persistent selection background at rest). Content, layout, row pitch and order all match. Both themes.
 
 #### ⏳ Gemini Review
 
