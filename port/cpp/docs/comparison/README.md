@@ -7363,8 +7363,8 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 156 | 0 |
-| 🟡 Minor | 14 | 0 |
+| 🟢 Match | 157 | 0 |
+| 🟡 Minor | 13 | 0 |
 | 🔴 Major | 2 | 0 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
@@ -7838,16 +7838,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 26. Chat Example — 🟡/⏳
+### 26. Chat Example — 🟢/⏳
 <sub>chat_example</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/android/chat_example_light.png" /></td><td><img width="300px" src="captures/android/cpp/chat_example_light.png" /></td><td><img width="300px" src="captures/android/xaml/chat_example_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
 ports ChatExample.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.ItemSizeGalleries.ChatExample), tracking the maui-compare reference demo ~/maui-compare/Pages/ChatExamplePage.cs (the visual-parity oracle)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C++ shows both the sent 'Hi there!' bubble and the reply, while MAUI's capture only shows the reply bubble, indicating differing capture/interaction state rather than a rendering bug.
+Match. Fresh recapture after commit 2f515de545 (chat_example: add action button row, remove synthetic message seeding — which postdated the prior 2026-07-05 android capture): cpp now renders the three-button header ("Append Random Message" / "Clear" / "Add 1000 Messages") over an empty CollectionView, matching MAUI exactly. Residual pixel SSIM 0.966 is the usual android status-bar-clock noise.
 
 #### ⏳ Gemini Review
 
@@ -9865,7 +9865,7 @@ ports PickerPage.xaml (+ PickerPage.xaml.cs) A self-contained, code-first demo p
 
 #### 🟡 Sonnet 5 Review
 
-All picker rows and colors match, but the C++ render cuts off the final green Items(markup) section that is fully visible in the MAUI reference.
+Improved but still minor. After commit 36ebc32101 (picker: mirror XAML document order so SelectedIndex coerces to -1 like MAUI) the two preset-selection pickers ("SelectedIndex=1" / "SelectedIndexChanged") now correctly show the "Select an item" Title placeholder matching MAUI (the prior 2026-07-05 capture showed a stale "Item 2"). Residual: the three dynamic-items buttons (Clear/Add/Replace) render with larger inter-button vertical gaps than MAUI, pushing the bottom green markup picker partly off-screen — the android StackLayout inter-element spacing issue (shared with layout_is_enabled), not a picker bug.
 
 #### ⏳ Gemini Review
 

@@ -2137,11 +2137,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7430, 26.02% pixels differ"
+          "review": "Light: SSIM 0.9454, 8.86% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.7397, 30.68% pixels differ"
+          "review": "Light: SSIM 0.8452, 11.82% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -3251,20 +3251,20 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C++ shows both the sent 'Hi there!' bubble and the reply, while MAUI's capture only shows the reply bubble, indicating differing capture/interaction state rather than a rendering bug."
+          "status": "green",
+          "review": "Match. Fresh recapture after commit 2f515de545 (chat_example: add action button row, remove synthetic message seeding \u2014 which postdated the prior 2026-07-05 android capture): cpp now renders the three-button header (\"Append Random Message\" / \"Clear\" / \"Add 1000 Messages\") over an empty CollectionView, matching MAUI exactly. Residual pixel SSIM 0.966 is the usual android status-bar-clock noise."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.9684, 10.17% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9656, 7.77% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.9712, 10.05% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9656, 7.77% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -16404,7 +16404,7 @@
         },
         "sonnet": {
           "status": "yellow",
-          "review": "All picker rows and colors match, but the C++ render cuts off the final green Items(markup) section that is fully visible in the MAUI reference."
+          "review": "Improved but still minor. After commit 36ebc32101 (picker: mirror XAML document order so SelectedIndex coerces to -1 like MAUI) the two preset-selection pickers (\"SelectedIndex=1\" / \"SelectedIndexChanged\") now correctly show the \"Select an item\" Title placeholder matching MAUI (the prior 2026-07-05 capture showed a stale \"Item 2\"). Residual: the three dynamic-items buttons (Clear/Add/Replace) render with larger inter-button vertical gaps than MAUI, pushing the bottom green markup picker partly off-screen \u2014 the android StackLayout inter-element spacing issue (shared with layout_is_enabled), not a picker bug."
         },
         "gemini": {
           "status": null,
@@ -16412,11 +16412,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8960, 20.25% pixels differ"
+          "review": "Light: SSIM 0.8956, 20.39% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8843, 20.15% pixels differ"
+          "review": "Light: SSIM 0.8893, 20.11% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -21619,11 +21619,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8695, 26.90% pixels differ"
+          "review": "Light: SSIM 0.8696, 26.91% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8570, 27.35% pixels differ"
+          "review": "Light: SSIM 0.8696, 26.91% pixels differ"
         },
         "consistency": {
           "status": "ok",
