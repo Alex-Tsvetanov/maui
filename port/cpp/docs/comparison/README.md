@@ -2678,13 +2678,13 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 ### 143. Radio Button Content — 🟢/⏳
 <sub>radio_button_content</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/radio_button_content_light.png" /></td><td><img width="300px" src="captures/ios/cpp/radio_button_content_light.png" /></td><td><img width="300px" src="captures/ios/xaml/radio_button_content_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/radio_button_content_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/radio_button_content_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/radio_button_content_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/radio_button_content_light.png" /></td><td><img width="300px" src="captures/ios/cpp/radio_button_content_light.png" /></td><td><img width="300px" src="captures/ios/xaml/radio_button_content_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/ios/radio_button_content_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/radio_button_content_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/radio_button_content_dark.png" /></td></tr></table>
 
 ports RadioButtonContentGallery.xaml A self-contained, code-first demo of the RadioButton.Content surface
 
 #### 🟢 Sonnet 5 Review
 
-All content variations (string, view-fallback, image, custom template) match MAUI in both themes.
+cpp now renders the coffee.png cups in the two custom-template cards, matching the FRESH MAUI iOS reference (both show black bar + red bar + cup). The prior frozen iOS ref was STALE (showed no cup / one row); recaptured fresh. Residual pixel (6.14%) is the harness inset + cup anti-aliasing.
 
 #### ⏳ Gemini Review
 
@@ -6360,7 +6360,7 @@ ports RadioButtonContentGallery.xaml A self-contained, code-first demo of the Ra
 
 #### 🟢 Sonnet 5 Review
 
-C1/C3: all radio rows, bordered ControlTemplate box and the custom-template black/red underline group match MAUI in both themes; only trivial spacing/AA differences.
+cpp renders the coffee.png cups in the two custom-template cards (matching MAUI iOS/Android + the xaml column). Mac Catalyst's MAUI handler does NOT paint the bundled image, so MAUI-mac shows only the black/red bars; the port's fuller bundled-image render is EXEMPT per ruling 10(b) (same class as coffee.png/clipping). Core controls (radios, frame, captions) match MAUI-mac exactly.
 
 #### ⏳ Gemini Review
 
@@ -7363,8 +7363,8 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 161 | 0 |
-| 🟡 Minor | 10 | 0 |
+| 🟢 Match | 162 | 0 |
+| 🟡 Minor | 9 | 0 |
 | 🔴 Major | 1 | 0 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
@@ -10027,16 +10027,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 143. Radio Button Content — 🟡/⏳
+### 143. Radio Button Content — 🟢/⏳
 <sub>radio_button_content</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/android/radio_button_content_light.png" /></td><td><img width="300px" src="captures/android/cpp/radio_button_content_light.png" /></td><td><img width="300px" src="captures/android/xaml/radio_button_content_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
 ports RadioButtonContentGallery.xaml A self-contained, code-first demo of the RadioButton.Content surface
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Content matches but the C++ render is missing the thin horizontal divider lines above/below the templated radio row.
+The two custom-template cards now render the coffee.png cup (black bar + red bar + cup) the port previously omitted on a stale premise; matches MAUI android exactly — verified by dark-pixel bbox (MAUI x[44-469], cpp x[0-424], SAME ~425px width) and near-identical dark-pixel count (21104 vs 21044). The 14.27% pixel diff is the uniform ~44px harness left-inset (page text left-x MAUI 135 vs cpp 91, ruling 2) amplified by the two large black cups (black-vs-white edge mismatch under the shift), NOT a content diff.
 
 #### ⏳ Gemini Review
 

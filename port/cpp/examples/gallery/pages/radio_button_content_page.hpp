@@ -23,11 +23,11 @@
 //      the SAME content_presenter seam — can, so the port demonstrates the View-as-Content-through-a-
 //      template concept with a content_view carrying a custom ControlTemplate (a horizontal stack: two
 //      cross "Line" stand-ins + a content_presenter), faithfully reproducing the XAML's "weird-looking
-//      custom template" group. The XAML packs an <Image Source="coffee.png"/> into that presenter, but the
-//      Controls.Sample project never bundles a coffee.png asset (it is absent everywhere under
-//      src/Controls/samples), so on EVERY MAUI platform the presenter's Image renders EMPTY — the real
-//      MAUI reference (iOS + Android) shows only the two lines, no cup. The port matches that ground truth
-//      by leaving the presenter empty (see add_weird_card). The Checked/Unchecked VisualState that toggles
+//      custom template" group. The XAML packs an <Image Source="coffee.png"/> into that presenter; the
+//      maui-reference app bundles coffee.png, so MAUI iOS + Android render the cup (the port packs the same
+//      bundled image — see add_weird_card). Mac Catalyst's handler does not paint the bundled image, so
+//      MAUI-mac shows only the two lines; the port's fuller render there is exempt per ruling 10(b). The
+//      Checked/Unchecked VisualState that toggles
 //      the CheckedIndicator opacity is part of the radio_button's own visual state machine; here the
 //      template is hosted on a content_view (not a radio), so the live checked-state opacity flip is noted
 //      as deferred rather than invented.
@@ -51,8 +51,10 @@
 #include "maui/controls/box_view.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/content_view.hpp"
+#include "maui/controls/file_image_source.hpp"
 #include "maui/controls/frame.hpp"
 #include "maui/controls/horizontal_stack_layout.hpp"
+#include "maui/controls/image.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/radio_button.hpp"
 #include "maui/controls/scroll_view.hpp"
@@ -202,20 +204,23 @@ namespace maui::samples
         // whose Content the presenter packs. Applying set_control_template runs the same
         // template_utilities::on_control_template_changed the C# ControlTemplate change callback runs.
         //
-        // MAUI-RENDER FIDELITY: the XAML packs <Image Source="coffee.png"/> into the ContentPresenter, but
-        // the Controls.Sample project NEVER bundles a coffee.png asset (it exists nowhere under
-        // src/Controls/samples). So on EVERY MAUI platform the presenter's Image resolves to nothing and
-        // renders EMPTY — the real MAUI render (iOS + Android reference) shows ONLY the black/red line pair,
-        // no cup. The port must match that ground truth (parity policy §1): it therefore packs NO content
-        // into the presenter, reproducing MAUI's empty-image render exactly. (Packing the port's own bundled
-        // coffee.png here produced a large black cup MAUI never shows — the RED parity divergence this fixes.)
+        // MAUI-RENDER FIDELITY: the XAML packs <Image Source="coffee.png"/> into the ContentPresenter. The
+        // maui-reference app DOES bundle coffee.png (app/Resources/Images/coffee.png), so MAUI iOS + Android
+        // render the cup (verified against the fresh android reference: each card = black bar + red bar + a
+        // large black coffee cup). Pack the same bundled coffee.png here so the presenter surfaces it, matching
+        // that ground truth. (Mac Catalyst is the exception — its handler does not paint the bundled image, so
+        // MAUI-mac shows only the line pair; the port's fuller render there is exempt per parity ruling 10(b),
+        // the same divergence the xaml column already carries. An earlier premise that Controls.Sample never
+        // bundles coffee.png — true of src/Controls/samples, NOT of the maui-reference app — left this empty.)
         void add_weird_card()
         {
             auto card = std::make_shared<maui::controls::content_view>();
             card->set_control_template(maui::controls::control_template::of<weird_radio_template>());
-            // No Content: MAUI's coffee.png asset is absent, so its ContentPresenter renders empty. Leaving
-            // the presenter empty reproduces that render; the line-pair (button + checked indicator) is the
-            // template's visible chrome, matching the MAUI reference.
+            // Content = <Image Source="coffee.png"/> (no explicit size, per the XAML) — the content_view owns
+            // the shared_ptr and the template's content_presenter surfaces it.
+            auto image = std::make_shared<maui::controls::image>();
+            image->set_source(std::make_shared<maui::controls::file_image_source>("coffee.png"));
+            card->set_content(image);
             weird_cards_.push_back(std::move(card));
         }
 
@@ -235,8 +240,9 @@ namespace maui::samples
         maui::controls::label caption_template_;
         maui::controls::label caption_weird_;
 
-        // The two custom-template cards (each renders the two template bars; presenter empty, matching
-        // MAUI's absent-coffee.png render — see add_weird_card).
+        // The two custom-template cards (each renders the two template bars + the packed coffee.png cup the
+        // presenter surfaces, matching MAUI iOS/Android; Mac Catalyst omits the image per ruling 10(b) — see
+        // add_weird_card).
         std::vector<std::shared_ptr<maui::controls::content_view>> weird_cards_;
     };
 } // namespace maui::samples

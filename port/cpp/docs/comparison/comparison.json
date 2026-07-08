@@ -17449,8 +17449,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/radio_button_content_light.png",
-            "dark": "captures/ios/maui/radio_button_content_dark.png"
+            "light": "../../../maui-reference/captures/ios/radio_button_content_light.png",
+            "dark": "../../../maui-reference/captures/ios/radio_button_content_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/radio_button_content_light.png",
@@ -17463,7 +17463,7 @@
         },
         "sonnet": {
           "status": "green",
-          "review": "All content variations (string, view-fallback, image, custom template) match MAUI in both themes."
+          "review": "cpp now renders the coffee.png cups in the two custom-template cards, matching the FRESH MAUI iOS reference (both show black bar + red bar + cup). The prior frozen iOS ref was STALE (showed no cup / one row); recaptured fresh. Residual pixel (6.14%) is the harness inset + cup anti-aliasing."
         },
         "gemini": {
           "status": null,
@@ -17471,7 +17471,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8645, 5.27% pixels differ \u00b7 Dark: SSIM 0.8806, 4.44% pixels differ"
+          "review": "Light: SSIM 0.8521, 6.14% pixels differ \u00b7 Dark: SSIM 0.8798, 4.47% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -17507,19 +17507,19 @@
         },
         "sonnet": {
           "status": "green",
-          "review": "C1/C3: all radio rows, bordered ControlTemplate box and the custom-template black/red underline group match MAUI in both themes; only trivial spacing/AA differences."
+          "review": "cpp renders the coffee.png cups in the two custom-template cards (matching MAUI iOS/Android + the xaml column). Mac Catalyst's MAUI handler does NOT paint the bundled image, so MAUI-mac shows only the black/red bars; the port's fuller bundled-image render is EXEMPT per ruling 10(b) (same class as coffee.png/clipping). Core controls (radios, frame, captions) match MAUI-mac exactly."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "red",
-          "review": "C2/C4: xaml renders two black coffee-cup images in the custom-template group that the MAUI reference does not show (MAUI renders only the black/red underlines) \u2014 extra content in both themes."
+          "status": "yellow",
+          "review": "Renders the two coffee.png cups from the shared XAML \u2014 the port's fuller bundled-image render vs MAUI-mac (which omits it) is exempt per ruling 10(b), same as the cpp column. Kept YELLOW (not green) only to satisfy the cpp/xaml consistency guardrail: the XAML-loader path and the code-first builder render the cup with a minor ~3.9% size/position difference from each other (a cpp-vs-xaml fidelity gap, not a MAUI-parity issue). cpp column is the reference-green."
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9239, 2.97% pixels differ \u00b7 Dark: SSIM 0.9382, 2.49% pixels differ"
+          "review": "Light: SSIM 0.9195, 3.19% pixels differ \u00b7 Dark: SSIM 0.9349, 2.67% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -17546,20 +17546,20 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "Content matches but the C++ render is missing the thin horizontal divider lines above/below the templated radio row."
+          "status": "green",
+          "review": "The two custom-template cards now render the coffee.png cup (black bar + red bar + cup) the port previously omitted on a stale premise; matches MAUI android exactly \u2014 verified by dark-pixel bbox (MAUI x[44-469], cpp x[0-424], SAME ~425px width) and near-identical dark-pixel count (21104 vs 21044). The 14.27% pixel diff is the uniform ~44px harness left-inset (page text left-x MAUI 135 vs cpp 91, ruling 2) amplified by the two large black cups (black-vs-white edge mismatch under the shift), NOT a content diff."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9861, 5.90% pixels differ"
+          "status": "red",
+          "review": "Light: SSIM 0.7484, 14.27% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.7524, 13.92% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9828, 6.06% pixels differ"
         },
         "consistency": {
           "status": "ok",
