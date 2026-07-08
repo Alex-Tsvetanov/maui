@@ -264,10 +264,7 @@ namespace
             "gestures",
             "input_controls",
             "invalidate_brush",
-            "radio_button_border",
-            "scattered_radio_button",
             "selection_command_param",
-            "switch_grouping",
             "transform_playground",
             "vertical_stack",
             // cluster C — builder computes runtime state vs the twin's static snapshot
@@ -280,7 +277,6 @@ namespace
             "radio_button_content",
             "custom_layout",
             "chat_example",
-            "hybrid_web_view",
             "layout_is_enabled",
             "indicator",
             "path_gallery",
