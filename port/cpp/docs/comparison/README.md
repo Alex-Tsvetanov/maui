@@ -11,8 +11,8 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 162 | 0 |
-| 🟡 Minor | 9 | 0 |
+| 🟢 Match | 163 | 0 |
+| 🟡 Minor | 8 | 0 |
 | 🔴 Major | 0 | 0 |
 | ⬛ Blank | 1 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
@@ -2865,16 +2865,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 153. Scroll Mode Test — 🟡/⏳
+### 153. Scroll Mode Test — 🟢/⏳
 <sub>scroll_mode_test</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/scroll_mode_test_light.png" /></td><td><img width="300px" src="captures/ios/cpp/scroll_mode_test_light.png" /></td><td><img width="300px" src="captures/ios/xaml/scroll_mode_test_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/ios/scroll_mode_test_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/scroll_mode_test_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/scroll_mode_test_dark.png" /></td></tr></table>
 
 ports ScrollModeTestGallery.xaml (+ .xaml.cs) of the C# CollectionView gallery (Maui.Controls.Sample.Pages.CollectionViewGalleries.ScrollModeGalleries.ScrollModeTestGallery)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Item rows now match MAUI (the item template applies Margin=6, cross-platform builder fix; 0.16% pixel diff on the long list). Remaining delta = the ItemsUpdatingScrollMode Picker: cpp shows the selected value 'KeepItemsInView' while MAUI shows a blank box — the Picker-Title issue (user-gated). Kept yellow.
+Matches MAUI in both themes. Layout, the Scroll-To-Middle/Add-Item links, 'Mode: KeepItemsInView · Items: 20', and the 20-item list (now ~44px row pitch after the CV item-Margin fix) all align. The only delta — the ItemsUpdatingScrollMode Picker showing the selected 'KeepItemsInView' (cpp) vs a blank entry (MAUI) — is an EXEMPT element-items-form Picker init artifact per ruling 8 (cpp faithful; MAUI shows the Title/blank). Not a port bug.
 
 #### ⏳ Gemini Review
 
@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 154 | 0 |
-| 🟡 Minor | 21 | 0 |
+| 🟢 Match | 156 | 0 |
+| 🟡 Minor | 19 | 0 |
 | 🔴 Major | 1 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -4713,16 +4713,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 55. Empty View Rtl — 🟡/⏳
+### 55. Empty View Rtl — 🟢/⏳
 <sub>empty_view_rtl</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/empty_view_rtl_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/empty_view_rtl_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/empty_view_rtl_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/empty_view_rtl_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/empty_view_rtl_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/empty_view_rtl_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/empty_view_rtl_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/empty_view_rtl_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/empty_view_rtl_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/empty_view_rtl_dark.png" /></td></tr></table>
 
 ports EmptyViewGalleries/EmptyViewRTLGallery.xaml (+ EmptyViewRTLGallery.xaml.cs)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-List + no-overlay-at-rest match MAUI; the only delta is the FlowDirection Picker — the cpp builder shows the selected item 'Left to Right' (SelectedIndex=0) while MAUI shows the 'FlowDirection' Title. Minor display-text difference on an otherwise-correct page (prior 'missing content' verdict was stale).
+Matches MAUI in both themes. The list, Filter SearchBar, no-overlay-at-rest, and the 3-column 'cover1.jpg, 0'..'cover1.jpg, 14' grid all align. The only delta — the FlowDirection Picker showing the selected 'Left to Right' (cpp) vs the 'FlowDirection' Title (MAUI) — is an EXEMPT MAUI element-items-form Picker init artifact per ruling 8 (cpp faithfully shows the selection; MAUI's Text reads empty at map time so the Title placeholder shows). Not a port bug.
 
 #### ⏳ Gemini Review
 
@@ -6541,16 +6541,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 153. Scroll Mode Test — 🟡/⏳
+### 153. Scroll Mode Test — 🟢/⏳
 <sub>scroll_mode_test</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/scroll_mode_test_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/scroll_mode_test_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/scroll_mode_test_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/scroll_mode_test_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/scroll_mode_test_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/scroll_mode_test_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/scroll_mode_test_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/scroll_mode_test_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/scroll_mode_test_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/scroll_mode_test_dark.png" /></td></tr></table>
 
 ports ScrollModeTestGallery.xaml (+ .xaml.cs) of the C# CollectionView gallery (Maui.Controls.Sample.Pages.CollectionViewGalleries.ScrollModeGalleries.ScrollModeTestGallery)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: layout, links and 20-item list match, but the cpp Entry displays 'KeepItemsInView' where MAUI's entry is empty, and list row pitch is tighter (~26px vs ~44px). Both themes.
+Matches MAUI in both themes. Layout, the Scroll-To-Middle/Add-Item links, 'Mode: KeepItemsInView · Items: 20', and the 20-item list (now ~44px row pitch after the CV item-Margin fix) all align. The only delta — the ItemsUpdatingScrollMode Picker showing the selected 'KeepItemsInView' (cpp) vs a blank entry (MAUI) — is an EXEMPT element-items-form Picker init artifact per ruling 8 (cpp faithful; MAUI shows the Title/blank). Not a port bug.
 
 #### ⏳ Gemini Review
 

@@ -166,6 +166,17 @@ rules on quirks → only then `--commit-board` adopts verdicts and the port_diff
    (like ruling 2's harness inset) — do NOT force the port to replicate it. Applies to any off-state
    ThumbColor switch on the iOS backend (iOS + maccatalyst).
 
+8. **Picker element-items-form init artifact is an exempt MAUI-side quirk (2026-07-08 ruling).** For a
+   `Picker` whose items come from the inline `<Picker.Items>` element form with a preset `SelectedIndex`,
+   MAUI's iOS/Catalyst render shows the Title (or blank if none) instead of the selected value — because at
+   the moment `UpdatePicker` runs, MAUI's `Items` collection reads empty, so `Text=""` and the Title
+   placeholder shows through, and it never re-syncs (a MAUI init/mapper-timing artifact that contradicts
+   MAUI's own code, which sets `Text = GetItem(SelectedIndex)`). The port faithfully implements MAUI's Picker
+   code, so it correctly shows the selected value. Per this ruling the port's shown-value is CORRECT and the
+   MAUI Title/blank is an exempt quirk (like rulings 2/7) — do NOT force the port to replicate it, and do NOT
+   count the Picker text as a diff when judging these pages. Applies to element-items-form Pickers with a
+   preset SelectedIndex on the iOS backend (iOS + maccatalyst).
+
 ## Progress tracking
 
 Maintain a `port/STATUS.md` (create it on first run) with one row per component:
