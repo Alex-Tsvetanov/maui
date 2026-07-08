@@ -11,8 +11,8 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 163 | 0 |
-| 🟡 Minor | 8 | 0 |
+| 🟢 Match | 164 | 0 |
+| 🟡 Minor | 7 | 0 |
 | 🔴 Major | 0 | 0 |
 | ⬛ Blank | 1 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
@@ -2922,16 +2922,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 156. Search Bar — 🟡/⏳
+### 156. Search Bar — 🟢/⏳
 <sub>search_bar</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/search_bar_light.png" /></td><td><img width="300px" src="captures/ios/cpp/search_bar_light.png" /></td><td><img width="300px" src="captures/ios/xaml/search_bar_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/ios/search_bar_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/search_bar_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/search_bar_dark.png" /></td></tr></table>
 
 ports SearchBarPage.xaml (Microsoft.Maui.Controls sample gallery)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Light theme matches MAUI exactly, but in dark theme the 'Cancel is red' search bar's clear/cancel X icon renders white in the C++ port instead of red as in MAUI.
+Match in both themes. The "Cancel is red" search bar's cancel button now renders red (was white in dark mode). Root cause + fix: on iOS 26+ UIKit re-tints the cancel-button icon every layout pass, defeating setTitleColor/tintColor; ported MAUI's SearchBarExtensions ApplyCancelButtonOverlay/RemoveCancelButtonOverlay (a colored xmark UIImageView overlay applied via dispatch_async) into search_bar_handler.mm. Light + dark now both show the red cancel button matching MAUI; pixel SSIM 0.997 (0.20% differ). Other search bars unaffected; maccatalyst (Mac idiom, no standalone cancel button) unchanged.
 
 #### ⏳ Gemini Review
 

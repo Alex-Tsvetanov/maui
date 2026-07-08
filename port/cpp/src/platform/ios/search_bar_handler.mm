@@ -148,20 +148,169 @@ namespace
         return nil;
     }
 
+    // SearchBarExtensions overlay tag: a distinctive UISearchBar viewWithTag: key identifying the colored
+    // cancel-button overlay added on iOS 26+ (C#'s CancelButtonColorOverlayTag). A fixed sentinel avoids
+    // collisions with system-assigned tags. 'CBOV' = Cancel-Button-Overlay.
+    constexpr NSInteger k_cancel_button_color_overlay_tag = 0x43424F56; // 'CBOV'
+
+    // SearchBarExtensions.RemoveCancelButtonOverlay: ViewWithTag searches the whole subtree, so it finds
+    // the overlay wherever it was parented. No-op when none was added.
+    void remove_cancel_button_overlay(UISearchBar* bar)
+    {
+        [[bar viewWithTag:k_cancel_button_color_overlay_tag] removeFromSuperview];
+    }
+
+    // SearchBarExtensions.ApplyCancelButtonOverlay's FindDescendantView<UIImageView>(): the UIImageView the
+    // cancel UIButton uses to render its "X" icon (needed for its rendered size). C#'s FindDescendantView is
+    // a BFS that also tests the root; here the root is the cancel UIButton (never a UIImageView) carrying a
+    // single icon image view, so this recursive first-match walk (matching find_cancel_button's shape)
+    // returns the same view.
+    UIImageView* find_descendant_image_view(UIView* root)
+    {
+        for (UIView* subview in root.subviews)
+        {
+            if ([subview isKindOfClass:[UIImageView class]])
+            {
+                return (UIImageView*)subview;
+            }
+            if (UIImageView* const nested = find_descendant_image_view(subview))
+            {
+                return nested;
+            }
+        }
+        return nil;
+    }
+
+    // ApplyCancelButtonOverlay and ScheduleOverlayRetry are mutually recursive (retry re-invokes apply).
+    void apply_cancel_button_overlay(UISearchBar* bar, UIButton* cancel_button, UIColor* color, int retry_count);
+
+    // SearchBarExtensions.ScheduleOverlayRetry: re-dispatch ApplyCancelButtonOverlay on the main queue once
+    // the cancel button is ready (it is detached or zero-frame otherwise). C# holds a WeakReference<UISearchBar>;
+    // the port captures the bar __weak (its lifetime is the handler's, not the block's) plus the color, and
+    // re-finds the live cancel button when the block runs.
+    void schedule_overlay_retry(UISearchBar* bar, UIColor* color, int retry_count)
+    {
+        __weak UISearchBar* const weak_bar = bar;
+        dispatch_async(dispatch_get_main_queue(), ^{
+          UISearchBar* const strong_bar = weak_bar;
+          if (strong_bar == nil)
+          {
+              return;
+          }
+          if (UIButton* const btn = find_cancel_button(strong_bar))
+          {
+              apply_cancel_button_overlay(strong_bar, btn, color, retry_count + 1);
+          }
+        });
+    }
+
+    // SearchBarExtensions.ApplyCancelButtonOverlay: on iOS 26+ UIKit re-tints the cancel UIButton icon on
+    // every layout pass, so titleColor/tintColor cannot color it; instead render the "xmark" SF Symbol in the
+    // wanted color and pin a non-interactive UIImageView over the button's icon. Retries (up to twice) when
+    // the button is detached or not yet laid out (zero frame) — e.g. an AppThemeBinding color set pre-appear.
+    void apply_cancel_button_overlay(UISearchBar* bar, UIButton* cancel_button, UIColor* color, int retry_count)
+    {
+        UIView* const parent = cancel_button.superview;
+        if (parent == nil)
+        {
+            // Detached by UIKit (e.g. mid theme transition): retry with a fresh cancel-button lookup.
+            if (retry_count < 2)
+            {
+                schedule_overlay_retry(bar, color, retry_count);
+            }
+            return;
+        }
+        // Remove any overlay from a previous call (color change or re-focus).
+        [[bar viewWithTag:k_cancel_button_color_overlay_tag] removeFromSuperview];
+        UIImageView* const icon = find_descendant_image_view(cancel_button);
+        if (icon == nil)
+        {
+            return;
+        }
+        // Icon frame converted into the parent's coordinate space; drives the rendered overlay size.
+        const CGRect icon_frame = [parent convertRect:icon.frame fromView:icon.superview];
+        if (icon_frame.size.width <= 0 || icon_frame.size.height <= 0)
+        {
+            // Not laid out yet: retry after the next layout pass so we get a valid frame.
+            if (retry_count < 2)
+            {
+                schedule_overlay_retry(bar, color, retry_count);
+            }
+            return;
+        }
+        UIImage* const xmark = [UIImage systemImageNamed:@"xmark"];
+        if (xmark == nil)
+        {
+            return;
+        }
+        const CGSize image_size = icon_frame.size;
+        // new UIGraphicsImageRendererFormat { Opaque = false, Scale = 0 }: preferredFormat is the
+        // non-deprecated way to get a mutable format; opaque=NO keeps the transparent surround and scale=0
+        // adopts the main-screen scale.
+        UIGraphicsImageRendererFormat* const format = [UIGraphicsImageRendererFormat preferredFormat];
+        format.opaque = NO;
+        format.scale = 0;
+        UIGraphicsImageRenderer* const renderer = [[UIGraphicsImageRenderer alloc] initWithSize:image_size
+                                                                                         format:format];
+        // AlwaysOriginal (applied below) stops UIKit re-tinting the baked image; SourceIn + fill re-colors
+        // the drawn glyph to `color`.
+        UIImage* const colored = [renderer imageWithActions:^(UIGraphicsImageRendererContext*) {
+          [xmark drawInRect:CGRectMake(0, 0, image_size.width, image_size.height)];
+          CGContextRef const context = UIGraphicsGetCurrentContext();
+          if (context != nullptr)
+          {
+              CGContextSetBlendMode(context, kCGBlendModeSourceIn);
+              CGContextSetFillColorWithColor(context, color.CGColor);
+              CGContextFillRect(context, CGRectMake(0, 0, image_size.width, image_size.height));
+          }
+        }];
+        UIImageView* const overlay = [[UIImageView alloc] init];
+        overlay.image = [colored imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+        overlay.contentMode = UIViewContentModeScaleAspectFit;
+        overlay.tag = k_cancel_button_color_overlay_tag;
+        overlay.userInteractionEnabled = NO;
+        overlay.translatesAutoresizingMaskIntoConstraints = NO;
+        // Topmost sibling of the cancel button; autolayout keeps it centered over the icon across rotation,
+        // split view, and dynamic-type changes.
+        [parent addSubview:overlay];
+        [NSLayoutConstraint activateConstraints:@[
+            [overlay.centerXAnchor constraintEqualToAnchor:cancel_button.centerXAnchor],
+            [overlay.centerYAnchor constraintEqualToAnchor:cancel_button.centerYAnchor],
+            [overlay.widthAnchor constraintEqualToConstant:image_size.width],
+            [overlay.heightAnchor constraintEqualToConstant:image_size.height],
+        ]];
+    }
+
     void refresh_cancel_button(UISearchBar* bar, const maui::core::i_search_bar& view)
     {
         const bool should_show = bar.text != nil && bar.text.length > 0; // ShouldShowCancelButton()
         [bar setShowsCancelButton:should_show ? YES : NO animated:NO];
+
+        // Can't cache the cancel button — iOS drops it when hidden and builds a fresh one — so re-find it
+        // each time, excluding the search field's inner clear button (find_cancel_button's UITextField
+        // exclusion mirrors C#'s FindParent(v => v is UITextField) == null predicate).
+        UIButton* const cancel = find_cancel_button(bar);
+        bool ios26 = false;
+        if (@available(iOS 26.0, *)) // OperatingSystem.IsIOSVersionAtLeast(26)
+        {
+            ios26 = true;
+        }
+        if (cancel == nil)
+        {
+            // Cancel button hidden: drop any overlay we added earlier (iOS 26+ only).
+            if (ios26)
+            {
+                remove_cancel_button_overlay(bar);
+            }
+            return;
+        }
+
         const maui::graphics::color color = view.cancel_button_color();
         // is-set discriminator: an explicit CancelButtonColor=Black equals the default sentinel by value,
         // so key off BindableObject.IsSet (else an explicit-black cancel tint is dropped).
         const auto* const bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
         const bool explicit_color = bindable != nullptr && bindable->is_property_set("cancel_button_color");
-        if (!should_show || !explicit_color)
-        {
-            return;
-        }
-        if (UIButton* const cancel = find_cancel_button(bar))
+        if (explicit_color)
         {
             // SearchBarExtensions.UpdateCancelButton: title color on Normal/Highlighted/Disabled, plus
             // TintColor for the Mac idiom (the cancel button renders an icon there, so tint colors it).
@@ -173,6 +322,37 @@ namespace
             {
                 cancel.tintColor = tint;
             }
+            // iOS 26+ re-tints the cancel icon every layout pass, defeating titleColor/tintColor — apply a
+            // colored UIImageView overlay after the pending layout (DispatchAsync so the button frame is
+            // valid). C# re-reads the view's CancelButtonColor in the block; the C++ view can't be captured
+            // safely across the async gap, so snapshot the apply/remove decision (explicit_color) + the
+            // resolved UIColor now, capture the bar __weak, and re-find the live cancel button in the block.
+            if (ios26)
+            {
+                __weak UISearchBar* const weak_bar = bar;
+                const bool wants_overlay = explicit_color;
+                dispatch_async(dispatch_get_main_queue(), ^{
+                  UISearchBar* const strong_bar = weak_bar;
+                  if (strong_bar == nil)
+                  {
+                      return;
+                  }
+                  if (!wants_overlay)
+                  {
+                      remove_cancel_button_overlay(strong_bar);
+                      return;
+                  }
+                  if (UIButton* const current = find_cancel_button(strong_bar))
+                  {
+                      apply_cancel_button_overlay(strong_bar, current, tint, 0);
+                  }
+                });
+            }
+        }
+        else if (ios26)
+        {
+            // CancelButtonColor cleared: remove any overlay we added earlier.
+            remove_cancel_button_overlay(bar);
         }
     }
 
