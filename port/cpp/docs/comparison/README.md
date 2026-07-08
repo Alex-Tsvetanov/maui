@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 164 | 0 |
-| 🟡 Minor | 11 | 0 |
+| 🟢 Match | 165 | 0 |
+| 🟡 Minor | 10 | 0 |
 | 🔴 Major | 1 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -6978,16 +6978,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 176. Swipe View Shadow — 🟡/⏳
+### 176. Swipe View Shadow — 🟢/⏳
 <sub>swipe_view_shadow</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/swipe_view_shadow_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/swipe_view_shadow_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/swipe_view_shadow_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/swipe_view_shadow_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/swipe_view_shadow_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/swipe_view_shadow_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/swipe_view_shadow_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/swipe_view_shadow_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/swipe_view_shadow_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/swipe_view_shadow_dark.png" /></td></tr></table>
 
 ports SwipeViewShadowGallery.xaml A code-first port of the MAUI SwipeView sub-gallery Pages/Controls/SwipeViewGalleries/SwipeViewShadowGallery.xaml: a padded vertical StackLayout proving a drop Shadow renders correctly on SwipeView content
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1: light-theme SwipeView content boxes render with a gray gradient/shadow wash inside them where MAUI shows flat white interiors — minor cosmetic shadow-rendering diff. C3: dark theme matches (boxes, borders, centered 'Content' labels all align).
+Match (ruling 10). MAUI Mac Catalyst paints the SwipeView content boxes flat white (no shadow), but the page authors a Shadow on the content — which iOS AND android render (a soft gray shadow/fill wash) and the port faithfully renders on all platforms (matching MAUI iOS+android, green). Exempt Mac Catalyst shadow-rendering gap. Borders, geometry, labels match. Both themes.
 
 #### ⏳ Gemini Review
 

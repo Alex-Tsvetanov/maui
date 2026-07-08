@@ -21697,16 +21697,16 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1: light-theme SwipeView content boxes render with a gray gradient/shadow wash inside them where MAUI shows flat white interiors \u2014 minor cosmetic shadow-rendering diff. C3: dark theme matches (boxes, borders, centered 'Content' labels all align)."
+          "status": "green",
+          "review": "Match (ruling 10). MAUI Mac Catalyst paints the SwipeView content boxes flat white (no shadow), but the page authors a Shadow on the content \u2014 which iOS AND android render (a soft gray shadow/fill wash) and the port faithfully renders on all platforms (matching MAUI iOS+android, green). Exempt Mac Catalyst shadow-rendering gap. Borders, geometry, labels match. Both themes."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "green",
-          "review": "C2/C4: both themes match MAUI \u2014 same two labeled bordered boxes with centered 'Content', flat fills, same geometry."
+          "status": "yellow",
+          "review": "C2/C4: the compile-time-XAML column paints the SwipeView content flat (no shadow) \u2014 which only coincidentally matches MAUI Mac Catalyst (also flat, per ruling 10) but diverges from the cpp column and from MAUI iOS/android, which render the authored Shadow. A functional gap in the XAML shadow-rendering path. Both themes."
         },
         "pixel": {
           "status": "yellow",
