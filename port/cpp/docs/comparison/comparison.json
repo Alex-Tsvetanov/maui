@@ -2001,8 +2001,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "MAUI's bordered bar sits inset from the screen edges showing full rounded corners on both ends, while cpp's bar runs flush to the left screen edge, clipping off the left rounded corner and red segment."
+          "status": "green",
+          "review": "Match. After a fresh recapture with the current binary (the root-Padding builder fix, commit 6a913b04aa, postdated the prior 2026-07-05 android capture), cpp now shows the full 16dp VerticalStackLayout padding on all sides: the \"Stroke thickness\" readout, slider and Silver-stroked RoundRectangle bar are inset from the screen edges with both rounded ends fully visible, matching MAUI. Residual pixel SSIM (0.947) is the usual android status-bar-clock + wide-color-bar antialiasing noise shared by every android green."
         },
         "gemini": {
           "status": null,
@@ -2010,11 +2010,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9442, 10.26% pixels differ"
+          "review": "Light: SSIM 0.9477, 9.90% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.9533, 8.28% pixels differ"
+          "review": "Light: SSIM 0.9477, 9.90% pixels differ"
         },
         "consistency": {
           "status": "ok",

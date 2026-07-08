@@ -7363,8 +7363,8 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 155 | 0 |
-| 🟡 Minor | 15 | 0 |
+| 🟢 Match | 156 | 0 |
+| 🟡 Minor | 14 | 0 |
 | 🔴 Major | 2 | 0 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
@@ -7652,16 +7652,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 16. Border Layout — 🟡/⏳
+### 16. Border Layout — 🟢/⏳
 <sub>border_layout</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/android/border_layout_light.png" /></td><td><img width="300px" src="captures/android/cpp/border_layout_light.png" /></td><td><img width="300px" src="captures/android/xaml/border_layout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
 ports BorderLayout.xaml (+ BorderLayout.xaml.cs) The C# page demonstrates driving Border.StrokeThickness from a Slider: a Slider (0..40, set to 5 in OnAppearing) is bound to the Border&amp;#x27;s StrokeThickness; the Border (Silver stroke, White bac
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-MAUI's bordered bar sits inset from the screen edges showing full rounded corners on both ends, while cpp's bar runs flush to the left screen edge, clipping off the left rounded corner and red segment.
+Match. After a fresh recapture with the current binary (the root-Padding builder fix, commit 6a913b04aa, postdated the prior 2026-07-05 android capture), cpp now shows the full 16dp VerticalStackLayout padding on all sides: the "Stroke thickness" readout, slider and Silver-stroked RoundRectangle bar are inset from the screen edges with both rounded ends fully visible, matching MAUI. Residual pixel SSIM (0.947) is the usual android status-bar-clock + wide-color-bar antialiasing noise shared by every android green.
 
 #### ⏳ Gemini Review
 
