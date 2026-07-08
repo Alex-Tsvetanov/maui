@@ -3176,7 +3176,7 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9730, 4.79% pixels differ \u00b7 Dark: SSIM 0.9445, 4.50% pixels differ"
+          "review": "Light: SSIM 0.9760, 2.62% pixels differ \u00b7 Dark: SSIM 0.9624, 2.48% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
@@ -5334,8 +5334,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.9986, 0.06% pixels differ \u00b7 Dark: SSIM 0.7989, 18.92% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9694, 1.20% pixels differ \u00b7 Dark: SSIM 0.9389, 4.69% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -5382,12 +5382,12 @@
           "review": "Same as cpp column \u2014 matches MAUI in both themes including the blank dark-mode CollectionView area."
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.9860, 0.57% pixels differ \u00b7 Dark: SSIM 0.8356, 18.77% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9858, 0.55% pixels differ \u00b7 Dark: SSIM 0.9033, 7.67% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.9866, 0.53% pixels differ \u00b7 Dark: SSIM 0.8354, 18.77% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9850, 0.58% pixels differ \u00b7 Dark: SSIM 0.9024, 7.70% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -11251,16 +11251,16 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3 (MAUI CV-in-VStack quirk, ruling-3 candidate): the shared XAML is a VerticalStackLayout of [header Grid, EMPTY CollectionView, footer Grid with cover1 image + 'This Is A Footer' + Add/Clear buttons]. cpp faithfully renders header+footer+buttons; MAUI shows ONLY the header because its empty CollectionView greedily consumes the stack's height and pushes the footer off-screen. Port is arguably more faithful to the authored content; flagged pending a ruling on whether the port should replicate MAUI's greedy empty-CV sizing."
+          "status": "green",
+          "review": "Match. The empty CollectionView now greedily fills the VerticalStackLayout slot and pushes the footer + Add/Clear buttons off-screen, so only the header (cover1 image + \"This Is A Header\") shows \u2014 matching MAUI iOS/Mac Catalyst. Fix: ported MAUI ItemsViewHandler2.EnsureContentSizeForScrollDirection (iOS.cs:257-263) \u2014 an EMPTY CV's desired main-axis size resolves to the collection view's own (full-viewport) frame extent (\"the expansive size the CV wants by default\" = UICollectionView.SizeThatFits), not 0. Surgical: only fires when contentSize==0; content-bearing CVs (items/multiple_bound_selection/cv_visual_states) size to content unchanged (verified green). Both themes."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.9704, 9.38% pixels differ \u00b7 Dark: SSIM 0.8970, 9.36% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9988, 0.06% pixels differ \u00b7 Dark: SSIM 0.9988, 0.06% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -11295,8 +11295,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "RULING-3 (twin-degradation, NOT a capture artifact \u2014 verified by fresh recapture). The original HeaderFooterView.xaml uses <CollectionView Header={view} Footer={view}> (header/footer INSIDE the CV). The CV-Header/Footer view form is unsupported, so the twin moved them to plain sibling Grids ABOVE/BELOW an EMPTY CollectionView in a VerticalStackLayout. In MAUI that empty sibling CV EXPANDS to fill the stack, pushing the footer + Add/Clear buttons below the fold (so MAUI shows only the header); cpp's empty CV takes minimal height so it shows header+footer+buttons compactly. A degraded-structure layout divergence, not a port bug in the original page. Header image + 'This Is A Header' match."
+          "status": "green",
+          "review": "Match. The empty CollectionView now greedily fills the VerticalStackLayout slot and pushes the footer + Add/Clear buttons off-screen, so only the header (cover1 image + \"This Is A Header\") shows \u2014 matching MAUI iOS/Mac Catalyst. Fix: ported MAUI ItemsViewHandler2.EnsureContentSizeForScrollDirection (iOS.cs:257-263) \u2014 an EMPTY CV's desired main-axis size resolves to the collection view's own (full-viewport) frame extent (\"the expansive size the CV wants by default\" = UICollectionView.SizeThatFits), not 0. Surgical: only fires when contentSize==0; content-bearing CVs (items/multiple_bound_selection/cv_visual_states) size to content unchanged (verified green). Both themes."
         },
         "gemini": {
           "status": null,
@@ -11307,8 +11307,8 @@
           "review": "Same situation as cpp: MAUI capture is truncated before the footer and collection content, so the xaml build's additional visible content (footer text, buttons) cannot be directly compared, though the visible header matches exactly. No confirmed divergence, but comparison is incomplete."
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.8888, 13.79% pixels differ \u00b7 Dark: SSIM 0.8503, 13.32% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9097, 5.66% pixels differ \u00b7 Dark: SSIM 0.9103, 5.23% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -14296,7 +14296,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9989, 0.05% pixels differ \u00b7 Dark: SSIM 0.9988, 0.06% pixels differ"
+          "review": "Light: SSIM 0.9983, 0.08% pixels differ \u00b7 Dark: SSIM 0.9982, 0.09% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
@@ -14344,11 +14344,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9912, 0.34% pixels differ \u00b7 Dark: SSIM 0.9911, 0.39% pixels differ"
+          "review": "Light: SSIM 0.9914, 0.32% pixels differ \u00b7 Dark: SSIM 0.9873, 0.44% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9894, 0.41% pixels differ \u00b7 Dark: SSIM 0.9893, 0.47% pixels differ"
+          "review": "Light: SSIM 0.9906, 0.35% pixels differ \u00b7 Dark: SSIM 0.9864, 0.47% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -15439,7 +15439,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9989, 0.05% pixels differ \u00b7 Dark: SSIM 0.9986, 0.06% pixels differ"
+          "review": "Light: SSIM 0.9983, 0.08% pixels differ \u00b7 Dark: SSIM 0.9983, 0.07% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
@@ -15487,11 +15487,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9513, 4.44% pixels differ \u00b7 Dark: SSIM 0.9372, 4.80% pixels differ"
+          "review": "Light: SSIM 0.9516, 4.41% pixels differ \u00b7 Dark: SSIM 0.9345, 4.84% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9667, 1.09% pixels differ \u00b7 Dark: SSIM 0.9659, 1.35% pixels differ"
+          "review": "Light: SSIM 0.9670, 1.06% pixels differ \u00b7 Dark: SSIM 0.9632, 1.39% pixels differ"
         },
         "consistency": {
           "status": "ok",

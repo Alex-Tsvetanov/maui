@@ -11,8 +11,8 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 166 | 0 |
-| 🟡 Minor | 5 | 0 |
+| 🟢 Match | 167 | 0 |
+| 🟡 Minor | 4 | 0 |
 | 🔴 Major | 0 | 0 |
 | ⬛ Blank | 1 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
@@ -1746,16 +1746,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 94. Header Footer View — 🟡/⏳
+### 94. Header Footer View — 🟢/⏳
 <sub>header_footer_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/header_footer_view_light.png" /></td><td><img width="300px" src="captures/ios/cpp/header_footer_view_light.png" /></td><td><img width="300px" src="captures/ios/xaml/header_footer_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/ios/header_footer_view_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/header_footer_view_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/header_footer_view_dark.png" /></td></tr></table>
 
 ports HeaderFooterView.xaml (+ .xaml.cs) of the C# CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3 (MAUI CV-in-VStack quirk, ruling-3 candidate): the shared XAML is a VerticalStackLayout of [header Grid, EMPTY CollectionView, footer Grid with cover1 image + 'This Is A Footer' + Add/Clear buttons]. cpp faithfully renders header+footer+buttons; MAUI shows ONLY the header because its empty CollectionView greedily consumes the stack's height and pushes the footer off-screen. Port is arguably more faithful to the authored content; flagged pending a ruling on whether the port should replicate MAUI's greedy empty-CV sizing.
+Match. The empty CollectionView now greedily fills the VerticalStackLayout slot and pushes the footer + Add/Clear buttons off-screen, so only the header (cover1 image + "This Is A Header") shows — matching MAUI iOS/Mac Catalyst. Fix: ported MAUI ItemsViewHandler2.EnsureContentSizeForScrollDirection (iOS.cs:257-263) — an EMPTY CV's desired main-axis size resolves to the collection view's own (full-viewport) frame extent ("the expansive size the CV wants by default" = UICollectionView.SizeThatFits), not 0. Surgical: only fires when contentSize==0; content-bearing CVs (items/multiple_bound_selection/cv_visual_states) size to content unchanged (verified green). Both themes.
 
 #### ⏳ Gemini Review
 
@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 163 | 0 |
-| 🟡 Minor | 12 | 0 |
+| 🟢 Match | 164 | 0 |
+| 🟡 Minor | 11 | 0 |
 | 🔴 Major | 1 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -5422,16 +5422,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 94. Header Footer View — 🟡/⏳
+### 94. Header Footer View — 🟢/⏳
 <sub>header_footer_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/header_footer_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/header_footer_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/header_footer_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/header_footer_view_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/header_footer_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/header_footer_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/header_footer_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/header_footer_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/header_footer_view_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/header_footer_view_dark.png" /></td></tr></table>
 
 ports HeaderFooterView.xaml (+ .xaml.cs) of the C# CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-RULING-3 (twin-degradation, NOT a capture artifact — verified by fresh recapture). The original HeaderFooterView.xaml uses &lt;CollectionView Header={view} Footer={view}&gt; (header/footer INSIDE the CV). The CV-Header/Footer view form is unsupported, so the twin moved them to plain sibling Grids ABOVE/BELOW an EMPTY CollectionView in a VerticalStackLayout. In MAUI that empty sibling CV EXPANDS to fill the stack, pushing the footer + Add/Clear buttons below the fold (so MAUI shows only the header); cpp's empty CV takes minimal height so it shows header+footer+buttons compactly. A degraded-structure layout divergence, not a port bug in the original page. Header image + 'This Is A Header' match.
+Match. The empty CollectionView now greedily fills the VerticalStackLayout slot and pushes the footer + Add/Clear buttons off-screen, so only the header (cover1 image + "This Is A Header") shows — matching MAUI iOS/Mac Catalyst. Fix: ported MAUI ItemsViewHandler2.EnsureContentSizeForScrollDirection (iOS.cs:257-263) — an EMPTY CV's desired main-axis size resolves to the collection view's own (full-viewport) frame extent ("the expansive size the CV wants by default" = UICollectionView.SizeThatFits), not 0. Surgical: only fires when contentSize==0; content-bearing CVs (items/multiple_bound_selection/cv_visual_states) size to content unchanged (verified green). Both themes.
 
 #### ⏳ Gemini Review
 

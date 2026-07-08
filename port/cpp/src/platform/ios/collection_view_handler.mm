@@ -1221,12 +1221,25 @@ namespace maui::controls
         const CGSize content = layout.collectionViewContentSize;
         collection_view.frame = previous_frame;
 
-        // If the layout still produced no extent on the scroll axis, nothing is realized — fall back to
-        // the flat estimate (C# EnsureContentSizeForScrollDirection's `base.GetDesiredSize` branch), never
-        // report 0 here (that would collapse a real list to nothing).
+        // If the layout produced no extent on the scroll axis, the CV is EMPTY (no items/headers). C#
+        // EnsureContentSizeForScrollDirection (ItemsViewHandler2.iOS.cs:257-263) does NOT report 0 here — it
+        // substitutes `base.GetDesiredSize` = UICollectionView.SizeThatFits = the collection view's own
+        // (full-viewport) frame extent, "the expansive size the collection view wants by default". That is
+        // what makes an empty CV FILL its slot in a VerticalStackLayout and push later siblings past the fold
+        // (header_footer_view), instead of collapsing to 0 and leaving the footer visible. The port's analog
+        // of SizeThatFits is the collection view's own frame (previous_frame, captured/restored above): return
+        // it when valid, else nullopt (pre-mount, no frame yet → keep the flat estimate). A CONTENT-bearing CV
+        // never reaches here (main_extent > 0 → real collectionViewContentSize below), so short lists still
+        // clamp to their content and DON'T greedily fill — exactly MAUI's contentSize.Height==0-only substitution.
         const CGFloat main_extent = horizontal ? content.width : content.height;
         if (main_extent <= 0)
         {
+            const CGFloat frame_main = horizontal ? previous_frame.size.width : previous_frame.size.height;
+            if (frame_main > 0)
+            {
+                return maui::graphics::size{static_cast<double>(previous_frame.size.width),
+                                            static_cast<double>(previous_frame.size.height)};
+            }
             return std::nullopt;
         }
         return maui::graphics::size{static_cast<double>(content.width), static_cast<double>(content.height)};
