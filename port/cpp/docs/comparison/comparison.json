@@ -15684,8 +15684,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "The 'Source N' header label wraps to two lines in the cpp port (narrower column) instead of MAUI's single-line label, pushing the nested caption row right and truncating it sooner; content is still visible and correct, just laid out with a narrower left column in both themes."
+          "status": "green",
+          "review": "Match. Fresh recapture after commit b83563e75d (match MAUI inner-caption data) \u2014 which postdated the prior iOS capture: cpp now shows the filename inner captions (\"cover1.jpg, 0\", \"oasis.jpg, 1\", \"photo.jpg, 2\", \"Vegetables.jpg, 3\"...) matching MAUI, not the stale \"Caption N-M\" data. Outer \"Source N\" labels wrap identically. Both themes."
         },
         "gemini": {
           "status": null,
@@ -15693,7 +15693,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8855, 4.31% pixels differ \u00b7 Dark: SSIM 0.9046, 4.31% pixels differ"
+          "review": "Light: SSIM 0.8794, 4.50% pixels differ \u00b7 Dark: SSIM 0.8987, 4.50% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",

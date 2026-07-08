@@ -11,8 +11,8 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 164 | 0 |
-| 🟡 Minor | 7 | 0 |
+| 🟢 Match | 165 | 0 |
+| 🟡 Minor | 6 | 0 |
 | 🔴 Major | 0 | 0 |
 | ⬛ Blank | 1 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
@@ -2409,16 +2409,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 129. Nested Collection — 🟡/⏳
+### 129. Nested Collection — 🟢/⏳
 <sub>nested_collection</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/nested_collection_light.png" /></td><td><img width="300px" src="captures/ios/cpp/nested_collection_light.png" /></td><td><img width="300px" src="captures/ios/xaml/nested_collection_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/ios/nested_collection_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/nested_collection_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/nested_collection_dark.png" /></td></tr></table>
 
 ports NestedGalleries/NestedCollectionViewGallery.xaml (+ NestedCollectionViewGallery.xaml.cs) of the C# CollectionView gallery
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-The 'Source N' header label wraps to two lines in the cpp port (narrower column) instead of MAUI's single-line label, pushing the nested caption row right and truncating it sooner; content is still visible and correct, just laid out with a narrower left column in both themes.
+Match. Fresh recapture after commit b83563e75d (match MAUI inner-caption data) — which postdated the prior iOS capture: cpp now shows the filename inner captions ("cover1.jpg, 0", "oasis.jpg, 1", "photo.jpg, 2", "Vegetables.jpg, 3"...) matching MAUI, not the stale "Caption N-M" data. Outer "Source N" labels wrap identically. Both themes.
 
 #### ⏳ Gemini Review
 
