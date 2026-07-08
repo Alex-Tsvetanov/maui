@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 146 | 0 |
-| 🟡 Minor | 29 | 0 |
+| 🟢 Match | 147 | 0 |
+| 🟡 Minor | 28 | 0 |
 | 🔴 Major | 1 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -6332,16 +6332,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 142. Radio Button Border — 🟡/⏳
+### 142. Radio Button Border — 🟢/⏳
 <sub>radio_button_border</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/radio_button_border_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/radio_button_border_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/radio_button_border_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/radio_button_border_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/radio_button_border_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/radio_button_border_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/radio_button_border_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/radio_button_border_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/radio_button_border_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/radio_button_border_dark.png" /></td></tr></table>
 
 ports RadioButtonBorder.xaml A self-contained, code-first demo of RadioButton border styling
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: option rows, red/green borders, yellow backgrounds, and dark-mode white-on-yellow text all match, but cpp renders the 'RadioButton with Border' title in regular weight where MAUI has it bold, and row heights/vertical spacing are tighter than MAUI in both themes.
+C1/C3: cpp matches MAUI in both themes. The builder now applies the shared XAML's title FontSize=18/FontAttributes=Bold and the root StackLayout Spacing=6/Padding=16 (previously missing -&gt; regular-weight title + tighter rows). cpp==xaml at 6.72%/6.81% pixel diff (SSIM 0.909 light / 0.889 dark), marginally better than the green xaml column (6.76%/6.84%); the residual is MAUI's slightly larger native radio circles, the same delta the xaml column carries. Red/green option borders, yellow backgrounds, and dark-mode white-on-yellow text all match.
 
 #### ⏳ Gemini Review
 

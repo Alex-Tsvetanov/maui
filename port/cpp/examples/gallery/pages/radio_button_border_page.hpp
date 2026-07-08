@@ -34,6 +34,8 @@
 #include "maui/controls/radio_button.hpp"
 #include "maui/controls/radio_button_group.hpp"
 #include "maui/controls/stack_layout.hpp"
+#include "maui/core/font.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
 
@@ -46,7 +48,13 @@ namespace maui::samples
         {
             page_.set_title("RadioButton Border");
 
+            // Root StackLayout: Spacing="6" Padding="16" (shared XAML radio_button_border.xaml).
+            stack_.set_spacing(6);
+            stack_.set_padding(maui::core::thickness{16});
+
+            // Title: FontSize="18" FontAttributes="Bold" (shared XAML).
             header_.set_text("RadioButton with Border");
+            header_.set_font(maui::core::font::system_font_of_size(18.0, maui::core::font_weight::bold));
             readout_.set_text("Selected: Option 4");
 
             // Option 1 — yellow fill, red 4-unit border, 12 corner radius.
