@@ -48,7 +48,6 @@
 //       cells flow in a horizontal row as in MAUI.
 
 #include <memory>
-#include <random>
 #include <string>
 #include <vector>
 
@@ -200,17 +199,19 @@ namespace maui::samples
         // seeded-RNG convention so the per-source counts are reproducible).
         [[nodiscard]] std::vector<nested_source> build_sources()
         {
+            // DemoFilteredItemSource images (NestedCollectionModel.cs Images[]) cycled by item index.
+            static constexpr const char* images[] = {"cover1.jpg", "oasis.jpg",      "photo.jpg",  "Vegetables.jpg",
+                                                     "Fruits.jpg", "FlowerBuds.jpg", "Legumes.jpg"};
             std::vector<nested_source> sources;
-            std::mt19937 rng(20240619); // fixed seed (DemoFilteredItemSource's Random, made deterministic)
-            std::uniform_int_distribution<int> count_dist(6, 14); // C# Random.Next(6, 15) → [6,14]
             for (int n = 0; n < 20; ++n)
             {
-                const int count = count_dist(rng);
+                const int count = 6 + (n % 9); // NestedCollectionViewModel: deterministic 6..14 by source index
                 std::vector<gallery_item> inner;
                 inner.reserve(static_cast<std::size_t>(count));
                 for (int k = 0; k < count; ++k)
                 {
-                    inner.push_back(gallery_item{"Caption " + std::to_string(n) + "-" + std::to_string(k)});
+                    // caption "{image}, {k}" (NestedItemSource ctor: Images[k % 7] + ", " + k)
+                    inner.push_back(gallery_item{std::string(images[k % 7]) + ", " + std::to_string(k)});
                 }
                 auto inner_collection =
                     std::make_shared<maui::core::observable_collection<gallery_item>>(std::move(inner));

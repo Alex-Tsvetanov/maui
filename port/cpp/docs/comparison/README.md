@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 151 | 0 |
-| 🟡 Minor | 24 | 0 |
+| 🟢 Match | 152 | 0 |
+| 🟡 Minor | 23 | 0 |
 | 🔴 Major | 1 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -6085,16 +6085,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 129. Nested Collection — 🟡/⏳
+### 129. Nested Collection — 🟢/⏳
 <sub>nested_collection</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/nested_collection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/nested_collection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/nested_collection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/nested_collection_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/nested_collection_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/nested_collection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/nested_collection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/nested_collection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/nested_collection_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/nested_collection_dark.png" /></td></tr></table>
 
 ports NestedGalleries/NestedCollectionViewGallery.xaml (+ NestedCollectionViewGallery.xaml.cs) of the C# CollectionView gallery
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Nested CollectionView structure matches MAUI (outer source rows each hosting an inner horizontal list), but the cpp builder twin's inner item labels read 'Caption N-M' whereas MAUI's read image filenames ('cover1.jpg, 0' ...) — a builder-twin sample-data mismatch, not a layout defect. Prior red was stale (MAUI ref showed only the header at review time).
+Nested CollectionView content now matches MAUI in both themes: the inner captions read the DemoFilteredItemSource pattern '{image}, {k}' (cover1.jpg/oasis.jpg/photo.jpg/Vegetables.jpg/Fruits.jpg/FlowerBuds.jpg/Legumes.jpg cycled by index) with per-source counts 6+(n%9) — was 'Caption N-M' with random counts (builder-data drift vs NestedCollectionModel.cs). Outer source rows, red-italic 'Source N' headers, and the blue horizontal caption lists all align; the pixel% is inflated by the exempt harness inset (dense text shifts) + a minor red-title wrap nuance. (xaml column stays RED — the compile-time XAML app can't run the C# code-behind data wiring, so its nested CVs are empty; a known xaml-column limitation, not a cpp issue.)
 
 #### ⏳ Gemini Review
 

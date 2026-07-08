@@ -15693,11 +15693,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8252, 5.19% pixels differ \u00b7 Dark: SSIM 0.8486, 5.18% pixels differ"
+          "review": "Light: SSIM 0.8855, 4.31% pixels differ \u00b7 Dark: SSIM 0.9046, 4.31% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9151, 2.30% pixels differ \u00b7 Dark: SSIM 0.9268, 2.29% pixels differ"
+          "review": "Light: SSIM 0.9060, 2.67% pixels differ \u00b7 Dark: SSIM 0.9183, 2.67% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -15728,8 +15728,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "Nested CollectionView structure matches MAUI (outer source rows each hosting an inner horizontal list), but the cpp builder twin's inner item labels read 'Caption N-M' whereas MAUI's read image filenames ('cover1.jpg, 0' ...) \u2014 a builder-twin sample-data mismatch, not a layout defect. Prior red was stale (MAUI ref showed only the header at review time)."
+          "status": "green",
+          "review": "Nested CollectionView content now matches MAUI in both themes: the inner captions read the DemoFilteredItemSource pattern '{image}, {k}' (cover1.jpg/oasis.jpg/photo.jpg/Vegetables.jpg/Fruits.jpg/FlowerBuds.jpg/Legumes.jpg cycled by index) with per-source counts 6+(n%9) \u2014 was 'Caption N-M' with random counts (builder-data drift vs NestedCollectionModel.cs). Outer source rows, red-italic 'Source N' headers, and the blue horizontal caption lists all align; the pixel% is inflated by the exempt harness inset (dense text shifts) + a minor red-title wrap nuance. (xaml column stays RED \u2014 the compile-time XAML app can't run the C# code-behind data wiring, so its nested CVs are empty; a known xaml-column limitation, not a cpp issue.)"
         },
         "gemini": {
           "status": null,
@@ -15741,7 +15741,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8284, 4.72% pixels differ \u00b7 Dark: SSIM 0.9752, 5.91% pixels differ"
+          "review": "Light: SSIM 0.8140, 5.23% pixels differ \u00b7 Dark: SSIM 0.9739, 6.60% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
