@@ -11,8 +11,8 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 161 | 0 |
-| 🟡 Minor | 10 | 0 |
+| 🟢 Match | 162 | 0 |
+| 🟡 Minor | 9 | 0 |
 | 🔴 Major | 0 | 0 |
 | ⬛ Blank | 1 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
@@ -1689,16 +1689,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 91. Header Footer Grid — 🟡/⏳
+### 91. Header Footer Grid — 🟢/⏳
 <sub>header_footer_grid</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/header_footer_grid_light.png" /></td><td><img width="300px" src="captures/ios/cpp/header_footer_grid_light.png" /></td><td><img width="300px" src="captures/ios/xaml/header_footer_grid_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/ios/header_footer_grid_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/header_footer_grid_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/header_footer_grid_dark.png" /></td></tr></table>
 
 ports HeaderFooterGrid.xaml (+ HeaderFooterGrid.xaml.cs) of the C# CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Layout, grid content, and header/footer text match in both themes, but the cpp render shows a dog photo background behind the header/footer text while the MAUI reference shows a plain background (light) — likely a network-image load-timing difference in the MAUI capture rather than a port bug, but flagged as a visible discrepancy.
+Matches MAUI in both themes against the fresh iOS MauiReference baseline. The item grid now applies the shared XAML's Margin=6 (cross-platform builder fix) so rows are properly spaced, and the fresh MAUI loads the header/footer dog images (the old frozen ref showed a plain background — a stale-ref artifact, like clipping's coffee.png). Toggle Header/Footer, 'This Is A Header'/'This Is A Footer', 'Add Content' links, and the 3-column grid all align; residual pixel% is the dense image content + status-bar clock.
 
 #### ⏳ Gemini Review
 
@@ -2874,7 +2874,7 @@ ports ScrollModeTestGallery.xaml (+ .xaml.cs) of the C# CollectionView gallery (
 
 #### 🟡 Sonnet 5 Review
 
-MAUI renders the ItemsUpdatingScrollMode selector as segmented control buttons, while the C++ port renders it as a bordered text-entry-style box; functionally equivalent but visually a different control style in both themes.
+Item rows now match MAUI (the item template applies Margin=6, cross-platform builder fix; 0.16% pixel diff on the long list). Remaining delta = the ItemsUpdatingScrollMode Picker: cpp shows the selected value 'KeepItemsInView' while MAUI shows a blank box — the Picker-Title issue (user-gated). Kept yellow.
 
 #### ⏳ Gemini Review
 

@@ -10870,8 +10870,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "Layout, grid content, and header/footer text match in both themes, but the cpp render shows a dog photo background behind the header/footer text while the MAUI reference shows a plain background (light) \u2014 likely a network-image load-timing difference in the MAUI capture rather than a port bug, but flagged as a visible discrepancy."
+          "status": "green",
+          "review": "Matches MAUI in both themes against the fresh iOS MauiReference baseline. The item grid now applies the shared XAML's Margin=6 (cross-platform builder fix) so rows are properly spaced, and the fresh MAUI loads the header/footer dog images (the old frozen ref showed a plain background \u2014 a stale-ref artifact, like clipping's coffee.png). Toggle Header/Footer, 'This Is A Header'/'This Is A Footer', 'Add Content' links, and the 3-column grid all align; residual pixel% is the dense image content + status-bar clock."
         },
         "gemini": {
           "status": null,
@@ -10879,11 +10879,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8540, 17.06% pixels differ \u00b7 Dark: SSIM 0.8091, 15.07% pixels differ"
+          "review": "Light: SSIM 0.8943, 4.30% pixels differ \u00b7 Dark: SSIM 0.8900, 4.26% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8226, 18.11% pixels differ \u00b7 Dark: SSIM 0.7800, 16.08% pixels differ"
+          "review": "Light: SSIM 0.8383, 11.81% pixels differ \u00b7 Dark: SSIM 0.8168, 10.92% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -10927,7 +10927,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8326, 11.82% pixels differ \u00b7 Dark: SSIM 0.8243, 11.13% pixels differ"
+          "review": "Light: SSIM 0.8294, 11.85% pixels differ \u00b7 Dark: SSIM 0.8212, 11.17% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -18733,19 +18733,19 @@
         },
         "sonnet": {
           "status": "yellow",
-          "review": "MAUI renders the ItemsUpdatingScrollMode selector as segmented control buttons, while the C++ port renders it as a bordered text-entry-style box; functionally equivalent but visually a different control style in both themes."
+          "review": "Item rows now match MAUI (the item template applies Margin=6, cross-platform builder fix; 0.16% pixel diff on the long list). Remaining delta = the ItemsUpdatingScrollMode Picker: cpp shows the selected value 'KeepItemsInView' while MAUI shows a blank box \u2014 the Picker-Title issue (user-gated). Kept yellow."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.9032, 3.60% pixels differ \u00b7 Dark: SSIM 0.8998, 3.61% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9953, 0.16% pixels differ \u00b7 Dark: SSIM 0.9952, 0.16% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8622, 5.08% pixels differ \u00b7 Dark: SSIM 0.8605, 5.06% pixels differ"
+          "review": "Light: SSIM 0.8825, 4.20% pixels differ \u00b7 Dark: SSIM 0.8812, 4.21% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -18789,7 +18789,7 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9382, 1.95% pixels differ \u00b7 Dark: SSIM 0.9308, 2.96% pixels differ"
+          "review": "Light: SSIM 0.9328, 2.03% pixels differ \u00b7 Dark: SSIM 0.9250, 3.11% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
