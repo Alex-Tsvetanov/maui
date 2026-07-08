@@ -370,6 +370,12 @@ namespace maui::xaml
         // TargetType via IProvideParentValues.ParentObjects.
         void apply_setter_to_parent_style(element_node& node, i_xaml_node* parent_node);
 
+        // <VisualElement.Triggers><Trigger Property=.. Value=..><Setter/></Trigger>: walk the parent chain to
+        // the owning view, resolve Property against its type, build an erased_property_trigger (condition +
+        // the <Setter> children), and add it to the view's Triggers collection. The trigger analog of
+        // apply_setter_to_parent_style; a <Trigger> outside a view is inert.
+        void apply_trigger_to_parent_view(element_node& node, i_xaml_node* parent_node);
+
         // W4 — ApplyPropertiesVisitor.SetTemplate: at a <DataTemplate>'s _CreateContent body node,
         // install the parent template's per-item loader (a closure owning a clone of `body_node` + a
         // value snapshot of the load environment), so each stamp lazily inflates a fresh copy of the

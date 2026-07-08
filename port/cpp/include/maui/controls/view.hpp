@@ -1242,6 +1242,12 @@ namespace maui::controls
         {
             return triggers_;
         }
+        // The non-template reach for the XAML loader (element::triggers_or_null): a view HAS a Triggers
+        // collection, so hand back the real one.
+        [[nodiscard]] triggers_collection* triggers_or_null() override
+        {
+            return &triggers_;
+        }
 
     private:
         behavior_collection behaviors_{*this};

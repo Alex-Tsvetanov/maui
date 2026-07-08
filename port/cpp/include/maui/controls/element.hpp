@@ -67,6 +67,11 @@ namespace maui::controls
     } // namespace detail
     // --- end animations (W1-14) ---
 
+    // The VisualElement.Triggers collection type (defined in trigger.hpp). Forward-declared so the loader can
+    // reach a view's triggers through a non-template element& via triggers_or_null() below (view<> owns the
+    // real collection; element.hpp itself takes no trigger.hpp dependency).
+    class triggers_collection;
+
     class element : public maui::core::bindable_object
     {
     public:
@@ -99,6 +104,17 @@ namespace maui::controls
         }
         maui::core::event<> loaded;
         maui::core::event<> unloaded;
+
+        // The non-template reach for VisualElement.Triggers: the reflection-free XAML loader holds a created
+        // value as a bindable_object/element& and needs to add a parsed <Trigger> to the owning view's
+        // collection, but triggers() lives on the view<> CRTP template. view<> overrides this to return its
+        // real collection; a non-view element (which has no Triggers) returns nullptr, so a stray
+        // <X.Triggers> on a non-view is inert. Returns a pointer (incomplete type is fine for the nullptr
+        // default here; the override in view.hpp sees the complete type).
+        [[nodiscard]] virtual triggers_collection* triggers_or_null()
+        {
+            return nullptr;
+        }
 
         // C# Element.OnParentChangingCore — invoked on this element just before its logical parent changes
         // (attach_logical_child passes the new parent; detach passes nullptr). The default is a no-op;

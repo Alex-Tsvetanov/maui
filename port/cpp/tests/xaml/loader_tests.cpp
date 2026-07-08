@@ -455,6 +455,32 @@ namespace
         EXPECT_EQ(view3.items_updating_scroll_mode(), controls::items_updating_scroll_mode::keep_items_in_view);
     }
 
+    TEST(xaml_loader, visual_element_triggers_apply_and_revert_by_condition)
+    {
+        // WS-D: <VisualElement.Triggers><Trigger Property Value><Setter/></Trigger> parses into the view's
+        // Triggers collection (iter68) as an erased_property_trigger (iter69), attaching immediately. The
+        // condition (IsEnabled==False) and the setter (Opacity=0.5) are both bindable; boxed_equals handles
+        // the bool condition.
+        controls::label label;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(label, R"xml(
+<Label xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+	<Label.Triggers>
+		<Trigger Property="IsEnabled" Value="False">
+			<Setter Property="Opacity" Value="0.5" />
+		</Trigger>
+	</Label.Triggers>
+</Label>)xml");
+        });
+        EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
+
+        EXPECT_DOUBLE_EQ(label.opacity(), 1.0); // IsEnabled true at load -> trigger inactive
+        label.set_is_enabled(false);
+        EXPECT_DOUBLE_EQ(label.opacity(), 0.5); // condition met -> setter applied at trigger specificity
+        label.set_is_enabled(true);
+        EXPECT_DOUBLE_EQ(label.opacity(), 1.0); // condition lost -> un-applied (value beneath restored)
+    }
+
     TEST(xaml_loader, loader_minted_data_template_records_its_body_root_content_type)
     {
         // 2026-07: a XAML-authored <DataTemplate> must carry the body ROOT's registered control type

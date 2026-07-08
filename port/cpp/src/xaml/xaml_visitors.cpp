@@ -38,6 +38,7 @@
 #include "maui/controls/swipe_view.hpp"  // SwipeView.LeftItems/RightItems/TopItems/BottomItems routing
 #include "maui/controls/templates/control_template.hpp" // W16: <ControlTemplate> minting (DataTemplate sibling)
 #include "maui/controls/templates/data_template.hpp"    // W4: <DataTemplate> minting + the loader factory
+#include "maui/controls/trigger.hpp" // erased_property_trigger + triggers_collection (VisualElement.Triggers)
 #include "maui/core/app_theme.hpp"
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/event.hpp"
@@ -1703,6 +1704,16 @@ namespace maui::xaml
                 return;
             }
 
+            // <Trigger> is a special-case builder like <Setter> (the typed code-first trigger types can't be
+            // synthesized reflection-free; triggers_collection is not a bindable_object). The apply pass
+            // (apply_trigger_to_parent_view) walks to the owning view and adds an erased_property_trigger. No-op
+            // at create so it no longer fails the "Type Trigger not found" lookup below; a stray <Trigger>
+            // outside a view stays inert.
+            if (node.type().is_of_any_type({"Trigger"}))
+            {
+                return;
+            }
+
             // W4 — <DataTemplate>: not a bindable_object (so not in the type registry), minted here like
             // a ResourceDictionary / Style. The create pass STOPS on the data-template body (its
             // _CreateContent child is NOT created now — stop_on_data_template==true), so only the EMPTY
@@ -2188,8 +2199,8 @@ namespace maui::xaml
             // "Cannot assign property Height"). W9: a <RoundRectangle>'s CornerRadius is consumed at CREATE
             // time too (minted as a non-bindable graphics::i_shape). W17: a <FontImageSource>'s
             // Glyph/FontFamily/Size/Color are consumed at CREATE time (minted as a non-bindable i_image_source).
-            if (parent_element->type().is_of_any_type(
-                    {"Style", "Setter", "RowDefinition", "ColumnDefinition", "RoundRectangle", "FontImageSource"}))
+            if (parent_element->type().is_of_any_type({"Style", "Setter", "Trigger", "RowDefinition",
+                                                       "ColumnDefinition", "RoundRectangle", "FontImageSource"}))
             {
                 return;
             }
@@ -2446,6 +2457,101 @@ namespace maui::xaml
         });
     }
 
+    // <VisualElement.Triggers><Trigger Property=.. Value=..><Setter/></Trigger>: the trigger analog of
+    // apply_setter_to_parent_style. Walk to the owning view (the nearest ancestor element with a Triggers
+    // collection), resolve Property against its type, build an erased_property_trigger (the by-name condition +
+    // the <Setter> children reusing build_setter), and add it to the view's collection (which attaches it now).
+    void apply_properties_visitor::apply_trigger_to_parent_view(element_node& node, i_xaml_node* parent_node)
+    {
+        guarded(*context_, [this, &node, parent_node] {
+            // Find the owning view: the nearest ancestor element_node whose created value is an element that
+            // HAS a Triggers collection (view<> overrides triggers_or_null; a non-view returns nullptr).
+            maui::controls::triggers_collection* triggers = nullptr;
+            const maui::core::type_tag* owner_type = nullptr;
+            for (i_xaml_node* ancestor = parent_node; ancestor != nullptr; ancestor = ancestor->parent())
+            {
+                auto* owner_node = dynamic_cast<element_node*>(ancestor);
+                if (owner_node == nullptr)
+                {
+                    continue;
+                }
+                auto* owner = dynamic_cast<maui::controls::element*>(as_bindable(context_->try_get_value(*owner_node)));
+                if (owner != nullptr && owner->triggers_or_null() != nullptr)
+                {
+                    triggers = owner->triggers_or_null();
+                    owner_type = context_->try_get_type(*owner_node);
+                    break;
+                }
+            }
+            if (triggers == nullptr || owner_type == nullptr)
+            {
+                return; // a stray <Trigger> outside a view (or an owner that failed to mint) — inert
+            }
+
+            const std::optional<std::string> property = literal_attribute(node, "Property");
+            const std::optional<std::string> value = literal_attribute(node, "Value");
+            if (!property.has_value() || !value.has_value())
+            {
+                throw xaml_parse_exception("A <Trigger> requires both a Property and a Value attribute",
+                                           node.line_number(), node.line_position());
+            }
+
+            // Resolve the condition Property against the OWNER view's type + convert Value the same way
+            // build_setter does (string keeps the literal; else the property value-type converter), but keep the
+            // raw bindable_name + boxed value for the by-name erased condition.
+            const applier_env env = env_from(*context_);
+            const xaml_property_registry::property_entry* entry = env.properties->find(*owner_type, *property);
+            if (entry == nullptr || entry->bindable_name.empty())
+            {
+                throw xaml_parse_exception(
+                    std::format("Can't resolve the Trigger Property \"{}\" on the view, or it is not a bindable "
+                                "property",
+                                *property),
+                    node.line_number(), node.line_position());
+            }
+            std::any expected;
+            if (entry->value_type == maui::core::type_tag::of<std::string>())
+            {
+                expected = std::any{*value};
+            }
+            else
+            {
+                expected = env.converters->convert(entry->value_type, *value);
+                if (!expected.has_value())
+                {
+                    throw xaml_parse_exception(
+                        std::format("Cannot convert the Trigger Value \"{}\" for property \"{}\": no converter is "
+                                    "registered for its value type",
+                                    *value, *property),
+                        node.line_number(), node.line_position());
+                }
+            }
+            maui::controls::erased_property_trigger trigger{entry->bindable_name, std::move(expected)};
+
+            // The <Setter> children are the Trigger's collection items — reuse build_setter against the owner
+            // view's type (they'd otherwise be inert: apply_setter_to_parent_style only matches a <Style>).
+            for (const std::shared_ptr<i_xaml_node>& item : node.collection_items())
+            {
+                auto* setter_node = dynamic_cast<element_node*>(item.get());
+                if (setter_node == nullptr || !setter_node->type().is_of_any_type({"Setter"}))
+                {
+                    continue;
+                }
+                const std::optional<std::string> setter_property = literal_attribute(*setter_node, "Property");
+                const std::optional<std::string> setter_value = literal_attribute(*setter_node, "Value");
+                if (!setter_property.has_value() || !setter_value.has_value())
+                {
+                    throw xaml_parse_exception("A <Setter> requires both a Property and a Value attribute",
+                                               setter_node->line_number(), setter_node->line_position());
+                }
+                trigger.add(build_setter(*owner_type, *setter_property, *setter_value, *env.properties, *env.converters,
+                                         setter_node->line_number(), setter_node->line_position()));
+            }
+
+            triggers->add(std::move(trigger)); // attaches to the view now (VisualElement.Triggers)
+        });
+    }
+
     void apply_properties_visitor::set_template(element_node& body_node, i_xaml_node* parent_node)
     {
         guarded(*context_, [this, &body_node, parent_node] {
@@ -2534,6 +2640,14 @@ namespace maui::xaml
         if (node.type().is_of_any_type({"Setter"}))
         {
             apply_setter_to_parent_style(node, parent_node);
+            return;
+        }
+
+        // <Trigger> — same story: no created value, so route it before the generic collection routing. Walk to
+        // the owning view and add an erased_property_trigger built from its Property/Value + <Setter> children.
+        if (node.type().is_of_any_type({"Trigger"}))
+        {
+            apply_trigger_to_parent_view(node, parent_node);
             return;
         }
 
