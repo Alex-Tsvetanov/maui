@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 147 | 0 |
-| 🟡 Minor | 28 | 0 |
+| 🟢 Match | 148 | 0 |
+| 🟡 Minor | 27 | 0 |
 | 🔴 Major | 1 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -7016,16 +7016,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 178. Switch Grouping — 🟡/⏳
+### 178. Switch Grouping — 🟢/⏳
 <sub>switch_grouping</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/switch_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/switch_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/switch_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/switch_grouping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/switch_grouping_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/switch_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/switch_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/switch_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/switch_grouping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/switch_grouping_dark.png" /></td></tr></table>
 
 ports CollectionViewGalleries/GroupingGalleries/ SwitchGrouping.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Is-Grouped switch + grouped TEXT list match MAUI, but cpp's green group-header text coverage is lower than MAUI/xaml (4429 vs 6560/6596 px) — a small header-rendering delta vs the xaml/MAUI path (SSIM 0.95). xaml matches MAUI.
+Is-Grouped switch + grouped list match MAUI in both themes. Two builder fixes vs the shared XAML: (1) the group-header template now applies FontAttributes=Bold (was missing -&gt; LightGreen headers rendered regular-weight, ~32% lower green-pixel coverage); (2) the outer StackLayout no longer sets Spacing=4 (the XAML has none -&gt; MAUI default 0), which had shifted the whole list ~4px below the xaml column. cpp==xaml at 2.51%/3.06% pixel diff (SSIM 0.941 L / 0.938 D), matching the green xaml column (2.54%/3.09%); residual is the exempt harness inset. Bold LightGreen headers, item rows, and orange footers all match.
 
 #### ⏳ Gemini Review
 

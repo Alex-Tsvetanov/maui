@@ -82,7 +82,8 @@ namespace maui::samples
         switch_grouping_page()
         {
             page_.set_title("Switch Grouping");
-            outer_.set_spacing(4);
+            // Outer StackLayout has no Spacing in the shared XAML -> MAUI default 0 (was 4, which shifted
+            // the whole grouped list ~4px below the xaml column and tripped the cpp/xaml consistency guard).
 
             // ---- the "Is Grouped:" row: a horizontal StackLayout > Label + Switch ----
             grouped_label_.set_text("Is Grouped:");
@@ -108,6 +109,10 @@ namespace maui::samples
             group_header->set_binding<std::string, team_key>(maui::controls::label::text_property(),
                                                              [](const team_key& key) { return key.name; });
             group_header->set_value(maui::controls::label::text_color_property(), maui::graphics::colors::light_green);
+            // FontAttributes="Bold" (shared XAML GroupHeaderTemplate) — was missing, so the green header
+            // rendered in regular weight (thinner -> lower green-pixel coverage vs MAUI/xaml).
+            group_header->set_value(maui::controls::label::font_property(),
+                                    maui::core::font::system_font_of_weight(maui::core::font_weight::bold));
             list_.set_group_header_template(group_header);
 
             // ---- the group footer template: an Orange Label bound to Team.Count, formatted like
