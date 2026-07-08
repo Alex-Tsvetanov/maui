@@ -16617,24 +16617,24 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: Content and text match MAUI in both themes, but the three section titles ('Hover, press, and release me!', 'Hover me!', 'Hover me green!') render as large bold headline-style text in C++, whereas MAUI renders them as plain small text at the same size/weight as the description line below. This is a real font-size/weight content difference in both light and dark. cpp verdict = yellow."
+          "status": "green",
+          "review": "Matches MAUI in both themes. The three section titles ('Hover, press, and release me!', 'Hover me!', 'Hover me green!') now render at FontSize=24 like MAUI \u2014 the shared XAML twin had DROPPED the FontSize=\"24\" that the original PointerGestureGalleryPage.xaml sets on pgrLabel/hoverLabel/colorfulHoverLabel (a P2-conversion fidelity defect); restored it so MauiReference renders the large titles. cpp==xaml==MAUI at ~1.2% (exempt harness inset). Description lines + layout all align."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "yellow",
-          "review": "C2/C4: Same issue as the cpp build \u2014 the three section titles render large and bold in C++&XAML while MAUI renders them as plain small text matching the description line's size/weight, in both light and dark. xaml verdict = yellow."
+          "status": "green",
+          "review": "Matches MAUI in both themes. The three section titles ('Hover, press, and release me!', 'Hover me!', 'Hover me green!') now render at FontSize=24 like MAUI \u2014 the shared XAML twin had DROPPED the FontSize=\"24\" that the original PointerGestureGalleryPage.xaml sets on pgrLabel/hoverLabel/colorfulHoverLabel (a P2-conversion fidelity defect); restored it so MauiReference renders the large titles. cpp==xaml==MAUI at ~1.2% (exempt harness inset). Description lines + layout all align."
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9492, 3.96% pixels differ \u00b7 Dark: SSIM 0.9327, 4.32% pixels differ"
+          "review": "Light: SSIM 0.9650, 1.20% pixels differ \u00b7 Dark: SSIM 0.9603, 1.55% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9716, 0.89% pixels differ \u00b7 Dark: SSIM 0.9708, 1.14% pixels differ"
+          "review": "Light: SSIM 0.9642, 1.24% pixels differ \u00b7 Dark: SSIM 0.9594, 1.58% pixels differ"
         },
         "consistency": {
           "status": "ok",

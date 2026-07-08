@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 152 | 0 |
-| 🟡 Minor | 23 | 0 |
+| 🟢 Match | 153 | 0 |
+| 🟡 Minor | 22 | 0 |
 | 🔴 Major | 1 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -6218,16 +6218,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 136. Pointer Gesture — 🟡/⏳
+### 136. Pointer Gesture — 🟢/⏳
 <sub>pointer_gesture</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/pointer_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/pointer_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/pointer_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/pointer_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/pointer_gesture_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/pointer_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/pointer_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/pointer_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/pointer_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/pointer_gesture_dark.png" /></td></tr></table>
 
 ports PointerGestureGalleryPage.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.PointerGestureGalleryPage)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: Content and text match MAUI in both themes, but the three section titles ('Hover, press, and release me!', 'Hover me!', 'Hover me green!') render as large bold headline-style text in C++, whereas MAUI renders them as plain small text at the same size/weight as the description line below. This is a real font-size/weight content difference in both light and dark. cpp verdict = yellow.
+Matches MAUI in both themes. The three section titles ('Hover, press, and release me!', 'Hover me!', 'Hover me green!') now render at FontSize=24 like MAUI — the shared XAML twin had DROPPED the FontSize="24" that the original PointerGestureGalleryPage.xaml sets on pgrLabel/hoverLabel/colorfulHoverLabel (a P2-conversion fidelity defect); restored it so MauiReference renders the large titles. cpp==xaml==MAUI at ~1.2% (exempt harness inset). Description lines + layout all align.
 
 #### ⏳ Gemini Review
 
