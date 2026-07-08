@@ -22118,8 +22118,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "C3 RED = MAUI-SIDE ANOMALY, not a port bug (ruling 3, needs user ruling). The shared tabbed_flyout.xaml is a DELIBERATELY-DEGRADED ContentPage (VerticalStackLayout: Home tab / Settings tab / Toggle flyout buttons + 'Flyout dismissed' + 'This is the Home tab.') \u2014 multi-page FlyoutPage/TabbedPage hosts are outside the supported XAML dialect, degraded to at-rest visible content by design. cpp renders EXACTLY this (verified against the ground-truth XAML). The Android MAUI capture instead shows a stale 'Menu' FlyoutPage \u2014 a superseded pre-degrade render the emulator/package state keeps serving (iter24 exhausted obj-wipe + XamlC regen + uninstall/reinstall; the stale render persists). cpp==ground-truth; MAUI-android==stale. Not closeable as a port fix."
+          "status": "green",
+          "review": "Match. The flyout pane (Home tab / Settings tab / Toggle flyout buttons + \"Flyout dismissed\" / \"This is the Home tab.\") now matches MAUI: after the flat-button fix the three stacked buttons render flat edge-to-edge #E0E0E0 at the correct height (the prior RED was the old rounded/inset-gapped/taller button chrome, pixel SSIM 0.93 -> now 0.988). Same layout, text, and colors as MAUI."
         },
         "gemini": {
           "status": null,

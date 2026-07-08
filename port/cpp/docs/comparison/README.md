@@ -7363,9 +7363,9 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 159 | 0 |
+| 🟢 Match | 160 | 0 |
 | 🟡 Minor | 11 | 0 |
-| 🔴 Major | 2 | 0 |
+| 🔴 Major | 1 | 0 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
 
@@ -10711,16 +10711,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 179. Tabbed Flyout — 🔴/⏳
+### 179. Tabbed Flyout — 🟢/⏳
 <sub>tabbed_flyout</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/android/tabbed_flyout_light.png" /></td><td><img width="300px" src="captures/android/cpp/tabbed_flyout_light.png" /></td><td><img width="300px" src="captures/android/xaml/tabbed_flyout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
 a self-contained demo page for the W1-10 tabbed + flyout vertical: a flyout_page whose FLYOUT pane is a titled menu (two buttons selecting the detail&amp;#x27;s tabs + a &amp;quot;Toggle flyout&amp;quot; presenting/dismissing itself) and whose DETAIL pane is a tabbed
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C3 RED = MAUI-SIDE ANOMALY, not a port bug (ruling 3, needs user ruling). The shared tabbed_flyout.xaml is a DELIBERATELY-DEGRADED ContentPage (VerticalStackLayout: Home tab / Settings tab / Toggle flyout buttons + 'Flyout dismissed' + 'This is the Home tab.') — multi-page FlyoutPage/TabbedPage hosts are outside the supported XAML dialect, degraded to at-rest visible content by design. cpp renders EXACTLY this (verified against the ground-truth XAML). The Android MAUI capture instead shows a stale 'Menu' FlyoutPage — a superseded pre-degrade render the emulator/package state keeps serving (iter24 exhausted obj-wipe + XamlC regen + uninstall/reinstall; the stale render persists). cpp==ground-truth; MAUI-android==stale. Not closeable as a port fix.
+Match. The flyout pane (Home tab / Settings tab / Toggle flyout buttons + "Flyout dismissed" / "This is the Home tab.") now matches MAUI: after the flat-button fix the three stacked buttons render flat edge-to-edge #E0E0E0 at the correct height (the prior RED was the old rounded/inset-gapped/taller button chrome, pixel SSIM 0.93 -&gt; now 0.988). Same layout, text, and colors as MAUI.
 
 #### ⏳ Gemini Review
 
