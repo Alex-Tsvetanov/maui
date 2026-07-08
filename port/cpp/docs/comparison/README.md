@@ -11,8 +11,8 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 157 | 0 |
-| 🟡 Minor | 14 | 0 |
+| 🟢 Match | 158 | 0 |
+| 🟡 Minor | 13 | 0 |
 | 🔴 Major | 0 | 0 |
 | ⬛ Blank | 1 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
@@ -2105,16 +2105,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 113. Ios Scroll View — 🟡/⏳
+### 113. Ios Scroll View — 🟢/⏳
 <sub>ios_scroll_view</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/ios_scroll_view_light.png" /></td><td><img width="300px" src="captures/ios/cpp/ios_scroll_view_light.png" /></td><td><img width="300px" src="captures/ios/xaml/ios_scroll_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/ios_scroll_view_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/ios_scroll_view_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/ios_scroll_view_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/ios_scroll_view_light.png" /></td><td><img width="300px" src="captures/ios/cpp/ios_scroll_view_light.png" /></td><td><img width="300px" src="captures/ios/xaml/ios_scroll_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/ios/ios_scroll_view_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/ios_scroll_view_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/ios_scroll_view_dark.png" /></td></tr></table>
 
 ports iOSScrollViewPage.xaml (+ iOSScrollViewPage.xaml.cs)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Cpp renders an extra circular back-navigation chevron button near the top-left in both themes that MAUI does not show; otherwise slider and links match.
+Pixel-perfect match in both themes (cpp-vs-MAUI 0.07%/0.08%, SSIM 0.998). The earlier 'extra back chevron' was a CAPTURE ARTIFACT (a SpringBoard back-to-previous-app overlay that leaked into the cpp screenshot when capture switched apps), NOT a port bug — iter35's lldb view hierarchy already proved the app renders no chevron. Recaptured cleanly via the WS-E flow (warm-up launch + same-app relaunch + settle) against a fresh MauiReference iOS baseline: slider, 'Toggle ScrollView DelayContentTouches', and 'Return to Platform-Specifics List' all align exactly.
 
 #### ⏳ Gemini Review
 
