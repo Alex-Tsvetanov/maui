@@ -130,6 +130,22 @@ namespace
     constexpr double k_default_padding_horizontal = 16;
     constexpr double k_default_padding_vertical = 8.5;
 
+    // MauiMaterialButton's flat filled look (pixel-verified vs docs/comparison/android/maui/{button,
+    // custom_layout}.png): a solid opaque #E0E0E0 fill with near-square ~4dp Material-default corners,
+    // installed edge-to-edge in place of the framework InsetDrawable — whose inset gap, over-rounded
+    // corners, and near-invisible disabled fill were the dominant Android button parity diff. A disabled
+    // button keeps the #E0E0E0 fill and dims only its label to #8B8B8B (black @38% over #E0E0E0). The
+    // ~36dp button height is content-driven (the 8.5dp vertical padding), NOT a hard min-height floor.
+    constexpr auto k_material_default_button_color = static_cast<jint>(0xFFE0E0E0U);
+    constexpr double k_material_button_corner_radius = 4;
+    // MauiMaterialButton REMOVES the framework's 88x48dp Material minimum (styles.xml "MAUI manages it"), so a
+    // one-line button realizes ~36dp = 2x8.5dp vertical padding + ~19dp text line (pixel-verified vs the MAUI
+    // android captures). The plain android.widget.Button we build off Widget_Material_Light_Button KEEPS that
+    // 48dp minHeight, rendering ~11dp too tall; override it down to the content-driven ~36dp floor so buttons
+    // match MAUI without collapsing (0 would let TextView.onMeasure drop to text-only at map time).
+    constexpr double k_material_button_min_height = 36;
+    constexpr auto k_material_disabled_text_color = static_cast<jint>(0xFF8B8B8BU);
+
     // FontManager.DefaultFontSize (Android) — 14sp.
     constexpr float k_default_font_size = 14.0F;
 
@@ -380,6 +396,119 @@ namespace
         return fresh;
     }
 
+    // Replace the framework Material InsetDrawable background with MAUI's flat MauiMaterialButton fill: a
+    // solid #E0E0E0 GradientDrawable with ~4dp corners, installed edge-to-edge (no inset gap between docked
+    // buttons, no near-invisible disabled state). setBackground zeroes the view's padding to the drawable's
+    // own 0, so the Material content padding (16dp h / 8.5dp v) is re-supplied afterward — that padding, not
+    // a hard min-height, drives the button's ~36dp content-driven height (matching MAUI, not a 48dp floor).
+    // All JNI guarded and VM-less safe; a clean no-op when the GradientDrawable class can't be resolved.
+    void install_flat_material_background(JNIEnv* env, jobject widget)
+    {
+        const local_ref<jobject> drawable = maui_background_drawable(env, widget, /*install=*/true);
+        if (!drawable)
+        {
+            return;
+        }
+        auto& cache = default_jni_cache();
+        jmethodID set_color = cache.method(env, k_gradient_drawable_class, "setColor", "(I)V");
+        jmethodID set_corner_radius = cache.method(env, k_gradient_drawable_class, "setCornerRadius", "(F)V");
+        if (set_color == nullptr || set_corner_radius == nullptr)
+        {
+            return;
+        }
+        const float density = display_density(env, widget);
+        env->CallVoidMethod(drawable.get(), set_color, k_material_default_button_color);
+        if (clear_pending(env))
+        {
+            return;
+        }
+        env->CallVoidMethod(drawable.get(), set_corner_radius,
+                            static_cast<jfloat>(to_pixels(k_material_button_corner_radius, density)));
+        if (clear_pending(env))
+        {
+            return;
+        }
+        // Re-supply the Material content padding setBackground just cleared (ButtonHandler.DefaultPadding).
+        jmethodID set_padding = cache.method(env, k_button_class, "setPadding", "(IIII)V");
+        if (set_padding != nullptr)
+        {
+            const jint px_h = to_pixels(k_default_padding_horizontal, density);
+            const jint px_v = to_pixels(k_default_padding_vertical, density);
+            env->CallVoidMethod(widget, set_padding, px_h, px_v, px_h, px_v);
+            clear_pending(env);
+        }
+        // Override the framework style's 48dp Material minimum down to MAUI's content-driven ~36dp so the flat
+        // button matches MAUI's height (TextView.setMinHeight AND View.setMinimumHeight — onMeasure enforces the
+        // TextView pixel minimum separately from getSuggestedMinimumHeight).
+        const jint min_px = to_pixels(k_material_button_min_height, density);
+        jmethodID set_min_height = cache.method(env, k_button_class, "setMinHeight", "(I)V");
+        if (set_min_height != nullptr)
+        {
+            env->CallVoidMethod(widget, set_min_height, min_px);
+            clear_pending(env);
+        }
+        jmethodID set_minimum_height = cache.method(env, k_button_class, "setMinimumHeight", "(I)V");
+        if (set_minimum_height != nullptr)
+        {
+            env->CallVoidMethod(widget, set_minimum_height, min_px);
+            clear_pending(env);
+        }
+    }
+
+    // Install a two-state text ColorStateList {disabled → disabled_argb, default → default_argb} so the
+    // framework dims the label to the Material disabled color when the button is disabled and restores the
+    // resolved color when enabled — the stateful analog of MaterialButton's captured _defaultTextColors, with
+    // no manual repaint on each setEnabled. Returns false (caller falls back to a plain setTextColor) on any
+    // JNI failure or the VM-less path. Every ref is local; pending exceptions are cleared.
+    [[nodiscard]] bool set_text_color_state_list(JNIEnv* env, jobject widget, jint default_argb, jint disabled_argb)
+    {
+        auto& cache = default_jni_cache();
+        jclass color_state_list_class = cache.find_class(env, "android/content/res/ColorStateList");
+        jmethodID ctor = cache.method(env, "android/content/res/ColorStateList", "<init>", "([[I[I)V");
+        jmethodID set_text_color =
+            cache.method(env, k_button_class, "setTextColor", "(Landroid/content/res/ColorStateList;)V");
+        jclass int_array_class = cache.find_class(env, "[I");
+        if (color_state_list_class == nullptr || ctor == nullptr || set_text_color == nullptr ||
+            int_array_class == nullptr)
+        {
+            return false;
+        }
+        // states = { {-state_enabled}, {} }: the disabled spec first, then the empty catch-all (ColorStateList
+        // returns the first matching spec's color). android.R.attr.state_enabled is the stable public framework
+        // id 0x0101009e — hardcoded to avoid an android.R$attr lookup per button.
+        constexpr jint k_state_enabled = 0x0101009e;
+        const jint disabled_spec = -k_state_enabled;
+        const local_ref<jintArray> disabled_state{env, env->NewIntArray(1)};
+        const local_ref<jintArray> default_state{env, env->NewIntArray(0)};
+        if (clear_pending(env) || !disabled_state || !default_state)
+        {
+            return false;
+        }
+        env->SetIntArrayRegion(disabled_state.get(), 0, 1, &disabled_spec);
+        const local_ref<jobjectArray> states{env, env->NewObjectArray(2, int_array_class, nullptr)};
+        if (clear_pending(env) || !states)
+        {
+            return false;
+        }
+        env->SetObjectArrayElement(states.get(), 0, disabled_state.get());
+        env->SetObjectArrayElement(states.get(), 1, default_state.get());
+        const std::array<jint, 2> color_values{disabled_argb, default_argb};
+        const local_ref<jintArray> colors{env, env->NewIntArray(2)};
+        if (clear_pending(env) || !colors)
+        {
+            return false;
+        }
+        env->SetIntArrayRegion(colors.get(), 0, 2, color_values.data());
+        const local_ref<jobject> state_list{env,
+                                            env->NewObject(color_state_list_class, ctor, states.get(), colors.get())};
+        if (clear_pending(env) || !state_list)
+        {
+            return false;
+        }
+        env->CallVoidMethod(widget, set_text_color, state_list.get());
+        return !clear_pending(env);
+    }
+
     // The native half of dev.mauicpp.NativeOnClickListener.nativeOnClick(long): the peer is the
     // handler's button_platform, and the wired on_click callback carries ButtonHandler.OnClick's
     // body (VirtualView.Clicked()). Bound via RegisterNatives (no Java_* export needed).
@@ -547,9 +676,10 @@ namespace maui::core
         }
         jobject widget = widget_of(*this);
         // ButtonExtensions.UpdateButtonBackground fills the maui drawable with the paint's color (the
-        // gradient/ripple layers are part of the documented Material deviation). A null paint clears
-        // OUR drawable's fill to transparent when one is installed; C#'s "recreate the default ripple"
-        // restore has no plain-widget analog (deviation), and an untouched button never installs one.
+        // gradient/ripple layers are part of the documented Material deviation). create_platform_view now
+        // installs a flat #E0E0E0 GradientDrawable up front, so a null paint (the initial mapper sweep, or a
+        // cleared Background) RESTORES that Material default fill rather than wiping it to transparent — the
+        // faithful analog of C#'s "recreate the default ripple" restore.
         const local_ref<jobject> drawable = maui_background_drawable(env.get(), widget, /*install=*/value != nullptr);
         if (!drawable)
         {
@@ -560,7 +690,8 @@ namespace maui::core
         {
             return;
         }
-        const jint argb = value != nullptr ? static_cast<jint>(value->background_color().to_int()) : 0;
+        const jint argb =
+            value != nullptr ? static_cast<jint>(value->background_color().to_int()) : k_material_default_button_color;
         env->CallVoidMethod(drawable.get(), set_color, argb);
         clear_pending(env.get());
     }
@@ -631,9 +762,14 @@ namespace maui::core
             }
             jobject widget = widget_of(*platform);
             // GetStrokeProperties with the port's non-nullable color: thickness < 0 → width 0
-            // (DefaultStrokeThicknessNoColor); radius < 0 cannot occur below the install gate.
+            // (DefaultStrokeThicknessNoColor). CornerRadius: a positive value wins; the port's default/unset 0
+            // (MAUI's -1 collapsed to 0 in button.cpp) keeps the flat Material default ~4dp shape that
+            // create_platform_view installs, so this connect-time sweep re-applies 4dp instead of squaring the
+            // corners to 0. ponytail: default 0 is indistinguishable from an explicit CornerRadius=0, so an
+            // explicit 0 also renders 4dp — restore the -1 sentinel in button.cpp if a square button matters.
             const double thickness = view.stroke_thickness() >= 0 ? view.stroke_thickness() : 0;
-            const int radius = view.corner_radius() >= 0 ? view.corner_radius() : 0;
+            const double radius =
+                view.corner_radius() > 0 ? static_cast<double>(view.corner_radius()) : k_material_button_corner_radius;
             const bool visible = thickness > 0 || radius > 0;
             const local_ref<jobject> drawable = maui_background_drawable(env.get(), widget, /*install=*/visible);
             if (!drawable)
@@ -654,8 +790,7 @@ namespace maui::core
             {
                 return;
             }
-            env->CallVoidMethod(drawable.get(), set_corner_radius,
-                                static_cast<jfloat>(to_pixels(static_cast<double>(radius), density)));
+            env->CallVoidMethod(drawable.get(), set_corner_radius, static_cast<jfloat>(to_pixels(radius, density)));
             clear_pending(env.get());
         }
     } // namespace
@@ -751,6 +886,11 @@ namespace maui::core
         // the native-default MAUI reference (see strip_elevation). Harmless on the plain-ctor fallback (that
         // widget has no animator/elevation, so the calls are no-ops).
         strip_elevation(env.get(), widget.get());
+        // Replace the framework Material InsetDrawable with MAUI's flat edge-to-edge #E0E0E0 fill (~4dp
+        // corners) and re-supply the content padding it carried — see install_flat_material_background. This
+        // is the safe form of the header's DEFERRED inset/corner cleanup: the padding re-supply provides the
+        // button's intrinsic sizing independently, so default (no-size-request) buttons no longer collapse.
+        install_flat_material_background(env.get(), widget.get());
         platform->native = env->NewGlobalRef(widget.get()); // released in ~button_platform
         return platform;
     }
@@ -898,7 +1038,15 @@ namespace maui::core
         const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
         // TextViewExtensions.UpdateTextColor: SetTextColor(textColor.ToPlatform()) — the ARGB int.
         const jint argb = color_is_set ? static_cast<jint>(view.text_color().to_int()) : k_material_default_text_color;
-        call_void_int(env.get(), widget_of(*platform), "setTextColor", argb);
+        // A disabled MauiMaterialButton dims its label to black@38% over the #E0E0E0 fill (#8B8B8B) while the
+        // fill stays solid. Install a two-state text ColorStateList {disabled → #8B8B8B, default → the resolved
+        // color} so setEnabled dims/restores the label automatically (no per-toggle repaint). Fall back to the
+        // plain single-color setTextColor if the ColorStateList can't be built (missing class / VM-less).
+        jobject widget = widget_of(*platform);
+        if (!set_text_color_state_list(env.get(), widget, argb, k_material_disabled_text_color))
+        {
+            call_void_int(env.get(), widget, "setTextColor", argb);
+        }
     }
 
     void button_handler::map_font(button_handler& handler, i_text_button& view)

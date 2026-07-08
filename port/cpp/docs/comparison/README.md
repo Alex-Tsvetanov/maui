@@ -7363,8 +7363,8 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 157 | 0 |
-| 🟡 Minor | 13 | 0 |
+| 🟢 Match | 159 | 0 |
+| 🟡 Minor | 11 | 0 |
 | 🔴 Major | 2 | 0 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
@@ -7473,7 +7473,7 @@ ports AnimationPage.xaml (+ AnimationPage.xaml.cs)
 
 #### 🟡 Sonnet 5 Review
 
-The 'Cancel Animation' button renders nearly invisible (very light gray) in cpp while MAUI shows it with the same solid gray as the other buttons, indicating a disabled-state color difference.
+Improved (flat-button fix): the disabled "Cancel Animation" button now renders a SOLID #E0E0E0 fill with dimmed #8B8B8B text like MAUI (was a near-invisible light-gray box). Residual (keeps it yellow): MAUI vertically centers the bot image and pushes the three buttons to the screen bottom (StackLayout CenterAndExpand) while cpp top-packs them — a layout-expansion diff, not a button-chrome one. Both themes.
 
 #### ⏳ Gemini Review
 
@@ -8104,16 +8104,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 40. Custom Layout — 🟡/⏳
+### 40. Custom Layout — 🟢/⏳
 <sub>custom_layout</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/android/custom_layout_light.png" /></td><td><img width="300px" src="captures/android/cpp/custom_layout_light.png" /></td><td><img width="300px" src="captures/android/xaml/custom_layout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
 ports CustomLayoutPage.xaml (+ CustomLayoutPage.xaml.cs)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-MAUI's Top/Bottom bars render as translucent gray with small triangle corner markers while C++ renders them as solid flat gray rectangles without the markers; layout and text otherwise match.
+Match. The Top/Bottom/Left/Right docked default buttons now render as flat, contiguous, edge-to-edge #E0E0E0 blocks (no inset gaps, near-square) with the small triangle corner markers, matching MAUI (was solid rounded rectangles with ~4dp inset gaps). The flat-button-widget fix. Both themes.
 
 #### ⏳ Gemini Review
 
@@ -9618,7 +9618,7 @@ ports LayoutIsEnabledPage.xaml (+ LayoutIsEnabledPage.xaml.cs) The C# page demon
 
 #### 🟡 Sonnet 5 Review
 
-Layout structure and text match, but the 'disabled' background/box colors are noticeably lighter/less saturated in the C++ render than MAUI's darker gray-blue tint.
+Improved (flat-button fix, SSIM 0.65-&gt;0.87): the 26 default buttons now render flat edge-to-edge #E0E0E0 at the correct height with MAUI-tight inter-button spacing (was inset-gapped). Residual (keeps it yellow): the disabled colored sub-stack backgrounds (LightBlue/LightPink/LightSeaGreen boxes) render lighter/less-saturated in cpp than MAUI. Both themes.
 
 #### ⏳ Gemini Review
 
@@ -9856,16 +9856,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 134. Picker — 🟡/⏳
+### 134. Picker — 🟢/⏳
 <sub>picker</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/android/picker_light.png" /></td><td><img width="300px" src="captures/android/cpp/picker_light.png" /></td><td><img width="300px" src="captures/android/xaml/picker_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
 ports PickerPage.xaml (+ PickerPage.xaml.cs) A self-contained, code-first demo page for the Picker control (the C# gallery-page convention, mirroring the value_controls_page / pickers_page pattern)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Improved but still minor. After commit 36ebc32101 (picker: mirror XAML document order so SelectedIndex coerces to -1 like MAUI) the two preset-selection pickers ("SelectedIndex=1" / "SelectedIndexChanged") now correctly show the "Select an item" Title placeholder matching MAUI (the prior 2026-07-05 capture showed a stale "Item 2"). Residual: the three dynamic-items buttons (Clear/Add/Replace) render with larger inter-button vertical gaps than MAUI, pushing the bottom green markup picker partly off-screen — the android StackLayout inter-element spacing issue (shared with layout_is_enabled), not a picker bug.
+Match. The android Button now renders flat edge-to-edge #E0E0E0 (MAUI MauiMaterialButton look) at the correct ~36dp height, so the Clear/Add/Replace dynamic-items buttons have MAUI-tight spacing and the bottom green markup picker fits on screen (was pushed off by the old taller/inset-gapped buttons). The two preset pickers already show the "Select an item" Title (ruling-8). Both themes.
 
 #### ⏳ Gemini Review
 
