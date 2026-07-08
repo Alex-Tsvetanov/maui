@@ -10,7 +10,7 @@
          Button Clicked handlers (ScrollTo navigation) are omitted per the dialect; only the ItemsSource
          wiring is added. -->
     <VerticalStackLayout Spacing="12">
-        <Grid RowSpacing="6" ColumnSpacing="6">
+        <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -27,7 +27,7 @@
             <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Text="Go" />
         </Grid>
 
-        <Grid RowSpacing="6" ColumnSpacing="6">
+        <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />

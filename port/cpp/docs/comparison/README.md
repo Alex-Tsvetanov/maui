@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 153 | 0 |
-| 🟡 Minor | 22 | 0 |
+| 🟢 Match | 154 | 0 |
+| 🟡 Minor | 21 | 0 |
 | 🔴 Major | 1 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -6560,16 +6560,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 154. Scroll To Group — 🟡/⏳
+### 154. Scroll To Group — 🟢/⏳
 <sub>scroll_to_group</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/scroll_to_group_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/scroll_to_group_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/scroll_to_group_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/scroll_to_group_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/scroll_to_group_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/scroll_to_group_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/scroll_to_group_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/scroll_to_group_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/scroll_to_group_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/scroll_to_group_dark.png" /></td></tr></table>
 
 ports ScrollToGalleries/ScrollToGroup.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Grouped roster + green group-header TEXT + orange footers match MAUI, but the Group/Item Stepper region renders slightly differently from the xaml/MAUI path (localized cpp&lt;-&gt;xaml delta, SSIM 0.92 light / 0.90 dark; group text itself matches: 5000 green px == MAUI 5061). xaml matches MAUI.
+Matches MAUI in both themes. The Group/Item + Group-Name/Item-Name entry Grids now render tight (0 gaps) like MAUI — the shared XAML twin had ADDED RowSpacing=6/ColumnSpacing=6 that the original ScrollToGroup.xaml lacks (MAUI Grid spacing defaults to 0); removed it so MauiReference renders tight, matching the cpp builder (which already sets no Grid spacing) and real MAUI. Entries, Go buttons, green group headers (Avengers/Fantastic Four/...), and orange 'Total members' footers all align; residual pixel% is the exempt harness inset (shared with the green xaml column).
 
 #### ⏳ Gemini Review
 
