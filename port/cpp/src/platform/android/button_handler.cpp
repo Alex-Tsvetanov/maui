@@ -134,9 +134,14 @@ namespace
     // custom_layout}.png): a solid opaque #E0E0E0 fill with near-square ~4dp Material-default corners,
     // installed edge-to-edge in place of the framework InsetDrawable — whose inset gap, over-rounded
     // corners, and near-invisible disabled fill were the dominant Android button parity diff. A disabled
-    // button keeps the #E0E0E0 fill and dims only its label to #8B8B8B (black @38% over #E0E0E0). The
-    // ~36dp button height is content-driven (the 8.5dp vertical padding), NOT a hard min-height floor.
+    // MauiMaterialButton dims its container to colorOnSurface@12% (translucent black) and its label to
+    // colorOnSurface@38% — TRANSLUCENT overlays, so a colored parent panel bleeds through (layout_is_enabled:
+    // a LightBlue panel behind a disabled button reads (152,190,202) = panel x 0.88, not opaque #E0E0E0).
+    // Over a white parent both composite to the historical #E0E0E0 fill / #8B8B8B label, so white-bg pages are
+    // unchanged. The ~36dp button height is content-driven (the 8.5dp vertical padding), NOT a min-height floor.
     constexpr auto k_material_default_button_color = static_cast<jint>(0xFFE0E0E0U);
+    // Disabled-state overlays (colorOnSurface = black in the light Material theme): container @~12%, label @~38%.
+    constexpr auto k_material_disabled_button_color = static_cast<jint>(0x1F000000U); // black @ ~12% alpha
     constexpr double k_material_button_corner_radius = 4;
     // MauiMaterialButton REMOVES the framework's 88x48dp Material minimum (styles.xml "MAUI manages it"), so a
     // one-line button realizes ~36dp = 2x8.5dp vertical padding + ~19dp text line (pixel-verified vs the MAUI
@@ -144,7 +149,8 @@ namespace
     // 48dp minHeight, rendering ~11dp too tall; override it down to the content-driven ~36dp floor so buttons
     // match MAUI without collapsing (0 would let TextView.onMeasure drop to text-only at map time).
     constexpr double k_material_button_min_height = 36;
-    constexpr auto k_material_disabled_text_color = static_cast<jint>(0xFF8B8B8BU);
+    constexpr auto k_material_disabled_text_color =
+        static_cast<jint>(0x61000000U); // black @ ~38% alpha (composites over the panel, not a baked #8B8B8B)
 
     // FontManager.DefaultFontSize (Android) — 14sp.
     constexpr float k_default_font_size = 14.0F;
@@ -396,6 +402,9 @@ namespace
         return fresh;
     }
 
+    // Forward decl: the stateful-fill helper is defined below (next to set_text_color_state_list) but used here.
+    [[nodiscard]] bool set_fill_color_state_list(JNIEnv* env, jobject drawable, jint default_argb, jint disabled_argb);
+
     // Replace the framework Material InsetDrawable background with MAUI's flat MauiMaterialButton fill: a
     // solid #E0E0E0 GradientDrawable with ~4dp corners, installed edge-to-edge (no inset gap between docked
     // buttons, no near-invisible disabled state). setBackground zeroes the view's padding to the drawable's
@@ -417,7 +426,13 @@ namespace
             return;
         }
         const float density = display_density(env, widget);
-        env->CallVoidMethod(drawable.get(), set_color, k_material_default_button_color);
+        // Stateful fill so a disabled button dims to colorOnSurface@12% (bleeding a colored parent through)
+        // rather than staying opaque #E0E0E0; fall back to the plain opaque fill if the CSL can't be built.
+        if (!set_fill_color_state_list(env, drawable.get(), k_material_default_button_color,
+                                       k_material_disabled_button_color))
+        {
+            env->CallVoidMethod(drawable.get(), set_color, k_material_default_button_color);
+        }
         if (clear_pending(env))
         {
             return;
@@ -506,6 +521,58 @@ namespace
             return false;
         }
         env->CallVoidMethod(widget, set_text_color, state_list.get());
+        return !clear_pending(env);
+    }
+
+    // Fill the flat GradientDrawable with a two-state ColorStateList {disabled → disabled_argb, default →
+    // default_argb} via GradientDrawable.setColor(ColorStateList) (API 21+; a ColorStateList makes the drawable
+    // stateful, so the View's drawableStateChanged on setEnabled auto-switches the fill — no manual repaint).
+    // The disabled fill is a TRANSLUCENT overlay (colorOnSurface@12%) so a colored parent panel bleeds through,
+    // matching MAUI; over white it composites to the same #E0E0E0. Returns false (caller falls back to a plain
+    // setColor(I)) on any JNI failure or the VM-less path. Mirrors set_text_color_state_list's state array.
+    [[nodiscard]] bool set_fill_color_state_list(JNIEnv* env, jobject drawable, jint default_argb, jint disabled_argb)
+    {
+        auto& cache = default_jni_cache();
+        jclass color_state_list_class = cache.find_class(env, "android/content/res/ColorStateList");
+        jmethodID ctor = cache.method(env, "android/content/res/ColorStateList", "<init>", "([[I[I)V");
+        jmethodID set_color_csl =
+            cache.method(env, k_gradient_drawable_class, "setColor", "(Landroid/content/res/ColorStateList;)V");
+        jclass int_array_class = cache.find_class(env, "[I");
+        if (color_state_list_class == nullptr || ctor == nullptr || set_color_csl == nullptr ||
+            int_array_class == nullptr)
+        {
+            return false;
+        }
+        constexpr jint k_state_enabled = 0x0101009e; // android.R.attr.state_enabled (stable public id)
+        const jint disabled_spec = -k_state_enabled;
+        const local_ref<jintArray> disabled_state{env, env->NewIntArray(1)};
+        const local_ref<jintArray> default_state{env, env->NewIntArray(0)};
+        if (clear_pending(env) || !disabled_state || !default_state)
+        {
+            return false;
+        }
+        env->SetIntArrayRegion(disabled_state.get(), 0, 1, &disabled_spec);
+        const local_ref<jobjectArray> states{env, env->NewObjectArray(2, int_array_class, nullptr)};
+        if (clear_pending(env) || !states)
+        {
+            return false;
+        }
+        env->SetObjectArrayElement(states.get(), 0, disabled_state.get());
+        env->SetObjectArrayElement(states.get(), 1, default_state.get());
+        const std::array<jint, 2> color_values{disabled_argb, default_argb};
+        const local_ref<jintArray> colors{env, env->NewIntArray(2)};
+        if (clear_pending(env) || !colors)
+        {
+            return false;
+        }
+        env->SetIntArrayRegion(colors.get(), 0, 2, color_values.data());
+        const local_ref<jobject> state_list{env,
+                                            env->NewObject(color_state_list_class, ctor, states.get(), colors.get())};
+        if (clear_pending(env) || !state_list)
+        {
+            return false;
+        }
+        env->CallVoidMethod(drawable, set_color_csl, state_list.get());
         return !clear_pending(env);
     }
 
@@ -690,9 +757,20 @@ namespace maui::core
         {
             return;
         }
-        const jint argb =
-            value != nullptr ? static_cast<jint>(value->background_color().to_int()) : k_material_default_button_color;
-        env->CallVoidMethod(drawable.get(), set_color, argb);
+        if (value == nullptr)
+        {
+            // Restore the flat default with the SAME stateful fill create_platform_view installs, so a null/
+            // cleared paint doesn't clobber the disabled colorOnSurface@12% state back to an opaque #E0E0E0.
+            if (!set_fill_color_state_list(env.get(), drawable.get(), k_material_default_button_color,
+                                           k_material_disabled_button_color))
+            {
+                env->CallVoidMethod(drawable.get(), set_color, k_material_default_button_color);
+            }
+            clear_pending(env.get());
+            return;
+        }
+        // An explicit BackgroundColor is a single opaque fill (MAUI's ButtonExtensions.UpdateButtonBackground).
+        env->CallVoidMethod(drawable.get(), set_color, static_cast<jint>(value->background_color().to_int()));
         clear_pending(env.get());
     }
 

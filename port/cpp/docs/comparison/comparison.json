@@ -14752,8 +14752,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "Improved (flat-button fix, SSIM 0.65->0.87): the 26 default buttons now render flat edge-to-edge #E0E0E0 at the correct height with MAUI-tight inter-button spacing (was inset-gapped). Residual (keeps it yellow): the disabled colored sub-stack backgrounds (LightBlue/LightPink/LightSeaGreen boxes) render lighter/less-saturated in cpp than MAUI. Both themes."
+          "status": "green",
+          "review": "Disabled buttons now match MAUI's Material disabled state: the container dims to colorOnSurface@12% (translucent black) and the label to @38%, so the colored parent panel bleeds through (LightBlue disabled button -> (152,190,202)=panel x 0.88; teal/pink panels likewise), instead of the port's former opaque #E0E0E0 fill + baked #8B8B8B label. Enabled buttons stay opaque #E0E0E0; white-bg pages (button) are pixel-identical (black@12% over white = #E0E0E0). Fix: stateful GradientDrawable.setColor(ColorStateList) {disabled->0x1F000000, enabled->0xFFE0E0E0} in button_handler.cpp install + unset-background restore, plus disabled text ColorStateList -> black@38% (0x61000000). Pixel 42.76%->12.24% (SSIM 0.87->0.96); residual is whole-page translucency/anti-aliasing across the 2-column x 6-panel layout, comparable to green sibling header_footer_grid (11.85%). android-only handler -> no iOS/maccatalyst effect."
         },
         "gemini": {
           "status": null,
@@ -14761,7 +14761,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8735, 42.76% pixels differ"
+          "review": "Light: SSIM 0.9603, 12.24% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",

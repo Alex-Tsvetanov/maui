@@ -7363,8 +7363,8 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 160 | 0 |
-| 🟡 Minor | 11 | 0 |
+| 🟢 Match | 161 | 0 |
+| 🟡 Minor | 10 | 0 |
 | 🔴 Major | 1 | 0 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
@@ -9609,16 +9609,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 121. Layout Is Enabled — 🟡/⏳
+### 121. Layout Is Enabled — 🟢/⏳
 <sub>layout_is_enabled</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/android/layout_is_enabled_light.png" /></td><td><img width="300px" src="captures/android/cpp/layout_is_enabled_light.png" /></td><td><img width="300px" src="captures/android/xaml/layout_is_enabled_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
 ports LayoutIsEnabledPage.xaml (+ LayoutIsEnabledPage.xaml.cs) The C# page demonstrates how IsEnabled on a layout cascades to its children: a 2x2 grid whose left column hosts a &amp;quot;MainLayout&amp;quot; full of state-demo sub-stacks (all-enabled / all-d
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Improved (flat-button fix, SSIM 0.65-&gt;0.87): the 26 default buttons now render flat edge-to-edge #E0E0E0 at the correct height with MAUI-tight inter-button spacing (was inset-gapped). Residual (keeps it yellow): the disabled colored sub-stack backgrounds (LightBlue/LightPink/LightSeaGreen boxes) render lighter/less-saturated in cpp than MAUI. Both themes.
+Disabled buttons now match MAUI's Material disabled state: the container dims to colorOnSurface@12% (translucent black) and the label to @38%, so the colored parent panel bleeds through (LightBlue disabled button -&gt; (152,190,202)=panel x 0.88; teal/pink panels likewise), instead of the port's former opaque #E0E0E0 fill + baked #8B8B8B label. Enabled buttons stay opaque #E0E0E0; white-bg pages (button) are pixel-identical (black@12% over white = #E0E0E0). Fix: stateful GradientDrawable.setColor(ColorStateList) {disabled-&gt;0x1F000000, enabled-&gt;0xFFE0E0E0} in button_handler.cpp install + unset-background restore, plus disabled text ColorStateList -&gt; black@38% (0x61000000). Pixel 42.76%-&gt;12.24% (SSIM 0.87-&gt;0.96); residual is whole-page translucency/anti-aliasing across the 2-column x 6-panel layout, comparable to green sibling header_footer_grid (11.85%). android-only handler -&gt; no iOS/maccatalyst effect.
 
 #### ⏳ Gemini Review
 
