@@ -108,16 +108,22 @@ namespace maui::samples
 
             // Three buttons: Scale=1, Scale=2 (overlaps its neighbors when scaled), Rotation=20.
             // XAML: the Scale buttons carry FontAttributes="Bold" (Rotation=20 does not).
+            // XAML: all three buttons carry HorizontalOptions="Center" (content-width, centered). iOS/macCatalyst
+            // native buttons content-size regardless, but the android native button fills full-width without it.
+            const auto center = maui::core::layout_alignment::center;
             scale1_btn_.set_text("Scale = 1");
             scale1_btn_.set_scale(1);
+            scale1_btn_.set_horizontal_layout_alignment(center);
             scale1_btn_.set_font(
                 maui::core::font::system_font_of_size(scale1_btn_.font().size(), maui::core::font_weight::bold));
             scale2_btn_.set_text("Scale = 2");
             scale2_btn_.set_scale(2); // doubled — its bounds overlap the rows above/below
+            scale2_btn_.set_horizontal_layout_alignment(center);
             scale2_btn_.set_font(
                 maui::core::font::system_font_of_size(scale2_btn_.font().size(), maui::core::font_weight::bold));
             rotate_btn_.set_text("Rotation = 20");
             rotate_btn_.set_rotation(20);
+            rotate_btn_.set_horizontal_layout_alignment(center);
 
             // An ellipse + a rounded (unfilled) Rectangle (the RoundRectangle stand-in) + an image.
             oval_.set_stroke(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::green));

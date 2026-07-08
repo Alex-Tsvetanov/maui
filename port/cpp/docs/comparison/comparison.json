@@ -11462,8 +11462,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "Android: structure + text + shapes + transforms match the fresh MAUI ref (Selected/Rectangle checkbox, Start/End Lorem labels, Scale/Rotation buttons, green Ellipse + rounded Rectangle). REAL Android delta: the three buttons have HorizontalOptions=Center but cpp renders them FULL-WIDTH instead of content-width-centered (MAUI content-sizes them), so the Scale=2 (2x transform) button overflows the right edge. Android StackLayout/button cross-axis alignment doesn't content-size a Center button. Isolated Android layout bug for a targeted fix (not iOS/maccatalyst)."
+          "status": "green",
+          "review": "Matches the fresh MAUI ref. The three Scale/Rotation buttons now render CONTENT-WIDTH + centered (was full-width) \u2014 the cpp builder was missing the shared XAML's HorizontalOptions=\"Center\" on the buttons; iOS/macCatalyst native buttons content-size regardless (already green), but the android native button fills full-width without it. Added it -> Scale=1/Scale=2(2x)/Rotation=20(rotated) buttons match MAUI's sizing, the Scale=2 button no longer overflows the right edge. Checkbox, Start/End labels, green ellipse + rounded rectangle all align."
         },
         "gemini": {
           "status": null,

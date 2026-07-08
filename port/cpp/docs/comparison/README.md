@@ -7363,8 +7363,8 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 154 | 0 |
-| 🟡 Minor | 16 | 0 |
+| 🟢 Match | 155 | 0 |
+| 🟡 Minor | 15 | 0 |
 | 🔴 Major | 2 | 0 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
@@ -9117,16 +9117,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 95. Hit Testing — 🟡/⏳
+### 95. Hit Testing — 🟢/⏳
 <sub>hit_testing</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/android/hit_testing_light.png" /></td><td><img width="300px" src="captures/android/cpp/hit_testing_light.png" /></td><td><img width="300px" src="captures/android/xaml/hit_testing_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
 ports HitTestingPage.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.HitTestingPage)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Android: structure + text + shapes + transforms match the fresh MAUI ref (Selected/Rectangle checkbox, Start/End Lorem labels, Scale/Rotation buttons, green Ellipse + rounded Rectangle). REAL Android delta: the three buttons have HorizontalOptions=Center but cpp renders them FULL-WIDTH instead of content-width-centered (MAUI content-sizes them), so the Scale=2 (2x transform) button overflows the right edge. Android StackLayout/button cross-axis alignment doesn't content-size a Center button. Isolated Android layout bug for a targeted fix (not iOS/maccatalyst).
+Matches the fresh MAUI ref. The three Scale/Rotation buttons now render CONTENT-WIDTH + centered (was full-width) — the cpp builder was missing the shared XAML's HorizontalOptions="Center" on the buttons; iOS/macCatalyst native buttons content-size regardless (already green), but the android native button fills full-width without it. Added it -&gt; Scale=1/Scale=2(2x)/Rotation=20(rotated) buttons match MAUI's sizing, the Scale=2 button no longer overflows the right edge. Checkbox, Start/End labels, green ellipse + rounded rectangle all align.
 
 #### ⏳ Gemini Review
 
