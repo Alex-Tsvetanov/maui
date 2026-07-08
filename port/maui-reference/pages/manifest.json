@@ -644,13 +644,13 @@
   },
   {
     "key": "gap_items_updating_scroll_mode",
-    "expected_port_status": "unregistered_type",
+    "expected_port_status": "renders",
     "builder_twin": false,
     "tags": [
       "gap",
       "collection_view"
     ],
-    "notes": "CollectionView.ItemsUpdatingScrollMode has no property-registry entry or enum converter (verified: \"Cannot assign property 'ItemsUpdatingScrollMode': Property does not exist\"); register_xaml_items.cpp documents it as settable only programmatically."
+    "notes": "CLOSED (iter67): CollectionView/CarouselView.ItemsUpdatingScrollMode now parses+applies from XAML via the convert_items_updating_scroll_mode enum converter + a bindable-property registration on the ItemsView surface in register_xaml_items.cpp (mirrors SelectionMode/ItemSizingStrategy). KeepItemsInView/KeepScrollOffset/KeepLastItemInView."
   },
   {
     "key": "gap_menu_bar",

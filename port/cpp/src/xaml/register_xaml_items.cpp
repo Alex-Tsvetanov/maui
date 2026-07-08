@@ -44,10 +44,12 @@
 // The entry's value_type is std::string so apply_value_core's late-text-conversion branch is skipped
 // (a literal reaches the setter unconverted; there is deliberately NO boxed_item text converter).
 //
+// ItemsUpdatingScrollMode is an enum literal on the ItemsView base — registered here (both
+// CollectionView and CarouselView) via convert_items_updating_scroll_mode, mirroring SelectionMode.
+//
 // Deferred (no text converter / binding-or-code only, mirroring register_xaml_scrolling_interactive's
-// IndicatorView notes): the <GridItemsLayout> element form (see above), ItemsUpdatingScrollMode +
-// RemainingItemsThreshold (set programmatically). CarouselView's Position/CurrentItem (TwoWay, bound
-// or code-driven) are likewise omitted.
+// IndicatorView notes): the <GridItemsLayout> element form (see above), RemainingItemsThreshold (set
+// programmatically). CarouselView's Position/CurrentItem (TwoWay, bound or code-driven) are likewise omitted.
 //
 // See register_xaml_groups.hpp for the function signature declaration; pattern mirrors
 // register_xaml_scrolling_interactive.cpp.
@@ -66,10 +68,11 @@
 #include "maui/controls/items/boxed_item.hpp" // W6/EmptyView: the object stand-in both forms box into
 #include "maui/controls/items/carousel_view.hpp"
 #include "maui/controls/items/collection_view.hpp"
-#include "maui/controls/items/grid_items_layout.hpp"    // W14: ItemsLayout="VerticalGrid,N"
-#include "maui/controls/items/groupable_items_view.hpp" // W6: IsGrouped
-#include "maui/controls/items/item_sizing_strategy.hpp" // W6: ItemSizingStrategy enum
-#include "maui/controls/items/items_layout.hpp"         // W14: ItemsLayout converter target
+#include "maui/controls/items/grid_items_layout.hpp"          // W14: ItemsLayout="VerticalGrid,N"
+#include "maui/controls/items/groupable_items_view.hpp"       // W6: IsGrouped
+#include "maui/controls/items/item_sizing_strategy.hpp"       // W6: ItemSizingStrategy enum
+#include "maui/controls/items/items_layout.hpp"               // W14: ItemsLayout converter target
+#include "maui/controls/items/items_updating_scroll_mode.hpp" // ItemsUpdatingScrollMode enum
 #include "maui/controls/items/items_view.hpp"
 #include "maui/controls/items/linear_items_layout.hpp" // W14: ItemsLayout="VerticalList"/"HorizontalList"
 #include "maui/controls/items/selectable_items_view.hpp"
@@ -128,6 +131,20 @@ namespace maui::xaml
                 {.name = "MeasureFirstItem", .value = item_sizing_strategy::measure_first_item},
             }};
             return parse_enum<item_sizing_strategy>(text, names, "maui::controls::item_sizing_strategy");
+        }
+
+        // convert_items_updating_scroll_mode  <=  Microsoft.Maui.Controls.ItemsUpdatingScrollMode (Enum.Parse).
+        // C# members: KeepItemsInView / KeepScrollOffset / KeepLastItemInView.
+        [[nodiscard]] maui::controls::items_updating_scroll_mode convert_items_updating_scroll_mode(
+            std::string_view text)
+        {
+            using maui::controls::items_updating_scroll_mode;
+            static constexpr std::array<enum_entry<items_updating_scroll_mode>, 3> names{{
+                {.name = "KeepItemsInView", .value = items_updating_scroll_mode::keep_items_in_view},
+                {.name = "KeepScrollOffset", .value = items_updating_scroll_mode::keep_scroll_offset},
+                {.name = "KeepLastItemInView", .value = items_updating_scroll_mode::keep_last_item_in_view},
+            }};
+            return parse_enum<items_updating_scroll_mode>(text, names, "maui::controls::items_updating_scroll_mode");
         }
 
         // convert_items_layout (W14) <= Microsoft.Maui.Controls.ItemsLayoutTypeConverter.ConvertFrom:
@@ -240,6 +257,10 @@ namespace maui::xaml
                 maui::controls::items_view::horizontal_scroll_bar_visibility_property());
             properties.register_bindable_property<TControl>(
                 "VerticalScrollBarVisibility", maui::controls::items_view::vertical_scroll_bar_visibility_property());
+            // ItemsUpdatingScrollMode — an enum literal on the ItemsView base (both CollectionView and
+            // CarouselView), via the convert_items_updating_scroll_mode converter registered below.
+            properties.register_bindable_property<TControl>(
+                "ItemsUpdatingScrollMode", maui::controls::items_view::items_updating_scroll_mode_property());
 
             // W6 — StructuredItemsView surface (both CollectionView and CarouselView derive it):
             //   - Header / Footer: a literal string boxes into the items machinery's reflection-free
@@ -312,6 +333,8 @@ namespace maui::xaml
         converters.register_converter<controls::selection_mode>(registry_converter(&convert_selection_mode));
         converters.register_converter<controls::item_sizing_strategy>(
             registry_converter(&convert_item_sizing_strategy));
+        converters.register_converter<controls::items_updating_scroll_mode>(
+            registry_converter(&convert_items_updating_scroll_mode));
         converters.register_converter<std::shared_ptr<controls::items_layout>>(
             registry_converter(&convert_items_layout));
     }

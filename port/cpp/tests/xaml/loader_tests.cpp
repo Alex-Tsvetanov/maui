@@ -430,6 +430,31 @@ namespace
         EXPECT_EQ(cell->text(), "cell");
     }
 
+    TEST(xaml_loader, collection_view_items_updating_scroll_mode_applies)
+    {
+        // WS-D gap closure (gap_items_updating_scroll_mode): <CollectionView
+        // ItemsUpdatingScrollMode="KeepLastItemInView"> now parses + applies via the
+        // convert_items_updating_scroll_mode enum converter + the ItemsView-surface bindable-property
+        // registration (register_xaml_items.cpp), mirroring SelectionMode. Previously threw "Cannot
+        // assign property 'ItemsUpdatingScrollMode'".
+        controls::collection_view view;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(view, R"xml(
+<CollectionView xmlns="http://schemas.microsoft.com/dotnet/2021/maui" ItemsUpdatingScrollMode="KeepLastItemInView" />)xml");
+        });
+        EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
+        EXPECT_EQ(view.items_updating_scroll_mode(), controls::items_updating_scroll_mode::keep_last_item_in_view);
+
+        controls::collection_view view2;
+        (void)xaml_loader::load_into(view2, R"xml(
+<CollectionView xmlns="http://schemas.microsoft.com/dotnet/2021/maui" ItemsUpdatingScrollMode="KeepScrollOffset" />)xml");
+        EXPECT_EQ(view2.items_updating_scroll_mode(), controls::items_updating_scroll_mode::keep_scroll_offset);
+
+        // Default when the attribute is absent (C# ItemsUpdatingScrollMode default = KeepItemsInView).
+        controls::collection_view view3;
+        EXPECT_EQ(view3.items_updating_scroll_mode(), controls::items_updating_scroll_mode::keep_items_in_view);
+    }
+
     TEST(xaml_loader, loader_minted_data_template_records_its_body_root_content_type)
     {
         // 2026-07: a XAML-authored <DataTemplate> must carry the body ROOT's registered control type
