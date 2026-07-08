@@ -59,6 +59,7 @@
 #include "maui/controls/formatted_string.hpp"  // W8: Label.FormattedText element form
 #include "maui/controls/grid.hpp"
 #include "maui/controls/image.hpp"                   // W17: Image.Source element form
+#include "maui/controls/items/carousel_view.hpp"     // CarouselView.Position gap closure
 #include "maui/controls/items/collection_view.hpp"   // W4: ItemTemplate inflation target
 #include "maui/controls/items/grid_items_layout.hpp" // W14: ItemsLayout="VerticalGrid,N"
 #include "maui/controls/label.hpp"
@@ -479,6 +480,23 @@ namespace
         EXPECT_DOUBLE_EQ(label.opacity(), 0.5); // condition met -> setter applied at trigger specificity
         label.set_is_enabled(true);
         EXPECT_DOUBLE_EQ(label.opacity(), 1.0); // condition lost -> un-applied (value beneath restored)
+    }
+
+    TEST(xaml_loader, carousel_view_position_literal_applies)
+    {
+        // WS-D gap closure (gap_carousel_position_binding): CarouselView.Position was an unregistered
+        // property (even a literal Position="1" threw "Cannot assign property"). The int descriptor + the
+        // standard int converter already existed; registering the property enables the literal initial page.
+        controls::carousel_view view;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(view, R"xml(
+<CarouselView xmlns="http://schemas.microsoft.com/dotnet/2021/maui" Position="2" />)xml");
+        });
+        EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
+        EXPECT_EQ(view.position(), 2);
+
+        controls::carousel_view view2; // default (unset) Position = 0
+        EXPECT_EQ(view2.position(), 0);
     }
 
     TEST(xaml_loader, loader_minted_data_template_records_its_body_root_content_type)

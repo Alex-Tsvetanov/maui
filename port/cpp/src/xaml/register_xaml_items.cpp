@@ -327,6 +327,12 @@ namespace maui::xaml
         // ---- CarouselView (CarouselView.cs: structured_items_view; no SelectionMode/IsGrouped) ----
         types.register_type<controls::carousel_view>("CarouselView");
         register_items_view_surface<controls::carousel_view>(properties);
+        // Position (int, TwoWay) — was an unregistered-property gap (even a literal Position="1" threw). The
+        // int descriptor + the standard int converter already exist, so registering it enables a literal
+        // initial page AND a {Binding}. (CurrentItem — a boxed object route — and the on-scroll TwoWay
+        // write-back stay deferred: code/runtime, not a XAML-load concern.)
+        properties.register_bindable_property<controls::carousel_view>("Position",
+                                                                       controls::carousel_view::position_property());
 
         // ---- New converters needed by this group (CollectionView.SelectionMode / ItemSizingStrategy /
         //      ItemsLayout) ----

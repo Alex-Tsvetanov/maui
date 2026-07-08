@@ -613,13 +613,13 @@
   },
   {
     "key": "gap_carousel_position_binding",
-    "expected_port_status": "unregistered_type",
+    "expected_port_status": "renders",
     "builder_twin": false,
     "tags": [
       "gap",
       "carousel_view"
     ],
-    "notes": "CarouselView.Position/CurrentItem have no XAML property-registry entry at all (verified: even a plain literal Position=\"1\" throws \"Cannot assign property 'Position': Property does not exist\" -- not merely a missing binding applier). register_xaml_items.cpp documents this as an intentional omission. CarouselView itself (ItemsSource/ItemTemplate) works today."
+    "notes": "CLOSED (iter71): CarouselView.Position now has a XAML property-registry entry (register_xaml_items.cpp), so a literal Position=\"2\" applies and Position=\"{Binding}\" binds. The int descriptor + the standard int converter already existed. CurrentItem (a boxed object route) and the on-scroll TwoWay write-back stay deferred (code/runtime, not a XAML-load concern)."
   },
   {
     "key": "gap_event_attribute",
