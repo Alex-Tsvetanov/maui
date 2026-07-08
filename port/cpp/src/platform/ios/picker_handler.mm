@@ -512,7 +512,7 @@ namespace maui::core
         // already-stored IsOpen a silent no-op, so no double Opened/Closed).
         if (view.is_open())
         {
-            focus_native_view(handler.native_view());
+            (void)focus_native_view(handler.native_view());
         }
         else
         {

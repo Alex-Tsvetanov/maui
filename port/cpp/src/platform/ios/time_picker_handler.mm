@@ -533,7 +533,7 @@ namespace maui::core
         // proxy turns into the IsOpen + IsFocused write-back.
         if (view.is_open())
         {
-            focus_native_view(handler.native_view());
+            (void)focus_native_view(handler.native_view());
         }
         else
         {
