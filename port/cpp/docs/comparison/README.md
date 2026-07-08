@@ -5393,7 +5393,7 @@ ports HeaderFooterGridHorizontal.xaml (+ HeaderFooterGridHorizontal.xaml.cs) of 
 
 #### 🟡 Sonnet 5 Review
 
-MAUI's light/dark captures are scrolled to show only the first two rows of the grid (cover1.jpg/oasis.jpg row and Vegetables/Fruits/Legumes row), missing the third row (photo.jpg, FlowerBuds.jpg, oasis.jpg) and the footer/second 'Add Content' link that cpp renders. All visible rows and the header match well (text, layout, header image). No confirmed divergence in the parts that can be compared, but the comparison is incomplete due to MAUI's capture cropping.
+FRAMEWORK (horizontal GridItemsLayout cell height, NOT a capture scroll — verified by fresh recapture). MAUI's horizontal-grid cells render ~627px tall so only 2 of the 3 rows fit the viewport (cover1/Vegetables/Legumes/photo row, then oasis/Fruits/cover1 row); cpp's cells are ~190px so all 3 rows show. Same content/order, header/footer images and 'Add Content' links match — the delta is the GridItemsLayout horizontal cell-height sizing (a CV-layout framework matter).
 
 #### ⏳ Gemini Review
 
@@ -5431,7 +5431,7 @@ ports HeaderFooterView.xaml (+ .xaml.cs) of the C# CollectionView gallery (Colle
 
 #### 🟡 Sonnet 5 Review
 
-MAUI's own light/dark captures are truncated/scrolled to show only the header image and header text ('This Is A Header'), missing the footer text, collection view, and 'Add 2 Items'/'Clear All Items' buttons that both cpp and xaml render further down. For the content that IS visible in the MAUI capture (header image, header text placement/color), cpp matches exactly. Cannot fully verify the footer/list section against MAUI since the MAUI capture doesn't show it, so classifying as a minor/incomplete-comparison rather than a confirmed bug.
+RULING-3 (twin-degradation, NOT a capture artifact — verified by fresh recapture). The original HeaderFooterView.xaml uses &lt;CollectionView Header={view} Footer={view}&gt; (header/footer INSIDE the CV). The CV-Header/Footer view form is unsupported, so the twin moved them to plain sibling Grids ABOVE/BELOW an EMPTY CollectionView in a VerticalStackLayout. In MAUI that empty sibling CV EXPANDS to fill the stack, pushing the footer + Add/Clear buttons below the fold (so MAUI shows only the header); cpp's empty CV takes minimal height so it shows header+footer+buttons compactly. A degraded-structure layout divergence, not a port bug in the original page. Header image + 'This Is A Header' match.
 
 #### ⏳ Gemini Review
 
