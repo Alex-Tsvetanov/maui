@@ -39,8 +39,10 @@
 #include "maui/controls/items/selection_mode.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
+#include "maui/controls/view.hpp" // maui::controls::margin_property()
 #include "maui/core/grid_length.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/thickness.hpp"
 
 namespace maui::samples
 {
@@ -71,6 +73,8 @@ namespace maui::samples
             auto cell = maui::controls::data_template::of<maui::controls::label>();
             cell->set_binding<std::string, photo_item>(maui::controls::label::text_property(),
                                                        [](const photo_item& value) { return value.caption; });
+            cell->set_value(maui::controls::margin_property(),
+                            maui::core::thickness{6}); // <Label Margin="6"> (shared XAML)
             list_.set_item_template(cell);
             list_.set_header(maui::controls::boxed_item::of(std::string{"This is the header"})); // Header=…
             list_.set_items_source(items_);

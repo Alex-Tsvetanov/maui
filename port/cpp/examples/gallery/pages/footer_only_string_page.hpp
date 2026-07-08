@@ -39,7 +39,9 @@
 #include "maui/controls/items/collection_view.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
+#include "maui/controls/view.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/thickness.hpp"
 
 namespace maui::samples
 {
@@ -62,6 +64,7 @@ namespace maui::samples
             auto cell = maui::controls::data_template::of<maui::controls::label>();
             cell->set_binding<std::string, demo_item>(maui::controls::label::text_property(),
                                                       [](const demo_item& item) { return item.caption; });
+            cell->set_value(maui::controls::margin_property(), maui::core::thickness{6}); // <Label Margin="6">
             list_.set_item_template(cell);
             list_.set_items_source(items_);
 

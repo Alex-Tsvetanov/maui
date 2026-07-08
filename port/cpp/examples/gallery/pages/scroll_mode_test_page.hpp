@@ -60,7 +60,9 @@
 #include "maui/controls/scroll_to_position.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/controls/view.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/thickness.hpp"
 
 namespace maui::samples
 {
@@ -110,6 +112,8 @@ namespace maui::samples
             auto cell = maui::controls::data_template::of<maui::controls::label>();
             cell->set_binding<std::string, test_item>(maui::controls::label::text_property(),
                                                       [](const test_item& item) { return item.caption; });
+            cell->set_value(maui::controls::margin_property(),
+                            maui::core::thickness{6}); // <Label Margin="6"> (shared XAML)
             list_.set_item_template(cell);
             list_.set_items_layout(std::make_shared<maui::controls::linear_items_layout>(
                 maui::controls::items_layout_orientation::vertical)); // LinearItemsLayout.Vertical (default)

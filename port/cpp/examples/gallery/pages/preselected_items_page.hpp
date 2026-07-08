@@ -41,7 +41,9 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/controls/view.hpp" // maui::controls::margin_property()
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/thickness.hpp"
 
 namespace maui::samples
 {
@@ -75,6 +77,8 @@ namespace maui::samples
             auto cell = maui::controls::data_template::of<maui::controls::label>();
             cell->set_binding<std::string, photo_item>(maui::controls::label::text_property(),
                                                        [](const photo_item& value) { return value.caption; });
+            cell->set_value(maui::controls::margin_property(),
+                            maui::core::thickness{6}); // <Label Margin="6"> (shared XAML)
             list_.set_item_template(cell);
             list_.set_items_layout(std::make_shared<maui::controls::grid_items_layout>(
                 4, maui::controls::items_layout_orientation::vertical)); // GridItemsLayout Span="4"

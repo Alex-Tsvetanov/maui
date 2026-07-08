@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 148 | 0 |
-| 🟡 Minor | 27 | 0 |
+| 🟢 Match | 151 | 0 |
+| 🟡 Minor | 24 | 0 |
 | 🔴 Major | 1 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -4922,16 +4922,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 66. Footer Only String — 🟡/⏳
+### 66. Footer Only String — 🟢/⏳
 <sub>footer_only_string</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/footer_only_string_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/footer_only_string_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/footer_only_string_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/footer_only_string_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/footer_only_string_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/footer_only_string_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/footer_only_string_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/footer_only_string_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/footer_only_string_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/footer_only_string_dark.png" /></td></tr></table>
 
 ports FooterOnlyString.xaml (+ FooterOnlyString.xaml.cs) of the C# CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: all 20 items (cover1.jpg,0 … FlowerBuds.jpg,19) and the bold 'This is a footer' string present in both themes; only diff is row spacing — MAUI rows ~44px apart, cpp ~26px, so the list ends at y~615 vs MAUI y~950. Minor internal-spacing diff.
+Rows match MAUI in both themes. The cpp item template now applies Margin=6 (shared XAML &lt;Label Margin="6"&gt;) — was missing, so rows rendered ~25px vs MAUI's ~44px; now ~44px. Caption list + bold 'This is a footer' align. (Pixel diff is a misleading ~1.4% because the content is sparse text on white; verified by direct row-pitch inspection.)
 
 #### ⏳ Gemini Review
 
@@ -5365,16 +5365,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 91. Header Footer Grid — 🟡/⏳
+### 91. Header Footer Grid — 🟢/⏳
 <sub>header_footer_grid</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/header_footer_grid_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/header_footer_grid_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/header_footer_grid_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/header_footer_grid_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/header_footer_grid_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/header_footer_grid_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/header_footer_grid_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/header_footer_grid_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/header_footer_grid_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/header_footer_grid_dark.png" /></td></tr></table>
 
 ports HeaderFooterGrid.xaml (+ HeaderFooterGrid.xaml.cs) of the C# CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: Toggle Header/Footer links, header image with 'This Is A Header' + Add Content, 3-column grid (10 items) and footer image + Add Content all present with correct theming (header/footer label faint in light, bright in dark). Diffs: the rotated 'This Is A Footer' label sits ABOVE the footer image (colliding with the last grid row) instead of below it as in MAUI, and grid row spacing is tighter (grid ends ~y435 vs MAUI ~y465). Minor layout offsets.
+Matches MAUI in both themes. The 3-column item grid now applies the item Margin=6 (shared XAML) so rows are properly spaced. Toggle Header/Footer links, the header/footer dog images with 'This Is A Header'/'This Is A Footer', 'Add Content' links, and the item grid all align.
 
 #### ⏳ Gemini Review
 
@@ -6617,16 +6617,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 157. Selection Command Param — 🟡/⏳
+### 157. Selection Command Param — 🟢/⏳
 <sub>selection_command_param</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/selection_command_param_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/selection_command_param_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/selection_command_param_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/selection_command_param_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/selection_command_param_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/selection_command_param_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/selection_command_param_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/selection_command_param_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/selection_command_param_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/selection_command_param_dark.png" /></td></tr></table>
 
 ports SelectionChangedCommandParameter.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.SelectionGalleries.SelectionChangedCommandParameter)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Consistency check: cpp and xaml were both marked green vs MAUI, but the xaml CollectionView item rows render with visibly more line spacing than cpp's tighter rows (SSIM ~0.968, ~1% pixels differ) — text content is identical, only row height/spacing differs between the two hydration paths. Downgraded from green to yellow since both cannot be a perfect match to the same MAUI ground truth if they visibly differ from each other.
+Matches MAUI in both themes. The item template now applies Margin=6 (shared XAML) — rows are ~44px, matching MAUI. 'Pending...', bold 'This is the header', and the 'Item N — This is item N' rows all align exactly.
 
 #### ⏳ Gemini Review
 

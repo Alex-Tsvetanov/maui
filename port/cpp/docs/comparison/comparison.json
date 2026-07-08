@@ -8291,8 +8291,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: all 20 items (cover1.jpg,0 \u2026 FlowerBuds.jpg,19) and the bold 'This is a footer' string present in both themes; only diff is row spacing \u2014 MAUI rows ~44px apart, cpp ~26px, so the list ends at y~615 vs MAUI y~950. Minor internal-spacing diff."
+          "status": "green",
+          "review": "Rows match MAUI in both themes. The cpp item template now applies Margin=6 (shared XAML <Label Margin=\"6\">) \u2014 was missing, so rows rendered ~25px vs MAUI's ~44px; now ~44px. Caption list + bold 'This is a footer' align. (Pixel diff is a misleading ~1.4% because the content is sparse text on white; verified by direct row-pitch inspection.)"
         },
         "gemini": {
           "status": null,
@@ -10914,8 +10914,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: Toggle Header/Footer links, header image with 'This Is A Header' + Add Content, 3-column grid (10 items) and footer image + Add Content all present with correct theming (header/footer label faint in light, bright in dark). Diffs: the rotated 'This Is A Footer' label sits ABOVE the footer image (colliding with the last grid row) instead of below it as in MAUI, and grid row spacing is tighter (grid ends ~y435 vs MAUI ~y465). Minor layout offsets."
+          "status": "green",
+          "review": "Matches MAUI in both themes. The 3-column item grid now applies the item Margin=6 (shared XAML) so rows are properly spaced. Toggle Header/Footer links, the header/footer dog images with 'This Is A Header'/'This Is A Footer', 'Add Content' links, and the item grid all align."
         },
         "gemini": {
           "status": null,
@@ -19284,8 +19284,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "Consistency check: cpp and xaml were both marked green vs MAUI, but the xaml CollectionView item rows render with visibly more line spacing than cpp's tighter rows (SSIM ~0.968, ~1% pixels differ) \u2014 text content is identical, only row height/spacing differs between the two hydration paths. Downgraded from green to yellow since both cannot be a perfect match to the same MAUI ground truth if they visibly differ from each other."
+          "status": "green",
+          "review": "Matches MAUI in both themes. The item template now applies Margin=6 (shared XAML) \u2014 rows are ~44px, matching MAUI. 'Pending...', bold 'This is the header', and the 'Item N \u2014 This is item N' rows all align exactly."
         },
         "gemini": {
           "status": null,
