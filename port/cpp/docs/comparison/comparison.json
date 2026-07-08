@@ -896,8 +896,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/application_control_light.png",
-            "dark": "captures/ios/maui/application_control_dark.png"
+            "light": "../../../maui-reference/captures/ios/application_control_light.png",
+            "dark": "../../../maui-reference/captures/ios/application_control_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/application_control_light.png",
@@ -909,16 +909,16 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "Layout, links, and window-count text match in both themes; only the window-title substring differs, a harmless runtime-state text difference, not a layout/color bug."
+          "status": "green",
+          "review": "Matches MAUI in both themes against the fresh iOS baseline (1.40%/1.40%). Both show 'Quits the application', Terminate/Open/Close Window links, and 'Application: not yet hosted' \u2014 the earlier window-title-substring diff was a stale-capture mismatch; residual is the status-bar clock."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9910, 0.35% pixels differ \u00b7 Dark: SSIM 0.9907, 0.35% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9629, 1.40% pixels differ \u00b7 Dark: SSIM 0.9623, 1.40% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
@@ -966,11 +966,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9787, 0.68% pixels differ \u00b7 Dark: SSIM 0.9785, 0.85% pixels differ"
+          "review": "Light: SSIM 0.9830, 0.52% pixels differ \u00b7 Dark: SSIM 0.9789, 0.73% pixels differ"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 0.9818, 0.58% pixels differ \u00b7 Dark: SSIM 0.9816, 0.72% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9822, 0.54% pixels differ \u00b7 Dark: SSIM 0.9780, 0.76% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -4043,8 +4043,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/clipping_light.png",
-            "dark": "captures/ios/maui/clipping_dark.png"
+            "light": "../../../maui-reference/captures/ios/clipping_light.png",
+            "dark": "../../../maui-reference/captures/ios/clipping_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/clipping_light.png",
@@ -4056,8 +4056,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "Layout, orange/red boxes, numbered items, and clip toggling all match in both themes; MAUI's reference fails to load the two coffee-cup icons (blank) while cpp renders them correctly, a minor content difference given the rest is pixel-accurate."
+          "status": "green",
+          "review": "Matches MAUI in both themes against the FRESH MauiReference iOS baseline (0.73%/0.86%, SSIM 0.989). The old frozen ~/maui-compare ref failed to load the two coffee-cup icons (the prior ruling-3 reason); MauiReference renders them, and cpp matches \u2014 numbers 1-8, orange square, purple 'Hey' boxes, blue clip bar, and both coffee cups all align. Residual is the status-bar clock."
         },
         "gemini": {
           "status": null,
@@ -4065,7 +4065,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9895, 0.73% pixels differ \u00b7 Dark: SSIM 0.9896, 0.72% pixels differ"
+          "review": "Light: SSIM 0.9893, 0.73% pixels differ \u00b7 Dark: SSIM 0.9857, 0.86% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -10857,8 +10857,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/header_footer_grid_light.png",
-            "dark": "captures/ios/maui/header_footer_grid_dark.png"
+            "light": "../../../maui-reference/captures/ios/header_footer_grid_light.png",
+            "dark": "../../../maui-reference/captures/ios/header_footer_grid_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/header_footer_grid_light.png",
@@ -10879,7 +10879,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8541, 17.06% pixels differ \u00b7 Dark: SSIM 0.8095, 15.06% pixels differ"
+          "review": "Light: SSIM 0.8540, 17.06% pixels differ \u00b7 Dark: SSIM 0.8091, 15.07% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -10927,11 +10927,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8324, 11.85% pixels differ \u00b7 Dark: SSIM 0.8285, 11.08% pixels differ"
+          "review": "Light: SSIM 0.8326, 11.82% pixels differ \u00b7 Dark: SSIM 0.8243, 11.13% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8355, 10.38% pixels differ \u00b7 Dark: SSIM 0.8331, 9.83% pixels differ"
+          "review": "Light: SSIM 0.8358, 10.35% pixels differ \u00b7 Dark: SSIM 0.8290, 9.87% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -11133,11 +11133,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7747, 28.11% pixels differ \u00b7 Dark: SSIM 0.6899, 27.36% pixels differ"
+          "review": "Light: SSIM 0.7353, 36.36% pixels differ \u00b7 Dark: SSIM 0.6242, 35.51% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.9028, 9.54% pixels differ \u00b7 Dark: SSIM 0.8743, 9.61% pixels differ"
+          "review": "Light: SSIM 0.8351, 21.92% pixels differ \u00b7 Dark: SSIM 0.7587, 21.32% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -11260,11 +11260,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8852, 19.82% pixels differ \u00b7 Dark: SSIM 0.7903, 18.75% pixels differ"
+          "review": "Light: SSIM 0.9704, 9.38% pixels differ \u00b7 Dark: SSIM 0.8970, 9.36% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8746, 21.23% pixels differ \u00b7 Dark: SSIM 0.7770, 19.93% pixels differ"
+          "review": "Light: SSIM 0.9700, 9.41% pixels differ \u00b7 Dark: SSIM 0.8965, 9.40% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -11308,11 +11308,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8958, 12.67% pixels differ \u00b7 Dark: SSIM 0.8588, 12.42% pixels differ"
+          "review": "Light: SSIM 0.8888, 13.79% pixels differ \u00b7 Dark: SSIM 0.8503, 13.32% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8876, 13.84% pixels differ \u00b7 Dark: SSIM 0.8502, 13.37% pixels differ"
+          "review": "Light: SSIM 0.8879, 13.81% pixels differ \u00b7 Dark: SSIM 0.8495, 13.34% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -11734,8 +11734,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/hybrid_web_view_light.png",
-            "dark": "captures/ios/maui/hybrid_web_view_dark.png"
+            "light": "../../../maui-reference/captures/ios/hybrid_web_view_light.png",
+            "dark": "../../../maui-reference/captures/ios/hybrid_web_view_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/hybrid_web_view_light.png",
@@ -11755,8 +11755,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9885, 0.50% pixels differ \u00b7 Dark: SSIM 0.9882, 0.51% pixels differ"
+          "status": "red",
+          "review": "Light: SSIM 0.9616, 1.21% pixels differ \u00b7 Dark: SSIM 0.8746, 8.60% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -11804,11 +11804,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9582, 1.09% pixels differ \u00b7 Dark: SSIM 0.9433, 3.85% pixels differ"
+          "review": "Light: SSIM 0.9814, 0.59% pixels differ \u00b7 Dark: SSIM 0.9553, 2.54% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9509, 1.44% pixels differ \u00b7 Dark: SSIM 0.9513, 2.92% pixels differ"
+          "review": "Light: SSIM 0.9805, 0.62% pixels differ \u00b7 Dark: SSIM 0.9544, 2.57% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -11861,8 +11861,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/image_light.png",
-            "dark": "captures/ios/maui/image_dark.png"
+            "light": "../../../maui-reference/captures/ios/image_light.png",
+            "dark": "../../../maui-reference/captures/ios/image_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/image_light.png",
@@ -11883,7 +11883,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.6123, 47.19% pixels differ \u00b7 Dark: SSIM 0.6107, 36.43% pixels differ"
+          "review": "Light: SSIM 0.6119, 47.21% pixels differ \u00b7 Dark: SSIM 0.6101, 36.45% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -12750,8 +12750,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/ios_blur_effect_light.gif",
-            "dark": "captures/ios/maui/ios_blur_effect_dark.gif"
+            "light": "../../../maui-reference/captures/ios/ios_blur_effect_light.png",
+            "dark": "../../../maui-reference/captures/ios/ios_blur_effect_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/ios_blur_effect_light.gif",
@@ -12820,11 +12820,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8063, 8.10% pixels differ \u00b7 Dark: SSIM 0.8053, 8.19% pixels differ"
+          "review": "Light: SSIM 0.8065, 8.08% pixels differ \u00b7 Dark: SSIM 0.8014, 8.23% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8053, 8.14% pixels differ \u00b7 Dark: SSIM 0.8043, 8.22% pixels differ"
+          "review": "Light: SSIM 0.8057, 8.10% pixels differ \u00b7 Dark: SSIM 0.8005, 8.26% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -15671,8 +15671,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/nested_collection_light.png",
-            "dark": "captures/ios/maui/nested_collection_dark.png"
+            "light": "../../../maui-reference/captures/ios/nested_collection_light.png",
+            "dark": "../../../maui-reference/captures/ios/nested_collection_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/nested_collection_light.png",
@@ -15693,7 +15693,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8259, 5.16% pixels differ \u00b7 Dark: SSIM 0.8488, 5.18% pixels differ"
+          "review": "Light: SSIM 0.8252, 5.19% pixels differ \u00b7 Dark: SSIM 0.8486, 5.18% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
@@ -18719,8 +18719,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/scroll_mode_test_light.png",
-            "dark": "captures/ios/maui/scroll_mode_test_dark.png"
+            "light": "../../../maui-reference/captures/ios/scroll_mode_test_light.png",
+            "dark": "../../../maui-reference/captures/ios/scroll_mode_test_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/scroll_mode_test_light.png",
@@ -18740,8 +18740,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9035, 3.59% pixels differ \u00b7 Dark: SSIM 0.9003, 3.59% pixels differ"
+          "status": "red",
+          "review": "Light: SSIM 0.9032, 3.60% pixels differ \u00b7 Dark: SSIM 0.8998, 3.61% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -18789,11 +18789,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9380, 1.97% pixels differ \u00b7 Dark: SSIM 0.9337, 2.93% pixels differ"
+          "review": "Light: SSIM 0.9382, 1.95% pixels differ \u00b7 Dark: SSIM 0.9308, 2.96% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9338, 2.19% pixels differ \u00b7 Dark: SSIM 0.9285, 3.21% pixels differ"
+          "review": "Light: SSIM 0.9342, 2.15% pixels differ \u00b7 Dark: SSIM 0.9258, 3.22% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -19100,8 +19100,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/search_bar_light.png",
-            "dark": "captures/ios/maui/search_bar_dark.png"
+            "light": "../../../maui-reference/captures/ios/search_bar_light.png",
+            "dark": "../../../maui-reference/captures/ios/search_bar_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/search_bar_light.png",
@@ -19122,7 +19122,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8700, 2.73% pixels differ \u00b7 Dark: SSIM 0.6506, 7.79% pixels differ"
+          "review": "Light: SSIM 0.8862, 2.01% pixels differ \u00b7 Dark: SSIM 0.7381, 5.61% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -19170,11 +19170,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9346, 0.72% pixels differ \u00b7 Dark: SSIM 0.8754, 1.27% pixels differ"
+          "review": "Light: SSIM 0.9139, 1.10% pixels differ \u00b7 Dark: SSIM 0.8584, 1.46% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.9127, 1.15% pixels differ \u00b7 Dark: SSIM 0.8607, 1.45% pixels differ"
+          "review": "Light: SSIM 0.9130, 1.13% pixels differ \u00b7 Dark: SSIM 0.8576, 1.49% pixels differ"
         },
         "consistency": {
           "status": "ok",
@@ -22021,8 +22021,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/tabbed_flyout_light.png",
-            "dark": "captures/ios/maui/tabbed_flyout_dark.png"
+            "light": "../../../maui-reference/captures/ios/tabbed_flyout_light.png",
+            "dark": "../../../maui-reference/captures/ios/tabbed_flyout_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/tabbed_flyout_light.png",
@@ -22034,8 +22034,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "Screenshots were captured at different navigation states so a direct pixel comparison isn't possible, but all visible content renders correctly and consistently with MAUI's UI in both themes."
+          "status": "green",
+          "review": "Matches MAUI in both themes against the fresh iOS baseline (1.29%/1.30%). Both render the degraded ContentPage resting state identically \u2014 Home tab / Settings tab / Toggle flyout links + 'Flyout dismissed' + 'This is the Home tab.' The earlier 'different nav states' was a stale-capture mismatch; residual is the status-bar clock."
         },
         "gemini": {
           "status": null,
@@ -22043,7 +22043,7 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9638, 1.08% pixels differ \u00b7 Dark: SSIM 0.9319, 2.43% pixels differ"
+          "review": "Light: SSIM 0.9608, 1.29% pixels differ \u00b7 Dark: SSIM 0.9600, 1.30% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
@@ -22091,7 +22091,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9848, 0.76% pixels differ \u00b7 Dark: SSIM 0.9846, 0.82% pixels differ"
+          "review": "Light: SSIM 0.9874, 0.40% pixels differ \u00b7 Dark: SSIM 0.9832, 0.56% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -22127,7 +22127,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9541, 18.67% pixels differ"
+          "review": "Light: SSIM 0.9305, 16.19% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -22370,8 +22370,8 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/time_picker_light.png",
-            "dark": "captures/ios/maui/time_picker_dark.png"
+            "light": "../../../maui-reference/captures/ios/time_picker_light.png",
+            "dark": "../../../maui-reference/captures/ios/time_picker_dark.png"
           },
           "cpp": {
             "light": "captures/ios/cpp/time_picker_light.png",
@@ -22392,7 +22392,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8257, 10.20% pixels differ \u00b7 Dark: SSIM 0.7407, 10.16% pixels differ"
+          "review": "Light: SSIM 0.8223, 10.21% pixels differ \u00b7 Dark: SSIM 0.7394, 10.22% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
