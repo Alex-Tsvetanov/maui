@@ -65,6 +65,9 @@ namespace maui::samples
                 });
             });
 
+            // Match the twin's <WebView HeightRequest="240"/> — without it the WebView collapses to its
+            // content height, pulling the status/eval labels + buttons ~240px up out of parity.
+            browser_.set_height_request(240);
             stack_.add(browser_);
             stack_.add(status_);
             stack_.add(result_);

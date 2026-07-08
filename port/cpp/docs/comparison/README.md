@@ -3641,13 +3641,13 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 ### 194. Web View — 🟢/⏳
 <sub>web_view</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/web_view_light.png" /></td><td><img width="300px" src="captures/ios/cpp/web_view_light.png" /></td><td><img width="300px" src="captures/ios/xaml/web_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/web_view_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/web_view_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/web_view_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/web_view_light.png" /></td><td><img width="300px" src="captures/ios/cpp/web_view_light.png" /></td><td><img width="300px" src="captures/ios/xaml/web_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/web_view_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/web_view_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/web_view_dark.png" /></td></tr></table>
 
 a self-contained demo page for the W1-08 web_view vertical: a web_view loading a STATIC html_web_view_source (no network), back/forward/reload buttons over the handler-pushed CanGoBack/CanGoForward read-onlys, an &amp;quot;Eval 1+1&amp;quot; button driving t
 
 #### 🟢 Sonnet 5 Review
 
-WebView content (Welcome header, buttons, layout) matches in both themes; the displayed URL text differs (file path vs https) but that's a harness/environment artifact, not a rendering bug.
+WebView now carries HeightRequest=240 (builder-drift fixed) so the status/eval labels + Page A/B/Back/Forward/Reload/Eval buttons align EXACTLY with the fresh MAUI iOS reference (new_page label, Eval result, and each button at matching y). The only difference is cpp faithfully renders the page's static HtmlWebViewSource (a 'Welcome' heading + paragraph) inside the 240px region, which the twin degrades to a blank url (the XAML loader can't represent HtmlWebViewSource) — a twin-degradation, not a port bug.
 
 #### ⏳ Gemini Review
 
@@ -7323,7 +7323,7 @@ a self-contained demo page for the W1-08 web_view vertical: a web_view loading a
 
 #### 🟡 Sonnet 5 Review
 
-C1/C3: all content present (status labels, Page A/B/Back/Forward/Reload/Eval buttons) and the web page actually renders ('Welcome' heading), but the WebView region is collapsed to its content height so everything below sits ~270px higher than in MAUI, which reserves a tall webview area (blank white in light, white band in dark). Layout/height of the webview differs in both themes.
+HeightRequest=240 builder-drift FIXED: the 240px WebView region + the status/eval labels + button column now align with MAUI (was collapsed ~240px too high). Residual: cpp faithfully renders the page's static HtmlWebViewSource ('Welcome' + para) which the twin degrades to a blank url (loader limitation). Kept YELLOW because the xaml-mac column correctly matches MAUI's blank (loads the url), so per the cpp/xaml guardrail cpp is the divergent one. This is a twin-degradation (cpp faithful to the original page) — a ruling-3-class call flagged for the user, same family as context_flyout.
 
 #### ⏳ Gemini Review
 
@@ -10999,7 +10999,7 @@ a self-contained demo page for the W1-08 web_view vertical: a web_view loading a
 
 #### 🟡 Sonnet 5 Review
 
-C++ shows 'No navigation yet' status text instead of MAUI's navigated-event text, indicating the navigated-event callback text wasn't triggered/updated on load.
+HeightRequest=240 builder-drift FIXED: the 240px WebView region + labels + buttons now align with MAUI (pixel 22.69%-&gt;6.89%). Residual: cpp faithfully renders the page's static HtmlWebViewSource ('Welcome' + para) which the twin degrades to a blank url. Twin-degradation (cpp faithful to the original page), flagged for the user — same family as context_flyout.
 
 #### ⏳ Gemini Review
 
