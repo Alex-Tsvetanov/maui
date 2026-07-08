@@ -337,4 +337,63 @@ namespace maui::controls
         Value value_;
         trigger_body body_;
     };
+
+    // VisualElement.Triggers: a collection created pre-attached to its owning element (C#'s
+    // TriggersPropertyKey defaultValueCreator runs collection.AttachTo(bindable)). Adding a trigger attaches
+    // it to the owner immediately (AttachedCollectionChanged); removing it / destroying the collection drops
+    // the trigger's RAII handle (unsubscribe + un-apply). Because the trigger types are unrelated (no shared
+    // base — property_trigger<T> / multi_trigger / data_trigger<C,V> only share the shape attach(target) ->
+    // trigger_handle), each entry TYPE-ERASES its trigger behind a shared_ptr<void> and owns the handle its
+    // attach() returned. Non-copyable/non-movable, like behavior_collection — the handles hold back-references
+    // to the owner and to the heap-stable trigger objects.
+    class triggers_collection
+    {
+    public:
+        triggers_collection() = default;
+        explicit triggers_collection(maui::core::bindable_object& owner) : owner_(&owner)
+        {
+        }
+        triggers_collection(const triggers_collection&) = delete;
+        triggers_collection(triggers_collection&&) = delete;
+        triggers_collection& operator=(const triggers_collection&) = delete;
+        triggers_collection& operator=(triggers_collection&&) = delete;
+        ~triggers_collection() = default;
+
+        // Add a trigger — any type with `[[nodiscard]] trigger_handle attach(bindable_object&)` (the four
+        // trigger types + event_trigger). It attaches to the owner now; the collection owns it (and its
+        // handle) so it reverts when removed or when the collection dies.
+        template <class Trigger> void add(Trigger trigger)
+        {
+            auto owned = std::make_shared<Trigger>(std::move(trigger));
+            entry item;
+            if (owner_ != nullptr)
+            {
+                item.handle = owned->attach(*owner_); // apply now / observe (AttachedCollectionChanged)
+            }
+            item.owned = std::static_pointer_cast<void>(std::move(owned));
+            entries_.push_back(std::move(item));
+        }
+
+        // Remove every trigger, dropping each handle first (un-apply) then the trigger (ClearItems).
+        void clear()
+        {
+            entries_.clear();
+        }
+        [[nodiscard]] std::size_t count() const
+        {
+            return entries_.size();
+        }
+
+    private:
+        // Destruction order is reverse-declaration: `handle` dies FIRST (unsubscribe + un-apply while the
+        // trigger is still alive), then `owned` frees the trigger. A moved entry (vector realloc) keeps both
+        // valid — the heap trigger and the owner do not move.
+        struct entry
+        {
+            std::shared_ptr<void> owned;
+            trigger_handle handle;
+        };
+        maui::core::bindable_object* owner_ = nullptr;
+        std::vector<entry> entries_;
+    };
 } // namespace maui::controls

@@ -94,4 +94,40 @@ namespace
 
         EXPECT_EQ(target.label.get(), "");
     }
+
+    // VisualElement.Triggers collection: adding a trigger attaches it to the owner now; clearing / destroying
+    // the collection drops each trigger's RAII handle (un-apply). Type-erased over the unrelated trigger types.
+    TEST(triggers_collection, add_attaches_now_and_clear_reverts)
+    {
+        using maui::controls::triggers_collection;
+        mock_object target;
+        triggers_collection coll{target};
+
+        property_trigger<bool> trigger{target.is_on, true};
+        trigger.add(setter::of(label_prop(), std::string("ON")));
+        coll.add(std::move(trigger)); // attaches to target now (is_on false -> not yet applied)
+        EXPECT_EQ(coll.count(), 1U);
+        EXPECT_EQ(target.label.get(), "");
+
+        target.is_on.set(true);
+        EXPECT_EQ(target.label.get(), "ON"); // the collection-attached trigger applies
+
+        coll.clear(); // drops the handle -> un-apply
+        EXPECT_EQ(coll.count(), 0U);
+        EXPECT_EQ(target.label.get(), "");
+    }
+
+    TEST(triggers_collection, destroying_the_collection_reverts_active_triggers)
+    {
+        mock_object target;
+        {
+            maui::controls::triggers_collection coll{target};
+            property_trigger<bool> trigger{target.is_on, true};
+            trigger.add(setter::of(label_prop(), std::string("ON")));
+            coll.add(std::move(trigger));
+            target.is_on.set(true);
+            EXPECT_EQ(target.label.get(), "ON");
+        } // coll destructs -> handle dropped -> setters un-applied
+        EXPECT_EQ(target.label.get(), "");
+    }
 } // namespace

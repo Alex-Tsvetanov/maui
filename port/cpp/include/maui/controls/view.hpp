@@ -30,6 +30,7 @@
 #include "maui/controls/element.hpp"
 #include "maui/controls/gestures/gesture_platform_manager.hpp" // --- gestures (W1-12) ---
 #include "maui/controls/style.hpp"
+#include "maui/controls/trigger.hpp" // VisualElement.Triggers collection
 #include "maui/controls/visual_state_manager.hpp"
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/bindable_property.hpp"
@@ -1231,8 +1232,20 @@ namespace maui::controls
             return behaviors_;
         }
 
+        // VisualElement.Triggers: the trigger collection of this control, pre-attached to it (the
+        // TriggersPropertyKey defaultValueCreator) — adding a trigger attaches it to this view now.
+        [[nodiscard]] triggers_collection& triggers()
+        {
+            return triggers_;
+        }
+        [[nodiscard]] const triggers_collection& triggers() const
+        {
+            return triggers_;
+        }
+
     private:
         behavior_collection behaviors_{*this};
+        triggers_collection triggers_{*this};
         // --- end styles tail (W1-15) --------------------------------------------------------------------
     };
 } // namespace maui::controls
